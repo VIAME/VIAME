@@ -930,7 +930,17 @@ class ContainerXPU(XPU):
         model = xpu.raw(model)
         model = xpu.move(model)
         device_ids, host_staged = xpu._plan_parallel()
-        if device_ids and len(device_ids) > 1:
+        if device_ids:
+            # Any GPU count, not just more than one. The batch reaches these
+            # models still wrapped in BatchContainers on the host --
+            # prepare_batch deliberately does not xpu.move() it -- and the
+            # container scatter inside ContainerDataParallel.forward is what
+            # puts it on the GPU. DataSerial has no scatter, so a single-GPU
+            # mount used to hand the model a host batch, and models that follow
+            # their input's device (rf_detr_models, the mmdet wrappers) would
+            # quietly move themselves to the CPU and train there: full CPU load,
+            # an idle GPU and no error. ContainerDataParallel already
+            # short-circuits replication for one device, so this costs nothing.
             cls = (ContainerHostStagedDataParallel if host_staged
                    else ContainerDataParallel)
             model = cls(model, device_ids=device_ids,

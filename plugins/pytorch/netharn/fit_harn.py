@@ -1369,8 +1369,22 @@ class ScheduleMixin(object):
         lrs = optim_lrs
         return lrs
 
-    def _check_termination(harn):
-        if harn.epoch >= harn.monitor.max_epoch:
+    def _check_termination(harn, completed_epochs=None):
+        """Whether training should stop.
+
+        Args:
+            completed_epochs (int | None): epochs finished so far. Defaults to
+                harn.epoch, which is the count of completed epochs before the
+                main loop starts -- a resume sets it to snapshot['epoch'] + 1.
+                Inside the loop harn.epoch is instead the index of the epoch
+                just finished, one less than the count, so callers there pass
+                the count explicitly. Sharing one predicate across both ran
+                max_epoch + 1 epochs.
+        """
+        if completed_epochs is None:
+            completed_epochs = harn.epoch
+
+        if completed_epochs >= harn.monitor.max_epoch:
             harn._close_prog()
             harn.info('Maximum harn.epoch reached, terminating ...')
             return True
@@ -1723,6 +1737,68 @@ class CoreMixin(object):
             harn.warn('Failed to export model topology: {}'.format(repr(ex)))
         return static_modpath
 
+    def _deploy_recipe(harn, model_class):
+        """
+        Package weights with the recipe needed to rebuild the model, for
+        architectures torch_liberator cannot export.
+
+        torch_liberator's deploy works by statically extracting the model's
+        source. That fails for wrappers around an installed third-party network
+        (rfdetr, mit-yolo), which is what __DEPLOY_SUPPORTED__ = False marks.
+        Those classes are importable from VIAME's own package, though, so the
+        topology does not need shipping -- the class path plus the initkw
+        netharn already keeps in hyper.model_params is enough to reconstruct
+        the network and load the weights into it.
+
+        Writes deploy.pt beside where deploy.zip would have gone.
+
+        Returns:
+            str | None: path to the recipe deploy, or None if it could not be
+                written.
+        """
+        snap_fpath = harn.best_snapshot()
+        if snap_fpath is None:
+            harn.debug('Cannot find "best" snapshot, writing an explicit one')
+            snap_fpath = harn.save_snapshot(explicit=True)
+
+        if snap_fpath is None:
+            harn.warn('No snapshot to package; skipping recipe deploy')
+            return None
+
+        try:
+            initkw = harn.hyper.model_params
+            # A local class has "<locals>" in its qualname and cannot be
+            # re-imported by name, so there is no recipe to write for it.
+            if '<locals>' in getattr(model_class, '__qualname__', '<locals>'):
+                harn.warn('Model class {!r} is not importable by name; '
+                          'skipping recipe deploy'.format(model_class))
+                return None
+
+            snapshot = torch.load(snap_fpath, map_location='cpu',
+                                  weights_only=False)
+
+            # Keep only what rebuilding needs. The optimizer, monitor and
+            # scheduler state in a training snapshot is dead weight for
+            # inference and made these files several times larger than the
+            # weights they carry.
+            recipe = {
+                'model_state_dict': snapshot['model_state_dict'],
+                'epoch': snapshot.get('epoch'),
+                '__netharn_recipe__': {
+                    'model_class': '{}:{}'.format(model_class.__module__,
+                                                  model_class.__qualname__),
+                    'initkw': initkw,
+                },
+            }
+
+            deploy_fpath = join(harn.train_dpath, 'deploy.pt')
+            torch.save(recipe, deploy_fpath)
+            harn.info('wrote recipe deployment to: {!r}'.format(deploy_fpath))
+            return deploy_fpath
+        except Exception as ex:
+            harn.warn('Failed to write recipe deploy: {}'.format(repr(ex)))
+            return None
+
     def _deploy(harn):
         """
         Packages the best validation (or most recent) weights with the exported
@@ -1732,12 +1808,14 @@ class CoreMixin(object):
         Returns:
             str: path to the deploy zipfile.
         """
-        # Check if model explicitly declares it doesn't support deployment
+        # Models that cannot be packaged by torch_liberator get a recipe deploy
+        # instead of nothing at all.
         model_class = harn.hyper.model_cls
         if getattr(model_class, '__DEPLOY_SUPPORTED__', True) is False:
-            harn.debug('Model does not support torch_liberator deployment, skipping deploy')
-            harn.deploy_fpath = None
-            return None
+            harn.debug('Model does not support torch_liberator deployment, '
+                       'writing a recipe deploy instead')
+            harn.deploy_fpath = harn._deploy_recipe(model_class)
+            return harn.deploy_fpath
 
         static_modpath = harn._export()
         harn.debug('packaging deploying model')
@@ -1854,7 +1932,7 @@ class CoreMixin(object):
             if harn.check_interval('cleanup', harn.epoch):
                 harn.cleanup_snapshots()
 
-        terminate_flag = harn._check_termination()
+        terminate_flag = harn._check_termination(harn.epoch + 1)
 
         if harn._tlog is not None and harn.preferences['dump_tensorboard']:
             if not harn.preferences['eager_dump_tensorboard']:

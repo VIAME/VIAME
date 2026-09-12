@@ -985,6 +985,34 @@ class NetHarnTrainer( TrainDetector ):
         if not os.path.exists( final_model ):
             import glob
 
+            # Architectures torch_liberator cannot package (rfdetr, mit-yolo)
+            # write deploy.pt -- weights plus the recipe to rebuild them -- in
+            # the run directory instead. Preferred over a bare snapshot, which
+            # carries no way to reconstruct the network.
+            recipe_patterns = [
+              os.path.join( self._train_directory,
+                "fit", "nice", self._identifier, "deploy.pt" ),
+              os.path.join( self._train_directory,
+                "fit", "runs", self._identifier, "*", "deploy.pt" ),
+            ]
+
+            recipe_candidates = []
+            for pattern in recipe_patterns:
+                recipe_candidates.extend( sorted( glob.glob( pattern ) ) )
+
+            if recipe_candidates:
+                final_model = recipe_candidates[0]
+                if self._mode == "frame_classifier" or self._mode == "detection_refiner":
+                    output_model_name = "trained_classifier.pt"
+                else:
+                    output_model_name = "trained_detector.pt"
+
+        # If neither a deploy zip nor a recipe deploy exists, fall back to a
+        # raw checkpoint. Note that a raw checkpoint is only loadable for
+        # architectures torch_liberator can export.
+        if not os.path.exists( final_model ):
+            import glob
+
             # First check standard netharn location for best_snapshot.pt
             nice_snapshot = os.path.join( self._train_directory,
               "fit", "nice", self._identifier, "best_snapshot.pt" )

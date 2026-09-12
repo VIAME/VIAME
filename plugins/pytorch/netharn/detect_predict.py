@@ -243,6 +243,56 @@ def setup_module_aliases():
             sys.modules[old_name] = new_module
 
 
+def load_recipe_model(deployed_fpath):
+    """
+    Rebuild a model from a recipe deploy, or return None if this is not one.
+
+    torch_liberator's deploy carries the model's source code, which cannot be
+    statically extracted for wrappers around an installed third-party network
+    (rfdetr, mit-yolo). Those wrappers set __DEPLOY_SUPPORTED__ = False, and
+    fit_harn then writes a recipe instead: the importable class path plus the
+    initkw it was constructed with. The class ships with VIAME, so rebuilding
+    and loading the weights is equivalent to unpacking a deploy zip.
+
+    Args:
+        deployed_fpath (str | PathLike): checkpoint to inspect.
+
+    Returns:
+        torch.nn.Module | None: the rebuilt model, or None when the file is not
+            a recipe deploy and should go through DeployedModel.coerce instead.
+    """
+    import importlib
+
+    if not isinstance(deployed_fpath, (str, os.PathLike)):
+        return None
+    if not str(deployed_fpath).endswith('.pt'):
+        return None
+    if not isfile(deployed_fpath):
+        return None
+
+    try:
+        state = torch.load(deployed_fpath, map_location='cpu',
+                           weights_only=False)
+    except Exception:
+        return None
+
+    if not isinstance(state, dict):
+        return None
+
+    recipe = state.get('__netharn_recipe__')
+    if not recipe:
+        return None
+
+    modname, _, qualname = recipe['model_class'].partition(':')
+    obj = importlib.import_module(modname)
+    for part in qualname.split('.'):
+        obj = getattr(obj, part)
+
+    model = obj(**recipe['initkw'])
+    model.load_state_dict(state['model_state_dict'])
+    return model
+
+
 def _ensure_upgraded_model(deployed_fpath):
     """
     Example:
@@ -472,8 +522,13 @@ class DetectPredictor(object):
             if isinstance(predictor.config['deployed'], str):
                 if not predictor.config['skip_upgrade']:
                     deployed = _ensure_upgraded_model(deployed)
-            deployed = torch_liberator.DeployedModel.coerce(deployed)
-            model = deployed.load_model()
+            # Architectures torch_liberator cannot package ship a rebuild
+            # recipe rather than exported source; everything else is a deploy
+            # zip or a snapshot beside one.
+            model = load_recipe_model(deployed)
+            if model is None:
+                deployed = torch_liberator.DeployedModel.coerce(deployed)
+                model = deployed.load_model()
             model.train(False)
             patch_legacy_mm_test_cfg(model)
             predictor.xpu = xpu
