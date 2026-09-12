@@ -96,6 +96,19 @@ add_test(
 set_property( TEST "baseline:symbols" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:symbols" PROPERTY TIMEOUT 300 )
 
+# What the CMake helpers put where. P8-T08 replaces those helpers, and a
+# build that installs a header one directory to the left compiles, links,
+# tests green and breaks the next person who includes it. Only VIAME's own
+# files are recorded -- not the 75,000 under site-packages that pip placed.
+add_test(
+  NAME "baseline:install"
+  COMMAND "${Python3_EXECUTABLE}" "${baseline_dir}/install_manifest.py"
+          "${install_dir}" --check "${baseline_dir}/install.txt"
+)
+
+set_property( TEST "baseline:install" PROPERTY LABELS BASELINE )
+set_property( TEST "baseline:install" PROPERTY TIMEOUT 300 )
+
 set_property( TEST "baseline:registry" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:pipes" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:registry" PROPERTY TIMEOUT 900 )
