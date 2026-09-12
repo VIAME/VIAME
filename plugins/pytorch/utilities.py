@@ -1502,8 +1502,8 @@ def get_gpu_device(gpu_list=None):
 
     If gpu_list is empty, get the device corresponding to the CPU instead.
     If gpu_list is None (the default), enumerate the available GPU indices
-    and pick one as though the list had been passed directly, except that
-    in the case of there being no GPUs, an IndexError will be thrown.
+    and pick one as though the list had been passed directly. If CUDA is
+    unavailable, use the CPU even when GPU indices were configured.
 
     Args:
         gpu_list: List of GPU indices, empty for CPU, or None for all available GPUs
@@ -1516,9 +1516,14 @@ def get_gpu_device(gpu_list=None):
     """
     import torch
 
+    if gpu_list == []:
+        return torch.device("cpu"), False
+    if not torch.cuda.is_available():
+        warnings.warn("CUDA is unavailable; using CPU for feature extraction.")
+        return torch.device("cpu"), False
     if gpu_list is None:
         gpu_list = list(range(torch.cuda.device_count()))
-    elif not gpu_list:
+    if not gpu_list:
         return torch.device("cpu"), False
     return torch.device("cuda:{}".format(gpu_list[0])), True
 

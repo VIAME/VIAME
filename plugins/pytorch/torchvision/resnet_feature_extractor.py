@@ -84,7 +84,7 @@ class ResNetFeatureExtractor(object):
         self._resnet_model = models.resnet50()
         #self._resnet_model.fc = nn.Linear(2048, 46)
         print( resnet_model_path )
-        weights = torch.load( resnet_model_path, weights_only=False )
+        weights = torch.load( resnet_model_path, weights_only=False, map_location="cpu" )
 
         self._resnet_model.load_state_dict( weights )
         self._resnet_model = nn.Sequential(*list(self._resnet_model.children())[:-1])
@@ -108,7 +108,7 @@ class ResNetFeatureExtractor(object):
         return self._obtain_feature(bbox_list, MOT_flag)
 
     def _obtain_feature(self, bbox_list, MOT_flag):
-        kwargs = {'num_workers': 0, 'pin_memory': True}
+        kwargs = {'num_workers': 0, 'pin_memory': self._device.type == 'cuda'}
         if self.frame is not None:
             bbox_loader_class = ResNetDataLoader(bbox_list, self._transform,
                                                 self.frame, self._img_size)

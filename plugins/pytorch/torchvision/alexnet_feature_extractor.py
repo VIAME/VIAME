@@ -85,7 +85,7 @@ class AlexNetFeatureExtractor(object):
         # load the alexnet model. Maybe this shouldn't be hardcoded?
         self._alexnet_model = models.alexnet()
         print( alexnet_model_path )
-        weights = torch.load( alexnet_model_path, weights_only=False )
+        weights = torch.load( alexnet_model_path, weights_only=False, map_location="cpu" )
 
         self._alexnet_model.load_state_dict( weights )
         new_classifier = nn.Sequential(*list(self._alexnet_model.classifier.children())[:-1])
@@ -110,7 +110,7 @@ class AlexNetFeatureExtractor(object):
         return self._obtain_feature(bbox_list, mot_flag)
 
     def _obtain_feature(self, bbox_list, mot_flag):
-        kwargs = {'num_workers': 0, 'pin_memory': True}
+        kwargs = {'num_workers': 0, 'pin_memory': self._device.type == 'cuda'}
         bbox_loader_class = AlexNetDataLoader(bbox_list, self._transform, self.frame, self._img_size)
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
