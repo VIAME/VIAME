@@ -4,7 +4,13 @@
 
 set(no_install TRUE)
 
-find_package(GTest REQUIRED)
+# GoogleTest is built by `third_party/googletest`, added by the top-level
+# CMakeLists when tests are enabled. It was `find_package( GTest REQUIRED )`,
+# resolved through fletch's prefix, and was the last thing in VIAME's own
+# build that needed fletch at all.
+if( NOT TARGET GTest::gtest )
+  message( FATAL_ERROR "third_party/googletest has not been added yet" )
+endif()
 
 if (WIN32)
 

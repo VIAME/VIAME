@@ -115,7 +115,7 @@ if( VIAME_ENABLE_DARKNET )
                          kwiver::vital_config
                          kwiver::vital_logger
                          viame_object_detectors
-    PRIVATE              viame::darknet
+    PRIVATE              $<BUILD_INTERFACE:viame::darknet>
                          viame_image_ops
                          kwiver::kwiversys
     )

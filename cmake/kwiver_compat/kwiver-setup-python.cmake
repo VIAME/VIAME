@@ -174,9 +174,16 @@ mark_as_advanced( PYTHON_ABIFLAGS )
 
 
 ###
-# Find PyBind11 package
+# PyBind11
 #
-find_package( pybind11 CONFIG REQUIRED )
+# Vendored in `third_party/pybind11`, which defines the `pybind11::pybind11`,
+# `::module` and `::embed` targets this used to get from a `find_package`
+# resolved through fletch. The subdirectory is added by the top-level
+# CMakeLists before anything here runs.
+#
+if( NOT TARGET pybind11::pybind11 )
+  message( FATAL_ERROR "third_party/pybind11 has not been added yet" )
+endif()
 
 
 ###

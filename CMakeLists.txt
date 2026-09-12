@@ -948,10 +948,8 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_python_deps )
   endif()
 
-  # Add optional projects depended on by other projects
-  if( VIAME_ENABLE_DARKNET )
-    include( add_project_darknet )
-  endif()
+  # darknet used to be built here as an external project. It is
+  # `third_party/darknet` now, compiled with the rest of the tree.
 
   # Kwiver is no longer an external project: P5-T05 dissolved the submodule
   # and the VIAME project below builds what was in it. VIVIA and SEAL used to
@@ -1057,12 +1055,12 @@ else()
 
     link_directories( "${VIAME_BINARY_DIR}/lib" )
 
-    # A couple of plugins take their headers from the install prefix rather
-    # than from a target -- darknet and libsvm, both of which phase 1 vendors
-    # into third_party/. Until then they ask for the prefix by name.
-    set( VIAME_DEPENDENCY_INCLUDE_DIRS
-      "${VIAME_BUILD_INSTALL_PREFIX}/include" CACHE INTERNAL
-      "Include prefixes of the dependency tree, for the plugins that need them" )
+    # `VIAME_DEPENDENCY_INCLUDE_DIRS` stood here: the install prefix, for the
+    # plugins that took darknet's and libsvm's headers from it rather than
+    # from a target. Both are vendored now and carry their own include
+    # directories, and the prefix was actively harmful -- fletch's `svm.h`
+    # sits in it, so the vendored copy was being shadowed by the one it had
+    # replaced.
 
     ###
     # Vendored third party
@@ -1078,6 +1076,11 @@ else()
     add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/tinyxml" third_party/tinyxml )
     add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/miniz" third_party/miniz )
     add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/darknet" third_party/darknet )
+
+    if( VIAME_ENABLE_TESTS )
+      add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/googletest"
+                        third_party/googletest )
+    endif()
 
     if( VIAME_ENABLE_PYTHON )
       add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/pybind11"

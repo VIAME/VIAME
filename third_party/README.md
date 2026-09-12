@@ -22,9 +22,14 @@ the files VIAME compiles or includes, and the licence. Each directory's
 
 Not here, and deliberately:
 
-* **GTest** stays a found dependency. It is only ever linked by tests, which
-  are not in a release, so carrying it would add source to the repository for
-  something that never ships.
+* **GoogleTest** is fetched and built, not vendored and not found. Its source
+  is not in the repository -- only tests link it and tests are not in a
+  release -- and it is not looked up either, because
+  `find_package( GTest REQUIRED )` resolved through fletch's prefix and was
+  the last thing in VIAME's own build that needed fletch at all.
+  `third_party/googletest` downloads a pinned version at configure time and
+  builds it with the tree, and only when `VIAME_ENABLE_TESTS` is on. For an
+  offline build, `VIAME_GTEST_SOURCE_DIR` points at an existing checkout.
 * **darknet** is vendored above, **inference only**, which was the
   instruction. The 17 command line drivers built the `darknet` executable,
   and that executable is what `darknet_trainer` shelled out to -- so no

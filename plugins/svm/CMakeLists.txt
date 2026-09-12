@@ -36,21 +36,17 @@ target_include_directories( viame_svm PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
 
-# darknet's and libsvm's headers, which come from the dependency tree this
-# build takes fletch from; phase 1 vendors them. SYSTEM, so that the prefix
-# reaches the compiler as -isystem and lands after every -I: VIAME installs
-# its own headers into the same prefix, and an -I would let the copy left
-# there by the last install shadow the tree being built.
-target_include_directories( viame_svm SYSTEM PUBLIC
-  $<BUILD_INTERFACE:${VIAME_DEPENDENCY_INCLUDE_DIRS}>
-  )
+# `svm.h` comes from `viame::libsvm`, which carries its own include
+# directory. It used to come from the install prefix instead -- where
+# fletch's copy also sits, so the vendored header was being shadowed by the
+# one it replaced.
 
 target_link_libraries( viame_svm
   PUBLIC               kwiver::vital
                        kwiver::vital_algo
   PRIVATE              kwiver::vital_config
                        kwiver::kwiversys
-                       viame::libsvm
+                       $<BUILD_INTERFACE:viame::libsvm>
   )
 
 set_target_properties( viame_svm PROPERTIES
@@ -86,7 +82,7 @@ kwiver_add_plugin( viame_processes_svm
                    kwiver::vital_util
                    kwiver::vital_vpm
                    kwiver::sprokit_pipeline
-                   viame::libsvm
+                   $<BUILD_INTERFACE:viame::libsvm>
  )
 
 target_include_directories( viame_processes_svm PRIVATE
@@ -95,10 +91,4 @@ target_include_directories( viame_processes_svm PRIVATE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
   )
 
-# libsvm's headers, as `viame_svm` above takes them and for the same reason.
-# They used to arrive here through `viame_cppdb`, which is gone with the
-# PostgreSQL backend, so this says what it needs rather than inheriting it.
-target_include_directories( viame_processes_svm SYSTEM PRIVATE
-  $<BUILD_INTERFACE:${VIAME_DEPENDENCY_INCLUDE_DIRS}>
-  )
 

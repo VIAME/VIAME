@@ -37,3 +37,11 @@ set_target_properties( viame_tinyxml PROPERTIES
   )
 
 add_library( viame::tinyxml ALIAS viame_tinyxml )
+
+# Joins the export set: a static library linked into an exported target has
+# to be in it too. `export()` writes the build-tree file naming every
+# dependency, before a generator expression can hide one, so
+# `$<BUILD_INTERFACE:>` on the consumer's side is not enough on its own.
+install( TARGETS viame_tinyxml EXPORT ${kwiver_export_name}
+         ARCHIVE DESTINATION lib )
+set_property( GLOBAL APPEND PROPERTY kwiver_export_targets viame_tinyxml )

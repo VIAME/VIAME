@@ -140,5 +140,5 @@ if( VIAME_ENABLE_PYTHON )
   # `-Wl,--no-undefined`, so an extension module that leaves the interpreter
   # symbols to be resolved at load time does not link at all here.
   target_link_libraries( python-file_io-_opencv_yaml
-    PRIVATE ${PYTHON_LIBRARIES} pybind11::pybind11 viame_file_io )
+    PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_file_io )
 endif()

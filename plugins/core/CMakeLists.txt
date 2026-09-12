@@ -203,8 +203,12 @@ target_link_libraries( viame_core
   # it is private: a static library linked PUBLIC would have to join the
   # export set and become part of what an out-of-tree consumer links.
   # Vendored in `third_party/tinyxml`, four files, built here not found.
-  PRIVATE              viame::tinyxml
-                       viame::miniz
+  # `$<BUILD_INTERFACE:...>` as well as PRIVATE: a static library linked
+  # even privately is still recorded in the target's interface, and
+  # `install( EXPORT )` then refuses it for not being in the export set.
+  # These are absorbed at link time and no consumer ever sees them.
+  PRIVATE              $<BUILD_INTERFACE:viame::tinyxml>
+                       $<BUILD_INTERFACE:viame::miniz>
   )
 
 if( VIAME_ENABLE_PYTHON )
@@ -364,7 +368,7 @@ if( VIAME_ENABLE_PYTHON )
   # `-Wl,--no-undefined`, so leaving the interpreter symbols to be resolved
   # at load time does not link at all here.
   target_link_libraries( viame_iqr
-    PRIVATE ${PYTHON_LIBRARIES} pybind11::pybind11 )
+    PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> )
 endif()
 
 target_link_libraries( viame_processes_core PRIVATE viame_iqr )
@@ -593,7 +597,7 @@ if( VIAME_ENABLE_PYTHON )
   target_compile_definitions( python-core-_measurement
     PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
   target_link_libraries( python-core-_measurement
-    PRIVATE ${PYTHON_LIBRARIES} pybind11::pybind11 viame_core )
+    PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_core )
 
 endif()
 

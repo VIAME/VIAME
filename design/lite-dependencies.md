@@ -20,7 +20,7 @@ Legend: **vendor** = source copied into `third_party/` and built here;
 | libjpeg-turbo, libtiff, libpng, libgeotiff | | OpenCV/VXL | **drop** with them; codecs are stb + own TIFF |
 | PROJ, SQLite3, GDAL, openjpeg | | VXL/GDAL paths | **drop** (P1: not found, not needed) |
 | CPython | 3.12.12 | desktop builds | not built here; system python, or python-build-standalone download on Windows/desktop (P10) |
-| GTest | 1.8.1 | tests | **found**, not vendored -- user's call. Only tests link it and tests are not in a release, so carrying the source would add to the repository something that never ships |
+| GTest | 1.14.0 | tests | **fetched and built** by `third_party/googletest` when `VIAME_ENABLE_TESTS` is on -- user's call, to get rid of fletch entirely. Not vendored, since its source would be in the repository for something no release ships; not found, since that was what tied the build to fletch. `VIAME_GTEST_SOURCE_DIR` overrides the download for an offline build |
 | OpenBLAS, Boost, log4cplus/log4cxx, Protobuf, Qt, qtExtensions, libkml, GeographicLib, VTK, libxml2, libjson | | pytorch-from-source, vivia, seal, tf | **drop** in P1 |
 | CUDA / cuDNN | user-provided | darknet, torch wheels | `enable_language( CUDA )` and `find_package( CUDAToolkit )` in the main build now that `third_party/darknet` is compiled here; torch wheels carry their own. `CUDNN_HALF` is on for architectures from 70 up, as darknet's own build has it -- the goldens only reproduce with it |
 | OpenMP, Threads | | evaluate_models, sprokit | system, permanent (no library to ship) |
