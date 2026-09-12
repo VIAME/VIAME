@@ -2,7 +2,7 @@
 
 project( test_viame_image_processing )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
 if( VIAME_ENABLE_PYTHON )
   # SIFT, SURF, the FLANN matcher and the two estimators are python since

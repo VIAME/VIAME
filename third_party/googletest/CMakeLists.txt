@@ -3,7 +3,7 @@
 # Not vendored, on the user's reasoning: only tests link it and tests are not
 # in a release, so carrying its source would add to the repository something
 # that never ships. Not found either, which is what tied the build to
-# fletch -- `find_package( GTest REQUIRED )` in `kwiver-test-setup.cmake`
+# fletch -- `find_package( GTest REQUIRED )` in the test setup
 # resolved through fletch's prefix and was the last thing that did.
 #
 # So it is downloaded at configure time and built with the tree, once, and

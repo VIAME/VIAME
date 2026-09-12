@@ -2,11 +2,11 @@
 
 project( test_viame_measurement )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
 # Triangulation and the camera matrices under it. See the file's own note:
 # all of this was returning zero until finding 1.20.
-kwiver_discover_gtests( viame triangulate
+viame_discover_gtests( viame triangulate
   LIBRARIES viame_measurement
             kwiver::vital
             GTest::gtest )
@@ -14,7 +14,7 @@ kwiver_discover_gtests( viame triangulate
 # The calib3d replacement, against a recording of what OpenCV answered for
 # the same rigs. Regenerate with
 # `python tests/golden/projection/record_from_opencv.py`.
-kwiver_discover_gtests( viame projection
+viame_discover_gtests( viame projection
   LIBRARIES viame_measurement
             kwiver::vital
             GTest::gtest )

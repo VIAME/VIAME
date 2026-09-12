@@ -2,16 +2,16 @@
 
 project( test_viame_image_ops )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
-kwiver_discover_gtests( viame image_ops
+viame_discover_gtests( viame image_ops
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )
 
 # The A/B against VXL was run while VXL was still built and is recorded in
 # design/STATUS.md; what remains are the values that are known analytically
-kwiver_discover_gtests( viame homography_overlap
+viame_discover_gtests( viame homography_overlap
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )
@@ -19,37 +19,37 @@ kwiver_discover_gtests( viame homography_overlap
 # The colour conversions, against a recording of what OpenCV computed for the
 # same pixels. Reading a file rather than calling OpenCV is what lets the
 # test outlive it.
-kwiver_discover_gtests( viame color
+viame_discover_gtests( viame color
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )
 
 # The convolution kernels, against the same recording.
-kwiver_discover_gtests( viame filter
+viame_discover_gtests( viame filter
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )
 
 # The geometric transforms, against the same recording.
-kwiver_discover_gtests( viame warp
+viame_discover_gtests( viame warp
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )
 
 # Histograms and the equalisations, against the same recording.
-kwiver_discover_gtests( viame histogram
+viame_discover_gtests( viame histogram
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )
 
 # Connected components and contours, against the same recording.
-kwiver_discover_gtests( viame contours
+viame_discover_gtests( viame contours
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )
 
 # Drawing, template matching and concatenation, against the same recording.
-kwiver_discover_gtests( viame draw
+viame_discover_gtests( viame draw
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )

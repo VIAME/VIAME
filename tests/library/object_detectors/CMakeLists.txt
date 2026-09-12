@@ -2,7 +2,7 @@
 
 project( test_viame_object_detectors )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
 if( VIAME_ENABLE_PYTHON )
   # `hough_circle` is python since P7-T04, and the registry dump cannot read

@@ -60,6 +60,7 @@ set( KWIVER_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}" )
 
 list( INSERT CMAKE_MODULE_PATH 0
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/viame"
       "${KWIVER_CMAKE_DIR}"
       "${KWIVER_CMAKE_DIR}/utils" )
 
@@ -1112,6 +1113,7 @@ else()
     # at a time; what has moved is included after it, so the new definitions
     # win where both still exist.
     include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-targets.cmake" )
+    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-tests.cmake" )
 
     # After the macros: `kwiver-utils` pulls in `kwiver-setup-python`, which
     # computes an output path of its own from KWIVER_BINARY_DIR.

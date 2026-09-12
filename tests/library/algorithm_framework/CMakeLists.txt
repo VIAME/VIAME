@@ -2,7 +2,7 @@
 
 project( test_viame_algorithm_framework )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
 ###
 # The out-of-tree plugin hook
@@ -24,7 +24,7 @@ set_target_properties( viame_test_external_plugin PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   )
 
-kwiver_discover_gtests( viame external_plugins
+viame_discover_gtests( viame external_plugins
   LIBRARIES kwiver::vital
             kwiver::vital_vpm
             kwiver::vital_config
@@ -46,7 +46,7 @@ target_compile_definitions( test-viame-external_plugins PRIVATE
 # anything outside VIAME sees of a run, so the tests are held to the format
 # rather than to an opinion about it.
 ##
-kwiver_discover_gtests( viame logger
+viame_discover_gtests( viame logger
   LIBRARIES kwiver::vital_logger
             GTest::gtest )
 
@@ -77,7 +77,7 @@ set_tests_properties( viame:logger:file_sink PROPERTIES
 #
 # It writes directories, so it runs somewhere it is allowed to.
 ##
-kwiver_discover_gtests( viame file_system
+viame_discover_gtests( viame file_system
   LIBRARIES kwiver::vital_util
             GTest::gtest )
 
@@ -94,6 +94,6 @@ target_compile_definitions( test-viame-file_system PRIVATE
 # Recorded before P8-T05 changed the engine from kwiversys's POSIX one to
 # `std::regex`. Three of the four patterns read configuration a user wrote.
 ##
-kwiver_discover_gtests( viame regex
+viame_discover_gtests( viame regex
   LIBRARIES kwiver::vital_util
             GTest::gtest )

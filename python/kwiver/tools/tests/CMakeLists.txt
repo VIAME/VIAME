@@ -1,4 +1,4 @@
-include(kwiver-test-setup)
+include(viame-test-setup)
 
 if(KWIVER_ENABLE_FFMPEG)
   add_test(NAME python:core:applets:dump_klv

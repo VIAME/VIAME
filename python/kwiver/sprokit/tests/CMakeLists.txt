@@ -2,7 +2,7 @@ project(sprokit_test_python)
 
 # TODO: Use "$<CONFIGURATION>" and remove chdir below when generator
 # expressions are supported in test properties.
-include("${KWIVER_CMAKE_DIR}/kwiver-test-setup.cmake")
+include( viame-test-setup )
 
 cmake_dependent_option(SPROKIT_ENABLE_COVERAGE_PYTHON "" ON
   SPROKIT_ENABLE_COVERAGE OFF)

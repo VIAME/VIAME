@@ -2,7 +2,7 @@
 
 project( test_viame_file_io )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
 ###
 # The KWFD feature/descriptor file
@@ -11,7 +11,7 @@ include( kwiver-test-setup )
 # this tree reads a KWFD file it did not write, so the bytes are the only
 # statement of the format there is.
 ##
-kwiver_discover_gtests( viame feature_descriptor_io
+viame_discover_gtests( viame feature_descriptor_io
   LIBRARIES kwiver::vital
             kwiver::vital_algo
             kwiver::vital_config

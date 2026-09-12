@@ -2,9 +2,9 @@
 
 project( test_viame_core_types )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
-kwiver_discover_gtests( viame math
+viame_discover_gtests( viame math
   LIBRARIES kwiver::vital
             GTest::gtest )
 

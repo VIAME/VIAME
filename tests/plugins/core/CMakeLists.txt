@@ -2,7 +2,7 @@
 
 project( test_viame_core )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
 # Include directories for plugin headers
 include_directories( ${VIAME_SOURCE_DIR}/plugins/core )
@@ -13,38 +13,38 @@ set( test_libraries
   kwiver::vital_algo
   GTest::gtest_main )
 
-kwiver_discover_gtests( viame_core measurement_utilities
+viame_discover_gtests( viame_core measurement_utilities
   LIBRARIES ${test_libraries} )
 
-kwiver_discover_gtests( viame_core resample_object_tracks
+viame_discover_gtests( viame_core resample_object_tracks
   LIBRARIES ${test_libraries} )
 
-kwiver_discover_gtests( viame_core pair_stereo_detections
+viame_discover_gtests( viame_core pair_stereo_detections
   LIBRARIES ${test_libraries} )
 
-kwiver_discover_gtests( viame_core windowed_refiner_utils
+viame_discover_gtests( viame_core windowed_refiner_utils
   LIBRARIES ${test_libraries} )
 
-kwiver_discover_gtests( viame_core evaluate_models
+viame_discover_gtests( viame_core evaluate_models
   LIBRARIES ${test_libraries} )
 
-kwiver_discover_gtests( viame_core viame_csv_tot_once
+viame_discover_gtests( viame_core viame_csv_tot_once
   LIBRARIES ${test_libraries} )
 
-kwiver_discover_gtests( viame_core convert_polygons_to_mask
+viame_discover_gtests( viame_core convert_polygons_to_mask
   LIBRARIES ${test_libraries} )
 
-kwiver_discover_gtests( viame_core utilities_training
+viame_discover_gtests( viame_core utilities_training
   LIBRARIES ${test_libraries} )
 
 # The stereo rig JSON, recorded before P8-T06 replaces cereal. The reader has
 # a golden case as well; this holds the writer, which nothing else does.
-kwiver_discover_gtests( viame_core camera_rig_json
+viame_discover_gtests( viame_core camera_rig_json
   LIBRARIES ${test_libraries} )
 
 # The CSV writers' mask-to-polygon conversion, recorded before P7-T07 ported
 # it off `cv::findContours` and `cv::approxPolyDP`.
-kwiver_discover_gtests( viame_core mask_polygon_csv
+viame_discover_gtests( viame_core mask_polygon_csv
   LIBRARIES ${test_libraries} )
 
 target_compile_definitions( test-viame_core-mask_polygon_csv PRIVATE
@@ -52,7 +52,7 @@ target_compile_definitions( test-viame_core-mask_polygon_csv PRIVATE
 
 # What `viame score --output-plots` writes beside its images, recorded before
 # P7-T07 handed the drawing to matplotlib. The pictures change; these do not.
-kwiver_discover_gtests( viame_core plot_data_export
+viame_discover_gtests( viame_core plot_data_export
   LIBRARIES ${test_libraries} )
 
 target_compile_definitions( test-viame_core-plot_data_export PRIVATE
@@ -65,7 +65,7 @@ target_compile_definitions( test-viame_core-plot_data_export PRIVATE
 # The session is its own library, `viame_iqr`, because it is the only thing
 # in the tree that calls the interpreter from C++ and `viame_core` stays
 # free of libpython.
-kwiver_discover_gtests( viame_core iqr_session_adaboost
+viame_discover_gtests( viame_core iqr_session_adaboost
   LIBRARIES ${test_libraries} viame_iqr )
 
 target_include_directories( test-viame_core-iqr_session_adaboost PRIVATE
@@ -90,7 +90,7 @@ target_compile_definitions( test-viame_core-iqr_session_adaboost PRIVATE
 
 
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
-# kwiver_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
+# viame_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
 # target_compile_features( test-viame_core-tracks_pairing_from_stereo PRIVATE cxx_std_17 )
 # target_compile_definitions( test-viame_core-tracks_pairing_from_stereo PRIVATE TEST_DATA_DIR="${VIAME_SOURCE_DIR}/tests/data" )
 

@@ -22,7 +22,7 @@ set(__simple_testable_modnames
 # KWIVER_ENABLE_TESTS is always true for now (because we are in the test
 # subdir), but the python tests should be moved to the python source dir.
 if (KWIVER_ENABLE_TESTS)
-  include(kwiver-test-setup)
+  include(viame-test-setup)
   # Register individual tests with ctest
   foreach (group IN LISTS __simple_testable_modnames)
     # SeeAlso:

@@ -2,7 +2,7 @@
 
 project( test_viame_pipeline_framework )
 
-include( kwiver-test-setup )
+include( viame-test-setup )
 
 ###
 # The `.pipe` grammar
@@ -12,7 +12,7 @@ include( kwiver-test-setup )
 # the parts none of them use -- which is what P8-T07 removes on the argument
 # that nothing uses them.
 ##
-kwiver_discover_gtests( viame pipe_parser
+viame_discover_gtests( viame pipe_parser
   LIBRARIES kwiver::vital
             kwiver::vital_config
             sprokit_pipeline
@@ -27,7 +27,7 @@ kwiver_discover_gtests( viame pipe_parser
 # say nothing about either, which is why they need a test before P8-T07
 # removes one of them.
 ##
-kwiver_discover_gtests( viame scheduler
+viame_discover_gtests( viame scheduler
   LIBRARIES kwiver::vital
             kwiver::vital_config
             kwiver::vital_vpm
@@ -42,7 +42,7 @@ kwiver_discover_gtests( viame scheduler
 # Added by P8-T07 so that a renamed process is a rename in the compatibility
 # baseline rather than a removal and an addition.
 ##
-kwiver_discover_gtests( viame process_alias
+viame_discover_gtests( viame process_alias
   LIBRARIES kwiver::vital
             kwiver::vital_config
             kwiver::vital_vpm
