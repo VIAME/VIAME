@@ -18,3 +18,20 @@ kwiver_discover_gtests( viame pipe_parser
             sprokit_pipeline
             sprokit_pipeline_util
             GTest::gtest )
+
+###
+# The C++ schedulers
+#
+# Every shipped pipeline names `pythread_per_process`, so `thread_per_process`
+# is reached only as the default and `sync` not at all. 292 green pipelines
+# say nothing about either, which is why they need a test before P8-T07
+# removes one of them.
+##
+kwiver_discover_gtests( viame scheduler
+  LIBRARIES kwiver::vital
+            kwiver::vital_config
+            kwiver::vital_vpm
+            viame::registry
+            sprokit_pipeline
+            sprokit_pipeline_util
+            GTest::gtest )
