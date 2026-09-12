@@ -66,3 +66,24 @@ add_test(
 set_tests_properties( viame:logger:file_sink PROPERTIES
   LABELS "UNIT"
   ENVIRONMENT "VIAME_LOG_FILE=${CMAKE_CURRENT_BINARY_DIR}/file_sink.log" )
+
+###
+# The file system helpers
+#
+# Recorded before P8-T05 puts `std::filesystem` underneath them. The
+# expectations were taken by running kwiversys, not read out of its
+# documentation; four of them are places the standard library answers
+# differently.
+#
+# It writes directories, so it runs somewhere it is allowed to.
+##
+kwiver_discover_gtests( viame file_system
+  LIBRARIES kwiver::vital_util
+            GTest::gtest )
+
+# It makes and removes directories relative to the working directory, so it
+# is given one of its own. The test does the `chdir` itself rather than ctest
+# doing it, because a `WORKING_DIRECTORY` set from `TEST_INCLUDE_FILES` would
+# be evaluated at test time, when there is no `CMAKE_CURRENT_BINARY_DIR`.
+target_compile_definitions( test-viame-file_system PRIVATE
+  "VIAME_FS_TEST_DIR=\"${CMAKE_CURRENT_BINARY_DIR}/file_system_scratch\"" )

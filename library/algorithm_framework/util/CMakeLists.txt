@@ -15,6 +15,7 @@ set( public_headers
   data_stream_reader.h
   demangle.h
   directed_graph.h
+  file_system.h
   get_paths.h
   rational.h
   source_location.h
@@ -40,6 +41,7 @@ set( private_headers
 
 # ----------------------
 set( sources
+  file_system.cxx
   get_paths.cxx
   demangle.cxx
   source_location.cxx
