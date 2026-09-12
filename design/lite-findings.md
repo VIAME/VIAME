@@ -1162,7 +1162,89 @@ consumer is outside the repository, the recording is the consumer.** Write it
 before the change, commit it separately, and let the diff of the *test* file
 be empty.
 
+### 1.24 A seam is where you keep the old semantics, not where you adopt the new ones
+
+`kwiversys::SystemTools` and `std::filesystem` answer most path questions the
+same way, which is what makes the difference dangerous. Two hundred call
+sites in this tree were written against the first; P8-T05 replaced it with
+the second. Rewriting them directly -- `GetFilenamePath` to `parent_path`,
+`GetFilenameLastExtension` to `extension` -- compiles everywhere and is
+wrong in four places:
+
+* `GetFilenamePath( "/a/b/c.txt/" )` is `"/a/b"`. `parent_path()` reads the
+  trailing separator as an empty final component and answers `"/a/b/c.txt"`.
+* `GetFilenameLastExtension( ".bashrc" )` is `".bashrc"`. `extension()` is
+  empty, because a leading dot is not an extension in `std::filesystem`.
+* `GetPath` **appends** to the list it is given and keeps the empty entries a
+  `PATH` with a stray `:` produces. A fresh vector, or a skip of the empties,
+  changes which directory is searched first.
+* `Directory` lists `.` and `..`. Code that walks a directory and recurses
+  into every entry that is one either knows this or does not terminate.
+
+None of the four is a bug in either library, none produces a compiler
+warning, and only the last would fail loudly. So the replacement is a seam --
+`util/file_system.h`, twenty-six operations with kwiversys's semantics and
+each difference marked at the declaration -- rather than two hundred
+individual rewrites. The seam is thirty lines longer than a direct port would
+have been and is the only place the question has to be asked.
+
+`MakeDirectory` is a fifth of the same kind, kept for the same reason: it
+answers whether the directory *exists afterwards*, not whether this call
+created it. A caller reading it as "I made this" is wrong on the second run
+and never on the first.
+
+The general form: **when a vendored dependency goes, the thing to preserve is
+what its callers observed, not what its documentation said or what the
+standard library would do.** Take the recording against the old code, put the
+differences behind one file, and mark each one where someone changing it will
+look.
+
+### 1.25 `sizeof` a buffer is not how many elements it holds
+
+`GetModuleFileNameW( handle, pathBuf, sizeof( pathBuf ) )`, in
+`python/kwiver/vital/plugins/register.cxx`, where `pathBuf` is
+`wchar_t[ _MAX_PATH ]`. The argument is a count of `wchar_t`, so Windows was
+told the buffer was twice the size it is, and a path longer than
+`_MAX_PATH / 2` would have been written past the end of it.
+
+It was found while removing `kwiversys::Encoding` from the line below it, and
+that is the finding: **the value of touching old code is not only the change
+you came to make.** This one had been there since the file was written, on a
+platform this branch has no CI for, in a function that only runs when
+something asks which library a symbol came from. Nothing was going to find it
+by testing.
+
+The Windows branches of `register.cxx` and `python_script_applet.cxx` are
+still uncompiled here. They should be read, not trusted, before the branch
+claims Windows support.
+
 ## 2. Open questions
+
+### 2.10 `$SYSENV{}` has no users
+
+`token_type_sysenv` expands eighteen tokens in config files -- host name,
+processor count, three kinds of memory, OS version, domain name, and the
+rest. P8-T05 reimplemented all eighteen against `/proc`, `uname`, `sysconf`
+and `getifaddrs`, and checked each one's answer against kwiversys's side by
+side before the swap.
+
+One file in the tree writes `$SYSENV{` -- nine times, in
+`python/kwiver/vital/tests/data/test_config-valid_file.txt` -- and **no test
+loads it**: `git grep test_config-valid_file` finds no reference outside the
+data file's own name. It is an orphan, left behind by a test that went
+earlier. So the reimplementation has no in-tree caller that runs, and the
+effort went into preserving answers -- "virtual memory" meaning swap,
+`availablephysicalmemory` meaning MemFree+Buffers+Cached, the domain name
+coming from a reverse lookup of a non-loopback interface address rather than
+from the host name -- that nothing here observes.
+
+It was done that way because the alternative was to delete a documented
+config feature in the middle of a dependency-removal task, which is the wrong
+task to decide it in. **P8-T09 is where it belongs**: it already covers
+removing `config_block` machinery nothing uses, and the question there is
+whether an out-of-tree `.pipe` may reasonably use `$SYSENV{}` -- if not, the
+token type and its 527 lines go, the orphaned data file with them, and the eighteen recorded answers become the
+justification for the `removed.json` entry rather than for the code.
 
 ### 2.1 An intermittent segfault in `viame train`
 
