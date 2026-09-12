@@ -186,6 +186,34 @@ TEST ( camera_rig_json, a_missing_k3_is_zero_rather_than_an_error )
 }
 
 // ----------------------------------------------------------------------------
+// Every field but k3 is required, and a missing one is a throw rather than a
+// default. Recorded for the exception's *type* as much as for the fact of
+// it: a caller that catches the wrong base catches nothing.
+TEST ( camera_rig_json, a_missing_required_field_throws )
+{
+  std::string text( a_calibration );
+  auto const cut = text.find( "  \"fx_left\": 800.0,\n" );
+  ASSERT_NE( std::string::npos, cut );
+  text.erase( cut, std::string( "  \"fx_left\": 800.0,\n" ).size() );
+
+  scratch_json file( "rig_no_fx.json", text );
+
+  EXPECT_THROW( viame::read_stereo_rig_json( file.path() ),
+                std::runtime_error );
+}
+
+// ----------------------------------------------------------------------------
+// A file that is not JSON at all fails the same way, rather than returning a
+// rig of zeroes.
+TEST ( camera_rig_json, a_file_that_is_not_json_throws )
+{
+  scratch_json file( "rig_not_json.json", "this is not json" );
+
+  EXPECT_THROW( viame::read_stereo_rig_json( file.path() ),
+                std::runtime_error );
+}
+
+// ----------------------------------------------------------------------------
 // The writer's whole output, because nothing else holds it: no applet, no
 // pipeline and no test calls `write_stereo_rig`, so its format is whatever
 // this says it is.
