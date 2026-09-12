@@ -1141,6 +1141,27 @@ links.
 The general form: when a scan is replaced by a list, the scan's *selectivity*
 has to be replaced too, not just its contents.
 
+### 1.23 The contract you cannot run is the one worth writing down
+
+VIAME's log line is read by DIVE, which is not in this tree. Nothing here
+parses it, so nothing here would have failed if P8-T04's rewrite had changed
+the separators, dropped the milliseconds, or started printing the logger's
+name. The rewrite deleted three classes and a `dlopen`; the chance of it
+changing the output by accident was not small.
+
+What closed that was writing the format down first, as thirteen tests, and
+committing them before touching the code. They are not an opinion about what
+the format should be -- several things in them are mildly wrong-looking, the
+logger's name being absent from its own output most of all -- and that is the
+point. A recording of a contract you cannot execute is worth more than a
+recording of one you can, because it is the only thing standing in for the
+consumer.
+
+The general form, for the phases still to come: **when a component's real
+consumer is outside the repository, the recording is the consumer.** Write it
+before the change, commit it separately, and let the diff of the *test* file
+be empty.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`
