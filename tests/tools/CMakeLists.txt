@@ -1,6 +1,16 @@
 # VIAME Tools Tests
 
 if( VIAME_ENABLE_PYTHON )
+  # Cheapest possible check that every shipped extension module actually loads.
+  # Runs first and fast: a bad bundled DLL makes most of the suite below fail in
+  # ways that point at the wrong thing.
+  viame_add_pytest_test(
+    NAME    "tools:python_imports"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_python_imports.py"
+    LABELS  tools
+    TIMEOUT 600
+    SOURCE_SETUP
+  )
   viame_add_pytest_test(
     NAME    "tools:viame_applets"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_viame_applets.py"
