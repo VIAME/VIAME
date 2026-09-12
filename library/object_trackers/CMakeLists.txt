@@ -57,9 +57,6 @@ algorithms_create_plugin( viame_object_trackers
   register_algorithms.cxx
   )
 
-target_link_libraries( viame_object_trackers_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
 
 ###
 # Processes

@@ -60,6 +60,7 @@ target_link_libraries( viame
                kwiver::vital_util
                kwiver::kwiversys
                kwiver::vital_applets
+               viame::registry
   )
 
 # Only the applet attribute names are needed from core; linking it would load
@@ -85,6 +86,7 @@ target_link_libraries( kwiver
                kwiver::vital_logger
                kwiver::kwiversys
                kwiver::vital_applets
+               viame::registry
   )
 
 ###

@@ -14,6 +14,7 @@
 
 #include <exception>
 #include <mutex>
+#include <vector>
 
 namespace kwiver {
 
@@ -35,7 +36,29 @@ static std::string const default_module_paths =
 static std::string const shared_library_suffix =
   std::string( SHARED_LIB_SUFFIX );
 
+// The registration functions of the libraries that were linked in rather than
+// left in loadable modules. Each adds itself as its library loads, which is
+// before `main`, so this is a function-local static rather than a namespace
+// one -- it has to exist before the first caller, whatever order the loader
+// runs the initialisers in.
+std::vector< void ( * )( plugin_loader&, plugin_manager::plugin_types ) >&
+static_registrars()
+{
+  static std::vector<
+    void ( * )( plugin_loader&, plugin_manager::plugin_types ) > registrars;
+  return registrars;
+}
+
 } // end anonymous namespace
+
+// ----------------------------------------------------------------------------
+void
+plugin_manager
+::add_static_registrar(
+  void ( *registrar )( plugin_loader&, plugin_types ) )
+{
+  static_registrars().push_back( registrar );
+}
 
 // ----------------------------------------------------------------------------
 // ---- Static ----
@@ -56,6 +79,20 @@ public:
   kwiver::vital::logger_handle_t m_logger;
 
   path_list_t m_search_paths;
+
+  // Run the registration functions of the libraries linked into this
+  // process. There is no file to find and no order to discover: the list is
+  // the build's, and every function guards on its own module name. The mask
+  // is the caller's, so a registrar whose kind was not asked for is skipped
+  // -- which is what keeps applet dispatch from paying for the rest.
+  void
+  register_builtins( plugin_types types )
+  {
+    for( auto const registrar : static_registrars() )
+    {
+      registrar( *m_loader, types );
+    }
+  }
 };
 
 // Singleton Instance Accessor =================================================
@@ -173,6 +210,8 @@ plugin_manager
 
   if( types )
   {
+    m_priv->register_builtins( types );
+
     path_list_t dirpath;
     auto search_path = this->search_path();
 

@@ -68,6 +68,7 @@ list( INSERT CMAKE_MODULE_PATH 0
 ##
 include( common_macros )
 include( viame_lite_import )
+include( viame_static_registration )
 include( old_version_checks )
 
 ###
@@ -1188,6 +1189,21 @@ else()
   add_subdirectory( examples )
   add_subdirectory( configs )
   add_subdirectory( tools )
+
+  ###
+  # The generated static registry
+  #
+  # Last, because it names every library that called
+  # `viame_register_statically` -- and `tools/` registers the applets, so it
+  # has to be walked first. The executables that link `viame::registry` are
+  # above this line; CMake resolves a namespaced target at generate time, by
+  # which point this directory has defined it.
+  ##
+  if( VIAME_ENABLE_KWIVER )
+    add_subdirectory(
+      "${VIAME_SOURCE_DIR}/library/algorithm_framework/registry"
+      library/algorithm_framework/registry )
+  endif()
 
   if( VIAME_ENABLE_TESTS )
     enable_testing()

@@ -84,9 +84,6 @@ algorithms_create_plugin( viame_opencv
   register_algorithms.cxx
   )
 
-target_link_libraries( viame_opencv_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
 
 # Add process library
 set( process_headers

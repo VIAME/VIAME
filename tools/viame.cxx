@@ -72,49 +72,6 @@ static bool ends_with( const std::string& str, const std::string& suffix )
 
 // ============================================================================
 /**
- * Check whether a search path entry already points at an applets directory.
- */
-static bool applet_dir( const std::string& path )
-{
-  const size_t end = path.find_last_not_of( "/\\" );
-
-  if( end == std::string::npos )
-  {
-    return false;
-  }
-
-  const size_t sep = path.find_last_of( "/\\", end );
-
-  const std::string leaf = ( sep == std::string::npos )
-    ? path.substr( 0, end + 1 )
-    : path.substr( sep + 1, end - sep );
-
-  return leaf == "applets";
-}
-
-// ============================================================================
-/**
- * Build the list of directories holding applet plugins.
- *
- * The plugin search path may name either the directory containing the
- * per-category plugin directories or, as the VIAME setup scripts do, the
- * category directories themselves.
- */
-static kwiver::vital::path_list_t
-applet_search_paths( kwiver::vital::plugin_manager_internal& vpm )
-{
-  kwiver::vital::path_list_t dirs;
-
-  for( auto const& path : vpm.search_path() )
-  {
-    dirs.push_back( applet_dir( path ) ? path : path + "/applets" );
-  }
-
-  return dirs;
-}
-
-// ============================================================================
-/**
  * This class processes the incoming list of command line options.
  * They are separated into options for the tool runner and options
  * for the applet.
@@ -344,7 +301,13 @@ int main(int argc, char *argv[])
   // Only the applet plugins are needed to look up and dispatch an applet.
   // Applets that need more load it themselves, or have it loaded for them
   // below.
-  vpm.load_plugins( applet_search_paths( vpm ) );
+  //
+  // This used to name the applet directories and scan them. P8-T03 links the
+  // plugins in, so there is nothing to scan and the category is asked for by
+  // name -- the registry skips every library that is not an applet, and
+  // `viame help` still pays for nothing else.
+  vpm.load_all_plugins(
+    kwiver::vital::plugin_manager::plugin_type::APPLETS );
 
   // initialize the global context
   tool_context->m_wtb.set_indent_string( "      " );

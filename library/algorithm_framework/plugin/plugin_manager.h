@@ -127,6 +127,23 @@ public:
 /// @throws plugin_already_exists - if a duplicate plugin is detected
   void load_plugins( path_list_t const& dirpath );
 
+/// @brief Add a registration function that is called instead of being found.
+///
+/// A library compiled with `viame_register_statically` has its registration
+/// function linked in rather than left in a loadable module, and hands it
+/// here as it loads. Every registrar added this way runs before the directory
+/// scan of the same `load_all_plugins` call, in the order they were added.
+///
+/// It is called with the same `plugin_types` mask the caller gave
+/// `load_all_plugins`, and registers only what the mask asks for.
+///
+/// Adding the same function twice adds it twice; registration functions
+/// guard on their own module name, so the second call does nothing.
+///
+/// @param registrar Function to call with the loader.
+  static void add_static_registrar(
+    void ( *registrar )( plugin_loader&, plugin_types ) );
+
 // Search path stuff --------------------------------------------------------
 /// @brief Add an additional directories to search for plugins in.
 ///

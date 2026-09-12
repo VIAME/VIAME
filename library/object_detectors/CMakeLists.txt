@@ -69,9 +69,6 @@ algorithms_create_plugin( viame_object_detectors
   register_algorithms.cxx
   )
 
-target_link_libraries( viame_object_detectors_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
 
 ###
 # darknet's detector
@@ -128,9 +125,6 @@ if( VIAME_ENABLE_DARKNET )
     register_darknet.cxx
     )
 
-  target_link_libraries( viame_object_detectors_darknet_plugin
-    PUBLIC               kwiver::vital_vpm
-    )
 endif()
 
 ###

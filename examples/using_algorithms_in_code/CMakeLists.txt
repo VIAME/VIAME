@@ -46,6 +46,9 @@ if( VIAME_ENABLE_KWIVER )
                kwiver::vital_util
                kwiver::vital_vpm
                viame_video_io
+               # It calls load_all_plugins, and since P8-T03 that means
+               # linking what registers rather than finding it on a path
+               viame::registry
     )
 
 endif()

@@ -45,12 +45,8 @@ set_target_properties( viame_examples PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_examples
+viame_register_statically( viame_examples
   register_algorithms.cxx
-  )
-
-target_link_libraries( viame_examples_plugin
-  PUBLIC               kwiver::vital_vpm
   )
 
 if( VIAME_ENABLE_PYTHON )

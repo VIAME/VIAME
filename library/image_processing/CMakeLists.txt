@@ -94,9 +94,6 @@ algorithms_create_plugin( viame_image_processing
   register_algorithms.cxx
   )
 
-target_link_libraries( viame_image_processing_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
 
 
 ###

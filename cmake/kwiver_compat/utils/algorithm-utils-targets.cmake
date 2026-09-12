@@ -50,10 +50,8 @@ endif()
 # been done an error will occur at link time stating that the required class
 # symbol can not be found.
 #
-# This generates a small MODULE library that exposes the required C interface
-# function to be picked up by the algorithm plugin manager. This library is set
-# to install into the .../arrows subdirectory and adds a _plugin suffix to the
-# base library name.
+# The named sources are compiled into the base library with their entry point
+# renamed, and the base library is added to the generated static registry.
 #
 # Additional source files may be specified after the base library if the
 # registration interface implementation is separate from the base library.
@@ -62,56 +60,13 @@ endif()
 # has no effect as they are manually specified within this function.
 #-
 function(algorithms_create_plugin    base_lib)
-  message( STATUS "Building plugin \"${base_lib}\"" )
-
-  # Make a plugin from the supplied files. The name here is largely
-  # irrelevant since they are discovered at run time.
-  set( plugin_name   "${base_lib}_plugin" )
-
-  # create module library given generated source, linked to given library
-  set(library_subdir /${kwiver_plugin_algorithm_subdir})
-  set(no_version ON)
-
-  kwiver_add_plugin( ${plugin_name}
-    SOURCES  ${ARGN}
-    # Not adding link to known base library because if the base_lib isn't
-    # linking against it, its either doing something really complex or doing
-    # something wrong (most likely the wrong).
-    PRIVATE  ${base_lib}
-    )
-
-  add_dependencies( all-plugins ${plugin_name} )
-
-  # For each library linked to the base library, add the path to the library
-  # to a list of paths to search later during fixup_bundle.
-  # Recursively add paths for dependencies of these libraries which are targets.
-  get_target_property(deps ${base_lib} LINK_LIBRARIES)
-  while(deps)
-    unset(rdeps)
-    foreach( dep ${deps} )
-      if(TARGET "${dep}")
-        list(APPEND PLUGIN_BUNDLE_PATHS $<TARGET_FILE_DIR:${dep}>)
-        get_target_property(target_type ${dep} TYPE)
-        if (NOT ${target_type} STREQUAL "INTERFACE_LIBRARY")
-          get_target_property(recursive_deps ${dep} LINK_LIBRARIES)
-          if(recursive_deps)
-            list(APPEND rdeps ${recursive_deps})
-          endif()
-        endif()
-      elseif(EXISTS "${dep}")
-        get_filename_component(dep_dir "${dep}" DIRECTORY)
-        list(APPEND PLUGIN_BUNDLE_PATHS ${dep_dir})
-      endif()
-    endforeach()
-    set(deps ${rdeps})
-  endwhile()
-
-  # Add to global collection variables
-  set_property(GLOBAL APPEND
-    PROPERTY arrows_plugin_libraries    ${plugin_name}
-    )
-  set_property(GLOBAL APPEND
-    PROPERTY arrows_bundle_paths ${PLUGIN_BUNDLE_PATHS}
-    )
-
+  # P8-T03: the registration file is compiled into the library it registers.
+  #
+  # This used to generate a small MODULE, `<base_lib>_plugin`, holding nothing
+  # but the registration function, for the loader to find by scanning a
+  # directory and `dlopen`. The generated registry calls that function
+  # directly now, so there is nothing to find, and the module -- along with
+  # the `_plugin` target that a few call sites used to add link libraries to
+  # -- is gone.
+  viame_register_statically( ${base_lib} ${ARGN} )
 endfunction()

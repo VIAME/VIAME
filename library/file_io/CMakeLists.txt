@@ -70,9 +70,6 @@ algorithms_create_plugin( viame_file_io
   register_algorithms.cxx
   )
 
-target_link_libraries( viame_file_io_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
 
 ###
 # Processes

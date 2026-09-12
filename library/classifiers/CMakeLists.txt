@@ -55,9 +55,6 @@ algorithms_create_plugin( viame_classifiers
   register_algorithms.cxx
   )
 
-target_link_libraries( viame_classifiers_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
 
 ###
 # Processes

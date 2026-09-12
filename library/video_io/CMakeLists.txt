@@ -78,9 +78,6 @@ algorithms_create_plugin( viame_video_io
   register_algorithms.cxx
   )
 
-target_link_libraries( viame_video_io_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
 
 ###
 # Processes

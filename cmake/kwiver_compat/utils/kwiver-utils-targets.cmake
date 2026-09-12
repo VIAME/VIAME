@@ -469,34 +469,43 @@ function( kwiver_add_plugin        name )
   set(multiValueArgs SOURCES PUBLIC PRIVATE)
   cmake_parse_arguments(PLUGIN "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
-  _kwiver_check_and_set_library_dir()
-  _kwiver_validate_path_value(library_dir "${library_dir}")
-  _kwiver_path_to_root_from_lib_dir(lib_dir_path_to_root "${library_dir}")
+  # P8-T03: a plugin is an ordinary shared library in `lib/`.
+  #
+  # It used to be a MODULE dropped in a subdirectory for the loader to find by
+  # scanning and `dlopen`, and SUBDIR said which one. Nothing scans now: the
+  # registration function is called by the generated registry, which is why
+  # the library has to be a real one -- a MODULE cannot be linked. SUBDIR
+  # survives as the plugin's *kind*, below, which is the only thing the
+  # directory was ever telling the loader.
+  #
+  # These are exported, unlike the modules they were: the registry links them,
+  # and a PRIVATE dependency of an exported shared library still has to be in
+  # the export set for `install( EXPORT )` to describe it.
+  set( no_version ON )  # nothing loads them by soname
+  set( library_subdir )
 
-  if ( PLUGIN_SUBDIR )
-    set(library_subdir "/${PLUGIN_SUBDIR}") # put plugins in this subdir
-  endif()
-
-  _kwiver_validate_path_value(library_subdir "${library_subdir}")
-  _kwiver_path_to_root_from_lib_dir(lib_subdir_path_to_root "${library_subdir}")
-
-
-  set( no_export ON ) # do not export this product
-  set( no_version ON ) # do not version plugins
-
-  kwiver_add_library( ${name} MODULE ${PLUGIN_SOURCES} )
+  kwiver_add_library( ${name} SHARED ${PLUGIN_SOURCES} )
 
   target_link_libraries( ${name}
     PUBLIC        ${PLUGIN_PUBLIC}
     PRIVATE       ${PLUGIN_PRIVATE}
     )
 
-  set_target_properties( ${name}
-    PROPERTIES
-      PREFIX           ""
-      SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX}
-      INSTALL_RPATH    "\$ORIGIN/${lib_subdir_path_to_root}${lib_dir_path_to_root}/${KWIVER_DEFAULT_LIBRARY_DIR}:\$ORIGIN/"
-      )
+  # Which `plugin_type` bit the plugin answers to. It is the directory it
+  # used to be installed in: `load_all_plugins` took its selection from the
+  # same names, and reading the kind off SUBDIR is what keeps the selection
+  # meaning what it did.
+  if( PLUGIN_SUBDIR MATCHES "applets$" )
+    set( plugin_kind APPLETS )
+  elseif( PLUGIN_SUBDIR MATCHES "processes$" )
+    set( plugin_kind PROCESSES )
+  elseif( PLUGIN_SUBDIR MATCHES "algorithms$" )
+    set( plugin_kind ALGORITHMS )
+  else()
+    set( plugin_kind OTHERS )
+  endif()
+
+  viame_mark_static_registration( ${name} ${plugin_kind} ${PLUGIN_SOURCES} )
 
   # Add to global collection variable
   set_property(GLOBAL APPEND

@@ -57,9 +57,6 @@ algorithms_create_plugin( viame_svm
   register_algorithms.cxx
   )
 
-target_link_libraries( viame_svm_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
 
 # Add process library
 set( process_headers
