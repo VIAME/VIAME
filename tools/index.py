@@ -135,6 +135,36 @@ def print_table(rows, headers):
 # ---------------------------------------------------------------------------
 # add
 # ---------------------------------------------------------------------------
+def report_ingest_errors(database_dir, started):
+    """Forward current pipeline diagnostics to CLI output and DIVE's job log."""
+    log_dir = os.path.join(database_dir, 'logs')
+    try:
+        names = sorted(os.listdir(log_dir))
+    except OSError:
+        return
+    for name in names:
+        path = os.path.join(log_dir, name)
+        try:
+            if not os.path.isfile(path) or os.path.getmtime(path) < started:
+                continue
+            with open(path, 'rb') as stream:
+                stream.seek(max(0, os.fstat(stream.fileno()).st_size - 32768))
+                lines = stream.read().decode('utf-8', errors='replace').splitlines()
+        except OSError:
+            continue
+        failures = [i for i, line in enumerate(lines)
+                    if any(marker in line.lower() for marker in
+                           ('error', 'exception', 'fatal', 'failed'))]
+        if not failures:
+            continue
+        print('Pipeline diagnostics: %s' % path, file=sys.stderr, flush=True)
+        # Keep the original exception and nearby stack trace without flooding Jobs.
+        start = failures[-1]
+        print('ERROR: %s' % lines[start], file=sys.stderr, flush=True)
+        for line in lines[start + 1:start + 30]:
+            print(line, file=sys.stderr, flush=True)
+
+
 def cmd_add(args):
     database_dir = os.path.abspath(args.database)
     backend = resolve_backend(args)
@@ -176,6 +206,7 @@ def cmd_add(args):
     print("Ingesting with %s (%s backend)" % (os.path.basename(pipeline), backend) + lb1)
     result = subprocess.call(command)
     if result != 0:
+        report_ingest_errors(database_dir, started)
         raise SystemExit("Ingest failed (exit code %d); see %s" % (
             result, os.path.join(database_dir, "logs")))
 
