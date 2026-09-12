@@ -1,16 +1,50 @@
+###
+# `kwiver.vital.types`
+#
+# The bindings live beside the C++ they bind since P8-T01, rather than in
+# `python/kwiver/vital/types`, which is what the copy from kwiver left. Each
+# file keeps its name with a `_python` suffix -- the convention
+# `library/file_io/opencv_yaml_python.cxx` already set -- because 47 of them
+# would otherwise collide with the C++ source of the very type they bind.
+#
+# **The module path is unchanged.** `kwiver_add_python_library` takes it as an
+# argument rather than deriving it from the source location, so
+# `kwiver.vital.types.bounding_box` is still `kwiver.vital.types.bounding_box`
+# and the four files in the tree that import a submodule by name keep working.
+# `tests/library/core_types/test_python_types.py` holds that surface to what
+# it was: 106 classes and 965 members, recorded before this moved.
+##
+
+# Two settings that `python/CMakeLists.txt` made and this directory does not
+# inherit, because both are directory scoped and the move changed the
+# directory. Neither failure is obvious from its symptom.
+#
+#   `kwiver_python_package` decides the top package these install into. It
+#   defaults to the project name, so without this every module landed in
+#   `site-packages/viame/vital/types` and nothing could import
+#   `kwiver.vital.types` at all.
+#
+#   `${PYTHON_LIBRARIES}` on every module, because VIAME links with
+#   `-Wl,--no-undefined` and an extension module leaves the interpreter's
+#   symbols to be resolved at import. In `python/` the flag was stripped from
+#   the directory's link flags instead; linking libpython is what
+#   `library/file_io` already does for `_opencv_yaml`, and it does not weaken
+#   the check for the C++ in this directory the way stripping the flag would.
+set( kwiver_python_package "kwiver" )
+
 set( THIS_MODULE vital/types )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py "${THIS_MODULE}" __init__ )
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/types_init.py "${THIS_MODULE}" __init__ )
 
 set( vital_python_headers
-     image.h
-     image_container.h
+     image_python.h
+     image_container_python.h
   )
 
 set( vital_python_sources
-     image.cxx
-     image_container.cxx
-     types_module.cxx
+     image_python.cxx
+     image_container_python.cxx
+     types_module_python.cxx
    )
 
 kwiver_add_python_library(
@@ -19,198 +53,223 @@ kwiver_add_python_library(
   SOURCES ${vital_python_headers}
           ${vital_python_sources}
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   activity
   "${THIS_MODULE}"
-  SOURCES activity.cxx
+  SOURCES activity_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   activity_type
   "${THIS_MODULE}"
-  SOURCES activity_type.cxx
+  SOURCES activity_type_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   bounding_box
   "${THIS_MODULE}"
-  SOURCES bounding_box.cxx
+  SOURCES bounding_box_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   camera
   "${THIS_MODULE}"
-  SOURCES camera.cxx
+  SOURCES camera_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   camera_intrinsics
   "${THIS_MODULE}"
-  SOURCES camera_intrinsics.cxx
+  SOURCES camera_intrinsics_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   camera_map
   "${THIS_MODULE}"
-  SOURCES camera_map.cxx
+  SOURCES camera_map_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   camera_perspective
   "${THIS_MODULE}"
-  SOURCES camera_perspective.cxx
+  SOURCES camera_perspective_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   camera_perspective_map
   "${THIS_MODULE}"
-  SOURCES camera_perspective_map.cxx
+  SOURCES camera_perspective_map_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
            vital
   )
 
 kwiver_add_python_library(
   camera_rpc
   "${THIS_MODULE}"
-  SOURCES camera_rpc.cxx
+  SOURCES camera_rpc_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   category_hierarchy
   "${THIS_MODULE}"
-  SOURCES category_hierarchy.cxx
+  SOURCES category_hierarchy_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   color
   "${THIS_MODULE}"
-  SOURCES color.cxx
+  SOURCES color_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   covariance
   "${THIS_MODULE}"
-  SOURCES covariance.cxx
+  SOURCES covariance_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   database_query
   "${THIS_MODULE}"
-  SOURCES database_query.cxx
+  SOURCES database_query_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   descriptor
   "${THIS_MODULE}"
-  SOURCES descriptor.cxx
+  SOURCES descriptor_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   descriptor_request
   "${THIS_MODULE}"
-  SOURCES descriptor_request.cxx
+  SOURCES descriptor_request_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   descriptor_set
   "${THIS_MODULE}"
-  SOURCES descriptor_set.cxx
+  SOURCES descriptor_set_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   detected_object
   "${THIS_MODULE}"
-  SOURCES detected_object.cxx
+  SOURCES detected_object_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   detected_object_set
   "${THIS_MODULE}"
-  SOURCES detected_object_set.cxx
+  SOURCES detected_object_set_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   detected_object_type
   "${THIS_MODULE}"
-  SOURCES detected_object_type.cxx
+  SOURCES detected_object_type_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   essential_matrix
   "${THIS_MODULE}"
-  SOURCES essential_matrix.cxx
+  SOURCES essential_matrix_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   feature
   "${THIS_MODULE}"
-  SOURCES feature.cxx
+  SOURCES feature_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   feature_set
   "${THIS_MODULE}"
-  SOURCES feature_set.cxx
+  SOURCES feature_set_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   feature_track_set
   "${THIS_MODULE}"
-  SOURCES feature_track_set.cxx
+  SOURCES feature_track_set_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   fundamental_matrix
   "${THIS_MODULE}"
-  SOURCES fundamental_matrix.cxx
+  SOURCES fundamental_matrix_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
@@ -221,8 +280,9 @@ kwiver_add_python_library(
 kwiver_add_python_library(
   geodesy
   "${THIS_MODULE}"
-  SOURCES geodesy.cxx
+  SOURCES geodesy_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
@@ -231,32 +291,36 @@ kwiver_add_python_library(
 kwiver_add_python_library(
   geo_point
   "${THIS_MODULE}"
-  SOURCES geo_point.cxx
+  SOURCES geo_point_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   geo_polygon
   "${THIS_MODULE}"
-  SOURCES geo_polygon.cxx
+  SOURCES geo_polygon_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   homography
   "${THIS_MODULE}"
-  SOURCES homography.cxx
+  SOURCES homography_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   homography_f2f
   "${THIS_MODULE}"
-  SOURCES homography_f2f.cxx
+  SOURCES homography_f2f_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
@@ -264,39 +328,44 @@ kwiver_add_python_library(
 kwiver_add_python_library(
   iqr_feedback
   "${THIS_MODULE}"
-  SOURCES iqr_feedback.cxx
+  SOURCES iqr_feedback_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   landmark
   "${THIS_MODULE}"
-  SOURCES landmark.cxx
+  SOURCES landmark_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital)
 
 kwiver_add_python_library(
   landmark_map
   "${THIS_MODULE}"
-  SOURCES landmark_map.cxx
+  SOURCES landmark_map_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   local_tangent_space
   "${THIS_MODULE}"
-  SOURCES local_tangent_space.cxx
+  SOURCES local_tangent_space_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   match_set
   "${THIS_MODULE}"
-  SOURCES match_set.cxx
+  SOURCES match_set_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
@@ -304,168 +373,189 @@ kwiver_add_python_library(
 kwiver_add_python_library(
   metadata
   "${THIS_MODULE}"
-  SOURCES metadata.cxx
+  SOURCES metadata_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   metadata_map
   "${THIS_MODULE}"
-  SOURCES metadata_map.cxx
+  SOURCES metadata_map_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   metadata_tags
   "${THIS_MODULE}"
-  SOURCES metadata_tags.cxx
+  SOURCES metadata_tags_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   metadata_traits
   "${THIS_MODULE}"
-  SOURCES metadata_traits.cxx
+  SOURCES metadata_traits_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   point
   "${THIS_MODULE}"
-  SOURCES point.cxx
+  SOURCES point_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   polygon
   "${THIS_MODULE}"
-  SOURCES polygon.cxx
+  SOURCES polygon_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   query_result
   "${THIS_MODULE}"
-  SOURCES query_result.cxx
+  SOURCES query_result_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   rotation
   "${THIS_MODULE}"
-  SOURCES rotation.cxx
+  SOURCES rotation_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   similarity
   "${THIS_MODULE}"
-  SOURCES similarity.cxx
+  SOURCES similarity_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   sfm_constraints
   "${THIS_MODULE}"
-  SOURCES sfm_constraints.cxx
+  SOURCES sfm_constraints_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   timestamp
   "${THIS_MODULE}"
-  SOURCES timestamp.cxx
+  SOURCES timestamp_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   track
   "${THIS_MODULE}"
-  SOURCES track.cxx
+  SOURCES track_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   track_descriptor
   "${THIS_MODULE}"
-  SOURCES track_descriptor.cxx
+  SOURCES track_descriptor_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   track_interval
   "${THIS_MODULE}"
-  SOURCES track_interval.cxx
+  SOURCES track_interval_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   track_set
   "${THIS_MODULE}"
-  SOURCES track_set.cxx
+  SOURCES track_set_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   transform_2d
   "${THIS_MODULE}"
-  SOURCES transform_2d.cxx
+  SOURCES transform_2d_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   uid
   "${THIS_MODULE}"
-  SOURCES uid.cxx
+  SOURCES uid_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   object_track_set
   "${THIS_MODULE}"
-  SOURCES object_track_set.cxx
+  SOURCES object_track_set_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   video_raw_image
   "${THIS_MODULE}"
-  SOURCES video_raw_image.cxx
+  SOURCES video_raw_image_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   video_raw_metadata
   "${THIS_MODULE}"
-  SOURCES video_raw_metadata.cxx
+  SOURCES video_raw_metadata_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 
 kwiver_add_python_library(
   video_settings
   "${THIS_MODULE}"
-  SOURCES video_settings.cxx
+  SOURCES video_settings_python.cxx
   PRIVATE pybind11::pybind11
+          ${PYTHON_LIBRARIES}
           vital
 )
 

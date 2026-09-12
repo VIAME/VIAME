@@ -5,7 +5,7 @@
 #include <pybind11/embed.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
-#include <python/kwiver/vital/types/image_container.h>
+#include "image_container_python.h"
 #include <viame/core_types/image_container.h>
 
 namespace kwiver {

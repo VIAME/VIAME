@@ -5,7 +5,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <python/kwiver/vital/types/image.h>
+#include "image_python.h"
 #include <viame/core_types/image.h>
 
 #include <cstdint>

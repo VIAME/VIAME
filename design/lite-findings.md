@@ -716,6 +716,28 @@ an artefact of the port:
   libdarknet and `libopencv_highgui` landed on the load path of everything
   linking `viame_core`. The detector is `viame_object_detectors_darknet` now,
   its own library behind its own plugin, and `viame_core` needs neither.
+* **Directory-scoped build settings do not travel with the files they
+  govern**, and both failures a move causes look like something else.
+  `python/CMakeLists.txt` sets two things for everything under it:
+  `kwiver_python_package` to "kwiver", because it otherwise defaults to the
+  project name; and `-Wl,--no-undefined` stripped from the link flags,
+  because an extension module leaves the interpreter's symbols to be resolved
+  at import. Moving the `vital.types` bindings to `library/core_types` in
+  P8-T01 left both behind. The first put 62 modules in
+  `site-packages/viame/vital/types` where nothing imports them -- a silent
+  wrong answer, not an error -- and the second failed the link with undefined
+  `pybind11::cast_error::set_error`, which says nothing about libpython. The
+  fix for the second is to link `${PYTHON_LIBRARIES}` rather than strip the
+  flag again, which is what `library/file_io` already did for `_opencv_yaml`
+  and does not weaken the check for the C++ beside it.
+* **A shared-library CPython cannot find its own `libpython`.** Building it
+  with `--enable-shared` into a prefix outside the system paths produces an
+  interpreter that records no RPATH and dies at startup with "cannot open
+  shared object file", even though the library is in the very `lib` directory
+  beside it. Found by running the thing rather than by reading the recipe.
+  This is what fletch's CPython avoids by building the whole of CPython a
+  **second** time, statically -- a full extra compile to solve what
+  `LDFLAGS=-Wl,-rpath,<prefix>/lib` solves.
 * **Finding 1.9 again, and it distorts a dependency count.** The install had
   `libviame_cppdb.so` and `libviame_darknet.so` in it long after both were
   deleted from the tree, because installing does not delete. Reading the

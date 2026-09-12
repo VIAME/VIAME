@@ -5,7 +5,7 @@
 #ifndef KWIVER_VITAL_PYTHON_IMAGE_CONTAINER_H_
 #define KWIVER_VITAL_PYTHON_IMAGE_CONTAINER_H_
 
-#include <python/kwiver/vital/types/image.h>
+#include "image_python.h"
 
 #include <viame/core_types/image_container.h>
 

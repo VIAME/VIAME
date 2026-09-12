@@ -9,8 +9,8 @@
  */
 
 #include <pybind11/pybind11.h>
-#include <python/kwiver/vital/types/image.h>
-#include <python/kwiver/vital/types/image_container.h>
+#include "image_python.h"
+#include "image_container_python.h"
 
 namespace py = pybind11;
 using namespace kwiver::vital::python;

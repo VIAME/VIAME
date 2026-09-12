@@ -26,4 +26,5 @@ add_subdirectory( io )
 add_subdirectory( plugin_management )
 add_subdirectory( plugins )
 add_subdirectory( test_interface )
-add_subdirectory( types )
+# `types` moved to `library/core_types` in P8-T01; its bindings are built
+# by `library/core_types/python.cmake` and keep the module path they had.

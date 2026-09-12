@@ -61,6 +61,15 @@ set( _cpython_configure_args
   --enable-shared
   --enable-optimizations
   --with-ensurepip=install
+  # The interpreter has to be able to find its own `libpython`.
+  # `--enable-shared` alone does not arrange that for a prefix outside the
+  # system paths: the built `python` links `libpython3.X.so.1.0`, records no
+  # RPATH, and dies at startup with "cannot open shared object file" unless
+  # something has already put the prefix on `LD_LIBRARY_PATH`. Found by
+  # running it. This is the problem fletch's recipe avoids by building
+  # CPython a **second** time statically -- a whole extra compile of CPython
+  # to solve what a linker flag solves.
+  "LDFLAGS=-Wl,-rpath,${VIAME_INSTALL_PREFIX}/lib"
   )
 
 if( _cpython_version VERSION_GREATER_EQUAL "3.8" )
