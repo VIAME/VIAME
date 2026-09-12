@@ -46,10 +46,6 @@ class process;
 /// A typedef used to handle \link process processes\endlink.
 typedef std::shared_ptr<process> process_t;
 
-class process_cluster;
-/// A typedef used to handle \link process_cluster process clusters\endlink.
-typedef std::shared_ptr<process_cluster> process_cluster_t;
-
 class scheduler;
 /// A typedef used to handle \link scheduler schedulers\endlink.
 typedef std::shared_ptr<scheduler> scheduler_t;

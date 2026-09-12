@@ -43,8 +43,6 @@ set( pipeline_srcs
   process_factory.cxx
   process_instrumentation.cxx
   process_exception.cxx
-  process_cluster.cxx
-  process_cluster_exception.cxx
   process_registry_exception.cxx
   scheduler.cxx
   scheduler_factory.cxx
@@ -66,8 +64,6 @@ set( pipeline_headers
   process_factory.h
   process_instrumentation.h
   process_exception.h
-  process_cluster.h
-  process_cluster_exception.h
   process_registry_exception.h
   scheduler.h
   scheduler_factory.h
@@ -134,30 +130,17 @@ add_library( kwiver::sprokit_pipeline ALIAS sprokit_pipeline )
 ##
 set( pipeline_util_srcs
   bakery_base.cxx
-  bakery_display.cxx
-  cluster_bakery.cxx
-  cluster_creator.cxx
-  cluster_info.cxx
-  cluster_splitter.cxx
-  export_dot.cxx
-  export_dot_exception.cxx
-  export_pipe.cxx
   lex_processor.cxx
   load_pipe_exception.cxx
-  loaded_cluster.cxx
   pipe_bakery.cxx
   pipe_bakery_exception.cxx
   pipe_display.cxx
   pipe_parser.cxx
   pipeline_builder.cxx
-  provided_by_cluster.cxx
   token.cxx
   )
 
 set( pipeline_util_headers
-  export_dot.h
-  export_dot_exception.h
-  export_pipe.h
   literal_pipeline.h
   load_pipe_exception.h
   path.h
@@ -165,17 +148,10 @@ set( pipeline_util_headers
   pipe_bakery_exception.h
   pipe_declaration_types.h
   bakery_base.h
-  bakery_display.h
-  cluster_bakery.h
-  cluster_creator.h
-  cluster_info.h
-  cluster_splitter.h
   lex_processor.h
-  loaded_cluster.h
   pipe_display.h
   pipe_parser.h
   pipeline_builder.h
-  provided_by_cluster.h
   token.h
   )
 

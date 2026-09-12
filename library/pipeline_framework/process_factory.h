@@ -24,8 +24,6 @@
 
 namespace sprokit {
 
-class cluster_info;
-using cluster_info_t =  std::shared_ptr<cluster_info>;
 
 // returns: process_t - shared_ptr<process>
 typedef std::function< process_t( kwiver::vital::config_block_sptr const& config ) > process_factory_func_t;
@@ -129,26 +127,6 @@ public:
 
 private:
   process_factory_func_t m_factory;
-};
-
-// ----------------------------------------------------------------------------
-/**
- * \brief Factory class for clusters
- *
- * This class represents a factory for clusters of processes.
- * The description for the cluster is in the cluster info element.
- */
-class SPROKIT_PIPELINE_EXPORT cluster_process_factory
-: public process_factory
-{
-public:
-  cluster_process_factory( cluster_info_t info );
-
-  virtual ~cluster_process_factory() = default;
-
-  sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config) override;
-
-  cluster_info_t m_cluster_info;
 };
 
 // ----------------------------------------------------------------------------

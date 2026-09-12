@@ -1265,7 +1265,66 @@ The value was not in finding a bug; there is no bug. It was in learning that
 the format had a detail at all, which is only knowable by running the code
 that defines it.
 
+### 1.28 The grammar in the comment is not the grammar in the code
+
+`parse_attrs`, in the `.pipe` parser, carries this three lines above itself:
+
+    attr-list ::= attr
+                | attr ',' attr_list
+
+and could not parse the second production. It accepted the comma and then
+went round the loop without fetching the token after it, so the comma itself
+was tested for being a flag name. `[ro,local]` had never worked.
+
+Nothing found it because nothing could: no shipped `.pipe` or `.conf` writes
+two flags, which is exactly what one would expect of a feature that has never
+worked -- the absence of users is the *symptom*, and it reads identically to
+the absence of need. P8-T07's removal criterion is "no shipped pipeline uses
+it", and this is the shape of case where that criterion quietly gets the
+wrong answer.
+
+What found it was writing the grammar down as tests before touching the
+parser, and taking the productions from the **comments** rather than only
+from what the shipped pipelines exercise. Three of the ten tests came
+straight from doc comments; one of the three failed.
+
+The general form: **when recording what code does before replacing it, take
+at least some of the cases from what the code claims rather than from what
+its callers do.** A recording built only from live traffic re-records the
+same bugs, and cannot tell "nobody needs this" from "nobody can use this".
+
 ## 2. Open questions
+
+### 2.12 Four python test trees that have never run
+
+`KWIVER_ENABLE_PYTHON_TESTS` gates `python/kwiver/vital/tests`,
+`python/kwiver/arrows`, `python/kwiver/tools` and
+`python/kwiver/sprokit/tests`. It is not in the build's cache, so none of
+them is configured, and turning it on **fails to configure**: the vital tree
+names `simple_bundle_adjust.py`, `simple_convert_image.py` and a dozen more
+fixtures that earlier phases pruned.
+
+The sprokit subtree is the interesting one. It holds about thirty tests --
+`test-load.py`, `test-bake.py`, `test-process.py`, `test-scheduler.py`,
+`test-pipeline.py` -- which are exactly the parser and scheduler tests
+P8-T07's task text says to keep and pass. They have never run here.
+
+P8-T07 wrote its own instead, in the style of the rest of this branch, rather
+than repairing three unrelated trees to reach the fourth. That leaves the
+question open in two parts:
+
+* **the vital, arrows and tools trees** reference fixtures that are gone. If
+  the code they test is also gone, they should be deleted rather than left
+  looking like tests; if it is not, they are coverage this branch is missing
+  and does not know it.
+* **the sprokit tree** still compiles against an API P8-T07 changed --
+  `test-process_cluster.py` and the cluster parts of `test-pipeline.py`,
+  `test-process_registry.py`, `test-bake.py` and `test-load.py` test a
+  feature that no longer exists.
+
+Either the flag comes on and all four are made to pass, or the trees go. What
+should not persist is the third state they are in now: present, unbuilt, and
+indistinguishable at a glance from tests that run.
 
 ### 2.11 Two JSON precisions in one library
 

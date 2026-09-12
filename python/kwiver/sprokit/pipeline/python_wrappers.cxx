@@ -3,7 +3,6 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <viame/pipeline_framework/process.h>
-#include <viame/pipeline_framework/process_cluster.h>
 #include <viame/pipeline_framework/scheduler.h>
 #include <viame/pipeline_framework/stamp.h>
 #include <viame/algorithm_framework/config/config_block.h>
@@ -46,24 +45,6 @@ public:
   {
     return ::sprokit::process::port_addr_t( process, port );
   }
-};
-
-// We need this so we can access protected class methods
-class wrap_process_cluster
-  : public ::sprokit::process_cluster
-{
-public:
-  using process_cluster::process_cluster;
-  using process_cluster::map_config;
-  using process_cluster::add_process;
-  using process_cluster::map_input;
-  using process_cluster::map_output;
-  using process_cluster::connect;
-  using process_cluster::_properties;
-  using process_cluster::_reconfigure;
-  using process::declare_input_port;
-  using process_cluster::declare_output_port;
-  using process_cluster::declare_configuration_key;
 };
 
 // We need to use this because PyBind11 has weird interactions with pointers

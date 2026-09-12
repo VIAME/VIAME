@@ -5,7 +5,6 @@
 #include "process_factory.h"
 #include "process_registry_exception.h"
 
-#include <viame/pipeline_framework/cluster_info.h>
 #include <viame/algorithm_framework/util/tokenize.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
@@ -60,37 +59,7 @@ sprokit::process_t
 cpp_process_factory::
 create_object(kwiver::vital::config_block_sptr const& config)
 {
-  // Call sprokit factory function. Need to use this factory
-  // function approach to handle clusters transparently.
   sprokit::process_t proc = m_factory( config );
-
-  // Copy attributes from factory to process.
-  copy_attributes( proc );
-
-  return proc;
-}
-
-// ============================================================================
-cluster_process_factory::
-cluster_process_factory( cluster_info_t info )
-  : process_factory( info->type, typeid( sprokit::process ).name() )
-  , m_cluster_info( info )
-{
-  this->add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() ) // our factory class type
-    .add_attribute( PLUGIN_CATEGORY, CLUSTER_CATEGORY )
-    .add_attribute( PLUGIN_NAME, info->type )
-    .add_attribute( PLUGIN_DESCRIPTION, info->description )
-    ;
-}
-
-// ------------------------------------------------------------------
-sprokit::process_t
-cluster_process_factory::
-create_object(kwiver::vital::config_block_sptr const& config)
-{
-  // Call sprokit factory function. Need to use this factory
-  // function approach to handle clusters transparently.
-  sprokit::process_t proc = m_cluster_info->ctor( config );
 
   // Copy attributes from factory to process.
   copy_attributes( proc );

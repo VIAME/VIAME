@@ -30,13 +30,6 @@ target_link_libraries(python-sprokit.pipeline-process
                       vital_python_util
                       vital_util)
 
-kwiver_add_python_library(process_cluster
-  sprokit/pipeline
-  SOURCES process_cluster.cxx)
-target_link_libraries(python-sprokit.pipeline-process_cluster
-  PRIVATE             sprokit_pipeline
-                      vital_python_util)
-
 kwiver_add_python_library(process_factory
   sprokit/pipeline
   SOURCES process_factory.cxx)

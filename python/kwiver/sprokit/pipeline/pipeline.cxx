@@ -3,7 +3,6 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <viame/pipeline_framework/pipeline.h>
-#include <viame/pipeline_framework/process_cluster.h>
 
 #if WIN32
 #pragma warning (push)
@@ -30,8 +29,6 @@ namespace sprokit {
 
 namespace python {
 
-static std::shared_ptr< wrap_process_cluster > cluster_by_name(
-  ::sprokit::pipeline& self, ::sprokit::process::name_t const& name );
 static std::vector< wrap_port_addr > connections_from_addr(
   ::sprokit::pipeline& self, ::sprokit::process::name_t const& name,
   ::sprokit::process::port_t const& port );
@@ -97,17 +94,6 @@ PYBIND11_MODULE( pipeline, m )
       ( arg( "name" ) ),
       "Get a process by name." )
     .def(
-      "parent_cluster", &sprokit::pipeline::parent_cluster,
-      ( arg( "name" ) ),
-      "Get a process' parent cluster." )
-    .def(
-      "cluster_names", &sprokit::pipeline::cluster_names,
-      "Returns a list of all cluster names in the pipeline." )
-    .def(
-      "cluster_by_name", &cluster_by_name,
-      ( arg( "name" ) ),
-      "Get a cluster by name." )
-    .def(
       "connections_from_addr", &connections_from_addr,
       arg( "name" ), arg( "port" ),
       "Return the addresses of ports that are connected downstream of a port." )
@@ -169,15 +155,6 @@ namespace kwiver {
 namespace sprokit {
 
 namespace python {
-
-std::shared_ptr< wrap_process_cluster >
-cluster_by_name(
-  ::sprokit::pipeline& self,
-  ::sprokit::process::name_t const& name )
-{
-  return std::dynamic_pointer_cast< wrap_process_cluster >(
-    self.cluster_by_name( name ) );
-}
 
 std::vector< wrap_port_addr >
 connections_from_addr(

@@ -9,7 +9,6 @@
  */
 
 #include <viame/pipeline_framework/process.h>
-#include <viame/pipeline_framework/process_cluster.h>
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/pipeline_framework/process_registry_exception.h>
 
@@ -168,9 +167,6 @@ PYBIND11_MODULE( process_factory, m )
 
   m.attr( "Process" ) =
     m.import( "kwiver.sprokit.pipeline.process" ).attr( "PythonProcess" );
-  m.attr( "ProcessCluster" ) =
-    m.import( "kwiver.sprokit.pipeline.process_cluster" ).attr(
-      "PythonProcessCluster" );
 }
 
 namespace kwiver {

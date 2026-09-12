@@ -10,11 +10,12 @@
 /// `scheduler_factory::default_type` names and which anything embedding a
 /// pipeline gets -- and, for `sync`, not at all.
 ///
-/// That is the argument for removing `sync` and it is also the reason the
-/// two need a test of their own: 292 pipelines going green says nothing
-/// about either. What is recorded here is that a pipeline baked from text
-/// runs to completion under each, and produces the same output through both,
-/// which is the only property a scheduler has that a caller can see.
+/// That was the argument for removing `sync` -- P8-T07 did -- and it is also
+/// the reason `thread_per_process` needs a test of its own: 292 pipelines
+/// going green says nothing about it. What is recorded here is that a
+/// pipeline baked from text runs to completion under it and produces the
+/// numbers it should, which is the only property a scheduler has that a
+/// caller can see.
 
 #include <viame/pipeline_framework/pipe_bakery.h>
 #include <viame/pipeline_framework/pipe_parser.h>
@@ -137,22 +138,14 @@ TEST ( scheduler, the_range_excludes_its_end )
 }
 
 // ----------------------------------------------------------------------------
-// The two C++ schedulers differ in how they step the pipeline and in nothing
-// a caller can observe. This is what makes `sync` removable rather than
-// merely unused: it is not a different answer, it is the same answer
-// arrived at on one thread.
-TEST ( scheduler, sync_and_thread_per_process_agree )
-{
-  scratch_output threaded( "scheduler_threaded.txt" );
-  scratch_output synchronous( "scheduler_sync.txt" );
-
-  run_under( "thread_per_process", threaded.path() );
-  run_under( "sync", synchronous.path() );
-
-  EXPECT_EQ( threaded.lines(), synchronous.lines() );
-  EXPECT_EQ( ( std::vector< std::string >{ "0", "1", "2", "3", "4" } ),
-             synchronous.lines() );
-}
+// `sync` was here. It ran the same pipeline on one thread and produced
+// byte-identical output -- the test asserted exactly that, and passed, which
+// is what made it removable rather than merely unused: not a different
+// answer, the same answer arrived at differently.
+//
+// P8-T07 removed it, so the test went with it. The measurement it made is
+// the reason recorded in `tests/baseline/removed.json`, and this is where it
+// was made.
 
 // ----------------------------------------------------------------------------
 int

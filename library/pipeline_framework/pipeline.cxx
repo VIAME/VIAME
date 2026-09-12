@@ -7,7 +7,6 @@
 
 #include "edge.h"
 #include "process_exception.h"
-#include "process_cluster.h"
 
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/config/config_block.h>
@@ -97,16 +96,7 @@ class pipeline::priv
     typedef std::map<process::name_t, process_t> process_map_t;
     typedef std::stack<process::name_t> parent_stack_t;
     typedef std::map<process::name_t, process::name_t> process_parent_map_t;
-    typedef std::map<process::name_t, process_cluster_t> cluster_map_t;
     typedef std::map<size_t, edge_t> edge_map_t;
-
-    typedef enum
-    {
-      cluster_upstream,
-      cluster_downstream
-    } cluster_connection_type_t;
-    typedef std::pair<process::connection_t, cluster_connection_type_t> cluster_connection_t;
-    typedef std::vector<cluster_connection_t> cluster_connections_t;
 
     typedef enum
     {
@@ -136,7 +126,6 @@ class pipeline::priv
 
     // Steps for setting up the pipeline.
     void check_for_processes() const;
-    void map_cluster_connections();
     void configure_processes();
     void check_for_data_dep_ports() const;
     void propagate_pinned_types();
@@ -156,14 +145,12 @@ class pipeline::priv
     process::connections_t connections;
 
     process_map_t process_map;
-    cluster_map_t cluster_map;
     edge_map_t edge_map;
 
     process_parent_map_t process_parent_map;
     parent_stack_t parent_stack;
 
     process::connections_t data_dep_connections;
-    cluster_connections_t cluster_connections;
     process::connections_t untyped_connections;
     type_pinnings_t type_pinnings;
 
@@ -178,12 +165,8 @@ class pipeline::priv
 
     static bool is_upstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
     static bool is_downstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
-    static bool is_cluster_upstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection);
-    static bool is_cluster_downstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection);
     static bool is_addr_on(process::name_t const& name, process::port_addr_t const& addr);
     static bool is_connection_with(process::name_t const& name, process::connection_t const& connection);
-    static bool is_cluster_connection_with(process::name_t const& name, cluster_connection_t const& cconnection);
-    static bool is_cluster_connection_for(process::connection_t const& connection, cluster_connection_t const& cconnection);
 
     class propagation_exception
       : public pipeline_exception
@@ -262,8 +245,6 @@ pipeline
 
   d->check_duplicate_name(name);
 
-  process_cluster_t const cluster = std::dynamic_pointer_cast<process_cluster>(process);
-
   process::name_t parent;
 
   if (!d->parent_stack.empty())
@@ -272,42 +253,6 @@ pipeline
   }
 
   d->process_parent_map[name] = parent;
-
-  if (cluster)
-  {
-    d->cluster_map[name] = cluster;
-
-    d->parent_stack.push(name);
-
-    /// \todo Should failure to add a cluster be able to be rolled back?
-
-    processes_t const cluster_procs = cluster->processes();
-
-    for (process_t const& cluster_proc : cluster_procs)
-    {
-      add_process(cluster_proc);
-    }
-
-    process::connections_t const& connections = cluster->internal_connections();
-
-    for (process::connection_t const& connection : connections)
-    {
-      process::port_addr_t const& upstream_addr = connection.first;
-      process::port_addr_t const& downstream_addr = connection.second;
-
-      process::name_t const& upstream_name = upstream_addr.first;
-      process::port_t const& upstream_port = upstream_addr.second;
-      process::name_t const& downstream_name = downstream_addr.first;
-      process::port_t const& downstream_port = downstream_addr.second;
-
-      connect(upstream_name, upstream_port,
-              downstream_name, downstream_port);
-    }
-
-    d->parent_stack.pop();
-
-    return;
-  }
 
   d->process_map[name] = process;
 }
@@ -323,27 +268,7 @@ pipeline
                  name);
   }
 
-  priv::cluster_map_t::iterator const i = d->cluster_map.find(name);
 
-  if (i != d->cluster_map.end())
-  {
-    process_cluster_t const& cluster = i->second;
-
-    processes_t const cluster_procs = cluster->processes();
-
-    for (process_t const& cluster_proc : cluster_procs)
-    {
-      process::name_t const& cluster_proc_name = cluster_proc->name();
-
-      remove_process(cluster_proc_name);
-    }
-
-    d->cluster_map.erase(i);
-
-    return;
-  }
-
-  /// \todo If process is in a cluster, remove the cluster.
 
   if (!d->process_map.count(name))
   {
@@ -378,23 +303,6 @@ pipeline
   if (!d->setup_in_progress)
   {
     d->planned_connections.push_back(connection);
-  }
-
-  bool const upstream_is_cluster = (0 != d->cluster_map.count(upstream_name));
-  bool const downstream_is_cluster = (0 != d->cluster_map.count(downstream_name));
-
-  if (upstream_is_cluster || downstream_is_cluster)
-  {
-    if (upstream_is_cluster)
-    {
-      d->cluster_connections.push_back(priv::cluster_connection_t(connection, priv::cluster_upstream));
-    }
-    else if (downstream_is_cluster)
-    {
-      d->cluster_connections.push_back(priv::cluster_connection_t(connection, priv::cluster_downstream));
-    }
-
-    return;
   }
 
   process_t const up_proc = process_by_name(upstream_name);
@@ -454,8 +362,6 @@ pipeline
 
   std::function<bool (process::connection_t const&)> const eq = std::bind(std::equal_to<process::connection_t>(),
                                                                           conn, std::placeholders::_1);
-  std::function<bool (priv::cluster_connection_t const&)> const cluster_eq = std::bind(&priv::is_cluster_connection_for,
-                                                                                       conn, std::placeholders::_1);
 
 #define FORGET_CONNECTION(T, f, conns)                                   \
   do                                                                     \
@@ -468,7 +374,6 @@ pipeline
   FORGET_CONNECTION(process::connections_t, eq, d->connections);
   FORGET_CONNECTION(process::connections_t, eq, d->data_dep_connections);
   FORGET_CONNECTION(process::connections_t, eq, d->untyped_connections);
-  FORGET_CONNECTION(priv::cluster_connections_t, cluster_eq, d->cluster_connections);
 
 #undef FORGET_CONNECTION
 }
@@ -493,7 +398,6 @@ pipeline
 
   try
   {
-    d->map_cluster_connections();
     d->configure_processes();
     d->check_for_data_dep_ports();
     d->propagate_pinned_types();
@@ -557,7 +461,6 @@ pipeline
   d->connections.clear();
   d->edge_map.clear();
   d->data_dep_connections.clear();
-  d->cluster_connections.clear();
   d->untyped_connections.clear();
   d->type_pinnings.clear();
   d->connected_shared_ports.clear();
@@ -592,42 +495,13 @@ pipeline
     VITAL_THROW( reconfigure_before_setup_exception );
   }
 
-  // reconfigure all top level processes
   for (priv::process_map_t::value_type const& proc_entry : d->process_map)
   {
     process::name_t const& name = proc_entry.first;
-    process::name_t const parent = parent_cluster(name);
-
-    // We only want to reconfigure top-level processes; clusters are in charge
-    // of reconfiguring child processes.
-    if (!parent.empty())
-    {
-      continue;
-    }
-
     process_t const& proc = proc_entry.second;
     kwiver::vital::config_block_sptr const proc_conf = conf->subblock_view(name);
 
     proc->reconfigure(proc_conf);
-  }
-
-  // reconfigure clusters
-  for (priv::cluster_map_t::value_type const& cluster_entry : d->cluster_map)
-  {
-    process::name_t const& name = cluster_entry.first;
-    process::name_t const parent = parent_cluster(name);
-
-    // We only want to reconfigure top-level processes; clusters are in charge
-    // of reconfiguring child processes.
-    if (!parent.empty())
-    {
-      continue;
-    }
-
-    process_cluster_t const& cluster = cluster_entry.second;
-    kwiver::vital::config_block_sptr const proc_conf = conf->subblock_view(name);
-
-    cluster->reconfigure(proc_conf);
   }
 }
 
@@ -658,54 +532,6 @@ pipeline
   if (i == d->process_map.end())
   {
     VITAL_THROW( no_such_process_exception,name);
-  }
-
-  return i->second;
-}
-
-// ------------------------------------------------------------------
-process::name_t
-pipeline
-::parent_cluster(process::name_t const& name) const
-{
-  priv::process_parent_map_t::const_iterator const i = d->process_parent_map.find(name);
-
-  if (i == d->process_parent_map.end())
-  {
-    VITAL_THROW( no_such_process_exception,name);
-  }
-
-  return i->second;
-}
-
-// ------------------------------------------------------------------
-process::names_t
-pipeline
-::cluster_names() const
-{
-  process::names_t names;
-
-  for (priv::cluster_map_t::value_type const& cluster : d->cluster_map)
-  {
-    process::name_t const& name = cluster.first;
-
-    names.push_back(name);
-  }
-
-  return names;
-}
-
-// ------------------------------------------------------------------
-process_cluster_t
-pipeline
-::cluster_by_name(process::name_t const& name) const
-{
-  priv::cluster_map_t::const_iterator i = d->cluster_map.find(name);
-
-  if (i == d->cluster_map.end())
-  {
-    VITAL_THROW( no_such_process_exception,
-                 name);
   }
 
   return i->second;
@@ -1152,7 +978,6 @@ pipeline::priv
   , planned_connections()
   , connections()
   , process_map()
-  , cluster_map()
   , edge_map()
   , data_dep_connections()
   , untyped_connections()
@@ -1182,7 +1007,7 @@ void
 pipeline::priv
 ::check_duplicate_name(process::name_t const& name)
 {
-  if (process_map.count(name) || cluster_map.count(name))
+  if (process_map.count(name))
   {
     VITAL_THROW( duplicate_process_name_exception,
                  name);
@@ -1196,8 +1021,6 @@ pipeline::priv
 {
   std::function<bool (process::connection_t const&)> const is = std::bind(&is_connection_with, name,
                                                                           std::placeholders::_1);
-  std::function<bool (cluster_connection_t const&)> const cluster_is = std::bind(&is_cluster_connection_with,
-                                                                                 name, std::placeholders::_1);
 
 #define FORGET_CONNECTIONS(T, f, conns)                                  \
   do                                                                     \
@@ -1210,7 +1033,6 @@ pipeline::priv
   FORGET_CONNECTIONS(process::connections_t, is, connections);
   FORGET_CONNECTIONS(process::connections_t, is, data_dep_connections);
   FORGET_CONNECTIONS(process::connections_t, is, untyped_connections);
-  FORGET_CONNECTIONS(cluster_connections_t, cluster_is, cluster_connections);
 
 #undef FORGET_CONNECTIONS
 }
@@ -1422,136 +1244,6 @@ pipeline::priv
 // ------------------------------------------------------------------
 void
 pipeline::priv
-::map_cluster_connections()
-{
-  cluster_connections_t const cconnections = cluster_connections;
-
-  // Forget the connections we'll be mapping.
-  cluster_connections.clear();
-
-  for (cluster_connection_t const& cconnection : cconnections)
-  {
-    process::connection_t const& connection = cconnection.first;
-    cluster_connection_type_t const& type = cconnection.second;
-
-    process::port_addr_t const& upstream_addr = connection.first;
-    process::port_addr_t const& downstream_addr = connection.second;
-
-    process::name_t const& upstream_name = upstream_addr.first;
-    process::port_t const& upstream_port = upstream_addr.second;
-    process::name_t const& downstream_name = downstream_addr.first;
-    process::port_t const& downstream_port = downstream_addr.second;
-
-    switch (type)
-    {
-      case cluster_upstream:
-        {
-          process::name_t const& cluster_name = upstream_name;
-          process::port_t const& cluster_port = upstream_port;
-
-          cluster_map_t::const_iterator const cluster_it = cluster_map.find(cluster_name);
-
-          if (cluster_it == cluster_map.end())
-          {
-            VITAL_THROW( no_such_process_exception,
-                         cluster_name);
-          }
-
-          process_cluster_t const& cluster = cluster_it->second;
-          process::connections_t mapped_connections = cluster->output_mappings();
-
-          std::function<bool (process::connection_t const&)> const is_port = std::bind(&is_downstream_for,
-                                                                      upstream_addr, std::placeholders::_1);
-
-          process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(),
-                                                                    mapped_connections.end(),
-                                                                    std::not_fn(is_port));
-          mapped_connections.erase(i, mapped_connections.end());
-
-          if (mapped_connections.empty())
-          {
-            VITAL_THROW( no_such_port_exception,
-                         cluster_name, cluster_port);
-          }
-          else if (mapped_connections.size() != 1)
-          {
-            static std::string const reason = "Failed to ensure that only one output "
-                                              "mapping is allowed on a cluster port";
-
-            throw std::logic_error(reason);
-          }
-
-          process::connection_t const& mapped_port_conn = mapped_connections[0];
-          process::port_addr_t const& mapped_port_addr = mapped_port_conn.first;
-
-          process::name_t const& mapped_name = mapped_port_addr.first;
-          process::port_t const& mapped_port = mapped_port_addr.second;
-
-          q->connect(mapped_name, mapped_port,
-                     downstream_name, downstream_port);
-        }
-
-        break;
-
-      case cluster_downstream:
-        {
-          process::name_t const& cluster_name = downstream_name;
-          process::port_t const& cluster_port = downstream_port;
-
-          cluster_map_t::const_iterator const cluster_it = cluster_map.find(cluster_name);
-
-          if (cluster_it == cluster_map.end())
-          {
-            VITAL_THROW( no_such_process_exception,
-                         cluster_name);
-          }
-
-          process_cluster_t const& cluster = cluster_it->second;
-          process::connections_t mapped_connections = cluster->input_mappings();
-
-          std::function<bool (process::connection_t const&)> const is_port = std::bind(&is_upstream_for, downstream_addr,
-                                                                                       std::placeholders::_1);
-
-          process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(),
-                                                                    mapped_connections.end(),
-                                                                    std::not_fn(is_port));
-          mapped_connections.erase(i, mapped_connections.end());
-
-          if (mapped_connections.empty())
-          {
-            VITAL_THROW( no_such_port_exception,
-                         cluster_name, cluster_port);
-          }
-
-          for (process::connection_t const& mapped_port_conn : mapped_connections)
-          {
-            process::port_addr_t const& mapped_port_addr = mapped_port_conn.second;
-
-            process::name_t const& mapped_name = mapped_port_addr.first;
-            process::port_t const& mapped_port = mapped_port_addr.second;
-
-            q->connect(upstream_name, upstream_port,
-                       mapped_name, mapped_port);
-          }
-        }
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  // Cluster ports could be mapped to other cluster ports. We need to call again
-  // until every cluster port has been resolved to a process.
-  if (!cluster_connections.empty())
-  {
-    map_cluster_connections();
-  }
-}
-
-// ------------------------------------------------------------------
-void
-pipeline::priv
 ::configure_processes()
 {
   // Configure processes.
@@ -1607,13 +1299,6 @@ pipeline::priv
     }
   } // end for
 
-  // Configure clusters.
-  for (cluster_map_t::value_type const& cluster_data : cluster_map)
-  {
-    process_cluster_t const& cluster = cluster_data.second;
-
-    cluster->configure();
-  }
 }
 
 // ------------------------------------------------------------------
@@ -2245,26 +1930,6 @@ pipeline::priv
 // ------------------------------------------------------------------
 bool
 pipeline::priv
-::is_cluster_upstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection)
-{
-  process::connection_t const connection = cconnection.first;
-
-  return is_upstream_for(addr, connection);
-}
-
-// ------------------------------------------------------------------
-bool
-pipeline::priv
-::is_cluster_downstream_for(process::port_addr_t const& addr, cluster_connection_t const& cconnection)
-{
-  process::connection_t const connection = cconnection.first;
-
-  return is_downstream_for(addr, connection);
-}
-
-// ------------------------------------------------------------------
-bool
-pipeline::priv
 ::is_addr_on(process::name_t const& name, process::port_addr_t const& addr)
 {
   process::name_t const& proc_name = addr.first;
@@ -2281,26 +1946,6 @@ pipeline::priv
   process::port_addr_t const& downstream_addr = connection.second;
 
   return (is_addr_on(name, upstream_addr) || is_addr_on(name, downstream_addr));
-}
-
-// ------------------------------------------------------------------
-bool
-pipeline::priv
-::is_cluster_connection_with(process::name_t const& name, cluster_connection_t const& cconnection)
-{
-  process::connection_t const& connection = cconnection.first;
-
-  return is_connection_with(name, connection);
-}
-
-// ------------------------------------------------------------------
-bool
-pipeline::priv
-::is_cluster_connection_for(process::connection_t const& connection, cluster_connection_t const& cconnection)
-{
-  process::connection_t const& cluster_connection = cconnection.first;
-
-  return (connection == cluster_connection);
 }
 
 // ------------------------------------------------------------------

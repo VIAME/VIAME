@@ -19,10 +19,8 @@
 #include "feedback_process.h"
 #include "flow_dependent_process.h"
 #include "multiplication_process.h"
-#include "multiplier_cluster.h"
 #include "mutate_process.h"
 #include "number_process.h"
-#include "orphan_cluster.h"
 #include "orphan_process.h"
 #include "print_number_process.h"
 #include "shared_process.h"
@@ -55,10 +53,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< feedback_process >();
   reg.register_process< flow_dependent_process >();
   reg.register_process< multiplication_process >();
-  reg.register_process< multiplier_cluster >();
   reg.register_process< mutate_process >();
   reg.register_process< number_process >();
-  reg.register_process< orphan_cluster >();
   reg.register_process< orphan_process >();
   reg.register_process< print_number_process >();
   reg.register_process< shared_process >();

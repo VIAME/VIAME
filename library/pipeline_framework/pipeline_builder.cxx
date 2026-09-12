@@ -74,36 +74,6 @@ pipeline_builder
   m_blocks = the_parser.parse_pipeline( input, def_file );
 }
 
-// ----------------------------------------------------------------------------
-void
-pipeline_builder
-::load_cluster(std::istream& istr, kwiver::vital::path_t const& def_file)
-{
-  sprokit::pipe_parser the_parser;
-  the_parser.add_search_path( m_search_path );
-
-  // process the input stream
-  m_cluster_blocks = the_parser.parse_cluster( istr, def_file );
-}
-
-// ----------------------------------------------------------------------------
-void
-pipeline_builder
-::load_cluster( kwiver::vital::path_t const& def_file )
-{
-  sprokit::pipe_parser the_parser;
-  the_parser.add_search_path( m_search_path );
-
-  std::ifstream input( def_file );
-  if ( ! input )
-  {
-    VITAL_THROW( sprokit::file_no_exist_exception, def_file );
-  }
-
-  // process the input stream
-  m_cluster_blocks = the_parser.parse_cluster( input, def_file );
-}
-
 // ------------------------------------------------------------------
 void
 pipeline_builder
@@ -204,14 +174,6 @@ pipeline_builder
   return sprokit::bake_pipe_blocks(m_blocks);
 }
 
-// ----------------------------------------------------------------------------
-sprokit::cluster_info_t
-pipeline_builder
-::cluster_info() const
-{
-  return sprokit::bake_cluster_blocks( m_cluster_blocks );
-}
-
 // ------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 pipeline_builder
@@ -226,14 +188,6 @@ pipeline_builder
 ::pipeline_blocks() const
 {
   return m_blocks;
-}
-
-// ------------------------------------------------------------------
-sprokit::cluster_blocks
-pipeline_builder
-::cluster_blocks() const
-{
-  return m_cluster_blocks;
 }
 
 // ----------------------------------------------------------------------------

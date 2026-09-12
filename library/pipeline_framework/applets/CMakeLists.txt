@@ -1,21 +1,18 @@
-# The pipeline applets: `runner`, `pipe-config` and `pipe-to-dot`
+# The pipeline applet: `runner`
 #
 # Imported from kwiver's `sprokit/src/applets` in P5-T03 and built from here
-# since P5-T05.
+# since P5-T05. `pipe-config` and `pipe-to-dot` went in P8-T07: VIAME's own
+# `pipeline` applet does what `pipe-config` did -- info, get, set, flatten,
+# check -- and `pipe-to-dot`'s graph output had no caller in the tree, no
+# shipped pipeline, and 900 lines of exporter behind it.
 
 set( sources
   register_tools.cxx
-  pipe_config.cxx
   pipeline_runner.cxx
-  pipe_to_dot.cxx
-  tool_io.cxx
   )
 
 set( headers
-  pipe_config.h
   pipeline_runner.h
-  pipe_to_dot.h
-  tool_io.h
   )
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )

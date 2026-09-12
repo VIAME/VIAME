@@ -8,8 +8,6 @@
 #include <viame/algorithm_framework/applets/applet_registrar.h>
 
 #include "pipeline_runner.h"
-#include "pipe_to_dot.h"
-#include "pipe_config.h"
 
 // ============================================================================
 extern "C"
@@ -28,8 +26,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   // -- register applets --
   reg.register_tool< pipeline_runner >();
-  reg.register_tool< pipe_to_dot >();
-  reg.register_tool< pipe_config >();
 
   reg.mark_module_as_loaded();
 }

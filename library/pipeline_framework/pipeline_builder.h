@@ -69,31 +69,6 @@ public:
   void load_pipeline( kwiver::vital::path_t const& def_file );
 
   /**
-   * \brief Load cluster from stream.
-   *
-   * This method loads the cluster into the builder. This can be used
-   * to add additional configuration files to the internal pipeline
-   * representation.
-   *
-   * \param istr Stream containing the textual cluster definition.
-   * \param def_file The default file name used when reporting errors
-   * from the stream. The directory portion is used when resolving
-   * included files and relpath specifiers.
-   */
-  void load_cluster( std::istream& istr, kwiver::vital::path_t const& def_file = "" );
-
-  /**
-   * \brief Load cluster from file name.
-   *
-   * This method loads the cluster into the builder. This can be used
-   * to add additional configuration files to the internal pipeline
-   * representation.
-   *
-   * \param def_file The name of the cluster file to use.
-   */
-  void load_cluster( kwiver::vital::path_t const& def_file );
-
-  /**
    * \brief Load supplemental data into pipeline description.
    *
    * Adds supplemental block to the internal representation of the pipeline.
@@ -137,16 +112,6 @@ public:
   sprokit::pipeline_t pipeline() const;
 
   /**
-   * \brief Create cluster and return info object.
-   *
-   * This method bakes the accumulated cluster blocks and returns the
-   * resulting info object.
-   *
-   * \return Cluster info object.
-   */
-  sprokit::cluster_info_t cluster_info() const;
-
-  /**
    * \brief Extract config block from pipeline.
    *
    * This method extracts the config for the pipeline.
@@ -163,14 +128,6 @@ public:
    */
   sprokit::pipe_blocks pipeline_blocks() const;
 
-  /**
-   * \brief List of internal cluster blocks
-   *
-   *
-   * \return The list of internal cluster blocks.
-   */
-  sprokit::cluster_blocks cluster_blocks() const;
-
 protected:
   void process_env(); // get default search path and env path. Add to m_search_path.
 
@@ -179,7 +136,6 @@ private:
 
   // List of pipe blocks
   sprokit::pipe_blocks m_blocks;
-  sprokit::cluster_blocks m_cluster_blocks;
 
   // file search path list
   kwiver::vital::config_path_list_t m_search_path;

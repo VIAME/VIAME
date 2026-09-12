@@ -10,10 +10,8 @@ set(examples_srcs
   feedback_process.cxx
   flow_dependent_process.cxx
   multiplication_process.cxx
-  multiplier_cluster.cxx
   mutate_process.cxx
   number_process.cxx
-  orphan_cluster.cxx
   orphan_process.cxx
   print_number_process.cxx
   registration.cxx
@@ -34,10 +32,8 @@ set(examples_private_headers
   feedback_process.h
   flow_dependent_process.h
   multiplication_process.h
-  multiplier_cluster.h
   mutate_process.h
   number_process.h
-  orphan_cluster.h
   orphan_process.h
   print_number_process.h
   process_traits.h

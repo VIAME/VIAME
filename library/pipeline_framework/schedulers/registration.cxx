@@ -4,7 +4,6 @@
 
 #include <viame/pipeline_framework/scheduler_factory.h>
 
-#include "sync_scheduler.h"
 #include "thread_per_process_scheduler.h"
 
 #include <schedulers/schedulers_export.h>
@@ -26,10 +25,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   {
     return;
   }
-
-  reg.register_scheduler< sprokit::sync_scheduler >(
-    "sync",
-    "Run the pipeline synchronously" );
 
   reg.register_scheduler< sprokit::thread_per_process_scheduler >(
     "thread_per_process",

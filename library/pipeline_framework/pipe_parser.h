@@ -26,7 +26,7 @@ namespace sprokit {
 
 // ----------------------------------------------------------------
 /**
- * \brief Pipe and cluster parser.
+ * \brief Pipe file parser.
  *
  */
 class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser final
@@ -61,18 +61,6 @@ public:
    * \return A vector of pipe blocks representing the pipeline.
    */
   sprokit::pipe_blocks parse_pipeline( std::istream& input, const std::string& name = "" );
-
-  /**
-   * \brief Parse cluster definitions.
-   *
-   * Parse a cluster definition into the internal representation.
-   *
-   * \param input Stream to read cluster definitions.
-   * \param name Input file name
-   *
-   * \return A vector of cluster blocks representing the cluster definition.
-   */
-  sprokit::cluster_blocks parse_cluster( std::istream& input, const std::string& name = "" );
 
   /** Compatibility mode.
    *
@@ -110,19 +98,12 @@ private:
   void process_config_block( config_pipe_block& pcb );
   void process_connection( connect_pipe_block& cpb );
 
-  // Cluster productions
-  void parse_one_cluster();
-  bool cluster_config( cluster_config_t& cfg );
-  void cluster_input( cluster_input_t& imap );
-  void cluster_output( cluster_output_t& omap );
-
   // Support methods
   void parse_port_addr( process::port_addr_t& out_pa );
   void parse_config( config_values_t& out_config );
   bool parse_config_line( config_value_t& config_val );
   void old_config( sprokit::config_value_t& val );
   void new_config( sprokit::config_value_t& val );
-  std::string collect_comments();
   void parse_attrs( sprokit::config_value_t& val );
 
   std::string parse_config_key();
@@ -137,9 +118,6 @@ private:
 
   // root of the pipeline AST
   sprokit::pipe_blocks m_pipe_blocks;
-
-  // root of the cluster AST
-  sprokit::cluster_blocks m_cluster_blocks;
 
   kwiver::vital::logger_handle_t m_logger;
 

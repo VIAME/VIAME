@@ -17,18 +17,6 @@ target_link_libraries(python-sprokit.pipeline_util-bake
     vital_vpm
   )
 
-kwiver_add_python_library(export_
-  sprokit/pipeline_util
-  SOURCES export.cxx)
-
-target_link_libraries(python-sprokit.pipeline_util-export_
-  LINK_PRIVATE
-    sprokit_pipeline
-    sprokit_pipeline_util
-    vital_python_util
-    sprokit_python_util)
-
-
 kwiver_add_python_library(load
   sprokit/pipeline_util
   SOURCES load.cxx)

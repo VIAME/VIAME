@@ -1034,5 +1034,47 @@
     "name": "darknet",
     "phase": "P1-T03",
     "reason": "Training with darknet is removed: the user's call, on vendoring darknet for inference only. The trainer did not train in process -- it wrote chips and then shelled out to the `darknet` executable, which is built from darknet.c and the sixteen command line subcommands, and none of those are vendored. The 16 train_detector_darknet_yolo_*.conf files in configs/add-ons/darknet-yolo and the three embedded training pipes alongside them select this and no longer resolve. Detection is unaffected: image_object_detector 'darknet' is unchanged and all 24 of its golden cases still reproduce."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "pipe-config",
+    "phase": "P8-T07",
+    "reason": "VIAME's own `pipeline` applet does what it did -- info, get, set, flatten and check on a .pipe file -- and does it on the include graph rather than only the flattened result. Kept nothing: the 400-line `export_pipe` writer behind it had no other caller."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "pipe-to-dot",
+    "phase": "P8-T07",
+    "reason": "Wrote a DOT graph of a pipeline's topology. No caller in the tree, no shipped pipeline and no test used it, and 900 lines of `export_dot` and its exception class existed only for it."
+  },
+  {
+    "interface": "",
+    "kind": "scheduler",
+    "name": "sync",
+    "phase": "P8-T07",
+    "reason": "Every shipped .pipe names `pythread_per_process` and the default is `thread_per_process`, so nothing selected it. Recorded before removal as producing byte-identical output to `thread_per_process` (tests/library/pipeline_framework/test_scheduler.cxx), which is what makes it redundant rather than merely unused."
+  },
+  {
+    "interface": "",
+    "kind": "scheduler",
+    "name": "thread_pool",
+    "phase": "P8-T07",
+    "reason": "Its own registered description was \"This example is not functional.\" Nothing selected it."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "multiplier_cluster",
+    "phase": "P8-T07",
+    "reason": "An example of the `cluster` feature, which P8-T07 removes. `pipe-check --all` finds no cluster block in any of the 292 shipped pipelines and the tree contains no .cluster file at all."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "orphan_cluster",
+    "phase": "P8-T07",
+    "reason": "An example of the `cluster` feature, which P8-T07 removes. `pipe-check --all` finds no cluster block in any of the 292 shipped pipelines and the tree contains no .cluster file at all."
   }
 ]

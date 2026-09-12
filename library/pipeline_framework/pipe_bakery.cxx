@@ -6,8 +6,6 @@
 
 #include "pipe_bakery_exception.h"
 #include "bakery_base.h"
-#include "cluster_bakery.h"
-#include "cluster_creator.h"
 
 #include "pipeline_builder.h"
 #include "pipe_declaration_types.h"
@@ -16,7 +14,6 @@
 
 #include <viame/pipeline_framework/pipeline.h>
 #include <viame/pipeline_framework/process.h>
-#include <viame/pipeline_framework/process_cluster.h>
 #include <viame/pipeline_framework/process_factory.h>
 
 #include <memory>
@@ -103,49 +100,6 @@ bake_pipe_blocks( pipe_blocks const& blocks )
 
   return pipe;
 } // bake_pipe_blocks
-
-// ============================================================================
-cluster_info_t
-bake_cluster_blocks( cluster_blocks const& blocks )
-{
-  auto bakery = std::make_shared< cluster_bakery >();
-
-  for ( auto b : blocks )
-  {
-    std::visit( *bakery, b );
-  }
-
-  if ( bakery->m_processes.empty() )
-  {
-    VITAL_THROW( cluster_without_processes_exception );
-  }
-
-  cluster_bakery::opt_cluster_component_info_t const& opt_cluster = bakery->m_cluster;
-
-  if ( ! opt_cluster )
-  {
-    VITAL_THROW( missing_cluster_block_exception );
-  }
-
-  cluster_bakery::cluster_component_info_t const& cluster = *opt_cluster;
-
-  if ( cluster.m_inputs.empty() &&
-       cluster.m_outputs.empty() )
-  {
-    VITAL_THROW( cluster_without_ports_exception );
-  }
-
-  process::type_t const& type = bakery->m_type;
-  process::description_t const& description = bakery->m_description;
-
-  // Bakery is copied into cluster_creator so it can be const.
-  process_factory_func_t const ctor = cluster_creator( *bakery );
-
-  cluster_info_t const info = std::make_shared< cluster_info > ( type, description, ctor );
-  info->m_bakery = bakery;
-
-  return info;
-}
 
 // ------------------------------------------------------------------
 kwiver::vital::config_block_sptr

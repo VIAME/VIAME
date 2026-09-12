@@ -13,7 +13,6 @@
 #include <viame/pipeline_framework/pipeline.h>
 #include <viame/pipeline_framework/pipeline_exception.h>
 #include <viame/pipeline_framework/process.h>
-#include <viame/pipeline_framework/process_cluster.h>
 
 #include <algorithm>
 #include <iterator>

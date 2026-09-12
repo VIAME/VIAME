@@ -10,7 +10,6 @@
 #include "path.h"
 #include "pipe_declaration_types.h"
 
-#include "cluster_info.h"
 
 #include <viame/core_types/vital_types.h>
 #include <viame/pipeline_framework/types.h>
@@ -34,15 +33,6 @@ namespace sprokit
  * \returns A pipeline baked from \p blocks.
  */
 SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& blocks);
-
-/**
- * \brief Extract a configuration from a collection of blocks.
- *
- * \param blocks The blocks to use for baking the cluster.
- *
- * \returns Information about the cluster based on \p blocks.
- */
-SPROKIT_PIPELINE_UTIL_EXPORT cluster_info_t bake_cluster_blocks(cluster_blocks const& blocks);
 
 /**
  * \brief Extract a configuration from a collection of blocks.
