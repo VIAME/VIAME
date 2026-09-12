@@ -757,7 +757,7 @@ class InitializeMixin(object):
                     'param "initial_lr" is not specified '
                     'in param_groups[{}] when resuming an optimizer'.format(i))
 
-        harn.info('Resuming from epoch={}'.format(harn.epoch))
+        harn.info('Resuming at epoch={}'.format(harn.epoch + 1))
 
 
 @register_mixin
@@ -1887,7 +1887,7 @@ class CoreMixin(object):
             vali_loader (torch.utils.data.DataLoader | None): vali loader
             test_loader (torch.utils.data.DataLoader | None): test loader
         """
-        harn.debug('=== start epoch {} ==='.format(harn.epoch))
+        harn.debug('=== start epoch {} ==='.format(harn.epoch + 1))
 
         # Log learning rate and momentum
         from .schedulers.scheduler_redesign import _get_optimizer_values
@@ -1980,6 +1980,12 @@ class CoreMixin(object):
         # collection on their own
         gc.collect()
 
+        if harn.preferences['prog_backend'] == 'progiter':
+            harn.info(ub.color_text(
+                '=== finish epoch {!r} / {!r} : {} ==='.format(
+                    harn.epoch + 1, harn.monitor.max_epoch, harn.hyper.name),
+                'white'))
+
         # check for termination
         if terminate_flag:
             raise StopTraining()
@@ -1987,12 +1993,6 @@ class CoreMixin(object):
             # Step to move to the next epoch
             # change learning rate (modified optimizer inplace)
             harn._step_scheduler_epoch(improved)
-
-            if harn.preferences['prog_backend'] == 'progiter':
-                harn.info(ub.color_text(
-                    '=== finish epoch {!r} / {!r} : {} ==='.format(
-                        harn.epoch + 1, harn.monitor.max_epoch, harn.hyper.name),
-                    'white'))
 
             harn._update_main_prog_desc()
             harn.main_prog.update(1)
@@ -2024,7 +2024,8 @@ class CoreMixin(object):
         Returns:
             dict: epoch_metrics - scalar values measured in this epoch.
         """
-        harn.debug('_run_epoch {}, tag={}, learn={}'.format(harn.epoch, tag, learn))
+        harn.debug('_run_epoch {}, tag={}, learn={}'.format(
+            harn.epoch + 1, tag, learn))
         harn.debug(' * len(loader) = {}'.format(len(loader)))
 
         try:
