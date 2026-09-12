@@ -413,6 +413,10 @@ foreach( ID RANGE ${DEP_COUNT} )
   string( REPLACE ";" "----" PYTHON_DEP_CMD_STR "${PYTHON_DEP_FULL_CMD}" )
   string( REPLACE ";" "----" PYTHON_DEP_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
 
+  # Cleared each iteration so a target without a hash gate cannot inherit the
+  # previous target's hash file below.
+  set( _HASH_FILE "" )
+
   # Use custom pip check script to avoid re-running pip on every build
   if( "${DEP}" STREQUAL "python-deps" )
     # Hash the dependency list to detect changes
@@ -479,5 +483,13 @@ foreach( ID RANGE ${DEP_COUNT} )
     INSTALL_DIR ${VIAME_INSTALL_PREFIX}
     LIST_SEPARATOR "----"
     )
+
+  # `make clean` removes the ExternalProject stamps, so the build step runs
+  # again -- but custom_pip_check_install.cmake then finds an unchanged hash
+  # and skips the install, which makes `make clean <dep>` a no-op. Tie the hash
+  # file to the target so clean removes it too and the next build reinstalls.
+  if( _HASH_FILE )
+    set_property( TARGET ${DEP} APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${_HASH_FILE}" )
+  endif()
 endforeach()
 
