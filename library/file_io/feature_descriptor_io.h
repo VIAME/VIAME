@@ -29,7 +29,7 @@ public:
   PLUGGABLE_IMPL(
     feature_descriptor_io,
     "Read and write features and descriptor"
-    " to binary files using Cereal serialization.",
+    " to binary KWFD files.",
     PARAM_DEFAULT(
       write_float_features, bool,
       "Convert features to use single precision floats "

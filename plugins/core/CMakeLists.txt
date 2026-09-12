@@ -134,12 +134,11 @@ target_include_directories( viame_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
 
-# cereal, for camera_rig_io, and the rapidjson it ships, for
-# read_transform_homography_json. Both were kwiver's `vital/internal` until
-# phase 5 vendored cereal whole.
+# rapidjson, for camera_rig_io and read_transform_homography_json. Both
+# reach it through `library/file_io/json.h`, which is where the settings that
+# make it behave the way VIAME expects are stated.
 target_include_directories( viame_core PRIVATE
-  ${VIAME_SOURCE_DIR}/third_party/cereal
-  ${VIAME_SOURCE_DIR}/third_party/cereal/cereal/external
+  ${VIAME_SOURCE_DIR}/third_party/rapidjson
   )
 
 set( CORE_LINK_LIBRARIES

@@ -9,7 +9,7 @@
 
 #include <fstream>
 
-#include <cereal/archives/portable_binary.hpp>
+#include "portable_binary.h"
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/algorithm_framework/vital_config.h>
 
@@ -106,8 +106,8 @@ void
 save_descriptors( Archive& ar, descriptor_set_sptr const& descriptors )
 {
   // dimensionality of each descriptor
-  cereal::size_type dim = descriptors->at( 0 )->size();
-  ar( cereal::make_size_tag( dim ) );
+  std::uint64_t dim = descriptors->at( 0 )->size();
+  ar( dim );
   for( descriptor_sptr const d : *descriptors )
   {
     if( !d )
@@ -146,8 +146,8 @@ vital::descriptor_set_sptr
 read_descriptors( Archive& ar, size_t num_desc )
 {
   // dimensionality of each descriptor
-  cereal::size_type dim;
-  ar( cereal::make_size_tag( dim ) );
+  std::uint64_t dim;
+  ar( dim );
 
   std::vector< descriptor_sptr > descriptors;
   descriptors.reserve( num_desc );
@@ -247,7 +247,7 @@ feature_descriptor_io
       filename );
   }
 
-  typedef cereal::PortableBinaryInputArchive Archive_t;
+  typedef viame::portable_binary::reader Archive_t;
 
   Archive_t ar( ifile );
 
@@ -261,8 +261,8 @@ feature_descriptor_io
       std::to_string( version ) );
   }
 
-  cereal::size_type num_feat = 0;
-  ar( cereal::make_size_tag( num_feat ) );
+  std::uint64_t num_feat = 0;
+  ar( num_feat );
   if( num_feat > 0 )
   {
     uint8_t type_code;
@@ -286,8 +286,8 @@ feature_descriptor_io
     feat = feature_set_sptr();
   }
 
-  cereal::size_type num_desc = 0;
-  ar( cereal::make_size_tag( num_desc ) );
+  std::uint64_t num_desc = 0;
+  ar( num_desc );
   if( num_desc > 0 )
   {
     uint8_t type_code;
@@ -345,7 +345,7 @@ feature_descriptor_io
   // file
   ofile.write( "KWFD", 4 );
 
-  typedef cereal::PortableBinaryOutputArchive Archive_t;
+  typedef viame::portable_binary::writer Archive_t;
   Archive_t ar( ofile );
 
   // file format version
@@ -357,9 +357,7 @@ feature_descriptor_io
     std::vector< feature_sptr > features = feat->features();
 
     // number of elements
-    ar(
-      cereal::make_size_tag(
-        static_cast< cereal::size_type >( features.size() ) ) );
+    ar( static_cast< std::uint64_t >( features.size() ) );
     uint8_t type_code = code_from_typeid( features[ 0 ]->data_type() );
     // if requested, force the output format to use floats instead of doubles
     if( d_->c_write_float_features() )
@@ -381,17 +379,13 @@ feature_descriptor_io
   }
   else
   {
-    ar( cereal::make_size_tag( static_cast< cereal::size_type >( 0 ) ) ); // number
-                                                                          // of
-                                                                          // elements
+    ar( static_cast< std::uint64_t >( 0 ) ); // number of elements
   }
 
   if( desc && desc->size() > 0 )
   {
     // number of elements
-    ar(
-      cereal::make_size_tag(
-        static_cast< cereal::size_type >( desc->size() ) ) );
+    ar( static_cast< std::uint64_t >( desc->size() ) );
     uint8_t type_code = code_from_typeid( desc->at( 0 )->data_type() );
     ar( type_code );
     switch( type_code )
@@ -422,9 +416,7 @@ feature_descriptor_io
   }
   else
   {
-    ar( cereal::make_size_tag( static_cast< cereal::size_type >( 0 ) ) ); // number
-                                                                          // of
-                                                                          // elements
+    ar( static_cast< std::uint64_t >( 0 ) ); // number of elements
   }
 }
 

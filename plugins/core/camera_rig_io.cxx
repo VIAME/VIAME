@@ -15,9 +15,8 @@
 #include <map>
 
 #include <viame/algorithm_framework/exceptions.h>
+#include <viame/file_io/json.h>
 #include <viame/file_io/opencv_yaml.h>
-#include <cereal/archives/json.hpp>
-#include <cereal/types/vector.hpp>
 
 #include <viame/algorithm_framework/util/file_system.h>
 
@@ -570,11 +569,106 @@ read_camera_rig( path_list_t const & cam_files )
   return rig;
 }
 
+namespace {
+
+// A calibration file is a flat object of numbers, and the reader wants
+// eighteen of its members by name. Every file VIAME writes also carries the
+// image size, the grid it was calibrated against and the residuals, before
+// the ones below and in no fixed order, so looking a member up is the whole
+// of the parsing strategy: reading positionally would silently pick up
+// `image_width` for `fx_left`.
+class rig_json_document
+{
+public:
+  explicit rig_json_document( path_t const& FN )
+  {
+    std::ifstream is( FN );
+    if( !is.is_open() )
+    {
+      throw std::runtime_error( "unable to open stereo rig JSON: " + FN );
+    }
+
+    rapidjson::IStreamWrapper wrapper( is );
+    m_document.ParseStream( wrapper );
+
+    if( m_document.HasParseError() )
+    {
+      throw std::runtime_error(
+        std::string( "malformed stereo rig JSON: " ) +
+        rapidjson::GetParseError_En( m_document.GetParseError() ) +
+        " at offset " + std::to_string( m_document.GetErrorOffset() ) );
+    }
+
+    if( !m_document.IsObject() )
+    {
+      throw std::runtime_error(
+        "stereo rig JSON is not an object: " + FN );
+    }
+  }
+
+  /// A number that has to be there.
+  double number( std::string const& name ) const
+  {
+    auto const entry = m_document.FindMember( name.c_str() );
+    if( entry == m_document.MemberEnd() || !entry->value.IsNumber() )
+    {
+      throw std::runtime_error(
+        "stereo rig JSON has no number \"" + name + "\"" );
+    }
+    return entry->value.GetDouble();
+  }
+
+  /// A number that need not be. `k3` is the only one, because a calibration
+  /// with four distortion coefficients is a calibration VIAME still reads.
+  double number( std::string const& name, double fallback ) const
+  {
+    auto const entry = m_document.FindMember( name.c_str() );
+    if( entry == m_document.MemberEnd() || !entry->value.IsNumber() )
+    {
+      return fallback;
+    }
+    return entry->value.GetDouble();
+  }
+
+  /// An array of exactly \p count numbers.
+  std::vector< double > numbers(
+    std::string const& name, unsigned count ) const
+  {
+    auto const entry = m_document.FindMember( name.c_str() );
+    if( entry == m_document.MemberEnd() || !entry->value.IsArray() ||
+        entry->value.Size() != count )
+    {
+      throw std::runtime_error(
+        "stereo rig JSON has no \"" + name + "\" of " +
+        std::to_string( count ) + " numbers" );
+    }
+
+    std::vector< double > out;
+    out.reserve( count );
+    for( auto const& element : entry->value.GetArray() )
+    {
+      if( !element.IsNumber() )
+      {
+        throw std::runtime_error(
+          "stereo rig JSON \"" + name + "\" holds something that is not a "
+          "number" );
+      }
+      out.push_back( element.GetDouble() );
+    }
+    return out;
+  }
+
+private:
+  rapidjson::Document m_document;
+};
+
+} // namespace
+
 camera_rig_stereo_sptr
 read_stereo_rig_json( path_t const& FN )
 {
-  std::ifstream is(FN);
-  cereal::JSONInputArchive ar(is);
+  rig_json_document const document( FN );
+
   camera_collection cams;
   std::map< std::string, intrinsics_builder > intrinsics_lr;
   std::string LEFT("left"), RIGHT("right");
@@ -582,27 +676,20 @@ read_stereo_rig_json( path_t const& FN )
 
   for (const auto& name: sides)
   {
-    double fx=1, fy=1;
-    ar( cereal::make_nvp( "fx_" + name, fx) );
-    ar( cereal::make_nvp( "fy_" + name, fy) );
+    double const fx = document.number( "fx_" + name );
+    double const fy = document.number( "fy_" + name );
+    double const cx = document.number( "cx_" + name );
+    double const cy = document.number( "cy_" + name );
 
-    double cx=0, cy=0;
-    ar ( cereal::make_nvp( "cx_" + name, cx) );
-    ar ( cereal::make_nvp( "cy_" + name, cy) );
-
-    // Read distortion coefficients: k1, k2, p1, p2, k3
+    // Distortion coefficients: k1, k2, p1, p2, k3. k3 is optional depending
+    // on the input; the other four are not.
     vector_d dist(5);
     dist.setZero();
-    ar( cereal::make_nvp( "k1_" + name, dist[0] ) );
-    ar( cereal::make_nvp( "k2_" + name, dist[1] ) );
-    ar( cereal::make_nvp( "p1_" + name, dist[2] ) );
-    ar( cereal::make_nvp( "p2_" + name, dist[3] ) );
-    // k3 is optional depending on the input
-    try {
-      ar( cereal::make_nvp( "k3_" + name, dist[4] ) );
-    } catch( ... ) {
-      dist[4] = 0.0;
-    }
+    dist[0] = document.number( "k1_" + name );
+    dist[1] = document.number( "k2_" + name );
+    dist[2] = document.number( "p1_" + name );
+    dist[3] = document.number( "p2_" + name );
+    dist[4] = document.number( "k3_" + name, 0.0 );
 
     intrinsics_lr[name] = intrinsics_builder( fx, fy, cx, cy, dist );
   }
@@ -613,16 +700,15 @@ read_stereo_rig_json( path_t const& FN )
     center, rotation, intrinsics_lr[LEFT].make_intrinsics()
   );
 
-  std::vector<double> T, R;
-  ar( CEREAL_NVP(T) );
   int const n=3;
+  auto const T = document.numbers( "T", n );
   vector_3d tv;
   for (int i=0; i<n; ++i)
   {
     tv[i]=T[i];
   }
 
-  ar( CEREAL_NVP(R) );
+  auto const R = document.numbers( "R", n * n );
   matrix_< 3, 3, double > rm;
   unsigned k=0;
   for (int i=0; i<n; ++i)
@@ -1419,9 +1505,20 @@ write_stereo_rig_json( camera_rig_stereo_sptr rig, std::string const & FN )
     return;
   }
   std::ofstream of( FN );
-  cereal::JSONOutputArchive::Options opt(
-    32, cereal::JSONOutputArchive::Options::IndentChar::space, 2 );
-  cereal::JSONOutputArchive ar( of, opt );
+  rapidjson::OStreamWrapper stream( of );
+  rapidjson::PrettyWriter< rapidjson::OStreamWrapper > writer( stream );
+
+  // Two spaces, and up to thirty-two decimal places -- which in practice
+  // means "as many as it takes", since rapidjson writes the shortest text
+  // that reads back as the same double and that is never more than
+  // seventeen significant digits. Both were the archive's settings before
+  // P8-T06; a reader of these files somewhere expects the layout, and
+  // nothing here can ask it.
+  writer.SetIndent( ' ', 2 );
+  writer.SetMaxDecimalPlaces( 32 );
+
+  writer.StartObject();
+
   std::vector< std::string > names = { "left", "right" };
   matrix_< 3, 3, double > Rl;
   vector_< 3, double > cl;
@@ -1437,15 +1534,23 @@ write_stereo_rig_json( camera_rig_stereo_sptr rig, std::string const & FN )
       auto const & c = intr.principal_point();
       auto const & d = intr.dist_coeffs();
       auto const & dlen = d.size();
-      ar( cereal::make_nvp( "fx_" + name, f) );
-      ar( cereal::make_nvp( "fy_" + name, f / aspect) );
-      ar( cereal::make_nvp( "cx_" + name, c[0]) );
-      ar( cereal::make_nvp( "cy_" + name, c[1]) );
-      ar( cereal::make_nvp( "k1_" + name, dlen > 0 ? d[0] : 0.0 ) );
-      ar( cereal::make_nvp( "k2_" + name, dlen > 1 ? d[1] : 0.0 ) );
-      ar( cereal::make_nvp( "p1_" + name, dlen > 2 ? d[2] : 0.0 ) );
-      ar( cereal::make_nvp( "p2_" + name, dlen > 3 ? d[3] : 0.0 ) );
-      ar( cereal::make_nvp( "k3_" + name, dlen > 4 ? d[4] : 0.0 ) );
+
+      auto const member =
+        [ & ]( std::string const& key, double value )
+        {
+          writer.Key( key.c_str() );
+          writer.Double( value );
+        };
+
+      member( "fx_" + name, f );
+      member( "fy_" + name, f / aspect );
+      member( "cx_" + name, c[0] );
+      member( "cy_" + name, c[1] );
+      member( "k1_" + name, dlen > 0 ? d[0] : 0.0 );
+      member( "k2_" + name, dlen > 1 ? d[1] : 0.0 );
+      member( "p1_" + name, dlen > 2 ? d[2] : 0.0 );
+      member( "p2_" + name, dlen > 3 ? d[3] : 0.0 );
+      member( "k3_" + name, dlen > 4 ? d[4] : 0.0 );
       if ( name == "left" )
       {
         Rl = cam.rotation().matrix();
@@ -1459,21 +1564,24 @@ write_stereo_rig_json( camera_rig_stereo_sptr rig, std::string const & FN )
         auto const & tr = cam.translation();
         auto const & tv = tr - Rr * cl;
         auto n = tv.size();
-        std::vector<double> T(n);
+        writer.Key( "T" );
+        writer.StartArray();
         for (int i=0; i<n; ++i)
         {
-          T[i] = tv[i];
+          writer.Double( tv[i] );
         }
-        ar( CEREAL_NVP(T) );
-        std::vector<double> R;
+        writer.EndArray();
+
+        writer.Key( "R" );
+        writer.StartArray();
         for (int i=0; i<3; ++i)
         {
           for (int j=0; j<3; ++j)
           {
-            R.push_back( rm(i,j) );
+            writer.Double( rm(i,j) );
           }
         }
-        ar( CEREAL_NVP(R) );
+        writer.EndArray();
       }
     }
     catch( std::exception const & e )
@@ -1482,6 +1590,11 @@ write_stereo_rig_json( camera_rig_stereo_sptr rig, std::string const & FN )
           << ": " << e.what() );
     }
   }
+
+  // Closed whatever happened above, so that a rig missing one of its two
+  // cameras still leaves a parseable file behind -- which is what the
+  // archive's destructor used to do.
+  writer.EndObject();
 }
 
 void

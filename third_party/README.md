@@ -10,9 +10,8 @@ the files VIAME compiles or includes, and the licence. Each directory's
 
 | Package | Carried | Left behind | Why vendored |
 |---|---|---|---|
-| `cereal` | headers | tests, docs, sandbox | serialisation, header only |
+| `rapidjson` | `rapidjson/`, 35 headers | cereal, which shipped it | **was inside cereal**: P8-T06 deleted the archive library and kept the JSON parser it vendored, renaming its `CEREAL_RAPIDJSON_*` macros back to `RAPIDJSON_*`. Header only |
 | `cxxopts` | `cxxopts.hpp` | everything else | one header |
-| `kwiversys` | sources | — | was kwiver's; P5-T05 |
 | `stb` | `stb_image.h`, `stb_image_write.h` | the other twenty stb headers | the codecs P7 replaced OpenCV's with |
 | `libsvm` | `svm.cpp`, `svm.h`, `COPYRIGHT` | java, matlab and python bindings, the three command line tools, svm-toy, Windows projects, example data | **not stock**: carries VIAME's `HISTOGRAM` and `NMI` kernels, which no upstream or system libsvm has |
 | `tinyxml` | `tinyxml.{h,cpp}`, `tinyxmlerror.cpp`, `tinyxmlparser.cpp` | `tinystr.{h,cpp}` (only used without STL strings, and VIAME always builds with them), docs, test program, sample XML, Visual Studio projects | one caller, the CVAT reader; not worth a fletch package |

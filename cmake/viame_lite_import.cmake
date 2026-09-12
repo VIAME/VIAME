@@ -34,10 +34,7 @@ include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}" )
 # couple of headers that trip it.
 include_directories( SYSTEM "${VIAME_LITE_SOURCE_INCLUDE_DIR}" )
 include_directories( SYSTEM "${VIAME_LITE_GENERATED_DIR}" )
-include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}/third_party/cereal" )
-# cereal ships rapidjson under its own external/; kwiver includes it directly
-include_directories( SYSTEM
-  "${VIAME_LITE_ROOT_DIR}/third_party/cereal/cereal/external" )
+include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}/third_party/rapidjson" )
 include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}/third_party/cxxopts" )
 
 # Rebase a list of file names onto the imported tree.

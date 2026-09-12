@@ -1218,7 +1218,83 @@ The Windows branches of `register.cxx` and `python_script_applet.cxx` are
 still uncompiled here. They should be read, not trusted, before the branch
 claims Windows support.
 
+### 1.26 An include that looks decorative can be carrying the settings
+
+Two files in VIAME parse JSON with rapidjson and include
+`<cereal/archives/json.hpp>` above it, calling no cereal archive at all. Each
+had a comment saying the include was "for the vendored rapidjson headers",
+which is half of it. The other half is three macros that header sets on the
+way past:
+
+    #define CEREAL_RAPIDJSON_ASSERT( x )  ...throw...
+    #define CEREAL_RAPIDJSON_WRITE_DEFAULT_FLAGS kWriteNanAndInfFlag
+    #define CEREAL_RAPIDJSON_PARSE_DEFAULT_FLAGS \
+      kParseFullPrecisionFlag | kParseNanAndInfFlag
+
+So those two files threw on an internal assertion rather than calling
+`assert` -- which under `NDEBUG` is nothing at all, making the alternative
+undefined behaviour rather than a crash -- wrote NaN and infinity rather than
+refusing them, and parsed at full precision, which is what guarantees a
+`double` VIAME wrote reads back bit for bit.
+
+None of that is visible at the point of use. Deleting an include that "only
+provides headers we get another way" would have changed all three, silently,
+in a build where the assertion is compiled out.
+
+`library/file_io/json.h` is where they are stated now. The general form:
+**when a dependency goes, look at what its headers configured, not only at
+what its functions did.** A macro defined before an include is a
+configuration decision with no call site, and nothing about the call sites
+will tell you it was made.
+
+### 1.27 A format with no test and no external reader still has a contract
+
+`write_stereo_rig` is exported, declared in `camera_rig_io.h`, and called by
+nothing: no applet, no pipeline, no test, no python binding. It would have
+been reasonable to treat its output as unconstrained.
+
+Writing the output down before porting it found a negative zero. The right
+camera's translation is `t - R c` with the left camera at the origin, and the
+subtraction produces `-0.0` where the input said `0.0`; cereal wrote `-0.0`
+and so does the replacement. It reads back equal to zero and compares equal
+to zero, so nothing in VIAME could ever have noticed -- and a rewrite that
+normalised it away would have changed the bytes of every file the function
+has ever written, for no reason and with nothing to catch it.
+
+The value was not in finding a bug; there is no bug. It was in learning that
+the format had a detail at all, which is only knowable by running the code
+that defines it.
+
 ## 2. Open questions
+
+### 2.11 Two JSON precisions in one library
+
+`plugins/core` parses JSON in four places. Two of them --
+`read_transform_homography_json` and, in `tools`, the `json` applet --
+included `<cereal/archives/json.hpp>` and so parsed with
+`kParseFullPrecisionFlag | kParseNanAndInfFlag` and wrote with
+`kWriteNanAndInfFlag`. The other three -- `read_detected_object_set_dive`,
+`write_object_track_set_dive` and `convert_annotations` -- include rapidjson
+directly and get its defaults: an approximate `strtod`, no NaN on the way in
+or out, and `RAPIDJSON_ASSERT` as `assert`, which is nothing under `NDEBUG`.
+
+So **`viame json` and the DIVE reader parse the same DIVE file to different
+doubles**, by up to one unit in the last place. Neither was chosen; the split
+is which files happened to include cereal.
+
+P8-T06 did not unify them, because changing how five readers round is a
+behaviour change and this was a dependency-removal task. What it did is make
+the choice visible: `library/file_io/json.h` carries the settings and says
+what they are, the three that do not use it say so at their includes, and
+the question is now a question.
+
+The answer is probably "full precision everywhere": it is what the
+calibration goldens are already held to, the cost is a few hundred
+nanoseconds per number, and a detection box that reads back differently
+depending on which VIAME component opened the file is not a property anyone
+chose. **P8-T09 or P2 is where to make that call**, with the DIVE goldens
+re-run rather than re-recorded, so that a difference shows up as a failure
+and gets looked at.
 
 ### 2.10 `$SYSENV{}` has no users
 

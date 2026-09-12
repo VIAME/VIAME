@@ -137,14 +137,13 @@ kwiver_add_plugin( viame_tools_applets
                viame_claude
 )
 
-# The json applet parses with the rapidjson vendored inside KWIVER's cereal,
-# whose headers include each other relative to this directory
+# The json applet parses with the vendored rapidjson, reached through
+# `library/file_io/json.h`
 if( NOT KWIVER_SOURCE_DIR )
   set( KWIVER_SOURCE_DIR "${VIAME_PACKAGES_DIR}/kwiver" )
 endif()
 target_include_directories( viame_tools_applets
-  PRIVATE      ${VIAME_SOURCE_DIR}/third_party/cereal
-               ${VIAME_SOURCE_DIR}/third_party/cereal/cereal/external
+  PRIVATE      ${VIAME_SOURCE_DIR}/third_party/rapidjson
   )
 
 # pipe_bakery.h includes its neighbours by bare name and only some of them

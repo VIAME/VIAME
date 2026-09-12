@@ -12,10 +12,11 @@
 #include <viame/algorithm_framework/util/data_stream_reader.h>
 #include <viame/algorithm_framework/exceptions.h>
 
-// Upstream reads through the rapidjson that cereal ships, reached there as
-// `vital/internal/cereal/...`. Phase 5 vendored cereal whole into
-// `third_party/cereal` and puts its `external` directory on the include
-// path, so the same headers are `<rapidjson/...>` here.
+// rapidjson with its own defaults, which is what this file has always had:
+// it never included cereal, and so never picked up the full-precision parse
+// and NaN handling that `library/file_io/json.h` now states. `viame json`
+// reads the same DIVE files the other way. Unintended, unchanged here, and
+// written down as open question 2.11.
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 

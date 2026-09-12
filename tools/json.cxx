@@ -10,14 +10,10 @@
 
 #include <utilities_file.h>
 
-// Pulled in for the vendored rapidjson headers and to route rapidjson
-// assertions to exceptions rather than aborts
-#include <cereal/archives/json.hpp>
-#include <rapidjson/document.h>
-#include <rapidjson/error/en.h>
-#include <rapidjson/filereadstream.h>
-#include <rapidjson/ostreamwrapper.h>
-#include <rapidjson/prettywriter.h>
+// The one door to rapidjson: it sets the assertion, write and parse
+// behaviour VIAME relies on, which `<cereal/archives/json.hpp>` used to set
+// on the way past.
+#include <viame/file_io/json.h>
 
 #include <viame/algorithm_framework/logger/logger.h>
 

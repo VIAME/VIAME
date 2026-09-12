@@ -71,7 +71,7 @@ register_factories( kv::plugin_loader& vpm )
 
   VIAME_REGISTER( kv::algo::feature_descriptor_io,
                   kwiver::arrows::core::feature_descriptor_io,
-                  "core", "Read and write features and descriptors with cereal" )
+                  "core", "Read and write features and descriptors as KWFD" )
 
 #undef VIAME_REGISTER
 

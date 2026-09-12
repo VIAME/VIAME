@@ -16,6 +16,9 @@
 #include <viame/core_types/attribute_set.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
+// rapidjson with its own defaults rather than the settings in
+// `library/file_io/json.h`, which is what this file has always had.
+// See open question 2.11.
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/writer.h>

@@ -16,7 +16,9 @@ set( plugin_headers
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   feature_descriptor_io.h
+  json.h
   opencv_yaml.h
+  portable_binary.h
   read_object_track_set_kw18.h
   write_object_track_set_kw18.h
   )
@@ -48,8 +50,8 @@ kwiver_add_library( viame_file_io
 target_include_directories( viame_file_io PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  # feature_descriptor_io serialises with cereal, which is vendored
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/third_party/cereal>
+  # `json.h` is the one door to rapidjson, which is vendored
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/third_party/rapidjson>
   )
 
 target_link_libraries( viame_file_io
