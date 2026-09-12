@@ -1,0 +1,1669 @@
+{
+ "classes": {
+  "Activity": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "activity_type",
+    "confidence",
+    "duration",
+    "end_time",
+    "id",
+    "label",
+    "participants",
+    "start_time"
+   ],
+   "statics": []
+  },
+  "ActivityType": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "class_names",
+    "delete_score",
+    "get_most_likely_class",
+    "get_most_likely_score",
+    "has_class_name",
+    "score",
+    "set_score"
+   ],
+   "properties": [],
+   "statics": [
+    "all_class_names"
+   ]
+  },
+  "BaseDescriptorSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "descriptors",
+    "empty",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BaseEssentialMatrix": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BaseFundamentalMatrix": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BaseHomography": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "inverse",
+    "map"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BaseImageContainer": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "asarray",
+    "depth",
+    "height",
+    "image",
+    "size",
+    "width"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BaseMatchSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "matches",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BaseVideoSettings": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "frame_rate",
+    "height",
+    "width"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BoundingBoxD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "area",
+    "center",
+    "contains",
+    "height",
+    "is_valid",
+    "lower_right",
+    "max_x",
+    "max_y",
+    "min_x",
+    "min_y",
+    "upper_left",
+    "width"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BoundingBoxF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "area",
+    "center",
+    "contains",
+    "height",
+    "is_valid",
+    "lower_right",
+    "max_x",
+    "max_y",
+    "min_x",
+    "min_y",
+    "upper_left",
+    "width"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "BoundingBoxI": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "area",
+    "center",
+    "contains",
+    "height",
+    "is_valid",
+    "lower_right",
+    "max_x",
+    "max_y",
+    "min_x",
+    "min_y",
+    "upper_left",
+    "width"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Camera": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "image_height",
+    "image_width",
+    "project"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "CameraIntrinsics": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "as_matrix",
+    "aspect_ratio",
+    "clone",
+    "dist_coeffs",
+    "distort",
+    "focal_length",
+    "image_height",
+    "image_width",
+    "is_map_valid",
+    "map",
+    "principal_point",
+    "skew",
+    "undistort",
+    "unmap"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "CameraMap": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "as_dict"
+   ],
+   "properties": [
+    "size"
+   ],
+   "statics": []
+  },
+  "CameraPerspective": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "as_matrix",
+    "center",
+    "center_covar",
+    "depth",
+    "image_height",
+    "image_width",
+    "intrinsics",
+    "pose_matrix",
+    "project",
+    "rotation",
+    "translation"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "CameraPerspectiveMap": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "cameras",
+    "clear",
+    "clone",
+    "erase",
+    "find",
+    "get_frame_ids",
+    "insert",
+    "set_from_base_camera_map",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "CameraRPC": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "back_project",
+    "clone",
+    "image_height",
+    "image_offset",
+    "image_scale",
+    "image_width",
+    "jacobian",
+    "project",
+    "rpc_coeffs",
+    "world_offset",
+    "world_scale"
+   ],
+   "properties": [],
+   "statics": [
+    "power_vector"
+   ]
+  },
+  "CategoryHierarchy": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "add_class",
+    "add_relationship",
+    "add_synonym",
+    "all_class_names",
+    "child_class_names",
+    "get_class_id",
+    "get_class_name",
+    "get_class_parents",
+    "has_class_name",
+    "load_from_file",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Covar2d": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "matrix"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Covar2f": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "matrix"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Covar3d": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "matrix"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Covar3f": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "matrix"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Covar4d": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "matrix"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Covar4f": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "matrix"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "DatabaseQuery": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "set_temporal_bounds",
+    "temporal_lower_bound",
+    "temporal_upper_bound"
+   ],
+   "properties": [
+    "descriptors",
+    "id",
+    "spatial_filter",
+    "spatial_region",
+    "stream_filter",
+    "temporal_filter",
+    "threshold",
+    "type"
+   ],
+   "statics": []
+  },
+  "Descriptor": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "sum",
+    "tobytearray",
+    "todoublearray"
+   ],
+   "properties": [
+    "nbytes",
+    "size"
+   ],
+   "statics": []
+  },
+  "DescriptorD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "sum",
+    "tobytearray",
+    "todoublearray"
+   ],
+   "properties": [
+    "nbytes",
+    "size"
+   ],
+   "statics": []
+  },
+  "DescriptorF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "sum",
+    "tobytearray",
+    "todoublearray"
+   ],
+   "properties": [
+    "nbytes",
+    "size"
+   ],
+   "statics": []
+  },
+  "DescriptorRequest": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "set_temporal_bounds",
+    "temporal_lower_bound",
+    "temporal_upper_bound"
+   ],
+   "properties": [
+    "data_location",
+    "id",
+    "image_data",
+    "spatial_regions"
+   ],
+   "statics": []
+  },
+  "DescriptorSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "descriptors",
+    "empty",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "DetectedObject": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "add_keypoint",
+    "add_note",
+    "attribute_keys",
+    "clear_keypoints",
+    "clear_notes",
+    "clone",
+    "descriptor_copy",
+    "get_attribute",
+    "get_flattened_polygon",
+    "has_attribute",
+    "set_attribute",
+    "set_descriptor",
+    "set_flattened_polygon"
+   ],
+   "properties": [
+    "bounding_box",
+    "confidence",
+    "detector_name",
+    "geo_point",
+    "index",
+    "keypoints",
+    "mask",
+    "notes",
+    "type"
+   ],
+   "statics": []
+  },
+  "DetectedObjectSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "add",
+    "at",
+    "clone",
+    "empty",
+    "select",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "DetectedObjectType": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "class_names",
+    "delete_score",
+    "get_most_likely_class",
+    "get_most_likely_score",
+    "has_class_name",
+    "score",
+    "set_score"
+   ],
+   "properties": [],
+   "statics": [
+    "all_class_names"
+   ]
+  },
+  "EssentialMatrixD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "clone",
+    "compute_matrix",
+    "compute_twisted_rotation",
+    "get_rotation",
+    "get_translation",
+    "matrix",
+    "rotation",
+    "translation",
+    "twisted_rotation"
+   ],
+   "properties": [
+    "type_name"
+   ],
+   "statics": []
+  },
+  "EssentialMatrixF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "clone",
+    "compute_matrix",
+    "compute_twisted_rotation",
+    "get_rotation",
+    "get_translation",
+    "matrix",
+    "rotation",
+    "translation",
+    "twisted_rotation"
+   ],
+   "properties": [
+    "type_name"
+   ],
+   "statics": []
+  },
+  "F2FHomography": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "get",
+    "inverse"
+   ],
+   "properties": [
+    "from_id",
+    "homography",
+    "to_id"
+   ],
+   "statics": [
+    "from_doubles",
+    "from_floats"
+   ]
+  },
+  "Feature": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "equal_except_for_angle"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "FeatureD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "clone",
+    "equal_except_for_angle"
+   ],
+   "properties": [
+    "angle",
+    "color",
+    "covariance",
+    "location",
+    "magnitude",
+    "scale",
+    "type_name"
+   ],
+   "statics": []
+  },
+  "FeatureF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "clone",
+    "equal_except_for_angle"
+   ],
+   "properties": [
+    "angle",
+    "color",
+    "covariance",
+    "location",
+    "magnitude",
+    "scale",
+    "type_name"
+   ],
+   "statics": []
+  },
+  "FeatureSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "features",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "FeatureTrackSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "active_tracks",
+    "all_frame_ids",
+    "clone",
+    "first_frame",
+    "frame_descriptors",
+    "frame_feature_track_states",
+    "frame_features",
+    "get_track",
+    "insert",
+    "keyframes",
+    "last_frame",
+    "last_frame_descriptors",
+    "last_frame_features",
+    "size",
+    "tracks"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "FeatureTrackState": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "clone",
+    "downcast"
+   ],
+   "properties": [
+    "descriptor",
+    "feature",
+    "frame_id",
+    "inlier"
+   ],
+   "statics": []
+  },
+  "FundamentalMatrixD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "clone",
+    "matrix"
+   ],
+   "properties": [
+    "type_name"
+   ],
+   "statics": []
+  },
+  "FundamentalMatrixF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "clone",
+    "matrix"
+   ],
+   "properties": [
+    "type_name"
+   ],
+   "statics": []
+  },
+  "GeoPoint": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "crs",
+    "is_empty",
+    "location",
+    "set_location"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "GeoPolygon": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "crs",
+    "is_empty",
+    "polygon",
+    "set_polygon"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "HistoryEntry": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "get_image_location",
+    "get_timestamp",
+    "get_world_location"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "HomographyD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "inverse",
+    "map",
+    "matrix",
+    "normalize"
+   ],
+   "properties": [
+    "type_name"
+   ],
+   "statics": [
+    "random"
+   ]
+  },
+  "HomographyF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "inverse",
+    "map",
+    "matrix",
+    "normalize"
+   ],
+   "properties": [
+    "type_name"
+   ],
+   "statics": [
+    "random"
+   ]
+  },
+  "IQRFeedback": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "negative_ids",
+    "positive_ids",
+    "query_id"
+   ],
+   "statics": []
+  },
+  "Image": {
+   "methods": [
+    "Types",
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "asarray",
+    "copy",
+    "copy_from",
+    "d_step",
+    "depth",
+    "empty_copy",
+    "first_pixel_address",
+    "h_step",
+    "height",
+    "pixel_num_bytes",
+    "pixel_type",
+    "pixel_type_name",
+    "size",
+    "w_step",
+    "width"
+   ],
+   "properties": [
+    "PIXEL_BOOL",
+    "PIXEL_FLOAT",
+    "PIXEL_SIGNED",
+    "PIXEL_UNKNOWN",
+    "PIXEL_UNSIGNED"
+   ],
+   "statics": []
+  },
+  "ImageContainer": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "asarray",
+    "depth",
+    "height",
+    "image",
+    "size",
+    "width"
+   ],
+   "properties": [],
+   "statics": [
+    "fromarray"
+   ]
+  },
+  "ItemsView": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "KeysView": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Landmark": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "color",
+    "cos_obs_angle",
+    "covar",
+    "loc",
+    "normal",
+    "observations",
+    "scale"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "LandmarkD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "covar"
+   ],
+   "properties": [
+    "color",
+    "cos_obs_angle",
+    "covariance",
+    "data_type",
+    "loc",
+    "normal",
+    "observations",
+    "scale"
+   ],
+   "statics": []
+  },
+  "LandmarkDict": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "items",
+    "keys",
+    "values"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "LandmarkF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "covar"
+   ],
+   "properties": [
+    "color",
+    "cos_obs_angle",
+    "covariance",
+    "data_type",
+    "loc",
+    "normal",
+    "observations",
+    "scale"
+   ],
+   "statics": []
+  },
+  "LandmarkMap": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "landmarks",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "LocalTangentSpace": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "to_global",
+    "to_local",
+    "valid"
+   ],
+   "properties": [
+    "origin"
+   ],
+   "statics": []
+  },
+  "MatchSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "matches",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "MatchVector": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "append",
+    "clear",
+    "count",
+    "extend",
+    "insert",
+    "pop",
+    "remove"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Metadata": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "add",
+    "add_copy",
+    "empty",
+    "erase",
+    "find",
+    "has",
+    "size"
+   ],
+   "properties": [
+    "timestamp"
+   ],
+   "statics": [
+    "format_string",
+    "print_metadata"
+   ]
+  },
+  "MetadataItem": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "as_double",
+    "as_string",
+    "as_uint64",
+    "has_double",
+    "has_string",
+    "has_uint64",
+    "is_valid"
+   ],
+   "properties": [
+    "data",
+    "name",
+    "tag",
+    "type"
+   ],
+   "statics": []
+  },
+  "MetadataMap": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "frames",
+    "get_item",
+    "get_vector",
+    "has_item",
+    "metadata",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "MetadataTagTraits": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "description",
+    "enum_name",
+    "name",
+    "tag",
+    "type"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "ObjectTrackSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "active_tracks",
+    "all_frame_ids",
+    "first_frame",
+    "get_track",
+    "insert",
+    "last_frame",
+    "size",
+    "tracks"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "ObjectTrackState": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "detection",
+    "image_point",
+    "track_point"
+   ],
+   "properties": [
+    "frame_id",
+    "time_usec"
+   ],
+   "statics": []
+  },
+  "Point2d": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "covariance",
+    "type_name",
+    "value"
+   ],
+   "statics": []
+  },
+  "Point2f": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "covariance",
+    "type_name",
+    "value"
+   ],
+   "statics": []
+  },
+  "Point2i": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "covariance",
+    "type_name",
+    "value"
+   ],
+   "statics": []
+  },
+  "Point3d": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "covariance",
+    "type_name",
+    "value"
+   ],
+   "statics": []
+  },
+  "Point3f": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "covariance",
+    "type_name",
+    "value"
+   ],
+   "statics": []
+  },
+  "Point4d": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "covariance",
+    "type_name",
+    "value"
+   ],
+   "statics": []
+  },
+  "Point4f": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "covariance",
+    "type_name",
+    "value"
+   ],
+   "statics": []
+  },
+  "Polygon": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "at",
+    "contains",
+    "get_vertices",
+    "num_vertices",
+    "push_back"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "QueryResult": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "end_time",
+    "set_temporal_bounds",
+    "start_time"
+   ],
+   "properties": [
+    "descriptors",
+    "image_data",
+    "instance_id",
+    "location",
+    "query_id",
+    "relevancy_score",
+    "stream_id",
+    "tracks"
+   ],
+   "statics": []
+  },
+  "RGBColor": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "b",
+    "g",
+    "r"
+   ],
+   "statics": []
+  },
+  "RotationD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "angle",
+    "angle_from",
+    "axis",
+    "inverse",
+    "matrix",
+    "quaternion",
+    "rodrigues",
+    "yaw_pitch_roll"
+   ],
+   "properties": [
+    "type_name"
+   ],
+   "statics": []
+  },
+  "RotationF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "angle",
+    "angle_from",
+    "axis",
+    "inverse",
+    "matrix",
+    "quaternion",
+    "rodrigues",
+    "yaw_pitch_roll"
+   ],
+   "properties": [
+    "type_name"
+   ],
+   "statics": []
+  },
+  "SFMConstraints": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "get_camera_position_prior_local",
+    "get_camera_position_priors",
+    "get_focal_length_prior",
+    "get_image_height",
+    "get_image_width",
+    "store_image_size"
+   ],
+   "properties": [
+    "local_tangent_space",
+    "metadata"
+   ],
+   "statics": []
+  },
+  "SimilarityD": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "inverse",
+    "matrix"
+   ],
+   "properties": [
+    "rotation",
+    "scale",
+    "translation",
+    "type_name"
+   ],
+   "statics": []
+  },
+  "SimilarityF": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "inverse",
+    "matrix"
+   ],
+   "properties": [
+    "rotation",
+    "scale",
+    "translation",
+    "type_name"
+   ],
+   "statics": []
+  },
+  "SimpleCameraIntrinsics": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "as_matrix",
+    "aspect_ratio",
+    "clone",
+    "dist_coeffs",
+    "distort",
+    "focal_length",
+    "get_max_distort_radius_sq",
+    "image_height",
+    "image_width",
+    "is_map_valid",
+    "map",
+    "max_distort_radius",
+    "principal_point",
+    "set_aspect_ratio",
+    "set_dist_coeffs",
+    "set_focal_length",
+    "set_image_height",
+    "set_image_width",
+    "set_principal_point",
+    "set_skew",
+    "skew",
+    "undistort",
+    "unmap"
+   ],
+   "properties": [],
+   "statics": [
+    "from_string",
+    "max_distort_radius_sq"
+   ]
+  },
+  "SimpleCameraPerspective": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "as_matrix",
+    "center",
+    "center_covar",
+    "depth",
+    "get_center",
+    "get_center_covar",
+    "get_intrinsics",
+    "get_rotation",
+    "image_height",
+    "image_width",
+    "intrinsics",
+    "look_at",
+    "pose_matrix",
+    "project",
+    "rotation",
+    "set_center",
+    "set_center_covar",
+    "set_intrinsics",
+    "set_rotation",
+    "set_translation",
+    "translation"
+   ],
+   "properties": [],
+   "statics": [
+    "from_string"
+   ]
+  },
+  "SimpleCameraRPC": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "back_project",
+    "clone",
+    "image_height",
+    "image_offset",
+    "image_scale",
+    "image_width",
+    "jacobian",
+    "project",
+    "rpc_coeffs",
+    "set_image_height",
+    "set_image_offset",
+    "set_image_scale",
+    "set_image_width",
+    "set_rpc_coeffs",
+    "set_world_offset",
+    "set_world_scale",
+    "world_offset",
+    "world_scale"
+   ],
+   "properties": [],
+   "statics": [
+    "power_vector"
+   ]
+  },
+  "SimpleFeatureSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "features",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "SimpleLandmarkMap": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "landmarks",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "SimpleMetadataMap": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "frames",
+    "get_item",
+    "get_vector",
+    "has_item",
+    "metadata",
+    "size"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Timestamp": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "get_frame",
+    "get_time_domain_index",
+    "get_time_seconds",
+    "get_time_usec",
+    "has_valid_frame",
+    "has_valid_time",
+    "is_valid",
+    "set_frame",
+    "set_invalid",
+    "set_time_domain_index",
+    "set_time_seconds",
+    "set_time_usec"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "Track": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "all_frame_ids",
+    "append",
+    "attribute_keys",
+    "find_state",
+    "get_attribute",
+    "has_attribute",
+    "set_attribute"
+   ],
+   "properties": [
+    "first_frame",
+    "id",
+    "is_empty",
+    "last_frame",
+    "size"
+   ],
+   "statics": []
+  },
+  "TrackDescriptor": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "add_history_entry",
+    "add_track_id",
+    "add_track_ids",
+    "at",
+    "descriptor_size",
+    "get_descriptor",
+    "get_history",
+    "get_track_ids",
+    "has_descriptor",
+    "resize_descriptor",
+    "set_descriptor",
+    "set_history"
+   ],
+   "properties": [
+    "type",
+    "uid"
+   ],
+   "statics": [
+    "create"
+   ]
+  },
+  "TrackInterval": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "start",
+    "stop",
+    "track"
+   ],
+   "statics": []
+  },
+  "TrackSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "active_tracks",
+    "all_frame_ids",
+    "first_frame",
+    "get_track",
+    "insert",
+    "last_frame",
+    "size",
+    "tracks"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "TrackState": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "frame_id"
+   ],
+   "statics": []
+  },
+  "Transform2D": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "inverse",
+    "map"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "UID": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "is_valid",
+    "size",
+    "value"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "UTMUPSZone": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "north",
+    "number"
+   ],
+   "statics": []
+  },
+  "ValuesView": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "VideoRawImage": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "VideoRawMetadata": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "VideoSettings": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "frame_rate",
+    "height",
+    "width"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "query_filter": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "CONTAINS_PARTLY",
+    "CONTAINS_WHOLLY",
+    "DOES_NOT_CONTAIN",
+    "IGNORE_FILTER",
+    "INTERSECTS",
+    "INTERSECTS_INBOUND",
+    "INTERSECTS_OUTBOUND",
+    "name",
+    "value"
+   ],
+   "statics": []
+  },
+  "query_type": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "RETRIEVAL",
+    "SIMILARITY",
+    "name",
+    "value"
+   ],
+   "statics": []
+  },
+  "tags": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_"
+   ],
+   "properties": [
+    "VITAL_META_AIRFIELD_BAROMET_PRESS",
+    "VITAL_META_AIRFIELD_ELEVATION",
+    "VITAL_META_AVERAGE_GSD",
+    "VITAL_META_CORNER_POINTS",
+    "VITAL_META_DENSITY_ALTITUDE",
+    "VITAL_META_DIFFERENTIAL_PRESSURE",
+    "VITAL_META_DST_FLAGS",
+    "VITAL_META_EASTING_VEL",
+    "VITAL_META_EVENT_START_TIMESTAMP",
+    "VITAL_META_FRAME_CENTER",
+    "VITAL_META_GPS_SEC",
+    "VITAL_META_GPS_WEEK",
+    "VITAL_META_GROUND_RANGE",
+    "VITAL_META_IMAGE_COORDINATE_SYSTEM",
+    "VITAL_META_IMAGE_CORRUPT",
+    "VITAL_META_IMAGE_HEIGHT",
+    "VITAL_META_IMAGE_SOURCE_SENSOR",
+    "VITAL_META_IMAGE_URI",
+    "VITAL_META_IMAGE_WIDTH",
+    "VITAL_META_IMU_STATUS",
+    "VITAL_META_LASER_PRF_CODE",
+    "VITAL_META_LAST_TAG",
+    "VITAL_META_LOCAL_ADJ",
+    "VITAL_META_METADATA_ORIGIN",
+    "VITAL_META_MISSION_ID",
+    "VITAL_META_MISSION_NUMBER",
+    "VITAL_META_NITF_BLOCKA_FRFC_LOC_01",
+    "VITAL_META_NITF_BLOCKA_FRLC_LOC_01",
+    "VITAL_META_NITF_BLOCKA_LRFC_LOC_01",
+    "VITAL_META_NITF_BLOCKA_LRLC_LOC_01",
+    "VITAL_META_NITF_IDATIM",
+    "VITAL_META_NITF_IMAGE_COMMENTS",
+    "VITAL_META_NORTHING_VEL",
+    "VITAL_META_OUTSIDE_AIR_TEMPERATURE",
+    "VITAL_META_PLATFORM_ANG_OF_ATTACK",
+    "VITAL_META_PLATFORM_CALL_SIGN",
+    "VITAL_META_PLATFORM_DESIGNATION",
+    "VITAL_META_PLATFORM_FUEL_REMAINING",
+    "VITAL_META_PLATFORM_GROUND_SPEED",
+    "VITAL_META_PLATFORM_INDICATED_AIRSPEED",
+    "VITAL_META_PLATFORM_MAGNET_HEADING",
+    "VITAL_META_PLATFORM_ORIENTATION",
+    "VITAL_META_PLATFORM_SIDESLIP_ANGLE",
+    "VITAL_META_PLATFORM_TAIL_NUMBER",
+    "VITAL_META_PLATFORM_TRUE_AIRSPEED",
+    "VITAL_META_PLATFORM_VERTICAL_SPEED",
+    "VITAL_META_RELATIVE_HUMIDITY",
+    "VITAL_META_RPC_COL_DEN_COEFF",
+    "VITAL_META_RPC_COL_NUM_COEFF",
+    "VITAL_META_RPC_COL_OFFSET",
+    "VITAL_META_RPC_COL_SCALE",
+    "VITAL_META_RPC_HEIGHT_OFFSET",
+    "VITAL_META_RPC_HEIGHT_SCALE",
+    "VITAL_META_RPC_LAT_OFFSET",
+    "VITAL_META_RPC_LAT_SCALE",
+    "VITAL_META_RPC_LONG_OFFSET",
+    "VITAL_META_RPC_LONG_SCALE",
+    "VITAL_META_RPC_ROW_DEN_COEFF",
+    "VITAL_META_RPC_ROW_NUM_COEFF",
+    "VITAL_META_RPC_ROW_OFFSET",
+    "VITAL_META_RPC_ROW_SCALE",
+    "VITAL_META_SECURITY_CLASSIFICATION",
+    "VITAL_META_SENSOR_FOV_NAME",
+    "VITAL_META_SENSOR_HORIZONTAL_FOV",
+    "VITAL_META_SENSOR_LOCATION",
+    "VITAL_META_SENSOR_ORIENTATION",
+    "VITAL_META_SENSOR_TYPE",
+    "VITAL_META_SENSOR_VERTICAL_FOV",
+    "VITAL_META_SLANT_RANGE",
+    "VITAL_META_START_TIMESTAMP",
+    "VITAL_META_STATIC_PRESSURE",
+    "VITAL_META_TARGET_ERROR_EST_CE90",
+    "VITAL_META_TARGET_ERROR_EST_LE90",
+    "VITAL_META_TARGET_LOCATION",
+    "VITAL_META_TARGET_TRK_GATE_HEIGHT",
+    "VITAL_META_TARGET_TRK_GATE_WIDTH",
+    "VITAL_META_TARGET_WIDTH",
+    "VITAL_META_UAS_LDS_VERSION_NUMBER",
+    "VITAL_META_UNIX_NANO_TIMESTAMP",
+    "VITAL_META_UNIX_TIMESTAMP",
+    "VITAL_META_UNIX_TIMESTAMP_SOURCE",
+    "VITAL_META_UNKNOWN",
+    "VITAL_META_UP_VEL",
+    "VITAL_META_VIDEO_BITRATE",
+    "VITAL_META_VIDEO_COMPRESSION_LEVEL",
+    "VITAL_META_VIDEO_COMPRESSION_PROFILE",
+    "VITAL_META_VIDEO_COMPRESSION_TYPE",
+    "VITAL_META_VIDEO_DATA_STREAM_INDEX",
+    "VITAL_META_VIDEO_DATA_STREAM_SYNCHRONOUS",
+    "VITAL_META_VIDEO_FRAME_NUMBER",
+    "VITAL_META_VIDEO_FRAME_RATE",
+    "VITAL_META_VIDEO_KEY_FRAME",
+    "VITAL_META_VIDEO_MICROSECONDS",
+    "VITAL_META_VIDEO_URI",
+    "VITAL_META_VNIIRS",
+    "VITAL_META_WAVELENGTH",
+    "VITAL_META_WIND_DIRECTION",
+    "VITAL_META_WIND_SPEED",
+    "name",
+    "value"
+   ],
+   "statics": []
+  }
+ },
+ "note": "What kwiver.vital.types exported before P8-T01 rewrote the bindings. Names and members only; behaviour is in tests/library/core_types/test_python_types.py.",
+ "python": "3.10",
+ "recorded": "2026-09-12T03:02:21Z",
+ "values": {}
+}

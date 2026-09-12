@@ -1,0 +1,243 @@
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+"""What `kwiver.vital.types` has to do, and what it has to expose.
+
+P8-T01 replaces the bindings copied from kwiver with hand-written ones in
+`library/core_types`, keeping the module name. Everything python in VIAME
+leans on that surface -- every algorithm, every sprokit process, the golden
+runner -- and none of it is checked until it runs.
+
+Two halves, and they answer different questions.
+
+`test_the_api_surface_is_what_it_was` compares against
+`tests/golden/python_types.json`, which is every exported class and its
+members, recorded before the rewrite. It answers "is anything missing", which
+is the failure a rewrite actually makes: a method nobody thought to port,
+found six months later by a pipeline that uses it once.
+
+The rest are behaviour. They answer "does it still do the same thing", which
+a member list cannot. They stay deliberately close to what VIAME's own python
+does with these types -- construct, round trip, index, convert to numpy --
+rather than exercising the whole of each class.
+"""
+import json
+import os
+
+import numpy as np
+import pytest
+
+from kwiver.vital.types import (
+    BoundingBoxD,
+    CameraIntrinsics,
+    DetectedObject,
+    DetectedObjectSet,
+    DetectedObjectType,
+    Image,
+    SimpleCameraIntrinsics,
+    ImageContainer,
+    Timestamp,
+)
+
+RECORDING = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..", "..", "golden", "python_types.json")
+
+
+# ----------------------------------------------------------------------------
+# The surface
+# ----------------------------------------------------------------------------
+
+def test_the_api_surface_is_what_it_was():
+    """Nothing exported before has gone missing.
+
+    Additions are fine and not reported: a rewrite that provides more than it
+    replaced has broken nothing. Only losses fail, which is the whole point.
+    """
+    import inspect
+
+    import kwiver.vital.types as types
+
+    with open(os.path.normpath(RECORDING)) as handle:
+        recorded = json.load(handle)
+
+    missing_classes = []
+    missing_members = {}
+
+    for name, expected in sorted(recorded["classes"].items()):
+        member = getattr(types, name, None)
+
+        if member is None or not inspect.isclass(member):
+            missing_classes.append(name)
+            continue
+
+        present = set(dir(member))
+        wanted = set(expected["methods"]) | set(expected["properties"]) \
+            | set(expected["statics"])
+
+        gone = sorted(wanted - present)
+        if gone:
+            missing_members[name] = gone
+
+    assert not missing_classes, \
+        "classes no longer exported: {}".format(missing_classes)
+    assert not missing_members, \
+        "members no longer present: {}".format(missing_members)
+
+
+# ----------------------------------------------------------------------------
+# The behaviour
+# ----------------------------------------------------------------------------
+
+def test_bounding_box_holds_its_corners():
+    box = BoundingBoxD(10.0, 20.0, 110.0, 220.0)
+
+    assert box.min_x() == 10.0
+    assert box.min_y() == 20.0
+    assert box.max_x() == 110.0
+    assert box.max_y() == 220.0
+
+    # The three every writer in the tree uses to size a detection
+    assert box.width() == 100.0
+    assert box.height() == 200.0
+    assert box.area() == 20000.0
+
+
+def test_an_image_round_trips_through_numpy():
+    """The conversion every python algorithm in VIAME begins and ends with.
+
+    Both directions, and the shape and dtype have to survive: an eight bit
+    three channel frame is what the readers produce and what the writers
+    expect back.
+    """
+    array = np.arange(64 * 96 * 3, dtype=np.uint8).reshape(64, 96, 3)
+
+    container = ImageContainer(Image(np.ascontiguousarray(array)))
+    returned = container.asarray()
+
+    assert returned.shape == array.shape
+    assert returned.dtype == array.dtype
+    assert np.array_equal(returned, array)
+
+    assert container.width() == 96
+    assert container.height() == 64
+    assert container.depth() == 3
+
+
+def test_a_single_channel_image_keeps_its_shape():
+    """Grey frames are two dimensional going in and coming back."""
+    array = np.arange(32 * 48, dtype=np.uint8).reshape(32, 48)
+
+    returned = ImageContainer(Image(np.ascontiguousarray(array))).asarray()
+
+    assert returned.shape[:2] == array.shape
+    assert np.array_equal(returned.reshape(array.shape), array)
+
+
+def test_a_sixteen_bit_image_survives():
+    """Not all imagery is eight bit; the depth readers produce uint16."""
+    array = (np.arange(16 * 24, dtype=np.uint16) * 257).reshape(16, 24)
+
+    returned = ImageContainer(Image(np.ascontiguousarray(array))).asarray()
+
+    assert returned.dtype == np.uint16
+    assert np.array_equal(returned.reshape(array.shape), array)
+
+
+def test_a_detection_carries_its_box_score_and_type():
+    kinds = DetectedObjectType(["fish", "scallop"], [0.9, 0.1])
+    detection = DetectedObject(BoundingBoxD(1, 2, 3, 4), 0.75, kinds)
+
+    assert detection.bounding_box.min_x() == 1
+    assert detection.confidence == 0.75
+
+    assert detection.type.score("fish") == pytest.approx(0.9)
+    assert detection.type.get_most_likely_class() == "fish"
+
+
+def test_a_detection_set_is_iterable_and_sized():
+    """What every writer and every scorer in the tree does with one."""
+    detections = DetectedObjectSet()
+
+    for index in range(4):
+        detections.add(
+            DetectedObject(BoundingBoxD(index, 0, index + 10, 10),
+                           0.5 + index / 10.0))
+
+    assert len(detections) == 4
+
+    boxes = [d.bounding_box.min_x() for d in detections]
+    assert boxes == [0, 1, 2, 3]
+
+
+def test_an_attribute_round_trips_on_a_detection():
+    """`compute_measurements` and the CSV writers pass values this way."""
+    detection = DetectedObject(BoundingBoxD(0, 0, 1, 1), 1.0)
+
+    detection.set_attribute("length", 12.5)
+
+    assert detection.has_attribute("length")
+    assert detection.get_attribute("length") == pytest.approx(12.5)
+    assert "length" in detection.attribute_keys()
+
+
+def test_a_note_round_trips_on_a_detection():
+    """`ocv_detect_calibration_targets` puts world positions here."""
+    detection = DetectedObject(BoundingBoxD(0, 0, 1, 1), 1.0)
+
+    detection.add_note(":stereo3d_x=1.5")
+
+    assert ":stereo3d_x=1.5" in list(detection.notes)
+
+
+def test_a_timestamp_holds_its_frame_and_time():
+    stamp = Timestamp()
+    stamp.set_frame(17)
+    stamp.set_time_seconds(4.5)
+
+    assert stamp.get_frame() == 17
+    assert stamp.get_time_seconds() == pytest.approx(4.5)
+    assert stamp.has_valid_frame()
+    assert stamp.has_valid_time()
+
+
+def test_camera_intrinsics_carry_a_calibration():
+    """How `ocv_optimize_stereo_cameras` builds one: a 3x3 and a distortion
+    vector, which is also the shape OpenCV's calibration returns.
+
+    `CameraIntrinsics` itself is the abstract base and default-constructs
+    only; `SimpleCameraIntrinsics` is the concrete one every caller uses.
+    """
+    matrix = np.array([[600.0, 0.0, 320.0],
+                       [0.0, 605.0, 240.0],
+                       [0.0, 0.0, 1.0]], dtype=np.float64)
+    distortion = np.array([-0.1, 0.01, 0.0, 0.0, 0.0], dtype=np.float64)
+
+    intrinsics = SimpleCameraIntrinsics(matrix, distortion)
+
+    assert intrinsics.focal_length() == pytest.approx(600.0)
+    assert intrinsics.principal_point()[0] == pytest.approx(320.0)
+    assert intrinsics.principal_point()[1] == pytest.approx(240.0)
+    # `aspect_ratio` is the horizontal focal length over the vertical, which
+    # is the reciprocal of what the name suggests to most readers
+    assert intrinsics.aspect_ratio() == pytest.approx(600.0 / 605.0)
+
+    returned = np.asarray(intrinsics.as_matrix())
+    assert returned.shape == (3, 3)
+    assert returned[0][0] == pytest.approx(600.0)
+    assert returned[0][2] == pytest.approx(320.0)
+
+    assert np.asarray(intrinsics.dist_coeffs()).ravel()[0] == pytest.approx(-0.1)
+
+
+def test_the_abstract_camera_intrinsics_is_abstract():
+    """`CameraIntrinsics` default-constructs and then refuses to answer.
+
+    It is the interface, and every method is pure virtual behind a
+    trampoline, so a bare one raises rather than returning a default
+    calibration. Worth pinning: the only `types.CameraIntrinsics()` in the
+    tree is inside a docstring in `netharn/stereo.py`, and a reader could
+    easily take it for working code.
+    """
+    with pytest.raises(RuntimeError):
+        CameraIntrinsics().focal_length()

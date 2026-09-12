@@ -661,6 +661,14 @@ if( VIAME_ENABLE_PYTHON )
                   PROPERTY STRINGS "3.10.4" "3.12.12" "3.14.2" "3.14.2t" )
     mark_as_advanced( VIAME_PYTHON_VERSION )
 
+    # Jobs for CPython's own make; its configure is autotools and knows
+    # nothing of the generator's parallelism
+    include( ProcessorCount )
+    ProcessorCount( VIAME_PYTHON_BUILD_JOBS )
+    if( VIAME_PYTHON_BUILD_JOBS EQUAL 0 )
+      set( VIAME_PYTHON_BUILD_JOBS 1 )
+    endif()
+
     include( setup_internal_python )
   else()
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
@@ -1081,6 +1089,11 @@ else()
       add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/googletest"
                         third_party/googletest )
     endif()
+
+    # Builds nothing unless `VIAME_BUILD_PYTHON_FROM_SOURCE` is on, which is
+    # for a packaged build that cannot assume a python on the target machine
+    add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/cpython"
+                      third_party/cpython )
 
     if( VIAME_ENABLE_PYTHON )
       add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/pybind11"
