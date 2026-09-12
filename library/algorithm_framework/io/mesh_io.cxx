@@ -11,7 +11,7 @@
 #include <limits>
 #include <sstream>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
@@ -26,7 +26,7 @@ std::ofstream
 open_output_file( const std::string& filename )
 {
   // Check if the given path is a directory
-  if( kwiversys::SystemTools::FileIsDirectory( filename ) )
+  if( kwiver::vital::file_is_directory( filename ) )
   {
     VITAL_THROW(
       file_write_exception, filename,
@@ -34,11 +34,11 @@ open_output_file( const std::string& filename )
   }
 
   // Ensure the directory of the given filepath exists, create if necessary
-  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath(
-    kwiversys::SystemTools::CollapseFullPath( filename ) );
-  if( !kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
+  std::string parent_dir = kwiver::vital::filename_path(
+    kwiver::vital::collapse_full_path( filename ) );
+  if( !kwiver::vital::file_is_directory( parent_dir ) )
   {
-    if( !kwiversys::SystemTools::MakeDirectory( parent_dir ) )
+    if( !kwiver::vital::make_directory( parent_dir ) )
     {
       VITAL_THROW(
         file_write_exception, parent_dir,
@@ -63,13 +63,13 @@ std::ifstream
 open_input_file( const std::string& filename )
 {
   // Check that file exists and is not a directory
-  if( !kwiversys::SystemTools::FileExists( filename ) )
+  if( !kwiver::vital::file_exists( filename ) )
   {
     VITAL_THROW(
       file_not_found_exception,
       filename, "File does not exist." );
   }
-  else if( kwiversys::SystemTools::FileIsDirectory( filename ) )
+  else if( kwiver::vital::file_is_directory( filename ) )
   {
     VITAL_THROW(
       file_not_found_exception, filename,
@@ -96,7 +96,7 @@ read_mesh( const std::string& filename )
 {
   std::ifstream input_stream = open_input_file( filename );
   const std::string ext =
-    kwiversys::SystemTools::GetFilenameLastExtension( filename );
+    kwiver::vital::filename_last_extension( filename );
 
   if( ext == ".ply2" )
   {

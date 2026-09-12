@@ -26,7 +26,7 @@
 #include <viame/pipeline_framework/adapters/output_adapter.h>
 #include <viame/pipeline_framework/adapters/output_adapter_process.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <sstream>
 #include <stdexcept>
@@ -62,7 +62,6 @@ kwiver::embedded_pipeline_extension_sptr create_epx_by_name( const std::string& 
 
 namespace kwiver {
 
-typedef kwiversys::SystemTools ST;
 
 // ----------------------------------------------------------------
 class embedded_pipeline::priv
@@ -187,7 +186,7 @@ embedded_pipeline
   std::string cur_file( def_dir );
   if ( def_dir.empty() )
   {
-    cur_file = ST::GetCurrentWorkingDirectory();
+    cur_file = kwiver::vital::current_working_directory();
   }
 
   builder.load_pipeline( istr, cur_file + "/in-stream" );

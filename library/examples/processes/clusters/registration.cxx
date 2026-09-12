@@ -11,7 +11,7 @@
 #include "processes_clusters_export.h"
 
 #include <kwiversys/Directory.hxx>
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/pipeline_framework/process_registry_exception.h>
 #include <viame/pipeline_framework/utils.h>
@@ -59,20 +59,20 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   kwiver::vital::path_list_t include_dirs;
 
   // Build include directories.
-  kwiversys::SystemTools::GetPath( include_dirs, sprokit_include_envvar.c_str() );
+  kwiver::vital::environment_path( sprokit_include_envvar, include_dirs );
   kwiver::vital::tokenize( default_include_dirs, include_dirs, path_separator, kwiver::vital::TokenizeTrimEmpty );
 
   for ( const kwiver::vital::path_t& include_dir : include_dirs)
   {
     // log file
     LOG_DEBUG( logger, "Loading clusters from directory: " << include_dir );
-    if ( ! kwiversys::SystemTools::FileExists( include_dir) )
+    if ( ! kwiver::vital::file_exists( include_dir) )
     {
       LOG_DEBUG( logger, "Path not found loading clusters: " << include_dir );
       continue;
     }
 
-    if ( ! kwiversys::SystemTools::FileIsDirectory(include_dir) )
+    if ( ! kwiver::vital::file_is_directory(include_dir) )
     {
       LOG_WARN( logger, "Path not directory loading clusters: " << include_dir );
       continue;
@@ -87,7 +87,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
       std::string pstr = dir.GetPath();
       pstr += "/" + std::string( dir.GetFile( i ) );
 
-      if ( kwiversys::SystemTools::GetFilenameLastExtension( pstr ) != cluster_suffix )
+      if ( kwiver::vital::filename_last_extension( pstr ) != cluster_suffix )
       {
         continue;
       }
@@ -96,7 +96,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
       LOG_DEBUG( logger, "Loading cluster from file: " << pstr );
 
       // Check that we're looking a file
-      if ( kwiversys::SystemTools::FileIsDirectory( pstr ) )
+      if ( kwiver::vital::file_is_directory( pstr ) )
       {
         LOG_WARN( logger, "Found non-file loading clusters: " << pstr );
         continue;

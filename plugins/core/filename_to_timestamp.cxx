@@ -4,7 +4,7 @@
 
 #include "filename_to_timestamp.h"
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <cctype>
 #include <locale>
@@ -68,7 +68,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
 
   if( filename.size() > 10 )
   {
-    std::string name_only = kwiversys::SystemTools::GetFilenameName( filename );
+    std::string name_only = kwiver::vital::filename_name( filename );
     std::vector< std::string > parts = split( name_only, '_' );
 
     // Example: CHESS_FL1_C_160407_234502.428_COLOR-8-BIT.JPG

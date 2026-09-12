@@ -4,7 +4,7 @@
 
 #include "train.h"
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/plugin/plugin_factory.h>
@@ -693,10 +693,10 @@ static const std::string monitor_done_prefix = "TRAIN DONE (exit ";
 // Keep the previous log of a re-run (e.g. --continue) rather than overwriting it
 static void rotate_log( const std::string& log_path )
 {
-  if( kwiversys::SystemTools::FileExists( log_path, true ) )
+  if( kwiver::vital::file_is_regular( log_path ) )
   {
     const std::string previous = log_path + ".old";
-    kwiversys::SystemTools::RemoveFile( previous );
+    kwiver::vital::remove_file( previous );
     std::rename( log_path.c_str(), previous.c_str() );
   }
 }
@@ -1938,11 +1938,11 @@ train_applet
     std::string monitor_name = opt_detector;
     {
       const std::string full =
-        kwiversys::SystemTools::CollapseFullPath( monitor_dir );
-      const std::string parent = kwiversys::SystemTools::GetFilenamePath( full );
-      const std::string leaf = kwiversys::SystemTools::GetFilenameName( full );
+        kwiver::vital::collapse_full_path( monitor_dir );
+      const std::string parent = kwiver::vital::filename_path( full );
+      const std::string leaf = kwiver::vital::filename_name( full );
       const std::string parent_leaf =
-        kwiversys::SystemTools::GetFilenameName( parent );
+        kwiver::vital::filename_name( parent );
 
       if( !leaf.empty() )
       {
@@ -2460,7 +2460,7 @@ train_applet
     if( ends_with_extension( all_data[i], image_exts ) )
     {
       std::string base_name =
-        kwiversys::SystemTools::GetFilenameName( all_data[i] );
+        kwiver::vital::filename_name( all_data[i] );
       augmented_name_counts[base_name]++;
     }
   }
@@ -2839,13 +2839,13 @@ train_applet
         // For single images, only use a subdirectory if the base filename
         // appears more than once (to avoid output file collisions)
         std::string base_name =
-          kwiversys::SystemTools::GetFilenameName( data_item );
+          kwiver::vital::filename_name( data_item );
 
         if( augmented_name_counts[base_name] > 1 )
         {
           // Use parent directory to disambiguate
           std::vector< std::string > split_folder;
-          kwiversys::SystemTools::SplitPath( data_item, split_folder );
+          kwiver::vital::split_path( data_item, split_folder );
 
           if( split_folder.size() >= 2 )
           {
@@ -2861,7 +2861,7 @@ train_applet
       {
         // For directories/videos, use the last path component as a subdirectory
         std::vector< std::string > split_folder;
-        kwiversys::SystemTools::SplitPath( data_item, split_folder );
+        kwiver::vital::split_path( data_item, split_folder );
         last_subdir = ( split_folder.empty() ? data_item : split_folder.back() );
       }
 
@@ -2874,7 +2874,7 @@ train_applet
         cache_path.push_back( last_subdir );
       }
 
-      create_folder( kwiversys::SystemTools::JoinPath( cache_path ) );
+      create_folder( kwiver::vital::join_path( cache_path ) );
     }
 
     // Read all images and detections in sequence
@@ -3707,12 +3707,12 @@ train_applet
         // output_directory need not exist yet -- the trainers create their
         // own -- and an ofstream into a missing directory just fails
         const std::string parent =
-          kwiversys::SystemTools::GetFilenamePath( path );
+          kwiver::vital::filename_path( path );
 
         if( !parent.empty() &&
-            !kwiversys::SystemTools::FileIsDirectory( parent ) )
+            !kwiver::vital::file_is_directory( parent ) )
         {
-          kwiversys::SystemTools::MakeDirectory( parent );
+          kwiver::vital::make_directory( parent );
         }
 
         std::ofstream manifest( path );

@@ -144,6 +144,32 @@ time_str_to_seconds( const std::string& str )
   return output;
 }
 
+// ----------------------------------------------------------------------------
+std::string
+upper_case( const std::string& input )
+{
+  std::string out( input );
+
+  std::transform(
+    out.begin(), out.end(), out.begin(),
+    []( unsigned char c ){ return static_cast< char >( std::toupper( c ) ); } );
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+std::string
+lower_case( const std::string& input )
+{
+  std::string out( input );
+
+  std::transform(
+    out.begin(), out.end(), out.begin(),
+    []( unsigned char c ){ return static_cast< char >( std::tolower( c ) ); } );
+
+  return out;
+}
+
 } // namespace vital
 
 }  // end namespace

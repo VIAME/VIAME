@@ -17,7 +17,7 @@
 #include <image_ops/color.h>
 #include <image_ops/warp.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <string>
 #include <sstream>
@@ -261,7 +261,7 @@ darknet_detector
       "Configuration is as follows:\n" << str.str() );
     success = false;
   }
-  else if( !kwiversys::SystemTools::FileExists( net_config ) )
+  else if( !kwiver::vital::file_exists( net_config ) )
   {
     LOG_ERROR( logger(), "net config file \"" << net_config << "\" not found." );
     success = false;
@@ -276,7 +276,7 @@ darknet_detector
       "Configuration is as follows:\n" << str.str() );
     success = false;
   }
-  else if( !kwiversys::SystemTools::FileExists( class_file ) )
+  else if( !kwiver::vital::file_exists( class_file ) )
   {
     LOG_ERROR( logger(), "class names file \"" << class_file << "\" not found." );
     success = false;

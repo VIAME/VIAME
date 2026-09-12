@@ -5,7 +5,7 @@
 #include "utilities_training.h"
 #include "utilities_file.h"
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <viame/pipeline_framework/process_exception.h>
 #include <viame/pipeline_framework/adapters/adapter_types.h>
@@ -481,7 +481,7 @@ std::string get_augmented_filename( const std::string& name,
                                     const std::string& ext )
 {
   std::string file_name =
-    kwiversys::SystemTools::GetFilenameName( name );
+    kwiver::vital::filename_name( name );
 
   std::size_t last_index = file_name.find_last_of( "." );
   std::string file_name_no_ext = file_name.substr( 0, last_index );
@@ -505,7 +505,7 @@ std::string get_augmented_filename( const std::string& name,
   }
   full_path.push_back( file_name_no_ext + ext );
 
-  std::string mod_path = kwiversys::SystemTools::JoinPath( full_path );
+  std::string mod_path = kwiver::vital::join_path( full_path );
   return mod_path;
 }
 
@@ -610,7 +610,7 @@ extract_video_frames( const std::string& video_filename,
   // Guarded on the pipeline actually declaring a track_reader, so extractors
   // without one are unaffected.
   if( !groundtruth_file.empty() &&
-      kwiversys::SystemTools::FileExists( groundtruth_file, true ) &&
+      kwiver::vital::file_is_regular( groundtruth_file ) &&
       pipeline_declares_process( pipeline_filename, "track_reader" ) )
   {
     cmd = cmd + "-s track_reader:file_name=" + add_quotes( groundtruth_file ) + " ";

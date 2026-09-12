@@ -16,7 +16,7 @@
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -32,7 +32,6 @@ namespace viame {
 namespace tools {
 
 namespace kv = kwiver::vital;
-using ST = kwiversys::SystemTools;
 
 namespace {
 
@@ -168,7 +167,7 @@ describe( annotation_conversion_summary const& summary )
   out << summary.detections << " detection" << ( summary.detections == 1 ? "" : "s" );
   if( !summary.frame_source.empty() )
   {
-    out << ", frames from " << ST::GetFilenameName( summary.frame_source );
+    out << ", frames from " << kwiver::vital::filename_name( summary.frame_source );
   }
   return out.str();
 }
@@ -388,8 +387,8 @@ convert_applet
       return EXIT_FAILURE;
     }
 
-    const std::string input_root = ST::CollapseFullPath( input );
-    const std::string output_root = ST::CollapseFullPath( output );
+    const std::string input_root = kwiver::vital::collapse_full_path( input );
+    const std::string output_root = kwiver::vital::collapse_full_path( output );
     const auto files = list_annotation_files(
       input, explicit_annotation_format ? input_format : std::string() );
 
@@ -400,14 +399,14 @@ convert_applet
 
     for( auto const& file : files )
     {
-      const std::string full = ST::CollapseFullPath( file );
+      const std::string full = kwiver::vital::collapse_full_path( file );
       std::string relative = full.substr( input_root.size() );
       while( !relative.empty() && ( relative[0] == '/' || relative[0] == '\\' ) )
       {
         relative = relative.substr( 1 );
       }
       const std::string target = append_path( output_root, replace_ext_with( relative, ext ) );
-      if( ST::CollapseFullPath( target ) == full )
+      if( kwiver::vital::collapse_full_path( target ) == full )
       {
         LOG_WARN( logger, "Skipping " << file << ": it would overwrite itself" );
         continue;
@@ -469,7 +468,7 @@ convert_applet
     {
       const std::string ext = extension_for_format( writer_format );
       jobs.emplace_back( input, append_path( output,
-        replace_ext_with( ST::GetFilenameName( input ), ext ) ) );
+        replace_ext_with( kwiver::vital::filename_name( input ), ext ) ) );
     }
     else
     {

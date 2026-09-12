@@ -14,7 +14,7 @@
 #include <viame/algorithm_framework/util/string.h>
 #include <viame/algorithm_framework/kwiver-include-paths.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <fstream>
 #include <algorithm>
@@ -24,7 +24,6 @@
 
 namespace sprokit {
 
-typedef kwiversys::SystemTools ST;
 
 namespace {
 
@@ -244,7 +243,7 @@ pipeline_builder
 {
   // Add path from the environment
   kwiver::vital::path_list_t path_list;
-  kwiversys::SystemTools::GetPath( path_list, sprokit_include_envvar.c_str() );
+  kwiver::vital::environment_path( sprokit_include_envvar, path_list );
 
   // Add the default search path
   ::kwiver::vital::tokenize( default_include_dirs, path_list, path_separator,

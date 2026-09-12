@@ -19,7 +19,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <map>
 #include <memory>

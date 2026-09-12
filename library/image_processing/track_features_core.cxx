@@ -29,10 +29,9 @@
 #include <viame/algorithm_framework/exceptions/algorithm.h>
 #include <viame/algorithm_framework/exceptions/image.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 using namespace kwiver::vital;
-typedef kwiversys::SystemTools ST;
 
 namespace kwiver {
 
@@ -114,7 +113,7 @@ track_features_core
       config->get_value< std::string >( "features_dir" ) != "" )
   {
     config_path_t fp = config->get_value< config_path_t >( "features_dir" );
-    if( ST::FileExists( fp ) && !ST::FileIsDirectory( fp ) )
+    if( kwiver::vital::file_exists( fp ) && !kwiver::vital::file_is_directory( fp ) )
     {
       LOG_ERROR(
         logger(), "Given features directory is a file "
@@ -209,7 +208,7 @@ track_features_core
     metadata_sptr md = image_data->get_metadata();
     std::string basename = basename_from_metadata( md, frame_number );
     path_t kwfd_file = d_->features_dir() + "/" + basename + ".kwfd";
-    if( ST::FileExists( kwfd_file ) )
+    if( kwiver::vital::file_exists( kwfd_file ) )
     {
       feature_set_sptr feat;
       descriptor_set_sptr desc;
@@ -280,10 +279,10 @@ track_features_core
     path_t kwfd_file = d_->features_dir() + "/" + basename + ".kwfd";
 
     // make the enclosing directory if it does not already exist
-    const kwiver::vital::path_t fd_dir = ST::GetFilenamePath( kwfd_file );
-    if( !ST::FileIsDirectory( fd_dir ) )
+    const kwiver::vital::path_t fd_dir = kwiver::vital::filename_path( kwfd_file );
+    if( !kwiver::vital::file_is_directory( fd_dir ) )
     {
-      if( !ST::MakeDirectory( fd_dir ) )
+      if( !kwiver::vital::make_directory( fd_dir ) )
       {
         LOG_ERROR( logger(), "Unable to create directory: " << fd_dir );
       }

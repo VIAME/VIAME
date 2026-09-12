@@ -13,7 +13,7 @@
 #include <viame/core_types/object_track_set.h>
 #include <viame/algorithm_framework/util/data_stream_reader.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <map>
 #include <memory>

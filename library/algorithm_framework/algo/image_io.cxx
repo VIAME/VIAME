@@ -11,7 +11,7 @@
 #include <viame/algorithm_framework/vital_config.h>
 #include <viame/core_types/vital_types.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 namespace kwiver {
 
@@ -37,11 +37,11 @@ image_io
   if( !skip_path_validation_() )
   {
     // Make sure that the given file path exists and is a file.
-    if( !kwiversys::SystemTools::FileExists( filename ) )
+    if( !kwiver::vital::file_exists( filename ) )
     {
       VITAL_THROW( path_not_exists, filename );
     }
-    else if( kwiversys::SystemTools::FileIsDirectory( filename ) )
+    else if( kwiver::vital::file_is_directory( filename ) )
     {
       VITAL_THROW( path_not_a_file, filename );
     }
@@ -59,14 +59,14 @@ image_io
   {
     // Make sure that the given file path's containing directory exists and is
     // actually a directory.
-    std::string containing_dir = kwiversys::SystemTools::GetFilenamePath(
-      kwiversys::SystemTools::CollapseFullPath( filename ) );
+    std::string containing_dir = kwiver::vital::filename_path(
+      kwiver::vital::collapse_full_path( filename ) );
 
-    if( !kwiversys::SystemTools::FileExists( containing_dir ) )
+    if( !kwiver::vital::file_exists( containing_dir ) )
     {
       VITAL_THROW( path_not_exists, containing_dir );
     }
-    else if( !kwiversys::SystemTools::FileIsDirectory( containing_dir ) )
+    else if( !kwiver::vital::file_is_directory( containing_dir ) )
     {
       VITAL_THROW( path_not_a_directory, containing_dir );
     }
@@ -83,11 +83,11 @@ image_io
   if( !skip_path_validation_() )
   {
     // Make sure that the given file path exists and is a file.
-    if( !kwiversys::SystemTools::FileExists( filename ) )
+    if( !kwiver::vital::file_exists( filename ) )
     {
       VITAL_THROW( path_not_exists, filename );
     }
-    else if( kwiversys::SystemTools::FileIsDirectory( filename ) )
+    else if( kwiver::vital::file_is_directory( filename ) )
     {
       VITAL_THROW( path_not_a_file, filename );
     }

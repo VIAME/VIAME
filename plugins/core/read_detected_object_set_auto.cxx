@@ -19,7 +19,7 @@
 #include <viame/algorithm_framework/algo/detected_object_set_input.h>
 #include <viame/algorithm_framework/exceptions.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <memory>
 #include <fstream>
@@ -140,7 +140,7 @@ read_detected_object_set_auto::priv
 
   // Check general extensions
   std::string ext = to_lower(
-    kwiversys::SystemTools::GetFilenameLastExtension( filename ) );
+    kwiver::vital::filename_last_extension( filename ) );
 
   if( ext == ".csv" )
   {

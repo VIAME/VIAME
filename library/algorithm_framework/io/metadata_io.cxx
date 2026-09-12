@@ -10,7 +10,7 @@
 
 #include <fstream>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/core_types/geodesy.h>
 #include <viame/core_types/metadata_traits.h>
@@ -26,14 +26,13 @@ basename_from_metadata(
   metadata_sptr md,
   frame_id_t frame )
 {
-  typedef kwiversys::SystemTools ST;
 
   std::string basename = "frame";
   if( md )
   {
     if( auto& mdi = md->find( kwiver::vital::VITAL_META_IMAGE_URI ) )
     {
-      return ST::GetFilenameWithoutLastExtension( mdi.as_string() );
+      return kwiver::vital::filename_without_last_extension( mdi.as_string() );
     }
   }
 
@@ -41,7 +40,7 @@ basename_from_metadata(
   {
     if( auto& mdi = md->find( kwiver::vital::VITAL_META_VIDEO_URI ) )
     {
-      basename = ST::GetFilenameWithoutLastExtension( mdi.as_string() );
+      basename = kwiver::vital::filename_without_last_extension( mdi.as_string() );
     }
   }
 
@@ -74,13 +73,13 @@ metadata_sptr
 read_pos_file( path_t const& file_path )
 {
   // Check that file exists
-  if( !kwiversys::SystemTools::FileExists( file_path ) )
+  if( !kwiver::vital::file_exists( file_path ) )
   {
     VITAL_THROW(
       file_not_found_exception,
       file_path, "File does not exist." );
   }
-  else if( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  else if( kwiver::vital::file_is_directory( file_path ) )
   {
     VITAL_THROW(
       file_not_found_exception,
@@ -168,7 +167,7 @@ write_pos_file(
   path_t const& file_path )
 {
   // If the given path is a directory, we obviously can't write to it.
-  if( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  if( kwiver::vital::file_is_directory( file_path ) )
   {
     VITAL_THROW(
       file_write_exception, file_path,
@@ -177,11 +176,11 @@ write_pos_file(
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath(
-    kwiversys::SystemTools::CollapseFullPath( file_path ) );
-  if( !kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
+  std::string parent_dir = kwiver::vital::filename_path(
+    kwiver::vital::collapse_full_path( file_path ) );
+  if( !kwiver::vital::file_is_directory( parent_dir ) )
   {
-    if( !kwiversys::SystemTools::MakeDirectory( parent_dir ) )
+    if( !kwiver::vital::make_directory( parent_dir ) )
     {
       VITAL_THROW(
         file_write_exception, parent_dir,

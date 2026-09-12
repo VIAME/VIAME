@@ -16,7 +16,7 @@
 #include <viame/core_types/detected_object_type.h>
 #include <viame/core_types/bounding_box.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <string>
 #include <sstream>
@@ -91,13 +91,13 @@ windowed_trainer
     // Delete and reset folder contents
     // Delete and reset folder contents, unless reusing a prior chip cache
     if( !c_reuse_cache &&
-        kwiversys::SystemTools::FileExists( c_train_directory ) &&
-        kwiversys::SystemTools::FileIsDirectory( c_train_directory ) )
+        kwiver::vital::file_exists( c_train_directory ) &&
+        kwiver::vital::file_is_directory( c_train_directory ) )
     {
-      kwiversys::SystemTools::RemoveADirectory( c_train_directory );
+      kwiver::vital::remove_directory( c_train_directory );
 
 #ifndef WIN32
-      if( kwiversys::SystemTools::FileExists( c_train_directory ) )
+      if( kwiver::vital::file_exists( c_train_directory ) )
       {
         LOG_ERROR( m_logger, "Unable to delete pre-existing training dir" );
         return;
@@ -105,12 +105,12 @@ windowed_trainer
 #endif
     }
 
-    kwiversys::SystemTools::MakeDirectory( c_train_directory );
+    kwiver::vital::make_directory( c_train_directory );
 
     if( !m_chip_subdirectory.empty() )
     {
       std::string folder = c_train_directory + div + m_chip_subdirectory;
-      kwiversys::SystemTools::MakeDirectory( folder );
+      kwiver::vital::make_directory( folder );
     }
   }
 
@@ -911,7 +911,7 @@ std::string
 windowed_trainer
 ::frame_tag_for( unsigned fid, const std::string& image_fn )
 {
-  std::string base = kwiversys::SystemTools::GetFilenameName( image_fn );
+  std::string base = kwiver::vital::filename_name( image_fn );
 
   for( auto& c : base )
   {
@@ -947,7 +947,7 @@ windowed_trainer
 {
   const std::string mpath = manifest_path( frame_tag );
 
-  if( !kwiversys::SystemTools::FileExists( mpath ) )
+  if( !kwiver::vital::file_exists( mpath ) )
   {
     return false;
   }
@@ -984,7 +984,7 @@ windowed_trainer
       ls >> fn >> ndet;
 
       // Invalidate cache if a referenced file is gone
-      if( !kwiversys::SystemTools::FileExists( fn ) )
+      if( !kwiver::vital::file_exists( fn ) )
       {
         return false;
       }

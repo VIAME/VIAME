@@ -4,7 +4,7 @@
 
 #include <python/kwiver/vital/modules/module_helpers.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <python/kwiver/vital/util/python.h>
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
@@ -95,7 +95,7 @@ load_python_library_from_env()
   bool python_library_found = false;
 
 #ifdef VITAL_LOAD_PYLIB_SYM
-  const char* env_pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
+  const char* env_pylib = kwiver::vital::get_env( "PYTHON_LIBRARY" );
 
   // cmake should provide this definition
 #ifdef PYTHON_LIBRARY

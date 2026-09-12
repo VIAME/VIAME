@@ -41,6 +41,12 @@ VITAL_UTIL_EXPORT bool file_exists( std::string const& path );
 /// A trailing separator makes no difference.
 VITAL_UTIL_EXPORT bool file_is_directory( std::string const& path );
 
+/// @brief Is there a file -- not a directory -- at this path?
+///
+/// What `FileExists( path, true )` asked, which three call sites wanted: a
+/// directory of the right name is not an answer to "is the model there?".
+VITAL_UTIL_EXPORT bool file_is_regular( std::string const& path );
+
 /// @brief Is this path absolute?
 VITAL_UTIL_EXPORT bool file_is_full_path( std::string const& path );
 
@@ -140,6 +146,13 @@ VITAL_UTIL_EXPORT std::string find_program(
 VITAL_UTIL_EXPORT std::vector< std::string > directory_entries(
   std::string const& path );
 
+/// @brief Can this process read this file?
+///
+/// Not the same question as `file_exists`: a file can be there and not be
+/// readable, and the pipeline parser asks this one so that it can say which
+/// of the two went wrong.
+VITAL_UTIL_EXPORT bool file_is_readable( std::string const& path );
+
 // The environment -------------------------------------------------------------
 
 /// @brief Read an environment variable.
@@ -151,6 +164,18 @@ VITAL_UTIL_EXPORT bool get_env( std::string const& name, std::string& value );
 ///
 /// @return Its value, or nullptr.
 VITAL_UTIL_EXPORT char const* get_env( std::string const& name );
+
+/// @brief Append the directories named by a PATH-style variable.
+///
+/// Separated by `:` on Unix and `;` on Windows. Existing contents are kept
+/// and the directories are appended, so the caller's own entries come first.
+/// An empty entry -- what `a::b` has in the middle -- is appended as an empty
+/// string rather than dropped, because dropping it would change which
+/// directory a search found things in.
+///
+/// Nothing is appended when the variable is not set.
+VITAL_UTIL_EXPORT void environment_path(
+  std::string const& name, std::vector< std::string >& directories );
 
 } // namespace vital
 

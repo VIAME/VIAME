@@ -5,7 +5,7 @@
 #include "configs.h"
 #include <atomic_output.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <kwiversys/Directory.hxx>
 
 #include <viame/algorithm_framework/kwiver-include-paths.h>
@@ -721,7 +721,7 @@ bool extract_pipe_config( const std::string& pipe_file,
   {
     // Set pipeline name from filename
     config.file_path = pipe_file;
-    config.name = kwiversys::SystemTools::GetFilenameWithoutLastExtension( pipe_file );
+    config.name = kwiver::vital::filename_without_last_extension( pipe_file );
 
     // Parse pipe file to find process definitions
     auto processes = parse_pipe_file_for_processes( pipe_file );
@@ -770,7 +770,7 @@ bool extract_conf_config( const std::string& conf_file,
   {
     // Set config name from filename
     config.file_path = conf_file;
-    config.name = kwiversys::SystemTools::GetFilenameWithoutLastExtension( conf_file );
+    config.name = kwiver::vital::filename_without_last_extension( conf_file );
 
     // Read config file
     auto file_config = kwiver::vital::read_config_file( conf_file );
@@ -1142,7 +1142,7 @@ configs_applet
   }
 
   // Check path exists
-  if( !kwiversys::SystemTools::FileExists( params.opt_input_path ) )
+  if( !kwiver::vital::file_exists( params.opt_input_path ) )
   {
     LOG_ERROR( g_logger, "Input path does not exist: " << params.opt_input_path );
     return EXIT_FAILURE;
@@ -1154,7 +1154,7 @@ configs_applet
   // Collect files to process
   std::vector< std::string > files_to_process;
 
-  if( kwiversys::SystemTools::FileIsDirectory( params.opt_input_path ) )
+  if( kwiver::vital::file_is_directory( params.opt_input_path ) )
   {
     // Process directory
     kwiversys::Directory dir;
@@ -1173,7 +1173,7 @@ configs_applet
       }
 
       std::string filepath = params.opt_input_path + "/" + filename;
-      std::string ext = kwiversys::SystemTools::GetFilenameLastExtension( filename );
+      std::string ext = kwiver::vital::filename_last_extension( filename );
       std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
 
       if( ext == ".pipe" )
@@ -1206,7 +1206,7 @@ configs_applet
 
   for( const auto& file : files_to_process )
   {
-    std::string ext = kwiversys::SystemTools::GetFilenameLastExtension( file );
+    std::string ext = kwiver::vital::filename_last_extension( file );
     std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
 
     pipeline_config config;

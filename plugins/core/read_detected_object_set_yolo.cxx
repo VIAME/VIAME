@@ -14,7 +14,7 @@
 #include <viame/algorithm_framework/util/data_stream_reader.h>
 #include <viame/algorithm_framework/exceptions.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <map>
 #include <memory>
@@ -288,33 +288,33 @@ std::string
 read_detected_object_set_yolo::priv
 ::find_classes_file( std::string const& image_path )
 {
-  std::string image_dir = kwiversys::SystemTools::GetFilenamePath( image_path );
+  std::string image_dir = kwiver::vital::filename_path( image_path );
 
   // Strategy 1: labels.txt in same directory as images
   std::string classes_path = image_dir + "/labels.txt";
-  if( kwiversys::SystemTools::FileExists( classes_path ) )
+  if( kwiver::vital::file_exists( classes_path ) )
   {
     return classes_path;
   }
 
   // Strategy 2: labels.txt in parent directory
-  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath( image_dir );
+  std::string parent_dir = kwiver::vital::filename_path( image_dir );
   classes_path = parent_dir + "/labels.txt";
-  if( kwiversys::SystemTools::FileExists( classes_path ) )
+  if( kwiver::vital::file_exists( classes_path ) )
   {
     return classes_path;
   }
 
   // Strategy 3: classes.txt in same directory (alternative name)
   classes_path = image_dir + "/classes.txt";
-  if( kwiversys::SystemTools::FileExists( classes_path ) )
+  if( kwiver::vital::file_exists( classes_path ) )
   {
     return classes_path;
   }
 
   // Strategy 4: classes.txt in parent directory
   classes_path = parent_dir + "/classes.txt";
-  if( kwiversys::SystemTools::FileExists( classes_path ) )
+  if( kwiver::vital::file_exists( classes_path ) )
   {
     return classes_path;
   }
@@ -322,13 +322,13 @@ read_detected_object_set_yolo::priv
   // Strategy 5: Check in data.yaml or similar YOLO config files
   // Look for classes.names (common YOLO convention)
   classes_path = image_dir + "/classes.names";
-  if( kwiversys::SystemTools::FileExists( classes_path ) )
+  if( kwiver::vital::file_exists( classes_path ) )
   {
     return classes_path;
   }
 
   classes_path = parent_dir + "/classes.names";
-  if( kwiversys::SystemTools::FileExists( classes_path ) )
+  if( kwiver::vital::file_exists( classes_path ) )
   {
     return classes_path;
   }
@@ -342,7 +342,7 @@ bool
 read_detected_object_set_yolo::priv
 ::detect_image_dimensions( std::string const& image_path )
 {
-  if( !kwiversys::SystemTools::FileExists( image_path ) )
+  if( !kwiver::vital::file_exists( image_path ) )
   {
     LOG_WARN( m_parent->logger(), "Image file does not exist: " << image_path );
     return false;
@@ -397,29 +397,29 @@ read_detected_object_set_yolo::priv
 ::find_label_file( std::string const& image_path )
 {
   // Get the base filename and replace extension with .txt
-  std::string base_name = kwiversys::SystemTools::GetFilenameWithoutLastExtension( image_path );
+  std::string base_name = kwiver::vital::filename_without_last_extension( image_path );
   std::string txt_name = base_name + ".txt";
-  std::string image_dir = kwiversys::SystemTools::GetFilenamePath( image_path );
+  std::string image_dir = kwiver::vital::filename_path( image_path );
 
   // Strategy 1: Same directory as image
   std::string label_path = image_dir + "/" + txt_name;
-  if( kwiversys::SystemTools::FileExists( label_path ) )
+  if( kwiver::vital::file_exists( label_path ) )
   {
     return label_path;
   }
 
   // Strategy 2: ../labels/subdir/image.txt (parallel labels directory structure)
-  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath( image_dir );
-  std::string subdir_name = kwiversys::SystemTools::GetFilenameName( image_dir );
+  std::string parent_dir = kwiver::vital::filename_path( image_dir );
+  std::string subdir_name = kwiver::vital::filename_name( image_dir );
   label_path = parent_dir + "/labels/" + subdir_name + "/" + txt_name;
-  if( kwiversys::SystemTools::FileExists( label_path ) )
+  if( kwiver::vital::file_exists( label_path ) )
   {
     return label_path;
   }
 
   // Strategy 3: ../labels/image.txt (simpler structure)
   label_path = parent_dir + "/labels/" + txt_name;
-  if( kwiversys::SystemTools::FileExists( label_path ) )
+  if( kwiver::vital::file_exists( label_path ) )
   {
     return label_path;
   }
@@ -436,7 +436,7 @@ read_detected_object_set_yolo::priv
 {
   auto det_set = std::make_shared< kwiver::vital::detected_object_set >();
 
-  if( label_path.empty() || !kwiversys::SystemTools::FileExists( label_path ) )
+  if( label_path.empty() || !kwiver::vital::file_exists( label_path ) )
   {
     // No label file means no detections for this image
     return det_set;

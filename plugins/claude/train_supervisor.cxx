@@ -4,7 +4,7 @@
 
 #include "train_supervisor.h"
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <plugins/core/utilities_file.h>
 
@@ -1198,7 +1198,7 @@ find_claude_binary( const std::string& cmd_override )
     return does_file_exist( cmd ) ? cmd : "";
   }
 
-  return kwiversys::SystemTools::FindProgram( cmd );
+  return kwiver::vital::find_program( cmd );
 }
 
 // ---------------------------------------------------------------------------

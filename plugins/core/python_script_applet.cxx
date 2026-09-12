@@ -5,7 +5,7 @@
 #include "python_script_applet.h"
 
 #include <kwiversys/Process.h>
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/util/get_paths.h>
@@ -45,7 +45,7 @@ find_script( const std::string& name )
   {
     const std::string path = join_path( dir, name );
 
-    if( kwiversys::SystemTools::FileExists( path, true ) )
+    if( kwiver::vital::file_is_regular( path ) )
     {
       return path;
     }

@@ -17,7 +17,7 @@
 #include <viame/core_types/metadata_traits.h>
 #include <viame/algorithm_framework/util/tokenize.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <cstdint>
 #include <sstream>
@@ -30,7 +30,6 @@ namespace viame {
 namespace {
 
 namespace io = viame::image_ops;
-typedef kwiversys::SystemTools ST;
 
 // ----------------------------------------------------------------------------
 /// Which image_io handles the formats `codecs/` does not.
@@ -46,10 +45,10 @@ constexpr char const* fallback_name = "pil";
 std::string
 plane_filename( std::string const& filename, unsigned index )
 {
-  auto const directory = ST::GetParentDirectory( filename );
-  auto const name = ST::GetFilenameName( filename );
-  auto const stem = ST::GetFilenameWithoutLastExtension( name );
-  auto const extension = ST::GetFilenameLastExtension( name );
+  auto const directory = kwiver::vital::parent_directory( filename );
+  auto const name = kwiver::vital::filename_name( filename );
+  auto const stem = kwiver::vital::filename_without_last_extension( name );
+  auto const extension = kwiver::vital::filename_last_extension( name );
 
   auto const suffix = ( index > 0 ) ? "_" + std::to_string( index )
                                     : std::string();
@@ -321,7 +320,7 @@ core_image_io
         {
           auto const plane_file = plane_filename( filename, index );
 
-          if( !ST::FileExists( plane_file ) )
+          if( !kwiver::vital::file_exists( plane_file ) )
           {
             break;
           }

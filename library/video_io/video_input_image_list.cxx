@@ -21,7 +21,7 @@
 #include <viame/algorithm_framework/range/iota.h>
 
 #include <kwiversys/Directory.hxx>
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <algorithm>
 #include <fstream>
@@ -33,7 +33,6 @@
 namespace kv = kwiver::vital;
 namespace kvr = kwiver::vital::range;
 
-using ksst = kwiversys::SystemTools;
 
 using kv::algo::video_input;
 using kv::algo::image_io;
@@ -184,7 +183,7 @@ video_input_image_list
       interface_name(), plugin_name(), "invalid image_reader." );
   }
 
-  if( ksst::FileIsDirectory( list_name ) )
+  if( kwiver::vital::file_is_directory( list_name ) )
   {
     d->read_from_directory( list_name );
   }
@@ -422,7 +421,7 @@ video_input_image_list::priv
   std::vector< std::string > search_path = this->c_search_path();
 
   // Add directory that contains the list file to the path
-  auto const& list_path = ksst::GetFilenamePath( filename );
+  auto const& list_path = kwiver::vital::filename_path( filename );
   if( !list_path.empty() )
   {
     search_path.push_back( list_path );
@@ -438,17 +437,17 @@ video_input_image_list::priv
   if( stream_reader.getline( line ) )
   {
     auto resolved_file = line;
-    if( !ksst::FileExists( resolved_file ) && !this->c_disable_image_load() )
+    if( !kwiver::vital::file_exists( resolved_file ) && !this->c_disable_image_load() )
     {
       // Resolve against specified path
-      resolved_file = ksst::FindFile( line, search_path, true );
+      resolved_file = kwiver::vital::find_file( line, search_path );
       if( resolved_file.empty() )
       {
         VITAL_THROW(
           kv::file_not_found_exception, line,
           "could not locate file in path" );
       }
-      if( ksst::StringEndsWith( resolved_file.c_str(), line.c_str() ) )
+      if( kwiver::vital::ends_with( resolved_file.c_str(), line.c_str() ) )
       {
         // extract the prefix added to get the full path
         data_dir =
@@ -463,10 +462,10 @@ video_input_image_list::priv
   while( stream_reader.getline( line ) )
   {
     auto resolved_file = line;
-    if( !ksst::FileExists( resolved_file ) && !this->c_disable_image_load() )
+    if( !kwiver::vital::file_exists( resolved_file ) && !this->c_disable_image_load() )
     {
       resolved_file = data_dir + line;
-      if( !ksst::FileExists( resolved_file ) )
+      if( !kwiver::vital::file_exists( resolved_file ) )
       {
         VITAL_THROW(
           kv::file_not_found_exception, line,
@@ -549,13 +548,13 @@ video_input_image_list::priv
     auto const filename = std::string{ directory.GetFile( i ) };
     auto const& resolved_file = dirname + "/" + filename;
 
-    if( !ksst::FileExists( resolved_file ) )
+    if( !kwiver::vital::file_exists( resolved_file ) )
     {
       VITAL_THROW(
         kv::file_not_found_exception, filename,
         "could not locate file in path" );
     }
-    if( !ksst::FileIsDirectory( resolved_file ) )
+    if( !kwiver::vital::file_is_directory( resolved_file ) )
     {
       if( this->c_allowed_extensions().empty() )
       {
@@ -565,9 +564,9 @@ video_input_image_list::priv
       {
         for( auto const& extension : this->c_allowed_extensions() )
         {
-          std::string resolved_lower = ksst::LowerCase( resolved_file );
-          std::string extension_lower = ksst::LowerCase( extension );
-          if( ksst::StringEndsWith(
+          std::string resolved_lower = kwiver::vital::lower_case( resolved_file );
+          std::string extension_lower = kwiver::vital::lower_case( extension );
+          if( kwiver::vital::ends_with(
             resolved_lower,
             extension_lower.c_str() ) )
           {

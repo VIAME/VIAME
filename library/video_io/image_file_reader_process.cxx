@@ -24,7 +24,7 @@
 #include <viame/pipeline_framework/process_exception.h>
 #include <viame/pipeline_framework/datum.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <vector>
 #include <stdint.h>
@@ -150,10 +150,10 @@ void image_file_reader_process
   std::string file = grab_from_port_using_trait( image_file_name );
 
   std::string resolved_file = file;
-  if ( ! kwiversys::SystemTools::FileExists( file ) )
+  if ( ! kwiver::vital::file_exists( file ) )
   {
     // Resolve against specified path
-    resolved_file = kwiversys::SystemTools::FindFile( file, d->m_config_path, true );
+    resolved_file = kwiver::vital::find_file( file, d->m_config_path );
     if ( resolved_file.empty() )
     {
       switch (d->m_config_error_mode)

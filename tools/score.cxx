@@ -10,7 +10,7 @@
 #include <evaluate_models.h>
 #include <python_script_applet.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <kwiversys/Directory.hxx>
 
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
@@ -110,7 +110,7 @@ collect_files( const std::string& path, const std::string& ext )
 {
   std::vector< std::string > files;
 
-  if( kwiversys::SystemTools::FileIsDirectory( path ) )
+  if( kwiver::vital::file_is_directory( path ) )
   {
     kwiversys::Directory dir;
     if( dir.Load( path ) )
@@ -123,7 +123,7 @@ collect_files( const std::string& path, const std::string& ext )
           continue;
         }
 
-        std::string file_ext = kwiversys::SystemTools::GetFilenameLastExtension( filename );
+        std::string file_ext = kwiver::vital::filename_last_extension( filename );
         if( ext.empty() || file_ext == ext )
         {
           files.push_back( path + "/" + filename );
@@ -132,7 +132,7 @@ collect_files( const std::string& path, const std::string& ext )
     }
     std::sort( files.begin(), files.end() );
   }
-  else if( kwiversys::SystemTools::FileExists( path ) )
+  else if( kwiver::vital::file_exists( path ) )
   {
     files.push_back( path );
   }
@@ -150,7 +150,7 @@ pair_files( const std::vector< std::string >& computed,
   std::map< std::string, std::string > truth_map;
   for( const auto& t : truth )
   {
-    std::string base = kwiversys::SystemTools::GetFilenameWithoutLastExtension( t );
+    std::string base = kwiver::vital::filename_without_last_extension( t );
     truth_map[ base ] = t;
   }
 
@@ -159,7 +159,7 @@ pair_files( const std::vector< std::string >& computed,
 
   for( const auto& c : computed )
   {
-    std::string base = kwiversys::SystemTools::GetFilenameWithoutLastExtension( c );
+    std::string base = kwiver::vital::filename_without_last_extension( c );
 
     auto it = truth_map.find( base );
     if( it != truth_map.end() )
@@ -478,7 +478,7 @@ select_track_or_detection_files( const std::vector< std::string >& files,
   auto stem_of = []( const std::string& path ) -> std::string
   {
     std::string base =
-      kwiversys::SystemTools::GetFilenameWithoutLastExtension( path );
+      kwiver::vital::filename_without_last_extension( path );
     for( const char* suffix : { "_detections", "_tracks" } )
     {
       const size_t n = std::string( suffix ).size();
@@ -493,7 +493,7 @@ select_track_or_detection_files( const std::vector< std::string >& files,
   auto is_tracks = []( const std::string& path ) -> bool
   {
     const std::string base =
-      kwiversys::SystemTools::GetFilenameWithoutLastExtension( path );
+      kwiver::vital::filename_without_last_extension( path );
     return base.size() > 7 &&
            base.compare( base.size() - 7, 7, "_tracks" ) == 0;
   };
@@ -504,7 +504,7 @@ select_track_or_detection_files( const std::vector< std::string >& files,
   for( const auto& f : files )
   {
     const std::string base =
-      kwiversys::SystemTools::GetFilenameWithoutLastExtension( f );
+      kwiver::vital::filename_without_last_extension( f );
     const bool tracks = is_tracks( f );
     const bool dets = base.size() > 11 &&
                       base.compare( base.size() - 11, 11, "_detections" ) == 0;
@@ -1193,13 +1193,13 @@ score_applet
     return EXIT_FAILURE;
   }
 
-  if( !kwiversys::SystemTools::FileExists( params.opt_computed ) )
+  if( !kwiver::vital::file_exists( params.opt_computed ) )
   {
     LOG_ERROR( g_logger, "Computed path does not exist: " << params.opt_computed );
     return EXIT_FAILURE;
   }
 
-  if( !kwiversys::SystemTools::FileExists( params.opt_truth ) )
+  if( !kwiver::vital::file_exists( params.opt_truth ) )
   {
     LOG_ERROR( g_logger, "Ground truth path does not exist: " << params.opt_truth );
     return EXIT_FAILURE;
@@ -1421,8 +1421,8 @@ score_applet
       ? std::string( "." ) : params.opt_output_sweep;
 
     if( !params.opt_output_sweep.empty() &&
-        !kwiversys::SystemTools::FileIsDirectory( sweep_dir ) &&
-        !kwiversys::SystemTools::MakeDirectory( sweep_dir ) )
+        !kwiver::vital::file_is_directory( sweep_dir ) &&
+        !kwiver::vital::make_directory( sweep_dir ) )
     {
       LOG_ERROR( g_logger, "Could not create sweep output directory: " << sweep_dir );
       return EXIT_FAILURE;
@@ -1525,8 +1525,8 @@ score_applet
       if( !params.opt_output_plots.empty() )
       {
         // Create output directory if needed
-        if( !kwiversys::SystemTools::FileIsDirectory( params.opt_output_plots ) &&
-            !kwiversys::SystemTools::MakeDirectory( params.opt_output_plots ) )
+        if( !kwiver::vital::file_is_directory( params.opt_output_plots ) &&
+            !kwiver::vital::make_directory( params.opt_output_plots ) )
         {
           LOG_ERROR( g_logger, "Could not create plot output directory: "
                      << params.opt_output_plots );

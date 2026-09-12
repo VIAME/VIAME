@@ -17,7 +17,7 @@
 #include <viame/pipeline_framework/process_exception.h>
 #include <viame/pipeline_framework/datum.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <vector>
 #include <stdint.h>

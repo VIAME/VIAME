@@ -9,7 +9,7 @@
 
 #include "detect_motion_3frame_differencing.h"
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/core_types/matrix.h>
 #include <viame/algorithm_framework/vital_config.h>
@@ -435,7 +435,7 @@ public:
   setup_debug_dir()
   {
     LOG_DEBUG( m_logger, "Creating debug directory: " + m_debug_dir() );
-    kwiversys::SystemTools::MakeDirectory( m_debug_dir() );
+    kwiver::vital::make_directory( m_debug_dir() );
     m_output_to_debug_dir = true;
   }
 };

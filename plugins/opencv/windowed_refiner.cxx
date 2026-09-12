@@ -13,7 +13,7 @@
 #include <viame/algorithm_framework/config/config_block_formatter.h>
 
 #include <viame/core_types/image_container.h>
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 
 #include <algorithm>

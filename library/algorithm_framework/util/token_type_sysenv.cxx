@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "token_type_sysenv.h"
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <sstream>
 
@@ -22,7 +22,6 @@ namespace kwiver {
 
 namespace vital {
 
-typedef kwiversys::SystemTools ST;
 
 // ----------------------------------------------------------------------------
 token_type_sysenv
@@ -49,7 +48,7 @@ token_type_sysenv
 
   if( "cwd" == name ) // current directory
   {
-    result = ST::GetCurrentWorkingDirectory();
+    result = kwiver::vital::current_working_directory();
     return true;
   }
 
@@ -206,7 +205,7 @@ token_type_sysenv
   if( "homedir" == name )
   {
     std::string home;
-    kwiversys::SystemTools::GetEnv( HOME_ENV_NAME, home );
+    kwiver::vital::get_env( HOME_ENV_NAME, home );
 
     if( !home.empty() )
     {
@@ -219,7 +218,7 @@ token_type_sysenv
   // --------------------------------------------------------------------------
   if( "curdir" == name )
   {
-    result = ST::GetCurrentWorkingDirectory();
+    result = kwiver::vital::current_working_directory();
     return true;
   }
 

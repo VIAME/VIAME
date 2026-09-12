@@ -19,7 +19,7 @@
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #ifdef VIAME_ENABLE_ZLIB
 #include <miniz.h>
@@ -1355,7 +1355,7 @@ camera_rig_stereo_sptr
 read_stereo_rig( path_t const& FN )
 {
   // Check if the path is a directory (OpenCV calibration format)
-  if( kwiversys::SystemTools::FileIsDirectory( FN ) )
+  if( kwiver::vital::file_is_directory( FN ) )
   {
     return read_stereo_rig_from_ocv_dir( FN );
   }

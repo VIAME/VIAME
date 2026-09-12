@@ -21,7 +21,7 @@
 #include <viame/core_types/object_track_set.h>
 #include <viame/core_types/timestamp.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <rapidjson/document.h>
 
@@ -35,7 +35,6 @@
 namespace viame {
 
 namespace kv = kwiver::vital;
-using ST = kwiversys::SystemTools;
 
 namespace {
 
@@ -43,7 +42,7 @@ namespace {
 std::string
 lower_extension( std::string const& path )
 {
-  return to_lower( ST::GetFilenameLastExtension( path ) );
+  return to_lower( kwiver::vital::filename_last_extension( path ) );
 }
 
 // -----------------------------------------------------------------------------
@@ -220,7 +219,7 @@ plan_from_images( std::vector< std::string > const& images, double frame_rate )
   plan.valid = !images.empty();
   for( auto const& image : images )
   {
-    plan.names.push_back( ST::GetFilenameName( image ) );
+    plan.names.push_back( kwiver::vital::filename_name( image ) );
   }
   plan.times.assign( plan.names.size(), -1.0 );
   apply_frame_rate( plan, frame_rate );
@@ -251,7 +250,7 @@ plan_from_video( std::string const& video, double frame_rate, kv::logger_handle_
 {
   frame_plan plan;
   plan.from_video = true;
-  plan.stream_id = ST::GetFilenameName( video );
+  plan.stream_id = kwiver::vital::filename_name( video );
 
   kv::algo::video_input_sptr reader;
   for( auto const& impl : { "ffmpeg", "vidl_ffmpeg", "ffmpeg_clip" } )
@@ -583,7 +582,7 @@ list_annotation_files( std::string const& folder, std::string const& format )
 
   for( auto const& candidate : candidates )
   {
-    const std::string name = ST::GetFilenameName( candidate );
+    const std::string name = kwiver::vital::filename_name( candidate );
     if( name.empty() || name[0] == '.' )
     {
       continue;
@@ -601,9 +600,9 @@ list_annotation_files( std::string const& folder, std::string const& format )
 std::string
 find_frame_source_alongside( std::string const& annotation_path )
 {
-  const std::string full = ST::CollapseFullPath( annotation_path );
-  const std::string folder = ST::GetFilenamePath( full );
-  const std::string base = to_lower( ST::GetFilenameWithoutLastExtension( full ) );
+  const std::string full = kwiver::vital::collapse_full_path( annotation_path );
+  const std::string folder = kwiver::vital::filename_path( full );
+  const std::string base = to_lower( kwiver::vital::filename_without_last_extension( full ) );
 
   std::vector< std::string > images, videos;
   list_files_in_folder( folder, images, false, default_image_extensions() );
@@ -615,7 +614,7 @@ find_frame_source_alongside( std::string const& annotation_path )
     for( auto const& video : videos )
     {
       const std::string video_base =
-        to_lower( ST::GetFilenameWithoutLastExtension( video ) );
+        to_lower( kwiver::vital::filename_without_last_extension( video ) );
       if( video_base == base || base.rfind( video_base, 0 ) == 0 )
       {
         return video;
@@ -700,7 +699,7 @@ convert_annotation_file( std::string const& input_path,
     names_from_file = harvest_frame_names( input_path, input_format, options, logger );
   }
 
-  const std::string output_folder = ST::GetFilenamePath( ST::CollapseFullPath( output_path ) );
+  const std::string output_folder = kwiver::vital::filename_path( kwiver::vital::collapse_full_path( output_path ) );
   if( !output_folder.empty() && !does_folder_exist( output_folder ) )
   {
     create_folder( output_folder );

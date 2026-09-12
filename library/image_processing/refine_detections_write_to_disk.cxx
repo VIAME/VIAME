@@ -22,7 +22,7 @@
 #include <viame/algorithm_framework/util/string.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <image_ops/dispatch.h>
 #include <image_ops/resample.h>
@@ -39,7 +39,6 @@ namespace arrows {
 
 namespace ocv {
 
-using ST = kwiversys::SystemTools;
 
 // Destructor
 refine_detections_write_to_disk
@@ -81,7 +80,7 @@ refine_detections_write_to_disk
     if( auto& mdi = md->find( VITAL_META_IMAGE_URI ) )
     {
       // Get the full path, and then extract just the filename proper
-      filename = ST::GetFilenameName( mdi.as_string() );
+      filename = kwiver::vital::filename_name( mdi.as_string() );
     }
   }
 

@@ -12,7 +12,7 @@
 #include <viame/algorithm_framework/exceptions/io.h>
 #include <viame/core_types/vital_types.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 namespace kwiver {
 
@@ -45,12 +45,12 @@ detected_object_set_input
 ::open( std::string const& filename )
 {
   // Make sure that the given file path exists and is a file.
-  if( !kwiversys::SystemTools::FileExists( filename ) )
+  if( !kwiver::vital::file_exists( filename ) )
   {
     VITAL_THROW( path_not_exists, filename );
   }
 
-  if( kwiversys::SystemTools::FileIsDirectory( filename ) )
+  if( kwiver::vital::file_is_directory( filename ) )
   {
     VITAL_THROW( path_not_a_file, filename );
   }

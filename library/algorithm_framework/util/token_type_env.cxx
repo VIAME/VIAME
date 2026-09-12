@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "token_type_env.h"
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 namespace kwiver {
 
@@ -28,7 +28,7 @@ token_type_env
   bool retcode( true );
 
   const char* v = name.c_str();
-  const char* env_expansion = kwiversys::SystemTools::GetEnv( v );
+  const char* env_expansion = kwiver::vital::get_env( v );
   if( env_expansion != nullptr )
   {
     result = env_expansion;

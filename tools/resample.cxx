@@ -11,7 +11,7 @@
 #include <read_object_track_set_auto.h>
 #include <write_object_track_set_viame_csv.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/logger/logger.h>
@@ -134,7 +134,7 @@ resample_applet
     return EXIT_FAILURE;
   }
 
-  if( !kwiversys::SystemTools::FileExists( opt_input ) )
+  if( !kwiver::vital::file_exists( opt_input ) )
   {
     LOG_ERROR( logger, "Input file does not exist: " << opt_input );
     return EXIT_FAILURE;

@@ -16,7 +16,7 @@
 
 #include <viame/algorithm_framework/version.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <algorithm>
 #include <fstream>
@@ -37,7 +37,7 @@ std::string
 guess_install_prefix()
 {
   auto const& exe_path = get_executable_path();
-  auto const& last = kwiversys::SystemTools::GetFilenameName( exe_path );
+  auto const& last = kwiver::vital::filename_name( exe_path );
 
   return ( last == "bin" ? exe_path + "/.." : exe_path );
 }
@@ -52,7 +52,7 @@ add_windows_path( config_path_list_t& paths, int which )
   if( SHGetFolderPath( 0, which, 0, 0, buffer ) )
   {
     auto path = config_path_t{ buffer };
-    kwiversys::SystemTools::ConvertToUnixSlashes( path );
+    kwiver::vital::convert_to_unix_slashes( path );
     paths.push_back( path );
   }
 }
@@ -94,7 +94,7 @@ append_kwiver_config_paths( config_path_list_t& path_vector )
 {
   // Current working directory always takes precedence
   path_vector.push_back( "." );
-  kwiversys::SystemTools::GetPath( path_vector, "KWIVER_CONFIG_PATH" );
+  kwiver::vital::environment_path( "KWIVER_CONFIG_PATH", path_vector );
 }
 
 // ----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ application_config_file_paths_helper(
   add_windows_path( data_paths, CSIDL_APPDATA );
   add_windows_path( data_paths, CSIDL_COMMON_APPDATA );
 #else
-  auto const home = kwiversys::SystemTools::GetEnv( "HOME" );
+  auto const home = kwiver::vital::get_env( "HOME" );
 
 #if defined( __APPLE__ )
   if( home && *home )
@@ -129,7 +129,7 @@ application_config_file_paths_helper(
 
   // Get the list of configuration data paths
   auto config_paths = config_path_list_t{};
-  kwiversys::SystemTools::GetPath( config_paths, "XDG_CONFIG_HOME" );
+  kwiver::vital::environment_path( "XDG_CONFIG_HOME", config_paths );
   if( home && *home )
   {
     config_paths.push_back( config_path_t( home ) + "/.config" );
@@ -223,7 +223,7 @@ application_config_file_paths(
   }
 
   auto* const env =
-    kwiversys::SystemTools::GetEnv( "KWIVER_CONFIG_PREFIX" );
+    kwiver::vital::get_env( "KWIVER_CONFIG_PREFIX" );
   if( env && *env )
   {
     auto const& kwiver_env_paths =
@@ -276,14 +276,14 @@ read_config_file(
   bool use_system_paths )
 {
   // The file specified really must be a file.
-  if( !kwiversys::SystemTools::FileExists( file_path ) )
+  if( !kwiver::vital::file_exists( file_path ) )
   {
     VITAL_THROW(
       config_file_not_found_exception, file_path,
       "File does not exist." );
   }
 
-  if( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  if( kwiver::vital::file_is_directory( file_path ) )
   {
     VITAL_THROW(
       config_file_not_found_exception, file_path,
@@ -322,7 +322,7 @@ read_config_file(
       install_prefix );
 
   // See if file name is an absolute path. If so, then just process the file.
-  if( kwiversys::SystemTools::FileIsFullPath( file_name ) )
+  if( kwiver::vital::file_is_full_path( file_name ) )
   {
     // The file is on a absolute path.
     auto const& config = read_config_file( file_name, search_paths, true );
@@ -344,8 +344,8 @@ read_config_file(
     // Cant use the parsers exception as an indication of a bad file
     // because the parser will throw the same exception if an include
     // file is not found.
-    if( !kwiversys::SystemTools::FileExists( config_path ) ||
-        kwiversys::SystemTools::FileIsDirectory( config_path ) )
+    if( !kwiver::vital::file_exists( config_path ) ||
+        kwiver::vital::file_is_directory( config_path ) )
     {
       continue;
     }
@@ -389,7 +389,7 @@ find_config_file(
   bool find_all )
 {
   // If the file name is an absolute path, just return it
-  if( kwiversys::SystemTools::FileIsFullPath( file_name ) )
+  if( kwiver::vital::file_is_full_path( file_name ) )
   {
     return { file_name };
   }
@@ -405,8 +405,8 @@ find_config_file(
   {
     auto const& config_path = search_path + "/" + file_name;
 
-    if( kwiversys::SystemTools::FileExists( config_path ) &&
-        !kwiversys::SystemTools::FileIsDirectory( config_path ) )
+    if( kwiver::vital::file_exists( config_path ) &&
+        !kwiver::vital::file_is_directory( config_path ) )
     {
       if( !find_all )
       {
@@ -430,7 +430,7 @@ write_config_file(
   using std::endl;
 
   // If the given path is a directory, we obviously can't write to it.
-  if( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  if( kwiver::vital::file_is_directory( file_path ) )
   {
     VITAL_THROW(
       config_file_write_exception, file_path,
@@ -439,11 +439,11 @@ write_config_file(
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  config_path_t parent_dir = kwiversys::SystemTools::GetFilenamePath(
-    kwiversys::SystemTools::CollapseFullPath( file_path ) );
-  if( !kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
+  config_path_t parent_dir = kwiver::vital::filename_path(
+    kwiver::vital::collapse_full_path( file_path ) );
+  if( !kwiver::vital::file_is_directory( parent_dir ) )
   {
-    if( !kwiversys::SystemTools::MakeDirectory( parent_dir ) )
+    if( !kwiver::vital::make_directory( parent_dir ) )
     {
       VITAL_THROW(
         config_file_write_exception, parent_dir,

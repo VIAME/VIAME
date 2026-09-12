@@ -7,7 +7,7 @@
 
 #include "filename_to_timestamp.h"
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <sstream>
 #include <string>

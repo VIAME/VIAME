@@ -8,7 +8,7 @@
 #include <fstream>
 
 #include <viame/algorithm_framework/exceptions.h>
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include "camera_io.h"
 
@@ -21,11 +21,11 @@ camera_perspective_sptr
 read_krtd_file( path_t const& file_path )
 {
   // Check that file exists
-  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
+  if ( ! kwiver::vital::file_exists( file_path ) )
   {
     VITAL_THROW( file_not_found_exception, file_path, "File does not exist." );
   }
-  else if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  else if ( kwiver::vital::file_is_directory( file_path ) )
   {
     VITAL_THROW( file_not_found_exception, file_path,
                  "Path given doesn't point to a regular file!" );
@@ -52,7 +52,7 @@ read_krtd_file( path_t const& image_file, path_t const& camera_dir )
   std::string adj_path =
     camera_dir
     + "/"
-    + kwiversys::SystemTools::GetFilenameWithoutLastExtension( image_file );
+    + kwiver::vital::filename_without_last_extension( image_file );
 
   return read_krtd_file( path_t( adj_path.append( ".krtd" ) ) );
 }
@@ -63,7 +63,7 @@ write_krtd_file( camera_perspective const& cam,
                  path_t const& file_path )
 {
   // If the given path is a directory, we obviously can't write to it.
-  if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  if ( kwiver::vital::file_is_directory( file_path ) )
   {
     VITAL_THROW( file_write_exception, file_path,
           "Path given is a directory, can not write file." );
@@ -71,11 +71,11 @@ write_krtd_file( camera_perspective const& cam,
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath(
-    kwiversys::SystemTools::CollapseFullPath( file_path ));
-  if ( ! kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
+  std::string parent_dir = kwiver::vital::filename_path(
+    kwiver::vital::collapse_full_path( file_path ));
+  if ( ! kwiver::vital::file_is_directory( parent_dir ) )
   {
-    if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
+    if ( ! kwiver::vital::make_directory( parent_dir ) )
     {
       VITAL_THROW( file_write_exception, parent_dir,
            "Attempted directory creation, but no directory created! No idea what happened here..." );

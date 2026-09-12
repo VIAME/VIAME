@@ -18,7 +18,7 @@
 #include <python/kwiver/internal/python_plugin_factory.h>
 
 #include <kwiversys/Encoding.hxx>
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <python/kwiver/vital/plugins/plugins_from_python_export.h>
 
 #if defined( _WIN32 ) && !defined( __CYGWIN__ )

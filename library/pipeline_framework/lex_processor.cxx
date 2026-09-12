@@ -11,7 +11,7 @@
 #include <viame/algorithm_framework/util/token_expander.h>
 #include <viame/algorithm_framework/util/token_type_sysenv.h>
 #include <viame/algorithm_framework/util/token_type_env.h>
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <viame/pipeline_framework/load_pipe_exception.h>
 
@@ -27,7 +27,6 @@
 // token traffic
 #define LEX_DEBUG 0
 
-using kst = kwiversys::SystemTools;
 
 namespace sprokit {
 
@@ -48,7 +47,7 @@ public:
     : m_fstream( file_name, std::ios_base::in ) // open file stream
     , m_stream( &m_fstream )
     , m_reader( m_fstream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >( kst::GetRealPath(file_name) ) )
+    , m_filename( std::make_shared< std::string >( kwiver::vital::real_path(file_name) ) )
   {
     if ( ! m_stream )
     {
@@ -56,7 +55,7 @@ public:
     }
 
     // make sure file is readable
-    if ( ! kst::TestFileAccess( file_name, kwiversys::TEST_FILE_OK | kwiversys::TEST_FILE_READ ) )
+    if( !kwiver::vital::file_is_readable( file_name ) )
     {
       VITAL_THROW( kwiver::vital::config_file_not_found_exception, file_name, "could not access file");
     }
@@ -65,7 +64,7 @@ public:
   include_context( std::istream& str, const std::string& file_name )
     : m_stream( &str ) // open file stream
     , m_reader( *m_stream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >( kwiversys::SystemTools::GetRealPath(file_name) ) )
+    , m_filename( std::make_shared< std::string >( kwiver::vital::real_path(file_name) ) )
   {
   }
 
@@ -682,7 +681,7 @@ lex_processor::priv
 ::resolve_file_name( kwiver::vital::config_path_t const& file_name )
 {
   // Test for absolute file name
-  if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
+  if ( kwiver::vital::file_is_full_path( file_name ) )
   {
     return file_name;
   }
@@ -690,7 +689,7 @@ lex_processor::priv
   // The file is on a relative path.
   // See if file can be found in the search path.
   std::string res_file =
-    kwiversys::SystemTools::FindFile( file_name, this->m_search_path, true );
+    kwiver::vital::find_file( file_name, this->m_search_path );
 
   if ( "" != res_file )
   {
@@ -705,7 +704,7 @@ lex_processor::priv
   const auto eit = m_include_stack.rend();
   for ( auto it = m_include_stack.rbegin(); it != eit; ++it )
   {
-    kwiver::vital::config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( (*it)->file() ) );
+    kwiver::vital::config_path_t config_file_dir( kwiver::vital::filename_path( (*it)->file() ) );
     if ( "" == config_file_dir )
     {
       config_file_dir = ".";
@@ -718,7 +717,7 @@ lex_processor::priv
     }
   }
 
-  res_file = kwiversys::SystemTools::FindFile( file_name, include_paths, true );
+  res_file = kwiver::vital::find_file( file_name, include_paths );
 
   if ( "" != res_file )
   {
@@ -727,7 +726,7 @@ lex_processor::priv
 
   // Lastly, as a last resort, see if file can be found in a local directory.
   std::vector< std::string > relative_path( 1, "." );
-  return kwiversys::SystemTools::FindFile( file_name, relative_path, true );
+  return kwiver::vital::find_file( file_name, relative_path );
 }
 
 } // end namespace

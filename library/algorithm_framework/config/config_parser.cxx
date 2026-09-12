@@ -14,7 +14,7 @@
 #include <viame/algorithm_framework/util/token_type_sysenv.h>
 
 #include <kwiversys/RegularExpression.hxx>
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
 #include <algorithm>
@@ -36,7 +36,6 @@ namespace vital {
 namespace {
 
 // ----------------------------------------------------------------------------
-typedef kwiversys::SystemTools ST;
 
 struct token_t
 {
@@ -104,7 +103,7 @@ public:
   process_file( config_path_t const&  file_path )
   {
     auto file_path_sptr( std::make_shared< std::string >(
-      ST::GetRealPath(
+      kwiver::vital::real_path(
         file_path ) ) );
     m_current_file = file_path;
 
@@ -126,7 +125,7 @@ public:
     m_include_stack.push_back( file_path_sptr );
 
     // Get directory part of the input file
-    config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath(
+    config_path_t config_file_dir( kwiver::vital::filename_path(
       *file_path_sptr ) );
     // if file_path has no directory prefix then use "." for the current
     // directory
@@ -211,7 +210,7 @@ public:
                                         << file_path << ":" << m_line_number );
 
         // The file specified really must be a file.
-        if( !kwiversys::SystemTools::FileExists( resolv_filename ) )
+        if( !kwiver::vital::file_exists( resolv_filename ) )
         {
           std::ostringstream sstr;
           sstr << "file included from " << file_path << ":" << m_line_number
@@ -222,7 +221,7 @@ public:
             exp_filename, sstr.str() );
         }
 
-        if( kwiversys::SystemTools::FileIsDirectory( resolv_filename ) )
+        if( kwiver::vital::file_is_directory( resolv_filename ) )
         {
           std::ostringstream sstr;
           sstr << "file included from " << file_path << ":" << m_line_number
@@ -347,7 +346,7 @@ public:
 
       while( token.type == token_t::TK_FLAG )
       {
-        std::string upper = ST::UpperCase( token.value );
+        std::string upper = kwiver::vital::upper_case( token.value );
 
         // Currently only the RO (read only) flag is supported.
         // Others can be added here.
@@ -585,7 +584,7 @@ public:
   resolve_file_name( config_path_t const& file_name )
   {
     // Test for absolute file name
-    if( kwiversys::SystemTools::FileIsFullPath( file_name ) )
+    if( kwiver::vital::file_is_full_path( file_name ) )
     {
       return file_name;
     }
@@ -593,7 +592,7 @@ public:
     // The file is on a relative path.
     // See if file can be found in the search path.
     std::string res_file =
-      kwiversys::SystemTools::FindFile( file_name, this->m_search_path, true );
+      kwiver::vital::find_file( file_name, this->m_search_path );
     if( "" != res_file )
     {
       return res_file;
@@ -606,7 +605,7 @@ public:
     const auto eit = m_include_stack.rend();
     for( auto it = m_include_stack.rbegin(); it != eit; ++it )
     {
-      config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath(
+      config_path_t config_file_dir( kwiver::vital::filename_path(
         **it ) );
       if( "" == config_file_dir )
       {
@@ -618,7 +617,7 @@ public:
 
     erase_duplicates( include_paths );
 
-    return kwiversys::SystemTools::FindFile( file_name, include_paths, true );
+    return kwiver::vital::find_file( file_name, include_paths );
   }
 
   // --------------------------------------------------------------------------

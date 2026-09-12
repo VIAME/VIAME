@@ -18,7 +18,7 @@
 #include <viame/pipeline_framework/process_exception.h>
 #include <viame/pipeline_framework/datum.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <vector>
 #include <stdint.h>
@@ -142,10 +142,10 @@ void frame_list_process
   for ( std::string line; stream_reader.getline( line ); /* null */ )
   {
     std::string resolved_file = line;
-    if ( ! kwiversys::SystemTools::FileExists( line ) )
+    if ( ! kwiver::vital::file_exists( line ) )
     {
       // Resolve against specified path
-      resolved_file = kwiversys::SystemTools::FindFile( line, d->m_config_path, true );
+      resolved_file = kwiver::vital::find_file( line, d->m_config_path );
       if ( resolved_file.empty() )
       {
         VITAL_THROW( kwiver::vital::file_not_found_exception, line, "could not locate file in path" );

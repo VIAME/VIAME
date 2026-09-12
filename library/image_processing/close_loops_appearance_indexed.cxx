@@ -14,7 +14,7 @@
 
 using namespace kwiver::vital;
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/algorithm_framework/algo/detect_features.h>
 #include <viame/algorithm_framework/algo/estimate_fundamental_matrix.h>

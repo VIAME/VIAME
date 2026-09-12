@@ -23,7 +23,7 @@
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/exceptions/io.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 #include <svm.h>
 
@@ -31,7 +31,6 @@ namespace viame {
 
 namespace kv = kwiver::vital;
 
-typedef kwiversys::SystemTools ST;
 
 /// Private implementation class
 class refine_detections_svm::priv

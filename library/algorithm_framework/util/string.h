@@ -53,6 +53,30 @@ starts_with( const std::string& input, const std::string& pattern )
 /// @param str_separator String to be placed between elements
 ///
 /// @return Single string with all elements joined with separator.
+/// @brief Does this string end with this one?
+///
+/// The empty pattern matches anything, as with `starts_with`.
+inline bool
+ends_with( const std::string& input, const std::string& pattern )
+{
+  if( pattern.size() > input.size() )
+  {
+    return false;
+  }
+
+  return input.compare(
+    input.size() - pattern.size(), pattern.size(), pattern ) == 0;
+}
+
+/// @brief A copy with every letter upper case.
+///
+/// ASCII only, and locale-independent -- which is what the callers want,
+/// since they are comparing file extensions and configuration keywords.
+VITAL_UTIL_EXPORT std::string upper_case( const std::string& input );
+
+/// @brief A copy with every letter lower case.
+VITAL_UTIL_EXPORT std::string lower_case( const std::string& input );
+
 VITAL_UTIL_EXPORT std::string
 join(
   const std::vector< std::string >& elements,

@@ -19,6 +19,8 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
+#include <unistd.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
@@ -88,6 +90,19 @@ file_is_directory( std::string const& path )
 
   std::error_code error;
   return fs::is_directory( path, error ) && !error;
+}
+
+// ----------------------------------------------------------------------------
+bool
+file_is_regular( std::string const& path )
+{
+  if( path.empty() )
+  {
+    return false;
+  }
+
+  std::error_code error;
+  return fs::is_regular_file( path, error ) && !error;
 }
 
 // ----------------------------------------------------------------------------
@@ -339,7 +354,7 @@ find_file(
   {
     auto const candidate = collapse_full_path( name, directory );
 
-    if( file_exists( candidate ) && !file_is_directory( candidate ) )
+    if( file_is_regular( candidate ) )
     {
       return candidate;
     }
@@ -433,6 +448,60 @@ directory_entries( std::string const& path )
   }
 
   return names;
+}
+
+// ----------------------------------------------------------------------------
+bool
+file_is_readable( std::string const& path )
+{
+  if( path.empty() )
+  {
+    return false;
+  }
+
+  // `access` rather than the permission bits: what matters is whether this
+  // process can read it, which depends on its user, its groups, and on
+  // whatever the file system decides -- none of which the mode alone says.
+  return ::access( path.c_str(), R_OK ) == 0;
+}
+
+// ----------------------------------------------------------------------------
+void
+environment_path(
+  std::string const& name, std::vector< std::string >& directories )
+{
+  char const* const value = std::getenv( name.c_str() );
+
+  if( !value )
+  {
+    return;
+  }
+
+#if defined( _WIN32 )
+  constexpr char list_separator = ';';
+#else
+  constexpr char list_separator = ':';
+#endif
+
+  std::string const whole( value );
+  std::string::size_type at = 0;
+
+  while( true )
+  {
+    auto const next = whole.find( list_separator, at );
+
+    if( next == std::string::npos )
+    {
+      directories.push_back( whole.substr( at ) );
+      break;
+    }
+
+    // Empty entries are kept. `a::b` names three places, and the middle one
+    // is the working directory; dropping it would quietly change where a
+    // search looked.
+    directories.push_back( whole.substr( at, next - at ) );
+    at = next + 1;
+  }
 }
 
 // ----------------------------------------------------------------------------

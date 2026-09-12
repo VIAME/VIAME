@@ -5,7 +5,7 @@
 #include <python/kwiver/vital/modules/module_helpers.h>
 #include <python/kwiver/vital/modules/modules_python_export.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 #include <pybind11/pybind11.h>
 #include <python/kwiver/vital/util/python.h>
 #include <python/kwiver/vital/util/python_exceptions.h>
@@ -137,7 +137,7 @@ bool
 is_suppressed()
 {
   const char* python_suppress =
-    kwiversys::SystemTools::GetEnv( "SPROKIT_NO_PYTHON_MODULES" );
+    kwiver::vital::get_env( "SPROKIT_NO_PYTHON_MODULES" );
   bool suppress_python_modules = false;
 
   if( python_suppress )

@@ -17,7 +17,7 @@
 #include <viame/algorithm_framework/util/token_type_sysenv.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-#include <kwiversys/SystemTools.hxx>
+#include <viame/algorithm_framework/util/file_system.h>
 
 namespace sprokit {
 
@@ -155,7 +155,7 @@ bakery_base
     for (config_flag_t const& flag_v : value.flags)
     {
       // normalize the case of attributes for comparison.
-      std::string flag = kwiversys::SystemTools::LowerCase( flag_v );
+      std::string flag = kwiver::vital::lower_case( flag_v );
       if (flag == flag_read_only)
       {
         is_readonly = true;
@@ -277,7 +277,7 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
       if ( info.defined_loc.valid() )
       {
         // Prepend CWD to val
-        const std::string cwd = kwiversys::SystemTools::GetFilenamePath( info.defined_loc.file() );
+        const std::string cwd = kwiver::vital::filename_path( info.defined_loc.file() );
         val = cwd + "/" + val;
 
         conf->set_location( key, info.defined_loc );
