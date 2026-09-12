@@ -427,6 +427,25 @@ if( VIAME_ENABLE_CUDA )
     set( CUDA_NVCC_EXECUTABLE "${CUDA_NVCC_EXECUTABLE}" CACHE FILEPATH "CUDA nvcc executable" FORCE )
   endif()
 
+  # `third_party/darknet` compiles CUDA in this build now, which needs the
+  # first-class language rather than the old `find_package( CUDA )` module.
+  # It has to be told the **resolved** nvcc for the same reason as above:
+  # handed `/usr/bin/nvcc`, CMake 4 cannot work back to the toolkit root and
+  # fails `enable_language( CUDA )` with "Couldn't find CUDA library root".
+  if( NOT CMAKE_CUDA_COMPILER OR IS_SYMLINK "${CMAKE_CUDA_COMPILER}" )
+    set( CMAKE_CUDA_COMPILER "${CUDA_NVCC_EXECUTABLE}" CACHE FILEPATH
+         "CUDA compiler" FORCE )
+  endif()
+
+  if( NOT DEFINED CMAKE_CUDA_ARCHITECTURES )
+    # VIAME's own `CUDA_ARCHITECTURES` is set further down as dotted versions
+    # -- "6.0 6.1 7.0 ..." -- which is the form the superbuild passed to
+    # darknet after stripping the dots. `CMAKE_CUDA_ARCHITECTURES` wants the
+    # same list without them, so it is derived there rather than written out
+    # twice; this is only the fallback for a build that sets neither.
+    set( CMAKE_CUDA_ARCHITECTURES "60;61;70;75;80;86;89;90" )
+  endif()
+
   if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND NOT CUDA_cublas_device_LIBRARY )
     set( CUDA_cublas_device_LIBRARY CACHE INTERNAL "${CUDA_cublas_LIBRARY}" )
   endif()
@@ -1058,6 +1077,7 @@ else()
     ##
     add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/tinyxml" third_party/tinyxml )
     add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/miniz" third_party/miniz )
+    add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/darknet" third_party/darknet )
 
     if( VIAME_ENABLE_PYTHON )
       add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/pybind11"

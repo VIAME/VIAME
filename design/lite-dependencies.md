@@ -22,7 +22,7 @@ Legend: **vendor** = source copied into `third_party/` and built here;
 | CPython | 3.12.12 | desktop builds | not built here; system python, or python-build-standalone download on Windows/desktop (P10) |
 | GTest | 1.8.1 | tests | **found**, not vendored -- user's call. Only tests link it and tests are not in a release, so carrying the source would add to the repository something that never ships |
 | OpenBLAS, Boost, log4cplus/log4cxx, Protobuf, Qt, qtExtensions, libkml, GeographicLib, VTK, libxml2, libjson | | pytorch-from-source, vivia, seal, tf | **drop** in P1 |
-| CUDA / cuDNN | user-provided | darknet, torch wheels | `find_package(CUDAToolkit)` only while `third_party/darknet` exists; torch wheels carry their own |
+| CUDA / cuDNN | user-provided | darknet, torch wheels | `enable_language( CUDA )` and `find_package( CUDAToolkit )` in the main build now that `third_party/darknet` is compiled here; torch wheels carry their own. `CUDNN_HALF` is on for architectures from 70 up, as darknet's own build has it -- the goldens only reproduce with it |
 | OpenMP, Threads | | evaluate_models, sprokit | system, permanent (no library to ship) |
 | OpenSSL | | vertex-ai client | optional `find_package`, only with `VIAME_ENABLE_VERTEX_AI` |
 
@@ -55,7 +55,7 @@ plan. Summary of what is never copied:
 
 | Path | Disposition |
 |---|---|
-| `packages/darknet` | **vendor** -- `third_party/darknet` via `add_subdirectory`, optional. Confirmed by the user; the submodule move is the remaining piece |
+| `packages/darknet` | **vendored**, `third_party/darknet`, **inference only** -- the user's call. The 17 command line drivers are gone, and with them the `darknet` executable `darknet_trainer` shelled out to, so `train_detector:darknet` is removed. Built by `add_subdirectory` as a static library absorbed into `viame_object_detectors_darknet`, so `libdarknet.so` leaves the install. 18 MB to 2 MB |
 | `packages/dive` | not built; release download as today; submodule only for `VIAME_BUILD_DIVE_FROM_SOURCE` |
 | `packages/vivia`, `seal-tk`, `itk-modules/*`, `tensorrt`, `tensorflow-libs` | **drop** in P1 |
 | `packages/pytorch-libs/*`, `packages/python-utils/pyav` | **pip** wheels from the index built by the wheel CI (P9); submodules leave `lite` in P9 |

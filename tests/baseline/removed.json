@@ -1027,5 +1027,12 @@
     "name": "hierarchical_svm",
     "phase": "P7-T07",
     "reason": "No shipped pipeline or config selects it: the only mention in the tree is a commented-out block in configs/add-ons/uw-fish/detector_matlab_camtrawl.pipe. 1860 lines whose replacement would need cv::ml::SVM, cv::PCA, cv::HOGDescriptor, cv::dft, cv::calcHist, cv::calcBackProject, cv::floodFill, cv::moments and cv::minAreaRect -- none of which image_ops has, and none of which would gain a second caller. Removed rather than ported, on the rule that removed vxl_white_balancing in P3-T05."
+  },
+  {
+    "interface": "train_detector",
+    "kind": "algorithm",
+    "name": "darknet",
+    "phase": "P1-T03",
+    "reason": "Training with darknet is removed: the user's call, on vendoring darknet for inference only. The trainer did not train in process -- it wrote chips and then shelled out to the `darknet` executable, which is built from darknet.c and the sixteen command line subcommands, and none of those are vendored. The 16 train_detector_darknet_yolo_*.conf files in configs/add-ons/darknet-yolo and the three embedded training pipes alongside them select this and no longer resolve. Detection is unaffected: image_object_detector 'darknet' is unchanged and all 24 of its golden cases still reproduce."
   }
 ]

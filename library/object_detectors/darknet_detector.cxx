@@ -26,7 +26,7 @@
 #include <limits>
 #include <vector>
 
-#include "darknet/yolo_v2_class.hpp"
+#include <yolo_v2_class.hpp>
 
 namespace viame {
 
