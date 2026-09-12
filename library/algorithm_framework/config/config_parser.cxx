@@ -13,7 +13,7 @@
 #include <viame/algorithm_framework/util/token_type_symtab.h>
 #include <viame/algorithm_framework/util/token_type_sysenv.h>
 
-#include <kwiversys/RegularExpression.hxx>
+#include <viame/algorithm_framework/util/regex.h>
 #include <viame/algorithm_framework/util/file_system.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
@@ -488,9 +488,9 @@ public:
     // Words are LHS tokens, which start with a letter, and can not end with a
     // ':'
     // A *word* can contain these symbols "- _ : . /"
-    kwiversys::RegularExpression re_word(
+    kwiver::vital::regex re_word(
       "^[a-zA-Z][-a-zA-Z0-9.:/_]+[-a-zA-Z0-9./_]" );
-    kwiversys::RegularExpression re_flag( "^\\[[a-zA-Z,]+\\]" );
+    kwiver::vital::regex re_flag( "^\\[[a-zA-Z,]+\\]" );
 
     // Test for end of line while processing
     if( m_token_line.size() == 0 )

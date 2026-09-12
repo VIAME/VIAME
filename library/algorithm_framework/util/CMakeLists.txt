@@ -17,6 +17,7 @@ set( public_headers
   directed_graph.h
   file_system.h
   get_paths.h
+  regex.h
   rational.h
   source_location.h
   streamable.h
@@ -43,6 +44,7 @@ set( private_headers
 set( sources
   file_system.cxx
   get_paths.cxx
+  regex.cxx
   demangle.cxx
   source_location.cxx
 

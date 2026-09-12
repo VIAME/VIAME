@@ -6,7 +6,7 @@
 
 #include "token_type.h"
 
-#include <kwiversys/RegularExpression.hxx>
+#include <viame/algorithm_framework/util/regex.h>
 
 namespace kwiver {
 
@@ -54,7 +54,7 @@ token_expander
 ::expand_token( std::string const& initial_string )
 {
   std::string new_value;
-  kwiversys::RegularExpression exp(
+  kwiver::vital::regex exp(
     "\\$([a-zA-Z][a-zA-Z0-9_]*)\\{([a-zA-Z0-9._:]+)?\\}" );
 
   std::string::const_iterator start, end;

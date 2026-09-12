@@ -20,7 +20,6 @@
 
 #include <viame/algorithm_framework/range/iota.h>
 
-#include <kwiversys/Directory.hxx>
 #include <viame/algorithm_framework/util/file_system.h>
 
 #include <algorithm>
@@ -534,8 +533,7 @@ video_input_image_list::priv
 ::read_from_directory( std::string const& dirname )
 {
   // Open the directory and read the entries
-  kwiversys::Directory directory;
-  if( !directory.Load( dirname ) )
+  if( !kwiver::vital::file_is_directory( dirname ) )
   {
     VITAL_THROW(
       kv::invalid_file, dirname,
@@ -543,9 +541,8 @@ video_input_image_list::priv
   }
 
   // Read each entry
-  for( auto const i : kvr::iota( directory.GetNumberOfFiles() ) )
+  for( auto const& filename : kwiver::vital::directory_entries( dirname ) )
   {
-    auto const filename = std::string{ directory.GetFile( i ) };
     auto const& resolved_file = dirname + "/" + filename;
 
     if( !kwiver::vital::file_exists( resolved_file ) )

@@ -87,3 +87,13 @@ kwiver_discover_gtests( viame file_system
 # be evaluated at test time, when there is no `CMAKE_CURRENT_BINARY_DIR`.
 target_compile_definitions( test-viame-file_system PRIVATE
   "VIAME_FS_TEST_DIR=\"${CMAKE_CURRENT_BINARY_DIR}/file_system_scratch\"" )
+
+###
+# The regular expression the parsers use
+#
+# Recorded before P8-T05 changed the engine from kwiversys's POSIX one to
+# `std::regex`. Three of the four patterns read configuration a user wrote.
+##
+kwiver_discover_gtests( viame regex
+  LIBRARIES kwiver::vital_util
+            GTest::gtest )

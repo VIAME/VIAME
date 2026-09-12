@@ -6,7 +6,6 @@
 #include <atomic_output.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
-#include <kwiversys/Directory.hxx>
 
 #include <viame/algorithm_framework/kwiver-include-paths.h>
 
@@ -1157,16 +1156,15 @@ configs_applet
   if( kwiver::vital::file_is_directory( params.opt_input_path ) )
   {
     // Process directory
-    kwiversys::Directory dir;
-    if( !dir.Load( params.opt_input_path ) )
+    if( !kwiver::vital::file_is_directory( params.opt_input_path ) )
     {
       LOG_ERROR( g_logger, "Could not read directory: " << params.opt_input_path );
       return EXIT_FAILURE;
     }
 
-    for( unsigned long i = 0; i < dir.GetNumberOfFiles(); ++i )
+    for( auto const& filename :
+         kwiver::vital::directory_entries( params.opt_input_path ) )
     {
-      std::string filename = dir.GetFile( i );
       if( filename == "." || filename == ".." )
       {
         continue;

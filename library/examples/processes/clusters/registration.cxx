@@ -10,7 +10,6 @@
 
 #include "processes_clusters_export.h"
 
-#include <kwiversys/Directory.hxx>
 #include <viame/algorithm_framework/util/file_system.h>
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/pipeline_framework/process_registry_exception.h>
@@ -78,14 +77,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
       continue;
     }
 
-    kwiversys::Directory dir;
-    dir.Load( include_dir );
-    unsigned long num_files = dir.GetNumberOfFiles();
-
-    for (unsigned long i = 0; i < num_files; ++i )
+    for( auto const& entry : kwiver::vital::directory_entries( include_dir ) )
     {
-      std::string pstr = dir.GetPath();
-      pstr += "/" + std::string( dir.GetFile( i ) );
+      std::string const pstr = include_dir + "/" + entry;
 
       if ( kwiver::vital::filename_last_extension( pstr ) != cluster_suffix )
       {

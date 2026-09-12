@@ -11,7 +11,6 @@
 #include <python_script_applet.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
-#include <kwiversys/Directory.hxx>
 
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/logger/logger.h>
@@ -112,12 +111,10 @@ collect_files( const std::string& path, const std::string& ext )
 
   if( kwiver::vital::file_is_directory( path ) )
   {
-    kwiversys::Directory dir;
-    if( dir.Load( path ) )
+    if( kwiver::vital::file_is_directory( path ) )
     {
-      for( unsigned long i = 0; i < dir.GetNumberOfFiles(); ++i )
+      for( auto const& filename : kwiver::vital::directory_entries( path ) )
       {
-        std::string filename = dir.GetFile( i );
         if( filename == "." || filename == ".." )
         {
           continue;

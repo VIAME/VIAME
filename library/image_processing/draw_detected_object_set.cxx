@@ -19,7 +19,7 @@
 #include <image_ops/filter.h>
 
 #include <viame/core_types/image_container.h>
-#include <kwiversys/RegularExpression.hxx>
+#include <viame/algorithm_framework/util/regex.h>
 
 
 #include <sstream>
@@ -331,7 +331,7 @@ public:
 
       for( auto cs : cspec )
       {
-        kwiversys::RegularExpression exp(
+        kwiver::vital::regex exp(
           "\\$([^/]+)/([0-9.]+)/([0-9]+) ([0-9]+) ([0-9]+)" );
 
         if( !exp.find( cs ) )
@@ -365,7 +365,7 @@ public:
 
     {
       // parse defaults default color
-      kwiversys::RegularExpression exp( "([0-9]+) ([0-9]+) ([0-9]+)" );
+      kwiver::vital::regex exp( "([0-9]+) ([0-9]+) ([0-9]+)" );
 
       if( !exp.find( m_parent.c_default_color ) )
       {
