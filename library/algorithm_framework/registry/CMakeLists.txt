@@ -19,6 +19,7 @@ list( REMOVE_DUPLICATES viame_registered_libraries )
 
 kwiver_install_headers(
   SUBDIR     viame/algorithm_framework/registry
+  external_plugins.h
   static_registry.h
   )
 
@@ -28,6 +29,8 @@ kwiver_install_headers(
   )
 
 kwiver_add_library( viame_registry
+  external_plugins.h
+  external_plugins.cxx
   static_registry.h
   "${generated}"
   )
@@ -41,6 +44,8 @@ viame_lite_generated( viame_registry_export.h algorithm_framework/registry )
 # the registry's install interface.
 target_link_libraries( viame_registry
   PRIVATE              kwiver::vital_vpm
+                       kwiver::vital_logger
+                       ${CMAKE_DL_LIBS}
                        ${viame_registered_libraries}
   )
 

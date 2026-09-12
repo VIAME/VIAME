@@ -8,6 +8,8 @@
 
 #include <viame/algorithm_framework/registry/static_registry.h>
 
+#include <viame/algorithm_framework/registry/external_plugins.h>
+
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 
@@ -29,10 +31,20 @@ register_builtins(
   kwiver::vital::plugin_manager::plugin_types types )
 {
 @calls@
-  // Nothing is registering any more. A factory added after this -- by an
-  // out-of-tree plugin, say -- should not be attributed to the last library
-  // in the list.
+  // Nothing built in is registering any more, and a factory added after this
+  // should not be attributed to the last library in the list.
   loader.set_registering_library( {} );
+
+  // Then anything VIAME was not built with. Once, on the first call: the
+  // plugins named by `VIAME_PLUGIN_PATH` register whatever they register,
+  // which is not a kind this can select on.
+  static bool external_done = false;
+
+  if( !external_done )
+  {
+    external_done = true;
+    register_external_plugins( loader );
+  }
 }
 
 } // namespace viame

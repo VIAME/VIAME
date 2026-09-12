@@ -126,15 +126,17 @@ dynamic plugin loader goes. Everything built in tree registers statically.
   Process types get the same alias table, resolved in the pipe bakery.
 - **Optional native code.** darknet and cppdb are compiled in when their
   option is on; a build with them requires their libraries at runtime, which
-  is already true today. If open decision 10 wants darknet to be loadable on
-  CUDA-less machines from the same build, it becomes the one dlopen'd module
-  through the hook below.
-- **Out-of-tree C++ plugins (open decision 10).** If kept: a ~150-line
-  `external_plugins.cxx` that iterates `VIAME_PLUGIN_PATH`, dlopens each
-  file, and calls its exported `viame_register_plugin(viame::registry&)`.
-  No directory scanning by default, no attribute files, no
-  `KWIVER_PLUGIN_PATH`. If dropped: `examples/plugin_creation` documents
-  building in tree (add a directory under `library/`) or writing python.
+  is already true today. If darknet should be loadable on CUDA-less machines
+  from the same build, it becomes a plugin named through the hook below --
+  nothing else in the tree is loaded that way.
+- **Out-of-tree C++ plugins (decision 10: kept).** Built in P8-T03 as
+  `library/algorithm_framework/registry/external_plugins.cxx`, 150 lines and
+  the only `dlopen` in the tree. `VIAME_PLUGIN_PATH` holds a list of
+  **files**, not directories: each is opened and asked for its exported
+  `viame_register_plugin( kwiver::vital::plugin_loader& )`, and one that
+  cannot be opened or exports nothing is logged and skipped. No directory
+  scanning, no attribute files, no `KWIVER_PLUGIN_PATH`.
+  `examples/plugin_creation/cxx` is the documented form.
 - **Startup budget.** `viame --version` and `viame runner --help` must
   complete in under 0.5 s with no python import; a benchmark test enforces
   it from P8-T10.

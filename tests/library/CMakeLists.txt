@@ -1,5 +1,6 @@
 # Tests for the functional libraries under library/
 
+add_subdirectory( algorithm_framework )
 add_subdirectory( core_types )
 add_subdirectory( file_io )
 add_subdirectory( image_ops )

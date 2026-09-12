@@ -20,10 +20,18 @@ namespace viame {
 #define PLUGIN_EXPORT_FLAG __attribute__((visibility("default")))
 #endif
 
+// The entry point an out-of-tree plugin exports. VIAME calls it for every
+// library named in `VIAME_PLUGIN_PATH`; everything VIAME ships registers by
+// being linked in instead, and has no entry point to find.
+//
+// It is deliberately not `register_factories`, which is what the built-in
+// registration files still define: that name belongs to code that is
+// compiled into VIAME, and keeping the two apart means a plugin cannot be
+// half-adopted by accident.
 extern "C"
 PLUGIN_EXPORT_FLAG
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+viame_register_plugin( kwiver::vital::plugin_loader& vpm )
 {
   using kvpf = kwiver::vital::plugin_factory;
 

@@ -7,3 +7,19 @@ built outside of the VIAME build chain as opposed to inside of it. In order
 to build it, you need to set the VIAME_DIR cmake variable to the location
 of a VIAME install, but in this example VIAME need not be built from source,
 only this plugin.
+
+Loading it
+----------
+
+VIAME registers everything it was built with by calling it directly -- there
+is no plugin directory and nothing is searched for. A plugin built outside
+the tree is named instead, in ``VIAME_PLUGIN_PATH``::
+
+    export VIAME_PLUGIN_PATH=$PWD/lib/modules/example_plugin.so
+    viame registry-dump --json | grep example_detector
+
+The variable holds a list of **files**, separated by ``:`` on Unix and ``;``
+on Windows, not a list of directories. Each is opened and asked for
+``viame_register_plugin``; a file that cannot be opened, or that does not
+export that function, is logged and skipped, and the rest of the list is
+still loaded.
