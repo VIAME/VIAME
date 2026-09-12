@@ -32,17 +32,17 @@ set( plugin_sources
   write_object_track_set_kw18.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/file_io
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_file_io_export.h
   NOPATH   SUBDIR     viame/file_io
   )
 
-kwiver_add_library( viame_file_io
+viame_add_library( viame_file_io
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -67,7 +67,7 @@ set_target_properties( viame_file_io PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_file_io
+viame_register_statically( viame_file_io
   register_algorithms.cxx
   )
 
@@ -92,8 +92,8 @@ set( process_sources
   write_track_descriptor_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_file_io
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_file_io
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

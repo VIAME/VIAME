@@ -25,7 +25,7 @@ set( public_headers
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-kwiver_add_library( kwiver_adapter
+viame_add_library( kwiver_adapter
   ${lib_sources}
   ${public_headers}
   )
@@ -40,15 +40,15 @@ target_link_libraries( kwiver_adapter
 
 add_library( kwiver::kwiver_adapter ALIAS kwiver_adapter )
 
-kwiver_add_plugin( kwiver_processes_adapter
-  SUBDIR          ${kwiver_plugin_process_subdir}
+viame_add_plugin( kwiver_processes_adapter
+  KIND        PROCESSES
   SOURCES         register_processes.cxx
   PRIVATE         kwiver_adapter sprokit_pipeline
                   vital_config
 )
 
-kwiver_add_plugin( kwiver_epx_test
-  SUBDIR          ${kwiver_plugin_process_subdir}
+viame_add_plugin( kwiver_epx_test
+  KIND        PROCESSES
   SOURCES         epx_test.h
                   epx_test.cxx
                   ${CMAKE_CURRENT_BINARY_DIR}/kwiver_epx_test_export.h

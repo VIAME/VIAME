@@ -7,7 +7,7 @@ set(python_util_headers
   python_exceptions.h
   python.h)
 
-kwiver_add_library(vital_python_util
+viame_add_library(vital_python_util
   ${python_util_srcs}
   ${python_util_headers})
 
@@ -15,12 +15,12 @@ target_link_libraries(vital_python_util
   PRIVATE $<BUILD_INTERFACE:pybind11::embed> $<BUILD_INTERFACE:pybind11::module>
   )
 
-kwiver_install_headers(
+viame_install_headers(
     SUBDIR     python/vital/util
     ${python_util_headers}
 )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_python_util_export.h
   SUBDIR python/vital/util
   NOPATH

@@ -49,4 +49,4 @@ install( FILES       ${image_ops_headers}
 # names has to be exportable.
 install( TARGETS     viame_image_ops
          EXPORT      ${kwiver_export_name} )
-set_property( GLOBAL APPEND PROPERTY kwiver_export_targets viame_image_ops )
+set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_image_ops )

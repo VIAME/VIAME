@@ -19,17 +19,17 @@ set( plugin_sources
   initialize_object_tracks_threshold.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/object_trackers
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_object_trackers_export.h
   NOPATH   SUBDIR     viame/object_trackers
   )
 
-kwiver_add_library( viame_object_trackers
+viame_add_library( viame_object_trackers
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -52,7 +52,7 @@ set_target_properties( viame_object_trackers PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_object_trackers
+viame_register_statically( viame_object_trackers
   register_algorithms.cxx
   )
 
@@ -77,8 +77,8 @@ set( process_sources
   unwrap_detections_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_object_trackers
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_object_trackers
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

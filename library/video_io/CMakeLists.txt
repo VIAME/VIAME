@@ -26,23 +26,23 @@ set( plugin_sources
   codecs/tiff.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/video_io
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/video_io/codecs
   NOPATH
   ${codec_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_video_io_export.h
   NOPATH   SUBDIR     viame/video_io
   )
 
-kwiver_add_library( viame_video_io
+viame_add_library( viame_video_io
   ${plugin_headers}
   ${codec_headers}
   ${plugin_sources}
@@ -73,7 +73,7 @@ set_target_properties( viame_video_io PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_video_io
+viame_register_statically( viame_video_io
   register_algorithms.cxx
   )
 
@@ -103,8 +103,8 @@ set( process_sources
   video_output_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_video_io
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_video_io
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

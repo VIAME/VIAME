@@ -17,18 +17,18 @@ get_property( viame_registered_libraries
   GLOBAL PROPERTY viame_static_registrations )
 list( REMOVE_DUPLICATES viame_registered_libraries )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/algorithm_framework/registry
   external_plugins.h
   static_registry.h
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_registry_export.h
   NOPATH   SUBDIR     viame/algorithm_framework/registry
   )
 
-kwiver_add_library( viame_registry
+viame_add_library( viame_registry
   external_plugins.h
   external_plugins.cxx
   static_registry.h
@@ -76,7 +76,7 @@ endif()
 add_library( viame::registry ALIAS viame_registry_linked )
 
 install( TARGETS viame_registry_linked EXPORT ${kwiver_export_name} )
-set_property( GLOBAL APPEND PROPERTY kwiver_export_targets viame_registry_linked )
+set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_registry_linked )
 
 ###
 # The python extensions that load plugins

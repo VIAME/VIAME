@@ -98,7 +98,7 @@ set_source_files_properties( edge.cxx
   COMPILE_DEFINITIONS "SPROKIT_DEFAULT_EDGE_CAPACITY=${SPROKIT_DEFAULT_EDGE_CAPACITY}"
   )
 
-kwiver_add_library( sprokit_pipeline
+viame_add_library( sprokit_pipeline
   ${pipeline_srcs}
   ${pipeline_headers}
   ${VITAL_VERSION_H}
@@ -155,7 +155,7 @@ set( pipeline_util_headers
   token.h
   )
 
-kwiver_add_library( sprokit_pipeline_util
+viame_add_library( sprokit_pipeline_util
   ${pipeline_util_srcs}
   ${pipeline_util_headers}
   )

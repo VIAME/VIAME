@@ -21,15 +21,15 @@ set( private_headers
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-kwiver_private_header_group( ${private_headers} )
+viame_private_header_group( ${private_headers} )
 
-kwiver_add_plugin( schedulers
+viame_add_plugin( schedulers
   SOURCES         ${source}
                   ${private_headers}
   PRIVATE         sprokit_pipeline
                   vital_config
                   vital_vpm
                   ${CMAKE_THREAD_LIBS_INIT}
-  SUBDIR          ${kwiver_plugin_process_subdir}
+  KIND        PROCESSES
   )
 

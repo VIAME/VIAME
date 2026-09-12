@@ -14,7 +14,7 @@ set(source_files
 ###
 # tools applet support library
 
-kwiver_add_library( vital_applets
+viame_add_library( vital_applets
   ${public_headers}
   ${source_files}
 )
@@ -30,7 +30,7 @@ target_link_libraries( vital_applets
 ###
 # Install header files
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_applets_export.h
   NOPATH
   SUBDIR      viame/algorithm_framework/applets

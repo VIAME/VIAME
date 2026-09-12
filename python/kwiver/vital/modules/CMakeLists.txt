@@ -15,8 +15,8 @@ if((NOT SKBUILD) OR MSVC)
 endif()
 
 if (KWIVER_ENABLE_TOOLS)
-  kwiver_add_plugin( modules_python
-    SUBDIR           ${kwiver_plugin_module_subdir}
+  viame_add_plugin( modules_python
+    KIND        OTHERS
     SOURCES          ${modules_python_srcs}
     PRIVATE          vital_python_util
                      vital_logger

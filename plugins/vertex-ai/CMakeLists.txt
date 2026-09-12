@@ -45,7 +45,7 @@ if( OpenSSL_FOUND )
     vertex_ai_trainer.cxx
   )
 
-  kwiver_add_library( viame_vertex_ai
+  viame_add_library( viame_vertex_ai
     ${plugin_headers}
     ${plugin_sources}
   )
@@ -66,8 +66,8 @@ if( OpenSSL_FOUND )
     ${VIAME_HTTPLIB_INCLUDE_DIR}
   )
 
-  kwiver_add_plugin( viame_processes_vertex_ai
-    SUBDIR ${viame_plugin_process_subdir}
+  viame_add_plugin( viame_processes_vertex_ai
+    KIND        PROCESSES
     SOURCES register_processes.cxx
     PRIVATE viame_vertex_ai
             kwiver::sprokit_pipeline

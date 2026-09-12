@@ -33,14 +33,14 @@ set( sources
 
 # install export header
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_exceptions_export.h
   SUBDIR   viame/algorithm_framework/exceptions
   NOPATH
   )
 
 
-kwiver_add_library( vital_exceptions
+viame_add_library( vital_exceptions
   ${public_headers}
   ${sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_exceptions_export.h

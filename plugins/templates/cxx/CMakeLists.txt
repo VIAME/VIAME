@@ -10,17 +10,17 @@ set( plugin_sources
   @template@_detector.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_@template_lib@_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_@template_lib@
+viame_add_library( viame_@template_lib@
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -33,6 +33,6 @@ target_link_libraries( viame_@template_lib@
                        kwiver::vital_logger
   )
 
-algorithms_create_plugin( viame_@template_lib@
+viame_register_statically( viame_@template_lib@
   register_algorithms.cxx
   )

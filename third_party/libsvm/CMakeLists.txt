@@ -35,4 +35,4 @@ add_library( viame::libsvm ALIAS viame_libsvm )
 # would be the other way round, and there is nothing to ship.
 install( TARGETS viame_libsvm EXPORT ${kwiver_export_name}
          ARCHIVE DESTINATION lib )
-set_property( GLOBAL APPEND PROPERTY kwiver_export_targets viame_libsvm )
+set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_libsvm )

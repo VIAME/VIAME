@@ -78,7 +78,7 @@ macro( viame_lite_generated name subdir )
   configure_file(
     "${CMAKE_CURRENT_BINARY_DIR}/${name}"
     "${VIAME_LITE_GENERATED_DIR}/viame/${subdir}/${name}" COPYONLY )
-  kwiver_install_headers(
+  viame_install_headers(
     "${VIAME_LITE_GENERATED_DIR}/viame/${subdir}/${name}"
     SUBDIR viame/${subdir}
     NOPATH )

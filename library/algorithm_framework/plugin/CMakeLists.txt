@@ -31,14 +31,14 @@ set(vital_vpm_sources
 # This has to be built shared due to the use of the singleton pattern holding
 # the central manager instance.
 
-kwiver_add_library(vital_vpm SHARED
+viame_add_library(vital_vpm SHARED
   ${vital_vpm_headers_public}
   ${vital_vpm_headers_private}
   ${vital_vpm_sources}
   )
 
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_vpm_export.h
   SUBDIR      viame/algorithm_framework/plugin
   NOPATH

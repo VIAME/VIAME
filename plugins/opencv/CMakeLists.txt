@@ -39,17 +39,17 @@ set( plugin_sources
   windowed_utils.cxx
 )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_opencv_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_opencv
+viame_add_library( viame_opencv
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -79,7 +79,7 @@ set_target_properties( viame_opencv PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_opencv
+viame_register_statically( viame_opencv
   register_algorithms.cxx
   )
 
@@ -100,8 +100,8 @@ set( process_sources
   pair_stereo_tracks_process.cxx
 )
 
-kwiver_add_plugin( viame_processes_opencv
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_opencv
+  KIND        PROCESSES
   SOURCES          ${process_sources}
   PRIVATE          kwiver::vital
                    kwiver::vital_algo

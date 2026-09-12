@@ -114,17 +114,17 @@ set( plugin_sources
   write_detected_object_set_dive.cxx
 )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_core_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_core
+viame_add_library( viame_core
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -222,7 +222,7 @@ set_target_properties( viame_core PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_core
+viame_register_statically( viame_core
   register_algorithms.cxx
   )
 
@@ -293,8 +293,8 @@ set( process_sources
   write_query_results_as_tracks_process.cxx
 )
 
-kwiver_add_plugin( viame_processes_core
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_core
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${private_headers}
   PRIVATE          ${CORE_LINK_LIBRARIES}
@@ -327,12 +327,12 @@ target_include_directories( viame_processes_core PRIVATE
 # class falls back to similarity scoring against the positive exemplars, so
 # the query still returns ranked results.
 ##
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame
   iqr_session_adaboost.h
   )
 
-kwiver_add_library( viame_iqr
+viame_add_library( viame_iqr
   iqr_session_adaboost.h
   iqr_session_adaboost.cxx
   )

@@ -12,8 +12,8 @@ set( process_sources
   downsample_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_pipeline_framework
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_pipeline_framework
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

@@ -22,13 +22,13 @@ set( vital_logger_sources
   location_info.cxx
 )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_logger_export.h
   NOPATH
   SUBDIR      viame/algorithm_framework/logger
   )
 
-kwiver_add_library( vital_logger
+viame_add_library( vital_logger
   ${vital_logger_public_headers}
   ${vital_logger_private_headers}
   ${vital_logger_sources}

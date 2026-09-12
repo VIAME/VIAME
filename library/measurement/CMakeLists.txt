@@ -24,12 +24,12 @@ set( plugin_sources
   triangulate.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/measurement
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_measurement_export.h
   NOPATH   SUBDIR     viame/measurement
   )
@@ -43,7 +43,7 @@ if( MSVC )
     )
 endif()
 
-kwiver_add_library( viame_measurement
+viame_add_library( viame_measurement
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -78,8 +78,8 @@ set( process_sources
   compute_stereo_depth_map_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_measurement
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_measurement
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

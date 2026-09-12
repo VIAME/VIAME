@@ -39,7 +39,7 @@ if(NOT SKBUILD)
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/setup.py egg_info --egg-base ${KWIVER_BINARY_DIR}/${python_site_packages}
     )
 
-  kwiver_install(
+  install(
     DIRECTORY ${KWIVER_BINARY_DIR}/${python_site_packages}/kwiver.egg-info
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${python_site_packages}/
   )

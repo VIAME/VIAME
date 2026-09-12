@@ -25,10 +25,10 @@ if((NOT SKBUILD) OR MSVC)
   set(libraries_to_link "${libraries_to_link}" Python::Python)
 endif()
 
-kwiver_add_plugin(
+viame_add_plugin(
   plugins_from_python
   SOURCES   register.cxx
   PRIVATE   ${libraries_to_link}
             vital
-  SUBDIR    ${kwiver_plugin_module_subdir}
+  KIND        OTHERS
 )

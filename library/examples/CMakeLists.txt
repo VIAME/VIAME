@@ -26,8 +26,8 @@ set( process_sources
   template_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_examples
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_examples
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

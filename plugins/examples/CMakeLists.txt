@@ -11,17 +11,17 @@ set( plugin_sources
   hello_world_filter.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_examples_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_examples
+viame_add_library( viame_examples
   ${plugin_headers}
   ${plugin_sources}
   )

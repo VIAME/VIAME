@@ -52,17 +52,17 @@ set( plugin_sources
   track_set_impl.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_image_processing_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_image_processing
+viame_add_library( viame_image_processing
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -89,7 +89,7 @@ set_target_properties( viame_image_processing PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_image_processing
+viame_register_statically( viame_image_processing
   register_algorithms.cxx
   )
 
@@ -174,8 +174,8 @@ set( process_sources
   stabilize_image_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_image_processing
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_image_processing
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

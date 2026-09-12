@@ -34,8 +34,8 @@ if( NOT VIAME_BUILD_SEAGIS_TEST_LIB )
   list( APPEND SEAGIS_LINK_LIBRARIES ${SEAGIS_LIBRARY} )
 endif()
 
-kwiver_add_plugin( viame_processes_seagis
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_seagis
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          ${SEAGIS_LINK_LIBRARIES}

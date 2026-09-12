@@ -35,7 +35,7 @@ define_property( GLOBAL PROPERTY viame_static_registration_kinds
 #   viame_mark_static_registration( target kind source... )
 #
 # Renames the entry point and adds the target to the generated registry. Used
-# by `kwiver_add_plugin`, whose sources are given to `kwiver_add_library`
+# by `kwiver_add_plugin`, whose sources are given to `viame_add_library`
 # directly.
 #
 # `kind` is one of the `plugin_manager::plugin_type` names -- `APPLETS`,

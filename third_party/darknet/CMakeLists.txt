@@ -170,4 +170,4 @@ add_library( viame::darknet ALIAS viame_darknet_core )
 # `$<BUILD_INTERFACE:>` on the consumer's side is not enough on its own.
 install( TARGETS viame_darknet_core EXPORT ${kwiver_export_name}
          ARCHIVE DESTINATION lib )
-set_property( GLOBAL APPEND PROPERTY kwiver_export_targets viame_darknet_core )
+set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_darknet_core )

@@ -17,17 +17,17 @@ set( plugin_sources
   class_probability_filter.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/classifiers
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_classifiers_export.h
   NOPATH   SUBDIR     viame/classifiers
   )
 
-kwiver_add_library( viame_classifiers
+viame_add_library( viame_classifiers
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -50,7 +50,7 @@ set_target_properties( viame_classifiers PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_classifiers
+viame_register_statically( viame_classifiers
   register_algorithms.cxx
   )
 
@@ -73,8 +73,8 @@ set( process_sources
   refine_tracks_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_classifiers
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_classifiers
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

@@ -26,17 +26,17 @@ set( plugin_sources
   )
 
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/object_detectors
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_object_detectors_export.h
   NOPATH   SUBDIR     viame/object_detectors
   )
 
-kwiver_add_library( viame_object_detectors
+viame_add_library( viame_object_detectors
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -64,7 +64,7 @@ set_target_properties( viame_object_detectors PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_object_detectors
+viame_register_statically( viame_object_detectors
   register_algorithms.cxx
   )
 
@@ -85,17 +85,17 @@ algorithms_create_plugin( viame_object_detectors
 # `libopencv_highgui`. An optional dependency belongs behind its own door.
 ##
 if( VIAME_ENABLE_DARKNET )
-  kwiver_install_headers(
+  viame_install_headers(
     SUBDIR     viame/object_detectors
     darknet_detector.h
     )
 
-  kwiver_install_headers(
+  viame_install_headers(
     ${CMAKE_CURRENT_BINARY_DIR}/viame_object_detectors_darknet_export.h
     NOPATH   SUBDIR     viame/object_detectors
     )
 
-  kwiver_add_library( viame_object_detectors_darknet
+  viame_add_library( viame_object_detectors_darknet
     darknet_detector.h
     darknet_detector.cxx
     )
@@ -119,7 +119,7 @@ if( VIAME_ENABLE_DARKNET )
     SOVERSION            ${VIAME_VERSION_MAJOR}
     )
 
-  algorithms_create_plugin( viame_object_detectors_darknet
+  viame_register_statically( viame_object_detectors_darknet
     register_darknet.cxx
     )
 
@@ -139,8 +139,8 @@ set( process_sources
   image_object_detector_process.cxx
   )
 
-kwiver_add_plugin( viame_processes_object_detectors
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_object_detectors
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

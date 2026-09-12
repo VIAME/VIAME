@@ -47,7 +47,7 @@ endif()
 ##
 
 # VIAME tool runner - main entry point similar to kwiver
-kwiver_add_executable( viame
+viame_add_executable( viame
     viame.cxx
   )
 
@@ -75,7 +75,7 @@ target_include_directories( viame
 # what the golden pipeline runner and the annotator launcher invoke, so the
 # executable and its name have to survive the submodule.
 ##
-kwiver_add_executable( kwiver
+viame_add_executable( kwiver
     kwiver_tool_runner.cxx
   )
 
@@ -119,8 +119,8 @@ set( applet_headers
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-kwiver_add_plugin( viame_tools_applets
-  SUBDIR       viame/applets
+viame_add_plugin( viame_tools_applets
+  KIND        APPLETS
   SOURCES      ${applet_sources} ${applet_headers}
   PRIVATE      kwiver::vital
                kwiver::vital_vpm

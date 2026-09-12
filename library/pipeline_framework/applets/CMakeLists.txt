@@ -17,8 +17,8 @@ set( headers
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-kwiver_add_plugin( sprokit_applets
-  SUBDIR       ${kwiver_plugin_applets_subdir}
+viame_add_plugin( sprokit_applets
+  KIND        APPLETS
   SOURCES      ${sources} ${headers}
   PRIVATE      vital
                vital_vpm

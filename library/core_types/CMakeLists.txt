@@ -95,12 +95,12 @@ foreach(class IN LISTS vital_types_classes)
 endforeach()
   
 
-kwiver_install_headers(  # generated export header file
+viame_install_headers(  # generated export header file
   ${CMAKE_CURRENT_BINARY_DIR}/vital_types_export.h
   SUBDIR viame/core_types
   NOPATH
 )
-kwiver_add_library(
+viame_add_library(
   vital_types SHARED
   ${vital_types_public_headers}
   ${vital_types_sources}

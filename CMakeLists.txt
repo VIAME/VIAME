@@ -1108,6 +1108,11 @@ else()
     include( kwiver-cmake-future )
     include( kwiver-utils )
 
+    # VIAME's own target helpers. P8-T08 is replacing `kwiver-utils` a group
+    # at a time; what has moved is included after it, so the new definitions
+    # win where both still exist.
+    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-targets.cmake" )
+
     # After the macros: `kwiver-utils` pulls in `kwiver-setup-python`, which
     # computes an output path of its own from KWIVER_BINARY_DIR.
     if( VIAME_ENABLE_PYTHON )
@@ -1148,6 +1153,7 @@ else()
     include( kwiver-configcheck )
 
     # set the name for our package exports and plugin directories
+    set( viame_export_name                            viame_exports )
     set( kwiver_export_name                           viame_exports )
 
     set( kwiver_plugin_subdir                         viame )
@@ -1233,15 +1239,15 @@ else()
       @ONLY
       )
 
-    kwiver_export_targets( "${VIAME_BINARY_DIR}/viame-config-targets.cmake" )
+    viame_export_targets( "${VIAME_BINARY_DIR}/viame-config-targets.cmake" )
 
-    kwiver_install(
+    install(
       FILES       "${VIAME_BINARY_DIR}/viame-config-install.cmake"
       DESTINATION "${viame_cmake_install_dir}"
       RENAME      viame-config.cmake
       )
 
-    kwiver_install(
+    install(
       EXPORT      ${kwiver_export_name}
       NAMESPACE   kwiver::
       DESTINATION "${viame_cmake_install_dir}"

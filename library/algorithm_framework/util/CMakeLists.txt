@@ -61,13 +61,13 @@ set( sources
 
 
 # install generated header
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_util_export.h
   SUBDIR   viame/algorithm_framework/util
   NOPATH
   )
 
-kwiver_add_library( vital_util
+viame_add_library( vital_util
   ${public_headers}
   ${private_headers}
   ${sources}

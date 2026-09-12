@@ -16,17 +16,17 @@ set( sources
   refine_detections_svm.cxx
   train_detector_svm.cxx )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame
   ${headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_svm_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_svm
+viame_add_library( viame_svm
   ${headers}
   ${sources}
   )
@@ -52,7 +52,7 @@ set_target_properties( viame_svm PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_svm
+viame_register_statically( viame_svm
   register_algorithms.cxx
   )
 
@@ -68,8 +68,8 @@ set( process_sources
   train_svm_models_process.cxx
 )
 
-kwiver_add_plugin( viame_processes_svm
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_svm
+  KIND        PROCESSES
   SOURCES          ${process_sources}
   PRIVATE          kwiver::vital
                    kwiver::vital_algo

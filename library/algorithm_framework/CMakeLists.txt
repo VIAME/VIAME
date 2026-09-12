@@ -56,7 +56,7 @@ set( vital_sources
 )
 
 # The imported tree already has the shape it should install with, so it is
-# installed as a tree. kwiver_install_headers turns an absolute path into a
+# installed as a tree. viame_install_headers turns an absolute path into a
 # relative one under the destination, which for these would put the whole
 # build machine's path under include/viame/.
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../core_types/"
@@ -75,7 +75,7 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/vital_config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/vital_config.h" )
 
-kwiver_add_library( vital
+viame_add_library( vital
   ${vital_core_types_headers}
   ${vital_framework_headers}
   ${vital_sources}

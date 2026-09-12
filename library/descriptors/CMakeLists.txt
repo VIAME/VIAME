@@ -16,17 +16,17 @@ set( plugin_sources
   handle_descriptor_request_core.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame/descriptors
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_descriptors_export.h
   NOPATH   SUBDIR     viame/descriptors
   )
 
-kwiver_add_library( viame_descriptors
+viame_add_library( viame_descriptors
   ${plugin_headers}
   ${plugin_sources}
   )
@@ -49,7 +49,7 @@ set_target_properties( viame_descriptors PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
-algorithms_create_plugin( viame_descriptors
+viame_register_statically( viame_descriptors
   register_algorithms.cxx
   )
 
@@ -72,8 +72,8 @@ set( process_sources
   perform_query_process.cxx
 )
 
-kwiver_add_plugin( viame_processes_descriptors
-  SUBDIR           ${viame_plugin_process_subdir}
+viame_add_plugin( viame_processes_descriptors
+  KIND        PROCESSES
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline

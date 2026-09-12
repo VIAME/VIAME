@@ -10,17 +10,17 @@ set( plugin_sources
   train_supervisor.cxx
   )
 
-kwiver_install_headers(
+viame_install_headers(
   SUBDIR     viame
   ${plugin_headers}
   )
 
-kwiver_install_headers(
+viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_claude_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_claude
+viame_add_library( viame_claude
   ${plugin_headers}
   ${plugin_sources}
   )
