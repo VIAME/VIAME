@@ -17,7 +17,6 @@
 // #include <python/kwiver/internal/python.h>
 #include <python/kwiver/internal/python_plugin_factory.h>
 
-#include <kwiversys/Encoding.hxx>
 #include <viame/algorithm_framework/util/file_system.h>
 #include <python/kwiver/vital/plugins/plugins_from_python_export.h>
 
@@ -161,14 +160,18 @@ GetLibraryPathForSymbolWin32( const void* fptr )
   VirtualQuery( fptr, &mbi, sizeof( mbi ) );
 
   wchar_t pathBuf[ _MAX_PATH ];
+
+  // `_MAX_PATH`, not `sizeof( pathBuf )`: the argument is a count of
+  // `wchar_t`, and passing the byte count told Windows the buffer was twice
+  // the size it is.
   if( !GetModuleFileNameW(
     static_cast< HMODULE >( mbi.AllocationBase ),
-    pathBuf, sizeof( pathBuf ) ) )
+    pathBuf, _MAX_PATH ) )
   {
     return std::string();
   }
 
-  return kwiversys::Encoding::ToNarrow( pathBuf );
+  return std::filesystem::path( pathBuf ).string();
 }
 
 #endif
@@ -214,10 +217,6 @@ get_python_home()
   return "";
 }
 
-// the argument of config.home needs to be in static storage based on Python
-// documentation.
-static std::wstring pythonHome;
-
 // ----------------------------------------------------------------------------
 // Helper function implementations
 bool
@@ -240,14 +239,27 @@ check_and_initialize_python_interpreter()
     LOG_DEBUG( log, "Initializing python interpreter" );
 
     const std::string home_path = get_python_home();
-    pythonHome = kwiversys::Encoding::ToWide( home_path );
 
     PyConfig config;
     PyStatus status;
     PyConfig_InitPythonConfig( &config );
-    if( !pythonHome.empty() )
+
+    if( !home_path.empty() )
     {
-      config.home = pythonHome.data();
+      // `PyConfig_SetBytesString` rather than converting to a wide string
+      // and pointing at it: it decodes with the interpreter's own filesystem
+      // encoding, and `PyConfig_Clear` frees what it allocated -- so the
+      // file-scope `std::wstring` that used to have to outlive the call is
+      // gone.
+      status = PyConfig_SetBytesString(
+        &config, &config.home, home_path.c_str() );
+
+      if( PyStatus_IsError( status ) )
+      {
+        PyConfig_Clear( &config );
+        LOG_ERROR( log, "Error setting the python home" );
+        return false;
+      }
     }
     // Set Python interpreter attribute: sys.argv = []
     // parameters are: (argc, argv)

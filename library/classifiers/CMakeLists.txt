@@ -44,7 +44,6 @@ target_link_libraries( viame_classifiers
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       kwiver::kwiversys
   )
 
 set_target_properties( viame_classifiers PROPERTIES
@@ -79,7 +78,6 @@ kwiver_add_plugin( viame_processes_classifiers
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiversys
                    kwiver::vital
                    kwiver::vital_vpm
                    kwiver::vital_logger

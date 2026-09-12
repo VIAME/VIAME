@@ -34,7 +34,6 @@ target_link_libraries( viame_claude
   PUBLIC               kwiver::vital
                        kwiver::vital_logger
                        kwiver::vital_util
-                       kwiver::kwiversys
                        viame_core
   )
 

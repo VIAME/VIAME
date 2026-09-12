@@ -31,7 +31,6 @@ kwiver_add_plugin( viame_processes_examples
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiversys
                    kwiver::vital
                    kwiver::vital_algo
                    kwiver::vital_vpm

@@ -43,7 +43,6 @@ target_link_libraries( viame_descriptors
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       kwiver::kwiversys
   )
 
 set_target_properties( viame_descriptors PROPERTIES
@@ -78,7 +77,6 @@ kwiver_add_plugin( viame_processes_descriptors
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiversys
                    kwiver::kwiver_adapter
                    kwiver::vital
                    kwiver::vital_vpm

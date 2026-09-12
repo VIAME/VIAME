@@ -4,7 +4,6 @@
 
 #include "python_script_applet.h"
 
-#include <kwiversys/Process.h>
 #include <viame/algorithm_framework/util/file_system.h>
 
 #include <viame/algorithm_framework/logger/logger.h>
@@ -13,6 +12,18 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+
+#if defined( _WIN32 ) || defined( _WIN64 )
+#include <windows.h>
+#else
+#include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#include <cerrno>
+
+extern char** environ;
+#endif
 
 namespace kv = kwiver::vital;
 
@@ -56,45 +67,107 @@ find_script( const std::string& name )
 
 // ----------------------------------------------------------------------------
 /// Run a command, sharing this process's streams, and return its exit code.
+///
+/// Sharing is the default on both platforms -- a spawned process inherits
+/// the parent's standard streams unless told otherwise -- which is what lets
+/// the script print straight through and stay interactive. kwiversys had to
+/// ask for it explicitly because its own default was to capture.
 int
 run_command( const std::vector< std::string >& args )
 {
-  std::vector< const char* > argv;
-  argv.reserve( args.size() + 1 );
-
-  for( const auto& arg : args )
-  {
-    argv.push_back( arg.c_str() );
-  }
-  argv.push_back( nullptr );
-
-  kwiversysProcess* process = kwiversysProcess_New();
-
-  if( !process )
+  if( args.empty() )
   {
     return EXIT_FAILURE;
   }
 
-  kwiversysProcess_SetCommand( process, argv.data() );
+#if defined( _WIN32 ) || defined( _WIN64 )
+  // Windows takes one command line rather than a vector, and quoting is the
+  // caller's problem: an argument containing a space has to arrive as one.
+  std::string command_line;
 
-  // Shared streams let the script print straight through and stay interactive
-  kwiversysProcess_SetPipeShared( process, kwiversysProcess_Pipe_STDIN, 1 );
-  kwiversysProcess_SetPipeShared( process, kwiversysProcess_Pipe_STDOUT, 1 );
-  kwiversysProcess_SetPipeShared( process, kwiversysProcess_Pipe_STDERR, 1 );
-
-  kwiversysProcess_Execute( process );
-  kwiversysProcess_WaitForExit( process, nullptr );
-
-  int result = EXIT_FAILURE;
-
-  if( kwiversysProcess_GetState( process ) == kwiversysProcess_State_Exited )
+  for( auto const& arg : args )
   {
-    result = kwiversysProcess_GetExitValue( process );
+    if( !command_line.empty() )
+    {
+      command_line.push_back( ' ' );
+    }
+
+    if( arg.find_first_of( " \t\"" ) == std::string::npos )
+    {
+      command_line += arg;
+      continue;
+    }
+
+    command_line.push_back( '"' );
+
+    for( char const c : arg )
+    {
+      if( c == '"' || c == '\\' )
+      {
+        command_line.push_back( '\\' );
+      }
+
+      command_line.push_back( c );
+    }
+
+    command_line.push_back( '"' );
   }
 
-  kwiversysProcess_Delete( process );
+  STARTUPINFOA startup{};
+  startup.cb = sizeof( startup );
 
-  return result;
+  PROCESS_INFORMATION process{};
+
+  if( !CreateProcessA(
+        nullptr, command_line.data(), nullptr, nullptr, TRUE, 0, nullptr,
+        nullptr, &startup, &process ) )
+  {
+    return EXIT_FAILURE;
+  }
+
+  WaitForSingleObject( process.hProcess, INFINITE );
+
+  DWORD code = static_cast< DWORD >( EXIT_FAILURE );
+  GetExitCodeProcess( process.hProcess, &code );
+
+  CloseHandle( process.hProcess );
+  CloseHandle( process.hThread );
+
+  return static_cast< int >( code );
+#else
+  std::vector< char* > argv;
+  argv.reserve( args.size() + 1 );
+
+  for( auto const& arg : args )
+  {
+    // `posix_spawnp` takes `char* const*` and does not write through it.
+    argv.push_back( const_cast< char* >( arg.c_str() ) );
+  }
+
+  argv.push_back( nullptr );
+
+  pid_t child = 0;
+
+  if( ::posix_spawnp(
+        &child, argv[ 0 ], nullptr, nullptr, argv.data(), environ ) != 0 )
+  {
+    return EXIT_FAILURE;
+  }
+
+  int status = 0;
+
+  while( ::waitpid( child, &status, 0 ) < 0 )
+  {
+    if( errno != EINTR )
+    {
+      return EXIT_FAILURE;
+    }
+  }
+
+  // A script killed by a signal did not exit with a code; report failure
+  // rather than inventing one.
+  return WIFEXITED( status ) ? WEXITSTATUS( status ) : EXIT_FAILURE;
+#endif
 }
 
 } // namespace

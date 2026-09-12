@@ -150,7 +150,6 @@ set( CORE_LINK_LIBRARIES
   kwiver::vital_exceptions
   kwiver::vital_logger
   kwiver::vital_util
-  kwiver::kwiversys
   viame_measurement
   # `windowed_utils` moved to `library/object_detectors` when darknet did:
   # `library/` cannot reach up into `plugins/`, and darknet's detector needs

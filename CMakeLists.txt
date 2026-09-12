@@ -1165,7 +1165,6 @@ else()
 
     ##
     # Build system hacks which should eventually be fixed better
-    include( windows-ksys-hack )
     include( linux-remove-duplicate-cvs )
 
     # Wants the macros and the plugin subdirectories above it, and everything

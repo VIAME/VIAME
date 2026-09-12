@@ -25,7 +25,6 @@ target_link_libraries( vital_applets
               vital_config
               vital_logger
               vital_vpm  # uses pluggable
-              kwiversys
   )
 
 ###

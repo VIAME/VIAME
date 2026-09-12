@@ -26,7 +26,6 @@ kwiver_add_plugin( sprokit_applets
   PRIVATE      vital
                vital_vpm
                vital_logger
-               kwiversys
                vital_applets
                sprokit_pipeline
                sprokit_pipeline_util

@@ -46,7 +46,6 @@ kwiver_install_headers(
 
 target_link_libraries(vital_vpm
   PUBLIC              vital_util
-                      kwiversys
   PRIVATE             vital_logger
                       vital_exceptions
                       ${VITAL_BOOST_REGEX}

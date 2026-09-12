@@ -53,7 +53,6 @@ target_link_libraries( viame_object_detectors
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       kwiver::kwiversys
                        viame_image_ops
                        # codecs/, for the debug frames the motion detector
                        # saves when a debug_dir is configured
@@ -114,7 +113,6 @@ if( VIAME_ENABLE_DARKNET )
                          viame_object_detectors
     PRIVATE              $<BUILD_INTERFACE:viame::darknet>
                          viame_image_ops
-                         kwiver::kwiversys
     )
 
   set_target_properties( viame_object_detectors_darknet PROPERTIES
@@ -146,7 +144,6 @@ kwiver_add_plugin( viame_processes_object_detectors
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiversys
                    kwiver::vital
                    kwiver::vital_vpm
                    kwiver::vital_logger

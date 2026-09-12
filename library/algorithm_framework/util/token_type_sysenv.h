@@ -9,15 +9,22 @@
 
 #include <viame/algorithm_framework/util/vital_util_export.h>
 
-#include <kwiversys/SystemInformation.hxx>
-
 namespace kwiver {
 
 namespace vital {
 
 // ----------------------------------------------------------------------------
-/// System attributes resolver.
+/// What `$SYSENV{...}` resolves to in a config or pipeline file.
 ///
+/// Eighteen names: the working directory, the host and its domain, the
+/// operating system's name, version, platform and family, the processor
+/// count, four memory figures in megabytes, the home directory and the
+/// process id.
+///
+/// This used to hold a `kwiversys::SystemInformation`, which is why the
+/// three checks it needed ran in the constructor. P8-T05 asks the operating
+/// system directly, at the moment the question is asked, so there is nothing
+/// to hold and nothing to run up front.
 class VITAL_UTIL_EXPORT token_type_sysenv
   : public token_type
 {
@@ -29,9 +36,6 @@ public:
   virtual bool lookup_entry(
     std::string const& name,
     std::string& result ) const;
-
-private:
-  kwiversys::SystemInformation m_sysinfo;
 }; // end class token_type_sysenv
 
 } // end namespace

@@ -45,7 +45,6 @@ target_link_libraries( viame_svm
   PUBLIC               kwiver::vital
                        kwiver::vital_algo
   PRIVATE              kwiver::vital_config
-                       kwiver::kwiversys
                        $<BUILD_INTERFACE:viame::libsvm>
   )
 

@@ -76,7 +76,7 @@ kwiver_add_library( vital_util
   )
 
 target_link_libraries( vital_util
-  PRIVATE         kwiversys
+  PRIVATE
                   vital_logger
   )
 

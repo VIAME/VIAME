@@ -19,7 +19,6 @@ if (KWIVER_ENABLE_TOOLS)
     SUBDIR           ${kwiver_plugin_module_subdir}
     SOURCES          ${modules_python_srcs}
     PRIVATE          vital_python_util
-                     kwiversys
                      vital_logger
                      vital_vpm
                      ${libraries_to_link}

@@ -59,7 +59,6 @@ target_link_libraries( viame_file_io
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       kwiver::kwiversys
   )
 
 set_target_properties( viame_file_io PROPERTIES
@@ -96,7 +95,6 @@ kwiver_add_plugin( viame_processes_file_io
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiversys
                    kwiver::vital
                    kwiver::vital_vpm
                    kwiver::vital_logger

@@ -12,5 +12,5 @@ kwiver_add_plugin(processes_clusters
   PUBLIC       vital_logger
   PRIVATE      sprokit_pipeline_util
                sprokit_pipeline
-               vital_vpm vital_util kwiversys
+               vital_vpm vital_util
   )

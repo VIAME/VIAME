@@ -82,7 +82,6 @@ target_link_libraries( viame_image_processing
                        viame_image_ops
                        # codecs/, for the detection chips ocv_write saves
                        viame_video_io
-                       kwiver::kwiversys
   )
 
 
@@ -180,7 +179,6 @@ kwiver_add_plugin( viame_processes_image_processing
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiversys
                    kwiver::vital
                    kwiver::vital_vpm
                    kwiver::vital_logger

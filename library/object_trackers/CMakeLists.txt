@@ -46,7 +46,6 @@ target_link_libraries( viame_object_trackers
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       kwiver::kwiversys
   )
 
 set_target_properties( viame_object_trackers PROPERTIES
@@ -83,7 +82,6 @@ kwiver_add_plugin( viame_processes_object_trackers
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiversys
                    kwiver::vital
                    kwiver::vital_vpm
                    kwiver::vital_logger

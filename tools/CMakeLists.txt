@@ -58,7 +58,6 @@ target_link_libraries( viame
                kwiver::vital_exceptions
                kwiver::vital_logger
                kwiver::vital_util
-               kwiver::kwiversys
                kwiver::vital_applets
                viame::registry
   )
@@ -84,7 +83,6 @@ target_link_libraries( kwiver
   PRIVATE      kwiver::vital
                kwiver::vital_vpm
                kwiver::vital_logger
-               kwiver::kwiversys
                kwiver::vital_applets
                viame::registry
   )
@@ -131,7 +129,6 @@ kwiver_add_plugin( viame_tools_applets
                kwiver::vital_logger
                kwiver::vital_algo
                kwiver::vital_util
-               kwiver::kwiversys
                kwiver::vital_applets
                kwiver::sprokit_pipeline
                kwiver::sprokit_pipeline_util

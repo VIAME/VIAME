@@ -12,73 +12,6 @@ project( vital )
 set(CMAKE_FOLDER "Vital")
 
 # ==============================================================================
-# KWSys
-#---------------------------------------------------------------------
-# Create the kwsys library for vital.
-set(KWSYS_NAMESPACE                kwiversys)
-set(KWSYS_USE_DynamicLoader        1)
-set(KWSYS_USE_SystemTools          1)
-set(KWSYS_USE_System               1)
-set(KWSYS_USE_RegularExpression    1)
-set(KWSYS_USE_SystemInformation    1)
-set(KWSYS_USE_Directory            1)
-set(KWSYS_USE_CommandLineArguments 1)
-set(KWSYS_USE_MD5 1)
-
-set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
-set(KWSYS_INSTALL_INCLUDE_DIR  "include")
-set(KWSYS_INSTALL_LIB_DIR      lib)
-set(KWSYS_INCLUDE_DIR          ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
-set(KWSYS_INSTALL_BIN_DIR      bin)
-
-# Save our custom CXX flags and reset so we pass no special flags to kwiversys.
-# Our flags are more strict than expected and causes many warnings and errors.
-set( save_flags  ${CMAKE_CXX_FLAGS} )
-set( CMAKE_CXX_FLAGS )
-
-include_directories( SYSTEM ${KWSYS_INCLUDE_DIR}/kwiversys )
-
-# The sources are VIAME's now: P5-T05 moved them to `third_party/kwiversys`,
-# where lite-library-layout.md's target tree has them, and there is one copy
-# again. The binary directory is unchanged, so KWSYS_INCLUDE_DIR above still
-# names the generated headers.
-add_subdirectory( "${VIAME_LITE_ROOT_DIR}/third_party/kwiversys" kwiversys )
-_kwiver_export( ${KWSYS_NAMESPACE} )
-get_target_property(kwsys_target_type "${KWSYS_NAMESPACE}" TYPE)
-if (kwsys_target_type STREQUAL "STATIC_LIBRARY")
-  _kwiver_compile_pic("${KWSYS_NAMESPACE}")
-endif()
-set_property(GLOBAL APPEND PROPERTY kwiver_libraries kwiversys)
-
-# force install to standard library directory
-# Note that some of the following duplicates what is in kwiver_add_library()
-set_target_properties( ${KWSYS_NAMESPACE}
-  PROPERTIES
-  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-  # KWSYS generates its headers into its own binary directory, under a
-  # `kwiversys/` namespace subdirectory; this is the root they are reached
-  # through, and it is what KWSYS_INCLUDE_DIR above names as well.
-  INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/kwiversys>$<INSTALL_INTERFACE:include>"
-  )
-
-  if (APPLE)
-  set_target_properties( ${KWSYS_NAMESPACE}
-    PROPERTIES
-    MACOSX_RPATH          TRUE)
-else()
-  set_target_properties( ${KWSYS_NAMESPACE}
-    PROPERTIES
-        VERSION          ${KWIVER_VERSION}
-        SOVERSION        ${KWIVER_VERSION}
-        )
-endif()
-
-# restore old CXX flags for our code.
-set( CMAKE_CXX_FLAGS ${save_flags} )
-
-# ==============================================================================
 # Other VITAL-specific setup and flags
 
 # ==============================================================================
@@ -160,7 +93,7 @@ viame_lite_generated( vital_config.h  algorithm_framework )
 add_dependencies (vital kwiver_configure)
 
 target_link_libraries( vital
-  PRIVATE         kwiversys
+  PRIVATE
   PUBLIC          vital_config
                   vital_exceptions
                   vital_logger
@@ -213,7 +146,7 @@ add_subdirectory( applets )
 # arrows and sprokit, and VIAME, which consumes them through the export set.
 foreach( _viame_lite_target
     vital vital_types vital_config vital_logger vital_exceptions
-    vital_util vital_vpm vital_algo vital_applets kwiversys )
+    vital_util vital_vpm vital_algo vital_applets )
 
   if( TARGET ${_viame_lite_target} )
     # The namespaced name VIAME's CMakeLists use. It came from kwiver's

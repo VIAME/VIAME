@@ -120,7 +120,7 @@ kwiver_add_library( vital_algo SHARED
   )
 
 target_link_libraries( vital_algo
-  PRIVATE         kwiversys
+  PRIVATE
                   vital_util
   PUBLIC          vital
                   vital_config

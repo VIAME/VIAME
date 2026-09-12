@@ -36,7 +36,6 @@ target_link_libraries( kwiver_adapter
                    vital_logger
   PRIVATE          sprokit_pipeline
                    sprokit_pipeline_util
-                   kwiversys
   )
 
 add_library( kwiver::kwiver_adapter ALIAS kwiver_adapter )

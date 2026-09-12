@@ -61,7 +61,6 @@ target_link_libraries( viame_opencv
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       kwiver::kwiversys
                        viame_core
                        viame_measurement
                        # the in-house kernels the ported filters run on

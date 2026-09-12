@@ -51,7 +51,7 @@ add_dependencies (vital_config kwiver_configure)
 
 target_link_libraries( vital_config
   PUBLIC               vital_exceptions
-  PRIVATE              kwiversys
+  PRIVATE
                        vital_logger
                        vital_util
                        vital_vpm  # uses pluggable

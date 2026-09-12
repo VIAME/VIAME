@@ -66,7 +66,6 @@ target_link_libraries( viame_video_io
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       kwiver::kwiversys
                        viame_image_ops
   )
 
@@ -109,7 +108,6 @@ kwiver_add_plugin( viame_processes_video_io
   SOURCES          ${process_sources}
                    ${process_headers}
   PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiversys
                    kwiver::vital
                    kwiver::vital_vpm
                    kwiver::vital_logger

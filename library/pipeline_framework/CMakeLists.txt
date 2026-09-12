@@ -115,7 +115,7 @@ target_link_libraries( sprokit_pipeline
                       vital_logger
   PRIVATE             ${CMAKE_DL_LIBS}
                       ${CMAKE_THREAD_LIBS_INIT}
-                      vital_vpm kwiversys
+                      vital_vpm
   )
 
 if( APPLE AND KWIVER_ENABLE_PYTHON )
@@ -190,7 +190,6 @@ target_link_libraries( sprokit_pipeline_util
               vital_util
               vital_exceptions
               ${CMAKE_THREAD_LIBS_INIT}
-              kwiversys
  )
 
 viame_lite_generated( sprokit_pipeline_util_export.h pipeline_framework )
