@@ -410,6 +410,185 @@ def is_cuda_available():
     return torch.cuda.is_available()
 
 
+def ddp_available():
+    """Whether this PyTorch build can run distributed (DDP) training at all.
+
+    Multi-GPU goes through PyTorch-Lightning's DDP strategy, which is built on
+    ``torch.distributed``. The official Windows wheels -- and VIAME's own
+    Windows build -- are compiled with ``USE_DISTRIBUTED=0``, so
+    ``torch.distributed`` is a stub there: it exposes ``is_available()`` and
+    nothing else, and every collective raises. Callers use this to fall back to
+    a single-process run instead of launching ranks that cannot talk.
+    """
+    try:
+        import torch.distributed as dist
+    except Exception:
+        return False
+
+    try:
+        return bool(dist.is_available())
+    except Exception:
+        return False
+
+
+def _is_usable_interpreter(path):
+    r"""Reject the Microsoft Store app-execution aliases.
+
+    ``%LOCALAPPDATA%\Microsoft\WindowsApps`` holds zero-length reparse points
+    named python.exe / python3.exe that are on PATH by default on Windows.
+    ``shutil.which`` happily returns one, but executing it opens the Store
+    instead of running Python, so a subprocess launched through it never starts.
+    """
+    if not path:
+        return False
+    if sys.platform == "win32":
+        norm = os.path.normcase(os.path.abspath(path))
+        if os.path.join("microsoft", "windowsapps") in norm:
+            return False
+        try:
+            if os.path.getsize(path) == 0:
+                return False
+        except OSError:
+            return False
+    return True
+
+
+def ensure_spawn_executable():
+    """Point multiprocessing's spawn at a real interpreter. Returns whether
+    worker subprocesses can be started at all.
+
+    Windows has no fork, so every DataLoader worker is a spawn: Python
+    re-executes ``sys.executable`` and replays a pickled copy of the work. Under
+    the embedded VIAME interpreter that is ``viame.exe``, which does not take
+    Python's command line, so the worker never starts and both trainers used to
+    hard-force ``num_workers=0``. Redirecting spawn at the interpreter the
+    install ships fixes the re-exec.
+
+    Safe to call repeatedly, and a no-op where ``sys.executable`` is already a
+    Python binary (a plain subprocess, or any Linux run).
+    """
+    import multiprocessing
+
+    if os.path.basename(sys.executable or "").lower().startswith("python"):
+        return True
+
+    python = find_python_interpreter()
+    if not python:
+        return False
+
+    try:
+        multiprocessing.set_executable(python)
+    except Exception:
+        return False
+
+    return True
+
+
+# Opt-in for DataLoader workers on Windows. See spawn_safe_worker_count.
+WINDOWS_WORKERS_ENV = "VIAME_WINDOWS_DATALOADER_WORKERS"
+
+
+def spawn_safe_worker_count(requested, num_channels=3, reason_prefix=""):
+    """Worker count that will actually start, given this platform and data.
+
+    Off Windows the request stands.
+
+    On Windows it is 0 unless explicitly opted into, because worker processes
+    there do not merely fail to start -- they hang. Every Windows worker is a
+    spawn, which re-executes the interpreter and replays a pickled copy of the
+    work. ensure_spawn_executable() fixes the re-exec under viame.exe, and
+    workers then do start, but training deadlocks inside
+    PyTorch-Lightning's sanity check with the parent blocked in
+    multiprocessing.reduction.dump -- writing a worker's payload to a pipe
+    nobody drains -- while the GPU sits idle. At small scale, where it does
+    complete, spawn startup costs more than the loading it saves (measured:
+    115 s with four workers against 93 s with none, over 361 images).
+
+    Set VIAME_WINDOWS_DATALOADER_WORKERS=1 to try anyway.
+
+    Multi-channel runs stay at 0 even then. rfdetr builds its multi-channel
+    augmentation around ChannelSubset, a class defined inside
+    ``rfdetr.datasets.transforms._channel_subset_cls``, so it is a local class
+    that pickle cannot reference by name. It reaches the workers embedded in
+    the dataset's albumentations Compose, so a >3-channel spawn dies with
+
+        PicklingError: Can't pickle local object
+          <class '..._channel_subset_cls.<locals>.ChannelSubset'>
+    """
+    requested = max(0, int(requested))
+
+    if requested == 0 or sys.platform != "win32":
+        return requested
+
+    if os.environ.get(WINDOWS_WORKERS_ENV, "").strip() not in ("1", "true",
+                                                               "True"):
+        print(f"{reason_prefix}num_workers forced to 0: Windows DataLoader "
+              "workers deadlock under the embedded interpreter. Set "
+              f"{WINDOWS_WORKERS_ENV}=1 to override.", flush=True)
+        return 0
+
+    if int(num_channels) > 3:
+        print(f"{reason_prefix}num_workers forced to 0: Windows spawn has to "
+              f"pickle the dataset, and rfdetr's {int(num_channels)}-channel "
+              "augmentation carries a locally-defined ChannelSubset transform "
+              "that pickle cannot name.", flush=True)
+        return 0
+
+    if not ensure_spawn_executable():
+        print(f"{reason_prefix}num_workers forced to 0: no standalone Python "
+              "interpreter was found for Windows spawn to re-execute.",
+              flush=True)
+        return 0
+
+    print(f"{reason_prefix}num_workers = {requested} on Windows via "
+          f"{WINDOWS_WORKERS_ENV}; this is known to hang.", flush=True)
+    return requested
+
+
+def find_python_interpreter():
+    """Path to a standalone interpreter matching the one running this code.
+
+    Trainers that cannot launch a subprocess from the embedded VIAME
+    interpreter (DDP, mmdet) re-invoke Python as a plain child process, which
+    needs a real executable. ``sys.executable`` is ``viame.exe`` under the
+    embedded interpreter and ``kwiver.exe`` under a pipeline, so it is only
+    usable when it actually names a python binary.
+
+    The install's own interpreter is checked before PATH: VIAME ships one
+    beside its libraries (``bin/python.exe`` on Windows, ``bin/python3.X`` on
+    Linux), and only that one resolves VIAME's version-specific extension
+    modules. A bare "python" from PATH can be an unrelated interpreter -- a
+    base conda env, or a Store alias that is not an interpreter at all.
+
+    Returns None when nothing usable is found.
+    """
+    py_ver = "python{}.{}".format(*sys.version_info[:2])
+    candidates = []
+
+    # The interpreter shipped with this install, found from where this process
+    # loaded its standard library rather than from PATH.
+    for prefix in (sys.prefix, sys.base_prefix, sys.exec_prefix):
+        if not prefix:
+            continue
+        for rel in (("python.exe",), ("bin", "python.exe"),
+                    ("bin", py_ver), ("bin", "python3"), ("bin", "python")):
+            candidates.append(os.path.join(prefix, *rel))
+
+    if os.path.basename(sys.executable or "").lower().startswith("python"):
+        candidates.append(sys.executable)
+
+    for name in (py_ver, "python3", "python"):
+        candidates.append(shutil.which(name))
+
+    for candidate in candidates:
+        if not candidate or not os.path.isfile(candidate):
+            continue
+        if _is_usable_interpreter(candidate):
+            return candidate
+
+    return None
+
+
 # =============================================================================
 # Configuration Utilities
 # =============================================================================

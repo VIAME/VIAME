@@ -7,7 +7,6 @@ import json
 import math
 import os
 import sys
-import shutil
 import subprocess
 
 from kwiver.vital.algo import TrainDetector
@@ -29,6 +28,9 @@ from viame.pytorch.utilities import (
     ensure_rfdetr_compatibility,
     apply_rfdetr_stem_lr,
     rfdetr_resume_lr_callback,
+    ddp_available,
+    find_python_interpreter,
+    spawn_safe_worker_count,
 )
 
 
@@ -1342,7 +1344,7 @@ class RFDETRTrainer(TrainDetector):
         requested = str(self._devices).strip().lower()
         if requested not in ('auto', ''):
             try:
-                return max(0, int(requested))
+                return self._cap_to_ddp_support(max(0, int(requested)))
             except ValueError:
                 pass
         if str(device).startswith('cpu'):
@@ -1351,9 +1353,27 @@ class RFDETRTrainer(TrainDetector):
             return 1
         try:
             import torch
-            return torch.cuda.device_count()
+            count = torch.cuda.device_count()
         except Exception:
             return 1
+
+        return self._cap_to_ddp_support(count)
+
+    @staticmethod
+    def _cap_to_ddp_support(count):
+        """Hold a multi-GPU request to one GPU when DDP cannot run.
+
+        Multi-GPU means DDP, and DDP means torch.distributed. VIAME's Windows
+        PyTorch is built with USE_DISTRIBUTED=0, so every rank would die on its
+        first collective. One GPU trains; two would not train at all.
+        """
+        if count > 1 and not ddp_available():
+            print(f"[RFDETRTrainer] {count} GPUs requested, but this PyTorch "
+                  "build has no torch.distributed (USE_DISTRIBUTED=0), so DDP "
+                  "cannot run. Training on one GPU.", flush=True)
+            return 1
+
+        return count
 
     def _resolve_strategy(self, n_gpus):
         strat = str(self._strategy).strip().lower()
@@ -1417,11 +1437,15 @@ class RFDETRTrainer(TrainDetector):
         return total
 
     def _dataloader_kwargs(self):
-        """Accuracy-neutral DataLoader tuning passed to model.train(). On
-        Windows, worker subprocesses fail (spawn re-invokes viame.exe), so force
-        0 workers there. persistent_workers/prefetch_factor only apply when
-        num_workers > 0."""
-        num_workers = 0 if sys.platform == "win32" else int(self._num_workers)
+        """Accuracy-neutral DataLoader tuning passed to model.train().
+
+        persistent_workers/prefetch_factor only apply when num_workers > 0, and
+        Windows can only keep workers for 3-channel runs -- see
+        spawn_safe_worker_count().
+        """
+        num_workers = spawn_safe_worker_count(
+            self._num_workers, num_channels=self._num_channels,
+            reason_prefix="[RFDETRTrainer] ")
         kw = dict(num_workers=num_workers, pin_memory=parse_bool(self._pin_memory))
         if num_workers > 0:
             kw["persistent_workers"] = parse_bool(self._persistent_workers)
@@ -1506,17 +1530,19 @@ class RFDETRTrainer(TrainDetector):
         with open(params_path, 'w') as f:
             json.dump(params, f)
 
-        # Pick an interpreter matching this one's version so VIAME's
-        # version-specific extension modules (torch/torchvision/rfdetr) import
-        # in the subprocess. A bare "python" on PATH can resolve to an unrelated
-        # interpreter (e.g. a base conda env) that lacks the VIAME packages.
-        py_ver = f"python{sys.version_info.major}.{sys.version_info.minor}"
-        python = (shutil.which(py_ver)
-                  or (sys.executable
-                      if os.path.basename(sys.executable or "").startswith("python")
-                      else None)
-                  or shutil.which("python3")
-                  or shutil.which("python"))
+        # This install's own interpreter, so VIAME's version-specific extension
+        # modules (torch/torchvision/rfdetr) import in the subprocess. Anything
+        # found on PATH instead can be an unrelated interpreter -- a base conda
+        # env, or on Windows a Microsoft Store alias that is not one at all.
+        python = find_python_interpreter()
+
+        if not python:
+            raise RuntimeError(
+                "Multi-GPU RF-DETR training needs a standalone Python "
+                "interpreter to launch the DDP ranks, and none was found "
+                "beside this install or on PATH. Pin a single GPU with "
+                "trainer:rf_detr:device = cuda:0 to train in-process instead.")
+
         impl = os.path.join(os.path.dirname(__file__), "rf_detr_launcher.py")
 
         # The embedded VIAME interpreter resolves its packages via sys.path
