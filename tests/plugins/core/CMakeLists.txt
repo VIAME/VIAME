@@ -37,6 +37,11 @@ kwiver_discover_gtests( viame_core convert_polygons_to_mask
 kwiver_discover_gtests( viame_core utilities_training
   LIBRARIES ${test_libraries} )
 
+# The stereo rig JSON, recorded before P8-T06 replaces cereal. The reader has
+# a golden case as well; this holds the writer, which nothing else does.
+kwiver_discover_gtests( viame_core camera_rig_json
+  LIBRARIES ${test_libraries} )
+
 # The CSV writers' mask-to-polygon conversion, recorded before P7-T07 ported
 # it off `cv::findContours` and `cv::approxPolyDP`.
 kwiver_discover_gtests( viame_core mask_polygon_csv
