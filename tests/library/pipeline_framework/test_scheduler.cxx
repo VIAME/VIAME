@@ -148,6 +148,80 @@ TEST ( scheduler, the_range_excludes_its_end )
 // was made.
 
 // ----------------------------------------------------------------------------
+// Port frequency, recorded before P8-T07 removes it.
+//
+// A port may declare that it produces or consumes more than one datum per
+// step. `pipeline::check_port_frequencies` solves the whole graph for a
+// consistent set of rates, hands each process a core frequency, and the
+// process turns that into the stamp increment its output edges advance by.
+// Getting it wrong does not fail to compile and does not throw: it drops or
+// duplicates data, which looks like a bad pipeline rather than a bad
+// framework.
+//
+// **Nothing in VIAME uses it.** The only two processes that call
+// `set_output_port_frequency` or `set_input_port_frequency` are `duplicate`
+// and `skip`, which are examples demonstrating the feature, and no shipped
+// `.pipe` names either. That is the argument for removing it -- and the
+// reason it needs a test first, because the 292 pipelines that do run are
+// all 1:1 and would not notice the machinery going wrong.
+TEST ( scheduler, a_port_may_produce_more_than_one_datum_per_step )
+{
+  scratch_output output( "scheduler_duplicate.txt" );
+
+  std::ostringstream text;
+  text << "process source\n"
+       << "  :: numbers\n"
+       << "  :start 0\n"
+       << "  :end   3\n"
+       << "process dup\n"
+       << "  :: duplicate\n"
+       << "  :copies 2\n"
+       << "process sink\n"
+       << "  :: print_number\n"
+       << "  :output " << output.path() << "\n"
+       << "connect from source.number\n"
+       << "        to   dup.input\n"
+       << "connect from dup.duplicate\n"
+       << "        to   sink.number\n";
+
+  std::istringstream input( text.str() );
+  sprokit::pipe_parser parser;
+  auto const pipeline = sprokit::bake_pipe_blocks(
+    parser.parse_pipeline( input, "duplicate.pipe" ) );
+  pipeline->setup_pipeline();
+
+  auto const scheduler = sprokit::create_scheduler(
+    "thread_per_process", pipeline, kv::config_block::empty_config() );
+  ASSERT_TRUE( scheduler != nullptr );
+  scheduler->start();
+  scheduler->wait();
+
+  // `copies 2` means the port frequency is 1 + 2 = 3, so each of the three
+  // input numbers reaches the sink three times, in a row.
+  EXPECT_EQ( ( std::vector< std::string >{ "0", "0", "0",
+                                           "1", "1", "1",
+                                           "2", "2", "2" } ),
+             output.lines() );
+}
+
+// ----------------------------------------------------------------------------
+// The other direction -- a port that *consumes* several data per step -- has
+// no test here, because the only process that declares one **deadlocks**.
+//
+// `skip_process` declares `set_input_port_frequency( input, 1 + skip )` and
+// its `_step` then grabs `skip` data, one fewer than it said it would. The
+// stamp bookkeeping expects the declared rate, so a pipeline containing it
+// stops: no error, no output, just a scheduler that never returns. It is the
+// only `skip` there is and no shipped `.pipe` names it, so nothing has ever
+// run it.
+//
+// Left as it is. P8-T07 is removing port frequency, and a one-character fix
+// to an example of the feature being removed would be work spent in the
+// wrong direction; what matters is that the deadlock is written down, in the
+// `removed.json` entry and in open question 2.13, rather than being
+// rediscovered by whoever next wonders what `skip` was for.
+
+// ----------------------------------------------------------------------------
 int
 main( int argc, char** argv )
 {

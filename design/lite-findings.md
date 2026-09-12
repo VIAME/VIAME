@@ -1295,6 +1295,31 @@ same bugs, and cannot tell "nobody needs this" from "nobody can use this".
 
 ## 2. Open questions
 
+### 2.13 `skip_process` deadlocks, and has since it was written
+
+`library/examples/processes/examples/skip_process.cxx` declares
+
+    set_input_port_frequency( priv::port_input, 1 + d->skip );
+
+and its `_step` then grabs `d->skip` data -- one fewer than it said it would.
+The stamp bookkeeping advances by the declared rate, so a pipeline containing
+it does not error, does not warn and does not finish: the scheduler simply
+never returns. Found by writing a port-frequency test for P8-T07 and watching
+it hang.
+
+It is the only implementation of `skip` there is, no shipped `.pipe` names
+it, and nothing has ever run it -- which is why a process that cannot
+complete a single pipeline has sat in the tree registered and advertised.
+
+Not fixed. P8-T07 removes port frequency, and `skip` is an example of the
+feature being removed, so the one-character fix would be work in the wrong
+direction. The question it leaves is the general one: **`registry.json` lists
+140 processes and says nothing about whether any of them runs.** The
+compatibility baseline is a contract about names, ports and defaults, which
+is what it was built for; `skip` passes it perfectly. Somewhere between that
+and the 292-pipeline `pipes.json` there is a gap exactly the size of "a
+registered process that has never been stepped", and this is one.
+
 ### 2.12 Four python test trees that have never run
 
 `KWIVER_ENABLE_PYTHON_TESTS` gates `python/kwiver/vital/tests`,
