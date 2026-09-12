@@ -1777,12 +1777,28 @@ class CoreMixin(object):
             snapshot = torch.load(snap_fpath, map_location='cpu',
                                   weights_only=False)
 
+            # Snapshots are taken of the mounted model, so every key carries
+            # the wrapper's "module." prefix. Store a plain state dict.
+            weights = snapshot['model_state_dict']
+            if all(k.startswith('module.') for k in weights):
+                weights = {k[len('module.'):]: v for k, v in weights.items()}
+
+            # Drop the pretrained-backbone pointer. It exists to initialize a
+            # fresh network for training; rebuilding for inference would fetch
+            # and load those weights only for load_state_dict to overwrite them
+            # immediately, which costs time and a network round trip on a
+            # machine that should need neither.
+            initkw = dict(initkw)
+            for key in ('weight_path', 'weight_dir'):
+                if key in initkw:
+                    initkw[key] = None
+
             # Keep only what rebuilding needs. The optimizer, monitor and
             # scheduler state in a training snapshot is dead weight for
             # inference and made these files several times larger than the
             # weights they carry.
             recipe = {
-                'model_state_dict': snapshot['model_state_dict'],
+                'model_state_dict': weights,
                 'epoch': snapshot.get('epoch'),
                 '__netharn_recipe__': {
                     'model_class': '{}:{}'.format(model_class.__module__,
@@ -1790,6 +1806,12 @@ class CoreMixin(object):
                     'initkw': initkw,
                 },
             }
+
+            # DetectPredictor reads the deploy's train_info for the
+            # "native" config values (input_dims, window_dims, channels), so
+            # the recipe has to carry it or inference fails after the weights
+            # have loaded perfectly well.
+            recipe['train_info'] = harn.train_info
 
             deploy_fpath = join(harn.train_dpath, 'deploy.pt')
             torch.save(recipe, deploy_fpath)
