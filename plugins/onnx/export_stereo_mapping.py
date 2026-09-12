@@ -43,7 +43,29 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import torch
+# torch is imported in `main`, not here.
+#
+# This file is a command line tool -- it exports ONNX models and registers
+# nothing -- but it sits in a package that kwiver's plugin loader scans, and
+# that scanner imports **every** module it finds, plugin or not. A
+# module-level `import torch` therefore cost 1.5 seconds on every plugin
+# load in the whole of VIAME, to no purpose: every use of torch below is
+# inside a function.
+#
+# The measurement and the rest of what the scan costs are in
+# `design/lite-findings.md`.
+torch = None
+
+
+def _load_torch():
+    """Import torch once, on first use."""
+    global torch
+
+    if torch is None:
+        import torch as _torch
+        torch = _torch
+
+    return torch
 
 INPUT_NAMES_GRAY = ["left_gray", "right_gray"]
 INPUT_NAMES_RGB = ["left_rgb", "right_rgb"]
@@ -265,6 +287,8 @@ def _check(model, inputs, sess, input_names, output_names, tag, strict_geometry)
 
 
 def main():
+    _load_torch()
+
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", required=True,

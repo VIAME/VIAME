@@ -738,6 +738,35 @@ an artefact of the port:
   This is what fletch's CPython avoids by building the whole of CPython a
   **second** time, statically -- a full extra compile to solve what
   `LDFLAGS=-Wl,-rpath,<prefix>/lib` solves.
+* **Where the two seconds of plugin loading actually go**, measured before
+  starting P8-T03 because the plan's reasoning about it is a decade old.
+  Loading every plugin costs **3.8 s**. Almost none of it is what the task
+  text supposes.
+  * The C++ side -- seventeen `dlopen`s and their registrations -- is about a
+    second, and `viame help` already costs **0.03 s** because applet dispatch
+    is lazy.
+  * **2.0 s is python, and not the registration design.** kwiver's
+    `loaders.py::_findPluginModules` walks the plugin packages and imports
+    **every module it finds**, plugin or not: 134 of them. Four cost 1.9 s
+    between them and all four pull in torch.
+  * The worst, at 1.22 s, is `viame.onnx.epipolar_dino_matcher` -- a genuine
+    algorithm whose `_DinoFeatures` derives from `nn.Module`, so torch is
+    needed to define the class, not merely to run it. **No amount of tidying
+    imports fixes that**: only registering by name and importing on first
+    `create()` does, which is exactly the manifest P8-T03 describes.
+  * `viame.onnx.export_stereo_mapping` was 1.5 s of the same and is **not a
+    plugin at all** -- a command line tool that exports ONNX models and
+    registers nothing, whose every use of torch is inside a function. It was
+    imported on every plugin load in the whole of VIAME because it happens to
+    live in a scanned package. Its import is deferred now.
+  * `SPROKIT_PYTHON_MODULES` names two packages that do not exist,
+    `kwiver.sprokit.processes.pytorch` and `kwiver.arrows.python`. Harmless,
+    and a sign the list is maintained by hand and not checked.
+  So the order the task text puts its three parts in is the reverse of their
+  value. Lazy python registration is the whole of the runtime win; folding
+  the `viame_<name>` libraries into one is structural tidiness worth about a
+  second between them; and the startup regression the plan was written
+  against -- fifteen seconds -- is long gone.
 * **Finding 1.9 again, and it distorts a dependency count.** The install had
   `libviame_cppdb.so` and `libviame_darknet.so` in it long after both were
   deleted from the tree, because installing does not delete. Reading the
