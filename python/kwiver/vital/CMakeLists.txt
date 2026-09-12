@@ -13,7 +13,8 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
 
 add_subdirectory( util )
 add_subdirectory( modules )
-add_subdirectory( algo )
+# `algo` moved to `library/algorithm_framework/algo` in P8-T02, and the
+# castxml generator that wrote its bindings was deleted with it.
 add_subdirectory( applets )
 add_subdirectory( exceptions )
 

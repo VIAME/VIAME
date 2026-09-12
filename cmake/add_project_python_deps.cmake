@@ -47,10 +47,10 @@ if( VIAME_ENABLE_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
 endif()
 
-# For KWIVER v2.0
-if( VIAME_ENABLE_KWIVER )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "pygccxml" "castxml" )
-endif()
+# `pygccxml` and `castxml` stood here, for the generator that wrote the
+# `kwiver.vital.algo` bindings by parsing every interface header at configure
+# time. P8-T02 committed its output as source and deleted it, so neither is
+# a dependency of anything any more.
 
 # For scoring and plotting
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver" )

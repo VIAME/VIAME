@@ -240,7 +240,8 @@ message( STATUS "${PYTHON_CONFIG_STATUS}" )
 # Checking for required python packages to support building (and testing)
 # python components.
 #
-_ensure_pypackage_exists("pygccxml")
+# `pygccxml` was required here, for the generator that wrote the
+# `kwiver.vital.algo` bindings. P8-T02 deleted it.
 if (KWIVER_ENABLE_TESTS)
   _ensure_pypackage_exists("pytest")
 endif()

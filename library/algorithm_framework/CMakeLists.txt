@@ -252,3 +252,13 @@ endforeach()
 add_subdirectory( config_plugins )
 add_subdirectory( applets_plugins )
 add_subdirectory( test_interface )
+
+###
+# Python bindings for the algorithm interfaces
+#
+# `kwiver.vital.algo`, moved here from `python/kwiver/vital/algo` by P8-T02
+# along with the deletion of the castxml generator that used to write them.
+##
+if( VIAME_ENABLE_PYTHON )
+  include( "${CMAKE_CURRENT_SOURCE_DIR}/algo/python.cmake" )
+endif()

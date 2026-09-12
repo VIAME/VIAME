@@ -27,16 +27,11 @@ include_cmake_preset(build_cmake_desktop.cmake)
 add_option("CUDA_NVCC_EXECUTABLE:PATH" "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe")
 add_option("CUDNN_ROOT_DIR:PATH" "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8")
 
-# castxml's bundled clang cannot read the VS 2026 standard library, so have it
-# emulate the VS 2019 toolset already on this machine for CUDA
-set( VIAME_CASTXML_MSVC
-  "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe" )
-if( EXISTS "${VIAME_CASTXML_MSVC}" )
-  add_option("KWIVER_PYBIND11_CASTXML_COMPILER:FILEPATH" "${VIAME_CASTXML_MSVC}")
-else()
-  message( WARNING "No VS 2019 toolset for castxml; "
-    "the KWIVER pybind11 wrapper generation will likely fail" )
-endif()
+# The castxml toolset selection stood here: its bundled clang 13 could not
+# read the VS 2026 standard library, so it had to be pointed at a VS 2019
+# `cl.exe` to emulate. P8-T02 deleted the generator, and with it the reason
+# a Windows build needed a second compiler installed to produce python
+# bindings.
 
 # Windows-specific build paths
 add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl1")

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Record the python API `kwiver.vital.types` presents.
+"""Record the python API `kwiver.vital.types` and `kwiver.vital.algo` present.
 
-P8-T01 replaces the bindings copied from kwiver with hand-written ones in
-`library/core_types`, keeping the module name. That is a rewrite of a surface
-that a great deal of python leans on -- every python algorithm, every python
-sprokit process, the golden runner itself -- and none of it is type checked
-until it runs.
+P8-T01 moves the type bindings out of `python/kwiver/vital/types` and into
+`library/core_types`; P8-T02 does the same for the algorithm bindings and
+deletes the castxml generator that produced them. Both are rewrites of a
+surface that a great deal of python leans on -- every python algorithm, every
+python sprokit process, the golden runner itself -- and none of it is type
+checked until it runs.
 
 So the surface is written down first. For every exported class: its name, its
 methods and properties, and for each method whether it is a method or a
@@ -67,23 +68,31 @@ def describe_class(cls):
     }
 
 
-def record():
-    import kwiver.vital.types as types
-
+def describe_module(module):
     classes = {}
     values = {}
 
-    for name in sorted(dir(types)):
+    for name in sorted(dir(module)):
         if name.startswith("_"):
             continue
 
-        member = getattr(types, name)
+        member = getattr(module, name)
 
         if inspect.isclass(member):
             classes[name] = describe_class(member)
         elif isinstance(member, (int, float, str, bool)):
             # module level constants, of which the metadata tags are many
             values[name] = member
+
+    return classes, values
+
+
+def record():
+    import kwiver.vital.types as types
+    import kwiver.vital.algo as algo
+
+    classes, values = describe_module(types)
+    algo_classes, algo_values = describe_module(algo)
 
     return {
         "recorded": datetime.datetime.now(datetime.timezone.utc)
@@ -94,6 +103,8 @@ def record():
         "python": "{}.{}".format(*sys.version_info[:2]),
         "classes": classes,
         "values": values,
+        "algo_classes": algo_classes,
+        "algo_values": algo_values,
     }
 
 
@@ -113,8 +124,8 @@ def main():
         json.dump(payload, handle, indent=1, sort_keys=True)
         handle.write("\n")
 
-    print("recorded {} classes and {} constants into {}".format(
-        len(payload["classes"]), len(payload["values"]), TARGET))
+    print("recorded {} type classes, {} algo classes into {}".format(
+        len(payload["classes"]), len(payload["algo_classes"]), TARGET))
     return 0
 
 

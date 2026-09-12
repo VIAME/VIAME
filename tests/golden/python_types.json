@@ -1,4 +1,1098 @@
 {
+ "algo_classes": {
+  "AlgorithmCapabilities": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "capability",
+    "capability_list",
+    "has_capability",
+    "set_capability"
+   ],
+   "properties": [],
+   "statics": []
+  },
+  "AssociateDetectionsToTracks": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "associate",
+    "check_configuration",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "CloseLoops": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "set_configuration",
+    "stitch"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ComputeRefHomography": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "estimate",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ComputeStereoDepthMap": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "compute",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ComputeTrackDescriptors": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "compute",
+    "flush",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "DetectFeatures": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "detect",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "DetectMotion": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "process_image",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "DetectedObjectFilter": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "filter",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "DetectedObjectSetInput": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "at_eof",
+    "check_configuration",
+    "close",
+    "get_configuration",
+    "open",
+    "read_set",
+    "set_configuration",
+    "use_stream"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "DetectedObjectSetOutput": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "close",
+    "complete",
+    "get_configuration",
+    "get_filename",
+    "open",
+    "set_configuration",
+    "set_filename",
+    "use_stream",
+    "write_set"
+   ],
+   "properties": [
+    "filename",
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "DrawDetectedObjectSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "draw",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "EstimateFundamentalMatrix": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "estimate",
+    "estimate_matches",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "EstimateHomography": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "estimate",
+    "estimate_matches",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ExtractDescriptors": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "extract",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "FeatureDescriptorIO": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "load",
+    "save",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "FilterFeatures": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "filter",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ImageFilter": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "filter",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ImageIO": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "get_implementation_capabilities",
+    "load",
+    "load_metadata",
+    "save",
+    "set_configuration"
+   ],
+   "properties": [
+    "HAS_TIME",
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ImageObjectDetector": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "batch_detect",
+    "check_configuration",
+    "detect",
+    "get_configuration",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "InitializeObjectTracks": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "initialize",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "MatchDescriptorSets": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "append_to_index",
+    "check_configuration",
+    "get_configuration",
+    "query",
+    "query_and_append",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "MatchFeatures": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "match",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "MergeDetections": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "merge",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "MergeImages": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "merge",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "OptimizeCameras": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "optimize",
+    "optimize_camera",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "PerformTextQuery": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "perform_query",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ReadObjectTrackSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "at_eof",
+    "check_configuration",
+    "close",
+    "get_configuration",
+    "new_stream",
+    "open",
+    "read_set",
+    "set_configuration",
+    "stream",
+    "use_stream"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ReadTrackDescriptorSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "at_eof",
+    "check_configuration",
+    "close",
+    "get_configuration",
+    "new_stream",
+    "open",
+    "read_set",
+    "set_configuration",
+    "stream",
+    "use_stream"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "RefineDetections": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "refine",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "RefineTracks": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "finalize",
+    "get_configuration",
+    "refine",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "ResectionCamera": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "resection",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "SegmentViaPoints": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "segment",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "SplitImage": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "set_configuration",
+    "split"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "TrackFeatures": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "set_configuration",
+    "track"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "TrackObjects": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "finalize",
+    "get_configuration",
+    "initialize",
+    "reset",
+    "set_configuration",
+    "track"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "TrainDetector": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "add_data_from_disk",
+    "add_data_from_memory",
+    "check_configuration",
+    "get_configuration",
+    "set_configuration",
+    "update_model"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "TrainTracker": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "add_data_from_disk",
+    "add_data_from_memory",
+    "check_configuration",
+    "get_configuration",
+    "set_configuration",
+    "update_model"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "Transform2DIO": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "load",
+    "save",
+    "set_configuration"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "VideoInput": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "close",
+    "end_of_video",
+    "filename",
+    "frame_image",
+    "frame_metadata",
+    "frame_rate",
+    "frame_timestamp",
+    "get_configuration",
+    "get_implementation_capabilities",
+    "good",
+    "implementation_settings",
+    "next_frame",
+    "num_frames",
+    "open",
+    "raw_frame_image",
+    "raw_frame_metadata",
+    "seek_frame",
+    "seek_time",
+    "set_configuration"
+   ],
+   "properties": [
+    "HAS_ABSOLUTE_FRAME_TIME",
+    "HAS_EOV",
+    "HAS_FRAME_DATA",
+    "HAS_FRAME_NUMBERS",
+    "HAS_FRAME_RATE",
+    "HAS_FRAME_TIME",
+    "HAS_METADATA",
+    "HAS_RAW_IMAGE",
+    "HAS_RAW_METADATA",
+    "HAS_TIMEOUT",
+    "HAS_UNINTERPRETED_DATA",
+    "IS_SEEKABLE_BY_FRAME",
+    "IS_SEEKABLE_BY_TIME",
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "VideoOutput": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "add_image",
+    "add_metadata",
+    "add_uninterpreted_data",
+    "check_configuration",
+    "close",
+    "get_configuration",
+    "get_implementation_capabilities",
+    "good",
+    "implementation_settings",
+    "open",
+    "set_configuration"
+   ],
+   "properties": [
+    "SUPPORTS_FRAME_RATE",
+    "SUPPORTS_FRAME_TIME",
+    "SUPPORTS_METADATA",
+    "SUPPORTS_UNINTERPRETED_DATA",
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "WarpImage": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "get_configuration",
+    "set_configuration",
+    "warp"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "WriteObjectTrackSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "close",
+    "get_configuration",
+    "open",
+    "set_configuration",
+    "use_stream",
+    "write_set"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  },
+  "WriteTrackDescriptorSet": {
+   "methods": [
+    "__init__",
+    "_pybind11_conduit_v1_",
+    "check_configuration",
+    "close",
+    "get_configuration",
+    "open",
+    "set_configuration",
+    "use_stream",
+    "write_set"
+   ],
+   "properties": [
+    "impl_name"
+   ],
+   "statics": [
+    "check_nested_algo_configuration",
+    "create",
+    "create_algorithm",
+    "get_nested_algo_configuration",
+    "has_algorithm_impl_name",
+    "interface_name",
+    "registered_names",
+    "set_nested_algo_configuration"
+   ]
+  }
+ },
+ "algo_values": {},
  "classes": {
   "Activity": {
    "methods": [
@@ -1664,6 +2758,6 @@
  },
  "note": "What kwiver.vital.types exported before P8-T01 rewrote the bindings. Names and members only; behaviour is in tests/library/core_types/test_python_types.py.",
  "python": "3.10",
- "recorded": "2026-09-12T03:02:21Z",
+ "recorded": "2026-09-12T03:27:15Z",
  "values": {}
 }
