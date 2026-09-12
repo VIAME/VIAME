@@ -15,6 +15,7 @@
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <cctype>
 #include <cstdlib>
 
 #if WIN32 || ( __cplusplus >= 201703L && __has_include(<filesystem>) )
@@ -553,7 +554,8 @@ extract_video_frames( const std::string& video_filename,
                       const std::string& reader_type,
                       const std::string& output_subdir,
                       bool preserve_bit_depth,
-                      const std::string& groundtruth_file )
+                      const std::string& groundtruth_file,
+                      const std::string& frame_format )
 {
   std::cout << "Extracting frames from " << video_filename
             << " at rate " << frame_rate << std::endl;
@@ -564,7 +566,28 @@ extract_video_frames( const std::string& video_filename,
     ( output_subdir.empty() ? get_filename_no_path( video_filename )
                             : output_subdir );
   std::string output_dir = append_path( output_directory, subdir );
-  std::string output_path = append_path( output_dir, "frame%06d.png" );
+  // Bit-depth-preserving extraction has to stay lossless: that path exists to
+  // hand percentile normalization the raw 16-bit data, which a JPEG would
+  // quantize away.
+  std::string frame_ext = frame_format;
+
+  if( frame_ext.empty() || preserve_bit_depth )
+  {
+    frame_ext = "png";
+  }
+
+  if( frame_ext[0] == '.' )
+  {
+    frame_ext = frame_ext.substr( 1 );
+  }
+
+  for( auto& c : frame_ext )
+  {
+    c = static_cast< char >( std::tolower( static_cast< unsigned char >( c ) ) );
+  }
+
+  std::string output_path =
+    append_path( output_dir, "frame%06d." + frame_ext );
   std::string frame_rate_str = std::to_string( frame_rate );
 
   if( !skip_extract_if_exists )

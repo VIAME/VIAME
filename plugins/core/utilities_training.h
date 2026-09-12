@@ -267,7 +267,8 @@ extract_video_frames( const std::string& video_filename,
                       const std::string& reader_type = "vidl_ffmpeg",
                       const std::string& output_subdir = "",
                       bool preserve_bit_depth = false,
-                      const std::string& groundtruth_file = "" );
+                      const std::string& groundtruth_file = "",
+                      const std::string& frame_format = "jpg" );
 
 /// Augment an ordered image sequence in a single pass via the image_list reader,
 /// producing one augmented frame per input, ordered to match image_files.

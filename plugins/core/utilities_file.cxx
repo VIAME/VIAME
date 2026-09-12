@@ -276,6 +276,30 @@ std::string get_file_extension( const std::string& path )
   return ext;
 }
 
+void remove_non_groundtruth_sidecars( std::vector< std::string >& files )
+{
+  // Exact file names, so a genuine annotation file that merely contains one of
+  // these words ("config_annotations.json") is not dropped.
+  static const std::vector< std::string > sidecar_names = { "config.json",
+                                                            "meta.json" };
+
+  files.erase(
+    std::remove_if( files.begin(), files.end(),
+      []( const std::string& f )
+      {
+        std::string name = get_filename_no_path( f );
+
+        for( auto& c : name )
+        {
+          c = static_cast< char >( std::tolower( static_cast< unsigned char >( c ) ) );
+        }
+
+        return std::find( sidecar_names.begin(), sidecar_names.end(), name )
+                 != sidecar_names.end();
+      } ),
+    files.end() );
+}
+
 bool select_file_by_extension_priority(
     const std::vector< std::string >& files,
     const std::vector< std::string >& priority_exts,
@@ -297,8 +321,13 @@ bool select_file_by_extension_priority(
     return true;
   }
 
-  // Group files by extension
+  // Group files by extension. An extension held by more than one file cannot
+  // be resolved by priority alone, so it is marked ambiguous and skipped
+  // rather than failing the whole item: a DIVE export folder carries
+  // annotations.dive.json beside a non-annotation config.json, and the .csv
+  // sitting next to them is a perfectly good higher-priority answer.
   std::map< std::string, std::string > files_by_ext;
+  std::unordered_set< std::string > ambiguous_exts;
 
   for( const auto& f : files )
   {
@@ -306,10 +335,21 @@ bool select_file_by_extension_priority(
 
     if( files_by_ext.count( ext ) )
     {
-      error_msg = "multiple files with extension " + ext;
-      return false;
+      ambiguous_exts.insert( ext );
+      continue;
     }
     files_by_ext[ ext ] = f;
+  }
+
+  for( const auto& ext : ambiguous_exts )
+  {
+    files_by_ext.erase( ext );
+  }
+
+  if( files_by_ext.empty() )
+  {
+    error_msg = "multiple files with extension " + *ambiguous_exts.begin();
+    return false;
   }
 
   // Build set of allowed extensions (lowercase)
@@ -346,9 +386,18 @@ bool select_file_by_extension_priority(
     }
   }
 
-  // Fallback to first file if no priority match
-  selected = files[0];
-  return true;
+  // Fallback to the first unambiguous file if no priority extension matched
+  for( const auto& f : files )
+  {
+    if( files_by_ext.count( get_file_extension( f ) ) )
+    {
+      selected = f;
+      return true;
+    }
+  }
+
+  error_msg = "multiple files with extension " + *ambiguous_exts.begin();
+  return false;
 }
 
 std::string find_associated_file( const std::string& base_path, const std::string& ext )
