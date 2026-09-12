@@ -40,10 +40,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from epipolar_matcher import (
-    EpipolarMatcher, compute_epipolar_points, unmap,
-    _gather_patches, _ncc, _round_half_up, _INVALID_SCORE,
-)
+try:  # imported as a package member (the plugin loader's path)
+    from viame.onnx.epipolar_matcher import (
+        EpipolarMatcher, compute_epipolar_points, unmap,
+        _gather_patches, _ncc, _round_half_up, _INVALID_SCORE,
+    )
+except ImportError:  # run as a script from this directory
+    from epipolar_matcher import (
+        EpipolarMatcher, compute_epipolar_points, unmap,
+        _gather_patches, _ncc, _round_half_up, _INVALID_SCORE,
+    )
 
 # ImageNet normalization (matches dino_matcher._preprocess).
 _IMAGENET_MEAN = [0.485, 0.456, 0.406]
@@ -379,7 +385,10 @@ class EpipolarDinoCropMeasurer(EpipolarDinoCropMatcher):
                 K_left, dist_left, R_left, t_left,
                 K_right, dist_right, R_right, t_right,
                 min_depth, max_depth):
-        from triangulate import triangulate_fast_torch
+        try:
+            from viame.onnx.triangulate import triangulate_fast_torch
+        except ImportError:
+            from triangulate import triangulate_fast_torch
 
         right_points, best, second, nx_l, ny_l = self._match_dino(
             left_rgb, right_rgb, points_left,
@@ -399,7 +408,10 @@ class EpipolarDinoMeasurer(EpipolarDinoMatcher):
                 K_left, dist_left, R_left, t_left,
                 K_right, dist_right, R_right, t_right,
                 min_depth, max_depth):
-        from triangulate import triangulate_fast_torch
+        try:
+            from viame.onnx.triangulate import triangulate_fast_torch
+        except ImportError:
+            from triangulate import triangulate_fast_torch
 
         right_points, best, second, nx_l, ny_l = self._match_dino(
             left_rgb, right_rgb, points_left,

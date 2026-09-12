@@ -99,13 +99,20 @@ def _example_inputs(kind, height, width, crop=0):
 def _build(kind, args):
     """Return (model, input_names, output_names, is_dino)."""
     if kind == "triangulate":
-        from epipolar_matcher import EpipolarTriangulator
+        try:
+            from viame.onnx.epipolar_matcher import EpipolarTriangulator
+        except ImportError:
+            from epipolar_matcher import EpipolarTriangulator
         model = EpipolarTriangulator()
         model.eval()
         return (model, INPUT_NAMES_TRIANGULATE,
                 ["points_3d", "reprojection_error"], False)
     if kind in ("match", "measure"):
-        from epipolar_matcher import EpipolarMatcher, EpipolarMeasurer
+        try:
+            from viame.onnx.epipolar_matcher import (EpipolarMatcher,
+                                                     EpipolarMeasurer)
+        except ImportError:
+            from epipolar_matcher import EpipolarMatcher, EpipolarMeasurer
         cls = EpipolarMeasurer if kind == "measure" else EpipolarMatcher
         model = cls(args.template_size, args.num_samples)
         names = INPUT_NAMES_GRAY + INPUT_NAMES_TAIL

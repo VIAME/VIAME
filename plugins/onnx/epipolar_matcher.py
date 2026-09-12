@@ -402,7 +402,10 @@ class EpipolarMeasurer(EpipolarMatcher):
                 K_left, dist_left, R_left, t_left,
                 K_right, dist_right, R_right, t_right,
                 min_depth, max_depth):
-        from triangulate import triangulate_fast_torch
+        try:
+            from viame.onnx.triangulate import triangulate_fast_torch
+        except ImportError:
+            from triangulate import triangulate_fast_torch
 
         right_points, best, second, _, nx_left, ny_left = self._match(
             left_gray, right_gray, points_left,
@@ -451,7 +454,10 @@ class EpipolarTriangulator(nn.Module):
     def forward(self, points_left, points_right,
                 K_left, dist_left, R_left, t_left,
                 K_right, dist_right, R_right, t_right):
-        from triangulate import triangulate_fast_torch
+        try:
+            from viame.onnx.triangulate import triangulate_fast_torch
+        except ImportError:
+            from triangulate import triangulate_fast_torch
 
         nx_l, ny_l = unmap(points_left[:, 0], points_left[:, 1],
                            K_left, dist_left)
