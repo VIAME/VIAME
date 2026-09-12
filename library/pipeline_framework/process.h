@@ -15,7 +15,6 @@
 #include <viame/algorithm_framework/config/config_difference.h>
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/plugin/plugin_info.h>
-#include <viame/algorithm_framework/util/rational.h>
 
 #include <set>
 #include <string>
@@ -108,26 +107,6 @@ class SPROKIT_PIPELINE_EXPORT process
     /// The type for the type of data on a port.
     typedef std::string port_type_t;
 
-    /// The type for the component of a frequency.
-    typedef size_t frequency_component_t;
-
-    /// \brief The type for the frequency of data on a port.
-    ///
-    /// Basically a process has a single "step" which is 1:1. If one
-    /// port is pulled twice and another thrice, it doesn't matter if
-    /// one is 2:1 and the other 3:1 or one 2:3 and the other 1:1. The
-    /// pipeline takes all of the port frequencies and determines a
-    /// common frequency for the entire pipeline then tells processes
-    /// about it with set_core_frequency so that all values are whole
-    /// numbers which is also the stamp step value expected/generated
-    /// on the port automatically. So in the end, they will all be
-    /// whole numbers, but the ratio of them to each other is all that
-    /// matters within a single process since the pipeline will figure
-    /// out a global multiplier for all process the same anyways
-    /// (modulo overflowing the uint64_t stamp counter which I hope
-    /// isn't common).
-    typedef kwiver::vital::rational<frequency_component_t> port_frequency_t;
-
     /// The type for a flag on a port.
     ///\todo Add descriptions of predefined port flags.
     typedef std::string port_flag_t;
@@ -162,15 +141,10 @@ class SPROKIT_PIPELINE_EXPORT process
          * \param type_ The type of the port.
          * \param flags_ Flags for the port.
          * \param description_ A description of the port.
-         * \param frequency_ The frequency of the port relative to the
-         * step.
-         * \sa process::set_output_port_frequency()
-         * \sa process::set_input_port_frequency()
          */
         port_info(port_type_t const& type_,
                   port_flags_t const& flags_,
-                  port_description_t const& description_,
-                  port_frequency_t const& frequency_);
+                  port_description_t const& description_);
         /**
          * \brief Destructor.
          */
@@ -182,8 +156,6 @@ class SPROKIT_PIPELINE_EXPORT process
         port_flags_t const flags;
         /// A description of the port.
         port_description_t const description;
-        /// The port's frequency.
-        port_frequency_t const frequency;
     };
     /// Type for information about a port.
     typedef std::shared_ptr<port_info const> port_info_t;
@@ -942,14 +914,11 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param type_ The type of the port.
      * \param flags_ Flags for the port.
      * \param description_ A description of the port.
-     * \param frequency_ The frequency of the port relative to the
-     * step. See process::set_output_port_frequency() for details.
      */
     void declare_input_port(port_t const& port,
                             port_type_t const& type_,
                             port_flags_t const& flags_,
-                            port_description_t const& description_,
-                            port_frequency_t const& frequency_ = port_frequency_t(1));
+                            port_description_t const& description_);
     /**
      * \brief Declare an output port for the process.
      *
@@ -957,57 +926,11 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param type_ The type of the port.
      * \param flags_ Flags for the port.
      * \param description_ A description of the port.
-     * \param frequency_ The frequency of the port relative to the step.
-     * See process::set_output_port_frequency() for details.
      */
     void declare_output_port(port_t const& port,
                              port_type_t const& type_,
                              port_flags_t const& flags_,
-                             port_description_t const& description_,
-                             port_frequency_t const& frequency_ = port_frequency_t(1));
-
-    /**
-     * \brief Set the frequency of an input port.
-     *
-     * This method assigns a frequency to the input port. The number
-     * specifies how many inputs are to be accumulated between process
-     * \c _step() calls. A frequency of one (the default) will give one
-     * input on the port for each \c _step() call. So requesting a
-     * frequency of 4 will give the \c _step() method 4 values in the
-     * queue for this input.
-     *
-     * Ports with a frequency of 0 are assumed to be non-regular and
-     * handled manually.
-     *
-     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
-     * \throws set_frequency_on_initialized_process_exception Thrown
-     * when the \p port's frequency is set after initialization.
-     *
-     * \param port The name of the port.
-     * \param new_frequency The frequency of the port.
-     */
-    void set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
-
-    /**
-     * \brief Set the frequency of an output port.
-     *
-     * This method assigns a frequency to the output port. The number
-     * specifies how many outputs are pushed downstream between
-     * process \c _step() calls. A frequency of 1 (the default) will
-     * produce one output on the port for each \c _step() call. So
-     * requesting a frequency of 4 will push 4 values downstream after
-     * the \c _step() call queue for this input.
-     *
-     * A frequency of zero is a special case.
-     *
-     * \throws no_such_port_exception Thrown when \p port does not exist on the process.
-     * \throws set_frequency_on_initialized_process_exception Thrown
-     * when the \p port's frequency is set after initialization.
-     *
-     * \param port The name of the port.
-     * \param new_frequency The frequency of the port.
-     */
-    void set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency);
+                             port_description_t const& description_);
 
     /**
      * \brief Remove an input port from the process.
@@ -1294,8 +1217,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * If set to \ref check_sync, the input ports which are marked as
      * \flag{required} are guaranteed to be synchronized. When the inputs are
      * not synchronized, an error datum is pushed to all output ports and all
-     * input ports will be grabbed from based on the relative frequency of the
-     * ports.
+     * input ports are grabbed from.
      *
      * If set to \ref check_valid, the input ports which are marked as
      * \flag{required} are guaranteed to have valid data available. When the
@@ -1440,7 +1362,6 @@ SCOPED_INSTRUMENTATION(reconfigure);
     static kwiver::vital::config_block_key_t const static_input_prefix;
 
     friend class pipeline;
-    SPROKIT_PIPELINE_NO_EXPORT void set_core_frequency(port_frequency_t const& frequency);
     SPROKIT_PIPELINE_NO_EXPORT void reconfigure(kwiver::vital::config_block_sptr const& conf);
 
     SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf);

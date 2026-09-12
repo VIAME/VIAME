@@ -134,7 +134,6 @@ class pipeline::priv
     void check_for_required_ports() const;
     void check_for_dag() const;
     void initialize_processes();
-    void check_port_frequencies() const;
 
     void ensure_setup() const;
 
@@ -406,7 +405,6 @@ pipeline
     d->check_for_required_ports();
     d->check_for_dag();
     d->initialize_processes();
-    d->check_port_frequencies();
   }
   catch (...)
   {
@@ -1739,155 +1737,6 @@ pipeline::priv
     process_t const proc = q->process_by_name(name);
 
     proc->init();
-  }
-}
-
-// ------------------------------------------------------------------
-void
-pipeline::priv
-::check_port_frequencies() const
-{
-  static process::port_frequency_t const base_freq = process::port_frequency_t(1, 1);
-
-  if (process_map.size() == 1)
-  {
-    process_map_t::const_iterator const i = process_map.begin();
-    process_t const only_proc = i->second;
-
-    only_proc->set_core_frequency(base_freq);
-
-    return;
-  }
-
-  process::names_t const names = q->process_names();
-
-  typedef std::map<process::name_t, process::port_frequency_t> process_frequency_map_t;
-
-  process_frequency_map_t freq_map;
-
-  std::queue<process::connection_t> unchecked_connections;
-
-  for (process::connection_t const& connection : connections)
-  {
-    unchecked_connections.push(connection);
-  }
-
-  while (!unchecked_connections.empty())
-  {
-    process::connection_t const connection = unchecked_connections.front();
-    unchecked_connections.pop();
-
-    process::port_addr_t const& upstream_addr = connection.first;
-    process::port_addr_t const& downstream_addr = connection.second;
-
-    process::name_t const& upstream_name = upstream_addr.first;
-    process::port_t const& upstream_port = upstream_addr.second;
-    process::name_t const& downstream_name = downstream_addr.first;
-    process::port_t const& downstream_port = downstream_addr.second;
-
-    process_t const up_proc = q->process_by_name(upstream_name);
-    process::port_info_t const up_info = up_proc->output_port_info(upstream_port);
-    process::port_frequency_t const& up_port_freq = up_info->frequency;
-
-    process_t const down_proc = q->process_by_name(downstream_name);
-    process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
-    process::port_frequency_t const& down_port_freq = down_info->frequency;
-
-    if ( ! up_port_freq ||  ! down_port_freq)
-    {
-      LOG_WARN( m_logger, "Edge frequency cannot be validated." );
-      continue;
-    }
-
-    bool const up_in_map = (0 != freq_map.count(upstream_name));
-    bool const down_in_map = (0 != freq_map.count(downstream_name));
-
-    bool have_upstream = false;
-    bool have_downstream = false;
-
-    if (!up_in_map && !down_in_map)
-    {
-      if (freq_map.empty())
-      {
-        // Seed the frequency map at 1-to-1 based on the upstream process.
-        freq_map[upstream_name] = base_freq;
-        have_upstream = true;
-      }
-    }
-
-    if (up_in_map)
-    {
-      have_upstream = true;
-    }
-    if (down_in_map)
-    {
-      have_downstream = true;
-    }
-
-    // Validate the connection.
-    if (have_upstream && have_downstream)
-    {
-      process::port_frequency_t const up_proc_freq = freq_map[upstream_name];
-
-      process::port_frequency_t const edge_freq = up_proc_freq * up_port_freq;
-      process::port_frequency_t const expect_freq = edge_freq / down_port_freq;
-
-      process::port_frequency_t const down_proc_freq = freq_map[downstream_name];
-
-      if (down_proc_freq != expect_freq)
-      {
-        VITAL_THROW( frequency_mismatch_exception,
-                     upstream_name, upstream_port, up_proc_freq, up_port_freq,
-                     downstream_name, downstream_port, down_proc_freq, down_port_freq);
-      }
-    }
-    // Propagate the frequency downstream.
-    else if (have_upstream)
-    {
-      process::port_frequency_t const up_proc_freq = freq_map[upstream_name];
-
-      process::port_frequency_t const edge_freq = up_proc_freq * up_port_freq;
-      process::port_frequency_t const expect_freq = edge_freq / down_port_freq;
-
-      freq_map[downstream_name] = expect_freq;
-    }
-    // Propagate the frequency upstream.
-    else if (have_downstream)
-    {
-      process::port_frequency_t const down_proc_freq = freq_map[downstream_name];
-
-      process::port_frequency_t const edge_freq = down_proc_freq * down_port_freq;
-      process::port_frequency_t const expect_freq = edge_freq / up_port_freq;
-
-      freq_map[upstream_name] = expect_freq;
-    }
-    // Not part of the already-checked parts.
-    else
-    {
-      unchecked_connections.push(connection);
-    }
-  }
-
-  process::frequency_component_t freq_gcd = process::frequency_component_t(1);
-
-  for (process_frequency_map_t::value_type const& proc_freq : freq_map)
-  {
-    process::port_frequency_t const& freq = proc_freq.second;
-    process::frequency_component_t const denom = freq.denominator();
-
-    freq_gcd = lcm(freq_gcd, denom);
-  }
-
-  for (process_frequency_map_t::value_type const& proc_freq : freq_map)
-  {
-    process::name_t const& name = proc_freq.first;
-    process::port_frequency_t const& freq = proc_freq.second;
-
-    process::port_frequency_t const core_freq = freq_gcd * freq;
-
-    process_t const proc = q->process_by_name(name);
-
-    proc->set_core_frequency(core_freq);
   }
 }
 

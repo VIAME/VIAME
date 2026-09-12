@@ -18,7 +18,6 @@ set( public_headers
   file_system.h
   get_paths.h
   regex.h
-  rational.h
   source_location.h
   streamable.h
   string.h

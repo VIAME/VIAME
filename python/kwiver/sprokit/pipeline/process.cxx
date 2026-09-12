@@ -56,8 +56,6 @@ public:
   using process::declare_input_port;
   using process::declare_output_port;
   using process::declare_configuration_key;
-  using process::set_input_port_frequency;
-  using process::set_output_port_frequency;
   using process::remove_input_port;
   using process::remove_output_port;
   using process::mark_process_as_complete;
@@ -114,8 +112,7 @@ void declare_input_port_5(
   ::sprokit::process::port_t const& port,
   ::sprokit::process::port_type_t const& type_,
   ::sprokit::process::port_flags_t const& flags_,
-  ::sprokit::process::port_description_t const& description_,
-  ::sprokit::process::port_frequency_t const& frequency_ );
+  ::sprokit::process::port_description_t const& description_ );
 
 void declare_output_port_2(
   ::sprokit::process& self,
@@ -126,8 +123,7 @@ void declare_output_port_5(
   ::sprokit::process::port_t const& port,
   ::sprokit::process::port_type_t const& type_,
   ::sprokit::process::port_flags_t const& flags_,
-  ::sprokit::process::port_description_t const& description_,
-  ::sprokit::process::port_frequency_t const& frequency_ );
+  ::sprokit::process::port_description_t const& description_ );
 
 void declare_configuration_key_2(
   ::sprokit::process& self,
@@ -339,62 +335,15 @@ PYBIND11_MODULE( process, m )
   m.attr( "Ports" ) = m.attr( "ProcessNames" );
   m.attr( "Ports" ).attr( "__doc__" ) = "A collection of ports.";
 
-  class_< sprokit::process::port_frequency_t >(
-    m, "PortFrequency",
-    "A frequency for a port." )
-    .def( init< sprokit::process::frequency_component_t >() )
-    .def(
-      init< sprokit::process::frequency_component_t,
-        sprokit::process::frequency_component_t >() )
-    .def(
-      "numerator", &sprokit::process::port_frequency_t::numerator,
-      "The numerator of the frequency." )
-    .def(
-      "denominator", &sprokit::process::port_frequency_t::denominator,
-      "The denominator of the frequency." )
-    .def( self <  self )
-    .def( self <= self )
-    .def( self == self )
-    .def( self >= self )
-    .def( self >  self )
-    .def( self + self )
-    .def( self - self )
-    .def( self * self )
-    .def( self / self )
-    .def( !self )
-  ;
-  class_< wrap_port_addr >(
-    m, "PortAddr",
-    "An address for a port within a pipeline." )
-    .def( init<>() )
-    .def_readwrite( "process", &wrap_port_addr::process )
-    .def_readwrite( "port", &wrap_port_addr::port )
-    .def( "getAddr", &wrap_port_addr::get_addr )
-  ;
-  bind_vector< std::vector< wrap_port_addr > >(
-    m, "PortAddrs",
-    "A collection of port addresses." )
-  ;
-  class_< sprokit::process::connection_t >(
-    m, "Connection",
-    "A connection between two ports." )
-    .def( init<>() );
-  bind_vector< sprokit::process::connections_t >(
-    m, "Connections",
-    "A collection of connections." )
-  ;
-
   class_< sprokit::process::port_info >(
     m, "PortInfo",
     "Information about a port on a process." )
     .def(
     init< sprokit::process::port_type_t, std::set< std::string >,
-      sprokit::process::port_description_t,
-      sprokit::process::port_frequency_t >() )
+      sprokit::process::port_description_t >() )
     .def_readonly( "type", &sprokit::process::port_info::type )
     .def_readonly( "flags", &sprokit::process::port_info::flags )
     .def_readonly( "description", &sprokit::process::port_info::description )
-    .def_readonly( "frequency", &sprokit::process::port_info::frequency )
   ;
 
   class_< sprokit::process::conf_info,
@@ -741,7 +690,6 @@ PYBIND11_MODULE( process, m )
       "declare_input_port", &declare_input_port_5,
       call_guard< pybind11::gil_scoped_release >(),
       arg( "port" ), arg( "type" ), arg( "flags" ), arg( "description" ),
-      arg( "frequency" ) = sprokit::process::port_frequency_t( 1 ),
       "Declare an input port on the process." )
     .def(
       "declare_output_port", &declare_output_port_2,
@@ -752,7 +700,6 @@ PYBIND11_MODULE( process, m )
       "declare_output_port", &declare_output_port_5,
       call_guard< pybind11::gil_scoped_release >(),
       arg( "port" ), arg( "type" ), arg( "flags" ), arg( "description" ),
-      arg( "frequency" ) = sprokit::process::port_frequency_t( 1 ),
       "Declare an output port on the process." )
     .def(
       "declare_configuration_key", &declare_configuration_key_2,
@@ -769,24 +716,6 @@ PYBIND11_MODULE( process, m )
       call_guard< pybind11::gil_scoped_release >(),
       arg( "key" ), arg( "default" ), arg( "description" ), arg( "tunable" ),
       "Declare a configuration key for the process" )
-    .def(
-      "set_input_port_frequency",
-      static_cast< void ( sprokit::process::* )(
-        sprokit::process::port_t const&,
-        sprokit::process::port_frequency_t const& ) >( &wrap_process::
-                                                       set_input_port_frequency ),
-      call_guard< pybind11::gil_scoped_release >(),
-      arg( "port" ), arg( "new_frequency" ),
-      "Set an input port\'s frequency." )
-    .def(
-      "set_output_port_frequency",
-      static_cast< void ( sprokit::process::* )(
-        sprokit::process::port_t const&,
-        sprokit::process::port_frequency_t const& ) >( &wrap_process::
-                                                       set_output_port_frequency ),
-      call_guard< pybind11::gil_scoped_release >(),
-      arg( "port" ), arg( "new_frequency" ),
-      "Set an output port\'s frequency." )
     .def(
       "remove_input_port",
       static_cast< void ( sprokit::process::* )(
@@ -1101,13 +1030,11 @@ declare_input_port_5(
   ::sprokit::process::port_t const& port,
   ::sprokit::process::port_type_t const& type_,
   ::sprokit::process::port_flags_t const& flags_,
-  ::sprokit::process::port_description_t const& description_,
-  ::sprokit::process::port_frequency_t const& frequency_ )
+  ::sprokit::process::port_description_t const& description_ )
 {
   ::sprokit::process* self_ptr = &self;
   ( ( wrap_process* ) self_ptr )->declare_input_port(
-    port, type_, flags_,
-    description_, frequency_ );
+    port, type_, flags_, description_ );
 }
 
 void
@@ -1126,13 +1053,11 @@ declare_output_port_5(
   ::sprokit::process::port_t const& port,
   ::sprokit::process::port_type_t const& type_,
   ::sprokit::process::port_flags_t const& flags_,
-  ::sprokit::process::port_description_t const& description_,
-  ::sprokit::process::port_frequency_t const& frequency_ )
+  ::sprokit::process::port_description_t const& description_ )
 {
   ::sprokit::process* self_ptr = &self;
   ( ( wrap_process* ) self_ptr )->declare_output_port(
-    port, type_, flags_,
-    description_, frequency_ );
+    port, type_, flags_, description_ );
 }
 
 void

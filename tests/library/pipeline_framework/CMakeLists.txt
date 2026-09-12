@@ -35,3 +35,18 @@ kwiver_discover_gtests( viame scheduler
             sprokit_pipeline
             sprokit_pipeline_util
             GTest::gtest )
+
+###
+# Process type aliases
+#
+# Added by P8-T07 so that a renamed process is a rename in the compatibility
+# baseline rather than a removal and an addition.
+##
+kwiver_discover_gtests( viame process_alias
+  LIBRARIES kwiver::vital
+            kwiver::vital_config
+            kwiver::vital_vpm
+            viame::registry
+            sprokit_pipeline
+            sprokit_pipeline_util
+            GTest::gtest )

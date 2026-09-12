@@ -1076,5 +1076,19 @@
     "name": "orphan_cluster",
     "phase": "P8-T07",
     "reason": "An example of the `cluster` feature, which P8-T07 removes. `pipe-check --all` finds no cluster block in any of the 292 shipped pipelines and the tree contains no .cluster file at all."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "duplicate",
+    "phase": "P8-T07",
+    "reason": "An example of port frequency, which P8-T07 removes. It and `skip` are the only two processes in the tree that call set_output_port_frequency or set_input_port_frequency, and no shipped .pipe names either."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "skip",
+    "phase": "P8-T07",
+    "reason": "An example of port frequency, which P8-T07 removes -- and a broken one: it declares an input frequency of 1 + skip and its _step grabs skip, one fewer than it said, so a pipeline containing it never finishes. No error, no output, a scheduler that never returns. Nothing has ever run it (open question 2.13)."
   }
 ]

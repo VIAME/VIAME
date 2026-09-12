@@ -68,6 +68,36 @@ create_object(kwiver::vital::config_block_sptr const& config)
 }
 
 // ============================================================================
+namespace {
+
+// Old type name to current one. A map rather than a member of the loader
+// because the loader is kwiver's and the aliases are VIAME's; P8-T03's
+// registry is where the two become one table.
+std::map< sprokit::process::type_t, sprokit::process::type_t >&
+process_alias_table()
+{
+  static std::map< sprokit::process::type_t, sprokit::process::type_t > table;
+  return table;
+}
+
+} // namespace
+
+// ------------------------------------------------------------------
+void
+add_process_alias( sprokit::process::type_t const& alias,
+                   sprokit::process::type_t const& target )
+{
+  process_alias_table()[ alias ] = target;
+}
+
+// ------------------------------------------------------------------
+std::map< sprokit::process::type_t, sprokit::process::type_t >
+process_aliases()
+{
+  return process_alias_table();
+}
+
+// ============================================================================
 sprokit::process_t
 create_process( const sprokit::process::type_t&         type,
                 const sprokit::process::name_t&         name,
@@ -81,21 +111,54 @@ create_process( const sprokit::process::type_t&         type,
   typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
   proc_factory ifact;
 
+  process::type_t resolved = type;
+
   kwiver::vital::plugin_factory_handle_t a_fact;
   try
   {
-    a_fact = ifact.find_factory( type );
+    a_fact = ifact.find_factory( resolved );
   }
   catch ( kwiver::vital::plugin_factory_not_found& e )
   {
     auto logger = kwiver::vital::get_logger( "sprokit.process_factory" );
-    LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
 
-    VITAL_THROW( no_such_process_type_exception, type );
+    // A type nothing registers may be one that was renamed. The alias is
+    // tried once, and only after the real name has failed, so a live type
+    // never pays for the table.
+    auto const& aliases = process_alias_table();
+    auto const alias = aliases.find( type );
+
+    if ( alias == aliases.end() )
+    {
+      LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
+
+      VITAL_THROW( no_such_process_type_exception, type );
+    }
+
+    resolved = alias->second;
+
+    LOG_DEBUG( logger, "Process type \"" << type << "\" is an alias for \""
+                       << resolved << "\"" );
+
+    try
+    {
+      a_fact = ifact.find_factory( resolved );
+    }
+    catch ( kwiver::vital::plugin_factory_not_found& inner )
+    {
+      // The alias names something that is not registered either, which is a
+      // mistake in whoever added it rather than in the pipeline. Report the
+      // name the caller used.
+      LOG_ERROR( logger, "Process type \"" << type << "\" is an alias for \""
+                         << resolved << "\", which is not registered: "
+                         << inner.what() );
+
+      VITAL_THROW( no_such_process_type_exception, type );
+    }
   }
 
   // Add these entries to the new process config so it will know how it is instantiated.
-  config->set_value( process::config_type, kwiver::vital::config_block_value_t( type ) );
+  config->set_value( process::config_type, kwiver::vital::config_block_value_t( resolved ) );
   config->set_value( process::config_name, kwiver::vital::config_block_value_t( name ) );
 
   sprokit::process_factory* pf = dynamic_cast< sprokit::process_factory* > ( a_fact.get() );

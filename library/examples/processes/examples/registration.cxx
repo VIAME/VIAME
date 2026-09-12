@@ -14,7 +14,6 @@
 #include "const_process.h"
 #include "const_number_process.h"
 #include "data_dependent_process.h"
-#include "duplicate_process.h"
 #include "expect_process.h"
 #include "feedback_process.h"
 #include "flow_dependent_process.h"
@@ -24,7 +23,6 @@
 #include "orphan_process.h"
 #include "print_number_process.h"
 #include "shared_process.h"
-#include "skip_process.h"
 #include "tagged_flow_dependent_process.h"
 #include "take_number_process.h"
 #include "take_string_process.h"
@@ -48,7 +46,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< const_number_process >();
   reg.register_process< const_process >();
   reg.register_process< data_dependent_process >();
-  reg.register_process< duplicate_process >();
   reg.register_process< expect_process >();
   reg.register_process< feedback_process >();
   reg.register_process< flow_dependent_process >();
@@ -58,7 +55,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< orphan_process >();
   reg.register_process< print_number_process >();
   reg.register_process< shared_process >();
-  reg.register_process< skip_process >();
   reg.register_process< tagged_flow_dependent_process >();
   reg.register_process< take_number_process >();
   reg.register_process< take_string_process >();

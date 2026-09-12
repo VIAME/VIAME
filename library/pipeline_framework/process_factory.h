@@ -20,6 +20,7 @@
 #include <viame/pipeline_framework/process.h>
 
 #include <functional>
+#include <map>
 #include <memory>
 
 namespace sprokit {
@@ -130,6 +131,38 @@ private:
 };
 
 // ----------------------------------------------------------------------------
+/**
+ * \brief Give a process type a second name.
+ *
+ * A process that is renamed keeps working under its old type, and the
+ * baseline diff can tell a rename from a removal, which is the whole point:
+ * `registry.json` lists names, so a process that changed its own is
+ * indistinguishable from one that was deleted and one that was added.
+ *
+ * Algorithms have had this since the imports (`VIAME_REGISTER_ALIAS`), where
+ * it is a second registration of the same class. Processes could not do the
+ * same -- `register_process` takes the name from `process_t::_plugin_name`,
+ * a static on the class, so there was nowhere to put the second one. This is
+ * a table instead, which is also what `lite-build-system.md` 4 asks for.
+ *
+ * Resolution happens in `create_process`, so it covers every route into a
+ * process: the pipe bakery, the embedded pipeline, and anything else that
+ * names a type.
+ *
+ * \param alias The old type name.
+ * \param target The type it now resolves to.
+ */
+SPROKIT_PIPELINE_EXPORT
+void add_process_alias( sprokit::process::type_t const& alias,
+                        sprokit::process::type_t const& target );
+
+/**
+ * \brief Every process type alias, old name to new.
+ */
+SPROKIT_PIPELINE_EXPORT
+std::map< sprokit::process::type_t, sprokit::process::type_t >
+process_aliases();
+
 /**
  * \brief Create process of a specific type.
  *

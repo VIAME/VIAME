@@ -1293,6 +1293,33 @@ at least some of the cases from what the code claims rather than from what
 its callers do.** A recording built only from live traffic re-records the
 same bugs, and cannot tell "nobody needs this" from "nobody can use this".
 
+### 1.29 A contract that bakes is not a contract that runs
+
+P8-T07 removed port frequency. The last thing `set_core_frequency` did, after
+the pipeline had solved the whole graph for a consistent set of rates, was
+call `make_output_stamps()` -- and with frequency gone, nothing called it.
+Every process then failed its own `step()` precondition:
+
+    The process 'sink' was stepped before initialization
+
+**`ctest -L BASELINE` passed.** All five of its tests did: `registry.json`
+compared clean, and `pipes.json` -- 292 shipped pipelines -- resolved
+perfectly. It bakes each pipeline and reports what every process and
+algorithm resolves to, and it never steps one. A build in which no pipeline
+could run at all satisfied the compatibility baseline completely.
+
+What caught it was the three-test scheduler recording written an hour
+earlier, which does the one thing the baseline does not: bakes a pipeline
+from text, runs it, and looks at the numbers that come out the other end.
+
+The general form: **a contract that checks construction does not check
+operation, and the gap between them is invisible until something falls into
+it.** `registry.json` says a name exists, `pipes.json` says a pipeline
+resolves; neither says a datum ever moved. That is the same gap `skip_process`
+sat in for years (open question 2.13) -- and it is worth one cheap test that
+actually runs a pipeline end to end, which is now
+`tests/library/pipeline_framework/test_scheduler.cxx`.
+
 ## 2. Open questions
 
 ### 2.13 `skip_process` deadlocks, and has since it was written

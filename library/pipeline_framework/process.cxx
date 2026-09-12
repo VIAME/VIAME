@@ -66,12 +66,10 @@ kwiver::vital::config_block_key_t const process::static_input_prefix = kwiver::v
 process::port_info
 ::port_info(port_type_t const& type_,
             port_flags_t const& flags_,
-            port_description_t const& description_,
-            port_frequency_t const& frequency_)
+            port_description_t const& description_)
   : type(type_)
   , flags(flags_)
   , description(description_)
-  , frequency(frequency_)
 {
 }
 
@@ -167,7 +165,6 @@ class process::priv
 
     typedef std::map<port_t, tag_t> port_tag_map_t;
 
-    typedef std::optional<port_frequency_t> core_frequency_t;
 
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
     void check_tag(tag_t const& tag);
@@ -200,7 +197,6 @@ class process::priv
     port_tag_map_t input_port_tags;
     port_tag_map_t output_port_tags;
 
-    core_frequency_t core_frequency;
 
     bool configured;
     bool initialized;
@@ -267,6 +263,13 @@ process
   _init();
 
   d->initialized = true;
+
+  // Until P8-T07 this was done by `set_core_frequency`, which the pipeline
+  // called after every process was initialized, once it had solved the whole
+  // graph for a consistent set of port rates. There are no rates any more --
+  // every port is 1:1 -- so a process's output stamps depend on nothing
+  // outside it and are made here, where the rest of initialization is.
+  d->make_output_stamps();
 }
 
 // ------------------------------------------------------------------
@@ -288,7 +291,6 @@ process
 
   d->configured = false;
   d->initialized = false;
-  d->core_frequency.reset();
 }
 
 // ------------------------------------------------------------------
@@ -626,8 +628,7 @@ process
     port_heartbeat,
     type_none,
     port_flags_t(),
-    port_description_t("Outputs the heartbeat stamp with an empty datum."),
-    port_frequency_t(1));
+    port_description_t("Outputs the heartbeat stamp with an empty datum."));
 
   // Test to see if instrumentation is enabled
   if ( d->conf->has_value( instrumentation_type_key ))
@@ -847,8 +848,7 @@ process
           iport,
           new_type,
           iport_info->flags,
-          iport_info->description,
-          iport_info->frequency);
+          iport_info->description);
       }
 
       ports_t const& oports = d->output_flow_tag_ports[tag];
@@ -861,8 +861,7 @@ process
           oport,
           new_type,
           oport_info->flags,
-          oport_info->description,
-          oport_info->frequency);
+          oport_info->description);
       }
 
       // Save the data type assigned to this tag
@@ -876,8 +875,7 @@ process
     port,
     new_type,
     info->flags,
-    info->description,
-    info->frequency);
+    info->description);
 
   return true;
 }
@@ -926,8 +924,7 @@ process
           iport,
           new_type, // <- new type
           iport_info->flags,
-          iport_info->description,
-          iport_info->frequency);
+          iport_info->description);
       }
 
       // Output ports can share a tag with the input ports.
@@ -941,8 +938,7 @@ process
           oport,
           new_type, // <- new type
           oport_info->flags,
-          oport_info->description,
-          oport_info->frequency);
+          oport_info->description);
       }
 
       // Save the data type that corresponds to this tag
@@ -957,8 +953,7 @@ process
     port,
     new_type,
     info->flags,
-    info->description,
-    info->frequency);
+    info->description);
 
   return true;
 }
@@ -1016,8 +1011,7 @@ process
         port,
         tag_type,
         info->flags,
-        info->description,
-        info->frequency);
+        info->description);
 
       return;
     }
@@ -1079,14 +1073,12 @@ process
 ::declare_input_port(port_t const& port,
                      port_type_t const& type_,
                      port_flags_t const& flags_,
-                     port_description_t const& description_,
-                     port_frequency_t const& frequency_)
+                     port_description_t const& description_)
 {
   declare_input_port(port, std::make_shared<port_info>(
     type_,
     flags_,
-    description_,
-    frequency_));
+    description_));
 }
 
 // ------------------------------------------------------------------
@@ -1125,8 +1117,7 @@ process
         port,
         tag_type,
         info->flags,
-        info->description,
-        info->frequency);
+        info->description);
 
       return;
     }
@@ -1152,68 +1143,12 @@ process
 ::declare_output_port(port_t const& port,
                       port_type_t const& type_,
                       port_flags_t const& flags_,
-                      port_description_t const& description_,
-                      port_frequency_t const& frequency_)
+                      port_description_t const& description_)
 {
   declare_output_port(port, std::make_shared<port_info>(
     type_,
     flags_,
-    description_,
-    frequency_));
-}
-
-// ------------------------------------------------------------------
-void
-process
-::set_input_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
-{
-  if (d->initialized)
-  {
-    VITAL_THROW( set_frequency_on_initialized_process_exception,
-                 d->name, port, new_frequency);
-  }
-
-  port_info_t const info = input_port_info(port);
-  port_frequency_t const& old_frequency = info->frequency;
-
-  if (old_frequency == new_frequency)
-  {
-    return;
-  }
-
-  declare_input_port(
-    port,
-    info->type,
-    info->flags,
-    info->description,
-    new_frequency);
-}
-
-// ------------------------------------------------------------------
-void
-process
-::set_output_port_frequency(port_t const& port, port_frequency_t const& new_frequency)
-{
-  if (d->initialized)
-  {
-    VITAL_THROW( set_frequency_on_initialized_process_exception,
-                 d->name, port, new_frequency);
-  }
-
-  port_info_t const info = output_port_info(port);
-  port_frequency_t const& old_frequency = info->frequency;
-
-  if (old_frequency == new_frequency)
-  {
-    return;
-  }
-
-  declare_output_port(
-    port,
-    info->type,
-    info->flags,
-    info->description,
-    new_frequency);
+    description_));
 }
 
 // ------------------------------------------------------------------
@@ -1637,37 +1572,6 @@ process
 // ------------------------------------------------------------------
 void
 process
-::set_core_frequency(port_frequency_t const& frequency)
-{
-  if (!d->initialized)
-  {
-    static std::string const reason = "Internal: A process' frequency was set before it was initialized";
-
-    throw std::logic_error(reason);
-  }
-
-  if (d->core_frequency)
-  {
-    static std::string const reason = "Internal: A process' frequency was set a second time";
-
-    throw std::logic_error(reason);
-  }
-
-  if (frequency.denominator() != 1)
-  {
-    static std::string const reason = "Internal: A process' frequency is not a whole number";
-
-    throw std::logic_error(reason);
-  }
-
-  d->core_frequency = frequency;
-
-  d->make_output_stamps();
-}
-
-// ------------------------------------------------------------------
-void
-process
 ::reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
   if (!d->configured)
@@ -1879,7 +1783,6 @@ process::priv
   , output_flow_tag_ports()
   , input_port_tags()
   , output_port_tags()
-  , core_frequency()
   , configured(false)
   , initialized(false)
   , output_stamps_made(false)
@@ -2037,18 +1940,9 @@ process::priv
     // Since the top element in the edge was not flush or complete,
     // (it must be real data) look through the rest of the input on
     // this edge.
-    port_info_t const& port_info = q->input_port_info(port);
-    port_frequency_t const& freq = port_info->frequency;
-
-    frequency_component_t const rel_count = freq.numerator();
-
-    // collect inputs based on frequency value.
-    for (frequency_component_t j = 0; j < rel_count; ++j)
-    {
-      edge_datum_t const edat = iedge->peek_datum(j);
-
-      data.push_back(edat);
-    }
+    // One datum per port per step: every port is 1:1 since P8-T07 removed
+    // port frequency.
+    data.push_back(iedge->peek_datum(0));
   } // end foreach required port
 
   // Analyze the first data items on all required input ports
@@ -2132,30 +2026,8 @@ process::priv
       continue;
     }
 
-    port_frequency_t const& freq = info->frequency;
-
-    if (!freq || (freq.denominator() != 1))
-    {
-      static std::string const reason = "Cannot automatically pull from "
-                                        "an input port with 0 or non-integer "
-                                        "frequency";
-
-      throw std::runtime_error(reason);
-    }
-
-    frequency_component_t const count = freq.numerator();
-
-    for (frequency_component_t j = 0; j < count; ++j)
-    {
-      datum_t const dat = q->grab_datum_from_port(port);
-      datum::type_t const dat_type = dat->type();
-
-      // If the first datum is a flush or above, don't grab any more.
-      if (!j && (datum::flush <= dat_type))
-      {
-        break;
-      }
-    }
+    // One datum per port per step.
+    q->grab_datum_from_port(port);
   }
 }
 
@@ -2178,25 +2050,8 @@ process::priv
       continue;
     }
 
-    port_info_t const& info = oport.second;
-
-    port_frequency_t const& freq = info->frequency;
-
-    if (!freq || (freq.denominator() != 1))
-    {
-      static std::string const reason = "Cannot automatically push to "
-                                        "an output port with 0 or non-integer "
-                                        "frequency";
-
-      throw std::runtime_error(reason);
-    }
-
-    frequency_component_t const count = freq.numerator();
-
-    for (frequency_component_t j = 0; j < count; ++j)
-    {
-      q->push_datum_to_port(port, dat);
-    }
+    // One datum per port per step.
+    q->push_datum_to_port(port, dat);
   }
 }
 
@@ -2302,26 +2157,9 @@ process::priv
   {
     port_t const& port_name = oport.first;
 
-    port_info_t const& info = oport.second;
-    port_frequency_t const& port_frequency = info->frequency;
-
-    // Skip ports with an unknown port frequency.
-    if (!port_frequency)
-    {
-      continue;
-    }
-
-    port_frequency_t const port_run_frequency = (*core_frequency) * port_frequency;
-
-    if (port_run_frequency.denominator() != 1)
-    {
-      static std::string const reason = "A port has a runtime frequency "
-                                        "that is not a whole number";
-
-      throw std::runtime_error(reason);
-    }
-
-    stamp::increment_t const port_increment = port_run_frequency.numerator();
+    // Every port advances its stamp by one: P8-T07 removed port frequency,
+    // and the whole of what it did was make this number something else.
+    stamp::increment_t const port_increment = 1;
 
     {
       unique_lock_t const lock(output_edges_mut);
