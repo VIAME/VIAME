@@ -38,3 +38,14 @@ target_compile_definitions( test-viame-external_plugins PRIVATE
   # A real shared library that is not a plugin: VIAME's own configuration
   # library, which exports no `viame_register_plugin`.
   "VIAME_TEST_NOT_A_PLUGIN=\"$<TARGET_FILE:vital_config>\"" )
+
+###
+# The logger
+#
+# Recorded before P8-T04 replaces it. The line the logger writes is what
+# anything outside VIAME sees of a run, so the tests are held to the format
+# rather than to an opinion about it.
+##
+kwiver_discover_gtests( viame logger
+  LIBRARIES kwiver::vital_logger
+            GTest::gtest )
