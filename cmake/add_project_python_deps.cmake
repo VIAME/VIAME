@@ -180,7 +180,8 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-HUGGINGFACE OR VIAME_ENABLE_PYTORCH-RF-DETR )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "transformers>=5.1.0,<6.0.0" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS
+    "transformers>=5.16.0,<5.18.0" "tokenizers>=0.23.1,<0.24.0" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-LEARN OR
@@ -388,9 +389,6 @@ foreach( ID RANGE ${DEP_COUNT} )
   if( "${DEP}" STREQUAL "python-deps" )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
     set( CMD ${VIAME_PYTHON_BASIC_DEPS} )
-    # pip --user skips anything the distro already ships, so force the basic
-    # deps into PYTHONUSERBASE or the docker install tree ends up without them
-    set( PYTHON_DEP_IGNORE_INSTALLED "--ignore-installed" )
     # Add PyTorch extra index URL for basic deps that include torch
     if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
       set( PYTHON_DEP_EXTRA_INDEX "--extra-index-url" "${PYTORCH_ARCHIVE}" )
@@ -401,14 +399,12 @@ foreach( ID RANGE ${DEP_COUNT} )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} python-deps )
     list( GET VIAME_PYTHON_ADV_DEP_CMDS ${ID} CMD )
     set( PYTHON_DEP_EXTRA_INDEX "" )
-    set( PYTHON_DEP_IGNORE_INSTALLED "" )
   endif()
 
-  set( PYTHON_DEP_PIP_CMD pip install --user
-       ${PYTHON_DEP_IGNORE_INSTALLED} ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
+  set( PYTHON_DEP_PIP_CMD pip install --user ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
   if( VIAME_BUILD_NO_CACHE_DIR )
     set( PYTHON_DEP_PIP_CMD pip install --user --no-cache-dir
-         ${PYTHON_DEP_IGNORE_INSTALLED} ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
+         ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
   endif()
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
