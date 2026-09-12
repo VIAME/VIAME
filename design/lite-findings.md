@@ -767,6 +767,31 @@ an artefact of the port:
   the `viame_<name>` libraries into one is structural tidiness worth about a
   second between them; and the startup regression the plan was written
   against -- fifteen seconds -- is long gone.
+* **A third of the scanned modules could not register anything.** Following
+  the measurement above: `_load_python_module` contributes a module to the
+  registry only by calling `__sprokit_register__` or
+  `__vital_algorithm_register__` on it, and logs "does not have registrar
+  method" otherwise. So importing a module that defines neither is pure cost,
+  and **52 of the 151** scanned did exactly that -- including
+  `epipolar_dino_matcher`, the most expensive module in the tree, which
+  registers nothing and cost 1.22 s because it defines an `nn.Module`
+  subclass. Reading the source for `def __sprokit_register__` before
+  importing is exact rather than a heuristic, and skips them.
+  **The wall clock does not move**, and that is the finding rather than a
+  disappointment: `viame.pytorch.mit_yolo_detector` is a genuine plugin, it
+  imports torch at module scope to define its classes, and under the current
+  design it must be imported for its name to be known. Registration has to
+  become lazy before any of this shows up as time. What the filter does show
+  is the shape of the remaining problem -- with the pytorch package out of
+  the list, loading is **0.79 s** and torch is never touched.
+* **A package directory on `sys.path` shadows the standard library.** Running
+  python with `site-packages/viame` as the working directory makes
+  `viame/types.py` the `types` module, and the interpreter dies inside
+  `enum` before reaching any VIAME code. The same shape as the stale
+  `configs/inspect.py` that broke matplotlib for `viame plot`: a plausible
+  module name in a directory that ends up on the path. Nothing to fix in the
+  tree -- `viame.types` is legitimate -- but worth knowing when a VIAME
+  script fails in the standard library for no reason.
 * **Finding 1.9 again, and it distorts a dependency count.** The install had
   `libviame_cppdb.so` and `libviame_darknet.so` in it long after both were
   deleted from the tree, because installing does not delete. Reading the

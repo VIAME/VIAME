@@ -146,8 +146,59 @@ class ModuleLoader(Loader):
                             # Dont test remaining pyc / pyo extensions.
                             break
 
+    # The only way a scanned module can contribute anything is by defining one
+    # of these; `module_loader._load_python_module` calls the first it finds
+    # and otherwise logs that there was no registrar and moves on.
+    _REGISTRAR_NAMES = ("__sprokit_register__", "__vital_algorithm_register__")
+
+    def _definesRegistrar(self, filepath):
+        """Whether a module's source defines a registrar, without importing it.
+
+        The scan below imports **every** module it finds so that
+        `_load_python_module` can look for a registrar on it. Most of them
+        have none -- 64 of the 134 in VIAME's plugin packages -- and importing
+        those is pure cost. It is not small cost either: the most expensive
+        module in the tree at over a second, `viame.onnx.epipolar_dino_matcher`,
+        registers nothing at all. It defines an `nn.Module` subclass, so
+        importing it imports torch, and every `viame` command that touched the
+        plugin system paid for that.
+
+        Reading the source first is exact rather than a heuristic: a module
+        with no `def __sprokit_register__` and no `def __vital_algorithm_register__`
+        in it cannot provide one, and `_load_python_module` would do nothing
+        with it.
+
+        Anything that cannot be read as source -- a package directory, a
+        `.pyc` with no `.py` beside it, an unreadable file -- returns True and
+        is imported as before. Skipping is only ever done on positive
+        evidence.
+        """
+        if not filepath.endswith(".py"):
+            return True
+
+        for root in sys.path:
+            candidate = os.path.join(root, filepath)
+            if not os.path.isfile(candidate):
+                continue
+
+            try:
+                with open(candidate, "r", errors="ignore") as handle:
+                    source = handle.read()
+            except OSError:
+                return True
+
+            return any("def " + name in source
+                       for name in self._REGISTRAR_NAMES)
+
+        return True
+
     def _findPluginModules(self, namespace):
         for filepath in self._findPluginFilePaths(namespace):
+            if not self._definesRegistrar(filepath):
+                logger.debug(
+                    "Skipping {}: no registrar in its source".format(filepath))
+                continue
+
             path_segments = list(filepath.split(os.path.sep))
             path_segments = [p for p in path_segments if p]
             path_segments[-1] = os.path.splitext(path_segments[-1])[0]
