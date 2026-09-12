@@ -56,6 +56,12 @@ export SPROKIT_PYTHON_MODULES=viame.examples:$SPROKIT_PYTHON_MODULES
 
 # Set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=info
+# kwiver also carries the plugin paths that were compiled in from its build
+# CMAKE_INSTALL_PREFIX. This install lists its own directories above, and the
+# build tree may not even be present -- or worse, may be present and stale, in
+# which case every factory registers twice and each duplicate is logged.
+export KWIVER_PLUGIN_PATH_NO_DEFAULTS=1
+
 
 # Paths for matlab (empty if not built with matlab)
 

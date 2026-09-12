@@ -71,3 +71,9 @@ export PATH=$this_dir/bin:$PATH
 
 # Show when VIAME is sourced in terminal without duplicates
 @SETUP_CUSTOM_TERMINAL@
+
+# kwiver also carries the plugin paths that were compiled in from its build
+# CMAKE_INSTALL_PREFIX. This install lists its own directories above, and the
+# build tree may not even be present -- or worse, may be present and stale, in
+# which case every factory registers twice and each duplicate is logged.
+export KWIVER_PLUGIN_PATH_NO_DEFAULTS=1

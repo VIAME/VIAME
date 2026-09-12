@@ -51,3 +51,9 @@ REM characters in third-party libraries (rich, lightning, yolo) on Windows
 SET PYTHONUTF8=1
 
 SET KWIVER_DEFAULT_LOG_LEVEL=debug
+
+REM kwiver also carries the plugin paths that were compiled in from its build
+REM CMAKE_INSTALL_PREFIX. This install lists its own directories above, and the
+REM build tree may not even be present -- or worse, may be present and stale,
+REM in which case every factory registers twice and each duplicate is logged.
+SET KWIVER_PLUGIN_PATH_NO_DEFAULTS=1

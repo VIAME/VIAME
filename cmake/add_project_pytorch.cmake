@@ -202,7 +202,14 @@ endif()
 if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   list( APPEND PYTORCH_ENV_VARS "DISTUTILS_USE_SDK=1" )
   list( APPEND PYTORCH_ENV_VARS "CMAKE_PREFIX_PATH=${VIAME_INSTALL_PREFIX}" )
-  list( APPEND PYTORCH_ENV_VARS "USE_DISTRIBUTED=0" )
+  # Distributed on, NCCL off. NCCL is Linux-only, but gloo builds on Windows and
+  # is all torch.distributed needs to exist. With USE_DISTRIBUTED=0 the module
+  # is a stub exposing nothing but is_available(), so PyTorch-Lightning's DDP
+  # strategies cannot run at all: a two-GPU Windows box trains every job on one
+  # card no matter what the config asks for, and the failure surfaces only after
+  # data preparation. Trainers still guard on ddp_available() for installs built
+  # the old way (see plugins/pytorch/utilities.py).
+  list( APPEND PYTORCH_ENV_VARS "USE_DISTRIBUTED=1" )
   list( APPEND PYTORCH_ENV_VARS "USE_NCCL=0" )
   list( APPEND PYTORCH_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
   list( APPEND PYTORCH_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
