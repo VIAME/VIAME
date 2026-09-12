@@ -9,8 +9,6 @@ CommandLine:
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
     cd ~/code/VIAME/build
-    export KWIVER_PLUGIN_PATH=""
-    export SPROKIT_MODULE_PATH=""
     source install/setup_viame.sh
 
     export KWIVER_DEFAULT_LOG_LEVEL=info

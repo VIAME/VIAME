@@ -40,10 +40,7 @@
 #include <viame/algorithm_framework/applets/applet_registrar.h>
 #include <viame/algorithm_framework/exceptions/base.h>
 #include <viame/algorithm_framework/plugin/plugin_factory.h>
-#include <viame/algorithm_framework/plugin/plugin_filter_category.h>
-#include <viame/algorithm_framework/plugin/plugin_filter_default.h>
 #include <viame/algorithm_framework/plugin/plugin_manager_internal.h>
-#include <viame/algorithm_framework/util/get_paths.h>
 #include <viame/core_types/vital_types.h>
 
 #include <algorithm>
@@ -288,24 +285,14 @@ int main(int argc, char *argv[])
 
   kwiver::vital::plugin_manager_internal& vpm = kwiver::vital::plugin_manager_internal::instance();
 
-  // Add VIAME and KWIVER plugin search paths, relative to the executable.
-  // Each entry holds the per-category plugin directories.
-  const std::string exec_path = kwiver::vital::get_executable_path();
-
-  for( const char* lib_dir : { "/../lib/", "/../lib64/" } )
-  {
-    vpm.add_search_path( exec_path + lib_dir + "viame" );
-    vpm.add_search_path( exec_path + lib_dir + "kwiver/plugins" );
-  }
-
   // Only the applet plugins are needed to look up and dispatch an applet.
   // Applets that need more load it themselves, or have it loaded for them
   // below.
   //
-  // This used to name the applet directories and scan them. P8-T03 links the
-  // plugins in, so there is nothing to scan and the category is asked for by
-  // name -- the registry skips every library that is not an applet, and
-  // `viame help` still pays for nothing else.
+  // This used to add two plugin directories per library root and scan the
+  // `applets` subdirectory of each. P8-T03 links the plugins in, so there is
+  // nothing to scan and no path to guess -- the category is asked for by
+  // name, and the registry skips every library that is not an applet.
   vpm.load_all_plugins(
     kwiver::vital::plugin_manager::plugin_type::APPLETS );
 

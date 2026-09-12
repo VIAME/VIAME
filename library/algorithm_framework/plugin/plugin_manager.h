@@ -102,37 +102,24 @@ public:
 
 /// @brief Load all reachable plugins.
 ///
-/// This method loads all plugins that can be discovered on the
-/// currently active search path. This method is called after all
-/// search paths have been added with the add_search_path() method.
+/// This method calls the registration function of every library VIAME
+/// was built with whose kind is named in \p types -- see
+/// add_static_registrar. There is nothing to discover and no path to
+/// search: the set is the build's.
 ///
-/// The first call to this method will load all known
-/// plugins. Subsequent calls will not load anything. If the plugins
-/// need to be reloaded, call the reload_plugins() method. if an
-/// additional directory list must be scanned after plugins are
-/// loaded, call load_plugins() with a list of directories to add
-/// more plugins to the manager.
+/// A kind that has already been loaded is skipped, so calling this twice
+/// registers nothing the second time. To start over, call
+/// reload_all_plugins().
 ///
 /// @throws plugin_already_exists - if a duplicate plugin is detected
   void load_all_plugins( plugin_types types = plugin_type::DEFAULT );
-
-/// @brief Load plugins from list of directories.
-///
-/// Load plugins from the specified list of directories. The
-/// directories are scanned immediately and all recognized plugins
-/// are loaded.
-///
-/// @param dirpath List of directories to search.
-///
-/// @throws plugin_already_exists - if a duplicate plugin is detected
-  void load_plugins( path_list_t const& dirpath );
 
 /// @brief Add a registration function that is called instead of being found.
 ///
 /// A library compiled with `viame_register_statically` has its registration
 /// function linked in rather than left in a loadable module, and hands it
-/// here as it loads. Every registrar added this way runs before the directory
-/// scan of the same `load_all_plugins` call, in the order they were added.
+/// here as it loads. `load_all_plugins` calls every registrar added this way,
+/// in the order they were added.
 ///
 /// It is called with the same `plugin_types` mask the caller gave
 /// `load_all_plugins`, and registers only what the mask asks for.
@@ -143,39 +130,6 @@ public:
 /// @param registrar Function to call with the loader.
   static void add_static_registrar(
     void ( *registrar )( plugin_loader&, plugin_types ) );
-
-// Search path stuff --------------------------------------------------------
-/// @brief Add an additional directories to search for plugins in.
-///
-/// This method adds the specified directory list to the end of the
-/// internal path used when loading plugins. This method can be
-/// called multiple times to add multiple sets of directories. Each
-/// directory is separated from the next by the standard system path
-/// separator character.
-///
-/// Single directories can be added with this method.
-///
-/// Call the load_plugins() method to load plugins after you have
-/// added all additional directories.
-///
-/// Directory paths that don't exist will simply be ignored.
-///
-/// \param dirpath Path to the directories to add to the plugin search path.
-  void add_search_path( path_t const& dirpath );
-
-/// @brief Add an additional directories to search for plugins in.
-///
-/// This method adds the specified directory list to the end of the
-/// internal path used when loading plugins. This method can be
-/// called multiple times to add multiple sets of directories.
-///
-/// Call the load_plugins() method to load plugins after you have
-/// added all additional directories.
-///
-/// Directory paths that don't exist will simply be ignored.
-///
-/// \param dirpath Path to the directories to add to the plugin search path.
-  void add_search_path( path_list_t const& dirpath );
 
 /// @brief Add factory to manager.
 ///
@@ -277,14 +231,6 @@ public:
 /// @param name Module to mark as loaded.
   void mark_module_as_loaded( module_t const& name );
 
-/// @brief Add path from environment variable name.
-///
-/// This method adds the path from the environment variable to the end
-/// of the current search path.
-///
-/// @param env_var Name of environment variable.
-  void add_path_from_environment( std::string env_var );
-
 protected:
 // Deprecated? ---------------------------------------------------------------
 // Some of these are used by the explorer via the "internal" subclass.
@@ -294,14 +240,6 @@ protected:
 // categories?
 
   plugin_loader* get_loader();
-
-/// @brief Get list of files loaded.
-///
-/// This method returns the list of shared object file names that
-/// successfully loaded.
-///
-/// @return List of file names.
-  std::vector< std::string > file_list();
 
 /// @brief Get map of known plugins.
 ///
@@ -323,13 +261,6 @@ protected:
   ~plugin_manager();
 
 public:
-/// @brief Get plugin manager search path
-///
-///  This method returns the search path used to load algorithms.
-///
-/// @return vector of paths that are searched
-  path_list_t const& search_path() const;
-
 // Factory Stuff -------------------------------------------------------------
 /// @brief Get list of factories for interface type.
 ///

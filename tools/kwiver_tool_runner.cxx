@@ -7,7 +7,6 @@
 
 #include <viame/algorithm_framework/exceptions/base.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
-#include <viame/algorithm_framework/util/get_paths.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -193,9 +192,6 @@ main( int argc, char* argv[] )
 
   kwiver::vital::plugin_manager& vpm =
     kwiver::vital::plugin_manager::instance();
-
-  const std::string exec_path = kwiver::vital::get_executable_path();
-  vpm.add_search_path( exec_path + "/../lib/kwiver/plugins" );
 
   vpm.load_all_plugins();
 

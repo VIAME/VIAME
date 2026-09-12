@@ -163,6 +163,7 @@ function( viame_write_static_registry output )
     string( APPEND calls
       "  if( types & pm::plugin_type::${kind} )\n"
       "  {\n"
+      "    loader.set_registering_library( \"${lib}\" );\n"
       "    viame_register_${lib}( loader );\n"
       "  }\n" )
   endforeach()

@@ -17,6 +17,5 @@ def tool_env():
     if build:
         root = Path(build).resolve()
         env['PATH'] = str(root / 'bin') + os.pathsep + env['PATH']
-        env['KWIVER_PLUGIN_PATH'] = str(root / 'lib/viame/applets') + os.pathsep + env.get('KWIVER_PLUGIN_PATH', '')
     env['PYTHONDONTWRITEBYTECODE'] = '1'
     return env

@@ -29,10 +29,7 @@ public:
   plugin_map_t const& plugin_map() { return plugin_manager::plugin_map(); }
   std::map< std::string, std::string > const&
   module_map() const { return plugin_manager::module_map(); }
-  path_list_t const&
-  search_path() const { return plugin_manager::search_path(); }
   plugin_loader* get_loader() { return plugin_manager::get_loader(); }
-  std::vector< std::string > file_list() { return plugin_manager::file_list(); }
 };
 
 } // namespace vital

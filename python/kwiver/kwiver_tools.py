@@ -14,7 +14,6 @@ from pkg_resources import iter_entry_points
 from typing import Dict, List
 
 from kwiver.vital import vital_logging
-from kwiver.vital.util.initial_plugin_path import get_initial_plugin_path
 
 KWIVER_BIN_DIR = os.path.join(os.path.dirname(os.path.abspath(kwiver.__file__)), "bin")
 KWIVER_SUPPORTED_TOOLS = ["kwiver", "plugin_explorer"]
@@ -25,9 +24,8 @@ def _setup_environment() -> Dict:
     """
     Create a dictionary with environment variables for running kwiver tools.
 
-    The dictionary includes appending LD_LIBRARY_PATH, adding path to vital
-    logging factory to VITAL_LOGGER_FACTORY, and path to default plugins in
-    KWIVER_PLUGIN_PATH.
+    The dictionary includes appending LD_LIBRARY_PATH and adding the path to
+    the vital logging factory in VITAL_LOGGER_FACTORY.
 
     Returns:
         Dictionary with environment variables used for running tools
@@ -59,7 +57,6 @@ def _setup_environment() -> Dict:
     tool_environment = {
         "LD_LIBRARY_PATH": ld_library_path_str,
         "VITAL_LOGGER_FACTORY": vital_logger_factory,
-        "KWIVER_PLUGIN_PATH": get_initial_plugin_path(),
     }
     # Add the remaining environment variables without fiddling with what we have already set
     for env_var_name, env_var_val in os.environ.items():

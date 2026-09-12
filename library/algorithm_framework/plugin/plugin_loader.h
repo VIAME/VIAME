@@ -20,92 +20,30 @@ namespace kwiver::vital {
 
 // base class of factory hierarchy
 class plugin_factory;
-class plugin_loader_filter;
 
 using plugin_factory_handle_t = std::shared_ptr< plugin_factory >;
 using plugin_factory_vector_t = std::vector< plugin_factory_handle_t >;
 using plugin_map_t            = std::map< std::string,
   plugin_factory_vector_t >;
-using plugin_module_map_t     = std::map< std::string, path_t >;
-using plugin_filter_handle_t  = std::shared_ptr< plugin_loader_filter >;
+using plugin_module_map_t     = std::map< std::string, std::string >;
 
 class plugin_loader_impl;
 
 /**
- * @brief Manage dynamically loading plugin modules from search paths given a
- *    known "initialization" function to run.
+ * @brief The registry: every factory VIAME was built with, by interface.
  *
- * The plugin manager keeps track of all factories from plugins that
- * are discovered on the disk.
- *
+ * This used to find plugins by scanning directories and `dlopen`-ing what
+ * it found, which is where the name comes from. P8-T03 links the plugins in
+ * and calls their registration functions directly, so what is left is the
+ * store they register into -- factories by interface name, and the set of
+ * modules that have already registered.
  */
 class VITAL_VPM_EXPORT plugin_loader
 {
 public:
-  /**
-   * @brief Constructor
-   *
-   * @param init_function Name of the plugin initialization function
-   *    to be called to effect loading of the plugin.
-   * @param shared_lib_suffix Shared library suffix string for the platform
-   *    being loaded from.
-   */
-  plugin_loader(
-    std::string const& init_function,
-    std::string const& shared_lib_suffix );
+  plugin_loader();
 
   virtual ~plugin_loader();
-
-  /// @brief Load all reachable plugins.
-  ///
-  /// This method loads all plugins that can be discovered on the
-  /// currently active search path. This method is called after all
-  /// search paths have been added with the add_search_path() method.
-  ///
-  /// @throws plugin_already_exists - if a duplicate plugin is detected
-  void load_plugins();
-
-  /// @brief Load plugins from list of directories.
-  ///
-  /// Load plugins from the specified list of directories. The
-  /// directories are scanned immediately and all recognized plugins
-  /// are loaded. The internal accumulated search path is not used for
-  /// this method. This is useful for adding plugins after the search
-  /// path has been processed.
-  ///
-  /// @param dirpath List of directories to search.
-  ///
-  /// @throws plugin_already_exists - if a duplicate plugin is detected
-  void load_plugins( path_list_t const& dirpath );
-
-  /// @brief Load a single plugin file.
-  ///
-  /// This method loads a single plugin file.
-  ///
-  /// @param file Name of the file to load.
-  void load_plugin( path_t const& file );
-
-  // Search Stuff --------------------------------------------------------------
-  /// @brief Add an additional directories to search for plugins in.
-  ///
-  /// This method adds the specified directory list to the end of
-  /// the internal path used when loading plugins. This method can be called
-  /// multiple times to add multiple directories.
-  ///
-  /// Call the register_plugins() method to load plugins after you have
-  /// added all additional directories.
-  ///
-  /// Directory paths that don't exist will simply be ignored.
-  ///
-  /// \param dirpath Path to the directories to add to the plugin search path.
-  void add_search_path( path_list_t const& dirpath );
-
-  /// @brief Get plugin manager search path
-  ///
-  ///  This method returns the search path used to load algorithms.
-  ///
-  /// @return vector of paths that are searched
-  path_list_t const& get_search_path() const;
 
   // Factory Stuff =============================================================
   /// @brief Get list of factories for interface type.
@@ -144,7 +82,7 @@ public:
   /// Plugin factory objects are grouped under the interface type name,
   /// so all factories that create the same interface are together.
   ///
-  /// By adding a factory, we set the PLUGIN_FILE_NAME attribute to be the name
+  /// By adding a factory, we set the PLUGIN_ORIGIN_LIBRARY attribute to be the name
   /// of library module it was added from.
   ///
   /// A factory may fail to be added if:
@@ -186,7 +124,7 @@ public:
    * type so all factories that create implementations of the same interface are
    * grouped together.
    *
-   * Factories are created with the PLUGIN_FILE_NAME attribute set to be the
+   * Factories are created with the PLUGIN_ORIGIN_LIBRARY attribute set to be the
    * name of library module it was added from.
    *
    * A factory may fail to be added if:
@@ -242,15 +180,6 @@ public:
 
   // Deprecated? ===============================================================
 
-  // TODO: This doesn't seem to be used anywhere
-  /// @brief Get list of files loaded.
-  ///
-  /// This method returns the list of shared object file names that
-  /// successfully loaded.
-  ///
-  /// @return List of file names.
-  std::vector< std::string > get_file_list() const;
-
   /// @brief Indicate that a module has been loaded.
   ///
   /// This method set an indication that the specified module is loaded
@@ -273,15 +202,20 @@ public:
   /// @brief Get list of loaded modules.
   ///
   /// This method returns a map of modules that have been marked as
-  /// loaded by the mark_module_as_loaded() method along with the name
-  /// of the plugin file where the call was made.
+  /// loaded by the mark_module_as_loaded() method.
   ///
-  /// @return Map of modules loaded and the source file.
+  /// @return Map of modules loaded.
   [[nodiscard]]
   plugin_module_map_t const& get_module_map() const;
 
-  void clear_filters();
-  void add_filter( plugin_filter_handle_t f );
+  /// @brief Name the library that is registering.
+  ///
+  /// The generated static registry calls this before each library's
+  /// registration function; factories added while it is set record it as
+  /// their PLUGIN_ORIGIN_LIBRARY.
+  ///
+  /// @param name Library name.
+  void set_registering_library( std::string const& name );
 
 protected:
   friend class plugin_loader_impl;  // is this needed? I clearly don't remember

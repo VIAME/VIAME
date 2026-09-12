@@ -40,15 +40,7 @@ PYBIND11_MODULE( _plugin_management, m )
     "load_all_plugins", []( kv::plugin_manager& self ){
       return self.load_all_plugins();
     },
-    py::doc(
-      "Loads all plugins that can be discovered on the "
-      "currently active search path. " )
-    )
-    .def(
-      "add_search_path",
-      ( void ( kwiver::vital::plugin_manager::* )(
-        const kwiver::vital::path_t& ) ) & kv::plugin_manager::add_search_path,
-      py::doc( "Add a location to the search path for plugins" )
+    py::doc( "Registers every factory VIAME was built with." )
     )
     .def(
       "reload_all_plugins", &kv::plugin_manager::reload_all_plugins,

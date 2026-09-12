@@ -1,5 +1,10 @@
 ###
-# plugin loader
+# The plugin registry
+#
+# `plugin_loader` is the store -- factories by interface name -- and
+# `plugin_manager` the singleton around it. Neither loads anything since
+# P8-T03: the registration functions are linked in and called by
+# `library/algorithm_framework/registry`.
 
 ###
 # vital plugin manager
@@ -13,9 +18,6 @@ set(vital_vpm_headers_public
   )
 
 set(vital_vpm_headers_private
-    #  plugin_loader_filter.h
-    #  plugin_filter_default.h
-    #  plugin_filter_category.h
     #  plugin_manager_internal.h
     ${CMAKE_CURRENT_BINARY_DIR}/vital_vpm_export.h
     )
@@ -24,8 +26,6 @@ set(vital_vpm_sources
   plugin_factory.cxx
   plugin_loader.cxx
   plugin_manager.cxx
-#  plugin_filter_default.cxx
-#  plugin_filter_category.cxx
   )
 
 # This has to be built shared due to the use of the singleton pattern holding

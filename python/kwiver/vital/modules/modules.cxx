@@ -22,44 +22,18 @@ namespace vital {
 
 namespace python {
 
-const std::string
-get_initial_plugin_path()
-{
-  py::object const initial_plugin_path_module =
-    py::module::import( "kwiver.vital.util.initial_plugin_path" );
-  std::string const initial_plugin_path =
-    initial_plugin_path_module.attr("get_initial_plugin_path")().cast< std::string > ();
-  return initial_plugin_path;
-}
-
-void
-add_external_plugin_paths()
-{
-  py::object const entrypoint_module =
-    py::module::import( "kwiver.vital.util.entrypoint" );
-  entrypoint_module.attr("add_entrypoint_paths_to_env")();
-}
-
-// @todo Alternative is to provide C bindings for the plugin manager.
+// Both of these used to ask python where the plugin directory was and hand
+// the answer to the manager before doing anything. P8-T03 links the plugins
+// in, so there is no directory and nothing to tell it.
 void
 load_known_modules()
 {
-  const std::string initial_plugin_path =
-    kwiver::vital::python::get_initial_plugin_path();
-
-  kwiver::vital::plugin_manager::instance().add_search_path(
-    initial_plugin_path );
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 }
 
 bool
 is_module_loaded( std::string module_name )
 {
-  const std::string initial_plugin_path =
-    kwiver::vital::python::get_initial_plugin_path();
-
-  kwiver::vital::plugin_manager::instance().add_search_path(
-    initial_plugin_path );
   return kwiver::vital::plugin_manager::instance().is_module_loaded(
     module_name );
 }

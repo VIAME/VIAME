@@ -4,36 +4,16 @@
 
 #include "plugin_factory.h"
 #include "plugin_loader.h"
-#include "plugin_loader_filter.h"
 
 #include <viame/algorithm_framework/exceptions/plugin.h>
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/util/demangle.h>
-#include <viame/algorithm_framework/util/string.h>
-
-#include <kwiversys/Directory.hxx>
-#include <kwiversys/DynamicLoader.hxx>
-#include <kwiversys/SystemTools.hxx>
 
 #include <sstream>
-#include <utility>
-
-#if __linux__
-#include <dlfcn.h>
-#endif
 
 namespace kwiver {
 
 namespace vital {
-
-namespace {
-
-using ST = kwiversys::SystemTools;
-using DL = kwiversys::DynamicLoader;
-using library_t = DL::LibraryHandle;
-using function_t = DL::SymbolPointer;
-
-} // end anon namespace
 
 // ----------------------------------------------------------------------------
 /// @brief Plugin manager private implementation.
@@ -41,65 +21,33 @@ using function_t = DL::SymbolPointer;
 class plugin_loader_impl
 {
 public:
-  plugin_loader_impl(
-    plugin_loader* parent,
-    std::string init_function,
-    std::string shared_lib_suffix )
-    : m_parent( parent ),
-      m_init_function( std::move( init_function ) ),
-      m_shared_lib_suffix( std::move( shared_lib_suffix ) )
-  {}
-
+  plugin_loader_impl() = default;
   ~plugin_loader_impl() = default;
-
-  /// Load all modules in the currently set search path
-  void load_known_modules();
-  /// Load discovered module libraries in the given filesystem directory path.
-  void look_in_directory( std::string const& dir_path );
-  /// Attempt loading the module library file given as a filesystem path.
-  void load_from_module( std::string const& path );
-
-  // Parent loader instance this impl inst is for.
-  plugin_loader* m_parent;
-  // Name of the function to dynamically load from the
-  const std::string m_init_function;
-  const std::string m_shared_lib_suffix;
-
-  /// Paths in which to search for module libraries
-  path_list_t m_search_paths;
 
   // Map from interface name to vector of plugin_factory instances.
   // For consistency, "interface name" refers to the name resulting from
   // `get_interface_name<T>()`.
   plugin_map_t m_plugin_map;
 
-  // Map to keep track of the modules we have opened and loaded.
-  typedef std::map< std::string, DL::LibraryHandle > library_map_t;
-
-  library_map_t m_library_map;
-
-  //  Deprecated?
-  /// \brief Maps module name to source file.
+  /// \brief Maps module name to the library that registered it.
   ///
-  /// This map is used to keep track of whch modules have been
-  /// loaded. For diagnostic purposes, we also record the file that
-  /// registered the module.
+  /// This map is used to keep track of which modules have registered, and
+  /// is what every registration function guards on.
   plugin_module_map_t m_module_map;
 
-  //  Deprecated?
-  std::vector< plugin_filter_handle_t > m_filters;
-
-  // Name of current module file we are processing
-  std::string m_current_filename;
+  /// The library whose registration function is running.
+  ///
+  /// The generated registry sets it around each call, so that a factory can
+  /// say where it came from. It used to be the path of the file the loader
+  /// had just `dlopen`ed, which is where PLUGIN_FILE_NAME came from.
+  std::string m_registering_library;
 }; // end class plugin_loader_impl
 
 // ----------------------------------------------------------------------------
 plugin_loader
-::plugin_loader(
-  std::string const& init_function,
-  std::string const& shared_lib_suffix )
+::plugin_loader()
   : m_logger( kwiver::vital::get_logger( "vital.plugin_loader" ) ),
-    m_impl( new plugin_loader_impl( this, init_function, shared_lib_suffix ) )
+    m_impl( new plugin_loader_impl() )
 {}
 
 plugin_loader
@@ -129,13 +77,10 @@ plugin_loader
 {
   plugin_factory_handle_t fact_handle( fact );
 
-  // Add the current file name as an attribute.
-  // This method will inherently be invoked *after* calling the
-  // ``plugin_loader_impl::load_from_module`` method which sets the
-  // `m_impl->m_current_filename` value.
+  // Where the factory came from, for the duplicate diagnostics below.
   fact->add_attribute(
-    plugin_factory::PLUGIN_FILE_NAME,
-    m_impl->m_current_filename );
+    plugin_factory::PLUGIN_ORIGIN_LIBRARY,
+    m_impl->m_registering_library );
 
   // Get the interface type naming, which ought to be that as returned by
   // `get_interface_name<T>()`.
@@ -169,11 +114,12 @@ plugin_loader
   {
     for( auto const& afact : fact_list )
     {
-      std::string interf, inst, name, prev_file;
+      std::string interf, inst, name, prev_lib;
       afact->get_attribute( plugin_factory::INTERFACE_TYPE, interf );
       afact->get_attribute( plugin_factory::CONCRETE_TYPE, inst );
       afact->get_attribute( plugin_factory::PLUGIN_NAME, name );
-      afact->get_attribute( plugin_factory::PLUGIN_FILE_NAME, prev_file );
+      afact->get_attribute(
+        plugin_factory::PLUGIN_ORIGIN_LIBRARY, prev_lib );
 
       if( ( interface_type == interf ) && ( plugin_name == name ) )
       {
@@ -182,13 +128,13 @@ plugin_loader
         {
           // EXACTLY the same concrete type is being registered.
           // Only log if the paths are different.
-          if( prev_file != m_impl->m_current_filename )
+          if( prev_lib != m_impl->m_registering_library )
           {
             str << "Factory for \"" << interface_type << "\" : \""
                 << demangle( concrete_type ) <<
               "\" already has been registered by "
-                << prev_file << ".  This factory from "
-                << m_impl->m_current_filename << " will not be registered."
+                << prev_lib << ".  This factory from "
+                << m_impl->m_registering_library << " will not be registered."
                 << "Using the existing factory";
 
             LOG_WARN( this->m_logger, str.str() );
@@ -204,10 +150,10 @@ plugin_loader
               << "already been registered under the same plugin name \""
               << name << "\". "
               << "The existing plugin type (\"" << demangle( concrete_type )
-              << "\") is was registered from file \"" << prev_file << "\"."
+              << "\") was registered by \"" << prev_lib << "\"."
               << "The current type being registered (\"" << demangle( inst )
-              << "\") is being registered from file \""
-              << m_impl->m_current_filename << "\".";
+              << "\") is being registered by \""
+              << m_impl->m_registering_library << "\".";
           VITAL_THROW( plugin_already_exists, str.str() );
         }
       }
@@ -230,8 +176,8 @@ plugin_loader
       plugin_name
                                             << "\" from derived type: \"" <<
       demangle( concrete_type )
-                                            << "\" from file: " <<
-      m_impl->m_current_filename );
+                                            << "\" from library: " <<
+      m_impl->m_registering_library );
 
   return fact_handle;
 }
@@ -242,42 +188,6 @@ plugin_loader
 ::get_plugin_map() const
 {
   return m_impl->m_plugin_map;
-}
-
-// Search path stuff ===========================================================
-void
-plugin_loader
-::add_search_path( path_list_t const& path )
-{
-  m_impl->m_search_paths.insert(
-    m_impl->m_search_paths.end(), path.begin(),
-    path.end() );
-  // remove any duplicate paths that were added
-  erase_duplicates( m_impl->m_search_paths );
-}
-
-// ----------------------------------------------------------------------------
-path_list_t const&
-plugin_loader
-::get_search_path() const
-{
-  // return vector of paths
-  return this->m_impl->m_search_paths;
-}
-
-// Deprecated? =================================================================
-std::vector< std::string >
-plugin_loader
-::get_file_list() const
-{
-  std::vector< std::string > retval;
-
-  for( auto const& it : m_impl->m_library_map )
-  {
-    retval.push_back( it.first );
-  } // end foreach
-
-  return retval;
 }
 
 // ------------------------------------------------------------------
@@ -296,24 +206,7 @@ plugin_loader
   m_impl->m_module_map.insert(
     std::pair< std::string, std::string >(
       name,
-      m_impl->m_current_filename ) );
-}
-
-// ----------------------------------------------------------------------------
-void
-plugin_loader
-::clear_filters()
-{
-  m_impl->m_filters.clear();
-}
-
-// ----------------------------------------------------------------------------
-void
-plugin_loader
-::add_filter( plugin_filter_handle_t f )
-{
-  f->m_loader = this;
-  m_impl->m_filters.push_back( f );
+      m_impl->m_registering_library ) );
 }
 
 // ----------------------------------------------------------------------------
@@ -324,205 +217,12 @@ plugin_loader
   return m_impl->m_module_map;
 }
 
-// Loading Factories ===========================================================
-void
-plugin_loader
-::load_plugins()
-{
-  m_impl->load_known_modules();
-}
-
 // ----------------------------------------------------------------------------
 void
 plugin_loader
-::load_plugins( path_list_t const& dirpath )
+::set_registering_library( std::string const& name )
 {
-  // Iterate over path and load modules
-  for( auto const& module_dir : dirpath )
-  {
-    m_impl->look_in_directory( module_dir );
-  }
-}
-
-// ----------------------------------------------------------------------------
-void
-plugin_loader
-::load_plugin( path_t const& file )
-{
-  m_impl->load_from_module( file );
-}
-
-// ----------------------------------------------------------------------------
-
-/**
- * @brief Load all known modules.
- *
- */
-void
-plugin_loader_impl
-::load_known_modules()
-{
-  // Iterate over path and load modules
-  for( auto const& module_dir : m_search_paths )
-  {
-    look_in_directory( module_dir );
-  }
-}
-
-// ----------------------------------------------------------------------------
-void
-plugin_loader_impl
-::look_in_directory( path_t const& dir_path )
-{
-  // Check given path for validity
-  // Preventing load from current directory via empty string (security)
-  if( dir_path.empty() )
-  {
-    LOG_DEBUG(
-      m_parent->m_logger,
-      "Empty directory in the search path. Ignoring." );
-    return;
-  }
-
-  if( !ST::FileExists( dir_path ) )
-  {
-    LOG_DEBUG(
-      m_parent->m_logger,
-      "Path " << dir_path << " doesn't exist. Ignoring." );
-    return;
-  }
-
-  if( !ST::FileIsDirectory( dir_path ) )
-  {
-    LOG_DEBUG(
-      m_parent->m_logger,
-      "Path " << dir_path << " is not a directory. Ignoring." );
-    return;
-  }
-
-  // Iterate over search-path directories, attempting module load on elements
-  // that end in the configured library suffix.
-  LOG_DEBUG(
-    m_parent->m_logger,
-    "Loading plugins from directory: " << dir_path );
-
-  kwiversys::Directory dir;
-  dir.Load( ST::CollapseFullPath( dir_path ) );
-
-  unsigned long num_files = dir.GetNumberOfFiles();
-
-  for( unsigned long i = 0; i < num_files; ++i )
-  {
-    std::string file = dir.GetPath();
-    file += "/" + std::string( dir.GetFile( i ) );
-
-    // Accept this file as a module to check if it has the correct library
-    // suffix and matches a provided module name if one was provided.
-
-    if( ST::GetFilenameLastExtension( file ) == m_shared_lib_suffix )
-    {
-      // Check that we're looking a file
-      if( !ST::FileIsDirectory( file ) )
-      {
-        load_from_module( file );
-      }
-      else
-      {
-        LOG_WARN(
-          m_parent->m_logger, "Encountered a directory entry " << file <<
-            " which ends with the expected suffix, but is not a file" );
-      }
-    }
-  } // end for
-} // plugin_loader_impl::look_in_directory
-
-// ----------------------------------------------------------------------------
-/// \brief Load single module from shared object / DLL
-///
-/// @param path Name of module to load.
-void
-plugin_loader_impl
-::load_from_module( path_t const& path )
-{
-  DL::LibraryHandle lib_handle;
-
-  // Utilized in the `add_factory` method when used within the module
-  // registration function to set the plugin_factory::PLUGIN_FILE_NAME
-  // attribute.
-  m_current_filename = path;
-
-  LOG_DEBUG( m_parent->m_logger, "Loading plugins from: " << path );
-
-  // DL::OpenLibrary does not specify either of the RTDL_GLOBAL/RTDL_LOCAL
-  // flags.  The default behavior on Linux is RTDL_LOCAL which causes problems
-  // in python plugins.  In particular, if we load a python plugin from C++, it
-  // will result in undefined symbols errors for symbols that should come from
-  // libpython.so.
-  //
-  // Here is the scenario in more general terms:
-  // 1. plugin A is loaded with RTLD_LOCAL;
-  // all symbols resolved during this time are "local" so if A introduces usage
-  // of library X, its symbols are local to this load.
-  // 2. If B is then loaded and also wants to use symbols from X, it gets told
-  // "no, those are private to A" and loading fails so it only works if all
-  // plugin loads use disjoint libraries (not already loaded) which we can
-  // neither guarantee nor require from the plugins.
-  //
-  // See also explanation in
-  // https://github.com/Kitware/sprokit/commit/4f33d9ff0660465552573e17d6174bb8d2934767
-  //
-  // Related pybind issue: https://github.com/pybind/pybind11/issues/3555
-  //
-  // TODO: check on  macos if this is required
-#if __linux__
-  lib_handle = dlopen( path.c_str(), RTLD_LAZY | RTLD_GLOBAL );
-#else
-  lib_handle = DL::OpenLibrary( path );
-#endif
-  if( !lib_handle )
-  {
-    LOG_WARN(
-      m_parent->m_logger,
-      "plugin_loader::Unable to load shared library \"" << path << "\" : "
-                                                        <<
-        DL::LastError() );
-    return;
-  }
-
-  DL::SymbolPointer fp = DL::GetSymbolAddress( lib_handle, m_init_function );
-  if( fp == nullptr )
-  {
-    std::string str( "Unknown error" );
-    char const* last_error = DL::LastError();
-    if( last_error )
-    {
-      str = std::string( last_error );
-    }
-
-    LOG_WARN(
-      m_parent->m_logger,
-      "plugin_loader:: Unable to bind to function \"" << m_init_function <<
-        "()\" : "
-                                                      << str );
-
-    DL::CloseLibrary( lib_handle );
-    return;
-  }
-
-  // There used to be a filter step here that was never effectively utilized.
-  // This filter had been a check if the library should be loaded at all.
-
-  // Save currently opened library in map
-  m_library_map[ path ] = lib_handle;
-
-  typedef void ( * reg_fp_t )( plugin_loader& );
-
-  reg_fp_t reg_fp = reinterpret_cast< reg_fp_t >( fp );
-
-  if( m_parent )
-  {
-    ( *reg_fp )( *m_parent ); // register plugins
-  }
+  m_impl->m_registering_library = name;
 }
 
 } // namespace vital

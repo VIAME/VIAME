@@ -85,8 +85,9 @@ public:
   // list.
   static const std::string INTERFACE_TYPE;  // typeid name of the interface type
   static const std::string CONCRETE_TYPE;  // typeid name of the concrete type
-  static const std::string PLUGIN_FILE_NAME;  // filesystem path from which this
-                                              // factory was registered from.
+  static const std::string PLUGIN_ORIGIN_LIBRARY;  // library whose
+                                                   // registration function
+                                                   // added this factory.
   static const std::string PLUGIN_NAME;  // Human-readable name for plugin
                                          // implementation.
   static const std::string PLUGIN_CATEGORY;  // like if this is an algo,

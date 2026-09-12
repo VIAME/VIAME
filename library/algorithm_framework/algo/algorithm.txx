@@ -264,7 +264,7 @@ check_nested_algo_configuration(
       "' for algorithm type "
         << type_key
         <<
-      " could not be found.\nMake sure KWIVER_PLUGIN_PATH is set correctly.";
+      " could not be found.";
 
     // Get list of factories for the algo_name
     kwiver::vital::plugin_manager& vpm =

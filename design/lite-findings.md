@@ -1103,6 +1103,44 @@ value type, ref-qualify the assignment operators **first**. The compiler
 will then find every site. Doing it the other way round -- porting, then
 looking -- is how ten of these got through.
 
+### 1.21 A library nothing calls by name is not linked
+
+The static registry hands itself to the plugin manager from a file-scope
+static initializer, which is the only thing connecting the two: no symbol in
+`libviame_registry.so` is named anywhere else. On this toolchain
+`--as-needed` is the default, so the linker dropped the library from every
+executable that listed it, the initializer never ran, and every factory in
+VIAME quietly went missing. The build was clean and the tests failed as if
+the algorithms had never been written.
+
+The fix is a `-Wl,--no-as-needed` around that one library, which is what
+`viame::registry` is -- an INTERFACE target holding the flag pair so the rest
+of the link line keeps its default. Worth knowing before designing anything
+else that registers itself on load: **the pattern only works if something
+references the library, or the link line is told to keep it.** A static
+library has the same problem in a different shape -- an object file no symbol
+reaches is never pulled out of the archive -- and `--whole-archive` is the
+equivalent answer.
+
+### 1.22 Static registration is eager, and eagerness has a price
+
+`viame`'s applet dispatch deliberately loaded only the applet plugins, which
+is why `viame help` cost 0.04 s against the 3.8 s a full plugin load costs.
+Compiling every registration function into the process and calling them all
+turned that into 2.57 s: the dispatch path was now importing every python
+plugin before printing a list of subcommand names.
+
+The directory layout had been carrying information -- `applets`, `processes`,
+`modules` -- and deleting the directories deleted it. Putting it back is one
+word per `kwiver_add_plugin` call (read off the `SUBDIR` it already passed)
+and one `if` per entry in the generated registry, and `load_all_plugins`
+already took the matching bitmask. `viame help` went back to 0.09 s, the
+remaining 0.05 s being the dynamic loader mapping the libraries the registry
+links.
+
+The general form: when a scan is replaced by a list, the scan's *selectivity*
+has to be replaced too, not just its contents.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`

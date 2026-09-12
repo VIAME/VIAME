@@ -20,36 +20,27 @@
 /**
  * @brief Python module loader.
  *
- * This function is called by the plugin loader when it is scanning
- * all plugins. It looks like a standard registration entry point for
- * a set or processes, but it activates the python interpreter and
- * causes it to call vital.modules.module_loader.load_python_modules().
- * Addtionally for the python package of kwiver it is used to register external
- * c++ plugins by specifying a search paths for the plugins
- * Also note that setting the environment variable
- * VITAL_NO_PYTHON_MODULES will suppress loading all python modules.
+ * This library's registration function looks like any other -- the static
+ * registry calls it with the rest -- but what it registers is python: it
+ * activates the interpreter and has it call
+ * vital.modules.module_loader.load_python_modules().
+ * Setting the environment variable VITAL_NO_PYTHON_MODULES suppresses it.
  */
 
 namespace py = pybind11;
 
 static void load_python_modules();
 static bool is_suppressed();
-static void load_additional_cpp_modules( kwiver::vital::plugin_loader& vpm );
 
 // ==================================================================
 
 /**
  * @brief Python module loader.
  *
- * This function is called by the plugin loader when it is scanning
- * all plugins. It looks like a standard registration entry point for
- * a set or processes, but it activates the python interpreter and
- * causes it to call vital.modules.module_loader.load_python_modules().
- * Addtionally for the python package of kwiver it is used to register external
- * c++ plugins by specifying a search paths for the plugins
- * Also note that setting the environment variable
- * VITAL_NO_PYTHON_MODULES will suppress loading all python modules and any cpp
- * modules that are advertised through entrypoints.
+ * This is a standard registration entry point in shape, but what it
+ * registers is python: it activates the interpreter and has it call
+ * vital.modules.module_loader.load_python_modules().
+ * Setting the environment variable VITAL_NO_PYTHON_MODULES suppresses it.
  */
 
 // Python plugin discovery is best effort: a host with a broken or missing
@@ -138,12 +129,6 @@ register_factories_impl( kwiver::vital::plugin_loader& vpm )
     ( void ) acquire;
     VITAL_PYTHON_IGNORE_EXCEPTION( load_python_modules() )
   }
-
-  {
-    pybind11::gil_scoped_acquire acquire;
-    ( void ) acquire;
-    VITAL_PYTHON_IGNORE_EXCEPTION( load_additional_cpp_modules( vpm ) )
-  }
   vpm.mark_module_as_loaded( module_name );
 }
 
@@ -173,35 +158,3 @@ load_python_modules()
   loader();
 }
 
-// -------------------------------------------------------------------
-void
-load_additional_cpp_modules( kwiver::vital::plugin_loader& vpm )
-{
-  auto logger = kwiver::vital::get_logger( "vital.load_additional_cpp_paths" );
-  py::object const modules =
-    py::module::import( "kwiver.vital.util.entrypoint" );
-  py::object const get_cpp_paths_from_entrypoint =
-    modules.attr( "get_cpp_paths_from_entrypoint" );
-  py::object py_additional_paths = get_cpp_paths_from_entrypoint();
-  auto additional_paths =
-    py_additional_paths.cast< std::vector< std::string > >();
-  auto current_search_paths = vpm.get_search_path();
-  auto new_search_paths = std::vector< std::string >();
-  for( auto& current_search_path : current_search_paths )
-  {
-    LOG_INFO(logger, "Current search path" + current_search_path);
-  }
-
-  for( auto& additional_path : additional_paths )
-  {
-    if( std::find(
-      current_search_paths.begin(),
-      current_search_paths.end(),
-      additional_path ) == current_search_paths.end() )
-    {
-      new_search_paths.push_back( additional_path );
-      LOG_INFO(logger, "new search path" + additional_path);
-    }
-  }
-  vpm.load_plugins( new_search_paths );
-}
