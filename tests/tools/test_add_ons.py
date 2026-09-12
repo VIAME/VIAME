@@ -97,3 +97,88 @@ def test_incomplete_download_is_an_error(tmp_path, monkeypatch):
     monkeypatch.setattr(m.urllib.request, 'urlopen', lambda *args, **kwargs: response)
     with pytest.raises(RuntimeError, match='Incomplete download'):
         m.download('https://example.test/file.zip', tmp_path / 'file.zip')
+
+
+@pytest.mark.parametrize('cancel_after', [1, 2])
+def test_cancel_restores_replaced_files(tmp_path, monkeypatch, cancel_after):
+    target = tmp_path / 'configs/pipelines'
+    target.mkdir(parents=True)
+    (target / 'a.pipe').write_text('old')
+    archive = tmp_path / 'pack.zip'
+    with zipfile.ZipFile(archive, 'w') as z:
+        z.writestr('configs/pipelines/a.pipe', 'new')
+        z.writestr('configs/pipelines/new/b.pipe', 'second')
+    cancel = tmp_path / 'cancel'
+    monkeypatch.setenv('VIAME_ADDON_CANCEL_FILE', str(cancel))
+    replace = m.os.replace
+    count = 0
+    def request_cancel(src, dst):
+        nonlocal count
+        replace(src, dst)
+        if Path(src).name.startswith('payload-'):
+            count += 1
+            if count == cancel_after:
+                cancel.touch()
+    monkeypatch.setattr(m.os, 'replace', request_cancel)
+    with pytest.raises(m.InstallationCancelled):
+        m.install_archive(tmp_path, archive)
+    assert (target / 'a.pipe').read_text() == 'old'
+    assert not (target / 'new').exists()
+    assert not list(tmp_path.glob('.viame-addon-*'))
+
+
+def test_cancel_download_removes_partial_archive(tmp_path, monkeypatch):
+    import io
+    cancel = tmp_path / 'cancel'
+    monkeypatch.setenv('VIAME_ADDON_CANCEL_FILE', str(cancel))
+    class Response(io.BytesIO):
+        headers = {'Content-Length': '2000000'}
+        def read(self, size):
+            cancel.touch()
+            return super().read(size)
+    monkeypatch.setattr(m.urllib.request, 'urlopen', lambda *args, **kwargs: Response(b'x' * 2000000))
+    download_dir = tmp_path / 'download'
+    download_dir.mkdir()
+    monkeypatch.setattr(m.tempfile, 'mkdtemp', lambda **kwargs: str(download_dir))
+    addon = m.Addon('fish', 'https://example.test/fish.zip', '', '', '', [], '')
+    with pytest.raises(m.InstallationCancelled):
+        m.install_addon(tmp_path, addon)
+    assert not download_dir.exists()
+
+
+def test_cancel_cli_returns_distinct_exit_code(tmp_path, monkeypatch):
+    cancel = tmp_path / 'cancel'
+    cancel.touch()
+    monkeypatch.setenv('VIAME_ADDON_CANCEL_FILE', str(cancel))
+    csv = tmp_path / 'addons.csv'
+    csv.write_text('FISH,https://example.test/fish.zip,Fish,,ALL-PLATFORMS,,fish.pipe\n')
+    assert m.main(['--install-dir', str(tmp_path), '--csv', str(csv), 'install', 'FISH']) == 130
+
+
+@pytest.mark.parametrize('cancel_download', [False, True])
+def test_google_drive_progress_and_cancellation(tmp_path, monkeypatch, capsys, cancel_download):
+    import json
+    import sys
+    import types
+    cancel = tmp_path / 'cancel'
+    monkeypatch.setenv('VIAME_ADDON_CANCEL_FILE', str(cancel))
+    monkeypatch.setenv('VIAME_ADDON_PROGRESS', '1')
+    def fake_download(*, url, output, quiet, use_cookies, progress):
+        assert url == 'https://drive.google.com/file/d/public-id/view'
+        assert quiet and not use_cookies
+        output.write(b'archive')
+        if cancel_download:
+            cancel.touch()
+        progress(7, 14)
+        output.write(b'archive')
+        return output
+    monkeypatch.setitem(sys.modules, 'gdown', types.SimpleNamespace(download=fake_download))
+    if cancel_download:
+        with pytest.raises(m.InstallationCancelled):
+            m.download('https://www.drive.google.com/file/d/public-id/view', tmp_path / 'pack.zip')
+    else:
+        m.download('https://www.drive.google.com/file/d/public-id/view', tmp_path / 'pack.zip')
+        events = [json.loads(line.split(' ', 1)[1]) for line in capsys.readouterr().out.splitlines()
+                  if line.startswith('VIAME_ADDON_PROGRESS ')]
+        assert events[-1] == {'phase': 'download', 'done': 14, 'total': 14}
+        assert (tmp_path / 'pack.zip').read_bytes() == b'archivearchive'

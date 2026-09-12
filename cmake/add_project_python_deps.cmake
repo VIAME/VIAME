@@ -60,6 +60,11 @@ endif()
 # For fusion classifier
 list( APPEND VIAME_PYTHON_BASIC_DEPS "map_boxes" "ensemble_boxes" )
 
+# Public Google Drive add-on downloads (also used by DIVE desktop).
+if( Python_VERSION VERSION_GREATER_EQUAL "3.10" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "gdown>=6.1.0,<7" )
+endif()
+
 if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "llvmlite>=0.44.0" "numba>=0.61.0" )
 else()
