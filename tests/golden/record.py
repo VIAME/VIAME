@@ -1031,6 +1031,39 @@ def main():
                  if (case["kind"], case["impl"], case["variant"])
                  not in already]
 
+        # A case can also gain an *input* rather than be new: P8-T06 added a
+        # JSON calibration to `calibration/read_stereo_rig/defaults`, which
+        # had been recorded without one. Only the outputs the manifest does
+        # not already name are taken, so an existing input keeps the values
+        # it was recorded with for the same reason a whole existing case
+        # does.
+        grown = []
+        by_key = {(case["kind"], case["impl"], case["variant"]): case
+                  for case in existing["cases"]}
+
+        for case in manifest["cases"]:
+            key = (case["kind"], case["impl"], case["variant"])
+            recorded = by_key.get(key)
+            if recorded is None:
+                continue
+
+            fresh = {name: record
+                     for name, record in case["outputs"].items()
+                     if name not in recorded["outputs"]}
+            if not fresh:
+                continue
+
+            for name, record in sorted(fresh.items()):
+                source = os.path.join(write_dir, record["file"])
+                target = os.path.join(group_dir, record["file"])
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                shutil.copyfile(source, target)
+                recorded["outputs"][name] = record
+                grown.append("{}/{}".format(case["kind"], name))
+
+            recorded["inputs"] = sorted(
+                set(recorded.get("inputs", [])) | set(case.get("inputs", [])))
+
         for key in manifest:
             if key in ("cases", "recorded"):
                 continue
@@ -1058,6 +1091,10 @@ def main():
 
         print("appended {} case(s); {} already recorded and left alone"
               .format(len(added), len(manifest["cases"]) - len(added)))
+
+        if grown:
+            print("added {} input(s) to existing cases: {}"
+                  .format(len(grown), ", ".join(grown)))
 
         manifest = existing
 

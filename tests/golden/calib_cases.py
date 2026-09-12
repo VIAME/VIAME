@@ -21,15 +21,25 @@ silently dropped them would pass every other check.
 # Paths are relative to the repository root.
 #
 # Between them these cover four of the five formats `read_stereo_rig`
-# dispatches on: an OpenCV directory pair, a single OpenCV YAML, and two NPZ.
-# JSON and MAT have no committed fixture; P7-T05 adds one if it grows a
-# reader change that would touch them.
+# dispatches on: an OpenCV directory pair, a single OpenCV YAML, two NPZ and
+# a JSON. MAT has no committed fixture.
+#
+# The JSON one was added by P8-T06, which replaces the library that parses
+# it. It had been the only format with no fixture at all, which is exactly
+# backwards: it is the one whose reader is being rewritten. It is also the
+# only source with fields the reader does not want -- `image_width`,
+# `grid_height`, `rms_error_stereo` and the rest come before the ones it
+# reads and are skipped by name, so a rewrite that read positionally rather
+# than by name would get nine wrong numbers and no error.
 CALIBRATIONS = {
     "tests_data_dir":       "tests/data",
     "tests_data_yml":       "tests/data/intrinsics.yml",
     "ifremer_dir":          "configs/add-ons/ifremer/models",
     "ifremer_npz":          "configs/add-ons/ifremer/models/calibration.npz",
     "size_measurement_npz": "examples/size_measurement/calibration_matrices.npz",
+    "stereo_fish_json":
+        "tests/pipelines/pipelines_test_data/labels/stereo/fish/"
+        "calibration_matrices.json",
 }
 
 # The arrays `load_stereo_calibration` returns.

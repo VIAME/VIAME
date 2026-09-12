@@ -1,4 +1,5 @@
 {
+  "appended": "2026-09-12T18:47:10Z",
   "cases": [
     {
       "config": {},
@@ -7,6 +8,7 @@
         "ifremer_dir",
         "ifremer_npz",
         "size_measurement_npz",
+        "stereo_fish_json",
         "tests_data_dir",
         "tests_data_yml"
       ],
@@ -26,6 +28,11 @@
           "file": "calibration/size_measurement_npz.json",
           "sha256": "78b24595a8901084",
           "source": "examples/size_measurement/calibration_matrices.npz"
+        },
+        "stereo_fish_json": {
+          "file": "calibration/stereo_fish_json.json",
+          "sha256": "5590f847a8379f31",
+          "source": "tests/pipelines/pipelines_test_data/labels/stereo/fish/calibration_matrices.json"
         },
         "tests_data_dir": {
           "file": "calibration/tests_data_dir.json",
