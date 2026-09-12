@@ -580,6 +580,12 @@ pipe_parser
     {
       PARSE_ERROR( t, "Expecting ',' but found \"" << t->text() << "\"" );
     }
+
+    // The token *after* the comma is the next flag. Without this the comma
+    // itself went round the loop and was rejected for not being a flag
+    // name, so `attr ',' attr_list` -- which the grammar above has always
+    // claimed -- could not be parsed at all.
+    t = m_lexer.get_token();
   } // end while
 }
 

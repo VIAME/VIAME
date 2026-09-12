@@ -192,29 +192,37 @@ TEST ( pipe_parser, flags_belong_to_the_key )
 }
 
 // ----------------------------------------------------------------------------
-// **A list of two flags does not parse**, and the grammar in the source says
-// it should:
+// A list of two flags, which the grammar in `parse_attrs` has always claimed
+// and which the function could not parse until P8-T07:
 //
 //     attr-list ::= attr
 //                 | attr ',' attr_list
 //
-// `parse_attrs` accepts the comma and then goes round the loop without
-// fetching the token after it, so the comma itself is tested for being a
-// flag name and is not one. `[ro,local]` therefore fails with "Expecting
-// attribute flag but found \",\"".
-//
-// Recorded as it is rather than fixed in the same breath: no shipped
-// pipeline writes two flags -- a grep of every `.pipe` and `.conf` finds
-// none -- which is what one would expect of a production that has never
-// worked. The fix is one line, and it is the next commit; this test is here
-// so that the commit has something to change.
-TEST ( pipe_parser, two_flags_in_one_bracket_do_not_parse )
+// It accepted the comma and then went round the loop without fetching the
+// token after it, so the comma was itself tested for being a flag name.
+// No shipped pipeline writes two flags, which is what one would expect of a
+// production that never worked.
+TEST ( pipe_parser, a_bracket_may_hold_more_than_one_flag )
 {
-  EXPECT_THROW(
-    parse(
-      "config global\n"
-      "  :both[ro,local]  2\n" ),
-    std::exception );
+  auto const blocks = parse(
+    "config global\n"
+    "  :one[ro]              1\n"
+    "  :two[ro,local]        2\n"
+    "  :three[ro,local,tunable] 3\n" );
+
+  auto const found = only< sprokit::config_pipe_block >( blocks );
+  ASSERT_EQ( 1u, found.size() );
+  ASSERT_EQ( 3u, found[ 0 ].values.size() );
+
+  EXPECT_EQ( ( std::vector< std::string >{ "ro" } ),
+             found[ 0 ].values[ 0 ].flags );
+  EXPECT_EQ( ( std::vector< std::string >{ "ro", "local" } ),
+             found[ 0 ].values[ 1 ].flags );
+  EXPECT_EQ( ( std::vector< std::string >{ "ro", "local", "tunable" } ),
+             found[ 0 ].values[ 2 ].flags );
+
+  // The value is still the rest of the line after the bracket.
+  EXPECT_EQ( "2", found[ 0 ].values[ 1 ].value );
 }
 
 // ----------------------------------------------------------------------------
