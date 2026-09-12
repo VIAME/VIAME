@@ -8,10 +8,10 @@
 #include "location_info.h"
 #include <viame/algorithm_framework/logger/vital_logger_export.h>
 
-#include <cstdlib>
 #include <functional>
 #include <memory>
 #include <sstream>
+#include <string>
 
 #include <viame/core_types/noncopyable.h>
 
@@ -19,20 +19,22 @@ namespace kwiver {
 
 namespace vital {
 
-namespace logger_ns {
-
-class kwiver_logger_factory;
-
-} // namespace logger_ns
-
 // ----------------------------------------------------------------------------
-/// @brief kwiver logger interface definition
+/// @brief A named logger.
 ///
-/// This class is the abstract base class for all loggers. It provides
-/// the interface to the application so it can generate log messages.
+/// Get one with `get_logger( name )` and log through the `LOG_*` macros in
+/// `logger.h`; those are the interface, and this class is what they call.
 ///
-/// A new logger is created for each named logger category. The
-/// concrete implementation determines how the category name is used.
+/// The name selects the logger and its level. It does not appear in the
+/// output -- a callback is how a program gets at it, and at the source
+/// location, which the formatted line also drops.
+///
+/// This used to be an abstract base with a factory behind it, loaded from a
+/// shared library named by `VITAL_LOGGER_FACTORY`, so that a project could
+/// substitute log4cxx or log4cplus. P8-T04 removed all of that: the two
+/// implementations that existed were behind build options that have never
+/// been on, VIAME ships one logger, and the indirection was costing a
+/// `dlopen` at static-initialisation time on every process start.
 class VITAL_LOGGER_EXPORT kwiver_logger
   : public std::enable_shared_from_this< kwiver_logger >,
     private kwiver::vital::noncopyable
@@ -49,18 +51,28 @@ public:
     LEVEL_FATAL,
   };
 
-  virtual ~kwiver_logger();
+/// @brief Make a logger.
+///
+/// Call `get_logger()` rather than this: loggers are shared by name, and one
+/// made here is not in that table.
+  explicit kwiver_logger( std::string const& name );
 
-// Check to see if level is enabled
-  virtual bool is_fatal_enabled() const = 0;
-  virtual bool is_error_enabled() const = 0;
-  virtual bool is_warn_enabled()  const = 0;
-  virtual bool is_info_enabled()  const = 0;
-  virtual bool is_debug_enabled() const = 0;
-  virtual bool is_trace_enabled() const = 0;
+  ~kwiver_logger();
 
-  virtual void set_level( log_level_t lev ) = 0;
-  virtual log_level_t get_level() const = 0;
+// Is this level worth formatting a message for? The `LOG_*` macros ask
+// first, which is what makes a disabled `LOG_TRACE` cost nothing but the
+// comparison.
+  bool is_fatal_enabled() const;
+  bool is_error_enabled() const;
+  bool is_warn_enabled()  const;
+  bool is_info_enabled()  const;
+  bool is_debug_enabled() const;
+  bool is_trace_enabled() const;
+
+/// @brief Set the level this logger writes at, overriding the environment.
+  void set_level( log_level_t lev );
+
+  log_level_t get_level() const;
 
 /// Type alias for the callback function signature
   using callback_t =
@@ -77,202 +89,45 @@ public:
 /// @brief Get logger name.
   std::string get_name() const;
 
-/// @brief Log a message string with the FATAL level.
+//@{
+/// @brief Log a message at this level.
 ///
-/// This method first checks if this logger has <code>FATAL</code>
-/// enabled by comparing the level of this logger with the FATAL
-/// level. If this logger has <code>FATAL</code> enabled, it proceeds
-/// to format and create a log message using the specified message.
-///
-/// @param msg the message string to log.
-  virtual void log_fatal( std::string const& msg ) = 0;
+/// The message is written if the level is enabled, and dropped otherwise.
+/// The overload taking a location is what the `LOG_*` macros call.
+  void log_fatal( std::string const& msg );
+  void log_fatal(
+    std::string const& msg, logger_ns::location_info const& location );
 
-/// @brief Log a message string with the FATAL level.
-///
-/// This method first checks if this logger has <code>FATAL</code>
-/// enabled by comparing the level of this logger with the FATAL
-/// level. If this logger has <code>FATAL</code> enabled, it proceeds
-/// to format and create a log message using the specified message
-/// and logging location.
-///
-/// @param msg the message string to log.
-/// @param location location of source of logging request.
-  virtual void log_fatal(
-    std::string const& msg,
-    logger_ns::location_info const& location ) = 0;
+  void log_error( std::string const& msg );
+  void log_error(
+    std::string const& msg, logger_ns::location_info const& location );
 
-/// @brief Log a message string with the ERROR level.
-///
-/// This method first checks if this logger has <code>ERROR</code>
-/// enabled by comparing the level of this logger with the ERROR
-/// level. If this logger has <code>ERROR</code> enabled, it proceeds
-/// to format and create a log message using the specified message.
-///
-/// @param msg the message string to log.
-  virtual void log_error( std::string const& msg ) = 0;
+  void log_warn( std::string const& msg );
+  void log_warn(
+    std::string const& msg, logger_ns::location_info const& location );
 
-/// @brief Log a message string with the ERROR level.
-///
-/// This method first checks if this logger has <code>ERROR</code>
-/// enabled by comparing the level of this logger with the ERROR
-/// level. If this logger has <code>ERROR</code> enabled, it proceeds
-/// to format and create a log message using the specified message
-/// and logging location.
-///
-/// @param msg the message string to log.
-/// @param location location of source of logging request.
-  virtual void log_error(
-    std::string const& msg,
-    logger_ns::location_info const& location ) = 0;
+  void log_info( std::string const& msg );
+  void log_info(
+    std::string const& msg, logger_ns::location_info const& location );
 
-/// @brief Log a message string with the WARN level.
-///
-/// This method first checks if this logger has <code>WARN</code>
-/// enabled by comparing the level of this logger with the WARN
-/// level. If this logger has <code>WARN</code> enabled, it proceeds
-/// to format and create a log message using the specified message.
-///
-/// @param msg the message string to log.
-  virtual void log_warn( std::string const& msg ) = 0;
+  void log_debug( std::string const& msg );
+  void log_debug(
+    std::string const& msg, logger_ns::location_info const& location );
 
-/// @brief Log a message string with the WARN level.
-///
-/// This method first checks if this logger has <code>WARN</code>
-/// enabled by comparing the level of this logger with the WARN
-/// level. If this logger has <code>WARN</code> enabled, it proceeds
-/// to format and create a log message using the specified message
-/// and logging location.
-///
-/// @param msg the message string to log.
-/// @param location location of source of logging request.
-  virtual void log_warn(
-    std::string const& msg,
-    logger_ns::location_info const& location ) = 0;
+  void log_trace( std::string const& msg );
+  void log_trace(
+    std::string const& msg, logger_ns::location_info const& location );
 
-/// @brief Log a message string with the INFO level.
-///
-/// This method first checks if this logger has <code>INFO</code>
-/// enabled by comparing the level of this logger with the INFO
-/// level. If this logger has <code>INFO</code> enabled, it proceeds
-/// to format and create a log message using the specified message.
-///
-/// @param msg the message string to log.
-  virtual void log_info( std::string const& msg ) = 0;
-
-/// @brief Log a message string with the INFO level.
-///
-/// This method first checks if this logger has <code>INFO</code>
-/// enabled by comparing the level of this logger with the INFO
-/// level. If this logger has <code>INFO</code> enabled, it proceeds
-/// to format and create a log message using the specified message
-/// and logging location.
-///
-/// @param msg the message string to log.
-/// @param location location of source of logging request.
-  virtual void log_info(
-    std::string const& msg,
-    logger_ns::location_info const& location ) = 0;
-
-/// @brief Log a message string with the DEBUG level.
-///
-/// This method first checks if this logger has <code>DEBUG</code>
-/// enabled by comparing the level of this logger with the DEBUG
-/// level. If this logger has <code>DEBUG</code> enabled, it proceeds
-/// to format and create a log message using the specified message.
-///
-/// @param msg the message string to log.
-  virtual void log_debug( std::string const& msg ) = 0;
-
-/// @brief Log a message string with the DEBUG level.
-///
-/// This method first checks if this logger has <code>DEBUG</code>
-/// enabled by comparing the level of this logger with the DEBUG
-/// level. If this logger has <code>DEBUG</code> enabled, it proceeds
-/// to format and create a log message using the specified message
-/// and logging location.
-///
-/// @param msg the message string to log.
-/// @param location location of source of logging request.
-  virtual void log_debug(
-    std::string const& msg,
-    logger_ns::location_info const& location ) = 0;
-
-/// @brief Log a message string with the TRACE level.
-///
-/// This method first checks if this logger has <code>TRACE</code>
-/// enabled by comparing the level of this logger with the TRACE
-/// level. If this logger has <code>TRACE</code> enabled, it proceeds
-/// to format and create a log message using the specified message.
-///
-/// @param msg the message string to log.
-  virtual void log_trace( std::string const& msg ) = 0;
-
-/// @brief Log a message string with the TRACE level.
-///
-/// This method first checks if this logger has <code>TRACE</code>
-/// enabled by comparing the level of this logger with the TRACE
-/// level. If this logger has <code>TRACE</code> enabled, it proceeds
-/// to format and create a log message using the specified message
-/// and logging location.
-///
-/// @param msg the message string to log.
-/// @param location location of source of logging request.
-  virtual void log_trace(
-    std::string const& msg,
-    logger_ns::location_info const& location ) = 0;
-
-/// @brief Log a message string with specified level.
-///
-/// This method first checks if this logger has the specified enabled
-/// by comparing the level of this logger with the churrent logger
-/// level. If this logger has this level enabled, it proceeds to
-/// format and create a log message using the specified message.
-///
-/// @param msg the message string to log.
-  virtual void log_message( log_level_t level, std::string const& msg ) = 0;
-
-/// @brief Log a message string with specified level.
-///
-/// This method first checks if this logger has the specified enabled
-/// by comparing the level of this logger with the churrent logger
-/// level. If this logger has this level enabled, it proceeds to
-/// format and create a log message using the specified message and
-/// location.
-///
-/// @param msg the message string to log.
-/// @param location location of source of logging request.
-  virtual void log_message(
+  void log_message( log_level_t level, std::string const& msg );
+  void log_message(
     log_level_t level, std::string const& msg,
-    logger_ns::location_info const& location ) = 0;
+    logger_ns::location_info const& location );
+//@}
 
 /// @brief Convert level code to string.
 ///
 /// @param lev level value to convert
   static char const* get_level_string( kwiver_logger::log_level_t lev );
-
-/// @brief Get name of logger factory / back-end provider
-///
-/// This method returns the name of the logger factory that created
-/// this logger.
-///
-/// @return Name of logger factory.
-  std::string const& get_factory_name() const;
-
-protected:
-/// @brief Constructor for logger object
-///
-/// A new logger object is constructed for the specified category.
-///
-/// @param fact Pointer to logger factory
-/// @param name Name of logger to create
-  kwiver_logger(
-    logger_ns::kwiver_logger_factory* fact,
-    std::string const& name );
-
-/// @brief Call the registered callback functions, if any
-  void do_callback(
-    log_level_t level, std::string const& msg,
-    logger_ns::location_info const& location ) const;
 
 private:
   class impl;

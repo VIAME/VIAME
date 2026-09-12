@@ -19,7 +19,9 @@
 #include <gtest/gtest.h>
 
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -348,6 +350,76 @@ TEST ( logger, a_global_callback_sees_what_the_line_does_not )
   EXPECT_EQ( "test.callback", seen_name );
   EXPECT_EQ( "through the callback", seen_message );
   EXPECT_EQ( "test_logger.cxx", seen_file );
+}
+
+// ----------------------------------------------------------------------------
+// P8-T04 added `VIAME_LOG_LEVEL`. `KWIVER_DEFAULT_LOG_LEVEL` keeps working,
+// because everything written before the lite branch sets that one, and the
+// tests above are what says so.
+TEST ( logger, viame_log_level_wins_over_the_kwiver_one )
+{
+  setenv( "KWIVER_DEFAULT_LOG_LEVEL", "error", 1 );
+  setenv( "VIAME_LOG_LEVEL", "debug", 1 );
+
+  auto const log = kv::get_logger( "test.viame.level" );
+
+  unsetenv( "KWIVER_DEFAULT_LOG_LEVEL" );
+  unsetenv( "VIAME_LOG_LEVEL" );
+
+  EXPECT_TRUE( IS_DEBUG_ENABLED( log ) );
+}
+
+// ----------------------------------------------------------------------------
+// And a `VIAME_LOG_LEVEL` that names no level falls through to the other
+// rather than swallowing it -- the alternative is a typo in the new variable
+// silently disabling the old one.
+TEST ( logger, an_unusable_viame_level_falls_through )
+{
+  setenv( "KWIVER_DEFAULT_LOG_LEVEL", "error", 1 );
+  setenv( "VIAME_LOG_LEVEL", "chatty", 1 );
+
+  auto const log = kv::get_logger( "test.viame.level.bad" );
+
+  unsetenv( "KWIVER_DEFAULT_LOG_LEVEL" );
+  unsetenv( "VIAME_LOG_LEVEL" );
+
+  EXPECT_FALSE( IS_WARN_ENABLED( log ) );
+  EXPECT_TRUE( IS_ERROR_ENABLED( log ) );
+}
+
+// ----------------------------------------------------------------------------
+// The file sink `VIAME_LOG_FILE` adds. It is opened once, on the first line
+// written, so it cannot be tested by setting the variable part way through a
+// process -- the CMakeLists runs this binary a second time with the variable
+// already set, and this test is skipped in the run that has not.
+TEST ( logger, the_file_sink_gets_what_stderr_gets )
+{
+  char const* const path = std::getenv( "VIAME_LOG_FILE" );
+
+  if( !path )
+  {
+    GTEST_SKIP() << "not the run with VIAME_LOG_FILE set";
+  }
+
+  auto const log = logger_at( "trace", "test.file.sink" );
+
+  std::string written;
+  {
+    captured_cerr capture;
+    LOG_WARN( log, "to both" );
+    written = capture.text();
+  }
+
+  std::ifstream in( path );
+  ASSERT_TRUE( in.is_open() ) << "no log file at " << path;
+
+  std::string const contents{ std::istreambuf_iterator< char >( in ),
+                              std::istreambuf_iterator< char >() };
+
+  // The same line, not a differently formatted one: a file the user reads
+  // later should say what the terminal said.
+  EXPECT_NE( std::string::npos, contents.find( written ) )
+    << "stderr had:\n" << written << "file had:\n" << contents;
 }
 
 // ----------------------------------------------------------------------------

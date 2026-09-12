@@ -49,3 +49,20 @@ target_compile_definitions( test-viame-external_plugins PRIVATE
 kwiver_discover_gtests( viame logger
   LIBRARIES kwiver::vital_logger
             GTest::gtest )
+
+###
+# The file sink
+#
+# `VIAME_LOG_FILE` is read once, when the first line is written, so a test
+# that sets it part way through a process would be testing nothing. This runs
+# the same binary again with it already set; every other test in it skips.
+##
+add_test(
+  NAME viame:logger:file_sink
+  COMMAND "$<TARGET_FILE:test-viame-logger>"
+          "--gtest_filter=logger.the_file_sink_gets_what_stderr_gets"
+  )
+
+set_tests_properties( viame:logger:file_sink PROPERTIES
+  LABELS "UNIT"
+  ENVIRONMENT "VIAME_LOG_FILE=${CMAKE_CURRENT_BINARY_DIR}/file_sink.log" )

@@ -16,71 +16,37 @@ namespace vital {
 namespace logger_ns {
 
 // ----------------------------------------------------------------------------
-/// Location of logging call.
+/// Where a log call was made.
 ///
-/// This class represents the location of the logging call.
-///
+/// Captured by the `KWIVER_LOGGER_SITE` macro below, which the `LOG_*`
+/// macros pass to the logger. The three pointers are to string literals the
+/// preprocessor produced, so this stays copyable and costs nothing to pass.
 class VITAL_LOGGER_EXPORT location_info
 {
 public:
-  /// Constructor. Create a default of unknown location
+  /// A location that is not known.
   location_info();
 
-  /// Constructor. Create a location object for the current site
+  /// The location the macro captured.
   location_info( char const* filename, char const* method, int line );
 
   //@{
-  /// Default values for unknown locations
+  /// What an unknown location reports.
   static const char* const NA;
   static const char* const NA_METHOD;
   //@}
 
-  /// @brief Get file name.
+  /// @brief The file name, without its directories.
   ///
-  /// The file name for the current location is returned without
-  /// leading path components and with file extension.
-  ///
-  /// @return file name, may be null.
+  /// This is what appears in a log line. `__FILE__` is whatever path the
+  /// compiler was given, which is the build machine's and of no use to a
+  /// reader, so only the last component is kept.
   std::string get_file_name() const;
-  char const*
-  get_file_name_ptr() const { return m_fileName; }
 
-  /// @brief Get path part of file spec.
-  ///
-  /// The path or base name portion of the file path is returned
-  /// without the file name.
-  ///
-  /// @return file name base. May be null.
-  std::string get_file_path() const;
-
-  /// @brief Get full function/method signature.
-  ///
-  /// The whole signature, as captured by the macro, is returned.
-  ///
-  /// @return function/method signature
+  /// @brief The whole function signature the compiler gave.
   std::string get_signature() const;
 
-  /// @brief Get method name.
-  ///
-  /// The method name for the current location is returned.
-  ///
-  /// @return method name, may be null.
-  std::string get_method_name() const;
-  char const*
-  get_method_name_ptr() const { return m_methodName; }
-
-  /// @brief Get class name.
-  ///
-  /// This method returns the method name for the current location.
-  ///
-  /// @return class name.
-  std::string get_class_name() const;
-
-  /// @brief Get line number.
-  ///
-  /// The line number for the current location is returned.
-  ///
-  /// @return line number, -1 indicates unknown line.
+  /// @brief The line the log call is on, or -1 if it is not known.
   int get_line_number() const;
 
 private:
