@@ -27,10 +27,6 @@ if( VIAME_ENABLE_SEAGIS )
   add_subdirectory( seagis )
 endif()
 
-if( VIAME_ENABLE_MATLAB )
-  add_subdirectory( matlab )
-endif()
-
 # `plugins/tensorflow` stood here; `VIAME_ENABLE_TENSORFLOW` went in P1.
 
 if( VIAME_ENABLE_PYTORCH )

@@ -170,7 +170,6 @@ And lastly, a number of flags which build algorithms with more specialized funct
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                            |
 +------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                      |
 +------------------------------+---------------------------------------------------------------------------------------------+
 
 VIAME can be built either in the source directory tree or in a seperate build

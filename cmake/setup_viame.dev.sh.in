@@ -27,10 +27,7 @@ export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
 # Set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=${KWIVER_DEFAULT_LOG_LEVEL:-debug}
 
-# Paths for matlab (empty if not built with matlab)
-@SETUP_MATLAB_LIBRARY_PATH@
-
-# Paths for adding exes to path (must occur after python and matlab)
+# Paths for adding exes to path (must occur after python)
 export PATH=$this_dir/bin:$PATH
 @SETUP_LIBRARY_PATH@
 

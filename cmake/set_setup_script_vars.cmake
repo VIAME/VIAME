@@ -9,15 +9,6 @@ else()
   set( SETUP_QT_PLUGIN_PATH "export QT_PLUGIN_PATH=$this_dir/lib/qt4/plugins" )
 endif()
 
-if( VIAME_ENABLE_MATLAB )
-  get_filename_component( Matlab_LIBRARY_DIR "${Matlab_ENG_LIBRARY}" DIRECTORY )
-
-  if( APPLE )
-    set( SETUP_MATLAB_LIBRARY_PATH "export DYLD_FALLBACK_LIBRARY_PATH=$DYLD_FALLBACK_LIBRARY_PATH:${Matlab_LIBRARY_DIR}" )
-  else()
-    set( SETUP_MATLAB_LIBRARY_PATH "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:/usr/lib:${Matlab_LIBRARY_DIR}" )
-  endif()
-endif()
 
 if( VIAME_ENABLE_PYTHON )
   get_filename_component( PYTHON_LIBRARY_DIR "${Python_LIBRARIES}" DIRECTORY )

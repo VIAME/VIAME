@@ -22,8 +22,6 @@ export PYTHONNOUSERSITE=1
 # Set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=info
 
-# Paths for matlab (empty if not built with matlab)
-
 # Paths for CUDA libraries
 if [ ! -z "$CUDA_INSTALL_DIR" ]; then
   if [ -d "$CUDA_INSTALL_DIR" ]; then
@@ -34,7 +32,7 @@ if [ ! -z "$CUDA_INSTALL_DIR" ]; then
   fi
 fi
 
-# Paths for adding exes to path (must occur after python and matlab)
+# Paths for adding exes to path (must occur after python)
 export PATH=$this_dir/bin:$PATH
 export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$this_dir/lib64:$LD_LIBRARY_PATH

@@ -227,7 +227,6 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                       |
 | VIAME_ENABLE_TENSORRT        | Builds TensorRT object detector plugin                                         |
 | VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                   |
-| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                         |
 | VIAME_ENABLE_SEAL            | Builds Seal multi-modality GUI                                                 |
 
 </center>

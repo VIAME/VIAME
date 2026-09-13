@@ -56,13 +56,6 @@ add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/modules )
 add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules )
 add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes )
 
-if( "@VIAME_ENABLE_MATLAB@" )
-  get_filename_component( MATLAB_LIB_PATH "@Matlab_MEX_LIBRARY@" DIRECTORY )
-  set( MATLAB_DLL_PATH "@Matlab_ROOT_DIR@/bin/win64" )
-  list( APPEND FIXUP_DIRS ${MATLAB_LIB_PATH} )
-  list( APPEND FIXUP_DIRS ${MATLAB_DLL_PATH} )
-endif()
-
 if( "@VIAME_ENABLE_CUDNN@" )
   get_filename_component( CUDNN_LIB_PATH "@CUDNN_LIBRARY@" DIRECTORY )
   list( APPEND FIXUP_DIRS ${CUDNN_LIB_PATH} )

@@ -40,16 +40,10 @@ option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
 ##
-# `VIAME_ENABLE_TENSORFLOW` and `VIAME_ENABLE_TENSORRT` stood here, removed
-# in P1 with the rest of section 2's list: two inference backends that no
-# shipped pipeline selects, each pulling a runtime of its own.
-#
-# `VIAME_ENABLE_MATLAB` stays for now. It is on the same list, but it is also
-# **open decision 4** in `lite-plan.md`, which proposes the drop rather than
-# taking it, and `plugins/matlab` is two working bridges (camtrawl,
-# annosaurus) rather than a build-system artefact. The option and the code
-# go when that decision is taken.
-option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
+# `VIAME_ENABLE_TENSORFLOW`, `VIAME_ENABLE_TENSORRT` and
+# `VIAME_ENABLE_MATLAB` stood here, removed in P1 with the rest of section
+# 2's list: two inference backends that no shipped pipeline selects, and the
+# Matlab bridge, which was open decision 4 and is now taken -- drop.
 
 ###
 # Add tertiary plugin enable flags (advanced)
@@ -247,10 +241,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-LEARN )
   set( VIAME_ENABLE_PYTORCH-DETECTRON2  ON CACHE BOOL "Detectron2 required for project" FORCE )
   set( VIAME_ENABLE_PYTORCH-VIDEO      ON CACHE BOOL "Torch Video required for project" FORCE )
-endif()
-
-if( VIAME_ENABLE_MATLAB )
-  find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
 endif()
 
 if( VIAME_ENABLE_DOCS )
