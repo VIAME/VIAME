@@ -1406,6 +1406,57 @@ environment variable that remains, `VIAME_PYTHON_PLUGINS`, is for packages
 VIAME does not ship -- which is the only thing an environment variable was
 ever needed for.
 
+### 1.33 A build tree keeps the answer to a question you stopped asking
+
+Phase 1's claim is that VIAME takes nothing from fletch. The obvious way to
+check it is to grep the build tree for the reference install's path. Done in
+the warm `merged-build`, that turns up four targets still linking OpenCV,
+forty still adding `include/` to their command line, and an rpath pointing
+at fletch's `lib` -- which reads as the claim being false.
+
+Every one of them was a **leftover**. `library/opencv_bridge`,
+`library/training`, `plugins/darknet`, `plugins/cppdb`, `tests/plugins/opencv`
+and all of `packages/kwiver/` are directories that no longer exist in the
+source tree; CMake does not remove the `CMakeFiles` it made for them, so
+their `flags.make` and `link.txt` sit there forever, recording what the build
+needed the last time those directories existed. `make` never reads them
+again, because nothing in the current target graph points at them.
+
+The test that means something is whether the **source** directory still
+exists -- or, better, a configure in an empty tree, where there is nothing to
+leave behind. In this case one live target survived that filter, and it was
+the real finding (1.34).
+
+The general form is the mirror of 1.30. There, a directory was a record of
+history and the build was a record of intent. Here the *build tree* is the
+history, and it accumulates the same way an install prefix does. A warm tree
+answers "what did this project ever need", not "what does it need".
+
+### 1.34 The dependency was gone; the lookup was the dependency
+
+`find_package( fletch NO_MODULE )` stayed in the top-level CMakeLists long
+after VXL, FFmpeg, Eigen, OpenCV and zlib had all left, because by then it
+found nothing and so appeared to cost nothing. It was not finding nothing.
+Fletch's config file defines variables, and one of them was
+`pybind11_INCLUDE_DIRS`.
+
+`python/kwiver/sprokit/util/CMakeLists.txt` asks for
+`${pybind11_INCLUDE_DIRS}`. Nothing in VIAME sets it -- P1-T03 vendored
+pybind11 and replaced the `find_package` with a target -- so the line should
+have expanded to nothing. Instead it expanded to the whole of the reference
+superbuild's `include/` prefix, ahead of every vendored header on that
+target's command line. That is the `svm.h` shadowing hazard P1-T03 wrote
+about, arriving by a different route: not a stale copy in the install prefix,
+but a stale *variable* still being filled in by a package nobody meant to be
+using.
+
+Two things follow. **An unused `find_package` is not free** -- it is a
+hundred `set()` calls into your scope, and a variable reference is not
+checked against anything. And **an undefined CMake variable expands to
+nothing silently**, so `${pybind11_INCLUDE_DIRS}` is indistinguishable from
+correct until something defines it wrongly. Both were fixed by naming a
+target instead: `pybind11::pybind11` either exists or the configure fails.
+
 ## 2. Open questions
 
 ### 2.13 `skip_process` deadlocks, and has since it was written
