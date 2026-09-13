@@ -32,7 +32,7 @@ import tokenize
 import ubelt as ub
 import warnings
 from os.path import join
-import liberator
+from viame.pytorch.netharn import liberator
 
 __all__ = ['export_model_code']
 
@@ -153,7 +153,7 @@ def export_model_code(dpath, model, initkw=None, export_modules=[]):
     try:
         lib = liberator.Liberator()
     except AttributeError:
-        from liberator.closer import Closer
+        from viame.pytorch.netharn.liberator.core import Closer
         lib = Closer()
 
     obj = model_class

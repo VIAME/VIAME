@@ -243,11 +243,12 @@ list( REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS )
 set( VIAME_PYTHON_DEPS_REQ_TORCH "" )
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  # torch_liberator is vendored at plugins/pytorch/netharn/torch_liberator
-  # (installed as viame.pytorch.netharn.torch_liberator), so it is no longer
-  # pip installed. "liberator" stays: the vendored exporter still uses it for
-  # static code extraction.
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "liberator"
+  # torch_liberator and liberator are vendored under
+  # plugins/pytorch/netharn (installed as viame.pytorch.netharn.*), so neither
+  # is pip installed. Their third-party imports are already declared above:
+  # astunparse, pygtrie and pyflakes in VIAME_PYTHON_BASIC_DEPS, alongside
+  # ubelt, kwarray and rich.
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH
     "networkx-algo-common-subtree>=0.2.0" "colormath" )
 endif()
 

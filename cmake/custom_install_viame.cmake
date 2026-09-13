@@ -56,11 +56,6 @@ if( WIN32 )
   endif()
 endif()
 
-if( EXISTS ${OUTPUT_PYTHON_DIR}/liberator )
-  ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/liberator/core.py
-    "ub.ensure_unicode(" "str(" )
-endif()
-
 if( EXISTS ${OUTPUT_PYTHON_DIR}/kwplot )
   ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/kwplot/mpl_core.py
     "ub.ensure_unicode(" "str(" )
