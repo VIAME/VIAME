@@ -368,11 +368,11 @@ cent is taken against, so that gate is 58 fps.
 | C++ video decode throughput, 1080p h264 (baseline) | 95.9 fps | P4-T01 | 2026-09-09 |
 | `ffmpeg_cli` decode throughput | 65.3 fps (1080p h264, same clip and method; 69 per cent of the C++ reader measured at 94.1 fps in the same run, with PyAV at 89.6) | P4-T04 | 2026-09-09 |
 | PyAV decode throughput | 82.4 fps (1080p h264, same clip and method as the baseline; 83 per cent of the C++ reader measured at 99.1 fps in the same run) | P4-T02 | 2026-09-09 |
-| kwiver files copied (lines) | | P5-T01 | |
-| core_types + algorithm_framework lines after prune | | P5-T06 | |
-| pipeline_framework lines after trim | | P8-T07 | |
+| kwiver files copied (lines) | 876 files reachable, 157,857 lines, listed in `design/lite-kwiver-files.txt`; the task expected 120k to 150k | P5-T01 | 2026-09-10 |
+| core_types + algorithm_framework lines after prune | 67,810 (35,972 + 31,838), counting `.h`, `.cxx`, `.txx` and `.py` | P5-T06 | 2026-09-13 |
+| pipeline_framework lines after trim | 22,063 in 88 files | P8-T07 | 2026-09-13 |
 | `viame help` / `runner --help` / `registry-dump` startup, before and after lazy python registration | 0.12 / 2.72 / 4.01 s before; **0.11 / 0.39 / 0.69 s** after (best of three, warm, idle machine; budgets 0.5 / 0.5 / 2.0). `viame --version` does not exist, so `viame help` stands for the dispatch fast path | P8-T10 | 2026-09-13 |
 | Install size, `main` baseline (see lite-install-size.md) | 14 GB | - | 2026-09-08 |
 | Install size after P1 lock files + blacklist | | P1-T08 | |
 | Install size at end of P10 | | P10-T05 | |
-| final core_types / algorithm_framework / pipeline_framework lines | | P8-T09 | |
+| final core_types / algorithm_framework / pipeline_framework lines | 35,972 / 31,838 / 22,063 = 89,873, against 137,764 for the whole of `library/` | P8-T09 | 2026-09-13 |
