@@ -16,5 +16,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 
 viame train \
   -i training_data \
-  -tt srnn \
+  --tracker srnn \
   --threshold 0.0

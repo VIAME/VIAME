@@ -129,7 +129,7 @@ An example SRNN tracker configuration::
 
 SRNN trackers can be trained from groundtruth annotations using::
 
-    viame train -i /path/to/training/data -tt srnn
+    viame train -i /path/to/training/data --tracker srnn
 
 .. note::
    The ``viame train`` tracker training option (``-tt``) is a new addition and is
@@ -171,7 +171,7 @@ An example ByteTrack configuration::
 ByteTrack parameters can be trained (optimized via Kalman filter tuning) from
 groundtruth annotations using::
 
-    viame train -i /path/to/training/data -tt bytetrack
+    viame train -i /path/to/training/data --tracker bytetrack
 
 Stabilized IOU Tracker
 ----------------------
@@ -282,7 +282,7 @@ The SiamMask tracker pipeline is ``utility_track_selections_default_mask.pipe``:
 
 SiamMask can be re-trained for specific domains::
 
-    viame train -i /path/to/training/data -tt siammask
+    viame train -i /path/to/training/data --tracker siammask
 
 SAM2 (Segment Anything Model 2)
 --------------------------------
@@ -361,7 +361,7 @@ The SAM3 tracker pipeline is ``utility_track_selections_sam3.pipe``::
 
 SAM3 trackers can be fine-tuned for specific domains::
 
-    viame train -i /path/to/training/data -tt sam3
+    viame train -i /path/to/training/data --tracker sam3
 
 Comparison of User-Initialized Trackers
 ---------------------------------------

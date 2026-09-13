@@ -15,5 +15,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 
 viame train \
   -i training_data \
-  -tt siammask \
+  --tracker siammask \
   --threshold 0.0

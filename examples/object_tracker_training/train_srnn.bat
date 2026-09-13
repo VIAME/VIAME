@@ -11,7 +11,7 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 REM Train SRNN multi-stage tracking model
 viame.exe train ^
   -i training_data ^
-  -tt srnn ^
+  --tracker srnn ^
   --threshold 0.0
 
 pause
