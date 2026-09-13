@@ -105,8 +105,12 @@ _viame_fork( roi-align   "VIAME_ENABLE_PYTORCH-MDNET"
 if( "mmdeploy" IN_LIST _viame_forks )
   if( UNIX )
     set( _ort_url "https://github.com/microsoft/onnxruntime/releases/download/v1.12.1/onnxruntime-linux-x64-1.12.1.tgz" )
+    set( _ort_md5 "31f1cc5d934682459aaa2abb2b7ebc0f" )
   elseif( WIN32 )
     set( _ort_url "https://github.com/microsoft/onnxruntime/releases/download/v1.12.1/onnxruntime-win-x64-1.12.1.zip" )
+    # Not pinned: the reference machine is Linux and a checksum nobody has
+    # verified is worse than none, because it looks like it was.
+    set( _ort_md5 "" )
   else()
     message( FATAL_ERROR
       "mmdeploy needs the onnxruntime C++ libraries and there is no build of "
@@ -121,6 +125,7 @@ if( "mmdeploy" IN_LIST _viame_forks )
     OUTPUT  "${_ort_stamp}"
     COMMAND "${CMAKE_COMMAND}"
             -DURL=${_ort_url}
+            -DEXPECTED_MD5=${_ort_md5}
             -DDESTINATION=${_ort_dir}
             -DDOWNLOAD_DIR=${_viame_forks_dir}/onnxruntimelibs-download
             -P "${VIAME_CMAKE_DIR}/viame_fetch_archive.cmake"

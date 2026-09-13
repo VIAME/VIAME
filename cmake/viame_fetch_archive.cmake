@@ -8,6 +8,10 @@
 #   URL           what to fetch
 #   DESTINATION   where its contents end up
 #   DOWNLOAD_DIR  scratch space, kept so a re-run does not re-fetch
+#   EXPECTED_MD5  optional, and checked when given -- these are release
+#                 binaries fetched over the network, so an archive that is
+#                 not the one the build was written against should stop the
+#                 build rather than be unpacked into the install
 
 cmake_minimum_required( VERSION 3.16 )
 
@@ -22,12 +26,27 @@ set( _archive "${DOWNLOAD_DIR}/${_name}" )
 
 file( MAKE_DIRECTORY "${DOWNLOAD_DIR}" )
 
+if( EXISTS "${_archive}" AND EXPECTED_MD5 )
+  file( MD5 "${_archive}" _have )
+  if( NOT _have STREQUAL EXPECTED_MD5 )
+    message( STATUS "${_name} does not match its checksum; fetching again" )
+    file( REMOVE "${_archive}" )
+  endif()
+endif()
+
 if( NOT EXISTS "${_archive}" )
   message( STATUS "Fetching ${URL}" )
 
-  file( DOWNLOAD "${URL}" "${_archive}"
-        STATUS _status
-        SHOW_PROGRESS )
+  if( EXPECTED_MD5 )
+    file( DOWNLOAD "${URL}" "${_archive}"
+          STATUS _status
+          EXPECTED_MD5 ${EXPECTED_MD5}
+          SHOW_PROGRESS )
+  else()
+    file( DOWNLOAD "${URL}" "${_archive}"
+          STATUS _status
+          SHOW_PROGRESS )
+  endif()
 
   list( GET _status 0 _code )
   if( NOT _code EQUAL 0 )
