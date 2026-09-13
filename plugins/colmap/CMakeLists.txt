@@ -5,9 +5,8 @@
 # Provides viame.colmap.reconstruction (used by the 3d tool for the
 # non-planar SfM / dense modes; requires pycolmap + open3d) and the
 # colmap_registration sprokit process (multi-camera survey registration; no
-# pycolmap dependency). This package is registered as a sprokit python process
-# module via SPROKIT_PYTHON_MODULES (see the setup template), and its custom
-# __init__ registers the process.
+# pycolmap dependency). Its __init__ declares the process; discovery registers
+# it with a constructor that imports this package's modules on first use.
 ##
 
 if( VIAME_ENABLE_PYTHON )

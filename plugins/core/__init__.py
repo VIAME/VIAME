@@ -2,116 +2,101 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from viame.core import utility_processes
 
-def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+# ----------------------------------------------------------------------------
+# What this package provides, without importing any of it.
+#
+# Each entry is ( interface, name, description, "module:Class" ).
+# `kwiver.vital.plugins.discovery` turns each into a stand-in that imports
+# its module the first time something asks for an instance.
+#
+# This replaced a `__vital_algorithm_register__` that imported every
+# implementation module at startup, which was the only way the classes came
+# to exist for the subclass walk that registers them. See P8-T10.
+__vital_algorithm_declarations__ = [
+    ( "detected_object_set_input", "coco",
+      "Read detections from COCO-style JSON format",
+      "viame.core.read_detected_object_set_coco:ReadDetectedObjectSetCoco" ),
+    ( "detected_object_set_output", "coco",
+      "Write detections to COCO-style JSON format",
+      "viame.core.write_detected_object_set_coco:WriteDetectedObjectSetCoco" ),
+    ( "image_filter", "equalize_via_percentiles_npy",
+      "Numpy percentile normalization with configurable output format",
+      "viame.core.equalize_via_percentiles:EqualizeViaPercentiles" ),
+    ( "image_filter", "ocv_optical_flow",
+      "Dense Farneback optical-flow image filter",
+      "viame.core.optical_flow:OpticalFlowFilter" ),
+    ( "merge_detections", "coverage_reinforce",
+      "Reinforce detections using a weakly-localizing evidence source",
+      "viame.core.merge_detections_coverage_reinforce:MergeDetectionsCoverageReinforce" ),
+    ( "merge_detections", "merge",
+      "Concatenate all input detection sets without resolving overlaps",
+      "viame.core.merge_detections_simple:MergeDetectionsMerge" ),
+    ( "merge_detections", "nms_fusion",
+      "Fusion of multiple different detections",
+      "viame.core.merge_detections_nms_fusion:MergeDetectionsNMSFusion" ),
+    ( "merge_detections", "simple",
+      "Concatenate all input detection sets without resolving overlaps",
+      "viame.core.merge_detections_simple:MergeDetectionsSimple" ),
+    ( "read_object_track_set", "coco",
+      "Read object tracks from COCO-style JSON format",
+      "viame.core.read_object_track_set_coco:ReadObjectTrackSetCoco" ),
+    ( "track_objects", "bytetrack",
+      "ByteTrack multi-object tracker with two-stage association",
+      "viame.core.bytetrack_tracker:ByteTrackTracker" ),
+    ( "track_objects", "ocsort",
+      "OC-SORT / Deep OC-SORT tracker with observation-centric momentum, re-update, recovery, and optional appearance fusion",
+      "viame.core.ocsort_tracker:OCSORTTracker" ),
+    ( "train_detector", "frame_diff",
+      "Three-frame difference detector settings estimation",
+      "viame.core.frame_diff_trainer:FrameDiffTrainer" ),
+    ( "train_tracker", "bytetrack",
+      "ByteTrack parameter estimation from track groundtruth",
+      "viame.core.bytetrack_trainer:ByteTrackTrainer" ),
+    ( "train_tracker", "ocsort",
+      "OC-SORT parameter estimation and optional Deep OC-SORT Re-ID training",
+      "viame.core.ocsort_trainer:OCSORTTrainer" ),
+    ( "write_object_track_set", "coco",
+      "Write object tracks to COCO-style JSON format with track_id field",
+      "viame.core.write_object_track_set_coco:WriteObjectTrackSetCoco" ),
+]
 
-    module_name = 'python:core.core_processes'
-
-    if process_factory.is_process_module_loaded( module_name ):
-        return
-
-    process_factory.add_process(
-        'blank_out_frames',
-        'Blank out frames with no object detections on them',
-        utility_processes.blank_out_frames
-    )
-
-    process_factory.add_process(
-        'percentile_norm_npy_16_to_8bit',
-        'A specialized percentile normalization method',
-        utility_processes.percentile_norm_npy_16_to_8bit
-    )
-
-    # Note: bytetrack_tracker and ocsort_tracker are now vital algorithms
-    # registered via __vital_algorithm_register__ and used with track_objects process
-
-    try:
-        from viame.core import simple_homog_tracker
-        simple_homog_tracker.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import multicam_homog_tracker
-        multicam_homog_tracker.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import stabilize_many_images
-        stabilize_many_images.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import multicam_homog_det_suppressor
-        multicam_homog_det_suppressor.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import multicam_homog_blackout
-        multicam_homog_blackout.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import multicam_homog_mosaic
-        multicam_homog_mosaic.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import align_cameras_process
-        align_cameras_process.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import merge_tracks_tube_iou
-        merge_tracks_tube_iou.__sprokit_register__()
-    except ImportError:
-        pass
-
-    process_factory.mark_process_module_as_loaded( module_name )
-
-
-def __vital_algorithm_register__():
-    """Register vital algorithm implementations."""
-    try:
-        from viame.core import bytetrack_tracker
-        bytetrack_tracker.__vital_algorithm_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import ocsort_tracker
-        ocsort_tracker.__vital_algorithm_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import read_detected_object_set_coco
-        read_detected_object_set_coco.__vital_algorithm_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import write_detected_object_set_coco
-        write_detected_object_set_coco.__vital_algorithm_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import read_object_track_set_coco
-        read_object_track_set_coco.__vital_algorithm_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.core import write_object_track_set_coco
-        write_object_track_set_coco.__vital_algorithm_register__()
-    except ImportError:
-        pass
+# ----------------------------------------------------------------------------
+# The processes this package provides, without importing any of them.
+#
+# Each entry is ( name, description, "module:Class" ). A process registers by
+# calling `process_factory.add_process( name, description, ctor )`, and the
+# ctor is only ever called -- so a function that imports and constructs is as
+# good as the class and costs nothing until a pipeline wants one. See P8-T10.
+__sprokit_process_declarations__ = [
+    ( "align_cameras",
+      "Multi-image-pair camera-to-camera registration (MINIMA-LoFTR)",
+      "viame.core.align_cameras_process:AlignCamerasProcess" ),
+    ( "blank_out_frames",
+      "Blank out frames with no object detections on them",
+      "viame.core.utility_processes:blank_out_frames" ),
+    ( "many_image_stabilizer",
+      "Simultaneous multi-image stabilization",
+      "viame.core.stabilize_many_images:ManyImageStabilizer" ),
+    ( "merge_track_sets_tube_iou",
+      "Fusion of multiple object track sets via tube-IoU association",
+      "viame.core.merge_tracks_tube_iou:MergeTracksTubeIoU" ),
+    ( "multicam_homog_blackout",
+      "Black out previously-observed regions of registered multi-camera imagery",
+      "viame.core.multicam_homog_blackout:MulticamHomogBlackout" ),
+    ( "multicam_homog_det_suppressor",
+      "Multi-camera homography-based detection suppressor",
+      "viame.core.multicam_homog_det_suppressor:MulticamHomogDetSuppressor" ),
+    ( "multicam_homog_mosaic",
+      "Per-timestep tile mosaic of registered multi-camera imagery",
+      "viame.core.multicam_homog_mosaic:MulticamHomogMosaic" ),
+    ( "multicam_homog_tracker",
+      "Multi-camera IOU-based tracker with homography support",
+      "viame.core.multicam_homog_tracker:MulticamHomogTracker" ),
+    ( "percentile_norm_npy_16_to_8bit",
+      "A specialized percentile normalization method",
+      "viame.core.utility_processes:percentile_norm_npy_16_to_8bit" ),
+    ( "simple_homog_tracker",
+      "Simple IOU-based tracker with homography support",
+      "viame.core.simple_homog_tracker:SimpleHomogTracker" ),
+]

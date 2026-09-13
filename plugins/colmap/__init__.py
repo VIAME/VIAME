@@ -3,26 +3,21 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 """viame.colmap - COLMAP / survey-registration plugin.
 
-Hosts the colmap_registration sprokit process (available whenever this
-package is on SPROKIT_PYTHON_MODULES). The heavier SfM / dense-reconstruction
+Hosts the colmap_registration sprokit process, declared below so that it
+costs nothing until a pipeline wants it. The heavier SfM / dense-reconstruction
 modules (reconstruction, prior_coverage_sfm) require pycolmap and are imported
 lazily by their callers, so process registration never pulls them in.
 """
 
-
-def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
-
-    module_name = 'python:viame.colmap.colmap_processes'
-    if process_factory.is_process_module_loaded(module_name):
-        return
-
-    # The registration node depends only on viame.opencv (no pycolmap), so it
-    # registers even when COLMAP's optional dependencies are absent.
-    try:
-        from viame.colmap import colmap_registration
-        colmap_registration.__sprokit_register__()
-    except ImportError:
-        pass
-
-    process_factory.mark_process_module_as_loaded(module_name)
+# ----------------------------------------------------------------------------
+# The processes this package provides, without importing any of them.
+#
+# Each entry is ( name, description, "module:Class" ). A process registers by
+# calling `process_factory.add_process( name, description, ctor )`, and the
+# ctor is only ever called -- so a function that imports and constructs is as
+# good as the class and costs nothing until a pipeline wants one. See P8-T10.
+__sprokit_process_declarations__ = [
+    ( "colmap_registration",
+      "Multi-camera survey registration (affine chains + rig cross-camera consensus + optional GPS metadata); drop-in for many_image_stabilizer",
+      "viame.colmap.colmap_registration:ColmapRegistration" ),
+]

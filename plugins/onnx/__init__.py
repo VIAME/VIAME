@@ -5,23 +5,30 @@
 """VIAME ONNX plugins (installed as the ``viame.onnx`` package).
 
 Holds the generic onnxruntime object detector plus the epipolar / foundation
-stereo ONNX utilities. Registered with kwiver via ``SPROKIT_PYTHON_MODULES``.
+stereo ONNX utilities, declared below rather than imported.
 """
 
-
-def __vital_algorithm_register__():
-    """Register vital algorithm implementations in this package."""
-    try:
-        from viame.onnx import onnx_detector
-        onnx_detector.__vital_algorithm_register__()
-    except ImportError as ex:
-        import warnings
-        warnings.warn(f"viame.onnx: could not register onnx detector: {ex}")
-
-    # The foundation-stereo ONNX algorithm ships in this package too; register
-    # it when its (heavier) deps import, but never let that block the detector.
-    try:
-        from viame.onnx import fast_foundation_stereo
-        fast_foundation_stereo.__vital_algorithm_register__()
-    except Exception:
-        pass
+# ----------------------------------------------------------------------------
+# What this package provides, without importing any of it.
+#
+# Each entry is ( interface, name, description, "module:Class" ).
+# `kwiver.vital.plugins.discovery` turns each into a stand-in that imports
+# its module the first time something asks for an instance.
+#
+# This replaced a `__vital_algorithm_register__` that imported every
+# implementation module at startup, which was the only way the classes came
+# to exist for the subclass walk that registers them. See P8-T10.
+__vital_algorithm_declarations__ = [
+    ( "compute_stereo_depth_map", "fast_foundation_stereo_onnx",
+      "Stereo depth/disparity estimation using NVIDIA Fast-Foundation-Stereo ONNX/TensorRT export",
+      "viame.onnx.fast_foundation_stereo:FastFoundationStereoOnnx" ),
+    ( "image_object_detector", "onnx",
+      "Generic ONNX object detector (onnxruntime, no torch)",
+      "viame.onnx.onnx_detector:OnnxDetector" ),
+    ( "image_object_detector", "onnx_classifier",
+      "Whole-frame ONNX classifier (onnxruntime, no torch)",
+      "viame.onnx.onnx_classifier:OnnxClassifier" ),
+    ( "refine_detections", "onnx",
+      "ONNX detection reclassifier (onnxruntime, no torch)",
+      "viame.onnx.onnx_refiner:OnnxRefiner" ),
+]

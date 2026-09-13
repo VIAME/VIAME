@@ -1352,6 +1352,60 @@ The general form: **when recording a build's output, ask the build, not the
 filesystem.** A directory is a record of history; the build is a record of
 intent, and it is intent that a change is supposed to preserve.
 
+### 1.31 What you are replacing is everything the old code did, not what it was for
+
+P8-T10 replaces "import every module in the package so its classes exist for
+the subclass walk" with "name the class and import it when somebody wants
+one". The stated purpose of the import was to make the class exist. It was
+not the only thing the import did.
+
+A VIAME python algorithm defines `__init__` and its interface method and
+nothing else. `from_config`, `get_default_config` and `plugin_name` are
+attached to the class by `register_vital_algorithm`, which is called from the
+module's own `__vital_algorithm_register__` -- a function the scanner called
+**because it had imported the module anyway**. Importing on demand skipped
+it, so the lazy path handed the factory a class with none of the three
+methods it needs. Nothing failed at registration; `registry-dump` listed the
+algorithm quite happily. The failure was an `AttributeError` at the moment
+something first tried to build one, which is the last place anybody looks
+when the change under suspicion is a registration change.
+
+It was caught by a golden recording that constructs `srnn_tracker`, not by
+the compatibility baseline, which had listed the name and moved on. The
+general form is the one this project keeps meeting from different directions:
+**a contract that checks a thing is registered does not check that it can be
+built**, and a bulk operation you delete takes its side effects with it. When
+replacing one, the question is not "what was this for" but "what else
+happened while it ran".
+
+### 1.32 A list that lives in the shell can name things that do not exist
+
+The python packages VIAME loads were named in `setup_viame.sh`, sixteen
+`export SPROKIT_PYTHON_MODULES=...` lines. **Four of the sixteen named
+packages this tree does not install under any option** -- `kwiver.arrows.core`,
+`kwiver.arrows.python`, `kwiver.sprokit.processes.pytorch` and
+`kwiver.sprokit.tests.processes`, a quarter of the list. Nothing said so,
+because a package that cannot be imported is logged at debug and skipped --
+the list fails open, so being wrong and being right look identical from the
+outside.
+
+That is not the only thing it cost. The list is the runtime's own inventory
+of itself, and keeping it in the environment meant `viame` could not find its
+own plugins unless a shell script had run first; every test, every tool and
+every embedding had to arrange that. `registry-dump` reported the variable's
+contents as the packages it had loaded, so the baseline recorded the two
+ghosts as fact, for a year.
+
+Moving the list into `kwiver.vital.plugins.discovery`, where the code that
+reads it lives, cost nothing and settled all of it: the two names were
+obviously wrong the moment they sat next to the real ones, the build options
+sort themselves out (a package that is not built is not importable and is
+skipped, which is what the list already relied on), and `registry-dump` can
+now report what actually loaded rather than what somebody asked for. The
+environment variable that remains, `VIAME_PYTHON_PLUGINS`, is for packages
+VIAME does not ship -- which is the only thing an environment variable was
+ever needed for.
+
 ## 2. Open questions
 
 ### 2.13 `skip_process` deadlocks, and has since it was written

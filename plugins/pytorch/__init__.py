@@ -2,49 +2,6 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
-
-    module_name = 'python:pytorch.pytorch_processes'
-
-    if process_factory.is_process_module_loaded( module_name ):
-        return
-
-    # Note: srnn_tracker, deepsort_tracker, botsort_tracker, siammask_tracker,
-    # mdnet_tracker are now vital algorithms registered via
-    # __vital_algorithm_register__ and used with the track_objects process
-
-    try:
-        from viame.pytorch import torchvision_augment_process
-        torchvision_augment_process.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.pytorch import convert_to_onnx_process
-        convert_to_onnx_process.__sprokit_register__()
-    except ImportError:
-        pass
-
-    # These two were found by the module scan until P8-T10 stopped scanning
-    # this package. A declaration covers algorithms, which register through
-    # the subclass walk; a process registers itself by calling
-    # `process_factory.add_process`, so it has to be reached. Naming them
-    # here is what the scan was doing implicitly, and `baseline:registry`
-    # caught their absence the moment it was not.
-    try:
-        from viame.pytorch import pair_stereo_tracks
-        pair_stereo_tracks.__sprokit_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.pytorch import torchvision_descriptors
-        torchvision_descriptors.__sprokit_register__()
-    except ImportError:
-        pass
-
-
 # ----------------------------------------------------------------------------
 # What this package provides, without importing any of it.
 #
@@ -175,4 +132,26 @@ __vital_algorithm_declarations__ = [
     ( "train_tracker", "srnn",
       "PyTorch SRNN tracker training routine",
       "viame.pytorch.srnn_trainer:SRNNTrainer" ),
+]
+
+# ----------------------------------------------------------------------------
+# The processes this package provides, without importing any of them.
+#
+# Each entry is ( name, description, "module:Class" ). A process registers by
+# calling `process_factory.add_process( name, description, ctor )`, and the
+# ctor is only ever called -- so a function that imports and constructs is as
+# good as the class and costs nothing until a pipeline wants one. See P8-T10.
+__sprokit_process_declarations__ = [
+    ( "convert_to_onnx",
+      "Convert a VIAME model to onnx",
+      "viame.pytorch.convert_to_onnx_process:OnnxConverter" ),
+    ( "desc_augmentation",
+      "Pytorch-Based Augmentation",
+      "viame.pytorch.torchvision_augment_process:DataAugmentation" ),
+    ( "pair_stereo_tracks_pytorch",
+      "Pair stereo detections using deep descriptor cosine distance",
+      "viame.pytorch.pair_stereo_tracks:PairStereoTracks" ),
+    ( "pytorch_descriptors",
+      "pytorch feature extraction",
+      "viame.pytorch.torchvision_descriptors:ResNetDescriptors" ),
 ]

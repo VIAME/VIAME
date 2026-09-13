@@ -5,17 +5,37 @@
 """Python implementations that belong to measurement."""
 
 
-def __vital_algorithm_register__():
-    from viame.measurement import (ocv_calibration_targets,
-                                   ocv_optimize_stereo_cameras,
-                                   ocv_stereo_disparity)
+# ----------------------------------------------------------------------------
+# What this package provides, without importing any of it.
+#
+# Each entry is ( interface, name, description, "module:Class" ).
+# `kwiver.vital.plugins.discovery` turns each into a stand-in that imports
+# its module the first time something asks for an instance.
+#
+# This replaced a `__vital_algorithm_register__` that imported every
+# implementation module at startup, which was the only way the classes came
+# to exist for the subclass walk that registers them. See P8-T10.
+__vital_algorithm_declarations__ = [
+    ( "compute_stereo_depth_map", "ocv_stereo_disparity",
+      "OpenCV stereo disparity map computation using BM or SGBM",
+      "viame.measurement.ocv_stereo_disparity:ComputeStereoDisparity" ),
+    ( "image_object_detector", "ocv_detect_calibration_targets",
+      "Detect calibration targets (checkerboard or dots) with OpenCV",
+      "viame.measurement.ocv_calibration_targets:DetectCalibrationTargets" ),
+    ( "optimize_cameras", "ocv_optimize_stereo_cameras",
+      "Camera optimizer for stereo configurations.",
+      "viame.measurement.ocv_optimize_stereo_cameras:OptimizeStereoCameras" ),
+]
 
-    ocv_stereo_disparity.__vital_algorithm_register__()
-    ocv_calibration_targets.__vital_algorithm_register__()
-    ocv_optimize_stereo_cameras.__vital_algorithm_register__()
-
-
-def __sprokit_register__():
-    from viame.measurement import ocv_calibrate_single_camera
-
-    ocv_calibrate_single_camera.__sprokit_register__()
+# ----------------------------------------------------------------------------
+# The processes this package provides, without importing any of them.
+#
+# Each entry is ( name, description, "module:Class" ). A process registers by
+# calling `process_factory.add_process( name, description, ctor )`, and the
+# ctor is only ever called -- so a function that imports and constructs is as
+# good as the class and costs nothing until a pipeline wants one. See P8-T10.
+__sprokit_process_declarations__ = [
+    ( "ocv_calibrate_single_camera",
+      "Estimate one camera's intrinsics from a calibration target track set",
+      "viame.measurement.ocv_calibrate_single_camera:CalibrateSingleCamera" ),
+]

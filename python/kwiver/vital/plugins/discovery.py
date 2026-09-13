@@ -311,8 +311,43 @@ def _get_concrete_pluggable_types() -> List[Type[Pluggable]]:
 # `python_plugin_factory` and defers: the real module is imported the first
 # time something asks for an instance.
 
-VIAME_PLUGIN_PACKAGES_ENV_VAR = "VIAME_PYTHON_PLUGINS"
-LEGACY_PLUGIN_PACKAGES_ENV_VAR = "SPROKIT_PYTHON_MODULES"
+# The packages that ship with VIAME. Before P8-T10 this list lived in
+# `setup_viame.sh` as sixteen `export SPROKIT_PYTHON_MODULES=` lines, which
+# meant the runtime could not find its own plugins unless a shell script had
+# run first -- and that a name in it could be wrong without anything saying
+# so. Four of the sixteen were: `kwiver.arrows.core`, `kwiver.arrows.python`,
+# `kwiver.sprokit.processes.pytorch` and `kwiver.sprokit.tests.processes` are
+# not installed by this tree under any option, and are not here.
+#
+# A package here that this build did not produce is simply not importable and
+# is skipped with a debug line, so the list does not have to know which
+# options were on: `viame.tensorflow` and `viame.colmap` come and go with
+# theirs.
+BUILTIN_PLUGIN_PACKAGES = (
+    "kwiver.sprokit.processes",
+    "kwiver.sprokit.schedulers",
+    "viame.core",
+    "viame.image_processing",
+    "viame.measurement",
+    "viame.object_detectors",
+    "viame.video_io",
+    "viame.colmap",
+    "viame.examples",
+    "viame.onnx",
+    "viame.opencv",
+    "viame.pytorch",
+    "viame.tensorflow",
+)
+
+# Add-ons name their packages here. It replaces `SPROKIT_PYTHON_MODULES`, and
+# unlike it is unset in a normal install: it is for packages VIAME does not
+# ship, which is the only thing an environment variable was ever needed for.
+PLUGIN_PACKAGES_ENV_VAR = "VIAME_PYTHON_PLUGINS"
+
+# What the above resolved to, set by `load_python_modules` once it has run so
+# that `registry-dump` can report the packages that actually contributed
+# rather than the ones somebody asked for.
+LOADED_PACKAGES_ENV_VAR = "VIAME_PYTHON_PLUGINS_LOADED"
 
 DECLARATIONS_ATTR = "__vital_algorithm_declarations__"
 
@@ -390,18 +425,20 @@ def _proxy_for(interface: str, name: str, description: str,
     )
 
 
-def declared_plugin_packages() -> List[str]:
-    """The packages to ask for declarations, in order."""
-    packages: List[str] = []
-    for var in (VIAME_PLUGIN_PACKAGES_ENV_VAR, LEGACY_PLUGIN_PACKAGES_ENV_VAR):
-        for entry in os.environ.get(var, "").split(OS_ENV_PATH_SEP):
-            if entry and entry not in packages:
-                packages.append(entry)
+def plugin_packages() -> List[str]:
+    """Every package to ask for plugins: the built-ins, then any add-ons."""
+    packages: List[str] = list(BUILTIN_PLUGIN_PACKAGES)
+
+    for entry in os.environ.get(PLUGIN_PACKAGES_ENV_VAR, "").split(
+            OS_ENV_PATH_SEP):
+        if entry and entry not in packages:
+            packages.append(entry)
+
     return packages
 
 
-def package_declarations(package: str) -> List[tuple]:
-    """A package's declarations, or an empty list if it has none.
+def _import_package(package: str):
+    """The package, or None if it is not built into this install.
 
     Importing the package itself is cheap so long as its `__init__` only
     declares -- which is the whole discipline this depends on. A package that
@@ -409,19 +446,43 @@ def package_declarations(package: str) -> List[tuple]:
     exactly as it did before.
     """
     try:
-        module = importlib.import_module(package)
+        return importlib.import_module(package)
     except ImportError as error:
         LOG.debug(f"Package {package!r} is not importable: {error}")
+        return None
+
+
+def package_declarations(package: str) -> List[tuple]:
+    """A package's algorithm declarations, or an empty list if it has none."""
+    module = _import_package(package)
+
+    if module is None:
         return []
 
     return list(getattr(module, DECLARATIONS_ATTR, ()) or ())
+
+
+def package_declares(package: str) -> bool:
+    """Whether a package names what it provides rather than being scanned.
+
+    Either kind of declaration counts: a package may ship only processes
+    (`viame.examples`, `viame.colmap`) or only algorithms, and scanning one
+    of those would import every module in it to find what it already said.
+    """
+    module = _import_package(package)
+
+    if module is None:
+        return False
+
+    return bool(getattr(module, DECLARATIONS_ATTR, None)
+                or getattr(module, PROCESS_DECLARATIONS_ATTR, None))
 
 
 def declared_pluggable_types() -> List[Type]:
     """Proxy types for everything the declaring packages declare."""
     proxies: List[Type] = []
 
-    for package in declared_plugin_packages():
+    for package in plugin_packages():
         for declaration in package_declarations(package):
             try:
                 interface, name, description, import_path = declaration
@@ -437,3 +498,77 @@ def declared_pluggable_types() -> List[Type]:
                 _proxy_for(interface, name, description, import_path))
 
     return proxies
+
+
+# ----------------------------------------------------------------------------
+# Process declarations
+#
+# The same idea as `__vital_algorithm_declarations__`, for sprokit processes:
+#
+#     __sprokit_process_declarations__ = [
+#         ( "image_viewer", "Display input image and delay",
+#           "viame.video_io.image_viewer:ImageViewer" ),
+#     ]
+#
+# A process does not register through the subclass walk -- it calls
+# `process_factory.add_process( name, description, ctor )` -- so the module
+# had to be imported for the call to happen. The ctor is only ever *called*,
+# though, so a function that imports and constructs is as good as the class
+# and costs nothing until a pipeline actually wants one.
+
+PROCESS_DECLARATIONS_ATTR = "__sprokit_process_declarations__"
+
+
+def _lazy_process_ctor(import_path: str):
+    """A process constructor that imports its module when first called."""
+
+    def construct(config):
+        return _resolve_plain(import_path)(config)
+
+    return construct
+
+
+def _resolve_plain(import_path: str):
+    """`"package.module:Name"` to the object, importing the module.
+
+    Unlike `_resolve`, no registrar is called: a process module registers by
+    being imported and its class needs nothing attached to it.
+    """
+    module_name, _, attr = import_path.partition(":")
+    if not attr:
+        raise ValueError(
+            f"declaration import path needs 'module:Name', got {import_path!r}"
+        )
+    return getattr(importlib.import_module(module_name), attr)
+
+
+def register_declared_processes(package: str) -> int:
+    """Register a package's declared processes lazily. Returns how many."""
+    module = _import_package(package)
+
+    if module is None:
+        return 0
+
+    declarations = getattr(module, PROCESS_DECLARATIONS_ATTR, ()) or ()
+    if not declarations:
+        return 0
+
+    from kwiver.sprokit.pipeline import process_factory
+
+    registered = 0
+    for declaration in declarations:
+        try:
+            name, description, import_path = declaration
+        except (TypeError, ValueError):
+            LOG.warning(
+                f"{package}: ignoring malformed process declaration "
+                f"{declaration!r}; expected "
+                "( name, description, 'module:Class' )"
+            )
+            continue
+
+        process_factory.add_process(
+            name, description, _lazy_process_ctor(import_path))
+        registered += 1
+
+    return registered

@@ -3,18 +3,25 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Python Process Registration Package for VIAME Examples.
+Python process registration package for the VIAME examples.
 
-Registration does not happen here. KWIVER's module loader walks this
-package's directory, imports every module in it except __init__.py, and
-calls a __sprokit_register__() hook on each one it imported. A hook defined
-in this file is therefore never called.
+This is the documented form for a package that ships python processes: it
+names them, and names the module and class each one lives in, without
+importing anything. `kwiver.vital.plugins.discovery` registers each with a
+constructor that imports the module the first time a pipeline asks for one.
 
 To add your own process:
     1. Write it in its own module in this directory
-    2. Give that module a __sprokit_register__() that calls
-       process_factory.add_process(), guarding on
-       process_factory.is_process_module_loaded() as the existing ones do
+    2. Add a line here naming it: ( name, description, "module:Class" )
 
-See hello_world_detector.py for the pattern.
+See hello_world_detector.py for the process itself.
 """
+
+__sprokit_process_declarations__ = [
+    ( "hello_world_detector",
+      "Example detector that logs a message for each image",
+      "viame.examples.hello_world_detector:hello_world_detector" ),
+    ( "hello_world_filter",
+      "Example filter that logs a message and passes images through",
+      "viame.examples.hello_world_filter:hello_world_filter" ),
+]

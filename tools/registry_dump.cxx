@@ -419,13 +419,18 @@ collect_process_details( std::string const& type, registered_entry& entry )
 }
 
 // ----------------------------------------------------------------------------
-/// The python packages the runtime is told to import, in sorted order.
+/// The python packages that contributed plugins, in sorted order.
+///
+/// Set by `kwiver.vital.modules.module_loader` once it has loaded them. It
+/// used to be the shell variable that named the packages to import, which
+/// listed two that did not exist and would have gone on listing them.
+/// `kwiver.vital.plugins.discovery` holds the list now.
 std::vector< std::string >
 python_modules()
 {
   std::set< std::string > modules;
 
-  char const* const env = std::getenv( "SPROKIT_PYTHON_MODULES" );
+  char const* const env = std::getenv( "VIAME_PYTHON_PLUGINS_LOADED" );
 
   if( env )
   {

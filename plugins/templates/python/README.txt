@@ -3,11 +3,10 @@ detector algorithm implementation in Python. The intent is to copy the
 contents of this directory to a new folder in the plugins directory or
 and existing folder.
 
-Note: if made in a new plugins directory, the setup_viame.sh or .bat
-script should also be modified to include an import for the new plugin
-(e.g. SPROKIT_PYTHON_MODULES should contain viame.@template_dir@
-either via adding it to setup_viame script or alternatively the environment
-to load the new python plugin folder).
+Note: a package that ships with VIAME is named in BUILTIN_PLUGIN_PACKAGES
+in kwiver/vital/plugins/discovery.py. One that does not ship with VIAME is
+named by the user in VIAME_PYTHON_PLUGINS, a colon-separated list of package
+names; nothing has to be added to setup_viame.sh for either.
 
 
 

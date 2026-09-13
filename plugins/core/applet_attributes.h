@@ -9,8 +9,8 @@ namespace viame {
 
 /// Set on applets that need no plugins loaded on their behalf, letting the
 /// tool runner skip the global plugin load. That load pulls in the python
-/// module loader, and with it every module named by SPROKIT_PYTHON_MODULES,
-/// which costs many seconds.
+/// module loader, and with it every python plugin package, which costs
+/// seconds.
 constexpr char const* SKIP_PLUGIN_PRELOAD = "viame-skip-plugin-preload";
 
 /// Set on applets that parse their own arguments, so that

@@ -63,23 +63,24 @@ def load_python_modules():
     """
     Loads python plugins
 
-    Searches for modules specified in the `SPROKIT_PYTHON_MODULES` environment
-    variable that are importable from `PYTHONPATH`. Then these modules are
-    imported and their magic registrar function is called to register
-    them with the C++ backend.
+    The packages are the ones VIAME ships plus anything named in
+    `VIAME_PYTHON_PLUGINS`; see `kwiver.vital.plugins.discovery`. A package
+    that declares what it provides is registered from the declaration; one
+    that does not is scanned, which means importing every module in it and
+    calling the registrar hook each one defines.
     """
     import os
 
+    from kwiver.vital.plugins.discovery import (
+        LOADED_PACKAGES_ENV_VAR,
+        package_declares,
+        plugin_packages,
+        register_declared_processes,
+    )
+
     logger.info("Loading python modules")
 
-    # default plugins that are always loaded
-    packages = ["kwiver.sprokit.processes", "kwiver.sprokit.schedulers"]
-
-    envvar = "SPROKIT_PYTHON_MODULES"
-
-    extra_modules = os.environ.get(envvar, "").split(os.pathsep)
-    # ensure the empty string is not considered as a module
-    packages.extend([p for p in extra_modules if p])
+    packages = list(plugin_packages())
     logger.debug(
         "Preparing to load sprokit python plugin modules: "
         "[\n    {}\n]".format(",\n    ".join(list(map(repr, packages))))
@@ -87,6 +88,7 @@ def load_python_modules():
 
     loader = loaders.ModuleLoader()
     all_modules = []
+    loaded = []
 
     # A package that declares what it provides is not scanned. Scanning means
     # importing every module in it that defines a registrar, and the only
@@ -95,24 +97,21 @@ def load_python_modules():
     # discovery the same information without the import -- which for
     # `viame.pytorch` is the difference between paying for torch on every
     # command and not.
-    try:
-        from kwiver.vital.plugins.discovery import package_declarations
-    except ImportError:
-        def package_declarations(_package):
-            return []
-
     for package in packages:
-        if package_declarations(package):
+        if package_declares(package):
             logger.debug(
                 "Not scanning {}: it declares what it provides".format(package))
 
-            # The package itself is still asked to register, because a
-            # declaration covers algorithms and not processes: those go
-            # through `process_factory` rather than the subclass walk, and a
-            # package may have both. Importing the package is cheap -- that
-            # is the discipline a declaration depends on.
+            # Declared processes are registered here, with a constructor
+            # that imports when a pipeline first wants one. The package
+            # itself is still asked to register anything it has not
+            # declared; importing it is cheap, which is the discipline a
+            # declaration depends on.
+            register_declared_processes(package)
+
             try:
                 all_modules.append(importlib.import_module(package))
+                loaded.append(package)
             except ImportError as error:
                 logger.warn(
                     'Could not import declaring package "{}": {}'.format(
@@ -120,7 +119,14 @@ def load_python_modules():
             continue
 
         modules = loader.load(package)
+        if modules:
+            loaded.append(package)
         all_modules += modules
+
+    # So that `registry-dump` can report the packages that contributed, now
+    # that no environment variable names them. Setting it here rather than
+    # returning it because the reader is C++ in the same process.
+    os.environ[LOADED_PACKAGES_ENV_VAR] = os.pathsep.join(loaded)
 
     all_modules.extend(get_python_plugins_from_entrypoint())
 

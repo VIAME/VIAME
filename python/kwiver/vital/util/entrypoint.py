@@ -27,8 +27,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 
 
-from pkg_resources import iter_entry_points, DistributionNotFound
 from kwiver.vital import vital_logging
+from kwiver.vital.plugins.discovery import get_ns_entrypoints
 from kwiver import PYTHON_PLUGIN_ENTRYPOINT
 
 
@@ -41,14 +41,18 @@ def get_python_plugins_from_entrypoint():
     kwiver.python_plugin_registration
     :return: A list of zero or more python modules containing registration
              functions
+
+    This reads the same entry points `pkg_resources.iter_entry_points` did,
+    through `importlib.metadata` instead. `pkg_resources` costs 110 ms to
+    import -- a fifth of the startup budget P8-T10 sets, on every command,
+    to look for a hook that a stock install has no users of. The stdlib
+    reader is free, and `kwiver.vital.plugins.discovery` was already using
+    it for the other entry point group.
     """
     py_modules = []
-    try:
-        for entry_point in iter_entry_points(PYTHON_PLUGIN_ENTRYPOINT):
-            try:
-                py_modules.append(entry_point.load())
-            except ImportError:
-                logger.warn("Failed to load entry point: {0}".format(entry_point))
-    except DistributionNotFound:
-        pass
+    for entry_point in get_ns_entrypoints(PYTHON_PLUGIN_ENTRYPOINT):
+        try:
+            py_modules.append(entry_point.load())
+        except ImportError:
+            logger.warn("Failed to load entry point: {0}".format(entry_point))
     return py_modules

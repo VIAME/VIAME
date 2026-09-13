@@ -13,7 +13,6 @@ CommandLine:
 
     export KWIVER_DEFAULT_LOG_LEVEL=info
     export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=info
-    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
     python ~/code/VIAME/plugins/opencv/python/run_opencv.py
 

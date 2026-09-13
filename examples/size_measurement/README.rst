@@ -130,7 +130,6 @@ The above pipeline can alternatively be run as a python script.
     # you may also want to set these environment variables
     # export KWIVER_DEFAULT_LOG_LEVEL=debug
     export KWIVER_DEFAULT_LOG_LEVEL=info
-    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
 
 You should be able to run the help command

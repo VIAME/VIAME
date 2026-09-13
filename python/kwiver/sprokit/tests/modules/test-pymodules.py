@@ -38,7 +38,7 @@ def test_import():
         test_error("Failed to import the modules module")
 
 
-# TEST_PROPERTY(ENVIRONMENT, SPROKIT_PYTHON_MODULES=kwiver.sprokit.tests.processes)
+# TEST_PROPERTY(ENVIRONMENT, VIAME_PYTHON_PLUGINS=kwiver.sprokit.tests.processes)
 def test_load():
     from kwiver.vital.modules import modules
     from kwiver.sprokit.pipeline import process_factory
@@ -64,7 +64,7 @@ def test_masking():
         test_error("Failed to mask out Python processes")
 
 
-# TEST_PROPERTY(ENVIRONMENT, SPROKIT_PYTHON_MODULES=kwiver.sprokit.tests.processes)
+# TEST_PROPERTY(ENVIRONMENT, VIAME_PYTHON_PLUGINS=kwiver.sprokit.tests.processes)
 def test_extra_modules():
     from kwiver.vital.modules import modules
     from kwiver.sprokit.pipeline import process_factory
