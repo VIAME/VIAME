@@ -82,7 +82,8 @@ def compare_ports(old_ports, new_ports, where, kind, failures):
 
 
 def compare_entries(kind, old_entries, new_entries, aliases, removed, pending,
-                    failures, interface="", with_ports=False):
+                    failures, skipped, compared, interface="",
+                    with_ports=False):
     for name, old_entry in sorted(old_entries.items()):
         where = "{} '{}'".format(kind, name)
         if interface:
@@ -104,10 +105,27 @@ def compare_entries(kind, old_entries, new_entries, aliases, removed, pending,
                 failures.append("{} is gone".format(where))
             continue
 
-        # An entry the dump could not introspect carries no config to compare,
-        # in either direction
-        if old_entry.get("error") or new_entry.get("error"):
+        # An entry the dump could not introspect carries no config to
+        # compare. Skipping it is right -- there is nothing to compare
+        # against -- but skipping it *silently* is how the contract came to
+        # stop checking every algorithm this project ported from C++ to
+        # python, 143 config keys' worth, without anything saying so. See
+        # finding 1.35. So a new error where the baseline had none is a
+        # regression in its own right, and the rest are counted and reported.
+        if new_entry.get("error"):
+            if not old_entry.get("error"):
+                failures.append(
+                    "{} can no longer be introspected, so its config is no "
+                    "longer checked: {}".format(where, new_entry["error"]))
+            else:
+                skipped.append(where)
             continue
+
+        if old_entry.get("error"):
+            skipped.append(where)
+            continue
+
+        compared.append(where)
 
         compare_config(old_entry.get("config", {}), new_entry.get("config", {}),
                        where, failures,
@@ -127,6 +145,8 @@ def main():
     parser.add_argument("old", help="baseline registry dump")
     parser.add_argument("new", help="registry dump to check")
     parser.add_argument("--removed", help="names removed on purpose")
+    parser.add_argument("--list-skipped", action="store_true",
+                        help="name the entries neither dump could introspect")
     parser.add_argument("--pending",
                         help="names or keys a later phase restores")
     args = parser.parse_args()
@@ -149,6 +169,8 @@ def main():
             }
 
     failures = []
+    skipped = []
+    compared = []
 
     old_algorithms = old.get("algorithms", {})
     new_algorithms = new.get("algorithms", {})
@@ -156,18 +178,34 @@ def main():
     for interface, old_impls in sorted(old_algorithms.items()):
         compare_entries("algorithm", old_impls,
                         new_algorithms.get(interface, {}),
-                        aliases, removed, pending, failures,
+                        aliases, removed, pending, failures, skipped, compared,
                         interface=interface)
 
     compare_entries("process", old.get("processes", {}), new.get("processes", {}),
-                    aliases, removed, pending, failures, with_ports=True)
+                    aliases, removed, pending, failures, skipped, compared,
+                    with_ports=True)
     compare_entries("cluster", old.get("clusters", {}), new.get("clusters", {}),
-                    aliases, removed, pending, failures, with_ports=True)
+                    aliases, removed, pending, failures, skipped, compared,
+                    with_ports=True)
     compare_entries("applet", old.get("applets", {}), new.get("applets", {}),
-                    aliases, removed, pending, failures)
+                    aliases, removed, pending, failures, skipped, compared)
     compare_entries("scheduler", old.get("schedulers", {}),
                     new.get("schedulers", {}), aliases, removed, pending,
-                    failures)
+                    failures, skipped, compared)
+
+    # Said out loud on every run, passing or failing. What this number was
+    # hiding is finding 1.35 -- 143 config keys that stopped being checked,
+    # in silence, at the moment the work that needed checking happened. A
+    # count that moves is something a reader can notice; a list of sixty is
+    # something a reader scrolls past, so the list is behind a flag.
+    if skipped:
+        print("registry baseline: {} of {} entries not compared, because the "
+              "**baseline** could not read their configuration. Pass "
+              "--list-skipped for the names.".format(
+                  len(skipped), len(skipped) + len(compared)))
+        if args.list_skipped:
+            for where in skipped:
+                print("  " + where)
 
     if failures:
         print("registry baseline: {} regression(s)".format(len(failures)))

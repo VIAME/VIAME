@@ -1499,6 +1499,16 @@ cases the work was creating. When a comparison has a skip path, count what
 it skipped and say so. The dump could have printed "82 of 177 algorithms
 could not be introspected" on every run, and somebody would have asked.
 
+`compare_registry.py` does both those things now. It prints `58 of 285
+entries not compared` on every run, passing or failing -- a number that can
+move, where a list of sixty names is something a reader scrolls past -- and
+an entry the **new** dump cannot introspect where the baseline could is a
+failure in its own right, not a skip. Checked against the dump taken before
+the fix: 19 of the 24 come back as regressions, named, with the binding
+error as the reason. The remaining 58 are entries that were python on `main`
+too, so the baseline recorded nothing for them and there is nothing to
+compare against; the contract cannot be stronger than what was written down.
+
 ## 2. Open questions
 
 ### 2.13 `skip_process` deadlocks, and has since it was written
