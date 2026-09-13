@@ -11,7 +11,7 @@
 
 #include <viame/algorithm_framework/algo/detect_motion.h>
 #include <viame/algorithm_framework/algo/image_object_detector.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "detect_heat_map.h"
 #include "detect_motion_3frame_differencing.h"
@@ -26,7 +26,7 @@ namespace kv = kwiver::vital;
 extern "C"
 VIAME_OBJECT_DETECTORS_PLUGIN_EXPORT
 void
-register_factories( kv::plugin_loader& vpm )
+register_factories( kv::registry& vpm )
 {
   using kvpf = kv::plugin_factory;
   const std::string module_name = "viame.object_detectors";

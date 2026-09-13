@@ -181,7 +181,7 @@ class embedded_pipeline_extension_registrar
   : public plugin_registrar
 {
 public:
-  embedded_pipeline_extension_registrar( kwiver::vital::plugin_loader& p_vpl,
+  embedded_pipeline_extension_registrar( kwiver::vital::registry& p_vpl,
                     const std::string& p_module_name )
     : plugin_registrar( p_vpl, p_module_name )
   {
@@ -190,12 +190,12 @@ public:
     // Use forced naming convention for modules
   bool is_module_loaded() override
   {
-    return plugin_loader().is_module_loaded( "epx." + module_name() );
+    return registry().is_module_loaded( "epx." + module_name() );
   }
 
   void mark_module_as_loaded() override
   {
-    plugin_loader().mark_module_as_loaded( "epx." + module_name() );
+    registry().mark_module_as_loaded( "epx." + module_name() );
   }
 
   // ----------------------------------------------------------------------------
@@ -206,7 +206,7 @@ public:
    *
    * @tparam epx_t Type of the EPX being registered.
    *
-   * @return The plugin loader reference is returned.
+   * @return the registry reference is returned.
    */
   template <typename epx_t>
   kwiver::vital::plugin_factory_handle_t register_EPX()
@@ -224,7 +224,7 @@ public:
       .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "embedded-pipeline-extension" )
       ;
 
-    return plugin_loader().add_factory( fact );
+    return registry().add_factory( fact );
   }
 };
 

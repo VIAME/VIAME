@@ -33,7 +33,7 @@ constexpr const char* LOGGER_NAME = "viame.core.process_query_adaboost";
 // ----------------------------------------------------------------------------
 /// Whether an interpreter exists to call into.
 ///
-/// VIAME brings python up when the plugin loader loads `modules_python`, and
+/// VIAME brings python up when the registry loads `modules_python`, and
 /// every pipeline that selects this process has it. A build or a tool that
 /// does not is not an error here: the session reports no model and the base
 /// class falls back to similarity, which is a working query.

@@ -11,7 +11,7 @@
 
 #include <viame/algorithm_framework/algo/associate_detections_to_tracks.h>
 #include <viame/algorithm_framework/algo/initialize_object_tracks.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "associate_detections_to_tracks_threshold.h"
 #include "initialize_object_tracks_threshold.h"
@@ -24,7 +24,7 @@ namespace kv = kwiver::vital;
 extern "C"
 VIAME_OBJECT_TRACKERS_PLUGIN_EXPORT
 void
-register_factories( kv::plugin_loader& vpm )
+register_factories( kv::registry& vpm )
 {
   using kvpf = kv::plugin_factory;
   const std::string module_name = "viame.object_trackers";

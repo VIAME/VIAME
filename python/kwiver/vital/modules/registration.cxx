@@ -9,7 +9,7 @@
 #include <pybind11/pybind11.h>
 #include <python/kwiver/vital/util/python.h>
 #include <python/kwiver/vital/util/python_exceptions.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include <algorithm>
 #include <exception>
@@ -45,17 +45,17 @@ static bool is_suppressed();
 
 // Python plugin discovery is best effort: a host with a broken or missing
 // python environment should lose the python plugins, not die. This entry point
-// is called through a function pointer from the plugin loader, so anything that
+// is called through a function pointer from the registry, so anything that
 // escapes it unwinds through an extern "C" boundary and reaches std::terminate
 // -- which aborts every process that loads this plugin, kwiver's own tools
 // included. The body already ignores python exceptions; catch everything else
 // here so the same is true of the C++ ones.
-static void register_factories_impl( kwiver::vital::plugin_loader& vpm );
+static void register_factories_impl( kwiver::vital::registry& vpm );
 
 extern "C"
 MODULES_PYTHON_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kwiver::vital::registry& vpm )
 {
   auto logger = kwiver::vital::get_logger( "vital.python_modules" );
   try
@@ -79,7 +79,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 }
 
 void
-register_factories_impl( kwiver::vital::plugin_loader& vpm )
+register_factories_impl( kwiver::vital::registry& vpm )
 {
   if( is_suppressed() )
   {

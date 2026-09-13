@@ -811,7 +811,7 @@ include/viame/algorithm_framework/plugin/pluggable.h
 include/viame/algorithm_framework/plugin/pluggable_macro_magic.h
 include/viame/algorithm_framework/plugin/plugin_factory.h
 include/viame/algorithm_framework/plugin/plugin_info.h
-include/viame/algorithm_framework/plugin/plugin_loader.h
+include/viame/algorithm_framework/plugin/registry.h
 include/viame/algorithm_framework/plugin/plugin_manager.h
 include/viame/algorithm_framework/plugin/plugin_manager_internal.h
 include/viame/algorithm_framework/plugin/plugin_registrar.h

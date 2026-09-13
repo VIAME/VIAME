@@ -2,8 +2,8 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#ifndef KWIVER_VITAL_PLUGIN_LOADER_H_
-#define KWIVER_VITAL_PLUGIN_LOADER_H_
+#ifndef KWIVER_VITAL_REGISTRY_H_
+#define KWIVER_VITAL_REGISTRY_H_
 
 #include <viame/algorithm_framework/plugin/vital_vpm_export.h>
 
@@ -27,23 +27,31 @@ using plugin_map_t            = std::map< std::string,
   plugin_factory_vector_t >;
 using plugin_module_map_t     = std::map< std::string, std::string >;
 
-class plugin_loader_impl;
+class registry_impl;
 
 /**
  * @brief The registry: every factory VIAME was built with, by interface.
  *
- * This used to find plugins by scanning directories and `dlopen`-ing what
- * it found, which is where the name comes from. P8-T03 links the plugins in
- * and calls their registration functions directly, so what is left is the
- * store they register into -- factories by interface name, and the set of
- * modules that have already registered.
+ * This was the plugin loader, and it found plugins by scanning directories and
+ * `dlopen`-ing what it found. P8-T03 links the plugins in and calls their
+ * registration functions directly, so what is left is the store they
+ * register into -- factories by interface name, and the set of modules that
+ * have already registered. P8-T10 renamed it, because a class called a
+ * loader that loads nothing sends every reader looking for the load.
+ *
+ * It stays in `plugin/` rather than moving to `registry/` next to the
+ * generated `register_builtins`, which is where `lite-build-system.md` §4
+ * draws it. The two cannot share a library: `registry/` links every library
+ * that registers, and every library that registers calls `add_factory` on
+ * this class. One of the two has to be underneath the other, and it is this
+ * one.
  */
-class VITAL_VPM_EXPORT plugin_loader
+class VITAL_VPM_EXPORT registry
 {
 public:
-  plugin_loader();
+  registry();
 
-  virtual ~plugin_loader();
+  virtual ~registry();
 
   // Factory Stuff =============================================================
   /// @brief Get list of factories for interface type.
@@ -102,7 +110,7 @@ public:
   ///
   /// Example:
   /// \code
-  /// void add_factories( plugin_loader* pm )
+  /// void add_factories( registry* pm )
   /// {
   /// plugin_factory_handle_t fact = pm->add_factory( new foo_factory() );
   /// fact->add_attribute( "file-type", "xml mit" );
@@ -136,7 +144,7 @@ public:
    *
    * Example:
    *  \code
-   *  void add_factories( plugin_loader* pm )
+   *  void add_factories( registry* pm )
    *  {
    *  plugin_factory_handle_t fact = pm->add_factory<SomeInterface,
    * SomeDerived>( "derived" );
@@ -218,15 +226,15 @@ public:
   void set_registering_library( std::string const& name );
 
 protected:
-  friend class plugin_loader_impl;  // is this needed? I clearly don't remember
+  friend class registry_impl;  // is this needed? I clearly don't remember
 
   // what friend classes are.
 
   kwiver::vital::logger_handle_t m_logger;
 
 private:
-  const std::unique_ptr< plugin_loader_impl > m_impl;
-}; // end class plugin_loader
+  const std::unique_ptr< registry_impl > m_impl;
+}; // end class registry
 
 } // end namespace
 

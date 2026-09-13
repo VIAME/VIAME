@@ -12,7 +12,7 @@
 #include <viame/algorithm_framework/algo/image_io.h>
 #include <viame/algorithm_framework/algo/video_input.h>
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "core_image_io.h"
 #include "video_input_image_list.h"
@@ -24,7 +24,7 @@ namespace kv = kwiver::vital;
 extern "C"
 VIAME_VIDEO_IO_PLUGIN_EXPORT
 void
-register_factories( kv::plugin_loader& vpm )
+register_factories( kv::registry& vpm )
 {
   using kvpf = kv::plugin_factory;
   const std::string module_name = "viame.video_io";

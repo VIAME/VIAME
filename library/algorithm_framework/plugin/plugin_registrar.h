@@ -2,24 +2,24 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#ifndef PLUGIN_LOADER_PLUGIN_REGISTRAR_H
-#define PLUGIN_LOADER_PLUGIN_REGISTRAR_H
+#ifndef PLUGIN_REGISTRY_PLUGIN_REGISTRAR_H
+#define PLUGIN_REGISTRY_PLUGIN_REGISTRAR_H
 
 #include <viame/algorithm_framework/plugin/plugin_factory.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #if !defined( KWIVER_DEFAULT_PLUGIN_ORGANIZATION )
 #define KWIVER_DEFAULT_PLUGIN_ORGANIZATION "undefined"
 #endif
 
 // ----------------------------------------------------------------------------
-// Support for adding factories for the plugin loader
+// Support for adding factories to the registry
 
 namespace kwiver {
 
 namespace vital {
 
-class plugin_loader;
+class registry;
 
 } // end namespace vital
 
@@ -31,14 +31,14 @@ public:
   ///
   /// This class contains the common data used for registering tools.
   ///
-  /// \param vpl Reference to the plugin loader
+  /// \param vpl Reference to the registry
   /// \param name Name of this loadable module.
   plugin_registrar(
-    vital::plugin_loader& vpl,
+    vital::registry& vpl,
     const std::string& name )
     : mod_name( name ),
       mod_organization( KWIVER_DEFAULT_PLUGIN_ORGANIZATION ),
-      m_plugin_loader( vpl )
+      m_registry( vpl )
   {}
 
   virtual ~plugin_registrar() = default;
@@ -47,14 +47,14 @@ public:
   virtual bool
   is_module_loaded()
   {
-    return m_plugin_loader.is_module_loaded( mod_name );
+    return m_registry.is_module_loaded( mod_name );
   }
 
   /// Mark module as loaded.
   virtual void
   mark_module_as_loaded()
   {
-    m_plugin_loader.mark_module_as_loaded( mod_name );
+    m_registry.mark_module_as_loaded( mod_name );
   }
 
   /// Return module name.
@@ -65,20 +65,20 @@ public:
   const std::string&
   organization() const { return this->mod_organization; }
 
-  /// Return reference to the plugin loader.
-  kwiver::vital::plugin_loader&
-  plugin_loader()
+  /// Return reference to the registry.
+  kwiver::vital::registry&
+  registry()
   {
-    return this->m_plugin_loader;
+    return this->m_registry;
   }
 
 private:
   const std::string mod_name;
   const std::string mod_organization;
 
-  kwiver::vital::plugin_loader& m_plugin_loader;
+  kwiver::vital::registry& m_registry;
 };
 
 } // end namespace
 
-#endif // PLUGIN_LOADER_PLUGIN_REGISTRAR_H
+#endif // PLUGIN_REGISTRY_PLUGIN_REGISTRAR_H

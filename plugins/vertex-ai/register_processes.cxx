@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include <viame/algorithm_framework/vital_config.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include <viame/pipeline_framework/process_factory.h>
 
@@ -12,7 +12,7 @@
 
 extern "C"
 VIAME_PROCESSES_VERTEX_AI_EXPORT
-void register_factories( kwiver::vital::plugin_loader& vpm )
+void register_factories( kwiver::vital::registry& vpm )
 {
   static auto const module_name =
     kwiver::vital::plugin_manager::module_t( "viame_processes_vertex_ai" );

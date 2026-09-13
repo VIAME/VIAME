@@ -59,7 +59,7 @@
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/core_types/noncopyable.h>
 #include <viame/algorithm_framework/plugin/plugin_factory.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/util/demangle.h>
 
 #include <iostream>
@@ -74,7 +74,7 @@ namespace kwiver::vital {
 ///
 /// This class is the main plugin manager for all kwiver components.
 ///
-/// Behaves as a decorator for plugin_loader
+/// Behaves as a decorator for registry
 class VITAL_VPM_EXPORT plugin_manager
   : private kwiver::vital::noncopyable
 {
@@ -129,7 +129,7 @@ public:
 ///
 /// @param registrar Function to call with the loader.
   static void add_static_registrar(
-    void ( *registrar )( plugin_loader&, plugin_types ) );
+    void ( *registrar )( registry&, plugin_types ) );
 
 /// @brief Add factory to manager.
 ///
@@ -153,7 +153,7 @@ public:
 ///
 /// Example:
 /// \code
-/// void add_factories( plugin_loader* pm )
+/// void add_factories( registry* pm )
 /// {
 /// plugin_factory_handle_t fact = pm->add_factory( new foo_factory() );
 /// fact->add_attribute( "file-type", "xml mit" );
@@ -239,7 +239,7 @@ protected:
 // Some of it seemed to be access to things registered under certain
 // categories?
 
-  plugin_loader* get_loader();
+  registry* get_registry();
 
 /// @brief Get map of known plugins.
 ///

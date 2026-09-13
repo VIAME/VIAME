@@ -88,7 +88,7 @@ sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      na
 
 // ------------------------------------------------------------------
 void
-mark_scheduler_module_as_loaded( kwiver::vital::plugin_loader& vpl,
+mark_scheduler_module_as_loaded( kwiver::vital::registry& vpl,
                                  module_t const& module )
 {
   module_t mod = "scheduler.";
@@ -99,7 +99,7 @@ mark_scheduler_module_as_loaded( kwiver::vital::plugin_loader& vpl,
 
 // ------------------------------------------------------------------
 bool
-is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
+is_scheduler_module_loaded( kwiver::vital::registry& vpl,
                             module_t const& module )
 {
   module_t mod = "scheduler.";

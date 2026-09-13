@@ -46,11 +46,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # torch is imported in `main`, not here.
 #
 # This file is a command line tool -- it exports ONNX models and registers
-# nothing -- but it sits in a package that kwiver's plugin loader scans, and
-# that scanner imports **every** module it finds, plugin or not. A
-# module-level `import torch` therefore cost 1.5 seconds on every plugin
-# load in the whole of VIAME, to no purpose: every use of torch below is
-# inside a function.
+# nothing -- but it sat in a package the module loader scanned, and that scan
+# imported **every** module it found, plugin or not. A module-level
+# `import torch` therefore cost 1.5 seconds on every plugin load in the whole
+# of VIAME, to no purpose: every use of torch below is inside a function.
+# P8-T10 stopped the scanning, and this stays deferred because the reason it
+# was ever eager was the scan, not this file.
 #
 # The measurement and the rest of what the scan costs are in
 # `design/lite-findings.md`.

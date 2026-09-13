@@ -15,7 +15,7 @@
 #include "viame_processes_video_io_export.h"
 
 #include <viame/pipeline_framework/process_factory.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "frame_list_process.h"
 #include "image_file_reader_process.h"
@@ -26,7 +26,7 @@
 extern "C"
 VIAME_PROCESSES_VIDEO_IO_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kwiver::vital::registry& vpm )
 {
   static auto const module_name =
     kwiver::vital::plugin_manager::module_t( "viame_processes_video_io" );

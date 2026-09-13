@@ -78,8 +78,10 @@ _SUBMODULES = [
 __all__ = sorted(set(_ATTRS) | set(_SUBMODULES))
 
 
-# Everything is resolved on first access: the plugin loader imports this
-# package on every viame startup and the eager version cost eight seconds
+# Everything is resolved on first access. Before P8-T10 registration imported
+# this package on every viame startup, and the eager version cost eight
+# seconds; it is imported now only when something builds a netharn detector,
+# which is when the eight seconds are worth paying
 def __getattr__(name):
     if name in _ATTRS:
         value = getattr(_importlib.import_module(_ATTRS[name], __name__), name)

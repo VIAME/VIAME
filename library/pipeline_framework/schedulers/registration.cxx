@@ -17,7 +17,7 @@
 extern "C"
 SCHEDULERS_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kwiver::vital::registry& vpm )
 {
   sprokit::scheduler_registrar reg( vpm, "schedulers" );
 

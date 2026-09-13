@@ -24,11 +24,11 @@ namespace {
 // before `main`, so this is a function-local static rather than a namespace
 // one -- it has to exist before the first caller, whatever order the loader
 // runs the initialisers in.
-std::vector< void ( * )( plugin_loader&, plugin_manager::plugin_types ) >&
+std::vector< void ( * )( registry&, plugin_manager::plugin_types ) >&
 static_registrars()
 {
   static std::vector<
-    void ( * )( plugin_loader&, plugin_manager::plugin_types ) > registrars;
+    void ( * )( registry&, plugin_manager::plugin_types ) > registrars;
   return registrars;
 }
 
@@ -38,7 +38,7 @@ static_registrars()
 void
 plugin_manager
 ::add_static_registrar(
-  void ( *registrar )( plugin_loader&, plugin_types ) )
+  void ( *registrar )( registry&, plugin_types ) )
 {
   static_registrars().push_back( registrar );
 }
@@ -52,12 +52,12 @@ class plugin_manager::priv
 {
 public:
   priv()
-    : m_loader( new plugin_loader() ),
+    : m_registry( new registry() ),
       m_logger( kwiver::vital::get_logger( "vital.plugin_manager" ) )
   {}
 
   plugin_types m_loaded; // bitmask of kinds registered
-  std::unique_ptr< plugin_loader > m_loader; // the registry itself
+  std::unique_ptr< registry > m_registry; // the registry itself
   kwiver::vital::logger_handle_t m_logger;
 
   // Run the registration functions of the libraries linked into this
@@ -70,7 +70,7 @@ public:
   {
     for( auto const registrar : static_registrars() )
     {
-      registrar( *m_loader, types );
+      registrar( *m_registry, types );
     }
   }
 };
@@ -129,7 +129,7 @@ plugin_factory_handle_t
 plugin_manager
 ::add_factory( plugin_factory* fact )
 {
-  return m_priv->m_loader->add_factory( fact );
+  return m_priv->m_registry->add_factory( fact );
 }
 
 // Protected ===================================================================
@@ -139,7 +139,7 @@ plugin_factory_vector_t const&
 plugin_manager
 ::get_factories( std::string const& type_name )
 {
-  return m_priv->m_loader->get_factories( type_name );
+  return m_priv->m_registry->get_factories( type_name );
 }
 
 // ----------------------------------------------------------------------------
@@ -147,7 +147,7 @@ plugin_map_t const&
 plugin_manager
 ::plugin_map()
 {
-  return m_priv->m_loader->get_plugin_map();
+  return m_priv->m_registry->get_plugin_map();
 }
 
 // ----------------------------------------------------------------------------
@@ -156,7 +156,7 @@ plugin_manager
 ::reload_all_plugins()
 {
   m_priv->m_loaded = plugin_types{};
-  m_priv->m_loader.reset( new plugin_loader() );
+  m_priv->m_registry.reset( new registry() );
 
   load_all_plugins();
 }
@@ -166,7 +166,7 @@ bool
 plugin_manager
 ::is_module_loaded( std::string const& name ) const
 {
-  return m_priv->m_loader->is_module_loaded( name );
+  return m_priv->m_registry->is_module_loaded( name );
 }
 
 // ----------------------------------------------------------------------------
@@ -174,14 +174,14 @@ void
 plugin_manager
 ::mark_module_as_loaded( module_t const& name )
 {
-  m_priv->m_loader->mark_module_as_loaded( name );
+  m_priv->m_registry->mark_module_as_loaded( name );
 }
 
 std::vector< std::string >
 plugin_manager
 ::_impl_names( std::string const& interface_type_name ) const
 {
-  auto const& plugin_map = m_priv->m_loader->get_plugin_map();
+  auto const& plugin_map = m_priv->m_registry->get_plugin_map();
 
   // There might not be any registered implementations for the given interface.
   // * If there is an interface key in the map but the value is an empty vector,
@@ -218,7 +218,7 @@ std::map< std::string, std::string > const&
 plugin_manager
 ::module_map() const
 {
-  return m_priv->m_loader->get_module_map();
+  return m_priv->m_registry->get_module_map();
 }
 
 // Private =====================================================================
@@ -232,11 +232,11 @@ plugin_manager
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::plugin_loader*
+kwiver::vital::registry*
 plugin_manager
-::get_loader()
+::get_registry()
 {
-  return m_priv->m_loader.get();
+  return m_priv->m_registry.get();
 }
 
 } // namespace vital

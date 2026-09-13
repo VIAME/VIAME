@@ -15,14 +15,14 @@
 #include "viame_processes_measurement_export.h"
 
 #include <viame/pipeline_framework/process_factory.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "compute_stereo_depth_map_process.h"
 
 extern "C"
 VIAME_PROCESSES_MEASUREMENT_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kwiver::vital::registry& vpm )
 {
   static auto const module_name =
     kwiver::vital::plugin_manager::module_t( "viame_processes_measurement" );

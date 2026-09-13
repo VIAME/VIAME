@@ -148,7 +148,7 @@ create_scheduler( const sprokit::scheduler::type_t&      name,
  * \param module The scheduler to mark as loaded.
  */
 SPROKIT_PIPELINE_EXPORT
-void mark_scheduler_module_as_loaded( kwiver::vital::plugin_loader& vpl,
+void mark_scheduler_module_as_loaded( kwiver::vital::registry& vpl,
                                       module_t const& module );
 
 /**
@@ -160,7 +160,7 @@ void mark_scheduler_module_as_loaded( kwiver::vital::plugin_loader& vpl,
  * \returns True if the scheduler has already been loaded, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT
-bool is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
+bool is_scheduler_module_loaded( kwiver::vital::registry& vpl,
                                  module_t const& module );
 
 //
@@ -182,13 +182,13 @@ bool is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
 /// Derived class to register schedulers
 /**
  * This derived class contains the specific procedure for registering
- * schedulers with the plugin loader.
+ * schedulers with the registry.
  */
 class scheduler_registrar
   : public kwiver::plugin_registrar
 {
 public:
-  scheduler_registrar( kwiver::vital::plugin_loader& vpl,
+  scheduler_registrar( kwiver::vital::registry& vpl,
                        const std::string& mod_name_ )
     : plugin_registrar( vpl, mod_name_ )
   {
@@ -197,12 +197,12 @@ public:
   // Use forced naming convention for schedulers
   bool is_module_loaded() override
   {
-    return plugin_loader().is_module_loaded( "scheduler." + module_name() );
+    return registry().is_module_loaded( "scheduler." + module_name() );
   }
 
   void mark_module_as_loaded() override
   {
-    plugin_loader().mark_module_as_loaded( "scheduler." + module_name() );
+    registry().mark_module_as_loaded( "scheduler." + module_name() );
   }
 
   // ----------------------------------------------------------------------------
@@ -238,7 +238,7 @@ public:
       .add_attribute( kvpf::PLUGIN_VERSION,        version )
       ;
 
-    return plugin_loader().add_factory( fact );
+    return registry().add_factory( fact );
   }
 };
 

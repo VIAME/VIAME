@@ -2,7 +2,7 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/test_interface/say.h>
 #include "say_cpp_export.h"
@@ -77,7 +77,7 @@ namespace kv = kwiver::vital;
 extern "C"
 SAY_CPP_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpl )
+register_factories( kwiver::vital::registry& vpl )
 {
   vpl.add_factory< kv::say, kv::cpp_say_impl >( "cpp" );
   vpl.add_factory< kv::say, kv::cpp_they_say >( "cpp_they" );

@@ -39,7 +39,7 @@ namespace viame {
 /// a second call registers nothing.
 VIAME_REGISTRY_EXPORT
 void register_builtins(
-  kwiver::vital::plugin_loader& loader,
+  kwiver::vital::registry& loader,
   kwiver::vital::plugin_manager::plugin_types types );
 
 } // namespace viame

@@ -10,7 +10,7 @@
 #include "viame_descriptors_plugin_export.h"
 
 #include <viame/algorithm_framework/algo/handle_descriptor_request.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "handle_descriptor_request_core.h"
 
@@ -22,7 +22,7 @@ namespace kv = kwiver::vital;
 extern "C"
 VIAME_DESCRIPTORS_PLUGIN_EXPORT
 void
-register_factories( kv::plugin_loader& vpm )
+register_factories( kv::registry& vpm )
 {
   using kvpf = kv::plugin_factory;
   const std::string module_name = "viame.descriptors";

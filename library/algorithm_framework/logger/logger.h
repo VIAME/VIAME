@@ -68,7 +68,7 @@
 /// kwiver::vital::logger_ns::kwiver_logger_factory class and a logger
 /// factory class derived from
 /// kwiver::vital::logger_ns::kwiver_logger_factory. Finally a bootstrap
-/// function is needed by the plugin loader to get an instance of the
+/// function is needed by the registry to get an instance of the
 /// logger factory. Refer to logger/log4cxx_factory.cxx file for guidance.
 /// </P>
 ///

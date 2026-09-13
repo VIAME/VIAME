@@ -185,7 +185,7 @@ create_process( const sprokit::process::type_t&         type,
 
 // ------------------------------------------------------------------
 void
-mark_process_module_as_loaded( kwiver::vital::plugin_loader& vpl,
+mark_process_module_as_loaded( kwiver::vital::registry& vpl,
                                module_t const& module )
 {
   module_t mod = "process.";
@@ -196,7 +196,7 @@ mark_process_module_as_loaded( kwiver::vital::plugin_loader& vpl,
 
 // ------------------------------------------------------------------
 bool
-is_process_module_loaded( kwiver::vital::plugin_loader& vpl,
+is_process_module_loaded( kwiver::vital::registry& vpl,
                           module_t const& module )
 {
   module_t mod = "process.";

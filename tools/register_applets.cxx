@@ -9,7 +9,7 @@
 
 #include "viame_tools_applets_export.h"
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/applets/applet_registrar.h>
 
 #include <applet_attributes.h>
@@ -135,7 +135,7 @@ register_script_tool( kwiver::applet_registrar& reg )
 extern "C"
 VIAME_TOOLS_APPLETS_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kwiver::vital::registry& vpm )
 {
   kwiver::applet_registrar reg( vpm, "viame.tools.applets" );
 

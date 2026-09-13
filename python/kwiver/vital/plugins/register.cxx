@@ -12,7 +12,7 @@
 #include <pybind11/pybind11.h>
 
 #include <viame/algorithm_framework/logger/logger.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 // #include <python/kwiver/internal/python.h>
 #include <python/kwiver/internal/python_plugin_factory.h>
@@ -47,7 +47,7 @@ static bool check_and_initialize_python_interpreter();
 /**
  * @brief Body of the registration function, called with exceptions contained.
  */
-static void register_factories_impl( ::kv::plugin_loader& vpl );
+static void register_factories_impl( ::kv::registry& vpl );
 
 // ----------------------------------------------------------------------------
 // Registration Function
@@ -55,7 +55,7 @@ extern "C"
 [[maybe_unused]] PLUGINS_FROM_PYTHON_EXPORT
 
 void
-register_factories( ::kv::plugin_loader& vpl )
+register_factories( ::kv::registry& vpl )
 {
   ::kv::logger_handle_t log = ::kv::get_logger(
     "python.kwiver.vital.plugins.register_factories"
@@ -86,7 +86,7 @@ register_factories( ::kv::plugin_loader& vpl )
 }
 
 void
-register_factories_impl( ::kv::plugin_loader& vpl )
+register_factories_impl( ::kv::registry& vpl )
 {
   ::kv::logger_handle_t log = ::kv::get_logger(
     "python.kwiver.vital.plugins.register_factories"

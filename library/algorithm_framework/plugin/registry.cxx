@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include "plugin_factory.h"
-#include "plugin_loader.h"
+#include "registry.h"
 
 #include <viame/algorithm_framework/exceptions/plugin.h>
 #include <viame/algorithm_framework/logger/logger.h>
@@ -18,11 +18,11 @@ namespace vital {
 // ----------------------------------------------------------------------------
 /// @brief Plugin manager private implementation.
 ///
-class plugin_loader_impl
+class registry_impl
 {
 public:
-  plugin_loader_impl() = default;
-  ~plugin_loader_impl() = default;
+  registry_impl() = default;
+  ~registry_impl() = default;
 
   // Map from interface name to vector of plugin_factory instances.
   // For consistency, "interface name" refers to the name resulting from
@@ -41,22 +41,22 @@ public:
   /// say where it came from. It used to be the path of the file the loader
   /// had just `dlopen`ed, which is where PLUGIN_FILE_NAME came from.
   std::string m_registering_library;
-}; // end class plugin_loader_impl
+}; // end class registry_impl
 
 // ----------------------------------------------------------------------------
-plugin_loader
-::plugin_loader()
-  : m_logger( kwiver::vital::get_logger( "vital.plugin_loader" ) ),
-    m_impl( new plugin_loader_impl() )
+registry
+::registry()
+  : m_logger( kwiver::vital::get_logger( "vital.registry" ) ),
+    m_impl( new registry_impl() )
 {}
 
-plugin_loader
-::~plugin_loader() = default;
+registry
+::~registry() = default;
 
 // Factory Stuff ===============================================================
 /// @brief Load all known modules.
 plugin_factory_vector_t const&
-plugin_loader
+registry
 ::get_factories( std::string const& type_name ) const
 {
   static plugin_factory_vector_t empty; // needed for error case
@@ -72,7 +72,7 @@ plugin_loader
 
 // ----------------------------------------------------------------------------
 plugin_factory_handle_t
-plugin_loader
+registry
 ::add_factory( plugin_factory* fact )
 {
   plugin_factory_handle_t fact_handle( fact );
@@ -184,7 +184,7 @@ plugin_loader
 
 // Map Accessors ===============================================================
 plugin_map_t const&
-plugin_loader
+registry
 ::get_plugin_map() const
 {
   return m_impl->m_plugin_map;
@@ -192,7 +192,7 @@ plugin_loader
 
 // ------------------------------------------------------------------
 bool
-plugin_loader
+registry
 ::is_module_loaded( std::string const& name ) const
 {
   return ( 0 != m_impl->m_module_map.count( name ) );
@@ -200,7 +200,7 @@ plugin_loader
 
 // ------------------------------------------------------------------
 void
-plugin_loader
+registry
 ::mark_module_as_loaded( std::string const& name )
 {
   m_impl->m_module_map.insert(
@@ -211,7 +211,7 @@ plugin_loader
 
 // ----------------------------------------------------------------------------
 plugin_module_map_t const&
-plugin_loader
+registry
 ::get_module_map() const
 {
   return m_impl->m_module_map;
@@ -219,7 +219,7 @@ plugin_loader
 
 // ----------------------------------------------------------------------------
 void
-plugin_loader
+registry
 ::set_registering_library( std::string const& name )
 {
   m_impl->m_registering_library = name;

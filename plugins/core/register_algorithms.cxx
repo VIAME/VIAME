@@ -8,7 +8,7 @@
  */
 
 #include "viame_core_plugin_export.h"
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "adaptive_tracker_trainer.h"
 #include "adaptive_detector_trainer.h"
@@ -57,7 +57,7 @@ static auto const module_organization = std::string{ "Kitware Inc." };
 
 // Register algorithm using PLUGGABLE_IMPL (plugin_name()/plugin_description())
 template <typename interface_t, typename algorithm_t>
-void register_algorithm( kv::plugin_loader& vpm )
+void register_algorithm( kv::registry& vpm )
 {
   using kvpf = kv::plugin_factory;
 
@@ -75,7 +75,7 @@ void register_algorithm( kv::plugin_loader& vpm )
 extern "C"
 VIAME_CORE_PLUGIN_EXPORT
 void
-register_factories( kv::plugin_loader& vpm )
+register_factories( kv::registry& vpm )
 {
   if( vpm.is_module_loaded( module_name ) )
   {

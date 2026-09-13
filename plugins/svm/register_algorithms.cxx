@@ -8,7 +8,7 @@
  */
 
 #include "viame_svm_plugin_export.h"
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include <viame/algorithm_framework/algo/refine_detections.h>
 #include <viame/algorithm_framework/algo/train_detector.h>
@@ -23,7 +23,7 @@ namespace kv = kwiver::vital;
 extern "C"
 VIAME_SVM_PLUGIN_EXPORT
 void
-register_factories( kv::plugin_loader& vpm )
+register_factories( kv::registry& vpm )
 {
   using kvpf = kv::plugin_factory;
   const std::string module_name = "viame.svm";

@@ -7,7 +7,7 @@
  * \brief Register algorithms
  */
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 
 #include "example_detector.h"
@@ -31,7 +31,7 @@ namespace viame {
 extern "C"
 PLUGIN_EXPORT_FLAG
 void
-viame_register_plugin( kwiver::vital::plugin_loader& vpm )
+viame_register_plugin( kwiver::vital::registry& vpm )
 {
   using kvpf = kwiver::vital::plugin_factory;
 

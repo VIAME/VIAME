@@ -11,7 +11,7 @@
 /// factory registered from inside it is usable from outside. None of that
 /// survives being faked.
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/test_interface/say.h>
 
 namespace kwiver::vital {
@@ -46,7 +46,7 @@ namespace kv = kwiver::vital;
 extern "C"
 __attribute__( ( visibility( "default" ) ) )
 void
-viame_register_plugin( kwiver::vital::plugin_loader& loader )
+viame_register_plugin( kwiver::vital::registry& loader )
 {
   loader.add_factory< kv::say, kv::external_say >( "external" );
 }

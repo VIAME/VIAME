@@ -10,7 +10,7 @@
 
 #include <viame/algorithm_framework/registry/external_plugins.h>
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 
 // Each library's `register_factories`, renamed at compile time so that all of
@@ -27,7 +27,7 @@ using pm = kwiver::vital::plugin_manager;
 
 void
 register_builtins(
-  kwiver::vital::plugin_loader& loader,
+  kwiver::vital::registry& loader,
   kwiver::vital::plugin_manager::plugin_types types )
 {
 @calls@

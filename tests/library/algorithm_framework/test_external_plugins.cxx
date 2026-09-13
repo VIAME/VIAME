@@ -12,7 +12,7 @@
 /// factory is usable, and that a bad entry costs them that entry and nothing
 /// else.
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/registry/external_plugins.h>
 #include <viame/algorithm_framework/test_interface/say.h>
 
@@ -48,7 +48,7 @@ set_plugin_path( std::string const& value )
 // ----------------------------------------------------------------------------
 /// Is there a factory for `say` under this name?
 bool
-has_say( kv::plugin_loader const& loader, std::string const& name )
+has_say( kv::registry const& loader, std::string const& name )
 {
   for( auto const& fact : loader.get_factories< kv::say >() )
   {
@@ -74,7 +74,7 @@ protected:
     set_plugin_path( {} );
   }
 
-  kv::plugin_loader loader;
+  kv::registry loader;
 };
 
 } // namespace

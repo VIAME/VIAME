@@ -159,7 +159,7 @@ function( viame_write_static_registry output )
     list( APPEND seen ${lib} )
 
     string( APPEND declarations
-      "extern \"C\" void viame_register_${lib}( kwiver::vital::plugin_loader& );\n" )
+      "extern \"C\" void viame_register_${lib}( kwiver::vital::registry& );\n" )
     string( APPEND calls
       "  if( types & pm::plugin_type::${kind} )\n"
       "  {\n"

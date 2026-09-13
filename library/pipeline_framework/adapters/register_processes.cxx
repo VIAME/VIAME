@@ -5,7 +5,7 @@
 #include <viame/pipeline_framework/adapters/kwiver_processes_adapter_export.h>
 #include <viame/pipeline_framework/process_factory.h>
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "input_adapter_process.h"
 #include "output_adapter_process.h"
@@ -18,7 +18,7 @@
 extern "C"
 KWIVER_PROCESSES_ADAPTER_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kwiver::vital::registry& vpm )
 {
   using namespace sprokit;
 

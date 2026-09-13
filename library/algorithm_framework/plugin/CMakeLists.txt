@@ -1,7 +1,7 @@
 ###
 # The plugin registry
 #
-# `plugin_loader` is the store -- factories by interface name -- and
+# `registry` is the store -- factories by interface name -- and
 # `plugin_manager` the singleton around it. Neither loads anything since
 # P8-T03: the registration functions are linked in and called by
 # `library/algorithm_framework/registry`.
@@ -11,7 +11,7 @@
 set(vital_vpm_headers_public
   pluggable.h
   plugin_factory.h
-  plugin_loader.h
+  registry.h
   plugin_manager.h
   plugin_registrar.h
 #  plugin_info.h
@@ -24,7 +24,7 @@ set(vital_vpm_headers_private
 
 set(vital_vpm_sources
   plugin_factory.cxx
-  plugin_loader.cxx
+  registry.cxx
   plugin_manager.cxx
   )
 

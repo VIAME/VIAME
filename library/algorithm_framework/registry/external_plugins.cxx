@@ -5,7 +5,7 @@
 #include <viame/algorithm_framework/registry/external_plugins.h>
 
 #include <viame/algorithm_framework/logger/logger.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include <cstdlib>
 
@@ -28,7 +28,7 @@ constexpr char path_separator = ';';
 constexpr char path_separator = ':';
 #endif
 
-using register_fn = void ( * )( kwiver::vital::plugin_loader& );
+using register_fn = void ( * )( kwiver::vital::registry& );
 
 // ----------------------------------------------------------------------------
 std::vector< std::string >
@@ -114,7 +114,7 @@ entry_point_of( std::string const& path, kwiver::vital::logger_handle_t logger )
 
 // ----------------------------------------------------------------------------
 std::vector< std::string >
-register_external_plugins( kwiver::vital::plugin_loader& loader )
+register_external_plugins( kwiver::vital::registry& loader )
 {
   std::vector< std::string > registered;
 

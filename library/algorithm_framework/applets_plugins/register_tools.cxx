@@ -4,7 +4,7 @@
 
 #include "config_explorer_export.h"
 
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "config_explorer.h"
 
@@ -12,7 +12,7 @@
 extern "C"
 CONFIG_EXPLORER_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpl )
+register_factories( kwiver::vital::registry& vpl )
 {
   using namespace kwiver::tools;
   using kvpf = ::kwiver::vital::plugin_factory;

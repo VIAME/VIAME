@@ -21,7 +21,7 @@ class applet_registrar
 {
 public:
   applet_registrar(
-    kwiver::vital::plugin_loader& vpl,
+    kwiver::vital::registry& vpl,
     const std::string& mod_name )
     : plugin_registrar( vpl, mod_name )
   {}
@@ -35,7 +35,7 @@ public:
   ///
   /// @tparam tool_t Type of the tool being registered.
   ///
-  /// @return The plugin loader reference is returned.
+  /// @return the registry reference is returned.
   template < typename tool_t >
   kwiver::vital::plugin_factory_handle_t
   register_tool()
@@ -52,7 +52,7 @@ public:
       .add_attribute( kvpf::PLUGIN_CATEGORY,     kvpf::APPLET_CATEGORY )
     ;
 
-    return plugin_loader().add_factory( fact );
+    return registry().add_factory( fact );
   }
 };
 

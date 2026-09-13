@@ -186,7 +186,7 @@ sprokit::process_t create_process(const sprokit::process::type_t&        type,
  * \param module The process to mark as loaded.
  */
 SPROKIT_PIPELINE_EXPORT
-  void mark_process_module_as_loaded( kwiver::vital::plugin_loader& vpl,
+  void mark_process_module_as_loaded( kwiver::vital::registry& vpl,
                                       const module_t& module );
 
 /**
@@ -198,7 +198,7 @@ SPROKIT_PIPELINE_EXPORT
  * \returns True if the process has already been loaded, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT
-  bool is_process_module_loaded( kwiver::vital::plugin_loader& vpl,
+  bool is_process_module_loaded( kwiver::vital::registry& vpl,
                                  module_t const& module );
 
 /**
@@ -227,7 +227,7 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list();
 /// Derived class to register processes
 /**
  * This derived class contains the specific procedure for registering
- * processes with the plugin loader.
+ * processes with the registry.
  */
 class process_registrar
   : public kwiver::plugin_registrar
@@ -238,7 +238,7 @@ public:
     no_test = 1
   };
 
-  process_registrar( kwiver::vital::plugin_loader& vpl,
+  process_registrar( kwiver::vital::registry& vpl,
                        const std::string& mod_name_ )
     : plugin_registrar( vpl, mod_name_ )
   {
@@ -247,12 +247,12 @@ public:
   // Use forced naming convention for processes
   bool is_module_loaded() override
   {
-    return plugin_loader().is_module_loaded( "process." + module_name() );
+    return registry().is_module_loaded( "process." + module_name() );
   }
 
   void mark_module_as_loaded() override
   {
-    plugin_loader().mark_module_as_loaded( "process." + module_name() );
+    registry().mark_module_as_loaded( "process." + module_name() );
   }
 
   // ----------------------------------------------------------------------------
@@ -263,7 +263,7 @@ public:
    *
    * \tparam tool_t Type of the process being registered.
    *
-   * \return The plugin loader reference is returned.
+   * \return the registry reference is returned.
    */
   template <typename process_t>
   kwiver::vital::plugin_factory_handle_t
@@ -287,7 +287,7 @@ public:
       fact->add_attribute( "no-test", "introspect" ); // do not include in introspection test
     }
 
-    return plugin_loader().add_factory( fact );
+    return registry().add_factory( fact );
   }
 };
 

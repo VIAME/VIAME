@@ -23,7 +23,7 @@
 #include <viame/algorithm_framework/algo/refine_detections.h>
 #include <viame/algorithm_framework/algo/split_image.h>
 #include <viame/algorithm_framework/algo/track_features.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "average_frames.h"
 #include "close_loops_homography_guided.h"
@@ -53,7 +53,7 @@ namespace kv = kwiver::vital;
 extern "C"
 VIAME_IMAGE_PROCESSING_PLUGIN_EXPORT
 void
-register_factories( kv::plugin_loader& vpm )
+register_factories( kv::registry& vpm )
 {
   using kvpf = kv::plugin_factory;
   const std::string module_name = "viame.image_processing";

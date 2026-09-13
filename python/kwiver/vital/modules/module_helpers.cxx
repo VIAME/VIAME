@@ -6,7 +6,7 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 #include <python/kwiver/vital/util/python.h>
-#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include <pybind11/pybind11.h>
 
