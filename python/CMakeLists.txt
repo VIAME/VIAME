@@ -36,6 +36,10 @@ if(NOT SKBUILD)
   # Create egg info for the packages mentioned in the entrypoints entry of setup.py
   add_custom_target(install_egg_info ALL
     COMMENT "Install python egg info in the build directory"
+    # `setup.py egg_info` refuses an `--egg-base` that does not exist, and
+    # this target has no dependency that would have created it. A warm tree
+    # hides that: something else made the directory on an earlier run.
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${KWIVER_BINARY_DIR}/${python_site_packages}
     COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/setup.py egg_info --egg-base ${KWIVER_BINARY_DIR}/${python_site_packages}
     )
 

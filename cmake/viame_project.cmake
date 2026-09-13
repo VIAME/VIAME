@@ -20,12 +20,17 @@
 include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
 
 ###
-# Look for and use Fletch to find dependencies
+# Fletch is not looked for
 ##
-if( IS_DIRECTORY ${fletch_DIR} )
-  find_package( fletch NO_MODULE )
-  list( APPEND CMAKE_PREFIX_PATH  "${fletch_DIR}" )
-endif()
+# `find_package( fletch NO_MODULE )` stood here, and put `${fletch_DIR}` on
+# `CMAKE_PREFIX_PATH`. By P8 there was nothing left for it to find: VXL went
+# in P3, FFmpeg in P4, Eigen in P6, OpenCV's C++ in P7, and zlib, tinyxml,
+# libsvm, pybind11, darknet and GoogleTest are `third_party/`. What it was
+# still doing was defining variables -- `pybind11_INCLUDE_DIRS` among them,
+# which was putting the whole of the reference superbuild's `include/` on
+# one target's command line, above the vendored headers.
+#
+# Removing it is the point of phase 1: the build takes nothing from fletch.
 
 ###
 # OpenCV is not required
