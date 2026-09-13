@@ -16,17 +16,21 @@ Notes.
   them, and `viame runner --help` costs 0.39 s against 2.72 s. The one piece
   of P8 still open is the fold of the `viame_<name>` targets into a single
   `libviame`, which is entangled with phases 1 and 2
-- Next task: **phase 1**, and it is down to the python environment. T01, T04
-  and T05 are done and T02 is nine tenths done; the top-level CMakeLists is
-  1354 lines down to 200, with `cmake/viame_options.cmake`,
-  `cmake/viame_dependencies.cmake` and `cmake/viame_project.cmake` beside
-  it. **The build takes nothing from fletch**, proved by a clean configure
-  and build in an empty tree with no `fletch_DIR`. What is left of the phase
-  is one chain: P1-T07 makes the python dependencies a lock file and a
-  target of this build, which lets P1-T06 delete the superbuild, which lets
-  the rest of T02's option list go with it. The one thing that chain needs
-  from a person is above under "Decisions needed to finish phase 1": which
-  OpenCV wheel replaces fletch's cv2
+- Next task: **phase 1, and fletch is gone.** T01, T04, T05 are done, T02 is
+  nine tenths done and T07 is most of the way; the top-level CMakeLists is
+  1354 lines down to 200, with `viame_options.cmake`,
+  `viame_dependencies.cmake`, `viame_python_deps.cmake` and
+  `viame_project.cmake` beside it, and `packages/fletch` is deleted along
+  with the four options that only ever told it what to build. What proved it
+  safe was building a complete VIAME into a prefix fletch had never touched
+  and running it -- 151 algorithms, 101 processes, all 31 applets, and the
+  only things missing were python packages. **What is left of the phase** is
+  the other half of P1-T07: the `viame_python_forks` target that builds
+  `packages/pytorch-libs/*`, the `python/patches/apply.py` step, and turning
+  `VIAME_INSTALL_PYTHON_DEPS` on -- which upgrades 56 packages on an install
+  built the old way and wants its own verification pass. When those land,
+  P1-T06 deletes the superbuild and the rest of T02's option list goes with
+  it
 - `library/` has three OpenCV includes left, all of them waiting on a
   decision rather than on work; see "Where phase 7's OpenCV removal stands".
   `plugins/` has three: `plot_metrics`, which is a rewrite rather than a
@@ -76,7 +80,7 @@ from an existing `main` superbuild of the same commit.
 | kwiver build | none: P1-T05 made kwiver a subdirectory and P5-T05 removed it entirely. `build/kwiver-build`, `build/viame-build` and `build/kwiver-cache.cmake` are dead |
 | Install | `~/Dev/viame-lite/build/install` (seeded by copying the reference install) |
 | Initial cache | `~/Dev/viame-lite/build/lite-cache.cmake`, mirroring every `VIAME_*` setting of the reference build |
-| fletch, darknet | **nothing any more.** The `main` superbuild at `~/Dev/viame/build` is still where the install prefix was seeded from, but no target's include path, link line or rpath names it; darknet is `third_party/darknet` |
+| fletch, darknet | **fletch is deleted.** `packages/fletch` and `add_project_fletch.cmake` are gone; darknet is `third_party/darknet`. `build/clean-install` is a complete install built into a prefix fletch never touched |
 | kwiver | gone since P5-T05; `library/`, `python/` and `tools/` are what it was |
 
 ```
@@ -225,6 +229,7 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | 2026-09-12 | `$SYSENV{}` kept and reimplemented in P8-T05 rather than deleted, despite having no live caller: deleting a documented config feature belongs in P8-T09, not in a dependency-removal task | claude | design/lite-findings.md 2.10 |
 | 2026-09-12 | P8-T06 keeps the JSON split rather than unifying it: three files in `plugins/core` parse with rapidjson's defaults and two with cereal's full-precision settings, so `viame json` and the DIVE reader can disagree by a ULP. Making five readers round differently is a behaviour change, not a dependency removal; the settings are stated and the question is recorded instead | claude | design/lite-findings.md 2.11 |
 | 2026-09-12 | `write_stereo_rig` ported rather than deleted, though nothing calls it: it is exported and declared in a public header, and removing public API is a phase 9/10 pruning decision. Its format is recorded first, so the pruning decision has something to point at | claude | design/lite-findings.md 1.27 |
+| 2026-09-13 | Fletch is deleted. Nothing VIAME builds, installs or runs takes anything from it -- shown by building a complete VIAME into a prefix fletch had never touched and running it, where the only things missing were python packages | claude, on measurement | STATUS.md, the commit |
 | 2026-09-13 | cv2 comes from PyPI, `opencv-contrib-python-headless`, unpinned -- 5.0.0.93 today. contrib rather than plain because `ximgproc` and `xfeatures2d` are used and the plain wheel has neither; latest rather than 4.x because 5.0's golden differences are a strict subset of 4.14's. Accepts eleven golden tolerances at the measured last-bit magnitudes, and loses SURF, which no wheel is built with | user | STATUS.md P1-T08, tests/golden/test_golden.py TOLERANCES |
 | 2026-09-11 | Vendor minimally: only the files VIAME compiles or includes, never a distribution. darknet is to be vendored; pybind11 is vendored as the headers actually reached; GTest stays a found dependency, because only tests link it and tests are not in a release | user | third_party/README.md, design/lite-dependencies.md |
 | 2026-09-11 | Track upstream: `viame/main` is merged into `lite` rather than the branch staying at its fork point, so that phase 7 ports the current code | user | the merge commit |
