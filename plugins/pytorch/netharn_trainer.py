@@ -66,6 +66,11 @@ class NetHarnTrainer( TrainDetector ):
         self._max_epochs = "50"
         self._batch_size = "auto"
         self._bstep = "4"
+        # DETR fine-tuning stability: per-component lr multipliers applied to
+        # the pretrained trunk. 0 freezes that group (AdamW decouples weight
+        # decay by lr, so a zero lr updates nothing). Defaults match detect_fit.
+        self._backbone_lr_mult = "0.1"
+        self._stem_lr_mult = "0.01"
         self._learning_rate = "auto"
         self._optimizer = "auto"
         self._scheduler = "auto"
@@ -134,6 +139,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "max_epochs", str( self._max_epochs ) )
         cfg.set_value( "batch_size", self._batch_size )
         cfg.set_value( "bstep", self._bstep )
+        cfg.set_value( "backbone_lr_mult", str( self._backbone_lr_mult ) )
+        cfg.set_value( "stem_lr_mult", str( self._stem_lr_mult ) )
         cfg.set_value( "learning_rate", self._learning_rate )
         cfg.set_value( "optimizer", self._optimizer )
         cfg.set_value( "scheduler", self._scheduler )
@@ -201,6 +208,8 @@ class NetHarnTrainer( TrainDetector ):
         self._learning_rate = str( cfg.get_value( "learning_rate" ) )
         self._optimizer = str( cfg.get_value( "optimizer" ) )
         self._bstep = str( cfg.get_value( "bstep" ) )
+        self._backbone_lr_mult = str( cfg.get_value( "backbone_lr_mult" ) )
+        self._stem_lr_mult = str( cfg.get_value( "stem_lr_mult" ) )
         self._scheduler = str( cfg.get_value( "scheduler" ) )
         self._batches_per_epoch = str( cfg.get_value( "batches_per_epoch" ) )
         self._vali_batches_per_epoch = \
@@ -874,7 +883,9 @@ class NetHarnTrainer( TrainDetector ):
                      "--window_dims=" + self._chip_height + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
                      "--multiscale=False",
-                     "--bstep=" + self._bstep]
+                     "--bstep=" + self._bstep,
+                     "--backbone_lr_mult=" + self._backbone_lr_mult,
+                     "--stem_lr_mult=" + self._stem_lr_mult]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=8" )
             if os.name == 'nt':
