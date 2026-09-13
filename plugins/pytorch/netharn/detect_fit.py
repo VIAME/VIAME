@@ -772,6 +772,22 @@ class DetectHarn(nh.FitHarn):
                     harn.info('Skipping evaluation: model deployment not available')
                     return
 
+                # Architectures torch_liberator cannot statically export
+                # (rfdetr, mit-yolo) mark themselves __DEPLOY_SUPPORTED__ =
+                # False, and fit_harn writes them a recipe deploy: weights plus
+                # the class path to rebuild from, with no exported topology
+                # beside it. DeployedModel.coerce needs that topology and
+                # raises 'Model topology does not exist' without it, which
+                # failed the whole run after training had already succeeded.
+                # detect_eval is built around a coerced deploy, so skip just
+                # the evaluation -- the recipe deploy itself is a usable model.
+                if getattr(harn.hyper.model_cls, '__DEPLOY_SUPPORTED__',
+                           True) is False:
+                    harn.info('Skipping evaluation: {} ships a recipe deploy, '
+                              'which has no exported topology to '
+                              'evaluate'.format(harn.hyper.model_cls.__name__))
+                    return
+
                 import torch_liberator
                 deployed = torch_liberator.DeployedModel.coerce(harn.deploy_fpath)
                 deployed._model = harn.model
