@@ -120,73 +120,27 @@ if( MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18.00" )
 endif()
 
 # KWIVER's pluggable macros expand to nothing under the traditional MSVC
-# preprocessor. Scoped to the plugin pass so fletch does not inherit the flag.
-if( MSVC AND NOT VIAME_BUILD_DEPENDENCIES )
+# preprocessor. This was scoped to the plugin pass so that fletch did not
+# inherit the flag; there is no fletch and no second pass.
+if( MSVC )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor" )
 endif()
+
 ###
-# Main build loop for when we are building both VIAME and all dependencies
+# The VIAME project build
 ##
-if( VIAME_BUILD_DEPENDENCIES )
+# `if( VIAME_BUILD_DEPENDENCIES )` stood here, and above it four hundred
+# lines that built VIAME's dependencies as ExternalProjects and then
+# re-invoked CMake on this same source tree with the option off, so that
+# the `else()` branch -- the actual VIAME build -- ran as a second,
+# separate configure.
+#
+# There are no dependencies left to build. Fletch went when nothing linked
+# it, the five GUI and inference-backend projects went with their options in
+# P1-T02, kwiver became `library/` in P5-T05, darknet and the rest became
+# `third_party/`, the python environment is lock files, and DIVE builds from
+# its submodule in this configure rather than a nested one.
+##
 
-  # Include for CMake external project add command
-  include( ExternalProject )
+include( viame_project )
 
-  # Specifies internal arguments passed to all projects (CXX flag passdowns, etc)
-  include( common_args )
-
-  # `include( add_project_fletch )` stood here, and everything below waited
-  # on it. Fletch built OpenCV, FFmpeg, VXL, Eigen, Boost, Qt, zlib and some
-  # fifty more libraries for VIAME to link against; by P1 VIAME linked none
-  # of them. The last one to go was cv2, which P1-T07 made a wheel.
-
-  if( VIAME_ENABLE_PYTHON )
-    include( add_project_python_deps )
-  endif()
-
-  # darknet used to be built here as an external project. It is
-  # `third_party/darknet` now, compiled with the rest of the tree.
-
-  # Kwiver is no longer an external project: P5-T05 dissolved the submodule
-  # and the VIAME project below builds what was in it.
-  #
-  # Nor are VIVIA, SEAL, the keypoint GUI, TensorFlow or TensorRT. They were
-  # five separate repositories the superbuild cloned and built beside VIAME,
-  # and `lite-build-system.md` section 2 removes all five options in P1:
-  # VIVIA needs VXL, which went in P3; SEAL and the keypoint GUI are GUIs
-  # with their own repositories and their own build; TensorFlow and TensorRT
-  # are inference backends nothing in the shipped pipelines selects.
-
-  if( VIAME_ENABLE_DIVE )
-    include( add_project_dive )
-  endif()
-
-  if ( VIAME_ENABLE_ONNX)
-    include( add_project_onnx )
-  endif()
-
-  if( VIAME_ENABLE_PYTORCH )
-    include( add_project_pytorch )
-  endif()
-
-  # VIAME itself, which re-invokes CMake on this source tree with
-  # `VIAME_BUILD_DEPENDENCIES` off, so that `cmake/viame_project.cmake` runs
-  include( add_project_viame )
-
-  # Fixup installer package
-  if( VIAME_FIXUP_BUNDLE )
-    include( build_package )
-  endif()
-
-  # Register tests at super-build level
-  # Note: The actual CTestTestfile.cmake is created by the setup_ctest step
-  # in add_project_viame.cmake after viame-build completes
-  if( VIAME_ENABLE_TESTS )
-    enable_testing()
-    include( CTest )
-  endif()
-else()
-
-  include( viame_project )
-
-endif()

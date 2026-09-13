@@ -139,13 +139,10 @@ function( ExtractFile _FILE_LOC _EXT_LOC )
   get_filename_component( _filename "${_FILE_LOC}" NAME )
   file( MD5 "${_FILE_LOC}" _archive_md5 )
   string( MD5 _loc_hash "${_FILE_LOC}|${_EXT_LOC}" )
-  # Always land stamps inside the viame-build subproject dir, regardless of
-  # whether we're being called from the superbuild or the inner viame project.
-  if( DEFINED VIAME_BUILD_PLUGINS_DIR )
-    set( _stamp_dir "${VIAME_BUILD_PLUGINS_DIR}/extract-stamps" )
-  else()
-    set( _stamp_dir "${CMAKE_BINARY_DIR}/extract-stamps" )
-  endif()
+  # This chose between the superbuild's and the inner project's binary dir,
+  # so that both landed their stamps in the same place. There is one configure
+  # now, so there is one binary dir.
+  set( _stamp_dir "${CMAKE_BINARY_DIR}/extract-stamps" )
   set( _stamp_file "${_stamp_dir}/${_filename}-${_loc_hash}.stamp" )
   if( EXISTS "${_stamp_file}" )
     file( READ "${_stamp_file}" _stamp_md5 )

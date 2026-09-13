@@ -150,23 +150,13 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-LITDET )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-DINO3 )
 
-  option( VIAME_BUILD_PYTORCH_FROM_SOURCE      "Build PyTorch from source"     OFF )
-  option( VIAME_BUILD_TORCHVISION_FROM_SOURCE  "Build TorchVision from source" ON )
-
-  mark_as_advanced( VIAME_BUILD_PYTORCH_FROM_SOURCE )
-  mark_as_advanced( VIAME_BUILD_TORCHVISION_FROM_SOURCE )
-
-  if( NOT CMAKE_GENERATOR STREQUAL "Ninja" )
-    option( VIAME_BUILD_LIMIT_NINJA    "Limit ninja use on sensitive projects" ON )
-    mark_as_advanced( VIAME_BUILD_LIMIT_NINJA )
-  endif()
-
-  if( NOT VIAME_ENABLE_PYTORCH )
-    set( VIAME_BUILD_PYTORCH_FROM_SOURCE OFF CACHE BOOL "Forced off" FORCE )
-  endif()
-  if( NOT VIAME_ENABLE_PYTORCH-VISION )
-    set( VIAME_BUILD_TORCHVISION_FROM_SOURCE  OFF CACHE BOOL "Forced off" FORCE )
-  endif()
+  # `VIAME_BUILD_PYTORCH_FROM_SOURCE` and
+  # `VIAME_BUILD_TORCHVISION_FROM_SOURCE` stood here. Both come from the
+  # index the accelerator lock names, which publishes matching `+cuXXX`
+  # builds of each; neither is built from source any more.
+  #
+  # `VIAME_BUILD_LIMIT_NINJA` stood here too: cap ninja's parallelism on the
+  # subprojects that exhausted memory. There are no subprojects.
 endif()
 
 ###
@@ -177,29 +167,22 @@ endif()
 #
 # `VIAME_BUILD_FLETCH_DIR` stood here. Fletch is gone.
 
-set( VIAME_BUILD_KWIVER_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
-     CACHE STRING "VIAME superbuild KWIVER build location" )
-mark_as_advanced( VIAME_BUILD_KWIVER_DIR )
-
-set( VIAME_BUILD_PLUGINS_DIR "${VIAME_BUILD_PREFIX}/src/viame-build"
-     CACHE STRING "VIAME superbuild plugins build location" )
-mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
-
-# If VIAME_BUILD_FORCE_REBUILD is False, we will rely on CMake's default system
-# for testing when projects need to be rebuilt, this can make builds be (slightly)
-# faster. When True, we rely on each individual projects checking for if certain
-# parts of it should be rebuilt, and cmake stamps are ignored.
-option( VIAME_BUILD_FORCE_REBUILD "Enable force-building of all subpackages" OFF )
-mark_as_advanced( VIAME_BUILD_FORCE_REBUILD )
+# `VIAME_BUILD_KWIVER_DIR` and `VIAME_BUILD_PLUGINS_DIR` stood here: where
+# the superbuild put the nested kwiver and VIAME builds. Kwiver stopped being
+# a separate build in P1-T05 and a submodule in P5-T05, and there is no
+# nested VIAME build.
+#
+# `VIAME_BUILD_FORCE_REBUILD` stood here too, forcing every subproject to
+# rebuild rather than trusting its stamp. There are no subprojects.
 
 # Control the number of parallel build threads for subprojects like PyTorch.
 # Set this to limit the number of concurrent compilation jobs (e.g., 4 or 8).
 set( VIAME_BUILD_MAX_THREADS "" CACHE STRING "Parallel threads for subprojects (empty = auto)" )
 mark_as_advanced( VIAME_BUILD_MAX_THREADS )
 
-# Disable pip cache to save disk space during builds (useful for CI environments)
-option( VIAME_BUILD_NO_CACHE_DIR "Disable pip cache to save disk space" OFF )
-mark_as_advanced( VIAME_BUILD_NO_CACHE_DIR )
+# `VIAME_BUILD_NO_CACHE_DIR` stood here, passing `--no-cache-dir` to the
+# superbuild's many separate pip invocations. There is one now, installing a
+# lock file.
 
 ###
 # Other advanced hidden flags used for disabling core features
@@ -210,22 +193,16 @@ mark_as_advanced( VIAME_BUILD_NO_CACHE_DIR )
 # project -- so both were "build nothing", and one was already a fatal error
 # without the other.
 
-# A continuation build allows building of new plugins using an existing
-# VIAME build in another folder or build tree, for the purpose of making
-# chained windows MSI installers
-option( VIAME_BUILD_PACKAGING_CONT  "Enable continuation build"     OFF )
-mark_as_advanced( VIAME_BUILD_PACKAGING_CONT )
-
-if( VIAME_BUILD_PACKAGING_CONT )
-  set( VIAME_PRIOR_BUILD "" CACHE PATH "Location of prior VIAME build" )
-  mark_as_advanced( VIAME_PRIOR_BUILD )
-endif()
+# `VIAME_BUILD_PACKAGING_CONT` stood here: build new plugins against an
+# existing VIAME build elsewhere, to chain Windows MSI installers. P10
+# re-creates what packaging needs.
 
 ###
 # Add macro-level package build options
 ##
-option( VIAME_BUILD_DEPENDENCIES "Build all required dependencies in a super-build" ON )
-mark_as_advanced( VIAME_BUILD_DEPENDENCIES )
+# `VIAME_BUILD_DEPENDENCIES` stood here and chose between building VIAME's
+# dependencies as ExternalProjects and building VIAME. There are none left to
+# build, so there is nothing to choose.
 
 option( VIAME_FIXUP_BUNDLE       "Run fixup bundle on top of generated binaries"    OFF )
 mark_as_advanced( VIAME_FIXUP_BUNDLE )
@@ -284,16 +261,6 @@ if( VIAME_ENABLE_PYTORCH-LEARN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "CUDA required for LEARN project currently" )
 endif()
 
-if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_BUILD_CHECKS )
-  string( LENGTH "${VIAME_BUILD_KWIVER_DIR}" KWIVER_BUILD_DIR_LENGTH )
-  string( LENGTH "${VIAME_BUILD_PLUGINS_DIR}" PLUGINS_BUILD_DIR_LENGTH )
-
-  if( KWIVER_BUILD_DIR_LENGTH GREATER 12 OR PLUGINS_BUILD_DIR_LENGTH GREATER 12 )
-    message( FATAL_ERROR "VIAME_BUILD_KWIVER_DIR and VIAME_BUILD_PLUGINS_DIR \
-      must be set to a short path (e.g. C:\\tmp\\kv1 and C:\\tmp\\vm1) on \
-      Windows due to a current issue with nesting KWIVER exceeding the 260 \
-      character default filepath size. Alternatively disable VIAME_BUILD_CHECKS \
-      to ignore this message if you either increased the windows default path \
-      length, or think your build path is short enough." )
-  endif()
-endif()
+# A check that the nested kwiver and VIAME build directories were short
+# enough for Windows' 260 character path limit stood here. Nesting is what
+# made those paths long, and there is no nesting.

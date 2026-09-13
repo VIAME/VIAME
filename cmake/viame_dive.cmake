@@ -1,7 +1,23 @@
+###
+# DIVE
+#
+# DIVE is its own project, in its own repository, and stays that way:
+# `packages/dive` is a submodule pointing at Kitware/dive and nothing of
+# DIVE's source is carried here. VIAME either builds the desktop client from
+# that submodule or downloads a published release of it.
+#
+# This is `add_project_dive.cmake` with one thing changed. Everything that
+# decided *what* to do -- finding a node new enough, finding the npm beside
+# it, noticing that the previous build was the other kind and cleaning up,
+# noticing the submodule moved -- ran at configure time and is unchanged.
+# What was an `ExternalProject_Add`, which needs a superbuild to live in, is
+# a custom command here, which does not. That is the last thing standing
+# between VIAME and deleting the superbuild.
+##
 
-option( VIAME_BUILD_DIVE_FROM_SOURCE
-  "Build DIVE desktop client from source instead of downloading binaries" OFF )
-mark_as_advanced( VIAME_BUILD_DIVE_FROM_SOURCE )
+if( NOT VIAME_ENABLE_DIVE )
+  return()
+endif()
 
 set( VIAME_DIVE_BUILD_DIR "${VIAME_BUILD_PREFIX}/src/dive-build" )
 set( VIAME_DIVE_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}/dive" )
@@ -114,8 +130,6 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     message( STATUS "Found npm ${NPM_VERSION_OUTPUT} at ${NPM_EXECUTABLE}" )
   endif()
 
-  set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} dive )
-
   set( DIVE_CLIENT_DIR "${VIAME_PACKAGES_DIR}/dive/client" )
 
   # Detect if we switched from downloading binaries to building from source
@@ -183,11 +197,9 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
         file( REMOVE_RECURSE "${VIAME_DIVE_INSTALL_DIR}" )
       endif()
 
-      # Clean ExternalProject stamps to force rebuild
-      file( GLOB DIVE_STAMP_FILES "${VIAME_BUILD_PREFIX}/src/dive-stamp/*" )
-      if( DIVE_STAMP_FILES )
-        file( REMOVE ${DIVE_STAMP_FILES} )
-      endif()
+      # Force a rebuild. This removed ExternalProject's stamp directory;
+      # what it removes now is the one stamp the custom command touches.
+      file( REMOVE "${VIAME_DIVE_BUILD_DIR}/dive-source.stamp" )
 
       # Write new hash
       file( WRITE "${DIVE_HASH_FILE}" "${DIVE_CURRENT_HASH}" )
@@ -244,21 +256,29 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   set( DIVE_BUILD_INNER_CMD ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} run build:electron:dir )
   string( REPLACE ";" "----" DIVE_BUILD_INNER_CMD_STR "${DIVE_BUILD_INNER_CMD}" )
 
-  ExternalProject_Add( dive
-    PREFIX ${VIAME_BUILD_PREFIX}
-    SOURCE_DIR ${DIVE_CLIENT_DIR}
-    BUILD_IN_SOURCE 1
-    USES_TERMINAL_BUILD 1
-    CONFIGURE_COMMAND ${DIVE_INSTALL_CMD}
-    BUILD_COMMAND ${CMAKE_COMMAND}
+  # The three ExternalProject steps, in order, as one command. `npm ci` and
+  # the electron build both run in the client directory, which is what
+  # `BUILD_IN_SOURCE 1` meant.
+  set( DIVE_STAMP "${VIAME_DIVE_BUILD_DIR}/dive-source.stamp" )
+
+  add_custom_command(
+    OUTPUT  "${DIVE_STAMP}"
+    COMMAND ${DIVE_INSTALL_CMD}
+    COMMAND ${CMAKE_COMMAND}
       -DDIVE_BUILD_CMD:STRING=${DIVE_BUILD_INNER_CMD_STR}
       -DDIVE_ARTIFACT:PATH=${DIVE_BUILD_ARTIFACT}
-      -P ${CMAKE_CURRENT_LIST_DIR}/custom_build_dive.cmake
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      -P ${VIAME_CMAKE_DIR}/custom_build_dive.cmake
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${DIVE_ELECTRON_OUTPUT_DIR}
       ${VIAME_DIVE_INSTALL_DIR}
-    INSTALL_DIR ${VIAME_DIVE_INSTALL_DIR}
-  )
+    COMMAND ${CMAKE_COMMAND} -E touch "${DIVE_STAMP}"
+    WORKING_DIRECTORY ${DIVE_CLIENT_DIR}
+    COMMENT "Building the DIVE desktop client from source"
+    USES_TERMINAL
+    VERBATIM
+    )
+
+  add_custom_target( viame_dive ALL DEPENDS "${DIVE_STAMP}" )
 
 else()
 

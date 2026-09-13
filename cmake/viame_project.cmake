@@ -183,6 +183,11 @@ set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applet
 include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-settings.cmake" )
 
 ###
+# DIVE
+##
+include( "${VIAME_SOURCE_DIR}/cmake/viame_dive.cmake" )
+
+###
 # The python dependencies
 ##
 # Before `python/`, so that a build which installs them has them in place
