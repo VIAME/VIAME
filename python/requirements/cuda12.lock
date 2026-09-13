@@ -31,9 +31,7 @@ annotated-types==0.8.0
 anyio==4.15.1
     # via httpx
 astunparse==1.6.3
-    # via
-    #   -r base.in
-    #   liberator
+    # via -r base.in
 async-timeout==5.0.1
     # via aiohttp
 atomicwrites==1.4.1
@@ -48,6 +46,8 @@ av==17.1.0
     # via
     #   -r base.in
     #   supervision
+beautifulsoup4==4.15.0
+    # via gdown
 build==1.6.1
     # via -r base.in
 certifi==2026.7.22
@@ -103,6 +103,7 @@ faster-coco-eval==1.8.0
     # via -r base.in
 filelock==3.32.6
     # via
+    #   gdown
     #   huggingface-hub
     #   torch
 flatbuffers==25.12.19
@@ -119,6 +120,8 @@ fsspec==2026.7.0
     #   huggingface-hub
     #   pytorch-lightning
     #   torch
+gdown==6.2.0
+    # via -r base.in
 grpcio==1.83.1
     # via tensorboard
 h11==0.16.0
@@ -193,10 +196,6 @@ lazy-loader==0.5
     #   kwimage
     #   kwutil
     #   scikit-image
-liberator==0.1.1
-    # via
-    #   -r base.in
-    #   torch-liberator
 lightning-utilities==0.15.3
     # via
     #   -r base.in
@@ -250,11 +249,8 @@ networkx==3.4 ; python_version < "3.12"
     #   networkx-algo-common-subtree
     #   scikit-image
     #   torch
-    #   torch-liberator
 networkx-algo-common-subtree==0.2.2
-    # via
-    #   -r base.in
-    #   torch-liberator
+    # via -r base.in
 numba==0.67.0 ; python_version < "3.12"
     # via
     #   -r base.in
@@ -298,7 +294,6 @@ numpy==2.0.2 ; python_version < "3.12"
     #   tensorboard
     #   tensorboardx
     #   tifffile
-    #   torch-liberator
     #   torchmetrics
     #   torchvision
     #   transformers
@@ -351,7 +346,7 @@ onnx==1.18.0
     #   onnxscript
 onnx-ir==1.0.0
     # via onnxscript
-onnxruntime-gpu==1.23.2
+onnxruntime-gpu==1.23.2 ; python_version < "3.14"
     # via -r cuda12.in
 onnxscript==0.7.2
     # via -r base.in
@@ -441,23 +436,21 @@ pydeprecate==0.9.0
     #   -r base.in
     #   supervision
 pyflakes==3.4.0
-    # via
-    #   -r base.in
-    #   liberator
+    # via -r base.in
 pygments==2.21.0
     # via
     #   -r base.in
     #   rich
 pygtrie==2.5.0
-    # via
-    #   -r base.in
-    #   liberator
+    # via -r base.in
 pyparsing==3.3.2
     # via matplotlib
 pyproject-hooks==1.2.0
     # via build
 pyqtree==1.0.0
     # via ndsampler
+pysocks==1.7.1
+    # via requests
 python-dateutil==2.9.0.post0
     # via
     #   matplotlib
@@ -486,6 +479,7 @@ regex==2026.9.10
     # via transformers
 requests==2.34.2
     # via
+    #   gdown
     #   supervision
     #   ultralytics
 rich==15.0.0
@@ -556,6 +550,8 @@ sortedcontainers==2.4.0
     # via
     #   kwcoco
     #   ndsampler
+soupsieve==2.9.2
+    # via beautifulsoup4
 stringzilla==5.1.2
     # via
     #   -r base.in
@@ -580,7 +576,9 @@ tifffile==2025.5.10
 timm==1.0.29
     # via -r base.in
 tokenizers==0.23.2
-    # via transformers
+    # via
+    #   -r base.in
+    #   transformers
 tomli==2.4.1
     # via
     #   build
@@ -591,13 +589,10 @@ torch==2.12.0+cu126
     #   -r cuda12.in
     #   pytorch-lightning
     #   timm
-    #   torch-liberator
     #   torchmetrics
     #   torchvision
     #   ultralytics
     #   ultralytics-thop
-torch-liberator==0.2.1
-    # via -r base.in
 torchmetrics==1.9.0
     # via
     #   -r base.in
@@ -609,6 +604,7 @@ torchvision==0.27.0+cu126
 tqdm==4.70.1
     # via
     #   -r base.in
+    #   gdown
     #   huggingface-hub
     #   pytorch-lightning
     #   supervision
@@ -623,7 +619,9 @@ typing-extensions==4.16.0
     #   aiohttp
     #   aiosignal
     #   anyio
+    #   beautifulsoup4
     #   exceptiongroup
+    #   gdown
     #   grpcio
     #   huggingface-hub
     #   lightning-utilities
@@ -650,10 +648,8 @@ ubelt==1.4.3
     #   kwimage
     #   kwplot
     #   kwutil
-    #   liberator
     #   ndsampler
     #   scriptconfig
-    #   torch-liberator
 ultralytics==8.4.17
     # via -r base.in
 ultralytics-thop==2.0.18

@@ -11,7 +11,7 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 REM Train OC-SORT tracker parameters from groundtruth tracks
 viame.exe train ^
   -i training_data ^
-  -tt ocsort ^
+  --tracker ocsort ^
   --threshold 0.0
 
 pause

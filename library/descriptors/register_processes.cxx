@@ -7,7 +7,6 @@
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "compute_track_descriptors_process.h"
-#include "format_images_srm_process.h"
 #include "handle_descriptor_request_process.h"
 #include "perform_query_process.h"
 
@@ -31,18 +30,10 @@ register_factories( kwiver::vital::registry& vpm )
   // ---------------------------------------------------------------------------
   using kvpf = kwiver::vital::plugin_factory;
 
-  kwiver::vital::plugin_factory* fact = new sprokit::cpp_process_factory(
-    typeid( viame::descriptors::format_images_srm_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::descriptors::format_images_srm_process > );
-
-  fact->add_attribute( kvpf::PLUGIN_NAME, "format_images_srm" )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-                    "Format images in a way optimized for later IQR processing" )
-    .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
-
-  vpm.add_factory( fact );
+  // `format_images_srm` registered here until upstream de7d0779f removed it:
+  // nothing had used KWA since search indexes stopped writing it. It arrived
+  // in this file from `plugins/vxl` when P3 ported it off VXL, which is why
+  // the merge of that commit deleted a file upstream no longer had.
 
 
   // Imported from sprokit/processes/core in P5-T04, under the names they

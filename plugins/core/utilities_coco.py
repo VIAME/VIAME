@@ -256,7 +256,7 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
 
     Handles:
 
-    - Segmentation masks (written as RLE) and single polygons
+    - Segmentation masks and multiple polygon pieces
     - Keypoints (written in kwcoco dict-list format)
     - Custom attributes from notes (JSON-encoded dicts are unpacked as
       top-level annotation keys; plain strings go into a ``notes`` list)
@@ -276,9 +276,9 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
     # directly as RLE would produce a mask whose size is the box rather than
     # the image, which is not what any COCO reader expects.
     segmentation = None
-    polygon = det.get_flattened_polygon()
-    if polygon:
-        segmentation = [[int(round(p)) for p in polygon]]
+    polygons = det.get_flattened_polygons()
+    if polygons:
+        segmentation = [[int(round(p)) for p in poly] for poly in polygons]
     else:
         mask = det.mask
         if mask is not None:
@@ -385,7 +385,7 @@ def confidence_pairs_from_annotation(ann, ordered_names=None):
 
 
 def annotation_to_detection(ann, categories, image_dims=None,
-                            kp_cat_names=None, ordered_names=None):
+                            kp_cat_names=None, ordered_names=None, kp_id_names=None):
     """Convert a COCO annotation dict to a DetectedObject.
 
     Parameters
@@ -399,7 +399,9 @@ def annotation_to_detection(ann, categories, image_dims=None,
         segmentations to masks.
     kp_cat_names : list of str, optional
         Keypoint category names ordered by ID, for decoding COCO
-        flat-format keypoints.
+        flat-format keypoints (category keypoints order takes precedence).
+    kp_id_names : dict, optional
+        Document keypoint-category IDs mapped to names for KWCOCO named points.
     """
     import kwiver.vital.types as vt
 
@@ -426,7 +428,7 @@ def annotation_to_detection(ann, categories, image_dims=None,
 
     # Keypoints
     if 'keypoints' in ann:
-        _apply_keypoints(det, ann['keypoints'], kp_cat_names)
+        _apply_keypoints(det, ann['keypoints'], kp_cat_names, kp_id_names)
 
     # Attributes and notes come from their own keys; anything else unknown is
     # kept as a JSON note so nothing on the annotation is silently dropped. A
@@ -451,9 +453,9 @@ def annotation_to_detection(ann, categories, image_dims=None,
 
 
 def _apply_segmentation(det, seg, image_dims=None):
-    """Attach a segmentation outline to a DetectedObject as a polygon.
+    """Attach all segmentation exteriors to a DetectedObject.
 
-    The polygon is stored via set_flattened_polygon so it can be carried
+    The pieces are stored via set_flattened_polygons so they can be carried
     through the training chip pipeline (windowed_trainer) and written to the
     COCO segmentation field. We deliberately do NOT rasterize a per-annotation
     full-image mask here: it is unused downstream (the chipper consumes the
@@ -461,8 +463,8 @@ def _apply_segmentation(det, seg, image_dims=None):
     prohibitively large on imagery with hundreds of objects per frame.
 
     Handles: flat polygon [x1,y1,...]; list of polygon contours
-    [[x1,y1,...], ...]; and kwcoco exterior/interior dicts. The first valid
-    exterior contour (>=3 points) is used. RLE masks are skipped (no polygon).
+    [[x1,y1,...], ...]; and kwcoco exterior/interior dicts. All valid
+    exterior contours (>=3 points) are used. RLE masks and holes are skipped.
     """
     # Flat list of numbers -> a single polygon
     if isinstance(seg, list) and seg and isinstance(seg[0], (int, float)):
@@ -478,21 +480,27 @@ def _apply_segmentation(det, seg, image_dims=None):
         return
 
     # List of polygon contours and/or kwcoco {exterior, interiors} dicts.
-    # Use the first valid exterior contour.
+    polygons = []
     for p in seg:
         if isinstance(p, dict):
             ext = p.get('exterior')
             if isinstance(ext, list) and len(ext) >= 3:
                 flat = [float(v) for pt in ext for v in pt]
-                det.set_flattened_polygon(flat)
-                return
+                polygons.append(flat)
         elif isinstance(p, list) and len(p) % 2 == 0 and len(p) >= 6:
-            det.set_flattened_polygon([float(v) for v in p])
-            return
+            polygons.append([float(v) for v in p])
+    if polygons:
+        det.set_flattened_polygons(polygons)
 
 
-def _apply_keypoints(det, kps, kp_cat_names=None):
-    """Apply keypoint data to a DetectedObject."""
+def _apply_keypoints(det, kps, kp_cat_names=None, kp_id_names=None):
+    """Apply named points, including head/spine_N/tail centerline vertices.
+
+    Standard COCO triples use the annotation category's keypoints order;
+    KWCOCO IDs resolve through the document keypoint_categories table.
+    Absent (visibility zero) slots must not create vertices at the origin.
+    The writers already retain all named keypoints and subpixel coordinates.
+    """
     import kwiver.vital.types as vt
 
     if isinstance(kps, list):
@@ -501,14 +509,19 @@ def _apply_keypoints(det, kps, kp_cat_names=None):
         if isinstance(kps[0], dict):
             # kwcoco dict-list format
             for kp in kps:
+                if kp.get('visible', 2) <= 0:
+                    continue
                 xy = kp.get('xy', [0, 0])
                 name = kp.get('keypoint_category',
-                              str(kp.get('keypoint_category_id', '')))
+                              (kp_id_names or {}).get(kp.get('keypoint_category_id'),
+                                                     str(kp.get('keypoint_category_id', ''))))
                 det.add_keypoint(str(name),
                                  vt.Point2d(float(xy[0]), float(xy[1])))
         elif isinstance(kps[0], (int, float)):
             # COCO flat format: [x1,y1,v1, x2,y2,v2, ...]
             for i in range(0, len(kps) - 2, 3):
+                if kps[i + 2] <= 0:
+                    continue
                 idx = i // 3
                 if kp_cat_names and idx < len(kp_cat_names):
                     name = kp_cat_names[idx]

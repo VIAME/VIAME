@@ -66,6 +66,11 @@ class NetHarnTrainer( TrainDetector ):
         self._max_epochs = "50"
         self._batch_size = "auto"
         self._bstep = "4"
+        # DETR fine-tuning stability: per-component lr multipliers applied to
+        # the pretrained trunk. 0 freezes that group (AdamW decouples weight
+        # decay by lr, so a zero lr updates nothing). Defaults match detect_fit.
+        self._backbone_lr_mult = "0.1"
+        self._stem_lr_mult = "0.01"
         self._learning_rate = "auto"
         self._optimizer = "auto"
         self._scheduler = "auto"
@@ -101,6 +106,9 @@ class NetHarnTrainer( TrainDetector ):
         self._scale_type_file = ""
         self._multi_output = False
         self._segmentation_head = False
+        self._keypoints = False
+        self._keypoint_names = "head,tail"
+        self._native_seed_model = ""
 
     def _is_detr_arch( self ):
         return self._arch.lower().startswith( ( "rfdetr", "rf_detr" ) )
@@ -131,6 +139,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "max_epochs", str( self._max_epochs ) )
         cfg.set_value( "batch_size", self._batch_size )
         cfg.set_value( "bstep", self._bstep )
+        cfg.set_value( "backbone_lr_mult", str( self._backbone_lr_mult ) )
+        cfg.set_value( "stem_lr_mult", str( self._stem_lr_mult ) )
         cfg.set_value( "learning_rate", self._learning_rate )
         cfg.set_value( "optimizer", self._optimizer )
         cfg.set_value( "scheduler", self._scheduler )
@@ -162,6 +172,9 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "scale_type_file", self._scale_type_file )
         cfg.set_value( "multi_output", str( self._multi_output ) )
         cfg.set_value( "segmentation_head", str( self._segmentation_head ) )
+        cfg.set_value( "keypoints", str( self._keypoints ) )
+        cfg.set_value( "keypoint_names", self._keypoint_names )
+        cfg.set_value( "native_seed_model", self._native_seed_model )
 
         return cfg
 
@@ -195,6 +208,8 @@ class NetHarnTrainer( TrainDetector ):
         self._learning_rate = str( cfg.get_value( "learning_rate" ) )
         self._optimizer = str( cfg.get_value( "optimizer" ) )
         self._bstep = str( cfg.get_value( "bstep" ) )
+        self._backbone_lr_mult = str( cfg.get_value( "backbone_lr_mult" ) )
+        self._stem_lr_mult = str( cfg.get_value( "stem_lr_mult" ) )
         self._scheduler = str( cfg.get_value( "scheduler" ) )
         self._batches_per_epoch = str( cfg.get_value( "batches_per_epoch" ) )
         self._vali_batches_per_epoch = \
@@ -225,6 +240,9 @@ class NetHarnTrainer( TrainDetector ):
         self._scale_type_file = str( cfg.get_value( "scale_type_file" ) )
         self._multi_output = strtobool( cfg.get_value( "multi_output" ) )
         self._segmentation_head = strtobool( cfg.get_value( "segmentation_head" ) )
+        self._keypoints = strtobool( cfg.get_value( "keypoints" ) )
+        self._keypoint_names = str( cfg.get_value( "keypoint_names" ) )
+        self._native_seed_model = str( cfg.get_value( "native_seed_model" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -865,7 +883,9 @@ class NetHarnTrainer( TrainDetector ):
                      "--window_dims=" + self._chip_height + "," + self._chip_width,
                      "--window_overlap=" + self._chip_overlap,
                      "--multiscale=False",
-                     "--bstep=" + self._bstep]
+                     "--bstep=" + self._bstep,
+                     "--backbone_lr_mult=" + self._backbone_lr_mult,
+                     "--stem_lr_mult=" + self._stem_lr_mult]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=8" )
             if os.name == 'nt':
@@ -897,6 +917,19 @@ class NetHarnTrainer( TrainDetector ):
             # default (35) permits gradients 350 times larger.
             cmd.append( "--grad_norm_max=0.1" )
 
+        if self._native_seed_model:
+            if not self._is_detr_arch() or self._mode != "detector":
+                raise ValueError("native_seed_model requires an RF-DETR detector")
+            if self._seed_model:
+                raise ValueError("Use either seed_model or native_seed_model, not both")
+            if not os.path.isfile(self._native_seed_model):
+                raise FileNotFoundError(self._native_seed_model)
+            cmd.append("--native_seed_model=" + self._native_seed_model)
+
+        if self._keypoints:
+            cmd.append("--keypoints=True")
+            cmd.append("--keypoint_names=" + self._keypoint_names)
+
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )
 
@@ -920,9 +953,25 @@ class NetHarnTrainer( TrainDetector ):
             signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
         self.proc = subprocess.Popen( cmd )
-        self.proc.wait()
+        returncode = self.proc.wait()
+
+        # A deliberate interrupt never lands here: interupt_handler exits the
+        # process itself. So a nonzero code means the trainer died, and
+        # continuing would report success and emit a pipeline pointing at a
+        # model that was never written.
+        if returncode != 0:
+            raise RuntimeError(
+                "netharn training failed with exit code {}; see the trainer "
+                "output above for the reason. No model was produced.".format(
+                    returncode ) )
 
         output = self.get_output_map()
+
+        if not output:
+            raise RuntimeError(
+                "netharn training exited cleanly but left no model in {}. "
+                "The run directory holds the training log.".format(
+                    self._train_directory ) )
 
         print( "\nModel training complete!" )
 
@@ -960,6 +1009,34 @@ class NetHarnTrainer( TrainDetector ):
           "fit", "nice", self._identifier, "deploy.zip" )
 
         # If deploy.zip doesn't exist, look for checkpoint files
+        if not os.path.exists( final_model ):
+            import glob
+
+            # Architectures torch_liberator cannot package (rfdetr, mit-yolo)
+            # write deploy.pt -- weights plus the recipe to rebuild them -- in
+            # the run directory instead. Preferred over a bare snapshot, which
+            # carries no way to reconstruct the network.
+            recipe_patterns = [
+              os.path.join( self._train_directory,
+                "fit", "nice", self._identifier, "deploy.pt" ),
+              os.path.join( self._train_directory,
+                "fit", "runs", self._identifier, "*", "deploy.pt" ),
+            ]
+
+            recipe_candidates = []
+            for pattern in recipe_patterns:
+                recipe_candidates.extend( sorted( glob.glob( pattern ) ) )
+
+            if recipe_candidates:
+                final_model = recipe_candidates[0]
+                if self._mode == "frame_classifier" or self._mode == "detection_refiner":
+                    output_model_name = "trained_classifier.pt"
+                else:
+                    output_model_name = "trained_detector.pt"
+
+        # If neither a deploy zip nor a recipe deploy exists, fall back to a
+        # raw checkpoint. Note that a raw checkpoint is only loadable for
+        # architectures torch_liberator can export.
         if not os.path.exists( final_model ):
             import glob
 

@@ -48,6 +48,11 @@
 #include <cstring>
 #include <exception>
 #include <iostream>
+#include <cstdio>
+#if !defined( _WIN32 )
+#include <dlfcn.h>
+#include <unistd.h>
+#endif
 #include <memory>
 #include <utility>
 
@@ -274,6 +279,60 @@ int help_applet( const command_line_parser& options,
   return EXIT_SUCCESS;
 }
 
+// ----------------------------------------------------------------------------
+// Leaving a process that embedded Python.
+//
+// Python extension modules -- numpy, torch, the CUDA bindings, 113 of them in
+// a full VIAME build -- register atexit handlers and static destructors that
+// libc runs after main returns. kwiver embeds an interpreter to host the
+// python plugins and, by design, never calls Py_Finalize, so that teardown
+// runs against a live interpreter whose GIL was handed back by
+// PyEval_SaveThread(). It corrupts the heap: glibc aborts inside
+// __run_exit_handlers with "double free or corruption (!prev)", raising
+// SIGABRT long after every output file has been written and flushed.
+//
+// The damage is entirely in the exit status. A training run that produced a
+// model reports 134, so slurm records it as FAILED and any wrapper testing $?
+// treats a completed run as a failure -- and, worse, a genuinely failed run
+// becomes indistinguishable from a successful one.
+//
+// This needs no work to reproduce: "kwiver runner --help" aborts the same way
+// after doing nothing but loading plugins. Holding the GIL across the handler
+// chain does not help; the heap is already corrupt by the time exit() runs.
+//
+// There is nothing left for teardown to do here. The interpreter is never
+// finalized, and the applet has already written and closed its output. So
+// flush what this process owns and leave without running the handler chain.
+namespace {
+
+int
+leave( int status )
+{
+  std::cout.flush();
+  std::cerr.flush();
+  std::fflush( nullptr );
+
+#if !defined( _WIN32 )
+  // Resolved at runtime rather than linked: this driver does not link against
+  // libpython, and the symbol exists only once kwiver's python plugin module
+  // has been dlopen'd with RTLD_GLOBAL. A build with no python plugins, or a
+  // run that never loaded them, keeps ordinary teardown.
+  using py_is_initialized_t = int ( * )();
+  auto* const py_is_initialized =
+    reinterpret_cast< py_is_initialized_t >(
+      dlsym( RTLD_DEFAULT, "Py_IsInitialized" ) );
+
+  if( py_is_initialized && py_is_initialized() )
+  {
+    _exit( status );
+  }
+#endif
+
+  return status;
+}
+
+} // namespace
+
 // ============================================================================
 int main(int argc, char *argv[])
 {
@@ -307,7 +366,7 @@ int main(int argc, char *argv[])
         (options.m_applet_name.empty() && argc == 2 &&
          (std::string(argv[1]) == "--help" || std::string(argv[1]) == "-h")) )
     {
-      return help_applet( options, tool_context, vpm );
+      return leave( help_applet( options, tool_context, vpm ) );
     }
 
     // Create applet based on the name provided
@@ -370,35 +429,35 @@ int main(int argc, char *argv[])
     tool_context->m_result = &local_result; // in this case the address of a stack variable is o.k.
 
     // Run the specified tool
-    return applet->run();
+    return leave( applet->run() );
   }
   catch ( cxxopts::OptionException& e)
   {
     std::cerr << "viame: Command argument error: " << e.what() << std::endl;
-    exit( -1 );
+    return leave( -1 );
   }
   catch ( kwiver::vital::plugin_factory_not_found& )
   {
     std::cerr << "viame: Applet \"" << argv[1] << "\" not found." << std::endl
               << "Type \"viame help\" to list available applets." << std::endl;
 
-    exit(-1);
+    return leave( -1 );
   }
   catch ( kwiver::vital::vital_exception& e )
   {
     std::cerr << "viame: Caught unhandled kwiver::vital::vital_exception: " << e.what() << std::endl;
-    exit( -1 );
+    return leave( -1 );
   }
   catch ( std::exception& e )
   {
     std::cerr << "viame: Caught unhandled std::exception: " << e.what() << std::endl;
-    exit( -1 );
+    return leave( -1 );
   }
   catch ( ... )
   {
     std::cerr << "viame: Caught unhandled exception" << std::endl;
-    exit( -1 );
+    return leave( -1 );
   }
 
-  return 0;
+  return leave( 0 );
 }

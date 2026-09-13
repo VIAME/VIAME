@@ -61,6 +61,9 @@ seaborn>=0.13.2
 py-cpuinfo
 map_boxes
 ensemble_boxes
+# Public Google Drive add-on downloads, also used by DIVE desktop. From
+# upstream dd6890fc1.
+gdown>=6.1.0,<7
 # `plugins/core/tracker_param_search.py` scores candidate tracker settings
 # with it. The only one of the packages an accidental resolution had put in
 # the install that anything actually imports.
@@ -91,12 +94,12 @@ networkx>=3.4 ; python_version >= "3.12"
 networkx-algo-common-subtree>=0.2.0
 pandas>=2.1.0,<=2.2.3 ; python_version < "3.12"
 pandas>=2.2.0 ; python_version >= "3.12"
-torch_liberator
-liberator
 colormath
 
 # --- models and training -----------------------------------------------------
-transformers>=5.1.0,<6.0.0
+# Upstream 2dcc39e49 narrowed this and pinned tokenizers with it.
+transformers>=5.16.0,<5.18.0
+tokenizers>=0.23.1,<0.24.0
 ultralytics<=8.4.17
 ultralytics_thop==2.0.18
 supervision

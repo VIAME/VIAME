@@ -278,6 +278,15 @@ if( VIAME_ENABLE_PYTHON )
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
   endif()
 
+  if( VIAME_ENABLE_PYTORCH-SLEAP )
+    if( Python_VERSION VERSION_LESS "3.11" OR NOT Python_VERSION VERSION_LESS "3.14" )
+      message( FATAL_ERROR "SLEAP-NN v0.3.3 requires Python 3.11 through 3.13" )
+    endif()
+    if( NOT VIAME_ENABLE_PYTORCH-VISION OR NOT VIAME_ENABLE_OPENCV )
+      message( FATAL_ERROR "SLEAP-NN requires VIAME_ENABLE_PYTORCH-VISION and VIAME_ENABLE_OPENCV" )
+    endif()
+  endif()
+
   # Backwards compatibility for sub-projects which use "PYTHON_" cmake
   # variables and the old find_package( PythonInterp ) commands instead
   # of the newer find Python. Copies all Python_* to PYTHON_* vars.

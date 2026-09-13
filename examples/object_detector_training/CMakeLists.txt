@@ -39,6 +39,14 @@ if( VIAME_ENABLE_DARKNET )
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH-SLEAP )
+  if( WIN32 )
+    list( APPEND EXAMPLE_INSTALL_FILES train_sleap_head_tail.bat )
+  else()
+    list( APPEND EXAMPLE_INSTALL_FILES train_sleap_head_tail.sh )
+  endif()
+endif()
+
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES

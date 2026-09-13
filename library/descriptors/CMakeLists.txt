@@ -59,7 +59,6 @@ viame_register_statically( viame_descriptors
 ##
 set( process_headers
   compute_track_descriptors_process.h
-  format_images_srm_process.h
   handle_descriptor_request_process.h
   perform_query_process.h
 )
@@ -67,7 +66,6 @@ set( process_headers
 set( process_sources
   register_processes.cxx
   compute_track_descriptors_process.cxx
-  format_images_srm_process.cxx
   handle_descriptor_request_process.cxx
   perform_query_process.cxx
 )

@@ -15,5 +15,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 
 viame train \
   -i training_data \
-  -tt botsort \
+  --tracker botsort \
   --threshold 0.0

@@ -122,6 +122,12 @@ static kv::config_block_sptr default_config()
     ".mp4;.MP4;.mpg;.MPG;.mpeg;.MPEG;.avi;.AVI;.wmv;.WMV;.mov;.MOV;.webm;.WEBM;.ogg;.OGG",
     "Semicolon list of seperated video extensions to use in training, images without "
     "this extension will not be included." );
+  config->set_value( "frame_format", "jpg",
+    "Image format for frames extracted from video (jpg or png). JPEG costs "
+    "roughly a tenth of the disk of PNG and extracts faster, since the encode "
+    "rather than the decode is what limits extraction on HD footage. Set to "
+    "png for a lossless cache. Ignored when preserving input bit depth, which "
+    "requires a lossless format." );
   config->set_value( "video_extractor", "ffmpeg",
     "Method to use to extract frames from video, can either be ffmpeg or a pipe file" );
   config->set_value( "frame_rate", "5",
@@ -202,9 +208,10 @@ typedef std::pair< kv::config_block_key_t, kv::config_block_value_t > config_set
 // Split a "block:key=value" string into its key and value halves. Returns false
 // with a populated error message if the string is not a valid setting.
 //
-// require_block_key enforces the keypath being at least "a:b", which guards
-// against typos on the command line. Settings files may also address top level
-// tool keys such as "downsample", so they do not require it.
+// Any keypath depth is accepted, top level tool keys such as "downsample"
+// included. Typos are caught by apply_command_line_setting checking the key
+// against the config's registered defaults, which rejects a misspelled block
+// key too -- the old "must be at least a:b" rule caught neither.
 static bool parse_config_setting( const std::string& setting,
                                   config_setting_t& parsed,
                                   std::string& error,
@@ -234,13 +241,7 @@ static bool parse_config_setting( const std::string& setting,
     return false;
   }
 
-  if( require_block_key && keys.size() < 2 )
-  {
-    error = "Error: The key portion of setting \'" + setting + "\' does not "
-      "contain at least two keys in its keypath which is invalid. "
-      "(e.g. must be at least a:b)";
-    return false;
-  }
+  ( void ) require_block_key;
 
   parsed = config_setting_t( setting_key, setting_value );
   return true;
@@ -299,24 +300,43 @@ static void apply_settings( kv::config_block_sptr config,
   }
 }
 
-// Apply the single --setting command line over-ride, if provided
-static void apply_command_line_setting( kv::config_block_sptr config,
-                                        const std::string& opt_settings )
+// Apply every --setting command line over-ride, in the order given.
+//
+// A misspelled top-level key would otherwise be accepted and silently ignored,
+// so those are checked against the config's registered defaults. Block keys
+// cannot be checked here: an algorithm's keys only exist once it is
+// instantiated, which is long after this runs, so every correct nested
+// over-ride would fail the same test.
+static void apply_command_line_setting(
+  kv::config_block_sptr config,
+  const std::vector< std::string >& opt_settings )
 {
-  if( opt_settings.empty() )
+  for( const auto& setting : opt_settings )
   {
-    return;
+    if( setting.empty() )
+    {
+      continue;
+    }
+
+    config_setting_t parsed;
+    std::string error;
+
+    if( !parse_config_setting( setting, parsed, error ) )
+    {
+      throw std::runtime_error( error );
+    }
+
+    if( parsed.first.find( kv::config_block::block_sep() ) ==
+          std::string::npos &&
+        !config->has_value( parsed.first ) )
+    {
+      throw std::runtime_error(
+        "Error: \'" + parsed.first + "\' is not a setting this tool knows. "
+        "Check the spelling, or use -o to dump the available keys." );
+    }
+
+    config->set_value( parsed.first, parsed.second );
   }
-
-  config_setting_t parsed;
-  std::string error;
-
-  if( !parse_config_setting( opt_settings, parsed, error ) )
-  {
-    throw std::runtime_error( error );
-  }
-
-  config->set_value( parsed.first, parsed.second );
 }
 
 // Apply --continue: reuse the extracted-frame and chip caches from a prior run
@@ -1269,7 +1289,7 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "input-truth", "Input list containing training truth",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
-    ( "labels", "Input label file for train categories",
+    ( "labels", "Input label file for train categories (.txt, .csv, or .json)",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "v,validation", "Optional validation input directory",
       ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
@@ -1279,8 +1299,10 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "type" )
     ( "o,output-config", "Output a sample configuration to file",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
-    ( "s,setting", "Over-ride some setting in the config",
-      ::cxxopts::value< std::string >()->default_value( "" ), "key=value" )
+    ( "s,setting", "Over-ride some setting in the config, at any keypath "
+      "depth (repeatable)",
+      ::cxxopts::value< std::vector< std::string > >()->default_value( "" ),
+      "key=value" )
     ( "settings-file", "File of key=value config over-rides, one per line",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "t,threshold", "Threshold override to apply over input",
@@ -1402,7 +1424,8 @@ train_applet
   std::string opt_detector = cmd_args[ "detector" ].as< std::string >();
   std::string opt_tracker = cmd_args[ "tracker" ].as< std::string >();
   std::string opt_out_config = cmd_args[ "output-config" ].as< std::string >();
-  std::string opt_settings = cmd_args[ "setting" ].as< std::string >();
+  std::vector< std::string > opt_settings =
+    cmd_args[ "setting" ].as< std::vector< std::string > >();
   std::string opt_threshold = cmd_args[ "threshold" ].as< std::string >();
   std::string opt_pipeline_file = cmd_args[ "pipeline" ].as< std::string >();
   std::string opt_frame_rate = cmd_args[ "default-vfr" ].as< std::string >();
@@ -1858,6 +1881,8 @@ train_applet
     config->get_value< std::string >( "video_extensions" );
   std::string video_extractor =
     config->get_value< std::string >( "video_extractor" );
+  std::string frame_format =
+    config->get_value< std::string >( "frame_format" );
   double frame_rate =
     config->get_value< double >( "frame_rate" );
   unsigned max_frame_count =
@@ -2071,7 +2096,7 @@ train_applet
   string_to_set( secondary_frame_labels_str, secondary_frame_labels, "\n\t\v,;" );
   string_to_set( hard_negative_categories_str, hard_negative_categories, "\n\t\v,;" );
 
-  // Load labels.txt file
+  // Load the category and synonym file.
   std::string label_fn;
 
   if( !opt_label_file.empty() )
@@ -2080,7 +2105,7 @@ train_applet
   }
   else if( !opt_input_dir.empty() )
   {
-    label_fn = append_path( opt_input_dir, "labels.txt" );
+    label_fn = find_labels_file( opt_input_dir );
   }
 
   kv::category_hierarchy_sptr model_labels;
@@ -2088,7 +2113,12 @@ train_applet
 
   if( !does_file_exist( label_fn ) && opt_out_config.empty() )
   {
-    std::cout << "Label file (labels.txt) does not exist in input folder" << std::endl;
+    if( !opt_label_file.empty() )
+    {
+      std::cerr << "Label file does not exist: " << opt_label_file << std::endl;
+      return EXIT_FAILURE;
+    }
+    std::cout << "No labels.txt, labels.csv, or labels.json in input folder" << std::endl;
     std::cout << std::endl << "Would you like to train over all category labels? (y/n) ";
 
     if( !opt_no_query )
@@ -2098,7 +2128,7 @@ train_applet
 
       if( response != "y" && response != "Y" && response != "yes" && response != "Yes" )
       {
-        std::cout << std::endl << "Exiting training due to no labels.txt" << std::endl;
+        std::cout << std::endl << "Exiting training without a label file" << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -2111,7 +2141,7 @@ train_applet
     }
     catch( const std::exception& e )
     {
-      std::cerr << "Error reading labels.txt: " << e.what() << std::endl;
+      std::cerr << "Error reading " << label_fn << ": " << e.what() << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -2236,6 +2266,23 @@ train_applet
   std::vector< std::string > all_truth; // Corresponding list of groundtruth files
   int validation_pivot = -1;            // Validation index start, if manually set
   bool auto_detect_truth = false;       // Auto-detect truth if not manually specified
+
+  auto find_truth_files = [&]( const std::string& data_item )
+  {
+    auto files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
+    files.erase( std::remove_if( files.begin(), files.end(),
+      [&]( const std::string& path ) { return is_labels_file( path, label_fn ); } ), files.end() );
+    // A label file inside the folder must not prevent the alongside fallback.
+    if( files.empty() && !groundtruth_exts.empty() )
+    {
+      const auto alongside = add_ext_unto( data_item, groundtruth_exts[0] );
+      if( does_file_exist( alongside ) && !is_labels_file( alongside, label_fn ) )
+      {
+        files.push_back( alongside );
+      }
+    }
+    return files;
+  };
 
   // Option 1: a typical training data directory is input
   if( !opt_input_dir.empty() )
@@ -2512,7 +2559,7 @@ train_applet
 
       ctx.image_files = extract_video_frames( ctx.data_item, extraction_pipeline,
         ctx.frame_rate, augmented_cache, !regenerate_cache, max_frame_count,
-        "vidl_ffmpeg", "", preserve_bit_depth, video_gt );
+        "vidl_ffmpeg", "", preserve_bit_depth, video_gt, frame_format );
 
       ctx.frames_preaugmented = unified_augmentation;
     }
@@ -2567,7 +2614,13 @@ train_applet
     }
     else if( !ctx.is_video && auto_detect_truth )
     {
-      ctx.gt_files = find_files_in_folder_or_alongside( ctx.data_item, groundtruth_exts );
+      ctx.gt_files = find_truth_files( ctx.data_item );
+
+      // A DIVE export folder holds config.json -- dataset metadata (fps, id,
+      // ffprobe output), not annotations -- beside the annotation files. It
+      // matches the .json groundtruth extension, so drop it by name before the
+      // truth files are counted or ranked.
+      remove_non_groundtruth_sidecars( ctx.gt_files );
 
       // Handle multiple groundtruth files: allow if different extensions, select by priority
       if( !one_file_per_image && ctx.gt_files.size() > 1 )
@@ -2746,17 +2799,15 @@ train_applet
 
     // Augment serially if the parallel phase did not (legacy pipelines, the
     // max_frame_count debug path, or an empty pipeline).
-    if( !ctx.augmented )
+    //
+    // The max_frame_count cap is applied at the bottom of this loop, once the
+    // item's frames and truth have actually been consumed. Breaking here
+    // instead left the run with zero frames and zero detections -- extracting
+    // the first video and then discarding it -- so every --max-frame-count run
+    // died with "training set contains no truth detections".
+    if( !ctx.augmented && !augment_item( ctx ) )
     {
-      if( !augment_item( ctx ) )
-      {
-        return EXIT_FAILURE;
-      }
-
-      if( is_video && max_frame_count > 0 )
-      {
-        break;
-      }
+      return EXIT_FAILURE;
     }
 
     bool frames_preaugmented = ctx.frames_preaugmented;
@@ -3049,7 +3100,7 @@ train_applet
                       gt_class ) == mentioned_warnings.end() )
                 {
                   *data_warning_writer << "Observed class: "
-                    << gt_class << " not in input labels.txt" << std::endl;
+                    << gt_class << " not in input label file" << std::endl;
 
                   mentioned_warnings.push_back( gt_class );
                 }
@@ -3205,7 +3256,7 @@ train_applet
                     gt_class ) == mentioned_warnings.end() )
           {
             *data_warning_writer << "Observed class: "
-               << gt_class << " not in input labels.txt" << std::endl;
+               << gt_class << " not in input label file" << std::endl;
 
             mentioned_warnings.push_back( gt_class );
           }
@@ -3244,7 +3295,7 @@ train_applet
     }
     else // Not okay
     {
-      std::cout << "Error: input labels.txt contains multiple classes, but supplied "
+      std::cout << "Error: input label file contains multiple classes, but supplied "
                 << "truth files do not contain the training classes of interest, or "
                 << "there was an error reading them from the input annotations."
                 << std::endl;
@@ -3648,7 +3699,7 @@ train_applet
         }
         else if( !is_video && auto_detect_truth )
         {
-          gt_files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
+          gt_files = find_truth_files( data_item );
         }
         else if( i < all_truth.size() )
         {

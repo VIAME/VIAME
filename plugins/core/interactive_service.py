@@ -71,7 +71,7 @@ from viame.core.interactive_stereo import (  # noqa: E402
 STEREO_COMMANDS = {
     "enable", "disable", "set_calibration", "set_frame", "cancel",
     "get_status", "transfer_line", "transfer_points", "measure_line",
-    "aggregate_lengths",
+    "aggregate_lengths", "measure_curve",
 }
 
 # Stereo status/lifecycle commands that must NOT construct (load) the stereo

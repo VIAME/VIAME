@@ -21,5 +21,34 @@
   "configs/pipelines/measurement_gfit_groups_v3_seagis_dual.pipe",
   "configs/pipelines/measurement_gfit_groups_v3_seagis_sing.pipe",
   "configs/pipelines/measurement_gfit_groups_v3_viame_dual.pipe",
-  "configs/pipelines/measurement_gfit_groups_v3_viame_sing.pipe"
+  "configs/pipelines/measurement_gfit_groups_v3_viame_sing.pipe",
+  {
+    "file": "configs/pipelines/index_existing.pipe",
+    "processes": [
+      "track_writer"
+    ],
+    "reason": "removed upstream: b70985a48 made the search index write tracks with a single writer and stopped rescaling, and de7d0779f took KWA out, so the index pipelines feed frames straight to the detector and descriptor"
+  },
+  {
+    "file": "configs/pipelines/index_frame.pipe",
+    "processes": [
+      "image_filter"
+    ],
+    "reason": "removed upstream: b70985a48 made the search index write tracks with a single writer and stopped rescaling, and de7d0779f took KWA out, so the index pipelines feed frames straight to the detector and descriptor"
+  },
+  {
+    "file": "configs/pipelines/index_generic.pipe",
+    "processes": [
+      "image_filter"
+    ],
+    "reason": "removed upstream: b70985a48 made the search index write tracks with a single writer and stopped rescaling, and de7d0779f took KWA out, so the index pipelines feed frames straight to the detector and descriptor"
+  },
+  {
+    "file": "configs/pipelines/index_generic.trk.pipe",
+    "processes": [
+      "image_filter",
+      "track_writer"
+    ],
+    "reason": "removed upstream: b70985a48 made the search index write tracks with a single writer and stopped rescaling, and de7d0779f took KWA out, so the index pipelines feed frames straight to the detector and descriptor"
+  }
 ]

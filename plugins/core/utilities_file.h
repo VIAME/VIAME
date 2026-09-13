@@ -25,6 +25,17 @@ namespace viame {
 VIAME_CORE_EXPORT
 bool does_file_exist( const std::string& location );
 
+/// Find labels.txt, labels.csv, or labels.json in a directory, in that order.
+/// Return an empty string if none exists.
+VIAME_CORE_EXPORT
+std::string find_labels_file( const std::string& directory );
+
+/// Recognize default label filenames or an explicitly selected label file.
+/// Used to exclude category definitions from annotation discovery.
+VIAME_CORE_EXPORT
+bool is_labels_file( const std::string& filename,
+                     const std::string& selected = "" );
+
 /// Check if a folder exists at the given location
 ///
 /// \param location Path to check
@@ -143,19 +154,31 @@ bool ends_with_extension( const std::string& str,
 VIAME_CORE_EXPORT
 std::string get_file_extension( const std::string& path );
 
+/// Drop files that match a groundtruth extension but never hold annotations
+///
+/// DIVE writes a config.json next to its annotation files holding dataset
+/// metadata (fps, id, ffprobe output). It matches the .json groundtruth
+/// extension, so a folder scan picks it up as a second truth file and the
+/// folder can no longer be resolved. Removes such sidecars in place.
+///
+/// \param[in,out] files List of candidate groundtruth paths, filtered in place
+VIAME_CORE_EXPORT
+void remove_non_groundtruth_sidecars( std::vector< std::string >& files );
+
 /// Select a single file from a list based on extension priority
 ///
-/// Given multiple files, this function checks that no two files share the same
-/// extension. If all extensions are unique, it selects the file whose extension
-/// appears earliest in the priority list. Only extensions that are also in the
-/// allowed_exts list are considered for priority selection.
+/// Given multiple files, this function selects the file whose extension appears
+/// earliest in the priority list. Only extensions that are also in the
+/// allowed_exts list are considered for priority selection. An extension held
+/// by more than one file is ambiguous and is skipped; selection fails only when
+/// every candidate's extension is ambiguous.
 ///
 /// \param files List of file paths to choose from
 /// \param priority_exts Extensions in priority order (e.g., {".csv", ".json", ".xml", ".kw18"})
 /// \param allowed_exts Extensions that are allowed (filters priority_exts)
-/// \param[out] selected The selected file path (or first file if no priority match)
-/// \param[out] error_msg Error message if duplicate extensions found
-/// \returns true if selection succeeded, false if duplicate extensions exist
+/// \param[out] selected The selected file path (or first unambiguous file if no priority match)
+/// \param[out] error_msg Error message if every candidate extension is ambiguous
+/// \returns true if selection succeeded, false if no unambiguous candidate exists
 VIAME_CORE_EXPORT
 bool select_file_by_extension_priority(
     const std::vector< std::string >& files,
@@ -361,6 +384,7 @@ double get_file_frame_rate( const std::string& file );
 ///
 /// Reads the input file, replaces all occurrences of each keyword with its
 /// corresponding value, and writes the result to the output file.
+/// Line endings are normalized to LF on every platform.
 ///
 /// \param input_file Path to template file
 /// \param output_file Path to write result
@@ -398,6 +422,7 @@ VIAME_CORE_EXPORT
 bool copy_folder( const std::string& source, const std::string& destination );
 
 /// Replace keywords in a template and return the result as a string
+/// with line endings normalized to LF.
 ///
 /// \param input_file Path to template file
 /// \param replacements Map of keyword->value pairs to replace

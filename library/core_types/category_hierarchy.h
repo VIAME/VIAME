@@ -100,6 +100,9 @@ public:
   /// @return \b Class label name.
   label_t get_class_name( const label_t& class_name ) const;
 
+  /// Get the alternate names registered for a class.
+  label_vec_t get_class_synonyms( const label_t& class_name ) const;
+
   /// @brief Get the class label ID for the given class name.
   ///
   /// @param class_name Class name to get ID for.
@@ -160,7 +163,16 @@ public:
 
   /// @brief Load a hierarchy from a file
   ///
-  /// Throwns on invalid file.
+  /// TXT: whitespace-separated names, with the canonical name first. Single
+  /// or double quotes group names containing spaces. :parent="parent name"
+  /// specifies a parent. # starts a comment outside quotes.
+  /// CSV: one category per row, then synonyms and optional :parent= fields.
+  /// JSON: an array of names or objects with name, optional integer id, and
+  /// optional synonyms and parents arrays. A nonempty supercategory overrides
+  /// parents, following DIVE's COCO convention. A categories array in an object
+  /// (including a COCO document) and a DIVE typeHierarchy child-to-parent map
+  /// are also accepted. JSON hierarchy-only nodes are added automatically.
+  /// Throws on invalid input. Format is selected by filename extension.
   void load_from_file( const std::string& filename );
 
 private:

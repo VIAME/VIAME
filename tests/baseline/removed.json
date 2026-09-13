@@ -1090,5 +1090,12 @@
     "name": "skip",
     "phase": "P8-T07",
     "reason": "An example of port frequency, which P8-T07 removes -- and a broken one: it declares an input frequency of 1 + skip and its _step grabs skip, one fewer than it said, so a pipeline containing it never finishes. No error, no output, a scheduler that never returns. Nothing has ever run it (open question 2.13)."
+  },
+  {
+    "kind": "process",
+    "interface": "",
+    "name": "format_images_srm",
+    "phase": "upstream",
+    "reason": "removed upstream in de7d0779f, merged into lite. Nothing had used KWA since search indexes stopped writing it: the index pipelines feed frames straight to the detector and descriptor. The KWA archive pipelines went with it, and kw_archive_writer itself was already gone under open decision 3."
   }
 ]

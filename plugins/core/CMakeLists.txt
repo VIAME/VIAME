@@ -550,6 +550,11 @@ if( VIAME_ENABLE_PYTHON )
     interactive_segmentation )
 
   viame_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/curved_measurement.py
+    core
+    curved_measurement )
+
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
     core
     interactive_stereo )

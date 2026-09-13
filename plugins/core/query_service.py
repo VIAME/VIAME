@@ -565,9 +565,10 @@ class QueryService:
         self._descriptors = primary_out.pop("descriptors")
 
         per_session: List[Optional[Dict[str, Any]]] = [primary_out]
-        # The primary auto-ran the query when boxes were provided; if not,
-        # every session (primary included) runs it explicitly below.
-        if "results" not in primary_out:
+        # The primary auto-ran the query when boxes were provided; without
+        # boxes it emits an empty result list, so every session (primary
+        # included) runs the query explicitly below.
+        if not primary_out.get("results"):
             per_session[0] = primary.process_query(self._descriptors, 0.0, None)
         for session in self._sessions[1:]:
             per_session.append(

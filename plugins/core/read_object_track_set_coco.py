@@ -166,6 +166,8 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
                 image_dims[img_id] = (w, h)
 
         # Keypoint category names for decoding COCO flat-format keypoints
+        category_keypoints = {c["id"]: c.get("keypoints") for c in data.get("categories", [])}
+        kp_id_names = {c["id"]: c["name"] for c in data.get("keypoint_categories", [])}
         kp_cat_names = None
         kp_cats = data.get("keypoint_categories", [])
         if kp_cats:
@@ -207,7 +209,8 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
                     categories,
                     image_dims=dims,
                     ordered_names=ordered_names,
-                    kp_cat_names=kp_cat_names,
+                    kp_cat_names=category_keypoints.get(ann.get("category_id")) or kp_cat_names,
+                    kp_id_names=kp_id_names,
                 )
 
                 seconds = timestamp_to_seconds(timestamp)

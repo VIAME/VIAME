@@ -824,5 +824,5 @@ def maximum_common_ordered_subpaths(paths1, paths2, sep='.', mode='embedding'):
         )
     except Exception:
         pass
-    from torch_liberator.initializer import maximum_common_ordered_subpaths
+    from viame.pytorch.netharn.torch_liberator.initializer import maximum_common_ordered_subpaths
     return maximum_common_ordered_subpaths(paths1, paths2, sep)

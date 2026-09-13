@@ -55,7 +55,7 @@ detected_object
     m_detector_name{ other.m_detector_name },
     m_notes{ other.m_notes },
     m_keypoints{ other.m_keypoints },
-    m_polygon{ other.m_polygon }
+    m_polygons{ other.m_polygons }
 {
   std::lock_guard< std::mutex > lock( other.m_attrs_mutex );
   m_attrs = other.m_attrs;
@@ -78,7 +78,7 @@ detected_object
     m_detector_name = other.m_detector_name;
     m_notes = other.m_notes;
     m_keypoints = other.m_keypoints;
-    m_polygon = other.m_polygon;
+    m_polygons = other.m_polygons;
 
     // Lock both mutexes without risking deadlock, then copy attributes.
     std::lock( m_attrs_mutex, other.m_attrs_mutex );
@@ -117,7 +117,7 @@ detected_object
   new_obj->m_geo_point = this->m_geo_point;
   new_obj->m_keypoints = this->m_keypoints;
   new_obj->m_notes = this->m_notes;
-  new_obj->m_polygon = this->m_polygon;
+  new_obj->m_polygons = this->m_polygons;
 
   // Deep copy attribute set if present (thread-safe access)
   {
@@ -312,7 +312,7 @@ std::vector< vector_2d >
 detected_object
 ::polygon() const
 {
-  return m_polygon;
+  return m_polygons.empty() ? std::vector< vector_2d >{} : m_polygons.front();
 }
 
 // ----------------------------------------------------------------------------
@@ -320,7 +320,11 @@ void
 detected_object
 ::set_polygon( std::vector< vector_2d > const& poly )
 {
-  m_polygon = poly;
+  m_polygons.clear();
+  if( !poly.empty() )
+  {
+    m_polygons.push_back( poly );
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -328,11 +332,7 @@ void
 detected_object
 ::set_flattened_polygon( std::vector< double > const& coords )
 {
-  m_polygon.clear();
-  for( size_t i = 0; i + 1 < coords.size(); i += 2 )
-  {
-    m_polygon.push_back( vector_2d( coords[ i ], coords[ i + 1 ] ) );
-  }
+  set_flattened_polygons( { coords } );
 }
 
 // ----------------------------------------------------------------------------
@@ -341,12 +341,52 @@ detected_object
 ::get_flattened_polygon() const
 {
   std::vector< double > result;
-  for( const auto& pt : m_polygon )
+  for( const auto& pt : polygon() )
   {
     result.push_back( pt[ 0 ] );
     result.push_back( pt[ 1 ] );
   }
   return result;
+}
+
+// ----------------------------------------------------------------------------
+std::vector< std::vector< double > >
+detected_object
+::get_flattened_polygons() const
+{
+  std::vector< std::vector< double > > result;
+  for( const auto& poly : m_polygons )
+  {
+    std::vector< double > coords;
+    for( const auto& pt : poly )
+    {
+      coords.push_back( pt[ 0 ] );
+      coords.push_back( pt[ 1 ] );
+    }
+    result.push_back( coords );
+  }
+  return result;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_flattened_polygons(
+  std::vector< std::vector< double > > const& polygons )
+{
+  m_polygons.clear();
+  for( const auto& coords : polygons )
+  {
+    std::vector< vector_2d > poly;
+    for( size_t i = 0; i + 1 < coords.size(); i += 2 )
+    {
+      poly.push_back( vector_2d( coords[i], coords[i + 1] ) );
+    }
+    if( !poly.empty() )
+    {
+      m_polygons.push_back( poly );
+    }
+  }
 }
 
 // ----------------------------------------------------------------------------

@@ -4,12 +4,19 @@
 
 #include "category_hierarchy.h"
 
-#include <viame/algorithm_framework/util/data_stream_reader.h>
+// Upstream reaches rapidjson through cereal's vendored copy. P8-T06
+// removed cereal and made `file_io/json.h` the one place rapidjson is
+// included, so that the three behaviour flags cereal used to set on the
+// way past are stated rather than inherited. Same headers, one door.
+#include <viame/file_io/json.h>
+
+#include <cctype>
 
 #include <algorithm>
 #include <fstream>
 #include <iterator>
 #include <sstream>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -17,6 +24,135 @@
 namespace kwiver {
 
 namespace vital {
+
+namespace {
+
+// TXT keeps the historic whitespace-separated synonym syntax. CSV uses one
+// category per row, followed by synonyms or :parent= fields.
+std::vector< std::vector< std::string > >
+read_label_rows( std::istream& in, bool csv )
+{
+  std::vector< std::vector< std::string > > rows;
+  std::vector< std::string > row;
+  std::string field;
+  char quote = 0;
+  bool started = false;
+  bool closed = false;
+  bool quoted = false;
+  auto finish_field = [&]() {
+    if( csv && !quoted )
+    {
+      const auto last = field.find_last_not_of( " \t" );
+      field.erase( last == std::string::npos ? 0 : last + 1 );
+    }
+    if( started )
+    {
+      if( field.empty() )
+      {
+        throw std::runtime_error( "Empty category name or synonym" );
+      }
+      row.push_back( field );
+    }
+    field.clear();
+    started = closed = quoted = false;
+  };
+  auto finish_row = [&]() {
+    finish_field();
+    if( !row.empty() )
+    {
+      rows.push_back( row );
+      row.clear();
+    }
+  };
+  char c;
+  while( in.get( c ) )
+  {
+    if( quote )
+    {
+      if( c == quote )
+      {
+        if( in.peek() == quote )
+        {
+          in.get();
+          field += c;
+        }
+        else
+        {
+          quote = 0;
+          closed = true;
+        }
+      }
+      else if( !csv && c == '\\' &&
+               ( in.peek() == quote || in.peek() == '\\' ) )
+      {
+        field += static_cast< char >( in.get() );
+      }
+      else
+      {
+        if( !csv && ( c == '\n' || c == '\r' ) )
+        {
+          throw std::runtime_error( "Unterminated quoted label" );
+        }
+        field += c;
+      }
+    }
+    else if( c == '\n' || c == '\r' )
+    {
+      if( c == '\r' && in.peek() == '\n' ) { in.get(); }
+      finish_row();
+    }
+    else if( !csv && c == '#' )
+    {
+      while( in.peek() != '\n' && in.peek() != '\r' && in.peek() != EOF )
+      {
+        in.get();
+      }
+      finish_row();
+    }
+    else if( csv && c == ',' )
+    {
+      if( !started && row.empty() )
+      {
+        throw std::runtime_error( "Empty category name" );
+      }
+      finish_field();
+    }
+    else if( std::isspace( static_cast< unsigned char >( c ) ) )
+    {
+      if( !csv ) { finish_field(); }
+      else if( started && !closed ) { field += c; }
+    }
+    else if( ( c == '"' || ( !csv && c == '\'' ) ) &&
+             ( !started || ( !csv && field == ":parent=" ) ) )
+    {
+      quote = c;
+      started = quoted = true;
+    }
+    else
+    {
+      if( closed )
+      {
+        throw std::runtime_error( "Expected a separator after quoted label" );
+      }
+      field += c;
+      started = true;
+    }
+  }
+  if( quote ) { throw std::runtime_error( "Unterminated quoted label" ); }
+  finish_row();
+  return rows;
+}
+
+std::string json_label( const rapidjson::Value& value )
+{
+  if( !value.IsString() || value.GetStringLength() == 0 )
+  {
+    throw std::runtime_error( "Category names must be nonempty strings" );
+  }
+  return std::string( value.GetString(), value.GetStringLength() );
+}
+
+} // namespace
 
 // ----------------------------------------------------------------------------
 category_hierarchy
@@ -127,6 +263,14 @@ category_hierarchy
 }
 
 // ----------------------------------------------------------------------------
+category_hierarchy::label_vec_t
+category_hierarchy
+::get_class_synonyms( const label_t& class_name ) const
+{
+  return this->find( class_name )->second->synonyms;
+}
+
+// ----------------------------------------------------------------------------
 category_hierarchy::label_id_t
 category_hierarchy
 ::get_class_id( const label_t& class_name ) const
@@ -231,57 +375,160 @@ void
 category_hierarchy
 ::load_from_file( const std::string& filename )
 {
-  std::ifstream in( filename.c_str() );
+  std::ifstream in( filename.c_str(), std::ios::binary );
 
   if( !in )
   {
     throw std::runtime_error( "Unable to open " + filename );
   }
 
-  std::vector< std::pair< label_t, label_t > > relationships;
-
-  std::string line;
-  label_t label;
-
-  int entry_num = 0;
-
-  kwiver::vital::data_stream_reader dsr( in );
-  while( dsr.getline( line ) )
+  // Strip a UTF-8 BOM before reading either text or JSON.
+  if( in.peek() == 0xef )
   {
-    std::vector< label_t > tokens;
-    std::istringstream iss( line );
-    std::copy(
-      std::istream_iterator< std::string >( iss ),
-      std::istream_iterator< std::string >(),
-      std::back_inserter( tokens ) );
-
-    if( tokens.size() == 0 || tokens[ 0 ].size() == 0 ||
-        tokens[ 0 ][ 0 ] == '#' )
+    char bom[3] = {};
+    in.read( bom, 3 );
+    if( std::string( bom, 3 ) != "\xef\xbb\xbf" )
     {
-      continue;
+      throw std::runtime_error( "Invalid UTF-8 BOM in " + filename );
     }
+  }
+  std::string extension;
+  const auto dot = filename.rfind( '.' );
+  if( dot != std::string::npos ) { extension = filename.substr( dot ); }
+  std::transform( extension.begin(), extension.end(), extension.begin(),
+    []( unsigned char c ) { return std::tolower( c ); } );
 
-    this->add_class( tokens[ 0 ], "", entry_num );
-    entry_num++;
-
-    for( size_t i = 1; i < tokens.size(); ++i )
+  std::vector< std::pair< label_t, label_t > > relationships;
+  int entry_num = 0;
+  if( extension == ".json" )
+  {
+    const std::string text( ( std::istreambuf_iterator< char >( in ) ),
+                            std::istreambuf_iterator< char >() );
+    rapidjson::Document doc;
+    doc.Parse( text.data(), text.size() );
+    if( doc.HasParseError() )
     {
-      if( tokens[ i ].compare( 0, 8, ":parent=" ) == 0 )
+      throw std::runtime_error( "Invalid label JSON in " + filename + ": " +
+        rapidjson::GetParseError_En( doc.GetParseError() ) );
+    }
+    const rapidjson::Value empty_categories( rapidjson::kArrayType );
+    const rapidjson::Value& categories =
+      doc.IsObject() && doc.HasMember( "categories" ) ? doc["categories"] :
+      doc.IsObject() && doc.HasMember( "typeHierarchy" ) ? empty_categories : doc;
+    if( !categories.IsArray() )
+    {
+      throw std::runtime_error( "Label JSON must be an array or contain a categories array" );
+    }
+    for( const auto& category : categories.GetArray() )
+    {
+      const auto name = json_label( category.IsObject() && category.HasMember( "name" )
+        ? category["name"] : category );
+      int id = entry_num++;
+      if( category.IsObject() && category.HasMember( "id" ) )
       {
-        relationships.push_back(
-          std::make_pair< label_t, label_t >(
-            label_t( tokens[ 0 ] ), label_t( tokens[ i ].substr( 8 ) ) ) );
+        if( !category["id"].IsInt() )
+        {
+          throw std::runtime_error( "Category id must be an integer" );
+        }
+        id = category["id"].GetInt();
       }
-      else
+      this->add_class( name, "", id );
+      // Match DIVE's COCO convention: a nonempty supercategory takes
+      // precedence over parents. Synonyms remain aliases, never parents.
+      bool has_supercategory = false;
+      if( category.IsObject() && category.HasMember( "supercategory" ) )
       {
-        this->add_synonym( tokens[ 0 ], tokens[ i ] );
+        const auto& parent = category["supercategory"];
+        if( !parent.IsString() )
+        {
+          throw std::runtime_error( "supercategory must be a string" );
+        }
+        if( parent.GetStringLength() )
+        {
+          relationships.emplace_back( name, json_label( parent ) );
+          has_supercategory = true;
+        }
+      }
+      for( const std::string key : { "synonyms", "parents" } )
+      {
+        if( ( key == "parents" && has_supercategory ) ||
+            !category.IsObject() || !category.HasMember( key.c_str() ) ) { continue; }
+        const auto& values = category[key.c_str()];
+        if( !values.IsArray() )
+        {
+          throw std::runtime_error( key + " must be an array of strings" );
+        }
+        for( const auto& value : values.GetArray() )
+        {
+          if( key == "synonyms" ) { this->add_synonym( name, json_label( value ) ); }
+          else { relationships.emplace_back( name, json_label( value ) ); }
+        }
+      }
+    }
+    if( doc.IsObject() && doc.HasMember( "typeHierarchy" ) &&
+        !doc["typeHierarchy"].IsNull() )
+    {
+      const auto& hierarchy = doc["typeHierarchy"];
+      if( !hierarchy.IsObject() )
+      {
+        throw std::runtime_error( "typeHierarchy must be a child-to-parent object" );
+      }
+      for( auto edge = hierarchy.MemberBegin(); edge != hierarchy.MemberEnd(); ++edge )
+      {
+        relationships.emplace_back( json_label( edge->name ), json_label( edge->value ) );
+      }
+    }
+    // DIVE permits hierarchy-only nodes (COCO supercategories often have no
+    // category record). Preserve these nodes after explicitly listed classes.
+    for( const auto& edge : relationships )
+    {
+      for( const auto& name : { edge.first, edge.second } )
+      {
+        if( !this->has_class_name( name ) ) { this->add_class( name ); }
+      }
+    }
+  }
+  else
+  {
+    for( const auto& tokens : read_label_rows( in, extension == ".csv" ) )
+    {
+      this->add_class( tokens[0], "", entry_num++ );
+      for( size_t i = 1; i < tokens.size(); ++i )
+      {
+        if( tokens[i].compare( 0, 8, ":parent=" ) == 0 )
+        {
+          relationships.emplace_back( tokens[0], tokens[i].substr( 8 ) );
+        }
+        else { this->add_synonym( tokens[0], tokens[i] ); }
       }
     }
   }
 
   for( auto rel : relationships )
   {
-    this->add_relationship( rel.first, rel.second );
+    const auto child = this->get_class_name( rel.first );
+    const auto parent = this->get_class_name( rel.second );
+    std::vector< label_t > pending{ parent };
+    std::set< label_t > visited;
+    while( !pending.empty() )
+    {
+      const auto node = pending.back();
+      pending.pop_back();
+      if( node == child )
+      {
+        throw std::runtime_error( "Cycle in category hierarchy: " + child + " -> " + parent );
+      }
+      if( visited.insert( node ).second )
+      {
+        const auto parents = this->get_class_parents( node );
+        pending.insert( pending.end(), parents.begin(), parents.end() );
+      }
+    }
+    const auto parents = this->get_class_parents( child );
+    if( std::find( parents.begin(), parents.end(), parent ) == parents.end() )
+    {
+      this->add_relationship( child, parent );
+    }
   }
 }
 

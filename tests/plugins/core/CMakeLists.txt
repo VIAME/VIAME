@@ -88,6 +88,13 @@ endif()
 target_compile_definitions( test-viame_core-iqr_session_adaboost PRIVATE
   "VIAME_IQR_ADABOOST_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )
 
+# Imported from upstream in the merge of 17c43764b, under this tree's macro
+# name -- `kwiver_discover_gtests` is `viame_discover_gtests` since P8-T08.
+viame_discover_gtests( viame_core manipulate_pipelines
+  LIBRARIES ${test_libraries} )
+
+viame_discover_gtests( viame_core label_files
+  LIBRARIES ${test_libraries} )
 
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
 # viame_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
@@ -120,4 +127,13 @@ if( VIAME_ENABLE_PYTHON )
       LABELS "UNIT;CORE"
       TIMEOUT 300
   )
+endif()
+
+if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_OPENCV )
+  add_test(
+    NAME viame_plugins:core:curved_measurement
+    COMMAND bash -c "source ${VIAME_SETUP_SCRIPT} && python -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/test_curved_measurement.py ${CMAKE_CURRENT_SOURCE_DIR}/test_interactive_stereo_points.py -q"
+    WORKING_DIRECTORY "${VIAME_BUILD_INSTALL_PREFIX}" )
+  set_tests_properties( viame_plugins:core:curved_measurement
+    PROPERTIES LABELS "UNIT;CORE" TIMEOUT 300 )
 endif()

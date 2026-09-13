@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import scriptconfig as scfg
 import kwimage
-import torch_liberator
+from viame.pytorch.netharn import torch_liberator
 # import warnings
 # from .channel_spec import ChannelSpec
 

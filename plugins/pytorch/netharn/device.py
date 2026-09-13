@@ -10,7 +10,7 @@ import torch
 import os
 from viame.pytorch.netharn import util
 from viame.pytorch.netharn.host_parallel import (
-    HostStagedMixin, P2P_MODES, verify_peer_copies)
+    HostStagedMixin, P2P_MODES, probe_peer_copies)
 import collections.abc as container_abcs
 
 __all__ = ['XPU']
@@ -576,11 +576,12 @@ class XPU(ub.NiceRepr):
             return device_ids, False
         if xpu.p2p == 'host':
             return device_ids, True
-        failures = verify_peer_copies(device_ids)
+        failures = probe_peer_copies(device_ids)
         if not failures:
+            xpu.p2p = 'peer'
             return device_ids, False
         msg = (
-            'Direct GPU-to-GPU copies are corrupted on this host: ' +
+            'Direct GPU-to-GPU transfers could not be verified on this host: ' +
             ', '.join('{}->{} ({})'.format(*f) for f in failures) + '.'
         )
         if xpu.p2p == 'require':
@@ -592,7 +593,20 @@ class XPU(ub.NiceRepr):
             xpu.mode = 'gpu'
             return xpu._device_ids, False
         warnings.warn(msg + ' Staging replica traffic through host memory.')
+        xpu.p2p = 'host'
         return device_ids, True
+
+    def prepare_parallel(xpu):
+        """Resolve automatic peer handling before model creation and loading."""
+        if xpu._device_ids and len(xpu._device_ids) > 1:
+            if xpu.p2p not in ('host', 'peer'):
+                print('Checking GPU peer transfers on {} (60-second timeout)...'.format(
+                    xpu._device_ids), flush=True)
+            ids, host_staged = xpu._plan_parallel()
+            mode = 'host memory transfers' if host_staged else 'direct peer transfers'
+            if len(ids) == 1:
+                mode = 'single GPU'
+            print('GPU transfer mode: {} on {}'.format(mode, ids), flush=True)
 
     def move(xpu, data, **kwargs):
         """

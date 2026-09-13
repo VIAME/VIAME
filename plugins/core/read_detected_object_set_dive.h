@@ -41,6 +41,8 @@ struct VIAME_CORE_EXPORT dive_feature
   bool interpolate = false;
   std::vector< double > head;
   std::vector< double > tail;
+  std::map< std::string, std::vector< double > > keypoints;
+  std::vector< std::vector< double > > centerline;
   double fishLength = 0.0;
   std::map< std::string, std::string > attributes;
   std::vector< std::string > notes;

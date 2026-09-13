@@ -87,6 +87,7 @@ _viame_fork( dino3       "VIAME_ENABLE_PYTORCH-DINO3"       "${_pl}/dino3" )
 _viame_fork( darknet-to-pytorch-onnx
              "VIAME_ENABLE_ONNX AND VIAME_ENABLE_DARKNET"
              "${_pl}/darknet-to-pytorch-onnx" )
+_viame_fork( sleap-nn    "VIAME_ENABLE_PYTORCH-SLEAP"       "${_pl}/sleap-nn" )
 _viame_fork( roi-align   "VIAME_ENABLE_PYTORCH-MDNET"
              "${VIAME_SOURCE_DIR}/plugins/pytorch/mdnet" )
 

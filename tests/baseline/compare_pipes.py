@@ -57,12 +57,31 @@ def main():
     old = load(args.old)
     new = load(args.new)
 
-    removed = set(load(args.removed)) if args.removed else set()
+    # Two shapes, because two things get removed on purpose. A plain string
+    # is a pipeline file that is gone. An object is a pipeline that is still
+    # there having lost a node:
+    #
+    #     { "file": "configs/pipelines/index_generic.pipe",
+    #       "processes": [ "image_filter" ],
+    #       "reason": "..." }
+    #
+    # The second shape exists because upstream restructured the index
+    # pipelines and this file could only say "the whole pipeline is
+    # excused", which would have stopped checking everything else in it.
+    removed_files = set()
+    removed_processes = {}
+
+    for entry in (load(args.removed) if args.removed else []):
+        if isinstance(entry, str):
+            removed_files.add(entry)
+        else:
+            removed_processes.setdefault(entry["file"], set()).update(
+                entry.get("processes", []))
 
     failures = []
 
     for path, old_result in sorted(old.items()):
-        if path in removed:
+        if path in removed_files:
             continue
 
         new_result = new.get(path)
@@ -88,6 +107,8 @@ def main():
             new_process = new_processes.get(name)
 
             if new_process is None:
+                if name in removed_processes.get(path, ()):
+                    continue
                 failures.append("{}: process '{}' is gone".format(path, name))
                 continue
 

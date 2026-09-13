@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """Patch the installed python packages VIAME cannot use unmodified.
 
-Three packages need an edit after they are installed, for two reasons.
+One package needs an edit after it is installed.
 
-**`torch.load` changed its default.** From torch 2.6 `weights_only` defaults
-to True, and `torch_liberator` calls `torch.load` on checkpoints that carry
-more than tensors. Every call site has to say so explicitly.
+**`ubelt.ensure_unicode` was removed.** `kwplot` still calls it. It returned
+its argument as `str`, so `str(` is what it meant.
 
-**`ubelt.ensure_unicode` was removed.** `torch_liberator`, `liberator` and
-`kwplot` still call it. It returned its argument as `str`, so `str(` is what
-it meant.
+There were three, until upstream vendored `torch_liberator` and `liberator`
+into `plugins/pytorch/netharn/` with their fixes already applied.
 
 This replaces the block in `cmake/custom_install_viame.cmake` that did the
 same edits with `ReplaceStringInFile`, a helper that reads a file, replaces
@@ -37,23 +35,18 @@ import sys
 # one the edit makes idempotent -- which they are: none of these `new`
 # strings contains its own `old`.
 PATCHES = [
-    # torch.load's weights_only default, torch >= 2.6
-    ("torch_liberator", "initializer.py",
-     "torch.load(fpath, map_location=_map_location)",
-     "torch.load(fpath, map_location=_map_location, weights_only=False)"),
-    ("torch_liberator", "deployer.py",
-     "map_location=lambda storage, location: storage)",
-     "map_location=lambda storage, location: storage, weights_only=False)"),
-    ("torch_liberator", "xpu_device.py",
-     "torch.load(fpath, map_location=xpu._map_location)",
-     "torch.load(fpath, map_location=xpu._map_location, weights_only=False)"),
-
     # ubelt.ensure_unicode, removed upstream
-    ("torch_liberator", "exporter.py", "ub.ensure_unicode(", "str("),
-    ("liberator", "core.py", "ub.ensure_unicode(", "str("),
     ("kwplot", "mpl_core.py", "ub.ensure_unicode(", "str("),
     ("kwplot", "mpl_multiplot.py", "ub.ensure_unicode(", "str("),
 ]
+
+# Five patches stood here, four to `torch_liberator` and one to `liberator`:
+# three for `torch.load`'s `weights_only` default and two more for
+# `ensure_unicode`. Upstream vendored both packages into
+# `plugins/pytorch/netharn/` with the fixes already in the source
+# (584fe14d6, f540e09f6), so there is nothing installed to patch -- checked
+# on the vendored copies, which carry `weights_only=False` and no
+# `ub.ensure_unicode`. They came out of `base.in` at the same time.
 
 
 def apply_one(site_packages, package, relative, old, new, check):

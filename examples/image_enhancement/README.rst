@@ -358,11 +358,6 @@ filter_to_video
   Converts an image sequence to an MP4 video file using FFmpeg. No enhancement is
   applied. Frame rate and timestamps are preserved from the input.
 
-filter_to_kwa
-  Applies enhancement (CLAHE with clip_limit=2, auto balance) and writes the result
-  to KW Archive (KWA) format with metadata for GSD and corner points. Used for
-  integration with KW-based video analysis tools.
-
 filter_tracks_only
   Reads images and both detection and track files, downsamples to 5 fps, filters
   detections by confidence threshold, and outputs only the frames that contain
@@ -442,7 +437,6 @@ Pipeline configuration files:
 | configs/pipelines/filter_draw_dets.pipe
 | configs/pipelines/filter_extract_chips.pipe
 | configs/pipelines/filter_to_video.pipe
-| configs/pipelines/filter_to_kwa.pipe
 | configs/pipelines/filter_default.pipe
 | configs/pipelines/filter_tracks_only.pipe
 | configs/pipelines/transcode_default.pipe

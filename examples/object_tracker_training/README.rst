@@ -28,7 +28,7 @@ multi-target trackers, see the `object detector training examples`_.
 
 On the command line, tracker training is launched via::
 
-    viame train -i /path/to/training/data -tt tracker_type --threshold 0.0
+    viame train -i /path/to/training/data --tracker tracker_type --threshold 0.0
 
 Or using a configuration file directly::
 
@@ -113,7 +113,7 @@ thresholds, and the track buffer size.
 
 Training::
 
-    viame train -i training_data -tt bytetrack --threshold 0.0
+    viame train -i training_data --tracker bytetrack --threshold 0.0
 
 OC-SORT
 --------
@@ -128,7 +128,7 @@ change statistics in the groundtruth tracks.
 
 Training::
 
-    viame train -i training_data -tt ocsort --threshold 0.0
+    viame train -i training_data --tracker ocsort --threshold 0.0
 
 DeepSORT
 ---------
@@ -146,7 +146,7 @@ recovery after occlusion.
 
 Training::
 
-    viame train -i training_data -tt deepsort --threshold 0.0
+    viame train -i training_data --tracker deepsort --threshold 0.0
 
 BoT-SORT
 ---------
@@ -162,7 +162,7 @@ parameters tuned for scenarios with camera motion.
 
 Training::
 
-    viame train -i training_data -tt botsort --threshold 0.0
+    viame train -i training_data --tracker botsort --threshold 0.0
 
 SRNN (Structured RNN)
 ----------------------
@@ -187,7 +187,7 @@ dense scenes.
 
 Training::
 
-    viame train -i training_data -tt srnn --threshold 0.0
+    viame train -i training_data --tracker srnn --threshold 0.0
 
 SiamMask
 ---------
@@ -205,7 +205,7 @@ tracker).
 
 Training::
 
-    viame train -i training_data -tt siammask --threshold 0.0
+    viame train -i training_data --tracker siammask --threshold 0.0
 
 
 ****************************

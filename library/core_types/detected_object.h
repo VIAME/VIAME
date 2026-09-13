@@ -313,6 +313,15 @@ public:
   /// @return Flattened vector of coordinates.
   std::vector< double > get_flattened_polygon() const;
 
+  /// Get all polygon pieces, each as [x1, y1, x2, y2, ...].
+  /// The legacy polygon getters return only the first piece.
+  std::vector< std::vector< double > > get_flattened_polygons() const;
+
+  /// Replace all polygon pieces. Empty pieces are omitted.
+  /// Legacy single-polygon setters replace all pieces with one polygon.
+  void set_flattened_polygons(
+    std::vector< std::vector< double > > const& polygons );
+
   /// @brief Get attribute set.
   ///
   /// This method returns a pointer to the attribute set that is attached to
@@ -403,7 +412,7 @@ private:
 
   std::vector< std::string > m_notes;
   std::map< std::string, vital::point_2d > m_keypoints;
-  std::vector< vector_2d > m_polygon;
+  std::vector< std::vector< vector_2d > > m_polygons;
 
   attribute_set_sptr m_attrs;
   mutable std::mutex m_attrs_mutex; ///< mutex for thread-safe attribute access

@@ -8,4 +8,12 @@
 -r base.in
 
 torch==2.12.0
-onnxruntime==1.23.2
+# onnxruntime 1.23.2 ships wheels for cp310 through cp313 only, so resolving
+# it under 3.14 fails with "No matching distribution found" -- the
+# requires_python metadata says >=3.10 and gives no hint, the ABI tags are
+# what run out. 1.24.1 is the first release carrying cp314, and it drops
+# cp310, which VIAME still offers. So pin per interpreter rather than moving
+# every build onto a new runtime. Upstream f21a0ac1b, as a marker rather
+# than a CMake branch.
+onnxruntime==1.23.2 ; python_version < "3.14"
+onnxruntime==1.24.1 ; python_version >= "3.14"

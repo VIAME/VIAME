@@ -1,0 +1,34 @@
+# What `VIAME_ENABLE_PYTORCH-SLEAP` adds.
+#
+# SLEAP-NN's training and inference runtime, from upstream f5caeae33.
+# Notebook applications are not needed by the wrappers.
+#
+# Upstream's list carries `wandb<=0.25.0`, which is on this tree's exclusion
+# list -- 86 MB of telemetry client that the trainers use only if configured
+# -- so it is not here. Its list also says "OpenCV is supplied by fletch; do
+# not install a competing wheel"; cv2 is `opencv-contrib-python-headless` in
+# `base.in` since P1-T07, and there is no fletch.
+#
+# Compiled with the accelerator's lock as a constraint. Its own file rather
+# than `base.in` because the option is off by default and this is thirty
+# packages, `skia-python` and `textual` among them.
+
+setuptools-scm
+sleap-io>=0.9.2,<0.10.0
+skia-python>=87.0,<=138.0
+jsonpickle
+attrs
+omegaconf
+textual>=0.40.0
+loguru
+psutil
+pyzmq
+rich-click>=1.9.5
+pykalman>=0.11.0
+hydra-core
+rich
+seaborn
+scipy
+matplotlib
+scikit-image
+lightning>=2.6,<3,!=2.6.2,!=2.6.3

@@ -4,6 +4,7 @@
 #   Mode 1 - Wheel install:
 #     WHEEL_DIR - Directory containing .whl files to install
 #     FORCE_REINSTALL - If TRUE, uses --force-reinstall --no-deps (for rebuilds)
+#     NO_DEPS - If TRUE, skips dependency resolution on first installs too
 #
 #   Mode 2 - Direct args:
 #     PIP_ARGS - Arguments to pass to pip install (separated by ----)
@@ -84,6 +85,8 @@ if( WHEEL_DIR )
   set( _force_flag "" )
   if( FORCE_REINSTALL )
     set( _force_flag "--force-reinstall" "--no-deps" )
+  elseif( NO_DEPS )
+    set( _force_flag "--no-deps" )
   endif()
 elseif( PIP_ARGS )
   # Mode 2: Use provided arguments (external packages from PyPI, etc.)

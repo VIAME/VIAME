@@ -208,8 +208,8 @@ def compare_results():
         Lastly, here are the statistics for the common detections that had a
         non-zero QC code.
         ''').format(
-            ub.repr2(hist_hit, nl=1),
-            ub.repr2(hist_miss, nl=1),
+            ub.urepr(hist_hit, nl=1),
+            ub.urepr(hist_miss, nl=1),
             100 * hist_miss[0] / (hist_hit[0] + hist_miss[0]),
             100 * hist_hit[1] / (hist_hit[1] + hist_miss[1]),
             100 * hist_hit[2] / (hist_hit[2] + hist_miss[2]),

@@ -175,6 +175,7 @@ configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe
 configs/pipelines/templates/embedded_tracker.pipe
 configs/pipelines/templates/tracker_default.pipe
 configs/pipelines/templates/tracker_generic_svm.pipe
+configs/pipelines/templates/utility_add_keypoints_sleap.pipe
 configs/pipelines/tracker_calibration_target.pipe
 configs/pipelines/train_aug_add_color_freq.pipe
 configs/pipelines/train_aug_add_double_motion.pipe
@@ -201,6 +202,7 @@ configs/pipelines/train_detector_netharn_cfrnn.grid_only.20ep.conf
 configs/pipelines/train_detector_netharn_cfrnn.grid_only.40ep.conf
 configs/pipelines/train_detector_netharn_cfrnn.grid_only.conf
 configs/pipelines/train_detector_netharn_rf_detr_l_1728.conf
+configs/pipelines/train_detector_netharn_rf_detr_l_seg_kp_1728.conf
 configs/pipelines/train_detector_rf_detr_default.conf
 configs/pipelines/train_detector_rf_detr_l_1024.conf
 configs/pipelines/train_detector_rf_detr_l_1728.conf
@@ -811,10 +813,10 @@ include/viame/algorithm_framework/plugin/pluggable.h
 include/viame/algorithm_framework/plugin/pluggable_macro_magic.h
 include/viame/algorithm_framework/plugin/plugin_factory.h
 include/viame/algorithm_framework/plugin/plugin_info.h
-include/viame/algorithm_framework/plugin/registry.h
 include/viame/algorithm_framework/plugin/plugin_manager.h
 include/viame/algorithm_framework/plugin/plugin_manager_internal.h
 include/viame/algorithm_framework/plugin/plugin_registrar.h
+include/viame/algorithm_framework/plugin/registry.h
 include/viame/algorithm_framework/plugin/vital_vpm_export.h
 include/viame/algorithm_framework/range
 include/viame/algorithm_framework/range/defs.h
@@ -1413,6 +1415,7 @@ lib/python3.10/site-packages/viame/core/align_cameras_process.py
 lib/python3.10/site-packages/viame/core/alignment_core.py
 lib/python3.10/site-packages/viame/core/bytetrack_tracker.py
 lib/python3.10/site-packages/viame/core/bytetrack_trainer.py
+lib/python3.10/site-packages/viame/core/curved_measurement.py
 lib/python3.10/site-packages/viame/core/detection_fusion_core.py
 lib/python3.10/site-packages/viame/core/equalize_via_percentiles.py
 lib/python3.10/site-packages/viame/core/frame_diff_trainer.py
@@ -1617,6 +1620,9 @@ lib/python3.10/site-packages/viame/pytorch/netharn/layers/perceptron.py
 lib/python3.10/site-packages/viame/pytorch/netharn/layers/rectify.py
 lib/python3.10/site-packages/viame/pytorch/netharn/layers/reshape.py
 lib/python3.10/site-packages/viame/pytorch/netharn/layers/swish.py
+lib/python3.10/site-packages/viame/pytorch/netharn/liberator/__init__.py
+lib/python3.10/site-packages/viame/pytorch/netharn/liberator/core.py
+lib/python3.10/site-packages/viame/pytorch/netharn/liberator/starfinder.py
 lib/python3.10/site-packages/viame/pytorch/netharn/metrics/__init__.py
 lib/python3.10/site-packages/viame/pytorch/netharn/mixins.py
 lib/python3.10/site-packages/viame/pytorch/netharn/models/__init__.py
@@ -1655,6 +1661,15 @@ lib/python3.10/site-packages/viame/pytorch/netharn/schedulers/iteration_lr.py
 lib/python3.10/site-packages/viame/pytorch/netharn/schedulers/listed.py
 lib/python3.10/site-packages/viame/pytorch/netharn/schedulers/scheduler_redesign.py
 lib/python3.10/site-packages/viame/pytorch/netharn/stereo.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/__init__.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/__main__.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/cli.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/deployer.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/exporter.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/initializer.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/util/__init__.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/util/util_zip.py
+lib/python3.10/site-packages/viame/pytorch/netharn/torch_liberator/xpu_device.py
 lib/python3.10/site-packages/viame/pytorch/netharn/util/__init__.py
 lib/python3.10/site-packages/viame/pytorch/netharn/util/_deprecation_helpers.py
 lib/python3.10/site-packages/viame/pytorch/netharn/util/collect_env.py

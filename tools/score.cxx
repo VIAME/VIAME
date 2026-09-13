@@ -10,6 +10,10 @@
 #include <evaluate_models.h>
 #include <python_script_applet.h>
 
+// Upstream's `<vital/types/category_hierarchy.h>`, under the prefix P5-T05
+// moved those headers to.
+#include <viame/core_types/category_hierarchy.h>
+
 #include <viame/algorithm_framework/util/file_system.h>
 
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
@@ -387,6 +391,64 @@ bool load_label_synonyms( const std::string& path,
   {
     LOG_ERROR( g_logger, "Could not open labels file: " << path );
     return false;
+  }
+
+  // Retain scoring's legacy "canonical: alias, alias" TXT syntax.
+  // All standard label files use the shared training label reader.
+  std::string extension = kwiver::vital::filename_last_extension( path );
+  std::transform( extension.begin(), extension.end(), extension.begin(),
+    []( unsigned char c ) { return std::tolower( c ); } );
+  bool legacy = false;
+  std::string probe;
+  if( extension != ".csv" && extension != ".json" )
+  {
+    while( std::getline( in, probe ) )
+    {
+      char quote = 0;
+      for( size_t i = 0; i < probe.size(); ++i )
+      {
+        const char c = probe[i];
+        if( quote )
+        {
+          if( c == '\\' && i + 1 < probe.size() ) { ++i; }
+          else if( c == quote ) { quote = 0; }
+        }
+        else if( ( c == '"' || c == '\'' ) &&
+                 ( i == 0 || std::isspace( static_cast< unsigned char >( probe[i - 1] ) ) ||
+                   probe[i - 1] == '=' ) ) { quote = c; }
+        else if( c == '#' ) { break; }
+        else if( c == ':' && probe.compare( i, 8, ":parent=" ) != 0 )
+        {
+          legacy = true;
+          break;
+        }
+      }
+      if( legacy ) { break; }
+    }
+    in.clear();
+    in.seekg( 0 );
+  }
+  if( !legacy )
+  {
+    try
+    {
+      const kwiver::vital::category_hierarchy labels( path );
+      for( const auto& name : labels.all_class_names() )
+      {
+        out[name] = name;
+        for( const auto& synonym : labels.get_class_synonyms( name ) )
+        {
+          out[synonym] = name;
+        }
+      }
+      LOG_INFO( g_logger, "Loaded " << out.size() << " label mappings from " << path );
+      return true;
+    }
+    catch( const std::exception& e )
+    {
+      LOG_ERROR( g_logger, "Could not read labels file " << path << ": " << e.what() );
+      return false;
+    }
   }
 
   auto trim = []( std::string v ) -> std::string
@@ -1072,7 +1134,8 @@ score_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
     ( "labels", "Class synonym file mapping alternate names onto canonical "
       "ones, so a model and its groundtruth may use different vocabularies. "
-      "One class per line: 'canonical: alias1, alias2'",
+      "Accepts training labels in TXT, CSV, or JSON, or legacy TXT "
+      "'canonical: alias1, alias2'",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "list", "Text file of frame identifiers, one per line. Only these "
       "frames are scored, on both sides",

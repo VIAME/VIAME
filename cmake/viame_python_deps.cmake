@@ -70,6 +70,10 @@ if( VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND _viame_locks "${_viame_req_dir}/learn.lock" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-SLEAP )
+  list( APPEND _viame_locks "${_viame_req_dir}/sleap.lock" )
+endif()
+
 if( VIAME_ENABLE_COLMAP )
   list( APPEND _viame_locks "${_viame_req_dir}/colmap.lock" )
 endif()

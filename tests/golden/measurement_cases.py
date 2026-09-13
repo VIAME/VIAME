@@ -341,6 +341,29 @@ MEASUREMENT_PAIRED_VARIANTS = ("input_pairs_only",)
 # and the reason is finding 1.21 rather than the port.
 MEASUREMENT_ARRAY_TOLERANCE = {
     "template_matching": 1e-5,
+
+    # The three variants below carry a second, unrelated tolerance, and it is
+    # not about the port at all: upstream beee6168f changed the viame CSV
+    # writer to emit keypoints at `max_digits10` instead of the stream's
+    # default six significant figures, so a keypoint now round-trips exactly
+    # where it used to be truncated. These recordings hold the truncated
+    # values.
+    #
+    # Measured on `right_head`: 4.8e-4 at 190.123, 4.9e-4 at 189.527, 4.1e-4
+    # at 209.31 -- in every case the sixth significant digit, which is what
+    # the old formatting dropped. 1e-5 relative covers it with room and is
+    # still far tighter than any real change to a keypoint would be.
+    #
+    # A re-record was the obvious answer and was the wrong one: `record.py`
+    # works a group at a time, and re-recording `measurement` would have
+    # replaced thirteen files, including the calibration and pair_stereo
+    # cases that pass, with values from the OpenCV 5 wheel. That would have
+    # thrown away the OpenCV 4.9 reference those cases still hold, which is
+    # the only thing making the drift in `test_golden.py`'s
+    # ARRAY_TOLERANCES_BY_KIND visible.
+    "input_pairs_only": 1e-5,
+    "epipolar_template_matching": 1e-5,
+    "depth_projection": 1e-5,
 }
 
 

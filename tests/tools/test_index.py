@@ -52,3 +52,27 @@ def test_hash_needs_a_descriptor_file(tmp_path):
 
     with pytest.raises(SystemExit, match='descriptor file'):
         m.cmd_hash(args)
+
+
+# Imported from upstream in the merge of 17c43764b. Its
+# `test_read_only_operation_does_not_initialize` is deliberately not here:
+# it exercises `ensure_postgres`, and PostgreSQL was removed under open
+# decision 2.
+def test_ingest_failure_exposes_current_pipeline_error(tmp_path, capsys):
+    import os
+    logs = tmp_path / 'logs'
+    logs.mkdir()
+    (logs / 'current.txt').write_text('DEBUG loading plugins\nCaught unhandled std::exception: RuntimeError: No CUDA GPUs are available\nAt:\n  model.py(89)\n')
+    stale = logs / 'old.txt'
+    stale.write_text('ERROR: stale failure\n')
+    os.utime(stale, (1, 1))
+    m.report_ingest_errors(str(tmp_path), 2)
+    output = capsys.readouterr().err
+    assert 'RuntimeError: No CUDA GPUs are available' in output
+    assert 'model.py(89)' in output
+    assert 'stale failure' not in output
+    assert 'DEBUG loading plugins' not in output
+
+
+def test_missing_ingest_logs_do_not_mask_original_error(tmp_path):
+    m.report_ingest_errors(str(tmp_path), 0)

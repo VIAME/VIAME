@@ -9,7 +9,7 @@ locks with `--no-deps`, so pip fetches and does not resolve.
 | `base.in` | everything a default build needs |
 | `cuda12.in`, `cuda13.in`, `cpu.in` | `base` plus torch and the ONNX runtime for that accelerator, from the index that carries them |
 | `forks.in` | what the source-built packages in `packages/pytorch-libs` need, which nothing else declares |
-| `learn.in`, `colmap.in`, `test.in` | what `VIAME_ENABLE_PYTORCH-LEARN`, `-COLMAP` and `-TESTS` add |
+| `learn.in`, `sleap.in`, `colmap.in`, `test.in` | what `VIAME_ENABLE_PYTORCH-LEARN`, `-SLEAP`, `-COLMAP` and `-TESTS` add |
 
 An accelerator file pulls `base.in` in and compiles to a complete lock. The
 others are *additive*: they list only what the option adds, and are compiled
@@ -33,7 +33,7 @@ for variant in cuda12 cuda13 cpu; do
     pip-compile --strip-extras $EXCLUDE -o $variant.lock $variant.in
 done
 
-for extra in forks learn colmap test; do
+for extra in forks learn sleap colmap test; do
     pip-compile --strip-extras $EXCLUDE -c cuda12.lock -o $extra.lock $extra.in
 done
 ```

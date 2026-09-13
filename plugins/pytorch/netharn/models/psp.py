@@ -451,7 +451,7 @@ def resnet50(pretrained=False, **kwargs):
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    import torch_liberator
+    from viame.pytorch.netharn import torch_liberator
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
         if model.additional_blocks:

@@ -361,6 +361,8 @@ PYBIND11_MODULE( detected_object, m )
     .def_property_readonly( "keypoints", &det_obj::keypoints )
     .def( "set_flattened_polygon", &det_obj::set_flattened_polygon )
     .def( "get_flattened_polygon", &det_obj::get_flattened_polygon )
+    .def( "set_flattened_polygons", &det_obj::set_flattened_polygons )
+    .def( "get_flattened_polygons", &det_obj::get_flattened_polygons )
     .def(
       "set_attribute", &python::det_obj_set_attribute,
       py::arg( "key" ), py::arg( "value" ),

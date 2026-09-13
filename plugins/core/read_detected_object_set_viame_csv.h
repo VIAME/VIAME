@@ -103,6 +103,11 @@ bool extract_viame_csv_polygon(
   size_t start_col,
   std::vector< double >& polygon );
 
+/// Extract all valid polygon pieces from the optional CSV fields.
+VIAME_CORE_EXPORT
+std::vector< std::vector< double > > extract_viame_csv_polygons(
+  std::vector< std::string > const& cols, size_t start_col );
+
 /// Create a detected object from VIAME CSV columns
 ///
 /// This is a convenience function that combines bbox creation, species parsing,

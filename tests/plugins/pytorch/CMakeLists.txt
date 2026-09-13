@@ -8,6 +8,15 @@ if( VIAME_ENABLE_PYTHON )
   set( VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}" )
 
   viame_add_pytest_test(
+    NAME viame_plugins:pytorch:netharn_peer_probe
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_netharn_peer_probe.py"
+    LABELS UNIT PYTORCH
+    TIMEOUT 120
+    SOURCE_SETUP
+    WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
+  )
+
+  viame_add_pytest_test(
     NAME viame_plugins:pytorch:netharn_rfdetr_training
     TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_netharn_rfdetr_training.py"
     LABELS UNIT PYTORCH
@@ -15,6 +24,26 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
     WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
   )
+
+  viame_add_pytest_test(
+    NAME viame_plugins:pytorch:rfdetr_multipolygon
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_rfdetr_multipolygon.py"
+    LABELS UNIT PYTORCH
+    TIMEOUT 300
+    SOURCE_SETUP
+    WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
+  )
+
+  if( VIAME_ENABLE_PYTORCH-SLEAP )
+    viame_add_pytest_test(
+      NAME viame_plugins:pytorch:sleap_keypoints
+      TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_sleap_keypoints.py"
+      LABELS UNIT PYTORCH SLEAP
+      TIMEOUT 300
+      SOURCE_SETUP
+      WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
+    )
+  endif()
 
   # SRNN Tracker and Descriptor Tests
   viame_add_pytest_test(

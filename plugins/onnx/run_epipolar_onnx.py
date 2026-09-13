@@ -43,9 +43,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 
-from calibration_io import load_calibration
-import geometry_numpy as geom
-from triangulate import triangulate_fast_numpy
+try:  # imported as a package member
+    from viame.onnx.calibration_io import load_calibration
+    from viame.onnx import geometry_numpy as geom
+    from viame.onnx.triangulate import triangulate_fast_numpy
+except ImportError:  # run as a script from this directory
+    from calibration_io import load_calibration
+    import geometry_numpy as geom
+    from triangulate import triangulate_fast_numpy
 
 
 def _parse_points(args):

@@ -11,7 +11,7 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 REM Train SiamMask visual tracking network
 viame.exe train ^
   -i training_data ^
-  -tt siammask ^
+  --tracker siammask ^
   --threshold 0.0
 
 pause

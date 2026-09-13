@@ -82,7 +82,7 @@ class EfficientNetFeatureExtractor(object):
 
         # load the efficientnet50 model. Maybe this shouldn't be hardcoded?
         self._model = models.efficientnet_v2_s()
-        weights = torch.load( model_path, weights_only=False )
+        weights = torch.load( model_path, weights_only=False, map_location="cpu" )
 
         self._model.load_state_dict( weights )
         self._model.train( False )
@@ -104,7 +104,7 @@ class EfficientNetFeatureExtractor(object):
         return self._obtain_feature(bbox_list, MOT_flag)
 
     def _obtain_feature(self, bbox_list, MOT_flag):
-        kwargs = {'num_workers': 0, 'pin_memory': True}
+        kwargs = {'num_workers': 0, 'pin_memory': self._device.type == 'cuda'}
         if self.frame is not None:
             bbox_loader_class = EfficientNetDataLoader(bbox_list, self._transform,
                                                        self.frame, self._img_size)

@@ -7,6 +7,8 @@
  * \brief Implementation of detected object set csv output
  */
 
+#include <iomanip>
+#include <limits>
 #include "write_object_track_set_viame_csv.h"
 
 #include "utilities_target_clfr.h"
@@ -189,11 +191,13 @@ write_object_track_set_viame_csv
           c_mask_to_poly_points < 0 ) ||
         !det->mask() ) )
   {
-    stream << c_delimiter << "(poly)";
-    auto poly = det->polygon();
-    for( auto&& p : poly )
+    for( const auto& poly : det->get_flattened_polygons() )
     {
-      stream << " " << p[0] << " " << p[1];
+      stream << c_delimiter << "(poly)";
+      for( double v : poly )
+      {
+        stream << " " << v;
+      }
     }
   }
   else if( det->mask() && ( c_mask_to_poly_tol >= 0 ||
@@ -221,7 +225,10 @@ write_object_track_set_viame_csv
     for( const auto& kp : det->keypoints() )
     {
       stream << c_delimiter << "(kp) " << kp.first;
-      stream << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+      const auto old_precision = stream.precision();
+      stream << std::setprecision( std::numeric_limits<double>::max_digits10 )
+             << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+      stream.precision( old_precision );
     }
   }
 

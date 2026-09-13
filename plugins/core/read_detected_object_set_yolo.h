@@ -38,7 +38,7 @@ public:
       classes_file, std::string,
       "Path to file containing class names, one per line. "
       "Line number corresponds to class ID (0-indexed). "
-      "If empty, will search for 'labels.txt' in image directory or parent.",
+      "If empty, will search for 'labels.txt', 'labels.csv', or 'labels.json' in image directory or parent.",
       "" ),
     PARAM_DEFAULT(
       image_width, int,

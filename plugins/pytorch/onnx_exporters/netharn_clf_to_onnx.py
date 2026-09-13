@@ -41,7 +41,7 @@ def load_netharn_clf_model(deployed_fpath):
     packages (netharn's package import pulls mmdet in even for classifiers)."""
     from viame.pytorch.netharn.detect_predict import (
         patch_numpy, setup_module_aliases)
-    from torch_liberator.deployer import DeployedModel
+    from viame.pytorch.netharn.torch_liberator.deployer import DeployedModel
 
     setup_module_aliases()
     patch_numpy()

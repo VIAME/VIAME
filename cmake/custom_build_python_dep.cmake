@@ -21,6 +21,7 @@
 #   PIP_INSTALL_SCRIPT - Path to pip_install_with_lock.cmake
 #   Python_EXECUTABLE - Python executable for pip install
 #   NO_CACHE_DIR     - If TRUE, pass --no-cache-dir to pip
+#   NO_DEPS          - If TRUE, skip dependency resolution even on first install
 #   ENV_VARS         - Environment variables (----separated KEY=VALUE pairs)
 #   TMPDIR           - Temporary directory for Python builds
 
@@ -236,6 +237,7 @@ if( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE AND SHOULD_BUILD )
     -DPython_EXECUTABLE=${Python_EXECUTABLE}
     -DWHEEL_DIR=${WHEEL_DIR}
     -DNO_CACHE_DIR=${NO_CACHE_DIR}
+    -DNO_DEPS=${NO_DEPS}
     -DFORCE_REINSTALL=${USE_FORCE_REINSTALL} )
   if( ENV_VARS_FOR_PIP )
     list( APPEND PIP_INSTALL_ARGS "-DENV_VARS:STRING=${ENV_VARS_FOR_PIP}" )

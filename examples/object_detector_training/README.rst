@@ -65,34 +65,87 @@ Supported video formats include: .mp4, .mpg, .mpeg, .avi, .wmv, .mov, .webm, .og
 Labels Files
 ************
 
-The ``labels.txt`` file controls which categories are trained, allows synonyms for the
-same category, and supports class hierarchies.
+The label file controls which categories are trained, allows synonyms for the
+same category, and supports class hierarchies. ``viame train --labels FILE``
+accepts ``.txt``, ``.csv``, and ``.json`` files. Without ``--labels``, training
+looks for ``labels.txt``, ``labels.csv``, then ``labels.json`` in the input
+directory, using the first file found.
 
-**Synonyms:** Multiple names on the same line are treated as the same output class. The
-first name becomes the output label::
+**TXT synonyms and spaces:** Multiple names on the same line are treated as the
+same output class. The first name becomes the output label. Put names containing
+spaces in double or single quotes::
 
-    speciesA speciesB speciesC
-    speciesD
+    "sport glove" "athletic glove"
+    glove
 
-This trains a model with two output classes: ``speciesA`` (which also matches
-``speciesB`` and ``speciesC`` annotations) and ``speciesD``.
+This trains two output classes: ``sport glove`` (also matching ``athletic glove``
+annotations) and ``glove``. Unquoted spaces still separate synonyms, so
+``sport glove`` without quotes means the category ``sport`` with synonym ``glove``.
+Annotation names themselves need no changes. ``#`` starts a comment outside quotes.
+Inside quotes, escape a quote with a backslash or double it.
 
-**Filtering:** Categories omitted from ``labels.txt`` are excluded from training::
+**Filtering:** Categories and synonyms omitted from the label file are excluded
+from training. If no label file is supplied or discovered, training can use all
+unique labels from the groundtruth.
 
-    speciesA
-    speciesC
-    speciesD
+**Hierarchies:** Parent-child relationships are separate from synonyms. A synonym
+maps annotations onto the canonical output class; a parent remains a distinct
+class, with its relationship available to trainers supporting hierarchical
+classification. Parents may be declared after their children::
 
-This produces three output classes; any ``speciesB`` annotations are ignored.
+    "sport glove" "athletic glove" :parent="sport equipment"
+    glove
+    "sport equipment" gear
 
-**Hierarchies:** Parent-child relationships can be specified for frameworks that
-support hierarchical classification::
+More than one ``:parent=`` field may be specified for a category.
 
-    genusA
-    speciesC :parent=genusA
-    speciesD
+**CSV:** Use one row per category, with the canonical name in the first field,
+followed by synonyms and optional ``:parent=`` fields. There is no header row.
+Spaces inside fields do not split names. The equivalent CSV file is::
 
-If no ``labels.txt`` is provided, all unique labels in the groundtruth are used.
+    sport glove,athletic glove,:parent=sport equipment
+    glove
+    sport equipment,gear
+
+Use CSV double quotes around fields containing commas or quotes; double an
+embedded quote. Leading and trailing whitespace outside quoted fields is ignored.
+
+**JSON:** Use a ``categories`` array with ``name`` and optional ``synonyms``,
+``id``, and hierarchy fields. This follows DIVE's COCO hierarchy convention:
+``supercategory`` names a parent, while ``parents`` supports multiple parents
+when no nonempty ``supercategory`` is supplied::
+
+    {
+      "categories": [
+        {
+          "name": "sport glove",
+          "synonyms": ["athletic glove"],
+          "supercategory": "sport equipment"
+        },
+        {"name": "glove"},
+        {"name": "sport equipment", "synonyms": ["gear"]}
+      ]
+    }
+
+DIVE's ``typeHierarchy`` child-to-parent mapping can also supply the hierarchy
+(with or without a ``categories`` array)::
+
+    {
+      "categories": [
+        {"name": "sport glove", "synonyms": ["athletic glove"]},
+        "glove",
+        {"name": "sport equipment", "synonyms": ["gear"]}
+      ],
+      "typeHierarchy": {"sport glove": "sport equipment"}
+    }
+
+The ``synonyms`` array adds training aliases to the DIVE-compatible category
+records. JSON also accepts a bare category array, including a simple list such as
+``["sport glove", "glove"]``. Explicit integer IDs determine category ordering;
+otherwise categories receive IDs in file order. Hierarchy-only nodes referenced
+by JSON are added after the listed categories, as DIVE permits parents without
+category records. Duplicate category/synonym names and cyclic hierarchies are
+rejected.
 
 
 ***********************
@@ -199,6 +252,144 @@ Continue training from a checkpoint::
     viame train -i training_data -c train_detector_netharn_cfrnn.conf \
         -s detector_trainer:ocv_windowed:trainer:netharn:seed_model=category_models/trained_detector.zip \
         --threshold 0.0
+
+SLEAP-NN head/tail keypoints on existing detections
+--------------------------------------------------
+
+``train_reclassifier_sleap_head_tail.conf`` trains a small SLEAP-NN U-Net to
+predict head/tail points inside each supplied detection box. Inference runs as
+``refine_detections`` with ``refiner:type=sleap``; it preserves the detections'
+boxes, classes, confidence, and other metadata while attaching named keypoints.
+It does not require an OpenMMLab package or pretrained model download.
+
+Build with ``VIAME_ENABLE_PYTORCH-SLEAP=ON``. The submodule at
+``packages/pytorch-libs/sleap-nn`` is pinned to v0.3.3 and requires Python
+3.11--3.13, PyTorch/TorchVision, and OpenCV. The superbuild installs the native
+training/inference runtime; SLEAP's notebook applications are not required.
+Python 3.10 and 3.14 builds must leave this optional feature disabled.
+
+Training::
+
+    viame train -i training_data \
+        -c train_reclassifier_sleap_head_tail.conf --threshold 0.0
+
+Use the usual VIAME training directory layout with bounding boxes and CSV
+``(kp) head x y`` / ``(kp) tail x y`` attributes, or equivalent named COCO
+keypoints. Names match case-insensitively. Each retained training/validation
+crop needs at least one visible configured point; missing points occupy NaN
+slots in SLEAP labels. Frames are split before cropping, so crops from the same
+frame cannot appear in both training and validation. Supply enough annotated
+frames for both splits.
+
+Training and inference use the same aspect-preserving affine crop, with
+``crop_padding=1.25`` and 256x256 RGB inputs by default. The training data
+contains one target instance per crop, even when neighboring animals appear
+in the image. This uses SLEAP's ``single_instance`` model on box crops, avoiding
+its centered-instance trainer's recentering around labeled landmarks. Rotation,
+scale, translation, brightness, and contrast augmentation are enabled during
+training. Do not wrap this trainer in OpenCV windowed scaling/chipping: those
+operations do not consistently transform named keypoints.
+
+Training produces ``category_models/trained_keypoints.pt``, a generated
+pipeline, and ``keypoint_metrics.json``. The model is self-contained: it records
+its native architecture, weights, ordered names, and crop settings. Detailed
+native checkpoints and logs remain under ``deep_training/sleap-*/model/training``.
+Each invocation uses a fresh run directory. To fine-tune an exported model::
+
+    viame train -i training_data -c train_reclassifier_sleap_head_tail.conf \
+        -s detector_trainer:sleap:seed_model=/absolute/path/to/trained_keypoints.pt \
+        --threshold 0.0
+
+The seed must match the configured architecture and keypoint order. This is
+weight initialization, not optimizer/epoch resumption. To train more landmarks,
+set ``detector_trainer:sleap:keypoint_names=head,tail,dorsal`` and provide the
+corresponding named annotations; adding output slots requires a fresh model.
+
+Inference on existing detections::
+
+    viame run -i input_list.txt -p utility_add_keypoints_sleap.pipe \
+        -s detection_reader:file_name=detections.csv \
+        -s add_keypoints:refiner:sleap:weight=category_models/trained_keypoints.pt \
+        -s detector_writer:file_name=computed_detections.csv
+
+The image list and detections must have corresponding frame order. Output goes
+to ``computed_detections.csv``. ``batch_size`` controls crops per inference call.
+``overwrite_existing=false`` fills only missing configured slots; true replaces
+those slots while preserving unrelated points. Low-scoring and out-of-image
+predictions are omitted. ``keypoint_threshold=0.2`` thresholds native heatmap
+peak scores, which are not calibrated visibility probabilities.
+
+The validation report includes labeled/predicted counts, mean point error
+normalized by the unpadded box diagonal, and PCK@0.05 (fraction of labeled
+points predicted within 5% of that diagonal). Missing predictions count as
+failures in PCK. To evaluate another exported model against the retained
+validation crops::
+
+    python -m viame.pytorch.sleap_launcher deep_training/sleap-RUN/request.json \
+        --evaluate category_models/trained_keypoints.pt --output keypoint_metrics.json
+
+The default trainer uses one selected GPU (or CPU). Increasing inference batch
+size is supported; distributed training and mask prediction are outside this
+wrapper's current scope.
+
+
+Netharn RF-DETR masks, keypoints, and native checkpoints
+------------------------------------------------------
+
+Use ``train_detector_netharn_rf_detr_l_seg_kp_1728.conf`` for boxes, masks,
+and head/tail keypoints. It uses 1728x960 network inputs and inherits the
+netharn box recipe's data split. The recipe disables outer OpenCV scaling
+(which does not transform
+keypoints) and uses a separate cache; netharn samples windows and transforms
+all annotation types together. When enabling keypoints in another config,
+also set the outer trainer's ``mode=disabled``.
+It uses the native RFDETRSegLarge architecture,
+including its 12-pixel patches, five decoder layers, and 200 queries.
+The netharn wrapper retains its single query group and netharn optimizer,
+scheduler, augmentation, and checkpointing; this is not an identical native
+RF-DETR training schedule.
+
+To fine-tune a native RF-DETR segmentation checkpoint with netharn::
+
+    viame train -i training_data \
+        -c train_detector_netharn_rf_detr_l_seg_kp_1728.conf \
+        -s detector_trainer:ocv_windowed:trainer:netharn:native_seed_model=/absolute/path/to/model.pth \
+        --threshold 0.0
+
+``native_seed_model`` accepts a native RF-DETR checkpoint (including exported
+``.pth``/``.pt`` weights or a Lightning ``.ckpt``). It uses RF-DETR's weight
+loader to adapt query embeddings, positional embeddings, and class-head sizes.
+It starts a new netharn optimization run; optimizer, epoch, scheduler, and EMA
+state are not resumed. Use a fresh training directory/identifier to avoid
+netharn automatically resuming an existing run. ``seed_model`` remains the
+option for netharn seeds; the two seed options are mutually exclusive, and a
+missing native seed path is an error.
+
+Match ``arch`` and ``segmentation_head`` to the seed architecture. Adding a
+keypoint head to a segmentation seed is supported: the new head starts fresh.
+A detection Large checkpoint and a SegLarge checkpoint have different backbones
+and decoder shapes and are not interchangeable. Preserve class order and,
+for an existing keypoint head, keypoint slot order. The loader adapts class
+counts but does not remap class names; a class-name/order mismatch emits a warning.
+
+The following options can also be applied to the existing netharn RF-DETR recipe
+under ``detector_trainer:ocv_windowed:trainer:netharn``:
+
+- ``segmentation_head=True`` selects a segmentation architecture and mask losses.
+- ``keypoints=True`` enables keypoint coordinate and visibility losses, with or
+  without segmentation.
+- ``keypoint_names=head,tail`` defines ordered, case-insensitive point names.
+- ``native_seed_model=/path/to/checkpoint.pth`` initializes from a native run.
+
+Mask training requires a polygon or mask for every non-ignored object. Keypoints
+use the CSV ``(kp) head x y`` / ``(kp) tail x y`` attributes (or equivalent COCO
+annotations). Missing or cropped-out points get visibility zero. A run with no
+visible training points matching the configured names is rejected. Regenerate
+an existing augmentation cache if it predates the mask/keypoint annotations.
+Use the VIAME build's COCO writer that preserves polygons and named keypoints.
+Netharn's existing validation metrics remain box-based; this recipe does not add
+COCO mask AP or keypoint OKS evaluation.
+
 
 Netharn CFRNN Grid (Tiling Mode)
 ---------------------------------

@@ -11,7 +11,7 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 REM Train BoT-SORT Re-ID model with camera motion compensation
 viame.exe train ^
   -i training_data ^
-  -tt botsort ^
+  --tracker botsort ^
   --threshold 0.0
 
 pause
