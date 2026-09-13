@@ -97,3 +97,16 @@ target_compile_definitions( test-viame-file_system PRIVATE
 viame_discover_gtests( viame regex
   LIBRARIES kwiver::vital_util
             GTest::gtest )
+
+###
+# `config_block`
+#
+# Recorded before P8-T09, whose instruction is "keep config_block semantics"
+# while removing what nothing uses -- which needs the semantics written down
+# first. Every pipeline, algorithm and applet in VIAME reads its parameters
+# through this class and nothing in the tree said what it does.
+##
+viame_discover_gtests( viame config_block
+  LIBRARIES kwiver::vital_config
+            kwiver::vital_exceptions
+            GTest::gtest )
