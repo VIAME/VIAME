@@ -13,10 +13,10 @@ set( python_applets_sources
   module_applets.cxx
   )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py "${THIS_MODULE}" __init__ )
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/applet_utils.py "${THIS_MODULE}" applet_utils )
+viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py "${THIS_MODULE}" __init__ )
+viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/applet_utils.py "${THIS_MODULE}" applet_utils )
 
-kwiver_add_python_library( _applets
+viame_add_python_library( _applets
   "${THIS_MODULE}"
   SOURCES
   ${python_applets_headers}

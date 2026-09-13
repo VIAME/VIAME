@@ -13,7 +13,7 @@
 #     correspondence exported to self-contained .onnx graphs (torch for export
 #     only; numpy, opencv, and optionally scipy for .mat calibration).
 
-kwiver_create_python_init( onnx )
+viame_create_python_init( onnx )
 
 set( onnx_modules
   __init__
@@ -32,7 +32,7 @@ set( onnx_modules
   fast_foundation_stereo )
 
 foreach( module ${onnx_modules} )
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/${module}.py
     onnx
     ${module} )

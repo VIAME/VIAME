@@ -119,9 +119,9 @@ target_include_directories( viame_processes_file_io PRIVATE
 # it. See `tests/golden/calib_runner.py`.
 ##
 if( VIAME_ENABLE_PYTHON )
-  kwiver_create_python_init( file_io )
+  viame_create_python_init( file_io )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     file_io
     __init__ )
@@ -129,7 +129,7 @@ if( VIAME_ENABLE_PYTHON )
   # pybind11 is vendored in `third_party/pybind11`; the targets it used to
   # come from are defined there
 
-  kwiver_add_python_library( _opencv_yaml
+  viame_add_python_library( _opencv_yaml
     file_io
     SOURCES opencv_yaml_python.cxx )
 

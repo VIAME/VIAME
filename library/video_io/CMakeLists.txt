@@ -126,37 +126,37 @@ target_include_directories( viame_processes_video_io PRIVATE
 # Python implementations
 ##
 if( VIAME_ENABLE_PYTHON )
-  kwiver_create_python_init( video_io )
+  viame_create_python_init( video_io )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     video_io
     __init__ )
 
   # `image_viewer`, a sprokit process rather than an algorithm, so it is
   # registered through `__sprokit_register__`.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/image_viewer.py
     video_io
     image_viewer )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_input.py
     video_io
     pyav_video_input )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_output.py
     video_io
     pyav_video_output )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_cli_video_input.py
     video_io
     ffmpeg_cli_video_input )
 
   # The image_io the in-house codecs fall back to; see codecs/image_codec.h
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/pil_image_io.py
     video_io
     pil_image_io )

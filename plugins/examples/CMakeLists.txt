@@ -50,15 +50,15 @@ viame_register_statically( viame_examples
   )
 
 if( VIAME_ENABLE_PYTHON )
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+  viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     examples
     __init__)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_detector.py
+  viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_detector.py
     examples
     hello_world_detector)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_filter.py
+  viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_filter.py
     examples
     hello_world_filter)
 endif()

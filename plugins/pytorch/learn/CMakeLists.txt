@@ -17,7 +17,7 @@ function(add_python_modules_recursive base_path install_prefix)
       set(_mod_path "${install_prefix}")
     endif()
 
-    kwiver_add_python_module(
+    viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/${_py_file}
       ${_mod_path}
       ${_py_name}
@@ -33,7 +33,7 @@ add_python_modules_recursive( "tokencut" "pytorch/learn" )
 add_python_modules_recursive( "mmdet" "pytorch/learn" )
 
 # Also add the root __init__.py if it's not empty
-kwiver_add_python_module(
+viame_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   pytorch/learn
   __init__ )

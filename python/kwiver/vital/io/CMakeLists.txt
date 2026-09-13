@@ -1,8 +1,8 @@
 set( THIS_MODULE vital/io )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py "${THIS_MODULE}" __init__ )
+viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py "${THIS_MODULE}" __init__ )
 
-kwiver_add_python_library(
+viame_add_python_library(
   metadata_io
   "${THIS_MODULE}"
   SOURCES metadata_io.cxx
@@ -10,7 +10,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   camera_from_metadata
   "${THIS_MODULE}"
   SOURCES camera_from_metadata.cxx

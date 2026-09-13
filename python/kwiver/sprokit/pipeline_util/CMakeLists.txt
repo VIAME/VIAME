@@ -2,7 +2,7 @@ project(sprokit_python_sprokit_pipeline_util)
 
 if( NOT WIN32 )
 
-kwiver_add_python_library(bake
+viame_add_python_library(bake
   sprokit/pipeline_util
   SOURCES bake.cxx)
 
@@ -17,7 +17,7 @@ target_link_libraries(python-sprokit.pipeline_util-bake
     vital_vpm
   )
 
-kwiver_add_python_library(load
+viame_add_python_library(load
   sprokit/pipeline_util
   SOURCES load.cxx)
 target_link_libraries(python-sprokit.pipeline_util-load
@@ -29,7 +29,7 @@ target_link_libraries(python-sprokit.pipeline_util-load
     vital_util
     ${Boost_IOSTREAMS_LIBRARY})
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
                          sprokit/pipeline_util
                          __init__)
 endif()

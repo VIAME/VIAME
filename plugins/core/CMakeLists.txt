@@ -370,211 +370,211 @@ target_link_libraries( viame_processes_core PRIVATE viame_iqr )
 
 if( VIAME_ENABLE_PYTHON )
 
-  kwiver_create_python_init( core )
+  viame_create_python_init( core )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     core
     __init__ )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/model_wrap.py
     core
     model_wrap )
 
   # The model behind `process_query_adaboost`, called from
   # `iqr_session_adaboost.cxx`
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/iqr_adaboost.py
     core
     iqr_adaboost )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py
     core
     bytetrack_tracker )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_trainer.py
     core
     bytetrack_trainer )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/training_data.py
     core
     training_data )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/tracker_param_search.py
     core
     tracker_param_search )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/detection_fusion_core.py
     core
     detection_fusion_core )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
     core
     merge_detections_nms_fusion )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_coverage_reinforce.py
     core
     merge_detections_coverage_reinforce )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_simple.py
     core
     merge_detections_simple )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_tracks_tube_iou.py
     core
     merge_tracks_tube_iou )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_blackout.py
     core
     multicam_homog_blackout )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
     core
     multicam_homog_det_suppressor )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_mosaic.py
     core
     multicam_homog_mosaic )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
     core
     multicam_homog_tracker )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/equalize_via_percentiles.py
     core
     equalize_via_percentiles )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/optical_flow.py
     core
     optical_flow )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/frame_diff_trainer.py
     core
     frame_diff_trainer )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
     core
     ocsort_tracker )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_trainer.py
     core
     ocsort_trainer )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/read_detected_object_set_coco.py
     core
     read_detected_object_set_coco )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/read_object_track_set_coco.py
     core
     read_object_track_set_coco )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities_ply.py
     core
     utilities_ply )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities_coco.py
     core
     utilities_coco )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/write_detected_object_set_coco.py
     core
     write_detected_object_set_coco )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/write_object_track_set_coco.py
     core
     write_object_track_set_coco )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py
     core
     segmentation_utils )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/survey_metadata.py
     core
     survey_metadata )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/simple_homog_tracker.py
     core
     simple_homog_tracker )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/stabilize_many_images.py
     core
     stabilize_many_images )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
     core
     utility_processes )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utils.py
     core
     utils )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/vital_registration.py
     core
     vital_registration )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_segmentation.py
     core
     interactive_segmentation )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
     core
     interactive_stereo )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/align_cameras_process.py
     core
     align_cameras_process )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/alignment_core.py
     core
     alignment_core )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
     core
     interactive_service )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/query_service.py
     core
     query_service )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/index_descriptors.py
     core
     index_descriptors )
@@ -586,7 +586,7 @@ if( VIAME_ENABLE_PYTHON )
   # file emit only the module (linking viame_core for the implementations).
   # pybind11 is vendored in `third_party/pybind11`; the targets it used to
   # come from are defined there
-  kwiver_add_python_library( _measurement
+  viame_add_python_library( _measurement
     core
     SOURCES measurement_utilities.cxx )
   target_compile_definitions( python-core-_measurement

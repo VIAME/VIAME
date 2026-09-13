@@ -7,7 +7,7 @@
 # `library/file_io/opencv_yaml_python.cxx` already set -- because 47 of them
 # would otherwise collide with the C++ source of the very type they bind.
 #
-# **The module path is unchanged.** `kwiver_add_python_library` takes it as an
+# **The module path is unchanged.** `viame_add_python_library` takes it as an
 # argument rather than deriving it from the source location, so
 # `kwiver.vital.types.bounding_box` is still `kwiver.vital.types.bounding_box`
 # and the four files in the tree that import a submodule by name keep working.
@@ -34,7 +34,7 @@ set( kwiver_python_package "kwiver" )
 
 set( THIS_MODULE vital/types )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/types_init.py "${THIS_MODULE}" __init__ )
+viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/types_init.py "${THIS_MODULE}" __init__ )
 
 set( vital_python_headers
      image_python.h
@@ -47,7 +47,7 @@ set( vital_python_sources
      types_module_python.cxx
    )
 
-kwiver_add_python_library(
+viame_add_python_library(
   types
   "${THIS_MODULE}"
   SOURCES ${vital_python_headers}
@@ -57,7 +57,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   activity
   "${THIS_MODULE}"
   SOURCES activity_python.cxx
@@ -66,7 +66,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   activity_type
   "${THIS_MODULE}"
   SOURCES activity_type_python.cxx
@@ -75,7 +75,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   bounding_box
   "${THIS_MODULE}"
   SOURCES bounding_box_python.cxx
@@ -84,7 +84,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   camera
   "${THIS_MODULE}"
   SOURCES camera_python.cxx
@@ -93,7 +93,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   camera_intrinsics
   "${THIS_MODULE}"
   SOURCES camera_intrinsics_python.cxx
@@ -102,7 +102,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   camera_map
   "${THIS_MODULE}"
   SOURCES camera_map_python.cxx
@@ -111,7 +111,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   camera_perspective
   "${THIS_MODULE}"
   SOURCES camera_perspective_python.cxx
@@ -120,7 +120,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   camera_perspective_map
   "${THIS_MODULE}"
   SOURCES camera_perspective_map_python.cxx
@@ -129,7 +129,7 @@ kwiver_add_python_library(
            vital
   )
 
-kwiver_add_python_library(
+viame_add_python_library(
   camera_rpc
   "${THIS_MODULE}"
   SOURCES camera_rpc_python.cxx
@@ -138,7 +138,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   category_hierarchy
   "${THIS_MODULE}"
   SOURCES category_hierarchy_python.cxx
@@ -147,7 +147,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   color
   "${THIS_MODULE}"
   SOURCES color_python.cxx
@@ -156,7 +156,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   covariance
   "${THIS_MODULE}"
   SOURCES covariance_python.cxx
@@ -165,7 +165,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   database_query
   "${THIS_MODULE}"
   SOURCES database_query_python.cxx
@@ -174,7 +174,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   descriptor
   "${THIS_MODULE}"
   SOURCES descriptor_python.cxx
@@ -183,7 +183,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   descriptor_request
   "${THIS_MODULE}"
   SOURCES descriptor_request_python.cxx
@@ -192,7 +192,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   descriptor_set
   "${THIS_MODULE}"
   SOURCES descriptor_set_python.cxx
@@ -201,7 +201,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   detected_object
   "${THIS_MODULE}"
   SOURCES detected_object_python.cxx
@@ -210,7 +210,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   detected_object_set
   "${THIS_MODULE}"
   SOURCES detected_object_set_python.cxx
@@ -219,7 +219,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   detected_object_type
   "${THIS_MODULE}"
   SOURCES detected_object_type_python.cxx
@@ -228,7 +228,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   essential_matrix
   "${THIS_MODULE}"
   SOURCES essential_matrix_python.cxx
@@ -237,7 +237,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   feature
   "${THIS_MODULE}"
   SOURCES feature_python.cxx
@@ -246,7 +246,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   feature_set
   "${THIS_MODULE}"
   SOURCES feature_set_python.cxx
@@ -255,7 +255,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   feature_track_set
   "${THIS_MODULE}"
   SOURCES feature_track_set_python.cxx
@@ -264,7 +264,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   fundamental_matrix
   "${THIS_MODULE}"
   SOURCES fundamental_matrix_python.cxx
@@ -277,7 +277,7 @@ kwiver_add_python_library(
 # across, because nothing in VIAME reaches them and phase 5's prune lists
 # them anyway. The python names go too; nothing imports them.
 
-kwiver_add_python_library(
+viame_add_python_library(
   geodesy
   "${THIS_MODULE}"
   SOURCES geodesy_python.cxx
@@ -288,7 +288,7 @@ kwiver_add_python_library(
 
 
 
-kwiver_add_python_library(
+viame_add_python_library(
   geo_point
   "${THIS_MODULE}"
   SOURCES geo_point_python.cxx
@@ -297,7 +297,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   geo_polygon
   "${THIS_MODULE}"
   SOURCES geo_polygon_python.cxx
@@ -306,7 +306,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   homography
   "${THIS_MODULE}"
   SOURCES homography_python.cxx
@@ -315,7 +315,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   homography_f2f
   "${THIS_MODULE}"
   SOURCES homography_f2f_python.cxx
@@ -325,7 +325,7 @@ kwiver_add_python_library(
 )
 
 
-kwiver_add_python_library(
+viame_add_python_library(
   iqr_feedback
   "${THIS_MODULE}"
   SOURCES iqr_feedback_python.cxx
@@ -334,7 +334,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   landmark
   "${THIS_MODULE}"
   SOURCES landmark_python.cxx
@@ -342,7 +342,7 @@ kwiver_add_python_library(
           ${PYTHON_LIBRARIES}
           vital)
 
-kwiver_add_python_library(
+viame_add_python_library(
   landmark_map
   "${THIS_MODULE}"
   SOURCES landmark_map_python.cxx
@@ -351,7 +351,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   local_tangent_space
   "${THIS_MODULE}"
   SOURCES local_tangent_space_python.cxx
@@ -360,7 +360,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   match_set
   "${THIS_MODULE}"
   SOURCES match_set_python.cxx
@@ -370,7 +370,7 @@ kwiver_add_python_library(
 )
 
 
-kwiver_add_python_library(
+viame_add_python_library(
   metadata
   "${THIS_MODULE}"
   SOURCES metadata_python.cxx
@@ -379,7 +379,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   metadata_map
   "${THIS_MODULE}"
   SOURCES metadata_map_python.cxx
@@ -388,7 +388,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   metadata_tags
   "${THIS_MODULE}"
   SOURCES metadata_tags_python.cxx
@@ -397,7 +397,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   metadata_traits
   "${THIS_MODULE}"
   SOURCES metadata_traits_python.cxx
@@ -406,7 +406,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   point
   "${THIS_MODULE}"
   SOURCES point_python.cxx
@@ -415,7 +415,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   polygon
   "${THIS_MODULE}"
   SOURCES polygon_python.cxx
@@ -424,7 +424,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   query_result
   "${THIS_MODULE}"
   SOURCES query_result_python.cxx
@@ -433,7 +433,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   rotation
   "${THIS_MODULE}"
   SOURCES rotation_python.cxx
@@ -442,7 +442,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   similarity
   "${THIS_MODULE}"
   SOURCES similarity_python.cxx
@@ -451,7 +451,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   sfm_constraints
   "${THIS_MODULE}"
   SOURCES sfm_constraints_python.cxx
@@ -460,7 +460,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   timestamp
   "${THIS_MODULE}"
   SOURCES timestamp_python.cxx
@@ -469,7 +469,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   track
   "${THIS_MODULE}"
   SOURCES track_python.cxx
@@ -478,7 +478,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   track_descriptor
   "${THIS_MODULE}"
   SOURCES track_descriptor_python.cxx
@@ -487,7 +487,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   track_interval
   "${THIS_MODULE}"
   SOURCES track_interval_python.cxx
@@ -496,7 +496,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   track_set
   "${THIS_MODULE}"
   SOURCES track_set_python.cxx
@@ -505,7 +505,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   transform_2d
   "${THIS_MODULE}"
   SOURCES transform_2d_python.cxx
@@ -514,7 +514,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   uid
   "${THIS_MODULE}"
   SOURCES uid_python.cxx
@@ -523,7 +523,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   object_track_set
   "${THIS_MODULE}"
   SOURCES object_track_set_python.cxx
@@ -532,7 +532,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   video_raw_image
   "${THIS_MODULE}"
   SOURCES video_raw_image_python.cxx
@@ -541,7 +541,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   video_raw_metadata
   "${THIS_MODULE}"
   SOURCES video_raw_metadata_python.cxx
@@ -550,7 +550,7 @@ kwiver_add_python_library(
           vital
 )
 
-kwiver_add_python_library(
+viame_add_python_library(
   video_settings
   "${THIS_MODULE}"
   SOURCES video_settings_python.cxx
@@ -560,7 +560,7 @@ kwiver_add_python_library(
 )
 
 #if(NOT SKBUILD)
-#  kwiver_create_python_init(vital/types
+#  viame_create_python_init(vital/types
 #    types
 #    activity_type
 #    bounding_box

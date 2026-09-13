@@ -20,7 +20,7 @@ if( VIAME_ENABLE_PYTHON )
     colmap_registration )
 
   foreach( modname IN ITEMS ${colmap_modules} )
-    kwiver_add_python_module(
+    viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/${modname}.py
       colmap
       ${modname} )

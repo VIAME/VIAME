@@ -1114,6 +1114,9 @@ else()
     # win where both still exist.
     include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-targets.cmake" )
     include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-tests.cmake" )
+    if( VIAME_ENABLE_PYTHON )
+      include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-python.cmake" )
+    endif()
 
     # After the macros: `kwiver-utils` pulls in `kwiver-setup-python`, which
     # computes an output path of its own from KWIVER_BINARY_DIR.

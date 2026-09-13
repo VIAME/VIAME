@@ -9,7 +9,7 @@ set( core_python_headers
       core_module.cxx
     )
 
-kwiver_add_python_library( core
+viame_add_python_library( core
    arrows/core
    SOURCES ${core_python_headers}
            ${core_python_sources}
@@ -21,6 +21,6 @@ target_link_libraries( python-arrows.core-core
          kwiver_algo_core
 )
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
                           arrows/core
                           __init__)

@@ -26,19 +26,19 @@ viame_install_headers(
   NOPATH
 )
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
                          vital/util
                          __init__)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/VitalPIL.py
+viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/VitalPIL.py
   vital/util
   VitalPIL )
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/find_python_library.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/find_python_library.py
                          vital/util
                          find_python_library)
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/entrypoint.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/entrypoint.py
                          vital/util
                          entrypoint)
 

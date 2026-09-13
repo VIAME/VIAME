@@ -25,19 +25,19 @@ if (KWIVER_ENABLE_TOOLS)
                    )
 endif()
 
-kwiver_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/module_loader.py"
+viame_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/module_loader.py"
   vital/modules
   module_loader)
 
-kwiver_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/loaders.py"
+viame_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/loaders.py"
   vital/modules
   loaders)
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
                          vital/modules
                          __init__)
 
-kwiver_add_python_library(modules
+viame_add_python_library(modules
                           vital/modules
                           SOURCES modules.cxx)
 

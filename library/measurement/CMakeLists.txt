@@ -106,34 +106,34 @@ target_include_directories( viame_processes_measurement PRIVATE
 # stays cv2's and only the language changes.
 ##
 if( VIAME_ENABLE_PYTHON )
-  kwiver_create_python_init( measurement )
+  viame_create_python_init( measurement )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     measurement
     __init__ )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_stereo_disparity.py
     measurement
     ocv_stereo_disparity )
 
   # `ocv_detect_calibration_targets`, and the four detection helpers it used
   # from `calibrate_stereo_cameras`.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_calibration_targets.py
     measurement
     ocv_calibration_targets )
 
   # `filter_stereo_feature_tracks` and `kmedians`, which turn the target's
   # tracks into the point sets a calibration takes.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/stereo_frame_selection.py
     measurement
     stereo_frame_selection )
 
   # `ocv_optimize_stereo_cameras`, the calibration itself.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_optimize_stereo_cameras.py
     measurement
     ocv_optimize_stereo_cameras )
@@ -141,7 +141,7 @@ if( VIAME_ENABLE_PYTHON )
   # The `ocv_calibrate_single_camera` process, which is the same fit over one
   # camera. A sprokit process rather than an algorithm, so it is registered
   # through `__sprokit_register__` rather than `__vital_algorithm_register__`.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_calibrate_single_camera.py
     measurement
     ocv_calibrate_single_camera )

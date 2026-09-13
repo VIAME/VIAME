@@ -21,10 +21,10 @@ string( REPLACE "-Wl,--no-undefined" "" CMAKE_MODULE_LINKER_FLAGS
 # Python cmake, if testing enabled set pip to install test dependencies in venv
 if (KWIVER_ENABLE_TESTS AND VENV_CREATED)
     if (PIP_COMMAND)
-        python_target_add_command( "pip-install-upgrade"
+        viame_python_add_command( "pip-install-upgrade"
                                    "${PIP_UPGRADE_COMMAND}"
                                    "Upgrading pip...")
-        python_target_add_command( "pip-install-test-deps"
+        viame_python_add_command( "pip-install-test-deps"
                                    "${PIP_INSTALL_TEST_DEPS_COMMAND}"
                                    "Pip installing Python dependencies..."
                                    "pip-install-upgrade")

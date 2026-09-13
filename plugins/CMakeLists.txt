@@ -11,8 +11,8 @@ add_subdirectory( claude )
 add_subdirectory( examples )
 
 if( VIAME_ENABLE_PYTHON )
-  kwiver_create_python_init( arrows )
-  kwiver_create_python_init( processes )
+  viame_create_python_init( arrows )
+  viame_create_python_init( processes )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
@@ -56,12 +56,12 @@ endif()
 ##
 
 if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_KWIVER )
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/types.py
     .
     types )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/compat.py
     .
     compat )

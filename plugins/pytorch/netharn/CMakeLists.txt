@@ -20,7 +20,7 @@ function(add_python_modules_recursive base_path install_prefix)
       set(_mod_path "${install_prefix}")
     endif()
 
-    kwiver_add_python_module(
+    viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/${_py_file}
       ${_mod_path}
       ${_py_name}

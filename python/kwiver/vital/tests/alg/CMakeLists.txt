@@ -59,11 +59,11 @@ set(test_algorithms
    )
 
 foreach (modname IN LISTS test_algorithms)
-  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/${modname}.py
+  viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/${modname}.py
     vital/tests/alg
     ${modname})
 endforeach()
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   vital/tests/alg
   __init__ )

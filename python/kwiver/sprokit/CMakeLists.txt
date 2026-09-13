@@ -1,6 +1,6 @@
 project(sprokit_python_sprokit)
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
                          sprokit
                          __init__)
 

@@ -1,11 +1,11 @@
 set( THIS_MODULE vital/plugins )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py "${THIS_MODULE}" __init__ )
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/discovery.py "${THIS_MODULE}" discovery )
+viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py "${THIS_MODULE}" __init__ )
+viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/discovery.py "${THIS_MODULE}" discovery )
 
 ################################################################################
 # Python Module Library: _pluggable
-kwiver_add_python_library(
+viame_add_python_library(
   _pluggable
   "${THIS_MODULE}"
   SOURCES module_pluggable.cxx

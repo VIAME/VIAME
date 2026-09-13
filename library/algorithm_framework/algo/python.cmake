@@ -38,7 +38,7 @@ set( THIS_MODULE vital/algo )
 # and libpython, neither of which this directory inherits from `python/`
 set( kwiver_python_package "kwiver" )
 
-kwiver_add_python_module(
+viame_add_python_module(
   ${CMAKE_CURRENT_LIST_DIR}/algo_init.py
   "${THIS_MODULE}"
   __init__ )
@@ -50,7 +50,7 @@ file( GLOB _algo_python_headers
   "${CMAKE_CURRENT_LIST_DIR}/*_python.h"
   "${CMAKE_CURRENT_LIST_DIR}/*_python.txx" )
 
-kwiver_add_python_library(
+viame_add_python_library(
   algos
   "${THIS_MODULE}"
   SOURCES ${_algo_python_sources}

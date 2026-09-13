@@ -13,7 +13,7 @@ set(__helper_modnames
 
 # Add files to the vital.tests.cpp_helpers python module
 foreach (modname IN LISTS __helper_modnames)
-  kwiver_add_python_library(
+  viame_add_python_library(
     ${modname}
     "${THIS_MODULE}"
     SOURCES ${modname}.cxx
@@ -23,7 +23,7 @@ foreach (modname IN LISTS __helper_modnames)
 endforeach()
 
 if(NOT SKBUILD)
-    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
                               vital/tests/cpp_helpers
                               __init__)
 endif()

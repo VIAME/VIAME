@@ -93,7 +93,7 @@ set(__all_modnames
 
 # Add files to the vital.tests python module
 foreach (modname IN LISTS __all_modnames)
-  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/${modname}.py
+  viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/${modname}.py
     vital/tests
     ${modname})
 endforeach()

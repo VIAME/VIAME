@@ -1,6 +1,6 @@
 project(sprokit_python_sprokit_pipeline)
 
-kwiver_add_python_library(datum
+viame_add_python_library(datum
   sprokit/pipeline
   SOURCES datum.cxx)
 target_link_libraries(python-sprokit.pipeline-datum
@@ -8,21 +8,21 @@ target_link_libraries(python-sprokit.pipeline-datum
                       vital_python_util
                       vital vital_util)
 
-kwiver_add_python_library(edge
+viame_add_python_library(edge
   sprokit/pipeline
   SOURCES edge.cxx)
 target_link_libraries(python-sprokit.pipeline-edge
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
-kwiver_add_python_library(pipeline
+viame_add_python_library(pipeline
   sprokit/pipeline
   SOURCES pipeline.cxx)
 target_link_libraries(python-sprokit.pipeline-pipeline
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
-kwiver_add_python_library(process
+viame_add_python_library(process
   sprokit/pipeline
   SOURCES process.cxx)
 target_link_libraries(python-sprokit.pipeline-process
@@ -30,7 +30,7 @@ target_link_libraries(python-sprokit.pipeline-process
                       vital_python_util
                       vital_util)
 
-kwiver_add_python_library(process_factory
+viame_add_python_library(process_factory
   sprokit/pipeline
   SOURCES process_factory.cxx)
 target_link_libraries(python-sprokit.pipeline-process_factory
@@ -39,14 +39,14 @@ target_link_libraries(python-sprokit.pipeline-process_factory
                       vital_vpm
     )
 
-kwiver_add_python_library(scheduler
+viame_add_python_library(scheduler
   sprokit/pipeline
   SOURCES scheduler.cxx)
 target_link_libraries(python-sprokit.pipeline-scheduler
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
-kwiver_add_python_library(scheduler_factory
+viame_add_python_library(scheduler_factory
   sprokit/pipeline
   SOURCES scheduler_factory.cxx)
 target_link_libraries(python-sprokit.pipeline-scheduler_factory
@@ -55,27 +55,27 @@ target_link_libraries(python-sprokit.pipeline-scheduler_factory
                       vital_vpm
   )
 
-kwiver_add_python_library(stamp
+viame_add_python_library(stamp
   sprokit/pipeline
   SOURCES stamp.cxx)
 target_link_libraries(python-sprokit.pipeline-stamp
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
-kwiver_add_python_library(utils
+viame_add_python_library(utils
   sprokit/pipeline
   SOURCES utils.cxx)
 target_link_libraries(python-sprokit.pipeline-utils
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
-kwiver_add_python_library(version
+viame_add_python_library(version
   sprokit/pipeline
   SOURCES version.cxx)
 target_link_libraries(python-sprokit.pipeline-version
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   sprokit/pipeline
   __init__)

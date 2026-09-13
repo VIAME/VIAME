@@ -157,16 +157,16 @@ viame_add_plugin( viame_processes_object_detectors
 # Python implementations
 ##
 if( VIAME_ENABLE_PYTHON )
-  kwiver_create_python_init( object_detectors )
+  viame_create_python_init( object_detectors )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     object_detectors
     __init__ )
 
   # `hough_circle` was C++ until P7-T04; the Hough gradient transform is not
   # an image_ops primitive, so it stays cv2's and moves to python.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/hough_circle_detector.py
     object_detectors
     hough_circle_detector )

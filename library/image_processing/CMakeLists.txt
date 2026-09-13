@@ -99,54 +99,54 @@ viame_register_statically( viame_image_processing
 # Python implementations
 ##
 if( VIAME_ENABLE_PYTHON )
-  kwiver_create_python_init( image_processing )
+  viame_create_python_init( image_processing )
 
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     image_processing
     __init__ )
 
   # `library/opencv_bridge`'s feature, descriptor and match conversions, in
   # python, for the implementations below.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_feature_types.py
     image_processing
     ocv_feature_types )
 
   # `ocv_SIFT` and `ocv_SURF`, detection and description, C++ until P7-T04.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_sift_surf.py
     image_processing
     ocv_sift_surf )
 
   # `ocv_flann_based`.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_flann_matcher.py
     image_processing
     ocv_flann_matcher )
 
   # `estimate_homography:ocv` and `estimate_fundamental_matrix:ocv`.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_estimators.py
     image_processing
     ocv_estimators )
 
   # `ocv_grabcut` and `ocv_watershed`, which set a detection's mask.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_segmenters.py
     image_processing
     ocv_segmenters )
 
   # `ocv_enhancer` and its second name `vxl_enhancer`. Python rather than
   # image_ops for one step of it, the non-local means denoiser.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_enhancer.py
     image_processing
     ocv_enhancer )
 
   # `ocv_color_correction`, likewise python: a chain of primitives rather
   # than one of them.
-  kwiver_add_python_module(
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_color_correction.py
     image_processing
     ocv_color_correction )

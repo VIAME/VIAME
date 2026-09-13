@@ -32,7 +32,7 @@ set( json_python_sources
      serialize_object_track_set.cxx
    )
 
-kwiver_add_python_library( json
+viame_add_python_library( json
    arrows/serialize/json
    SOURCES ${json_python_headers}
            ${json_python_sources}
@@ -44,6 +44,6 @@ target_link_libraries( python-arrows.serialize.json-json
          kwiver_serialize_json
 )
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
                                 arrows/serialize/json
                                 __init__)
