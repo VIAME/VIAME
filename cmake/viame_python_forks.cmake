@@ -91,6 +91,48 @@ _viame_fork( roi-align   "VIAME_ENABLE_PYTORCH-MDNET"
              "${VIAME_SOURCE_DIR}/plugins/pytorch/mdnet" )
 
 ###
+# The prebuilt onnxruntime C++ libraries
+##
+# `mmdeploy` is the only thing that wants them: it configures with
+# `MMDEPLOY_TARGET_BACKENDS=ort` and needs an onnxruntime to build its ORT
+# backend against. Upstream's 1.12.1 release archive, deliberately older
+# than the `onnxruntime-gpu` wheel the accelerator lock pins -- the wheel is
+# what runs inference, this is a headers-and-.so set mmdeploy's export
+# tooling compiles against.
+#
+# It was `add_project_onnx.cmake`, an `ExternalProject_Add` whose whole body
+# was a URL and a copy.
+if( "mmdeploy" IN_LIST _viame_forks )
+  if( UNIX )
+    set( _ort_url "https://github.com/microsoft/onnxruntime/releases/download/v1.12.1/onnxruntime-linux-x64-1.12.1.tgz" )
+  elseif( WIN32 )
+    set( _ort_url "https://github.com/microsoft/onnxruntime/releases/download/v1.12.1/onnxruntime-win-x64-1.12.1.zip" )
+  else()
+    message( FATAL_ERROR
+      "mmdeploy needs the onnxruntime C++ libraries and there is no build of "
+      "them for this platform" )
+  endif()
+
+  set( _ort_dir
+    "${VIAME_BUILD_INSTALL_PREFIX}/${python_site_packages}/onnxruntime/onnxruntimelibs" )
+  set( _ort_stamp "${_viame_forks_dir}/onnxruntimelibs.stamp" )
+
+  add_custom_command(
+    OUTPUT  "${_ort_stamp}"
+    COMMAND "${CMAKE_COMMAND}"
+            -DURL=${_ort_url}
+            -DDESTINATION=${_ort_dir}
+            -DDOWNLOAD_DIR=${_viame_forks_dir}/onnxruntimelibs-download
+            -P "${VIAME_CMAKE_DIR}/viame_fetch_archive.cmake"
+    COMMAND "${CMAKE_COMMAND}" -E touch "${_ort_stamp}"
+    COMMENT "Fetching the onnxruntime C++ libraries for mmdeploy"
+    VERBATIM
+    )
+else()
+  set( _ort_stamp )
+endif()
+
+###
 # One build-and-install per fork
 ##
 # `custom_build_python_dep.cmake` is reused rather than reimplemented: it
@@ -98,6 +140,8 @@ _viame_fork( roi-align   "VIAME_ENABLE_PYTORCH-MDNET"
 # are unchanged, which for mmcv is the difference between twenty minutes and
 # nothing.
 set( _viame_fork_stamps )
+
+set( _viame_fork_extra_deps_mmdeploy ${_ort_stamp} )
 
 foreach( _fork IN LISTS _viame_forks )
   set( _source "${_viame_fork_source_${_fork}}" )
@@ -127,6 +171,7 @@ foreach( _fork IN LISTS _viame_forks )
             -DPIP_INSTALL_SCRIPT=${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake
             -P "${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake"
     COMMAND "${CMAKE_COMMAND}" -E touch "${_stamp}"
+    DEPENDS ${_viame_fork_extra_deps_${_fork}}
     COMMENT "Building and installing ${_fork}"
     VERBATIM
     )
