@@ -16,13 +16,17 @@ Notes.
   them, and `viame runner --help` costs 0.39 s against 2.72 s. The one piece
   of P8 still open is the fold of the `viame_<name>` targets into a single
   `libviame`, which is entangled with phases 1 and 2
-- Next task: **phase 1**, which is now the front of the queue. P1-T01 is
-  done (`cmake/viame_project.cmake`) and P1-T02 has started (the options are
-  `cmake/viame_options.cmake`; the deletions its done-when asks for are
-  next). **The build already takes nothing from fletch** -- proved by a
-  clean configure and build in an empty tree -- so what remains of phase 1
-  is deleting the superbuild that built it, and `viame_dependencies.cmake`
-  (P1-T04) has very little left to find
+- Next task: **phase 1**, and it is down to the python environment. T01, T04
+  and T05 are done and T02 is nine tenths done; the top-level CMakeLists is
+  1354 lines down to 200, with `cmake/viame_options.cmake`,
+  `cmake/viame_dependencies.cmake` and `cmake/viame_project.cmake` beside
+  it. **The build takes nothing from fletch**, proved by a clean configure
+  and build in an empty tree with no `fletch_DIR`. What is left of the phase
+  is one chain: P1-T07 makes the python dependencies a lock file and a
+  target of this build, which lets P1-T06 delete the superbuild, which lets
+  the rest of T02's option list go with it. The one thing that chain needs
+  from a person is above under "Decisions needed to finish phase 1": which
+  OpenCV wheel replaces fletch's cv2
 - `library/` has three OpenCV includes left, all of them waiting on a
   decision rather than on work; see "Where phase 7's OpenCV removal stands".
   `plugins/` has three: `plot_metrics`, which is a rewrite rather than a
@@ -210,9 +214,38 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | 2026-09-11 | Track upstream: `viame/main` is merged into `lite` rather than the branch staying at its fork point, so that phase 7 ports the current code | user | the merge commit |
 | 2026-09-09 | Golden coverage is the full set: per filter fixtures for every config variant the shipped pipelines use, plus whole pipeline recordings, committed under `tests/golden/` | user | tests/golden/README.md |
 
-## Decisions needed to finish phase 7
+## Decisions needed to finish phase 1
 
-**None. Phase 7 is done.** All four of the original questions are answered:
+**One, and it is the last thing standing between VIAME and deleting fletch.**
+The build takes nothing from fletch; a clean configure and build with no
+`fletch_DIR` proves it. But the *install* still does, in exactly one place:
+`cv2`. `add_project_python_deps.cmake` deliberately omits
+`opencv-python-headless` -- the comment says so -- because fletch's OpenCV
+build registers itself under that distribution name, and
+`linux-remove-duplicate-cvs.cmake` existed to delete the wheel if anyone
+installed it anyway. Make cv2 a wheel and fletch has no users left at all.
+
+The decision is **which** wheel, and it is not free either way:
+
+* `opencv-python-headless`, which is what P1-T08 names, **has no
+  `ximgproc` and no `xfeatures2d`.** Three files reach for them:
+  `library/measurement/ocv_stereo_disparity.py` (WLS disparity filtering),
+  `library/image_processing/ocv_sift_surf.py` (SURF), and
+  `plugins/opencv/multimodal_registration.py` (SIFT through xfeatures2d).
+  All three already handle the absence -- the first two fall back and say
+  so, and the third is the registration that cannot construct anyway, open
+  question 2.13 -- so nothing breaks, but WLS filtering and SURF stop being
+  available in a stock install.
+* `opencv-contrib-python-headless` keeps both, at roughly twice the wheel.
+
+Versions line up either way: fletch builds OpenCV 4.9.0 and the wheels are
+4.9.0.80, so this is a like-for-like swap apart from the contrib modules.
+
+## Decisions taken in phase 7
+
+**None outstanding. Phase 7 is done.**
+
+All four of the original questions are answered:
 PostgreSQL is removed, `plot_metrics` went to matplotlib, `image_viewer` is
 python, and open decision 6 is settled both ways --
 `classify_fish_hierarchical_svm` removed, `iqr_session_adaboost` ported to
