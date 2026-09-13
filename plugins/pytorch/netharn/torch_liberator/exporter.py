@@ -103,8 +103,18 @@ def export_model_code(dpath, model, initkw=None, export_modules=[]):
         # First see if we can get away with a simple encoding of initkw
         try:
             # Do not use repr. The text produced is non-deterministic for
-            # dictionaries. Instead, use ub.repr2, which is deterministic.
-            init_text = ub.repr2(initkw, nl=1)
+            # dictionaries. Instead, use ub.urepr with repr2's old dict
+            # ordering, which is deterministic.
+            #
+            # Do not "modernize" this to a plain urepr or to urepr(sort=True).
+            # This text is written into the generated topology as the model's
+            # initkw and is hashed for the deploy name, and urepr(sort=True)
+            # sorts list and tuple *contents* as well as dict keys -- it would
+            # silently permute 'classes', remapping every label index.
+            # _dict_sort_behavior='old' is exactly what ub.repr2 passed, so
+            # output is unchanged; if ubelt drops it the failure is a loud
+            # TypeError rather than quietly reordered labels.
+            init_text = ub.urepr(initkw, nl=1, _dict_sort_behavior='old')
             eval(init_text, {})
             init_code = ub.codeblock(
                 'initkw = {}'

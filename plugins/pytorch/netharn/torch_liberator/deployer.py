@@ -389,7 +389,7 @@ class DeployedModel(ub.NiceRepr):
     def __json__(self):
         if self.path is None:
             if self._info:
-                return ub.repr2(self._info, nl=0)
+                return ub.urepr(self._info, nl=0)
         else:
             return self.path
 
