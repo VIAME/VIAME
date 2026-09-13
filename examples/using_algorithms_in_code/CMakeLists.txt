@@ -17,38 +17,36 @@ install( FILES       detector1.cxx
 # No OpenCV: these were written when the image container was the bridge's,
 # and none of them ever used a `cv::` type -- the include and the link were
 # left behind by P7.
-if( VIAME_ENABLE_KWIVER )
 
-  ###
-  # Add first detector example
-  add_executable( detector1       detector1.cxx )
+###
+# Add first detector example
+add_executable( detector1       detector1.cxx )
 
-  target_link_libraries( detector1
-    PRIVATE    kwiver::vital
-               kwiver::vital_algo
-               kwiver::vital_config
-               kwiver::vital_logger
-               kwiver::vital_util
-               viame_video_io
-               viame_object_detectors
-    )
+target_link_libraries( detector1
+  PRIVATE    kwiver::vital
+             kwiver::vital_algo
+             kwiver::vital_config
+             kwiver::vital_logger
+             kwiver::vital_util
+             viame_video_io
+             viame_object_detectors
+  )
 
 
-  ###
-  # Add first detector example
-  add_executable( detector3       detector3.cxx )
+###
+# Add first detector example
+add_executable( detector3       detector3.cxx )
 
-  target_link_libraries( detector3
-    PRIVATE    kwiver::vital
-               kwiver::vital_algo
-               kwiver::vital_config
-               kwiver::vital_logger
-               kwiver::vital_util
-               kwiver::vital_vpm
-               viame_video_io
-               # It calls load_all_plugins, and since P8-T03 that means
-               # linking what registers rather than finding it on a path
-               viame::registry
-    )
+target_link_libraries( detector3
+  PRIVATE    kwiver::vital
+             kwiver::vital_algo
+             kwiver::vital_config
+             kwiver::vital_logger
+             kwiver::vital_util
+             kwiver::vital_vpm
+             viame_video_io
+             # It calls load_all_plugins, and since P8-T03 that means
+             # linking what registers rather than finding it on a path
+             viame::registry
+  )
 
-endif()

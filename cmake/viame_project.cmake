@@ -56,143 +56,139 @@ include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
 # `tools/` build what it used to. `cmake/kwiver_compat/` holds its macros,
 # and the settings the imported code still needs are in
 # `kwiver_settings.cmake` below, after the macros are included.
-if( VIAME_ENABLE_KWIVER )
-  set( KWIVER_ENABLE_PYTHON  ${VIAME_ENABLE_PYTHON}  )
-  set( KWIVER_ENABLE_SPROKIT ON )
-  set( KWIVER_ENABLE_TOOLS   ON )
-  set( KWIVER_BUILD_SHARED   ${BUILD_SHARED_LIBS} )
+set( KWIVER_ENABLE_PYTHON  ${VIAME_ENABLE_PYTHON}  )
+set( KWIVER_ENABLE_SPROKIT ON )
+set( KWIVER_ENABLE_TOOLS   ON )
+set( KWIVER_BUILD_SHARED   ${BUILD_SHARED_LIBS} )
 
-  link_directories( "${VIAME_BINARY_DIR}/lib" )
+link_directories( "${VIAME_BINARY_DIR}/lib" )
 
-  # `VIAME_DEPENDENCY_INCLUDE_DIRS` stood here: the install prefix, for the
-  # plugins that took darknet's and libsvm's headers from it rather than
-  # from a target. Both are vendored now and carry their own include
-  # directories, and the prefix was actively harmful -- fletch's `svm.h`
-  # sits in it, so the vendored copy was being shadowed by the one it had
-  # replaced.
+# `VIAME_DEPENDENCY_INCLUDE_DIRS` stood here: the install prefix, for the
+# plugins that took darknet's and libsvm's headers from it rather than
+# from a target. Both are vendored now and carry their own include
+# directories, and the prefix was actively harmful -- fletch's `svm.h`
+# sits in it, so the vendored copy was being shadowed by the one it had
+# replaced.
 
-  ###
-  # Vendored third party
-  #
-  # Small enough to carry, and carried minimally -- only the files VIAME
-  # compiles or includes, never a distribution. `third_party/README.md`
-  # says what was left behind in each case and why.
-  #
-  # This is P1-T03 arriving ahead of the rest of phase 1: it does not need
-  # the new top-level CMakeLists, and every package that moves here is one
-  # fletch no longer has to build.
-  ##
-  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/tinyxml" third_party/tinyxml )
-  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/miniz" third_party/miniz )
-  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/darknet" third_party/darknet )
+###
+# Vendored third party
+#
+# Small enough to carry, and carried minimally -- only the files VIAME
+# compiles or includes, never a distribution. `third_party/README.md`
+# says what was left behind in each case and why.
+#
+# This is P1-T03 arriving ahead of the rest of phase 1: it does not need
+# the new top-level CMakeLists, and every package that moves here is one
+# fletch no longer has to build.
+##
+add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/tinyxml" third_party/tinyxml )
+add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/miniz" third_party/miniz )
+add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/darknet" third_party/darknet )
 
-  if( VIAME_ENABLE_TESTS )
-    add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/googletest"
-                      third_party/googletest )
-  endif()
-
-  # Builds nothing unless `VIAME_BUILD_PYTHON_FROM_SOURCE` is on, which is
-  # for a packaged build that cannot assume a python on the target machine
-  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/cpython"
-                    third_party/cpython )
-
-  if( VIAME_ENABLE_PYTHON )
-    add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/pybind11"
-                      third_party/pybind11 )
-  endif()
-
-  if( VIAME_ENABLE_SVM )
-    add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/libsvm" third_party/libsvm )
-  endif()
-
-
-  # VIAME's own CMake helpers, which replaced kwiver's in P8-T08.
-  set( VIAME_CMAKE_HELPER_DIR "${VIAME_SOURCE_DIR}/cmake/viame/tools" )
-  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-configure.cmake" )
-  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-flags-check.cmake" )
-  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-targets.cmake" )
-  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-tests.cmake" )
-  if( VIAME_ENABLE_PYTHON )
-    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-setup-python.cmake" )
-    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-python.cmake" )
-  endif()
-
-  # After the macros: `kwiver-utils` pulls in `kwiver-setup-python`, which
-  # computes an output path of its own from KWIVER_BINARY_DIR.
-  if( VIAME_ENABLE_PYTHON )
-    set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
-    set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/${kwiver_python_subdir}" )
-
-    # Two names for two different things, which used to be one name for
-    # both. `kwiver_python_install_path` is where kwiver's macros put a
-    # package -- `${it}/viame/video_io/x.py` -- so it has to be the
-    # site-packages directory itself; `kwiver_python_output_path` already
-    # builds into `${it}/${python_sitename}/...` and the two have to agree.
-    # `viame_python_install_path` is the directory above, which is what
-    # VIAME's own callers append `site-packages` to.
-    #
-    # They were the same before, which put every VIAME python module one
-    # directory above site-packages, where nothing imports it. It worked
-    # only because an older install had left a copy in the right place.
-    set( viame_python_install_path
-      "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
-    set( kwiver_python_install_path
-      "${viame_python_install_path}/${python_sitename}" )
-  endif()
-
-  ###
-  # System specific compiler flags
-  ##
-  # `kwiver_warnings` is a global property, and kwiver's own configure check
-  # has just filled it with kwiver's list, which is stricter than VIAME's --
-  # `-Werror=non-virtual-dtor` and `-Werror=zero-as-null-pointer-constant`
-  # among them. VIAME compiled against an installed kwiver never saw those.
-  # Start from empty so that `viame-flags` yields VIAME's own set.
-  set_property( GLOBAL PROPERTY kwiver_warnings )
-
-  include( viame-flags )
-
-  ##
-  # check compiler support
-  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-configcheck.cmake" )
-
-  # set the name for our package exports and plugin directories
-  set( viame_export_name                            viame_exports )
-  set( kwiver_export_name                           viame_exports )
-
-  set( kwiver_plugin_subdir                         viame )
-  set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
-  set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
-  set( kwiver_plugin_algorithm_subdir               ${kwiver_plugin_subdir}/modules )
-  set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
-  set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
-  set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
-  set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
-  # Kwiver set this one itself; the applets imported in P5-T05 -- sprokit's
-  # runner, pipe-config and pipe-to-dot, and vital's config explorer -- are
-  # built in VIAME's scope now and would otherwise land in `lib/` itself.
-  set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
-
-  ##
-  # Build system hacks which should eventually be fixed better
-  include( linux-remove-duplicate-cvs )
-
-  # Wants the macros and the plugin subdirectories above it, and everything
-  # it configures below it.
-  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-settings.cmake" )
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/googletest"
+                    third_party/googletest )
 endif()
+
+# Builds nothing unless `VIAME_BUILD_PYTHON_FROM_SOURCE` is on, which is
+# for a packaged build that cannot assume a python on the target machine
+add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/cpython"
+                  third_party/cpython )
+
+if( VIAME_ENABLE_PYTHON )
+  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/pybind11"
+                    third_party/pybind11 )
+endif()
+
+if( VIAME_ENABLE_SVM )
+  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/libsvm" third_party/libsvm )
+endif()
+
+
+# VIAME's own CMake helpers, which replaced kwiver's in P8-T08.
+set( VIAME_CMAKE_HELPER_DIR "${VIAME_SOURCE_DIR}/cmake/viame/tools" )
+include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-configure.cmake" )
+include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-flags-check.cmake" )
+include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-targets.cmake" )
+include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-tests.cmake" )
+if( VIAME_ENABLE_PYTHON )
+  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-setup-python.cmake" )
+  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-python.cmake" )
+endif()
+
+# After the macros: `kwiver-utils` pulls in `kwiver-setup-python`, which
+# computes an output path of its own from KWIVER_BINARY_DIR.
+if( VIAME_ENABLE_PYTHON )
+  set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
+  set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/${kwiver_python_subdir}" )
+
+  # Two names for two different things, which used to be one name for
+  # both. `kwiver_python_install_path` is where kwiver's macros put a
+  # package -- `${it}/viame/video_io/x.py` -- so it has to be the
+  # site-packages directory itself; `kwiver_python_output_path` already
+  # builds into `${it}/${python_sitename}/...` and the two have to agree.
+  # `viame_python_install_path` is the directory above, which is what
+  # VIAME's own callers append `site-packages` to.
+  #
+  # They were the same before, which put every VIAME python module one
+  # directory above site-packages, where nothing imports it. It worked
+  # only because an older install had left a copy in the right place.
+  set( viame_python_install_path
+    "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
+  set( kwiver_python_install_path
+    "${viame_python_install_path}/${python_sitename}" )
+endif()
+
+###
+# System specific compiler flags
+##
+# `kwiver_warnings` is a global property, and kwiver's own configure check
+# has just filled it with kwiver's list, which is stricter than VIAME's --
+# `-Werror=non-virtual-dtor` and `-Werror=zero-as-null-pointer-constant`
+# among them. VIAME compiled against an installed kwiver never saw those.
+# Start from empty so that `viame-flags` yields VIAME's own set.
+set_property( GLOBAL PROPERTY kwiver_warnings )
+
+include( viame-flags )
+
+##
+# check compiler support
+include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-configcheck.cmake" )
+
+# set the name for our package exports and plugin directories
+set( viame_export_name                            viame_exports )
+set( kwiver_export_name                           viame_exports )
+
+set( kwiver_plugin_subdir                         viame )
+set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
+set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
+set( kwiver_plugin_algorithm_subdir               ${kwiver_plugin_subdir}/modules )
+set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
+set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
+set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
+set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
+# Kwiver set this one itself; the applets imported in P5-T05 -- sprokit's
+# runner, pipe-config and pipe-to-dot, and vital's config explorer -- are
+# built in VIAME's scope now and would otherwise land in `lib/` itself.
+set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
+
+##
+# Build system hacks which should eventually be fixed better
+include( linux-remove-duplicate-cvs )
+
+# Wants the macros and the plugin subdirectories above it, and everything
+# it configures below it.
+include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-settings.cmake" )
 
 ###
 # Add VIAME subdirs
 ##
-if( VIAME_ENABLE_KWIVER )
-  # Converted code first: plugins/ still depends on some of it
-  add_subdirectory( library )
-  add_subdirectory( plugins )
+# Converted code first: plugins/ still depends on some of it
+add_subdirectory( library )
+add_subdirectory( plugins )
 
-  if( VIAME_ENABLE_PYTHON )
-    add_subdirectory( python )
-  endif()
+if( VIAME_ENABLE_PYTHON )
+  add_subdirectory( python )
 endif()
 
 add_subdirectory( examples )
@@ -208,11 +204,9 @@ add_subdirectory( tools )
 # above this line; CMake resolves a namespaced target at generate time, by
 # which point this directory has defined it.
 ##
-if( VIAME_ENABLE_KWIVER )
-  add_subdirectory(
-    "${VIAME_SOURCE_DIR}/library/algorithm_framework/registry"
-    library/algorithm_framework/registry )
-endif()
+add_subdirectory(
+  "${VIAME_SOURCE_DIR}/library/algorithm_framework/registry"
+  library/algorithm_framework/registry )
 
 if( VIAME_ENABLE_TESTS )
   enable_testing()
@@ -226,36 +220,34 @@ endif()
 # Kwiver installed one of these until P5-T05; this replaces it. The targets
 # keep the `kwiver::` namespace they have always had, so a plugin that
 # linked `kwiver::vital` still does -- phase 11 is what renames them.
-if( VIAME_ENABLE_KWIVER )
-  set( viame_cmake_install_dir lib${LIB_SUFFIX}/cmake/viame )
+set( viame_cmake_install_dir lib${LIB_SUFFIX}/cmake/viame )
 
-  # `viame_add_library` and the rest, for the plugin's own CMakeLists.
-  include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-install-utils.cmake" )
+# `viame_add_library` and the rest, for the plugin's own CMakeLists.
+include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-install-utils.cmake" )
 
-  get_property( viame_libs GLOBAL PROPERTY viame_libraries )
-  string( REPLACE ";" " " viame_libs "${viame_libs}" )
+get_property( viame_libs GLOBAL PROPERTY viame_libraries )
+string( REPLACE ";" " " viame_libs "${viame_libs}" )
 
-  configure_file(
-    "${VIAME_SOURCE_DIR}/cmake/viame-config-install.cmake.in"
-    "${VIAME_BINARY_DIR}/viame-config-install.cmake"
-    @ONLY
-    )
+configure_file(
+  "${VIAME_SOURCE_DIR}/cmake/viame-config-install.cmake.in"
+  "${VIAME_BINARY_DIR}/viame-config-install.cmake"
+  @ONLY
+  )
 
-  viame_export_targets( "${VIAME_BINARY_DIR}/viame-config-targets.cmake" )
+viame_export_targets( "${VIAME_BINARY_DIR}/viame-config-targets.cmake" )
 
-  install(
-    FILES       "${VIAME_BINARY_DIR}/viame-config-install.cmake"
-    DESTINATION "${viame_cmake_install_dir}"
-    RENAME      viame-config.cmake
-    )
+install(
+  FILES       "${VIAME_BINARY_DIR}/viame-config-install.cmake"
+  DESTINATION "${viame_cmake_install_dir}"
+  RENAME      viame-config.cmake
+  )
 
-  install(
-    EXPORT      ${kwiver_export_name}
-    NAMESPACE   kwiver::
-    DESTINATION "${viame_cmake_install_dir}"
-    FILE        viame-config-targets.cmake
-    )
-endif()
+install(
+  EXPORT      ${kwiver_export_name}
+  NAMESPACE   kwiver::
+  DESTINATION "${viame_cmake_install_dir}"
+  FILE        viame-config-targets.cmake
+  )
 
 ###
 # Configure setup scripts
@@ -282,10 +274,6 @@ if( WIN32 )
   install( PROGRAMS      ${VIAME_SETUP_SCRIPT}
            DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
-  if( VIAME_ENABLE_SEAL )
-    install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_seal_interface.bat"
-             DESTINATION   ${CMAKE_INSTALL_PREFIX} )
-  endif()
   if( VIAME_ENABLE_DIVE )
     install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_dive_interface.bat"
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
@@ -320,10 +308,6 @@ else()
   install( PROGRAMS      ${VIAME_CMAKE_DIR}/viame_train_detector
            DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
-  if( VIAME_ENABLE_SEAL )
-    install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
-             DESTINATION   ${CMAKE_INSTALL_PREFIX} )
-  endif()
   if( VIAME_ENABLE_DIVE )
     install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_dive_interface.sh"
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )

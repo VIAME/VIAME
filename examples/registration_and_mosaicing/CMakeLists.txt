@@ -47,18 +47,6 @@ if( VIAME_ENABLE_OPENCV )
   endif()
 endif()
 
-if( VIAME_ENABLE_KEYPOINT )
-  if( WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-      ${EXAMPLE_INSTALL_FILES}
-      launch_point_alignment_interface.bat )
-  else()
-    set( EXAMPLE_INSTALL_FILES
-      ${EXAMPLE_INSTALL_FILES}
-      launch_point_alignment_interface.sh )
-  endif()
-endif()
-
 ###
 # Install pipelines to example directory
 ##

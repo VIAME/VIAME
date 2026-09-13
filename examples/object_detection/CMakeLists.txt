@@ -29,20 +29,6 @@ if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
        input_image_list_seal_eo.txt
        input_image_list_seal_ir.txt )
 
-  if( VIAME_ENABLE_TENSORFLOW )
-    if( WIN32 )
-      set( EXAMPLE_INSTALL_FILES
-           ${EXAMPLE_INSTALL_FILES}
-           run_arctic_seal_eo_tf.bat
-           run_arctic_seal_ir_tf.bat )
-    else()
-      set( EXAMPLE_INSTALL_FILES
-           ${EXAMPLE_INSTALL_FILES}
-           run_arctic_seal_eo_tf.sh
-           run_arctic_seal_ir_tf.sh )
-    endif()
-  endif()
-
   if( VIAME_ENABLE_DARKNET )
     if( WIN32 )
       set( EXAMPLE_INSTALL_FILES

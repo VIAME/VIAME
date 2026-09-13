@@ -20,11 +20,12 @@ option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   ON )
 # Add core user interface enable flags
 ##
 option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
-option( VIAME_ENABLE_VIVIA          "Enable VIVIA GUIs"             OFF )
-option( VIAME_ENABLE_SEAL           "Enable SEAL GUI"               OFF )
-option( VIAME_ENABLE_KEYPOINT       "Enable Keypoint GUI"           OFF )
 
-mark_as_advanced( VIAME_ENABLE_KEYPOINT )
+# `VIAME_ENABLE_VIVIA`, `VIAME_ENABLE_SEAL` and `VIAME_ENABLE_KEYPOINT` stood
+# here. Each named a separate repository the superbuild cloned and built
+# beside VIAME; `lite-build-system.md` section 2 removes all three in P1.
+# VIVIA's needed VXL, which went in P3, and had already been a fatal error
+# since then.
 
 ###
 # Add default-enabled algorithmic plugin enable flags
@@ -39,18 +40,25 @@ option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
 ##
-option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
-option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
+# `VIAME_ENABLE_TENSORFLOW` and `VIAME_ENABLE_TENSORRT` stood here, removed
+# in P1 with the rest of section 2's list: two inference backends that no
+# shipped pipeline selects, each pulling a runtime of its own.
+#
+# `VIAME_ENABLE_MATLAB` stays for now. It is on the same list, but it is also
+# **open decision 4** in `lite-plan.md`, which proposes the drop rather than
+# taking it, and `plugins/matlab` is two working bridges (camtrawl,
+# annosaurus) rather than a build-system artefact. The option and the code
+# go when that decision is taken.
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 
 ###
 # Add tertiary plugin enable flags (advanced)
 ##
-option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
+# `VIAME_ENABLE_GDAL` stood here. It only ever told fletch to build GDAL, for
+# the VXL image reader that went in P3; nothing in VIAME has read it since.
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 option( VIAME_ENABLE_COLMAP         "Enable COLMAP regisration"     OFF )
 
-mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
 mark_as_advanced( VIAME_ENABLE_COLMAP )
 
@@ -59,11 +67,8 @@ mark_as_advanced( VIAME_ENABLE_COLMAP )
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 
-if( WIN32 )
-  option( VIAME_ENABLE_WIN32GUI     "Enable WIN32 GUI dependency"   ON )
-
-  mark_as_advanced( VIAME_ENABLE_WIN32GUI )
-endif()
+# `VIAME_ENABLE_WIN32GUI` stood here, and was read in one place: whether
+# fletch built Qt. It went with the GUIs.
 
 ###
 # Flags relating to examples and model downloads
@@ -165,17 +170,6 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 ###
-# Additional libraries built on tensorflow and versioning
-##
-if( VIAME_ENABLE_TENSORFLOW )
-  set( VIAME_TENSORFLOW_VERSION 2.6.0 CACHE STRING "Tensorflow version to use" )
-  set_property( CACHE VIAME_TENSORFLOW_VERSION PROPERTY STRINGS "1.14.0" "2.6.0" )
-  mark_as_advanced( VIAME_TENSORFLOW_VERSION )
-
-  option( VIAME_ENABLE_TENSORFLOW-MODELS "Enable TensorFlow models repo"   ON )
-endif()
-
-###
 # Core build settings advanced flags
 ##
 
@@ -210,15 +204,12 @@ mark_as_advanced( VIAME_BUILD_NO_CACHE_DIR )
 
 ###
 # Other advanced hidden flags used for disabling core features
-#
-# These are meant for use by advanced users when you only want to use VIAME
-# to build one of the above packages by itself, not VIAME core.
 ##
-option( VIAME_ENABLE_KWIVER         "Enable KWIVER pipelining"      ON )
-option( VIAME_ENABLE_VIAME_PLUGINS  "Enable VIAME plugins"          ON )
-
-mark_as_advanced( VIAME_ENABLE_KWIVER )
-mark_as_advanced( VIAME_ENABLE_VIAME_PLUGINS )
+# `VIAME_ENABLE_KWIVER` and `VIAME_ENABLE_VIAME_PLUGINS` stood here, for
+# building one of the superbuild's packages without VIAME itself. There are
+# no other packages now -- kwiver is `library/`, and the plugins are the
+# project -- so both were "build nothing", and one was already a fatal error
+# without the other.
 
 # A continuation build allows building of new plugins using an existing
 # VIAME build in another folder or build tree, for the purpose of making

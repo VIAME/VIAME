@@ -31,9 +31,7 @@ if( VIAME_ENABLE_MATLAB )
   add_subdirectory( matlab )
 endif()
 
-if( VIAME_ENABLE_TENSORFLOW )
-  add_subdirectory( tensorflow )
-endif()
+# `plugins/tensorflow` stood here; `VIAME_ENABLE_TENSORFLOW` went in P1.
 
 if( VIAME_ENABLE_PYTORCH )
   add_subdirectory( pytorch )
@@ -55,7 +53,7 @@ endif()
 # Add all code that's a part of the simplified python API here
 ##
 
-if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_KWIVER )
+if( VIAME_ENABLE_PYTHON )
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/types.py
     .

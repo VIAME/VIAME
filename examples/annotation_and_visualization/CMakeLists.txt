@@ -24,26 +24,6 @@ else()
        simple_pipeline_display.sh )
 endif()
 
-if( VIAME_ENABLE_VIVIA )
-  set( example_files
-    ${example_files}
-    view_example_project.prj )
-
-  if( WIN32 )
-    set( example_files
-         ${example_files}
-         launch_view_interface.bat )
-  elseif( APPLE )
-    set( example_files
-         ${example_files}
-         launch_view_interface.mac.sh )
-  else()
-    set( example_files
-         ${example_files}
-         launch_view_interface.sh )
-  endif()
-endif()
-
 if( VIAME_ENABLE_DIVE )
   if( WIN32 )
     set( example_files
@@ -53,22 +33,6 @@ if( VIAME_ENABLE_DIVE )
     set( example_files
          ${example_files}
          launch_dive_interface.sh )
-  endif()
-endif()
-
-if( VIAME_ENABLE_SEAL )
-  if( WIN32 )
-    set( example_files
-         ${example_files}
-         launch_seal_interface.bat )
-  elseif( APPLE )
-    set( example_files
-         ${example_files}
-         launch_seal_interface.mac.sh )
-  else()
-    set( example_files
-         ${example_files}
-         launch_seal_interface.sh )
   endif()
 endif()
 

@@ -105,13 +105,7 @@ if( VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
-if( VIAME_ENABLE_VIVIA )
-  message( FATAL_ERROR "VIAME_ENABLE_VIVIA needs VXL, which VIAME no longer \
-    builds. The image filters and readers it provided are in-house now; see \
-    design/lite-removals.md section 1." )
-endif()
-
-if( VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR VIAME_ENABLE_SEAL )
+if( VIAME_ENABLE_PYTORCH )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"  FORCE )
 endif()
 
@@ -128,19 +122,11 @@ if( VIAME_ENABLE_DOCS )
   find_package( Doxygen REQUIRED )
 endif()
 
-if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
-  message( FATAL_ERROR "Building core VIAME plugins require KWIVER" )
-endif()
-
 if( VIAME_ENABLE_PYTORCH-LEARN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "CUDA required for LEARN project currently" )
 endif()
 
-if( VIAME_ENABLE_KEYPOINT AND NOT VIAME_ENABLE_PYTHON )
-  message( FATAL_ERROR "KEYPOINTGUI requires Python" )
-endif()
-
-if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_ENABLE_KWIVER AND VIAME_BUILD_CHECKS )
+if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_BUILD_CHECKS )
   string( LENGTH "${VIAME_BUILD_KWIVER_DIR}" KWIVER_BUILD_DIR_LENGTH )
   string( LENGTH "${VIAME_BUILD_PLUGINS_DIR}" PLUGINS_BUILD_DIR_LENGTH )
 
@@ -705,25 +691,17 @@ if( VIAME_BUILD_DEPENDENCIES )
   # `third_party/darknet` now, compiled with the rest of the tree.
 
   # Kwiver is no longer an external project: P5-T05 dissolved the submodule
-  # and the VIAME project below builds what was in it. VIVIA and SEAL used to
-  # depend on kwiver having been installed first; they depend on `viame` now,
-  # which is added after them, so their `DEPENDS` is deferred with them.
-  set( VIAME_DEFERRED_PROJECTS )
-
-  if( VIAME_ENABLE_VIVIA )
-    list( APPEND VIAME_DEFERRED_PROJECTS add_project_vivia )
-  endif()
-
-  if( VIAME_ENABLE_SEAL )
-    list( APPEND VIAME_DEFERRED_PROJECTS add_project_seal_tk )
-  endif()
+  # and the VIAME project below builds what was in it.
+  #
+  # Nor are VIVIA, SEAL, the keypoint GUI, TensorFlow or TensorRT. They were
+  # five separate repositories the superbuild cloned and built beside VIAME,
+  # and `lite-build-system.md` section 2 removes all five options in P1:
+  # VIVIA needs VXL, which went in P3; SEAL and the keypoint GUI are GUIs
+  # with their own repositories and their own build; TensorFlow and TensorRT
+  # are inference backends nothing in the shipped pipelines selects.
 
   if( VIAME_ENABLE_DIVE )
     include( add_project_dive )
-  endif()
-
-  if( VIAME_ENABLE_TENSORRT )
-    include( add_project_tensorrt )
   endif()
 
   if ( VIAME_ENABLE_ONNX)
@@ -734,23 +712,9 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_pytorch )
   endif()
 
-  if( VIAME_ENABLE_TENSORFLOW )
-    include( add_project_tensorflow )
-  endif()
-
-  if( VIAME_ENABLE_KEYPOINT )
-    include( add_project_keypointgui )
-  endif()
-
-  # VIAME plugins, adds this project causing the below else() block to run
-  if( VIAME_ENABLE_VIAME_PLUGINS )
-    include( add_project_viame )
-  endif()
-
-  # The projects that used to wait for kwiver and wait for VIAME now
-  foreach( _viame_deferred IN LISTS VIAME_DEFERRED_PROJECTS )
-    include( ${_viame_deferred} )
-  endforeach()
+  # VIAME itself, which re-invokes CMake on this source tree with
+  # `VIAME_BUILD_DEPENDENCIES` off, so that `cmake/viame_project.cmake` runs
+  include( add_project_viame )
 
   # Fixup installer package
   if( VIAME_FIXUP_BUNDLE )

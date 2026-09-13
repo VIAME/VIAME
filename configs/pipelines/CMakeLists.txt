@@ -191,31 +191,7 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 # Configs used exclusively for VIEW
-if( VIAME_ENABLE_VIVIA )
-  set( GUI_PIPELINE_FILES
-    embedded_single_stream/filter_debayer.pipe
-    embedded_single_stream/filter_debayer_and_enhance.pipe
-    embedded_single_stream/filter_enhance.pipe
-    embedded_single_stream/generate_empty_frame_lbls_0001fr.pipe
-    embedded_single_stream/generate_empty_frame_lbls_0010fr.pipe
-    embedded_single_stream/generate_empty_frame_lbls_0100fr.pipe
-    embedded_single_stream/generate_empty_frame_lbls_1000fr.pipe
-    embedded_single_stream/generate_empty_frame_lbls_auto.pipe
-    embedded_single_stream/generic_proposal_detector.pipe
-    embedded_single_stream/local_deep_detector.pipe
-    embedded_single_stream/local_deep_detector_with_def_tracker.pipe
-    embedded_single_stream/local_deep_detector_with_stab_tracker.pipe
-    embedded_single_stream/local_svm_frame_classifier.pipe
-  )
-
-  if( VIAME_ENABLE_PYTORCH )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      embedded_single_stream/train_deep_detector_cfrnn.pipe )
-  endif()
-
-  install( FILES       ${GUI_PIPELINE_FILES}
-           DESTINATION configs/pipelines/embedded_single_stream )
-endif()
+# The VIEW-only pipeline configs stood here, and went with VIVIA in P1.
 
 if( VIAME_ENABLE_SVM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
@@ -311,7 +287,7 @@ if( VIAME_ENABLE_PYTHON )
     train_tracker_ocsort.conf )
 endif()
 
-if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( DUAL_EMBEDDED_FILES
     embedded_dual_stream/local_trained_eo_detector.pipe
     embedded_dual_stream/local_trained_ir_detector.pipe )
