@@ -18,9 +18,9 @@ process image_filter
   :: format_images_srm
 
   :fix_output_size                             true
-  :resize_option                               rescale
-  :max_output_width                            1920
-  :max_output_height                           1080
+  :resize_option                               crop
+  :max_output_width                            10000
+  :max_output_height                           10000
 
 connect from downsampler.output_1
         to   image_filter.image
@@ -79,18 +79,6 @@ connect from downsampler.timestamp
 connect from tracker.object_track_set
         to   track_descriptor.object_track_set
 
-process track_writer
-  :: write_object_track
-  :file_name                                  [INSERT_ME]
-  :writer:type                                viame_csv
-
-connect from downsampler.timestamp
-        to   track_writer.timestamp
-connect from downsampler.output_2
-        to   track_writer.image_file_name
-connect from tracker.object_track_set
-        to   track_writer.object_track_set
-
 process track_writer_index
   :: write_object_track
   :file_name                                  [INSERT_ME]
@@ -98,6 +86,8 @@ process track_writer_index
 
 connect from downsampler.timestamp
         to   track_writer_index.timestamp
+connect from downsampler.output_2
+        to   track_writer_index.image_file_name
 connect from tracker.object_track_set
         to   track_writer_index.object_track_set
 
