@@ -1379,6 +1379,25 @@ is what it was built for; `skip` passes it perfectly. Somewhere between that
 and the 292-pipeline `pipes.json` there is a gap exactly the size of "a
 registered process that has never been stepped", and this is one.
 
+**A second instance, found by P8-T09.** `close_loops:appearance_indexed` is
+registered, is in the baseline, and its `check_configuration` calls
+`check_nested_algo_configuration< algo::match_descriptor_sets >`. **No
+implementation of `match_descriptor_sets` is registered anywhere in the
+tree** -- it is the only one of the 45 interfaces in
+`algorithm_framework/algo` with none. So a pipeline that selected
+`appearance_indexed` could not configure. No shipped `.pipe` or `.conf`
+names it, so nothing has ever tried.
+
+Two instances of the same shape in two tasks is the argument for closing the
+gap rather than recording it a third time. The cheap version is not a test
+per registration: it is one test that, for every registered name, creates it
+with its default configuration and calls `check_configuration`. That would
+have caught `appearance_indexed` immediately and `skip` not at all, since
+`skip` configures and then hangs -- so the honest form is two checks, one
+for "can be created and configured" and one for "a minimal pipeline
+containing it terminates", and the second is only affordable for processes
+with simple ports.
+
 ### 2.12 Four python test trees that have never run
 
 `KWIVER_ENABLE_PYTHON_TESTS` gates `python/kwiver/vital/tests`,
