@@ -258,15 +258,14 @@ No VIAME C++ includes an OpenCV header and no VIAME library links one.
 `VIAME_ENABLE_OPENCV` now means cv2 in python: the seven applets that import
 it, the pipelines and examples that use them, and the wheel.
 
-One item is outstanding and it is not a decision about VIAME's code. The
-darknet fork in the reference superbuild was built with `ENABLE_OPENCV=ON`,
-so `libviame_darknet.so` still pulls `libopencv_highgui`, `videoio` and
-`imgcodecs` through `libdarknet.so`. VIAME's side no longer calls
-`detect( cv::Mat )`, so `cmake/add_project_darknet.cmake` can pass
-`ENABLE_OPENCV=OFF` -- but that cannot be verified without rebuilding the
-superbuild, and what it risks is darknet's own training binary, which loads
-images through OpenCV when it has it and through stb when it does not. One
-line, on the next full rebuild.
+The one item that was outstanding -- darknet in the reference superbuild was
+built with `ENABLE_OPENCV=ON`, so `libviame_darknet.so` pulled
+`libopencv_highgui`, `videoio` and `imgcodecs` through `libdarknet.so` --
+**is closed, and not by passing the flag.** There is no external darknet
+build to pass it to: darknet is `third_party/darknet`, compiled with the
+rest of the tree into a static `libdarknet.a` with `OPENCV` undefined.
+Checked on the finished install: **not one VIAME library, and not one python
+extension, has a `NEEDED` entry for any `libopencv`.**
 
 ## Removed names log
 
