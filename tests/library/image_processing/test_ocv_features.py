@@ -121,6 +121,32 @@ def test_sift_contrast_threshold_is_applied():
     assert strict.detect(frame()).size() < default.detect(frame()).size()
 
 
+def _surf_is_available():
+    """Whether this cv2 can actually build a SURF detector.
+
+    SURF is patented, and **no `opencv-python*` wheel on PyPI is built with
+    `OPENCV_ENABLE_NONFREE`**. The plain wheel has no `xfeatures2d` at all;
+    the contrib wheel has `SURF_create` and it raises. VIAME shipped a cv2
+    built from source with the non-free modules until phase 1 made cv2 a
+    wheel, so these two tests ran then and skip now -- rather than being
+    deleted, because a site that builds its own OpenCV still gets them.
+    """
+    import cv2
+
+    try:
+        cv2.xfeatures2d.SURF_create(100, 4, 3, False, False)
+    except (AttributeError, cv2.error):
+        return False
+
+    return True
+
+
+needs_surf = pytest.mark.skipif(
+    not _surf_is_available(),
+    reason="this cv2 has no non-free SURF; see ocv_sift_surf.py")
+
+
+@needs_surf
 def test_surf_hessian_threshold_is_applied():
     strict = configured("DetectFeatures", "ocv_SURF", hessian_threshold=500)
     default = create("DetectFeatures", "ocv_SURF")
@@ -128,6 +154,7 @@ def test_surf_hessian_threshold_is_applied():
     assert strict.detect(frame()).size() < default.detect(frame()).size()
 
 
+@needs_surf
 def test_surf_extended_widens_the_descriptor():
     image = frame()
 

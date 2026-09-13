@@ -42,6 +42,30 @@ endif()
 # Phase 1 moves both into python/requirements/base.in with the rest.
 list( APPEND VIAME_PYTHON_BASIC_DEPS "av" "imageio-ffmpeg" )
 
+# cv2, and this is the line that lets fletch go.
+#
+# `VIAME_ENABLE_OPENCV` has meant "cv2 in python" since P7 took OpenCV out of
+# the C++. Until now that cv2 came from fletch's OpenCV build, which installs
+# a `cv2` module and registers itself under the `opencv-python` distribution
+# name so that pip believes the wheel is already present -- and
+# `linux-remove-duplicate-cvs.cmake` deleted the real wheel if anyone
+# installed one anyway. That was the last thing in VIAME that fletch
+# provided.
+#
+# **contrib**, not plain: `library/measurement/ocv_stereo_disparity.py` uses
+# `cv2.ximgproc` for WLS disparity filtering and two files reach for
+# `cv2.xfeatures2d`, and the plain wheel has neither. Measured against every
+# `cv2.` symbol VIAME's python names, 218 of them: the contrib wheel is
+# missing exactly the same five as the build it replaces, all of them
+# OpenCV 2 spellings in code that cannot reach them. The plain wheel is
+# missing those five and five more.
+#
+# What is genuinely lost is **SURF**: no `opencv-python*` wheel is built with
+# `OPENCV_ENABLE_NONFREE`, so `xfeatures2d.SURF_create` raises "this
+# algorithm is patented and is excluded in this configuration". `ocv_SURF`
+# says so and points at `ocv_SIFT`, which is free and in every build.
+list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-contrib-python-headless" )
+
 # Testing infrastructure
 if( VIAME_ENABLE_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
@@ -278,9 +302,8 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
   # This list is pip-installed with --no-deps (see add_project_pytorch.cmake), so transitive
   # dependencies must be named here. albumentations pins albucore exactly, and albucore in turn
   # needs simsimd/stringzilla; pip cannot enforce that pin under --no-deps, so both versions are
-  # pinned together and must be bumped together. opencv-python-headless is deliberately omitted:
-  # cv2 comes from the fletch OpenCV build, which registers itself under that distribution name
-  # (see custom_install_fletch.cmake).
+  # pinned together and must be bumped together. cv2 is not named here: it is a core dependency
+  # of VIAME rather than of RF-DETR, and is in the basic list above.
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate>=0.9,<0.10"
     "faster-coco-eval>=1.7.2" "albumentations==2.0.8" "albucore==0.0.24" "simsimd>=5.9.2"
     "stringzilla>=3.10.4" "pytorch_lightning>=2.6,<3,!=2.6.2,!=2.6.3"

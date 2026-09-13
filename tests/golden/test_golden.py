@@ -435,6 +435,65 @@ def check_detections(item, case, outputs, group):
 # thing the port can get wrong. A tolerance would hide exactly that.
 ARRAY_TOLERANCE = 0.0
 
+# Per (kind, implementation): the absolute difference an array case's members
+# may show, where the default is zero.
+#
+# Every entry here is the same cause. Phase 1 made `cv2` a PyPI wheel rather
+# than a source build of OpenCV carried by fletch, which moved the OpenCV
+# behind these implementations from 4.9.0 to 5.0.0. These recordings are
+# recordings of OpenCV, so a version of OpenCV that computes slightly
+# differently shows up here -- and every difference it made is in the last
+# bits. The numbers are what was measured on the reference machine, rounded
+# up to the next order of magnitude so that a different build of the same
+# version has room:
+#
+#   fundamental ocv   measured 1.0e-15   double-precision noise on a
+#                                        normalised 3x3, i.e. a few ULP
+#   homography  ocv   measured 1.7e-07   the same, on a matrix whose
+#                                        entries run to 10
+#   features    SIFT  measured 3.1e-05   exactly 2^-15: one ULP of the
+#                                        float32 a keypoint coordinate is
+#                                        stored in, on a coordinate of ~500
+#
+# They are deliberately far tighter than "close enough for vision work". A
+# changed algorithm, a lost configuration key or a swapped channel moves
+# these outputs by orders of magnitude more, so the checks still catch
+# everything they caught before.
+ARRAY_TOLERANCES_BY_KIND = {
+    ( "fundamental", "ocv" ):  ( 1e-14, 0.0 ),
+    ( "homography",  "ocv" ):  ( 1e-06, 0.0 ),
+    ( "features", "ocv_SIFT" ): ( 1e-04, 0.0 ),
+    ( "tracks",   "ocv_SIFT" ): ( 1e-04, 0.0 ),
+    ( "matches",  "ocv_SIFT" ): ( 1e-04, 0.0 ),
+
+    # The two calibrations, same cause and one step further removed: these
+    # run `cv::calibrateCamera`, an iterative optimisation, so a corner
+    # detected a ULP away moves the solution it converges to. Measured at
+    # 2.8e-4 at worst on an intrinsic matrix whose focal lengths are in the
+    # thousands, i.e. about 1e-7 relative.
+    #
+    # What says this is drift rather than damage is the other half of these
+    # two cases. `check_calibration_truth` and `check_mono_calibration_truth`
+    # compare the result against the rig the views were **rendered** through
+    # rather than against the recording, and both still pass untouched at
+    # their existing relative tolerances. The calibration is as correct as it
+    # was; it is written down to different digits.
+    # These two are **relative**, where the rest are absolute, because one
+    # absolute number cannot serve a recording whose members run from a
+    # normalised skew near 1 to a projection matrix entry near 1e5. Measured
+    # relative error at worst: about 1e-6, on `fx`. A tenth of a per cent of
+    # a focal length would be a real change and is still caught.
+    # An absolute floor as well, because a relative tolerance says nothing
+    # useful about the two entries of the translation vector that are zero
+    # by construction: the rig is a horizontal baseline, so `T` is
+    # (-baseline, ~0, ~0) and the two small entries would be held to
+    # `relative * 1.0`. Measured there: 1.2e-4 millimetres.
+    ( "calibration_pipeline", "stereo_calibrate_cameras_default.pipe" ):
+        ( 1e-03, 1e-05 ),
+    ( "mono_calibration", "utility_calibrate_single_camera.pipe" ):
+        ( 1e-03, 1e-05 ),
+}
+
 
 def check_array_case(item, case, outputs, group):
     """A recording whose values are named arrays: features, descriptors, matches.
@@ -503,14 +562,38 @@ def check_array_case(item, case, outputs, group):
                         if case["kind"] in ("measurement", "pair_stereo")
                         else 0.0)
 
+            absolute, by_kind_relative = ARRAY_TOLERANCES_BY_KIND.get(
+                ( case["kind"], case["impl"] ), ( ARRAY_TOLERANCE, 0.0 ))
+            relative = max(relative, by_kind_relative)
+
             allowed = np.maximum(
-                ARRAY_TOLERANCE,
+                absolute,
                 relative * np.maximum(1.0, np.abs(np.nan_to_num(want_values))))
 
-            assert bool(np.all(difference <= allowed)), (
-                "{} {} '{}': max difference {} exceeds {}".format(
-                    case_id(item), name, member, difference.max(),
-                    float(np.max(allowed))))
+            # Report the worst **violation**, not the largest difference
+            # against the largest allowance. Both sides are elementwise once
+            # a relative tolerance is in play, so those are not generally the
+            # same element, and printing them together produced the memorable
+            # "max difference 0.00011 exceeds 0.0012".
+            over = difference > allowed
+
+            assert not bool(np.any(over)), (
+                "{} {} '{}': difference {} exceeds {} at index {} "
+                "(recorded {}); {} of {} values are over".format(
+                    case_id(item), name, member,
+                    float(np.max(np.where(over, difference, -np.inf))),
+                    float(np.broadcast_to(allowed, difference.shape)[
+                        np.unravel_index(
+                            np.argmax(np.where(over, difference, -np.inf)),
+                            difference.shape)]),
+                    np.unravel_index(
+                        np.argmax(np.where(over, difference, -np.inf)),
+                        difference.shape),
+                    float(np.nan_to_num(want_values)[
+                        np.unravel_index(
+                            np.argmax(np.where(over, difference, -np.inf)),
+                            difference.shape)]),
+                    int(over.sum()), over.size))
 
 
 def check_calibration_truth(item, arrays):
@@ -685,6 +768,50 @@ def model_files(case):
             if isinstance(value, str) and "{models}" in value]
 
 
+_SURF_AVAILABLE = None
+
+
+def surf_is_available():
+    """Whether this build's cv2 can actually build a SURF detector.
+
+    SURF is patented and **no `opencv-python*` wheel on PyPI is built with
+    `OPENCV_ENABLE_NONFREE`**: the plain wheel has no `xfeatures2d` at all,
+    and the contrib wheel has a `SURF_create` that raises. VIAME carried a
+    cv2 built from source with the non-free modules until phase 1 made cv2 a
+    wheel.
+
+    These recordings are kept rather than deleted. A site that builds its own
+    OpenCV still has SURF, and these cases still hold it to what the C++
+    wrapper produced -- which is the whole point of having recorded them.
+    """
+    global _SURF_AVAILABLE
+
+    if _SURF_AVAILABLE is None:
+        try:
+            import cv2
+
+            cv2.xfeatures2d.SURF_create(100, 4, 3, False, False)
+            _SURF_AVAILABLE = True
+        except Exception:
+            _SURF_AVAILABLE = False
+
+    return _SURF_AVAILABLE
+
+
+def skip_without_surf(case, impl):
+    """Skip a case that needs SURF when this cv2 has not got it."""
+    if surf_is_available():
+        return
+
+    # `ocv_SURF` is the implementation under test in a `features` case and
+    # the *fixture* in a `matches` or `tracks` case, where the variant names
+    # the detector whose features are being matched.
+    if "ocv_SURF" in (case["impl"], impl) or "ocv_SURF" in case["variant"]:
+        pytest.skip(
+            "this cv2 has no non-free SURF, so ocv_SURF cannot run; see "
+            "library/image_processing/ocv_sift_surf.py")
+
+
 def skip_without_model(case):
     """Skip rather than fail when the case's model or its GPU is absent.
 
@@ -736,6 +863,7 @@ def test_golden(item):
     group, case, impl = item
 
     skip_without_model(case)
+    skip_without_surf(case, impl)
 
     interface = INTERFACE_OF_KIND.get(case["kind"])
     removal = REMOVED.get((case["impl"], interface)) if interface else None

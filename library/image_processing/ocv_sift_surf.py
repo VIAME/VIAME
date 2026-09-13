@@ -21,11 +21,14 @@ the detector take `COLOR_BGR2GRAY` on it, which is the right luminance of
 the original RGB. So this converts with `COLOR_RGB2GRAY` and hands over one
 channel -- see `_to_cv_image`.
 
-**SURF needs a cv2 built with the non-free modules.** It is
-`cv2.xfeatures2d.SURF_create`, which the `opencv-python-headless` wheel does
-not carry -- the build VIAME ships does. `ocv_SURF` registers either way, so
-the name is never silently missing from the registry, and says so when asked
-to run. See `design/lite-findings.md`.
+**SURF needs a cv2 built with the non-free modules, and no wheel is.** It is
+`cv2.xfeatures2d.SURF_create`, and every `opencv-python*` wheel on PyPI is
+built without `OPENCV_ENABLE_NONFREE`, so the plain wheel does not carry the
+function and the contrib wheel carries one that raises "This algorithm is
+patented and is excluded in this configuration". VIAME shipped a cv2 built
+from source with it until phase 1. `ocv_SURF` registers either way, so the
+name is never silently missing from the registry, and says so when asked to
+run. See `design/lite-findings.md`.
 """
 
 import logging
@@ -106,21 +109,35 @@ class _SURF(object):
     def create(values):
         import cv2
 
+        # Two ways to not have SURF, and both of them happen. A cv2 without
+        # the contrib modules has no `xfeatures2d` at all; the contrib wheel
+        # has the module and the function, and the function raises
+        # "This algorithm is patented and is excluded in this configuration"
+        # because no wheel on PyPI is built with `OPENCV_ENABLE_NONFREE`.
+        # Guarding only the attribute lookup, which is what stood here, turns
+        # the second case into a raw `cv2.error` from inside OpenCV.
         try:
             factory = cv2.xfeatures2d.SURF_create
         except AttributeError:
-            raise RuntimeError(
-                "ocv_SURF needs a cv2 built with the non-free modules, and "
-                "this one has no cv2.xfeatures2d.SURF_create. The "
-                "opencv-python-headless wheel is built without them; use "
-                "ocv_SIFT, which is free and in every build.")
+            factory = None
 
-        return factory(
-            values["hessian_threshold"],
-            values["n_octaves"],
-            values["n_octaves_layers"],
-            values["extended"],
-            values["upright"])
+        if factory is not None:
+            try:
+                return factory(
+                    values["hessian_threshold"],
+                    values["n_octaves"],
+                    values["n_octaves_layers"],
+                    values["extended"],
+                    values["upright"])
+            except cv2.error as error:
+                if "patented" not in str(error):
+                    raise
+
+        raise RuntimeError(
+            "ocv_SURF needs a cv2 built with the non-free modules. Every "
+            "opencv-python wheel is built without them, patented algorithms "
+            "excluded, so SURF is unavailable in a stock install; use "
+            "ocv_SIFT, which is free and in every build.")
 
 
 # ----------------------------------------------------------------------------

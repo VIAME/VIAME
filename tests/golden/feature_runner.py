@@ -119,21 +119,47 @@ def _compare_pairs(got, want):
 def _compare_states(got, want):
     problems = []
 
-    # (frame, x, y): the detector's, and exact
-    recorded = {(row[0], row[2], row[3]) for row in want}
-    actual = {(row[0], row[2], row[3]) for row in got}
+    # (frame, x, y): the detector's, and matched to the last bit rather than
+    # to the last digit.
+    #
+    # This was set equality, which is the check it still wants to be: a port
+    # that lost the extractor's replaced feature set leaves these untouched
+    # while making the linking nonsense, so "every recorded location is still
+    # there" says something set membership is the right shape for. What it
+    # cannot survive is a keypoint coordinate moving by one ULP of the
+    # float32 it is stored in, which is what phase 1's move from fletch's
+    # OpenCV 4.9 to the 5.0 wheel did to one SIFT feature in 124.
+    #
+    # So a recorded location is present if some actual location on the same
+    # frame is within `LOCATION_EPSILON` of it, and each may be claimed once.
+    # A feature that genuinely moved is orders of magnitude further away than
+    # that, and a feature set that was not replaced at all matches perfectly,
+    # which are the two answers this has to keep telling apart.
+    recorded = [(row[0], row[2], row[3]) for row in want]
+    actual = [(row[0], row[2], row[3]) for row in got]
 
-    missing = recorded - actual
+    unclaimed = list(actual)
+    missing = []
+
+    for frame, x, y in recorded:
+        for index, (f, a, b) in enumerate(unclaimed):
+            if (f == frame
+                    and abs(a - x) <= feature_cases.LOCATION_EPSILON
+                    and abs(b - y) <= feature_cases.LOCATION_EPSILON):
+                del unclaimed[index]
+                break
+        else:
+            missing.append((frame, x, y))
+
     if missing:
         problems.append(
             "{} of {} recorded feature locations are gone".format(
                 len(missing), len(recorded)))
 
-    extra = actual - recorded
-    if extra:
+    if unclaimed:
         problems.append(
             "{} feature locations the recording does not have".format(
-                len(extra)))
+                len(unclaimed)))
 
     # How many tracks have each length: the matcher's, and approximate
     for length, count in sorted(_length_counts(want).items()):

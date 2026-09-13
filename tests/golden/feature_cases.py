@@ -205,6 +205,14 @@ MATCH_AGREEMENT = 0.90
 # is the matcher's and may move.
 TRACK_LENGTH_TOLERANCE = 0.10
 
+# How far a recorded feature location may have moved and still be the same
+# feature. A keypoint coordinate is a float32, so one ULP at a coordinate of
+# 500 is about 3e-5; this is three orders of magnitude above that and many
+# more below the distance between two distinct keypoints. It exists because
+# phase 1 moved cv2 from fletch's OpenCV 4.9 build to the 5.0 wheel, which
+# moved exactly one SIFT feature in 124 by one ULP.
+LOCATION_EPSILON = 1e-2
+
 
 def unstable(kind, impl, variant=None):
     """Why this case cannot be compared exactly, or None."""
