@@ -76,8 +76,8 @@ if( VIAME_ENABLE_CUDA )
     message( FATAL_ERROR "CUDA 10.1.168 has bugs, upgrade to 10.1.264 or above" )
   endif()
 
-  option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
-  mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
+  # `VIAME_FORCE_CUDA_CSTD98` stood here, and was read in one place: what
+  # C++ standard fletch compiled its CUDA with.
 
   # CUDA 13.0 removed support for Maxwell, Pascal, and Volta archs
   if( CUDA_VERSION VERSION_LESS "13.0" )
@@ -142,7 +142,6 @@ if( VIAME_ENABLE_CUDA )
       "hack around this requirement and disable this error." )
   endif()
 else()
-  set( VIAME_FORCE_CUDA_CSTD98 CACHE INTERNAL FALSE )
   set( CUDA_ARCHITECTURES "" CACHE INTERNAL "CUDA Architectures" )
 
   if( WIN32 )
@@ -471,18 +470,9 @@ if( VIAME_ENABLE_PYTORCH )
   endif()
 endif()
 
-if( VIAME_ENABLE_OPENCV )
-  set( VIAME_OPENCV_VERSION 4.9.0 CACHE STRING "Version of OpenCV to use" )
-  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS "3.4.0" "4.2.0" "4.9.0" )
-  mark_as_advanced( VIAME_OPENCV_VERSION )
-
-  if( CMAKE_COMPILER_IS_GNUCC AND
-      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 AND
-      VIAME_OPENCV_VERSION VERSION_LESS "4.6" )
-    message( FATAL_ERROR "GCC compiler version 12 is very new. For compatibility "
-      "reasons, VIAME_OPENCV_VERSION should be set to 4.6.0 or greater."  )
-  endif()
-endif()
+# `VIAME_OPENCV_VERSION` stood here, choosing which OpenCV fletch built, with
+# a check that GCC 12 was not pointed at one older than 4.6. Nothing compiles
+# against OpenCV any more and cv2 is a wheel, so the version is the wheel's.
 
 if( VIAME_ENABLE_SEAGIS )
   option( VIAME_BUILD_SEAGIS_TEST_LIB "Use mock lib for testing only" OFF )

@@ -419,7 +419,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   set( LIBRARY_PATCH_COMMAND "" )
   set( LIBRARY_DOWNLOAD_ARGS )
-  set( PROJECT_DEPS fletch python-deps )
+  set( PROJECT_DEPS python-deps )
 
   # Every other package here comes down with the submodules; pytorch is cloned
   # on demand, so it needs a download step of its own

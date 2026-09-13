@@ -380,7 +380,9 @@ endif()
 
 # ------------------------------------- INSTALL ROUTINES -----------------------------------------
 
-set( VIAME_PYTHON_DEPS_DEPS fletch )
+# Nothing to wait for any more. This was `fletch`, which had to be built
+# first because cv2 came out of it; cv2 is a wheel since P1-T07.
+set( VIAME_PYTHON_DEPS_DEPS )
 
 list( LENGTH VIAME_PYTHON_ADV_DEPS DEP_COUNT )
 math( EXPR DEP_COUNT "${DEP_COUNT} - 1" )

@@ -129,23 +129,16 @@ endif()
 ##
 if( VIAME_BUILD_DEPENDENCIES )
 
-  # Early error checking in case user did not run submodule init
-  file( GLOB fletch_files ${VIAME_PACKAGES_DIR}/fletch/* )
-  list( LENGTH fletch_files fletch_length )
-
-  if( ${fletch_length} LESS 3 )
-    message( FATAL_ERROR "Fletch directory empty, did you not run the following in \
-     your source tree: \n git submodule update --init --recursive" )
-  endif()
-
   # Include for CMake external project add command
   include( ExternalProject )
 
   # Specifies internal arguments passed to all projects (CXX flag passdowns, etc)
   include( common_args )
 
-  # Core dependencies for other projects
-  include( add_project_fletch )
+  # `include( add_project_fletch )` stood here, and everything below waited
+  # on it. Fletch built OpenCV, FFmpeg, VXL, Eigen, Boost, Qt, zlib and some
+  # fifty more libraries for VIAME to link against; by P1 VIAME linked none
+  # of them. The last one to go was cv2, which P1-T07 made a wheel.
 
   if( VIAME_ENABLE_PYTHON )
     include( add_project_python_deps )

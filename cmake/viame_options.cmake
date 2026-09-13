@@ -174,9 +174,8 @@ endif()
 ##
 
 # Alternative build directories for specific components
-set( VIAME_BUILD_FLETCH_DIR "${VIAME_BUILD_PREFIX}/src/fletch-build"
-     CACHE STRING "VIAME superbuild FLETCH build location" )
-mark_as_advanced( VIAME_BUILD_FLETCH_DIR )
+#
+# `VIAME_BUILD_FLETCH_DIR` stood here. Fletch is gone.
 
 set( VIAME_BUILD_KWIVER_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
      CACHE STRING "VIAME superbuild KWIVER build location" )
@@ -248,8 +247,8 @@ endif()
 ###
 # Add extra options
 ##
-option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libpng"     ON )
-mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
+# `VIAME_BUILD_CORE_IMAGE_LIBS` stood here: whether fletch built libpng and
+# the rest. VIAME reads image formats through its own codecs and cv2 now.
 
 option( VIAME_ENABLE_TESTS "Build VIAME tests"                                      OFF )
 mark_as_advanced( VIAME_ENABLE_TESTS )

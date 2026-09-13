@@ -1,6 +1,3 @@
-[submodule "packages/fletch"]
-	path = packages/fletch
-	url = https://github.com/Kitware/fletch.git
 [submodule "packages/dive"]
 	path = packages/dive
 	url = https://github.com/Kitware/dive.git
