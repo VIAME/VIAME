@@ -942,9 +942,25 @@ class NetHarnTrainer( TrainDetector ):
             signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
         self.proc = subprocess.Popen( cmd )
-        self.proc.wait()
+        returncode = self.proc.wait()
+
+        # A deliberate interrupt never lands here: interupt_handler exits the
+        # process itself. So a nonzero code means the trainer died, and
+        # continuing would report success and emit a pipeline pointing at a
+        # model that was never written.
+        if returncode != 0:
+            raise RuntimeError(
+                "netharn training failed with exit code {}; see the trainer "
+                "output above for the reason. No model was produced.".format(
+                    returncode ) )
 
         output = self.get_output_map()
+
+        if not output:
+            raise RuntimeError(
+                "netharn training exited cleanly but left no model in {}. "
+                "The run directory holds the training log.".format(
+                    self._train_directory ) )
 
         print( "\nModel training complete!" )
 
