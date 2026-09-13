@@ -1,13 +1,22 @@
+# CI for the single build
+#
+# VIAME used to build its dependencies as ExternalProjects, so this workflow
+# was built around that: three staged caches keyed on the hashes of
+# `add_project_fletch.cmake`, `add_project_kwiver.cmake` and
+# `add_project_pytorch.cmake`, and a build that ran `--target fletch`, then
+# `--target python-deps`, then `--target kwiver`, then `--target pytorch`,
+# then `--target viame`. There is one configure and one build now, and none
+# of those targets exists.
+#
+# What is left to cache is compiler output, which is what ccache is for.
+
 name: CI Build
 
 on:
   push:
-    branches:
-      - next
+    branches: [ main, lite ]
   pull_request:
-    branches:
-      - main
-      - next
+    branches: [ main, lite ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
@@ -17,434 +26,150 @@ jobs:
   build-linux:
     name: Linux CI Build
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 6 hours for cached builds
+    timeout-minutes: 120
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Free disk space
-        run: |
-          # Remove unnecessary files to free up disk space
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
-          df -h
-
+      # The whole list, and it is the whole list: a compiler, CMake, git and
+      # python with its headers. See examples/building_from_source/README.rst.
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            cmake \
-            ninja-build \
-            git \
-            libgl1-mesa-dev \
-            libxt-dev \
-            libx11-dev \
-            libssl-dev \
-            libcurl4-openssl-dev \
-            libeigen3-dev \
-            libgtk2.0-dev \
-            liblapack-dev \
-            liblapacke-dev \
-            libopenblas-dev \
-            nasm \
-            yasm \
-            python3-dev \
-            python3-pip \
-            python3-venv
+          sudo apt-get install -y --no-install-recommends \
+            g++ cmake ninja-build git zip wget curl \
+            python3 python3-dev python3-numpy python3-pip
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        id: setup-python
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1.2
         with:
-          python-version: '3.10'
+          key: linux-${{ github.job }}
 
-      - name: Get Python paths
-        id: python-paths
+      # CPU only, and without the options whose packages are built from
+      # source: this job is here to catch a build break, and mmcv alone would
+      # spend most of the time budget.
+      #
+      # `VIAME_INSTALL_PYTHON_DEPS=ON` is the point of the job as much as the
+      # compile is. It installs `cpu.lock` and `test.lock` and then runs the
+      # patch step, so a lock that does not resolve, a pin that has been
+      # yanked, or a patch that has stopped matching its package all fail
+      # here rather than on somebody's machine. Verified locally in a
+      # throwaway prefix: 409 of 409 UNIT and CORE tests pass on a build
+      # whose python came only from these locks.
+      - name: Configure
         run: |
-          PYTHON_PATH="${{ steps.setup-python.outputs.python-path }}"
-          PYTHON_DIR=$(dirname "$PYTHON_PATH")
-          # Get Python library and include paths
-          PYTHON_LIBRARY=$(python -c "import sysconfig; import os; lib_dir = sysconfig.get_config_var('LIBDIR'); lib_name = sysconfig.get_config_var('LDLIBRARY'); print(os.path.join(lib_dir, lib_name) if lib_dir and lib_name else '')")
-          PYTHON_INCLUDE=$(python -c "import sysconfig; print(sysconfig.get_path('include'))")
-          echo "python-exe=$PYTHON_PATH" >> $GITHUB_OUTPUT
-          echo "python-dir=$PYTHON_DIR" >> $GITHUB_OUTPUT
-          echo "python-library=$PYTHON_LIBRARY" >> $GITHUB_OUTPUT
-          echo "python-include=$PYTHON_INCLUDE" >> $GITHUB_OUTPUT
-          echo "Using Python executable: $PYTHON_PATH"
-          echo "Python include dir: $PYTHON_INCLUDE"
-
-      - name: Install Python build dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install numpy
-
-      # Generate cache keys based on package hashes
-      - name: Generate cache keys
-        id: cache-keys
-        run: |
-          # Hash for fletch (packages/fletch directory and cmake config)
-          FLETCH_HASH=$(find packages/fletch -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.patch" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
-          FLETCH_CMAKE_HASH=$(sha256sum cmake/add_project_fletch.cmake | cut -d' ' -f1)
-          echo "fletch-hash=${FLETCH_HASH:0:16}-${FLETCH_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
-
-          # Hash for kwiver (packages/kwiver directory and cmake config)
-          KWIVER_HASH=$(find packages/kwiver -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.cxx" -o -name "*.h" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
-          KWIVER_CMAKE_HASH=$(sha256sum cmake/add_project_kwiver.cmake | cut -d' ' -f1)
-          echo "kwiver-hash=${KWIVER_HASH:0:16}-${KWIVER_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
-
-          # Hash for pytorch-libs (packages/pytorch-libs directory and cmake config)
-          PYTORCH_HASH=$(find packages/pytorch-libs -type f \( -name "*.py" -o -name "setup.py" -o -name "setup.cfg" -o -name "pyproject.toml" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
-          PYTORCH_CMAKE_HASH=$(sha256sum cmake/add_project_pytorch.cmake | cut -d' ' -f1)
-          echo "pytorch-hash=${PYTORCH_HASH:0:16}-${PYTORCH_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
-
-      # Cache fletch build
-      - name: Cache fletch build
-        id: cache-fletch
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/build/src/fletch-build
-            build/install
-          key: linux-fletch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.fletch-hash }}
-          restore-keys: |
-            linux-fletch-py${{ steps.setup-python.outputs.python-version }}-
-
-      # Cache kwiver build
-      - name: Cache kwiver build
-        id: cache-kwiver
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/build/src/kwiver-build
-          key: linux-kwiver-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.kwiver-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
-          restore-keys: |
-            linux-kwiver-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.kwiver-hash }}-
-            linux-kwiver-py${{ steps.setup-python.outputs.python-version }}-
-
-      # Cache pytorch-libs build
-      - name: Cache pytorch-libs build
-        id: cache-pytorch
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/build/src/pytorch-build
-          key: linux-pytorch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.pytorch-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
-          restore-keys: |
-            linux-pytorch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.pytorch-hash }}-
-            linux-pytorch-py${{ steps.setup-python.outputs.python-version }}-
-
-      - name: Create build directory
-        run: mkdir -p build
-
-      - name: Configure CMake
-        working-directory: build
-        run: |
-          cmake .. \
+          cmake -S . -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DVIAME_ENABLE_CUDA:BOOL=OFF \
             -DVIAME_ENABLE_CUDNN:BOOL=OFF \
-            -DVIAME_ENABLE_PYTORCH:BOOL=ON \
-            -DVIAME_ENABLE_OPENCV:BOOL=ON \
-            -DVIAME_ENABLE_VXL:BOOL=ON \
             -DVIAME_ENABLE_PYTHON:BOOL=ON \
+            -DVIAME_ENABLE_PYTORCH:BOOL=OFF \
+            -DVIAME_ENABLE_ONNX:BOOL=OFF \
             -DVIAME_ENABLE_DARKNET:BOOL=OFF \
+            -DVIAME_ENABLE_COLMAP:BOOL=OFF \
             -DVIAME_ENABLE_DIVE:BOOL=OFF \
-            -DVIAME_ENABLE_VIVIA:BOOL=OFF \
-            -DVIAME_ENABLE_SEAL:BOOL=OFF \
-            -DVIAME_ENABLE_DOCS:BOOL=OFF \
-            -DVIAME_ENABLE_FFMPEG:BOOL=OFF \
+            -DVIAME_ENABLE_TESTS:BOOL=ON \
             -DVIAME_DOWNLOAD_MODELS:BOOL=OFF \
-            -DVIAME_BUILD_TESTS:BOOL=OFF \
-            -DVIAME_FORCEBUILD:BOOL=OFF \
-            -DPYTHON_EXECUTABLE:PATH="${{ steps.python-paths.outputs.python-exe }}" \
-            -DPYTHON_INCLUDE_DIR:PATH="${{ steps.python-paths.outputs.python-include }}" \
-            -DPYTHON_LIBRARY:PATH="${{ steps.python-paths.outputs.python-library }}"
+            -DVIAME_INSTALL_PYTHON_DEPS:BOOL=ON
 
-      - name: Build fletch (if not cached)
-        if: steps.cache-fletch.outputs.cache-hit != 'true'
-        working-directory: build
-        run: |
-          cmake --build . --target fletch -- -j$(nproc)
+      - name: Build
+        run: cmake --build build -j $(nproc)
 
-      - name: Upgrade pip/setuptools for built Python
-        run: |
-          # Fix Python 3.12 compatibility issue with old setuptools
-          # (pkgutil.ImpImporter was removed in Python 3.12)
-          if [ -f build/install/bin/python ]; then
-            build/install/bin/python -m pip install --upgrade pip
-            build/install/bin/python -m pip install --upgrade "setuptools>=70.0.0" wheel
-          fi
+      - name: Install
+        run: cmake --install build
 
-      - name: Build python-deps
-        working-directory: build
-        run: |
-          cmake --build . --target python-deps -- -j$(nproc)
-
-      - name: Install pygccxml for kwiver
-        run: |
-          python -m pip install pygccxml
-
-      - name: Build kwiver (if not cached)
-        if: steps.cache-kwiver.outputs.cache-hit != 'true'
-        working-directory: build
-        run: |
-          cmake --build . --target kwiver -- -j$(nproc)
-
-      - name: Build pytorch-libs (if not cached)
-        if: steps.cache-pytorch.outputs.cache-hit != 'true'
-        working-directory: build
-        run: |
-          cmake --build . --target pytorch || true
-
-      - name: Build VIAME
-        working-directory: build
-        run: |
-          cmake --build . --target viame -- -j$(nproc)
-
-      - name: Verify build
-        run: |
-          if [ -f build/install/setup_viame.sh ]; then
-            echo "SUCCESS: setup_viame.sh found"
-          else
-            echo "ERROR: setup_viame.sh not found"
-            ls -la build/install/ || true
-            exit 1
-          fi
+      # UNIT and CORE, not BASELINE. The compatibility baseline is the
+      # contract for the **full** option set -- it lists every algorithm and
+      # process VIAME provides -- so a CPU build with pytorch and onnx off
+      # fails it by construction, on the names those options would have
+      # registered. Checked rather than assumed: `-L BASELINE` on this
+      # configuration fails `baseline:registry` and `baseline:pipes`. The
+      # release build runs the full set, and that is where the contract
+      # belongs.
+      - name: Test
+        run: ctest --test-dir build -L "UNIT|CORE" --output-on-failure -j 2
 
   build-windows:
     name: Windows CI Build
-    runs-on: windows-2025  # VS 2026
-    timeout-minutes: 360  # 6 hours for cached builds
+    runs-on: windows-2025
+    timeout-minutes: 120
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: false
+          submodules: recursive
 
-      - name: Enable long paths on Windows
-        run: git config --system core.longpaths true
-
-      - name: Initialize submodules (excluding pytorch)
-        shell: bash
-        run: |
-          git submodule init
-          # Disable pytorch submodule - too many long paths for Windows
-          git config --local submodule.packages/pytorch.update none
-          git submodule update --recursive
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        id: setup-python
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install Python dependencies
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      # Same shape as the Linux job and the same reasoning about which
+      # options are on. No ctest: P10-T03 is where Windows gets its own pass,
+      # and this job is here to catch a build break in the meantime.
+      - name: Configure
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install numpy
+          cmake -S . -B build `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DVIAME_ENABLE_CUDA:BOOL=OFF `
+            -DVIAME_ENABLE_CUDNN:BOOL=OFF `
+            -DVIAME_ENABLE_PYTHON:BOOL=ON `
+            -DVIAME_ENABLE_PYTORCH:BOOL=OFF `
+            -DVIAME_ENABLE_ONNX:BOOL=OFF `
+            -DVIAME_ENABLE_DARKNET:BOOL=OFF `
+            -DVIAME_ENABLE_COLMAP:BOOL=OFF `
+            -DVIAME_ENABLE_DIVE:BOOL=OFF `
+            -DVIAME_ENABLE_TESTS:BOOL=OFF `
+            -DVIAME_DOWNLOAD_MODELS:BOOL=OFF `
+            -DVIAME_INSTALL_PYTHON_DEPS:BOOL=OFF
 
-      - name: Install Visual Studio 2026 Build Tools
-        shell: powershell
-        run: |
-          Write-Host "Installing VS 2026 Build Tools..."
-          choco install visualstudio2026buildtools `
-            --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --includeRecommended --quiet" `
-            -y --ignore-package-exit-codes=3010
-          Write-Host "VS 2026 Build Tools installation completed"
+      - name: Build
+        run: cmake --build build
 
-      - name: Install CMake
-        shell: powershell
-        run: |
-          # Install CMake via chocolatey so it can detect VS 2026
-          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
-          # Refresh environment
-          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+  # The Linux job installs `cpu.lock` for real, so a lock that does not
+  # resolve fails there. What that cannot catch is a lock the *other*
+  # accelerators cannot resolve, and an exclusion that has quietly stopped
+  # holding. Both are seconds to check and neither needs a build.
+  locks:
+    name: Python dependency locks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
-      # Generate cache keys based on package hashes
-      - name: Generate cache keys
-        id: cache-keys
-        shell: bash
-        run: |
-          # Hash for fletch
-          FLETCH_HASH=$(find packages/fletch -type f \( -name "*.cmake" -o -name "CMakeLists.txt" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
-          FLETCH_CMAKE_HASH=$(sha256sum cmake/add_project_fletch.cmake | cut -d' ' -f1)
-          echo "fletch-hash=${FLETCH_HASH:0:16}-${FLETCH_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-          # Hash for kwiver
-          KWIVER_HASH=$(find packages/kwiver -type f \( -name "*.cmake" -o -name "CMakeLists.txt" -o -name "*.cxx" -o -name "*.h" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
-          KWIVER_CMAKE_HASH=$(sha256sum cmake/add_project_kwiver.cmake | cut -d' ' -f1)
-          echo "kwiver-hash=${KWIVER_HASH:0:16}-${KWIVER_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
-
-          # Hash for pytorch-libs
-          PYTORCH_HASH=$(find packages/pytorch-libs -type f \( -name "*.py" -o -name "setup.py" -o -name "setup.cfg" -o -name "pyproject.toml" \) -exec sha256sum {} \; 2>/dev/null | sort | sha256sum | cut -d' ' -f1)
-          PYTORCH_CMAKE_HASH=$(sha256sum cmake/add_project_pytorch.cmake | cut -d' ' -f1)
-          echo "pytorch-hash=${PYTORCH_HASH:0:16}-${PYTORCH_CMAKE_HASH:0:16}" >> $GITHUB_OUTPUT
-
-      # Cache fletch build
-      - name: Cache fletch build
-        id: cache-fletch
-        uses: actions/cache@v4
+      - uses: actions/setup-python@v5
         with:
-          path: |
-            C:/VIAME-CI/build/src/fletch-build
-            C:/VIAME-CI/build/install
-          key: windows-fletch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.fletch-hash }}
-          restore-keys: |
-            windows-fletch-py${{ steps.setup-python.outputs.python-version }}-
+          python-version: '3.10'
 
-      # Cache kwiver build
-      - name: Cache kwiver build
-        id: cache-kwiver
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:/VIAME-CI/build/src/kwiver-build
-          key: windows-kwiver-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.kwiver-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
-          restore-keys: |
-            windows-kwiver-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.kwiver-hash }}-
-            windows-kwiver-py${{ steps.setup-python.outputs.python-version }}-
-
-      # Cache pytorch-libs build
-      - name: Cache pytorch-libs build
-        id: cache-pytorch
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:/VIAME-CI/build/src/pytorch-build
-          key: windows-pytorch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.pytorch-hash }}-${{ steps.cache-keys.outputs.fletch-hash }}
-          restore-keys: |
-            windows-pytorch-py${{ steps.setup-python.outputs.python-version }}-${{ steps.cache-keys.outputs.pytorch-hash }}-
-            windows-pytorch-py${{ steps.setup-python.outputs.python-version }}-
-
-      - name: Get Python paths
-        id: python-paths
-        shell: bash
+      - name: Resolve every lock
         run: |
-          PYTHON_PATH="${{ steps.setup-python.outputs.python-path }}"
-          PYTHON_DIR=$(dirname "$PYTHON_PATH")
-          # Get Python library and include paths for Windows
-          PYTHON_INCLUDE=$(python -c "import sysconfig; print(sysconfig.get_path('include'))")
-          PYTHON_LIBRARY=$(python -c "import sysconfig; import os; base = sysconfig.get_config_var('base'); ver = sysconfig.get_config_var('py_version_nodot'); print(os.path.join(base, 'libs', f'python{ver}.lib'))")
-          echo "python-exe=$PYTHON_PATH" >> $GITHUB_OUTPUT
-          echo "python-dir=$PYTHON_DIR" >> $GITHUB_OUTPUT
-          echo "python-include=$PYTHON_INCLUDE" >> $GITHUB_OUTPUT
-          echo "python-library=$PYTHON_LIBRARY" >> $GITHUB_OUTPUT
-          echo "Using Python at: $PYTHON_PATH"
-          echo "Python include: $PYTHON_INCLUDE"
-          echo "Python library: $PYTHON_LIBRARY"
+          python -m pip install --upgrade pip
+          for lock in python/requirements/*.lock; do
+            echo "--- $lock"
+            python -m pip install --no-deps --dry-run -r "$lock"
+          done
 
-      - name: Remove other Python versions from PATH
-        shell: powershell
+      # The exclusions are load bearing. opencv-python and
+      # opencv-python-headless each install a cv2 into the same directory as
+      # the contrib wheel VIAME uses, and whichever lands last wins.
+      - name: Check the exclusions held
         run: |
-          # Get the Python 3.10 path from setup-python
-          $pythonDir = "${{ steps.python-paths.outputs.python-dir }}"
-          Write-Host "Keeping Python at: $pythonDir"
-
-          # Filter PATH to remove other Python toolcache entries
-          $pathDirs = $env:PATH -split ';'
-          $filteredPath = $pathDirs | Where-Object {
-            $_ -notmatch 'hostedtoolcache.*Python' -or $_ -match 'Python[\\/]3\.10'
-          }
-          $newPath = $filteredPath -join ';'
-
-          # Update PATH for subsequent steps
-          echo "PATH=$newPath" >> $env:GITHUB_ENV
-          Write-Host "Updated PATH to exclude other Python versions"
-
-      - name: Create build directory
-        shell: cmd
-        run: |
-          mkdir C:\VIAME-CI
-          robocopy . C:\VIAME-CI\src /E /XD ".git" "docs" "__pycache__" /NFL /NDL /NJH /NJS /R:0 /W:0
-          if %ERRORLEVEL% LEQ 7 exit /b 0
-
-      - name: Verify CMake can find VS 2026
-        shell: cmd
-        run: |
-          "C:\Program Files\CMake\bin\cmake.exe" --version
-          echo.
-          echo Available generators:
-          "C:\Program Files\CMake\bin\cmake.exe" --help | findstr /C:"Visual Studio"
-
-      - name: Configure CMake
-        shell: cmd
-        working-directory: C:\VIAME-CI
-        run: |
-          mkdir build
-          cd build
-          "C:\Program Files\CMake\bin\cmake.exe" ..\src ^
-            -G "Visual Studio 18 2026" ^
-            -DCMAKE_BUILD_TYPE=Release ^
-            -DVIAME_ENABLE_CUDA:BOOL=OFF ^
-            -DVIAME_ENABLE_CUDNN:BOOL=OFF ^
-            -DVIAME_ENABLE_PYTORCH:BOOL=ON ^
-            -DVIAME_ENABLE_OPENCV:BOOL=ON ^
-            -DVIAME_ENABLE_VXL:BOOL=ON ^
-            -DVIAME_ENABLE_PYTHON:BOOL=ON ^
-            -DVIAME_ENABLE_DARKNET:BOOL=OFF ^
-            -DVIAME_ENABLE_DIVE:BOOL=OFF ^
-            -DVIAME_ENABLE_VIVIA:BOOL=OFF ^
-            -DVIAME_ENABLE_SEAL:BOOL=OFF ^
-            -DVIAME_ENABLE_DOCS:BOOL=OFF ^
-            -DVIAME_ENABLE_FFMPEG:BOOL=OFF ^
-            -DVIAME_DOWNLOAD_MODELS:BOOL=OFF ^
-            -DVIAME_BUILD_TESTS:BOOL=OFF ^
-            -DVIAME_FORCEBUILD:BOOL=OFF ^
-            -DVIAME_BUILD_KWIVER_DIR:PATH=C:/tmp/kv1 ^
-            -DVIAME_BUILD_PLUGINS_DIR:PATH=C:/tmp/vm1 ^
-            -DPYTHON_EXECUTABLE:PATH="${{ steps.python-paths.outputs.python-exe }}" ^
-            -DPYTHON_INCLUDE_DIR:PATH="${{ steps.python-paths.outputs.python-include }}" ^
-            -DPYTHON_LIBRARY:PATH="${{ steps.python-paths.outputs.python-library }}"
-
-      - name: Build fletch (if not cached)
-        if: steps.cache-fletch.outputs.cache-hit != 'true'
-        shell: cmd
-        working-directory: C:\VIAME-CI\build
-        run: |
-          "C:\Program Files\CMake\bin\cmake.exe" --build . --target fletch --config Release
-
-      - name: Build python-deps
-        shell: cmd
-        working-directory: C:\VIAME-CI\build
-        run: |
-          "C:\Program Files\CMake\bin\cmake.exe" --build . --target python-deps --config Release
-
-      - name: Build kwiver (if not cached)
-        if: steps.cache-kwiver.outputs.cache-hit != 'true'
-        shell: cmd
-        working-directory: C:\VIAME-CI\build
-        run: |
-          "C:\Program Files\CMake\bin\cmake.exe" --build . --target kwiver --config Release
-
-      - name: Build pytorch-libs (if not cached)
-        if: steps.cache-pytorch.outputs.cache-hit != 'true'
-        shell: cmd
-        working-directory: C:\VIAME-CI\build
-        run: |
-          "C:\Program Files\CMake\bin\cmake.exe" --build . --target pytorch --config Release || exit 0
-
-      - name: Build VIAME
-        shell: cmd
-        working-directory: C:\VIAME-CI\build
-        run: |
-          "C:\Program Files\CMake\bin\cmake.exe" --build . --target viame --config Release
-
-      - name: Verify build
-        shell: powershell
-        run: |
-          if (Test-Path "C:\VIAME-CI\build\install\setup_viame.bat") {
-            Write-Host "SUCCESS: setup_viame.bat found"
-          } else {
-            Write-Host "ERROR: setup_viame.bat not found"
-            Get-ChildItem -Path "C:\VIAME-CI\build\install\" -ErrorAction SilentlyContinue
-            exit 1
-          }
+          for pkg in opencv-python opencv-python-headless triton wandb decord; do
+            if grep -qE "^${pkg}==" python/requirements/*.lock; then
+              echo "ERROR: ${pkg} is pinned in a lock file; it is on the"
+              echo "exclusion list in python/requirements/README.md"
+              exit 1
+            fi
+          done
+          echo "no excluded package is pinned"
