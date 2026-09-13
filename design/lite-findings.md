@@ -1555,6 +1555,18 @@ for "can be created and configured" and one for "a minimal pipeline
 containing it terminates", and the second is only affordable for processes
 with simple ports.
 
+**Part of the first check now exists, as a side effect of finding 1.35.**
+`registry-dump --introspect` constructs every python algorithm with its
+defaults to read its configuration, and `baseline:registry` runs it, so an
+implementation that cannot be built with no arguments now fails the
+baseline. What is still missing is `check_configuration` -- which is what
+`appearance_indexed` fails -- and the "it terminates" half, which is what
+`skip` fails. A third instance turned up meanwhile:
+`ocv_multimodal_registration`, whose module imports and whose class exists
+but which raises `type trait name "homography" not registered` on
+construction. It was never in the baseline, so P8-T10 left its declaration
+out rather than advertise a name that cannot be built.
+
 ### 2.12 Four python test trees that have never run
 
 `KWIVER_ENABLE_PYTHON_TESTS` gates `python/kwiver/vital/tests`,
