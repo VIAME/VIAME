@@ -1,0 +1,7 @@
+# torch and the ONNX runtime for a CUDA 13 build. See `cuda12.in`.
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+-r base.in
+
+torch==2.12.0
+onnxruntime-gpu==1.23.2

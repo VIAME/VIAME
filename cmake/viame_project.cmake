@@ -183,6 +183,15 @@ set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applet
 include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-settings.cmake" )
 
 ###
+# The python dependencies
+##
+# Before `python/`, so that a build which installs them has them in place
+# before anything imports one.
+if( VIAME_ENABLE_PYTHON )
+  include( "${VIAME_SOURCE_DIR}/cmake/viame_python_deps.cmake" )
+endif()
+
+###
 # Add VIAME subdirs
 ##
 # Converted code first: plugins/ still depends on some of it

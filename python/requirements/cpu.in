@@ -1,0 +1,11 @@
+# torch and the ONNX runtime for a build with no GPU.
+#
+# The CPU index matters as much as the CUDA one: the default PyPI torch
+# wheel carries the CUDA runtime, which is most of a gigabyte that a CPU
+# build has no use for.
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+-r base.in
+
+torch==2.12.0
+onnxruntime==1.23.2

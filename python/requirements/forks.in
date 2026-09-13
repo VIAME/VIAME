@@ -1,0 +1,56 @@
+# What the forks need, which nothing else declares.
+#
+# `packages/pytorch-libs/*` are source builds -- mmcv, mmdet, mmengine,
+# mmdeploy, sam2, sam3, rf-detr, mit-yolo, foundation-stereo, pytorchvideo,
+# imgaug and the darknet ONNX converter -- and the superbuild installed each
+# one's wheel **without** `--no-deps`, so pip resolved its requirements from
+# PyPI at whatever version it felt like on the day. That is the single
+# largest source of drift between two VIAME installs of the same commit, and
+# it is why this file exists: the forks' requirements are declared here, get
+# pinned in the lock with everything else, and the forks themselves install
+# `--no-deps`.
+#
+# It also closes a hole. `mmengine` requires `opencv-python` and `mit-yolo`
+# requires `wandb`, so installing either fork with dependencies pulled a
+# second cv2 into the same site-packages as VIAME's, and 86 MB of telemetry
+# client nothing configures. Both are on the exclusion list, and with
+# `--no-deps` they stay off.
+#
+# Taken from each fork's own metadata rather than by reading its setup.py:
+# `pip show <fork>` on a working install, which is what pip actually acts on.
+# Compiled with the accelerator's lock as a constraint.
+
+# mmcv, mmengine, mmdet, mmdeploy
+addict
+six
+rich
+termcolor
+terminaltables
+prettytable
+aenum
+grpcio
+multiprocess
+
+# sam2, sam3
+hydra-core
+iopath
+ftfy
+regex
+
+# rf-detr
+pydantic
+requests
+
+# mit-yolo
+graphviz
+lazy-loader
+lightning
+loguru
+
+# pytorchvideo
+fvcore
+parameterized
+
+# imgaug
+shapely
+pillow

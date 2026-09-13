@@ -1,0 +1,15 @@
+# What `VIAME_ENABLE_COLMAP` adds.
+#
+# Its own file because it is 166 MB and only `reconstruction.py` and
+# `reconstruct_3d` need it -- `lite-install-size.md` section 3 row 9.
+#
+# `pycolmap-cuda12` rather than `pycolmap` on a CUDA build: it links the
+# system CUDA 12 runtime VIAME already builds against, where the plain wheel
+# pulls packaged `cuda-toolkit[cudart,curand]` wheels of its own.
+# Compiled with the accelerator's lock as a constraint, so every version
+# this shares with a default install is the same version. It deliberately
+# does not `-r base.in`: this file is what the option *adds*, and the build
+# installs it alongside the accelerator lock rather than instead of it.
+
+pycolmap-cuda12 ; platform_system == "Linux"
+pycolmap ; platform_system != "Linux"

@@ -1,0 +1,11 @@
+# What `VIAME_ENABLE_PYTORCH-LEARN` adds.
+# Compiled with the accelerator's lock as a constraint, so every version
+# this shares with a default install is the same version. It deliberately
+# does not `-r base.in`: this file is what the option *adds*, and the build
+# installs it alongside the accelerator lock rather than instead of it.
+
+submitit
+scikit-learn
+termcolor
+addict
+filelock

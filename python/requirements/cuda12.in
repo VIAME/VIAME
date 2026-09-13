@@ -1,0 +1,14 @@
+# torch and the ONNX runtime for a CUDA 12 build.
+#
+# The index URL is part of the requirement: torch's CUDA builds are not on
+# PyPI, and which `+cuXXX` local version you get is decided by which index
+# is consulted. `pip-compile` records it in the lock's header, so the lock
+# is self-describing and the install step does not have to know.
+--extra-index-url https://download.pytorch.org/whl/cu126
+
+-r base.in
+
+# `VIAME_PYTORCH_VERSION` chooses this, and changing it means recompiling
+# this lock -- a torch version is not a free variable once the lock exists.
+torch==2.12.0
+onnxruntime-gpu==1.23.2
