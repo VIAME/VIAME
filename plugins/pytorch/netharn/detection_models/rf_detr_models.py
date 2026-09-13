@@ -630,8 +630,21 @@ class RFDETR_Detector(nh.layers.Module):
                 # Get target sizes for postprocessing
                 target_sizes = torch.tensor([[H, W]] * B, device=device)
 
+                # RFDETRSeg may hand back pred_masks factored into
+                # spatial_features / query_features / bias rather than a dense
+                # [B, Q, H, W] tensor. rfdetr's criterion branches on that, but
+                # its PostProcess does out_masks.shape[0] unconditionally and
+                # dies on the dict. The loss above has already consumed the
+                # real pred_masks, so hide it from the postprocessor: the drawn
+                # results lose their mask overlay, which is a better trade than
+                # the run dying.
+                post_inputs = raw_outputs
+                if isinstance(raw_outputs.get('pred_masks'), dict):
+                    post_inputs = {k: v for k, v in raw_outputs.items()
+                                   if k != 'pred_masks'}
+
                 # Apply postprocessor
-                results = self.postprocess(raw_outputs, target_sizes)
+                results = self.postprocess(post_inputs, target_sizes)
 
                 outputs['batch_results'] = data_containers.BatchContainer(
                     results, stack=False)

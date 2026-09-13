@@ -638,6 +638,20 @@ class DetectFitDataset(torch.utils.data.Dataset):
                 label['class_masks'] = ItemContainer(class_masks, stack=False, cpu_only=True)
                 label['has_mask'] = ItemContainer(has_mask, stack=False)
 
+            # None of the branches above may have run: 'given' needs
+            # segmentations on the sampled annotations, and a window with no
+            # annotations at all has none. Leaving the key unset produces a
+            # target without 'masks', which rfdetr's loss_masks indexes
+            # unconditionally and dies on. An empty mask stack is the same
+            # thing each branch already writes for an empty list.
+            if 'class_masks' not in label:
+                mh, mw = chw01.shape[1:]
+                label['class_masks'] = ItemContainer(
+                    torch.empty((0, mh, mw), dtype=torch.uint8),
+                    stack=False, cpu_only=True)
+                label['has_mask'] = ItemContainer(
+                    torch.empty((0,), dtype=torch.int8), stack=False)
+
         components = {
             'rgb': chw01,
         }
