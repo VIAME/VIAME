@@ -3,7 +3,7 @@
 # circumstances.
 #
 
-include( utils/kwiver-utils-flags )
+include( viame-flags-check )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   include( viame-flags-msvc )

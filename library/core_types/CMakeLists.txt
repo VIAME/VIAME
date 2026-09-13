@@ -108,7 +108,7 @@ viame_add_library(
   )
 
 # Depend on file configuration
-add_dependencies( vital_types kwiver_configure )
+add_dependencies( vital_types viame_configure )
 
 target_link_libraries( vital_types
   PRIVATE

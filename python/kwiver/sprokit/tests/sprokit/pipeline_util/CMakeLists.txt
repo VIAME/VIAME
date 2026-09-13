@@ -12,7 +12,7 @@ set(__modnames
 if (KWIVER_ENABLE_TESTS)
   include(viame-test-setup)
   foreach (group IN LISTS __modnames)
-    kwiver_discover_python_tests(${group} test-${group}.py
+    viame_discover_python_tests(${group} test-${group}.py
       ${kwiver_test_pipelines_directory})
   endforeach()
 endif()

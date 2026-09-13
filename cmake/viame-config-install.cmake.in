@@ -36,8 +36,10 @@ set(VIAME_MODULE_DIR    "${VIAME_LIBRARY_DIR}/viame/modules")
 set(VIAME_PROCESS_DIR   "${VIAME_LIBRARY_DIR}/viame/processes")
 set(VIAME_CMAKE_DIR     "${VIAME_LIBRARY_DIR}/cmake/viame")
 
-# The macros a plugin's CMakeLists uses: kwiver_add_plugin,
-# algorithms_create_plugin and the rest.
+# The helpers a plugin's CMakeLists may use: `viame_add_plugin`,
+# `viame_add_library` and the rest, installed by
+# `cmake/viame/viame-install-utils.cmake`. `KWIVER_CMAKE_DIR` keeps its name
+# for the same reason the target namespace does -- phase 11 renames both.
 set(KWIVER_CMAKE_DIR    "${VIAME_CMAKE_DIR}")
 set(CMAKE_MODULE_PATH   "${VIAME_CMAKE_DIR}" "${VIAME_CMAKE_DIR}/utils" "${CMAKE_MODULE_PATH}")
 

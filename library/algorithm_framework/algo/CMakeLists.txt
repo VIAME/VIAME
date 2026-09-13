@@ -133,7 +133,7 @@ target_link_libraries( vital_algo
 #if (KWIVER_ENABLE_TOOLS)
 ####
 ##     plugins for plugin explorer
-#kwiver_add_plugin( algo_explorer_plugin
+#viame_add_plugin( algo_explorer_plugin
 #  SUBDIR   ${kwiver_plugin_plugin_explorer_subdir}
 #  SOURCES  algo_explorer_plugin.cxx
 #  PRIVATE  vital

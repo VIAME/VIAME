@@ -8,8 +8,6 @@
 
 set( sprokit_source_dir "${CMAKE_CURRENT_SOURCE_DIR}" )
 set( sprokit_binary_dir "${CMAKE_CURRENT_BINARY_DIR}" )
-set( SPROKIT_CMAKE_DIR  "${KWIVER_CMAKE_DIR}/sprokit" )
-
 set( SPROKIT_ENABLE_PYTHON ${KWIVER_ENABLE_PYTHON} )
 set( sprokit_output_dir "${CMAKE_BINARY_DIR}" )
 
@@ -18,15 +16,6 @@ if( SPROKIT_ENABLE_PYTHON )
 endif()
 
 check_cxx_compiler_flag( -fvisibility=hidden SPROKIT_HAVE_GCC_VISIBILITY )
-
-# Sprokit's own macro layer, which its CMakeLists still use. P5-T05 moved it
-# to cmake/kwiver_compat/sprokit; phase 8 is where it goes for good.
-include( "${SPROKIT_CMAKE_DIR}/sprokit-macro-configure.cmake" )
-include( "${SPROKIT_CMAKE_DIR}/sprokit-macro-targets.cmake" )
-include( "${SPROKIT_CMAKE_DIR}/sprokit-macro-python.cmake" )
-include( "${SPROKIT_CMAKE_DIR}/pkgconfig.cmake" )
-include( "${SPROKIT_CMAKE_DIR}/snippet-configuration.cmake" )
-include( "${SPROKIT_CMAKE_DIR}/snippet-groups.cmake" )
 
 include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
 

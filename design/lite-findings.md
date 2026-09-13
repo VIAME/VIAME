@@ -1320,6 +1320,38 @@ sat in for years (open question 2.13) -- and it is worth one cheap test that
 actually runs a pipeline end to end, which is now
 `tests/library/pipeline_framework/test_scheduler.cxx`.
 
+### 1.30 A recording taken from a directory records what accumulated there
+
+P8-T08 replaces every CMake helper that decides where a file is installed, so
+it opens by writing down what VIAME installs. The obvious way to do that is
+to walk the install prefix. It is wrong twice over.
+
+**The prefix is shared.** VIAME installs into the same tree as fletch, which
+puts thousands of headers of its own there -- `include/cppdb`, GDAL's,
+OpenCV's. Of the 5,584 paths the first manifest recorded, **4,439 were not
+installed by VIAME's build at all.**
+
+**`make install` only ever adds.** Nothing removes a file that the build has
+stopped producing, so the tree also holds whatever older configurations left
+there. `lib/cmake/kwiver`, 22 entries, had been dead since P5-T05 dissolved
+the submodule; it was still on disk and went straight into the baseline as
+though something produced it. Worse, this makes the check blind in the
+direction that matters most for a task about install rules: when P8-T08
+stopped installing eighteen of kwiver's CMake files, the manifest reported
+**"0 gone, 6 new"**, because the eighteen were still sitting in the tree.
+
+The fix is to record what the install *says it placed*. `cmake --install`
+names every file, one line each, and re-running it when everything is up to
+date takes two seconds -- cheaper than walking 80,000 files, exact about
+ownership, and symmetric: it notices a removal as readily as an addition. The
+manifest went from 5,584 paths to 1,786, and the 1,786 include `configs/` and
+`examples/`, which the directory walk had missed entirely because they were
+not in the roots I thought to list.
+
+The general form: **when recording a build's output, ask the build, not the
+filesystem.** A directory is a record of history; the build is a record of
+intent, and it is intent that a change is supposed to preserve.
+
 ## 2. Open questions
 
 ### 2.13 `skip_process` deadlocks, and has since it was written

@@ -28,7 +28,7 @@ if (KWIVER_ENABLE_TESTS)
     # SeeAlso:
     #     # defines sprokit_discover_python_tests
     #     sprokit/conf/sprokit-macro-python-tests.cmake
-    kwiver_discover_python_tests(${group} test-${group}.py)
+    viame_discover_python_tests(${group} test-${group}.py)
   endforeach()
 endif()
 
@@ -41,10 +41,10 @@ set(schedulers
   sync
   thread_per_process)
 
-kwiver_build_python_test(run test-run.py)
+viame_build_python_test(run test-run.py)
 function (kwiver_add_python_run_test group instance)
   foreach (scheduler IN LISTS schedulers)
-    kwiver_add_python_test(${group} ${instance}-${scheduler})
+    viame_add_python_test(${group} ${instance}-${scheduler})
 
     set_tests_properties(test-python-${group}-${instance}-${scheduler}
       PROPERTIES

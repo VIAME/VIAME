@@ -5,11 +5,12 @@
 #ifndef KWIVER_VITAL_PLUGIN_MODULE_PATHS_H_H_
 #define KWIVER_VITAL_PLUGIN_MODULE_PATHS_H_H_
 
-#define DEFAULT_MODULE_PATHS "@VITAL_MODULE_PATH@"
-#define SHARED_LIB_SUFFIX    "@CMAKE_SHARED_MODULE_SUFFIX@"
-#define PATH_SEPARATOR_CHAR  '@path_sep@'
-
-#define DEFAULT_CLUSTER_PATHS      "@SPROKIT_DEFAULT_CLUSTER_PATHS@"
+// Where `.pipe` files look for the files they include, and the character
+// that separates the entries. The two macros left here: P8-T03 removed
+// plugin module scanning, so `DEFAULT_MODULE_PATHS` and `SHARED_LIB_SUFFIX`
+// had nothing left to tell anyone, and P8-T07 removed clusters along with
+// `DEFAULT_CLUSTER_PATHS`.
 #define DEFAULT_PIPE_INCLUDE_PATHS "@SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS@"
+#define PATH_SEPARATOR_CHAR        '@path_sep@'
 
 #endif

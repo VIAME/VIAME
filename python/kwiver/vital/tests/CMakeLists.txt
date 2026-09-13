@@ -104,15 +104,15 @@ if (KWIVER_ENABLE_PYTHON_TESTS)
     set(WIN_TEST_CONFIG_TYPE "$<CONFIG>")
   endif()
 
-  include(kwiver-setup-tests-python)
+  include(viame-setup-tests-python)
   foreach (test IN LISTS __testable_modnames)
-    kwiver_add_pytest( "${CMAKE_CURRENT_SOURCE_DIR}/${test}" python)
+    viame_add_pytest( "${CMAKE_CURRENT_SOURCE_DIR}/${test}" python)
   endforeach()
 
   set(_test_data
         "data/cube.ply")
   foreach (file_name IN LISTS _test_data)
-    kwiver_python_add_test_data(${file_name} ${kwiver_test_working_path})
+    viame_python_add_test_data(${file_name} ${viame_test_working_path})
   endforeach()
 endif()
 

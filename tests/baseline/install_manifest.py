@@ -1,106 +1,69 @@
 #!/usr/bin/env python3
-"""What VIAME installs, and where.
+"""What VIAME's own build installs, and where.
 
 The CMake helpers decide this: which directory a library lands in, which
 headers are public, what goes in `lib/cmake`, where a python module is
-written. P8-T08 replaces those helpers, and nothing in the tree checks their
-output -- a build that installs a header one directory to the left compiles,
-links, tests green, and breaks the next person who includes it.
+written. P8-T08 replaced those helpers, and nothing in the tree checked
+their output -- a build that installs a header one directory to the left
+compiles, links, tests green, and breaks the next person who includes it.
 
-So the surface is written down. Only VIAME's own files: `lib/*.so*`,
-`include/`, `bin/`, `lib/cmake/`, and the `viame` and `kwiver` python
-packages. Not `lib/python3.10/site-packages` at large -- 75,000 files of
-torch and its dependencies, which VIAME does not place and cannot regress.
+**The set comes from the install log, not from the tree.** VIAME installs
+into a prefix it shares with fletch, which puts thousands of headers of its
+own there -- `include/cppdb`, GDAL's, OpenCV's -- and `make install` only
+ever adds, so the tree also holds whatever older builds left behind. Reading
+the directory therefore answers "what has accumulated here", which is not the
+question. `cmake --install` names every file it places, one per line, and
+that is the answer.
 
 Usage:
-  install_manifest.py <install prefix> --record manifest.txt
-  install_manifest.py <install prefix> --check  manifest.txt
+  make install > install.log
+  install_manifest.py install.log --prefix <prefix> --record manifest.txt
+  install_manifest.py install.log --prefix <prefix> --check  manifest.txt
 """
 import argparse
 import os
+import re
 import sys
 
-# Where VIAME's own helpers put things. A path outside these is either a
-# dependency's or not installed by us.
-ROOTS = (
-    "include",
-)
-
-# `bin/` is mostly pip console scripts -- `accelerate`, `torchrun` and a
-# hundred others -- which VIAME does not place and which move whenever a
-# python dependency is bumped. Only the executables VIAME's own build
-# produces are recorded.
-BINARIES = (
-    "viame",
-    "kwiver",
-    "dump_klv.py",
-    "demo_macro_magic",
-    "demo_python_impl_call",
-)
-
-# Likewise `lib/cmake`: `opencv4` and `proj4` belong to fletch.
-CMAKE_PACKAGES = (
-    "viame",
-    "kwiver",
-    "sprokit",
-)
-
-SITE_PACKAGES = "lib/python3.10/site-packages"
-PACKAGES = ("viame", "kwiver")
+LINE = re.compile(r"^-- (?:Installing|Up-to-date): (.+)$", re.M)
 
 
-def installed(prefix):
-    """Every file VIAME's own build places, as prefix-relative paths."""
+def installed(log_path, prefix):
+    """Every file this install placed, as prefix-relative paths."""
+    with open(log_path, encoding="utf-8", errors="replace") as handle:
+        log = handle.read()
+
+    prefix = os.path.abspath(prefix)
     found = set()
 
-    # Shared libraries sit directly in lib/; everything else under it belongs
-    # to a dependency (postgresql, libpng, the python tree).
-    lib = os.path.join(prefix, "lib")
-    if os.path.isdir(lib):
-        for name in os.listdir(lib):
-            if ".so" in name and os.path.isfile(os.path.join(lib, name)):
-                found.add("lib/" + name)
-
-    for root in ROOTS:
-        base = os.path.join(prefix, root)
-        for directory, _, names in os.walk(base):
-            for name in names:
-                path = os.path.join(directory, name)
-                found.add(os.path.relpath(path, prefix))
-
-    for name in BINARIES:
-        if os.path.isfile(os.path.join(prefix, "bin", name)):
-            found.add("bin/" + name)
-
-    for package in CMAKE_PACKAGES:
-        base = os.path.join(prefix, "lib", "cmake", package)
-        for directory, _, names in os.walk(base):
-            for name in names:
-                path = os.path.join(directory, name)
-                found.add(os.path.relpath(path, prefix))
-
-    for package in PACKAGES:
-        base = os.path.join(prefix, SITE_PACKAGES, package)
-        for directory, _, names in os.walk(base):
-            for name in names:
-                # Bytecode is a side effect of running, not of installing.
-                if name.endswith(".pyc"):
-                    continue
-                path = os.path.join(directory, name)
-                found.add(os.path.relpath(path, prefix))
+    for match in LINE.finditer(log):
+        path = match.group(1).strip()
+        if not path.startswith(prefix):
+            # A superbuild stage installing somewhere else entirely.
+            continue
+        relative = os.path.relpath(path, prefix)
+        # Bytecode is a side effect of running, not of installing.
+        if relative.endswith(".pyc"):
+            continue
+        found.add(relative)
 
     return found
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("prefix", help="install prefix")
+    parser.add_argument("log", help="output of the install step")
+    parser.add_argument("--prefix", required=True, help="install prefix")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--record", help="write the manifest here")
     group.add_argument("--check", help="compare against this manifest")
     args = parser.parse_args()
 
-    found = installed(args.prefix)
+    found = installed(args.log, args.prefix)
+
+    if not found:
+        print("no install lines in {}: did the install run?".format(args.log))
+        return 1
 
     if args.record:
         with open(args.record, "w") as handle:

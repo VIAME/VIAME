@@ -27,7 +27,7 @@ if (KWIVER_ENABLE_TESTS)
     # SeeAlso:
     #     # defines sprokit_discover_python_tests
     #     sprokit/conf/sprokit-macro-python-tests.cmake
-    kwiver_discover_python_tests(${group} test-${group}.py)
+    viame_discover_python_tests(${group} test-${group}.py)
   endforeach()
 endif()
 ###
@@ -43,7 +43,7 @@ set(__paramaterized_testable_modnames
 if (KWIVER_ENABLE_TESTS)
   include(viame-test-setup)
   foreach (group IN LISTS __paramaterized_testable_modnames)
-    kwiver_discover_python_tests(${group} test-${group}.py
+    viame_discover_python_tests(${group} test-${group}.py
       ${cpp_pipelines_dir}
       ${py_pipelines_dir})
   endforeach()

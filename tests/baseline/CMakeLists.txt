@@ -96,14 +96,23 @@ add_test(
 set_property( TEST "baseline:symbols" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:symbols" PROPERTY TIMEOUT 300 )
 
-# What the CMake helpers put where. P8-T08 replaces those helpers, and a
+# What the CMake helpers put where. P8-T08 replaced those helpers, and a
 # build that installs a header one directory to the left compiles, links,
-# tests green and breaks the next person who includes it. Only VIAME's own
-# files are recorded -- not the 75,000 under site-packages that pip placed.
+# tests green and breaks the next person who includes it.
+#
+# The set comes from re-running the install and reading what it says it
+# placed, not from listing the tree: VIAME shares its prefix with fletch,
+# which puts thousands of headers of its own there, and `make install` only
+# ever adds, so the tree holds whatever older builds left behind too. The
+# re-run takes about two seconds because everything is already up to date.
 add_test(
   NAME "baseline:install"
-  COMMAND "${Python3_EXECUTABLE}" "${baseline_dir}/install_manifest.py"
-          "${install_dir}" --check "${baseline_dir}/install.txt"
+  COMMAND bash -c
+    "\"${CMAKE_COMMAND}\" --install '${CMAKE_BINARY_DIR}' \
+       > '${output_dir}/install.log' 2>&1 && \
+     '${Python3_EXECUTABLE}' '${baseline_dir}/install_manifest.py' \
+       '${output_dir}/install.log' --prefix '${install_dir}' \
+       --check '${baseline_dir}/install.txt'"
 )
 
 set_property( TEST "baseline:install" PROPERTY LABELS BASELINE )

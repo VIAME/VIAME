@@ -86,11 +86,11 @@ viame_add_library( vital
 viame_lite_generated( vital_export.h  algorithm_framework )
 viame_lite_generated( vital_config.h  algorithm_framework )
 # version.h is republished from the top-level CMakeLists: `kwiver_configure_file`
-# writes it with the `kwiver_configure` target at build time, so there is
+# writes it with the `viame_configure` target at build time, so there is
 # nothing here to copy at configure time.
 
 # Make sure the configuration targets flush before building this library.
-add_dependencies (vital kwiver_configure)
+add_dependencies (vital viame_configure)
 
 target_link_libraries( vital
   PRIVATE

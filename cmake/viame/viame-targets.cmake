@@ -25,6 +25,8 @@
 
 include_guard( GLOBAL )
 
+include( GenerateExportHeader )
+
 #+
 # Add a library.
 #

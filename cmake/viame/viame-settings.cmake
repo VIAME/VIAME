@@ -14,7 +14,7 @@
 # cluster search paths are written into the binaries from it, so the version
 # is kwiver's until phase 11 renames the tree.
 if( NOT KWIVER_VERSION )
-  file( READ "${KWIVER_CMAKE_DIR}/VERSION.txt" KWIVER_VERSION )
+  file( READ "${CMAKE_CURRENT_LIST_DIR}/VERSION.txt" KWIVER_VERSION )
   string( STRIP "${KWIVER_VERSION}" KWIVER_VERSION )
 endif()
 
@@ -45,12 +45,12 @@ endif()
 ###
 # vital/version.h
 #
-# `kwiver_configure_file` writes it with the `kwiver_configure` target at
+# `viame_configure_file` writes it with the `viame_configure` target at
 # build time, which is why the second one is configured rather than copied:
 # at configure time there is nothing to copy.
-set( kwiver_configure_with_git on )
+set( viame_configure_with_git on )
 
-kwiver_configure_file( version.h
+viame_configure_file( version.h
   "${VIAME_LITE_LIBRARY_DIR}/algorithm_framework/version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/vital/version.h"
   KWIVER_VERSION_MAJOR
@@ -60,7 +60,7 @@ kwiver_configure_file( version.h
   KWIVER_SOURCE_DIR
   )
 
-kwiver_configure_file( viame_version.h
+viame_configure_file( viame_version.h
   "${VIAME_LITE_LIBRARY_DIR}/algorithm_framework/version.h.in"
   "${VIAME_LITE_GENERATED_DIR}/viame/algorithm_framework/version.h"
   KWIVER_VERSION_MAJOR
@@ -70,7 +70,7 @@ kwiver_configure_file( viame_version.h
   KWIVER_SOURCE_DIR
   )
 
-kwiver_install_headers(
+viame_install_headers(
   "${VIAME_LITE_GENERATED_DIR}/viame/algorithm_framework/version.h"
   SUBDIR viame/algorithm_framework
   NOPATH )
@@ -90,30 +90,9 @@ set( KWIVER_DEFAULT_MODULE_PATHS ""
   CACHE STRING "The default paths for module scanning. Separate paths with ';' character." FORCE )
 mark_as_advanced( KWIVER_DEFAULT_MODULE_PATHS )
 
-foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
-  kwiver_add_module_path( ${p} )
-endforeach()
-
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_subdir} )
-kwiver_add_module_path(  "${kwiver_module_path_result}" )
-
 set( SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS
   "${CMAKE_INSTALL_PREFIX}/${kwiver_config_subdir}/pipelines/include"
   CACHE STRING "The default paths to search for pipe includes in" FORCE )
-
-set( SPROKIT_DEFAULT_CLUSTER_PATHS
-  "${CMAKE_INSTALL_PREFIX}/${kwiver_config_subdir}/pipelines/clusters"
-  CACHE STRING "The default paths to search for clusters in" FORCE )
-
-get_property( plugin_path GLOBAL PROPERTY kwiver_plugin_path )
-
-foreach( p IN LISTS plugin_path )
-  if( VITAL_MODULE_PATH )
-    set( VITAL_MODULE_PATH "${VITAL_MODULE_PATH}${path_sep}${p}" )
-  else()
-    set( VITAL_MODULE_PATH "${p}" )
-  endif()
-endforeach()
 
 configure_file(
   "${VIAME_LITE_LIBRARY_DIR}/algorithm_framework/kwiver-include-paths.h.in"

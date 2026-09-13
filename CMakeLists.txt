@@ -46,23 +46,17 @@ endif()
 ###
 # Add script folders for cmake functions
 ##
-# Kwiver's macro library, which VIAME's own CMakeLists use as well. Kwiver
-# sets KWIVER_CMAKE_DIR itself when it is added as a subdirectory, but that is
-# much further down and these are needed before then.
-set( KWIVER_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/kwiver_compat" )
-
-# Kwiver's macros read these. They used to be the submodule's own directories;
-# they are VIAME's since P5-T05, and `kwiver-setup-python` derives the python
-# output path from the binary one, so they have to be set before the macros
-# are included rather than with the rest of the settings.
+# `KWIVER_SOURCE_DIR` and `KWIVER_BINARY_DIR` are still read by the imported
+# sources' own CMakeLists and by `viame-setup-python`, which derives the
+# python output path from the binary one, so they are set before anything
+# that needs them. They used to be the submodule's directories; they are
+# VIAME's since P5-T05, and phase 11 renames them.
 set( KWIVER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
 set( KWIVER_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}" )
 
 list( INSERT CMAKE_MODULE_PATH 0
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/viame"
-      "${KWIVER_CMAKE_DIR}"
-      "${KWIVER_CMAKE_DIR}/utils" )
+      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/viame" )
 
 ###
 # Helper macros used across all cmakelists files in this project
@@ -1106,15 +1100,15 @@ else()
       add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/libsvm" third_party/libsvm )
     endif()
 
-    include( kwiver-cmake-future )
-    include( kwiver-utils )
 
-    # VIAME's own target helpers. P8-T08 is replacing `kwiver-utils` a group
-    # at a time; what has moved is included after it, so the new definitions
-    # win where both still exist.
+    # VIAME's own CMake helpers, which replaced kwiver's in P8-T08.
+    set( VIAME_CMAKE_HELPER_DIR "${VIAME_SOURCE_DIR}/cmake/viame/tools" )
+    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-configure.cmake" )
+    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-flags-check.cmake" )
     include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-targets.cmake" )
     include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-tests.cmake" )
     if( VIAME_ENABLE_PYTHON )
+      include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-setup-python.cmake" )
       include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-python.cmake" )
     endif()
 
@@ -1155,7 +1149,7 @@ else()
 
     ##
     # check compiler support
-    include( kwiver-configcheck )
+    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-configcheck.cmake" )
 
     # set the name for our package exports and plugin directories
     set( viame_export_name                            viame_exports )
@@ -1180,7 +1174,7 @@ else()
 
     # Wants the macros and the plugin subdirectories above it, and everything
     # it configures below it.
-    include( kwiver_settings )
+    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-settings.cmake" )
   endif()
 
   ###
@@ -1230,12 +1224,10 @@ else()
   if( VIAME_ENABLE_KWIVER )
     set( viame_cmake_install_dir lib${LIB_SUFFIX}/cmake/viame )
 
-    # kwiver_add_plugin and the rest, for the plugin's own CMakeLists.
-    # `kwiver-install-utils` reads the destination out of this name.
-    set( kwiver_cmake_install_dir "${viame_cmake_install_dir}" )
-    include( kwiver-install-utils )
+    # `viame_add_library` and the rest, for the plugin's own CMakeLists.
+    include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-install-utils.cmake" )
 
-    get_property( viame_libs GLOBAL PROPERTY kwiver_libraries )
+    get_property( viame_libs GLOBAL PROPERTY viame_libraries )
     string( REPLACE ";" " " viame_libs "${viame_libs}" )
 
     configure_file(

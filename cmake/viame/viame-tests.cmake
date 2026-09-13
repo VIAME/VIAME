@@ -13,6 +13,8 @@
 
 include_guard( GLOBAL )
 
+include( GoogleTest )
+
 #+
 # Build a gtest executable and register each of its cases with ctest.
 #

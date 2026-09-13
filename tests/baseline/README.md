@@ -44,7 +44,7 @@ python3 tests/baseline/compare_pipes.py tests/baseline/pipes.json /tmp/pipes.jso
 | `registry.json` | Every registered algorithm, process, cluster, applet and scheduler with its config keys and defaults |
 | `pipes.json` | Per pipeline/config file: whether it bakes, its processes, and the implementation each `:type` key selects |
 | `removed.json` | Names removed on purpose: `{kind, interface, name, phase, reason}` |
-| `install.txt` | Every file VIAME's own build installs: `lib/*.so*`, `include/`, the four executables, `lib/cmake/{viame,kwiver,sprokit}` and the `viame` and `kwiver` python packages |
+| `install.txt` | Every file VIAME's own build installs, taken from what the install step says it placed |
 | `critical.txt` | The `CRITICAL`-labelled ctest names at the time the baseline was taken |
 
 ## Known gaps
@@ -53,12 +53,15 @@ python3 tests/baseline/compare_pipes.py tests/baseline/pipes.json /tmp/pipes.jso
   keys: the pybind trampoline returns `config_block` by copy and the type is
   non-copyable. Their names are still recorded, so their disappearance is
   caught; their defaults are not.
-- `install.txt` deliberately omits `lib/python3.10/site-packages` at large,
-  which is 75,000 files of torch and its dependencies: pip placed them, VIAME
-  cannot regress them, and they move whenever a lock file does. It also omits
-  the pip console scripts in `bin/` for the same reason. The cost is that a
-  VIAME file installed into a directory none of the recorded roots covers
-  would not be noticed.
+- `install.txt` is built from the install step's own output rather than by
+  listing the tree. The first version of it listed the tree and was wrong:
+  VIAME installs into a prefix it shares with fletch, so 4,439 of the 5,584
+  paths it recorded were fletch's headers -- `include/cppdb`, GDAL's -- and
+  `make install` only ever adds, so the tree also held what older builds had
+  left behind, including a whole `lib/cmake/kwiver` that nothing has
+  installed since P5-T05. Reading the tree answers "what has accumulated
+  here", which is not the question. The check re-runs the install, which
+  takes about two seconds when everything is up to date.
 - The baseline is from a CUDA build. A CPU-only build registers a subset, so
   comparing a CPU dump against this baseline reports the GPU-only names as
   gone.

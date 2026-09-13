@@ -1,0 +1,33 @@
+# Adding a compiler flag only if the compiler has it
+#
+# Kwiver's `kwiver-utils-flags.cmake`, renamed. The global property keeps
+# kwiver's name for now because `viame-flags.cmake` and the top-level
+# CMakeLists both read it and phase 11 is what renames the rest.
+
+include_guard( GLOBAL )
+include( CheckCXXCompilerFlag )
+
+define_property( GLOBAL PROPERTY kwiver_warnings
+  BRIEF_DOCS "Warning flags for the VIAME build"
+  FULL_DOCS  "List of warning flags VIAME will build with"
+  )
+
+#+
+# Add the first of the given flags the compiler accepts.
+#
+#   viame_check_compiler_flag( flag [fallback ...] )
+#
+# Several flags means "the best of these": `-std=c++11 -std=c++0x` takes the
+# first the compiler knows. One flag means "this, if it exists".
+#-
+function( viame_check_compiler_flag )
+  foreach( flag ${ARGN} )
+    string( REPLACE "+" "plus" safe "${flag}" )
+    string( REPLACE "/" "slash" safe "${safe}" )
+    check_cxx_compiler_flag( "${flag}" "has_compiler_flag-${safe}" )
+    if( has_compiler_flag-${safe} )
+      set_property( GLOBAL APPEND PROPERTY kwiver_warnings "${flag}" )
+      return()
+    endif()
+  endforeach()
+endfunction()

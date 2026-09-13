@@ -1,4 +1,4 @@
 ##############################
 # Module tests
 ##############################
-kwiver_discover_python_tests(pymodules test-pymodules.py)
+viame_discover_python_tests(pymodules test-pymodules.py)
