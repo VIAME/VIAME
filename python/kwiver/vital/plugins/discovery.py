@@ -349,6 +349,10 @@ PLUGIN_PACKAGES_ENV_VAR = "VIAME_PYTHON_PLUGINS"
 # rather than the ones somebody asked for.
 LOADED_PACKAGES_ENV_VAR = "VIAME_PYTHON_PLUGINS_LOADED"
 
+# Set by `registry-dump --introspect`: answer questions that need the
+# implementation imported, rather than refusing them.
+INTROSPECT_ENV_VAR = "VIAME_INTROSPECT_PLUGINS"
+
 DECLARATIONS_ATTR = "__vital_algorithm_declarations__"
 
 
@@ -401,13 +405,21 @@ def _proxy_for(interface: str, name: str, description: str,
         return real().from_config(cb)
 
     def get_default_config(cls, cb):
-        # Deliberately not importing. `registry-dump` calls this on every
-        # factory, and importing here would undo the whole point: the dump
-        # would pull in torch to ask a question whose answer it already
-        # records as an error for every python algorithm.
+        # The one question a declaration cannot answer without importing:
+        # the default config lives in the class. Everyday callers get the
+        # refusal, because `registry-dump` asks every factory and importing
+        # all of them costs about three seconds, most of it torch.
+        #
+        # The compatibility baseline needs the real answer, though -- a
+        # config key that stops existing is exactly what it exists to catch
+        # -- so `viame registry-dump --introspect` sets this and pays.
+        if os.environ.get(INTROSPECT_ENV_VAR):
+            return real().get_default_config(cb)
+
         raise _NotIntrospectable(
             f"'{name}' is declared lazily; its defaults would require "
-            f"importing {import_path.split(':')[0]}"
+            f"importing {import_path.split(':')[0]}. Pass --introspect to "
+            f"registry-dump to import and read them."
         )
 
     return type(

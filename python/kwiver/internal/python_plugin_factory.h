@@ -7,7 +7,10 @@
 
 #include <pybind11/pybind11.h>
 
+#include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/plugin/plugin_factory.h>
+
+#include <memory>
 
 namespace py = pybind11;
 
@@ -55,7 +58,35 @@ public:
   get_default_config( config_block& cb ) const override
   {
     py::gil_scoped_acquire gil;
-    m_python_type.attr( "get_default_config" )( cb );
+
+    // Hand python a `config_block_sptr`, not the reference.
+    //
+    // `config_block` is bound as `py::class_< config_block, config_block_sptr >`,
+    // so pybind11 holds it by shared pointer and cannot make a python object
+    // out of a bare reference without copying one -- and `config_block` is
+    // non-copyable. Passing `cb` straight through therefore threw
+    // "return_value_policy = copy, but type config_block is non-copyable"
+    // for **every python implementation**, which `registry-dump` recorded as
+    // an error and `compare_registry.py` then skipped. The effect was that
+    // an algorithm ported from C++ to python silently stopped having its
+    // config keys and defaults checked against the baseline.
+    //
+    // Both callers own the block through a `config_block_sptr` already, so
+    // `shared_from_this` gives the real owner. The fallback is for a caller
+    // that does not: a non-owning handle, which is safe because the callee
+    // only writes keys into it and the pointer does not outlive this call.
+    config_block_sptr handle;
+
+    try
+    {
+      handle = cb.shared_from_this();
+    }
+    catch( std::bad_weak_ptr const& )
+    {
+      handle = config_block_sptr( &cb, []( config_block* ){} );
+    }
+
+    m_python_type.attr( "get_default_config" )( handle );
   }
 
 private:

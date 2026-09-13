@@ -18,11 +18,18 @@ else()
   set( baseline_setup "source \"${install_dir}/setup_viame.sh\"" )
 endif()
 
+# `--introspect` imports each python implementation so that its defaults can
+# be read. Without it the dump records an error for every python algorithm
+# and `compare_registry.py` skips the entry -- which meant that an algorithm
+# ported from C++ to python silently stopped having its config keys checked,
+# 143 keys across 24 implementations. It costs about eight seconds against
+# one; `startup:budget` measures the dump without it, which is what an
+# everyday caller pays.
 add_test(
   NAME "baseline:registry"
   COMMAND bash -c
     "${baseline_setup} && \
-     viame registry-dump --json --output '${output_dir}/registry.json' && \
+     viame registry-dump --json --introspect --output '${output_dir}/registry.json' && \
      '${Python3_EXECUTABLE}' '${baseline_dir}/compare_registry.py' \
        '${baseline_dir}/registry.json' '${output_dir}/registry.json' \
        --removed '${baseline_dir}/removed.json' \
@@ -59,7 +66,7 @@ add_test(
   NAME "baseline:registry:no_gpu"
   COMMAND bash -c
     "${baseline_setup} && \
-     CUDA_VISIBLE_DEVICES= viame registry-dump --json \
+     CUDA_VISIBLE_DEVICES= viame registry-dump --json --introspect \
        --output '${output_dir}/registry_no_gpu.json' && \
      '${Python3_EXECUTABLE}' '${baseline_dir}/compare_registry.py' \
        '${baseline_dir}/registry.json' '${output_dir}/registry_no_gpu.json' \

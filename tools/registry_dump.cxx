@@ -466,6 +466,9 @@ registry_dump_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "no-descriptions", "Exclude descriptions from the output",
       ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "introspect", "Import python implementations so their defaults can be "
+      "read. Slower, and the only way the dump is complete",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
     ;
 }
 
@@ -492,6 +495,22 @@ registry_dump_applet
 
   bool const descriptions = !cmd_args[ "no-descriptions" ].as< bool >();
   std::string const output_file = cmd_args[ "output" ].as< std::string >();
+
+  // A python implementation declared lazily knows its interface, its name and
+  // its description without being imported, but not its default config: that
+  // lives in the class. `--introspect` tells the stand-in to import when it
+  // is asked, which is what the compatibility baseline needs and what an
+  // everyday `registry-dump` should not pay for -- importing all of them
+  // costs about three seconds, most of it torch. See
+  // `kwiver.vital.plugins.discovery`.
+  if( cmd_args[ "introspect" ].as< bool >() )
+  {
+#ifdef _WIN32
+    _putenv_s( "VIAME_INTROSPECT_PLUGINS", "1" );
+#else
+    setenv( "VIAME_INTROSPECT_PLUGINS", "1", 1 );
+#endif
+  }
 
   auto& pm = kv::plugin_manager_internal::instance();
   pm.load_all_plugins();

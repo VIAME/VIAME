@@ -1457,6 +1457,48 @@ nothing silently**, so `${pybind11_INCLUDE_DIRS}` is indistinguishable from
 correct until something defines it wrongly. Both were fixed by naming a
 target instead: `pybind11::pybind11` either exists or the configure fails.
 
+### 1.35 The contract stopped checking exactly the thing the project was doing
+
+`compare_registry.py` skips an entry when either side records an `error`,
+because an entry the dump could not introspect has no config to compare. That
+is the right rule. What it hides is worse than what it saves.
+
+**Every python algorithm carried an error.** `python_plugin_factory` passed
+the caller's `config_block&` straight to pybind11, and `config_block` is
+bound as `py::class_< config_block, config_block_sptr >` -- held by shared
+pointer, non-copyable -- so every call threw "return_value_policy = copy, but
+type config_block is non-copyable". 82 of the 177 algorithms.
+
+Fixing that made the error a different one, because P8-T10's lazy
+declarations refuse to import. Fixing *that* -- `registry-dump --introspect`,
+which the baseline test now passes and an everyday caller does not -- made
+the error a third one: `register_vital_algorithm` supplied
+`get_default_config = lambda cls, c: None`, a stub that set nothing, so the
+dump listed **no config keys at all** for any python implementation.
+
+So three separate mechanisms, in three different layers, each of which alone
+was enough to make a python algorithm's configuration invisible. With all
+three fixed the dump reports 143 config keys that it had never reported, and
+the comparison against the baseline runs for the first time on **24
+implementations** -- `ocv_SIFT`, `ocv_SURF`, `ocv_enhancer`, `vxl_enhancer`,
+`image_io:pil`, `hough_circle`, `ocv_stereo_disparity` and the rest.
+
+Read the list again: those are the ports. Every one of the 24 is an
+algorithm this project moved from C++ to python in phases 3 to 7, and the
+move is what silenced the check. **The compatibility contract stopped
+checking each algorithm at the moment it became the thing that needed
+checking.** The golden recordings are what actually caught the defects in
+those ports, which is why nothing was wrong -- all 143 keys and defaults
+match the C++ originals exactly, first run. But that was luck in the sense
+that matters: the contract said nothing either way for a year of work.
+
+The lesson is narrower than "test your tests", and sharper. A check that
+degrades gracefully when it cannot run will degrade *silently*, and the
+cases it cannot run on are rarely random -- here they were precisely the
+cases the work was creating. When a comparison has a skip path, count what
+it skipped and say so. The dump could have printed "82 of 177 algorithms
+could not be introspected" on every run, and somebody would have asked.
+
 ## 2. Open questions
 
 ### 2.13 `skip_process` deadlocks, and has since it was written

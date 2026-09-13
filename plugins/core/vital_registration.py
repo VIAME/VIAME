@@ -42,6 +42,33 @@ def register_vital_algorithm(algorithm_class, implementation_name, description):
     if "from_config" not in vars(algorithm_class):
         algorithm_class.from_config = classmethod(lambda cls, c: cls())
     if "get_default_config" not in vars(algorithm_class):
-        algorithm_class.get_default_config = classmethod(lambda cls, c: None)
+        algorithm_class.get_default_config = classmethod(_default_config)
 
     return algorithm_class
+
+
+def _default_config(cls, cb):
+    """Fill ``cb`` with what a default instance of ``cls`` is configured with.
+
+    This returned ``None`` and set nothing until it was noticed what that
+    cost. A python implementation declares its options in
+    ``get_configuration()``, which is where pipelines read them from, so the
+    options work -- but nothing that *asks* what an implementation provides
+    could see them. ``registry-dump`` listed no config keys at all for every
+    python algorithm, and ``compare_registry.py`` skips an entry it could not
+    introspect, so the compatibility baseline stopped checking the keys and
+    defaults of each algorithm at the moment it was ported from C++ to
+    python. 143 keys across 24 implementations were in that position.
+
+    A default instance's ``get_configuration()`` *is* the default config, so
+    there is nothing to duplicate: build one and merge it.
+    """
+    try:
+        instance = cls()
+    except Exception as error:  # noqa: BLE001 - reported, not raised
+        raise RuntimeError(
+            "{} cannot be constructed with no arguments, so its default "
+            "configuration cannot be read: {}".format(cls.__name__, error)
+        ) from error
+
+    cb.merge_config(instance.get_configuration())

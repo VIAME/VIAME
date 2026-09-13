@@ -47,6 +47,18 @@ Notes.
   The incremental tree is at **305 of 305** -- the jump from 29 is
   `kwiver_discover_gtests` finally labelling what it discovers, see finding
   1.20. The command is `ctest -L "BASELINE|GOLDEN|UNIT|CRITICAL|CORE"`
+- **The compatibility baseline checks python algorithms' config for the
+  first time.** Three separate defects, in three layers, each enough on its
+  own to make a python implementation's configuration invisible to
+  `registry-dump`: the pybind11 binding passed a non-copyable `config_block`
+  by reference, P8-T10's lazy declarations refused to import, and
+  `register_vital_algorithm` supplied a `get_default_config` that set
+  nothing. `compare_registry.py` skips an entry it cannot introspect, so the
+  effect was that an algorithm stopped having its keys checked **at the
+  moment it was ported from C++ to python** -- 143 keys across the 24
+  implementations phases 3 to 7 moved. All three are fixed, the baseline test
+  runs `registry-dump --introspect`, and all 143 keys and defaults match the
+  C++ originals exactly. See finding 1.35
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
 
