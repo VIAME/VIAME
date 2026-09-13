@@ -189,6 +189,7 @@ include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-settings.cmake" )
 # before anything imports one.
 if( VIAME_ENABLE_PYTHON )
   include( "${VIAME_SOURCE_DIR}/cmake/viame_python_deps.cmake" )
+  include( "${VIAME_SOURCE_DIR}/cmake/viame_python_forks.cmake" )
 endif()
 
 ###
