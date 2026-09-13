@@ -33,7 +33,7 @@ import kwimage
 import kwarray
 import warnings
 import kwcoco
-import torch_liberator
+from viame.pytorch.netharn import torch_liberator
 from viame.pytorch.netharn.data.channel_spec import ChannelSpec
 from viame.pytorch.netharn.data.data_containers import ContainerXPU
 import os

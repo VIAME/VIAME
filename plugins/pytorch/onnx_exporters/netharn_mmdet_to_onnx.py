@@ -64,7 +64,7 @@ def load_netharn_model(deployed_fpath):
     """
     from viame.pytorch.netharn.detect_predict import (
         patch_legacy_mm_test_cfg, setup_module_aliases)
-    from torch_liberator.deployer import DeployedModel
+    from viame.pytorch.netharn.torch_liberator.deployer import DeployedModel
 
     setup_module_aliases()
     model = DeployedModel(deployed_fpath).load_model()

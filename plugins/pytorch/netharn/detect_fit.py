@@ -788,7 +788,7 @@ class DetectHarn(nh.FitHarn):
                               'evaluate'.format(harn.hyper.model_cls.__name__))
                     return
 
-                import torch_liberator
+                from viame.pytorch.netharn import torch_liberator
                 deployed = torch_liberator.DeployedModel.coerce(harn.deploy_fpath)
                 deployed._model = harn.model
                 deployed._train_info = harn.train_info

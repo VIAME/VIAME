@@ -104,7 +104,7 @@ def upgrade_deployed_mmdet_model(config):
         girder-client --api-url https://data.kitware.com/api/v1 download 5dd3eb8eaf2e2eed3508d604 $HOME/tmp/deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix3.zip
         girder-client --api-url https://data.kitware.com/api/v1 download 5dd3eb8eaf2e2eed3508d604 $HOME/tmp/deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix3.zip
     """
-    from torch_liberator import deployer
+    from viame.pytorch.netharn.torch_liberator import deployer
     import ndsampler
     from viame.pytorch import netharn as nh
     from ..detect_predict import setup_module_aliases

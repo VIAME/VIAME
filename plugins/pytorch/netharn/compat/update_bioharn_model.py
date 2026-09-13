@@ -28,7 +28,7 @@ def _debug():
 
     extracted = '/home/joncrall/configs/pipelines/models/fish_no_motion_detector.zip'
 
-    # from torch_liberator import DeployedModel
+    # from viame.pytorch.netharn.torch_liberator import DeployedModel
     # deployed = DeployedModel.coerce(extracted)
     # mod = ub.import_module_from_path('/home/joncrall/configs/pipelines/models/deploy_MM_CascadeRCNN_ckbbymjh_013_MGATEY/MM_CascadeRCNN_1ff002.py')
     config = {
@@ -74,7 +74,7 @@ def update_deployed_bioharn_model(config):
             --draw=1
 
     """
-    from torch_liberator import deployer
+    from viame.pytorch.netharn.torch_liberator import deployer
     from viame.pytorch import netharn as nh
     from ..detect_predict import setup_module_aliases
     from ..detection_models import mm_models
@@ -120,7 +120,7 @@ def update_deployed_bioharn_model(config):
     # print(new_model_state['state_dict']['roi_head.bbox_head.0.fc_cls.weight'].shape)
 
     # from viame.pytorch.netharn.initializers.functional import load_partial_state
-    from torch_liberator.initializer import load_partial_state
+    from viame.pytorch.netharn.torch_liberator.initializer import load_partial_state
     load_info = load_partial_state(new_model, new_model_state['model_state_dict'], verbose=3)
     del load_info
     # new_model_state['model_state_dict']['input_norm.mean']

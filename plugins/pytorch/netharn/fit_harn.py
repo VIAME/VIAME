@@ -159,7 +159,7 @@ import numpy as np
 import ubelt as ub
 
 import scriptconfig as scfg
-import torch_liberator
+from viame.pytorch.netharn import torch_liberator
 
 from viame.pytorch.netharn import hyperparams
 from viame.pytorch.netharn import util

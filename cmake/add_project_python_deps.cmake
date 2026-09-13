@@ -243,7 +243,11 @@ list( REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS )
 set( VIAME_PYTHON_DEPS_REQ_TORCH "" )
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator"
+  # torch_liberator is vendored at plugins/pytorch/netharn/torch_liberator
+  # (installed as viame.pytorch.netharn.torch_liberator), so it is no longer
+  # pip installed. "liberator" stays: the vendored exporter still uses it for
+  # static code extraction.
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "liberator"
     "networkx-algo-common-subtree>=0.2.0" "colormath" )
 endif()
 
