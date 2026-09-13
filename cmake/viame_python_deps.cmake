@@ -14,7 +14,7 @@
 ##
 
 option( VIAME_INSTALL_PYTHON_DEPS
-  "Install VIAME's python dependencies as part of the build" OFF )
+  "Install VIAME's python dependencies as part of the build" ON )
 
 set( VIAME_PYTHON_INDEX_URL "" CACHE STRING
   "Extra index to install python dependencies from; the lock names its own \
@@ -29,12 +29,17 @@ mark_as_advanced( VIAME_PYTHON_INDEX_URL )
 # matching rather than doing nothing. P9 removes the step: the patched
 # packages become wheels the wheel CI builds.
 
-# `lite-build-system.md` section 2 wants this defaulted ON. It is OFF until
-# somebody has run it once against an install built the old way and looked
-# at what moves: the first run upgrades every package whose version pip
-# happened to pick when that install was made, which on the reference
-# machine is 56 of them, and that wants its own verification pass rather
-# than arriving as a side effect of the next `make`.
+# Defaulted ON, which `lite-build-system.md` section 2 asks for, after the
+# run that had to happen first. Against an install built the old way it
+# moves 145 package versions, including replacing a torchvision built from
+# source with the matching `+cu126` build from the index the lock names.
+# Everything passes on the result: 426 unit and baseline tests, 2 golden, 7
+# critical. A from-scratch build into an empty prefix, whose python came
+# only from these locks, passes 409 of 409 unit and core tests.
+#
+# A build with this on is responsible for its own python environment, which
+# includes the forks in `packages/pytorch-libs`, so `viame_python_forks.cmake`
+# asks for those submodules and says so if they are not checked out.
 
 if( NOT VIAME_ENABLE_PYTHON )
   return()
