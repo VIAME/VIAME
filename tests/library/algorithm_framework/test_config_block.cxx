@@ -26,9 +26,11 @@
 
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/config/config_block_exception.h>
+#include <viame/algorithm_framework/config/config_block_formatter.h>
 
 #include <gtest/gtest.h>
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -256,6 +258,45 @@ TEST ( config_block, unsetting_removes_the_key_entirely )
   EXPECT_FALSE( config->has_value( "top" ) );
   EXPECT_THROW( config->get_value< int >( "top" ),
                 kv::no_such_configuration_value_exception );
+}
+
+// ----------------------------------------------------------------------------
+// What `config_block_formatter::print` writes. Nine callers show this to a
+// user -- `viame runner` dumps the baked config with it, and the darknet
+// detector logs its own -- so it is output somebody reads.
+TEST ( config_block, the_formatter_prints_one_key_per_line )
+{
+  auto const config = kv::config_block::empty_config();
+  config->set_value( "alpha", "one" );
+  config->set_value( "block:beta", "two" );
+  config->set_value( "fixed", "three" );
+  config->mark_read_only( "fixed" );
+
+  std::ostringstream str;
+  kv::config_block_formatter( config ).print( str );
+
+  // Sorted, because `available_values` is; `[RO]` sits between the key and
+  // the `=`; no source location, because these values came from code rather
+  // than from a file.
+  EXPECT_EQ( "alpha = one\n"
+             "block:beta = two\n"
+             "fixed[RO] = three\n",
+             str.str() );
+}
+
+// ----------------------------------------------------------------------------
+// A value that came from a file carries where it came from, and the printer
+// puts it on the same line.
+TEST ( config_block, the_formatter_shows_where_a_value_came_from )
+{
+  auto const config = kv::config_block::empty_config();
+  config->set_value( "alpha", "one" );
+  config->set_location( "alpha", std::make_shared< std::string >( "a.conf" ), 7 );
+
+  std::ostringstream str;
+  kv::config_block_formatter( config ).print( str );
+
+  EXPECT_EQ( "alpha = one  (a.conf:7)\n", str.str() );
 }
 
 // ----------------------------------------------------------------------------

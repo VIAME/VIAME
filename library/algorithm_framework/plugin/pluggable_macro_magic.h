@@ -28,18 +28,6 @@
  *
  */
 
-#define TEST_OPT_2( a, b ) a ## b
-#define TEST_OPT_3( a, b, c ) a ## b ## c
-
-#define TEST_OPT_ARG( a, b, ... )                                       \
-CPP_MAGIC_IF_ELSE( CPP_MAGIC_NOT( CPP_MAGIC_HAS_ARGS( __VA_ARGS__ ) ) ) \
-(                                                                       \
-  TEST_OPT_2( a, b ),                                                   \
-  TEST_OPT_3( a, b, __VA_ARGS__ )                                       \
-)
-
-static int _test_opt_arg{ TEST_OPT_ARG( 1, 2, ) };
-
 // ----------------------------------------------------------------------------
 // Helper macros
 
@@ -51,17 +39,6 @@ static int _test_opt_arg{ TEST_OPT_ARG( 1, 2, ) };
  * parameter, i.e. one that will be stored in the config_block.
  */
 #define CONFIG_VAR_NAME( name ) c_ ## name
-
-/**
- * Conditionally surround the symbol with comments if the second argument is
- * true.
- */
-#define MAYBE_COMMENT( symbol, do_comment )       \
-CPP_MAGIC_IF_ELSE( CPP_MAGIC_BOOL( do_comment ) ) \
-(                                                 \
-  /* symbol */,                                   \
-  symbol                                          \
-)
 
 // ----------------------------------------------------------------------------
 // Parameter declaration macros
@@ -376,7 +353,5 @@ name = { nullptr, kwiver::vital::detail::KwiverEmptyDeleter< type > }
   new type(                                                                      \
   *this ), kwiver::vital::detail::KwiverDefaultDeleter< type > )
 // ----------------------------------------------------------------------------
-
-#define KWIVER_STRINGIFY( x ) #x
 
 #endif // PLUGGABLE_MACRO_MAGIC_H

@@ -391,17 +391,5 @@ are
         self.print( fout );
       },
       // doc-string
-      "Format config block in simple text format." )
-    .def(
-      "set_prefix", &kv::config_block_formatter::set_prefix,
-      // doc-string
-      "Set line prefix for printing." )
-    .def(
-      "generate_source_loc", &kv::config_block_formatter::generate_source_loc,
-      // doc-string
-      py::doc(
-        "Set option to generate source location.\n"
-        "TRUE will generate the source location, FALSE will not."
-      )
-    );
+      "Format config block in simple text format." );
 }

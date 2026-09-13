@@ -118,6 +118,11 @@ add_test(
 set_property( TEST "baseline:install" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:install" PROPERTY TIMEOUT 300 )
 
+# Alone. It re-runs the install, which rewrites files in the prefix that
+# every other test reads through `setup_viame.sh` -- `baseline:pipes` failed
+# once under `-j3` for exactly that reason. Two seconds of one core.
+set_property( TEST "baseline:install" PROPERTY RUN_SERIAL TRUE )
+
 set_property( TEST "baseline:registry" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:pipes" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:registry" PROPERTY TIMEOUT 900 )

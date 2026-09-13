@@ -15,25 +15,8 @@ namespace vital {
 // ----------------------------------------------------------------------------
 config_block_formatter
 ::config_block_formatter( const config_block_sptr config )
-  : m_config( config ),
-    m_gen_source_loc( true )
+  : m_config( config )
 {}
-
-// ----------------------------------------------------------------------------
-void
-config_block_formatter
-::set_prefix( const std::string& pfx )
-{
-  m_prefix = pfx;
-}
-
-// ----------------------------------------------------------------------------
-void
-config_block_formatter
-::generate_source_loc( bool opt )
-{
-  m_gen_source_loc = opt;
-}
 
 // ----------------------------------------------------------------------------
 
@@ -55,18 +38,16 @@ config_block_formatter
       ro = "[RO]";
     }
 
-    str << m_prefix << key << ro << " = " << val;
+    str << key << ro << " = " << val;
 
-    if( m_gen_source_loc )
+    // Where the value came from, when it came from a file.
+    std::string file;
+    int line( 0 );
+    if( m_config->get_location( key, file, line ) )
     {
-      // Add location information if available
-      std::string file;
-      int line( 0 );
-      if( m_config->get_location( key, file, line ) )
-      {
-        str << m_prefix << "  (" << file << ":" << line << ")";
-      }
+      str << "  (" << file << ":" << line << ")";
     }
+
     str << std::endl;
   }
 }

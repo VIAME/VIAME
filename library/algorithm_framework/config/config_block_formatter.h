@@ -17,6 +17,13 @@ namespace vital {
 
 /// @brief Generates formatted versions of a config block.
 ///
+/// P8-T09 removed three of its four entry points. `set_prefix` and
+/// `generate_source_loc` had no caller, so the prefix was always empty and
+/// the source location always printed -- the options existed but only ever
+/// held their defaults, and `print` branched on constants. `format_block`
+/// was worse: declared private, never defined, so any caller would have got
+/// a link error rather than an answer.
+///
 /// This class encapsulates several different formatting options for
 /// a config block.
 ///
@@ -31,28 +38,14 @@ public:
 
   /// @brief Format config block in simple text format.
   ///
+  /// One key per line, sorted, with `[RO]` on a read-only key and the file
+  /// and line a value came from when it came from one.
+  ///
   /// @param str Stream to format on.
   void print( std::ostream& str );
 
-  /// @brief Set line prefix for printing.
-  ///
-  /// @param pfx The prefix string.
-  void set_prefix( const std::string& pfx );
-
-  /// @brief Set option to generate source location.
-  ///
-  /// @param opt TRUE will generate the source location, FALSE will not.
-  void generate_source_loc( bool opt );
-
 private:
-  void format_block(
-    std::ostream& str,
-    const config_block_sptr config,
-    const std::string& prefix );
-
   config_block_sptr m_config;
-  std::string m_prefix;
-  bool m_gen_source_loc;
 };
 
 } // namespace vital

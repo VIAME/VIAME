@@ -109,4 +109,5 @@ viame_discover_gtests( viame regex
 viame_discover_gtests( viame config_block
   LIBRARIES kwiver::vital_config
             kwiver::vital_exceptions
+            kwiver::vital_util
             GTest::gtest )
