@@ -265,6 +265,17 @@ def _get_concrete_pluggable_types() -> List[Type[Pluggable]]:
     p_type_set = traverse_subclasses(Pluggable)
     concrete_types = [p_t for p_t in p_type_set if (is_concrete_pluggable(p_t))]
 
+    # Declared implementations, which have not been imported. A package that
+    # declares gets its entries from here; one that does not is imported by
+    # `module_loader` as before and shows up in the subclass walk above.
+    declared_names = set()
+    for proxy in declared_pluggable_types():
+        key = (proxy.interface_name(), proxy.plugin_name())
+        if key in declared_names:
+            continue
+        declared_names.add(key)
+        concrete_types.append(proxy)
+
     # Also include legacy algorithms registered through algorithm_factory
     try:
         from kwiver.vital.algo.algorithm_factory import get_registered_algorithms
@@ -277,3 +288,152 @@ def _get_concrete_pluggable_types() -> List[Type[Pluggable]]:
         pass  # If legacy import fails, continue with discovered types
 
     return concrete_types
+
+
+# ----------------------------------------------------------------------------
+# Lazy declarations
+#
+# A package may say what it provides without importing the modules that
+# provide it:
+#
+#     __vital_algorithm_declarations__ = [
+#         ( "track_objects", "srnn", "Structural RNN tracker",
+#           "viame.pytorch.srnn_tracker:SRNNTracker" ),
+#     ]
+#
+# The alternative, and what every package did before P8-T10, is to import
+# each implementation module so that its class exists for `traverse_subclasses`
+# to find. That is the only reason the imports happened -- and importing
+# `viame.pytorch` imports torch, 1.4 seconds, on every `viame` command that
+# touched the plugin system, including `viame runner --help`.
+#
+# A declaration is turned into a proxy type that looks concrete to
+# `python_plugin_factory` and defers: the real module is imported the first
+# time something asks for an instance.
+
+VIAME_PLUGIN_PACKAGES_ENV_VAR = "VIAME_PYTHON_PLUGINS"
+LEGACY_PLUGIN_PACKAGES_ENV_VAR = "SPROKIT_PYTHON_MODULES"
+
+DECLARATIONS_ATTR = "__vital_algorithm_declarations__"
+
+
+class _NotIntrospectable(Exception):
+    """Raised when answering would mean importing the implementation."""
+
+
+def _resolve(import_path: str) -> Type:
+    """`"package.module:Class"` to the class, importing the module."""
+    module_name, _, class_name = import_path.partition(":")
+    if not class_name:
+        raise ValueError(
+            "declaration import path needs 'module:Class', got "
+            f"{import_path!r}"
+        )
+    module = importlib.import_module(module_name)
+
+    # The class is not usable straight out of the module. A VIAME
+    # implementation defines `__init__` and the interface method and nothing
+    # else; `register_vital_algorithm`, called from the module's own
+    # `__vital_algorithm_register__`, is what attaches `from_config`,
+    # `get_default_config` and the plugin name. Scanning used to call it as a
+    # side effect of finding the module, so a declaration has to call it
+    # here -- otherwise the class arrives without the three methods the
+    # factory needs, and the failure is an AttributeError at the moment
+    # somebody tries to build one.
+    registrar = getattr(module, "__vital_algorithm_register__", None)
+    if registrar is not None:
+        registrar()
+
+    return getattr(module, class_name)
+
+
+def _proxy_for(interface: str, name: str, description: str,
+               import_path: str) -> Type:
+    """A stand-in for a declared implementation that has not been imported.
+
+    It answers the three questions registration asks -- which interface, what
+    name, what description -- from the declaration, and imports only when
+    asked to build something.
+    """
+    state = {"real": None}
+
+    def real():
+        if state["real"] is None:
+            state["real"] = _resolve(import_path)
+        return state["real"]
+
+    def from_config(cls, cb):
+        return real().from_config(cb)
+
+    def get_default_config(cls, cb):
+        # Deliberately not importing. `registry-dump` calls this on every
+        # factory, and importing here would undo the whole point: the dump
+        # would pull in torch to ask a question whose answer it already
+        # records as an error for every python algorithm.
+        raise _NotIntrospectable(
+            f"'{name}' is declared lazily; its defaults would require "
+            f"importing {import_path.split(':')[0]}"
+        )
+
+    return type(
+        name,
+        (),
+        {
+            "__doc__": description,
+            "interface_name": staticmethod(lambda _i=interface: _i),
+            "plugin_name": staticmethod(lambda _n=name: _n),
+            "plugin_description": staticmethod(lambda _d=description: _d),
+            "from_config": classmethod(from_config),
+            "get_default_config": classmethod(get_default_config),
+            "_viame_import_path": import_path,
+        },
+    )
+
+
+def declared_plugin_packages() -> List[str]:
+    """The packages to ask for declarations, in order."""
+    packages: List[str] = []
+    for var in (VIAME_PLUGIN_PACKAGES_ENV_VAR, LEGACY_PLUGIN_PACKAGES_ENV_VAR):
+        for entry in os.environ.get(var, "").split(OS_ENV_PATH_SEP):
+            if entry and entry not in packages:
+                packages.append(entry)
+    return packages
+
+
+def package_declarations(package: str) -> List[tuple]:
+    """A package's declarations, or an empty list if it has none.
+
+    Importing the package itself is cheap so long as its `__init__` only
+    declares -- which is the whole discipline this depends on. A package that
+    imports its implementations at the top of `__init__` pays for them here
+    exactly as it did before.
+    """
+    try:
+        module = importlib.import_module(package)
+    except ImportError as error:
+        LOG.debug(f"Package {package!r} is not importable: {error}")
+        return []
+
+    return list(getattr(module, DECLARATIONS_ATTR, ()) or ())
+
+
+def declared_pluggable_types() -> List[Type]:
+    """Proxy types for everything the declaring packages declare."""
+    proxies: List[Type] = []
+
+    for package in declared_plugin_packages():
+        for declaration in package_declarations(package):
+            try:
+                interface, name, description, import_path = declaration
+            except (TypeError, ValueError):
+                LOG.warning(
+                    f"{package}: ignoring malformed declaration "
+                    f"{declaration!r}; expected "
+                    "( interface, name, description, 'module:Class' )"
+                )
+                continue
+
+            proxies.append(
+                _proxy_for(interface, name, description, import_path))
+
+    return proxies

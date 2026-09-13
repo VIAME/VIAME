@@ -29,6 +29,8 @@
 
 
 from __future__ import print_function, absolute_import
+import importlib
+
 from kwiver.vital.modules import loaders
 from kwiver.vital.util.entrypoint import get_python_plugins_from_entrypoint
 from kwiver.vital import vital_logging
@@ -86,7 +88,37 @@ def load_python_modules():
     loader = loaders.ModuleLoader()
     all_modules = []
 
+    # A package that declares what it provides is not scanned. Scanning means
+    # importing every module in it that defines a registrar, and the only
+    # reason to do that is so the implementation classes exist for the
+    # subclass walk in `kwiver.vital.plugins.discovery`. A declaration gives
+    # discovery the same information without the import -- which for
+    # `viame.pytorch` is the difference between paying for torch on every
+    # command and not.
+    try:
+        from kwiver.vital.plugins.discovery import package_declarations
+    except ImportError:
+        def package_declarations(_package):
+            return []
+
     for package in packages:
+        if package_declarations(package):
+            logger.debug(
+                "Not scanning {}: it declares what it provides".format(package))
+
+            # The package itself is still asked to register, because a
+            # declaration covers algorithms and not processes: those go
+            # through `process_factory` rather than the subclass walk, and a
+            # package may have both. Importing the package is cheap -- that
+            # is the discipline a declaration depends on.
+            try:
+                all_modules.append(importlib.import_module(package))
+            except ImportError as error:
+                logger.warn(
+                    'Could not import declaring package "{}": {}'.format(
+                        package, error))
+            continue
+
         modules = loader.load(package)
         all_modules += modules
 

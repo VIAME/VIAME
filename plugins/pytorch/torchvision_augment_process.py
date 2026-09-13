@@ -44,7 +44,6 @@ class DataAugmentation(KwiverProcess):
     # -------------------------------------------------------------------------------------
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
-        _load_deps()
 
         # GPU list
         #----------------------------------------------------------------------------------
@@ -149,6 +148,13 @@ class DataAugmentation(KwiverProcess):
 
     # -------------------------------------------------------------------------------------
     def _configure(self):
+        # Here rather than in `__init__`: the only use of the extractor is
+        # below, and the import pulls torch. `viame registry-dump` constructs
+        # every registered process to read its ports, so loading it in the
+        # constructor cost 1.4 seconds on a command that never runs a
+        # pipeline.
+        _load_deps()
+
         self._select_threshold = float(self.config_value('detection_select_threshold'))
 
         # GPU list
