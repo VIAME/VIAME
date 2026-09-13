@@ -1,5 +1,6 @@
 # Install the onnxruntime C++ runtime libs. The matching Python package
-# (onnxruntime / onnxruntime-gpu, version 1.23.2) is installed alongside
+# (onnxruntime / onnxruntime-gpu, pinned per interpreter in
+# add_project_python_deps: 1.23.2, or 1.24.1 on python 3.14) is installed alongside
 # the rest of the pinned wheels by add_project_python_deps; that pip
 # install is what `python-deps` ultimately provides, so we depend on it
 # here to ordering: the libs are unpacked into the same site-packages
@@ -9,7 +10,7 @@
 # Note the version mismatch is intentional: the prebuilt C++ libs come
 # from upstream's 1.12.1 release archive (a stable headers/.so set used
 # by mmdetection's ONNX export tooling), while the Python wheel tracks
-# the newer 1.23.x line for CUDA 12 inference.
+# the newer 1.23/1.24 line for CUDA 12 inference.
 set( ONNXRUNTIME_LIB_URL "" )
 set( ONNXRUNTIME_LIB_DOWNLOAD_DIR ${VIAME_BUILD_PREFIX}/src/onnxruntimelibs )
 set( ONNXRUNTIME_LIB_INSTALL_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime )

@@ -194,10 +194,23 @@ endif()
 if( VIAME_ENABLE_ONNX )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.18")  #keep old compatibility for TensorRT<10 https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#requirements
   list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxscript" )  #https://github.com/pytorch/pytorch/issues/166352
-  if( VIAME_ENABLE_CUDA )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxruntime-gpu==1.23.2" )
+  # onnxruntime 1.23.2 ships wheels for cp310 through cp313 only, so resolving
+  # it under 3.14 fails outright with "No matching distribution found" -- the
+  # requires_python metadata says >=3.10 and gives no hint, the ABI tags are
+  # what run out. 1.24.1 is the first release carrying cp314 (and cp314t)
+  # wheels, and it drops cp310, which VIAME still offers as a python choice.
+  # So pin per interpreter rather than moving every build onto a new runtime.
+  # Both onnxruntime and onnxruntime-gpu publish the same set of tags.
+  if( Python_VERSION VERSION_GREATER_EQUAL "3.14" )
+    set( VIAME_ONNXRUNTIME_PIN "==1.24.1" )
   else()
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxruntime==1.23.2" )
+    set( VIAME_ONNXRUNTIME_PIN "==1.23.2" )
+  endif()
+
+  if( VIAME_ENABLE_CUDA )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxruntime-gpu${VIAME_ONNXRUNTIME_PIN}" )
+  else()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxruntime${VIAME_ONNXRUNTIME_PIN}" )
   endif()
 endif()
 
