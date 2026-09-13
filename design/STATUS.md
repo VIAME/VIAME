@@ -32,11 +32,14 @@ Notes.
   `plugins/` has three: `plot_metrics`, which is a rewrite rather than a
   port, and open decision 6's two model classifiers -- plus
   `plugins/darknet`, which is P7-T08's. **`plugins/core` is clear**
-- Last clean-configure build verified: 2026-09-13, after the fletch removal,
-  in `build/clean-build` with no `fletch_DIR` and no `OpenCV_DIR` in the
-  cache. It found one latent bug a warm tree cannot: `install_egg_info` ran
-  `setup.py egg_info --egg-base` on a directory nothing had created. Before
-  that, 2026-09-11 after P7-T06. A fresh
+- Last clean-configure build verified: 2026-09-13, after phase 1's
+  restructure, in an empty `build/clean-build` with no `fletch_DIR`, no
+  `OpenCV_DIR` and none of the removed options in the cache. It compiles to
+  100 per cent and **no target's flags, link line or rpath names the
+  reference superbuild at all**. It also found one latent bug a warm tree
+  cannot: `install_egg_info` ran `setup.py egg_info --egg-base` on a
+  directory nothing had created, and only worked because an earlier run had
+  left it there. Before that, 2026-09-11 after P7-T06. A fresh
   `build/clean-build` configured and compiled the whole tree with **no
   errors**, which is the check a warm tree cannot give: a header that is only
   found because an old copy sits in the install prefix, or a target whose
