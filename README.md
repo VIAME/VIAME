@@ -245,10 +245,11 @@ Source Code Layout
    │   ├── prj-linux       # Default linux project files
    │   └── prj-windows     # Default windows project files 
    ├── examples            # All runnable examples and example tutorials
+   ├── library             # VIAME's own C++ and python, by function
+   ├── third_party         # Small libraries carried in the tree and built with it
    ├── packages            # External projects used by the system
-   │   ├── kwiver          # Processing backend infastructure
-   │   ├── fletch          # Dependency builder for things which don't change often
-   │   ├── vivia           # Baseline desktop GUIs (v1.0)
+   │   ├── dive            # Annotation and review interface
+   │   ├── pytorch-libs    # Model repositories the pytorch plugins wrap
    │   └── ...             # Assorted other packages (typically for algorithms)
    ├── plugins             # Integrated algorithms or wrappers around external projects
    │   └── ...             # Assorted plugins (detectors, depth maps, filters, etc.)

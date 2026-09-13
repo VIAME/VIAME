@@ -4,9 +4,6 @@
 [submodule "packages/dive"]
 	path = packages/dive
 	url = https://github.com/Kitware/dive.git
-[submodule "packages/vivia"]
-	path = packages/vivia
-	url = https://github.com/Kitware/vivia.git
 [submodule "packages/pytorch-libs/torchvision"]
 	path = packages/pytorch-libs/torchvision
 	url = https://github.com/pytorch/vision.git
@@ -16,30 +13,9 @@
 [submodule "packages/pytorch-libs/mmcv"]
 	path = packages/pytorch-libs/mmcv
 	url = https://github.com/VIAME/mmcv.git
-[submodule "packages/seal-tk"]
-	path = packages/seal-tk
-	url = https://github.com/Kitware/seal-tk.git
-[submodule "packages/itk-modules/trimmed-point-set"]
-	path = packages/itk-modules/trimmed-point-set
-	url = https://github.com/InsightSoftwareConsortium/ITKTrimmedPointSetRegistration.git
-[submodule "packages/itk-modules/keypointgui"]
-	path = packages/itk-modules/keypointgui
-	url = https://github.com/Kitware/keypointgui.git
 [submodule "packages/pytorch-libs/imgaug"]
 	path = packages/pytorch-libs/imgaug
 	url = https://github.com/VIAME/imgaug.git
-[submodule "packages/tensorflow-libs/models"]
-	path = packages/tensorflow-libs/models
-	url = https://github.com/tensorflow/models.git
-[submodule "packages/pytorch-libs/mmdet-to-tensorrt"]
-	path = packages/pytorch-libs/mmdet-to-tensorrt
-	url = https://github.com/grimoire/mmdetection-to-tensorrt.git
-[submodule "packages/tensorrt"]
-	path = packages/tensorrt
-	url = https://github.com/NVIDIA/TensorRT.git
-[submodule "packages/pytorch-libs/torch2rt"]
-	path = packages/pytorch-libs/torch2rt
-	url = https://github.com/NVIDIA-AI-IOT/torch2trt
 [submodule "packages/pytorch-libs/detectron2"]
 	path = packages/pytorch-libs/detectron2
 	url = https://github.com/facebookresearch/detectron2.git

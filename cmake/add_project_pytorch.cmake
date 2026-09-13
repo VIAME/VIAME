@@ -96,10 +96,6 @@ if( VIAME_ENABLE_PYTORCH-DINO3 )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} dino3 )
 endif()
 
-if( VIAME_ENABLE_TENSORRT )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torch2rt )
-endif()
-
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${PYTORCH_LIBS_TO_BUILD} )
 set( PYTORCH_ENV_VARS ${PYTHON_DEP_ENV_VARS} )
 
@@ -443,8 +439,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/pytorch
       ${VIAME_PACKAGES_DIR}/pytorch )
-  elseif( "${LIB}" STREQUAL "torch2rt" )
-    set( PROJECT_DEPS fletch python-deps tensorrt )
   elseif( "${LIB}" STREQUAL "detectron2" )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/detectron2
