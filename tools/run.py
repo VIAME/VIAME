@@ -608,18 +608,7 @@ def search_output_settings_list( output_dir, basename, index_backend='files',
 def plot_settings_list( output_dir, basename ):
   return list( itertools.chain(
     fset( 'detector_writer:file_name=' + output_dir + div + basename + detection_ext ),
-    fset( 'kwa_writer:output_directory=' + output_dir ),
-    fset( 'kwa_writer:base_filename=' + basename ),
-    fset( 'kwa_writer:stream_id=' + basename ),
   ))
-
-def archive_dimension_settings_list( options ):
-  if options.archive_width:
-    return list( itertools.chain(
-      fset( 'kwa_writer:fixed_col_count=' + options.archive_width ),
-      fset( 'kwa_writer:fixed_row_count=' + options.archive_height ),
-    ))
-  return []
 
 def object_detector_settings_list( options ):
   if options.detection_threshold:
@@ -953,7 +942,6 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   command += search_output_settings_list( output_dir, input_id_no_ext,
     options.index_backend )
 
-  command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
 
@@ -1148,12 +1136,6 @@ if __name__ == "__main__" :
 
   parser.add_argument( "-tracker-threshold", dest="tracker_threshold", default="",
     help="Optional tracking threshold over-ride parameter" )
-
-  parser.add_argument( "-archive-height", dest="archive_height", default="",
-    help="Advanced: Optional video archive height over-ride" )
-
-  parser.add_argument( "-archive-width", dest="archive_width", default="",
-    help="Advanced: Optional video archive width over-ride" )
 
   parser.add_argument( "-output-ext", dest="output_ext", default="",
     help="Advanced: Optional ascii file output extension over-ride" )

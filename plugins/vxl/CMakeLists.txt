@@ -64,32 +64,3 @@ algorithms_create_plugin( viame_vxl
 target_link_libraries( viame_vxl_plugin
   PUBLIC               kwiver::vital_vpm
   )
-
-###
-# Add process library
-##
-set( process_headers
-  format_images_srm_process.h
-)
-
-set( process_sources
-  register_processes.cxx
-  format_images_srm_process.cxx
-)
-
-kwiver_add_plugin( viame_processes_vxl
-  SUBDIR           ${viame_plugin_process_subdir}
-  SOURCES          ${process_sources}
-                   ${private_headers}
-  PRIVATE          kwiver_algo_vxl vil vil_algo
-                   kwiver::sprokit_pipeline kwiver::kwiver_algo_core
-                   kwiver::kwiversys kwiver::kwiver_adapter
-                   kwiver::vital kwiver::vital_vpm kwiver::vital_logger
-                   kwiver::vital_config kwiver::vital_util
-                   kwiver::vital_exceptions
- )
-
-target_include_directories( viame_processes_vxl PRIVATE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  )

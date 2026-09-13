@@ -40,7 +40,6 @@ MONO_PARAMS = {
     "track_reader:file_name": "groundtruth.csv",
     "detector_writer:file_name": "output/detector_output.csv",
     "track_writer:file_name": "output/track_output.csv",
-    "kwa_writer:output_directory": "output/",
     "image_writer:file_name_prefix": "output/",
     "debayered_writer:file_name_prefix": "output/",
     "depth_map_writer:file_name_prefix": "output/",
@@ -156,13 +155,6 @@ def _check_calibrated(env_dir: Path):
     assert (env_dir / "calibration_matrices.json").is_file()
 
 
-def _check_kwa(env_dir: Path):
-    for name, min_size in (("kwa.data", 20_000), ("kwa.index", 25), ("kwa.meta", 70)):
-        path = env_dir / "output" / name
-        assert path.is_file(), f"{name} not written"
-        assert path.stat().st_size >= min_size, f"{name} is {path.stat().st_size} bytes"
-
-
 def _check_homographies(env_dir: Path):
     lines = (env_dir / "output" / "homogs.txt").read_text().splitlines()
     assert len(lines) == 9
@@ -198,7 +190,6 @@ OVERRIDES = {
     "filter_debayer_and_depth_map": Case(check=_check_debayer_and_depth_map),
     "filter_extract_chips": Case(check=chips()),
     "filter_stereo_depth_map": Case(check=frames(match_names=False)),
-    "filter_to_kwa": Case(params={"kwa_writer:base_filename": "kwa"}, check=_check_kwa),
     "filter_to_video": Case(check=video(min_size=10_000)),
     "filter_tracks_only": Case(
         env="env_fish_sequence_with_detections", check=frames(match_names=False, delta=-2)),
