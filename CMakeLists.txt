@@ -64,7 +64,6 @@ list( INSERT CMAKE_MODULE_PATH 0
 include( common_macros )
 include( viame_lite_import )
 include( viame_static_registration )
-include( old_version_checks )
 
 ###
 # Add other common paths usable throughout all CMakeLists files

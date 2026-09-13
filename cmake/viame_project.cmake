@@ -172,9 +172,11 @@ set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/module
 # built in VIAME's scope now and would otherwise land in `lib/` itself.
 set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
 
-##
-# Build system hacks which should eventually be fixed better
-include( linux-remove-duplicate-cvs )
+# `linux-remove-duplicate-cvs` stood here. It deleted the `cv2` wheel from
+# site-packages whenever fletch's OpenCV had installed a `cv2*.so` beside it,
+# because two cv2 modules in one directory is a coin toss. Fletch does not
+# build OpenCV for VIAME any more, so there is no second cv2 to lose to --
+# and P1-T08 makes the wheel the only one there is.
 
 # Wants the macros and the plugin subdirectories above it, and everything
 # it configures below it.
