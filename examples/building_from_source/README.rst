@@ -22,32 +22,44 @@ on: CentOS/RHEL 6+, Fedora 19+, and Ubuntu 16.04+ at a minimum.
 Install Dependencies
 ====================
 
-Different Linux distributions may have different packages already installed, or may
-use a different package manager than apt, but on Ubuntu this should help to provide
-a starting point:
+The list is short, and it got much shorter: VIAME used to build its own
+dependencies -- OpenCV, FFmpeg, VXL, Eigen, Boost, Qt, zlib and about fifty
+more -- and the packages below were what that build itself needed. It does
+not build them any more. Every VIAME library on a finished Linux install
+links the C and C++ runtimes, libpython, libgomp for OpenMP, and, if CUDA is
+enabled, CUDA's own libraries. Nothing else.
+
+On Ubuntu:
 
 .. code-block:: bash
 
-   sudo apt-get install git zip git wget curl libcurl4-openssl-dev libgl1-mesa-dev libexpat1-dev \
-     libgtk2.0-dev libxt-dev libxml2-dev libssl-dev liblapack-dev openssl libssl-dev g++ zlib1g-dev 
+   sudo apt-get install g++ cmake git zip wget curl \
+     python3 python3-dev python3-numpy python3-pip
 
-And on CentOS 7:
-
-.. code-block:: bash
-
-   sudo yum -y groupinstall 'Development Tools'
-   sudo yum install -y zip git wget openssl openssl-devel zlib zlib-devel freeglut-devel \
-     mesa-libGLU-devel lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel \
-     curl curl-devel atlas-devel file which
-
-If using VIAME_ENABLE_PYTHON, versions 3.10 or above is recommended. Development packages, pip,
-and numpy are also required. [Anaconda3](https://repo.anaconda.com/archive/) could be used,
-though you can also try using native python, e.g. install python3, python3-dev, and python3-numpy
-(or alternatively whatever python distribution you want to use), e.g.:
+On Fedora or RHEL:
 
 .. code-block:: bash
 
-   sudo apt-get install python3 python3-dev python3-numpy python3-pip
+   sudo dnf -y groupinstall 'Development Tools'
+   sudo dnf install -y gcc-c++ cmake git zip wget curl \
+     python3 python3-devel python3-numpy python3-pip
+
+On macOS, with Homebrew:
+
+.. code-block:: bash
+
+   brew install cmake git python@3.10 libomp
+
+A C++17 compiler is required: GCC 8 or newer, Clang 7 or newer, or MSVC
+2019 or newer. Python 3.10 or above is recommended, with its development
+headers, pip and numpy -- the headers are what the extension modules compile
+against, so ``python3-dev`` (``python3-devel`` on Fedora) is not optional if
+``VIAME_ENABLE_PYTHON`` is on. Anaconda3 works too, as does any other
+distribution that ships headers.
+
+The remaining python packages -- torch, opencv-python, and the rest -- are
+wheels, installed by the build from the lock files in ``python/requirements``.
+They are not system packages and should not be installed with apt.
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 12.6 is
 preferred; version 11.0 or above is required). Other versions may work depending

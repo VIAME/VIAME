@@ -256,3 +256,45 @@ mark_as_advanced( VIAME_ENABLE_TESTS )
 
 option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python"              ON )
 mark_as_advanced( VIAME_BUILD_CHECKS )
+
+###
+# Add logic and error checking relating to enable flags
+##
+if( VIAME_ENABLE_DARKNET )
+  set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
+endif()
+
+if( VIAME_ENABLE_PYTORCH )
+  set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"  FORCE )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-LEARN )
+  set( VIAME_ENABLE_PYTORCH-DETECTRON2  ON CACHE BOOL "Detectron2 required for project" FORCE )
+  set( VIAME_ENABLE_PYTORCH-VIDEO      ON CACHE BOOL "Torch Video required for project" FORCE )
+endif()
+
+if( VIAME_ENABLE_MATLAB )
+  find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
+endif()
+
+if( VIAME_ENABLE_DOCS )
+  find_package( Doxygen REQUIRED )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-LEARN AND NOT VIAME_ENABLE_CUDA )
+  message( FATAL_ERROR "CUDA required for LEARN project currently" )
+endif()
+
+if( WIN32 AND VIAME_BUILD_DEPENDENCIES AND VIAME_BUILD_CHECKS )
+  string( LENGTH "${VIAME_BUILD_KWIVER_DIR}" KWIVER_BUILD_DIR_LENGTH )
+  string( LENGTH "${VIAME_BUILD_PLUGINS_DIR}" PLUGINS_BUILD_DIR_LENGTH )
+
+  if( KWIVER_BUILD_DIR_LENGTH GREATER 12 OR PLUGINS_BUILD_DIR_LENGTH GREATER 12 )
+    message( FATAL_ERROR "VIAME_BUILD_KWIVER_DIR and VIAME_BUILD_PLUGINS_DIR \
+      must be set to a short path (e.g. C:\\tmp\\kv1 and C:\\tmp\\vm1) on \
+      Windows due to a current issue with nesting KWIVER exceeding the 260 \
+      character default filepath size. Alternatively disable VIAME_BUILD_CHECKS \
+      to ignore this message if you either increased the windows default path \
+      length, or think your build path is short enough." )
+  endif()
+endif()
