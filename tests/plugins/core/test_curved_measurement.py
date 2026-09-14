@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
-spec = importlib.util.spec_from_file_location('curved_measurement', ROOT / 'plugins/core/curved_measurement.py')
+spec = importlib.util.spec_from_file_location('curved_measurement', ROOT / 'library/measurement/curved_measurement.py')
 cm = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cm)
 CAL = dict(rectified=True, fx=100, fy=100, cx_left=100, cx_right=100, cy=100, baseline=1)
@@ -110,12 +110,12 @@ def test_cli(tmp_path, monkeypatch):
 def test_service_routing_and_stale_frame(monkeypatch):
     # Only the unavailable compiled boundary is stubbed. The real service,
     # disparity geometry and request adapter execute below.
-    core = types.ModuleType('viame.core')
+    core = types.ModuleType('viame.measurement')
     core._measurement = Mock()
     monkeypatch.setitem(sys.modules, 'viame', types.ModuleType('viame'))
-    monkeypatch.setitem(sys.modules, 'viame.core', core)
-    monkeypatch.setitem(sys.modules, 'viame.core.curved_measurement', cm)
-    spec = importlib.util.spec_from_file_location('curve_service_test', ROOT / 'plugins/core/interactive_stereo.py')
+    monkeypatch.setitem(sys.modules, 'viame.measurement', core)
+    monkeypatch.setitem(sys.modules, 'viame.measurement.curved_measurement', cm)
+    spec = importlib.util.spec_from_file_location('curve_service_test', ROOT / 'library/measurement/interactive_stereo.py')
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     algo = Mock()

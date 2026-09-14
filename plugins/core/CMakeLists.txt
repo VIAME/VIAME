@@ -4,9 +4,6 @@ set( plugin_headers
   adaptive_detector_trainer.h
   adaptive_tracker_trainer.h
   evaluate_models.h
-  measurement_utilities.h
-  pair_stereo_detections.h
-  pair_stereo_tracks.h
   utilities_training.h
   windowed_trainer.h
 )
@@ -15,9 +12,6 @@ set( plugin_sources
   adaptive_detector_trainer.cxx
   adaptive_tracker_trainer.cxx
   evaluate_models.cxx
-  measurement_utilities.cxx
-  pair_stereo_detections.cxx
-  pair_stereo_tracks.cxx
   utilities_training.cxx
   windowed_trainer.cxx
 )
@@ -113,24 +107,16 @@ viame_register_statically( viame_core
 
 # Add process library
 set( process_headers
-  calibrate_cameras_from_tracks_process.h
   filter_frame_index_process.h
   filter_frame_process.h
   image_to_image_set_process.h
-  measure_objects_process.h
-  pair_stereo_detections_process.h
-  refine_measurements_process.h
 )
 
 set( process_sources
   register_processes.cxx
-  calibrate_cameras_from_tracks_process.cxx
   filter_frame_index_process.cxx
   filter_frame_process.cxx
   image_to_image_set_process.cxx
-  measure_objects_process.cxx
-  pair_stereo_detections_process.cxx
-  refine_measurements_process.cxx
 )
 
 viame_add_plugin( viame_processes_core
@@ -184,36 +170,6 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_trainer.py
     core
     ocsort_trainer )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/survey_metadata.py
-    core
-    survey_metadata )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/curved_measurement.py
-    core
-    curved_measurement )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
-    core
-    interactive_stereo )
-
-  # Compiled bindings exposing the C++ stereo measurement (compute_stereo_measurement,
-  # aggregate_lengths) to Python so the interactive stereo service reuses them rather
-  # than duplicating the math. The bindings live at the bottom of measurement_utilities.cxx
-  # guarded by VIAME_MEASUREMENT_PYTHON_BINDINGS; defining it here makes this build of the
-  # file emit only the module (linking viame_core for the implementations).
-  # pybind11 is vendored in `library/tpl/pybind11`; the targets it used to
-  # come from are defined there
-  viame_add_python_library( _measurement
-    core
-    SOURCES measurement_utilities.cxx )
-  target_compile_definitions( python-core-_measurement
-    PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
-  target_link_libraries( python-core-_measurement
-    PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_core )
 
 endif()
 

@@ -37,7 +37,7 @@
 #include <viame/file_io/camera_rig_io.h>
 #include <viame/utilities/utilities_target_clfr.h>
 
-#include "measure_objects_process.h"
+#include "ocv_measure_objects_process.h"
 #include <viame/segmentation/add_keypoints_from_mask.h>
 
 namespace kv = kwiver::vital;

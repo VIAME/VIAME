@@ -22,9 +22,9 @@
 
 #include <viame/pipeline_framework/type_traits.h>
 
-#include "../core/measurement_utilities.h"
-#include "../core/pair_stereo_detections.h"
-#include "../core/pair_stereo_tracks.h"
+#include <viame/measurement/measurement_utilities.h>
+#include <viame/measurement/pair_stereo_detections.h>
+#include <viame/measurement/pair_stereo_tracks.h>
 
 
 #include <LX_StereoInterface.h>

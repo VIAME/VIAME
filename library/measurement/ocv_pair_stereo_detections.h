@@ -1,5 +1,5 @@
-#ifndef VIAME_OPENCV_PAIR_STEREO_DETECTIONS_H
-#define VIAME_OPENCV_PAIR_STEREO_DETECTIONS_H
+#ifndef VIAME_MEASUREMENT_OCV_PAIR_STEREO_DETECTIONS_H
+#define VIAME_MEASUREMENT_OCV_PAIR_STEREO_DETECTIONS_H
 
 #include <viame/core_types/bounding_box.h>
 #include <viame/core_types/detected_object.h>
@@ -12,7 +12,7 @@
 
 #include <viame/image_ops/windowed_utils.h>
 
-#include "viame_opencv_export.h"
+#include "viame_measurement_export.h"
 
 #include <memory>
 #include <vector>
@@ -21,7 +21,7 @@ namespace viame {
 
 /// @brief Structure containing extracted 3D information for each track in left image and mapping to right track
 /// coordinates
-struct VIAME_OPENCV_EXPORT Detections3DPositions
+struct VIAME_MEASUREMENT_EXPORT Detections3DPositions
 {
   kwiver::vital::vector_3d center3d{ 0.0, 0.0, 0.0 };
   kwiver::vital::vector_2d center3d_proj_to_right_image{ 0.0, 0.0 };
@@ -38,7 +38,7 @@ struct VIAME_OPENCV_EXPORT Detections3DPositions
 /// @brief Class responsible for the detection stereo pairing logic
 /// Uses camera calibration information, left and right tracks and disparity map to find corresponding detection from
 /// left to right.
-class VIAME_OPENCV_EXPORT pair_stereo_detections
+class VIAME_MEASUREMENT_EXPORT pair_stereo_detections
 {
 public:
   pair_stereo_detections() = default;
@@ -222,4 +222,4 @@ public:
 
 } // viame
 
-#endif // VIAME_OPENCV_PAIR_STEREO_DETECTIONS_H
+#endif // VIAME_MEASUREMENT_OCV_PAIR_STEREO_DETECTIONS_H

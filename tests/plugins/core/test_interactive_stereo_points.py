@@ -11,12 +11,12 @@ ROOT = Path(__file__).resolve().parents[3]
 
 @pytest.fixture
 def service(monkeypatch):
-    core = types.ModuleType('viame.core')
+    core = types.ModuleType('viame.measurement')
     core._measurement = Mock()
     monkeypatch.setitem(sys.modules, 'viame', types.ModuleType('viame'))
-    monkeypatch.setitem(sys.modules, 'viame.core', core)
+    monkeypatch.setitem(sys.modules, 'viame.measurement', core)
     for name in ('curved_measurement', 'interactive_stereo'):
-        spec = importlib.util.spec_from_file_location('viame.core.' + name, ROOT / 'plugins/core' / (name + '.py'))
+        spec = importlib.util.spec_from_file_location('viame.measurement.' + name, ROOT / 'library/measurement' / (name + '.py'))
         module = importlib.util.module_from_spec(spec)
         monkeypatch.setitem(sys.modules, spec.name, module)
         spec.loader.exec_module(module)

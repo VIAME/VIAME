@@ -92,12 +92,20 @@ def header_destinations(rows):
         # to mention, so leave every include of it alone until the merge.
         if os.path.exists(os.path.join(ROOT, source)):
             continue
-        found[os.path.basename(source)] = (destination.split("/")[1],
-                                           os.path.basename(destination))
+        # Keyed by basename, but holding every source that basename came
+        # from: `plugins/core/pair_stereo_detections.h` and
+        # `plugins/opencv/pair_stereo_detections.h` are different headers that
+        # land side by side as `pair_stereo_detections.h` and
+        # `ocv_pair_stereo_detections.h`. A single entry per basename let the
+        # second overwrite the first, and an opencv file's include of its own
+        # header would have been pointed at core's.
+        found.setdefault(os.path.basename(source), []).append(
+            (os.path.dirname(source), destination.split("/")[1],
+             os.path.basename(destination)))
     return found
 
 
-def rewrite_includes(path, headers, owner):
+def rewrite_includes(path, headers, owner, origins=None):
     """Point every include of a moved header at its new home.
 
     `owner` maps a file path to the library directory it ends up in, so that
@@ -110,6 +118,7 @@ def rewrite_includes(path, headers, owner):
         return 0
 
     mine = owner.get(path)
+    origins = origins or {}
     changed = 0
 
     def replace(match):
@@ -117,15 +126,35 @@ def rewrite_includes(path, headers, owner):
         name = os.path.basename(match.group("name"))
         if name not in headers:
             return match.group(0)
-        # An include that still resolves from where the file is is right as it
-        # stands. The case that found this: ReMax's CUDA extension, a tree
-        # that moved whole, includes `"cpu/ms_deform_attn_cpu.h"` -- and
-        # rewriting by basename turned it into `"ms_deform_attn_cpu.h"`, which
-        # its own `setup.py` build could no longer find.
-        if os.path.exists(os.path.join(ROOT, os.path.dirname(path),
-                                       match.group("name"))):
+        included = match.group("name")
+        # An include with a directory in it that still resolves from where the
+        # file is is right as it stands. The case that found this: ReMax's
+        # CUDA extension, a tree that moved whole, includes
+        # `"cpu/ms_deform_attn_cpu.h"` -- and rewriting by basename turned it
+        # into `"ms_deform_attn_cpu.h"`, which its own `setup.py` build could
+        # no longer find. Only with a directory: a bare `"x.h"` that resolves
+        # after a move may be resolving to a *different* header that landed
+        # beside it, which is the collision the origin check below is for.
+        if "/" in included and os.path.exists(
+                os.path.join(ROOT, os.path.dirname(path), included)):
             return match.group(0)
-        directory, base = headers[name]
+        candidates = headers[name]
+        if len(candidates) > 1:
+            # Where the includer was written. A test under `tests/plugins/<p>/`
+            # was written against `plugins/<p>/`'s include directory.
+            origin = os.path.dirname(origins.get(path, path))
+            parts = origin.split("/")
+            if parts[:2] == ["tests", "plugins"] and len(parts) >= 3:
+                origin = "plugins/" + parts[2]
+            # The include as written, resolved from there: `"../core/x.h"`
+            # from `plugins/seagis` names `plugins/core/x.h` exactly.
+            named = os.path.normpath(os.path.join(origin, included))
+            exact = [c for c in candidates if os.path.join(c[0], name) == named]
+            same_dir = [c for c in candidates if c[0] == origin]
+            candidates = exact or same_dir
+            if len(candidates) != 1:
+                return match.group(0)
+        _, directory, base = candidates[0]
         if mine == directory:
             new = '#include "%s"' % base
         else:
@@ -313,10 +342,18 @@ def retarget_exports(path, directory):
     # (`VIAME_OPENCV_*` in a file that was in `plugins/core`) still moves.
     guard = re.search(r'^#ifndef +(VIAME_[A-Z0-9_]+_H(?:PP)?)$',
                       text, re.MULTILINE)
-    if guard and not guard.group(1).startswith("VIAME_%s_" % upper):
-        renamed = re.sub(r'^VIAME_[A-Z0-9]+_', "VIAME_%s_" % upper,
-                         guard.group(1))
-        text = text.replace(guard.group(1), renamed)
+    if guard:
+        # Named for the file's **new** name, not by swapping the prefix of the
+        # old guard. `plugins/core/measure_objects_process.h` and
+        # `plugins/opencv/measure_objects_process.h` both land in
+        # `measurement` -- the second as `ocv_measure_objects_process.h` --
+        # and prefix-swapping gave both `VIAME_MEASUREMENT_MEASURE_OBJECTS_
+        # PROCESS_H`, so a file including the two would silently get one.
+        base = os.path.splitext(os.path.basename(path))[0].upper()
+        suffix = "_HPP" if path.endswith(".hpp") else "_H"
+        renamed = "VIAME_%s_%s%s" % (upper, base, suffix)
+        if renamed != guard.group(1):
+            text = text.replace(guard.group(1), renamed)
 
     if text != original:
         open(full, "w", encoding="utf-8").write(text)
@@ -400,10 +437,14 @@ def main():
     for path in run("git", "ls-files", "library").split():
         owner[path] = path.split("/")[1]
 
+    # Destination -> source, so an includer that moved is resolved against
+    # the directory it was written in.
+    origins = {d: s for s, d in rows if d not in ("STRUCTURAL", "DELETE")}
+
     touched = 0
     for path in run("git", "ls-files").split():
         if path.endswith((".h", ".hpp", ".cxx", ".cpp", ".txx", ".c")):
-            touched += 1 if rewrite_includes(path, headers, owner) else 0
+            touched += 1 if rewrite_includes(path, headers, owner, origins) else 0
 
     relative = fix_relative_imports() + fix_package_imports()
     print("moved %d files; rewrote includes in %d; %d relative imports made "

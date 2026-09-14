@@ -10,10 +10,10 @@
  * pair_stereo_detections_process and measure_objects_process.
  */
 
-#ifndef VIAME_CORE_PAIR_STEREO_TRACKS_H
-#define VIAME_CORE_PAIR_STEREO_TRACKS_H
+#ifndef VIAME_MEASUREMENT_PAIR_STEREO_TRACKS_H
+#define VIAME_MEASUREMENT_PAIR_STEREO_TRACKS_H
 
-#include "viame_core_export.h"
+#include "viame_measurement_export.h"
 
 #include <viame/core_types/vital_types.h>
 #include <viame/core_types/detected_object_type.h>
@@ -65,7 +65,7 @@ struct split_range
 // Right IDs are encoded as -(right_id + 1) to avoid collision with left ID 0.
 // =============================================================================
 
-class VIAME_CORE_EXPORT track_union_find
+class VIAME_MEASUREMENT_EXPORT track_union_find
 {
 public:
   kv::track_id_t find( kv::track_id_t x );
@@ -81,7 +81,7 @@ private:
 // Free helper functions for stereo class averaging
 // =============================================================================
 
-VIAME_CORE_EXPORT kv::detected_object_type_sptr
+VIAME_MEASUREMENT_EXPORT kv::detected_object_type_sptr
 compute_stereo_average_classification(
   const std::vector< kv::detected_object_sptr >& dets_left,
   const std::vector< kv::detected_object_sptr >& dets_right,
@@ -89,12 +89,12 @@ compute_stereo_average_classification(
   bool scale_by_conf = false,
   const std::string& ignore_class = "" );
 
-VIAME_CORE_EXPORT void
+VIAME_MEASUREMENT_EXPORT void
 apply_classification_to_track(
   const kv::track_sptr& trk,
   const kv::detected_object_type_sptr& dot );
 
-VIAME_CORE_EXPORT void
+VIAME_MEASUREMENT_EXPORT void
 aggregate_track_lengths(
   const kv::track_sptr& trk1,
   const kv::track_sptr& trk2,
@@ -105,7 +105,7 @@ aggregate_track_lengths(
 // Main class: stereo_track_pairer
 // =============================================================================
 
-class VIAME_CORE_EXPORT stereo_track_pairer
+class VIAME_MEASUREMENT_EXPORT stereo_track_pairer
 {
 public:
   stereo_track_pairer();
@@ -201,4 +201,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_PAIR_STEREO_TRACKS_H
+#endif // VIAME_MEASUREMENT_PAIR_STEREO_TRACKS_H

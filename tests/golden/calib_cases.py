@@ -4,7 +4,7 @@ Two contracts, recorded separately because phase 7 replaces them in different
 tasks.
 
 `calibration` is what `viame::read_stereo_rig` -- reached through
-`viame.core._measurement.load_stereo_calibration`, which is what `convert_cam`
+`viame.measurement._measurement.load_stereo_calibration`, which is what `convert_cam`
 and the measurement pipelines use -- makes of each calibration source. That is
 the contract every VIAME caller sees, and it has to survive P7-T05 and
 P7-T06 unchanged.

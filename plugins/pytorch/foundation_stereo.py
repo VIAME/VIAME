@@ -235,7 +235,7 @@ class FoundationStereo(ComputeStereoDepthMap):
 
     def _load_calibration(self, cal_fpath):
         """Load stereo calibration via the consolidated viame::core::read_stereo_rig
-        loader (the viame.core._measurement bindings), the same loader used by the
+        loader (the viame.measurement._measurement bindings), the same loader used by the
         measurement pipeline and interactive stereo. Supports .json, .yml/.yaml,
         .npz, .mat and OpenCV calibration directories.
 
@@ -245,7 +245,7 @@ class FoundationStereo(ComputeStereoDepthMap):
         Args:
             cal_fpath: Path to the calibration file
         """
-        from viame.core import _measurement
+        from viame.measurement import _measurement
 
         cal = _measurement.load_stereo_calibration(cal_fpath)
         k_left = cal["k_left"]  # flat row-major 3x3

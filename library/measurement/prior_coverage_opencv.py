@@ -20,7 +20,7 @@ import os
 
 import numpy as np
 
-from viame.core import survey_metadata as smd
+from viame.measurement import survey_metadata as smd
 from viame.image_processing import registration_utils as _sr
 # registration_utils keeps numpy/cv2 as lazily-populated module globals; make
 # sure they are bound before any of its functions run (the tool does the same).

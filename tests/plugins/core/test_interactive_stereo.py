@@ -149,14 +149,14 @@ class TestInteractiveStereoImports:
 
     def test_import_interactive_stereo(self):
         """Test that interactive_stereo module can be imported."""
-        from viame.core import interactive_stereo
+        from viame.measurement import interactive_stereo
         assert hasattr(interactive_stereo, 'InteractiveStereoService')
         assert hasattr(interactive_stereo, 'load_algorithm_from_config')
         assert hasattr(interactive_stereo, 'create_default_config')
 
     def test_interactive_stereo_service_class(self):
         """Test that InteractiveStereoService class has expected methods."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         # Check key methods exist
         assert hasattr(InteractiveStereoService, 'handle_enable')
@@ -178,7 +178,7 @@ class TestInteractiveStereoService:
 
     def test_service_initialization(self, mock_stereo_algo):
         """Test service initialization with mock algorithm."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -193,7 +193,7 @@ class TestInteractiveStereoService:
 
     def test_load_calibration(self, mock_stereo_algo):
         """Test calibration loading."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -217,7 +217,7 @@ class TestInteractiveStereoService:
 
     def test_load_calibration_magnitude_baseline(self, mock_stereo_algo):
         """Test calibration with non-horizontal baseline."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -236,7 +236,7 @@ class TestInteractiveStereoService:
 
     def test_handle_enable(self, mock_stereo_algo):
         """Test enable handler."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -255,7 +255,7 @@ class TestInteractiveStereoService:
 
     def test_handle_enable_already_enabled(self, mock_stereo_algo):
         """Test enable when already enabled."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -269,7 +269,7 @@ class TestInteractiveStereoService:
 
     def test_handle_disable(self, mock_stereo_algo):
         """Test disable handler."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -283,7 +283,7 @@ class TestInteractiveStereoService:
 
     def test_handle_get_status(self, mock_stereo_algo):
         """Test status handler."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -302,7 +302,7 @@ class TestInteractiveStereoService:
 
     def test_handle_set_calibration(self, mock_stereo_algo):
         """Test set_calibration handler."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -321,7 +321,7 @@ class TestInteractiveStereoService:
 
     def test_handle_set_calibration_missing(self, mock_stereo_algo):
         """Test set_calibration without calibration data."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -340,7 +340,7 @@ class TestDisparityCache:
 
     def test_add_to_cache(self, mock_stereo_algo):
         """Test adding disparity to cache."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -356,7 +356,7 @@ class TestDisparityCache:
 
     def test_get_from_cache(self, mock_stereo_algo):
         """Test retrieving disparity from cache."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -372,7 +372,7 @@ class TestDisparityCache:
 
     def test_cache_miss(self, mock_stereo_algo):
         """Test cache miss returns None."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -384,7 +384,7 @@ class TestDisparityCache:
 
     def test_cache_eviction(self, mock_stereo_algo):
         """Test LRU cache eviction."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -406,7 +406,7 @@ class TestDisparityCache:
 
     def test_cache_lru_update(self, mock_stereo_algo):
         """Test LRU order is updated on cache hit."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -438,7 +438,7 @@ class TestLinePointTransfer:
 
     def test_transfer_line_basic(self, mock_stereo_algo):
         """Test basic line transfer."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -466,7 +466,7 @@ class TestLinePointTransfer:
 
     def test_transfer_line_with_depth(self, mock_stereo_algo):
         """Test line transfer with depth computation."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -494,7 +494,7 @@ class TestLinePointTransfer:
 
     def test_transfer_line_not_enabled(self, mock_stereo_algo):
         """Test line transfer when service not enabled."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -505,7 +505,7 @@ class TestLinePointTransfer:
 
     def test_transfer_line_disparity_not_ready(self, mock_stereo_algo):
         """Test line transfer when disparity not ready."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -518,7 +518,7 @@ class TestLinePointTransfer:
 
     def test_transfer_points_basic(self, mock_stereo_algo):
         """Test basic point transfer."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -545,7 +545,7 @@ class TestLinePointTransfer:
 
     def test_transfer_points_varying_disparity(self, mock_stereo_algo):
         """Test point transfer with varying disparity values."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -580,7 +580,7 @@ class TestRequestHandler:
 
     def test_handle_request_routing(self, mock_stereo_algo):
         """Test that handle_request routes to correct handlers."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -600,7 +600,7 @@ class TestRequestHandler:
 
     def test_handle_request_unknown_command(self, mock_stereo_algo):
         """Test unknown command raises error."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -619,7 +619,7 @@ class TestConfigFile:
 
     def test_create_default_config(self, temp_test_dir):
         """Test default config file creation."""
-        from viame.core.interactive_stereo import create_default_config
+        from viame.measurement.interactive_stereo import create_default_config
 
         config_path = os.path.join(temp_test_dir, 'test_config.conf')
         create_default_config(config_path)
@@ -642,7 +642,7 @@ class TestIntegration:
 
     def test_set_frame_cached(self, mock_stereo_algo, stereo_images):
         """Test set_frame with cached disparity."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         left_path, right_path = stereo_images
 
@@ -666,7 +666,7 @@ class TestIntegration:
 
     def test_set_frame_already_ready(self, mock_stereo_algo, stereo_images):
         """Test set_frame when disparity already computed for current frame."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         left_path, right_path = stereo_images
 
@@ -688,7 +688,7 @@ class TestIntegration:
 
     def test_set_frame_not_enabled(self, mock_stereo_algo, stereo_images):
         """Test set_frame when service not enabled."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         left_path, right_path = stereo_images
 
@@ -704,7 +704,7 @@ class TestIntegration:
 
     def test_set_frame_missing_paths(self, mock_stereo_algo):
         """Test set_frame with missing image paths."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -716,7 +716,7 @@ class TestIntegration:
 
     def test_set_frame_nonexistent_images(self, mock_stereo_algo):
         """Test set_frame with nonexistent images."""
-        from viame.core.interactive_stereo import InteractiveStereoService
+        from viame.measurement.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=mock_stereo_algo,
@@ -733,7 +733,7 @@ class TestIntegration:
 class TestStereoMeasurement:
     """Stereo length/measurement via EpipolarTemplateMatcher.compute_measurement,
     which delegates to the C++ viame::core::compute_stereo_measurement bindings
-    (viame.core._measurement)."""
+    (viame.measurement._measurement)."""
 
     @staticmethod
     def _synthetic_rig():
@@ -743,7 +743,7 @@ class TestStereoMeasurement:
         holds the analytic length / midpoint / range for the segment, computed
         independently of the code under test.
         """
-        from viame.core.interactive_stereo import EpipolarTemplateMatcher
+        from viame.measurement.interactive_stereo import EpipolarTemplateMatcher
 
         fx = 800.0
         cx, cy = 640.0, 360.0
@@ -807,7 +807,7 @@ class TestStereoMeasurement:
 
     def test_compute_measurement_requires_calibration(self):
         """Without calibration, compute_measurement returns None."""
-        from viame.core.interactive_stereo import EpipolarTemplateMatcher
+        from viame.measurement.interactive_stereo import EpipolarTemplateMatcher
 
         matcher = EpipolarTemplateMatcher()
         assert matcher.compute_measurement(
@@ -815,7 +815,7 @@ class TestStereoMeasurement:
 
 
 class TestMatCalibration:
-    """The C++ read_stereo_rig .mat reader (exposed via viame.core._measurement)
+    """The C++ read_stereo_rig .mat reader (exposed via viame.measurement._measurement)
     loads Bouguet-style MATLAB calibration files: flat (Level 5), zlib-compressed
     (v7), and wrapped in a 'Cal' struct."""
 
@@ -827,7 +827,7 @@ class TestMatCalibration:
     def test_load_mat_calibration(self, compress, as_struct):
         scipy_io = pytest.importorskip('scipy.io')
         cv2 = pytest.importorskip('cv2')
-        from viame.core import _measurement
+        from viame.measurement import _measurement
 
         om = np.array([0.01, 0.02, -0.005])
         T = np.array([-210.0, 4.0, 4.5])

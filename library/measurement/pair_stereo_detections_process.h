@@ -20,12 +20,12 @@
  * keypoints to the detection objects for use in downstream stereo measurement.
  */
 
-#ifndef VIAME_CORE_PAIR_STEREO_DETECTIONS_PROCESS_H
-#define VIAME_CORE_PAIR_STEREO_DETECTIONS_PROCESS_H
+#ifndef VIAME_MEASUREMENT_PAIR_STEREO_DETECTIONS_PROCESS_H
+#define VIAME_MEASUREMENT_PAIR_STEREO_DETECTIONS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_measurement_export.h"
 
 #include <memory>
 
@@ -73,7 +73,7 @@ namespace core
  *   These keypoints are added to both paired detections for downstream stereo
  *   measurement algorithms.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT pair_stereo_detections_process
+class VIAME_PROCESSES_MEASUREMENT_EXPORT pair_stereo_detections_process
   : public sprokit::process
 {
 public:
@@ -97,4 +97,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_PAIR_STEREO_DETECTIONS_PROCESS_H
+#endif // VIAME_MEASUREMENT_PAIR_STEREO_DETECTIONS_PROCESS_H

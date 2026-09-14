@@ -116,7 +116,7 @@ palette gives.
 
 The calibration group records two things. `calibration` is what
 `viame::read_stereo_rig` -- through
-`viame.core._measurement.load_stereo_calibration` -- makes of each committed
+`viame.measurement._measurement.load_stereo_calibration` -- makes of each committed
 calibration source, which is the contract every VIAME caller sees. `nodes` is
 one level below: every node of each OpenCV YAML and XML document as
 `cv::FileStorage` parses it, which is what `library/file_io/opencv_yaml` has

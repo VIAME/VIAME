@@ -7,10 +7,10 @@
  * \brief Stereo detection pairing utility functions
  */
 
-#ifndef VIAME_CORE_PAIR_STEREO_DETECTIONS_H
-#define VIAME_CORE_PAIR_STEREO_DETECTIONS_H
+#ifndef VIAME_MEASUREMENT_PAIR_STEREO_DETECTIONS_H
+#define VIAME_MEASUREMENT_PAIR_STEREO_DETECTIONS_H
 
-#include "viame_core_export.h"
+#include "viame_measurement_export.h"
 
 #include <viame/core_types/vector.h>
 #include <viame/core_types/bounding_box.h>
@@ -50,7 +50,7 @@ struct stereo_feature_correspondence;
 /**
  * \brief Options for IOU-based stereo detection matching
  */
-struct VIAME_CORE_EXPORT iou_matching_options
+struct VIAME_MEASUREMENT_EXPORT iou_matching_options
 {
   double iou_threshold = 0.1;
   bool require_class_match = true;
@@ -62,7 +62,7 @@ struct VIAME_CORE_EXPORT iou_matching_options
 /**
  * \brief Options for calibration-based stereo detection matching
  */
-struct VIAME_CORE_EXPORT calibration_matching_options
+struct VIAME_MEASUREMENT_EXPORT calibration_matching_options
 {
   double max_reprojection_error = 10.0;
   double default_depth = 5.0;
@@ -75,7 +75,7 @@ struct VIAME_CORE_EXPORT calibration_matching_options
 /**
  * \brief Options for feature-based stereo detection matching
  */
-struct VIAME_CORE_EXPORT feature_matching_options
+struct VIAME_MEASUREMENT_EXPORT feature_matching_options
 {
   int min_feature_match_count = 5;
   double min_feature_match_ratio = 0.1;
@@ -95,7 +95,7 @@ struct VIAME_CORE_EXPORT feature_matching_options
  * Projects left bounding box to right image using depth and camera geometry,
  * then matches based on IOU between projected box and right detection boxes.
  */
-struct VIAME_CORE_EXPORT epipolar_iou_matching_options
+struct VIAME_MEASUREMENT_EXPORT epipolar_iou_matching_options
 {
   double iou_threshold = 0.1;
   double default_depth = 5.0;
@@ -113,7 +113,7 @@ struct VIAME_CORE_EXPORT epipolar_iou_matching_options
  * When default_depth <= 0: uses depth-independent epipolar line distance instead,
  * measuring how close right keypoints are to the epipolar lines of left keypoints.
  */
-struct VIAME_CORE_EXPORT keypoint_projection_matching_options
+struct VIAME_MEASUREMENT_EXPORT keypoint_projection_matching_options
 {
   double max_keypoint_distance = 50.0;
   double default_depth = 0.0;
@@ -132,7 +132,7 @@ struct VIAME_CORE_EXPORT keypoint_projection_matching_options
  * the bbox centroid or by aggregating across the polygon mask if
  * `use_polygon` is true.
  */
-struct VIAME_CORE_EXPORT disparity_projection_matching_options
+struct VIAME_MEASUREMENT_EXPORT disparity_projection_matching_options
 {
   /// Maximum pixel distance between disparity-predicted right centroid
   /// and an actual right-detection centroid for the pair to be a
@@ -159,7 +159,7 @@ struct VIAME_CORE_EXPORT disparity_projection_matching_options
 /**
  * \brief Algorithms required for feature-based matching
  */
-struct VIAME_CORE_EXPORT feature_matching_algorithms
+struct VIAME_MEASUREMENT_EXPORT feature_matching_algorithms
 {
   kv::algo::detect_features_sptr feature_detector;
   kv::algo::extract_descriptors_sptr descriptor_extractor;
@@ -195,7 +195,7 @@ struct VIAME_CORE_EXPORT feature_matching_algorithms
  * \param right_point 2D point in right image
  * \return RMS reprojection error in pixels, or infinity if point is behind cameras
  */
-VIAME_CORE_EXPORT double compute_stereo_reprojection_error(
+VIAME_MEASUREMENT_EXPORT double compute_stereo_reprojection_error(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_point,
@@ -216,7 +216,7 @@ VIAME_CORE_EXPORT double compute_stereo_reprojection_error(
  * \param[out] features Detected features in full image coordinates
  * \param[out] descriptors Extracted descriptors
  */
-VIAME_CORE_EXPORT void extract_detection_box_features(
+VIAME_MEASUREMENT_EXPORT void extract_detection_box_features(
   const kv::image_container_sptr& image,
   const kv::bounding_box_d& bbox,
   double box_expansion_factor,
@@ -239,7 +239,7 @@ VIAME_CORE_EXPORT void extract_detection_box_features(
  * \param logger Optional logger for debug messages
  * \return Vector of inlier stereo correspondences
  */
-VIAME_CORE_EXPORT std::vector< stereo_feature_correspondence > filter_matches_by_homography(
+VIAME_MEASUREMENT_EXPORT std::vector< stereo_feature_correspondence > filter_matches_by_homography(
   const kv::feature_set_sptr& features1,
   const kv::feature_set_sptr& features2,
   const kv::match_set_sptr& matches,
@@ -262,7 +262,7 @@ VIAME_CORE_EXPORT std::vector< stereo_feature_correspondence > filter_matches_by
  * \param logger Optional logger for debug messages
  * \return Vector of stereo feature correspondences
  */
-VIAME_CORE_EXPORT std::vector< stereo_feature_correspondence > compute_detection_feature_correspondences(
+VIAME_MEASUREMENT_EXPORT std::vector< stereo_feature_correspondence > compute_detection_feature_correspondences(
   const kv::detected_object_sptr& det1,
   const kv::detected_object_sptr& det2,
   const kv::image_container_sptr& image1,
@@ -286,7 +286,7 @@ VIAME_CORE_EXPORT std::vector< stereo_feature_correspondence > compute_detection
  * \param options Feature matching options
  * \return Match score (lower is better), or infinity if no valid match
  */
-VIAME_CORE_EXPORT double compute_detection_feature_match_score(
+VIAME_MEASUREMENT_EXPORT double compute_detection_feature_match_score(
   const kv::detected_object_sptr& det1,
   const kv::detected_object_sptr& det2,
   const kv::image_container_sptr& image1,
@@ -305,7 +305,7 @@ VIAME_CORE_EXPORT double compute_detection_feature_match_score(
  * \param options Matching options
  * \return Vector of (index1, index2) pairs of matched detections
  */
-VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_iou(
+VIAME_MEASUREMENT_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_iou(
   const std::vector< kv::detected_object_sptr >& detections1,
   const std::vector< kv::detected_object_sptr >& detections2,
   const iou_matching_options& options );
@@ -324,7 +324,7 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_iou(
  * \param logger Optional logger for error messages
  * \return Vector of (index1, index2) pairs of matched detections
  */
-VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_calibration(
+VIAME_MEASUREMENT_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_calibration(
   const std::vector< kv::detected_object_sptr >& detections1,
   const std::vector< kv::detected_object_sptr >& detections2,
   const kv::simple_camera_perspective& left_cam,
@@ -347,7 +347,7 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_calib
  * \param logger Optional logger for error messages
  * \return Vector of (index1, index2) pairs of matched detections
  */
-VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_feature(
+VIAME_MEASUREMENT_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_feature(
   const std::vector< kv::detected_object_sptr >& detections1,
   const std::vector< kv::detected_object_sptr >& detections2,
   const kv::image_container_sptr& image1,
@@ -371,7 +371,7 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_featu
  * \param logger Optional logger for error messages
  * \return Vector of (index1, index2) pairs of matched detections
  */
-VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_epipolar_iou(
+VIAME_MEASUREMENT_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_epipolar_iou(
   const std::vector< kv::detected_object_sptr >& detections1,
   const std::vector< kv::detected_object_sptr >& detections2,
   const kv::simple_camera_perspective& left_cam,
@@ -394,7 +394,7 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_epipo
  * \param logger Optional logger for error messages
  * \return Vector of (index1, index2) pairs of matched detections
  */
-VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_keypoint_projection(
+VIAME_MEASUREMENT_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_keypoint_projection(
   const std::vector< kv::detected_object_sptr >& detections1,
   const std::vector< kv::detected_object_sptr >& detections2,
   const kv::simple_camera_perspective& left_cam,
@@ -428,7 +428,7 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_keypo
  * \param options                Matching options
  * \param logger                 Optional logger
  */
-VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_disparity_projection(
+VIAME_MEASUREMENT_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_disparity_projection(
   const std::vector< kv::detected_object_sptr >& detections1,
   const std::vector< kv::detected_object_sptr >& detections2,
   const kv::image_container_sptr& disparity_rectified,
@@ -448,7 +448,7 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_dispa
  * detection pairing.  Both pair_stereo_detections_process and
  * measure_objects_process use it so the method dispatch code lives in one place.
  */
-struct VIAME_CORE_EXPORT detection_pairing_params
+struct VIAME_MEASUREMENT_EXPORT detection_pairing_params
 {
   /// Matching method: "iou", "calibration", "feature_matching",
   ///                  "epipolar_iou", or "keypoint_projection"
@@ -489,7 +489,7 @@ struct VIAME_CORE_EXPORT detection_pairing_params
  * \param logger          Optional logger
  * \return Vector of (left_index, right_index) match pairs
  */
-VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_detection_matches(
+VIAME_MEASUREMENT_EXPORT std::vector< std::pair< int, int > > find_stereo_detection_matches(
   const detection_pairing_params& params,
   const std::vector< kv::detected_object_sptr >& detections1,
   const std::vector< kv::detected_object_sptr >& detections2,
@@ -505,4 +505,4 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_detection_mat
 
 } // end namespace viame
 
-#endif // VIAME_CORE_PAIR_STEREO_DETECTIONS_H
+#endif // VIAME_MEASUREMENT_PAIR_STEREO_DETECTIONS_H

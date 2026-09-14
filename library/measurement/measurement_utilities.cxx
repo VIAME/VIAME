@@ -4147,7 +4147,7 @@ get_valid_methods()
 // =============================================================================
 // Python bindings
 //
-// Compiled only into the viame.core._measurement Python module (the module
+// Compiled only into the viame.measurement._measurement Python module (the module
 // target is built with VIAME_MEASUREMENT_PYTHON_BINDINGS defined), never into
 // the viame_core library even though both targets compile this file. The module
 // links viame_core for the actual implementations and only wraps them here, so

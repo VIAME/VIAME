@@ -7,12 +7,12 @@
  * \brief Compute object detections pair from stereo depth map information
  */
 
-#ifndef VIAME_OPENCV_PAIR_STEREO_DETECTIONS_PROCESS_H
-#define VIAME_OPENCV_PAIR_STEREO_DETECTIONS_PROCESS_H
+#ifndef VIAME_MEASUREMENT_OCV_PAIR_STEREO_DETECTIONS_PROCESS_H
+#define VIAME_MEASUREMENT_OCV_PAIR_STEREO_DETECTIONS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_opencv_export.h"
+#include "viame_processes_measurement_export.h"
 
 #include <memory>
 
@@ -25,7 +25,7 @@ class pair_stereo_detections;
 /**
  * @brief Compute object detection pairs from stereo depth map information
  */
-class VIAME_PROCESSES_OPENCV_NO_EXPORT pair_stereo_detections_process
+class VIAME_PROCESSES_MEASUREMENT_EXPORT pair_stereo_detections_process
   : public sprokit::process
 {
 public:
@@ -47,4 +47,4 @@ private:
 
 } // viame
 
-#endif // VIAME_OPENCV_PAIR_STEREO_DETECTIONS_PROCESS_H
+#endif // VIAME_MEASUREMENT_OCV_PAIR_STEREO_DETECTIONS_PROCESS_H

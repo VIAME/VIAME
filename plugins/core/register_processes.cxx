@@ -7,11 +7,7 @@
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "filter_frame_process.h"
-#include "measure_objects_process.h"
-#include "refine_measurements_process.h"
 #include "filter_frame_index_process.h"
-#include "calibrate_cameras_from_tracks_process.h"
-#include "pair_stereo_detections_process.h"
 #include "image_to_image_set_process.h"
 
 // -----------------------------------------------------------------------------
@@ -70,59 +66,11 @@ register_factories( kwiver::vital::registry& vpm )
   vpm.add_factory( fact );
   
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::measure_objects_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::measure_objects_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "compute_measurements" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Compute stereo measurements from track data" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::calibrate_cameras_from_tracks_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::calibrate_cameras_from_tracks_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "calibrate_cameras_from_tracks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Calibrate stereo cameras from object track sets" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
-
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::pair_stereo_detections_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::pair_stereo_detections_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "pair_stereo_detections" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Match detections across stereo views using IOU and class labels, output tracks with aligned IDs" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::refine_measurements_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::refine_measurements_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "refine_measurements" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Refine measurements using either local or global GSDs" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
+
 
 
 

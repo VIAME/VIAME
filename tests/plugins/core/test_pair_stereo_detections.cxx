@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include "pair_stereo_detections.h"
+#include <viame/measurement/pair_stereo_detections.h>
 
 #include <viame/core_types/bounding_box.h>
 #include <viame/core_types/detected_object.h>

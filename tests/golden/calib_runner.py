@@ -19,7 +19,7 @@ import numpy as np
 
 def load_calibration(path):
     """`viame::read_stereo_rig` on `path`, as {key: float64 array}."""
-    from viame.core import _measurement
+    from viame.measurement import _measurement
 
     loaded = _measurement.load_stereo_calibration(str(path))
 

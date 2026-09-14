@@ -1,9 +1,9 @@
-#ifndef VIAME_OPENCV_PAIR_STEREO_TRACKS_H
-#define VIAME_OPENCV_PAIR_STEREO_TRACKS_H
+#ifndef VIAME_MEASUREMENT_OCV_PAIR_STEREO_TRACKS_H
+#define VIAME_MEASUREMENT_OCV_PAIR_STEREO_TRACKS_H
 
 #include <viame/core_types/timestamp.h>
 #include <viame/core_types/object_track_set.h>
-#include "viame_opencv_export.h"
+#include "viame_measurement_export.h"
 
 namespace cv {
 class Mat;
@@ -22,7 +22,7 @@ struct IdPair
   kwiver::vital::track_id_t right_id;
 };
 
-struct VIAME_OPENCV_EXPORT Pairing
+struct VIAME_MEASUREMENT_EXPORT Pairing
 {
   std::set< kwiver::vital::frame_id_t > frame_set;
   IdPair left_right_id_pair;
@@ -35,7 +35,7 @@ struct VIAME_OPENCV_EXPORT Pairing
 ///
 /// Instance keeps track of the different tracks seen in left and right camera.
 /// Otherwise, class is meant to be used as a toolkit for pairing the two track feeds.
-class VIAME_OPENCV_EXPORT pair_stereo_tracks
+class VIAME_MEASUREMENT_EXPORT pair_stereo_tracks
 {
   const std::shared_ptr< pair_stereo_detections > m_detection_pairing;
 
@@ -139,4 +139,4 @@ public:
 
 } // viame
 
-#endif // VIAME_OPENCV_PAIR_STEREO_TRACKS_H
+#endif // VIAME_MEASUREMENT_OCV_PAIR_STEREO_TRACKS_H

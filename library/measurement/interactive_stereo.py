@@ -18,8 +18,8 @@ Unlike SAM, this service proactively computes disparity maps when the user navig
 to a new frame, so the disparity is ready when they draw annotations.
 
 Usage:
-    python -m viame.core.interactive_stereo --config /path/to/config.pipe
-    python -m viame.core.interactive_stereo --config /path/to/config.pipe --plugin-path /path/to/plugins
+    python -m viame.measurement.interactive_stereo --config /path/to/config.pipe
+    python -m viame.measurement.interactive_stereo --config /path/to/config.pipe --plugin-path /path/to/plugins
 
 Protocol:
     Input (JSON per line on stdin):
@@ -65,7 +65,7 @@ import cv2
 # Compiled C++ stereo measurement bindings. The stereo length/measurement math
 # lives solely in viame::core::compute_stereo_measurement (no Python duplicate),
 # so this module is a hard dependency.
-from viame.core import _measurement as _cpp_measurement
+from viame.measurement import _measurement as _cpp_measurement
 
 
 class EpipolarTemplateMatcher:
@@ -150,7 +150,7 @@ class EpipolarTemplateMatcher:
         """
         Load stereo calibration (K_left, K_right, R, T) from a file.
 
-        Normalized on viame::core::read_stereo_rig (via the viame.core._measurement
+        Normalized on viame::core::read_stereo_rig (via the viame.measurement._measurement
         bindings) -- the same loader the measurement pipeline processes use --
         which supports .json, .yml/.yaml, .npz, .mat and OpenCV calibration
         directories.
@@ -308,7 +308,7 @@ class EpipolarTemplateMatcher:
         range (midpoint distance to the left camera) and RMS reprojection error.
 
         Computed by viame::core::compute_stereo_measurement via the
-        viame.core._measurement bindings (single source of truth shared with
+        viame.measurement._measurement bindings (single source of truth shared with
         the C++ measurement pipeline). Returns a dict in calibration units, or
         None if the matcher is not calibrated.
         """
@@ -1084,7 +1084,7 @@ class InteractiveStereoService:
     def _transfer_points_checked(self, request):
         """Direction-aware point transfer. Invalid matches never become annotations."""
         import copy
-        from viame.core.curved_measurement import sample_map
+        from viame.measurement.curved_measurement import sample_map
         points = np.asarray(request['points'], dtype=float)
         side = request.get('source_camera', 'left')
         if side not in ('left', 'right'):
@@ -1270,7 +1270,7 @@ class InteractiveStereoService:
 
     def _measure_edited_centerline(self, left_line, right_line):
         """Re-match edited centerlines; vertex indices are not stereo matches."""
-        from viame.core.curved_measurement import resample_polyline, sample_map
+        from viame.measurement.curved_measurement import resample_polyline, sample_map
         from scipy.spatial import cKDTree
         left = resample_polyline(left_line, 32)
         right = resample_polyline(right_line, 512)
@@ -1322,7 +1322,7 @@ class InteractiveStereoService:
         swapped images, then unflips the output into right-reference disparity.
         Explicit frame paths prevent accidentally measuring stale frame data.
         """
-        from viame.core.curved_measurement import request_measurement
+        from viame.measurement.curved_measurement import request_measurement
         if not self._enabled or self._use_epipolar:
             raise ValueError("measure_curve requires an enabled dense stereo backend")
         with self._compute_lock:
@@ -1765,13 +1765,13 @@ def main():
         epilog="""
 Examples:
     # Use a config file
-    python -m viame.core.interactive_stereo --config /path/to/config.pipe
+    python -m viame.measurement.interactive_stereo --config /path/to/config.pipe
 
     # Generate a default config file
-    python -m viame.core.interactive_stereo --generate-config stereo.conf
+    python -m viame.measurement.interactive_stereo --generate-config stereo.conf
 
     # With additional plugin paths
-    python -m viame.core.interactive_stereo --config config.pipe --plugin-path /path/to/plugins
+    python -m viame.measurement.interactive_stereo --config config.pipe --plugin-path /path/to/plugins
         """
     )
     parser.add_argument(

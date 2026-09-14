@@ -7,8 +7,8 @@
  * \brief Compute object detections pair from stereo depth map information
  */
 
-#include "pair_stereo_detections_process.h"
-#include "pair_stereo_detections.h"
+#include "ocv_pair_stereo_detections_process.h"
+#include "ocv_pair_stereo_detections.h"
 
 #include <viame/core_types/vital_types.h>
 #include <viame/core_types/detected_object_set.h>

@@ -6,13 +6,22 @@
 # its include paths and its export macro, which is this library's now; the
 # namespace is still kwiver's, and phase 8 is where that changes.
 #
-# VIAME's own measurement code -- the stereo calibration and rectification,
-# the detection pairing and the length measurement -- is still in plugins/
-# and joins this in phase 2.
+# VIAME's own measurement code came from `plugins/core` and `plugins/opencv`
+# in P2-T06: the stereo measurement utilities, detection and track pairing,
+# and the measurement, refinement and calibration-from-tracks processes. The
+# task text had the core and opencv pairing and measurement merged into one
+# implementation each; they no longer share a config surface -- see
+# design/STATUS.md P2-T06 -- so both move as themselves, under their own
+# registered names, the opencv files with an `ocv_` prefix.
 
 set( plugin_headers
   camera_intrinsics.h
   epipolar_geometry.h
+  measurement_utilities.h
+  ocv_pair_stereo_detections.h
+  ocv_pair_stereo_tracks.h
+  pair_stereo_detections.h
+  pair_stereo_tracks.h
   projection.h
   triangulate.h
   )
@@ -20,6 +29,11 @@ set( plugin_headers
 set( plugin_sources
   camera_intrinsics.cxx
   epipolar_geometry.cxx
+  measurement_utilities.cxx
+  ocv_pair_stereo_detections.cxx
+  ocv_pair_stereo_tracks.cxx
+  pair_stereo_detections.cxx
+  pair_stereo_tracks.cxx
   projection.cxx
   triangulate.cxx
   )
@@ -60,7 +74,24 @@ target_link_libraries( viame_measurement
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
+                       # the calibration and track readers
+                       viame_file_io
+                       # classification averaging over a stereo pair
+                       viame_utilities
+                       # the chipping the pairing crops through
+                       viame_image_ops
+                       # the debug images the pairing can write
+                       viame_video_io
   )
+
+# The pairing's DINO feature matching calls the interpreter through the
+# Python C API, which is why `viame_core` carried libpython until this code
+# left it.
+if( VIAME_ENABLE_PYTHON )
+  target_include_directories( viame_measurement SYSTEM PRIVATE ${PYTHON_INCLUDE_DIRS} )
+  target_compile_definitions( viame_measurement PUBLIC VIAME_ENABLE_PYTHON )
+  target_link_libraries( viame_measurement PRIVATE ${PYTHON_LIBRARIES} )
+endif()
 
 set_target_properties( viame_measurement PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
@@ -70,12 +101,26 @@ set_target_properties( viame_measurement PROPERTIES
 # Processes
 ##
 set( process_headers
+  calibrate_cameras_from_tracks_process.h
   compute_stereo_depth_map_process.h
+  measure_objects_process.h
+  ocv_measure_objects_process.h
+  ocv_pair_stereo_detections_process.h
+  pair_stereo_detections_process.h
+  pair_stereo_tracks_process.h
+  refine_measurements_process.h
   )
 
 set( process_sources
   register_processes.cxx
+  calibrate_cameras_from_tracks_process.cxx
   compute_stereo_depth_map_process.cxx
+  measure_objects_process.cxx
+  ocv_measure_objects_process.cxx
+  ocv_pair_stereo_detections_process.cxx
+  pair_stereo_detections_process.cxx
+  pair_stereo_tracks_process.cxx
+  refine_measurements_process.cxx
   )
 
 viame_add_plugin( viame_processes_measurement
@@ -89,7 +134,14 @@ viame_add_plugin( viame_processes_measurement
                    kwiver::vital_config
                    kwiver::vital_util
                    kwiver::vital_exceptions
+                   kwiver::vital_algo
+                   kwiver::kwiver_adapter
                    viame_measurement
+                   # `measure_using_stereo` hangs keypoints off a mask. A
+                   # sibling link, carried over from `viame_processes_opencv`
+                   # rather than introduced; the helper moving down is the
+                   # document's rule and a later step's job.
+                   viame_segmentation
   )
 
 target_include_directories( viame_processes_measurement PRIVATE
@@ -98,51 +150,27 @@ target_include_directories( viame_processes_measurement PRIVATE
   )
 
 ###
-# Python implementations
+# Python
 #
-# `ocv_stereo_disparity` was `plugins/opencv/compute_stereo_disparity.cxx`
-# until P7-T06: block matching, the WLS filter and `stereoRectify` are
-# calib3d and ximgproc rather than image_ops primitives, so the algorithm
-# stays cv2's and only the language changes.
+# Everything in the directory: the OpenCV replacements from P7-T06
+# (`ocv_stereo_disparity`, the calibration targets and optimisation,
+# `stereo_frame_selection`, the single-camera calibration process), and from
+# P2-T06 the interactive stereo service, curved measurement, survey metadata,
+# and opencv's stereo utilities, pipeline and prior coverage.
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_create_python_init( measurement )
+  viame_add_python_package( measurement )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+  # Compiled bindings exposing the C++ stereo measurement to python, so the
+  # interactive stereo service reuses it rather than duplicating the maths.
+  # They live at the bottom of `measurement_utilities.cxx` behind
+  # `VIAME_MEASUREMENT_PYTHON_BINDINGS`; defining it here makes this build of
+  # the file emit only the module. `viame.measurement._measurement` until P2-T06.
+  viame_add_python_library( _measurement
     measurement
-    __init__ )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_stereo_disparity.py
-    measurement
-    ocv_stereo_disparity )
-
-  # `ocv_detect_calibration_targets`, and the four detection helpers it used
-  # from `calibrate_stereo_cameras`.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_calibration_targets.py
-    measurement
-    ocv_calibration_targets )
-
-  # `filter_stereo_feature_tracks` and `kmedians`, which turn the target's
-  # tracks into the point sets a calibration takes.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/stereo_frame_selection.py
-    measurement
-    stereo_frame_selection )
-
-  # `ocv_optimize_stereo_cameras`, the calibration itself.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_optimize_stereo_cameras.py
-    measurement
-    ocv_optimize_stereo_cameras )
-
-  # The `ocv_calibrate_single_camera` process, which is the same fit over one
-  # camera. A sprokit process rather than an algorithm, so it is registered
-  # through `__sprokit_register__` rather than `__vital_algorithm_register__`.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_calibrate_single_camera.py
-    measurement
-    ocv_calibrate_single_camera )
+    SOURCES measurement_utilities.cxx )
+  target_compile_definitions( python-measurement-_measurement
+    PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
+  target_link_libraries( python-measurement-_measurement
+    PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_measurement )
 endif()

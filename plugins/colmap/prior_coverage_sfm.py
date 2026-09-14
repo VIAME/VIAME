@@ -114,7 +114,7 @@ def run(args):
     """
     import pycolmap
     import register as dpc
-    from viame.core import survey_metadata as smd
+    from viame.measurement import survey_metadata as smd
 
     grid = dpc.CoverageGrid(cell_m=args.grid_cell)
     origin_ref = {'lat': None, 'lon': None, 'to_enu': None}

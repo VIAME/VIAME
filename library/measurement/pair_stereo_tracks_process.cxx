@@ -8,8 +8,8 @@
  */
 
 #include "pair_stereo_tracks_process.h"
-#include "pair_stereo_tracks.h"
-#include "pair_stereo_detections.h"
+#include "ocv_pair_stereo_tracks.h"
+#include "ocv_pair_stereo_detections.h"
 
 #include <viame/core_types/vital_types.h>
 #include <viame/core_types/image_container.h>

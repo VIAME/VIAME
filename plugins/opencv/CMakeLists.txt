@@ -3,22 +3,18 @@
 # Loadable algorithms
 ##
 
-# No OpenCV, and not much else either: P2-T05 took the colour and split
-# filters, `add_keypoints_from_mask`, `detect_in_subregions` and the windowed
-# detector and refiner into `library/`. What is left is the stereo pairing
-# and measurement, which P2-T06 takes, and the windowed trainer, which waits
-# for `library/training`.
+# No OpenCV, and almost nothing else: P2-T05 took the filters, detectors and
+# segmenter, and P2-T06 the stereo pairing and measurement, into `library/`.
+# What is left is the windowed trainer, which waits for `library/training`,
+# and the stereo demo scripts lite-library-layout.md deletes with the
+# directory in P2-T08.
 
 set( plugin_headers
-  pair_stereo_detections.h
-  pair_stereo_tracks.h
   windowed_trainer.h
   windowed_utils.h
 )
 
 set( plugin_sources
-  pair_stereo_detections.cxx
-  pair_stereo_tracks.cxx
   windowed_trainer.cxx
   windowed_utils.cxx
 )
@@ -67,51 +63,11 @@ viame_register_statically( viame_opencv
   register_algorithms.cxx
   )
 
-
-# Add process library
-set( process_headers
-  measure_objects_process.h
-  pair_stereo_detections_process.h
-  pair_stereo_tracks_process.h
-)
-
-set( process_sources
-  register_processes.cxx
-  measure_objects_process.cxx
-  pair_stereo_detections_process.cxx
-  pair_stereo_tracks_process.cxx
-)
-
-viame_add_plugin( viame_processes_opencv
-  KIND        PROCESSES
-  SOURCES          ${process_sources}
-  PRIVATE          kwiver::vital
-                   kwiver::vital_algo
-                   kwiver::vital_config
-                   kwiver::vital_logger
-                   kwiver::vital_util
-                   kwiver::vital_vpm
-                   kwiver::sprokit_pipeline
-                   viame_measurement
-                   viame_opencv
-                   # `measure_objects_process` hangs keypoints off a mask
-                   viame_segmentation
-)
-
-target_include_directories( viame_processes_opencv PRIVATE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
-  )
-
 if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames
     __init__
-    prior_coverage_opencv
     stereo_demo
     stereo_expt
-    stereo_pipeline
-    stereo_utils
   )
 
   foreach( rel_modname IN ITEMS ${_rel_modnames} )

@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include "measurement_utilities.h"
+#include <viame/measurement/measurement_utilities.h>
 
 #include <viame/core_types/camera_intrinsics.h>
 #include <viame/core_types/rotation.h>
@@ -695,7 +695,7 @@ TEST( measurement_utilities_furthest, find_furthest_apart_points_diagonal )
 // Full Stereo Measurement Tests
 //
 // compute_stereo_measurement backs the interactive stereo length feature
-// (it is exposed to Python via the viame.core._measurement bindings used by
+// (it is exposed to Python via the viame.measurement._measurement bindings used by
 // the interactive_stereo service). These verify length, 3D midpoint, range,
 // and the RMS reprojection error.
 // =============================================================================

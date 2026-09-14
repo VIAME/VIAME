@@ -564,7 +564,7 @@ class InteractiveSegmentationService:
         instantiated here, so the (large) segmentation model is not loaded twice.
         """
         if self._stereo_warper is None:
-            from viame.core.interactive_stereo import (
+            from viame.measurement.interactive_stereo import (
                 InteractiveStereoService,
                 load_algorithm_from_config,
                 find_viame_config,

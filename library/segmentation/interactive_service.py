@@ -58,7 +58,7 @@ from viame.segmentation.interactive_segmentation import (  # noqa: E402
     find_viame_config as find_segmentation_config,
     suppress_stdout,
 )
-from viame.core.interactive_stereo import (  # noqa: E402
+from viame.measurement.interactive_stereo import (  # noqa: E402
     InteractiveStereoService,
     load_algorithm_from_config,
     find_viame_config as find_stereo_config,

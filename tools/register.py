@@ -77,7 +77,7 @@ from viame.image_processing.registration_utils import (
     _poses_to_enu, _track_headings, _rot2,
     _geo_calibrate,
 )
-from viame.opencv.prior_coverage_opencv import (
+from viame.measurement.prior_coverage_opencv import (
     _geo_anchor_with_cal,
 )
 

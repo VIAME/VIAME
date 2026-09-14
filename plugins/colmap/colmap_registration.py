@@ -8,7 +8,7 @@ surveys: identical ports (``image1..N`` in, ``homog1..N`` out, plus a
 ``file_name1..N`` key), so the multicam suppressor / tracker / homography
 writer downstream are unchanged. The homographies are computed by the newer
 affine-chain + rig cross-camera + GPS geo-anchoring registration
-(viame.opencv.prior_coverage_opencv), which optionally uses an external
+(viame.measurement.prior_coverage_opencv), which optionally uses an external
 flight-log metadata file when one is available and falls back to pure
 image registration when it is not.
 
@@ -302,7 +302,7 @@ class ColmapRegistration(KwiverProcess):
         counted: this measures whether the file itself was applied, so
         require_metadata can fail when a file was passed but is the wrong log,
         unreadable, or left unlinked by a survey-folder mismatch."""
-        from viame.core import survey_metadata as smd
+        from viame.measurement import survey_metadata as smd
         fl = self._flight_log
         cams = smd.list_site_images(site_folder, image_list=images)
         total = sum(len(v) for v in cams.values())
@@ -381,7 +381,7 @@ class ColmapRegistration(KwiverProcess):
         # the whole site tree, so the VIAME cache dir does not perturb its own
         # key. The folder cache is always keyed on the FULL folder (images=None)
         # so a list-scope run validates against it too.
-        from viame.core import survey_metadata as smd
+        from viame.measurement import survey_metadata as smd
         cams = smd.list_site_images(site_folder, image_list=images)
         names = sorted(os.path.basename(r)
                        for rels in cams.values() for r in rels)
@@ -447,7 +447,7 @@ class ColmapRegistration(KwiverProcess):
             _log('could not write cache %s: %s' % (path, e))
 
     def _register(self, site_folder, images):
-        from viame.opencv import prior_coverage_opencv as pcc
+        from viame.measurement import prior_coverage_opencv as pcc
         # The full-folder cache is keyed and validated on the WHOLE folder
         # (images=None), so a list-scope run reuses it too when present.
         folder_key = self._cache_key(site_folder, None)

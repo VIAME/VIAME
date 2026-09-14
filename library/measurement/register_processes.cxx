@@ -18,6 +18,13 @@
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "compute_stereo_depth_map_process.h"
+#include "calibrate_cameras_from_tracks_process.h"
+#include "measure_objects_process.h"
+#include "pair_stereo_detections_process.h"
+#include "refine_measurements_process.h"
+#include "ocv_measure_objects_process.h"
+#include "ocv_pair_stereo_detections_process.h"
+#include "pair_stereo_tracks_process.h"
 
 extern "C"
 VIAME_PROCESSES_MEASUREMENT_EXPORT
@@ -54,6 +61,34 @@ register_factories( kwiver::vital::registry& vpm )
   VIAME_REGISTER_PROCESS(
     kwiver::compute_stereo_depth_map_process, "compute_stereo_depth_map",
     "Compute a stereo depth map given two frames." )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::calibrate_cameras_from_tracks_process, "calibrate_cameras_from_tracks",
+    "Calibrate two cameras from two objects track set" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::measure_objects_process, "compute_measurements",
+    "Stereo measurement process" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::pair_stereo_detections_process, "pair_stereo_detections",
+    "Stereo detection pairing process" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::refine_measurements_process, "refine_measurements",
+    "Refine measurements in object detections via multiple methods" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::measure_objects_process, "measure_using_stereo",
+    "Stereo measurement process that matches detections between left and right cameras and computes fish length measurements using triangulation" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::pair_stereo_detections_process, "ocv_pair_stereo_detections",
+    "Compute object detections pair from stereo depth map information" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::pair_stereo_tracks_process, "ocv_pair_stereo_tracks",
+    "Compute object tracks pair from stereo depth map information" )
 
 #undef VIAME_REGISTER_PROCESS
 

@@ -248,7 +248,7 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
             return None
 
         if self._calibration is None:
-            from viame.core import _measurement
+            from viame.measurement import _measurement
 
             loaded = _measurement.load_stereo_calibration(
                 self._calibration_file)

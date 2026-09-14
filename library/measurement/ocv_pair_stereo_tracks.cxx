@@ -1,6 +1,6 @@
 #include <viame/core_types/timestamp.h>
-#include "pair_stereo_tracks.h"
-#include "pair_stereo_detections.h"
+#include "ocv_pair_stereo_tracks.h"
+#include "ocv_pair_stereo_detections.h"
 
 viame::pair_stereo_tracks
 ::pair_stereo_tracks()

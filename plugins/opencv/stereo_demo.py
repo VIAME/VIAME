@@ -20,7 +20,7 @@ import ubelt as ub
 import threading
 import logging
 
-from .stereo_utils import (imscale, overlay_heatmask, putMultiLineText)
+from viame.measurement.stereo_utils import (imscale, overlay_heatmask, putMultiLineText)
 from . import stereo_algos as ctalgo
 import queue
 

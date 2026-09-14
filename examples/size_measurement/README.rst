@@ -514,7 +514,7 @@ straight-line result. Existing detection length fields are not overwritten.
 
 Offline processing of saved disparity maps is also available::
 
-  python -m viame.core.curved_measurement request.json --output measurement.json
+  python -m viame.measurement.curved_measurement request.json --output measurement.json
 
 Use the same JSON fields as above, adding ``left_disparity_path`` and, for
 bidirectional mode, ``right_disparity_path`` to NumPy ``.npy`` maps. Offline maps

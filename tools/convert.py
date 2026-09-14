@@ -18,7 +18,7 @@ Supports conversion between:
 
 Reading the formats that plugins/core/camera_rig_io owns (npz, json, opencv
 directories, single yml and mat) is delegated to the C++ viame::read_stereo_rig
-loader via the viame.core._measurement binding, so this tool and the
+loader via the viame.measurement._measurement binding, so this tool and the
 measurement pipeline share a single source of truth and cannot drift apart.
 The ZED and CamCAL/PtsCAL readers (which camera_rig_io has no equivalent for)
 and all writers remain pure Python. When the compiled binding is unavailable
@@ -72,7 +72,7 @@ def _import_calibration_deps():
 # Shared C++ loader (viame::read_stereo_rig). Optional: the tool still works as
 # a standalone script (with the Python readers below) when it is not importable.
 try:
-    from viame.core import _measurement as _cpp_camera_rig_io
+    from viame.measurement import _measurement as _cpp_camera_rig_io
 except Exception:
     _cpp_camera_rig_io = None
 
@@ -179,7 +179,7 @@ def read_via_camera_rig_io(input_path):
     (e.g. computing OpenCV rectification).
     """
     if _cpp_camera_rig_io is None:
-        raise RuntimeError("viame.core._measurement binding is not available")
+        raise RuntimeError("viame.measurement._measurement binding is not available")
 
     c = _cpp_camera_rig_io.load_stereo_calibration(str(input_path))
 
@@ -1064,7 +1064,7 @@ def convert(input_path, output_path, input_format=None, output_format=None,
             if input_format not in fallback:
                 raise ValueError(
                     f"Reading '{input_format}' requires the compiled "
-                    f"viame.core._measurement binding (viame::read_stereo_rig), "
+                    f"viame.measurement._measurement binding (viame::read_stereo_rig), "
                     f"which is not importable. Build VIAME with the core plugin "
                     f"to enable it.")
             print(f"viame.core binding unavailable; using standalone Python "

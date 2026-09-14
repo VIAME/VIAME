@@ -7,10 +7,10 @@
  * \brief Stereo measurement utility functions
  */
 
-#ifndef VIAME_CORE_MEASUREMENT_UTILITIES_H
-#define VIAME_CORE_MEASUREMENT_UTILITIES_H
+#ifndef VIAME_MEASUREMENT_MEASUREMENT_UTILITIES_H
+#define VIAME_MEASUREMENT_MEASUREMENT_UTILITIES_H
 
-#include "viame_core_export.h"
+#include "viame_measurement_export.h"
 
 #include <viame/core_types/vector.h>
 #include <viame/core_types/bounding_box.h>
@@ -51,15 +51,15 @@ namespace kv = kwiver::vital;
 // =============================================================================
 
 /// Parse the first :length=<value> note from a detection. Returns -1 if none found.
-VIAME_CORE_EXPORT double parse_length_from_notes(
+VIAME_MEASUREMENT_EXPORT double parse_length_from_notes(
   const kv::detected_object_sptr& det );
 
 /// Parse the first :stereo_rms=<value> note from a detection. Returns -1 if none found.
-VIAME_CORE_EXPORT double parse_stereo_rms_from_notes(
+VIAME_MEASUREMENT_EXPORT double parse_stereo_rms_from_notes(
   const kv::detected_object_sptr& det );
 
 /// Result structure for full stereo measurement (length + 3D position + error)
-struct VIAME_CORE_EXPORT stereo_measurement_result
+struct VIAME_MEASUREMENT_EXPORT stereo_measurement_result
 {
   double length;         // distance between head and tail in 3D
   double x, y, z;        // midpoint 3D position (real-world location)
@@ -73,36 +73,36 @@ struct VIAME_CORE_EXPORT stereo_measurement_result
 };
 
 /// Add measurement attributes (length, midpoint, range, rms) to a detection
-VIAME_CORE_EXPORT void add_measurement_attributes(
+VIAME_MEASUREMENT_EXPORT void add_measurement_attributes(
   kv::detected_object_sptr det,
   const stereo_measurement_result& measurement );
 
 /// Parse a comma-separated list of matching methods
-VIAME_CORE_EXPORT std::vector< std::string > parse_matching_methods(
+VIAME_MEASUREMENT_EXPORT std::vector< std::string > parse_matching_methods(
   const std::string& methods_str );
 
 /// Check if a method requires images
-VIAME_CORE_EXPORT bool method_requires_images( const std::string& method );
+VIAME_MEASUREMENT_EXPORT bool method_requires_images( const std::string& method );
 
 /// Get list of all valid method names
-VIAME_CORE_EXPORT std::vector< std::string > get_valid_methods();
+VIAME_MEASUREMENT_EXPORT std::vector< std::string > get_valid_methods();
 
 /// Project a point from left camera to right camera using a specified depth
-VIAME_CORE_EXPORT kv::vector_2d project_left_to_right(
+VIAME_MEASUREMENT_EXPORT kv::vector_2d project_left_to_right(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_point,
   double depth );
 
 /// Triangulate a 3D point from stereo correspondences
-VIAME_CORE_EXPORT kv::vector_3d triangulate_point(
+VIAME_MEASUREMENT_EXPORT kv::vector_3d triangulate_point(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_point,
   const kv::vector_2d& right_point );
 
 /// Compute length between two 3D points from stereo keypoint pairs
-VIAME_CORE_EXPORT double compute_stereo_length(
+VIAME_MEASUREMENT_EXPORT double compute_stereo_length(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_head,
@@ -111,7 +111,7 @@ VIAME_CORE_EXPORT double compute_stereo_length(
   const kv::vector_2d& right_tail );
 
 /// Compute full stereo measurement including length, 3D position, range, and RMS
-VIAME_CORE_EXPORT stereo_measurement_result compute_stereo_measurement(
+VIAME_MEASUREMENT_EXPORT stereo_measurement_result compute_stereo_measurement(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const kv::vector_2d& left_head,
@@ -123,7 +123,7 @@ VIAME_CORE_EXPORT stereo_measurement_result compute_stereo_measurement(
 /// method: "average" (mean, default), "average_iqr" (mean after IQR outlier
 /// removal controlled by iqr_factor), or "median". Non-positive lengths are
 /// ignored. Returns the aggregated length, or -1 if there are no valid lengths.
-VIAME_CORE_EXPORT double aggregate_lengths(
+VIAME_MEASUREMENT_EXPORT double aggregate_lengths(
   const std::vector< double >& lengths,
   const std::string& method = "average",
   double iqr_factor = 1.5 );
@@ -131,7 +131,7 @@ VIAME_CORE_EXPORT double aggregate_lengths(
 /// Compute a bounding box from keypoints with scale factor
 /// If min_aspect_ratio > 0, ensures the smaller dimension is at least
 /// min_aspect_ratio times the larger dimension (prevents very thin boxes)
-VIAME_CORE_EXPORT kv::bounding_box_d compute_bbox_from_keypoints(
+VIAME_MEASUREMENT_EXPORT kv::bounding_box_d compute_bbox_from_keypoints(
   const kv::vector_2d& head_point,
   const kv::vector_2d& tail_point,
   double box_scale_factor,
@@ -139,32 +139,32 @@ VIAME_CORE_EXPORT kv::bounding_box_d compute_bbox_from_keypoints(
 
 /// Compute epipolar points by sampling depths along a ray from source camera
 /// and projecting to target camera. Works on unrectified images.
-VIAME_CORE_EXPORT std::vector< kv::vector_2d > compute_epipolar_points(
+VIAME_MEASUREMENT_EXPORT std::vector< kv::vector_2d > compute_epipolar_points(
   const kv::simple_camera_perspective& source_cam,
   const kv::simple_camera_perspective& target_cam,
   const kv::vector_2d& source_point,
   double min_depth, double max_depth, int num_samples );
 
 /// Compute intersection-over-union (IOU) between two bounding boxes
-VIAME_CORE_EXPORT double compute_iou(
+VIAME_MEASUREMENT_EXPORT double compute_iou(
   const kv::bounding_box_d& bbox1,
   const kv::bounding_box_d& bbox2 );
 
 /// Get the most likely class label from a detection
 /// Returns empty string if detection or type is null
-VIAME_CORE_EXPORT std::string get_detection_class_label(
+VIAME_MEASUREMENT_EXPORT std::string get_detection_class_label(
   const kv::detected_object_sptr& det );
 
 /// Perform greedy minimum weight assignment given a cost matrix
 /// cost_matrix[i][j] is the cost of assigning row i to column j
 /// Returns pairs of (row, column) assignments, sorted by increasing cost
 /// Ignores costs that are infinity or >= 1e9
-VIAME_CORE_EXPORT std::vector< std::pair< int, int > > greedy_assignment(
+VIAME_MEASUREMENT_EXPORT std::vector< std::pair< int, int > > greedy_assignment(
   const std::vector< std::vector< double > >& cost_matrix,
   int n_rows, int n_cols );
 
 /// Structure to store stereo feature correspondences for head/tail computation
-struct VIAME_CORE_EXPORT stereo_feature_correspondence
+struct VIAME_MEASUREMENT_EXPORT stereo_feature_correspondence
 {
   kv::vector_2d left_point;
   kv::vector_2d right_point;
@@ -174,7 +174,7 @@ struct VIAME_CORE_EXPORT stereo_feature_correspondence
 /// Uses the left image points to compute distance
 /// Returns true if found (requires at least 2 correspondences), false otherwise
 /// Head/tail ordering is consistent: head has smaller x coordinate in left image
-VIAME_CORE_EXPORT bool find_furthest_apart_points(
+VIAME_MEASUREMENT_EXPORT bool find_furthest_apart_points(
   const std::vector< stereo_feature_correspondence >& correspondences,
   kv::vector_2d& left_head, kv::vector_2d& left_tail,
   kv::vector_2d& right_head, kv::vector_2d& right_tail );
@@ -189,7 +189,7 @@ VIAME_CORE_EXPORT bool find_furthest_apart_points(
  * This class encapsulates all configuration parameters for stereo measurement
  * and provides standard kwiver get/set configuration functions.
  */
-class VIAME_CORE_EXPORT map_keypoints_to_camera_settings
+class VIAME_MEASUREMENT_EXPORT map_keypoints_to_camera_settings
 {
 public:
   map_keypoints_to_camera_settings();
@@ -456,7 +456,7 @@ public:
  * including point projection, template matching, SGBM disparity, and
  * feature-based correspondence finding.
  */
-class VIAME_CORE_EXPORT map_keypoints_to_camera
+class VIAME_MEASUREMENT_EXPORT map_keypoints_to_camera
 {
 public:
   map_keypoints_to_camera();
@@ -909,4 +909,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_MEASUREMENT_UTILITIES_H
+#endif // VIAME_MEASUREMENT_MEASUREMENT_UTILITIES_H

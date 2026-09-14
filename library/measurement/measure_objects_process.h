@@ -7,12 +7,12 @@
  * \brief Stereo measurement process
  */
 
-#ifndef VIAME_CORE_MEASURE_OBJECTS_PROCESS_H
-#define VIAME_CORE_MEASURE_OBJECTS_PROCESS_H
+#ifndef VIAME_MEASUREMENT_MEASURE_OBJECTS_PROCESS_H
+#define VIAME_MEASUREMENT_MEASURE_OBJECTS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_measurement_export.h"
 
 #include <memory>
 
@@ -29,7 +29,7 @@ namespace core
  * Computes measurements from stereo camera track data by finding corresponding
  * points between left and right camera views and triangulating to get 3D lengths.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT measure_objects_process
+class VIAME_PROCESSES_MEASUREMENT_EXPORT measure_objects_process
   : public sprokit::process
 {
 public:
@@ -57,4 +57,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_MEASURE_OBJECTS_PROCESS_H
+#endif // VIAME_MEASUREMENT_MEASURE_OBJECTS_PROCESS_H

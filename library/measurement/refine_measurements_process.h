@@ -7,12 +7,12 @@
  * \brief Refine measurements in object detections via multiple methods
  */
 
-#ifndef VIAME_CORE_REFINE_MEASUREMENTS_PROCESS_H
-#define VIAME_CORE_REFINE_MEASUREMENTS_PROCESS_H
+#ifndef VIAME_MEASUREMENT_REFINE_MEASUREMENTS_PROCESS_H
+#define VIAME_MEASUREMENT_REFINE_MEASUREMENTS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_measurement_export.h"
 
 #include <memory>
 
@@ -26,7 +26,7 @@ namespace core
 /**
  * @brief Filter object tracks
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT refine_measurements_process
+class VIAME_PROCESSES_MEASUREMENT_EXPORT refine_measurements_process
   : public sprokit::process
 {
 public:
@@ -50,4 +50,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_REFINE_MEASUREMENTS_PROCESS_H
+#endif // VIAME_MEASUREMENT_REFINE_MEASUREMENTS_PROCESS_H

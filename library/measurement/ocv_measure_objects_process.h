@@ -7,12 +7,12 @@
  * \brief Stereo measurement process using calibration data
  */
 
-#ifndef VIAME_OPENCV_MEASURE_OBJECTS_PROCESS_H
-#define VIAME_OPENCV_MEASURE_OBJECTS_PROCESS_H
+#ifndef VIAME_MEASUREMENT_OCV_MEASURE_OBJECTS_PROCESS_H
+#define VIAME_MEASUREMENT_OCV_MEASURE_OBJECTS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_opencv_export.h"
+#include "viame_measurement_export.h"
 
 #include <memory>
 
@@ -29,7 +29,7 @@ namespace viame
  * and computes length measurements. Output includes detection sets with length
  * annotations and track sets for matched/unmatched detections.
  */
-class VIAME_OPENCV_NO_EXPORT measure_objects_process
+class VIAME_MEASUREMENT_EXPORT measure_objects_process
   : public sprokit::process
 {
 public:
@@ -52,4 +52,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_OPENCV_MEASURE_OBJECTS_PROCESS_H
+#endif // VIAME_MEASUREMENT_OCV_MEASURE_OBJECTS_PROCESS_H
