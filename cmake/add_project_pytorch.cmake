@@ -202,13 +202,26 @@ endif()
 if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   list( APPEND PYTORCH_ENV_VARS "DISTUTILS_USE_SDK=1" )
   list( APPEND PYTORCH_ENV_VARS "CMAKE_PREFIX_PATH=${VIAME_INSTALL_PREFIX}" )
-  # Distributed on, NCCL off. NCCL is Linux-only, but gloo builds on Windows and
-  # is all torch.distributed needs to exist. With USE_DISTRIBUTED=0 the module
-  # is a stub exposing nothing but is_available(), so PyTorch-Lightning's DDP
-  # strategies cannot run at all: a two-GPU Windows box trains every job on one
-  # card no matter what the config asks for, and the failure surfaces only after
-  # data preparation. Trainers still guard on ddp_available() for installs built
-  # the old way (see plugins/pytorch/utilities.py).
+  # Distributed requested, NCCL off (NCCL is Linux-only).
+  #
+  # NOTE: this is necessary but NOT sufficient on Windows, and setting it alone
+  # changes nothing. PyTorch's own CMakeLists searches for libuv using
+  # NO_DEFAULT_PATH against conda-style prefixes ($ENV{CONDA_PREFIX}\Library,
+  # $ENV{PREFIX}\Library) and, not finding it, does:
+  #
+  #     set(USE_DISTRIBUTED OFF)
+  #     set(USE_GLOO OFF)
+  #
+  # This build is not conda-based, so a clean build carrying USE_DISTRIBUTED=1
+  # still produced a torch reporting USE_GLOO=OFF / USE_MPI=OFF / USE_NCCL=OFF,
+  # with no torch._C._distributed_c10d and torch.distributed.is_available()
+  # False (verified 2026-09-13). Enabling multi-GPU on Windows therefore also
+  # needs libuv built and discoverable by that search -- the flag is kept so the
+  # intent is recorded and so the only remaining blocker is the dependency.
+  #
+  # Until then torch.distributed stays a stub exposing nothing but
+  # is_available(), and every trainer falls back to a single GPU via
+  # ddp_available() in plugins/pytorch/utilities.py.
   list( APPEND PYTORCH_ENV_VARS "USE_DISTRIBUTED=1" )
   list( APPEND PYTORCH_ENV_VARS "USE_NCCL=0" )
   list( APPEND PYTORCH_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
