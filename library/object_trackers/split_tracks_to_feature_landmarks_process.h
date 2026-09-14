@@ -7,12 +7,12 @@
  * \brief Split an object track set into a feature_track_set and a landmark_map
  */
 
-#ifndef VIAME_CORE_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H
-#define VIAME_CORE_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H
+#ifndef VIAME_OBJECT_TRACKERS_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H
+#define VIAME_OBJECT_TRACKERS_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_object_trackers_export.h"
 
 #include <memory>
 
@@ -26,7 +26,7 @@ namespace core
 /**
  * @brief Split an object track set into a feature_track_set and a landmark_map
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT split_tracks_to_feature_landmarks_process
+class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT split_tracks_to_feature_landmarks_process
   : public sprokit::process
 {
 public:
@@ -50,4 +50,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H
+#endif // VIAME_OBJECT_TRACKERS_SPLIT_TRACKS_TO_FEATURE_LANDMARKS_PROCESS_H

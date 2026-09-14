@@ -7,12 +7,12 @@
  * \brief Resample object tracks from one downsample rate to another
  */
 
-#ifndef VIAME_CORE_RESAMPLE_OBJECT_TRACKS_PROCESS_H
-#define VIAME_CORE_RESAMPLE_OBJECT_TRACKS_PROCESS_H
+#ifndef VIAME_OBJECT_TRACKERS_RESAMPLE_OBJECT_TRACKS_PROCESS_H
+#define VIAME_OBJECT_TRACKERS_RESAMPLE_OBJECT_TRACKS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_object_trackers_export.h"
 
 #include <memory>
 
@@ -30,7 +30,7 @@ namespace core
  * from a video source at the output rate, and outputs tracks with linearly
  * interpolated bounding boxes for intermediate frames.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT resample_object_tracks_process
+class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT resample_object_tracks_process
   : public sprokit::process
 {
 public:
@@ -54,4 +54,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_RESAMPLE_OBJECT_TRACKS_PROCESS_H
+#endif // VIAME_OBJECT_TRACKERS_RESAMPLE_OBJECT_TRACKS_PROCESS_H

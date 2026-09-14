@@ -50,7 +50,7 @@ from kwiver.sprokit.pipeline import datum
 from kwiver.sprokit.pipeline import process
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 
-from viame.core.simple_homog_tracker import add_declare_config
+from viame.object_trackers.simple_homog_tracker import add_declare_config
 from .stabilize_many_images import add_declare_input_port
 
 

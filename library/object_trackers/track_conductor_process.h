@@ -7,12 +7,12 @@
  * \brief Consolidate and control the output of multiple object trackers
  */
 
-#ifndef VIAME_CORE_TRACK_CONDUCTOR_PROCESS_H
-#define VIAME_CORE_TRACK_CONDUCTOR_PROCESS_H
+#ifndef VIAME_OBJECT_TRACKERS_TRACK_CONDUCTOR_PROCESS_H
+#define VIAME_OBJECT_TRACKERS_TRACK_CONDUCTOR_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_object_trackers_export.h"
 
 #include <memory>
 
@@ -28,7 +28,7 @@ namespace core
  * 
  * The output of multiple trackers can be combined via multiple methods
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT track_conductor_process
+class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT track_conductor_process
   : public sprokit::process
 {
 public:
@@ -62,4 +62,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_TRACK_CONDUCTOR_PROCESS_H
+#endif // VIAME_OBJECT_TRACKERS_TRACK_CONDUCTOR_PROCESS_H

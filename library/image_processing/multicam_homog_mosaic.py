@@ -24,7 +24,7 @@ from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
 from kwiver.vital.types import Image, ImageContainer
 
-from viame.core.simple_homog_tracker import add_declare_config, wrap_F2FHomography
+from viame.object_trackers.simple_homog_tracker import add_declare_config, wrap_F2FHomography
 from .stabilize_many_images import (
     add_declare_input_port, add_declare_output_port,
 )

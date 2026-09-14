@@ -118,14 +118,12 @@ viame_register_statically( viame_core
 
 # Add process library
 set( process_headers
-  accumulate_object_tracks_process.h
   calibrate_cameras_from_tracks_process.h
   create_database_query_process.h
   extract_desc_ids_for_training_process.h
   fetch_descriptors_process.h
   filter_frame_index_process.h
   filter_frame_process.h
-  filter_object_tracks_process.h
   image_to_image_set_process.h
   ingest_descriptors_process.h
   measure_objects_process.h
@@ -133,23 +131,18 @@ set( process_headers
   pair_stereo_detections_process.h
   process_query_process_adaboost.h
   refine_measurements_process.h
-  resample_object_tracks_process.h
   select_database_query_process.h
-  split_tracks_to_feature_landmarks_process.h
-  track_conductor_process.h
   write_query_results_as_tracks_process.h
 )
 
 set( process_sources
   register_processes.cxx
-  accumulate_object_tracks_process.cxx
   calibrate_cameras_from_tracks_process.cxx
   create_database_query_process.cxx
   extract_desc_ids_for_training_process.cxx
   fetch_descriptors_process.cxx
   filter_frame_index_process.cxx
   filter_frame_process.cxx
-  filter_object_tracks_process.cxx
   image_to_image_set_process.cxx
   ingest_descriptors_process.cxx
   measure_objects_process.cxx
@@ -157,10 +150,7 @@ set( process_sources
   pair_stereo_detections_process.cxx
   process_query_process_adaboost.cxx
   refine_measurements_process.cxx
-  resample_object_tracks_process.cxx
   select_database_query_process.cxx
-  split_tracks_to_feature_landmarks_process.cxx
-  track_conductor_process.cxx
   write_query_results_as_tracks_process.cxx
 )
 
@@ -256,10 +246,6 @@ if( VIAME_ENABLE_PYTHON )
     core
     iqr_adaboost )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py
-    core
-    bytetrack_tracker )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_trainer.py
@@ -280,18 +266,10 @@ if( VIAME_ENABLE_PYTHON )
 
 
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/merge_tracks_tube_iou.py
-    core
-    merge_tracks_tube_iou )
 
 
 
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
-    core
-    multicam_homog_tracker )
 
 
 
@@ -300,10 +278,6 @@ if( VIAME_ENABLE_PYTHON )
     core
     frame_diff_trainer )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
-    core
-    ocsort_tracker )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_trainer.py
@@ -325,10 +299,6 @@ if( VIAME_ENABLE_PYTHON )
 
 
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/simple_homog_tracker.py
-    core
-    simple_homog_tracker )
 
 
 

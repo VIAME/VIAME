@@ -13,8 +13,8 @@ from kwiver.vital.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
 )
 
-from viame.core.multicam_homog_tracker import MultiHomographyF2F, diff_homogs
-from viame.core.simple_homog_tracker import (
+from viame.object_trackers.multicam_homog_tracker import MultiHomographyF2F, diff_homogs
+from viame.object_trackers.simple_homog_tracker import (
     Homography, Transformer, add_declare_config,
     get_DetectedObject_bbox, to_DetectedObject_list, wrap_F2FHomography,
 )

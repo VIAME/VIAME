@@ -10,21 +10,16 @@
 #include "fetch_descriptors_process.h"
 #include "filter_frame_process.h"
 #include "ingest_descriptors_process.h"
-#include "filter_object_tracks_process.h"
 #include "object_track_descriptors_process.h"
 #include "measure_objects_process.h"
 #include "refine_measurements_process.h"
-#include "track_conductor_process.h"
-#include "accumulate_object_tracks_process.h"
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
-#include "split_tracks_to_feature_landmarks_process.h"
 #include "pair_stereo_detections_process.h"
 #include "write_query_results_as_tracks_process.h"
 #include "create_database_query_process.h"
 #include "select_database_query_process.h"
 #include "image_to_image_set_process.h"
-#include "resample_object_tracks_process.h"
 #include "process_query_process_adaboost.h"
 
 // -----------------------------------------------------------------------------
@@ -114,18 +109,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::filter_object_tracks_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::filter_object_tracks_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "filter_object_tracks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Filter object tracks based on different filters" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
 
   
@@ -142,18 +125,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
   
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::accumulate_object_tracks_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::accumulate_object_tracks_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "accumulate_object_tracks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Accumulate detected objects into an object track set" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   fact = new sprokit::cpp_process_factory(
     typeid( viame::core::measure_objects_process ).name(),
@@ -168,18 +139,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::split_tracks_to_feature_landmarks_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::split_tracks_to_feature_landmarks_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "split_tracks_to_feature_landmarks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Split an object track set into a feature_track_set and a landmark_map" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
   
   fact = new sprokit::cpp_process_factory(
     typeid( viame::core::calibrate_cameras_from_tracks_process ).name(),
@@ -221,18 +180,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::track_conductor_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::track_conductor_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "track_conductor" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Consolidate and control multiple other trackers" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
 
 
@@ -289,18 +236,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::resample_object_tracks_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::resample_object_tracks_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "resample_object_tracks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Resample object tracks from one downsample rate to another" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   // `process_query_adaboost` was registered by `viame_processes_opencv`
   // until P7-T09 took its session from `cv::ml::Boost` to scikit-learn.

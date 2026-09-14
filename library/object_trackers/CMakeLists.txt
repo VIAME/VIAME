@@ -6,8 +6,11 @@
 # is this library's now; the namespace is still kwiver's, and phase 8 is
 # where that changes.
 #
-# VIAME's own trackers -- the pytorch ones, the IOU tracker, the track
-# conductor -- are still in plugins/ and join this in phase 2.
+# VIAME's own track processes -- accumulation, filtering, resampling, the
+# feature-landmark split and the track conductor -- and its python trackers
+# (ByteTrack, OC-SORT, the homography IOU trackers, tube-IoU fusion) came from
+# `plugins/core` in P2-T06. The pytorch trackers are still in
+# `plugins/pytorch`.
 
 set( plugin_headers
   associate_detections_to_tracks_threshold.h
@@ -61,18 +64,28 @@ viame_register_statically( viame_object_trackers
 # Processes
 ##
 set( process_headers
+  accumulate_object_tracks_process.h
   convert_tracks_to_detections_process.h
+  filter_object_tracks_process.h
   initialize_object_tracks_process.h
   merge_track_sets_process.h
+  resample_object_tracks_process.h
+  split_tracks_to_feature_landmarks_process.h
+  track_conductor_process.h
   track_objects_process.h
   unwrap_detections_process.h
   )
 
 set( process_sources
   register_processes.cxx
+  accumulate_object_tracks_process.cxx
   convert_tracks_to_detections_process.cxx
+  filter_object_tracks_process.cxx
   initialize_object_tracks_process.cxx
   merge_track_sets_process.cxx
+  resample_object_tracks_process.cxx
+  split_tracks_to_feature_landmarks_process.cxx
+  track_conductor_process.cxx
   track_objects_process.cxx
   unwrap_detections_process.cxx
   )
@@ -88,6 +101,10 @@ viame_add_plugin( viame_processes_object_trackers
                    kwiver::vital_config
                    kwiver::vital_util
                    kwiver::vital_exceptions
+                   kwiver::vital_algo
+                   # `filter_object_tracks` turns notes into attributes the
+                   # way the CSV readers do
+                   viame_file_io
                    viame_object_trackers
   )
 
@@ -95,3 +112,13 @@ target_include_directories( viame_processes_object_trackers PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
+
+###
+# Python
+#
+# ByteTrack and OC-SORT, the simple and multi-camera homography IOU trackers,
+# and tube-IoU track-set fusion, from `plugins/core` in P2-T06.
+##
+if( VIAME_ENABLE_PYTHON )
+  viame_add_python_package( object_trackers )
+endif()

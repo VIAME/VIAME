@@ -4,15 +4,15 @@
 
 /**
  * \file
- * \brief Filter object tracks process
+ * \brief Accumulate detected objects into an object track set
  */
 
-#ifndef VIAME_CORE_FILTER_OBJECT_TRACKS_PROCESS_H
-#define VIAME_CORE_FILTER_OBJECT_TRACKS_PROCESS_H
+#ifndef VIAME_OBJECT_TRACKERS_ACCUMULATE_OBJECT_TRACKS_PROCESS_H
+#define VIAME_OBJECT_TRACKERS_ACCUMULATE_OBJECT_TRACKS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_object_trackers_export.h"
 
 #include <memory>
 
@@ -24,15 +24,15 @@ namespace core
 
 // -----------------------------------------------------------------------------
 /**
- * @brief Filter object tracks
+ * @brief Accumulate detected objects into an object track set
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT filter_object_tracks_process
+class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT accumulate_object_tracks_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  filter_object_tracks_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~filter_object_tracks_process();
+  accumulate_object_tracks_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~accumulate_object_tracks_process();
 
 protected:
   virtual void _configure();
@@ -45,9 +45,9 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class filter_object_tracks_process
+}; // end class accumulate_object_tracks_process
 
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_FILTER_OBJECT_TRACKS_PROCESS_H
+#endif // VIAME_OBJECT_TRACKERS_ACCUMULATE_OBJECT_TRACKS_PROCESS_H

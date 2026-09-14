@@ -22,6 +22,11 @@
 #include "merge_track_sets_process.h"
 #include "track_objects_process.h"
 #include "unwrap_detections_process.h"
+#include "accumulate_object_tracks_process.h"
+#include "filter_object_tracks_process.h"
+#include "resample_object_tracks_process.h"
+#include "split_tracks_to_feature_landmarks_process.h"
+#include "track_conductor_process.h"
 
 extern "C"
 VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT
@@ -74,6 +79,26 @@ register_factories( kwiver::vital::registry& vpm )
   VIAME_REGISTER_PROCESS(
     kwiver::unwrap_detections_process, "unwrap_detections",
     "Unwrap object detections from object tracks." )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::accumulate_object_tracks_process, "accumulate_object_tracks",
+    "Accumulate detected objects into an object track set" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::filter_object_tracks_process, "filter_object_tracks",
+    "Filter object tracks based on different filters" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::resample_object_tracks_process, "resample_object_tracks",
+    "Resample object tracks from one downsample rate to another" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::split_tracks_to_feature_landmarks_process, "split_tracks_to_feature_landmarks",
+    "Split an object track set into a feature_track_set and a landmark_map" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::track_conductor_process, "track_conductor",
+    "Consolidate and control multiple other trackers" )
 
 #undef VIAME_REGISTER_PROCESS
 

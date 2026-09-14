@@ -346,6 +346,7 @@ BUILTIN_PLUGIN_PACKAGES = (
     "viame.object_detectors.netharn",
     "viame.object_detectors.rf_detr",
     "viame.object_detectors.ultralytics",
+    "viame.object_trackers",
     "viame.video_io",
     "viame.colmap",
     "viame.examples",

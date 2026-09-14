@@ -10,7 +10,7 @@ import kwiver.vital.algo as kva
 import kwiver.vital.types as kvt
 
 # XXX These items should be defined somewhere else
-from viame.core.simple_homog_tracker import add_declare_config, Transformer
+from viame.object_trackers.simple_homog_tracker import add_declare_config, Transformer
 
 @Transformer.decorate
 def stabilize_many_images(
