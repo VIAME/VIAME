@@ -73,24 +73,18 @@ if( OpenMP_CXX_FOUND )
        ${AUX_LINK_LIBRARIES} )
 endif()
 
-# Python is used for DINOv3 feature matching via Python C API
-if( VIAME_ENABLE_PYTHON )
-  include_directories( SYSTEM ${PYTHON_INCLUDE_DIRS} )
-  get_filename_component( PYTHON_LIBRARY_DIR "${PYTHON_LIBRARY}" DIRECTORY )
-  set( AUX_LINK_LIBRARIES
-       ${PYTHON_LIBRARIES}
-       ${AUX_LINK_LIBRARIES} )
-  set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_PYTHON ${AUX_COMPILE_DEFINITIONS} )
-endif()
+# `viame_core` linked libpython for the DINO feature matching in the stereo
+# pairing, through the Python C API. That code is `library/measurement` since
+# P2-T06 and carries the link itself; nothing left here, or in anything that
+# links this, includes `Python.h` or tests `VIAME_ENABLE_PYTHON` -- the IQR
+# header only names it in a comment -- so the library everything links is
+# free of libpython again.
 
 target_link_libraries( viame_core
   PUBLIC               ${CORE_LINK_LIBRARIES}
                        ${AUX_LINK_LIBRARIES}
   )
 
-if( VIAME_ENABLE_PYTHON )
-  target_link_directories( viame_core PUBLIC ${PYTHON_LIBRARY_DIR} )
-endif()
 
 # Propagate compile definitions to dependent targets (important for ABI compatibility)
 if( AUX_COMPILE_DEFINITIONS )

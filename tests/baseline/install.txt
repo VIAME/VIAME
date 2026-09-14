@@ -1539,6 +1539,9 @@ lib/python3.10/site-packages/viame/object_detectors/ultralytics/__init__.py
 lib/python3.10/site-packages/viame/object_detectors/ultralytics/ultralytics_detector.py
 lib/python3.10/site-packages/viame/object_trackers/__init__.py
 lib/python3.10/site-packages/viame/object_trackers/bytetrack_tracker.py
+lib/python3.10/site-packages/viame/object_trackers/common/__init__.py
+lib/python3.10/site-packages/viame/object_trackers/common/kalman.py
+lib/python3.10/site-packages/viame/object_trackers/common/track_state.py
 lib/python3.10/site-packages/viame/object_trackers/merge_tracks_tube_iou.py
 lib/python3.10/site-packages/viame/object_trackers/multicam_homog_tracker.py
 lib/python3.10/site-packages/viame/object_trackers/ocsort_tracker.py
