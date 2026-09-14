@@ -24,9 +24,7 @@ WORKDIR /home
 # (broad, slow) default; set it to your GPU's compute capability for a much
 # faster PyTorch build, e.g. --build-arg CUDA_ARCHITECTURES="8.9".
 ARG CUDA_ARCHITECTURES=
-ARG VIAME_OPENCV_VERSION=4.9.0
 ARG VIAME_PYTORCH_VERSION=2.12.0
-ARG VIAME_BUILD_LIMIT_NINJA=ON
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
@@ -68,7 +66,7 @@ EOF
 
 # ---------------------------------------------------------------------------
 # Layer 3: configure (cheap; its own layer so re-configuring doesn't rebuild
-# the deps). OpenCV 4.9.0 is required for CMake 4.x (3.4.0 hard-errors).
+# the deps).
 # ---------------------------------------------------------------------------
 RUN <<EOF
 #!/usr/bin/env bash
@@ -82,7 +80,6 @@ else
   echo "[configure] CUDA_ARCHITECTURES unset -> VIAME default (broad/slow). Pass --build-arg CUDA_ARCHITECTURES=<cap> to speed up PyTorch."
 fi
 cmake ../ $EXTRA -DCMAKE_BUILD_TYPE:STRING=Release \
--DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
 -DVIAME_FIXUP_BUNDLE:BOOL=OFF \
 -DVIAME_VERSION_RELEASE:BOOL=ON \
 -DVIAME_ENABLE_CUDA:BOOL=ON \
@@ -90,30 +87,18 @@ cmake ../ $EXTRA -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_DARKNET:BOOL=ON \
 -DVIAME_ENABLE_DIVE:BOOL=OFF \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
--DVIAME_ENABLE_GDAL:BOOL=OFF \
--DVIAME_ENABLE_FLASK:BOOL=OFF \
--DVIAME_ENABLE_ITK:BOOL=OFF \
--DVIAME_ENABLE_KWIVER:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-LEARN:BOOL=OFF \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
--DVIAME_OPENCV_VERSION:STRING=${VIAME_OPENCV_VERSION} \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
 -DVIAME_BUILD_PYTHON_FROM_SOURCE:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
--DVIAME_BUILD_PYTORCH_FROM_SOURCE:BOOL=ON \
 -DVIAME_PYTORCH_VERSION:STRING=${VIAME_PYTORCH_VERSION} \
--DVIAME_BUILD_LIMIT_NINJA=${VIAME_BUILD_LIMIT_NINJA} \
--DVIAME_BUILD_TORCHVISION_FROM_SOURCE=ON \
 -DVIAME_ENABLE_PYTORCH-VISION:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-MMDET:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH-MIT-YOLO:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-SIAMMASK:BOOL=OFF \
 -DVIAME_ENABLE_PYTORCH-SAM2:BOOL=ON \
--DVIAME_ENABLE_SEAL:BOOL=OFF \
--DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
--DVIAME_ENABLE_VIVIA:BOOL=OFF \
--DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=OFF \
@@ -266,9 +251,6 @@ Use VIAME
 Speed knobs
 -----------
   --build-arg CUDA_ARCHITECTURES="8.9"   # your GPU only (biggest win)
-  --build-arg VIAME_BUILD_LIMIT_NINJA=OFF  # faster PyTorch on big-RAM hosts
-                                           # (namek has 177G; OOM-safe). Leave
-                                           # ON for <64G machines.
 
 __doc__
 EOF

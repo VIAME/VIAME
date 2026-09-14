@@ -6,7 +6,7 @@
 #   include_cmake_preset(build_cmake_base.cmake)
 #   include_cmake_preset(build_cmake_desktop.cmake)
 #   # Add platform-specific options
-#   add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv1")
+#   add_option("VIAME_BUILD_MAX_THREADS" "5")
 #   finalize_options()
 #   # OPTIONS variable is now populated
 

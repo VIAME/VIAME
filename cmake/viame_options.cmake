@@ -103,11 +103,7 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   set( PYTORCH_INTERNAL_VERSION 2.12.0 CACHE INTERNAL "Internal pytorch version" )
-  set( PYTORCH_MIN_GCC          11.3  CACHE INTERNAL "Minimum GCC version for torch" )
   set( PYTORCH_MIN_PYTHON_WHL   3.10  CACHE INTERNAL "Minimum python for torch whl" )
-  set( PYTORCH_MIN_PYTHON_BLD   3.10  CACHE INTERNAL "Minimum python for torch build" )
-  set( PYTORCH_MIN_CUDA_BLD     11.0  CACHE INTERNAL "Minimum cuda for torch build" )
-  set( PYTORCH_MIN_CUDNN_BLD    7.0   CACHE INTERNAL "Minimum cudnn for torch build" )
 
   option( VIAME_ENABLE_PYTORCH-VISION      "Enable TorchVision algorithms"  ON )
   option( VIAME_ENABLE_PYTORCH-MMDET       "Enable mmdet algorithms"        ON )
@@ -227,8 +223,10 @@ endif()
 option( VIAME_ENABLE_TESTS "Build VIAME tests"                                      OFF )
 mark_as_advanced( VIAME_ENABLE_TESTS )
 
-option( VIAME_BUILD_CHECKS   "Enable version checks on gcc and python"              ON )
-mark_as_advanced( VIAME_BUILD_CHECKS )
+# `VIAME_BUILD_CHECKS` stood here, and gated two checks behind one flag: GCC
+# 14 as a fatal error and python older than 3.6.2 with pytorch. The first is
+# a warning now, which needs no switch to get past, and the second always
+# holds.
 
 ###
 # Add logic and error checking relating to enable flags
