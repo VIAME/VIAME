@@ -1,18 +1,27 @@
-Example external python script which can be called in a VIAME pipeline.
+Example external python plugin.
 
-After making a python script there are two ways to run it, it can either
-be placed in the [VIAME_INSTALL]/lib/python3.6/*-packages/viame/processes
-directory in a way similar to the other python modules in there, or
-alternatively, you can append the location of the script to your PYTHONPATH
-environment variable.
+A python package that adds an image filter algorithm and a pipeline process to
+an existing VIAME install, with nothing compiled. There are two ways to add
+python: an algorithm implements one interface (``example_filter.py``, an
+``ImageFilter``) and is selected by name wherever that interface is
+configured; a process (``example_filter_process.py``) declares its own ports
+and configuration and is placed in a pipeline directly. The first is shorter;
+the second allows more control of inputs and outputs.
 
-Note: the included CMakeLists.txt file isn't actually required to run the
-python filter in VIAME, it simply copies the python library into the correct
-folder to run it so that VIAME's plugin manager picks up the file as an
-example.
+``__init__.py`` declares both, so VIAME knows their names without importing
+them.
 
-There are two ways to implement plugins, either as a derived class of a
-base algorithm class (e.g. image_filter) which has a simpler API, or
-as a custom pipelined process. The former is usually neater and easier,
-though the later allows more customization of inputs and outputs to
-a particular algorithm in case it's necessary.
+Loading it
+----------
+
+VIAME loads a python package named in ``VIAME_PYTHON_PLUGINS``, a
+``:``-separated list of package names, from anywhere on the python path.
+Either install the package into the VIAME install's site-packages::
+
+    cmake -S . -B build -DVIAME_DIR=[viame-install] && cmake --install build
+
+or leave it where it is and put its parent directory on ``PYTHONPATH``. Then::
+
+    source [viame-install]/setup_viame.sh
+    export VIAME_PYTHON_PLUGINS=example_external_plugin
+    viame registry-dump --json | grep example_filter

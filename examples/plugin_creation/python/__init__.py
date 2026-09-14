@@ -1,15 +1,24 @@
+#
+# INSERT COPYRIGHT STATEMENT OR DELETE THIS
+#
 
-from viame.processes.external_example import example_filter
+"""What this package provides, without importing any of it.
 
-def __sprokit_register__():
-    from sprokit.pipeline import process_factory
+VIAME reads these lists when the package is named in `VIAME_PYTHON_PLUGINS`
+and registers a stand-in for each entry, which imports its module the first
+time a pipeline asks for it.
+"""
 
-    module_name = 'python:viame.example_filter'
+# ( interface, name, description, "module:Class" )
+__vital_algorithm_declarations__ = [
+    ( "image_filter", "example_filter",
+      "Example externally created python image filter",
+      "example_external_plugin.example_filter:ExampleFilter" ),
+]
 
-    if process_factory.is_process_module_loaded( module_name ):
-      return
-
-    process_factory.add_process( 'example_filter',
-      'Example external filter', example_filter )
-
-    process_factory.mark_process_module_as_loaded( module_name )
+# ( name, description, "module:Class" )
+__sprokit_process_declarations__ = [
+    ( "example_filter_process",
+      "Example externally created python process",
+      "example_external_plugin.example_filter_process:ExampleFilterProcess" ),
+]

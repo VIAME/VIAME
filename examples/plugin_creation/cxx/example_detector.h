@@ -6,6 +6,7 @@
 #define VIAME_EXAMPLE_DETECTOR_H
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -13,12 +14,12 @@ namespace viame {
 // declares the constructor, the configuration accessors and one member per
 // parameter: `text` below becomes `c_text`, with the default and the
 // description the pipeline's `--help` prints.
-class example_detector
+class external_example_detector
   : public kwiver::vital::algo::image_object_detector
 {
 public:
   PLUGGABLE_IMPL(
-    example_detector,
+    external_example_detector,
     "Example externally created plugin.",
 
     PARAM_DEFAULT(
@@ -27,7 +28,7 @@ public:
       "External Plugin C++ Example" )
   );
 
-  virtual ~example_detector() = default;
+  virtual ~external_example_detector() = default;
 
   // Called once the configuration is in place; the pipeline rejects the
   // process if this returns false.

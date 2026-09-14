@@ -12,7 +12,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 bool
-example_detector
+external_example_detector
 ::check_configuration( kwiver::vital::config_block_sptr /*config*/ ) const
 {
   return !c_text.empty();
@@ -20,7 +20,7 @@ example_detector
 
 // ----------------------------------------------------------------------------
 kwiver::vital::detected_object_set_sptr
-example_detector
+external_example_detector
 ::detect( kwiver::vital::image_container_sptr /*image_data*/ ) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();

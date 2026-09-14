@@ -25,4 +25,16 @@ compilation, and placed in your PYTHONPATH for use by the plugin system.
 Internal Plugin Creation
 ------------------------
 
-TODO
+An algorithm or process built with VIAME itself goes in a directory under
+``library/``, named for what it does, beside the libraries it belongs with.
+``library/examples/templates`` holds a C++ and a python detector to start from,
+with ``@template@`` placeholders; each has a README saying what to replace.
+``library/examples`` holds the hello world detector and filter, built and
+registered, with ``README_algorithms.txt`` walking through them, and
+``library/examples/README.rst`` covers the sprokit process template.
+
+A C++ implementation declares its configuration with ``PLUGGABLE_IMPL`` and
+is registered in its library's ``register_algorithms.cxx`` with
+``register_algorithm<>()``; a python one is named in its package's
+``__init__.py`` declarations. Neither needs anything loaded at run time: VIAME
+registers what it was built with directly.

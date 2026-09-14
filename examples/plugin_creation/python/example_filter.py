@@ -2,56 +2,38 @@
 # INSERT COPYRIGHT STATEMENT OR DELETE THIS
 #
 
-from sprokit.pipeline import process
-from kwiver.kwiver_process import KwiverProcess
+"""An image filter algorithm: the simpler of the two ways to add python.
 
-from vital.types import Image
-from vital.types import ImageContainer
+It implements an interface -- `ImageFilter` here -- and a pipeline selects it
+by name wherever that interface is configured, for example
+`:filter:type example_filter` in an `image_filter` process. The package's
+`__init__.py` declares it, so nothing is imported until it is used.
+"""
 
-class example_filter( KwiverProcess ):
-    """
-    This process gets an image as input, prints out text, and sends a copy of
-    the image to the output port.
-    """
-    # ----------------------------------------------
-    def __init__(self, conf):
-        KwiverProcess.__init__(self, conf)
+from kwiver.vital.algo import ImageFilter
+from kwiver.vital.types import Image, ImageContainer
 
-        self.add_config_trait("text", "text", 'Hello World',
-          'Text to display to user.')
 
-        self.declare_config_using_trait('text')
+class ExampleFilter( ImageFilter ):
+    """Prints a configured message and passes the image through."""
 
-        self.add_port_trait('out_image', 'image', 'Processed image')
+    def __init__( self ):
+        ImageFilter.__init__( self )
+        self._text = "Hello World"
 
-        # set up required flags
-        optional = process.PortFlags()
-        required = process.PortFlags()
-        required.add(self.flag_required)
+    def get_configuration( self ):
+        cfg = super( ImageFilter, self ).get_configuration()
+        cfg.set_value( "text", self._text )
+        return cfg
 
-        #  declare our input port ( port-name,flags)
-        self.declare_input_port_using_trait('image', required)
-        self.declare_output_port_using_trait('out_image', optional )
+    def set_configuration( self, cfg_in ):
+        cfg = self.get_configuration()
+        cfg.merge_config( cfg_in )
+        self._text = str( cfg.get_value( "text" ) )
 
-    # ----------------------------------------------
-    def _configure(self):
-        self.text = self.config_value('text')
+    def check_configuration( self, cfg ):
+        return True
 
-        self._base_configure()
-
-    # ----------------------------------------------
-    def _step(self):
-        # grab image container from port using traits
-        in_img_c = self.grab_input_using_trait('image')
-
-        # Get python image from conatiner (just for show)
-        in_img = in_img_c.get_image()
-
-        # Print out text to screen
-        print "Text: " + str( self.text )
-
-        # push dummy detections object to output port
-        self.push_to_port_using_trait('out_image', ImageContainer(in_img))
-
-        self._base_step()
-
+    def filter( self, image_container ):
+        print( "Text: " + self._text )
+        return ImageContainer( Image( image_container.image().asarray() ) )
