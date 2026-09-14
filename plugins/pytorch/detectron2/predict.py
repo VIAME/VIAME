@@ -5,6 +5,7 @@ Copied from: ~/code/geowatch/geowatch/tasks/detectron2/predict.py
 import os
 import scriptconfig as scfg
 import ubelt as ub
+from viame.pytorch.utilities import spawn_safe_worker_count
 
 
 class DetectronPredictCLI(scfg.DataConfig):
@@ -287,7 +288,8 @@ class Detectron2Predictor:
 
         loader = predictor.dataset.make_loader(
             batch_size=1,
-            num_workers=4,  # config.workers
+            num_workers=spawn_safe_worker_count(
+                4, reason_prefix="[Detectron2Predictor] "),
         )
         # images = dset.images()
         bundle_dpath = predictor.bundle_dpath

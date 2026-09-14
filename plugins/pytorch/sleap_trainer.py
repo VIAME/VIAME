@@ -21,7 +21,7 @@ class SleapTrainer(TrainDetector):
         identifier='viame-sleap-keypoints', train_directory='deep_training',
         keypoint_names='head,tail', crop_width=256, crop_height=256, crop_padding=1.25,
         device='auto', batch_size=16, max_epochs=100, learning_rate=0.001,
-        num_workers=4, seed=42, augmentation=True, filters=16,
+        num_workers=0, seed=42, augmentation=True, filters=16,
         max_stride=16, output_stride=2, sigma=2.5, patience=15,
         steps_per_epoch=0, timeout=1209600, seed_model='',
     )

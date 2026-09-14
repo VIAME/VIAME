@@ -240,24 +240,19 @@ def seed_from_environment( label="", offset=0 ):
     return True
 
 
-def loader_worker_seed( seed ):
-    """Build a worker_init_fn that seeds each DataLoader worker distinctly.
+class _LoaderWorkerSeed( object ):
+    """Picklable worker_init_fn seeding each DataLoader worker distinctly.
 
-    Workers are forked after the parent is seeded, so without this every
-    worker draws the identical augmentation stream, and the combined stream
-    changes with worker count. Offsetting by worker id keeps them distinct
-    and keeps the result reproducible for a fixed worker count.
-
-    Returns None when seeding is disabled, which is what DataLoader expects
-    for "no initialiser".
+    Deliberately a module level class rather than a closure: Windows starts
+    DataLoader workers by spawn, which pickles worker_init_fn by reference,
+    and a nested function has no importable name to pickle by.
     """
-    base = _parse_seed( seed )
 
-    if base is None:
-        return None
+    def __init__( self, base ):
+        self.base = base
 
-    def _init( worker_id ):
-        worker_seed = base + worker_id
+    def __call__( self, worker_id ):
+        worker_seed = self.base + worker_id
 
         random.seed( worker_seed )
 
@@ -273,7 +268,24 @@ def loader_worker_seed( seed ):
         except ImportError:
             pass
 
-    return _init
+
+def loader_worker_seed( seed ):
+    """Build a worker_init_fn that seeds each DataLoader worker distinctly.
+
+    Workers start after the parent is seeded, so without this every worker
+    draws the identical augmentation stream, and the combined stream changes
+    with worker count. Offsetting by worker id keeps them distinct and keeps
+    the result reproducible for a fixed worker count.
+
+    Returns None when seeding is disabled, which is what DataLoader expects
+    for "no initialiser".
+    """
+    base = _parse_seed( seed )
+
+    if base is None:
+        return None
+
+    return _LoaderWorkerSeed( base )
 
 
 # ---------------------------------------------------------------------------

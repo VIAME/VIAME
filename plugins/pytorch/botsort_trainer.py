@@ -31,7 +31,8 @@ import shutil
 import json
 import random
 import numpy as np
-from viame.pytorch.utilities import report_cuda_errors
+from viame.pytorch.utilities import (report_cuda_errors,
+                                     spawn_safe_worker_count)
 from viame.core.training_data import (build_sequence_maps,
     read_sequence_manifest, split_validation,
     load_computed_detections, match_to_groundtruth,
@@ -907,22 +908,26 @@ class BoTSORTTrainer(TrainTracker):
         # is what DataLoader wants for "no initialiser".
         worker_init = loader_worker_seed(self._random_seed)
 
+        # Re-ID crops are small and the datasets short, so losing workers on
+        # Windows costs little; hanging on them costs the whole run.
+        num_workers = spawn_safe_worker_count(4, reason_prefix="Re-ID ")
+
         if train_sampler.ids:
             print(f"PK sampling: {train_sampler.p} identities x "
                   f"{train_sampler.k} crops = {train_sampler.p * train_sampler.k} "
                   f"per batch, {len(train_sampler)} batches per epoch "
                   f"({len(train_sampler.ids)} identities with 2+ crops)")
             train_loader = DataLoader(train_dataset, batch_sampler=train_sampler,
-                                      num_workers=4, worker_init_fn=worker_init)
+                                      num_workers=num_workers, worker_init_fn=worker_init)
         else:
             print("Warning: no identity has more than one crop, falling back to "
                   "shuffled batches. Triplet loss cannot train on this data.")
             train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                                      shuffle=True, num_workers=4,
+                                      shuffle=True, num_workers=num_workers,
                                       worker_init_fn=worker_init)
 
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
-                                 num_workers=4, worker_init_fn=worker_init)
+                                 num_workers=num_workers, worker_init_fn=worker_init)
 
         model = ReIDModel(self._backbone, embedding_dim).to(device)
 

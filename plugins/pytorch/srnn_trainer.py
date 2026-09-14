@@ -33,7 +33,8 @@ import subprocess
 import signal
 import time
 import threading
-from viame.pytorch.utilities import report_cuda_errors
+from viame.pytorch.utilities import (report_cuda_errors,
+                                     spawn_safe_worker_count)
 from viame.core.training_data import (build_sequence_maps,
     read_sequence_manifest,
     load_computed_detections, match_to_groundtruth,
@@ -107,7 +108,8 @@ class SRNNTrainer( TrainTracker ):
         # loader workers come from a forkserver, so several trainings at once
         # with many workers each exhausted a two device node.
         self._lstm_concurrency = 1
-        self._lstm_loader_workers = 2
+        self._lstm_loader_workers = spawn_safe_worker_count(
+            2, reason_prefix="[SRNNTrainer] ")
 
         # Seed for every generator this trainer and its stages draw from.
         # Exported to the environment by seed_everything, which is how it
