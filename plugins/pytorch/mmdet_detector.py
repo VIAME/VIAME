@@ -11,7 +11,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 
 from kwiver.vital.algo import ImageObjectDetector
 
@@ -326,7 +326,7 @@ class MMDetDetector(ImageObjectDetector):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         MMDetDetector, "mmdet", "PyTorch MMDetection inference routine"

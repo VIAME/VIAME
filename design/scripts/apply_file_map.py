@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+"""Move files from `plugins/` to `library/` per `lite-file-map.tsv`.
+
+The map says where each file goes; this performs the move and repairs the
+`#include` lines, which is the part that cannot be done by hand at this
+scale. Three forms have to become one:
+
+    #include "read_detected_object_set_dive.h"      same directory
+    #include "../core/read_detected_object_set_dive.h"
+    #include <plugins/core/read_detected_object_set_dive.h>
+
+all become `#include <viame/file_io/read_detected_object_set_dive.h>`, except
+where the including file lands in the same library as the header, which keeps
+the quoted form.
+
+Run it one capability at a time -- `--only file_io` -- so that each move is a
+build and a test rather than one big bang.
+
+Usage:
+    apply_file_map.py --check              what is unmapped or already moved
+    apply_file_map.py --only <dir> [--dry-run]
+    apply_file_map.py --all [--dry-run]
+"""
+
+import argparse
+import os
+import re
+import subprocess
+import sys
+
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
+MAP = os.path.join(ROOT, "design", "lite-file-map.tsv")
+
+
+def load_map():
+    rows = []
+    with open(MAP) as handle:
+        for line in handle:
+            line = line.rstrip("\n")
+            if not line or line.startswith("#"):
+                continue
+            source, destination = line.split("\t")
+            rows.append((source, destination))
+    return rows
+
+
+def run(*args):
+    result = subprocess.run(args, cwd=ROOT, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError("%s: %s" % (" ".join(args), result.stderr.strip()))
+    return result.stdout
+
+
+def header_destinations(rows):
+    """{header basename: (library directory, new basename)} for headers that
+    have already arrived.
+
+    Only headers whose destination exists on disk: a capability is moved at a
+    time, and pointing an include at a header that has not moved yet is a
+    build break rather than a step forward.
+    """
+    found = {}
+    for source, destination in rows:
+        if destination == "STRUCTURAL" or not source.endswith((".h", ".hpp")):
+            continue
+        if not os.path.exists(os.path.join(ROOT, destination)):
+            continue
+        # Still at its old path as well: a second, different file is mapped
+        # onto a destination that already exists -- the opencv and core
+        # `windowed_utils.h`, say, which P2-T05 merges. Rewriting an include
+        # of that name now would pick whichever of the two the map happened
+        # to mention, so leave every include of it alone until the merge.
+        if os.path.exists(os.path.join(ROOT, source)):
+            continue
+        found[os.path.basename(source)] = (destination.split("/")[1],
+                                           os.path.basename(destination))
+    return found
+
+
+def rewrite_includes(path, headers, owner):
+    """Point every include of a moved header at its new home.
+
+    `owner` maps a file path to the library directory it ends up in, so that
+    a file which moves alongside its header keeps the quoted include.
+    """
+    full = os.path.join(ROOT, path)
+    try:
+        text = open(full, encoding="utf-8").read()
+    except (UnicodeDecodeError, IsADirectoryError):
+        return 0
+
+    mine = owner.get(path)
+    changed = 0
+
+    def replace(match):
+        nonlocal changed
+        name = os.path.basename(match.group("name"))
+        if name not in headers:
+            return match.group(0)
+        directory, base = headers[name]
+        if mine == directory:
+            new = '#include "%s"' % base
+        else:
+            new = "#include <viame/%s/%s>" % (directory, base)
+        if new != match.group(0):
+            changed += 1
+        return new
+
+    pattern = re.compile(
+        r'#include\s*[<"](?P<name>[^">]*?[A-Za-z0-9_]+\.h(?:pp)?)[>"]')
+    new_text = pattern.sub(replace, text)
+
+    if changed:
+        open(full, "w", encoding="utf-8").write(new_text)
+    return changed
+
+
+def retarget_exports(path, directory):
+    """Point a moved file's export macro and include guard at its new library.
+
+    `viame_core_export.h` holding `VIAME_CORE_EXPORT` is generated for the
+    target the file used to be built into. Built into `viame_utilities` it
+    gets `viame_utilities_export.h` and `VIAME_UTILITIES_EXPORT`, and
+    building against the old name is a missing header, so this is not
+    optional tidying.
+    """
+    full = os.path.join(ROOT, path)
+    try:
+        text = open(full, encoding="utf-8").read()
+    except UnicodeDecodeError:
+        return False
+
+    upper = directory.upper()
+    original = text
+
+    text = re.sub(r'viame_[a-z0-9_]+_export\.h',
+                  "viame_%s_export.h" % directory, text)
+    text = re.sub(r'\bVIAME_[A-Z0-9_]+_EXPORT\b',
+                  "VIAME_%s_EXPORT" % upper, text)
+
+    # The include guard, taken from the file's own `#ifndef` rather than
+    # guessed, so that a guard naming something other than the old library
+    # (`VIAME_OPENCV_*` in a file that was in `plugins/core`) still moves.
+    guard = re.search(r'^#ifndef +(VIAME_[A-Z0-9_]+_H(?:PP)?)$',
+                      text, re.MULTILINE)
+    if guard and not guard.group(1).startswith("VIAME_%s_" % upper):
+        renamed = re.sub(r'^VIAME_[A-Z0-9]+_', "VIAME_%s_" % upper,
+                         guard.group(1))
+        text = text.replace(guard.group(1), renamed)
+
+    if text != original:
+        open(full, "w", encoding="utf-8").write(text)
+        return True
+    return False
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--only", help="move only files destined for this library")
+    parser.add_argument("--all", action="store_true")
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument("--rewrite-only", action="store_true",
+                        help="repair includes for files already moved")
+    parser.add_argument("--from", dest="source_prefix",
+                        help="only files under this path, e.g. plugins/core")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    rows = load_map()
+    tracked = set(run("git", "ls-files", "plugins").split())
+
+    movable = [(s, d) for s, d in rows if d != "STRUCTURAL"]
+    pending = [(s, d) for s, d in movable if s in tracked]
+    done = len(movable) - len(pending)
+
+    if args.check:
+        unmapped = tracked - {s for s, _ in rows}
+        print("map: %d movable, %d still in plugins/, %d already moved"
+              % (len(movable), len(pending), done))
+        print("unmapped files under plugins/: %d" % len(unmapped))
+        for path in sorted(unmapped)[:20]:
+            print("   " + path)
+        return 1 if unmapped else 0
+
+    if args.rewrite_only:
+        selected = []
+    elif args.only:
+        selected = [(s, d) for s, d in pending
+                    if d.split("/")[1] == args.only]
+        if args.source_prefix:
+            selected = [(s, d) for s, d in selected
+                        if s.startswith(args.source_prefix)]
+        if not selected:
+            print("nothing pending for library/%s" % args.only)
+            return 0
+    elif args.all:
+        selected = pending
+    else:
+        parser.error("one of --check, --only, --all or --rewrite-only")
+
+    print("moving %d files" % len(selected))
+
+    # Which library each file is in *now*. A file still under `plugins/` has
+    # no library, so its includes take the angle form -- using where it is
+    # going to end up would make it include a neighbour it does not have yet.
+    owner = {}
+
+    if args.dry_run:
+        for source, destination in selected[:20]:
+            print("   %s -> %s" % (source, destination))
+        if len(selected) > 20:
+            print("   ... and %d more" % (len(selected) - 20))
+        return 0
+
+    for source, destination in selected:
+        target = os.path.join(ROOT, os.path.dirname(destination))
+        os.makedirs(target, exist_ok=True)
+        run("git", "mv", source, destination)
+
+    for _, destination in selected:
+        if destination.endswith((".h", ".hpp", ".cxx", ".cpp", ".txx")):
+            retarget_exports(destination, destination.split("/")[1])
+
+    headers = header_destinations(rows)
+    for path in run("git", "ls-files", "library").split():
+        owner[path] = path.split("/")[1]
+
+    touched = 0
+    for path in run("git", "ls-files").split():
+        if path.endswith((".h", ".hpp", ".cxx", ".cpp", ".txx", ".c")):
+            touched += 1 if rewrite_includes(path, headers, owner) else 0
+
+    print("moved %d files; rewrote includes in %d" % (len(selected), touched))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

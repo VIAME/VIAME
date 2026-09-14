@@ -2,12 +2,12 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_PYTHON_SCRIPT_APPLET_H
-#define VIAME_CORE_PYTHON_SCRIPT_APPLET_H
+#ifndef VIAME_UTILITIES_PYTHON_SCRIPT_APPLET_H
+#define VIAME_UTILITIES_PYTHON_SCRIPT_APPLET_H
 
 #include <viame/algorithm_framework/applets/kwiver_applet.h>
 
-#include "viame_core_export.h"
+#include "viame_utilities_export.h"
 
 #include <string>
 
@@ -17,11 +17,11 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Locate an installed tool script (configs/<name>), or return an empty string.
-VIAME_CORE_EXPORT std::string find_tool_script( const std::string& name );
+VIAME_UTILITIES_EXPORT std::string find_tool_script( const std::string& name );
 
 /// Run an installed tool script with the given arguments, sharing this
 /// process's streams, and return its exit code.
-VIAME_CORE_EXPORT int run_tool_script( const std::string& script,
+VIAME_UTILITIES_EXPORT int run_tool_script( const std::string& script,
                                        const std::vector< std::string >& args );
 
 // ----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ VIAME_CORE_EXPORT int run_tool_script( const std::string& script,
 /// add_command_options() is deliberately left unimplemented. The base class
 /// then tells the tool runner to skip its own argument parsing, so every
 /// argument reaches the script untouched and the script owns its command line.
-class VIAME_CORE_EXPORT python_script_applet
+class VIAME_UTILITIES_EXPORT python_script_applet
   : public kwiver::tools::kwiver_applet
 {
 public:
@@ -55,4 +55,4 @@ protected:                                                                  \
 
 } // namespace viame
 
-#endif // VIAME_CORE_PYTHON_SCRIPT_APPLET_H
+#endif // VIAME_UTILITIES_PYTHON_SCRIPT_APPLET_H

@@ -30,7 +30,7 @@ import scriptconfig as scfg
 from kwiver.vital.algo import ComputeStereoDepthMap
 from kwiver.vital.types import Image, ImageContainer
 
-from viame.core.utils import str2bool
+from viame.utilities.utils import str2bool
 
 
 def vital_config_update(cfg, cfg_in):
@@ -448,7 +448,7 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         FastFoundationStereoOnnx,

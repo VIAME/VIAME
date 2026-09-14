@@ -13,7 +13,7 @@ from kwiver.vital.types import (
 
 from PIL import Image
 
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 from shutil import copyfile
 
 import argparse
@@ -497,7 +497,7 @@ class MMDetTrainer(TrainDetector):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         MMDetTrainer, "mmdet", "PyTorch MMDetection training routine"

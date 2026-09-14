@@ -31,7 +31,7 @@
  * applet based on the subcommand name.
  */
 
-#include <applet_attributes.h>
+#include <viame/utilities/applet_attributes.h>
 
 #include <viame/algorithm_framework/applets/kwiver_applet.h>
 #include <viame/algorithm_framework/applets/applet_context.h>

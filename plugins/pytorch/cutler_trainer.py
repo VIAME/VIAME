@@ -18,7 +18,7 @@ import ubelt as ub
 
 from collections import namedtuple
 from PIL import Image
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 from pathlib import Path
 from kwiver.vital.algo import DetectedObjectSetOutput, TrainDetector
 from kwiver.vital.types import (
@@ -684,7 +684,7 @@ class ConvNextCascadeRCNNTrainer(TrainDetector):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         ConvNextCascadeRCNNTrainer,

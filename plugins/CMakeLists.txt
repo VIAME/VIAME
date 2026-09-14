@@ -44,19 +44,3 @@ endif()
 if( VIAME_ENABLE_VERTEX_AI )
   add_subdirectory( vertex-ai )
 endif()
-
-###
-# Add all code that's a part of the simplified python API here
-##
-
-if( VIAME_ENABLE_PYTHON )
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/types.py
-    .
-    types )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/compat.py
-    .
-    compat )
-endif()

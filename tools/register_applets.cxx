@@ -12,7 +12,7 @@
 #include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/applets/applet_registrar.h>
 
-#include <applet_attributes.h>
+#include <viame/utilities/applet_attributes.h>
 #include "csv.h"
 #include "configs.h"
 #include "convert.h"
@@ -25,7 +25,7 @@
 #include "train.h"
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
-#include <python_script_applet.h>
+#include <viame/utilities/python_script_applet.h>
 #endif
 
 namespace viame {

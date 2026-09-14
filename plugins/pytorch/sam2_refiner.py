@@ -29,7 +29,7 @@ from viame.core.segmentation_utils import (
     shapely_to_mask,
 )
 
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 
 
 def _load_deps():
@@ -1053,7 +1053,7 @@ def vital_image_container_from_ndarray(ndarray_img):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(Sam2Refiner, "sam2", "SAM2-based detection refiner")
     register_vital_algorithm(

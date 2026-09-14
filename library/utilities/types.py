@@ -3,11 +3,11 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Re-export kwiver.vital.types for convenient access via viame.types.
+Re-export kwiver.vital.types for convenient access via viame.utilities.types.
 """
 
 from kwiver.vital.types import *
 from kwiver.vital import types
 
-# Make 'from viame.types import X' work for any X in kwiver.vital.types
+# Make 'from viame.utilities.types import X' work for any X in kwiver.vital.types
 __all__ = types.__all__ if hasattr(types, '__all__') else dir(types)

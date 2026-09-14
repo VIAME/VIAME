@@ -9,7 +9,7 @@
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
-#include <python_script_applet.h>
+#include <viame/utilities/python_script_applet.h>
 #endif
 
 #include <algorithm>

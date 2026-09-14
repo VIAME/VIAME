@@ -8,7 +8,7 @@
  */
 
 #include "convert_annotations.h"
-#include "utilities_file.h"
+#include <viame/utilities/utilities_file.h>
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/algo/detected_object_set_input.h>

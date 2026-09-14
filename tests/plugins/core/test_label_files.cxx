@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include <gtest/gtest.h>
-#include "utilities_file.h"
+#include <viame/utilities/utilities_file.h>
 #include "utilities_training.h"
 #include <chrono>
 #include <filesystem>

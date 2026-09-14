@@ -7,7 +7,7 @@ from kwiver.vital.algo import RefineDetections
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObjectType
 
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 
 import numpy as np
 
@@ -349,7 +349,7 @@ class NetharnRefiner(RefineDetections):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         NetharnRefiner, "netharn", "PyTorch Netharn refiner routine"

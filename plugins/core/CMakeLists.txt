@@ -4,8 +4,6 @@ set( plugin_headers
   adaptive_detector_trainer.h
   adaptive_tracker_trainer.h
   add_timestamp_from_filename.h
-  applet_attributes.h
-  atomic_output.h
   auto_detect_transform.h
   average_track_descriptors.h
   camera_io.h
@@ -19,13 +17,11 @@ set( plugin_headers
   evaluate_models.h
   filename_to_timestamp.h
   full_frame_detector.h
-  manipulate_pipelines.h
   measurement_utilities.h
   merge_detections_suppress_in_regions.h
   equalize_via_percentiles.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
-  python_script_applet.h
   read_detected_object_set_auto.h
   read_detected_object_set_cvat.h
   read_detected_object_set_dive.h
@@ -42,10 +38,7 @@ set( plugin_headers
   refine_detections_add_fixed.h
   refine_detections_nms.h
   refine_tracks_average_tot.h
-  utilities_file.h
-  utilities_image.h
   utilities_segmentation.h
-  utilities_tracks.h
   utilities_training.h
   windowed_detector.h
   windowed_refiner.h
@@ -75,13 +68,11 @@ set( plugin_sources
   evaluate_models.cxx
   filename_to_timestamp.cxx
   full_frame_detector.cxx
-  manipulate_pipelines.cxx
   measurement_utilities.cxx
   merge_detections_suppress_in_regions.cxx
   equalize_via_percentiles.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
-  python_script_applet.cxx
   read_detected_object_set_auto.cxx
   read_detected_object_set_cvat.cxx
   read_detected_object_set_dive.cxx
@@ -98,10 +89,7 @@ set( plugin_sources
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
   refine_tracks_average_tot.cxx
-  utilities_file.cxx
-  utilities_image.cxx
   utilities_segmentation.cxx
-  utilities_tracks.cxx
   utilities_training.cxx
   windowed_detector.cxx
   windowed_refiner.cxx
@@ -142,6 +130,7 @@ target_include_directories( viame_core PRIVATE
   )
 
 set( CORE_LINK_LIBRARIES
+  viame_utilities
   kwiver::vital
   kwiver::vital_algo
   kwiver::vital_applets
@@ -377,10 +366,6 @@ if( VIAME_ENABLE_PYTHON )
     core
     __init__ )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/model_wrap.py
-    core
-    model_wrap )
 
   # The model behind `process_query_adaboost`, called from
   # `iqr_session_adaboost.cxx`
@@ -489,10 +474,6 @@ if( VIAME_ENABLE_PYTHON )
     core
     read_object_track_set_coco )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities_ply.py
-    core
-    utilities_ply )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities_coco.py
@@ -515,9 +496,20 @@ if( VIAME_ENABLE_PYTHON )
     segmentation_utils )
 
   viame_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
+    core
+    interactive_service )
+
+  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/survey_metadata.py
     core
     survey_metadata )
+
+  viame_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
+    core
+    utility_processes )
+
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/simple_homog_tracker.py
@@ -529,20 +521,8 @@ if( VIAME_ENABLE_PYTHON )
     core
     stabilize_many_images )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
-    core
-    utility_processes )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/utils.py
-    core
-    utils )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/vital_registration.py
-    core
-    vital_registration )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_segmentation.py
@@ -569,10 +549,6 @@ if( VIAME_ENABLE_PYTHON )
     core
     alignment_core )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
-    core
-    interactive_service )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/query_service.py

@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_UTILITIES_IMAGE_H
-#define VIAME_CORE_UTILITIES_IMAGE_H
+#ifndef VIAME_UTILITIES_UTILITIES_IMAGE_H
+#define VIAME_UTILITIES_UTILITIES_IMAGE_H
 
-#include "viame_core_export.h"
+#include "viame_utilities_export.h"
 
 #include <viame/core_types/image_container.h>
 
@@ -25,7 +25,7 @@ namespace viame {
 ///        description of the bit depth (e.g., "16-bit unsigned", "32-bit float")
 ///        Only set if the function returns true.
 /// @return true if the image is non-8-bit, false if it is standard 8-bit unsigned
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool is_non_8bit_image(
   const kwiver::vital::image_container_sptr& image,
   std::string& bit_depth_desc );
@@ -35,10 +35,10 @@ bool is_non_8bit_image(
 /// @param image The image container to describe
 /// @return A string describing the pixel format (e.g., "8-bit unsigned",
 ///         "16-bit unsigned", "32-bit float")
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string get_image_bit_depth_description(
   const kwiver::vital::image_container_sptr& image );
 
 } // end namespace viame
 
-#endif /* VIAME_CORE_UTILITIES_IMAGE_H */
+#endif /* VIAME_UTILITIES_UTILITIES_IMAGE_H */

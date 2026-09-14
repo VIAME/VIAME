@@ -134,6 +134,7 @@ viame_add_plugin( viame_tools_applets
                kwiver::sprokit_pipeline_util
                kwiver::kwiver_adapter
                viame_core
+               viame_utilities
                viame_claude
 )
 

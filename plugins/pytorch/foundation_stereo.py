@@ -19,7 +19,7 @@ import scriptconfig as scfg
 from kwiver.vital.algo import ComputeStereoDepthMap
 from kwiver.vital.types import Image, ImageContainer
 
-from viame.core.utils import str2bool
+from viame.utilities.utils import str2bool
 
 from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
@@ -403,7 +403,7 @@ class FoundationStereo(ComputeStereoDepthMap):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         FoundationStereo,

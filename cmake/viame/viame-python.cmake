@@ -263,6 +263,88 @@ function( viame_create_python_init modpath )
 endfunction()
 
 #+
+# Install a library directory's python sources as one package.
+#
+#   viame_add_python_package( modpath [DIRECTORY dir] [EXCLUDE regex...] )
+#
+# The python that belongs to a functional library sits beside its C++ rather
+# than in a `python/` subdirectory, so the package is whatever `.py` is in
+# the directory. Globbing it is what keeps a forty-module library from
+# needing forty five-line blocks that say nothing the filename does not.
+#
+# Relative paths are preserved, so `mmdet/trainer.py` becomes
+# `viame.<modpath>.mmdet.trainer`. `__pycache__` and `tests` are never
+# included; `EXCLUDE` takes regexes matched against the relative path for
+# anything else that should stay out.
+#-
+function( viame_add_python_package modpath )
+  set( oneValueArgs DIRECTORY )
+  set( multiValueArgs EXCLUDE )
+  cmake_parse_arguments( PKG "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
+  if( NOT PKG_DIRECTORY )
+    set( PKG_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+  endif()
+
+  # `CONFIGURE_DEPENDS` so that adding a module is a build, not a
+  # reconfigure-by-hand followed by a confusing ImportError.
+  file( GLOB_RECURSE sources RELATIVE "${PKG_DIRECTORY}"
+    CONFIGURE_DEPENDS "${PKG_DIRECTORY}/*.py" )
+
+  set( subpackages )
+
+  foreach( source IN LISTS sources )
+    if( source MATCHES "(^|/)__pycache__/" OR source MATCHES "(^|/)tests?/" )
+      continue()
+    endif()
+
+    set( skip FALSE )
+    foreach( pattern IN LISTS PKG_EXCLUDE )
+      if( source MATCHES "${pattern}" )
+        set( skip TRUE )
+        break()
+      endif()
+    endforeach()
+    if( skip )
+      continue()
+    endif()
+
+    get_filename_component( relative_dir "${source}" DIRECTORY )
+    get_filename_component( module "${source}" NAME_WE )
+
+    if( relative_dir )
+      list( APPEND subpackages "${relative_dir}" )
+      viame_add_python_module( "${PKG_DIRECTORY}/${source}"
+        "${modpath}/${relative_dir}" "${module}" )
+    else()
+      viame_add_python_module( "${PKG_DIRECTORY}/${source}"
+        "${modpath}" "${module}" )
+    endif()
+  endforeach()
+
+  # The package itself first, then one `__init__.py` per subdirectory that
+  # held a module. A subdirectory with its own `__init__.py` in the source
+  # tree overwrites the generated stub, which is the point of generating it
+  # only when absent.
+  viame_create_python_init( ${modpath} )
+
+  list( REMOVE_DUPLICATES subpackages )
+  foreach( subpackage IN LISTS subpackages )
+    # Intermediate levels too: `a/b/c` needs `a` and `a/b` importable.
+    set( walked )
+    string( REPLACE "/" ";" parts "${subpackage}" )
+    foreach( part IN LISTS parts )
+      if( walked )
+        set( walked "${walked}/${part}" )
+      else()
+        set( walked "${part}" )
+      endif()
+      viame_create_python_init( "${modpath}/${walked}" )
+    endforeach()
+  endforeach()
+endfunction()
+
+#+
 # A custom target that runs a command as part of `all`.
 #-
 function( viame_python_add_command name command comment )

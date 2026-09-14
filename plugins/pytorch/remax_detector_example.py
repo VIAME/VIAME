@@ -6,7 +6,7 @@ from collections import namedtuple
 import json
 
 import cv2
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 from kwiver.vital.algo import ImageObjectDetector
 from kwiver.vital.types import (
     BoundingBoxD,
@@ -219,7 +219,7 @@ class ReMaxMMDetDetector(ImageObjectDetector):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     # Not "example_detector", which would shadow kwiver's own arrows/core one
     register_vital_algorithm(

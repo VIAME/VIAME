@@ -13,7 +13,7 @@
 #include "read_detected_object_set_dive.h"
 #include "read_detected_object_set_viame_csv.h"
 #include "read_detected_object_set_yolo.h"
-#include "utilities_file.h"
+#include <viame/utilities/utilities_file.h>
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/algo/detected_object_set_input.h>

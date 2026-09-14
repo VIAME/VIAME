@@ -5,8 +5,8 @@
 #include "convert.h"
 
 #include <plugins/core/convert_annotations.h>
-#include <plugins/core/python_script_applet.h>
-#include <plugins/core/utilities_file.h>
+#include <viame/utilities/python_script_applet.h>
+#include <viame/utilities/utilities_file.h>
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/algo/detected_object_set_input.h>

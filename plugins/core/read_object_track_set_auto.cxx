@@ -13,7 +13,7 @@
 
 #include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
-#include "utilities_file.h"
+#include <viame/utilities/utilities_file.h>
 
 #include <viame/algorithm_framework/algo/read_object_track_set.h>
 #include <viame/algorithm_framework/exceptions.h>

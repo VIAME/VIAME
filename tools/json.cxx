@@ -6,9 +6,9 @@
 /// \brief Applet for filtering and analyzing DIVE and COCO JSON files
 
 #include "json.h"
-#include <atomic_output.h>
+#include <viame/utilities/atomic_output.h>
 
-#include <utilities_file.h>
+#include <viame/utilities/utilities_file.h>
 
 // The one door to rapidjson: it sets the assertion, write and parse
 // behaviour VIAME relies on, which `<cereal/archives/json.hpp>` used to set

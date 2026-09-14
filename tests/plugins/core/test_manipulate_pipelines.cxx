@@ -4,8 +4,8 @@
 
 #include <gtest/gtest.h>
 
-#include "manipulate_pipelines.h"
-#include "utilities_file.h"
+#include <viame/utilities/manipulate_pipelines.h>
+#include <viame/utilities/utilities_file.h>
 
 #include <cstdio>
 #include <fstream>

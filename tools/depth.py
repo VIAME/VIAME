@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 
 from disparity import scaled_disparity
-from viame.core.utilities_ply import write_ply_file
+from viame.utilities.utilities_ply import write_ply_file
 
 
 def main():

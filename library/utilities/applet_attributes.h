@@ -2,8 +2,8 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_APPLET_ATTRIBUTES_H
-#define VIAME_CORE_APPLET_ATTRIBUTES_H
+#ifndef VIAME_UTILITIES_APPLET_ATTRIBUTES_H
+#define VIAME_UTILITIES_APPLET_ATTRIBUTES_H
 
 namespace viame {
 
@@ -20,4 +20,4 @@ constexpr char const* FORWARDS_HELP = "viame-forwards-help";
 
 } // namespace viame
 
-#endif // VIAME_CORE_APPLET_ATTRIBUTES_H
+#endif // VIAME_UTILITIES_APPLET_ATTRIBUTES_H

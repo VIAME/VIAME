@@ -162,7 +162,7 @@ class MergeDetectionsCoverageReinforce( MergeDetections ):
         return output
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         MergeDetectionsCoverageReinforce,

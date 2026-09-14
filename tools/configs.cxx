@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "configs.h"
-#include <atomic_output.h>
+#include <viame/utilities/atomic_output.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
 

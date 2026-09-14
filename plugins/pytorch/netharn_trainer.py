@@ -14,7 +14,7 @@ from kwiver.vital.types import (
     DetectedObjectSet, DetectedObject, DetectedObjectType
 )
 
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 from shutil import copyfile
 
 import argparse
@@ -1106,7 +1106,7 @@ class NetHarnTrainer( TrainDetector ):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         NetHarnTrainer, "netharn", "PyTorch NetHarn detection training routine"

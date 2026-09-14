@@ -14,7 +14,7 @@ import torchvision.transforms as transforms
 
 from collections import namedtuple
 
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 from kwiver.vital.algo import TrainDetector
 
 from viame.pytorch.remax.util.coco import CocoDetection
@@ -445,7 +445,7 @@ class ReMaxMMDetTrainer(TrainDetector):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         ReMaxMMDetTrainer, "example_trainer", "PyTorch MMDetection inference routine"

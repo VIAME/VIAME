@@ -1,6 +1,6 @@
 // This file is part of VIAME, distributed under the BSD 3-Clause License.
-#ifndef VIAME_CORE_ATOMIC_OUTPUT_H
-#define VIAME_CORE_ATOMIC_OUTPUT_H
+#ifndef VIAME_UTILITIES_ATOMIC_OUTPUT_H
+#define VIAME_UTILITIES_ATOMIC_OUTPUT_H
 
 #include <filesystem>
 #include <fstream>

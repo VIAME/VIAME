@@ -6,7 +6,7 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-#include <plugins/core/utilities_file.h>
+#include <viame/utilities/utilities_file.h>
 
 #include <algorithm>
 #include <atomic>

@@ -517,7 +517,7 @@ def _perspective_camera(intrinsics, distortion, rotation=None,
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         OptimizeStereoCameras, "ocv_optimize_stereo_cameras",

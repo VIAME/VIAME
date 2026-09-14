@@ -6,7 +6,7 @@ from collections import namedtuple
 import json
 
 import cv2
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 from kwiver.vital.algo import ImageObjectDetector
 from kwiver.vital.types import (
     BoundingBoxD,
@@ -330,7 +330,7 @@ class ReMaxConvNextDetector(ImageObjectDetector):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         ReMaxConvNextDetector, "remax_convnext", "ReMax inference routine"

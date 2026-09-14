@@ -790,8 +790,8 @@ an artefact of the port:
   `enum` before reaching any VIAME code. The same shape as the stale
   `configs/inspect.py` that broke matplotlib for `viame plot`: a plausible
   module name in a directory that ends up on the path. Nothing to fix in the
-  tree -- `viame.types` is legitimate -- but worth knowing when a VIAME
-  script fails in the standard library for no reason.
+  tree -- `viame.utilities.types` is legitimate -- but worth knowing when a
+  VIAME script fails in the standard library for no reason.
 * **Finding 1.9 again, and it distorts a dependency count.** The install had
   `libviame_cppdb.so` and `libviame_darknet.so` in it long after both were
   deleted from the tree, because installing does not delete. Reading the

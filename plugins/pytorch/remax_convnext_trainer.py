@@ -10,7 +10,7 @@ import sys
 
 from collections import namedtuple
 
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 from kwiver.vital.algo import TrainDetector
 
 
@@ -554,7 +554,7 @@ class ReMaxConvNextTrainer(TrainDetector):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         ReMaxConvNextTrainer, "remax_convnext", "PyTorch MMDetection inference routine"

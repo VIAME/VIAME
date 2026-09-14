@@ -27,7 +27,7 @@ from kwiver.vital.types import (
     BoundingBoxD, DetectedObjectType
 )
 
-from viame.compat import strtobool
+from viame.utilities.compat import strtobool
 from shutil import copyfile
 
 import os
@@ -685,7 +685,7 @@ class ByteTrackTrainer( TrainTracker ):
 
 
 def __vital_algorithm_register__():
-    from viame.core.vital_registration import register_vital_algorithm
+    from viame.utilities.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         ByteTrackTrainer,

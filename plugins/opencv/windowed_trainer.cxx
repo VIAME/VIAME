@@ -7,7 +7,7 @@
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-#include <plugins/core/utilities_file.h>
+#include <viame/utilities/utilities_file.h>
 
 #include <viame/algorithm_framework/util/cpu_timer.h>
 #include <viame/algorithm_framework/algo/image_io.h>

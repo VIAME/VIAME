@@ -1618,10 +1618,10 @@ def register_vital_algorithm(algorithm_class, implementation_name, description):
     """
     Register a KWIVER vital algorithm.
 
-    Thin re-export of viame.core.vital_registration.register_vital_algorithm,
+    Thin re-export of viame.utilities.vital_registration.register_vital_algorithm,
     kept here because most pytorch plugins already import it from this module.
     """
-    from viame.core.vital_registration import (
+    from viame.utilities.vital_registration import (
         register_vital_algorithm as _register,
     )
 

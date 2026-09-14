@@ -8,7 +8,7 @@
  */
 
 #include "read_detected_object_set_yolo.h"
-#include "utilities_file.h"
+#include <viame/utilities/utilities_file.h>
 #include <viame/core_types/category_hierarchy.h>
 
 #include <viame/algorithm_framework/algo/algorithm.txx>

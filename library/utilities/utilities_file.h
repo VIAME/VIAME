@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_UTILITIES_FILE_H
-#define VIAME_CORE_UTILITIES_FILE_H
+#ifndef VIAME_UTILITIES_UTILITIES_FILE_H
+#define VIAME_UTILITIES_UTILITIES_FILE_H
 
-#include "viame_core_export.h"
+#include "viame_utilities_export.h"
 
 #include <map>
 #include <string>
@@ -22,17 +22,17 @@ namespace viame {
 ///
 /// \param location Path to check
 /// \returns true if path exists and is a regular file
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool does_file_exist( const std::string& location );
 
 /// Find labels.txt, labels.csv, or labels.json in a directory, in that order.
 /// Return an empty string if none exists.
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string find_labels_file( const std::string& directory );
 
 /// Recognize default label filenames or an explicitly selected label file.
 /// Used to exclude category definitions from annotation discovery.
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool is_labels_file( const std::string& filename,
                      const std::string& selected = "" );
 
@@ -40,7 +40,7 @@ bool is_labels_file( const std::string& filename,
 ///
 /// \param location Path to check
 /// \returns true if path exists and is a directory
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool does_folder_exist( const std::string& location );
 
 /// List all immediate subdirectories in a folder
@@ -48,7 +48,7 @@ bool does_folder_exist( const std::string& location );
 /// \param location Directory to search
 /// \param subfolders Output vector of subdirectory paths
 /// \returns true if location exists and is a directory
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool list_all_subfolders( const std::string& location,
                           std::vector< std::string >& subfolders );
 
@@ -59,7 +59,7 @@ bool list_all_subfolders( const std::string& location,
 /// \param search_subfolders If true, recurse into subdirectories
 /// \param extensions Optional list of extensions to filter (e.g., ".jpg", ".png")
 /// \returns true if location exists and is a directory
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool list_files_in_folder( std::string location,
                            std::vector< std::string >& filepaths,
                            bool search_subfolders = false,
@@ -69,7 +69,7 @@ bool list_files_in_folder( std::string location,
 ///
 /// \param location Path to create
 /// \returns true if folder was created, false if it already exists or on error
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool create_folder( const std::string& location );
 
 /// Check if a folder contains fewer than n files
@@ -77,7 +77,7 @@ bool create_folder( const std::string& location );
 /// \param folder Directory to check
 /// \param n Threshold count
 /// \returns true if folder contains fewer than n files
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool folder_contains_less_than_n_files( const std::string& folder, unsigned n );
 
 // =============================================================================
@@ -89,21 +89,21 @@ bool folder_contains_less_than_n_files( const std::string& folder, unsigned n );
 /// \param p1 First path component
 /// \param p2 Second path component
 /// \returns Combined path
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string append_path( const std::string& p1, const std::string& p2 );
 
 /// Get the filename from a path (without directory)
 ///
 /// \param path Full path
 /// \returns Filename component only
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string get_filename_no_path( const std::string& path );
 
 /// Get the filename with its immediate parent directory
 ///
 /// \param path Full path
 /// \returns "parent/filename" string
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string get_filename_with_last_path( const std::string& path );
 
 /// Replace the extension of a filename
@@ -111,7 +111,7 @@ std::string get_filename_with_last_path( const std::string& path );
 /// \param file_name Original filename
 /// \param ext New extension (including dot, e.g., ".png")
 /// \returns Filename with new extension
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string replace_ext_with( const std::string& file_name, const std::string& ext );
 
 /// Add an extension to a path, handling trailing slashes
@@ -119,7 +119,7 @@ std::string replace_ext_with( const std::string& file_name, const std::string& e
 /// \param path Original path
 /// \param ext Extension to add (including dot)
 /// \returns Path with extension added
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string add_ext_unto( const std::string& path, const std::string& ext );
 
 /// Add an auxiliary suffix to a filename before the extension
@@ -127,7 +127,7 @@ std::string add_ext_unto( const std::string& path, const std::string& ext );
 /// \param file_name Original filename
 /// \param id Auxiliary ID (0 or 1 adds "_aux", >1 adds "_auxN")
 /// \returns Filename with auxiliary suffix
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string add_aux_ext( const std::string& file_name, unsigned id );
 
 /// Check if a string ends with a given extension
@@ -135,7 +135,7 @@ std::string add_aux_ext( const std::string& file_name, unsigned id );
 /// \param str String to check
 /// \param ext Extension to look for
 /// \returns true if str ends with ext
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool ends_with_extension( const std::string& str, const std::string& ext );
 
 /// Check if a string ends with any of the given extensions
@@ -143,7 +143,7 @@ bool ends_with_extension( const std::string& str, const std::string& ext );
 /// \param str String to check
 /// \param exts List of extensions to check
 /// \returns true if str ends with any extension in exts
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool ends_with_extension( const std::string& str,
                           const std::vector< std::string >& exts );
 
@@ -151,7 +151,7 @@ bool ends_with_extension( const std::string& str,
 ///
 /// \param path File path
 /// \returns Extension in lowercase (e.g., ".csv") or empty string if none
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string get_file_extension( const std::string& path );
 
 /// Drop files that match a groundtruth extension but never hold annotations
@@ -162,7 +162,7 @@ std::string get_file_extension( const std::string& path );
 /// folder can no longer be resolved. Removes such sidecars in place.
 ///
 /// \param[in,out] files List of candidate groundtruth paths, filtered in place
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 void remove_non_groundtruth_sidecars( std::vector< std::string >& files );
 
 /// Select a single file from a list based on extension priority
@@ -179,7 +179,7 @@ void remove_non_groundtruth_sidecars( std::vector< std::string >& files );
 /// \param[out] selected The selected file path (or first unambiguous file if no priority match)
 /// \param[out] error_msg Error message if every candidate extension is ambiguous
 /// \returns true if selection succeeded, false if no unambiguous candidate exists
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool select_file_by_extension_priority(
     const std::vector< std::string >& files,
     const std::vector< std::string >& priority_exts,
@@ -197,7 +197,7 @@ bool select_file_by_extension_priority(
 /// \param base_path The original file path
 /// \param ext The target extension (including dot, e.g., ".csv")
 /// \returns The path that exists, or empty string if neither strategy works
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string find_associated_file( const std::string& base_path, const std::string& ext );
 
 /// Resolve a path, handling Windows .lnk shortcut files
@@ -207,7 +207,7 @@ std::string find_associated_file( const std::string& base_path, const std::strin
 ///
 /// \param path The path to resolve
 /// \returns The resolved path (original if no .lnk, resolved target if .lnk exists)
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string resolve_path_with_link( const std::string& path );
 
 /// Find files in a folder with fallback to file alongside folder
@@ -219,7 +219,7 @@ std::string resolve_path_with_link( const std::string& path );
 /// \param folder_path The folder to search in
 /// \param extensions Extensions to filter by (e.g., {".csv", ".json"})
 /// \returns Vector of found file paths (sorted), may be empty if nothing found
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::vector< std::string > find_files_in_folder_or_alongside(
     const std::string& folder_path,
     const std::vector< std::string >& extensions );
@@ -228,7 +228,7 @@ std::vector< std::string > find_files_in_folder_or_alongside(
 ///
 /// \param str String to quote
 /// \returns Quoted string
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string add_quotes( const std::string& str );
 
 /// List files whose name matches a wildcard pattern
@@ -238,7 +238,7 @@ std::string add_quotes( const std::string& str );
 ///
 /// \param pattern Path whose file name may contain wildcards
 /// \returns Sorted vector of matching file paths
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::vector< std::string > glob_files( const std::string& pattern );
 
 // =============================================================================
@@ -249,7 +249,7 @@ std::vector< std::string > glob_files( const std::string& pattern );
 ///
 /// \param str Input string
 /// \returns String with leading/trailing whitespace removed
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string trim_string( std::string const& str );
 
 /// Trim a line and optionally check if it's a comment
@@ -261,21 +261,21 @@ std::string trim_string( std::string const& str );
 /// \param[out] trimmed Output trimmed string (empty if line is empty or comment)
 /// \param skip_comments If true, treat lines starting with '#' as empty
 /// \returns true if the line has content (non-empty and not a comment if skip_comments)
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool trim_line( std::string const& line, std::string& trimmed, bool skip_comments = true );
 
 /// Convert string to lowercase
 ///
 /// \param str Input string
 /// \returns Lowercase version of string
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string to_lower( std::string const& str );
 
 /// Check if a string contains any uppercase character
 ///
 /// \param str String to check
 /// \returns true if at least one character is uppercase
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool has_uppercase( const std::string& str );
 
 /// Split a string on a single delimiter, keeping empty fields
@@ -286,7 +286,7 @@ bool has_uppercase( const std::string& str );
 /// \param str Input string
 /// \param delimiter Character to split on
 /// \returns Vector of fields
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::vector< std::string > split_string( const std::string& str, char delimiter );
 
 /// Join strings with a delimiter between them
@@ -294,7 +294,7 @@ std::vector< std::string > split_string( const std::string& str, char delimiter 
 /// \param values Strings to join
 /// \param delimiter Text placed between consecutive entries
 /// \returns Concatenated string
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 std::string join_strings( const std::vector< std::string >& values,
                           const std::string& delimiter );
 
@@ -303,7 +303,7 @@ std::string join_strings( const std::vector< std::string >& values,
 /// \param str String to check
 /// \param suffix Suffix to look for
 /// \returns true if str ends with suffix (ignoring case)
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool ends_with_ci( std::string const& str, std::string const& suffix );
 
 /// Split a string into a vector using delimiters
@@ -311,7 +311,7 @@ bool ends_with_ci( std::string const& str, std::string const& suffix );
 /// \param str Input string
 /// \param out Output vector of tokens
 /// \param delims Delimiter characters (default: whitespace and comma)
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 void string_to_vector( const std::string& str,
                        std::vector< std::string >& out,
                        const std::string delims = "\n\t\v ," );
@@ -321,7 +321,7 @@ void string_to_vector( const std::string& str,
 /// \param str Input string
 /// \param out Output set of tokens
 /// \param delims Delimiter characters (default: whitespace and comma)
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 void string_to_set( const std::string& str,
                     std::unordered_set< std::string >& out,
                     const std::string delims = "\n\t\v ," );
@@ -336,7 +336,7 @@ void string_to_set( const std::string& str,
 /// \param out Output vector of lines
 /// \param reset If true, clear output vector first (default: true)
 /// \returns true on success, false if file cannot be opened
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool file_to_vector( const std::string& fn,
                      std::vector< std::string >& out,
                      bool reset = true );
@@ -346,7 +346,7 @@ bool file_to_vector( const std::string& fn,
 /// \param file Filename to read
 /// \param output Output vector of lines
 /// \returns true on success, false if file cannot be opened
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool load_file_list( const std::string& file,
                      std::vector< std::string >& output );
 
@@ -357,7 +357,7 @@ bool load_file_list( const std::string& file,
 /// \param filename File to read
 /// \param replacements Output map of old name -> new name, added to in place
 /// \returns true on success, false if the file cannot be opened
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool load_replacement_file( const std::string& filename,
                             std::map< std::string, std::string >& replacements );
 
@@ -366,14 +366,14 @@ bool load_replacement_file( const std::string& filename,
 /// \param file Filename to search
 /// \param key String to search for
 /// \returns true if key is found in the file
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool file_contains_string( const std::string& file, const std::string& key );
 
 /// Parse frame rate from a file header (looks for "fps:" or "fps=" in first 4 lines)
 ///
 /// \param file Filename to parse
 /// \returns Frame rate if found, -1.0 otherwise
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 double get_file_frame_rate( const std::string& file );
 
 // =============================================================================
@@ -390,7 +390,7 @@ double get_file_frame_rate( const std::string& file );
 /// \param output_file Path to write result
 /// \param replacements Map of keyword->value pairs to replace
 /// \returns true on success, false if input file cannot be read or output cannot be written
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool replace_keywords_in_template_file(
     const std::string& input_file,
     const std::string& output_file,
@@ -401,7 +401,7 @@ bool replace_keywords_in_template_file(
 /// \param source Path to source file
 /// \param destination Path to destination file
 /// \returns true on success, false if source cannot be read or destination cannot be written
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool copy_file( const std::string& source, const std::string& destination );
 
 /// Move a file, replacing the destination if it already exists
@@ -409,7 +409,7 @@ bool copy_file( const std::string& source, const std::string& destination );
 /// \param source Path to move from
 /// \param destination Path to move to
 /// \returns true on success
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool move_file( const std::string& source, const std::string& destination );
 
 /// Recursively copy a folder's contents to a destination
@@ -418,7 +418,7 @@ bool move_file( const std::string& source, const std::string& destination );
 /// \param destination Path to destination folder
 /// \returns true if all files copied, false if any errors occurred
 /// \note Files with paths longer than 250 characters are skipped
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool copy_folder( const std::string& source, const std::string& destination );
 
 /// Replace keywords in a template and return the result as a string
@@ -428,7 +428,7 @@ bool copy_folder( const std::string& source, const std::string& destination );
 /// \param replacements Map of keyword->value pairs to replace
 /// \param[out] result Output string with replacements applied
 /// \returns true on success, false if input file cannot be read
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool replace_keywords_in_template_to_string(
     const std::string& input_file,
     const std::map< std::string, std::string >& replacements,
@@ -448,7 +448,7 @@ bool replace_keywords_in_template_to_string(
 /// \param files_to_add Map of zip entry name -> source file path or content
 /// \param string_contents Map of zip entry name -> string content (for non-file data)
 /// \returns true on success, false on error
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 bool create_zip_file(
     const std::string& zip_path,
     const std::map< std::string, std::string >& files_to_add,
@@ -456,4 +456,4 @@ bool create_zip_file(
 
 } // end namespace viame
 
-#endif /* VIAME_CORE_UTILITIES_FILE_H */
+#endif /* VIAME_UTILITIES_UTILITIES_FILE_H */

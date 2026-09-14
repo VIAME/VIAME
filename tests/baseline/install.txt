@@ -858,8 +858,6 @@ include/viame/algorithm_framework/util/wrap_text_block.h
 include/viame/algorithm_framework/version.h
 include/viame/algorithm_framework/vital_config.h
 include/viame/algorithm_framework/vital_export.h
-include/viame/applet_attributes.h
-include/viame/atomic_output.h
 include/viame/auto_detect_transform.h
 include/viame/average_frames.h
 include/viame/average_track_descriptors.h
@@ -1021,7 +1019,6 @@ include/viame/image_ops/temporal.h
 include/viame/image_ops/threshold.h
 include/viame/image_ops/warp.h
 include/viame/iqr_session_adaboost.h
-include/viame/manipulate_pipelines.h
 include/viame/match_features_homography.h
 include/viame/measurement/camera_intrinsics.h
 include/viame/measurement/epipolar_geometry.h
@@ -1100,7 +1097,6 @@ include/viame/pipeline_framework/type_traits.h
 include/viame/pipeline_framework/types.h
 include/viame/pipeline_framework/utils.h
 include/viame/pipeline_framework/version.h
-include/viame/python_script_applet.h
 include/viame/query_track_descriptor_set_csv.h
 include/viame/random_hue_shift.h
 include/viame/read_detected_object_set_auto.h
@@ -1129,11 +1125,16 @@ include/viame/track_features_core.h
 include/viame/track_set_impl.h
 include/viame/train_detector_svm.h
 include/viame/train_supervisor.h
-include/viame/utilities_file.h
-include/viame/utilities_image.h
+include/viame/utilities/applet_attributes.h
+include/viame/utilities/atomic_output.h
+include/viame/utilities/manipulate_pipelines.h
+include/viame/utilities/python_script_applet.h
+include/viame/utilities/utilities_file.h
+include/viame/utilities/utilities_image.h
+include/viame/utilities/utilities_tracks.h
+include/viame/utilities/viame_utilities_export.h
 include/viame/utilities_segmentation.h
 include/viame/utilities_target_clfr.h
-include/viame/utilities_tracks.h
 include/viame/utilities_training.h
 include/viame/viame_claude_export.h
 include/viame/viame_core_export.h
@@ -1247,6 +1248,9 @@ lib/libviame_svm.so
 lib/libviame_svm.so.1
 lib/libviame_svm.so.1.0.0
 lib/libviame_tools_applets.so
+lib/libviame_utilities.so
+lib/libviame_utilities.so.1
+lib/libviame_utilities.so.1.0.0
 lib/libviame_video_io.so
 lib/libviame_video_io.so.1
 lib/libviame_video_io.so.1.0.0
@@ -1408,7 +1412,6 @@ lib/python3.10/site-packages/viame/colmap/__init__.py
 lib/python3.10/site-packages/viame/colmap/colmap_registration.py
 lib/python3.10/site-packages/viame/colmap/prior_coverage_sfm.py
 lib/python3.10/site-packages/viame/colmap/reconstruction.py
-lib/python3.10/site-packages/viame/compat.py
 lib/python3.10/site-packages/viame/core/__init__.py
 lib/python3.10/site-packages/viame/core/_measurement.so
 lib/python3.10/site-packages/viame/core/align_cameras_process.py
@@ -1428,7 +1431,6 @@ lib/python3.10/site-packages/viame/core/merge_detections_coverage_reinforce.py
 lib/python3.10/site-packages/viame/core/merge_detections_nms_fusion.py
 lib/python3.10/site-packages/viame/core/merge_detections_simple.py
 lib/python3.10/site-packages/viame/core/merge_tracks_tube_iou.py
-lib/python3.10/site-packages/viame/core/model_wrap.py
 lib/python3.10/site-packages/viame/core/multicam_homog_blackout.py
 lib/python3.10/site-packages/viame/core/multicam_homog_det_suppressor.py
 lib/python3.10/site-packages/viame/core/multicam_homog_mosaic.py
@@ -1446,10 +1448,7 @@ lib/python3.10/site-packages/viame/core/survey_metadata.py
 lib/python3.10/site-packages/viame/core/tracker_param_search.py
 lib/python3.10/site-packages/viame/core/training_data.py
 lib/python3.10/site-packages/viame/core/utilities_coco.py
-lib/python3.10/site-packages/viame/core/utilities_ply.py
 lib/python3.10/site-packages/viame/core/utility_processes.py
-lib/python3.10/site-packages/viame/core/utils.py
-lib/python3.10/site-packages/viame/core/vital_registration.py
 lib/python3.10/site-packages/viame/core/write_detected_object_set_coco.py
 lib/python3.10/site-packages/viame/core/write_object_track_set_coco.py
 lib/python3.10/site-packages/viame/examples/__init__.py
@@ -1791,7 +1790,13 @@ lib/python3.10/site-packages/viame/pytorch/ultralytics_detector.py
 lib/python3.10/site-packages/viame/pytorch/ultralytics_trainer.py
 lib/python3.10/site-packages/viame/pytorch/utilities.py
 lib/python3.10/site-packages/viame/pytorch/yolomit_to_onnx.py
-lib/python3.10/site-packages/viame/types.py
+lib/python3.10/site-packages/viame/utilities/__init__.py
+lib/python3.10/site-packages/viame/utilities/compat.py
+lib/python3.10/site-packages/viame/utilities/model_wrap.py
+lib/python3.10/site-packages/viame/utilities/types.py
+lib/python3.10/site-packages/viame/utilities/utilities_ply.py
+lib/python3.10/site-packages/viame/utilities/utils.py
+lib/python3.10/site-packages/viame/utilities/vital_registration.py
 lib/python3.10/site-packages/viame/video_io/__init__.py
 lib/python3.10/site-packages/viame/video_io/ffmpeg_cli_video_input.py
 lib/python3.10/site-packages/viame/video_io/image_viewer.py

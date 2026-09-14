@@ -3,9 +3,9 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "csv.h"
-#include <atomic_output.h>
+#include <viame/utilities/atomic_output.h>
 
-#include <utilities_file.h>
+#include <viame/utilities/utilities_file.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
 

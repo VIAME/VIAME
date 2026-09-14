@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_UTILITIES_TRACKS_H
-#define VIAME_CORE_UTILITIES_TRACKS_H
+#ifndef VIAME_UTILITIES_UTILITIES_TRACKS_H
+#define VIAME_UTILITIES_UTILITIES_TRACKS_H
 
-#include "viame_core_export.h"
+#include "viame_utilities_export.h"
 
 #include <viame/core_types/detected_object.h>
 #include <viame/core_types/object_track_set.h>
@@ -27,7 +27,7 @@ namespace kv = kwiver::vital;
 /// \param d2 Detection at the later state
 /// \param alpha Interpolation weight in [0, 1] (0 = d1, 1 = d2)
 /// \returns New interpolated detection
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 kv::detected_object_sptr
 interpolate_detection( const kv::detected_object_sptr& d1,
                        const kv::detected_object_sptr& d2,
@@ -57,7 +57,7 @@ interpolate_detection( const kv::detected_object_sptr& d1,
 ///                       in input frames, across which new states are
 ///                       created (0 = unlimited)
 /// \returns New track set with frame numbers at \p output_rate
-VIAME_CORE_EXPORT
+VIAME_UTILITIES_EXPORT
 kv::object_track_set_sptr
 resample_object_tracks( const kv::object_track_set_sptr& tracks,
                         double input_rate,
@@ -67,4 +67,4 @@ resample_object_tracks( const kv::object_track_set_sptr& tracks,
 
 } // end namespace viame
 
-#endif // VIAME_CORE_UTILITIES_TRACKS_H
+#endif // VIAME_UTILITIES_UTILITIES_TRACKS_H

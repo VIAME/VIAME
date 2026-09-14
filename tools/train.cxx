@@ -26,11 +26,11 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-#include <plugins/core/utilities_file.h>
-#include <plugins/core/utilities_image.h>
+#include <viame/utilities/utilities_file.h>
+#include <viame/utilities/utilities_image.h>
 #include <plugins/core/utilities_training.h>
-#include <plugins/core/manipulate_pipelines.h>
-#include <plugins/core/python_script_applet.h>
+#include <viame/utilities/manipulate_pipelines.h>
+#include <viame/utilities/python_script_applet.h>
 #include <plugins/claude/train_supervisor.h>
 
 #include <vector>
