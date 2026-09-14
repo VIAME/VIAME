@@ -207,6 +207,7 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | **Phase 11 (optional): rename to viame** | `phase-11-rename.md` | | | | |
 | P11-T01 | C++ namespace rename | P10-T06 | todo | | |
 | P11-T02 | Python module rename | P11-T01 | todo | | |
+| P11-T02b | Dissolve `python/` into `library/` | P11-T02 | todo | | Asked for during P2-T04: the top-level `python/` directory should not exist, the bindings belong beside the C++ they bind. Blocked on the package rename, which is what makes the two trees one |
 | P11-T03 | Env var and log-level rename | P11-T02 | todo | | |
 
 ## Decisions taken
