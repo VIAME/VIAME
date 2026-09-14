@@ -51,7 +51,7 @@ if( WIN32 )
   # build with `VIAME_BUILD_PYTHON_FROM_SOURCE` on should keep using fletch's
   # CPython, which is why this refuses rather than half-working.
   message( FATAL_ERROR
-    "third_party/cpython builds the autotools path only. On Windows, leave "
+    "library/tpl/cpython builds the autotools path only. On Windows, leave "
     "VIAME_BUILD_PYTHON_FROM_SOURCE to fletch's CPython until this recipe "
     "has been exercised there." )
 endif()

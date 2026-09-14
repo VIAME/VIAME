@@ -5,11 +5,11 @@
 # installed because nothing installs them, not because a variable said so.
 
 if( NOT TARGET GTest::gtest )
-  # GoogleTest is built by `third_party/googletest`, added by the top-level
+  # GoogleTest is built by `library/tpl/googletest`, added by the top-level
   # CMakeLists when tests are enabled. It was `find_package( GTest REQUIRED )`
   # resolved through fletch's prefix, and was the last thing in VIAME's own
   # build that needed fletch at all.
-  message( FATAL_ERROR "third_party/googletest has not been added yet" )
+  message( FATAL_ERROR "library/tpl/googletest has not been added yet" )
 endif()
 
 # `CMAKE_BINARY_DIR`, not `VIAME_BINARY_DIR`: the latter is

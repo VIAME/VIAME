@@ -34,8 +34,8 @@ include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}" )
 # couple of headers that trip it.
 include_directories( SYSTEM "${VIAME_LITE_SOURCE_INCLUDE_DIR}" )
 include_directories( SYSTEM "${VIAME_LITE_GENERATED_DIR}" )
-include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}/third_party/rapidjson" )
-include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}/third_party/cxxopts" )
+include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}/library/tpl/rapidjson" )
+include_directories( SYSTEM "${VIAME_LITE_ROOT_DIR}/library/tpl/cxxopts" )
 
 # Rebase a list of file names onto the imported tree.
 #

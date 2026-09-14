@@ -34,7 +34,7 @@
 #                       `data.c` and the CUDA training loop use them.
 #   `gettimeofday.{c,h}`      Windows only
 #   `3rdparty/`               getopt and pthreads are Windows only; its stb
-#                             is v2.28 and `third_party/stb` is v2.30, so
+#                             is v2.28 and `library/tpl/stb` is v2.30, so
 #                             VIAME's copy serves both
 #   cfg/, data/, scripts/,    weights, sample images, shell scripts, the
 #   docker, the python        python bindings, Docker files, 68 KB of README
@@ -85,7 +85,7 @@ target_include_directories( viame_darknet_core PRIVATE
   # `image.c` and `yolo_v2_class.cpp` load images with stb, and VIAME already
   # carries it: darknet's own copy is two patch versions older and there is
   # no reason to have both
-  ${CMAKE_SOURCE_DIR}/third_party/stb
+  ${CMAKE_SOURCE_DIR}/library/tpl/stb
   )
 
 set_target_properties( viame_darknet_core PROPERTIES

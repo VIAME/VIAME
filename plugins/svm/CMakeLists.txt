@@ -1,7 +1,7 @@
 # Build/install plugin for SVM support
 
 
-# libsvm is vendored in `third_party/libsvm` -- two files, and not stock:
+# libsvm is vendored in `library/tpl/libsvm` -- two files, and not stock:
 # the `HISTOGRAM` and `NMI` kernels both callers here select are VIAME's own
 # and have never existed upstream. It was looked up in the install prefix
 # with `NO_DEFAULT_PATH` until P1-T03 brought it into the tree, which is one

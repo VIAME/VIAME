@@ -6,7 +6,7 @@
 # tabulates this file by phase, and after P7 the row reads Python, Threads,
 # optional OpenMP and optional CUDA. There is no `find_package( OpenCV )`,
 # no FFMPEG, no Eigen, no ZLIB and no fletch -- each went with the phase
-# that removed the dependency, and `third_party/` carries the small ones.
+# that removed the dependency, and `library/tpl/` carries the small ones.
 #
 # What remains is CUDA and cuDNN (for darknet, and for telling pytorch what
 # to install), python and its version checks, the pytorch version matrix,
@@ -32,7 +32,7 @@ if( VIAME_ENABLE_CUDA )
     set( CUDA_NVCC_EXECUTABLE "${CUDA_NVCC_EXECUTABLE}" CACHE FILEPATH "CUDA nvcc executable" FORCE )
   endif()
 
-  # `third_party/darknet` compiles CUDA in this build now, which needs the
+  # `library/tpl/darknet` compiles CUDA in this build now, which needs the
   # first-class language rather than the old `find_package( CUDA )` module.
   # It has to be told the **resolved** nvcc for the same reason as above:
   # handed `/usr/bin/nvcc`, CMake 4 cannot work back to the toolkit root and

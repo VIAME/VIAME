@@ -138,7 +138,7 @@ endif()
 # There are no dependencies left to build. Fletch went when nothing linked
 # it, the five GUI and inference-backend projects went with their options in
 # P1-T02, kwiver became `library/` in P5-T05, darknet and the rest became
-# `third_party/`, the python environment is lock files, and DIVE builds from
+# `library/tpl/`, the python environment is lock files, and DIVE builds from
 # its submodule in this configure rather than a nested one.
 ##
 

@@ -56,7 +56,7 @@ target_include_directories( viame_video_io PUBLIC
 # The vendored stb headers, which only `codecs/image_codec.cxx` compiles.
 # SYSTEM: they are third-party code and warn under VIAME's flags.
 target_include_directories( viame_video_io SYSTEM PRIVATE
-  $<BUILD_INTERFACE:${VIAME_SOURCE_DIR}/third_party/stb>
+  $<BUILD_INTERFACE:${VIAME_SOURCE_DIR}/library/tpl/stb>
   )
 
 target_link_libraries( viame_video_io

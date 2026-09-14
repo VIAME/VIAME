@@ -51,7 +51,7 @@ target_include_directories( viame_file_io PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   # `json.h` is the one door to rapidjson, which is vendored
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/third_party/rapidjson>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/tpl/rapidjson>
   )
 
 target_link_libraries( viame_file_io
@@ -126,7 +126,7 @@ if( VIAME_ENABLE_PYTHON )
     file_io
     __init__ )
 
-  # pybind11 is vendored in `third_party/pybind11`; the targets it used to
+  # pybind11 is vendored in `library/tpl/pybind11`; the targets it used to
   # come from are defined there
 
   viame_add_python_library( _opencv_yaml

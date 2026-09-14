@@ -5,7 +5,7 @@
 ```
 viame/
   CMakeLists.txt  CMakePresets.json  cmake/
-  third_party/            vendored sources only (lite-dependencies.md §4)
+  library/tpl/            vendored sources only (lite-dependencies.md §4)
   library/
     core_types/           image, image_container, bounding_box, detected_object(+set,+type),
                           track(+set), object_track_set, timestamp, descriptor(+set), point,
@@ -112,7 +112,7 @@ sideways.
 | `measurement/` | `arrows/mvg/{triangulate,epipolar_geometry}`, `arrows/ocv/camera_intrinsics` (until P7), `sprokit/processes/core/compute_stereo_depth_map_process` |
 | `opencv_bridge/` (transitional, deleted in P7) | `arrows/ocv/{image_container,mat_image_memory,descriptor_set,feature_set,match_set,bounding_box}` |
 | `training/` | `sprokit/processes/core/train_detector_process` |
-| `third_party/` | `vital/kwiversys`, `vital/internal/cereal` (+ rapidjson), `vital/applets/cxxopts.hpp` (kwiversys and cereal deleted in P8) |
+| `library/tpl/` | `vital/kwiversys`, `vital/internal/cereal` (+ rapidjson), `vital/applets/cxxopts.hpp` (kwiversys and cereal deleted in P8) |
 
 ## 3. Mapping: `plugins/` -> library (P2)
 

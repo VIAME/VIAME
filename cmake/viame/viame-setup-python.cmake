@@ -95,11 +95,11 @@ set( PYTHON_ABIFLAGS "${_abiflags}"
      CACHE STRING "The ABI flags for the version of Python being used" )
 mark_as_advanced( PYTHON_ABIFLAGS )
 
-# pybind11 is vendored in `third_party/pybind11`, which defines
+# pybind11 is vendored in `library/tpl/pybind11`, which defines
 # `pybind11::pybind11`, `::module` and `::embed`. It used to come from a
 # `find_package` resolved through fletch.
 if( NOT TARGET pybind11::pybind11 )
-  message( FATAL_ERROR "third_party/pybind11 has not been added yet" )
+  message( FATAL_ERROR "library/tpl/pybind11 has not been added yet" )
 endif()
 
 set( kwiver_python_install_path

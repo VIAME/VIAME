@@ -159,8 +159,8 @@ foreach( _viame_lite_target
     target_include_directories( ${_viame_lite_target} PUBLIC
       $<BUILD_INTERFACE:${VIAME_LITE_SOURCE_INCLUDE_DIR}>
       $<BUILD_INTERFACE:${VIAME_LITE_GENERATED_DIR}>
-      $<BUILD_INTERFACE:${VIAME_LITE_ROOT_DIR}/third_party/rapidjson>
-      $<BUILD_INTERFACE:${VIAME_LITE_ROOT_DIR}/third_party/cxxopts>
+      $<BUILD_INTERFACE:${VIAME_LITE_ROOT_DIR}/library/tpl/rapidjson>
+      $<BUILD_INTERFACE:${VIAME_LITE_ROOT_DIR}/library/tpl/cxxopts>
       $<INSTALL_INTERFACE:include>
       )
   endif()

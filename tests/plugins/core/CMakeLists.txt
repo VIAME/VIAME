@@ -75,7 +75,7 @@ target_include_directories( test-viame_core-iqr_session_adaboost PRIVATE
 # `python_environment`. It defines its own `main` for that, so the gtest
 # main is not wanted.
 if( VIAME_ENABLE_PYTHON )
-  # pybind11 is vendored in `third_party/pybind11`; the targets it used to
+  # pybind11 is vendored in `library/tpl/pybind11`; the targets it used to
   # come from are defined there
 
   target_link_libraries( test-viame_core-iqr_session_adaboost

@@ -143,7 +143,7 @@ if( NOT KWIVER_SOURCE_DIR )
   set( KWIVER_SOURCE_DIR "${VIAME_PACKAGES_DIR}/kwiver" )
 endif()
 target_include_directories( viame_tools_applets
-  PRIVATE      ${VIAME_SOURCE_DIR}/third_party/rapidjson
+  PRIVATE      ${VIAME_SOURCE_DIR}/library/tpl/rapidjson
   )
 
 # pipe_bakery.h includes its neighbours by bare name and only some of them

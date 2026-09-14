@@ -25,7 +25,7 @@ include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
 # `find_package( fletch NO_MODULE )` stood here, and put `${fletch_DIR}` on
 # `CMAKE_PREFIX_PATH`. By P8 there was nothing left for it to find: VXL went
 # in P3, FFmpeg in P4, Eigen in P6, OpenCV's C++ in P7, and zlib, tinyxml,
-# libsvm, pybind11, darknet and GoogleTest are `third_party/`. What it was
+# libsvm, pybind11, darknet and GoogleTest are `library/tpl/`. What it was
 # still doing was defining variables -- `pybind11_INCLUDE_DIRS` among them,
 # which was putting the whole of the reference superbuild's `include/` on
 # one target's command line, above the vendored headers.
@@ -74,34 +74,34 @@ link_directories( "${VIAME_BINARY_DIR}/lib" )
 # Vendored third party
 #
 # Small enough to carry, and carried minimally -- only the files VIAME
-# compiles or includes, never a distribution. `third_party/README.md`
+# compiles or includes, never a distribution. `library/tpl/README.md`
 # says what was left behind in each case and why.
 #
 # This is P1-T03 arriving ahead of the rest of phase 1: it does not need
 # the new top-level CMakeLists, and every package that moves here is one
 # fletch no longer has to build.
 ##
-add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/tinyxml" third_party/tinyxml )
-add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/miniz" third_party/miniz )
-add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/darknet" third_party/darknet )
+add_subdirectory( "${VIAME_SOURCE_DIR}/library/tpl/tinyxml" library/tpl/tinyxml )
+add_subdirectory( "${VIAME_SOURCE_DIR}/library/tpl/miniz" library/tpl/miniz )
+add_subdirectory( "${VIAME_SOURCE_DIR}/library/tpl/darknet" library/tpl/darknet )
 
 if( VIAME_ENABLE_TESTS )
-  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/googletest"
-                    third_party/googletest )
+  add_subdirectory( "${VIAME_SOURCE_DIR}/library/tpl/googletest"
+                    library/tpl/googletest )
 endif()
 
 # Builds nothing unless `VIAME_BUILD_PYTHON_FROM_SOURCE` is on, which is
 # for a packaged build that cannot assume a python on the target machine
-add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/cpython"
-                  third_party/cpython )
+add_subdirectory( "${VIAME_SOURCE_DIR}/library/tpl/cpython"
+                  library/tpl/cpython )
 
 if( VIAME_ENABLE_PYTHON )
-  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/pybind11"
-                    third_party/pybind11 )
+  add_subdirectory( "${VIAME_SOURCE_DIR}/library/tpl/pybind11"
+                    library/tpl/pybind11 )
 endif()
 
 if( VIAME_ENABLE_SVM )
-  add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/libsvm" third_party/libsvm )
+  add_subdirectory( "${VIAME_SOURCE_DIR}/library/tpl/libsvm" library/tpl/libsvm )
 endif()
 
 

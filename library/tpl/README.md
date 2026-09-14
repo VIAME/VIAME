@@ -1,4 +1,4 @@
-# third_party
+# library/tpl
 
 Dependencies carried in the tree rather than found on the system or built by
 fletch.
@@ -26,7 +26,7 @@ Not here, and deliberately:
   release -- and it is not looked up either, because
   `find_package( GTest REQUIRED )` resolved through fletch's prefix and was
   the last thing in VIAME's own build that needed fletch at all.
-  `third_party/googletest` downloads a pinned version at configure time and
+  `library/tpl/googletest` downloads a pinned version at configure time and
   builds it with the tree, and only when `VIAME_ENABLE_TESTS` is on. For an
   offline build, `VIAME_GTEST_SOURCE_DIR` points at an existing checkout.
 * **darknet** is vendored above, **inference only**, which was the

@@ -138,7 +138,7 @@ target_include_directories( viame_core PUBLIC
 # reach it through `library/file_io/json.h`, which is where the settings that
 # make it behave the way VIAME expects are stated.
 target_include_directories( viame_core PRIVATE
-  ${VIAME_SOURCE_DIR}/third_party/rapidjson
+  ${VIAME_SOURCE_DIR}/library/tpl/rapidjson
   )
 
 set( CORE_LINK_LIBRARIES
@@ -170,7 +170,7 @@ set( AUX_LINK_LIBRARIES
 # here are gone with it.
 
 # NPZ, which `camera_rig_io` reads and `utilities_file` writes. It was zlib,
-# found or not found; it is `third_party/miniz` now and always there, so
+# found or not found; it is `library/tpl/miniz` now and always there, so
 # `VIAME_ENABLE_ZLIB` is set unconditionally. The guards it gates in those
 # two files are vestigial and left alone: removing them edits working code
 # for no gain.
@@ -200,7 +200,7 @@ target_link_libraries( viame_core
   # TinyXML is `read_detected_object_set_cvat.cxx`'s and nothing else's, so
   # it is private: a static library linked PUBLIC would have to join the
   # export set and become part of what an out-of-tree consumer links.
-  # Vendored in `third_party/tinyxml`, four files, built here not found.
+  # Vendored in `library/tpl/tinyxml`, four files, built here not found.
   # `$<BUILD_INTERFACE:...>` as well as PRIVATE: a static library linked
   # even privately is still recorded in the target's interface, and
   # `install( EXPORT )` then refuses it for not being in the export set.
@@ -354,7 +354,7 @@ set_target_properties( viame_iqr PROPERTIES
   )
 
 if( VIAME_ENABLE_PYTHON )
-  # pybind11 is vendored in `third_party/pybind11`; the targets it used to
+  # pybind11 is vendored in `library/tpl/pybind11`; the targets it used to
   # come from are defined there
 
   target_compile_definitions( viame_iqr PRIVATE VIAME_CORE_HAVE_PYTHON )
@@ -589,7 +589,7 @@ if( VIAME_ENABLE_PYTHON )
   # than duplicating the math. The bindings live at the bottom of measurement_utilities.cxx
   # guarded by VIAME_MEASUREMENT_PYTHON_BINDINGS; defining it here makes this build of the
   # file emit only the module (linking viame_core for the implementations).
-  # pybind11 is vendored in `third_party/pybind11`; the targets it used to
+  # pybind11 is vendored in `library/tpl/pybind11`; the targets it used to
   # come from are defined there
   viame_add_python_library( _measurement
     core

@@ -245,7 +245,7 @@ Source Code Layout
    │   └── prj-windows     # Default windows project files 
    ├── examples            # All runnable examples and example tutorials
    ├── library             # VIAME's own C++ and python, by function
-   ├── third_party         # Small libraries carried in the tree and built with it
+   │   └── tpl             # Small libraries carried in the tree and built with it
    ├── packages            # External projects used by the system
    │   ├── dive            # Annotation and review interface
    │   ├── pytorch-libs    # Model repositories the pytorch plugins wrap
