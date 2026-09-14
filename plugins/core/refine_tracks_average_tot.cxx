@@ -4,7 +4,7 @@
 
 #include "refine_tracks_average_tot.h"
 
-#include "utilities_target_clfr.h"
+#include <viame/utilities/utilities_target_clfr.h>
 
 #include <stdexcept>
 #include <vector>

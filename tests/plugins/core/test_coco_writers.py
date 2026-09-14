@@ -24,7 +24,7 @@ import os
 import numpy as np
 import pytest
 
-from viame.core import utilities_coco as uc
+from viame.file_io import utilities_coco as uc
 
 
 # ----------------------------------------------------------------------
@@ -150,7 +150,7 @@ def _reset_global_categories():
 @requires_kwiver
 def test_track_writer_orders_images_by_frame(tmp_path):
     """Images follow time even when the later track is stored first."""
-    from viame.core.write_object_track_set_coco import WriteObjectTrackSetCoco
+    from viame.file_io.write_object_track_set_coco import WriteObjectTrackSetCoco
 
     late = vital_types.Track(id=10)
     for frame in (30, 31):
@@ -199,7 +199,7 @@ def test_track_writer_orders_images_by_frame(tmp_path):
 
 @requires_kwiver
 def test_detection_writer_profile(tmp_path):
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
 
     writer = WriteDetectedObjectSetCoco()
     writer.set_configuration(writer.get_configuration())
@@ -220,7 +220,7 @@ def test_detection_writer_profile(tmp_path):
 
 def _write_detections(tmp_path, name, frames, video_name=""):
     """Run the detection writer over *frames*, a list of (file_name, dets)."""
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
 
     writer = WriteDetectedObjectSetCoco()
     writer.set_configuration(writer.get_configuration())
@@ -285,7 +285,7 @@ def test_detection_writer_image_list_has_no_video(tmp_path):
 @requires_kwiver
 def test_every_scored_class_survives(tmp_path):
     """COCO has one category_id; a VIAME detector scores every class."""
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
 
     writer = WriteDetectedObjectSetCoco()
     writer.set_configuration(writer.get_configuration())
@@ -318,7 +318,7 @@ def test_every_scored_class_survives(tmp_path):
 @requires_kwiver
 def test_top_n_classes_caps_the_pairs(tmp_path):
     """Mirrors the viame_csv writer's option of the same name; 0 keeps all."""
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
 
     def run(top_n, name):
         writer = WriteDetectedObjectSetCoco()
@@ -367,7 +367,7 @@ def test_confidence_pairs_recovered_from_either_spelling():
 @requires_kwiver
 def test_info_block_carries_provenance(tmp_path):
     """MS-COCO info fields, written only when the caller supplies them."""
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
 
     writer = WriteDetectedObjectSetCoco()
     writer.set_configuration(writer.get_configuration())
@@ -395,7 +395,7 @@ def test_info_block_carries_provenance(tmp_path):
 @requires_kwiver
 def test_frame_rate_recorded_for_video(tmp_path):
     """The CSV header carries a frame rate; COCO has to carry it too."""
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
 
     writer = WriteDetectedObjectSetCoco()
     writer.set_configuration(writer.get_configuration())
@@ -418,7 +418,7 @@ def test_frame_rate_recorded_for_video(tmp_path):
 @requires_kwiver
 def test_frame_rate_absent_for_image_lists(tmp_path):
     """A frame rate describes a video; an image list has none to describe."""
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
 
     writer = WriteDetectedObjectSetCoco()
     writer.set_configuration(writer.get_configuration())
@@ -470,7 +470,7 @@ def test_detection_writer_video_name_overrides(tmp_path):
 @requires_kwiver
 def test_track_writer_image_list_has_no_video(tmp_path):
     """Named frames mean an image list, so no videos table and no video_id."""
-    from viame.core.write_object_track_set_coco import WriteObjectTrackSetCoco
+    from viame.file_io.write_object_track_set_coco import WriteObjectTrackSetCoco
 
     track = vital_types.Track(id=1)
     for frame in (0, 1):
@@ -498,7 +498,7 @@ def test_track_writer_image_list_has_no_video(tmp_path):
 @requires_kwiver
 def test_attributes_round_trip_under_their_own_key(tmp_path):
     """Attributes belong under `attributes`, not scattered at the top level."""
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
 
     det = _detection(1, 2, 3, 4, "fish")
     det.add_note(json.dumps({"occluded": True, "track_attributes": {"gear": "trawl"}}))
@@ -536,7 +536,7 @@ def test_attributes_round_trip_under_their_own_key(tmp_path):
 @requires_kwiver
 def test_track_writer_counts_frames_without_a_timestamp(tmp_path):
     """Conversion pipelines have no frame clock, so the writer keeps its own."""
-    from viame.core.write_object_track_set_coco import WriteObjectTrackSetCoco
+    from viame.file_io.write_object_track_set_coco import WriteObjectTrackSetCoco
 
     track = vital_types.Track(id=3)
     for frame in (0, 1):
@@ -578,10 +578,10 @@ def test_multiple_polygon_pieces_roundtrip():
 @pytest.mark.parametrize('tracked', [False, True])
 def test_centerline_coco_read_write(tmp_path, named, tracked):
     """Both reader/writer pairs retain DIVE centerlines and ignore absent slots."""
-    from viame.core.read_detected_object_set_coco import ReadDetectedObjectSetCoco
-    from viame.core.read_object_track_set_coco import ReadObjectTrackSetCoco
-    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
-    from viame.core.write_object_track_set_coco import WriteObjectTrackSetCoco
+    from viame.file_io.read_detected_object_set_coco import ReadDetectedObjectSetCoco
+    from viame.file_io.read_object_track_set_coco import ReadObjectTrackSetCoco
+    from viame.file_io.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.file_io.write_object_track_set_coco import WriteObjectTrackSetCoco
 
     labels = ['tail', 'spine_010', 'head', 'spine_002', 'spine_003']
     triples = [[90.5, 20.25, 2], [60.1, 35.2, 2], [10.25, 20.5, 2],

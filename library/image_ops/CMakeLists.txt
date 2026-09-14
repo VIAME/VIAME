@@ -1,8 +1,16 @@
 # In-house image kernels
 #
-# Header only and templated over the pixel type, so there is nothing to link
-# against: a consumer includes what it needs and takes vital::image with it.
+# Templated over the pixel type and header-only apart from two helpers, so a
+# consumer mostly includes what it needs and takes vital::image with it.
 # Nothing here may include OpenCV or VXL.
+#
+# The two compiled helpers came from `plugins/core` in P2-T04.
+# `convert_polygons_to_mask` and `utilities_segmentation` are the
+# polygon-and-mask geometry the viame_csv and dive readers and writers run,
+# and lite-library-layout.md's rule is that a library needing a sibling's
+# helper moves the helper down. They both build on the kernels here --
+# `polygon.h` and `contours.h` -- so this is as far down as they go, and it
+# is why the target is a library rather than an INTERFACE.
 
 set( image_ops_headers
   channels.h
@@ -27,26 +35,41 @@ set( image_ops_headers
   temporal.h
   threshold.h
   warp.h
+
+  convert_polygons_to_mask.h
+  utilities_segmentation.h
 )
 
-add_library( viame_image_ops INTERFACE )
+set( image_ops_sources
+  convert_polygons_to_mask.cxx
+  utilities_segmentation.cxx
+)
+
+viame_add_library( viame_image_ops
+  ${image_ops_headers}
+  ${image_ops_sources}
+)
 add_library( viame::image_ops ALIAS viame_image_ops )
 
 # The parent directory, so consumers include <image_ops/convert.h> rather than
 # <convert.h>: several kernels share a name with the algorithm that uses them
-target_include_directories( viame_image_ops INTERFACE
+target_include_directories( viame_image_ops PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<INSTALL_INTERFACE:include/viame>
 )
 
-target_link_libraries( viame_image_ops INTERFACE kwiver::vital )
+target_link_libraries( viame_image_ops
+  PUBLIC  kwiver::vital
+          kwiver::vital_util
+)
+
+set_target_properties( viame_image_ops PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
+)
 
 install( FILES       ${image_ops_headers}
          DESTINATION include/viame/image_ops )
 
-# In the export set, because the libraries that link it are: since P5-T05
-# VIAME installs a config package of its own and every target another one
-# names has to be exportable.
-install( TARGETS     viame_image_ops
-         EXPORT      ${kwiver_export_name} )
-set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_image_ops )
+install( FILES       ${CMAKE_CURRENT_BINARY_DIR}/viame_image_ops_export.h
+         DESTINATION include/viame/image_ops )

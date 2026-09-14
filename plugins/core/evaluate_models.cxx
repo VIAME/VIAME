@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "evaluate_models.h"
-#include "read_detected_object_set_viame_csv.h"
+#include <viame/file_io/read_detected_object_set_viame_csv.h>
 
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>

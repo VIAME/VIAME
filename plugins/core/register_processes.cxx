@@ -20,7 +20,6 @@
 #include "track_conductor_process.h"
 #include "warp_detections_process.h"
 #include "warp_image_process.h"
-#include "write_homography_list_process.h"
 #include "accumulate_object_tracks_process.h"
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
@@ -300,18 +299,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::write_homography_list_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::write_homography_list_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "write_homography_list" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Write a homography list out to some file" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   fact = new sprokit::cpp_process_factory(
     typeid( viame::core::write_query_results_as_tracks_process ).name(),

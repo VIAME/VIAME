@@ -30,7 +30,7 @@
 #include "measurement_utilities.h"
 #include "pair_stereo_detections.h"
 #include "pair_stereo_tracks.h"
-#include "camera_rig_io.h"
+#include <viame/file_io/camera_rig_io.h>
 
 namespace kv = kwiver::vital;
 

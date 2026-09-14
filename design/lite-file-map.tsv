@@ -45,8 +45,8 @@ plugins/core/convert_head_tail_points.cxx	library/classifiers/convert_head_tail_
 plugins/core/convert_head_tail_points.h	library/classifiers/convert_head_tail_points.h
 plugins/core/convert_notes_to_attributes.cxx	library/file_io/convert_notes_to_attributes.cxx
 plugins/core/convert_notes_to_attributes.h	library/file_io/convert_notes_to_attributes.h
-plugins/core/convert_polygons_to_mask.cxx	library/image_processing/convert_polygons_to_mask.cxx
-plugins/core/convert_polygons_to_mask.h	library/image_processing/convert_polygons_to_mask.h
+plugins/core/convert_polygons_to_mask.cxx	library/image_ops/convert_polygons_to_mask.cxx
+plugins/core/convert_polygons_to_mask.h	library/image_ops/convert_polygons_to_mask.h
 plugins/core/create_database_query_process.cxx	library/descriptors/create_database_query_process.cxx
 plugins/core/create_database_query_process.h	library/descriptors/create_database_query_process.h
 plugins/core/curved_measurement.py	library/measurement/curved_measurement.py
@@ -187,10 +187,10 @@ plugins/core/utilities_image.cxx	library/utilities/utilities_image.cxx
 plugins/core/utilities_image.h	library/utilities/utilities_image.h
 plugins/core/utilities_iqr.h	library/descriptors/utilities_iqr.h
 plugins/core/utilities_ply.py	library/utilities/utilities_ply.py
-plugins/core/utilities_segmentation.cxx	library/segmentation/utilities_segmentation.cxx
-plugins/core/utilities_segmentation.h	library/segmentation/utilities_segmentation.h
-plugins/core/utilities_target_clfr.cxx	library/classifiers/utilities_target_clfr.cxx
-plugins/core/utilities_target_clfr.h	library/classifiers/utilities_target_clfr.h
+plugins/core/utilities_segmentation.cxx	library/image_ops/utilities_segmentation.cxx
+plugins/core/utilities_segmentation.h	library/image_ops/utilities_segmentation.h
+plugins/core/utilities_target_clfr.cxx	library/utilities/utilities_target_clfr.cxx
+plugins/core/utilities_target_clfr.h	library/utilities/utilities_target_clfr.h
 plugins/core/utilities_tracks.cxx	library/utilities/utilities_tracks.cxx
 plugins/core/utilities_tracks.h	library/utilities/utilities_tracks.h
 plugins/core/utilities_training.cxx	library/training/utilities_training.cxx

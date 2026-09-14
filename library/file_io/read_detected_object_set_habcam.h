@@ -1,0 +1,61 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
+/**
+ * \file
+ * \brief Interface for read_detected_object_set_habcam
+ */
+
+#ifndef VIAME_FILE_IO_READ_DETECTED_OBJECT_SET_HABCAM_H
+#define VIAME_FILE_IO_READ_DETECTED_OBJECT_SET_HABCAM_H
+
+#include "viame_file_io_export.h"
+
+#include <viame/algorithm_framework/algo/detected_object_set_input.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
+
+#include <memory>
+
+namespace viame {
+
+class VIAME_FILE_IO_EXPORT read_detected_object_set_habcam
+  : public kwiver::vital::algo::detected_object_set_input
+{
+public:
+  // NOTE: Keep description in sync with write_detected_object_set_viame_csv
+  PLUGGABLE_IMPL_NAMED(
+    read_detected_object_set_habcam, "habcam",
+    "Reads habcam-style detection/ground truth files.",
+    PARAM_DEFAULT(
+      delimiter, std::string,
+      "Delimiter character used in the input file. If empty, auto-detect.",
+      "" ),
+    PARAM_DEFAULT(
+      point_dilation, double,
+      "Dilation in pixels applied to point annotations to create bounding boxes.",
+      50.0 ),
+    PARAM_DEFAULT(
+      use_internal_table, bool,
+      "Use internal species code lookup table for label mapping.",
+      false )
+  )
+
+  virtual ~read_detected_object_set_habcam();
+
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+
+  virtual bool read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name );
+
+private:
+  void initialize() override;
+
+  virtual void new_stream();
+
+  class priv;
+  KWIVER_UNIQUE_PTR( priv, d );
+};
+
+} // end namespace
+
+#endif // VIAME_FILE_IO_READ_DETECTED_OBJECT_SET_HABCAM_H

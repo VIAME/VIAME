@@ -91,7 +91,14 @@ core_types <- algorithm_framework <- pipeline_framework <- utilities <- image_op
 ```
 
 A library needing a sibling's helper moves the helper down, never links
-sideways.
+sideways. Three of `plugins/core`'s helpers were moved down in P2-T04 for
+exactly that reason, against where §3 first put them: the viame_csv and dive
+readers and writers need `convert_polygons_to_mask` and
+`utilities_segmentation`, which are polygon-and-mask geometry and belong in
+`image_ops`, and they need `utilities_target_clfr` alongside stereo track
+pairing and `refine_tracks_average_tot`, which makes `utilities` its lowest
+common home. `utilities_target_clfr` touches no image, only
+`detected_object_type`.
 
 ## 2. Mapping: kwiver code -> library (P5)
 
@@ -120,14 +127,15 @@ sideways.
 
 | Destination | Files |
 |---|---|
-| `utilities/` | `utilities_file`, `utilities_image`, `utilities_tracks`, `manipulate_pipelines`, `applet_attributes.h`, `python_script_applet`, `utils.py`, `vital_registration.py`; `plugins/compat.py`, `plugins/types.py` |
+| `utilities/` | `utilities_file`, `utilities_image`, `utilities_tracks`, `utilities_target_clfr`, `manipulate_pipelines`, `applet_attributes.h`, `python_script_applet`, `utils.py`, `vital_registration.py`; `plugins/compat.py`, `plugins/types.py` |
 | `video_io/` | `add_timestamp_from_filename`, `filename_to_timestamp`, `write_disparity_maps`, `read_habcam_metadata_process`, `detect_shot_breaks` (+ process) |
 | `file_io/` | `read_detected_object_set_{auto,cvat,dive,fishnet,habcam,oceaneyes,viame_csv,yolo}`, `read_object_track_set_{auto,dive,viame_csv}`, `write_detected_object_set_viame_csv`, `write_object_track_set_viame_csv`, `read_transform_homography_json`, `auto_detect_transform`, `convert_notes_to_attributes`, `camera_io`, `camera_rig_io`, `store_descriptors_csv`, `write_homography_list_process`; python `read/write_*_coco.py`, `utilities_coco.py` |
-| `image_processing/` | `equalize_via_percentiles` (cxx + py), `convert_polygons_to_mask`, `optical_flow.py`, `stabilize_many_images.py`, `multicam_homog_mosaic.py`, `multicam_homog_blackout.py`, `align_multimodal_imagery_process`, `warp_image_process`, `warp_detections_process`, `alignment_core.py`, `align_cameras_process.py`, `accumulate_image_statistics_process`, `stack_frames_process`, `utility_processes.py` |
+| `image_processing/` | `equalize_via_percentiles` (cxx + py), `optical_flow.py`, `stabilize_many_images.py`, `multicam_homog_mosaic.py`, `multicam_homog_blackout.py`, `align_multimodal_imagery_process`, `warp_image_process`, `warp_detections_process`, `alignment_core.py`, `align_cameras_process.py`, `accumulate_image_statistics_process`, `stack_frames_process`, `utility_processes.py` |
+| `image_ops/` | `convert_polygons_to_mask`, `utilities_segmentation` (RDP + `mask_to_contours`) |
 | `object_detectors/` | `empty_detector`, `full_frame_detector`, `windowed_detector`, `windowed_utils` |
 | `object_trackers/` | `bytetrack_tracker.py`, `ocsort_tracker.py`, `simple_homog_tracker.py`, `multicam_homog_tracker.py`, `track_conductor_process`, `accumulate_object_tracks_process`, `filter_object_tracks_process`, `resample_object_tracks_process`, `split_tracks_to_feature_landmarks_process`, `merge_tracks_tube_iou.py` |
-| `classifiers/` | `convert_head_tail_points`, `refine_detections_add_fixed`, `refine_detections_nms`, `refine_tracks_average_tot`, `windowed_refiner`, `merge_detections_suppress_in_regions`, `utilities_target_clfr`, `merge_detections_{nms_fusion,coverage_reinforce,simple}.py`, `detection_fusion_core.py`, `multicam_homog_det_suppressor.py` |
-| `segmentation/` | `interactive_segmentation.py`, `segmentation_utils.py`, `utilities_segmentation` (RDP), `interactive_service.py` |
+| `classifiers/` | `convert_head_tail_points`, `refine_detections_add_fixed`, `refine_detections_nms`, `refine_tracks_average_tot`, `windowed_refiner`, `merge_detections_suppress_in_regions`, `merge_detections_{nms_fusion,coverage_reinforce,simple}.py`, `detection_fusion_core.py`, `multicam_homog_det_suppressor.py` |
+| `segmentation/` | `interactive_segmentation.py`, `segmentation_utils.py`, `interactive_service.py` |
 | `descriptors/` | `iqr_session.h`, `utilities_iqr.h`, `average_track_descriptors`, `ingest_descriptors_process`, `fetch_descriptors_process`, `object_track_descriptors_process`, `extract_desc_ids_for_training_process`, `create_database_query_process`, `select_database_query_process`, `write_query_results_as_tracks_process` |
 | `measurement/` | `measurement_utilities` (+ pybind module `_measurement`), `pair_stereo_detections` (+ process), `pair_stereo_tracks`, `measure_objects_process`, `refine_measurements_process`, `calibrate_cameras_from_tracks_process`, `interactive_stereo.py`, `survey_metadata.py` |
 | `training/` | `adaptive_detector_trainer`, `adaptive_tracker_trainer`, `windowed_trainer`, `utilities_training`, `training_data.py`, `tracker_param_search.py`, `bytetrack_trainer.py`, `ocsort_trainer.py`, `frame_diff_trainer.py` |

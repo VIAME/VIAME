@@ -1,7 +1,8 @@
 ###
 # Things the rest of VIAME uses and nothing owns
 #
-# The file, path and image handling, the track geometry, the atomic write,
+# The file, path and image handling, the track geometry and the
+# classification averaging, the atomic write,
 # the applet base class that runs an installed python tool, and the
 # pipeline-file rewriting the training tools do. None of it is an algorithm
 # or a process: nothing here registers, and `viame_utilities` has no
@@ -17,6 +18,7 @@ set( plugin_headers
   python_script_applet.h
   utilities_file.h
   utilities_image.h
+  utilities_target_clfr.h
   utilities_tracks.h
   )
 
@@ -25,6 +27,7 @@ set( plugin_sources
   python_script_applet.cxx
   utilities_file.cxx
   utilities_image.cxx
+  utilities_target_clfr.cxx
   utilities_tracks.cxx
   )
 

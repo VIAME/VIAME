@@ -28,8 +28,8 @@
 #include <viame/pipeline_framework/process_exception.h>
 
 #include "calibrate_cameras_from_tracks_process.h"
-#include "read_object_track_set_viame_csv.h"
-#include "camera_io.h"
+#include <viame/file_io/read_object_track_set_viame_csv.h>
+#include <viame/file_io/camera_io.h>
 
 namespace kv = kwiver::vital;
 

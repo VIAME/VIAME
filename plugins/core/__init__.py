@@ -14,12 +14,6 @@
 # implementation module at startup, which was the only way the classes came
 # to exist for the subclass walk that registers them. See P8-T10.
 __vital_algorithm_declarations__ = [
-    ( "detected_object_set_input", "coco",
-      "Read detections from COCO-style JSON format",
-      "viame.core.read_detected_object_set_coco:ReadDetectedObjectSetCoco" ),
-    ( "detected_object_set_output", "coco",
-      "Write detections to COCO-style JSON format",
-      "viame.core.write_detected_object_set_coco:WriteDetectedObjectSetCoco" ),
     ( "image_filter", "equalize_via_percentiles_npy",
       "Numpy percentile normalization with configurable output format",
       "viame.core.equalize_via_percentiles:EqualizeViaPercentiles" ),
@@ -38,9 +32,6 @@ __vital_algorithm_declarations__ = [
     ( "merge_detections", "simple",
       "Concatenate all input detection sets without resolving overlaps",
       "viame.core.merge_detections_simple:MergeDetectionsSimple" ),
-    ( "read_object_track_set", "coco",
-      "Read object tracks from COCO-style JSON format",
-      "viame.core.read_object_track_set_coco:ReadObjectTrackSetCoco" ),
     ( "track_objects", "bytetrack",
       "ByteTrack multi-object tracker with two-stage association",
       "viame.core.bytetrack_tracker:ByteTrackTracker" ),
@@ -56,9 +47,6 @@ __vital_algorithm_declarations__ = [
     ( "train_tracker", "ocsort",
       "OC-SORT parameter estimation and optional Deep OC-SORT Re-ID training",
       "viame.core.ocsort_trainer:OCSORTTrainer" ),
-    ( "write_object_track_set", "coco",
-      "Write object tracks to COCO-style JSON format with track_id field",
-      "viame.core.write_object_track_set_coco:WriteObjectTrackSetCoco" ),
 ]
 
 # ----------------------------------------------------------------------------

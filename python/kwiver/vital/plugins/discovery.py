@@ -327,6 +327,7 @@ BUILTIN_PLUGIN_PACKAGES = (
     "kwiver.sprokit.processes",
     "kwiver.sprokit.schedulers",
     "viame.core",
+    "viame.file_io",
     "viame.image_processing",
     "viame.measurement",
     "viame.object_detectors",

@@ -4,7 +4,7 @@
 
 #include "convert.h"
 
-#include <plugins/core/convert_annotations.h>
+#include <viame/file_io/convert_annotations.h>
 #include <viame/utilities/python_script_applet.h>
 #include <viame/utilities/utilities_file.h>
 

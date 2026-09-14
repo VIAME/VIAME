@@ -8,8 +8,8 @@
 #include "resample.h"
 
 #include <viame/utilities/utilities_tracks.h>
-#include <read_object_track_set_auto.h>
-#include <write_object_track_set_viame_csv.h>
+#include <viame/file_io/read_object_track_set_auto.h>
+#include <viame/file_io/write_object_track_set_viame_csv.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
 

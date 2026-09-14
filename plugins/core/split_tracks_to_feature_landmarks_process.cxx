@@ -17,7 +17,7 @@
 
 #include <viame/pipeline_framework/type_traits.h>
 
-#include "convert_notes_to_attributes.h"
+#include <viame/file_io/convert_notes_to_attributes.h>
 
 
 namespace kv = kwiver::vital;

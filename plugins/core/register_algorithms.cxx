@@ -12,36 +12,19 @@
 
 #include "adaptive_tracker_trainer.h"
 #include "adaptive_detector_trainer.h"
-#include "auto_detect_transform.h"
 #include "average_track_descriptors.h"
 #include "convert_head_tail_points.h"
 #include "empty_detector.h"
 #include "full_frame_detector.h"
 #include "merge_detections_suppress_in_regions.h"
 #include "equalize_via_percentiles.h"
-#include "read_detected_object_set_auto.h"
-#include "read_detected_object_set_cvat.h"
-#include "read_detected_object_set_dive.h"
-#include "read_detected_object_set_fishnet.h"
-#include "read_detected_object_set_habcam.h"
-#include "read_detected_object_set_oceaneyes.h"
-#include "read_detected_object_set_viame_csv.h"
-#include "read_detected_object_set_yolo.h"
-#include "read_object_track_set_auto.h"
-#include "read_object_track_set_dive.h"
-#include "read_object_track_set_viame_csv.h"
 #include "query_track_descriptor_set_csv.h"
-#include "read_transform_homography_json.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
 #include "refine_tracks_average_tot.h"
 #include "windowed_detector.h"
 #include "windowed_refiner.h"
 #include "windowed_trainer.h"
-#include "write_detected_object_set_viame_csv.h"
-#include "write_object_track_set_viame_csv.h"
-#include "write_object_track_set_dive.h"
-#include "write_detected_object_set_dive.h"
 
 namespace viame {
 
@@ -81,46 +64,12 @@ register_factories( kv::registry& vpm )
   }
 
   // Algorithms using PLUGGABLE_IMPL
-  register_algorithm< kv::algo::transform_2d_io,
-    auto_detect_transform_io >( vpm );
   register_algorithm< kv::algo::refine_detections,
     convert_head_tail_points >( vpm );
   register_algorithm< kv::algo::image_object_detector,
     empty_detector >( vpm );
-  register_algorithm< kv::algo::detected_object_set_input,
-    read_detected_object_set_auto >( vpm );
-  register_algorithm< kv::algo::detected_object_set_input,
-    read_detected_object_set_cvat >( vpm );
-  register_algorithm< kv::algo::detected_object_set_input,
-    read_detected_object_set_dive >( vpm );
-  register_algorithm< kv::algo::detected_object_set_input,
-    read_detected_object_set_fishnet >( vpm );
-  register_algorithm< kv::algo::detected_object_set_input,
-    read_detected_object_set_habcam >( vpm );
-  register_algorithm< kv::algo::detected_object_set_input,
-    read_detected_object_set_oceaneyes >( vpm );
-  register_algorithm< kv::algo::detected_object_set_input,
-    read_detected_object_set_viame_csv >( vpm );
-  register_algorithm< kv::algo::detected_object_set_input,
-    read_detected_object_set_yolo >( vpm );
-  register_algorithm< kv::algo::read_object_track_set,
-    read_object_track_set_auto >( vpm );
-  register_algorithm< kv::algo::read_object_track_set,
-    read_object_track_set_dive >( vpm );
-  register_algorithm< kv::algo::read_object_track_set,
-    read_object_track_set_viame_csv >( vpm );
   register_algorithm< kv::algo::query_track_descriptor_set,
     query_track_descriptor_set_csv >( vpm );
-  register_algorithm< kv::algo::transform_2d_io,
-    read_transform_homography_json >( vpm );
-  register_algorithm< kv::algo::detected_object_set_output,
-    write_detected_object_set_viame_csv >( vpm );
-  register_algorithm< kv::algo::write_object_track_set,
-    write_object_track_set_viame_csv >( vpm );
-  register_algorithm< kv::algo::write_object_track_set,
-    write_object_track_set_dive >( vpm );
-  register_algorithm< kv::algo::detected_object_set_output,
-    write_detected_object_set_dive >( vpm );
 
   // Algorithms using PLUGGABLE_IMPL
   register_algorithm< kv::algo::train_tracker,

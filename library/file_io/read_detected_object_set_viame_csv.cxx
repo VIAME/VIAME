@@ -1,0 +1,746 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
+/**
+ * \file
+ * \brief Implementation for read_detected_object_set_viame_csv
+ */
+
+#include "read_detected_object_set_viame_csv.h"
+
+#include "convert_notes_to_attributes.h"
+#include <viame/image_ops/convert_polygons_to_mask.h>
+
+#include <viame/algorithm_framework/util/tokenize.h>
+#include <viame/algorithm_framework/util/data_stream_reader.h>
+#include <viame/core_types/image.h>
+#include <viame/core_types/image_container.h>
+#include <viame/algorithm_framework/exceptions.h>
+
+#include <viame/algorithm_framework/util/file_system.h>
+
+#include <map>
+#include <memory>
+#include <sstream>
+#include <cstdlib>
+#include <iostream>
+#include <algorithm>
+
+
+namespace viame {
+
+// =============================================================================
+// Shared VIAME CSV utility implementations
+// =============================================================================
+
+kwiver::vital::bounding_box_d
+create_viame_csv_bbox( std::vector< std::string > const& cols )
+{
+  return kwiver::vital::bounding_box_d(
+    atof( cols[VIAME_CSV_COL_MIN_X].c_str() ),
+    atof( cols[VIAME_CSV_COL_MIN_Y].c_str() ),
+    atof( cols[VIAME_CSV_COL_MAX_X].c_str() ),
+    atof( cols[VIAME_CSV_COL_MAX_Y].c_str() ) );
+}
+
+void
+tokenize_viame_csv_line( std::string const& line,
+                         std::vector< std::string >& cols,
+                         char delim )
+{
+  cols.clear();
+
+  std::string current;
+  bool quoted = false;
+
+  for( size_t i = 0; i < line.size(); ++i )
+  {
+    const char c = line[i];
+
+    if( c == '"' )
+    {
+      if( quoted && i + 1 < line.size() && line[i + 1] == '"' )
+      {
+        current += '"';
+        ++i;
+      }
+      else
+      {
+        quoted = !quoted;
+      }
+    }
+    else if( c == delim && !quoted )
+    {
+      cols.push_back( current );
+      current.clear();
+    }
+    else
+    {
+      current += c;
+    }
+  }
+
+  cols.push_back( current );
+}
+
+void
+expand_packed_viame_csv_pairs( std::vector< std::string >& cols, char delim )
+{
+  for( size_t i = VIAME_CSV_COL_TOT; i + 1 < cols.size(); i += 2 )
+  {
+    if( cols[i].empty() || cols[i][0] == '(' )
+    {
+      break;
+    }
+
+    const std::string conf = cols[i + 1];
+
+    if( conf.find( delim ) == std::string::npos )
+    {
+      continue;
+    }
+
+    // Only a number followed by the delimiter marks a packed run; anything
+    // else is a type that legitimately contains the delimiter
+    char* end = nullptr;
+    std::strtod( conf.c_str(), &end );
+
+    if( end == conf.c_str() || *end != delim )
+    {
+      continue;
+    }
+
+    std::vector< std::string > parts;
+    kwiver::vital::tokenize( conf, parts, std::string( 1, delim ), false );
+
+    cols.erase( cols.begin() + i + 1 );
+    cols.insert( cols.begin() + i + 1, parts.begin(), parts.end() );
+  }
+}
+
+size_t parse_viame_csv_species(
+  std::vector< std::string > const& cols,
+  double confidence_override,
+  kwiver::vital::detected_object_type_sptr& dot )
+{
+  if( !dot )
+  {
+    dot = std::make_shared< kwiver::vital::detected_object_type >();
+  }
+
+  for( size_t i = VIAME_CSV_COL_TOT; i < cols.size(); i += 2 )
+  {
+    if( cols[i].empty() || cols[i][0] == '(' )
+    {
+      return i;
+    }
+
+    if( cols.size() < i + 2 )
+    {
+      // Incomplete species pair - return current position
+      return i;
+    }
+
+    std::string spec_id = cols[i];
+    double spec_conf = atof( cols[i + 1].c_str() );
+
+    if( confidence_override > 0.0 )
+    {
+      spec_conf = confidence_override;
+    }
+
+    dot->set_score( spec_id, spec_conf );
+  }
+
+  return cols.size();
+}
+
+std::vector< std::vector< double > > extract_viame_csv_polygons(
+  std::vector< std::string > const& cols, size_t start_col )
+{
+  std::vector< std::vector< double > > polygons;
+  for( size_t i = start_col; i < cols.size(); ++i )
+  {
+    if( cols[i].compare( 0, 6, "(poly)" ) != 0 &&
+        cols[i].compare( 0, 7, "(+poly)" ) != 0 )
+    {
+      continue;
+    }
+    std::vector< std::string > vertices;
+    kwiver::vital::tokenize( cols[i], vertices, " ", true );
+    std::vector< double > poly;
+    try
+    {
+      for( size_t j = 1; j < vertices.size(); ++j )
+      {
+        poly.push_back( std::stod( vertices[j] ) );
+      }
+    }
+    catch( ... )
+    {
+      continue;
+    }
+    if( poly.size() >= 6 && poly.size() % 2 == 0 )
+    {
+      polygons.push_back( poly );
+    }
+  }
+  return polygons;
+}
+
+bool extract_viame_csv_polygon(
+  std::vector< std::string > const& cols,
+  size_t start_col,
+  std::vector< double >& polygon )
+{
+  auto polygons = extract_viame_csv_polygons( cols, start_col );
+  polygon = polygons.empty() ? std::vector< double >{} : polygons.front();
+  return !polygon.empty();
+}
+
+kwiver::vital::detected_object_sptr
+create_viame_csv_detection(
+  std::vector< std::string > const& cols,
+  double confidence_override )
+{
+  if( cols.size() < VIAME_CSV_COL_TOT )
+  {
+    return nullptr;
+  }
+
+  kwiver::vital::bounding_box_d bbox = create_viame_csv_bbox( cols );
+
+  double conf = atof( cols[VIAME_CSV_COL_CONFIDENCE].c_str() );
+  if( conf == -1.0 )
+  {
+    conf = 1.0;
+  }
+  if( confidence_override > 0.0 )
+  {
+    conf = confidence_override;
+  }
+
+  kwiver::vital::detected_object_type_sptr dot;
+  size_t optional_start = parse_viame_csv_species( cols, confidence_override, dot );
+
+  kwiver::vital::detected_object_sptr dob;
+  if( dot && dot->size() > 0 )
+  {
+    dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf, dot );
+  }
+  else
+  {
+    dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf );
+  }
+
+  // Column 0 is kept so consumers can tell tracks from loose detections by
+  // whether ids repeat.
+  const long long id = atoll( cols[VIAME_CSV_COL_DET_ID].c_str() );
+  if( id >= 0 )
+  {
+    dob->set_index( static_cast< uint64_t >( id ) );
+  }
+
+  for( size_t i = optional_start; i < cols.size(); ++i )
+  {
+    if( cols[i].compare( 0, 5, "(kp) " ) != 0 ) continue;
+    std::vector< std::string > tokens;
+    kwiver::vital::tokenize( cols[i], tokens, " ", true );
+    if( tokens.size() < 4 ) continue;
+    try
+    {
+      const double x = std::stod( tokens[tokens.size() - 2] );
+      const double y = std::stod( tokens.back() );
+      std::string name = tokens[1];
+      for( size_t j = 2; j + 2 < tokens.size(); ++j ) name += " " + tokens[j];
+      dob->add_keypoint( name, kwiver::vital::point_2d( x, y ) );
+    }
+    catch( std::exception const& ) {}
+  }
+
+  // Preserve every polygon piece for training and CSV round trips.
+  dob->set_flattened_polygons( extract_viame_csv_polygons( cols, optional_start ) );
+
+  return dob;
+}
+
+// =============================================================================
+// Local constants for backward compatibility
+// =============================================================================
+
+enum
+{
+  COL_DET_ID = VIAME_CSV_COL_DET_ID,
+  COL_SOURCE_ID = VIAME_CSV_COL_SOURCE_ID,
+  COL_FRAME_ID = VIAME_CSV_COL_FRAME_ID,
+  COL_MIN_X = VIAME_CSV_COL_MIN_X,
+  COL_MIN_Y = VIAME_CSV_COL_MIN_Y,
+  COL_MAX_X = VIAME_CSV_COL_MAX_X,
+  COL_MAX_Y = VIAME_CSV_COL_MAX_Y,
+  COL_CONFIDENCE = VIAME_CSV_COL_CONFIDENCE,
+  COL_LENGTH = VIAME_CSV_COL_LENGTH,
+  COL_TOT = VIAME_CSV_COL_TOT
+};
+
+// -----------------------------------------------------------------------------------
+class read_detected_object_set_viame_csv::priv
+{
+public:
+  priv( read_detected_object_set_viame_csv& parent )
+    : m_parent( &parent )
+    , m_first( true )
+    , m_current_idx( 0 )
+    , m_last_idx( 0 )
+    , m_error_writer()
+  { }
+
+  ~priv() { }
+
+  void read_all();
+
+  read_detected_object_set_viame_csv* m_parent;
+  bool m_first;
+
+  int m_current_idx;
+  int m_last_idx;
+
+  // Optional error writer
+  std::unique_ptr< std::ofstream > m_error_writer;
+
+  // Map of detected objects indexed by frame number. Each set
+  // contains all detections for a single frame.
+  std::map< int, kwiver::vital::detected_object_set_sptr > m_detection_by_id;
+
+  // Map of detected objects indexed by frame name. Each set
+  // contains all detections for a single frame.
+  std::map< std::string, kwiver::vital::detected_object_set_sptr > m_detection_by_str;
+
+  // Alternative basepaths for strings as the above frame name might ref a full path.
+  std::map< std::string, std::string > m_alt_filenames;
+
+  // Map of frame number to source identifier (column 2) for standalone use
+  // without an external image source connected.
+  std::map< int, std::string > m_name_by_id;
+
+  // A list of all input filename strings used for error checking.
+  std::vector< std::string > m_searched_filenames;
+};
+
+
+// ===================================================================================
+read_detected_object_set_viame_csv
+::~read_detected_object_set_viame_csv()
+{
+  if( d->m_error_writer )
+  {
+    for( auto itr : d->m_detection_by_str )
+    {
+      if( std::find( d->m_searched_filenames.begin(),
+                     d->m_searched_filenames.end(),
+                     itr.first ) == d->m_searched_filenames.end() )
+      {
+        *d->m_error_writer << "Image not found: " << itr.first << std::endl;
+      }
+    }
+
+    d->m_error_writer->close();
+  }
+}
+
+
+// -----------------------------------------------------------------------------------
+void
+read_detected_object_set_viame_csv
+::initialize()
+{
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_detected_object_set_viame_csv" );
+
+  if( !c_warning_file.empty() )
+  {
+    d->m_error_writer.reset( new std::ofstream( c_warning_file.c_str(), std::ios::app ) );
+  }
+
+}
+
+
+// -----------------------------------------------------------------------------------
+bool
+read_detected_object_set_viame_csv
+::check_configuration( kwiver::vital::config_block_sptr config ) const
+{
+  return true;
+}
+
+
+// -----------------------------------------------------------------------------------
+bool
+read_detected_object_set_viame_csv
+::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+{
+  if( d->m_first )
+  {
+    // Read in all detections
+    d->read_all();
+    d->m_first = false;
+
+    // set up iterators for returning sets.
+    d->m_current_idx = 0;
+
+    if( d->m_detection_by_id.empty() )
+    {
+      d->m_last_idx = 0;
+    }
+    else
+    {
+      d->m_last_idx = d->m_detection_by_id.rbegin()->first;
+    }
+  } // end first
+
+  // External image name provided, use that
+  if( !image_name.empty() && !d->m_detection_by_str.empty() )
+  {
+    // return detection set at current index if there is one
+    if( d->m_detection_by_str.find( image_name ) == d->m_detection_by_str.end() )
+    {
+      // backup case, an alternative specification of the filename exists
+      auto alt_itr = d->m_alt_filenames.find( image_name );
+
+      if( alt_itr != d->m_alt_filenames.end() &&
+          d->m_detection_by_str.find( alt_itr->second ) != d->m_detection_by_str.end() )
+      {
+        // Return detections for this frame.
+        set = d->m_detection_by_str[ alt_itr->second ];
+      }
+      else
+      {
+        // return empty set
+        set = std::make_shared< kwiver::vital::detected_object_set>();
+
+        if( d->m_error_writer )
+        {
+          *d->m_error_writer << "No annotations for file: " << image_name << std::endl;
+        }
+      }
+    }
+    else
+    {
+      // Return detections for this frame.
+      set = d->m_detection_by_str[ image_name ];
+    }
+
+    if( d->m_error_writer )
+    {
+      d->m_searched_filenames.push_back( image_name );
+    }
+    return true;
+  }
+
+  // Test for end of all loaded detections
+  if( image_name.empty() && d->m_current_idx > d->m_last_idx )
+  {
+    set = std::make_shared< kwiver::vital::detected_object_set>();
+    return false;
+  }
+
+  // Return detection set at current index if there is one
+  if( d->m_detection_by_id.count( d->m_current_idx ) == 0 )
+  {
+    // Return empty set
+    set = std::make_shared< kwiver::vital::detected_object_set>();
+  }
+  else
+  {
+    // Return detections for this frame.
+    set = d->m_detection_by_id[ d->m_current_idx ];
+  }
+
+  auto name_itr = d->m_name_by_id.find( d->m_current_idx );
+
+  if( image_name.empty() && name_itr != d->m_name_by_id.end() )
+  {
+    image_name = name_itr->second;
+  }
+
+  ++d->m_current_idx;
+
+  return true;
+}
+
+
+// -----------------------------------------------------------------------------------
+void
+read_detected_object_set_viame_csv
+::new_stream()
+{
+  d->m_first = true;
+}
+
+
+// ===================================================================================
+void
+read_detected_object_set_viame_csv::priv
+::read_all()
+{
+  std::string line;
+  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+
+  // Read detections
+  m_detection_by_id.clear();
+  m_detection_by_str.clear();
+  m_name_by_id.clear();
+
+  while( stream_reader.getline( line ) )
+  {
+    std::vector< std::string > col;
+    tokenize_viame_csv_line( line, col );
+    expand_packed_viame_csv_pairs( col );
+
+    if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
+    {
+      continue;
+    }
+
+    if( col.size() < 9 )
+    {
+      std::stringstream str;
+      str << "This is not a viame_csv file; found " << col.size()
+          << " columns in\n\"" << line << "\"";
+      throw kwiver::vital::invalid_data( str.str() );
+    }
+
+    /*
+     * Check to see if we have seen this frame before. If we have,
+     * then retrieve the frame's index into our output map. If not
+     * seen before, add frame -> detection set index to our map and
+     * press on.
+     *
+     * This allows for track states to be written in a non-contiguous
+     * manner as may be done by streaming writers.
+     */
+    int frame_id = atoi( col[COL_FRAME_ID].c_str() );
+    std::string str_id = col[COL_SOURCE_ID];
+
+    if( !str_id.empty() && m_name_by_id.count( frame_id ) == 0 )
+    {
+      m_name_by_id[ frame_id ] = str_id;
+    }
+
+    if( m_detection_by_id.count( frame_id ) == 0 )
+    {
+      // create a new detection set entry
+      m_detection_by_id[ frame_id ] =
+        std::make_shared<kwiver::vital::detected_object_set>();
+    }
+
+    if( !str_id.empty() &&
+        m_detection_by_str.count( str_id ) == 0 )
+    {
+      // create a new detection set entry
+      m_detection_by_str[ str_id ] =
+        std::make_shared<kwiver::vital::detected_object_set>();
+
+      // if this name contains a path, populate synonyms
+      std::string tmp = str_id;
+      while( tmp.find( '/' ) != std::string::npos ||
+             tmp.find( '\\' ) != std::string::npos )
+      {
+        tmp = tmp.substr( tmp.find_first_of( "/\\" ) + 1 );
+        if( !tmp.empty() )
+        {
+          m_alt_filenames[ tmp ] = str_id;
+        }
+      }
+    }
+
+    kwiver::vital::bounding_box_d bbox(
+      atof( col[COL_MIN_X].c_str() ),
+      atof( col[COL_MIN_Y].c_str() ),
+      atof( col[COL_MAX_X].c_str() ),
+      atof( col[COL_MAX_Y].c_str() ) );
+
+    double conf = atof( col[COL_CONFIDENCE].c_str() );
+
+    if( conf == -1.0 )
+    {
+      conf = 1.0;
+    }
+
+    if( m_parent->c_confidence_override > 0.0 )
+    {
+      conf = m_parent->c_confidence_override;
+    }
+
+    // Create detection
+    kwiver::vital::detected_object_sptr dob;
+
+    kwiver::vital::detected_object_type_sptr dot =
+      std::make_shared< kwiver::vital::detected_object_type >();
+
+    bool found_optional_field = false;
+
+    for( unsigned i = COL_TOT; i < col.size(); i+=2 )
+    {
+      if( col[i].empty() || col[i][0] == '(' )
+      {
+        found_optional_field = true;
+        break;
+      }
+
+      if( col.size() < i + 2 )
+      {
+        std::stringstream str;
+        str << "Every species pair must contain a confidence; error "
+            << "at\n\"" << line << "\"";
+        throw kwiver::vital::invalid_data( str.str() );
+      }
+
+      std::string spec_id = col[i];
+
+      double spec_conf = atof( col[i+1].c_str() );
+
+      if( m_parent->c_confidence_override > 0.0 )
+      {
+        spec_conf = m_parent->c_confidence_override;
+      }
+
+      dot->set_score( spec_id, spec_conf );
+    }
+
+    if( COL_TOT < col.size() )
+    {
+      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+    }
+    else
+    {
+      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
+    }
+
+    // Read length from column 9 and store as attribute
+    double length = atof( col[COL_LENGTH].c_str() );
+    if( length != 0.0 && length != -1.0 )
+    {
+      dob->set_attribute( "length", length );
+    }
+
+    // Column 0 is kept so consumers can tell tracks from loose detections by
+    // whether ids repeat.
+    const long long track_id = atoll( col[COL_DET_ID].c_str() );
+    if( track_id >= 0 )
+    {
+      dob->set_index( static_cast< uint64_t >( track_id ) );
+    }
+
+    std::vector< std::string > poly_strings;
+
+    if( found_optional_field )
+    {
+      for( unsigned i = COL_TOT; i < col.size(); i++ )
+      {
+        if( ( col[i].size() >= 6 && col[i].substr( 0, 6 ) == "(poly)" ) ||
+            ( col[i].size() >= 7 && col[i].substr( 0, 7 ) == "(+poly)" ) )
+        {
+          poly_strings.push_back( col[i] );
+        }
+      }
+    }
+
+    // Keypoints are written as single cells of the form "(kp) name x y"
+    // (write_detected_object_set_viame_csv.cxx). They were previously
+    // write-only: training groundtruth carrying head/tail keypoints was read
+    // back with empty keypoint maps, which silently trained keypoint heads
+    // against all-invisible targets. Take the last two tokens as coordinates
+    // so names containing spaces survive.
+    if( found_optional_field )
+    {
+      for( unsigned i = COL_TOT; i < col.size(); i++ )
+      {
+        if( col[i].size() >= 5 && col[i].substr( 0, 5 ) == "(kp) " )
+        {
+          std::vector< std::string > kp_parts;
+          kwiver::vital::tokenize( col[i], kp_parts, " ", true );
+          if( kp_parts.size() >= 4 )
+          {
+            try
+            {
+              double kp_x = std::stod( kp_parts[ kp_parts.size() - 2 ] );
+              double kp_y = std::stod( kp_parts[ kp_parts.size() - 1 ] );
+              std::string kp_name = kp_parts[1];
+              for( size_t j = 2; j + 2 < kp_parts.size(); ++j )
+              {
+                kp_name += " " + kp_parts[j];
+              }
+              dob->add_keypoint( kp_name,
+                kwiver::vital::point_2d( kp_x, kp_y ) );
+            }
+            catch( ... )
+            {
+              // Skip malformed keypoint cells
+            }
+          }
+        }
+      }
+    }
+
+    dob->set_flattened_polygons( extract_viame_csv_polygons( poly_strings, 0 ) );
+
+    if( m_parent->c_poly_to_mask && found_optional_field )
+    {
+      kwiver::vital::image_of< uint8_t > mask_data;
+
+      convert_polys_to_mask( poly_strings, bbox, mask_data );
+
+      kwiver::vital::image_container_scptr computed_mask =
+        std::make_shared< kwiver::vital::simple_image_container >( mask_data );
+
+      dob->set_mask( computed_mask );
+    }
+
+    if( found_optional_field )
+    {
+      add_attributes_to_detection( *dob, col );
+    }
+
+    // Add detection to set for the frame
+    m_detection_by_id[ frame_id ]->add( dob );
+
+    if( !str_id.empty() )
+    {
+      m_detection_by_str[ str_id ]->add( dob );
+    }
+  } // ...while !eof
+
+  // Check if all frame names are timestamps, if so don't use them in favor of
+  // frame ids. Covers both MM:SS.s and HH:MM:SS, the latter having no period.
+  unsigned timestamp_count = 0;
+  unsigned frame_count = 0;
+
+  for( auto itr : m_detection_by_str )
+  {
+    const std::string& entry = itr.first;
+
+    const auto colons = std::count( entry.begin(), entry.end(), ':' );
+    const auto periods = std::count( entry.begin(), entry.end(), '.' );
+
+    const bool numeric = std::all_of( entry.begin(), entry.end(),
+      []( char c ) { return ( c >= '0' && c <= '9' ) || c == ':' || c == '.'; } );
+
+    if( ( numeric && ( colons == 1 || colons == 2 ) && periods <= 1 ) ||
+         entry.find( ".data@" ) != std::string::npos )
+    {
+      timestamp_count++;
+    }
+    else
+    {
+      frame_count++;
+    }
+  }
+
+  if( timestamp_count > 0 && frame_count <= 1 && timestamp_count > frame_count )
+  {
+    m_detection_by_str.clear();
+  }
+} // read_all
+
+} // end namespace

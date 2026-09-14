@@ -34,8 +34,8 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "camera_rig_io.h"
-#include "utilities_target_clfr.h"
+#include <viame/file_io/camera_rig_io.h>
+#include <viame/utilities/utilities_target_clfr.h>
 
 #include "measure_objects_process.h"
 #include "add_keypoints_from_mask.h"

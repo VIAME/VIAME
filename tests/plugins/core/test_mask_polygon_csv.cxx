@@ -23,7 +23,7 @@
 
 #include <gtest/gtest.h>
 
-#include "write_detected_object_set_viame_csv.h"
+#include <viame/file_io/write_detected_object_set_viame_csv.h>
 
 #include <viame/core_types/detected_object.h>
 #include <viame/core_types/detected_object_set.h>

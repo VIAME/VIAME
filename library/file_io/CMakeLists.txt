@@ -7,29 +7,73 @@
 # kwiver's, and phase 8 is where that changes.
 #
 # VIAME's own file readers and writers -- viame_csv, coco, dive, cvat and the
-# rest -- are still in plugins/core and join this in phase 2.
+# rest -- joined them from `plugins/core` in P2-T04, along with the camera
+# and camera-rig readers, the homography reader and writer, and the
+# annotation conversion the `viame convert` applet runs.
 #
 # `opencv_yaml` is not imported: it is P7-T05's replacement for
 # `cv::FileStorage`, the reader and writer for the calibration file format.
 
 set( plugin_headers
+  auto_detect_transform.h
+  camera_io.h
+  camera_rig_io.h
+  convert_annotations.h
+  convert_notes_to_attributes.h
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   feature_descriptor_io.h
   json.h
   opencv_yaml.h
   portable_binary.h
+  read_detected_object_set_auto.h
+  read_detected_object_set_cvat.h
+  read_detected_object_set_dive.h
+  read_detected_object_set_fishnet.h
+  read_detected_object_set_habcam.h
+  read_detected_object_set_oceaneyes.h
+  read_detected_object_set_viame_csv.h
+  read_detected_object_set_yolo.h
+  read_object_track_set_auto.h
+  read_object_track_set_dive.h
   read_object_track_set_kw18.h
+  read_object_track_set_viame_csv.h
+  read_transform_homography_json.h
+  write_detected_object_set_dive.h
+  write_detected_object_set_viame_csv.h
+  write_object_track_set_dive.h
   write_object_track_set_kw18.h
+  write_object_track_set_viame_csv.h
   )
 
 set( plugin_sources
+  auto_detect_transform.cxx
+  camera_io.cxx
+  camera_rig_io.cxx
+  convert_annotations.cxx
+  convert_notes_to_attributes.cxx
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
   feature_descriptor_io.cxx
   opencv_yaml.cxx
+  read_detected_object_set_auto.cxx
+  read_detected_object_set_cvat.cxx
+  read_detected_object_set_dive.cxx
+  read_detected_object_set_fishnet.cxx
+  read_detected_object_set_habcam.cxx
+  read_detected_object_set_oceaneyes.cxx
+  read_detected_object_set_viame_csv.cxx
+  read_detected_object_set_yolo.cxx
+  read_object_track_set_auto.cxx
+  read_object_track_set_dive.cxx
   read_object_track_set_kw18.cxx
+  read_object_track_set_viame_csv.cxx
+  read_transform_homography_json.cxx
+  write_detected_object_set_dive.cxx
+  write_detected_object_set_viame_csv.cxx
+  write_object_track_set_dive.cxx
   write_object_track_set_kw18.cxx
+  write_object_track_set_viame_csv.cxx
   )
 
 viame_install_headers(
@@ -61,7 +105,29 @@ target_link_libraries( viame_file_io
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
+                       kwiver::vital_applets
+                       viame_utilities
+                       # The polygon-and-mask geometry the viame_csv and dive
+                       # readers and writers run
+                       viame_image_ops
+                       # `read_detected_object_set_habcam` takes the frame
+                       # time out of the file name
+                       viame_video_io
   )
+
+# TinyXML is `read_detected_object_set_cvat.cxx`'s and nothing else's, and
+# miniz is the NPZ `camera_rig_io` reads. Both are vendored and static, so
+# `$<BUILD_INTERFACE:...>` as well as PRIVATE: a static library linked even
+# privately is recorded in the target's interface, and `install( EXPORT )`
+# then refuses it for not being in the export set.
+target_link_libraries( viame_file_io
+  PRIVATE              $<BUILD_INTERFACE:viame::tinyxml>
+                       $<BUILD_INTERFACE:viame::miniz>
+  )
+
+# The guard around the NPZ code is vestigial -- zlib was found or not found,
+# miniz always is -- and left alone rather than edited out of working code.
+target_compile_definitions( viame_file_io PUBLIC VIAME_ENABLE_ZLIB )
 
 set_target_properties( viame_file_io PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
@@ -77,6 +143,8 @@ viame_register_statically( viame_file_io
 ##
 set( process_headers
   detected_object_input_process.h
+  store_descriptors_csv.h
+  write_homography_list_process.h
   detected_object_output_process.h
   read_object_track_process.h
   write_object_track_process.h
@@ -86,6 +154,8 @@ set( process_headers
 set( process_sources
   register_processes.cxx
   detected_object_input_process.cxx
+  store_descriptors_csv.cxx
+  write_homography_list_process.cxx
   detected_object_output_process.cxx
   read_object_track_process.cxx
   write_object_track_process.cxx
@@ -103,6 +173,7 @@ viame_add_plugin( viame_processes_file_io
                    kwiver::vital_config
                    kwiver::vital_util
                    kwiver::vital_exceptions
+                   kwiver::kwiver_adapter
                    viame_file_io
   )
 
@@ -121,10 +192,9 @@ target_include_directories( viame_processes_file_io PRIVATE
 if( VIAME_ENABLE_PYTHON )
   viame_create_python_init( file_io )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    file_io
-    __init__ )
+  # The COCO readers and writers, `utilities_coco` and the package's own
+  # declarations; `viame_add_python_package` globs the directory.
+  viame_add_python_package( file_io )
 
   # pybind11 is vendored in `library/tpl/pybind11`; the targets it used to
   # come from are defined there

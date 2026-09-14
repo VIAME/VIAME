@@ -3,14 +3,8 @@
 set( plugin_headers
   adaptive_detector_trainer.h
   adaptive_tracker_trainer.h
-  auto_detect_transform.h
   average_track_descriptors.h
-  camera_io.h
-  camera_rig_io.h
-  utilities_target_clfr.h
   convert_head_tail_points.h
-  convert_notes_to_attributes.h
-  convert_polygons_to_mask.h
   empty_detector.h
   evaluate_models.h
   full_frame_detector.h
@@ -19,45 +13,21 @@ set( plugin_headers
   equalize_via_percentiles.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
-  read_detected_object_set_auto.h
-  read_detected_object_set_cvat.h
-  read_detected_object_set_dive.h
-  read_detected_object_set_fishnet.h
-  read_detected_object_set_habcam.h
-  read_detected_object_set_oceaneyes.h
-  read_detected_object_set_viame_csv.h
-  read_detected_object_set_yolo.h
-  read_object_track_set_auto.h
-  read_object_track_set_dive.h
-  read_object_track_set_viame_csv.h
   query_track_descriptor_set_csv.h
-  read_transform_homography_json.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
   refine_tracks_average_tot.h
-  utilities_segmentation.h
   utilities_training.h
   windowed_detector.h
   windowed_refiner.h
   windowed_trainer.h
-  write_detected_object_set_viame_csv.h
-  write_object_track_set_viame_csv.h
-  write_object_track_set_dive.h
-  convert_annotations.h
-  write_detected_object_set_dive.h
 )
 
 set( plugin_sources
   adaptive_detector_trainer.cxx
   adaptive_tracker_trainer.cxx
-  auto_detect_transform.cxx
   average_track_descriptors.cxx
-  camera_io.cxx
-  camera_rig_io.cxx
-  utilities_target_clfr.cxx
   convert_head_tail_points.cxx
-  convert_notes_to_attributes.cxx
-  convert_polygons_to_mask.cxx
   empty_detector.cxx
   evaluate_models.cxx
   full_frame_detector.cxx
@@ -66,32 +36,14 @@ set( plugin_sources
   equalize_via_percentiles.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
-  read_detected_object_set_auto.cxx
-  read_detected_object_set_cvat.cxx
-  read_detected_object_set_dive.cxx
-  read_detected_object_set_fishnet.cxx
-  read_detected_object_set_habcam.cxx
-  read_detected_object_set_oceaneyes.cxx
-  read_detected_object_set_viame_csv.cxx
-  read_detected_object_set_yolo.cxx
-  read_object_track_set_auto.cxx
-  read_object_track_set_dive.cxx
-  read_object_track_set_viame_csv.cxx
   query_track_descriptor_set_csv.cxx
-  read_transform_homography_json.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
   refine_tracks_average_tot.cxx
-  utilities_segmentation.cxx
   utilities_training.cxx
   windowed_detector.cxx
   windowed_refiner.cxx
   windowed_trainer.cxx
-  write_detected_object_set_viame_csv.cxx
-  write_object_track_set_viame_csv.cxx
-  write_object_track_set_dive.cxx
-  convert_annotations.cxx
-  write_detected_object_set_dive.cxx
 )
 
 viame_install_headers(
@@ -112,13 +64,6 @@ viame_add_library( viame_core
 target_include_directories( viame_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  )
-
-# rapidjson, for camera_rig_io and read_transform_homography_json. Both
-# reach it through `library/file_io/json.h`, which is where the settings that
-# make it behave the way VIAME expects are stated.
-target_include_directories( viame_core PRIVATE
-  ${VIAME_SOURCE_DIR}/library/tpl/rapidjson
   )
 
 set( CORE_LINK_LIBRARIES
@@ -150,13 +95,6 @@ set( AUX_LINK_LIBRARIES
 # now. The `find_package` and the `VIAME_ENABLE_OPENCV` definition that stood
 # here are gone with it.
 
-# NPZ, which `camera_rig_io` reads and `utilities_file` writes. It was zlib,
-# found or not found; it is `library/tpl/miniz` now and always there, so
-# `VIAME_ENABLE_ZLIB` is set unconditionally. The guards it gates in those
-# two files are vestigial and left alone: removing them edits working code
-# for no gain.
-set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_ZLIB ${AUX_COMPILE_DEFINITIONS} )
-
 # OpenMP is used for parallel evaluation in evaluate_models
 find_package( OpenMP )
 if( OpenMP_CXX_FOUND )
@@ -178,16 +116,6 @@ endif()
 target_link_libraries( viame_core
   PUBLIC               ${CORE_LINK_LIBRARIES}
                        ${AUX_LINK_LIBRARIES}
-  # TinyXML is `read_detected_object_set_cvat.cxx`'s and nothing else's, so
-  # it is private: a static library linked PUBLIC would have to join the
-  # export set and become part of what an out-of-tree consumer links.
-  # Vendored in `library/tpl/tinyxml`, four files, built here not found.
-  # `$<BUILD_INTERFACE:...>` as well as PRIVATE: a static library linked
-  # even privately is still recorded in the target's interface, and
-  # `install( EXPORT )` then refuses it for not being in the export set.
-  # These are absorbed at link time and no consumer ever sees them.
-  PRIVATE              $<BUILD_INTERFACE:viame::tinyxml>
-                       $<BUILD_INTERFACE:viame::miniz>
   )
 
 if( VIAME_ENABLE_PYTHON )
@@ -231,11 +159,9 @@ set( process_headers
   select_database_query_process.h
   split_tracks_to_feature_landmarks_process.h
   stack_frames_process.h
-  store_descriptors_csv.h
   track_conductor_process.h
   warp_detections_process.h
   warp_image_process.h
-  write_homography_list_process.h
   write_query_results_as_tracks_process.h
 )
 
@@ -262,11 +188,9 @@ set( process_sources
   select_database_query_process.cxx
   split_tracks_to_feature_landmarks_process.cxx
   stack_frames_process.cxx
-  store_descriptors_csv.cxx
   track_conductor_process.cxx
   warp_detections_process.cxx
   warp_image_process.cxx
-  write_homography_list_process.cxx
   write_query_results_as_tracks_process.cxx
 )
 
@@ -452,31 +376,11 @@ if( VIAME_ENABLE_PYTHON )
     core
     ocsort_trainer )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/read_detected_object_set_coco.py
-    core
-    read_detected_object_set_coco )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/read_object_track_set_coco.py
-    core
-    read_object_track_set_coco )
 
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/utilities_coco.py
-    core
-    utilities_coco )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/write_detected_object_set_coco.py
-    core
-    write_detected_object_set_coco )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/write_object_track_set_coco.py
-    core
-    write_object_track_set_coco )
+
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py

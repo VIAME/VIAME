@@ -4,9 +4,9 @@
 
 #include <gtest/gtest.h>
 
-#include "read_object_track_set_viame_csv.h"
-#include "read_detected_object_set_viame_csv.h"
-#include "write_object_track_set_viame_csv.h"
+#include <viame/file_io/read_object_track_set_viame_csv.h>
+#include <viame/file_io/read_detected_object_set_viame_csv.h>
+#include <viame/file_io/write_object_track_set_viame_csv.h>
 
 #include <viame/core_types/object_track_set.h>
 
@@ -286,8 +286,8 @@ TEST( viame_csv, multiple_polygon_pieces_roundtrip )
   fs::remove( path );
 }
 
-#include "read_detected_object_set_dive.h"
-#include "write_object_track_set_dive.h"
+#include <viame/file_io/read_detected_object_set_dive.h>
+#include <viame/file_io/write_object_track_set_dive.h>
 #include <sstream>
 
 TEST( viame_csv_tot_once, centerline_dive_roundtrip )

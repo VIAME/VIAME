@@ -9,7 +9,7 @@
 
 #include "pair_stereo_tracks.h"
 #include "measurement_utilities.h"
-#include "utilities_target_clfr.h"
+#include <viame/utilities/utilities_target_clfr.h>
 
 #include <algorithm>
 #include <limits>

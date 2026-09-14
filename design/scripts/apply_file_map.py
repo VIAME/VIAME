@@ -53,6 +53,21 @@ def run(*args):
     return result.stdout
 
 
+def ambiguous_basenames():
+    """Header names that exist at more than one path.
+
+    `camera_io.h` is `library/algorithm_framework/io/camera_io.h` as well as
+    the one that came from `plugins/core`, and a neighbour's `#include
+    "camera_io.h"` means the neighbour. Rewriting by basename cannot tell
+    them apart, so it does not try.
+    """
+    seen = {}
+    for path in run("git", "ls-files").split():
+        if path.endswith((".h", ".hpp")):
+            seen.setdefault(os.path.basename(path), []).append(path)
+    return {name for name, paths in seen.items() if len(paths) > 1}
+
+
 def header_destinations(rows):
     """{header basename: (library directory, new basename)} for headers that
     have already arrived.
@@ -62,8 +77,11 @@ def header_destinations(rows):
     build break rather than a step forward.
     """
     found = {}
+    ambiguous = ambiguous_basenames()
     for source, destination in rows:
         if destination == "STRUCTURAL" or not source.endswith((".h", ".hpp")):
+            continue
+        if os.path.basename(destination) in ambiguous:
             continue
         if not os.path.exists(os.path.join(ROOT, destination)):
             continue
@@ -134,6 +152,11 @@ def retarget_exports(path, directory):
 
     upper = directory.upper()
     original = text
+
+    # The generated export header is found through the target's own include
+    # directories, so a file that reached it by path -- it was generated into
+    # the directory the file was in -- has to stop doing that.
+    text = re.sub(r'<[a-z0-9_/]*/(viame_[a-z0-9_]+_export\.h)>', r'"\1"', text)
 
     # A process is built into `viame_processes_<dir>`, not `viame_<dir>`, and
     # its export header is named for the target it is in.

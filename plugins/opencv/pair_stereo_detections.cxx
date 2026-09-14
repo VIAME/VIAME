@@ -1,6 +1,6 @@
 #include "pair_stereo_detections.h"
 
-#include "../core/camera_rig_io.h"
+#include <viame/file_io/camera_rig_io.h>
 
 #include <viame/core_types/camera_intrinsics.h>
 #include <viame/core_types/camera_perspective.h>

@@ -9,6 +9,10 @@
  * Imported from `sprokit/processes/core` in P5-T04. The processes are
  * unchanged and are still in kwiver's namespace; what moved is where they
  * are built and where they register.
+ *
+ * `write_homography_list` joined them from `plugins/core` in P2-T04. It is
+ * still in `viame::core` -- the namespaces are normalised once at the end of
+ * phase 2, not capability by capability.
  */
 
 #include "viame_processes_file_io_export.h"
@@ -20,6 +24,7 @@
 #include "detected_object_output_process.h"
 #include "read_object_track_process.h"
 #include "write_object_track_process.h"
+#include "write_homography_list_process.h"
 #include "write_track_descriptor_process.h"
 
 extern "C"
@@ -73,6 +78,10 @@ register_factories( kwiver::vital::registry& vpm )
   VIAME_REGISTER_PROCESS(
     kwiver::write_track_descriptor_process, "write_track_descriptor",
     "Writes track descriptor sets to an output file." )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::write_homography_list_process, "write_homography_list",
+    "Write a homography list out to some file" )
 
 #undef VIAME_REGISTER_PROCESS
 

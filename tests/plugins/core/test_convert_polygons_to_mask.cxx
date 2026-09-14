@@ -8,7 +8,7 @@
 /// replacement can be held to the same results. Every expectation is a shape
 /// small enough to reason about by hand.
 
-#include <convert_polygons_to_mask.h>
+#include <viame/image_ops/convert_polygons_to_mask.h>
 
 #include <viame/core_types/bounding_box.h>
 #include <viame/core_types/image.h>
