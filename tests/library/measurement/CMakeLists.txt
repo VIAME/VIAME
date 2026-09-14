@@ -22,6 +22,22 @@ viame_discover_gtests( viame projection
 target_compile_definitions( test-viame-projection PRIVATE
   "VIAME_GOLDEN_PROJECTION_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../golden/projection\"" )
 
+# The stereo measurement utilities and core's detection pairing, from
+# `tests/plugins/core` in P2-T06 with the code they test -- the move P2-T06
+# names by file. `gtest_main` rather than `gtest`: neither file defines a
+# `main` of its own.
+viame_discover_gtests( viame measurement_utilities
+  LIBRARIES viame_measurement
+            kwiver::vital
+            kwiver::vital_algo
+            GTest::gtest_main )
+
+viame_discover_gtests( viame pair_stereo_detections
+  LIBRARIES viame_measurement
+            kwiver::vital
+            kwiver::vital_algo
+            GTest::gtest_main )
+
 if( VIAME_ENABLE_PYTHON )
   # `filter_stereo_feature_tracks` and `kmedians` are python since P7-T06.
   viame_add_pytest_test(

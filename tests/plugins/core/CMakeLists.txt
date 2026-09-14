@@ -9,18 +9,11 @@ include_directories( ${VIAME_SOURCE_DIR}/plugins/core )
 
 set( test_libraries
   viame_core
-  viame_measurement
   kwiver::vital
   kwiver::vital_algo
   GTest::gtest_main )
 
-viame_discover_gtests( viame_core measurement_utilities
-  LIBRARIES ${test_libraries} )
-
 viame_discover_gtests( viame_core resample_object_tracks
-  LIBRARIES ${test_libraries} )
-
-viame_discover_gtests( viame_core pair_stereo_detections
   LIBRARIES ${test_libraries} )
 
 viame_discover_gtests( viame_core windowed_refiner_utils
