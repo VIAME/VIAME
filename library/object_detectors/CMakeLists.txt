@@ -8,20 +8,25 @@
 # `image_ops` and `hough_circle` is `hough_circle_detector.py`, so this
 # directory links neither OpenCV nor the bridge.
 #
-# VIAME's own detectors -- the pytorch ones, the windowed chipper, the empty
-# and full-frame detectors -- are still in plugins/ and join this in phase 2.
+# The empty and full-frame detectors came from `plugins/core` in P2-T05;
+# VIAME's own pytorch detectors and the windowed chipper are still in
+# plugins/ and join them later in the phase.
 
 set( plugin_headers
   detect_heat_map.h
+  empty_detector.h
   detect_motion_3frame_differencing.h
   example_detector.h
+  full_frame_detector.h
   windowed_utils.h
   )
 
 set( plugin_sources
   detect_heat_map.cxx
+  empty_detector.cxx
   detect_motion_3frame_differencing.cxx
   example_detector.cxx
+  full_frame_detector.cxx
   windowed_utils.cxx
   )
 

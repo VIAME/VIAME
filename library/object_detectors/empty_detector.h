@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_EMPTY_DETECTOR_H
-#define VIAME_CORE_EMPTY_DETECTOR_H
+#ifndef VIAME_OBJECT_DETECTORS_EMPTY_DETECTOR_H
+#define VIAME_OBJECT_DETECTORS_EMPTY_DETECTOR_H
 
-#include "viame_core_export.h"
+#include "viame_object_detectors_export.h"
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -14,7 +14,7 @@ namespace viame {
 
 // The worst detector in the world, always produces empty detections for debug
 // purposes, and to hack reseting into VIAME-web
-class VIAME_CORE_EXPORT empty_detector :
+class VIAME_OBJECT_DETECTORS_EXPORT empty_detector :
   public kwiver::vital::algo::image_object_detector
 {
 public:

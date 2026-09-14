@@ -966,7 +966,6 @@ include/viame/core_types/vital_types_export.h
 include/viame/debayer_filter.h
 include/viame/descriptors/handle_descriptor_request_core.h
 include/viame/descriptors/viame_descriptors_export.h
-include/viame/empty_detector.h
 include/viame/evaluate_models.h
 include/viame/file_io/auto_detect_transform.h
 include/viame/file_io/camera_io.h
@@ -998,7 +997,6 @@ include/viame/file_io/write_detected_object_set_viame_csv.h
 include/viame/file_io/write_object_track_set_dive.h
 include/viame/file_io/write_object_track_set_kw18.h
 include/viame/file_io/write_object_track_set_viame_csv.h
-include/viame/full_frame_detector.h
 include/viame/hello_world_detector.h
 include/viame/hello_world_filter.h
 include/viame/image_ops/channels.h
@@ -1057,7 +1055,9 @@ include/viame/measurement_utilities.h
 include/viame/object_detectors/darknet_detector.h
 include/viame/object_detectors/detect_heat_map.h
 include/viame/object_detectors/detect_motion_3frame_differencing.h
+include/viame/object_detectors/empty_detector.h
 include/viame/object_detectors/example_detector.h
+include/viame/object_detectors/full_frame_detector.h
 include/viame/object_detectors/viame_object_detectors_darknet_export.h
 include/viame/object_detectors/viame_object_detectors_export.h
 include/viame/object_detectors/windowed_utils.h

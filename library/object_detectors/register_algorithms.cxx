@@ -14,14 +14,35 @@
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "detect_heat_map.h"
+#include "empty_detector.h"
 #include "detect_motion_3frame_differencing.h"
 #include "example_detector.h"
+#include "full_frame_detector.h"
 
 
 
 namespace viame {
 
 namespace kv = kwiver::vital;
+
+namespace {
+
+// An algorithm declared with PLUGGABLE_IMPL, which names and describes
+// itself.
+template < typename interface_t, typename algorithm_t >
+void register_algorithm( kv::registry& vpm, std::string const& module_name )
+{
+  using kvpf = kv::plugin_factory;
+
+  auto fact = vpm.add_factory< interface_t, algorithm_t >(
+    algorithm_t::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_NAME, algorithm_t::plugin_name() )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                    algorithm_t::plugin_description() );
+}
+
+}
 
 extern "C"
 VIAME_OBJECT_DETECTORS_PLUGIN_EXPORT
@@ -60,6 +81,14 @@ register_factories( kv::registry& vpm )
                   "example_detector", "Detect a fixed box, for testing a pipeline" )
 
 #undef VIAME_REGISTER
+
+  // From `plugins/core` in P2-T05. The detector that returns nothing and the
+  // one that returns the whole frame, both of which pipelines use as a
+  // stand-in for a real detector.
+  register_algorithm< kv::algo::image_object_detector,
+    empty_detector >( vpm, module_name );
+  register_algorithm< kv::algo::image_object_detector,
+    full_frame_detector >( vpm, module_name );
 
   vpm.mark_module_as_loaded( module_name );
 }

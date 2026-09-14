@@ -4,9 +4,7 @@ set( plugin_headers
   adaptive_detector_trainer.h
   adaptive_tracker_trainer.h
   average_track_descriptors.h
-  empty_detector.h
   evaluate_models.h
-  full_frame_detector.h
   measurement_utilities.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
@@ -21,9 +19,7 @@ set( plugin_sources
   adaptive_detector_trainer.cxx
   adaptive_tracker_trainer.cxx
   average_track_descriptors.cxx
-  empty_detector.cxx
   evaluate_models.cxx
-  full_frame_detector.cxx
   measurement_utilities.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
