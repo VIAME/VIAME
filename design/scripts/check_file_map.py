@@ -184,7 +184,7 @@ def main():
                         have_name = os.path.splitext(have_name)[0]
                     hit = (want_dir == have_dir
                            and fnmatch.fnmatch(have_name, want_name))
-                if not hit:
+                if not hit or actual == "STRUCTURAL":
                     continue
                 if (os.path.dirname(path) == plugin and
                         (plugin, os.path.splitext(os.path.basename(path))[0])

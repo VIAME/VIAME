@@ -1,10 +1,10 @@
-# What is left of `plugins/pytorch`: the trackers and trainers (P2-T06,
-# P2-T07), the stereo and descriptor modules (P2-T06), and the vendored
-# netharn, srnn, siammask, mdnet and learn trees. The detectors, classifiers
+# What is left of `plugins/pytorch`: the trainers (P2-T07), the stereo and
+# descriptor modules (P2-T06), and the vendored netharn and learn trees. The
+# trackers, with the srnn, siammask and mdnet trees, are
+# `library/object_trackers` since P2-T06. The detectors, classifiers
 # and segmenters are gated subpackages of `library/object_detectors`,
 # `library/classifiers` and `library/segmentation` since P2-T05, and the
 # shared helpers that were `utilities.py` are `viame.object_detectors.base`.
-
 
 viame_create_python_init( pytorch )
 
@@ -19,22 +19,10 @@ endif()
 
 add_subdirectory( minima_loftr )
 
-add_subdirectory( srnn )
-
-viame_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/srnn_tracker.py
-  pytorch
-  srnn_tracker )
-
 viame_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/srnn_trainer.py
   pytorch
   srnn_trainer )
-
-viame_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/deepsort_tracker.py
-  pytorch
-  deepsort_tracker )
 
 viame_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/deepsort_trainer.py
@@ -42,19 +30,9 @@ viame_add_python_module(
   deepsort_trainer )
 
 viame_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/botsort_tracker.py
-  pytorch
-  botsort_tracker )
-
-viame_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/botsort_trainer.py
   pytorch
   botsort_trainer )
-
-viame_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/motr_tracker.py
-  pytorch
-  motr_tracker )
 
 viame_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/motr_trainer.py
@@ -149,25 +127,7 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
 
 endif()
 
-if( VIAME_ENABLE_PYTORCH-MDNET )
-
-  add_subdirectory( mdnet )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mdnet_tracker.py
-    pytorch
-    mdnet_tracker )
-
-endif()
-
 if( VIAME_ENABLE_PYTORCH-SIAMMASK )
-
-  add_subdirectory( siammask )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/siammask_tracker.py
-    pytorch
-    siammask_tracker )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/siammask_trainer.py
@@ -196,11 +156,6 @@ if( VIAME_ENABLE_PYTORCH-LEARN )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-SAM3 )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_tracker.py
-      pytorch
-      sam3_tracker )
 
     viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/sam3_trainer.py

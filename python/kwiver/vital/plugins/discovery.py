@@ -298,7 +298,7 @@ def _get_concrete_pluggable_types() -> List[Type[Pluggable]]:
 #
 #     __vital_algorithm_declarations__ = [
 #         ( "track_objects", "srnn", "Structural RNN tracker",
-#           "viame.pytorch.srnn_tracker:SRNNTracker" ),
+#           "viame.object_trackers.pytorch.srnn_tracker:SRNNTracker" ),
 #     ]
 #
 # The alternative, and what every package did before P8-T10, is to import
@@ -347,6 +347,10 @@ BUILTIN_PLUGIN_PACKAGES = (
     "viame.object_detectors.rf_detr",
     "viame.object_detectors.ultralytics",
     "viame.object_trackers",
+    "viame.object_trackers.mdnet",
+    "viame.object_trackers.pytorch",
+    "viame.object_trackers.sam3",
+    "viame.object_trackers.siammask",
     "viame.video_io",
     "viame.colmap",
     "viame.examples",

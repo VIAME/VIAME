@@ -684,7 +684,7 @@ class OCSORTTracker(TrackObjects):
 
         # Optional camera motion compensation (numpy/opencv only, no torch)
         if self._use_cmc:
-            from viame.pytorch.botsort_tracker import CameraMotionCompensation
+            from viame.object_trackers.pytorch.botsort_tracker import CameraMotionCompensation
 
             self._cmc = CameraMotionCompensation()
         else:
@@ -694,7 +694,7 @@ class OCSORTTracker(TrackObjects):
         # torch lazily (only on first extract), so torch is never pulled in
         # unless use_reid is enabled AND tracking actually runs.
         if self._use_reid:
-            from viame.pytorch.botsort_tracker import FeatureExtractor
+            from viame.object_trackers.pytorch.botsort_tracker import FeatureExtractor
 
             self._feature_extractor = FeatureExtractor(model_path=self._model_path)
         else:

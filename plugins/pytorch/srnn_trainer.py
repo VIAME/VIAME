@@ -42,7 +42,7 @@ from viame.core.training_data import (build_sequence_maps,
 
 def _load_deps():
     global BoundingBox
-    from viame.pytorch.srnn.generate_training_files import BoundingBox
+    from viame.object_trackers.pytorch.srnn.generate_training_files import BoundingBox
 
 
 def _frame_bounds( track_sets ):
@@ -509,7 +509,7 @@ class SRNNTrainer( TrainTracker ):
         # as objects. Only the first stage needs them; the model training
         # stages it runs still shell out, as they read the files that stage
         # produces rather than any groundtruth.
-        from viame.pytorch.srnn.train_everything import main as run_srnn_pipeline
+        from viame.object_trackers.pytorch.srnn.train_everything import main as run_srnn_pipeline
 
         print( "Running SRNN pipeline over " + str( data_root ) )
 

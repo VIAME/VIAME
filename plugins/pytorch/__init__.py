@@ -23,8 +23,9 @@
 #
 # The detectors, classifiers and segmenters are gated subpackages of
 # `viame.object_detectors`, `viame.classifiers` and `viame.segmentation` since
-# P2-T05, each declaring what its option installs. What is left here are the
-# trackers, trainers, stereo and descriptor modules P2-T06 and P2-T07 take.
+# P2-T05, and the trackers of `viame.object_trackers` since P2-T06, each
+# declaring what its option installs. What is left here are the trainers,
+# stereo and descriptor modules P2-T06 and P2-T07 take.
 __vital_algorithm_declarations__ = [
     ( "compute_stereo_depth_map", "fast_foundation_stereo",
       "Stereo depth/disparity estimation using NVIDIA Fast-Foundation-Stereo (real-time variant)",
@@ -32,24 +33,6 @@ __vital_algorithm_declarations__ = [
     ( "compute_stereo_depth_map", "foundation_stereo",
       "Stereo depth/disparity estimation using NVIDIA Foundation-Stereo model",
       "viame.pytorch.foundation_stereo:FoundationStereo" ),
-    ( "track_objects", "botsort",
-      "BoT-SORT multi-object tracker with CMC and IoU-ReID fusion",
-      "viame.pytorch.botsort_tracker:BoTSORTTracker" ),
-    ( "track_objects", "deepsort",
-      "DeepSORT multi-object tracker with deep appearance features",
-      "viame.pytorch.deepsort_tracker:DeepSORTTracker" ),
-    ( "track_objects", "motr",
-      "MOTR-style track-query transformer tracker with learned association",
-      "viame.pytorch.motr_tracker:MOTRTracker" ),
-    ( "track_objects", "sam3_tracker",
-      "SAM3 (Segment Anything Model 3) based object tracker with text queries",
-      "viame.pytorch.sam3_tracker:SAM3Tracker" ),
-    ( "track_objects", "siammask",
-      "SiamMask visual object tracker",
-      "viame.pytorch.siammask_tracker:SiamMaskTracker" ),
-    ( "track_objects", "srnn",
-      "Structural RNN multi-object tracker",
-      "viame.pytorch.srnn_tracker:SRNNTracker" ),
     ( "train_detector", "mit_yolo",
       "PyTorch MIT YOLO detection training routine",
       "viame.pytorch.mit_yolo_trainer:MITYoloTrainer" ),

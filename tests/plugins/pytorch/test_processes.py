@@ -21,7 +21,7 @@ from PIL import Image
 import torch
 import torchvision
 
-from viame.pytorch.srnn import models
+from viame.object_trackers.pytorch.srnn import models
 
 
 def run_pipeline_in_dir(dir_path, pipeline):

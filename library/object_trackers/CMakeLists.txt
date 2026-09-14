@@ -9,8 +9,8 @@
 # VIAME's own track processes -- accumulation, filtering, resampling, the
 # feature-landmark split and the track conductor -- and its python trackers
 # (ByteTrack, OC-SORT, the homography IOU trackers, tube-IoU fusion) came from
-# `plugins/core` in P2-T06. The pytorch trackers are still in
-# `plugins/pytorch`.
+# `plugins/core` in P2-T06, and the pytorch trackers from `plugins/pytorch`
+# in the same task, as one python subpackage per option.
 
 set( plugin_headers
   associate_detections_to_tracks_threshold.h
@@ -120,5 +120,31 @@ target_include_directories( viame_processes_object_trackers PRIVATE
 # and tube-IoU track-set fusion, from `plugins/core` in P2-T06.
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_add_python_package( object_trackers )
+  viame_add_python_package( object_trackers
+    EXCLUDE "^(pytorch|siammask|mdnet|sam3)/" )
+
+  # The pytorch trackers, from `plugins/pytorch` in P2-T06, one subpackage per
+  # option. BoT-SORT, DeepSORT, MOTR and SRNN (with the `srnn/` tree it runs
+  # on) need nothing past `VIAME_ENABLE_PYTORCH`.
+  viame_add_python_package( object_trackers/pytorch
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/pytorch
+    CONDITION VIAME_ENABLE_PYTORCH )
+
+  # SiamMask and MDNet each carry the vendored tree they wrap as a
+  # subpackage of their own, which lite-library-layout.md sends to a wheel in
+  # P9; nesting it keeps that a change of one import rather than a move of
+  # the wrapper. MDNet's `setup.py` and its `roi_align` CUDA extension were
+  # never installed and are not now.
+  viame_add_python_package( object_trackers/siammask
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/siammask
+    CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-SIAMMASK )
+
+  viame_add_python_package( object_trackers/mdnet
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/mdnet
+    EXCLUDE "^mdnet/(setup\\.py|roi_align/)"
+    CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-MDNET )
+
+  viame_add_python_package( object_trackers/sam3
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sam3
+    CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-SAM3 )
 endif()

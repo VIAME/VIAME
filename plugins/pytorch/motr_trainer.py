@@ -293,7 +293,7 @@ class MOTRTrainer(TrainTracker):
         import torch
         import torch.nn.functional as F
 
-        from viame.pytorch.motr_tracker import (
+        from viame.object_trackers.pytorch.motr_tracker import (
             crop_detections,
             boxes_tlbr_to_norm_cxcywh,
         )
@@ -394,7 +394,7 @@ class MOTRTrainer(TrainTracker):
         import torch
         import torch.optim as optim
 
-        from viame.pytorch.motr_tracker import build_track_query_model
+        from viame.object_trackers.pytorch.motr_tracker import build_track_query_model
 
         print("Starting MOTR track-query transformer training...")
 

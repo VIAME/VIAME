@@ -28,7 +28,7 @@ import threading
 from viame.object_detectors.base import report_cuda_errors
 from viame.core.training_data import ( build_sequence_maps,
     read_sequence_manifest, split_validation, seed_everything )
-from viame.pytorch.siammask import ( VALIDATION_RECORD,
+from viame.object_trackers.siammask.siammask import ( VALIDATION_RECORD,
     VALIDATION_SEQUENCES )
 
 
@@ -540,7 +540,7 @@ class SiamMaskTrainer( TrainTracker ):
             ]
 
         cmd += [
-            "viame.pytorch.siammask.siammask_trainer",
+            "viame.object_trackers.siammask.siammask.siammask_trainer",
             "-i", self._train_directory,
             "-s", self._train_directory,
             "-t", self._threshold,
