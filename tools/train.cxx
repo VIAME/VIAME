@@ -1575,7 +1575,7 @@ train_applet
 
   const bool multi_model_training =
     ( training_configs.size() > 1 || training_detectors.size() > 1 );
-  const unsigned model_count =
+  unsigned model_count =
     std::max( training_configs.size(), training_detectors.size() );
   bool train_trackers = !training_trackers.empty();
 
@@ -1662,6 +1662,18 @@ train_applet
   else
   {
     config->set_value( "detector_trainer:type", first_detector );
+  }
+
+  // `-c train_tracker_x.conf --tracker x` is one config and so counted as one
+  // detector model, which turned the detector_trainer requirement back on and
+  // failed the run with "Configuration not valid." A config that names no
+  // detector_trainer trains no detector, so do not count it as one. Only when
+  // a tracker is also being trained, so that a detector run with a mistyped
+  // config still reports the problem rather than quietly training nothing.
+  if( train_trackers && model_count > 0 &&
+      config->get_value< std::string >( "detector_trainer:type", "" ).empty() )
+  {
+    model_count = 0;
   }
 
   if( opt_continue )

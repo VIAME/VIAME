@@ -12,6 +12,7 @@
 #include <vital/vital_config.h>
 #include <vital/logger/logger.h>
 #include <vital/algo/detected_object_set_output.h>
+#include <vital/exceptions.h>
 
 #include <filesystem>
 
@@ -1803,8 +1804,10 @@ train_detector_svm
 
   if( d_->m_descriptor_index.empty() )
   {
-    LOG_ERROR( logger(), "No descriptors loaded from index" );
-    return output;
+    VITAL_THROW( kv::invalid_data,
+      "no descriptors were loaded from " + d_->descriptor_index_file +
+      ". SVM training runs over descriptors computed by a prior pipeline, "
+      "not over raw imagery." );
   }
 
   // Initialize LSH index if configured
@@ -1829,8 +1832,8 @@ train_detector_svm
 
   if( !fs::is_directory( label_folder ) )
   {
-    LOG_ERROR( logger(), "Label folder does not exist: " << label_folder );
-    return output;
+    VITAL_THROW( kv::invalid_data,
+      "label folder does not exist: " + label_folder );
   }
 
   // Find all label files in input folder
@@ -1864,8 +1867,8 @@ train_detector_svm
 
   if( label_files.empty() )
   {
-    LOG_ERROR( logger(), "No label files found in: " << label_folder );
-    return output;
+    VITAL_THROW( kv::invalid_data,
+      "no label files were found in " + label_folder );
   }
 
   LOG_INFO( logger(), "Found " << label_files.size() << " label files" );
