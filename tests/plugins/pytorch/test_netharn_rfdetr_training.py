@@ -94,7 +94,7 @@ def test_accumulation_matches_single_batch(steps):
     ('yolo2', 'True', None),
 ])
 def test_launcher_training_settings(arch, normalization, clipping):
-    popen = Mock(return_value=SimpleNamespace(wait=lambda: None))
+    popen = Mock(return_value=SimpleNamespace(wait=lambda: 0))
     namespace = {
         'TrainDetector': object, 'os': os,
         'subprocess': SimpleNamespace(Popen=popen),
@@ -111,7 +111,7 @@ def test_launcher_training_settings(arch, normalization, clipping):
     trainer._training_file = 'train.json'
     trainer._validation_file = 'val.json'
     trainer._is_detr_arch = lambda: is_detr(trainer)
-    trainer.get_output_map = lambda: {}
+    trainer.get_output_map = lambda: {'deploy': 'model.zip'}
     update(trainer)
     command = popen.call_args.args[0]
     assert '--normalize_inputs=' + normalization in command
@@ -238,7 +238,7 @@ def test_native_weights_use_rfdetr_loader(native_config, monkeypatch, tmp_path):
 
 
 def test_launcher_native_seed_and_keypoints(tmp_path):
-    popen = Mock(return_value=SimpleNamespace(wait=lambda: None))
+    popen = Mock(return_value=SimpleNamespace(wait=lambda: 0))
     namespace = {'TrainDetector': object, 'os': os, 'subprocess': SimpleNamespace(Popen=popen),
                  'threading': SimpleNamespace(current_thread=lambda: SimpleNamespace())}
     init = load_method('netharn_trainer.py', '__init__', namespace)
@@ -253,7 +253,7 @@ def test_launcher_native_seed_and_keypoints(tmp_path):
     trainer._gpu_count = 1
     trainer._no_format = True
     trainer._training_file, trainer._validation_file = 'train.json', 'val.json'
-    trainer.get_output_map = lambda: {}
+    trainer.get_output_map = lambda: {'deploy': 'model.zip'}
     update(trainer)
     cmd = popen.call_args.args[0]
     assert '--native_seed_model=' + str(path) in cmd
