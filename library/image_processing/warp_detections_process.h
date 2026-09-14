@@ -7,12 +7,12 @@
  * \brief Warp detections using a 2D transform loaded from a file
  */
 
-#ifndef VIAME_CORE_WARP_DETECTIONS_PROCESS_H
-#define VIAME_CORE_WARP_DETECTIONS_PROCESS_H
+#ifndef VIAME_IMAGE_PROCESSING_WARP_DETECTIONS_PROCESS_H
+#define VIAME_IMAGE_PROCESSING_WARP_DETECTIONS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_image_processing_export.h"
 
 #include <memory>
 
@@ -31,7 +31,7 @@ namespace core
  * 3x3 homography). Each detection's box corners are mapped through the
  * transform and re-boxed axis-aligned.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT warp_detections_process
+class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT warp_detections_process
   : public sprokit::process
 {
 public:
@@ -55,4 +55,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_WARP_DETECTIONS_PROCESS_H
+#endif // VIAME_IMAGE_PROCESSING_WARP_DETECTIONS_PROCESS_H

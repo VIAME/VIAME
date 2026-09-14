@@ -8,7 +8,7 @@ align_cameras: multi-image-pair camera registration process.
 Consumes N synchronized image streams (via their ``file_name{i}`` ports)
 and computes one homography per camera pair, pooled over many image pairs,
 using the MINIMA-LoFTR cross-spectral matcher from
-viame.core.alignment_core. The result is written as a DIVE camera
+viame.image_processing.alignment_core. The result is written as a DIVE camera
 registration JSON (format version 2, ``observations`` carrying per-frame
 provenance) at pipeline completion.
 
@@ -269,7 +269,7 @@ class AlignCamerasProcess(KwiverProcess):
         self._base_step()
 
     def _prefilter(self, paths):
-        from viame.core.alignment_core import _load_gray_norm
+        from viame.image_processing.alignment_core import _load_gray_norm
 
         index = len(self._frames)
         record = {

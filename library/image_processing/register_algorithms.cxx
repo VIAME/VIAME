@@ -29,6 +29,7 @@
 #include "close_loops_homography_guided.h"
 #include "color_commonality.h"
 #include "convert_image.h"
+#include "equalize_via_percentiles.h"
 #include "morphology.h"
 #include "threshold.h"
 
@@ -78,6 +79,10 @@ register_factories( kv::registry& vpm )
   VIAME_REGISTER_IMAGE_FILTER( convert_image )
   VIAME_REGISTER_IMAGE_FILTER( morphology )
   VIAME_REGISTER_IMAGE_FILTER( threshold )
+
+  // From `plugins/core` in P2-T05. An image_filter like the five above, so
+  // the same macro takes it.
+  VIAME_REGISTER_IMAGE_FILTER( equalize_via_percentiles )
 
   // The names arrows/vxl used to register, kept working now that it is gone.
   // Every one is checked against a recording of what the VXL implementation
@@ -191,7 +196,6 @@ register_factories( kv::registry& vpm )
                            "multi_method", "Close loops by an appearance index" )
 
 #undef VIAME_REGISTER_IMPORTED
-
 
   vpm.mark_module_as_loaded( module_name );
 }

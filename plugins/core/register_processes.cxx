@@ -6,20 +6,15 @@
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
-#include "accumulate_image_statistics_process.h"
-#include "align_multimodal_imagery_process.h"
 #include "extract_desc_ids_for_training_process.h"
 #include "fetch_descriptors_process.h"
 #include "filter_frame_process.h"
 #include "ingest_descriptors_process.h"
 #include "filter_object_tracks_process.h"
 #include "object_track_descriptors_process.h"
-#include "stack_frames_process.h"
 #include "measure_objects_process.h"
 #include "refine_measurements_process.h"
 #include "track_conductor_process.h"
-#include "warp_detections_process.h"
-#include "warp_image_process.h"
 #include "accumulate_object_tracks_process.h"
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
@@ -52,28 +47,9 @@ register_factories( kwiver::vital::registry& vpm )
   // ---------------------------------------------------------------------------
   using kvpf = kwiver::vital::plugin_factory;
 
+
+
   kwiver::vital::plugin_factory* fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::accumulate_image_statistics_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::accumulate_image_statistics_process > );
-  fact->add_attribute( kvpf::PLUGIN_NAME, "accumulate_image_statistics" )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-  vpm.add_factory( fact );
-
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::align_multimodal_imagery_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::align_multimodal_imagery_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "align_multimodal_imagery" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Align multimodal images that may be out of sync" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
-
-  fact = new sprokit::cpp_process_factory(
     typeid( viame::core::extract_desc_ids_for_training_process ).name(),
     sprokit::process::interface_name(),
     sprokit::create_new_process< viame::core::extract_desc_ids_for_training_process > );
@@ -151,18 +127,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::stack_frames_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::stack_frames_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "stack_frames" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Stack multiple frames on top of each in the same image" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   
   fact = new sprokit::cpp_process_factory(
@@ -270,34 +234,7 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::warp_detections_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::warp_detections_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "warp_detections" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Warp detection bounding boxes with a 2D transform "
-                    "loaded from a file (DIVE registration .json or "
-                    "plain text homography)" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::warp_image_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::warp_image_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "warp_image" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Warp an image with a 2D homography loaded from a file "
-                    "(DIVE registration .json or plain text homography)" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
 
   fact = new sprokit::cpp_process_factory(

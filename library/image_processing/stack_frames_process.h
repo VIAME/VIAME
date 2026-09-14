@@ -7,12 +7,12 @@
  * \brief Stack multiple frames together onto the same output
  */
 
-#ifndef VIAME_CORE_STACK_FRAMES_PROCESS_H
-#define VIAME_CORE_STACK_FRAMES_PROCESS_H
+#ifndef VIAME_IMAGE_PROCESSING_STACK_FRAMES_PROCESS_H
+#define VIAME_IMAGE_PROCESSING_STACK_FRAMES_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_image_processing_export.h"
 
 #include <viame/pipeline_framework/type_traits.h>
 
@@ -31,7 +31,7 @@ namespace core
 /**
  * @brief Stack frames with some gap into one output image temporally.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT stack_frames_process
+class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT stack_frames_process
   : public sprokit::process
 {
 public:
@@ -72,4 +72,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_STACK_FRAMES_PROCESS_H
+#endif // VIAME_IMAGE_PROCESSING_STACK_FRAMES_PROCESS_H

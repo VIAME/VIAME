@@ -7,12 +7,12 @@
  * \brief Align multi modal images that may be temporally out of sync
  */
 
-#ifndef VIAME_CORE_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
-#define VIAME_CORE_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
+#ifndef VIAME_IMAGE_PROCESSING_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
+#define VIAME_IMAGE_PROCESSING_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_image_processing_export.h"
 
 #include <viame/pipeline_framework/type_traits.h>
 
@@ -53,7 +53,7 @@ create_port_trait( thermal_to_optical_homog, homography, "Homography" );
  * It's also possible for derived versions of this class to attempt to
  * register the images together.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT align_multimodal_imagery_process
+class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT align_multimodal_imagery_process
   : public sprokit::process
 {
 public:
@@ -104,4 +104,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H
+#endif // VIAME_IMAGE_PROCESSING_ALIGN_MULTIMODAL_IMAGERY_PROCESS_H

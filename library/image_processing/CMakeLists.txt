@@ -8,6 +8,7 @@ set( plugin_headers
   close_loops_homography_guided.h
   color_commonality.h
   convert_image.h
+  equalize_via_percentiles.h
   morphology.h
   threshold.h
 
@@ -34,6 +35,7 @@ set( plugin_sources
   close_loops_homography_guided.cxx
   color_commonality.cxx
   convert_image.cxx
+  equalize_via_percentiles.cxx
   morphology.cxx
   threshold.cxx
 
@@ -52,14 +54,17 @@ set( plugin_sources
   track_set_impl.cxx
   )
 
+# `viame/image_processing`, not `viame`: the tree includes these as
+# `<viame/image_processing/morphology.h>` through the `library-include`
+# symlink, and an installed consumer has to find them at the same path.
 viame_install_headers(
-  SUBDIR     viame
+  SUBDIR     viame/image_processing
   ${plugin_headers}
   )
 
 viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_image_processing_export.h
-  NOPATH   SUBDIR     viame
+  NOPATH   SUBDIR     viame/image_processing
   )
 
 viame_add_library( viame_image_processing
@@ -99,57 +104,11 @@ viame_register_statically( viame_image_processing
 # Python implementations
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_create_python_init( image_processing )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    image_processing
-    __init__ )
-
-  # `library/opencv_bridge`'s feature, descriptor and match conversions, in
-  # python, for the implementations below.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_feature_types.py
-    image_processing
-    ocv_feature_types )
-
-  # `ocv_SIFT` and `ocv_SURF`, detection and description, C++ until P7-T04.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_sift_surf.py
-    image_processing
-    ocv_sift_surf )
-
-  # `ocv_flann_based`.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_flann_matcher.py
-    image_processing
-    ocv_flann_matcher )
-
-  # `estimate_homography:ocv` and `estimate_fundamental_matrix:ocv`.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_estimators.py
-    image_processing
-    ocv_estimators )
-
-  # `ocv_grabcut` and `ocv_watershed`, which set a detection's mask.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_segmenters.py
-    image_processing
-    ocv_segmenters )
-
-  # `ocv_enhancer` and its second name `vxl_enhancer`. Python rather than
-  # image_ops for one step of it, the non-local means denoiser.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_enhancer.py
-    image_processing
-    ocv_enhancer )
-
-  # `ocv_color_correction`, likewise python: a chain of primitives rather
-  # than one of them.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_color_correction.py
-    image_processing
-    ocv_color_correction )
+  # Everything in the directory: the OpenCV replacements that came off
+  # arrows/ocv in P7, and the multi-camera homography, alignment, optical
+  # flow and percentile-normalisation modules that came from `plugins/core`
+  # in P2-T05.
+  viame_add_python_package( image_processing )
 endif()
 
 ###
@@ -158,20 +117,30 @@ endif()
 # Imported from sprokit/processes/core in P5-T04.
 ##
 set( process_headers
+  accumulate_image_statistics_process.h
+  align_multimodal_imagery_process.h
   draw_detected_object_set_process.h
   image_filter_process.h
   merge_images_process.h
   split_image_process.h
   stabilize_image_process.h
+  stack_frames_process.h
+  warp_detections_process.h
+  warp_image_process.h
   )
 
 set( process_sources
   register_processes.cxx
+  accumulate_image_statistics_process.cxx
+  align_multimodal_imagery_process.cxx
   draw_detected_object_set_process.cxx
   image_filter_process.cxx
   merge_images_process.cxx
   split_image_process.cxx
   stabilize_image_process.cxx
+  stack_frames_process.cxx
+  warp_detections_process.cxx
+  warp_image_process.cxx
   )
 
 viame_add_plugin( viame_processes_image_processing
@@ -185,6 +154,7 @@ viame_add_plugin( viame_processes_image_processing
                    kwiver::vital_config
                    kwiver::vital_util
                    kwiver::vital_exceptions
+                   kwiver::vital_algo
                    viame_image_processing
   )
 

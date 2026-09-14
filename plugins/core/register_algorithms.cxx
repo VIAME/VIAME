@@ -17,7 +17,6 @@
 #include "empty_detector.h"
 #include "full_frame_detector.h"
 #include "merge_detections_suppress_in_regions.h"
-#include "equalize_via_percentiles.h"
 #include "query_track_descriptor_set_csv.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
@@ -82,8 +81,6 @@ register_factories( kv::registry& vpm )
     full_frame_detector >( vpm );
   register_algorithm< kv::algo::merge_detections,
     merge_detections_suppress_in_regions >( vpm );
-  register_algorithm< kv::algo::image_filter,
-    equalize_via_percentiles >( vpm );
   register_algorithm< kv::algo::refine_detections,
     refine_detections_add_fixed >( vpm );
   register_algorithm< kv::algo::refine_detections,

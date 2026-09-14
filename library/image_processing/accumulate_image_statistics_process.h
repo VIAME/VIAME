@@ -7,12 +7,12 @@
  * \brief Accumulate image statistics (frame count, image dimensions) over a stream
  */
 
-#ifndef VIAME_CORE_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
-#define VIAME_CORE_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
+#ifndef VIAME_IMAGE_PROCESSING_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
+#define VIAME_IMAGE_PROCESSING_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_image_processing_export.h"
 
 #include <memory>
 
@@ -30,7 +30,7 @@ namespace core
  * It outputs the total frame count and image width/height once all inputs
  * have been processed.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT accumulate_image_statistics_process
+class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT accumulate_image_statistics_process
   : public sprokit::process
 {
 public:
@@ -54,4 +54,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H
+#endif // VIAME_IMAGE_PROCESSING_ACCUMULATE_IMAGE_STATISTICS_PROCESS_H

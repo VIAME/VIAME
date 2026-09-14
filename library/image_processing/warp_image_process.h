@@ -7,12 +7,12 @@
  * \brief Warp an image using a 2D homography loaded from a file
  */
 
-#ifndef VIAME_CORE_WARP_IMAGE_PROCESS_H
-#define VIAME_CORE_WARP_IMAGE_PROCESS_H
+#ifndef VIAME_IMAGE_PROCESSING_WARP_IMAGE_PROCESS_H
+#define VIAME_IMAGE_PROCESSING_WARP_IMAGE_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_image_processing_export.h"
 
 #include <memory>
 
@@ -33,7 +33,7 @@ namespace core
  * size defaults to the input's and can follow another camera's via the
  * optional size_image port.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT warp_image_process
+class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT warp_image_process
   : public sprokit::process
 {
 public:
@@ -57,4 +57,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_WARP_IMAGE_PROCESS_H
+#endif // VIAME_IMAGE_PROCESSING_WARP_IMAGE_PROCESS_H

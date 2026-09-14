@@ -212,7 +212,7 @@ def python_declarations():
 
 
 def module_to_path(module):
-    """`viame.core.optical_flow` -> `plugins/core/optical_flow.py`."""
+    """`viame.image_processing.optical_flow` -> `plugins/core/optical_flow.py`."""
     parts = module.split(".")
     assert parts[0] == "viame", module
     return "plugins/" + "/".join(parts[1:]) + ".py"

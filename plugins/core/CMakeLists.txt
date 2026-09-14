@@ -10,7 +10,6 @@ set( plugin_headers
   full_frame_detector.h
   measurement_utilities.h
   merge_detections_suppress_in_regions.h
-  equalize_via_percentiles.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
   query_track_descriptor_set_csv.h
@@ -33,7 +32,6 @@ set( plugin_sources
   full_frame_detector.cxx
   measurement_utilities.cxx
   merge_detections_suppress_in_regions.cxx
-  equalize_via_percentiles.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
   query_track_descriptor_set_csv.cxx
@@ -138,9 +136,7 @@ viame_register_statically( viame_core
 
 # Add process library
 set( process_headers
-  accumulate_image_statistics_process.h
   accumulate_object_tracks_process.h
-  align_multimodal_imagery_process.h
   calibrate_cameras_from_tracks_process.h
   create_database_query_process.h
   extract_desc_ids_for_training_process.h
@@ -158,18 +154,13 @@ set( process_headers
   resample_object_tracks_process.h
   select_database_query_process.h
   split_tracks_to_feature_landmarks_process.h
-  stack_frames_process.h
   track_conductor_process.h
-  warp_detections_process.h
-  warp_image_process.h
   write_query_results_as_tracks_process.h
 )
 
 set( process_sources
   register_processes.cxx
-  accumulate_image_statistics_process.cxx
   accumulate_object_tracks_process.cxx
-  align_multimodal_imagery_process.cxx
   calibrate_cameras_from_tracks_process.cxx
   create_database_query_process.cxx
   extract_desc_ids_for_training_process.cxx
@@ -187,10 +178,7 @@ set( process_sources
   resample_object_tracks_process.cxx
   select_database_query_process.cxx
   split_tracks_to_feature_landmarks_process.cxx
-  stack_frames_process.cxx
   track_conductor_process.cxx
-  warp_detections_process.cxx
-  warp_image_process.cxx
   write_query_results_as_tracks_process.cxx
 )
 
@@ -331,35 +319,19 @@ if( VIAME_ENABLE_PYTHON )
     core
     merge_tracks_tube_iou )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_blackout.py
-    core
-    multicam_homog_blackout )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
     core
     multicam_homog_det_suppressor )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_mosaic.py
-    core
-    multicam_homog_mosaic )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
     core
     multicam_homog_tracker )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/equalize_via_percentiles.py
-    core
-    equalize_via_percentiles )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/optical_flow.py
-    core
-    optical_flow )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/frame_diff_trainer.py
@@ -397,10 +369,6 @@ if( VIAME_ENABLE_PYTHON )
     core
     survey_metadata )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
-    core
-    utility_processes )
 
 
   viame_add_python_module(
@@ -408,10 +376,6 @@ if( VIAME_ENABLE_PYTHON )
     core
     simple_homog_tracker )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/stabilize_many_images.py
-    core
-    stabilize_many_images )
 
 
 
@@ -431,15 +395,7 @@ if( VIAME_ENABLE_PYTHON )
     core
     interactive_stereo )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/align_cameras_process.py
-    core
-    align_cameras_process )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/alignment_core.py
-    core
-    alignment_core )
 
 
   viame_add_python_module(

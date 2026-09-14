@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_EQUALIZE_VIA_PERCENTILES_H
-#define VIAME_CORE_EQUALIZE_VIA_PERCENTILES_H
+#ifndef VIAME_IMAGE_PROCESSING_EQUALIZE_VIA_PERCENTILES_H
+#define VIAME_IMAGE_PROCESSING_EQUALIZE_VIA_PERCENTILES_H
 
-#include "viame_core_export.h"
+#include "viame_image_processing_export.h"
 
 #include <viame/algorithm_framework/algo/image_filter.h>
 
@@ -40,7 +40,7 @@ namespace viame {
 ///     :filter:equalize_via_percentiles:upper_percentile        99.0
 ///     :filter:equalize_via_percentiles:output_format           native
 /// @endcode
-class VIAME_CORE_EXPORT equalize_via_percentiles :
+class VIAME_IMAGE_PROCESSING_EXPORT equalize_via_percentiles :
   public kwiver::vital::algo::image_filter
 {
 public:
@@ -74,4 +74,4 @@ public:
 
 } // end namespace viame
 
-#endif /* VIAME_CORE_EQUALIZE_VIA_PERCENTILES_H */
+#endif /* VIAME_IMAGE_PROCESSING_EQUALIZE_VIA_PERCENTILES_H */

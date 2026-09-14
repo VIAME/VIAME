@@ -3,7 +3,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Tests for viame.core.alignment_core multi-pair fitting.
+Tests for viame.image_processing.alignment_core multi-pair fitting.
 
 Covers:
 1. fit_pooled_homography over synthetic correspondences from a known
