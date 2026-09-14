@@ -7,12 +7,12 @@
  * \brief Align multi modal images that may be temporally out of sync
  */
 
-#ifndef VIAME_CORE_FILTER_FRAME_PROCESS_H
-#define VIAME_CORE_FILTER_FRAME_PROCESS_H
+#ifndef VIAME_PIPELINE_FRAMEWORK_FILTER_FRAME_PROCESS_H
+#define VIAME_PIPELINE_FRAMEWORK_FILTER_FRAME_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_pipeline_framework_export.h"
 
 #include <memory>
 
@@ -26,7 +26,7 @@ namespace core
 /**
  * @brief Filters out frames if certain criteria are not met
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT filter_frame_process
+class VIAME_PROCESSES_PIPELINE_FRAMEWORK_EXPORT filter_frame_process
   : public sprokit::process
 {
 public:
@@ -50,4 +50,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_FILTER_FRAME_PROCESS_H
+#endif // VIAME_PIPELINE_FRAMEWORK_FILTER_FRAME_PROCESS_H

@@ -43,7 +43,7 @@ from viame.object_trackers.siammask.siammask.core.config import cfg
 from viame.object_trackers.siammask.siammask.par_crop import par_crop
 from viame.object_trackers.siammask.siammask.gen_json import gen_json
 from viame.object_trackers.siammask.siammask import VALIDATION_RECORD
-from viame.core.training_data import seed_from_environment
+from viame.training.training_data import seed_from_environment
 
 logger = logging.getLogger('global')
 

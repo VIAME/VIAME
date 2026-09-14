@@ -13,17 +13,7 @@
 # This replaced a `__vital_algorithm_register__` that imported every
 # implementation module at startup, which was the only way the classes came
 # to exist for the subclass walk that registers them. See P8-T10.
-__vital_algorithm_declarations__ = [
-    ( "train_detector", "frame_diff",
-      "Three-frame difference detector settings estimation",
-      "viame.core.frame_diff_trainer:FrameDiffTrainer" ),
-    ( "train_tracker", "bytetrack",
-      "ByteTrack parameter estimation from track groundtruth",
-      "viame.core.bytetrack_trainer:ByteTrackTrainer" ),
-    ( "train_tracker", "ocsort",
-      "OC-SORT parameter estimation and optional Deep OC-SORT Re-ID training",
-      "viame.core.ocsort_trainer:OCSORTTrainer" ),
-]
+__vital_algorithm_declarations__ = []
 
 # ----------------------------------------------------------------------------
 # The processes this package provides, without importing any of them.

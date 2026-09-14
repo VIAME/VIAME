@@ -363,6 +363,7 @@ BUILTIN_PLUGIN_PACKAGES = (
     "viame.segmentation",
     "viame.segmentation.sam2",
     "viame.segmentation.sam3",
+    "viame.training",
     "viame.tensorflow",
 )
 

@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include "utilities_training.h"
+#include <viame/training/utilities_training.h>
 
 #include <stdexcept>
 

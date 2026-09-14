@@ -135,7 +135,8 @@ viame_add_plugin( viame_tools_applets
                kwiver::kwiver_adapter
                viame_core
                viame_utilities
-               viame_claude
+               viame_training
+               viame_evaluation
 )
 
 # The json applet parses with the vendored rapidjson, reached through

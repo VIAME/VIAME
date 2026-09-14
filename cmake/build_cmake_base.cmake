@@ -56,7 +56,6 @@ set(VIAME_DOWNLOAD_MODELS-SRNN OFF CACHE BOOL "Download SRNN models")
 # Typically disabled features
 set(VIAME_ENABLE_FLASK OFF CACHE BOOL "Enable Flask")
 set(VIAME_ENABLE_GDAL OFF CACHE BOOL "Enable GDAL")
-set(VIAME_ENABLE_MATLAB OFF CACHE BOOL "Enable MATLAB")
 set(VIAME_ENABLE_TENSORFLOW OFF CACHE BOOL "Enable TensorFlow")
 
 # Legacy Qt/VTK GUIs, off by default

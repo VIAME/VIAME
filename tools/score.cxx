@@ -7,7 +7,7 @@
 
 #include "score.h"
 
-#include <evaluate_models.h>
+#include <viame/evaluation/evaluate_models.h>
 #include <viame/utilities/python_script_applet.h>
 
 // Upstream's `<vital/types/category_hierarchy.h>`, under the prefix P5-T05

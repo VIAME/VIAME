@@ -29,7 +29,7 @@
 
 #include <gtest/gtest.h>
 
-#include "evaluate_models.h"
+#include <viame/evaluation/evaluate_models.h>
 
 #include <cstdlib>
 #include <filesystem>

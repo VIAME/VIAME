@@ -18,6 +18,9 @@
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "downsample_process.h"
+#include "filter_frame_process.h"
+#include "filter_frame_index_process.h"
+#include "image_to_image_set_process.h"
 
 extern "C"
 VIAME_PROCESSES_PIPELINE_FRAMEWORK_EXPORT
@@ -55,6 +58,18 @@ register_factories( kwiver::vital::registry& vpm )
   VIAME_REGISTER_PROCESS(
     kwiver::downsample_process, "downsample",
     "Downsample an input stream." )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::filter_frame_process, "filter_frames",
+    "Filter frames based on some property" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::filter_frame_index_process, "filter_frame_index",
+    "Pass frame in min max index limits" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::image_to_image_set_process, "image_to_image_set",
+    "Convert single image to image_set" )
 
 #undef VIAME_REGISTER_PROCESS
 

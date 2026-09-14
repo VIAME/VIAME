@@ -10,8 +10,6 @@
 #include "viame_core_plugin_export.h"
 #include <viame/algorithm_framework/plugin/registry.h>
 
-#include "adaptive_tracker_trainer.h"
-#include "adaptive_detector_trainer.h"
 #include "windowed_trainer.h"
 
 namespace viame {
@@ -54,10 +52,6 @@ register_factories( kv::registry& vpm )
   // Algorithms using PLUGGABLE_IMPL
 
   // Algorithms using PLUGGABLE_IMPL
-  register_algorithm< kv::algo::train_tracker,
-    adaptive_tracker_trainer >( vpm );
-  register_algorithm< kv::algo::train_detector,
-    adaptive_detector_trainer >( vpm );
   register_algorithm< kv::algo::train_detector,
     windowed_trainer >( vpm );
 

@@ -29,7 +29,7 @@ import os
 import json
 import numpy as np
 
-from viame.core.training_data import detector_statistics
+from viame.training.training_data import detector_statistics
 
 from kwiver.vital.algo import TrainTracker
 

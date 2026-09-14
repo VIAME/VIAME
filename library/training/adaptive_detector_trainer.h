@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_ADAPTIVE_DETECTOR_TRAINER_H
-#define VIAME_CORE_ADAPTIVE_DETECTOR_TRAINER_H
+#ifndef VIAME_TRAINING_ADAPTIVE_DETECTOR_TRAINER_H
+#define VIAME_TRAINING_ADAPTIVE_DETECTOR_TRAINER_H
 
-#include "viame_core_export.h"
+#include "viame_training_export.h"
 
 #include <viame/algorithm_framework/algo/train_detector.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -29,7 +29,7 @@ namespace viame {
  * - Running tiled/windowed training for small objects
  * - Training multiple models with different characteristics
  */
-class VIAME_CORE_EXPORT adaptive_detector_trainer
+class VIAME_TRAINING_EXPORT adaptive_detector_trainer
   : public kwiver::vital::algo::train_detector
 {
 public:
@@ -133,4 +133,4 @@ private:
 
 } // end namespace viame
 
-#endif /* VIAME_CORE_ADAPTIVE_DETECTOR_TRAINER_H */
+#endif /* VIAME_TRAINING_ADAPTIVE_DETECTOR_TRAINER_H */

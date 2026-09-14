@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CLAUDE_TRAIN_SUPERVISOR_H
-#define VIAME_CLAUDE_TRAIN_SUPERVISOR_H
+#ifndef VIAME_TRAINING_TRAIN_SUPERVISOR_H
+#define VIAME_TRAINING_TRAIN_SUPERVISOR_H
 
-#include "viame_claude_export.h"
+#include "viame_training_export.h"
 
 #include <string>
 #include <vector>
@@ -58,11 +58,11 @@ struct llm_train_options
 /// Environment marker set on the supervised training child. Callers check for
 /// it to know they are the child, and so should run training directly instead
 /// of starting another supervisor.
-VIAME_CLAUDE_EXPORT
+VIAME_TRAINING_EXPORT
 extern const char* const child_env_marker;
 
 /// Resolve the claude executable, returning an empty string if not found.
-VIAME_CLAUDE_EXPORT
+VIAME_TRAINING_EXPORT
 std::string find_claude_binary( const std::string& cmd_override );
 
 /// Run training under claude supervision: query claude for configuration
@@ -71,10 +71,10 @@ std::string find_claude_binary( const std::string& cmd_override );
 ///
 /// Returns the applet exit code, or -1 if claude turned out to be unusable
 /// and the caller should fall back to normal in-process training.
-VIAME_CLAUDE_EXPORT
+VIAME_TRAINING_EXPORT
 int run_llm_supervised_training( const llm_train_options& options );
 
 } // namespace claude
 } // namespace viame
 
-#endif // VIAME_CLAUDE_TRAIN_SUPERVISOR_H
+#endif // VIAME_TRAINING_TRAIN_SUPERVISOR_H

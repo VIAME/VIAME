@@ -35,7 +35,7 @@ import sys
 import json
 import numpy as np
 
-from viame.core.training_data import ( detector_statistics,
+from viame.training.training_data import ( detector_statistics,
     thresholds_from_detector )
 
 
@@ -618,7 +618,7 @@ class ByteTrackTrainer( TrainTracker ):
             print( "Searching parameters against the detector's output..." )
 
             try:
-                from viame.core.tracker_param_search import (
+                from viame.training.tracker_param_search import (
                     collect_sequences, search_parameters,
                 )
 

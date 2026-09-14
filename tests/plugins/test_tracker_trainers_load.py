@@ -20,8 +20,8 @@ and a helper referenced in one trainer but only defined in another.
 import pytest
 
 TRAINERS = [
-    ('viame.core.bytetrack_trainer', 'ByteTrackTrainer'),
-    ('viame.core.ocsort_trainer', 'OCSORTTrainer'),
+    ('viame.training.bytetrack_trainer', 'ByteTrackTrainer'),
+    ('viame.training.ocsort_trainer', 'OCSORTTrainer'),
     ('viame.pytorch.deepsort_trainer', 'DeepSORTTrainer'),
     ('viame.pytorch.botsort_trainer', 'BoTSORTTrainer'),
     ('viame.pytorch.srnn_trainer', 'SRNNTrainer'),

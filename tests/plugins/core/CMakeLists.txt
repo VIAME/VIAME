@@ -9,6 +9,8 @@ include_directories( ${VIAME_SOURCE_DIR}/plugins/core )
 
 set( test_libraries
   viame_core
+  viame_training
+  viame_evaluation
   kwiver::vital
   kwiver::vital_algo
   GTest::gtest_main )

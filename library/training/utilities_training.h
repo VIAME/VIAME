@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_UTILITIES_TRAINING_H
-#define VIAME_CORE_UTILITIES_TRAINING_H
+#ifndef VIAME_TRAINING_UTILITIES_TRAINING_H
+#define VIAME_TRAINING_UTILITIES_TRAINING_H
 
-#include "viame_core_export.h"
+#include "viame_training_export.h"
 
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/category_hierarchy.h>
@@ -45,7 +45,7 @@ struct sequence_frames
 /// within each sequence. Empty sequences retain a zero-length range.
 /// Throws std::runtime_error if a frame belongs to multiple source sequences
 /// or a selected frame has no source sequence.
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 sequence_frames partition_sequences(
   const std::vector< std::vector< std::string > >& sources,
   const std::vector< std::string >& selected );
@@ -58,7 +58,7 @@ sequence_frames partition_sequences(
 ///
 /// \param sets Vector of detection sets to check
 /// \returns true if all sets are null or empty
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 bool is_detection_set_empty( const std::vector< kv::detected_object_set_sptr >& sets );
 
 /// Correct common issues in manual annotations
@@ -69,7 +69,7 @@ bool is_detection_set_empty( const std::vector< kv::detected_object_set_sptr >& 
 /// - Negative type scores (set to 1.0)
 ///
 /// \param dos Detection set to correct (modified in place)
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 void correct_manual_annotations( kv::detected_object_set_sptr dos );
 
 /// Convert detections to full-frame labels
@@ -81,7 +81,7 @@ void correct_manual_annotations( kv::detected_object_set_sptr dos );
 /// \param width Image width
 /// \param height Image height
 /// \returns Detection set with full-frame bounding boxes
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 kv::detected_object_set_sptr
 adjust_to_full_frame( const kv::detected_object_set_sptr dos,
                       unsigned width, unsigned height );
@@ -101,7 +101,7 @@ adjust_to_full_frame( const kv::detected_object_set_sptr dos,
 /// \param background Set of background class names to suppress
 /// \param also_keep Classes kept even if absent from cats_to_use (e.g. hard negatives)
 /// \returns true if any foreground (non-background) detections remain
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 bool adjust_labels( kv::detected_object_set_sptr input,
                     kv::category_hierarchy_sptr cats_to_use,
                     const std::unordered_set< std::string >& background,
@@ -115,7 +115,7 @@ bool adjust_labels( kv::detected_object_set_sptr input,
 /// \param background Set of background class names to suppress
 /// \param also_keep Class names retained even if absent from cats_to_use
 /// \returns Vector of bools indicating if each frame has foreground detections
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 std::vector< bool >
 adjust_labels( std::vector< kv::detected_object_set_sptr >& input,
                kv::category_hierarchy_sptr cats_to_use,
@@ -135,7 +135,7 @@ adjust_labels( std::vector< kv::detected_object_set_sptr >& input,
 /// \param fg_mask Foreground mask from adjust_labels
 /// \param background_ds_rate Downsample rate for background frames (0 = no downsampling)
 /// \param background_skip_count Skip this many background frames after foreground
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 void adjust_labels( std::vector< std::string >& input_files,
                     std::vector< kv::detected_object_set_sptr >& input_dets,
                     const std::vector< bool >& fg_mask,
@@ -170,7 +170,7 @@ void conditional_remove( std::vector< T >& input, const std::vector< bool >& rem
 /// \param input_dets Detection list to adjust (modified in place)
 /// \param downsample_factor Downsample factor (e.g., 2 keeps every 2nd frame)
 /// \param substr If non-empty, only downsample files containing this substring
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 void downsample_data( std::vector< std::string >& input_files,
                       std::vector< kv::detected_object_set_sptr >& input_dets,
                       double downsample_factor,
@@ -185,7 +185,7 @@ void downsample_data( std::vector< std::string >& input_files,
 /// \param pipeline_filename Path to pipeline file
 /// \returns Unique pointer to started pipeline, or nullptr if filename is empty
 /// \throws sprokit::invalid_configuration_exception on pipeline errors
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 pipeline_t load_embedded_pipeline( const std::string& pipeline_filename );
 
 /// Run an embedded pipeline on a single image
@@ -200,7 +200,7 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename );
 /// \param output_name Output image filename
 /// \returns Success flag from pipeline output
 /// \throws std::runtime_error if pipeline terminates unexpectedly
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 bool run_pipeline_on_image( pipeline_t& pipe,
                             const std::string& pipe_file,
                             const std::string& input_name,
@@ -220,7 +220,7 @@ bool run_pipeline_on_image( pipeline_t& pipe,
 /// \param output_dir Output directory (empty = temp dir)
 /// \param ext Output extension (default: ".png")
 /// \returns Generated filename path
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 std::string get_augmented_filename( const std::string& name,
                                     const std::string& subdir,
                                     const std::string& output_dir = "",
@@ -256,7 +256,7 @@ std::string get_augmented_filename( const std::string& name,
 ///        written. When set (and the pipeline declares a track_reader) it is
 ///        passed as track_reader:file_name so extraction succeeds.
 /// \returns Vector of extracted frame file paths
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 std::vector< std::string >
 extract_video_frames( const std::string& video_filename,
                       const std::string& pipeline_filename,
@@ -272,7 +272,7 @@ extract_video_frames( const std::string& video_filename,
 
 /// Augment an ordered image sequence in a single pass via the image_list reader,
 /// producing one augmented frame per input, ordered to match image_files.
-VIAME_CORE_EXPORT
+VIAME_TRAINING_EXPORT
 std::vector< std::string >
 augment_image_sequence( const std::vector< std::string >& image_files,
                         const std::string& pipeline_filename,
@@ -283,4 +283,4 @@ augment_image_sequence( const std::vector< std::string >& image_files,
 
 } // end namespace viame
 
-#endif /* VIAME_CORE_UTILITIES_TRAINING_H */
+#endif /* VIAME_TRAINING_UTILITIES_TRAINING_H */

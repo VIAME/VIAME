@@ -28,10 +28,10 @@
 
 #include <viame/utilities/utilities_file.h>
 #include <viame/utilities/utilities_image.h>
-#include <plugins/core/utilities_training.h>
+#include <viame/training/utilities_training.h>
 #include <viame/utilities/manipulate_pipelines.h>
 #include <viame/utilities/python_script_applet.h>
-#include <plugins/claude/train_supervisor.h>
+#include <viame/training/train_supervisor.h>
 
 #include <vector>
 #include <unordered_set>

@@ -42,7 +42,7 @@ import os
 
 import numpy as np
 
-from viame.core.training_data import (
+from viame.training.training_data import (
     build_sequence_maps,
     load_computed_detections,
     read_sequence_manifest,

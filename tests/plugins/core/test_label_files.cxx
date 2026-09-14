@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <viame/utilities/utilities_file.h>
-#include "utilities_training.h"
+#include <viame/training/utilities_training.h>
 #include <chrono>
 #include <filesystem>
 #include <fstream>

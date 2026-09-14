@@ -5,10 +5,10 @@
 /// \file
 /// \brief Model evaluation utilities for computing detection and tracking metrics
 
-#ifndef VIAME_CORE_EVALUATE_MODELS_H
-#define VIAME_CORE_EVALUATE_MODELS_H
+#ifndef VIAME_EVALUATION_EVALUATE_MODELS_H
+#define VIAME_EVALUATION_EVALUATE_MODELS_H
 
-#include "viame_core_export.h"
+#include "viame_evaluation_export.h"
 
 #include <map>
 #include <memory>
@@ -21,7 +21,7 @@ namespace viame
 
 // ----------------------------------------------------------------------------
 /// \brief Configuration options for model evaluation
-struct VIAME_CORE_EXPORT evaluation_config
+struct VIAME_EVALUATION_EXPORT evaluation_config
 {
   /// IoU threshold for matching detections to ground truth (default: 0.5)
   double iou_threshold = 0.5;
@@ -81,7 +81,7 @@ struct VIAME_CORE_EXPORT evaluation_config
 ///
 /// This structure organizes metrics into logical categories for easier access.
 /// All metrics are also available in the combined `all_metrics` map.
-struct VIAME_CORE_EXPORT evaluation_results
+struct VIAME_EVALUATION_EXPORT evaluation_results
 {
   /// Combined map of all metric names to values
   std::map< std::string, double > all_metrics;
@@ -288,7 +288,7 @@ struct VIAME_CORE_EXPORT evaluation_results
 ///
 /// Identifiers are the ones read from the input, not the evaluator's internal
 /// remapped keys, so a consumer can find the object again in its own data.
-struct VIAME_CORE_EXPORT match_record
+struct VIAME_EVALUATION_EXPORT match_record
 {
   int sequence = 0;            ///< Index of the file pair the object came from
   std::string frame_name;      ///< Image or video identifier
@@ -304,7 +304,7 @@ struct VIAME_CORE_EXPORT match_record
 
 // ----------------------------------------------------------------------------
 /// \brief A single point on a precision-recall curve
-struct VIAME_CORE_EXPORT pr_curve_point
+struct VIAME_EVALUATION_EXPORT pr_curve_point
 {
   double recall = 0.0;
   double precision = 0.0;
@@ -317,7 +317,7 @@ struct VIAME_CORE_EXPORT pr_curve_point
 
 // ----------------------------------------------------------------------------
 /// \brief Precision-recall curve data for a single class or overall
-struct VIAME_CORE_EXPORT pr_curve_data
+struct VIAME_EVALUATION_EXPORT pr_curve_data
 {
   std::string class_name;   ///< Class name (empty for overall curve)
   std::vector< pr_curve_point > points;
@@ -328,7 +328,7 @@ struct VIAME_CORE_EXPORT pr_curve_data
 
 // ----------------------------------------------------------------------------
 /// \brief Confusion matrix data
-struct VIAME_CORE_EXPORT confusion_matrix_data
+struct VIAME_EVALUATION_EXPORT confusion_matrix_data
 {
   /// Ordered list of class names (row/column labels)
   std::vector< std::string > class_names;
@@ -352,7 +352,7 @@ struct VIAME_CORE_EXPORT confusion_matrix_data
 ///
 /// \note True negatives are undefined for object detection, so the x axis is
 ///       false alarms per frame (unbounded) rather than a false positive rate.
-struct VIAME_CORE_EXPORT roc_curve_point
+struct VIAME_EVALUATION_EXPORT roc_curve_point
 {
   double false_alarms_per_frame = 0.0;  ///< FP / number of frames
   double true_positive_rate = 0.0;      ///< TP / (TP + FN) = recall = Pd
@@ -361,7 +361,7 @@ struct VIAME_CORE_EXPORT roc_curve_point
 
 // ----------------------------------------------------------------------------
 /// \brief DET curve data
-struct VIAME_CORE_EXPORT roc_curve_data
+struct VIAME_EVALUATION_EXPORT roc_curve_data
 {
   std::string class_name;
   std::vector< roc_curve_point > points;
@@ -377,7 +377,7 @@ struct VIAME_CORE_EXPORT roc_curve_data
 
 // ----------------------------------------------------------------------------
 /// \brief Container for all plot data from an evaluation
-struct VIAME_CORE_EXPORT evaluation_plot_data
+struct VIAME_EVALUATION_EXPORT evaluation_plot_data
 {
   /// Overall precision-recall curve
   pr_curve_data overall_pr_curve;
@@ -435,7 +435,7 @@ struct VIAME_CORE_EXPORT evaluation_plot_data
 ///   std::cout << metric.first << ": " << metric.second << std::endl;
 /// }
 /// \endcode
-class VIAME_CORE_EXPORT model_evaluator
+class VIAME_EVALUATION_EXPORT model_evaluator
 {
 public:
   /// Constructor
@@ -602,7 +602,7 @@ private:
 /// \param groundtruth_files Vector of paths to ground truth files
 /// \param config Evaluation configuration (optional, uses defaults if not provided)
 /// \returns Map of metric names to values
-VIAME_CORE_EXPORT
+VIAME_EVALUATION_EXPORT
 std::map< std::string, double > evaluate_models(
   const std::vector< std::string >& computed_files,
   const std::vector< std::string >& groundtruth_files,
@@ -610,4 +610,4 @@ std::map< std::string, double > evaluate_models(
 
 } // namespace viame
 
-#endif // VIAME_CORE_EVALUATE_MODELS_H
+#endif // VIAME_EVALUATION_EVALUATE_MODELS_H

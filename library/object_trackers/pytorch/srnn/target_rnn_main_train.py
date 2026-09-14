@@ -17,7 +17,7 @@ from .rnn_training import train_model
 from .g_config import get_config
 from .target_rnn_dataset import TargetRNNDataLoader
 from .utilities import resume_epoch, setupLogger, logging, exp_lr_scheduler
-from viame.core.training_data import seed_from_environment
+from viame.training.training_data import seed_from_environment
 
 def main():
     # Separate process from the trainer that launched it, so the seed

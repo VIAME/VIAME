@@ -7,10 +7,10 @@
  * \brief Convert single image to image_set
  */
 
-#ifndef VIAME_CORE_IMAGE_TO_IMAGE_SET_PROCESS_H
-#define VIAME_CORE_IMAGE_TO_IMAGE_SET_PROCESS_H
+#ifndef VIAME_PIPELINE_FRAMEWORK_IMAGE_TO_IMAGE_SET_PROCESS_H
+#define VIAME_PIPELINE_FRAMEWORK_IMAGE_TO_IMAGE_SET_PROCESS_H
 
-#include <plugins/core/viame_processes_core_export.h>
+#include "viame_processes_pipeline_framework_export.h"
 
 #include <viame/pipeline_framework/process.h>
 
@@ -29,7 +29,7 @@ namespace core
  * This process takes a single image and wraps it in an image_set_sptr
  * for use with processes that require image sets.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT image_to_image_set_process
+class VIAME_PROCESSES_PIPELINE_FRAMEWORK_EXPORT image_to_image_set_process
   : public sprokit::process
 {
 public:
@@ -55,4 +55,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_IMAGE_TO_IMAGE_SET_PROCESS_H
+#endif // VIAME_PIPELINE_FRAMEWORK_IMAGE_TO_IMAGE_SET_PROCESS_H
