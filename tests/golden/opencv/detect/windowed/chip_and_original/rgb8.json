@@ -1,0 +1,314 @@
+[
+  {
+    "bbox": [
+      0.0,
+      0.0,
+      200.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      0.0,
+      12.0,
+      200.0,
+      212.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      0.0,
+      24.0,
+      200.0,
+      224.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      0.0,
+      36.0,
+      200.0,
+      236.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      0.0,
+      48.0,
+      200.0,
+      248.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      16.0,
+      0.0,
+      216.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      16.0,
+      12.0,
+      216.0,
+      212.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      16.0,
+      24.0,
+      216.0,
+      224.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      16.0,
+      36.0,
+      216.0,
+      236.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      16.0,
+      48.0,
+      216.0,
+      248.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      32.0,
+      0.0,
+      232.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      32.0,
+      12.0,
+      232.0,
+      212.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      32.0,
+      24.0,
+      232.0,
+      224.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      32.0,
+      36.0,
+      232.0,
+      236.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      32.0,
+      48.0,
+      232.0,
+      248.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      48.0,
+      0.0,
+      248.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      48.0,
+      12.0,
+      248.0,
+      212.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      48.0,
+      24.0,
+      248.0,
+      224.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      48.0,
+      36.0,
+      248.0,
+      236.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      48.0,
+      48.0,
+      248.0,
+      248.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      64.0,
+      0.0,
+      264.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      64.0,
+      12.0,
+      264.0,
+      212.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      64.0,
+      24.0,
+      264.0,
+      224.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      64.0,
+      36.0,
+      264.0,
+      236.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      64.0,
+      48.0,
+      264.0,
+      248.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      0.0,
+      0.0,
+      200.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  }
+]

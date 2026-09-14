@@ -61,6 +61,41 @@ REFINERS = {
         ("no_seed", {"seed_with_existing_masks": "false"}),
         ("tight_seed", {"seed_scale_factor": "0.1"}),
     ],
+    # The two windowed refiners: one chipper each, registered under
+    # `windowed` and `ocv_windowed`, which P2-T05 merges into one
+    # implementation under both names. `add_fixed` is the nested refiner
+    # because it is deterministic and adds one box the size of whatever
+    # image it is given -- so what these record is the **chipping
+    # geometry**, where each chip was taken from and how its boxes came
+    # back, which is exactly what the merge has to preserve. Recorded
+    # before the merge, against both copies, so that the survivor can be
+    # held to what each of them did.
+    "windowed": [
+        ("disabled", {"refiner:type": "add_fixed", "mode": "disabled"}),
+        ("chip", {"refiner:type": "add_fixed", "mode": "chip",
+                  "chip_width": "32", "chip_height": "24",
+                  "chip_step_width": "16", "chip_step_height": "12"}),
+        ("uneven_chips", {"refiner:type": "add_fixed", "mode": "chip",
+                          "chip_width": "40", "chip_height": "25",
+                          "chip_step_width": "35", "chip_step_height": "20"}),
+        ("black_pad", {"refiner:type": "add_fixed", "mode": "chip",
+                       "black_pad": "true",
+                       "chip_width": "40", "chip_height": "25",
+                       "chip_step_width": "35", "chip_step_height": "20"}),
+    ],
+    "ocv_windowed": [
+        ("disabled", {"refiner:type": "add_fixed", "mode": "disabled"}),
+        ("chip", {"refiner:type": "add_fixed", "mode": "chip",
+                  "chip_width": "32", "chip_height": "24",
+                  "chip_step_width": "16", "chip_step_height": "12"}),
+        ("uneven_chips", {"refiner:type": "add_fixed", "mode": "chip",
+                          "chip_width": "40", "chip_height": "25",
+                          "chip_step_width": "35", "chip_step_height": "20"}),
+        ("black_pad", {"refiner:type": "add_fixed", "mode": "chip",
+                       "black_pad": "true",
+                       "chip_width": "40", "chip_height": "25",
+                       "chip_step_width": "35", "chip_step_height": "20"}),
+    ],
     # Keypoints from the mask's shape. Five methods, and the clip; the
     # default is `oriented_bbox`.
     "add_keypoints_from_mask": [

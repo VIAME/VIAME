@@ -550,12 +550,61 @@ def _record_arrays_case(group_dir, manifest, kind, impl, variant, config,
     print("  {} {} {} ({} inputs)".format(kind, impl, variant, len(files)))
 
 
+def _recordable(*items):
+    """False when a case names an implementation this build cannot build.
+
+    The items are whatever identifies the case -- its implementation name,
+    its variant tag, the values of its config -- and any one of them naming
+    an unavailable implementation is enough to skip it.
+    """
+    for item in items:
+        if isinstance(item, dict):
+            if not _recordable(*item.values()):
+                return False
+        elif isinstance(item, str) and not _feature_impl_available(item):
+            return False
+    return True
+
+
+def _feature_impl_available(impl):
+    """Whether this build can construct the named feature implementation.
+
+    Only `ocv_SURF` can fail, and `test_golden.surf_is_available` says why at
+    length: SURF is patented and no `opencv-python` wheel is built with the
+    non-free modules. The check is repeated here rather than imported
+    because importing `test_golden` from the recorder would pull pytest into
+    a script that is run by hand.
+    """
+    if impl != "ocv_SURF":
+        return True
+    try:
+        import cv2
+
+        cv2.xfeatures2d.SURF_create(100, 4, 3, False, False)
+        return True
+    except Exception:
+        return False
+
+
 def record_opencv_features(group_dir, manifest):
-    """`detect_features` and `extract_descriptors` of the same name."""
+    """`detect_features` and `extract_descriptors` of the same name.
+
+    An implementation this build cannot construct is skipped rather than
+    fatal. `ocv_SURF` is the one that hits it: SURF is patented, no
+    `opencv-python` wheel is built with the non-free modules, and phase 1
+    made cv2 a wheel. Its recordings are kept -- a site that builds its own
+    OpenCV still has SURF and `test_golden` still holds it to them -- but a
+    build without it must still be able to extend the group, which before
+    this it could not: `record.py opencv --append` died here.
+    """
     arrays = [imageio_utils.load(input_path(name))
               for name in feature_cases.IMAGES]
 
     for impl, variants in sorted(feature_cases.FEATURES.items()):
+        if not _recordable(impl):
+            print("  features {} unavailable in this build, skipped".format(
+                impl))
+            continue
         for variant, config in variants:
             results = [feature_runner.detect_and_extract(impl, config, array)
                        for array in arrays]
@@ -571,6 +620,10 @@ def record_opencv_matches(group_dir, manifest):
     for impl, variants in sorted(feature_cases.MATCHERS.items()):
         for variant, config in variants:
             for feature_impl in feature_cases.MATCH_FEATURES:
+                if not _recordable(feature_impl):
+                    print("  matches {} {} unavailable in this build, "
+                          "skipped".format(impl, feature_impl))
+                    continue
                 result = feature_runner.match(
                     impl, config, feature_impl, {}, arrays)
 
@@ -587,6 +640,10 @@ def record_opencv_tracks(group_dir, manifest):
 
     for impl, variants in sorted(feature_cases.TRACKERS.items()):
         for variant, config in variants:
+            if not _recordable(variant, config):
+                print("  tracks {} {} unavailable in this build, "
+                      "skipped".format(impl, variant))
+                continue
             result = feature_runner.track(impl, config, arrays)
             _record_arrays_case(group_dir, manifest, "tracks", impl, variant,
                                 config, [name], [result])
@@ -603,6 +660,10 @@ def record_opencv_estimators(group_dir, manifest):
     for kind, table, estimate in groups:
         for impl, variants in sorted(table.items()):
             for variant, config in variants:
+                if not _recordable(variant, config):
+                    print("  {} {} {} unavailable in this build, "
+                          "skipped".format(kind, impl, variant))
+                    continue
                 for scale in feature_cases.INLIER_SCALES:
                     result = estimate(impl, config, scale)
 
