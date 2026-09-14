@@ -11,6 +11,7 @@ parenthetical asides, and for every name it can tie to a real file under
 `plugins/` reports where the document puts it and where the map does.
 """
 
+import fnmatch
 import os
 import re
 import subprocess
@@ -86,16 +87,27 @@ def doc_assignments():
         # `object_detectors/python` is `object_detectors`: P2-T01 puts the
         # python beside the C++ rather than in a `python/` subdirectory.
         destination = left.strip("`").split("/")[0]
-        if destination in ("deleted", "wheels (P9)"):
+        if destination == "wheels (P9)":
             continue
+        if destination == "deleted":
+            destination = "DELETE"
         # `\`utilities.py\` -> \`base.py\`` is one assignment, not two: the
         # second name is what the file is called afterwards.
         right = re.sub(r"->\s*`[^`]+`", "", right)
 
         for name in re.findall(r"`([^`]+)`", right):
             for stem in expand(name):
-                stem = stem.strip().strip("/")
-                if not stem or "*" in stem:
+                stem = stem.strip()
+                if not stem:
+                    continue
+                # `torchvision/*_feature_extractor` and `detectron2/` name a
+                # directory rather than a file. They used to be skipped,
+                # which is how the map came to put `torchvision/` in
+                # `object_detectors` and keep `detectron2/` the document
+                # deletes. They are checked as a prefix now.
+                if "*" in stem or stem.endswith("/"):
+                    rows.append((destination.split("/")[0],
+                                 "PATTERN:" + stem, plugin))
                     continue
                 rows.append((destination.split("/")[0],
                              os.path.basename(stem), plugin))
@@ -134,7 +146,49 @@ def main():
         allowed.setdefault((os.path.splitext(stem)[0], plugin),
                            set()).add(destination)
 
+    # A file the document names outright is placed by that name, whatever a
+    # pattern elsewhere would say: `remax_base_trainer.py` is in the
+    # `deleted` row by name and would otherwise also match `*_trainer.py`.
+    named = set()
+    for _, stem, plugin in doc_assignments():
+        if not stem.startswith("PATTERN:") and plugin:
+            named.add((plugin, os.path.splitext(stem)[0]))
+
     for destination, stem, plugin in doc_assignments():
+        if stem.startswith("PATTERN:"):
+            if not plugin:
+                continue
+            pattern = stem[len("PATTERN:"):]
+            for path, actual in mapped.items():
+                if not path.startswith(plugin + "/"):
+                    continue
+                relative = path[len(plugin) + 1:]
+                if pattern.endswith("/"):
+                    # `detectron2/`: everything under that directory.
+                    hit = relative.startswith(pattern)
+                else:
+                    # `*_trainer.py`, `torchvision/*_feature_extractor`: a
+                    # name pattern within one directory. `fnmatch`'s `*`
+                    # crosses `/`, so the directories are compared first --
+                    # otherwise `*_trainer.py` would claim every file in
+                    # every vendored subtree.
+                    want_dir, want_name = os.path.split(pattern)
+                    have_dir, have_name = os.path.split(relative)
+                    if not os.path.splitext(want_name)[1]:
+                        have_name = os.path.splitext(have_name)[0]
+                    hit = (want_dir == have_dir
+                           and fnmatch.fnmatch(have_name, want_name))
+                if not hit:
+                    continue
+                if (os.path.dirname(path) == plugin and
+                        (plugin, os.path.splitext(os.path.basename(path))[0])
+                        in named):
+                    continue
+                actual_dir = (actual.split("/")[1]
+                              if actual.startswith("library/") else actual)
+                if actual_dir != destination:
+                    disagree.append((path, actual_dir, destination))
+            continue
         stem = os.path.splitext(stem)[0]
         candidates = by_stem.get(stem, [])
         if plugin:
@@ -148,11 +202,11 @@ def main():
             continue
         for path in candidates:
             actual = mapped.get(path, "?")
-            if actual in ("STRUCTURAL", "DELETE"):
+            if actual == "STRUCTURAL":
                 continue
             actual_dir = actual.split("/")[1] if actual.startswith("library/") \
                 else actual
-            wanted = allowed[(stem, plugin)]
+            wanted = allowed.get((stem, plugin), {destination})
             if actual_dir not in wanted:
                 disagree.append((path, actual_dir, "|".join(sorted(wanted))))
 
