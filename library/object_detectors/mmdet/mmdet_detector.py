@@ -32,7 +32,7 @@ def _load_deps():
     import torch.nn.functional as F
     from functools import partial
     try:
-        import viame.pytorch.learn.mmdet.register_modules
+        import viame.object_detectors.learn.mmdet.register_modules
         from mmdet.models.builder import LOSSES
     except ModuleNotFoundError:
         pass

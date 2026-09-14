@@ -17,4 +17,10 @@ __vital_algorithm_declarations__ = [
     ( "track_objects", "siammask",
       "SiamMask visual object tracker",
       "viame.object_trackers.siammask.siammask_tracker:SiamMaskTracker" ),
+    ( "train_tracker", "siammask",
+      "PyTorch SiamMask tracker training routine",
+      "viame.object_trackers.siammask.siammask_trainer:SiamMaskTrainer" ),
+    ( "train_tracker", "siamrpn",
+      "PyTorch SiamRPN++ tracker training routine",
+      "viame.object_trackers.siammask.siammask_trainer:SiamRPNTrainer" ),
 ]

@@ -27,10 +27,6 @@ endif()
 
 # `plugins/tensorflow` stood here; `VIAME_ENABLE_TENSORFLOW` went in P1.
 
-if( VIAME_ENABLE_PYTORCH )
-  add_subdirectory( pytorch )
-endif()
-
 if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTHON )
   add_subdirectory( onnx )
 endif()

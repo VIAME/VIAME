@@ -60,7 +60,7 @@ THIRD_PARTY = [
 VIAME = [
     "kwiver.vital.algo",
     "viame.onnx",
-    "viame.pytorch",
+    "viame.object_trackers.pytorch",
     "viame.object_detectors.base",
 ]
 

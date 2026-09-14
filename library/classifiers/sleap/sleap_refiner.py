@@ -5,7 +5,7 @@ from kwiver.vital.algo import RefineDetections
 from kwiver.vital.types import DetectedObjectSet, Point2d
 import numpy as np
 
-from viame.pytorch.sleap_common import (
+from viame.classifiers.sleap.sleap_common import (
     SleapPredictor, as_rgb, crop_detection, read_config, transform_points,
 )
 from viame.object_detectors.base import register_vital_algorithm

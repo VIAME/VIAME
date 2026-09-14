@@ -7,7 +7,7 @@ import warnings
 import pytest
 
 
-ROOT = Path(__file__).resolve().parents[3] / 'plugins/pytorch/netharn'
+ROOT = Path(__file__).resolve().parents[3] / 'library/object_detectors/netharn/netharn'
 
 
 def load_function(filename, name, namespace):

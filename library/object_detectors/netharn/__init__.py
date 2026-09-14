@@ -16,4 +16,7 @@ __vital_algorithm_declarations__ = [
     ( "image_object_detector", "netharn",
       "PyTorch Netharn detection routine",
       "viame.object_detectors.netharn.netharn_detector:NetharnDetector" ),
+    ( "train_detector", "netharn",
+      "PyTorch NetHarn detection training routine",
+      "viame.object_detectors.netharn.netharn_trainer:NetHarnTrainer" ),
 ]

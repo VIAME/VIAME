@@ -19,12 +19,12 @@ Supported ``postprocess.decoder`` values:
   ``cxcywh`` (model-input pixels); this decodes, thresholds, rescales to the
   original frame, and runs NMS host-side.
 * ``darknet``: darknet YOLO (v2 ``[region]`` through v7 ``[yolo]``) as written
-  by :mod:`viame.pytorch.darknet_to_onnx`. Three outputs -- ``boxes``
+  by :mod:`viame.training.export.darknet_to_onnx`. Three outputs -- ``boxes``
   ``(1, N, 4)`` normalized ``cxcywh``, ``probs`` ``(1, N, C)``, ``confs``
   ``(1, N, 1)`` objectness -- with no NMS in the graph, so this multiplies
   objectness by class score, thresholds and runs NMS host-side.
 * ``mmdet``: the mmdet 2.x R-CNN family (Cascade R-CNN, Mask R-CNN ...) as
-  written by :mod:`viame.pytorch.netharn_mmdet_to_onnx`. One output of shape
+  written by :mod:`viame.object_detectors.netharn.netharn_mmdet_to_onnx`. One output of shape
   ``(1, N, 6)`` -- ``[x1, y1, x2, y2, score, label]`` in model-input pixels,
   with NMS baked into the graph -- so this only thresholds and rescales.
 

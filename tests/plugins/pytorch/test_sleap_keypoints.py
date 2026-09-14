@@ -72,7 +72,11 @@ class Detection:
 
 @pytest.fixture
 def modules(monkeypatch):
-    for name, path in [('viame', ROOT / 'plugins'), ('viame.pytorch', ROOT / 'plugins/pytorch')]:
+    # Bare packages over the source tree, so the SLEAP modules import without
+    # kwiver. All four are `classifiers/sleap` since P2-T07.
+    for name, path in [('viame', ROOT / 'library'),
+                       ('viame.classifiers', ROOT / 'library/classifiers'),
+                       ('viame.classifiers.sleap', ROOT / 'library/classifiers/sleap')]:
         module = ModuleType(name)
         module.__path__ = [str(path)]
         monkeypatch.setitem(sys.modules, name, module)
@@ -83,13 +87,17 @@ def modules(monkeypatch):
     types = sys.modules['kwiver.vital.types']
     types.DetectedObjectSet, types.Point2d = DetectionSet, Point
     sys.modules['viame.object_detectors.base'].register_vital_algorithm = lambda *args: None
-    for name in ['sleap_common', 'sleap_trainer', 'sleap_refiner', 'sleap_launcher']:
-        monkeypatch.delitem(sys.modules, 'viame.pytorch.' + name, raising=False)
-    loaded = SimpleNamespace(**{name: importlib.import_module('viame.pytorch.' + name)
-                                for name in ['sleap_common', 'sleap_trainer', 'sleap_refiner', 'sleap_launcher']})
+    modules = {'sleap_common': 'viame.classifiers.sleap.sleap_common',
+               'sleap_refiner': 'viame.classifiers.sleap.sleap_refiner',
+               'sleap_trainer': 'viame.classifiers.sleap.sleap_trainer',
+               'sleap_launcher': 'viame.classifiers.sleap.sleap_launcher'}
+    for module in modules.values():
+        monkeypatch.delitem(sys.modules, module, raising=False)
+    loaded = SimpleNamespace(**{name: importlib.import_module(module)
+                                for name, module in modules.items()})
     yield loaded
-    for name in ['sleap_common', 'sleap_trainer', 'sleap_refiner', 'sleap_launcher']:
-        sys.modules.pop('viame.pytorch.' + name, None)
+    for module in modules.values():
+        sys.modules.pop(module, None)
 
 
 @pytest.mark.parametrize('box', [[10, 20, 90, 60], [-10, -5, 30, 15]])
@@ -223,7 +231,7 @@ def test_training_failure_propagates_and_success_maps_artifacts(modules, tmp_pat
     assert output['type'] == 'sleap'
     assert output['sleap:weight'] == 'trained_keypoints.pt'
     assert Path(output['trained_keypoints.pt']).is_file()
-    assert commands[0][0][1:3] == ['-m', 'viame.pytorch.sleap_launcher']
+    assert commands[0][0][1:3] == ['-m', 'viame.classifiers.sleap.sleap_launcher']
     assert commands[0][1] == dict(check=True, timeout=1209600)
 
 

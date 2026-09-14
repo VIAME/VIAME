@@ -6,7 +6,7 @@
 ONNX image-classifier inference, via onnxruntime -- no PyTorch.
 
 Reads a ``.modelspec.json`` sidecar written by
-:mod:`viame.pytorch.netharn_clf_to_onnx`, whose graph takes ``(N, 3, H, W)`` RGB
+:mod:`viame.classifiers.netharn.netharn_clf_to_onnx`, whose graph takes ``(N, 3, H, W)`` RGB
 in ``[0, 1]`` and returns ``(N, C)`` softmax probabilities. Preprocessing
 matches netharn's datasets: ``kwimage.imresize(..., letterbox=True)``, then
 ``/ 255``.

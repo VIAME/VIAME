@@ -5,9 +5,11 @@
 """Object trackers, in python.
 
 ByteTrack and OC-SORT, the simple and multi-camera homography IOU trackers,
-and tube-IoU track-set fusion, from `viame.core` in P2-T06. Their trainers --
-ByteTrack and OC-SORT parameter estimation -- are training, and follow in
-P2-T07. The pytorch trackers are still `viame.pytorch`.
+and tube-IoU track-set fusion, from `viame.core` in P2-T06, and since P2-T07
+the trainers beside them: ByteTrack and OC-SORT parameter estimation, the
+tracker parameter search and the training data handling the tracker
+trainers share. The pytorch trackers and their trainers are the gated
+subpackages beside this: `pytorch`, `siammask`, `mdnet` and `sam3`.
 """
 
 
@@ -22,6 +24,12 @@ __vital_algorithm_declarations__ = [
     ( "track_objects", "ocsort",
       "OC-SORT / Deep OC-SORT tracker with observation-centric momentum, re-update, recovery, and optional appearance fusion",
       "viame.object_trackers.ocsort_tracker:OCSORTTracker" ),
+    ( "train_tracker", "bytetrack",
+      "ByteTrack parameter estimation from track groundtruth",
+      "viame.object_trackers.bytetrack_trainer:ByteTrackTrainer" ),
+    ( "train_tracker", "ocsort",
+      "OC-SORT parameter estimation and optional Deep OC-SORT Re-ID training",
+      "viame.object_trackers.ocsort_trainer:OCSORTTrainer" ),
 ]
 
 

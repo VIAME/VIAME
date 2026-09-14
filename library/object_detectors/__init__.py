@@ -18,6 +18,9 @@ __vital_algorithm_declarations__ = [
     ( "image_object_detector", "hough_circle",
       "Hough circle detector",
       "viame.object_detectors.hough_circle_detector:HoughCircleDetector" ),
+    ( "train_detector", "frame_diff",
+      "Three-frame difference detector settings estimation",
+      "viame.object_detectors.frame_diff_trainer:FrameDiffTrainer" ),
 ]
 
 

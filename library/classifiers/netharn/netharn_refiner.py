@@ -79,7 +79,7 @@ class NetharnRefiner(RefineDetections):
     @report_cuda_errors("NetharnRefiner initialization")
     def set_configuration(self, cfg_in):
         import torch
-        from viame.pytorch.netharn import clf_predict
+        from viame.object_detectors.netharn.netharn import clf_predict
 
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)

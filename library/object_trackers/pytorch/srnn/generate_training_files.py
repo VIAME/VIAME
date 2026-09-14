@@ -22,7 +22,7 @@ from viame.object_detectors.base import Grid
 
 from .storage import DataStorage, SequenceList
 from .utilities import load_track_feature_file
-from viame.training.training_data import seed_from_environment
+from viame.object_trackers.training_data import seed_from_environment
 
 
 # Homography state

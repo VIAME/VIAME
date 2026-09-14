@@ -63,7 +63,7 @@ class NetharnClassifier(ImageObjectDetector):
         Returns:
             str: file path to a scallop classifier
         """
-        from viame.pytorch.netharn import clf_fit
+        from viame.object_detectors.netharn.netharn import clf_fit
 
         harn = clf_fit.setup_harn(
             cmdline=False, dataset="special:shapes128", max_epoch=1, timeout=60
@@ -116,7 +116,7 @@ class NetharnClassifier(ImageObjectDetector):
     @report_cuda_errors("NetharnClassifier initialization")
     def set_configuration(self, cfg_in):
         import torch
-        from viame.pytorch.netharn import clf_predict
+        from viame.object_detectors.netharn.netharn import clf_predict
 
         cfg = self.get_configuration()
 
@@ -209,7 +209,7 @@ class NetharnClassifier(ImageObjectDetector):
         Convert kwarray classifications to kwiver deteted object sets
 
         Args:
-            classification (viame.pytorch.netharn.clf_predict.Classification)
+            classification (viame.object_detectors.netharn.netharn.clf_predict.Classification)
             w (int): width of image
             h (int): height of image
 

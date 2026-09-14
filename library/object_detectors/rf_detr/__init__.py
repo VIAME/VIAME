@@ -16,4 +16,7 @@ __vital_algorithm_declarations__ = [
     ( "image_object_detector", "rf_detr",
       "PyTorch RF-DETR detection routine",
       "viame.object_detectors.rf_detr.rf_detr_detector:RFDETRDetector" ),
+    ( "train_detector", "rf_detr",
+      "PyTorch RF-DETR detection training routine",
+      "viame.object_detectors.rf_detr.rf_detr_trainer:RFDETRTrainer" ),
 ]

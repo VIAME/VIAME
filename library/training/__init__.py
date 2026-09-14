@@ -2,27 +2,16 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Trainers, in python.
+"""The backend-independent training framework, in python.
 
-ByteTrack and OC-SORT parameter estimation, the three-frame difference
-detector settings estimation, tracker parameter search and the training data
-handling, from `viame.core` in P2-T07. The pytorch trainers are still
-`viame.pytorch`.
+Only the `export` subpackage: the `convert_to_onnx` process, which hands each
+model to its backend's exporter where that backend lives. Each backend's
+trainer is beside its inference routine since P2-T07 -- the detector
+trainers in `viame.object_detectors`, the tracker trainers and their training
+data handling in `viame.object_trackers`, SAM3 in `viame.segmentation`, SLEAP
+in `viame.classifiers`. The adaptive and windowed trainers are C++, in this
+library.
 """
 
-
-# ----------------------------------------------------------------------------
-# What this package provides, without importing any of it.
-#
-# Each entry is ( interface, name, description, "module:Class" ).
-__vital_algorithm_declarations__ = [
-    ( "train_detector", "frame_diff",
-      "Three-frame difference detector settings estimation",
-      "viame.training.frame_diff_trainer:FrameDiffTrainer" ),
-    ( "train_tracker", "bytetrack",
-      "ByteTrack parameter estimation from track groundtruth",
-      "viame.training.bytetrack_trainer:ByteTrackTrainer" ),
-    ( "train_tracker", "ocsort",
-      "OC-SORT parameter estimation and optional Deep OC-SORT Re-ID training",
-      "viame.training.ocsort_trainer:OCSORTTrainer" ),
-]
+__vital_algorithm_declarations__ = []
+__sprokit_process_declarations__ = []

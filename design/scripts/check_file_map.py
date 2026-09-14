@@ -115,8 +115,11 @@ def doc_assignments():
                     rows.append((destination.split("/")[0],
                                  "PATTERN:" + stem, plugin))
                     continue
+                # `onnx_exporters/yolomit_to_onnx` names that file, not every
+                # `yolomit_to_onnx` under the plugin: keep the relative path
                 rows.append((destination.split("/")[0],
-                             os.path.basename(stem), plugin))
+                             stem if "/" in stem else os.path.basename(stem),
+                             plugin))
     return rows
 
 
@@ -196,8 +199,16 @@ def main():
                     disagree.append((path, actual_dir, destination))
             continue
         stem = os.path.splitext(stem)[0]
-        candidates = by_stem.get(stem, [])
-        if plugin:
+        if "/" in stem and plugin:
+            # A name below the plugin directory, matched by that path
+            candidates = [p for p in tracked
+                          if os.path.splitext(p)[0] == plugin + "/" + stem]
+            if not candidates:
+                unknown.append((destination, stem, plugin))
+                continue
+        else:
+            candidates = by_stem.get(stem, [])
+        if plugin and "/" not in stem:
             # Directly in the plugin directory: a document entry naming
             # `utilities.py` means `plugins/pytorch/utilities.py`, not every
             # `utilities.py` in every vendored subtree below it.

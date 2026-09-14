@@ -34,18 +34,18 @@ def _load_deps():
     import kwimage
     from scipy import ndimage
     from torchvision import transforms
-    from viame.pytorch.learn.cutler.crf import densecrf
-    from viame.pytorch.learn.cutler.dino import ViTFeat
-    from viame.pytorch.learn.cutler.maskcut import (
+    from viame.object_detectors.learn.cutler.crf import densecrf
+    from viame.object_detectors.learn.cutler.dino import ViTFeat
+    from viame.object_detectors.learn.cutler.maskcut import (
         maskcut_forward,
         create_annotation_info,
         category_info,
         resize_binary_mask,
     )
-    from viame.pytorch.learn.tokencut.unsupervised_saliency_detection import (
+    from viame.object_detectors.learn.tokencut.unsupervised_saliency_detection import (
         utils, metric,
     )
-    from viame.pytorch.learn.tokencut.unsupervised_saliency_detection.object_discovery import (
+    from viame.object_detectors.learn.tokencut.unsupervised_saliency_detection.object_discovery import (
         detect_box,
     )
 

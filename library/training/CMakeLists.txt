@@ -81,5 +81,17 @@ viame_register_statically( viame_training
 # Python
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_add_python_package( training )
+  viame_add_python_package( training EXCLUDE "^export/" )
+
+  # ONNX export: the `convert_to_onnx` process, which dispatches to each
+  # backend's exporter beside that backend, and the darknet exporter, which
+  # waits here for darknet to move in P2-T08.
+  set( _export_exclude "^$" )
+  if( NOT VIAME_ENABLE_DARKNET )
+    set( _export_exclude "^darknet_to_onnx\\.py$" )
+  endif()
+  viame_add_python_package( training/export
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/export
+    EXCLUDE ${_export_exclude}
+    CONDITION VIAME_ENABLE_ONNX )
 endif()

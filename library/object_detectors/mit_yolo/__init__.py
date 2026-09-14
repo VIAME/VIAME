@@ -16,4 +16,7 @@ __vital_algorithm_declarations__ = [
     ( "image_object_detector", "mit_yolo",
       "PyTorch MIT YOLO detection routine",
       "viame.object_detectors.mit_yolo.mit_yolo_detector:MITYoloDetector" ),
+    ( "train_detector", "mit_yolo",
+      "PyTorch MIT YOLO detection training routine",
+      "viame.object_detectors.mit_yolo.mit_yolo_trainer:MITYoloTrainer" ),
 ]

@@ -16,4 +16,7 @@ __vital_algorithm_declarations__ = [
     ( "image_object_detector", "ultralytics",
       "PyTorch Ultralytics detection routine",
       "viame.object_detectors.ultralytics.ultralytics_detector:UltralyticsDetector" ),
+    ( "train_detector", "ultralytics",
+      "PyTorch Ultralytics YOLO training routine",
+      "viame.object_detectors.ultralytics.ultralytics_trainer:UltralyticsTrainer" ),
 ]

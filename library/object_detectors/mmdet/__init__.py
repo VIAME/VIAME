@@ -16,4 +16,7 @@ __vital_algorithm_declarations__ = [
     ( "image_object_detector", "mmdet",
       "PyTorch MMDetection inference routine",
       "viame.object_detectors.mmdet.mmdet_detector:MMDetDetector" ),
+    ( "train_detector", "mmdet",
+      "PyTorch MMDetection training routine",
+      "viame.object_detectors.mmdet.mmdet_trainer:MMDetTrainer" ),
 ]

@@ -15,7 +15,8 @@ import warnings
 import pytest
 
 torch = pytest.importorskip('torch')
-ROOT = Path(__file__).resolve().parents[3] / 'plugins/pytorch'
+# The netharn trainer and the vendored netharn tree beside it, since P2-T07
+ROOT = Path(__file__).resolve().parents[3] / 'library/object_detectors/netharn'
 
 
 def load_method(path, name, namespace):
@@ -54,7 +55,7 @@ def test_weighted_loss_and_gradient_are_counted_once():
 
 @pytest.mark.parametrize('reduction, expected', [('mean', 3), ('sum', 6)])
 def test_replica_loss_reduction(monkeypatch, reduction, expected):
-    containers = ModuleType('viame.pytorch.netharn.data.data_containers')
+    containers = ModuleType('viame.object_detectors.netharn.netharn.data.data_containers')
     containers.BatchContainer = type('BatchContainer', (), {})
     monkeypatch.setitem(sys.modules, containers.__name__, containers)
     run_batch = load_method('netharn/detect_fit.py', 'run_batch', {'warnings': warnings})
@@ -193,7 +194,7 @@ def test_keypoint_slots_after_geometric_transform():
 def native_config(monkeypatch):
     """Load real vendored config classes without RF-DETR's torchvision imports."""
     import importlib.util
-    root = ROOT.parents[1] / 'packages/pytorch-libs/rf-detr/src/rfdetr'
+    root = ROOT.parents[2] / 'packages/pytorch-libs/rf-detr/src/rfdetr'
     package = ModuleType('rfdetr')
     package.__path__ = [str(root)]
     monkeypatch.setitem(sys.modules, 'rfdetr', package)
@@ -334,7 +335,7 @@ def test_real_native_checkpoint_keeps_head_and_query_weights(native_config, monk
     assets.validate_pretrain_weights = lambda *a, **kw: True
     assets.get_model_cache_dir = lambda: str(tmp_path)
     monkeypatch.setitem(sys.modules, assets.__name__, assets)
-    root = ROOT.parents[1] / 'packages/pytorch-libs/rf-detr/src/rfdetr'
+    root = ROOT.parents[2] / 'packages/pytorch-libs/rf-detr/src/rfdetr'
     decorators = ModuleType('rfdetr.utilities.decorators')
     decorators.deprecated = lambda *a, **kw: lambda func: func
     monkeypatch.setitem(sys.modules, decorators.__name__, decorators)

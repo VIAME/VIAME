@@ -27,4 +27,10 @@ __vital_algorithm_declarations__ = [
     ( "segment_via_points", "sam3",
       "SAM3-based point segmentation algorithm",
       "viame.segmentation.sam3.sam3_segmenter:SAM3Segmenter" ),
+    ( "train_detector", "sam3",
+      "SAM3 (Segment Anything Model 3) fine-tuning for segmentation",
+      "viame.segmentation.sam3.sam3_trainer:SAM3Trainer" ),
+    ( "train_tracker", "sam3",
+      "SAM3 tracker fine-tuning with temporal mask propagation",
+      "viame.segmentation.sam3.sam3_trainer:SAM3TrackerTrainer" ),
 ]

@@ -358,11 +358,11 @@ BUILTIN_PLUGIN_PACKAGES = (
     "viame.examples",
     "viame.onnx",
     "viame.opencv",
-    "viame.pytorch",
     "viame.segmentation",
     "viame.segmentation.sam2",
     "viame.segmentation.sam3",
     "viame.training",
+    "viame.training.export",
     "viame.tensorflow",
 )
 

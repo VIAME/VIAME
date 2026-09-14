@@ -66,7 +66,7 @@ def input_detection(tmp_path):
 
 
 def load_function(name, namespace):
-    path = ROOT / 'plugins/pytorch/rf_detr_trainer.py'
+    path = ROOT / 'library/object_detectors/rf_detr/rf_detr_trainer.py'
     tree = ast.parse(path.read_text())
     node = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == name)
     exec(compile(ast.Module(body=[node], type_ignores=[]), str(path), 'exec'), namespace)

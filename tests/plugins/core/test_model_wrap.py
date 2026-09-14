@@ -223,7 +223,7 @@ class TestIdentifyZips:
 
     def test_netharn_deployed_classifier(self, tmp_path):
         path = netharn_zip(tmp_path / "trained_classifier.zip",
-                           "viame.pytorch.netharn.clf_fit.ClfModel", "ClfModel_ab12.py")
+                           "viame.object_detectors.netharn.netharn.clf_fit.ClfModel", "ClfModel_ab12.py")
         info = model_wrap.identify(str(path))
         assert info.impl == "netharn_classifier"
         assert info.classifier
@@ -400,7 +400,7 @@ class TestBuildPipeline:
 
     def test_classifier_uses_the_frame_classifier_template(self, tmp_path, templates):
         path = netharn_zip(tmp_path / "trained_classifier.zip",
-                           "viame.pytorch.netharn.clf_fit.ClfModel", "ClfModel_ab12.py")
+                           "viame.object_detectors.netharn.netharn.clf_fit.ClfModel", "ClfModel_ab12.py")
         info = model_wrap.identify(str(path))
         pipe = model_wrap.build_pipeline(info, str(tmp_path), str(templates))
         text = open(pipe).read()

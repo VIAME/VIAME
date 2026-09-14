@@ -41,25 +41,31 @@ viame/
                           image_filter/split_image/merge_images/stabilize_image processes
     object_detectors/     image_object_detector impls (C++ and python), windowed chipping,
                           detector processes (image_object_detector, detect_motion,
-                          detect_in_subregions), vertex-ai detector
+                          detect_in_subregions), vertex-ai detector; each backend's trainer,
+                          launcher and onnx exporter beside its detector, the kwcoco trainer
+                          base, frame-difference settings estimation, vendored netharn/learn
     object_trackers/      track_objects impls, initialise/associate impls, kalman common code,
                           track processes (track_objects, initialize_object_tracks,
                           associate_detections_to_tracks, compute_association_matrix,
                           merge_track_sets, convert_tracks_to_detections, unwrap_detections,
-                          track_conductor, accumulate/filter/resample tracks)
+                          track_conductor, accumulate/filter/resample tracks); the tracker
+                          trainers (ByteTrack/OC-SORT estimation, Re-ID, SRNN, MOTR, SiamMask),
+                          their training data handling, tracker parameter search
     classifiers/          refine_detections impls, refine_tracks impls, merge_detections impls,
-                          detected_object_filter impls, full-frame classifiers, their processes
+                          detected_object_filter impls, full-frame classifiers, their processes;
+                          the SLEAP trainer, the netharn classifier exporter, the SVM trainer
     segmentation/         sam2/sam3 segmenters and refiners, watershed/grabcut, keypoints from
-                          mask, interactive segmentation service host, polygon/mask utilities
+                          mask, interactive segmentation service host, polygon/mask utilities,
+                          SAM3 fine-tuning
     descriptors/          compute_track_descriptors impls, IQR sessions (base, svm, adaboost),
                           query processes, descriptor ingest/fetch, augmentation, srm formatting
     measurement/          stereo calibration/rectification/disparity (python), pairing of stereo
                           detections/tracks, length measurement, triangulation, camera rigs,
                           interactive stereo, epipolar matchers, foundation stereo, colmap/SfM,
                           seagis, compute_stereo_depth_map process
-    training/             train_detector/train_tracker impls, adaptive trainers, kwcoco base,
-                          per-backend trainers and launchers, netharn, training data prep,
-                          onnx export, train_supervisor, train_detector process
+    training/             the backend-independent training framework: adaptive and windowed
+                          trainers, training utilities, train_supervisor, train_detector
+                          process, the convert_to_onnx process
     evaluation/           evaluate_models, scoring, metric plots (python)
     examples/             hello_world detector/filter C++ and python, plugin templates
   python/                 `viame` package root, `kwiver` shim (P11), requirements/
@@ -103,6 +109,21 @@ reason once P2-T05 merged the two chippers: the detector is
 `object_detectors`, the refiner is `classifiers` and the trainer is
 `training`, three siblings, and it needs nothing above `image_ops`.
 
+A trainer lives beside the inference routine it trains. P2-T07 first moved
+`plugins/pytorch`'s trainers into `training` as §3 said, and then regrouped
+them: a backend's trainer, launcher and onnx exporter share its build option,
+its dependencies and its release cadence with its detector, classifier or
+tracker, and splitting them put the same gate on two subpackages, spread
+SAM3 over three libraries, and left the vendored netharn and learn trees --
+which the detectors import -- above the detectors that import them. So
+`training` holds only what drives any backend: the adaptive and windowed
+trainers, `utilities_training`, `train_supervisor`, the train_detector
+process and `convert_to_onnx`. The helpers the moved trainers share went to
+the library all of their users are in, the same rule as above:
+`training_data.py` and `tracker_param_search.py` to `object_trackers`, whose
+trainers and vendored SRNN and SiamMask trees are their only users, and
+`kwcoco_train_detector.py` to `object_detectors`.
+
 ## 2. Mapping: kwiver code -> library (P5)
 
 | Destination | Source |
@@ -135,13 +156,13 @@ reason once P2-T05 merged the two chippers: the detector is
 | `file_io/` | `read_detected_object_set_{auto,cvat,dive,fishnet,habcam,oceaneyes,viame_csv,yolo}`, `read_object_track_set_{auto,dive,viame_csv}`, `write_detected_object_set_viame_csv`, `write_object_track_set_viame_csv`, `read_transform_homography_json`, `auto_detect_transform`, `convert_notes_to_attributes`, `camera_io`, `camera_rig_io`, `store_descriptors_csv`, `write_homography_list_process`; python `read/write_*_coco.py`, `utilities_coco.py` |
 | `image_processing/` | `equalize_via_percentiles` (cxx + py), `optical_flow.py`, `stabilize_many_images.py`, `multicam_homog_mosaic.py`, `multicam_homog_blackout.py`, `align_multimodal_imagery_process`, `warp_image_process`, `warp_detections_process`, `alignment_core.py`, `align_cameras_process.py`, `accumulate_image_statistics_process`, `stack_frames_process`, `utility_processes.py` |
 | `image_ops/` | `convert_polygons_to_mask`, `utilities_segmentation` (RDP + `mask_to_contours`), `windowed_utils` |
-| `object_detectors/` | `empty_detector`, `full_frame_detector` |
-| `object_trackers/` | `bytetrack_tracker.py`, `ocsort_tracker.py`, `simple_homog_tracker.py`, `multicam_homog_tracker.py`, `track_conductor_process`, `accumulate_object_tracks_process`, `filter_object_tracks_process`, `resample_object_tracks_process`, `split_tracks_to_feature_landmarks_process`, `merge_tracks_tube_iou.py` |
+| `object_detectors/` | `empty_detector`, `full_frame_detector`, `frame_diff_trainer.py` |
+| `object_trackers/` | `bytetrack_tracker.py`, `ocsort_tracker.py`, `simple_homog_tracker.py`, `multicam_homog_tracker.py`, `track_conductor_process`, `accumulate_object_tracks_process`, `filter_object_tracks_process`, `resample_object_tracks_process`, `split_tracks_to_feature_landmarks_process`, `merge_tracks_tube_iou.py`, `bytetrack_trainer.py`, `ocsort_trainer.py`, `tracker_param_search.py`, `training_data.py` |
 | `classifiers/` | `convert_head_tail_points`, `refine_detections_add_fixed`, `refine_detections_nms`, `refine_tracks_average_tot`, `merge_detections_suppress_in_regions`, `merge_detections_{nms_fusion,coverage_reinforce,simple}.py`, `detection_fusion_core.py`, `multicam_homog_det_suppressor.py` |
 | `segmentation/` | `interactive_segmentation.py`, `segmentation_utils.py`, `interactive_service.py` |
 | `descriptors/` | `iqr_session.h`, `utilities_iqr.h`, `average_track_descriptors`, `ingest_descriptors_process`, `fetch_descriptors_process`, `object_track_descriptors_process`, `extract_desc_ids_for_training_process`, `create_database_query_process`, `select_database_query_process`, `write_query_results_as_tracks_process` |
 | `measurement/` | `measurement_utilities` (+ pybind module `_measurement`), `pair_stereo_detections` (+ process), `pair_stereo_tracks`, `measure_objects_process`, `refine_measurements_process`, `calibrate_cameras_from_tracks_process`, `interactive_stereo.py`, `survey_metadata.py` |
-| `training/` | `adaptive_detector_trainer`, `adaptive_tracker_trainer`, `windowed_trainer`, `utilities_training`, `training_data.py`, `tracker_param_search.py`, `bytetrack_trainer.py`, `ocsort_trainer.py`, `frame_diff_trainer.py` |
+| `training/` | `adaptive_detector_trainer`, `adaptive_tracker_trainer`, `windowed_trainer`, `utilities_training` |
 | `evaluation/` | `evaluate_models` |
 | `pipeline_framework/processes` | `image_to_image_set_process`, `filter_frame_process`, `filter_frame_index_process` |
 | deleted | `windowed_detector`, `windowed_refiner` -- P2-T05 kept the `plugins/opencv` copies, which are now the only implementation, registered as `windowed` with `ocv_windowed` an alias; golden recordings of both copies were byte-identical. `windowed_trainer` -- P2-T07 kept the `plugins/opencv` copy the same way, for its parameter list, moved onto the `image_ops` helpers; twelve golden recordings of both copies were identical once `original_to_chip_size` was given, and its default is opencv's |
@@ -164,14 +185,13 @@ reason once P2-T05 merged the two chippers: the detector is
 
 | Destination | Files |
 |---|---|
-| `object_detectors/python` | `mmdet_detector`, `netharn_detector`, `mit_yolo_detector`, `ultralytics_detector`, `rf_detr_detector`, `litdet_detector`, `detectron2_detector`, `huggingface_zeroshot_detector`, `maskcut_detector`, `remax_convnext_detector`, `remax_dino_detector`, `utilities.py` -> `base.py`, `mmdet_compatibility.py` |
-| `object_trackers/python` | `srnn_tracker` + `srnn/`, `deepsort_tracker`, `botsort_tracker`, `motr_tracker`, `siammask_tracker`, `mdnet_tracker`, `sam3_tracker`, shared `kalman.py` |
-| `classifiers/python` | `netharn_classifier`, `netharn_refiner` |
-| `segmentation/python` | `sam2_segmenter`, `sam3_segmenter`, `sam3_text_query`, `sam2_refiner`, `sam3_refiner`, `sam3_utilities` |
+| `object_detectors/python` | `mmdet_detector`, `netharn_detector`, `mit_yolo_detector`, `ultralytics_detector`, `rf_detr_detector`, `litdet_detector`, `detectron2_detector`, `huggingface_zeroshot_detector`, `maskcut_detector`, `remax_convnext_detector`, `remax_dino_detector`, `utilities.py` -> `base.py`, `mmdet_compatibility.py`, `kwcoco_train_detector`, `mmdet_trainer`, `mmdet_launcher`, `netharn_trainer`, `netharn/`, `onnx_exporters/netharn_mmdet_to_onnx`, `mit_yolo_trainer`, `onnx_exporters/yolomit_to_onnx`, `ultralytics_trainer`, `rf_detr_trainer`, `rf_detr_launcher`, `onnx_exporters/rf_detr_to_onnx`, `litdet_trainer`, `detectron2_trainer`, `cutler_trainer`, `remax_convnext_trainer`, `remax_dino_trainer` |
+| `object_trackers/python` | `srnn_tracker` + `srnn/`, `deepsort_tracker`, `botsort_tracker`, `motr_tracker`, `siammask_tracker`, `mdnet_tracker`, `sam3_tracker`, shared `kalman.py`, `botsort_trainer`, `deepsort_trainer`, `motr_trainer`, `srnn_trainer`, `siammask_trainer` |
+| `classifiers/python` | `netharn_classifier`, `netharn_refiner`, `sleap_trainer`, `sleap_launcher`, `sleap_common`, `onnx_exporters/netharn_clf_to_onnx` |
+| `segmentation/python` | `sam2_segmenter`, `sam3_segmenter`, `sam3_text_query`, `sam2_refiner`, `sam3_refiner`, `sam3_utilities`, `sam3_trainer` |
 | `descriptors/python` | `torchvision_descriptors`, `torchvision_augment_process`, `torchvision/*_feature_extractor`, `resnet_augmenter` |
 | `measurement/python` | `foundation_stereo`, `fast_foundation_stereo`, `dino_matcher`, `pair_stereo_tracks.py` (merged), `minima_loftr/` |
-| `training/python` | `kwcoco_train_detector`, all `*_trainer.py` and `*_launcher.py`, `netharn/`, `siammask_trainer`, `cutler_trainer` |
-| `training/python/export` | `convert_to_onnx_process.py`, `onnx_exporters/*` |
+| `training/python/export` | `convert_to_onnx_process.py`, `onnx_exporters/darknet_to_onnx` (until darknet moves) |
 | wheels (P9) | `learn/{pydensecrf,tokencut,cutler,panopticapi,mmdet}`, `remax/`, `siammask/` library part, `mdnet/` |
 | deleted | `remax_base_trainer.py`, `remax_detector_example.py`, `remax_trainer_example.py`, `detectron2/` |
 
@@ -180,13 +200,13 @@ reason once P2-T05 merged the two chippers: the detector is
 | Plugin | Destination |
 |---|---|
 | `onnx` | `object_detectors/python` (`onnx_predictor`, `onnx_detector`); `classifiers/python` (`onnx_clf_predictor`, `onnx_classifier`, `onnx_refiner`); `measurement/python` (`epipolar_matcher`, `epipolar_dino_matcher`, `fast_foundation_stereo`, `triangulate`, `geometry_numpy`, `calibration_io`, `export_stereo_mapping`, `run_epipolar_onnx`); `README.md` -> `docs/manual` |
-| `darknet` | `object_detectors/` (`darknet_detector`, `darknet_custom_resize`), `training/` (`darknet_trainer`); gated on `VIAME_ENABLE_DARKNET` |
-| `svm` | `classifiers/` (`refine_detections_svm`), `training/` (`train_detector_svm`, `train_svm_models_process`), `descriptors/` (`iqr_session_svm.h`, `process_query_process`) |
+| `darknet` | `object_detectors/` (`darknet_detector`, `darknet_custom_resize`, `darknet_trainer`); gated on `VIAME_ENABLE_DARKNET` |
+| `svm` | `classifiers/` (`refine_detections_svm`, `train_detector_svm`, `train_svm_models_process`), `descriptors/` (`iqr_session_svm.h`, `process_query_process`) |
 | `cppdb` | `file_io/database/` (`*_db` algos), `descriptors/` (`*_db_process`, merged with CSV variants) |
 | `vxl` | replaced in P3 (`image_processing/` on `image_ops`); `format_images_srm_process` -> `descriptors/` |
 | `colmap` | `measurement/python` (`reconstruction`, `prior_coverage_sfm`), `image_processing/python` (`colmap_registration`) |
 | `seagis` | `measurement/` (`seagis_measurement_process`, mock lib under `measurement/tests/`) |
-| `vertex-ai` | `object_detectors/` (`vertex_ai_detector`), `training/` (`vertex_ai_trainer`), `utilities/` (`vertex_ai_client`), python handlers -> `tools/vertex_ai/`; option declared |
+| `vertex-ai` | `object_detectors/` (`vertex_ai_detector`, `vertex_ai_trainer`), `utilities/` (`vertex_ai_client`), python handlers -> `tools/vertex_ai/`; option declared |
 | `claude` | `training/` (`train_supervisor`) |
 | `examples`, `templates` | `library/examples/` (templates updated to the new helpers) |
 | `matlab`, `tensorflow` | dropped (open decision 4 for matlab) |

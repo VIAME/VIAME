@@ -199,12 +199,18 @@ if( VIAME_ENABLE_PYTHON )
       CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-${option} )
   endforeach()
 
+  # Each backend's trainer, launcher and onnx exporter sit beside its
+  # detector since P2-T07, under the same option; `netharn/netharn` and the
+  # `learn` packages are the vendored trees the detectors and trainers share.
+  #
   # `learn/` also carries the vendored ReMax tree the remax detectors build
   # on, which lite-library-layout.md sends to a wheel in P9. Its CUDA
   # extension's `setup.py` and `test.py` were never installed and are not now.
   viame_add_python_package( object_detectors/learn
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/learn
     EXCLUDE "^remax/model/ops/(setup|test)\\.py$"
+            # of the vendored learn packages, only these were ever installed
+            "^(pydensecrf|panopticapi)/"
     CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-LEARN )
 endif()
 
