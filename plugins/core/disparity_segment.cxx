@@ -63,8 +63,7 @@ bool fit_disparity_segment(
           error += residual * residual;
         }
       }
-      if( inliers.size() < required ||
-          valid[inliers.back()].first - valid[inliers.front()].first < 0.5 )
+      if( inliers.size() < required )
       {
         continue;
       }

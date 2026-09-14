@@ -458,6 +458,7 @@ map_keypoints_to_camera_settings
   , dino_threshold( 0.0 )
   , dino_weights_path( "" )
   , dino_top_k( 100 )
+  , rectification_alpha( 0.0 )
 {
 }
 
@@ -738,6 +739,11 @@ map_keypoints_to_camera_settings
     "with NCC sub-pixel precision. Recommended value: 100. "
     "Set to 0 to use DINO-only matching without NCC refinement." );
 
+  config->set_value( "rectification_alpha", rectification_alpha,
+    "Alpha parameter for stereo rectification (-1.0 to 1.0). "
+    "0.0 zooms and crops to valid pixels (default). "
+    "-1.0 preserves all original image pixels (adds black borders)." );
+
   // Add nested algorithm configurations
   kv::get_nested_algo_configuration<kv::algo::detect_features>(
     "feature_detector", config, feature_detector );
@@ -804,6 +810,7 @@ map_keypoints_to_camera_settings
   dino_threshold = config->get_value< double >( "dino_threshold", dino_threshold );
   dino_weights_path = config->get_value< std::string >( "dino_weights_path", dino_weights_path );
   dino_top_k = config->get_value< int >( "dino_top_k", dino_top_k );
+  rectification_alpha = config->get_value< double >( "rectification_alpha", rectification_alpha );
 
   // Configure nested algorithms
   kv::set_nested_algo_configuration<kv::algo::detect_features>(
@@ -987,6 +994,7 @@ map_keypoints_to_camera
   , m_dino_weights_path( "" )
   , m_dino_top_k( 100 )
   , m_dino_crop_max_area_ratio( 0.05 )
+  , m_rectification_alpha( 0.0 )
   , m_cached_frame_id( -1 )
 #ifdef VIAME_ENABLE_OPENCV
   , m_dino_full_images_set( false )
@@ -1196,6 +1204,8 @@ map_keypoints_to_camera
   m_dino_weights_path = settings.dino_weights_path;
   m_dino_top_k = settings.dino_top_k;
   m_dino_crop_max_area_ratio = settings.dino_crop_max_area_ratio;
+
+  m_rectification_alpha = settings.rectification_alpha;
 
   // Set the stereo depth map algorithm for compute_disparity method
   m_stereo_depth_map_algorithm = settings.stereo_depth_map_algorithm;
@@ -3181,7 +3191,7 @@ map_keypoints_to_camera
   cv::Mat Q;
   cv::stereoRectify( K1, D1, K2, D2, image_size, R, T,
                      m_R1, m_R2, m_P1, m_P2, Q,
-                     cv::CALIB_ZERO_DISPARITY, 0 );
+                     cv::CALIB_ZERO_DISPARITY, m_rectification_alpha );
 
   // Store camera matrices and distortion coefficients
   m_K1 = K1.clone();

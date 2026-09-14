@@ -462,6 +462,7 @@ measure_objects_process
                                   d->m_frame_counter );
 
   d->m_frame_counter++;
+  ts.set_frame( cur_frame_id );
 
   // Invalidate per-frame caches (rectified images, computed disparity,
   // feature matches) so any disparity map computed below is fresh for this
