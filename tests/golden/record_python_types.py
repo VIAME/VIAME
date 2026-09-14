@@ -19,7 +19,7 @@ signatures, which pybind11 renders differently between versions.
 It refuses to overwrite without --force, for the reason every recorder here
 does: a golden must not be quietly redefined by the code it checks.
 
-What this cannot see is behaviour, and `tests/library/core_types/
+What this cannot see is behaviour, and `library/core_types/tests/
 test_python_types.py` beside it carries that -- the round trips and the
 values that have to come back the same. The two together are the contract:
 this one says what exists, that one says what it does.
@@ -99,7 +99,7 @@ def record():
                             .strftime("%Y-%m-%dT%H:%M:%SZ"),
         "note": "What kwiver.vital.types exported before P8-T01 rewrote the "
                 "bindings. Names and members only; behaviour is in "
-                "tests/library/core_types/test_python_types.py.",
+                "library/core_types/tests/test_python_types.py.",
         "python": "{}.{}".format(*sys.version_info[:2]),
         "classes": classes,
         "values": values,

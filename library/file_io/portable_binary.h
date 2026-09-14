@@ -8,7 +8,7 @@
 /// This is what cereal's `PortableBinaryArchive` did, and only that: P8-T06
 /// deletes cereal, and every KWFD file anyone already has was written by it.
 /// The format is recorded byte for byte in
-/// `tests/library/file_io/test_feature_descriptor_io.cxx`, taken before the
+/// `library/file_io/tests/test_feature_descriptor_io.cxx`, taken before the
 /// swap.
 ///
 /// The whole of it:

@@ -130,3 +130,10 @@ viame_lite_generated( vital_types_export.h core_types )
 if( VIAME_ENABLE_PYTHON )
   include( "${CMAKE_CURRENT_SOURCE_DIR}/python.cmake" )
 endif()
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

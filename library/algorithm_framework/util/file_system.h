@@ -11,7 +11,7 @@
 /// them changes once rather than two hundred times.
 ///
 /// The semantics are **kwiversys's**, not `std::filesystem`'s, and they are
-/// recorded in `tests/library/algorithm_framework/test_file_system.cxx`. They
+/// recorded in `library/algorithm_framework/tests/test_file_system.cxx`. They
 /// differ in at least four places -- see that file -- and a call site
 /// rewritten directly against `std::filesystem` would have changed behaviour
 /// in ways nothing would have caught.

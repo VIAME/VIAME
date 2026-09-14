@@ -222,3 +222,10 @@ if( VIAME_ENABLE_PYTHON )
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/torchvision
     CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-VISION )
 endif()
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

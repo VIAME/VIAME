@@ -185,3 +185,10 @@ target_include_directories( viame_processes_image_processing PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

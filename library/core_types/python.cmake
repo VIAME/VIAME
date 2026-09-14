@@ -11,7 +11,7 @@
 # argument rather than deriving it from the source location, so
 # `kwiver.vital.types.bounding_box` is still `kwiver.vital.types.bounding_box`
 # and the four files in the tree that import a submodule by name keep working.
-# `tests/library/core_types/test_python_types.py` holds that surface to what
+# `library/core_types/tests/test_python_types.py` holds that surface to what
 # it was: 106 classes and 965 members, recorded before this moved.
 ##
 

@@ -179,3 +179,10 @@ if( VIAME_ENABLE_PYTHON )
     video_io
     pil_image_io )
 endif()
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

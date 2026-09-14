@@ -7,7 +7,7 @@
 ByteTrack, OC-SORT, DeepSORT and BoT-SORT each defined this class. P2-T06
 found the four agreeing byte for byte -- means, covariances and projections,
 over a sixteen-measurement sequence and two sets of process-noise weights --
-and made them one. `tests/library/object_trackers/test_kalman.py` holds this
+and made them one. `library/object_trackers/tests/test_kalman.py` holds this
 copy to a recording of those four. DeepSORT's `gating_distance`, which none of
 the others had, is kept; BoT-SORT called its projection `_project`, only from
 inside the class.

@@ -148,3 +148,10 @@ if( VIAME_ENABLE_PYTHON )
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sam3
     CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-SAM3 )
 endif()
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

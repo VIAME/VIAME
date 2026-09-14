@@ -6,7 +6,7 @@
 #
 # `sync` and `thread_pool` are removed. `sync` produced identical output on
 # one thread -- recorded, before it went, in
-# `tests/library/pipeline_framework/test_scheduler.cxx` -- and `thread_pool`
+# `library/pipeline_framework/tests/test_scheduler.cxx` -- and `thread_pool`
 # described itself as "not functional".
 
 set( source

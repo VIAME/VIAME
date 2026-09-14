@@ -25,7 +25,7 @@ else()
   set( VIAME_TEST_PYPATH_SEP ":" )
 endif()
 
-# viame_add_pytest_test(
+# viame_add_test(
 #   NAME <ctest name>
 #   TARGET <pytest args...>           # e.g. <file.py> -k <Class>  OR  <file.py>::<Class>
 #   [LABELS <label>...]
@@ -35,7 +35,7 @@ endif()
 #   [PYTHONPATH_DIRS <dir>...]        # extra dirs prepended to PYTHONPATH (default mode)
 #   [SOURCE_SETUP]                    # source setup_viame.{sh,bat} before pytest
 #   [DISABLED] )
-function( viame_add_pytest_test )
+function( viame_add_test )
   set( options DISABLED SOURCE_SETUP )
   set( oneValueArgs NAME TIMEOUT WORKING_DIRECTORY SKIP_RETURN_CODE )
   set( multiValueArgs TARGET LABELS PYTHONPATH_DIRS )

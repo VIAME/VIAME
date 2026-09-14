@@ -20,7 +20,7 @@
 ///
 /// The writer reproduces OpenCV's layout exactly, down to where a long data
 /// array wraps, so a regenerated calibration file diffs cleanly against one
-/// FileStorage wrote. `tests/library/file_io` checks that byte for byte.
+/// FileStorage wrote. `library/file_io/tests` checks that byte for byte.
 
 #ifndef VIAME_FILE_IO_OPENCV_YAML_H
 #define VIAME_FILE_IO_OPENCV_YAML_H

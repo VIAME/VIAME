@@ -6,7 +6,7 @@
 # has to reproduce it.
 
 if( VIAME_ENABLE_PYTHON )
-  viame_add_pytest_test(
+  viame_add_test(
     NAME    "golden:video"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_video.py"
     LABELS  GOLDEN
@@ -14,7 +14,7 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
   )
 
-  viame_add_pytest_test(
+  viame_add_test(
     NAME    "golden:replay"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_golden.py"
     LABELS  GOLDEN

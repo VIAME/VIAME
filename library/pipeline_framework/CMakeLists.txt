@@ -170,9 +170,18 @@ install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   FILES_MATCHING
   PATTERN "*.h"
   PATTERN "*.txx"
-  PATTERN "CMakeLists.txt" EXCLUDE )
+  PATTERN "CMakeLists.txt" EXCLUDE
+  # the unit tests beside the code since P2-T09
+  PATTERN "tests" EXCLUDE )
 
 add_subdirectory( applets )
 add_subdirectory( schedulers )
 add_subdirectory( adapters )
 add_subdirectory( processes )
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

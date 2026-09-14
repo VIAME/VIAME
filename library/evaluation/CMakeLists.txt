@@ -51,3 +51,10 @@ endif()
 set_target_properties( viame_evaluation PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

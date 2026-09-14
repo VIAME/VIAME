@@ -200,6 +200,14 @@ endif()
 ###
 # Add VIAME subdirs
 ##
+# Tests are registered beside the code they test, so testing and the pytest
+# helper have to exist before the libraries are added.
+if( VIAME_ENABLE_TESTS )
+  enable_testing()
+  include( CTest )
+  include( "${VIAME_SOURCE_DIR}/tests/common/add_pytest_test.cmake" )
+endif()
+
 add_subdirectory( library )
 
 if( VIAME_ENABLE_PYTHON )
@@ -224,8 +232,6 @@ add_subdirectory(
   library/algorithm_framework/registry )
 
 if( VIAME_ENABLE_TESTS )
-  enable_testing()
-  include( CTest )
   add_subdirectory( tests )
 endif()
 

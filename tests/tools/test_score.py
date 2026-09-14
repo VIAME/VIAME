@@ -8,7 +8,7 @@ The drawing moved from `plugins/opencv/plot_metrics` to matplotlib in
 `tools/plot.py` under P7-T07. The pictures are a different picture on
 purpose, so what is held here is the set of them: every file name the
 OpenCV renderer produced still has to appear, drawn from the CSVs that
-`tests/plugins/core/test_plot_data_export.cxx` records.
+`library/evaluation/tests/test_plot_data_export.cxx` records.
 """
 import sys
 

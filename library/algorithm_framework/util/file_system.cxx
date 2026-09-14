@@ -8,7 +8,7 @@
 /// The semantics are kwiversys's, because two hundred call sites were
 /// written against them, and four of them are not `std::filesystem`'s. Each
 /// is marked below and recorded in
-/// `tests/library/algorithm_framework/test_file_system.cxx`; the recording
+/// `library/algorithm_framework/tests/test_file_system.cxx`; the recording
 /// was taken against kwiversys before this file replaced it, so it is the
 /// old behaviour rather than an opinion about the new.
 ///

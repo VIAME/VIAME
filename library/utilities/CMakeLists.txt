@@ -129,3 +129,10 @@ if( VIAME_ENABLE_PYTHON )
       DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/compat/${package} )
   endforeach()
 endif()
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

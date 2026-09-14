@@ -62,12 +62,16 @@ set( vital_sources
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../core_types/"
   DESTINATION "include/viame/core_types"
   FILES_MATCHING PATTERN "*.h" PATTERN "*.txx"
-  PATTERN "CMakeLists.txt" EXCLUDE )
+  PATTERN "CMakeLists.txt" EXCLUDE
+  # the unit tests beside the code since P2-T09; FILES_MATCHING would still
+  # create the empty directory
+  PATTERN "tests" EXCLUDE )
 
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   DESTINATION "include/viame/algorithm_framework"
   FILES_MATCHING PATTERN "*.h" PATTERN "*.txx"
-  PATTERN "CMakeLists.txt" EXCLUDE )
+  PATTERN "CMakeLists.txt" EXCLUDE
+  PATTERN "tests" EXCLUDE )
 
 ###
 # configure our compiler options
@@ -194,4 +198,11 @@ add_subdirectory( test_interface )
 ##
 if( VIAME_ENABLE_PYTHON )
   include( "${CMAKE_CURRENT_SOURCE_DIR}/algo/python.cmake" )
+endif()
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
 endif()

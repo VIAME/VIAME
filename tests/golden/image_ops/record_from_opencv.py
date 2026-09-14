@@ -3,7 +3,7 @@
 
 The counterpart of `tests/golden/math/record_from_eigen.cxx`: run once, by
 hand, while OpenCV is still on the path, and commit the result. The C++ test
-`tests/library/image_ops/test_color.cxx` reads it and holds the in-house
+`library/image_ops/tests/test_color.cxx` reads it and holds the in-house
 kernels to it, at the tolerances `design/tasks/phase-07-drop-opencv.md`
 states per function.
 

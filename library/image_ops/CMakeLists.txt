@@ -84,3 +84,10 @@ install( FILES       ${image_ops_headers}
 
 install( FILES       ${CMAKE_CURRENT_BINARY_DIR}/viame_image_ops_export.h
          DESTINATION include/viame/image_ops )
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

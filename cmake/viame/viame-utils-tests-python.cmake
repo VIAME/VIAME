@@ -19,7 +19,7 @@
 # Was `kwiver_add_test` in kwiver's `kwiver-utils-tests.cmake`, trimmed to
 # what the callers below actually pass.
 #-
-function( viame_add_test name instance )
+function( viame_add_test_instance name instance )
   if( TARGET test-${name} )
     set( test_path "$<TARGET_FILE:test-${name}>" )
   else()
@@ -114,7 +114,7 @@ endfunction ()
 #
 #
 function (viame_add_python_test group instance)
-  viame_add_test(python-${group} ${instance} ${ARGN})
+  viame_add_test_instance(python-${group} ${instance} ${ARGN})
 endfunction ()
 
 

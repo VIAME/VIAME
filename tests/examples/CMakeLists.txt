@@ -27,11 +27,11 @@ if( VIAME_ENABLE_PYTHON )
 
   set( VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}" )
 
-  # Thin wrappers over the shared viame_add_pytest_test() helper
+  # Thin wrappers over the shared viame_add_test() helper
   # (tests/common/add_pytest_test.cmake), keeping the per-test call sites
   # below unchanged.
   function( add_example_script_test TEST_NAME TEST_FILE TEST_CLASS WORKING_DIR )
-    viame_add_pytest_test(
+    viame_add_test(
       NAME "${TEST_NAME}"
       TARGET "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}" -k "${TEST_CLASS}"
       LABELS "${EXAMPLE_TEST_LABELS}"
@@ -42,7 +42,7 @@ if( VIAME_ENABLE_PYTHON )
   endfunction()
 
   function( add_critical_example_test TEST_NAME TEST_FILE TEST_CLASS WORKING_DIR )
-    viame_add_pytest_test(
+    viame_add_test(
       NAME "${TEST_NAME}"
       TARGET "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}" -k "${TEST_CLASS}"
       LABELS "${CRITICAL_TEST_LABELS}"

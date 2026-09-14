@@ -163,7 +163,7 @@ def main():
                 k, d, r, p, size, cv2.CV_32FC1)
 
             # Flat, four numbers per sample: x, y, and where they come
-            # from. `tests/library/golden_json.h` reads flat arrays only.
+            # from. `tests/golden/golden_json.h` reads flat arrays only.
             samples = []
             for x, y in MAP_SAMPLES:
                 if x >= rig["width"] or y >= rig["height"]:

@@ -274,3 +274,10 @@ if( VIAME_ENABLE_SEAGIS )
       )
   endif()
 endif()
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

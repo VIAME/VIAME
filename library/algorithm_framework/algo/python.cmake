@@ -16,7 +16,7 @@
 # The committed bindings are byte-for-byte what the generator last produced,
 # minus its provenance comment and with sibling includes made local. They
 # were good code: idiomatic pybind11 with the interface docstrings carried
-# over. `tests/library/core_types/test_python_types.py` holds the 44 exported
+# over. `library/core_types/tests/test_python_types.py` holds the 44 exported
 # classes and their members to what they were.
 #
 # Each file keeps its name with a `_python` suffix, as the type bindings do,
