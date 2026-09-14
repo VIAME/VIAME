@@ -4,7 +4,7 @@
 
 #include "detect_in_subregions_process.h"
 
-#include "windowed_utils.h"
+#include <viame/image_ops/windowed_utils.h>
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>
@@ -181,7 +181,7 @@ public:
 
       // Detect within the region of interest. The TODO this replaces asked
       // for exactly this -- "ocv is only used to crop the image ... then this
-      // can be moved to a core process" -- and moving it is phase 2's job.
+      // can be moved to a core process" -- and P2-T05 moved it.
       windowed_image = kv::image_container_sptr(
         new kv::simple_image_container( crop_region( source, roi ) ) );
 

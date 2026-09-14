@@ -2,17 +2,17 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_OPENCV_RANDOM_HUE_SHIFT_H
-#define VIAME_OPENCV_RANDOM_HUE_SHIFT_H
+#ifndef VIAME_IMAGE_PROCESSING_RANDOM_HUE_SHIFT_H
+#define VIAME_IMAGE_PROCESSING_RANDOM_HUE_SHIFT_H
 
-#include "viame_opencv_export.h"
+#include "viame_image_processing_export.h"
 
 #include <viame/algorithm_framework/algo/image_filter.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 namespace viame {
 
-class VIAME_OPENCV_EXPORT random_hue_shift
+class VIAME_IMAGE_PROCESSING_EXPORT random_hue_shift
   : public kwiver::vital::algo::image_filter
 {
 public:
@@ -41,4 +41,4 @@ public:
 
 } // end namespace
 
-#endif /* VIAME_OPENCV_RANDOM_HUE_SHIFT_H */
+#endif /* VIAME_IMAGE_PROCESSING_RANDOM_HUE_SHIFT_H */

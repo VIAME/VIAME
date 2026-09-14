@@ -22,7 +22,7 @@ import sys
 import tempfile
 import zipfile
 
-from viame.core import model_wrap
+from viame.utilities import model_wrap
 
 VIDEO_EXTS = (
     "3qp;3g2;amv;asf;avi;drc;gif;gifv;f4v;f4p;f4a;f4bflv;m4v;mkv;mp4;m4p;"

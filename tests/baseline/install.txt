@@ -615,7 +615,6 @@ include/sprokit/python/util/pystream.h
 include/sprokit/python/util/sprokit_python_util_export.h
 include/viame/adaptive_detector_trainer.h
 include/viame/adaptive_tracker_trainer.h
-include/viame/add_keypoints_from_mask.h
 include/viame/algorithm_framework
 include/viame/algorithm_framework/algo
 include/viame/algorithm_framework/algo/algorithm.h
@@ -867,7 +866,6 @@ include/viame/classifiers/refine_detections_nms.h
 include/viame/classifiers/refine_tracks_average_tot.h
 include/viame/classifiers/viame_classifiers_export.h
 include/viame/classifiers/windowed_refiner.h
-include/viame/convert_color_space.h
 include/viame/core_types
 include/viame/core_types/activity.h
 include/viame/core_types/activity_type.h
@@ -965,7 +963,6 @@ include/viame/core_types/video_settings.h
 include/viame/core_types/video_uninterpreted_data.h
 include/viame/core_types/vital_types.h
 include/viame/core_types/vital_types_export.h
-include/viame/debayer_filter.h
 include/viame/descriptors/handle_descriptor_request_core.h
 include/viame/descriptors/viame_descriptors_export.h
 include/viame/evaluate_models.h
@@ -1033,7 +1030,9 @@ include/viame/image_processing/close_loops_bad_frames_only.h
 include/viame/image_processing/close_loops_homography_guided.h
 include/viame/image_processing/color_commonality.h
 include/viame/image_processing/compute_ref_homography_core.h
+include/viame/image_processing/convert_color_space.h
 include/viame/image_processing/convert_image.h
+include/viame/image_processing/debayer_filter.h
 include/viame/image_processing/detect_features_filtered.h
 include/viame/image_processing/draw_detected_object_set.h
 include/viame/image_processing/equalize_via_percentiles.h
@@ -1041,13 +1040,17 @@ include/viame/image_processing/filter_features_nonmax.h
 include/viame/image_processing/match_features_homography.h
 include/viame/image_processing/merge_images.h
 include/viame/image_processing/morphology.h
+include/viame/image_processing/random_hue_shift.h
 include/viame/image_processing/refine_detections_write_to_disk.h
 include/viame/image_processing/split_image.h
 include/viame/image_processing/split_image_channels.h
+include/viame/image_processing/split_image_habcam.h
+include/viame/image_processing/split_image_horizontally.h
 include/viame/image_processing/threshold.h
 include/viame/image_processing/track_features_core.h
 include/viame/image_processing/track_set_impl.h
 include/viame/image_processing/viame_image_processing_export.h
+include/viame/image_processing/warp_image_ocv.h
 include/viame/iqr_session_adaboost.h
 include/viame/measurement/camera_intrinsics.h
 include/viame/measurement/epipolar_geometry.h
@@ -1126,10 +1129,9 @@ include/viame/pipeline_framework/types.h
 include/viame/pipeline_framework/utils.h
 include/viame/pipeline_framework/version.h
 include/viame/query_track_descriptor_set_csv.h
-include/viame/random_hue_shift.h
 include/viame/refine_detections_svm.h
-include/viame/split_image_habcam.h
-include/viame/split_image_horizontally.h
+include/viame/segmentation/add_keypoints_from_mask.h
+include/viame/segmentation/viame_segmentation_export.h
 include/viame/train_detector_svm.h
 include/viame/train_supervisor.h
 include/viame/utilities/applet_attributes.h
@@ -1156,7 +1158,6 @@ include/viame/video_io/filename_to_timestamp.h
 include/viame/video_io/viame_video_io_export.h
 include/viame/video_io/video_input_image_list.h
 include/viame/video_io/write_disparity_maps.h
-include/viame/warp_image_ocv.h
 include/viame/windowed_trainer.h
 include/viame/windowed_utils.h
 launch_dive_interface.sh
@@ -1249,6 +1250,9 @@ lib/libviame_processes_video_io.so
 lib/libviame_registry.so
 lib/libviame_registry.so.1
 lib/libviame_registry.so.1.0.0
+lib/libviame_segmentation.so
+lib/libviame_segmentation.so.1
+lib/libviame_segmentation.so.1.0.0
 lib/libviame_svm.so
 lib/libviame_svm.so.1
 lib/libviame_svm.so.1.0.0
@@ -1455,8 +1459,10 @@ lib/python3.10/site-packages/viame/image_processing/__init__.py
 lib/python3.10/site-packages/viame/image_processing/align_cameras_process.py
 lib/python3.10/site-packages/viame/image_processing/alignment_core.py
 lib/python3.10/site-packages/viame/image_processing/equalize_via_percentiles.py
+lib/python3.10/site-packages/viame/image_processing/fft_filter_based_on_ref.py
 lib/python3.10/site-packages/viame/image_processing/multicam_homog_blackout.py
 lib/python3.10/site-packages/viame/image_processing/multicam_homog_mosaic.py
+lib/python3.10/site-packages/viame/image_processing/multimodal_registration.py
 lib/python3.10/site-packages/viame/image_processing/ocv_color_correction.py
 lib/python3.10/site-packages/viame/image_processing/ocv_enhancer.py
 lib/python3.10/site-packages/viame/image_processing/ocv_estimators.py
@@ -1465,6 +1471,7 @@ lib/python3.10/site-packages/viame/image_processing/ocv_flann_matcher.py
 lib/python3.10/site-packages/viame/image_processing/ocv_segmenters.py
 lib/python3.10/site-packages/viame/image_processing/ocv_sift_surf.py
 lib/python3.10/site-packages/viame/image_processing/optical_flow.py
+lib/python3.10/site-packages/viame/image_processing/registration_utils.py
 lib/python3.10/site-packages/viame/image_processing/stabilize_many_images.py
 lib/python3.10/site-packages/viame/image_processing/utility_processes.py
 lib/python3.10/site-packages/viame/measurement/__init__.py
@@ -1475,6 +1482,8 @@ lib/python3.10/site-packages/viame/measurement/ocv_stereo_disparity.py
 lib/python3.10/site-packages/viame/measurement/stereo_frame_selection.py
 lib/python3.10/site-packages/viame/object_detectors/__init__.py
 lib/python3.10/site-packages/viame/object_detectors/hough_circle_detector.py
+lib/python3.10/site-packages/viame/object_detectors/stereo_algos.py
+lib/python3.10/site-packages/viame/object_detectors/stereo_processes.py
 lib/python3.10/site-packages/viame/onnx/__init__.py
 lib/python3.10/site-packages/viame/onnx/calibration_io.py
 lib/python3.10/site-packages/viame/onnx/epipolar_dino_matcher.py
@@ -1490,17 +1499,11 @@ lib/python3.10/site-packages/viame/onnx/onnx_refiner.py
 lib/python3.10/site-packages/viame/onnx/run_epipolar_onnx.py
 lib/python3.10/site-packages/viame/onnx/triangulate.py
 lib/python3.10/site-packages/viame/opencv/__init__.py
-lib/python3.10/site-packages/viame/opencv/fft_filter_based_on_ref.py
-lib/python3.10/site-packages/viame/opencv/multimodal_registration.py
 lib/python3.10/site-packages/viame/opencv/prior_coverage_opencv.py
-lib/python3.10/site-packages/viame/opencv/registration_utils.py
-lib/python3.10/site-packages/viame/opencv/stereo_algos.py
 lib/python3.10/site-packages/viame/opencv/stereo_demo.py
 lib/python3.10/site-packages/viame/opencv/stereo_expt.py
 lib/python3.10/site-packages/viame/opencv/stereo_pipeline.py
-lib/python3.10/site-packages/viame/opencv/stereo_processes.py
 lib/python3.10/site-packages/viame/opencv/stereo_utils.py
-lib/python3.10/site-packages/viame/opencv/watershed_segmenter.py
 lib/python3.10/site-packages/viame/processes/__init__.py
 lib/python3.10/site-packages/viame/pytorch/__init__.py
 lib/python3.10/site-packages/viame/pytorch/botsort_tracker.py
@@ -1797,6 +1800,7 @@ lib/python3.10/site-packages/viame/segmentation/__init__.py
 lib/python3.10/site-packages/viame/segmentation/interactive_segmentation.py
 lib/python3.10/site-packages/viame/segmentation/interactive_service.py
 lib/python3.10/site-packages/viame/segmentation/segmentation_utils.py
+lib/python3.10/site-packages/viame/segmentation/watershed_segmenter.py
 lib/python3.10/site-packages/viame/utilities/__init__.py
 lib/python3.10/site-packages/viame/utilities/compat.py
 lib/python3.10/site-packages/viame/utilities/model_wrap.py

@@ -5,10 +5,10 @@
 /// \file
 /// \brief Header for HabCam auto split_image algorithm
 
-#ifndef VIAME_OPENCV_SPLIT_IMAGE_HABCAM_H
-#define VIAME_OPENCV_SPLIT_IMAGE_HABCAM_H
+#ifndef VIAME_IMAGE_PROCESSING_SPLIT_IMAGE_HABCAM_H
+#define VIAME_IMAGE_PROCESSING_SPLIT_IMAGE_HABCAM_H
 
-#include "viame_opencv_export.h"
+#include "viame_image_processing_export.h"
 
 #include <viame/algorithm_framework/algo/split_image.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -16,7 +16,7 @@
 namespace viame {
 
 /// A class for splitting an image in class horizontally, only when needed.
-class VIAME_OPENCV_EXPORT split_image_habcam
+class VIAME_IMAGE_PROCESSING_EXPORT split_image_habcam
   : public kwiver::vital::algo::split_image
 {
 public:
@@ -41,4 +41,4 @@ public:
 
 } // end namespace viame
 
-#endif // VIAME_OPENCV_SPLIT_IMAGE_HABCAM_H
+#endif // VIAME_IMAGE_PROCESSING_SPLIT_IMAGE_HABCAM_H

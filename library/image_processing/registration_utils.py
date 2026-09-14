@@ -2,7 +2,7 @@
 # This file is part of VIAME, and is distributed under an OSI-approved #
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
-"""Shared registration engine (``viame.opencv.registration_utils``).
+"""Shared registration engine (``viame.image_processing.registration_utils``).
 
 Sequential homography-chain registration, GPS / flight-log metadata loading, and
 GPS geo-anchoring, shared by the standalone tools ``3d.py`` and

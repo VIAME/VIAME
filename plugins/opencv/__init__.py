@@ -9,14 +9,12 @@
 # `kwiver.vital.plugins.discovery` turns each into a stand-in that imports
 # its module the first time something asks for an instance.
 #
-# This replaced a `__vital_algorithm_register__` that imported every
-# implementation module at startup, which was the only way the classes came
-# to exist for the subclass walk that registers them. See P8-T10.
-__vital_algorithm_declarations__ = [
-    ( "segment_via_points", "ocv_watershed",
-      "OpenCV watershed-based point segmentation algorithm",
-      "viame.opencv.watershed_segmenter:WatershedSegmenter" ),
-]
+# Empty since P2-T05: `ocv_watershed` is `viame.segmentation`,
+# `gmm_motion_detector` is `viame.object_detectors` and
+# `ocv_fft_filter_based_on_ref` is `viame.image_processing`. What is left in
+# this package is `stereo_utils`, `stereo_pipeline` and `prior_coverage_opencv`,
+# which nothing registers, and the demo scripts.
+__vital_algorithm_declarations__ = []
 
 # ----------------------------------------------------------------------------
 # The processes this package provides, without importing any of them.
@@ -30,11 +28,4 @@ __vital_algorithm_declarations__ = [
 # "homography" not registered`, so it has never been in the compatibility
 # baseline -- see open question 2.13. Declaring it would put a name in the
 # registry that cannot be built, which is the thing that question is about.
-__sprokit_process_declarations__ = [
-    ( "gmm_motion_detector",
-      "preliminatry fish detection",
-      "viame.opencv.stereo_processes:GMMDetectFishProcess" ),
-    ( "ocv_fft_filter_based_on_ref",
-      "Filter image in the frequency based on some template",
-      "viame.opencv.fft_filter_based_on_ref:filter_based_on_ref_process" ),
-]
+__sprokit_process_declarations__ = []

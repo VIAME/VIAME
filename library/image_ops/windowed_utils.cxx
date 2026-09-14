@@ -4,6 +4,8 @@
 
 #include "windowed_utils.h"
 
+#include "dispatch.h"
+#include "resample.h"
 #include "warp.h"
 
 #include <cmath>
@@ -15,6 +17,7 @@
 namespace viame {
 
 namespace kv = kwiver::vital;
+namespace io = viame::image_ops;
 
 // =============================================================================
 window_settings
@@ -356,6 +359,22 @@ resize_image_by_scale(
 }
 
 // -----------------------------------------------------------------------------
+kv::image
+crop_region( const kv::image& image, const image_rect& rect )
+{
+  return io::dispatch_pixel_type(
+    image,
+    [ & ]( auto const& typed ) -> kv::image
+    {
+      return kv::image( io::crop( typed,
+                                  static_cast< size_t >( rect.x ),
+                                  static_cast< size_t >( rect.y ),
+                                  static_cast< size_t >( rect.width ),
+                                  static_cast< size_t >( rect.height ) ) );
+    } );
+}
+
+// ----------------------------------------------------------------------------
 kv::image
 crop_image(
   const kv::image& src,

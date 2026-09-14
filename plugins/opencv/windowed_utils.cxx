@@ -94,30 +94,8 @@ padded( kv::image const& source, size_t width, size_t height )
     } );
 }
 
-// ----------------------------------------------------------------------------
-kv::image
-cropped( kv::image const& source, int x, int y, int width, int height )
-{
-  return io::dispatch_pixel_type(
-    source,
-    [ & ]( auto const& typed ) -> kv::image
-    {
-      return kv::image( io::crop( typed,
-                                  static_cast< size_t >( x ),
-                                  static_cast< size_t >( y ),
-                                  static_cast< size_t >( width ),
-                                  static_cast< size_t >( height ) ) );
-    } );
-}
-
 } // namespace
 
-// ----------------------------------------------------------------------------
-kv::image
-crop_region( const kv::image& image, const image_rect& rect )
-{
-  return cropped( image, rect.x, rect.y, rect.width, rect.height );
-}
 
 // ----------------------------------------------------------------------------
 double

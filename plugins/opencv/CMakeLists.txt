@@ -3,34 +3,22 @@
 # Loadable algorithms
 ##
 
-# No OpenCV. The directory keeps its name until phase 2 moves what is in it
-# into `library/`; what it holds now is the habcam and stereo pieces, the
-# colour filters and the windowed wrappers, all on `image_ops`.
+# No OpenCV, and not much else either: P2-T05 took the colour and split
+# filters, `add_keypoints_from_mask`, `detect_in_subregions` and the windowed
+# detector and refiner into `library/`. What is left is the stereo pairing
+# and measurement, which P2-T06 takes, and the windowed trainer, which waits
+# for `library/training`.
 
 set( plugin_headers
-  add_keypoints_from_mask.h
-  convert_color_space.h
-  debayer_filter.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
-  random_hue_shift.h
-  split_image_habcam.h
-  split_image_horizontally.h
-  warp_image_ocv.h
   windowed_trainer.h
   windowed_utils.h
 )
 
 set( plugin_sources
-  add_keypoints_from_mask.cxx
-  convert_color_space.cxx
-  debayer_filter.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
-  random_hue_shift.cxx
-  split_image_habcam.cxx
-  split_image_horizontally.cxx
-  warp_image_ocv.cxx
   windowed_trainer.cxx
   windowed_utils.cxx
 )
@@ -82,7 +70,6 @@ viame_register_statically( viame_opencv
 
 # Add process library
 set( process_headers
-  detect_in_subregions_process.h
   measure_objects_process.h
   pair_stereo_detections_process.h
   pair_stereo_tracks_process.h
@@ -90,7 +77,6 @@ set( process_headers
 
 set( process_sources
   register_processes.cxx
-  detect_in_subregions_process.cxx
   measure_objects_process.cxx
   pair_stereo_detections_process.cxx
   pair_stereo_tracks_process.cxx
@@ -108,6 +94,8 @@ viame_add_plugin( viame_processes_opencv
                    kwiver::sprokit_pipeline
                    viame_measurement
                    viame_opencv
+                   # `measure_objects_process` hangs keypoints off a mask
+                   viame_segmentation
 )
 
 target_include_directories( viame_processes_opencv PRIVATE
@@ -119,17 +107,11 @@ target_include_directories( viame_processes_opencv PRIVATE
 if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames
     __init__
-    fft_filter_based_on_ref
-    multimodal_registration
     prior_coverage_opencv
-    registration_utils
-    stereo_algos
     stereo_demo
     stereo_expt
     stereo_pipeline
-    stereo_processes
     stereo_utils
-    watershed_segmenter
   )
 
   foreach( rel_modname IN ITEMS ${_rel_modnames} )

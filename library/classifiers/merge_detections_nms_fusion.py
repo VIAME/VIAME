@@ -16,10 +16,7 @@ import numpy as np
 import ast
 
 
-try:
-    from viame.core import detection_fusion_core as dfc
-except ImportError:
-    import detection_fusion_core as dfc
+from viame.classifiers import detection_fusion_core as dfc
 
 ##############################################################################
 # Inspired by https://github.com/ZFTurbo/Weighted-Boxes-Fusion

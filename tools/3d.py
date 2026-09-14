@@ -36,8 +36,8 @@ import importlib
 
 # Shared registration engine (image listing, multicam detection) lives in the
 # OpenCV plugin so other tools can reuse it.
-from viame.opencv import registration_utils as _sr
-from viame.opencv.registration_utils import get_image_files, detect_multicam
+from viame.image_processing import registration_utils as _sr
+from viame.image_processing.registration_utils import get_image_files, detect_multicam
 
 
 # ---------------------------------------------------------------------------

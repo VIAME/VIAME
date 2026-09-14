@@ -23,15 +23,23 @@
 #include <viame/algorithm_framework/algo/refine_detections.h>
 #include <viame/algorithm_framework/algo/split_image.h>
 #include <viame/algorithm_framework/algo/track_features.h>
+#include <viame/algorithm_framework/algo/warp_image.h>
+#include <viame/algorithm_framework/plugin/register_algorithm.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "average_frames.h"
+#include "convert_color_space.h"
+#include "debayer_filter.h"
 #include "close_loops_homography_guided.h"
 #include "color_commonality.h"
 #include "convert_image.h"
 #include "equalize_via_percentiles.h"
 #include "morphology.h"
+#include "random_hue_shift.h"
+#include "split_image_habcam.h"
+#include "split_image_horizontally.h"
 #include "threshold.h"
+#include "warp_image_ocv.h"
 
 // Imported from arrows/ocv and arrows/core in P5-T04
 #include "close_loops_appearance_indexed.h"
@@ -196,6 +204,21 @@ register_factories( kv::registry& vpm )
                            "multi_method", "Close loops by an appearance index" )
 
 #undef VIAME_REGISTER_IMPORTED
+
+  // From `plugins/opencv` in P2-T05. None of them has included OpenCV since
+  // P7-T04b; the names they register under are unchanged.
+  register_algorithm< kv::algo::image_filter,
+    convert_color_space >( vpm, module_name );
+  register_algorithm< kv::algo::image_filter,
+    debayer_filter >( vpm, module_name );
+  register_algorithm< kv::algo::image_filter,
+    random_hue_shift >( vpm, module_name );
+  register_algorithm< kv::algo::split_image,
+    split_image_habcam >( vpm, module_name );
+  register_algorithm< kv::algo::split_image,
+    split_image_horizontally >( vpm, module_name );
+  register_algorithm< kv::algo::warp_image,
+    warp_image_ocv >( vpm, module_name );
 
   vpm.mark_module_as_loaded( module_name );
 }

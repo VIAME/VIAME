@@ -5,9 +5,19 @@
 """Setting a detection's mask.
 
 `interactive_segmentation` is the tool DIVE drives, `interactive_service`
-the host it talks to, and `segmentation_utils` what both build on. None of
-them registers an algorithm or a process -- they are run directly, as
-`python -m viame.segmentation.interactive_segmentation` -- so this package
-has no declarations and is deliberately absent from
-`BUILTIN_PLUGIN_PACKAGES`.
+the host it talks to, and `segmentation_utils` what both build on. Those
+three are run directly, as
+`python -m viame.segmentation.interactive_segmentation`, and register
+nothing; `watershed_segmenter` came from `viame.opencv` in P2-T05 and does.
 """
+
+
+# ----------------------------------------------------------------------------
+# What this package provides, without importing any of it.
+#
+# Each entry is ( interface, name, description, "module:Class" ).
+__vital_algorithm_declarations__ = [
+    ( "segment_via_points", "ocv_watershed",
+      "OpenCV watershed-based point segmentation algorithm",
+      "viame.segmentation.watershed_segmenter:WatershedSegmenter" ),
+]

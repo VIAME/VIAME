@@ -148,7 +148,7 @@ def main():
             continue
         for path in candidates:
             actual = mapped.get(path, "?")
-            if actual == "STRUCTURAL":
+            if actual in ("STRUCTURAL", "DELETE"):
                 continue
             actual_dir = actual.split("/")[1] if actual.startswith("library/") \
                 else actual

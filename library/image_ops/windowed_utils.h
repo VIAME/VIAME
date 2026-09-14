@@ -261,6 +261,19 @@ separate_boundary_detections(
 /// \param src Source image
 /// \param roi Region of interest to crop
 /// \returns Cropped image view (shares memory with source)
+/// The \p rect region of \p image, as a new image
+///
+/// `cv::Mat`'s region-of-interest operator, which the windowed trainer and
+/// `detect_in_subregions` chipped with. Unlike `crop_image` below -- and
+/// unlike OpenCV's -- this **copies**, which is what a caller that hands the
+/// chip to a detector and then keeps it wants. Came from
+/// `plugins/opencv/windowed_utils` in P2-T05.
+VIAME_IMAGE_OPS_EXPORT
+kv::image
+crop_region(
+  const kv::image& image,
+  const image_rect& rect );
+
 VIAME_IMAGE_OPS_EXPORT
 kv::image
 crop_image(

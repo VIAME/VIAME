@@ -79,7 +79,7 @@ def header_destinations(rows):
     found = {}
     ambiguous = ambiguous_basenames()
     for source, destination in rows:
-        if destination == "STRUCTURAL" or not source.endswith((".h", ".hpp")):
+        if destination in ("STRUCTURAL", "DELETE") or not source.endswith((".h", ".hpp")):
             continue
         if os.path.basename(destination) in ambiguous:
             continue
@@ -189,8 +189,13 @@ def fix_relative_imports():
             # moves break. A name that happens to match something in an
             # unrelated vendored subtree is a coincidence -- and sometimes it
             # is not even code, but a `from .mixins import *` in a doctest.
+            #
+            # A module still at the top of a `plugins/<name>/` package counts
+            # too: `stereo_algos` moved to `object_detectors` while the
+            # `stereo_utils` it imports waits in `plugins/opencv` for P2-T06.
             candidates = [p for p in homes.get(name, [])
-                          if p.startswith("library/")
+                          if (p.startswith("library/")
+                              or os.path.dirname(p).count("/") == 1)
                           and package_of(p) != package]
             if len(candidates) != 1:
                 return match.group(0)
@@ -202,6 +207,55 @@ def fix_relative_imports():
         updated = pattern.sub(replace, original)
         if updated != original:
             open(os.path.join(ROOT, path), "w", encoding="utf-8").write(updated)
+
+    return fixed
+
+
+def fix_package_imports():
+    """Repoint `from viame.<old> import <module>` at the module's new package.
+
+    The dotted form, `viame.core.detection_fusion_core`, is easy to rewrite
+    with a search. The package form, `from viame.core import
+    detection_fusion_core`, names the module after the `import` and slips
+    past it -- and it fails only when the line runs, which for `tools/` and
+    the fallback branches of a `try` can be a CRITICAL example rather than
+    the build. Only a module name that exists at exactly one library root is
+    rewritten.
+    """
+    homes = {}
+    for path in run("git", "ls-files", "library").split():
+        if (path.endswith(".py") and path.count("/") == 2
+                and not path.endswith("__init__.py")
+                and not path.startswith("library/tpl/")):
+            homes.setdefault(os.path.basename(path)[:-3], set()).add(
+                path.split("/")[1])
+
+    pattern = re.compile(
+        r"from viame\.(core|opencv|pytorch|onnx|colmap|svm|seagis) "
+        r"import (\w+)")
+    fixed = 0
+
+    for path in run("git", "ls-files").split():
+        if not path.endswith(".py") or path.startswith("library/tpl/"):
+            continue
+        full = os.path.join(ROOT, path)
+        try:
+            original = open(full, encoding="utf-8").read()
+        except (UnicodeDecodeError, IsADirectoryError, FileNotFoundError):
+            continue
+
+        def replace(match):
+            nonlocal fixed
+            dirs = homes.get(match.group(2))
+            if not dirs or len(dirs) != 1:
+                return match.group(0)
+            fixed += 1
+            return "from viame.%s import %s" % (next(iter(dirs)),
+                                                match.group(2))
+
+        updated = pattern.sub(replace, original)
+        if updated != original:
+            open(full, "w", encoding="utf-8").write(updated)
 
     return fixed
 
@@ -274,7 +328,7 @@ def main():
     rows = load_map()
     tracked = set(run("git", "ls-files", "plugins").split())
 
-    movable = [(s, d) for s, d in rows if d != "STRUCTURAL"]
+    movable = [(s, d) for s, d in rows if d not in ("STRUCTURAL", "DELETE")]
     pending = [(s, d) for s, d in movable if s in tracked]
     done = len(movable) - len(pending)
 
@@ -338,7 +392,7 @@ def main():
         if path.endswith((".h", ".hpp", ".cxx", ".cpp", ".txx", ".c")):
             touched += 1 if rewrite_includes(path, headers, owner) else 0
 
-    relative = fix_relative_imports()
+    relative = fix_relative_imports() + fix_package_imports()
     print("moved %d files; rewrote includes in %d; %d relative imports made "
           "absolute" % (len(selected), touched, relative))
     return 0

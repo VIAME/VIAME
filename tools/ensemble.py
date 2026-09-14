@@ -60,12 +60,15 @@ from ensemble_boxes import soft_nms
 from ensemble_boxes import non_maximum_weighted
 from ensemble_boxes import weighted_boxes_fusion
 
+# Installed, `viame.classifiers` is on the path. From a source checkout it is
+# not, so fall back to the file in the tree -- `library/classifiers` since
+# P2-T05, when it stopped being `plugins/core`.
 try:
-  from viame.core import detection_fusion_core as dfc
+  from viame.classifiers import detection_fusion_core as dfc
 except ImportError:
   sys.path.insert( 0, os.path.join(
     os.path.dirname( os.path.abspath( __file__ ) ),
-    '..', 'plugins', 'core' ) )
+    '..', 'library', 'classifiers' ) )
   import detection_fusion_core as dfc
 
 fusion_methods = [ 'wbf', 'nmw', 'soft_nms', 'nms', 'proben' ]

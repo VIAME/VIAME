@@ -64,17 +64,6 @@ format_image(
   int height,
   bool pad = false );
 
-/// The \p rect region of \p image, as a new image
-///
-/// `cv::Mat`'s region-of-interest operator, which the trainer used to chip
-/// with. Unlike OpenCV's this copies rather than aliasing, which is what the
-/// chip writer wants anyway.
-VIAME_OPENCV_EXPORT
-kwiver::vital::image
-crop_region(
-  const kwiver::vital::image& image,
-  const image_rect& rect );
-
 // `prepare_image_regions` is declared by `object_detectors/windowed_utils.h`, above,
 // and defined once -- there. Declaring it here as well gave one symbol two
 // definitions in two libraries; see the note where the definition used to be.

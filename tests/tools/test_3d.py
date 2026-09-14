@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-pytest.importorskip('viame.opencv.registration_utils')
+pytest.importorskip('viame.image_processing.registration_utils')
 
 spec = importlib.util.spec_from_file_location("review_3d", Path(__file__).resolve().parents[2] / "tools" / "3d.py")
 m = importlib.util.module_from_spec(spec)

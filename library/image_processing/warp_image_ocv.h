@@ -7,10 +7,10 @@
  * \brief Header for OCV warp_image algorithm
  */
 
-#ifndef VIAME_OPENCV_WARP_IMAGE_OCV_H
-#define VIAME_OPENCV_WARP_IMAGE_OCV_H
+#ifndef VIAME_IMAGE_PROCESSING_WARP_IMAGE_OCV_H
+#define VIAME_IMAGE_PROCESSING_WARP_IMAGE_OCV_H
 
-#include "viame_opencv_export.h"
+#include "viame_image_processing_export.h"
 
 #include <viame/algorithm_framework/algo/warp_image.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -18,7 +18,7 @@
 namespace viame {
 
 /// A class for warping an image onto another with a homography.
-class VIAME_OPENCV_EXPORT warp_image_ocv
+class VIAME_IMAGE_PROCESSING_EXPORT warp_image_ocv
   : public kwiver::vital::algo::warp_image
 {
 public:

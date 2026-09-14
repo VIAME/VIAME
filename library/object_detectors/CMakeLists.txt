@@ -137,12 +137,14 @@ endif()
 # Processes
 ##
 set( process_headers
+  detect_in_subregions_process.h
   detect_motion_process.h
   image_object_detector_process.h
   )
 
 set( process_sources
   register_processes.cxx
+  detect_in_subregions_process.cxx
   detect_motion_process.cxx
   image_object_detector_process.cxx
   )
@@ -158,6 +160,9 @@ viame_add_plugin( viame_processes_object_detectors
                    kwiver::vital_config
                    kwiver::vital_util
                    kwiver::vital_exceptions
+                   kwiver::vital_algo
+                   # `detect_in_subregions` chips the regions it is given
+                   viame_image_ops
                    viame_object_detectors
   )
 
@@ -165,19 +170,11 @@ viame_add_plugin( viame_processes_object_detectors
 # Python implementations
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_create_python_init( object_detectors )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    object_detectors
-    __init__ )
-
-  # `hough_circle` was C++ until P7-T04; the Hough gradient transform is not
-  # an image_ops primitive, so it stays cv2's and moves to python.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/hough_circle_detector.py
-    object_detectors
-    hough_circle_detector )
+  # Everything in the directory: `hough_circle_detector`, which was C++
+  # until P7-T04 -- the Hough gradient transform is not an image_ops
+  # primitive, so it stays cv2's -- and the GMM motion detector
+  # (`stereo_algos`, `stereo_processes`) from `plugins/opencv` in P2-T05.
+  viame_add_python_package( object_detectors )
 endif()
 
 target_include_directories( viame_processes_object_detectors PRIVATE

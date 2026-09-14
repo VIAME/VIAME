@@ -20,7 +20,7 @@ Approach (method "hybrid", the default):
   2. Within-camera affine registration chains + rig-constant cross-camera
      transforms (cluster consensus) give precise pixel-level geometry for
      the recent-overlap classes. These reuse the proven machinery in
-     viame.opencv.registration_utils (affine model, adaptive matching, GPS
+     viame.image_processing.registration_utils (affine model, adaptive matching, GPS
      dead-reckoning fill for feature-poor open-water frames).
   3. A global ground-occupancy grid in local ENU metres tracks everything
      ever seen. Each new image is mapped into ENU via a per-frame transform
@@ -69,10 +69,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import metadata as smd
 
-from viame.opencv import registration_utils as _sr
+from viame.image_processing import registration_utils as _sr
 _sr.import_dependencies()
 
-from viame.opencv.registration_utils import (
+from viame.image_processing.registration_utils import (
     compute_homography_pair, _compute_camera_chain,
     _poses_to_enu, _track_headings, _rot2,
     _geo_calibrate,

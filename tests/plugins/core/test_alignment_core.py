@@ -27,7 +27,7 @@ import pytest
 # installed as the viame.core package.
 _PLUGIN_DIR = Path(__file__).resolve().parents[3] / "plugins" / "core"
 try:
-    from viame.core import alignment_core
+    from viame.image_processing import alignment_core
 except ImportError:
     sys.path.insert(0, str(_PLUGIN_DIR))
     import alignment_core

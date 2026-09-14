@@ -27,7 +27,7 @@ except ImportError:
 
 sys.dont_write_bytecode = True
 
-from viame.core import model_wrap
+from viame.utilities import model_wrap
 
 # Character short-cuts and global constants
 div = os.path.sep

@@ -524,13 +524,13 @@ class TestInteractiveSegmentationService:
 
     def test_import_interactive_segmentation(self):
         """Test that interactive_segmentation module can be imported."""
-        from viame.core import interactive_segmentation
+        from viame.segmentation import interactive_segmentation
         assert hasattr(interactive_segmentation, 'InteractiveSegmentationService')
         assert hasattr(interactive_segmentation, 'load_algorithms_from_config')
 
     def test_segmentation_utils_import(self):
         """Test that segmentation_utils can be imported."""
-        from viame.core import segmentation_utils
+        from viame.segmentation import segmentation_utils
         assert hasattr(segmentation_utils, 'mask_to_polygon')
         assert hasattr(segmentation_utils, 'adaptive_simplify_polygon')
         assert hasattr(segmentation_utils, 'load_image')

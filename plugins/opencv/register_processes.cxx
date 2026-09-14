@@ -9,7 +9,6 @@
 #include "measure_objects_process.h"
 #include "pair_stereo_detections_process.h"
 #include "pair_stereo_tracks_process.h"
-#include "detect_in_subregions_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -66,17 +65,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::detect_in_subregions_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::detect_in_subregions_process > );
-  fact->add_attribute( kvpf::PLUGIN_NAME, "detect_in_subregions" )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-                    "Run a detection algorithm on all of the chips represented "
-                    "by an incoming detected_object_set" )
-    .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

@@ -10,22 +10,8 @@
 #include "viame_opencv_plugin_export.h"
 #include <viame/algorithm_framework/plugin/registry.h>
 
-#include <viame/algorithm_framework/algo/compute_stereo_depth_map.h>
-#include <viame/algorithm_framework/algo/image_filter.h>
-#include <viame/algorithm_framework/algo/image_object_detector.h>
-#include <viame/algorithm_framework/algo/optimize_cameras.h>
-#include <viame/algorithm_framework/algo/refine_detections.h>
-#include <viame/algorithm_framework/algo/split_image.h>
 #include <viame/algorithm_framework/algo/train_detector.h>
-#include <viame/algorithm_framework/algo/warp_image.h>
 
-#include "add_keypoints_from_mask.h"
-#include "convert_color_space.h"
-#include "debayer_filter.h"
-#include "random_hue_shift.h"
-#include "split_image_habcam.h"
-#include "split_image_horizontally.h"
-#include "warp_image_ocv.h"
 #include "windowed_trainer.h"
 
 namespace viame {
@@ -45,60 +31,20 @@ register_factories( kv::registry& vpm )
     return;
   }
 
-  auto fact = vpm.add_factory< kv::algo::refine_detections, add_keypoints_from_mask >(
-    add_keypoints_from_mask::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  // `ocv_color_correction` is
-  // `library/image_processing/ocv_color_correction.py` since P7-T04b.
-
-  // `ocv_stereo_disparity` is `library/measurement/ocv_stereo_disparity.py`
-  // since P7-T06.
-
-  fact = vpm.add_factory< kv::algo::image_filter, convert_color_space >(
-    convert_color_space::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::image_filter, debayer_filter >(
-    debayer_filter::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  // `ocv_grabcut` and `ocv_watershed` are
-  // `library/image_processing/ocv_segmenters.py` since P7-T04b.
-
-  // `ocv_detect_calibration_targets` is
-  // `library/measurement/ocv_calibration_targets.py` since P7-T06.
-
-  // `ocv_enhancer` and `vxl_enhancer` are
-  // `library/image_processing/ocv_enhancer.py` since P7-T04b; they were
-  // already one implementation under two names before phase 3.
-
-  // `ocv_optimize_stereo_cameras` is
-  // `library/measurement/ocv_optimize_stereo_cameras.py` since P7-T06, with
-  // `filter_stereo_feature_tracks` and `kmedians` beside it as
-  // `stereo_frame_selection.py`.
-
-  fact = vpm.add_factory< kv::algo::image_filter, random_hue_shift >(
-    random_hue_shift::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::split_image, split_image_habcam >(
-    split_image_habcam::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::split_image, split_image_horizontally >(
-    split_image_horizontally::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  // `ocv_windowed` for the detector and the refiner is `library` now: one
-  // implementation registered under both `windowed` and `ocv_windowed`
-  // (P2-T05). The trainer follows when `library/training` exists.
-  fact = vpm.add_factory< kv::algo::train_detector, ocv_windowed_trainer >(
+  // Everything else this file registered is `library/` now, and where each
+  // one went is in `design/lite-file-map.tsv`: the colour and split filters
+  // and `ocv_warp_image` to `image_processing`, `add_keypoints_from_mask` to
+  // `segmentation`, `detect_in_subregions` and the windowed detector to
+  // `object_detectors`, the windowed refiner to `classifiers` (P2-T05); the
+  // python replacements -- the segmenters, the enhancer, the colour
+  // correction, the calibration and stereo pieces -- to `image_processing`
+  // and `measurement` in phase 7.
+  //
+  // The trainer is the last of it, and follows when `library/training`
+  // exists. `ocv_windowed` is an alias of `windowed` for the detector and
+  // the refiner already; the trainer keeps two implementations until then.
+  auto fact = vpm.add_factory< kv::algo::train_detector, ocv_windowed_trainer >(
     ocv_windowed_trainer::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::warp_image, warp_image_ocv >(
-    warp_image_ocv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );

@@ -19,3 +19,15 @@ __vital_algorithm_declarations__ = [
       "Hough circle detector",
       "viame.object_detectors.hough_circle_detector:HoughCircleDetector" ),
 ]
+
+
+# ----------------------------------------------------------------------------
+# The processes this package provides, without importing any of them.
+#
+# Each entry is ( name, description, "module:Class" ). From `viame.opencv` in
+# P2-T05, where `stereo_algos.GMMForegroundObjectDetector` is what it builds.
+__sprokit_process_declarations__ = [
+    ( "gmm_motion_detector",
+      "preliminatry fish detection",
+      "viame.object_detectors.stereo_processes:GMMDetectFishProcess" ),
+]

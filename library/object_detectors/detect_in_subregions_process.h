@@ -2,14 +2,14 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_OPENCV_DETECT_IN_SUBREGIONS_PROCESS_H
-#define VIAME_OPENCV_DETECT_IN_SUBREGIONS_PROCESS_H
+#ifndef VIAME_OBJECT_DETECTORS_DETECT_IN_SUBREGIONS_PROCESS_H
+#define VIAME_OBJECT_DETECTORS_DETECT_IN_SUBREGIONS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 
-#include "viame_processes_opencv_export.h"
+#include "viame_processes_object_detectors_export.h"
 
 namespace viame
 {
@@ -29,7 +29,7 @@ namespace viame
  * bounding boxes.
  *
  */
-class VIAME_PROCESSES_OPENCV_NO_EXPORT detect_in_subregions_process
+class VIAME_PROCESSES_OBJECT_DETECTORS_EXPORT detect_in_subregions_process
   : public sprokit::process
 {
 public:
@@ -57,4 +57,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_OPENCV_DETECT_IN_SUBREGIONS_PROCESS_H */
+#endif /* VIAME_OBJECT_DETECTORS_DETECT_IN_SUBREGIONS_PROCESS_H */

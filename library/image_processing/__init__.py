@@ -73,6 +73,9 @@ __vital_algorithm_declarations__ = [
 # ctor is only ever called -- so a function that imports and constructs is as
 # good as the class and costs nothing until a pipeline wants one.
 __sprokit_process_declarations__ = [
+    ( "ocv_fft_filter_based_on_ref",
+      "Filter image in the frequency based on some template",
+      "viame.image_processing.fft_filter_based_on_ref:filter_based_on_ref_process" ),
     ( "align_cameras",
       "Multi-image-pair camera-to-camera registration (MINIMA-LoFTR)",
       "viame.image_processing.align_cameras_process:AlignCamerasProcess" ),

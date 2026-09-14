@@ -21,8 +21,8 @@ import warnings
 
 from os.path import splitext
 
-from .stereo_utils import (imscale, ensure_grayscale, from_homog, to_homog)
-from .stereo_utils import minimum_weight_assignment
+from viame.opencv.stereo_utils import (imscale, ensure_grayscale, from_homog, to_homog)
+from viame.opencv.stereo_utils import minimum_weight_assignment
 
 logger = logging.getLogger(__name__)
 

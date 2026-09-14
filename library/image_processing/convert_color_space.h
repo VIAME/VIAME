@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_OPENCV_CONVERT_COLOR_SPACE_H
-#define VIAME_OPENCV_CONVERT_COLOR_SPACE_H
+#ifndef VIAME_IMAGE_PROCESSING_CONVERT_COLOR_SPACE_H
+#define VIAME_IMAGE_PROCESSING_CONVERT_COLOR_SPACE_H
 
-#include "viame_opencv_export.h"
+#include "viame_image_processing_export.h"
 
 #include <viame/algorithm_framework/algo/image_filter.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -15,7 +15,7 @@ namespace viame {
 /**
  * @brief Convert between color spaces in opencv.
  */
-class VIAME_OPENCV_EXPORT convert_color_space
+class VIAME_IMAGE_PROCESSING_EXPORT convert_color_space
   : public kwiver::vital::algo::image_filter
 {
 public:
@@ -52,4 +52,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_OPENCV_CONVERT_COLOR_SPACE_H */
+#endif /* VIAME_IMAGE_PROCESSING_CONVERT_COLOR_SPACE_H */

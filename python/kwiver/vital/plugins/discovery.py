@@ -338,6 +338,7 @@ BUILTIN_PLUGIN_PACKAGES = (
     "viame.onnx",
     "viame.opencv",
     "viame.pytorch",
+    "viame.segmentation",
     "viame.tensorflow",
 )
 
@@ -482,14 +483,22 @@ def package_declares(package: str) -> bool:
     Either kind of declaration counts: a package may ship only processes
     (`viame.examples`, `viame.colmap`) or only algorithms, and scanning one
     of those would import every module in it to find what it already said.
+
+    So does an **empty** one. A package whose implementations have all moved
+    elsewhere -- `viame.opencv` after P2-T05 -- declares `[]`, which says
+    "nothing here", not "scan me". Testing the lists for truth read it as the
+    second, and the scan then imported whatever modules were still on disk in
+    that package: in an install prefix that only ever gains files, that was
+    the pre-move `watershed_segmenter.py`, and `ocv_watershed` registered
+    twice.
     """
     module = _import_package(package)
 
     if module is None:
         return False
 
-    return bool(getattr(module, DECLARATIONS_ATTR, None)
-                or getattr(module, PROCESS_DECLARATIONS_ATTR, None))
+    return (getattr(module, DECLARATIONS_ATTR, None) is not None
+            or getattr(module, PROCESS_DECLARATIONS_ATTR, None) is not None)
 
 
 def declared_pluggable_types() -> List[Type]:

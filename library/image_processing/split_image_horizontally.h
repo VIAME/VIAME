@@ -5,10 +5,10 @@
 /// \file
 /// \brief Header for OCV split_image algorithm
 
-#ifndef VIAME_OPENCV_SPLIT_IMAGE_HORIZONTALLY_H
-#define VIAME_OPENCV_SPLIT_IMAGE_HORIZONTALLY_H
+#ifndef VIAME_IMAGE_PROCESSING_SPLIT_IMAGE_HORIZONTALLY_H
+#define VIAME_IMAGE_PROCESSING_SPLIT_IMAGE_HORIZONTALLY_H
 
-#include "viame_opencv_export.h"
+#include "viame_image_processing_export.h"
 
 #include <viame/algorithm_framework/algo/split_image.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -16,7 +16,7 @@
 namespace viame {
 
 /// A class for splitting an image in class horizontally.
-class VIAME_OPENCV_EXPORT split_image_horizontally
+class VIAME_IMAGE_PROCESSING_EXPORT split_image_horizontally
   : public kwiver::vital::algo::split_image
 {
 public:

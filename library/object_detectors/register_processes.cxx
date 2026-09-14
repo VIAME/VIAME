@@ -9,6 +9,9 @@
  * Imported from `sprokit/processes/core` in P5-T04. The processes are
  * unchanged and are still in kwiver's namespace; what moved is where they
  * are built and where they register.
+ *
+ * `detect_in_subregions` came from `plugins/opencv` in P2-T05, where it had
+ * stopped needing OpenCV in P7-T04b.
  */
 
 #include "viame_processes_object_detectors_export.h"
@@ -16,6 +19,7 @@
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
+#include "detect_in_subregions_process.h"
 #include "detect_motion_process.h"
 #include "image_object_detector_process.h"
 
@@ -58,6 +62,11 @@ register_factories( kwiver::vital::registry& vpm )
   VIAME_REGISTER_PROCESS(
     kwiver::detect_motion_process, "detect_motion",
     "Detect motion in a sequence of images." )
+
+  VIAME_REGISTER_PROCESS(
+    viame::detect_in_subregions_process, "detect_in_subregions",
+    "Run a detection algorithm on all of the chips represented "
+    "by an incoming detected_object_set" )
 
 #undef VIAME_REGISTER_PROCESS
 

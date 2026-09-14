@@ -458,7 +458,7 @@ def run(args):
                 elif rmeta.get('lat') is not None and to_enu is not None:
                     poses = {r: records[r] for r in cams[cam]
                              if records.get(r, {}).get('lat') is not None}
-                    from viame.opencv.registration_utils import (
+                    from viame.image_processing.registration_utils import (
                         _poses_to_enu, _track_headings)
                     enu_local, _ = _poses_to_enu(poses, cams[cam])
                     heads = _track_headings(enu_local)

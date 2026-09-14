@@ -364,7 +364,7 @@ class AlignCamerasProcess(KwiverProcess):
         return kept
 
     def _finalize(self):
-        from viame.core import alignment_core
+        from viame.image_processing import alignment_core
 
         if self._finalized:
             return

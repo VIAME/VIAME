@@ -2,15 +2,26 @@
 #
 # These replace the third-party implementations one at a time, keeping the
 # registered names and config keys. Nothing here may include OpenCV or VXL.
+#
+# The habcam and horizontal splitters, the debayer, the colour-space
+# conversion, the hue shift and `ocv_warp_image` came from `plugins/opencv`
+# in P2-T05 -- none of them has included OpenCV since P7-T04b, and the
+# directory they were in was named for a dependency they no longer have.
 
 set( plugin_headers
   average_frames.h
   close_loops_homography_guided.h
   color_commonality.h
+  convert_color_space.h
   convert_image.h
+  debayer_filter.h
   equalize_via_percentiles.h
   morphology.h
+  random_hue_shift.h
+  split_image_habcam.h
+  split_image_horizontally.h
   threshold.h
+  warp_image_ocv.h
 
   # Imported from arrows/ocv and arrows/core in P5-T04. Unchanged apart from
   # their include paths and their export macro, which is this library's now;
@@ -34,10 +45,16 @@ set( plugin_sources
   average_frames.cxx
   close_loops_homography_guided.cxx
   color_commonality.cxx
+  convert_color_space.cxx
   convert_image.cxx
+  debayer_filter.cxx
   equalize_via_percentiles.cxx
   morphology.cxx
+  random_hue_shift.cxx
+  split_image_habcam.cxx
+  split_image_horizontally.cxx
   threshold.cxx
+  warp_image_ocv.cxx
 
   close_loops_appearance_indexed.cxx
   close_loops_bad_frames_only.cxx

@@ -10,7 +10,7 @@ registration node (viame.opencv.colmap_registration) build on this, so the
 node needs nothing from the tool.
 
 The heavy lifting (affine chains, adaptive matching, GPS dead-reckoning fill,
-water/land classification) lives in viame.opencv.registration_utils; this
+water/land classification) lives in viame.image_processing.registration_utils; this
 module adds the rig cross-camera consensus, the metadata/GPS geo-anchoring, and
 the per-frame pixel->ENU assembly.
 """
@@ -21,11 +21,11 @@ import os
 import numpy as np
 
 from viame.core import survey_metadata as smd
-from viame.opencv import registration_utils as _sr
+from viame.image_processing import registration_utils as _sr
 # registration_utils keeps numpy/cv2 as lazily-populated module globals; make
 # sure they are bound before any of its functions run (the tool does the same).
 _sr.import_dependencies()
-from viame.opencv.registration_utils import (
+from viame.image_processing.registration_utils import (
     compute_homography_pair, _compute_camera_chain,
     _poses_to_enu, _track_headings, _rot2, _geo_calibrate, _fill_nan_headings,
     reconcile_enu_with_chain,
@@ -286,7 +286,7 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
     calibration (M, enu, yaw) needed to build pixel->ENU transforms, and
     bounds the fitted scale by the metadata-expected GSD (few clean pairwise
     steps on water-heavy sites otherwise corrupt the scale by 50%+)."""
-    from viame.opencv.registration_utils import _geo_fill
+    from viame.image_processing.registration_utils import _geo_fill
     cal = {}
     for cam in cams:
         if poses_by_cam.get(cam) is None:

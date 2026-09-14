@@ -38,7 +38,7 @@
 #include <viame/utilities/utilities_target_clfr.h>
 
 #include "measure_objects_process.h"
-#include "add_keypoints_from_mask.h"
+#include <viame/segmentation/add_keypoints_from_mask.h>
 
 namespace kv = kwiver::vital;
 
