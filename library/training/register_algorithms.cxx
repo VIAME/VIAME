@@ -6,8 +6,10 @@
  * \file
  * \brief Trainer registration
  *
- * The adaptive detector and tracker trainers, from `plugins/core` in P2-T07.
- * The windowed trainers register from `plugins/` until they are merged.
+ * The adaptive detector and tracker trainers, from `plugins/core` in P2-T07,
+ * and the windowed trainer, the merge of `plugins/core`'s and
+ * `plugins/opencv`'s: `ocv_windowed` is an alias of `windowed`, as it is for
+ * the windowed detector and refiner.
  */
 
 #include "viame_training_plugin_export.h"
@@ -19,6 +21,7 @@
 
 #include "adaptive_detector_trainer.h"
 #include "adaptive_tracker_trainer.h"
+#include "windowed_trainer.h"
 
 namespace viame {
 
@@ -40,6 +43,10 @@ register_factories( kv::registry& vpm )
     adaptive_tracker_trainer >( vpm, module_name );
   register_algorithm< kv::algo::train_detector,
     adaptive_detector_trainer >( vpm, module_name );
+  register_algorithm< kv::algo::train_detector,
+    windowed_trainer >( vpm, module_name );
+  register_alias< kv::algo::train_detector,
+    windowed_trainer >( vpm, module_name, "ocv_windowed" );
 
   vpm.mark_module_as_loaded( module_name );
 }

@@ -9,8 +9,9 @@
 # parameter estimation, the three-frame difference settings estimation,
 # tracker parameter search and the training data handling.
 #
-# The windowed trainers, core's and opencv's, are still in plugins/: they are
-# a merge rather than a move, and wait for their evidence.
+# The windowed trainer is the merge of core's and opencv's: one
+# implementation registered as `windowed` with `ocv_windowed` an alias, whose
+# evidence is the `training` golden group.
 ##
 
 set( plugin_headers
@@ -18,6 +19,7 @@ set( plugin_headers
   adaptive_tracker_trainer.h
   train_supervisor.h
   utilities_training.h
+  windowed_trainer.h
   )
 
 set( plugin_sources
@@ -25,6 +27,7 @@ set( plugin_sources
   adaptive_tracker_trainer.cxx
   train_supervisor.cxx
   utilities_training.cxx
+  windowed_trainer.cxx
   )
 
 viame_install_headers(
@@ -57,6 +60,9 @@ target_link_libraries( viame_training
                        kwiver::sprokit_pipeline
                        kwiver::kwiver_adapter
                        viame_utilities
+                       # the chipping, which the windowed trainer shares with
+                       # the windowed detector and refiner
+                       viame_image_ops
   )
 
 # The supervisor watches the training process from a thread of its own.

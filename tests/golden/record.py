@@ -996,6 +996,28 @@ def record_detection(group_dir, manifest):
     manifest["model"] = detection_cases.MODEL
 
 
+
+def record_training(group_dir, manifest):
+    """The windowed trainers' chips, before P2-T07 merges them."""
+    import tempfile
+
+    import training_cases
+    import training_runner
+
+    paths = [input_path(name) for name in training_cases.INPUTS]
+
+    for impl, variants in sorted(training_cases.TRAINERS.items()):
+        if not _recordable(impl):
+            continue
+
+        for variant, config in variants:
+            with tempfile.TemporaryDirectory() as work:
+                result = training_runner.run(impl, config, paths, work)
+
+            _record_arrays_case(group_dir, manifest, "train_chips", impl,
+                                variant, config, ("train",), [result])
+
+
 GROUPS = {
     "vxl": record_vxl,
     "detection": record_detection,
@@ -1003,6 +1025,7 @@ GROUPS = {
     "calib": record_calib,
     "opencv": record_opencv,
     "measurement": record_measurement,
+    "training": record_training,
 }
 
 

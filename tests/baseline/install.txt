@@ -1145,6 +1145,7 @@ include/viame/training/adaptive_tracker_trainer.h
 include/viame/training/train_supervisor.h
 include/viame/training/utilities_training.h
 include/viame/training/viame_training_export.h
+include/viame/training/windowed_trainer.h
 include/viame/utilities/applet_attributes.h
 include/viame/utilities/atomic_output.h
 include/viame/utilities/manipulate_pipelines.h
@@ -1154,9 +1155,7 @@ include/viame/utilities/utilities_image.h
 include/viame/utilities/utilities_target_clfr.h
 include/viame/utilities/utilities_tracks.h
 include/viame/utilities/viame_utilities_export.h
-include/viame/viame_core_export.h
 include/viame/viame_examples_export.h
-include/viame/viame_opencv_export.h
 include/viame/viame_svm_export.h
 include/viame/video_io/add_timestamp_from_filename.h
 include/viame/video_io/codecs/image_codec.h
@@ -1167,8 +1166,6 @@ include/viame/video_io/filename_to_timestamp.h
 include/viame/video_io/viame_video_io_export.h
 include/viame/video_io/video_input_image_list.h
 include/viame/video_io/write_disparity_maps.h
-include/viame/windowed_trainer.h
-include/viame/windowed_utils.h
 launch_dive_interface.sh
 lib/cmake/viame/viame-config-targets-noconfig.cmake
 lib/cmake/viame/viame-config-targets.cmake
@@ -1204,9 +1201,6 @@ lib/libtinyxml.a
 lib/libviame_classifiers.so
 lib/libviame_classifiers.so.1
 lib/libviame_classifiers.so.1.0.0
-lib/libviame_core.so
-lib/libviame_core.so.1
-lib/libviame_core.so.1.0.0
 lib/libviame_descriptors.so
 lib/libviame_descriptors.so.1
 lib/libviame_descriptors.so.1.0.0
@@ -1240,9 +1234,6 @@ lib/libviame_object_detectors_darknet.so.1.0.0
 lib/libviame_object_trackers.so
 lib/libviame_object_trackers.so.1
 lib/libviame_object_trackers.so.1.0.0
-lib/libviame_opencv.so
-lib/libviame_opencv.so.1
-lib/libviame_opencv.so.1.0.0
 lib/libviame_processes_classifiers.so
 lib/libviame_processes_descriptors.so
 lib/libviame_processes_examples.so
@@ -1447,6 +1438,7 @@ lib/python3.10/site-packages/viame/colmap/colmap_registration.py
 lib/python3.10/site-packages/viame/colmap/prior_coverage_sfm.py
 lib/python3.10/site-packages/viame/colmap/reconstruction.py
 lib/python3.10/site-packages/viame/core/__init__.py
+lib/python3.10/site-packages/viame/core/interactive_service.py
 lib/python3.10/site-packages/viame/descriptors/__init__.py
 lib/python3.10/site-packages/viame/descriptors/index_descriptors.py
 lib/python3.10/site-packages/viame/descriptors/iqr_adaboost.py

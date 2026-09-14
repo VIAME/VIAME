@@ -23,7 +23,7 @@ from viame.object_detectors.base import (
     image_to_rgb_numpy,
     get_autocast_context,
 )
-from viame.core.segmentation_utils import (
+from viame.segmentation.segmentation_utils import (
     kwimage_mask_to_shapely,
     apply_polygon_policies,
     shapely_to_mask,

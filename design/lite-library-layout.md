@@ -144,7 +144,7 @@ reason once P2-T05 merged the two chippers: the detector is
 | `training/` | `adaptive_detector_trainer`, `adaptive_tracker_trainer`, `windowed_trainer`, `utilities_training`, `training_data.py`, `tracker_param_search.py`, `bytetrack_trainer.py`, `ocsort_trainer.py`, `frame_diff_trainer.py` |
 | `evaluation/` | `evaluate_models` |
 | `pipeline_framework/processes` | `image_to_image_set_process`, `filter_frame_process`, `filter_frame_index_process` |
-| deleted | `windowed_detector`, `windowed_refiner` -- P2-T05 kept the `plugins/opencv` copies, which are now the only implementation, registered as `windowed` with `ocv_windowed` an alias; golden recordings of both copies were byte-identical |
+| deleted | `windowed_detector`, `windowed_refiner` -- P2-T05 kept the `plugins/opencv` copies, which are now the only implementation, registered as `windowed` with `ocv_windowed` an alias; golden recordings of both copies were byte-identical. `windowed_trainer` -- P2-T07 kept the `plugins/opencv` copy the same way, for its parameter list, moved onto the `image_ops` helpers; twelve golden recordings of both copies were identical once `original_to_chip_size` was given, and its default is opencv's |
 
 ### `plugins/opencv`
 

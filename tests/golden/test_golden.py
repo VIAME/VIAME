@@ -36,6 +36,8 @@ import opencv_cases                 # noqa: E402
 import pipeline_runner              # noqa: E402
 import refine_cases                 # noqa: E402
 import refine_runner                # noqa: E402
+import training_cases               # noqa: E402
+import training_runner              # noqa: E402
 import warp_cases                   # noqa: E402
 import warp_runner                  # noqa: E402
 import runner                       # noqa: E402
@@ -103,6 +105,7 @@ INTERFACE_OF_KIND = {
     "tracks": "track_features",
     "homography": "estimate_homography",
     "fundamental": "estimate_fundamental_matrix",
+    "train_chips": "train_detector",
 }
 
 
@@ -172,6 +175,7 @@ DIVERGENCES_OF_KIND = {
     "tracks": feature_cases,
     "homography": feature_cases,
     "fundamental": feature_cases,
+    "train_chips": training_cases,
 }
 
 
@@ -308,6 +312,12 @@ def run_case(case, impl):
         mask = imageio_utils.load(input_path(warp_cases.MASK))
         return [warp_runner.run(impl, case["variant"], source, destination,
                                 mask)]
+
+    if case["kind"] == "train_chips":
+        with tempfile.TemporaryDirectory() as work:
+            return [training_runner.run(
+                impl, case["config"],
+                [input_path(name) for name in training_cases.INPUTS], work)]
 
     if case["kind"] == "refine":
         array = imageio_utils.load(input_path(refine_cases.IMAGE))
@@ -915,7 +925,7 @@ def test_golden(item):
         check_array_case(item, case, outputs, group)
         return
 
-    if case["kind"] in ("features", "matches", "tracks", "homography",
+    if case["kind"] in ("train_chips", "features", "matches", "tracks", "homography",
                         "fundamental", "refine"):
         check_array_case(item, case, outputs, group)
         return

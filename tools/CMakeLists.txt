@@ -133,7 +133,7 @@ viame_add_plugin( viame_tools_applets
                kwiver::sprokit_pipeline
                kwiver::sprokit_pipeline_util
                kwiver::kwiver_adapter
-               viame_core
+               viame_file_io
                viame_utilities
                viame_training
                viame_evaluation

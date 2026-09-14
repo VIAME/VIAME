@@ -71,6 +71,10 @@ def is_registered(kind, impl):
         from kwiver.vital.algo import EstimateFundamentalMatrix
         return impl in EstimateFundamentalMatrix.registered_names()
 
+    if kind == "train_chips":
+        from kwiver.vital.algo import TrainDetector
+        return impl in TrainDetector.registered_names()
+
     return True
 
 

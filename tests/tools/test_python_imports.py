@@ -59,7 +59,6 @@ THIRD_PARTY = [
 # netharn entry points reach for their device and config handling.
 VIAME = [
     "kwiver.vital.algo",
-    "viame.core",
     "viame.onnx",
     "viame.pytorch",
     "viame.object_detectors.base",

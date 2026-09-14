@@ -4,11 +4,13 @@ project( test_viame_core )
 
 include( viame-test-setup )
 
-# Include directories for plugin headers
-include_directories( ${VIAME_SOURCE_DIR}/plugins/core )
+# `plugins/core` is gone since P2-T07: what these tests hold is in
+# `library/`, and they reach it as <viame/<library>/...>
 
 set( test_libraries
-  viame_core
+  viame_utilities
+  viame_image_ops
+  viame_file_io
   viame_training
   viame_evaluation
   kwiver::vital

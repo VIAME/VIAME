@@ -569,7 +569,7 @@ segment_via_points:sam3:device = cuda
         }
 
         # Run the interactive service with the request
-        cmd = f'''source "{setup_script}" && echo '{json.dumps(request)}' | python3 -m viame.core.interactive_segmentation --config "{config_path}" &
+        cmd = f'''source "{setup_script}" && echo '{json.dumps(request)}' | python3 -m viame.segmentation.interactive_segmentation --config "{config_path}" &
 sleep 5
 echo '{{"command": "shutdown"}}' '''
 

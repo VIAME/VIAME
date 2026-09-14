@@ -206,8 +206,8 @@ plugins/core/windowed_detector.cxx	DELETE
 plugins/core/windowed_detector.h	DELETE
 plugins/core/windowed_refiner.cxx	DELETE
 plugins/core/windowed_refiner.h	DELETE
-plugins/core/windowed_trainer.cxx	library/training/windowed_trainer.cxx
-plugins/core/windowed_trainer.h	library/training/windowed_trainer.h
+plugins/core/windowed_trainer.cxx	DELETE
+plugins/core/windowed_trainer.h	DELETE
 plugins/core/write_detected_object_set_coco.py	library/file_io/write_detected_object_set_coco.py
 plugins/core/write_detected_object_set_dive.cxx	library/file_io/write_detected_object_set_dive.cxx
 plugins/core/write_detected_object_set_dive.h	library/file_io/write_detected_object_set_dive.h
@@ -297,10 +297,10 @@ plugins/opencv/windowed_detector.cxx	library/object_detectors/windowed_detector.
 plugins/opencv/windowed_detector.h	library/object_detectors/windowed_detector.h
 plugins/opencv/windowed_refiner.cxx	library/classifiers/windowed_refiner.cxx
 plugins/opencv/windowed_refiner.h	library/classifiers/windowed_refiner.h
-plugins/opencv/windowed_trainer.cxx	library/training/ocv_windowed_trainer.cxx
-plugins/opencv/windowed_trainer.h	library/training/ocv_windowed_trainer.h
-plugins/opencv/windowed_utils.cxx	library/image_ops/windowed_utils.cxx
-plugins/opencv/windowed_utils.h	library/image_ops/windowed_utils.h
+plugins/opencv/windowed_trainer.cxx	library/training/windowed_trainer.cxx
+plugins/opencv/windowed_trainer.h	library/training/windowed_trainer.h
+plugins/opencv/windowed_utils.cxx	DELETE
+plugins/opencv/windowed_utils.h	DELETE
 plugins/pytorch/CMakeLists.txt	STRUCTURAL
 plugins/pytorch/__init__.py	STRUCTURAL
 plugins/pytorch/botsort_tracker.py	library/object_trackers/pytorch/botsort_tracker.py

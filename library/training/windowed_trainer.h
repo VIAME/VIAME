@@ -2,24 +2,22 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_WINDOWED_TRAINER_H
-#define VIAME_CORE_WINDOWED_TRAINER_H
+#ifndef VIAME_TRAINING_WINDOWED_TRAINER_H
+#define VIAME_TRAINING_WINDOWED_TRAINER_H
 
-#include "viame_core_export.h"
+#include "viame_training_export.h"
 
 #include <viame/algorithm_framework/algo/train_detector.h>
 #include <viame/algorithm_framework/algo/image_io.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
+#include <viame/core_types/bounding_box.h>
 
 #include <viame/image_ops/windowed_utils.h>
 
 #include <map>
 #include <mutex>
 #include <random>
-#include <string>
-#include <vector>
-
-#include <map>
 #include <string>
 
 namespace viame {
@@ -28,17 +26,76 @@ namespace viame {
 /**
  * @brief Run training on arbitrary other trainers in a windowed fashion
  *
- * This algorithm wraps another trainer and pre-processes training images
- * by breaking them into smaller windows/chips before passing to the
- * underlying trainer.
+ * Registered as `windowed`, with `ocv_windowed` an alias. P2-T07 merged the
+ * two copies, `plugins/core`'s and `plugins/opencv`'s, which by then differed
+ * in helper signatures and in one default: this is opencv's parameter list,
+ * the one shipped configs name, so `original_to_chip_size` defaults to false
+ * as it did for them, and core's `windowed` -- which no config selected --
+ * takes that default too. The chipping goes through `image_ops`; twelve
+ * golden recordings of both copies were identical with the flag given.
  *
- * This is a pure vital::image implementation with no OpenCV dependency.
+ * `update_model` still writes its settings under `ocv_windowed`: the
+ * generated pipeline carries those keys as they are, every shipped training
+ * config selects that name, and the detector answers to both.
  */
-class VIAME_CORE_EXPORT windowed_trainer
+class VIAME_TRAINING_EXPORT windowed_trainer
   : public kwiver::vital::algo::train_detector
 {
 public:
-#define VIAME_CORE_WT_PARAMS \
+#define VIAME_WT_PARAMS \
+    PARAM_DEFAULT( \
+      mode, std::string, \
+      "Pre-processing resize option, can be: disabled, maintain_ar, scale, " \
+      "chip, chip_and_original, original_and_resized, or adaptive.", \
+      "disabled" ), \
+    PARAM_DEFAULT( \
+      scale, double, \
+      "Image scaling factor used when mode is scale or chip.", \
+      1.0 ), \
+    PARAM_DEFAULT( \
+      chip_width, int, \
+      "When in chip mode, the chip width.", \
+      1000 ), \
+    PARAM_DEFAULT( \
+      chip_height, int, \
+      "When in chip mode, the chip height.", \
+      1000 ), \
+    PARAM_DEFAULT( \
+      chip_step_width, int, \
+      "When in chip mode, the chip step size between chips.", \
+      500 ), \
+    PARAM_DEFAULT( \
+      chip_step_height, int, \
+      "When in chip mode, the chip step size between chips.", \
+      500 ), \
+    PARAM_DEFAULT( \
+      chip_edge_filter, int, \
+      "If using chipping, filter out detections this pixel count near borders.", \
+      -1 ), \
+    PARAM_DEFAULT( \
+      chip_edge_max_prob, double, \
+      "If using chipping, maximum type probability for edge detections", \
+      -1.0 ), \
+    PARAM_DEFAULT( \
+      chip_adaptive_thresh, int, \
+      "If using adaptive selection, total pixel count at which we start to chip.", \
+      2000000 ), \
+    PARAM_DEFAULT( \
+      batch_size, int, \
+      "Optional processing batch size to send to the detector.", \
+      1 ), \
+    PARAM_DEFAULT( \
+      min_detection_dim, int, \
+      "Minimum detection dimension in original image space.", \
+      1 ), \
+    PARAM_DEFAULT( \
+      original_to_chip_size, bool, \
+      "Optionally enforce the input image is the specified chip size", \
+      false ), \
+    PARAM_DEFAULT( \
+      black_pad, bool, \
+      "Black pad the edges of resized chips to ensure consistent dimensions", \
+      false ), \
     PARAM_DEFAULT( \
       train_directory, std::string, \
       "Directory for all files used in training.", \
@@ -126,17 +183,21 @@ public:
       "chips per frame, relative to annotated chips (0 = none).", \
       0.0 )
 
-  PLUGGABLE_VARIABLES( VIAME_CORE_WT_PARAMS )
-  PLUGGABLE_CONSTRUCTOR( windowed_trainer, VIAME_CORE_WT_PARAMS )
-  PLUGGABLE_IMPL_BASIC_NAMED( windowed_trainer, "windowed", "Window some other arbitrary detector trainer across the image (no OpenCV)" )
-  PLUGGABLE_STATIC_FROM_CONFIG( windowed_trainer, VIAME_CORE_WT_PARAMS )
-  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_CORE_WT_PARAMS )
-  PLUGGABLE_SET_CONFIGURATION( windowed_trainer, VIAME_CORE_WT_PARAMS )
+  PLUGGABLE_VARIABLES( VIAME_WT_PARAMS )
+  PLUGGABLE_CONSTRUCTOR( windowed_trainer, VIAME_WT_PARAMS )
+  PLUGGABLE_IMPL_BASIC_NAMED(
+    windowed_trainer, "windowed",
+    "Window some other arbitrary detector trainer across the image" )
+  PLUGGABLE_STATIC_FROM_CONFIG( windowed_trainer, VIAME_WT_PARAMS )
+  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_WT_PARAMS )
+  PLUGGABLE_SET_CONFIGURATION( windowed_trainer, VIAME_WT_PARAMS )
 
   virtual ~windowed_trainer() = default;
 
   virtual kwiver::vital::config_block_sptr get_configuration() const override;
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+
+
 
   virtual void
   add_data_from_disk( kwiver::vital::category_hierarchy_sptr object_labels,
@@ -190,8 +251,8 @@ private:
 
   std::string generate_filename( const std::string& frame_tag, int chip_idx );
 
-  void write_chip_to_disk( const std::string& filename,
-    const kwiver::vital::image& image );
+  bool write_chip_to_disk( const std::string& filename,
+                           const kwiver::vital::image& image );
 
   // Chip-cache (manifest) helpers
   std::string frame_tag_for( unsigned fid, const std::string& image_fn );
@@ -208,25 +269,31 @@ private:
   kwiver::vital::category_hierarchy_sptr labels_without_ignored(
     kwiver::vital::category_hierarchy_sptr in );
 
-  // Common chip settings (shared with detector/refiner)
+  // Common chip settings, materialised from the pluggable parameters
   window_settings m_settings;
 
   // Computed values (not config params)
-  bool m_synthetic_labels;
-  bool m_detect_small;
+  bool m_synthetic_labels = true;
+  bool m_detect_small = false;
+
+  // Nested algorithms. Configured by hand rather than as pluggable params so
+  // they are not built until after the training directory has been reset --
+  // a nested trainer opens its output files during set_configuration, and
+  // wiping the directory afterwards would unlink them.
+  kwiver::vital::algo::image_io_sptr m_image_io;
+  kwiver::vital::algo::train_detector_sptr m_trainer;
 
   // Runtime state
   std::mutex m_category_mutex;
   kwiver::vital::category_hierarchy_sptr m_labels;
   std::map< std::string, int > m_category_map;
-  kwiver::vital::algo::image_io_sptr m_image_io;
-  kwiver::vital::algo::train_detector_sptr m_trainer;
   kwiver::vital::logger_handle_t m_logger;
 
   // Constants
   static const std::string m_chip_subdirectory;
 };
 
+
 } // end namespace viame
 
-#endif /* VIAME_CORE_WINDOWED_TRAINER_H */
+#endif /* VIAME_TRAINING_WINDOWED_TRAINER_H */
