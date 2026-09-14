@@ -65,7 +65,13 @@ viame_register_statically( viame_segmentation
 # Python
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_add_python_package( segmentation EXCLUDE "^(sam2|sam3)/" )
+  viame_add_python_package( segmentation EXCLUDE "^(sam2|sam3|compat_core)/" )
+
+  # `viame.core`, which P2-T04 to P2-T07 emptied, keeps the one module path
+  # DIVE still starts -- `python -m viame.core.interactive_service` -- as a
+  # forwarder to the service here. It lives beside what it forwards to.
+  viame_add_python_package( core
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/compat_core )
 
   # The SAM family, from `plugins/pytorch` in P2-T05, one subpackage per
   # option.
