@@ -19,8 +19,7 @@ include(CTestUseLaunchers)
 include(${CMAKE_CURRENT_LIST_DIR}/build_common_functions.cmake)
 
 # Include base cmake preset files
-include_cmake_preset(build_cmake_base.cmake)
-include_cmake_preset(build_cmake_desktop.cmake)
+include_cmake_preset(windows-gpu)
 
 # Windows-specific CUDA paths
 add_option("CUDA_NVCC_EXECUTABLE:PATH" "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8/bin/nvcc.exe")

@@ -19,9 +19,7 @@ include(CTestUseLaunchers)
 include(${CMAKE_CURRENT_LIST_DIR}/build_common_functions.cmake)
 
 # Include base cmake preset files
-include_cmake_preset(build_cmake_base.cmake)
-include_cmake_preset(build_cmake_desktop.cmake)
-include_cmake_preset(build_cmake_cpu.cmake)
+include_cmake_preset(windows-cpu)
 
 # Windows-specific build paths
 add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl2")

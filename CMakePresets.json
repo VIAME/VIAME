@@ -1,0 +1,186 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "description": "Settings every VIAME build shares",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VIAME_ENABLE_DOCS": "OFF",
+        "VIAME_ENABLE_OPENCV": "ON",
+        "VIAME_ENABLE_PYTHON": "ON",
+        "VIAME_ENABLE_PYTORCH": "ON",
+        "VIAME_PYTORCH_VERSION": "2.12.0",
+        "VIAME_ENABLE_PYTORCH-MMDET": "ON",
+        "VIAME_ENABLE_PYTORCH-NETHARN": "ON",
+        "VIAME_ENABLE_PYTORCH-VISION": "ON",
+        "VIAME_ENABLE_PYTORCH-SIAMMASK": "ON",
+        "VIAME_ENABLE_PYTORCH-SAM2": "ON",
+        "VIAME_ENABLE_PYTORCH-SAM3": "ON",
+        "VIAME_ENABLE_PYTORCH-ULTRALYTICS": "ON",
+        "VIAME_ENABLE_PYTORCH-HUGGINGFACE": "ON",
+        "VIAME_ENABLE_PYTORCH-MIT-YOLO": "ON",
+        "VIAME_ENABLE_PYTORCH-RF-DETR": "ON",
+        "VIAME_ENABLE_PYTORCH-STEREO": "ON",
+        "VIAME_ENABLE_PYTORCH-LEARN": "ON",
+        "VIAME_ENABLE_PYTORCH-DINO3": "ON",
+        "VIAME_ENABLE_ONNX": "ON",
+        "VIAME_ENABLE_COLMAP": "ON",
+        "VIAME_ENABLE_DARKNET": "ON",
+        "VIAME_DOWNLOAD_MODELS-SIAMMASK": "ON",
+        "VIAME_DOWNLOAD_MODELS-SRNN": "OFF"
+      }
+    },
+    {
+      "name": "gpu",
+      "hidden": true,
+      "description": "CUDA and cuDNN",
+      "cacheVariables": {
+        "VIAME_ENABLE_CUDA": "ON",
+        "VIAME_ENABLE_CUDNN": "ON"
+      }
+    },
+    {
+      "name": "cpu",
+      "hidden": true,
+      "description": "No CUDA, and the PyTorch components that need it",
+      "cacheVariables": {
+        "VIAME_ENABLE_CUDA": "OFF",
+        "VIAME_ENABLE_CUDNN": "OFF",
+        "VIAME_ENABLE_PYTORCH-LEARN": "OFF",
+        "VIAME_ENABLE_PYTORCH-ULTRALYTICS": "OFF"
+      }
+    },
+    {
+      "name": "desktop",
+      "hidden": true,
+      "description": "A standalone install: its own Python, DIVE, and the common model packs",
+      "cacheVariables": {
+        "VIAME_FIXUP_BUNDLE": "ON",
+        "VIAME_BUILD_PYTHON_FROM_SOURCE": "ON",
+        "VIAME_PYTHON_VERSION": "3.12.12",
+        "VIAME_ENABLE_DIVE": "ON",
+        "VIAME_DOWNLOAD_MODELS-DEFAULT-FISH": "ON",
+        "VIAME_DOWNLOAD_MODELS-GENERIC": "ON"
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "description": "Linux desktop: DIVE built from source, tests built for the CRITICAL gate",
+      "cacheVariables": {
+        "VIAME_BUILD_DIVE_FROM_SOURCE": "ON",
+        "VIAME_ENABLE_TESTS": "ON"
+      }
+    },
+    {
+      "name": "container",
+      "hidden": true,
+      "description": "Inside a Docker image: system Python, no DIVE, tests for the CRITICAL gate",
+      "cacheVariables": {
+        "VIAME_FIXUP_BUNDLE": "OFF",
+        "VIAME_VERSION_RELEASE": "ON",
+        "VIAME_BUILD_PYTHON_FROM_SOURCE": "OFF",
+        "VIAME_ENABLE_TESTS": "ON",
+        "VIAME_ENABLE_DIVE": "OFF"
+      }
+    },
+    {
+      "name": "web",
+      "hidden": true,
+      "description": "VIAME-Web: desktop-only components excluded, no default model packs",
+      "cacheVariables": {
+        "VIAME_ENABLE_WEB_EXCLUDES": "ON",
+        "VIAME_DOWNLOAD_MODELS": "ON",
+        "VIAME_DOWNLOAD_MODELS-DEFAULT-FISH": "OFF",
+        "VIAME_DOWNLOAD_MODELS-GENERIC": "OFF",
+        "VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL": "OFF",
+        "VIAME_DOWNLOAD_MODELS-HABCAM": "OFF"
+      }
+    },
+    {
+      "name": "ci",
+      "hidden": true,
+      "description": "GitHub release builds: models are downloaded separately",
+      "cacheVariables": {
+        "VIAME_DOWNLOAD_MODELS": "OFF"
+      }
+    },
+    {
+      "name": "linux-gpu",
+      "displayName": "Linux, GPU",
+      "description": "The Linux desktop release build",
+      "inherits": [ "linux", "desktop", "gpu", "base" ]
+    },
+    {
+      "name": "linux-cpu",
+      "displayName": "Linux, CPU only",
+      "inherits": [ "cpu", "linux", "desktop", "base" ]
+    },
+    {
+      "name": "windows-gpu",
+      "displayName": "Windows, GPU",
+      "description": "The Windows desktop release build",
+      "inherits": [ "desktop", "gpu", "base" ]
+    },
+    {
+      "name": "windows-cpu",
+      "displayName": "Windows, CPU only",
+      "inherits": [ "cpu", "desktop", "base" ]
+    },
+    {
+      "name": "macos",
+      "displayName": "macOS",
+      "description": "What build_server_mac.sh configured, and nothing more: CPU, system Python, everything it did not name at its default",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VIAME_FIXUP_BUNDLE": "ON",
+        "VIAME_ENABLE_CUDA": "OFF",
+        "VIAME_ENABLE_CUDNN": "OFF",
+        "VIAME_ENABLE_DIVE": "ON",
+        "VIAME_ENABLE_DOCS": "OFF",
+        "VIAME_ENABLE_OPENCV": "ON",
+        "VIAME_ENABLE_PYTHON": "ON",
+        "VIAME_BUILD_PYTHON_FROM_SOURCE": "OFF",
+        "VIAME_ENABLE_PYTORCH": "ON",
+        "VIAME_ENABLE_PYTORCH-MMDET": "OFF",
+        "VIAME_ENABLE_PYTORCH-NETHARN": "OFF",
+        "VIAME_ENABLE_PYTORCH-SIAMMASK": "OFF",
+        "VIAME_ENABLE_PYTORCH-DINO3": "ON",
+        "VIAME_ENABLE_DARKNET": "ON"
+      }
+    },
+    {
+      "name": "docker",
+      "displayName": "Docker image",
+      "inherits": [ "container", "gpu", "base" ]
+    },
+    {
+      "name": "docker-web",
+      "displayName": "Docker image for VIAME-Web",
+      "inherits": [ "web", "container", "gpu", "base" ]
+    }
+  ],
+  "buildPresets": [
+    { "name": "linux-gpu", "configurePreset": "linux-gpu", "targets": [ "install" ] },
+    { "name": "linux-cpu", "configurePreset": "linux-cpu", "targets": [ "install" ] },
+    { "name": "windows-gpu", "configurePreset": "windows-gpu", "configuration": "Release", "targets": [ "install" ] },
+    { "name": "windows-cpu", "configurePreset": "windows-cpu", "configuration": "Release", "targets": [ "install" ] },
+    { "name": "macos", "configurePreset": "macos", "targets": [ "install" ] },
+    { "name": "docker", "configurePreset": "docker", "targets": [ "install" ] },
+    { "name": "docker-web", "configurePreset": "docker-web", "targets": [ "install" ] }
+  ],
+  "testPresets": [
+    {
+      "name": "linux-gpu",
+      "configurePreset": "linux-gpu",
+      "filter": { "include": { "label": "CRITICAL" } },
+      "execution": { "jobs": 1 },
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

@@ -45,3 +45,5 @@ _ignore
 *~
 
 tests/pipelines/pipelines_test_data/
+# A developer's own presets
+CMakeUserPresets.json

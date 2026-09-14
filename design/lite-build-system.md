@@ -53,8 +53,12 @@ New: `VIAME_INSTALL_PYTHON_DEPS` (run pip as part of the build, default ON),
 `VIAME_PYTHON_INDEX_URL`, `VIAME_PYTHON_STANDALONE` (P10: download
 python-build-standalone into the install on Windows/desktop).
 
-`CMakePresets.json` (P10) replaces `-C build_cmake_*.cmake`: `base`, `gpu`,
-`cpu`, `desktop`, `docker-web`, `linux`, `windows`, `macos`, `ci`.
+`CMakePresets.json` (P10) replaces `-C build_cmake_*.cmake`. Visible presets:
+`linux-gpu`, `linux-cpu`, `windows-gpu`, `windows-cpu`, `macos`, `docker`,
+`docker-web`, each with a build preset. They compose hidden ones -- `base`,
+`gpu`, `cpu`, `desktop`, `linux`, `container`, `web`, `ci` -- where a later
+block in `inherits` is overridden by an earlier one. The Windows ctest
+scripts read the same file through `build_common_functions.cmake`.
 
 ## 3. CMake helpers (`cmake/viame_macros.cmake`)
 

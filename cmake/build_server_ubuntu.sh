@@ -30,11 +30,8 @@ setup_basic_build_environment /viame/build/install
 
 source ./viame/cmake/linux_add_internal_py36_paths.sh
 
-# Configure VIAME using cache presets
-cmake ../ \
-  -C ../cmake/build_cmake_base.cmake \
-  -C ../cmake/build_cmake_desktop.cmake \
-  -C ../cmake/build_cmake_linux.cmake
+# Configure VIAME from its preset in CMakePresets.json
+cmake -S .. -B . --preset linux-gpu
 
 # Build VIAME, pipe output to file
 run_build build_log.txt

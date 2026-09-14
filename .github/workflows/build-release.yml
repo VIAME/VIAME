@@ -459,11 +459,11 @@ jobs:
           $cmakeFile = "C:\VIAME-Builds\GPU\cmake\build_server_windows.cmake"
           $content = Get-Content $cmakeFile -Raw
 
-          # Insert the github preset include after the desktop preset include
-          $content = $content -replace '(include_cmake_preset\(build_cmake_desktop\.cmake\))', "`$1`ninclude_cmake_preset(build_cmake_github.cmake)"
+          # Apply the ci preset's settings after the windows-gpu preset's
+          $content = $content -replace '(include_cmake_preset\(windows-gpu\))', "`$1`ninclude_cmake_preset(ci)"
 
           Set-Content -Path $cmakeFile -Value $content
-          Write-Host "Added build_cmake_github.cmake preset to Windows build configuration"
+          Write-Host "Added the ci preset to the Windows build configuration"
 
       - name: Run Windows build
         shell: cmd

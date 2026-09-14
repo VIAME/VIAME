@@ -22,11 +22,8 @@ setup_build_directory /viame
 # Add VIAME and CUDA paths to build
 setup_basic_build_environment /viame/build/install /usr/local/cuda
 
-# Configure VIAME using cache presets
-cmake ../ \
-  -C ../cmake/build_cmake_base.cmake \
-  -C ../cmake/build_cmake_docker.cmake \
-  -C ../cmake/build_cmake_web.cmake \
+# Configure VIAME from its preset in CMakePresets.json
+cmake -S .. -B . --preset docker-web \
   -DCUDA_ARCHITECTURES:STRING="7.0 7.5 8.0 8.6 8.9 9.0 10.0 12.0"
 
 # Download OCV aux files from local server copy

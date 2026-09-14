@@ -51,13 +51,10 @@ setup_build_directory $VIAME_SOURCE_DIR
 # Configure Paths [should be removed when no longer necessary by fletch]
 setup_build_environment $VIAME_INSTALL_DIR "" "3.10"
 
-# Configure VIAME using cache presets
+# Configure VIAME from its preset in CMakePresets.json
 echo "Beginning VIAME CMake configuration"
 
-cmake ../ \
-  -C ../cmake/build_cmake_base.cmake \
-  -C ../cmake/build_cmake_desktop.cmake \
-  -C ../cmake/build_cmake_linux.cmake \
+cmake -S .. -B . --preset linux-gpu \
   -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
   -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
   -DCUDA_ARCHITECTURES:STRING="7.5 8.0 8.6 8.9 9.0 10.0 12.0"

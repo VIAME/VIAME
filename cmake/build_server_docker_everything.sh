@@ -23,16 +23,13 @@ setup_build_directory /viame
 # Add VIAME and CUDA paths to build
 setup_basic_build_environment /viame/build/install /usr/local/cuda
 
-# Configure VIAME using cache presets with additional features
-cmake ../ \
-  -C ../cmake/build_cmake_base.cmake \
-  -C ../cmake/build_cmake_docker.cmake \
+# Configure VIAME from the docker preset (CMakePresets.json), plus the
+# features this image adds
+cmake -S .. -B . --preset docker \
   -DVIAME_ENABLE_PYTORCH-LEARN:BOOL=ON \
-  -DVIAME_ENABLE_TENSORFLOW:BOOL=ON \
   -DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
   -DVIAME_ENABLE_PYTORCH-SIAMMASK:BOOL=ON \
   -DVIAME_DOWNLOAD_MODELS:BOOL=ON \
-  -DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=ON \
   -DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=ON \
   -DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=ON \
   -DVIAME_DOWNLOAD_MODELS-MOUSS-DEEP7:BOOL=ON

@@ -36,12 +36,8 @@ setup_build_directory $VIAME_SOURCE_DIR
 # Configure Paths [should be removed when no longer necessary by fletch]
 setup_build_environment $VIAME_INSTALL_DIR "" "3.10"
 
-# Configure VIAME using cache presets
-cmake ../ \
-  -C ../cmake/build_cmake_base.cmake \
-  -C ../cmake/build_cmake_desktop.cmake \
-  -C ../cmake/build_cmake_linux.cmake \
-  -C ../cmake/build_cmake_cpu.cmake
+# Configure VIAME from its preset in CMakePresets.json
+cmake -S .. -B . --preset linux-cpu
 
 # Build VIAME and setup libraries, pipe output to file
 run_build_and_setup_libraries > build_log.txt 2>&1

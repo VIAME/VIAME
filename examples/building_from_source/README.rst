@@ -14,10 +14,9 @@ building_from_source example folder in a VIAME installation.
 Building on Linux
 *****************
 
-These instructions are designed to help build VIAME on a fresh machine. They were written for
-and tested on Ubuntu 16.04. Other Linux machines will have similar directions, but some steps
-(particularly the dependency install) may not be exactly identical. VIAME has also been built
-on: CentOS/RHEL 6+, Fedora 19+, and Ubuntu 16.04+ at a minimum.
+These instructions build VIAME on a fresh machine. The release builds run on
+Rocky Linux 8 and Ubuntu; other distributions differ mainly in how the
+dependencies below are installed.
 
 Install Dependencies
 ====================
@@ -69,126 +68,133 @@ on your build settings but are not officially supported yet. Link to NVIDIA's si
 
    https://developer.nvidia.com/cuda-toolkit-archive
 
-Install CMAKE
+Install CMake
 =============
 
-Depending on the OS, the version of cmake you get with your local package manager (apt/yum/dnf)
-is sometimes too old to use for building VIAME (you currently need at least CMake 3.13) so you may
-or may not need to do a manual install of CMake. First you could try using the package manager
-then running 'cmake --version' to see if it's appropriate. If a manual install is required, go
-to the cmake website, ``https://cmake.org/download``, and download the appropriate binary
-distribution (for Ubuntu, this would be something like cmake-3.27.1-Linux-x86_64.sh,
-though newer versions will be out by the time you read this). Alternatively, download the
-appropriate binary distribution (for Ubuntu, this would be something like cmake-3.27.1-Linux-x86_64.sh,
-though newer versions will be out by the time you read this), or for windows the .msi or .zip
-installer. Lastly the source version could be built using the below instructions, though this
-is usually not necessary if a binary version is available for your platform.
-
+Configuring from a preset needs CMake 3.25 or newer; the build servers use
+4.2. Try the package manager's first and check ``cmake --version``. If it is
+older, download a binary release from ``https://cmake.org/download`` -- on
+Linux the ``cmake-<version>-linux-x86_64.sh`` installer needs nothing else --
+or build it from source:
 
 .. code-block:: bash
 
-   cd ~/Downloads
-   tar zxfv cmake-3.27.1.tar.gz
-   cd cmake-3.27.1
-   ./bootstrap --system-curl --no-system-libs
-   make
+   tar zxfv cmake-4.2.0.tar.gz
+   cd cmake-4.2.0
+   ./bootstrap --system-curl
+   make -j8
    sudo make install
-   sudo ln -s /usr/local/bin/cmake /bin/cmake
-
-These instructions build the source code into a working executable, installs the
-executable into a personal system directory, and then lets the operating system
-know where that directory is so it can find cmake in the future in case
-/usr/local/bin isn't in your PATH variable by default.
 
 Clone the Source Code
 =====================
 
-With all our dependencies installed, we need to build the environment for VIAME
-itself. VIAME uses git submodules rather than requiring the user to grab each 
-repository totally separately. To prepare the environment and obtain all the
-necessary source code, use the following commands. Note that you can change ``src``
-o whatever you want to name your VIAME source directory.
+VIAME's remaining third-party sources -- DIVE and the patched python
+packages -- are git submodules, so clone recursively:
 
 .. code-block:: bash
 
-   git clone git@github.com:Kitware/VIAME.git src
+   git clone https://github.com/VIAME/VIAME.git src
    cd src
    git submodule update --init --recursive
 
 Build VIAME
 ===========
 
-VIAME may be built with a number of optional plugins--VXL, PyTorch, OpenCV,
-Scallop-TK, and Matlab--with a corresponding option called VIAME_ENABLE_[option],
-in all caps. For each plugin to install, you need a cmake build flag setting the
-option. The flag looks like ``-DVIAME_ENABLE_OPENCV:BOOL=ON``, of course changing
-OPENCV to match the plugin. Multiple plugins may be used, or none. If uncertain what
-to turn on, it's best to just leave the default enable and disable flags which will
-build most (though not all) functionalities. At a minimum, these are core components
-we recommend leaving turned on:
-
-
-+------------------------------+---------------------------------------------------------------------------------------+
-| Flag                         | Description                                                                           |
-+==============================+=======================================================================================+
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)                 |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                     |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                     |
-+------------------------------+---------------------------------------------------------------------------------------+
-
-And a number of flags which control which system utilities and optimizations are built, e.g.:
-
-+------------------------------+---------------------------------------------------------------------------------------------+
-| Flag                         | Description                                                                                 |
-+==============================+=============================================================================================+
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, Torch, etc...)               |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
-+------------------------------+---------------------------------------------------------------------------------------------+
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                          |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models              |
-+------------------------------+---------------------------------------------------------------------------------------------+
-
-And lastly, a number of flags which build algorithms with more specialized functionality:
-
-+------------------------------+---------------------------------------------------------------------------------------------+
-| Flag                         | Description                                                                                 |
-+==============================+=============================================================================================+
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                                |
-+------------------------------+---------------------------------------------------------------------------------------------+
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                            |
-+------------------------------+---------------------------------------------------------------------------------------------+
-+------------------------------+---------------------------------------------------------------------------------------------+
-
-VIAME can be built either in the source directory tree or in a seperate build
-directory (recommended). Replace "[build-directory]" with your location of choice,
-and run the following commands:
+A build is configured from a preset in ``CMakePresets.json`` at the top of the
+source tree. From the source directory:
 
 .. code-block:: bash
 
-   mkdir [build-directory]
-   cd [build-directory]
-   cmake [build_flags] [path_to_source_tree]
-   make -j8 # or just make for a unthreaded build
+   cmake --preset linux-gpu
+   cmake --build --preset linux-gpu
 
-Depending on which enable flags you have set and your system configuration, you may
-need to set additional cmake variables to point to dependency locations. An example
-is below for a system with CUDA, Python, and Matlab enabled, though the versions are
-old. Please do not use CUDA <10 or python 2.7 anymore.
+The first command configures ``build/linux-gpu``; the second builds it and
+installs into ``build/linux-gpu/install``. To use the install:
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2017/03/cmake-options.png
-   :width: 40%
-   :align: center
+.. code-block:: bash
+
+   source build/linux-gpu/install/setup_viame.sh
+   viame help
+
+``ctest --preset linux-gpu`` runs the CRITICAL tests against it: the example
+pipelines a release has to pass.
+
++------------------+----------------------------------------------------------------------------+
+| Preset           | What it builds                                                             |
++==================+============================================================================+
+| ``linux-gpu``    | The Linux desktop release: CUDA, its own Python, DIVE, default model packs |
++------------------+----------------------------------------------------------------------------+
+| ``linux-cpu``    | The same without CUDA or the PyTorch components that need it               |
++------------------+----------------------------------------------------------------------------+
+| ``windows-gpu``  | The Windows desktop release                                                |
++------------------+----------------------------------------------------------------------------+
+| ``windows-cpu``  | The Windows desktop release without CUDA                                   |
++------------------+----------------------------------------------------------------------------+
+| ``macos``        | macOS, CPU only                                                            |
++------------------+----------------------------------------------------------------------------+
+| ``docker``       | Inside a Docker image: system Python, no DIVE                              |
++------------------+----------------------------------------------------------------------------+
+| ``docker-web``   | The VIAME-Web image                                                        |
++------------------+----------------------------------------------------------------------------+
+
+``cmake --list-presets`` shows them. Each is composed from smaller hidden
+presets -- ``base``, ``gpu``, ``cpu``, ``desktop``, ``linux``, ``container``,
+``web`` -- and a later one in a preset's ``inherits`` list is overridden by an
+earlier one, so the list reads most specific first.
+
+Any setting can be changed on the command line, after the preset:
+
+.. code-block:: bash
+
+   cmake --preset linux-gpu -DVIAME_ENABLE_PYTORCH-MMDET=OFF
+
+For a configuration of your own, write a ``CMakeUserPresets.json`` beside
+``CMakePresets.json``, inheriting from one of these. It is yours: git ignores
+it.
+
+Three settings in the release presets need something from the machine:
+
+- ``linux-gpu`` and ``linux-cpu`` build the DIVE desktop client from source,
+  which needs Node.js 22 or newer. ``-DVIAME_BUILD_DIVE_FROM_SOURCE=OFF``
+  downloads a released DIVE instead.
+- The desktop presets build their own CPython
+  (``VIAME_BUILD_PYTHON_FROM_SOURCE``) so the install carries it.
+  ``-DVIAME_BUILD_PYTHON_FROM_SOURCE=OFF`` uses the Python CMake finds.
+- Python packages -- torch and the rest -- are installed from the lock files in
+  ``python/requirements`` during the build, which needs the network.
+  ``-DVIAME_INSTALL_PYTHON_DEPS=OFF`` skips that for a Python environment you
+  manage yourself.
+
+The options most often changed:
+
++----------------------------------+------------------------------------------------------------------+
+| Option                           | What it does                                                     |
++==================================+==================================================================+
+| ``VIAME_ENABLE_CUDA``            | GPU support, with ``VIAME_ENABLE_CUDNN``                         |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_ENABLE_PYTHON``          | Python algorithms and processes                                  |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_ENABLE_PYTORCH``         | PyTorch detectors, trackers and classifiers; each family also    |
+|                                  | has its own ``VIAME_ENABLE_PYTORCH-<NAME>``                      |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_ENABLE_ONNX``            | ONNX Runtime inference                                           |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_ENABLE_DARKNET``         | The Darknet YOLO detector                                        |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_ENABLE_SVM``             | libsvm classifiers                                               |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_ENABLE_DIVE``            | Install the DIVE annotation tool                                 |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_ENABLE_TESTS``           | Build the test suite                                             |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_ENABLE_DOCS``            | Build the documentation                                          |
++----------------------------------+------------------------------------------------------------------+
+| ``VIAME_DOWNLOAD_MODELS``        | Download model packs; each has ``VIAME_DOWNLOAD_MODELS-<NAME>``  |
++----------------------------------+------------------------------------------------------------------+
+
+The build compiles several hundred pybind11 binding sources, each needing
+around a gigabyte of memory. On a machine with little memory, or one doing
+other work, limit the parallelism: ``cmake --build --preset linux-gpu -j2``.
 
 .. _mac-label:
 
@@ -196,11 +202,13 @@ old. Please do not use CUDA <10 or python 2.7 anymore.
 Building on Mac OSX
 *******************
 
-Building on Mac is very similar to Linux, minus the dependency install stage.
-Currently, we have only tested VIAME with OSX 10.11.5 and Clang 7.3.0, but other
-versions may also work. Make sure you have a C/C++ development environment set up,
-install git, install cmake either from the source or a using a binary installer, and
-lastly, follow the same Linux build instructions above.
+Install Xcode's command line tools, Homebrew, and the packages listed above,
+then follow the Linux instructions with the ``macos`` preset:
+
+.. code-block:: bash
+
+   cmake --preset macos
+   cmake --build --preset macos
 
 .. _windows-label:
 
@@ -208,34 +216,21 @@ lastly, follow the same Linux build instructions above.
 Building on Windows
 *******************
 
-Building on windows can be very similar to Linux if using a shell like cygwin
-(``https://www.cygwin.com/``), though if not you may want to go grab the GUI
-ersions of CMake (``https://cmake.org/``) and TortoiseGit (``https://tortoisegit.org/``).
-Currently Visual Studio 2019 is supported and the most tested version.
+Install Visual Studio 2022 or newer with the C++ workload, CMake 3.25 or
+newer, git, and, for GPU support, CUDA 12.6 with cuDNN. Clone recursively as
+above, then from a *Developer Command Prompt*, in the source directory:
 
-First do a Git clone of the source code for VIAME. If you have TortoiseGit this
-involves right clicking in your folder of choice, selecting Git Clone, and then
-entering the URL to VIAME (``https://github.com/VIAME/VIAME.git``) and the location
-of where you want to put the downloaded source code.
+.. code-block:: bat
 
-Next, do a git submodule update to pull down all required packages. In TortoiseGit
-right click on the folder you checked out the source into, move to the TortoiseGit
-menu section, and select ``Submodule Update``.
+   cmake --preset windows-gpu
+   cmake --build --preset windows-gpu
 
-Next, install any required dependencies for items you want to build. If using CUDA,
-version 12.6 is preferred (version 11.0 or above is required), along with Python 3.6+.
-Other versions have yet to be tested extensively, though may work. On Windows it can
-also be beneficial to use Anaconda to get multiple python packages. Boost Python
-(turned on by default when Python is enabled) requires Numpy and a few other dependencies.
-
-Finally, create a build folder and run the CMake GUI (``https://cmake.org/runningcmake/``).
-Point it to your source and build directories, select your compiler of choice, and
-setup and build flags you want.
+``windows-cpu`` builds without CUDA. Visual Studio can also open the source
+folder directly and offers the presets in its configuration list.
 
 Windows limits path length, and a deep build folder is the usual cause of
-errors in the python bindings. Build VIAME as high in the folder tree as you
-can, e.g. C:/VIAME.
-
+errors in the python bindings. Keep the source tree high in the folder tree,
+e.g. ``C:\VIAME``.
 
 .. _tips-label:
 
@@ -243,40 +238,14 @@ can, e.g. C:/VIAME.
 Updating VIAME
 **************
 
-If you already have a checkout of VIAME and want to switch branches or
-update your code, it is important to re-run:
+After pulling or switching branches, update the submodules too:
 
-``git submodule update --init --recursive``
+.. code-block:: bash
 
-After switching branches to ensure that you have on the correct hashes
-of sub-packages within the build (e.g. fletch or KWIVER). Very rarely
-you may also need to run:
+   git submodule update --init --recursive
 
-``git submodule sync``
-
-Just in case the address of submodules has changed. You only need to
-run this command if you get a "cannot fetch hash #hashid" error.
-
-********************
-Build Tips 'n Tricks
-********************
-
-**Super-Build Optimizations:**
-
-When VIAME is built as a super-build, multiple solutions or makefiles are generated
-for each individual project in the super-build. These can be opened up if you want
-to experiment with changes in one and not rebuild the entire superbuild. VIAME
-places these projects in [build-directory]/build/src/* and fletch in
-[build-directory]/build/src/fletch-build/build/src/*. You can also run ccmake or
-the cmake GUI in these locations, which can let you manually change the build settings
-for sub-projects (say, for example, if one doesn't build).
-
-
-**Python:**
-
-The default Python used is 3.10, though other versions may work as well. It depends on
-your build settings, operating system, and which dependency projects are turned on.
-
+If that fails with "cannot fetch hash", the address of a submodule has
+changed; run ``git submodule sync`` first.
 
 .. _issues-label:
 
@@ -284,115 +253,20 @@ your build settings, operating system, and which dependency projects are turned 
 Known Build Issues
 ******************
 
-**Issue:**
+**Issue:** the compiler is killed, e.g. ``c++: internal compiler error: Killed
+(program cc1plus)``.
 
-When compiling with CUDA turned on:
+**Solution:** the machine ran out of memory. Build with less parallelism
+(``cmake --build --preset <preset> -j2``), or add memory.
 
-.. code-block:: console
+**Issue:** ``Unable to locate CUDNN library``.
 
-   nvcc fatal   : Visual Studio configuration file 'vcvars64.bat' could not be found for
-   installation at 'Microsoft Visual Studio XX.0/VC/bin/x86_amd64/../../..'
+**Solution:** cuDNN is installed separately from CUDA. Install it, or point
+CMake at it with ``-DCUDNN_ROOT_DIR=<path>``, or configure without it:
+``-DVIAME_ENABLE_CUDNN=OFF``.
 
-or similar.
+**Issue:** ``nvcc fatal : Visual Studio configuration file 'vcvars64.bat' could
+not be found``.
 
-**Solution:**
-
-Express/Community versions of visual studio don't ship with a file called vcvars64.bat
-You can add one manually be placing a bat file called 'vcvars64.bat' in folder
-'Microsoft Visual Studio XX.0\VC\bin\amd64' for your version of visual studio. This
-file should contain just a single line:
-
-``CALL setenv /x64``
-
-
-**Issue:**
-
-Boost fails to build early with error in *_out.txt:
-
-.. code-block:: console
-
-   c++: internal compiler error: Killed (program cc1plus)
-
-**Solution:**
-
-You are likely running out of memory and your C++ compiler is crashing (common on VMs
-with a small amount of memory). Increase the amount of memory availability to your VM or
-buy a better computer if not running a VM with at least 1 Gb of RAM.
-
-
-**Issue:**
-
-On VS2015 with Python enabled: ``error LNK1104: cannot open file 'python27_d.lib'``
-
-**Solution:**
-
-If you want to link against python in debug mode, you'll have to build Python itself
-to enable debug libraries, as the default python distributions do not contain them.
-Alternatively switch to Release or RelWDebug modes.
-
-
-**Issue:**
-
-.. code-block:: console
-
-   ImportError: No module named numpy.distutils
-
-**Solution:**
-
-You have python installed, but not numpy. Install numpy.
-
-
-**Issue:**
-
-``cannot find cublas_v2.h`` or linking issues against CUDA
-
-**Solution:**
-
-VIAME contains a ``VIAME_DISABLE_GPU_SUPPORT`` flag due to numerous issues relating to
-GPU code building. Alternatively you can debug the issue (incorrect CUDA drivers for
-OpenCV, Torch, etc...), or alternatively not having your CUDA headers set to be in your include path.
-
-
-**Issue:**
-
-.. code-block:: console
-
-   CMake Error at CMakeLists.txt:200 (message):
-     Unable to locate CUDNN library
-
-**Solution:**
-
-You have enabled CUDNN but the system is unable to locate CUDNN, as the message says.
-
-Note CUDNN is installed seperately from CUDA, they are different things.
-
-You need to set the VIAME flag CUDNN_LIBRARY to something like /usr/local/cuda/lib64/libcudnn.so.
-Alternatively you can set CUDNN_ROOT to /usr/local/cuda/lib64 manually if that's where you installed it.
-
-
-**Issue:**
-
-When ``VIAME_ENABLE_DOC`` is turned on and doing a multi-threaded build, sometimes the build fails.
-
-**Solution:**
-
-Run ``make -jX`` multiple times, or don't run ``make -jX`` when ``VIAME_ENABLE_DOCS`` is enabled.
-
-
-**Issue:**
-
-CMake says it cannot find MATLAB
-
-**Solution:**
-
-Make sure your matlab CMake paths are set to something like the following
-
-.. code-block:: console
-
-   Matlab_ENG_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libeng.so
-   Matlab_INCLUDE_DIRS:PATH=[matlab_install_loc]/extern/include
-   Matlab_MEX_EXTENSION:STRING=mexa64
-   Matlab_MEX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmex.so
-   Matlab_MX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmx.so
-   Matlab_ROOT_DIR:PATH=[matlab_install_loc]
-
+**Solution:** configure from a Developer Command Prompt, where Visual Studio's
+environment is already set up.

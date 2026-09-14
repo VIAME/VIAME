@@ -22,11 +22,8 @@ setup_build_directory /viame
 # Add VIAME and CUDA paths to build
 setup_basic_build_environment /viame/build/install /usr/local/cuda
 
-# Configure VIAME using cache presets
-cmake ../ \
-  -C ../cmake/build_cmake_base.cmake \
-  -C ../cmake/build_cmake_docker.cmake \
-  -C ../cmake/build_cmake_web.cmake \
+# Configure VIAME from its preset in CMakePresets.json
+cmake -S .. -B . --preset docker-web \
   -DCUDA_ARCHITECTURES:STRING="7.5" \
   -DVIAME_ENABLE_TESTS:BOOL=ON
 
