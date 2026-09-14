@@ -12,7 +12,7 @@
 
 include stereo_measure_current_annots_template.pipe
 
-block measurer
+config measurer
   :matching_methods                            input_pairs_only,compute_disparity
   :refine_keypoints_with_disparity              true
   :refine_disparity_segment                     true    # DIVE_PARAM["Robust Segment Fit", bool]
@@ -39,4 +39,3 @@ block measurer
     :output_rectified                          true
     :output_format                             float32
   endblock
-endblock
