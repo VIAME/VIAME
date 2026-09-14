@@ -158,7 +158,7 @@ class ModuleLoader(Loader):
         `_load_python_module` can look for a registrar on it. Most of them
         have none -- 64 of the 134 in VIAME's plugin packages -- and importing
         those is pure cost. It is not small cost either: the most expensive
-        module in the tree at over a second, `viame.onnx.epipolar_dino_matcher`,
+        module in the tree at over a second, `viame.measurement.onnx.epipolar_dino_matcher`,
         registers nothing at all. It defines an `nn.Module` subclass, so
         importing it imports torch, and every `viame` command that touched the
         plugin system paid for that.

@@ -4,7 +4,7 @@
 # build, the changelog or the readme.
 #
 # VIAME asks zlib for three things and no more: raw deflate, raw inflate and
-# crc32. `plugins/core/utilities_file.cxx` writes NPZ -- which is a ZIP of
+# crc32. `library/utilities/utilities_file.cxx` writes NPZ -- which is a ZIP of
 # `.npy` members -- and `camera_rig_io.cxx` reads it back. Both build and
 # parse the ZIP container themselves, so none of an archive library is
 # wanted, only the codec inside it.

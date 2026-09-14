@@ -88,7 +88,7 @@ register_factories( kv::registry& vpm )
   VIAME_REGISTER_IMAGE_FILTER( morphology )
   VIAME_REGISTER_IMAGE_FILTER( threshold )
 
-  // From `plugins/core` in P2-T05. An image_filter like the five above, so
+  // From the `core` plugin in P2-T05. An image_filter like the five above, so
   // the same macro takes it.
   VIAME_REGISTER_IMAGE_FILTER( equalize_via_percentiles )
 
@@ -205,7 +205,7 @@ register_factories( kv::registry& vpm )
 
 #undef VIAME_REGISTER_IMPORTED
 
-  // From `plugins/opencv` in P2-T05. None of them has included OpenCV since
+  // From the `opencv` plugin in P2-T05. None of them has included OpenCV since
   // P7-T04b; the names they register under are unchanged.
   register_algorithm< kv::algo::image_filter,
     convert_color_space >( vpm, module_name );

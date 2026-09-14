@@ -6,7 +6,7 @@
  * \file
  * \brief Classifier and detection filter registration
  *
- * VIAME's own refiners and mergers came from `plugins/core` in P2-T05. They
+ * VIAME's own refiners and mergers came from the `core` plugin in P2-T05. They
  * are declared with PLUGGABLE_IMPL and name and describe themselves, so they
  * register through the template rather than the macro.
  */

@@ -7,7 +7,7 @@
 # distribution's documentation, test program, sample XML and Visual Studio
 # project files are not carried either.
 #
-# One caller: `plugins/core/read_detected_object_set_cvat.cxx`. The CVAT
+# One caller: `library/file_io/read_detected_object_set_cvat.cxx`. The CVAT
 # reader is the only thing in VIAME that parses XML, and
 # `lite-removals.md` leaves it open whether P8 replaces TinyXML with a small
 # subset reader of our own; vendoring does not decide that, it only stops

@@ -10,7 +10,7 @@
  * unchanged and are still in kwiver's namespace; what moved is where they
  * are built and where they register.
  *
- * The five that came from `plugins/core` in P2-T05 are still in
+ * The five that came from the `core` plugin in P2-T05 are still in
  * `viame::core` -- the namespaces are normalised once at the end of phase 2,
  * not capability by capability. `accumulate_image_statistics` had no
  * description and no version where it was; registering it through the macro

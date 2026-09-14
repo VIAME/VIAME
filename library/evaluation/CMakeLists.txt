@@ -2,7 +2,7 @@
 # Evaluation
 #
 # Scoring detections and tracks against groundtruth -- what `viame score`
-# runs. From `plugins/core` in P2-T07. It registers nothing.
+# runs. From the `core` plugin in P2-T07. It registers nothing.
 ##
 
 set( plugin_headers

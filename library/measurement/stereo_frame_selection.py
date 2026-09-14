@@ -4,7 +4,7 @@
 
 """Turning stereo feature tracks into calibration point sets.
 
-`plugins/opencv/filter_stereo_feature_tracks.cxx` and `kmedians.cxx` in
+the `opencv` plugin's `filter_stereo_feature_tracks.cxx` and `kmedians.cxx` in
 python, per `lite-removals.md` section 2.4. Nothing here is OpenCV except
 `cv2.kmeans`, which seeds the k-medians refinement.
 

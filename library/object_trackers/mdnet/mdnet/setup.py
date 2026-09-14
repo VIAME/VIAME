@@ -35,7 +35,7 @@ setup(
     description='PyTorch version of RoIAlign specific to MDNet',
     author='VIAME',
     author_email='viame.developers@gmail.com',
-    url='https://github.com/VIAME/VIAME/tree/master/plugins/pytorch/mdnet',
+    url='https://github.com/VIAME/VIAME',
     packages=find_packages(exclude=('tests',)),
     ext_modules=modules,
     cmdclass={'build_ext': BuildExtension},

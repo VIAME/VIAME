@@ -4,7 +4,7 @@
 
 """Stereo camera calibration, on cv2.
 
-`plugins/opencv/optimize_stereo_cameras.cxx` in python, per
+the `opencv` plugin's `optimize_stereo_cameras.cxx` in python, per
 `lite-removals.md` section 2.4: `calibrateCamera`, `stereoCalibrate` and
 `stereoRectify` are calib3d, so the numerics stay OpenCV's.
 

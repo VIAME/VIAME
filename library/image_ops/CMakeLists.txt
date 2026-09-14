@@ -4,7 +4,7 @@
 # consumer mostly includes what it needs and takes vital::image with it.
 # Nothing here may include OpenCV or VXL.
 #
-# The two compiled helpers came from `plugins/core` in P2-T04.
+# The two compiled helpers came from the `core` plugin in P2-T04.
 # `convert_polygons_to_mask` and `utilities_segmentation` are the
 # polygon-and-mask geometry the viame_csv and dive readers and writers run,
 # and lite-library-layout.md's rule is that a library needing a sibling's

@@ -3,7 +3,7 @@
 # Imported from kwiver with sprokit in P5-T03; registered here rather than by
 # kwiver's `kwiver_processes` plugin since P5-T04. Frame filtering by
 # detections and by index, and the image-to-image-set conversion, came from
-# `plugins/core` in P2-T07.
+# the `core` plugin in P2-T07.
 
 set( process_headers
   downsample_process.h

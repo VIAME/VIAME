@@ -30,7 +30,7 @@ cmake_minimum_required( VERSION 3.16 )
 # Function to get the current source hash
 function( get_source_hash SOURCE_DIR OUT_HASH )
   # Scope both git queries to the source dir itself (-- .) so a subdir of a
-  # larger repo (e.g. plugins/pytorch/mdnet inside viame) doesn't report the
+  # larger repo (e.g. library/object_trackers/mdnet/mdnet inside viame) doesn't report the
   # whole viame repo's HEAD / dirty state. Without this, any uncommitted
   # change anywhere in viame stamps the hash with "-dirty" and forces a
   # rebuild on every make.

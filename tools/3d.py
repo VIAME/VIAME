@@ -263,7 +263,7 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
 
     # The SfM implementation lives in the (optional) viame.colmap plugin.
     require_colmap()
-    from viame.colmap import reconstruction as _cr
+    from viame.measurement.colmap import reconstruction as _cr
     _cr.import_dependencies()
 
     print(f"\n{'#'*70}")
@@ -428,7 +428,7 @@ def main():
     # --- View mode (point-cloud viewer; needs COLMAP plugin / open3d) ---
     if args.view:
         require_colmap()
-        from viame.colmap import reconstruction as _cr
+        from viame.measurement.colmap import reconstruction as _cr
         _cr.import_dependencies()
         _cr.view_file(os.path.abspath(args.view))
         return 0

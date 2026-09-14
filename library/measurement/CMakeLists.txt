@@ -6,7 +6,7 @@
 # its include paths and its export macro, which is this library's now; the
 # namespace is still kwiver's, and phase 8 is where that changes.
 #
-# VIAME's own measurement code came from `plugins/core` and `plugins/opencv`
+# VIAME's own measurement code came from the `core` plugin and the `opencv` plugin
 # in P2-T06: the stereo measurement utilities, detection and track pairing,
 # and the measurement, refinement and calibration-from-tracks processes. The
 # task text had the core and opencv pairing and measurement merged into one
@@ -160,9 +160,9 @@ target_include_directories( viame_processes_measurement PRIVATE
 ##
 if( VIAME_ENABLE_PYTHON )
   viame_add_python_package( measurement
-    EXCLUDE "^(stereo|dino|torchvision|minima_loftr)/" )
+    EXCLUDE "^(stereo|dino|torchvision|minima_loftr|onnx|colmap)/" )
 
-  # The pytorch stereo modules, from `plugins/pytorch` in P2-T06, one
+  # The pytorch stereo modules, from the `pytorch` plugin in P2-T06, one
   # subpackage per option: Foundation-Stereo and its real-time variant, the
   # DINO matcher the pairing calls through the Python C API, and the
   # descriptor-based track pairing process.
@@ -181,6 +181,18 @@ if( VIAME_ENABLE_PYTHON )
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/minima_loftr
     CONDITION VIAME_ENABLE_PYTORCH )
 
+  # The ONNX stereo tools -- the epipolar and Fast-Foundation-Stereo graph
+  # exports and their runner -- from `onnx` in P2-T08, installed only with ONNX.
+  viame_add_python_package( measurement/onnx
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/onnx
+    CONDITION VIAME_ENABLE_ONNX )
+
+  # COLMAP structure from motion and dense reconstruction, from `colmap` in
+  # P2-T08. They need pycolmap; the 3d and register tools import them.
+  viame_add_python_package( measurement/colmap
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/colmap
+    CONDITION VIAME_ENABLE_COLMAP )
+
   # Compiled bindings exposing the C++ stereo measurement to python, so the
   # interactive stereo service reuses it rather than duplicating the maths.
   # They live at the bottom of `measurement_utilities.cxx` behind
@@ -193,4 +205,72 @@ if( VIAME_ENABLE_PYTHON )
     PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
   target_link_libraries( python-measurement-_measurement
     PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_measurement )
+endif()
+
+###
+# SEAGIS
+#
+# The SEAGIS StereoLibLX measurement process, from `seagis` in P2-T08. The
+# library is licensed; `VIAME_BUILD_SEAGIS_TEST_LIB` builds against a mock of
+# it instead. It linked `viame_core` for the stereo pairing and measurement
+# helpers, which are this library since P2-T06.
+##
+if( VIAME_ENABLE_SEAGIS )
+  set( seagis_sources
+    register_processes_seagis.cxx
+    seagis_measurement_process.cxx
+    seagis_measurement_process.h
+    )
+
+  if( VIAME_BUILD_SEAGIS_TEST_LIB )
+    list( APPEND seagis_sources StereoLibLX_mock.cxx )
+    message( STATUS "SEAGIS: Using mock StereoLibLX (no licence required)" )
+  endif()
+
+  set( SEAGIS_LINK_LIBRARIES
+    kwiver::vital
+    kwiver::vital_algo
+    kwiver::vital_config
+    kwiver::vital_exceptions
+    kwiver::vital_logger
+    kwiver::vital_util
+    kwiver::sprokit_pipeline
+    viame_measurement
+    )
+
+  if( NOT VIAME_BUILD_SEAGIS_TEST_LIB )
+    list( APPEND SEAGIS_LINK_LIBRARIES ${SEAGIS_LIBRARY} )
+  endif()
+
+  viame_add_plugin( viame_processes_seagis
+    KIND        PROCESSES
+    SOURCES          ${seagis_sources}
+    PRIVATE          ${SEAGIS_LINK_LIBRARIES}
+    )
+
+  target_include_directories( viame_processes_seagis PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+
+  target_include_directories( viame_processes_seagis SYSTEM PRIVATE
+    ${SEAGIS_INCLUDE_DIR}
+    )
+
+  # StereoLibLX is built with /MT (static CRT); VIAME uses /MD (dynamic CRT).
+  # We use patched copies of StereoLibLX.lib and libcpmt.lib with the
+  # /FAILIFMISMATCH:RuntimeLibrary directives stripped so the linker does not
+  # raise LNK2038.  /NODEFAULTLIB suppresses the *original* system libs that
+  # StereoLibLX would pull in, and we explicitly add the patched libcpmt so
+  # the static-CRT C++ symbols (std::cout, std::locale, etc.) still resolve.
+  if( NOT VIAME_BUILD_SEAGIS_TEST_LIB AND MSVC )
+    target_link_options( viame_processes_seagis PRIVATE
+      /NODEFAULTLIB:LIBCMT
+      /NODEFAULTLIB:libcpmt
+      /FORCE:MULTIPLE
+      )
+    target_link_libraries( viame_processes_seagis PRIVATE
+      "${SEAGIS_INCLUDE_DIR}/libcpmt_patched.lib"
+      )
+  endif()
 endif()

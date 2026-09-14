@@ -9,7 +9,7 @@
 # VIAME's own track processes -- accumulation, filtering, resampling, the
 # feature-landmark split and the track conductor -- and its python trackers
 # (ByteTrack, OC-SORT, the homography IOU trackers, tube-IoU fusion) came from
-# `plugins/core` in P2-T06, and the pytorch trackers from `plugins/pytorch`
+# the `core` plugin in P2-T06, and the pytorch trackers from the `pytorch` plugin
 # in the same task, as one python subpackage per option.
 
 set( plugin_headers
@@ -117,13 +117,13 @@ target_include_directories( viame_processes_object_trackers PRIVATE
 # Python
 #
 # ByteTrack and OC-SORT, the simple and multi-camera homography IOU trackers,
-# and tube-IoU track-set fusion, from `plugins/core` in P2-T06.
+# and tube-IoU track-set fusion, from the `core` plugin in P2-T06.
 ##
 if( VIAME_ENABLE_PYTHON )
   viame_add_python_package( object_trackers
     EXCLUDE "^(pytorch|siammask|mdnet|sam3)/" )
 
-  # The pytorch trackers, from `plugins/pytorch` in P2-T06, one subpackage per
+  # The pytorch trackers, from the `pytorch` plugin in P2-T06, one subpackage per
   # option. BoT-SORT, DeepSORT, MOTR and SRNN (with the `srnn/` tree it runs
   # on) need nothing past `VIAME_ENABLE_PYTORCH`.
   viame_add_python_package( object_trackers/pytorch

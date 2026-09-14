@@ -40,7 +40,7 @@ register_factories( kwiver::vital::registry& vpm )
 
   // `format_images_srm` registered here until upstream de7d0779f removed it:
   // nothing had used KWA since search indexes stopped writing it. It arrived
-  // in this file from `plugins/vxl` when P3 ported it off VXL, which is why
+  // in this file from the `vxl` plugin when P3 ported it off VXL, which is why
   // the merge of that commit deleted a file upstream no longer had.
 
 

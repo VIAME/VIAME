@@ -42,7 +42,7 @@ class Sam2Refiner(RefineDetections):
     Full-Frame Classifier around Detection Sets
 
     CommandLine:
-        xdoctest -m plugins/pytorch/sam2_refiner.py Sam2Refiner
+        xdoctest -m library/segmentation/sam2/sam2_refiner.py Sam2Refiner
 
     Example:
         >>> import torch

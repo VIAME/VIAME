@@ -267,7 +267,7 @@ separate_boundary_detections(
 /// `detect_in_subregions` chipped with. Unlike `crop_image` below -- and
 /// unlike OpenCV's -- this **copies**, which is what a caller that hands the
 /// chip to a detector and then keeps it wants. Came from
-/// `plugins/opencv/windowed_utils` in P2-T05.
+/// the `opencv` plugin's `windowed_utils` in P2-T05.
 VIAME_IMAGE_OPS_EXPORT
 kv::image
 crop_region(

@@ -4,7 +4,7 @@
 # Description: Shared registration module, drop-in replacement for
 # common_sea_lion_stabilizer_3cam.pipe. Instead of frame-to-frame SURF/VXL
 # stabilization (many_image_stabilizer), the homographies come from the newer
-# whole-survey registration (viame.colmap.colmap_registration:
+# whole-survey registration (viame.image_processing.colmap.colmap_registration:
 # affine chains + rig cross-camera consensus + optional GPS/flight-log
 # geo-anchoring). Exposes the same process name (stabilizer) and output ports
 # (homog1/homog2/homog3), so the multicam suppressor / tracker / homography

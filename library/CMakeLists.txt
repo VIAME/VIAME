@@ -3,8 +3,8 @@
 #
 # Code that has been taken off a third-party dependency lands here, in a
 # directory named for what it does rather than for what it used to depend on.
-# See design/lite-library-layout.md for the target tree; `plugins/` holds what
-# has not been converted yet.
+# See design/lite-library-layout.md for the tree; phase 2 emptied the
+# `plugins` directory that held the rest into these.
 ##
 
 set( viame_plugin_subdir           viame )

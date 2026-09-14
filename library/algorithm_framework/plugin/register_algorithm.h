@@ -8,7 +8,7 @@
  *
  * Every library's `register_algorithms.cxx` had its own copy of the first
  * function, five of them identical, once P2-T04 and P2-T05 moved VIAME's own
- * algorithms out of `plugins/core` into the libraries they belong to.
+ * algorithms out of the `core` plugin into the libraries they belong to.
  */
 
 #ifndef VIAME_ALGORITHM_FRAMEWORK_REGISTER_ALGORITHM_H

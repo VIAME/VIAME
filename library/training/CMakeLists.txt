@@ -4,7 +4,7 @@
 # The adaptive detector and tracker trainers, which choose among nested
 # trainers by what the data looks like; the training-data utilities the
 # `viame train` applet and the trainers share; and the supervisor that
-# watches a training run. From `plugins/core` and `plugins/claude` in
+# watches a training run. From the `core` plugin and the `claude` plugin in
 # P2-T07, with the python trainers from `viame.core`: ByteTrack and OC-SORT
 # parameter estimation, the three-frame difference settings estimation,
 # tracker parameter search and the training data handling.

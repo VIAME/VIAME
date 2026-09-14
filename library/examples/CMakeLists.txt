@@ -55,7 +55,7 @@ install( FILES       README.rst
 ###
 # Algorithm examples
 #
-# `hello_world_detector` and `hello_world_filter`, from `plugins/examples` in
+# `hello_world_detector` and `hello_world_filter`, from the `examples` plugin in
 # P2-T07: the smallest complete C++ algorithms, each one `PLUGGABLE_IMPL`
 # and a method, and the python processes of the same names. `templates/`
 # holds the detector templates someone copies to start a new algorithm; they

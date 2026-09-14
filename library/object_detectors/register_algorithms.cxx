@@ -65,7 +65,7 @@ register_factories( kv::registry& vpm )
 
 #undef VIAME_REGISTER
 
-  // From `plugins/core` in P2-T05. The detector that returns nothing and the
+  // From the `core` plugin in P2-T05. The detector that returns nothing and the
   // one that returns the whole frame, both of which pipelines use as a
   // stand-in for a real detector.
   register_algorithm< kv::algo::image_object_detector,
@@ -73,7 +73,7 @@ register_factories( kv::registry& vpm )
   register_algorithm< kv::algo::image_object_detector,
     full_frame_detector >( vpm, module_name );
 
-  // One chipper, two names. `plugins/core` and `plugins/opencv` each had an
+  // One chipper, two names. the `core` plugin and the `opencv` plugin each had an
   // implementation of it, and P2-T05 kept this one; `tests/golden/opencv`
   // holds the seven chipping variants of both, byte-identical. 276 config
   // lines select `ocv_windowed` and 17 select `windowed`, so both answer.

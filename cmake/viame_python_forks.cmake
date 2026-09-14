@@ -89,7 +89,7 @@ _viame_fork( darknet-to-pytorch-onnx
              "${_pl}/darknet-to-pytorch-onnx" )
 _viame_fork( sleap-nn    "VIAME_ENABLE_PYTORCH-SLEAP"       "${_pl}/sleap-nn" )
 _viame_fork( roi-align   "VIAME_ENABLE_PYTORCH-MDNET"
-             "${VIAME_SOURCE_DIR}/plugins/pytorch/mdnet" )
+             "${VIAME_SOURCE_DIR}/library/object_trackers/mdnet/mdnet" )
 
 ###
 # The prebuilt onnxruntime C++ libraries

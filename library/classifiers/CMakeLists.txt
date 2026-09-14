@@ -6,9 +6,9 @@
 # which is this library's now; the namespace is still kwiver's, and phase 8
 # is where that changes.
 #
-# VIAME's own refiners and mergers came from `plugins/core` in P2-T05, the
+# VIAME's own refiners and mergers came from the `core` plugin in P2-T05, the
 # windowed refiner from merging core's and opencv's, and the ONNX and pytorch
-# classifiers and refiners from `plugins/onnx` and `plugins/pytorch` as one
+# classifiers and refiners from the `onnx` plugin and the `pytorch` plugin as one
 # python subpackage per option.
 
 set( plugin_headers
@@ -112,22 +112,91 @@ target_include_directories( viame_processes_classifiers PRIVATE
   )
 
 ###
+# SVM
+#
+# The SVM refiner and detector trainer, and the process that trains the
+# models, from `svm` in P2-T08. Their own library and plugin rather than part
+# of `viame_classifiers`, as darknet's detector is: libsvm is optional, and
+# what links `viame_classifiers` should not load it. The query process that
+# uses the models is `descriptors`'.
+##
+if( VIAME_ENABLE_SVM )
+  viame_install_headers(
+    SUBDIR     viame/classifiers
+    refine_detections_svm.h
+    train_detector_svm.h
+    )
+
+  viame_install_headers(
+    ${CMAKE_CURRENT_BINARY_DIR}/viame_classifiers_svm_export.h
+    NOPATH   SUBDIR     viame/classifiers
+    )
+
+  viame_add_library( viame_classifiers_svm
+    refine_detections_svm.h
+    refine_detections_svm.cxx
+    train_detector_svm.h
+    train_detector_svm.cxx
+    )
+
+  target_include_directories( viame_classifiers_svm PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+
+  target_link_libraries( viame_classifiers_svm
+    PUBLIC               kwiver::vital
+                         kwiver::vital_algo
+    PRIVATE              kwiver::vital_config
+                         $<BUILD_INTERFACE:viame::libsvm>
+    )
+
+  set_target_properties( viame_classifiers_svm PROPERTIES
+    SOVERSION            ${VIAME_VERSION_MAJOR}
+    )
+
+  viame_register_statically( viame_classifiers_svm
+    register_svm.cxx
+    )
+
+  viame_add_plugin( viame_processes_classifiers_svm
+    KIND        PROCESSES
+    SOURCES          register_processes_svm.cxx
+                     train_svm_models_process.cxx
+                     train_svm_models_process.h
+    PRIVATE          kwiver::vital
+                     kwiver::vital_algo
+                     kwiver::vital_config
+                     kwiver::vital_logger
+                     kwiver::vital_util
+                     kwiver::vital_vpm
+                     kwiver::sprokit_pipeline
+                     $<BUILD_INTERFACE:viame::libsvm>
+    )
+
+  target_include_directories( viame_processes_classifiers_svm PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+endif()
+
+###
 # Python
 #
 # The detection mergers and the multi-camera suppressor, from
-# `plugins/core` in P2-T05.
+# the `core` plugin in P2-T05.
 ##
 if( VIAME_ENABLE_PYTHON )
   viame_add_python_package( classifiers
     EXCLUDE "^(onnx|netharn|rf_detr|sleap)/" )
 
-  # The onnxruntime classifier and reclassifier, from `plugins/onnx` in
+  # The onnxruntime classifier and reclassifier, from the `onnx` plugin in
   # P2-T05, gated the way that directory was.
   viame_add_python_package( classifiers/onnx
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/onnx
     CONDITION VIAME_ENABLE_ONNX )
 
-  # The pytorch classifiers and refiners, from `plugins/pytorch` in P2-T05,
+  # The pytorch classifiers and refiners, from the `pytorch` plugin in P2-T05,
   # one subpackage per option.
   foreach( gate IN ITEMS "netharn:NETHARN" "rf_detr:RF-DETR" "sleap:SLEAP" )
     string( REPLACE ":" ";" gate "${gate}" )

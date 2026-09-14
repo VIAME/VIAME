@@ -268,7 +268,7 @@ class FastFoundationStereo(ComputeStereoDepthMap):
 
         # Walk up from this file looking for a sibling 'packages/pytorch-libs/
         # fast-foundation-stereo' tree. Works whether __file__ is the src
-        # checkout (.../src/plugins/pytorch/fast_foundation_stereo.py) or
+        # checkout (.../src/library/measurement/stereo/fast_foundation_stereo.py) or
         # the installed copy (.../site-packages/viame/pytorch/...) — though
         # only the src layout actually has the package dir alongside.
         here = os.path.dirname(os.path.abspath(__file__))

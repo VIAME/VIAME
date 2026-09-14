@@ -11,7 +11,7 @@
 # kwiver's, and phase 8 is where that changes.
 #
 # `add_timestamp_from_filename`, `detect_shot_breaks`, `filename_to_timestamp`
-# and `write_disparity_maps` came from `plugins/core` in P2-T04: when a frame
+# and `write_disparity_maps` came from the `core` plugin in P2-T04: when a frame
 # was taken and where one shot ends are properties of the video, not of
 # whatever happened to read it.
 set( plugin_headers

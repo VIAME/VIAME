@@ -10,9 +10,9 @@
 #
 # VIAME's own descriptor processes -- ingest, fetch, per-track descriptors,
 # database query creation and selection, writing results as tracks, the IQR
-# AdaBoost query -- came from `plugins/core` in P2-T06, with the track
+# AdaBoost query -- came from the `core` plugin in P2-T06, with the track
 # descriptor averaging, the CSV descriptor query and the header-only IQR
-# session. The torchvision extractors came from `plugins/pytorch` as a gated
+# session. The torchvision extractors came from the `pytorch` plugin as a gated
 # python subpackage.
 
 set( plugin_headers
@@ -74,7 +74,7 @@ viame_register_statically( viame_descriptors
 # from C++: it trains and scores through `viame.descriptors.iqr_adaboost`,
 # which is scikit-learn. Kept out of `viame_descriptors` on purpose -- the
 # libraries everything links stay free of libpython, and only what needs the
-# model picks the dependency up. From `plugins/core` in P2-T06, under the
+# model picks the dependency up. From the `core` plugin in P2-T06, under the
 # same target name.
 #
 # Without python it compiles to a stub that reports no model, and the base
@@ -178,10 +178,41 @@ target_include_directories( viame_processes_descriptors PRIVATE
   )
 
 ###
+# SVM query
+#
+# The IQR session over SVM models and the process that runs a query through
+# it, from `svm` in P2-T08, as their own plugin because libsvm is optional.
+# The models come from `classifiers`' `train_svm_models`.
+##
+if( VIAME_ENABLE_SVM )
+  viame_add_plugin( viame_processes_descriptors_svm
+    KIND        PROCESSES
+    SOURCES          register_processes_svm.cxx
+                     process_query_process.cxx
+                     process_query_process.h
+                     iqr_session_svm.h
+    PRIVATE          kwiver::vital
+                     kwiver::vital_algo
+                     kwiver::vital_config
+                     kwiver::vital_logger
+                     kwiver::vital_util
+                     kwiver::vital_vpm
+                     kwiver::sprokit_pipeline
+                     viame_descriptors
+                     $<BUILD_INTERFACE:viame::libsvm>
+    )
+
+  target_include_directories( viame_processes_descriptors_svm PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+endif()
+
+###
 # Python
 #
-# The IQR model and the indexing and query tools from `plugins/core`, and the
-# torchvision extractors from `plugins/pytorch` as a subpackage gated on
+# The IQR model and the indexing and query tools from the `core` plugin, and the
+# torchvision extractors from the `pytorch` plugin as a subpackage gated on
 # their option.
 ##
 if( VIAME_ENABLE_PYTHON )

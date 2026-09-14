@@ -8,7 +8,7 @@
 # `kwiver_configure_file`, which spawns `cmake -P` on a helper script to do a
 # `configure_file` at build time so that `@VAR@` in a python source is
 # substituted. No python module VIAME installs contains one: the only `@...@`
-# in any `.py` under `python/`, `library/` or `plugins/` is `@template@`, in
+# in any `.py` under `python/` or `library/` is `@template@`, in
 # `library/examples/templates/python/template_detector.py`, a template for
 # users rather than a module that is built. So it is `copy_if_different`,
 # which is one process instead of two and does nothing when nothing changed.

@@ -51,6 +51,7 @@ option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
 # `VIAME_ENABLE_GDAL` stood here. It only ever told fletch to build GDAL, for
 # the VXL image reader that went in P3; nothing in VIAME has read it since.
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
+option( VIAME_ENABLE_VERTEX_AI      "Enable Google Vertex AI processes" OFF )
 option( VIAME_ENABLE_COLMAP         "Enable COLMAP regisration"     OFF )
 
 mark_as_advanced( VIAME_ENABLE_SEAGIS )

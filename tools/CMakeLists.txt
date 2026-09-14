@@ -62,12 +62,6 @@ target_link_libraries( viame
                viame::registry
   )
 
-# Only the applet attribute names are needed from core; linking it would load
-# its every dependency on each viame invocation
-target_include_directories( viame
-  PRIVATE      ${VIAME_SOURCE_DIR}/plugins/core
-  )
-
 ###
 # The kwiver tool runner
 #
@@ -176,5 +170,16 @@ endif()
 if( VIAME_ENABLE_PYTHON )
   install( FILES       ${PYTHON_SCRIPTS}
            DESTINATION configs )
+
+  # The Vertex AI custom-container application: a Flask server and its two
+  # handlers, which import each other by bare name and run from one
+  # directory. From `vertex-ai` in P2-T08, where they installed as a
+  # `viame/vertex-ai` package that no import could name.
+  if( VIAME_ENABLE_VERTEX_AI )
+    install( FILES       vertex_ai/app.py
+                         vertex_ai/process_handler.py
+                         vertex_ai/train_handler.py
+             DESTINATION configs/vertex_ai )
+  endif()
 endif()
 

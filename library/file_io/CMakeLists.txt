@@ -7,7 +7,7 @@
 # kwiver's, and phase 8 is where that changes.
 #
 # VIAME's own file readers and writers -- viame_csv, coco, dive, cvat and the
-# rest -- joined them from `plugins/core` in P2-T04, along with the camera
+# rest -- joined them from the `core` plugin in P2-T04, along with the camera
 # and camera-rig readers, the homography reader and writer, and the
 # annotation conversion the `viame convert` applet runs.
 #

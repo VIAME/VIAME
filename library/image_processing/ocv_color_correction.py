@@ -4,7 +4,7 @@
 
 """Colour correction for underwater imagery, on cv2.
 
-`plugins/opencv/apply_color_correction.cxx` in python, beside
+the `opencv` plugin's `apply_color_correction.cxx` in python, beside
 `ocv_enhancer` and for the same reason: it is not an imgproc primitive but
 an application built out of a dozen of them -- a lookup table, a masked
 mean, a morphological backscatter estimate, CLAHE in Lab, an exponential

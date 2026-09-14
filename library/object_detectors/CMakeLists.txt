@@ -8,12 +8,12 @@
 # `image_ops` and `hough_circle` is `hough_circle_detector.py`, so this
 # directory links neither OpenCV nor the bridge.
 #
-# The empty and full-frame detectors came from `plugins/core` in P2-T05,
+# The empty and full-frame detectors came from the `core` plugin in P2-T05,
 # and `windowed_detector` is the merge of the two chippers that were in
-# `plugins/core` and `plugins/opencv`: one implementation, registered as
+# the `core` plugin and the `opencv` plugin: one implementation, registered as
 # `windowed` with `ocv_windowed` an alias. `windowed_utils` went down to
 # `image_ops`, where the refiner and the trainer can reach it too. The
-# pytorch detectors and the shared `base` helpers came from `plugins/pytorch`
+# pytorch detectors and the shared `base` helpers came from the `pytorch` plugin
 # in P2-T05, the detectors as one python subpackage per option.
 
 set( plugin_headers
@@ -82,12 +82,12 @@ viame_register_statically( viame_object_detectors
 # darknet's detector
 #
 # `lite-library-layout.md` puts it in this directory, and it was
-# `plugins/darknet` until P7-T08's follow-up moved it here. Its trainer was
+# the `darknet` plugin until P7-T08's follow-up moved it here. Its trainer was
 # removed when darknet was vendored for inference only.
 #
 # **Its own library rather than part of `viame_object_detectors`**, which is
 # not tidiness. darknet is a large optional dependency, and
-# `viame_object_detectors` is what `plugins/core` links for `windowed_utils`
+# `viame_object_detectors` is what the `core` plugin links for `windowed_utils`
 # -- so folding darknet into it put libdarknet on the load path of
 # everything that links `viame_core`, and back when darknet still carried
 # OpenCV a gtest touching none of it failed to start for want of
@@ -168,24 +168,51 @@ viame_add_plugin( viame_processes_object_detectors
   )
 
 ###
+# Vertex AI
+#
+# Processes that send detection requests to, and submit training jobs for, a
+# Google Vertex AI endpoint, from `vertex-ai` in P2-T08. The REST client they
+# share is `utilities`' `viame_vertex_ai`, built only when OpenSSL is found.
+##
+if( VIAME_ENABLE_VERTEX_AI AND TARGET viame_vertex_ai )
+  viame_add_plugin( viame_processes_vertex_ai
+    KIND        PROCESSES
+    SOURCES          register_processes_vertex_ai.cxx
+                     vertex_ai_detector.cxx
+                     vertex_ai_detector.h
+                     vertex_ai_trainer.cxx
+                     vertex_ai_trainer.h
+    PRIVATE          viame_vertex_ai
+                     kwiver::sprokit_pipeline
+                     kwiver::vital
+                     kwiver::vital_util
+    )
+
+  target_include_directories( viame_processes_vertex_ai PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+endif()
+
+###
 # Python implementations
 ##
 if( VIAME_ENABLE_PYTHON )
   # Everything in the directory: `hough_circle_detector`, which was C++
   # until P7-T04 -- the Hough gradient transform is not an image_ops
   # primitive, so it stays cv2's -- and the GMM motion detector
-  # (`stereo_algos`, `stereo_processes`) from `plugins/opencv` in P2-T05.
+  # (`stereo_algos`, `stereo_processes`) from the `opencv` plugin in P2-T05.
   viame_add_python_package( object_detectors
     EXCLUDE "^(onnx|mmdet|netharn|huggingface|mit_yolo|ultralytics|learn|rf_detr|litdet|detectron2)/" )
 
-  # The onnxruntime detector, from `plugins/onnx` in P2-T05. Its own
+  # The onnxruntime detector, from the `onnx` plugin in P2-T05. Its own
   # subpackage so that a build without ONNX neither installs it nor
-  # declares it -- which is what `plugins/onnx` not being added achieved.
+  # declares it -- which is what the `onnx` plugin not being added achieved.
   viame_add_python_package( object_detectors/onnx
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/onnx
     CONDITION VIAME_ENABLE_ONNX )
 
-  # The pytorch detectors, from `plugins/pytorch` in P2-T05: one subpackage
+  # The pytorch detectors, from the `pytorch` plugin in P2-T05: one subpackage
   # per option, each declaring only what it installs.
   foreach( gate IN ITEMS
       "mmdet:MMDET" "netharn:NETHARN" "huggingface:HUGGINGFACE"

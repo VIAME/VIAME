@@ -6,8 +6,8 @@
 
 DIVE's desktop client runs `python -s -m viame.core.interactive_service`
 (`client/platform/desktop/backend/native/interactive.ts`). The module is
-`viame.segmentation.interactive_service` since P2-T05, and `viame.core` was
-emptied by P2-T07, so the old path is a forwarder. `--help` is the cheapest
+`viame.segmentation.interactive_service` since P2-T05, and `viame.core` is
+a compatibility package whose aliases resolve the old path to it. `--help` is the cheapest
 thing that proves the forwarder reaches the real module's argument parser:
 it loads no model and needs no GPU.
 """

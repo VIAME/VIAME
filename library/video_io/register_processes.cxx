@@ -12,7 +12,7 @@
  * namespace; what moved is where they are built and where they register.
  *
  * `detect_shot_breaks` and `read_habcam_metadata` joined them from
- * `plugins/core` in P2-T04. They are still in `viame::core` -- the
+ * the `core` plugin in P2-T04. They are still in `viame::core` -- the
  * namespaces are normalised once at the end of phase 2, not capability by
  * capability.
  */

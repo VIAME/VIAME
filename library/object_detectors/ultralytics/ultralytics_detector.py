@@ -57,7 +57,7 @@ class UltralyticsDetector(ImageObjectDetector):
 
     Example:
         >>> import sys, ubelt
-        >>> sys.path.append(ubelt.expandpath('~/code/VIAME/plugins/pytorch/'))
+        >>> sys.path.append(ubelt.expandpath('~/code/VIAME/library/object_detectors/ultralytics/'))
         >>> from ultralytics_detector import *  # NOQA
         >>> from viame.object_detectors.base import kwiver_to_kwimage_detections
         >>> import kwimage

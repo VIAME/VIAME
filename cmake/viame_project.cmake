@@ -200,9 +200,7 @@ endif()
 ###
 # Add VIAME subdirs
 ##
-# Converted code first: plugins/ still depends on some of it
 add_subdirectory( library )
-add_subdirectory( plugins )
 
 if( VIAME_ENABLE_PYTHON )
   add_subdirectory( python )

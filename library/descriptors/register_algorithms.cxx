@@ -55,7 +55,7 @@ register_factories( kv::registry& vpm )
 
 #undef VIAME_REGISTER_IMPORTED
 
-  // From `plugins/core` in P2-T06.
+  // From the `core` plugin in P2-T06.
   register_algorithm< kv::algo::compute_track_descriptors,
     average_track_descriptors >( vpm, module_name );
   register_algorithm< kv::algo::query_track_descriptor_set,

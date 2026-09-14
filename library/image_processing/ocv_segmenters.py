@@ -4,7 +4,7 @@
 
 """Detection segmentation with GrabCut and watershed, on cv2.
 
-`plugins/opencv/refine_detections_{grabcut,watershed}.cxx` in python, per
+the `opencv` plugin's `refine_detections_{grabcut,watershed}.cxx` in python, per
 `lite-removals.md` section 2.6, which sends both to python by name.
 `cv::grabCut` is a Gaussian mixture over the crop, iterated with a min-cut,
 and `cv::watershed` is a flood from labelled markers: neither is an

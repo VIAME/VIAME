@@ -8,7 +8,7 @@
  *
  * One C++ implementation so far. `ocv_grabcut` and `ocv_watershed` went to
  * python in P7-T04b and are declared in `__init__.py`; the SAM family is
- * still in `plugins/pytorch`.
+ * still in the `pytorch` plugin.
  */
 
 #include "viame_segmentation_plugin_export.h"

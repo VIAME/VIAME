@@ -1283,9 +1283,9 @@ def main():
     args.sites = sites
 
     if args.method == 'sfm-rig':
-        print('sfm-rig method: delegating to viame.colmap.prior_coverage_sfm')
+        print('sfm-rig method: delegating to viame.measurement.colmap.prior_coverage_sfm')
         try:
-            from viame.colmap import prior_coverage_sfm
+            from viame.measurement.colmap import prior_coverage_sfm
         except ImportError:
             # Source-tree layout (plugin not installed as a package).
             sys.path.insert(0, os.path.join(

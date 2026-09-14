@@ -10,7 +10,7 @@
  * unchanged and are still in kwiver's namespace; what moved is where they
  * are built and where they register.
  *
- * `detect_in_subregions` came from `plugins/opencv` in P2-T05, where it had
+ * `detect_in_subregions` came from the `opencv` plugin in P2-T05, where it had
  * stopped needing OpenCV in P7-T04b.
  */
 

@@ -4,7 +4,7 @@
 
 """ONNX export: the `convert_to_onnx` process.
 
-From `plugins/pytorch` in P2-T07. Installed only with `VIAME_ENABLE_ONNX`. The
+From the `pytorch` plugin in P2-T07. Installed only with `VIAME_ENABLE_ONNX`. The
 exporters it dispatches to are beside their backends -- `yolomit_to_onnx` in
 `object_detectors/mit_yolo`, `netharn_mmdet_to_onnx` in
 `object_detectors/netharn`, `netharn_clf_to_onnx` in `classifiers/netharn`,

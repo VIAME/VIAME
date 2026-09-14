@@ -8,7 +8,7 @@
 # or a process: nothing here registers, and `viame_utilities` has no
 # `register.cxx` for that reason.
 #
-# It was `plugins/core`; lite-library-layout.md §3 names the six pieces.
+# It was the `core` plugin; lite-library-layout.md §3 names the six pieces.
 ##
 
 set( plugin_headers
@@ -77,11 +77,55 @@ set_target_properties( viame_utilities PROPERTIES
   )
 
 ###
+# Vertex AI REST client
+#
+# What the Vertex AI processes in `object_detectors` reach the endpoint
+# through, from `vertex-ai` in P2-T08. Built only with the option and OpenSSL,
+# against the cpp-httplib header `VIAME_HTTPLIB_INCLUDE_DIR` names.
+##
+if( VIAME_ENABLE_VERTEX_AI )
+  find_package( OpenSSL QUIET )
+
+  if( OpenSSL_FOUND )
+    viame_add_library( viame_vertex_ai
+      vertex_ai_client.h
+      vertex_ai_client.cxx
+      )
+
+    target_compile_definitions( viame_vertex_ai PRIVATE
+      CPPHTTPLIB_OPENSSL_SUPPORT
+      )
+
+    target_link_libraries( viame_vertex_ai PUBLIC
+      kwiver::vital
+      kwiver::vital_config
+      kwiver::vital_logger
+      OpenSSL::SSL
+      OpenSSL::Crypto
+      )
+
+    target_include_directories( viame_vertex_ai PRIVATE
+      ${VIAME_HTTPLIB_INCLUDE_DIR}
+      )
+  endif()
+endif()
+
+###
 # Python
 #
 # `vital_registration` is the base class every python algorithm in VIAME
 # derives from; the rest is imported by other packages.
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_add_python_package( utilities )
+  viame_add_python_package( utilities EXCLUDE "^compat/" )
+
+  # The packages phase 2 dissolved, kept so that their old module paths still
+  # import: `viame.core`, `viame.pytorch`, `viame.opencv`, `viame.onnx` and
+  # `viame.colmap`. Each aliases every module it installed to where the file
+  # map put it -- see `module_aliases.py` and
+  # `design/scripts/build_compat_aliases.py` -- and declares nothing.
+  foreach( package IN ITEMS core pytorch opencv onnx colmap )
+    viame_add_python_package( ${package}
+      DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/compat/${package} )
+  endforeach()
 endif()

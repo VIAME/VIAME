@@ -9,7 +9,7 @@ naming its interface, its registered name, a description and the
 the algorithm, so a detector that imports torch costs nothing at startup.
 
 A package that ships with VIAME is named in BUILTIN_PLUGIN_PACKAGES in
-kwiver/vital/plugins/discovery.py. One that does not ship with VIAME is
+the kwiver.vital.plugins.discovery module. One that does not ship with VIAME is
 named by the user in VIAME_PYTHON_PLUGINS, a colon-separated list of
 package names; nothing has to be added to setup_viame.sh for either.
 

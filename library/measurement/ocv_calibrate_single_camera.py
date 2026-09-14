@@ -4,7 +4,7 @@
 
 """Single camera calibration from a track set of target corners, on cv2.
 
-`plugins/opencv/calibrate_single_camera_process.cxx` and the two utility
+the `opencv` plugin's `calibrate_single_camera_process.cxx` and the two utility
 files behind it, in python. Same reason as its stereo counterpart: the fit
 is `cv::calibrateCamera`, which is calib3d, so the numerics stay OpenCV's
 and only the language changes.

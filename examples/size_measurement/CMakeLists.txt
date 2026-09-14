@@ -19,7 +19,6 @@ else()
        measure_via_gmm_oriented_boxes.sh
        measure_via_default_fish.sh
        measure_over_manual_annotations.sh
-       gmm_standalone_tool.sh
        compute_depth_maps.sh )
 endif()
 

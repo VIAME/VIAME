@@ -62,7 +62,7 @@ from ensemble_boxes import weighted_boxes_fusion
 
 # Installed, `viame.classifiers` is on the path. From a source checkout it is
 # not, so fall back to the file in the tree -- `library/classifiers` since
-# P2-T05, when it stopped being `plugins/core`.
+# P2-T05, when it stopped being the `core` plugin.
 try:
   from viame.classifiers import detection_fusion_core as dfc
 except ImportError:

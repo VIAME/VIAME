@@ -27,7 +27,7 @@ class NetharnRefiner(RefineDetections):
     Full-Frame Classifier around Detection Sets
 
     CommandLine:
-        xdoctest -m plugins/pytorch/netharn_classifier.py NetharnRefiner
+        xdoctest -m library/classifiers/netharn/netharn_classifier.py NetharnRefiner
 
     Example:
         >>> self = NetharnRefiner()

@@ -56,7 +56,7 @@ void
 viame::pair_stereo_detections
 ::load_camera_calibration()
 {
-  // `plugins/core/camera_rig_io` rather than
+  // `library/file_io/camera_rig_io` rather than
   // `calibrate_stereo_cameras::load_calibration`, which was the same four
   // readers with OpenCV types in the middle. P7-T05 already made the YAML
   // reader in-house and P7-T06 deleted the OpenCV one, so this is the only

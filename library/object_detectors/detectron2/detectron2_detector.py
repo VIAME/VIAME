@@ -107,7 +107,7 @@ class Detectron2Detector(ImageObjectDetector):
         - And other models from the Detectron2 model zoo
 
     CommandLine:
-        xdoctest -m plugins/pytorch/detectron2_detector.py Detectron2Detector --show
+        xdoctest -m library/object_detectors/detectron2/detectron2_detector.py Detectron2Detector --show
 
     Example:
         >>> import sys, ubelt

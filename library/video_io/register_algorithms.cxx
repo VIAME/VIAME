@@ -6,7 +6,7 @@
  * \file
  * \brief In-house video and image reader registration
  *
- * The two image writers that came from `plugins/core` in P2-T04 --
+ * The two image writers that came from the `core` plugin in P2-T04 --
  * `add_timestamp_from_filename` and the disparity-map writer -- register
  * through the template below rather than the macro, because they carry
  * `plugin_name()` and `plugin_description()` of their own.

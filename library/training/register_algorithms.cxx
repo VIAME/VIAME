@@ -6,9 +6,9 @@
  * \file
  * \brief Trainer registration
  *
- * The adaptive detector and tracker trainers, from `plugins/core` in P2-T07,
- * and the windowed trainer, the merge of `plugins/core`'s and
- * `plugins/opencv`'s: `ocv_windowed` is an alias of `windowed`, as it is for
+ * The adaptive detector and tracker trainers, from the `core` plugin in P2-T07,
+ * and the windowed trainer, the merge of the `core` plugin's and
+ * the `opencv` plugin's: `ocv_windowed` is an alias of `windowed`, as it is for
  * the windowed detector and refiner.
  */
 

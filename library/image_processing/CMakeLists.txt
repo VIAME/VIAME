@@ -4,7 +4,7 @@
 # registered names and config keys. Nothing here may include OpenCV or VXL.
 #
 # The habcam and horizontal splitters, the debayer, the colour-space
-# conversion, the hue shift and `ocv_warp_image` came from `plugins/opencv`
+# conversion, the hue shift and `ocv_warp_image` came from the `opencv` plugin
 # in P2-T05 -- none of them has included OpenCV since P7-T04b, and the
 # directory they were in was named for a dependency they no longer have.
 
@@ -123,9 +123,15 @@ viame_register_statically( viame_image_processing
 if( VIAME_ENABLE_PYTHON )
   # Everything in the directory: the OpenCV replacements that came off
   # arrows/ocv in P7, and the multi-camera homography, alignment, optical
-  # flow and percentile-normalisation modules that came from `plugins/core`
+  # flow and percentile-normalisation modules that came from the `core` plugin
   # in P2-T05.
-  viame_add_python_package( image_processing )
+  viame_add_python_package( image_processing EXCLUDE "^colmap/" )
+
+  # COLMAP survey registration, from `colmap` in P2-T08: the
+  # `colmap_registration` process, installed only with COLMAP.
+  viame_add_python_package( image_processing/colmap
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/colmap
+    CONDITION VIAME_ENABLE_COLMAP )
 endif()
 
 ###

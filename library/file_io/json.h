@@ -29,7 +29,7 @@
 ///    which is what the calibration goldens are held to.
 ///
 /// Including a rapidjson header directly gets rapidjson's defaults instead.
-/// Three files in `plugins/core` do exactly that, and did before P8-T06 as
+/// Three files in the `core` plugin do exactly that, and did before P8-T06 as
 /// well -- see open question 2.11. Which of the two a file wants is a real
 /// question with a real answer, and the point of this header is that it now
 /// has to be asked out loud.

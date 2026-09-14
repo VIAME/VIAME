@@ -27,7 +27,7 @@ namespace viame {
  * @brief Run training on arbitrary other trainers in a windowed fashion
  *
  * Registered as `windowed`, with `ocv_windowed` an alias. P2-T07 merged the
- * two copies, `plugins/core`'s and `plugins/opencv`'s, which by then differed
+ * two copies, the `core` plugin's and the `opencv` plugin's, which by then differed
  * in helper signatures and in one default: this is opencv's parameter list,
  * the one shipped configs name, so `original_to_chip_size` defaults to false
  * as it did for them, and core's `windowed` -- which no config selected --

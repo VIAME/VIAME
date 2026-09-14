@@ -1097,5 +1097,19 @@
     "name": "format_images_srm",
     "phase": "upstream",
     "reason": "removed upstream in de7d0779f, merged into lite. Nothing had used KWA since search indexes stopped writing it: the index pipelines feed frames straight to the detector and descriptor. The KWA archive pipelines went with it, and kw_archive_writer itself was already gone under open decision 3."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "pytorch_augmentation",
+    "phase": "P2-T08",
+    "reason": "Named by configs/pipelines/query_augment_image.pipe and its .cpu variant, and resolved to no registered process before phase 2 began and since. Recorded as lite-library-layout.md section 4 asks, so the name is a decision rather than a gap."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "mdnet_tracker",
+    "phase": "P2-T08",
+    "reason": "Named as a process by configs/add-ons/siammask/embedded_single_stream/track_user_selections_fusion.pipe. MDNet is a track_objects algorithm, declared by viame.object_trackers.mdnet since P2-T06, never a process, so that line resolved to nothing before phase 2 and still does. Recorded as lite-library-layout.md section 4 asks."
   }
 ]

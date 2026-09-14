@@ -4,7 +4,7 @@
 
 """Image enhancement, on cv2.
 
-`plugins/opencv/enhance_images.cxx` in python. Thirteen shipped pipelines
+the `opencv` plugin's `enhance_images.cxx` in python. Thirteen shipped pipelines
 select `ocv_enhancer`, which makes it the most-used OpenCV filter in the
 tree, and the reason it is python rather than `image_ops` is one step of it:
 `cv::fastNlMeansDenoisingColored`. Non-local means is not an imgproc
@@ -22,8 +22,8 @@ order and would give the same answer either way; the denoiser is not --
 and once on the way out, as the C++ did.
 
 `vxl_enhancer` is registered as a second name for this class. The two were
-already the same code at runtime before phase 3: `plugins/vxl` and
-`plugins/opencv` each defined `viame::enhance_images` with identical mangled
+already the same code at runtime before phase 3: the `vxl` plugin and
+the `opencv` plugin each defined `viame::enhance_images` with identical mangled
 symbols, so the loader bound one definition for both factories. See
 `design/STATUS.md`, P3-T05.
 """

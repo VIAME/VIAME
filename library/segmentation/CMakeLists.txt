@@ -3,13 +3,13 @@
 #
 # Setting a detection's mask, and the interactive service that does it from
 # a few clicks. `add_keypoints_from_mask` -- which measures a mask and hangs
-# keypoints off the detection -- came from `plugins/opencv` in P2-T05; it
+# keypoints off the detection -- came from the `opencv` plugin in P2-T05; it
 # has not included OpenCV since P7-T04b, so the directory it was in was
 # named for a dependency it no longer had.
 #
 # The polygon-and-mask geometry the readers and writers share went to
 # `image_ops` in P2-T04, one level down, because `file_io`'s CSV readers
-# need it too. The SAM family came from `plugins/pytorch` in P2-T05, as
+# need it too. The SAM family came from the `pytorch` plugin in P2-T05, as
 # `sam2/` and `sam3/` subpackages gated on their options.
 ##
 
@@ -65,15 +65,9 @@ viame_register_statically( viame_segmentation
 # Python
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_add_python_package( segmentation EXCLUDE "^(sam2|sam3|compat_core)/" )
+  viame_add_python_package( segmentation EXCLUDE "^(sam2|sam3)/" )
 
-  # `viame.core`, which P2-T04 to P2-T07 emptied, keeps the one module path
-  # DIVE still starts -- `python -m viame.core.interactive_service` -- as a
-  # forwarder to the service here. It lives beside what it forwards to.
-  viame_add_python_package( core
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/compat_core )
-
-  # The SAM family, from `plugins/pytorch` in P2-T05, one subpackage per
+  # The SAM family, from the `pytorch` plugin in P2-T05, one subpackage per
   # option.
   foreach( gate IN ITEMS "sam2:SAM2" "sam3:SAM3" )
     string( REPLACE ":" ";" gate "${gate}" )

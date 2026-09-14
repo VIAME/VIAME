@@ -64,7 +64,7 @@ class MITYoloDetector(ImageObjectDetector):
         we pyenv3.8.19
 
     CommandLine:
-        xdoctest -m /home/joncrall/code/VIAME/plugins/pytorch/mit_yolo_detector.py MITYoloDetector
+        xdoctest -m /home/joncrall/code/VIAME/library/object_detectors/mit_yolo/mit_yolo_detector.py MITYoloDetector
         xdoctest -m pytorch.mit_yolo_detector MITYoloDetector
 
     Example:

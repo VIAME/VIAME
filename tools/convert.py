@@ -16,7 +16,7 @@ Supports conversion between:
   - zed: ZED camera INI-style configuration format
   - cal: CamCAL/PtsCAL binary calibration format
 
-Reading the formats that plugins/core/camera_rig_io owns (npz, json, opencv
+Reading the formats that library/file_io/camera_rig_io owns (npz, json, opencv
 directories, single yml and mat) is delegated to the C++ viame::read_stereo_rig
 loader via the viame.measurement._measurement binding, so this tool and the
 measurement pipeline share a single source of truth and cannot drift apart.
@@ -168,7 +168,7 @@ class StereoCalibration:
 def read_via_camera_rig_io(input_path):
     """Read calibration through the C++ viame::read_stereo_rig loader.
 
-    This is the single source of truth shared with plugins/core/camera_rig_io
+    This is the single source of truth shared with library/file_io/camera_rig_io
     and the measurement pipeline. It covers .json, single .yml/.yaml, .npz, .mat
     and OpenCV calibration directories. The world frame is the left camera, so
     the returned R, T are the right camera relative to the left.

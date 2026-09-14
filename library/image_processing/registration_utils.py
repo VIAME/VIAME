@@ -1407,9 +1407,9 @@ def _find_viame_install():
     here = os.path.dirname(os.path.abspath(__file__))
     candidates = [
         os.environ.get('VIAME_INSTALL'),
-        # installed layout: <install>/lib/pythonX.Y/site-packages/viame/opencv
+        # installed layout: <install>/lib/pythonX.Y/site-packages/viame/image_processing
         os.path.abspath(os.path.join(here, '..', '..', '..', '..', '..')),
-        # source layout: <src>/plugins/opencv with a sibling build/install
+        # source layout: <src>/library/image_processing with a sibling build/install
         os.path.abspath(os.path.join(here, '..', '..', '..', 'build',
                                      'install')),
     ]

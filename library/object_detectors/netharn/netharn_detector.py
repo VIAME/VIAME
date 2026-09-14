@@ -21,7 +21,7 @@ class NetharnDetector(ImageObjectDetector):
     Implementation of ImageObjectDetector class
 
     CommandLine:
-        xdoctest -m plugins/pytorch/netharn_detector.py NetharnDetector --show
+        xdoctest -m library/object_detectors/netharn/netharn_detector.py NetharnDetector --show
 
     Example:
         >>> self = NetharnDetector()

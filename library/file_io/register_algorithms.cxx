@@ -12,7 +12,7 @@
  * where they register.
  *
  * VIAME's own readers and writers -- viame_csv, dive, cvat, habcam and the
- * rest -- came from `plugins/core` in P2-T04. They are declared with
+ * rest -- came from the `core` plugin in P2-T04. They are declared with
  * PLUGGABLE_IMPL and name and describe themselves, so they register through
  * the template rather than the macro.
  */

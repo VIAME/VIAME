@@ -23,7 +23,7 @@ class NetharnClassifier(ImageObjectDetector):
     detector interface.
 
     CommandLine:
-        xdoctest -m plugins/pytorch/netharn_classifier.py NetharnClassifier --show
+        xdoctest -m library/classifiers/netharn/netharn_classifier.py NetharnClassifier --show
 
     Example:
         >>> self = NetharnClassifier()

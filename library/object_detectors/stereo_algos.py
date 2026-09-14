@@ -1260,7 +1260,7 @@ if __name__ == '__main__':
     CommandLine:
         python -m viame.processes.opencv.algos
 
-        xdoctest ~/code/VIAME/plugins/opencv/python/viame/processes/opencv/algos.py
+        xdoctest ~/code/VIAME/library/object_detectors/stereo_algos.py
     """
     import xdoctest
     xdoctest.doctest_module(__file__)
