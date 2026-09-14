@@ -313,9 +313,9 @@ plugins/pytorch/detectron2/__init__.py	DELETE
 plugins/pytorch/detectron2/predict.py	DELETE
 plugins/pytorch/detectron2_detector.py	library/object_detectors/detectron2/detectron2_detector.py
 plugins/pytorch/detectron2_trainer.py	library/training/detectron2_trainer.py
-plugins/pytorch/dino_matcher.py	library/measurement/dino_matcher.py
-plugins/pytorch/fast_foundation_stereo.py	library/measurement/torch_fast_foundation_stereo.py
-plugins/pytorch/foundation_stereo.py	library/measurement/foundation_stereo.py
+plugins/pytorch/dino_matcher.py	library/measurement/dino/dino_matcher.py
+plugins/pytorch/fast_foundation_stereo.py	library/measurement/stereo/fast_foundation_stereo.py
+plugins/pytorch/foundation_stereo.py	library/measurement/stereo/foundation_stereo.py
 plugins/pytorch/huggingface_zeroshot_detector.py	library/object_detectors/huggingface/huggingface_zeroshot_detector.py
 plugins/pytorch/kwcoco_train_detector.py	library/training/kwcoco_train_detector.py
 plugins/pytorch/learn/CMakeLists.txt	library/training/learn/CMakeLists.txt
@@ -446,7 +446,7 @@ plugins/pytorch/mdnet/setup.py	library/object_trackers/mdnet/mdnet/setup.py
 plugins/pytorch/mdnet/tracker.py	library/object_trackers/mdnet/mdnet/tracker.py
 plugins/pytorch/mdnet/utils.py	library/object_trackers/mdnet/mdnet/utils.py
 plugins/pytorch/mdnet_tracker.py	library/object_trackers/mdnet/mdnet_tracker.py
-plugins/pytorch/minima_loftr/CMakeLists.txt	library/measurement/minima_loftr/CMakeLists.txt
+plugins/pytorch/minima_loftr/CMakeLists.txt	STRUCTURAL
 plugins/pytorch/minima_loftr/__init__.py	library/measurement/minima_loftr/__init__.py
 plugins/pytorch/minima_loftr/backbone/__init__.py	library/measurement/minima_loftr/backbone/__init__.py
 plugins/pytorch/minima_loftr/backbone/resnet_fpn.py	library/measurement/minima_loftr/backbone/resnet_fpn.py
@@ -640,7 +640,7 @@ plugins/pytorch/onnx_exporters/netharn_clf_to_onnx.py	library/training/onnx_expo
 plugins/pytorch/onnx_exporters/netharn_mmdet_to_onnx.py	library/training/onnx_exporters/netharn_mmdet_to_onnx.py
 plugins/pytorch/onnx_exporters/rf_detr_to_onnx.py	library/training/onnx_exporters/rf_detr_to_onnx.py
 plugins/pytorch/onnx_exporters/yolomit_to_onnx.py	library/training/onnx_exporters/yolomit_to_onnx.py
-plugins/pytorch/pair_stereo_tracks.py	library/measurement/pair_stereo_tracks.py
+plugins/pytorch/pair_stereo_tracks.py	library/measurement/torchvision/pair_stereo_tracks.py
 plugins/pytorch/remax/CMakeLists.txt	STRUCTURAL
 plugins/pytorch/remax/LICENSE	library/object_detectors/learn/remax/LICENSE
 plugins/pytorch/remax/README.md	library/object_detectors/learn/remax/README.md

@@ -234,11 +234,11 @@ bool dino_ensure_initialized(
   python_gil_guard gil;
 
   // Import the matcher module
-  s_dino_module = PyImport_ImportModule( "viame.pytorch.dino_matcher" );
+  s_dino_module = PyImport_ImportModule( "viame.measurement.dino.dino_matcher" );
 
   if( !s_dino_module )
   {
-    LOG_WARN( logger, "DINO: Failed to import viame.pytorch.dino_matcher" );
+    LOG_WARN( logger, "DINO: Failed to import viame.measurement.dino.dino_matcher" );
     PyErr_Print();
     return false;
   }
@@ -273,7 +273,7 @@ bool dino_ensure_initialized(
 /// reads. `vital::image` is planar, so this is the one place the two layouts
 /// have to be spelled out rather than aliased.
 ///
-/// **In BGR**, and that is not decoration. `viame.pytorch.dino_matcher`
+/// **In BGR**, and that is not decoration. `viame.measurement.dino.dino_matcher`
 /// names its parameter `img_bgr` and reverses the last axis before
 /// normalising, so it wants the order the bridge used to produce. This is
 /// the one place in the port where the swap the bridge did has to be done by
@@ -1321,7 +1321,7 @@ map_keypoints_to_camera
     {
       throw std::runtime_error(
         "DINO matcher failed to initialize. "
-        "Ensure viame.pytorch.dino_matcher is installed and PyTorch is available." );
+        "Ensure viame.measurement.dino.dino_matcher is installed and PyTorch is available." );
     }
 
     int dino_img_w = static_cast< int >( source_colour.width() );

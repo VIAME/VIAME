@@ -336,6 +336,8 @@ BUILTIN_PLUGIN_PACKAGES = (
     "viame.file_io",
     "viame.image_processing",
     "viame.measurement",
+    "viame.measurement.stereo",
+    "viame.measurement.torchvision",
     "viame.object_detectors",
     "viame.object_detectors.onnx",
     "viame.object_detectors.detectron2",

@@ -1,5 +1,4 @@
-# What is left of `plugins/pytorch`: the trainers (P2-T07), the stereo
-# modules (P2-T06), and the vendored netharn and learn trees. The
+# What is left of `plugins/pytorch`: the trainers (P2-T07) and the vendored netharn and learn trees. The
 # trackers, with the srnn, siammask and mdnet trees, are
 # `library/object_trackers` since P2-T06. The detectors, classifiers
 # and segmenters are gated subpackages of `library/object_detectors`,
@@ -16,8 +15,6 @@ viame_add_python_module(
 if( VIAME_ENABLE_PYTORCH-LEARN )
   add_subdirectory( learn )
 endif()
-
-add_subdirectory( minima_loftr )
 
 viame_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/srnn_trainer.py
@@ -164,29 +161,6 @@ if( VIAME_ENABLE_PYTORCH-SAM3 )
 
 endif()
 
-if( VIAME_ENABLE_PYTORCH-STEREO )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/foundation_stereo.py
-      pytorch
-      foundation_stereo )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/fast_foundation_stereo.py
-      pytorch
-      fast_foundation_stereo )
-
-endif()
-
-if( VIAME_ENABLE_PYTORCH-DINO3 )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/dino_matcher.py
-      pytorch
-      dino_matcher )
-
-endif()
-
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
 
     viame_add_python_module(
@@ -217,14 +191,6 @@ if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
       pytorch
       detectron2_trainer )
 
-endif()
-
-if( VIAME_ENABLE_PYTORCH-VISION )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/pair_stereo_tracks.py
-    pytorch
-    pair_stereo_tracks )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-SLEAP )

@@ -27,12 +27,6 @@
 # declaring what its option installs. What is left here are the trainers,
 # stereo and descriptor modules P2-T06 and P2-T07 take.
 __vital_algorithm_declarations__ = [
-    ( "compute_stereo_depth_map", "fast_foundation_stereo",
-      "Stereo depth/disparity estimation using NVIDIA Fast-Foundation-Stereo (real-time variant)",
-      "viame.pytorch.fast_foundation_stereo:FastFoundationStereo" ),
-    ( "compute_stereo_depth_map", "foundation_stereo",
-      "Stereo depth/disparity estimation using NVIDIA Foundation-Stereo model",
-      "viame.pytorch.foundation_stereo:FoundationStereo" ),
     ( "train_detector", "mit_yolo",
       "PyTorch MIT YOLO detection training routine",
       "viame.pytorch.mit_yolo_trainer:MITYoloTrainer" ),
@@ -85,7 +79,4 @@ __sprokit_process_declarations__ = [
     ( "convert_to_onnx",
       "Convert a VIAME model to onnx",
       "viame.pytorch.convert_to_onnx_process:OnnxConverter" ),
-    ( "pair_stereo_tracks_pytorch",
-      "Pair stereo detections using deep descriptor cosine distance",
-      "viame.pytorch.pair_stereo_tracks:PairStereoTracks" ),
 ]

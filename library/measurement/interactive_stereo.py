@@ -123,7 +123,7 @@ class EpipolarTemplateMatcher:
     def _init_dino(self):
         """Try to import and initialize the DINO matcher module."""
         try:
-            from viame.pytorch import dino_matcher
+            from viame.measurement.dino import dino_matcher
             self._dino_matcher = dino_matcher
             dino_matcher.init_matcher(
                 model_name=self._dino_model_name, device="cuda", threshold=0.0)

@@ -159,7 +159,27 @@ target_include_directories( viame_processes_measurement PRIVATE
 # and opencv's stereo utilities, pipeline and prior coverage.
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_add_python_package( measurement )
+  viame_add_python_package( measurement
+    EXCLUDE "^(stereo|dino|torchvision|minima_loftr)/" )
+
+  # The pytorch stereo modules, from `plugins/pytorch` in P2-T06, one
+  # subpackage per option: Foundation-Stereo and its real-time variant, the
+  # DINO matcher the pairing calls through the Python C API, and the
+  # descriptor-based track pairing process.
+  foreach( gate IN ITEMS "stereo:STEREO" "dino:DINO3" "torchvision:VISION" )
+    string( REPLACE ":" ";" gate "${gate}" )
+    list( GET gate 0 subdir )
+    list( GET gate 1 option )
+    viame_add_python_package( measurement/${subdir}
+      DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}
+      CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-${option} )
+  endforeach()
+
+  # MINIMA-LoFTR, the matcher camera alignment runs. It was built whenever
+  # pytorch was, with no option of its own, and still is.
+  viame_add_python_package( measurement/minima_loftr
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/minima_loftr
+    CONDITION VIAME_ENABLE_PYTORCH )
 
   # Compiled bindings exposing the C++ stereo measurement to python, so the
   # interactive stereo service reuses it rather than duplicating the maths.

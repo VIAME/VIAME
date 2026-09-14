@@ -10,7 +10,7 @@ The matching and fitting logic behind the ``align_cameras`` pipeline
 process, which registers many image pairs per job. Computes
 homographies between two camera images of the same scene -- typically
 different modalities (EO/RGB vs thermal IR) -- using the vendored
-MINIMA-LoFTR matcher (viame.pytorch.minima_loftr), a LoFTR fine-tuned on
+MINIMA-LoFTR matcher (viame.measurement.minima_loftr), a LoFTR fine-tuned on
 multimodal data that is robust to cross-spectral appearance changes.
 
 Contents:
@@ -484,7 +484,7 @@ class LoftrMatcher:
                 "$VIAME_ALIGNMENT_WEIGHTS")
         import torch
         from copy import deepcopy
-        from viame.pytorch.minima_loftr import LoFTR, default_cfg
+        from viame.measurement.minima_loftr import LoFTR, default_cfg
 
         self._device = _resolve_device(self._requested_device)
         self._log(
