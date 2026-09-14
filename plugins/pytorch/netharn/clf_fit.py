@@ -116,8 +116,8 @@ class ClfConfig(scfg.Config):
 
         'dump_tensorboard': scfg.Value(True, help=(
             'If True, tensorboard information is visualized with '
-            'matplotlib and dumped as an image',
-        )),
+            'matplotlib and dumped as an image')
+        ),
 
     }
 
