@@ -22,6 +22,12 @@
 // The vendored codecs. Compiled here, once, rather than in a header every
 // consumer includes: the implementation macro makes these translation units
 // of a few thousand lines apiece.
+//
+// Static, so the copy is this file's alone. The vendored darknet compiles
+// its own stb in `image.c`, and since both went into the one libviame the
+// two sets of `stbi_*` symbols collide; nothing outside this file calls
+// these.
+#define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_NO_STDIO
 #define STBI_NO_GIF
@@ -31,6 +37,7 @@
 #define STBI_FAILURE_USERMSG
 #include <stb_image.h>
 
+#define STB_IMAGE_WRITE_STATIC
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBI_WRITE_NO_STDIO
 #include <stb_image_write.h>

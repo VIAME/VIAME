@@ -39,10 +39,5 @@ set_target_properties( viame_miniz PROPERTIES
 
 add_library( viame::miniz ALIAS viame_miniz )
 
-# Joins the export set: a static library linked into an exported target has
-# to be in it too. `export()` writes the build-tree file naming every
-# dependency, before a generator expression can hide one, so
-# `$<BUILD_INTERFACE:>` on the consumer's side is not enough on its own.
-install( TARGETS viame_miniz EXPORT ${kwiver_export_name}
-         ARCHIVE DESTINATION lib )
-set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_miniz )
+# Not installed: its code is linked into libviame, which is. It was installed
+# only to join the export set, and nothing is exported any more.

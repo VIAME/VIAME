@@ -45,9 +45,3 @@ target_link_libraries( viame_pybind11_embed INTERFACE
 
 add_library( pybind11::embed ALIAS viame_pybind11_embed )
 
-# INTERFACE libraries land in the export set for the same reason the static
-# ones do: `export()` names every dependency of an exported target.
-install( TARGETS viame_pybind11 viame_pybind11_embed
-         EXPORT ${kwiver_export_name} )
-set_property( GLOBAL APPEND PROPERTY viame_export_targets
-              viame_pybind11 viame_pybind11_embed )

@@ -15,7 +15,9 @@ add_library( viame_test_external_plugin MODULE
   external_plugin.cxx
   )
 
-target_link_libraries( viame_test_external_plugin
+# Through libviame in a folded build: a module carrying its own copy of the
+# registry would register into a registry the test never looks at.
+viame_target_link_libraries( viame_test_external_plugin
   PRIVATE    kwiver::vital_vpm
              kwiver::vital_config
   )
@@ -35,9 +37,10 @@ add_dependencies( test-viame-external_plugins viame_test_external_plugin )
 
 target_compile_definitions( test-viame-external_plugins PRIVATE
   "VIAME_TEST_EXTERNAL_PLUGIN=\"$<TARGET_FILE:viame_test_external_plugin>\""
-  # A real shared library that is not a plugin: VIAME's own configuration
-  # library, which exports no `viame_register_plugin`.
-  "VIAME_TEST_NOT_A_PLUGIN=\"$<TARGET_FILE:vital_config>\"" )
+  # A real shared library that is not a plugin: libviame itself, which
+  # exports no `viame_register_plugin`. It was `vital_config` until that was
+  # folded into it.
+  "VIAME_TEST_NOT_A_PLUGIN=\"$<TARGET_FILE:viame_library>\"" )
 
 ###
 # The logger

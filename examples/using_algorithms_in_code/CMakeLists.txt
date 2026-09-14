@@ -22,7 +22,7 @@ install( FILES       detector1.cxx
 # Add first detector example
 add_executable( detector1       detector1.cxx )
 
-target_link_libraries( detector1
+viame_target_link_libraries( detector1
   PRIVATE    kwiver::vital
              kwiver::vital_algo
              kwiver::vital_config
@@ -37,7 +37,7 @@ target_link_libraries( detector1
 # Add first detector example
 add_executable( detector3       detector3.cxx )
 
-target_link_libraries( detector3
+viame_target_link_libraries( detector3
   PRIVATE    kwiver::vital
              kwiver::vital_algo
              kwiver::vital_config

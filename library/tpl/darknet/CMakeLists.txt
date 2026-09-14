@@ -164,10 +164,5 @@ target_compile_options( viame_darknet_core PRIVATE
 
 add_library( viame::darknet ALIAS viame_darknet_core )
 
-# Joins the export set: a static library linked into an exported target has
-# to be in it too. `export()` writes the build-tree file naming every
-# dependency, before a generator expression can hide one, so
-# `$<BUILD_INTERFACE:>` on the consumer's side is not enough on its own.
-install( TARGETS viame_darknet_core EXPORT ${kwiver_export_name}
-         ARCHIVE DESTINATION lib )
-set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_darknet_core )
+# Not installed: its code is linked into libviame, which is. It was installed
+# only to join the export set, and nothing is exported any more.

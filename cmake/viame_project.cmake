@@ -155,10 +155,7 @@ include( viame-flags )
 # check compiler support
 include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-configcheck.cmake" )
 
-# set the name for our package exports and plugin directories
-set( viame_export_name                            viame_exports )
-set( kwiver_export_name                           viame_exports )
-
+# set the names of the plugin directories
 set( kwiver_plugin_subdir                         viame )
 set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
 set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
@@ -208,6 +205,10 @@ if( VIAME_ENABLE_TESTS )
   include( "${VIAME_SOURCE_DIR}/tests/common/add_pytest_test.cmake" )
 endif()
 
+# Every library VIAME builds is folded into one shared `libviame`; see
+# `viame_add_library` and `library/algorithm_framework/registry`.
+set( VIAME_FOLD_LIBRARIES ON )
+
 add_subdirectory( library )
 
 if( VIAME_ENABLE_PYTHON )
@@ -235,6 +236,10 @@ if( VIAME_ENABLE_TESTS )
   add_subdirectory( tests )
 endif()
 
+# Now every library exists, the links recorded by
+# `viame_target_link_libraries` can be told which names were folded.
+viame_apply_folded_links()
+
 ###
 # The config package an out-of-tree plugin builds against
 ##
@@ -246,8 +251,7 @@ set( viame_cmake_install_dir lib${LIB_SUFFIX}/cmake/viame )
 # `viame_add_library` and the rest, for the plugin's own CMakeLists.
 include( "${VIAME_SOURCE_DIR}/cmake/viame/viame-install-utils.cmake" )
 
-get_property( viame_libs GLOBAL PROPERTY viame_libraries )
-string( REPLACE ";" " " viame_libs "${viame_libs}" )
+set( viame_libs "kwiver::viame" )
 
 configure_file(
   "${VIAME_SOURCE_DIR}/cmake/viame-config-install.cmake.in"
@@ -255,7 +259,23 @@ configure_file(
   @ONLY
   )
 
-viame_export_targets( "${VIAME_BINARY_DIR}/viame-config-targets.cmake" )
+# The targets, written rather than exported. `install( EXPORT )` would have
+# to describe libviame's dependencies, and those are the folded OBJECT
+# libraries, which are not installed. What a plugin needs is the library and
+# the headers, under the names it has always linked.
+get_property( viame_facade_names GLOBAL PROPERTY viame_folded_libraries )
+list( APPEND viame_facade_names viame_registry_linked )
+
+configure_file(
+  "${VIAME_SOURCE_DIR}/cmake/viame-config-targets-install.cmake.in"
+  "${VIAME_BINARY_DIR}/viame-config-targets-install.cmake.gen"
+  @ONLY
+  )
+
+file( GENERATE
+  OUTPUT "${VIAME_BINARY_DIR}/viame-config-targets-install.cmake"
+  INPUT  "${VIAME_BINARY_DIR}/viame-config-targets-install.cmake.gen"
+  )
 
 install(
   FILES       "${VIAME_BINARY_DIR}/viame-config-install.cmake"
@@ -264,10 +284,9 @@ install(
   )
 
 install(
-  EXPORT      ${kwiver_export_name}
-  NAMESPACE   kwiver::
+  FILES       "${VIAME_BINARY_DIR}/viame-config-targets-install.cmake"
   DESTINATION "${viame_cmake_install_dir}"
-  FILE        viame-config-targets.cmake
+  RENAME      viame-config-targets.cmake
   )
 
 ###

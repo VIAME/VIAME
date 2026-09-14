@@ -152,10 +152,19 @@ function( viame_add_python_library name modpath )
   # pybind11::module rather than Python_LIBRARIES directly: it is what lets
   # the same source build inside a wheel and outside one.
   list( INSERT PYLIB_PRIVATE 0 pybind11::module )
-  target_link_libraries( ${target}
-    PUBLIC   ${PYLIB_PUBLIC}
-    PRIVATE  ${PYLIB_PRIVATE}
-    )
+  # An extension module is not folded, so the libraries it names are linked
+  # through `libviame` in a folded build; see `viame_target_link_libraries`.
+  if( COMMAND viame_target_link_libraries )
+    viame_target_link_libraries( ${target}
+      PUBLIC   ${PYLIB_PUBLIC}
+      PRIVATE  ${PYLIB_PRIVATE}
+      )
+  else()
+    target_link_libraries( ${target}
+      PUBLIC   ${PYLIB_PUBLIC}
+      PRIVATE  ${PYLIB_PRIVATE}
+      )
+  endif()
 
   if( MSVC )
     # MSVC cannot compile some of these bindings without the optimizer

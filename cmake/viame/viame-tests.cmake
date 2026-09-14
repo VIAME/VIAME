@@ -37,9 +37,17 @@ function( viame_discover_gtests MODULE NAME )
     RUNTIME_OUTPUT_DIRECTORY "${viame_test_output_path}"
     )
 
-  target_link_libraries( test-${MODULE}-${NAME}
-    PRIVATE ${_LIBRARIES} GTest::GTest
-    )
+  # A test is not folded: in a folded build what it names is linked through
+  # `libviame`; see `viame_target_link_libraries`.
+  if( COMMAND viame_target_link_libraries )
+    viame_target_link_libraries( test-${MODULE}-${NAME}
+      PRIVATE ${_LIBRARIES} GTest::GTest
+      )
+  else()
+    target_link_libraries( test-${MODULE}-${NAME}
+      PRIVATE ${_LIBRARIES} GTest::GTest
+      )
+  endif()
 
   set( extra_args TEST_PREFIX ${MODULE}: DISCOVERY_TIMEOUT 60 )
   if( _ARGUMENTS )

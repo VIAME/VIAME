@@ -51,7 +51,7 @@ viame_add_executable( viame
     viame.cxx
   )
 
-target_link_libraries( viame
+viame_target_link_libraries( viame
   PRIVATE      kwiver::vital
                kwiver::vital_vpm
                kwiver::vital_config
@@ -73,7 +73,7 @@ viame_add_executable( kwiver
     kwiver_tool_runner.cxx
   )
 
-target_link_libraries( kwiver
+viame_target_link_libraries( kwiver
   PRIVATE      kwiver::vital
                kwiver::vital_vpm
                kwiver::vital_logger

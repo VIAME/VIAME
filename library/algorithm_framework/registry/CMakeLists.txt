@@ -32,16 +32,14 @@ viame_add_library( viame_registry
   external_plugins.h
   external_plugins.cxx
   static_registry.h
-  "${generated}"
   )
 
 viame_lite_generated( viame_registry_export.h algorithm_framework/registry )
 
 # PRIVATE: the registry names one symbol in each registered library and
-# nothing else, and nothing that links the registry needs their headers. It
-# is still enough to put them in the process -- a referenced symbol is what
-# `--as-needed` keeps -- and it keeps libraries that are not exported out of
-# the registry's install interface.
+# nothing else, and nothing that links the registry needs their headers.
+# What puts their code in the process is `viame_library` below, which links
+# every folded library.
 target_link_libraries( viame_registry
   PRIVATE              kwiver::vital_vpm
                        kwiver::vital_logger
@@ -49,34 +47,80 @@ target_link_libraries( viame_registry
                        ${viame_registered_libraries}
   )
 
-set_target_properties( viame_registry PROPERTIES
+###
+# libviame
+#
+# Every folded library, linked into one shared library -- `viame_add_library`
+# made each an OBJECT library, and this is where their code ends up. The
+# generated registry is its own source, since it names a function in every
+# one of them.
+#
+# PRIVATE, so their objects are linked here and only here; CMake copies an
+# object library's code into the targets that link it directly and no
+# further. Their usage requirements still reach whatever links this in the
+# build tree -- include paths, and the libraries each one links -- through
+# the INTERFACE entries, which are build-only because nothing but libviame
+# itself is installed.
+##
+get_property( viame_folded_libraries GLOBAL PROPERTY viame_folded_libraries )
+
+viame_add_library( viame_library
+  "${generated}"
+  NO_FOLD NO_EXPORT_HEADER
+  )
+
+set_target_properties( viame_library PROPERTIES
+  OUTPUT_NAME          viame
   SOVERSION            ${VIAME_VERSION_MAJOR}
   )
+
+# The generated registry is compiled here rather than in `viame_registry`,
+# whose export header decides what it exports.
+target_compile_definitions( viame_library PRIVATE viame_registry_EXPORTS )
+
+target_link_libraries( viame_library
+  PRIVATE              ${viame_folded_libraries}
+                       ${CMAKE_DL_LIBS}
+  )
+
+foreach( _viame_folded IN LISTS viame_folded_libraries )
+  target_link_libraries( viame_library
+    INTERFACE          $<BUILD_INTERFACE:${_viame_folded}> )
+endforeach()
+
+if( APPLE AND KWIVER_ENABLE_PYTHON )
+  set_target_properties( viame_library PROPERTIES
+    LINK_FLAGS "-undefined dynamic_lookup" )
+endif()
+
+list( LENGTH viame_folded_libraries _viame_folded_count )
+message( STATUS "libviame: ${_viame_folded_count} libraries folded" )
 
 ###
 # What executables link.
 #
-# Nothing calls into `viame_registry` by name -- it hands itself to the plugin
-# manager as it loads -- so the toolchain's `--as-needed` would drop it from
-# every link line as unused, and with it every factory in VIAME. The flags
-# around it say to keep it, and are scoped to it so the rest of the link line
-# is unaffected.
+# Nothing calls into the registry by name -- it hands itself to the plugin
+# manager as libviame loads -- so the toolchain's `--as-needed` would drop
+# libviame from a link line that references nothing else in it, and with it
+# every factory in VIAME. The flags around it say to keep it, and are scoped
+# to it so the rest of the link line is unaffected.
 ##
 add_library( viame_registry_linked INTERFACE )
 
 if( CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND NOT APPLE )
   target_link_libraries( viame_registry_linked INTERFACE
-    "-Wl,--no-as-needed" viame_registry "-Wl,--as-needed" )
+    "-Wl,--no-as-needed" viame_library "-Wl,--as-needed" )
 else()
   # The Apple linker keeps what it is given, and MSVC has no equivalent of
   # `--as-needed` for shared libraries.
-  target_link_libraries( viame_registry_linked INTERFACE viame_registry )
+  target_link_libraries( viame_registry_linked INTERFACE viame_library )
 endif()
 
 add_library( viame::registry ALIAS viame_registry_linked )
 
-install( TARGETS viame_registry_linked EXPORT ${kwiver_export_name} )
-set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_registry_linked )
+# Not installed or exported: an out-of-tree plugin gets `kwiver::viame` and
+# the names it has always used from the config package, which
+# `cmake/viame-config-targets-install.cmake.in` writes.
 
 ###
 # The python extensions that load plugins

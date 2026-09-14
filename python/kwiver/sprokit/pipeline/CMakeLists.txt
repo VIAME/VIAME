@@ -3,7 +3,7 @@ project(sprokit_python_sprokit_pipeline)
 viame_add_python_library(datum
   sprokit/pipeline
   SOURCES datum.cxx)
-target_link_libraries(python-sprokit.pipeline-datum
+viame_target_link_libraries(python-sprokit.pipeline-datum
   PRIVATE             sprokit_pipeline
                       vital_python_util
                       vital vital_util)
@@ -11,21 +11,21 @@ target_link_libraries(python-sprokit.pipeline-datum
 viame_add_python_library(edge
   sprokit/pipeline
   SOURCES edge.cxx)
-target_link_libraries(python-sprokit.pipeline-edge
+viame_target_link_libraries(python-sprokit.pipeline-edge
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
 viame_add_python_library(pipeline
   sprokit/pipeline
   SOURCES pipeline.cxx)
-target_link_libraries(python-sprokit.pipeline-pipeline
+viame_target_link_libraries(python-sprokit.pipeline-pipeline
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
 viame_add_python_library(process
   sprokit/pipeline
   SOURCES process.cxx)
-target_link_libraries(python-sprokit.pipeline-process
+viame_target_link_libraries(python-sprokit.pipeline-process
   PRIVATE             sprokit_pipeline
                       vital_python_util
                       vital_util)
@@ -33,7 +33,7 @@ target_link_libraries(python-sprokit.pipeline-process
 viame_add_python_library(process_factory
   sprokit/pipeline
   SOURCES process_factory.cxx)
-target_link_libraries(python-sprokit.pipeline-process_factory
+viame_target_link_libraries(python-sprokit.pipeline-process_factory
   PRIVATE             sprokit_pipeline
                       vital_python_util
                       vital_vpm
@@ -42,14 +42,14 @@ target_link_libraries(python-sprokit.pipeline-process_factory
 viame_add_python_library(scheduler
   sprokit/pipeline
   SOURCES scheduler.cxx)
-target_link_libraries(python-sprokit.pipeline-scheduler
+viame_target_link_libraries(python-sprokit.pipeline-scheduler
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
 viame_add_python_library(scheduler_factory
   sprokit/pipeline
   SOURCES scheduler_factory.cxx)
-target_link_libraries(python-sprokit.pipeline-scheduler_factory
+viame_target_link_libraries(python-sprokit.pipeline-scheduler_factory
   PRIVATE             sprokit_pipeline
                       vital_python_util
                       vital_vpm
@@ -58,21 +58,21 @@ target_link_libraries(python-sprokit.pipeline-scheduler_factory
 viame_add_python_library(stamp
   sprokit/pipeline
   SOURCES stamp.cxx)
-target_link_libraries(python-sprokit.pipeline-stamp
+viame_target_link_libraries(python-sprokit.pipeline-stamp
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
 viame_add_python_library(utils
   sprokit/pipeline
   SOURCES utils.cxx)
-target_link_libraries(python-sprokit.pipeline-utils
+viame_target_link_libraries(python-sprokit.pipeline-utils
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
 viame_add_python_library(version
   sprokit/pipeline
   SOURCES version.cxx)
-target_link_libraries(python-sprokit.pipeline-version
+viame_target_link_libraries(python-sprokit.pipeline-version
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 

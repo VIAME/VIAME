@@ -6,7 +6,7 @@ viame_add_python_library(bake
   sprokit/pipeline_util
   SOURCES bake.cxx)
 
-target_link_libraries(python-sprokit.pipeline_util-bake
+viame_target_link_libraries(python-sprokit.pipeline_util-bake
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_pipeline_util
@@ -20,7 +20,7 @@ target_link_libraries(python-sprokit.pipeline_util-bake
 viame_add_python_library(load
   sprokit/pipeline_util
   SOURCES load.cxx)
-target_link_libraries(python-sprokit.pipeline_util-load
+viame_target_link_libraries(python-sprokit.pipeline_util-load
   LINK_PRIVATE
     sprokit_pipeline
     sprokit_pipeline_util

@@ -4,7 +4,7 @@ viame_add_python_library(adapter_data_set
   sprokit/adapters
   SOURCES adapter_data_set.cxx)
 
-target_link_libraries(python-sprokit.adapters-adapter_data_set
+viame_target_link_libraries(python-sprokit.adapters-adapter_data_set
   PRIVATE             kwiver_adapter
                       sprokit_pipeline
                       vital_python_util)
@@ -14,7 +14,7 @@ viame_add_python_library(embedded_pipeline
   sprokit/adapters
   SOURCES embedded_pipeline.cxx)
 
-target_link_libraries(python-sprokit.adapters-embedded_pipeline
+viame_target_link_libraries(python-sprokit.adapters-embedded_pipeline
   PRIVATE             kwiver_adapter
                       sprokit_pipeline_util
                       vital_python_util)

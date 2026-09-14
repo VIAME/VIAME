@@ -203,7 +203,7 @@ if( VIAME_ENABLE_PYTHON )
     SOURCES measurement_utilities.cxx )
   target_compile_definitions( python-measurement-_measurement
     PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
-  target_link_libraries( python-measurement-_measurement
+  viame_target_link_libraries( python-measurement-_measurement
     PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_measurement )
 endif()
 

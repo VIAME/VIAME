@@ -103,10 +103,8 @@ target_link_libraries( sprokit_pipeline
                       vital_vpm
   )
 
-if( APPLE AND KWIVER_ENABLE_PYTHON )
-  set_target_properties( sprokit_pipeline PROPERTIES
-    LINK_FLAGS "-undefined dynamic_lookup" )
-endif()
+# Its macOS `-undefined dynamic_lookup` link flag is set on `viame_library`
+# in `library/algorithm_framework/registry`: an OBJECT library is not linked.
 
 viame_lite_generated( sprokit_pipeline_export.h pipeline_framework )
 

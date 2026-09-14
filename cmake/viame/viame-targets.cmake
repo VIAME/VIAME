@@ -30,14 +30,28 @@ include( GenerateExportHeader )
 #+
 # Add a library.
 #
-#   viame_add_library( name [type] [sources...] [NO_VERSION] [NO_EXPORT_HEADER] )
+#   viame_add_library( name [type] [sources...] [NO_VERSION] [NO_EXPORT_HEADER]
+#                      [NO_FOLD] )
 #
 # SHARED unless the caller names a type. The default without one is STATIC,
 # which breaks transitive PRIVATE-dependency propagation for anything linking
 # VIAME from outside.
+#
+# **Folding.** With `VIAME_FOLD_LIBRARIES` on, a library that would be SHARED
+# is an OBJECT library instead, and `library/algorithm_framework/registry`
+# links every one of them into the single `libviame`. VIAME's own configure
+# turns it on; an out-of-tree plugin including this file from the install
+# does not, and gets the shared library it asked for. `NO_FOLD` is for
+# `libviame` itself. A folded library is not installed -- its code is -- and
+# it registers nothing on its own, so a target that is not folded links it
+# through `viame_target_link_libraries`.
+#
+# Nothing is exported. `viame-config-targets.cmake` is written from
+# `cmake/viame-config-targets-install.cmake.in`, because an export set would
+# have had to describe the folded OBJECT libraries.
 #-
 function( viame_add_library name )
-  set( options NO_VERSION NO_EXPORT_HEADER NO_EXPORT )
+  set( options NO_VERSION NO_EXPORT_HEADER NO_FOLD )
   cmake_parse_arguments( LIB "${options}" "" "" ${ARGN} )
 
   string( TOUPPER "${name}" upper_name )
@@ -52,7 +66,18 @@ function( viame_add_library name )
     endif()
   endforeach()
 
-  if( has_type )
+  set( fold FALSE )
+  if( VIAME_FOLD_LIBRARIES AND NOT LIB_NO_FOLD )
+    if( NOT has_type OR "SHARED" IN_LIST LIB_UNPARSED_ARGUMENTS )
+      set( fold TRUE )
+    endif()
+  endif()
+
+  if( fold )
+    set( sources ${LIB_UNPARSED_ARGUMENTS} )
+    list( REMOVE_ITEM sources SHARED )
+    add_library( ${name} OBJECT ${sources} )
+  elseif( has_type )
     add_library( ${name} ${LIB_UNPARSED_ARGUMENTS} )
   else()
     add_library( ${name} SHARED ${LIB_UNPARSED_ARGUMENTS} )
@@ -105,22 +130,24 @@ function( viame_add_library name )
     set_target_properties( ${name} PROPERTIES POSITION_INDEPENDENT_CODE TRUE )
   endif()
 
-  set( exports )
-  if( NOT LIB_NO_EXPORT )
-    set( exports EXPORT ${viame_export_name} )
-    set_property( GLOBAL APPEND PROPERTY viame_export_targets ${name} )
+  if( fold )
+    set_target_properties( ${name} PROPERTIES POSITION_INDEPENDENT_CODE TRUE )
+
+    # What CMake defines for a shared library's own sources and the generated
+    # export header keys on. An OBJECT library gets no such definition, and
+    # without it every symbol would be an import on Windows.
+    target_compile_definitions( ${name} PRIVATE ${name}_EXPORTS )
+
+    set_property( GLOBAL APPEND PROPERTY viame_folded_libraries ${name} )
+    return()
   endif()
 
-  install( TARGETS ${name} ${exports}
+  install( TARGETS ${name}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
     COMPONENT runtime
     )
-
-  if( NOT LIB_NO_EXPORT )
-    set_property( GLOBAL APPEND PROPERTY viame_libraries ${name} )
-  endif()
 endfunction()
 
 #+
@@ -183,21 +210,86 @@ function( viame_private_header_group )
 endfunction()
 
 #+
-# Write the recorded targets to a file in the build tree.
+# Link a target that is not folded against VIAME's libraries.
 #
-# The namespace stays `kwiver::`. It is what an out-of-tree plugin writes --
-# `examples/plugin_creation` links `kwiver::vital` -- and P5-T05 kept it
-# deliberately when `viame-config.cmake` replaced kwiver's config package.
-# Changing it here would be a rename of VIAME's public CMake surface, which
-# is not what this task is.
+#   viame_target_link_libraries( target [PUBLIC|PRIVATE|INTERFACE] items... )
+#
+# For executables, tests, python extensions and loadable modules. Outside a
+# folded build this is `target_link_libraries`.
+#
+# Inside one, a directly linked OBJECT library has its code copied into the
+# target, beside the copy in `libviame` -- two plugin managers, two loggers,
+# every factory registered twice. So the call is recorded on the target and
+# made by `viame_apply_folded_links` at the end of the configure, once every
+# library exists and it can be told which names were folded. Deferred rather
+# than resolved here because a test in `library/<dir>/tests` is defined
+# before the libraries added after its directory, the registry among them.
 #-
-function( viame_export_targets file )
-  get_property( targets GLOBAL PROPERTY viame_export_targets )
-  export( TARGETS ${targets}
-    NAMESPACE kwiver::
-    ${ARGN}
-    FILE "${file}"
-    )
+function( viame_target_link_libraries target )
+  if( NOT VIAME_FOLD_LIBRARIES )
+    target_link_libraries( ${target} ${ARGN} )
+    return()
+  endif()
+
+  set_property( TARGET ${target} APPEND PROPERTY VIAME_DEFERRED_LINKS ${ARGN} )
+  set_property( GLOBAL APPEND PROPERTY viame_deferred_link_targets ${target} )
+endfunction()
+
+#+
+# Make the links `viame_target_link_libraries` recorded.
+#
+# A name that is, or is an alias of, a folded library becomes
+# `viame_registry_linked` -- `libviame`, kept on the link line even where
+# nothing references it by name, because the registry in it is what the
+# target was linking a plugin library for. Everything else is passed through.
+#-
+function( viame_apply_folded_links )
+  get_property( targets GLOBAL PROPERTY viame_deferred_link_targets )
+  get_property( folded GLOBAL PROPERTY viame_folded_libraries )
+
+  if( NOT targets )
+    return()
+  endif()
+
+  list( REMOVE_DUPLICATES targets )
+
+  foreach( target IN LISTS targets )
+    get_target_property( items ${target} VIAME_DEFERRED_LINKS )
+
+    set( keyword PRIVATE )
+    set( resolved )
+
+    foreach( item IN LISTS items )
+      if( item MATCHES "^(LINK_)?(PUBLIC|PRIVATE|INTERFACE)$" )
+        if( resolved )
+          target_link_libraries( ${target} ${keyword} ${resolved} )
+          set( resolved )
+        endif()
+        set( keyword ${CMAKE_MATCH_2} )
+        continue()
+      endif()
+
+      set( real "${item}" )
+      if( TARGET "${item}" )
+        get_target_property( aliased "${item}" ALIASED_TARGET )
+        if( aliased )
+          set( real "${aliased}" )
+        endif()
+      endif()
+
+      if( real IN_LIST folded )
+        if( NOT "viame_registry_linked" IN_LIST resolved )
+          list( APPEND resolved viame_registry_linked )
+        endif()
+      else()
+        list( APPEND resolved "${item}" )
+      endif()
+    endforeach()
+
+    if( resolved )
+      target_link_libraries( ${target} ${keyword} ${resolved} )
+    endif()
+  endforeach()
 endfunction()
 
 #+

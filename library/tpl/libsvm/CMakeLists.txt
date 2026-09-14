@@ -28,11 +28,5 @@ set_target_properties( viame_libsvm PROPERTIES
 
 add_library( viame::libsvm ALIAS viame_libsvm )
 
-# Join the export set. A static library linked into an exported target has to
-# be in it too -- `export()` writes the build-tree file before any generator
-# expression can hide the dependency, so `$<BUILD_INTERFACE:>` is not enough
-# on its own. Nothing is installed: `EXCLUDE_FROM_ALL` on the install side
-# would be the other way round, and there is nothing to ship.
-install( TARGETS viame_libsvm EXPORT ${kwiver_export_name}
-         ARCHIVE DESTINATION lib )
-set_property( GLOBAL APPEND PROPERTY viame_export_targets viame_libsvm )
+# Not installed: its code is linked into libviame, which is. It was installed
+# only to join the export set, and nothing is exported any more.

@@ -1,0 +1,40 @@
+# The targets an out-of-tree plugin links
+#
+# Written from `cmake/viame-config-targets-install.cmake.in` rather than
+# exported: all of VIAME's C++ is one shared library, and `install( EXPORT )`
+# would have to describe the OBJECT libraries folded into it, which are not
+# installed. `kwiver::viame` is the library; every name a plugin could link
+# before the fold -- `kwiver::vital`, `kwiver::vital_algo`, and the rest --
+# is still defined, and each means `kwiver::viame`.
+
+get_filename_component( _viame_prefix "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE )
+
+if( NOT TARGET kwiver::viame )
+  add_library( kwiver::viame SHARED IMPORTED )
+
+  if( WIN32 )
+    set_target_properties( kwiver::viame PROPERTIES
+      IMPORTED_LOCATION "${_viame_prefix}/bin/$<TARGET_FILE_NAME:viame_library>"
+      IMPORTED_IMPLIB   "${_viame_prefix}/lib/$<TARGET_LINKER_FILE_NAME:viame_library>"
+      )
+  else()
+    set_target_properties( kwiver::viame PROPERTIES
+      IMPORTED_LOCATION "${_viame_prefix}/lib/$<TARGET_FILE_NAME:viame_library>"
+      )
+  endif()
+
+  set_target_properties( kwiver::viame PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${_viame_prefix}/include"
+    INTERFACE_COMPILE_FEATURES    cxx_std_17
+    )
+
+  foreach( _viame_name @viame_facade_names@ )
+    add_library( kwiver::${_viame_name} INTERFACE IMPORTED )
+    set_target_properties( kwiver::${_viame_name} PROPERTIES
+      INTERFACE_LINK_LIBRARIES kwiver::viame
+      )
+  endforeach()
+  unset( _viame_name )
+endif()
+
+unset( _viame_prefix )

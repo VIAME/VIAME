@@ -41,6 +41,6 @@ viame_add_python_library(modules
                           vital/modules
                           SOURCES modules.cxx)
 
-target_link_libraries(python-vital.modules-modules
+viame_target_link_libraries(python-vital.modules-modules
     PRIVATE   vital_python_util
               vital_vpm)
