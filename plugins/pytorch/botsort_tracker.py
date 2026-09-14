@@ -29,7 +29,7 @@ import scriptconfig as scfg
 
 from kwiver.vital.algo import TrackObjects
 from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 logger = logging.getLogger(__name__)
 
@@ -287,7 +287,7 @@ class FeatureExtractor:
                 # The trainers save a bare state_dict, not a module; see
                 # load_reid_model for what went wrong when this called .to()
                 # on the loaded object directly.
-                from viame.pytorch.utilities import load_reid_model
+                from viame.object_detectors.base import load_reid_model
                 self.model = load_reid_model(self.model_path, self.device)
             else:
                 self.model = resnet18(weights=ResNet18_Weights.DEFAULT)
@@ -723,7 +723,7 @@ class BoTSORTTracker(TrackObjects):
 
     @report_cuda_errors("BoTSORTTracker initialization")
     def set_configuration(self, cfg_in):
-        from viame.pytorch.utilities import vital_config_update
+        from viame.object_detectors.base import vital_config_update
 
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)

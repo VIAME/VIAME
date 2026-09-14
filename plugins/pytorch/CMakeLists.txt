@@ -1,10 +1,12 @@
+# What is left of `plugins/pytorch`: the trackers and trainers (P2-T06,
+# P2-T07), the stereo and descriptor modules (P2-T06), and the vendored
+# netharn, srnn, siammask, mdnet and learn trees. The detectors, classifiers
+# and segmenters are gated subpackages of `library/object_detectors`,
+# `library/classifiers` and `library/segmentation` since P2-T05, and the
+# shared helpers that were `utilities.py` are `viame.object_detectors.base`.
+
 
 viame_create_python_init( pytorch )
-
-viame_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/utilities.py
-  pytorch
-  utilities )
 
 viame_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_train_detector.py
@@ -83,16 +85,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-MMDET )
 
   viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_compatibility.py
-    pytorch
-    mmdet_compatibility )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_detector.py
-    pytorch
-    mmdet_detector )
-
-  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_trainer.py
     pytorch
     mmdet_trainer )
@@ -109,24 +101,10 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   add_subdirectory( netharn )
 
   viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/netharn_classifier.py
-    pytorch
-    netharn_classifier )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/netharn_detector.py
-    pytorch
-    netharn_detector )
-
-  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_trainer.py
     pytorch
     netharn_trainer )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/netharn_refiner.py
-    pytorch
-    netharn_refiner )
   
     if( VIAME_ENABLE_ONNX)
 
@@ -144,26 +122,12 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 
 endif()
 
-if( VIAME_ENABLE_PYTORCH-HUGGINGFACE )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/huggingface_zeroshot_detector.py
-    pytorch
-    huggingface_zeroshot_detector )
-
-endif()
-
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/mit_yolo_trainer.py
     pytorch
     mit_yolo_trainer )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mit_yolo_detector.py
-    pytorch
-    mit_yolo_detector )
 
   if( VIAME_ENABLE_ONNX)
 
@@ -177,11 +141,6 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_detector.py
-    pytorch
-    ultralytics_detector )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_trainer.py
@@ -219,32 +178,15 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-LEARN )
 
-  add_subdirectory( remax )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/maskcut_detector.py
-    pytorch
-    maskcut_detector )
-
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/cutler_trainer.py
     pytorch
     cutler_trainer )
 
   viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/remax_convnext_detector.py
-    pytorch
-    remax_convnext_detector )
-
-  viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/remax_convnext_trainer.py
     pytorch
     remax_convnext_trainer )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_detector.py
-    pytorch
-    remax_dino_detector )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/remax_dino_trainer.py
@@ -253,46 +195,12 @@ if( VIAME_ENABLE_PYTORCH-LEARN )
 
 endif()
 
-if( VIAME_ENABLE_PYTORCH-SAM2 )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam2_refiner.py
-      pytorch
-      sam2_refiner )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam2_segmenter.py
-      pytorch
-      sam2_segmenter )
-
-endif()
-
 if( VIAME_ENABLE_PYTORCH-SAM3 )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_utilities.py
-      pytorch
-      sam3_utilities )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_segmenter.py
-      pytorch
-      sam3_segmenter )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_text_query.py
-      pytorch
-      sam3_text_query )
 
     viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/sam3_tracker.py
       pytorch
       sam3_tracker )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_refiner.py
-      pytorch
-      sam3_refiner )
 
     viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/sam3_trainer.py
@@ -327,16 +235,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
 
     viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_detector.py
-      pytorch
-      rf_detr_detector )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_refiner.py
-      pytorch
-      rf_detr_refiner )
-
-    viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_trainer.py
       pytorch
       rf_detr_trainer )
@@ -351,11 +249,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-LITDET )
 
     viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/litdet_detector.py
-      pytorch
-      litdet_detector )
-
-    viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/litdet_trainer.py
       pytorch
       litdet_trainer )
@@ -363,11 +256,6 @@ if( VIAME_ENABLE_PYTORCH-LITDET )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
-
-    viame_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/detectron2_detector.py
-      pytorch
-      detectron2_detector )
 
     viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/detectron2_trainer.py
@@ -396,8 +284,8 @@ if( VIAME_ENABLE_PYTORCH-VISION )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-SLEAP )
-  foreach( MODULE sleap_common sleap_trainer sleap_launcher sleap_refiner )
-    kwiver_add_python_module(
+  foreach( MODULE sleap_common sleap_trainer sleap_launcher )
+    viame_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/${MODULE}.py
       pytorch
       ${MODULE} )

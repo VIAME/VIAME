@@ -21,7 +21,7 @@ from kwiver.vital.types import Image, ImageContainer
 
 from viame.utilities.utils import str2bool
 
-from viame.pytorch.utilities import vital_config_update, report_cuda_errors
+from viame.object_detectors.base import vital_config_update, report_cuda_errors
 
 
 class FoundationStereoConfig(scfg.DataConfig):

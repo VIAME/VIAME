@@ -7,7 +7,7 @@ import sys
 import pytest
 
 spec = importlib.util.spec_from_file_location(
-    'feature_utilities', Path(__file__).resolve().parents[3] / 'plugins/pytorch/utilities.py')
+    'feature_utilities', Path(__file__).resolve().parents[3] / 'library/object_detectors/base.py')
 utilities = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(utilities)
 

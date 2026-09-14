@@ -9,7 +9,7 @@ ONNX detection reclassifier (kwiver vital algorithm ``onnx`` for
 The onnxruntime counterpart of the ``netharn`` refiner: crops a chip per input
 detection, classifies it, and rewrites the detection's type. Chip geometry,
 filters, target-scale normalization and prior blending are ports of
-``viame.pytorch.netharn_refiner`` and must stay behaviourally identical to it.
+``viame.classifiers.netharn.netharn_refiner`` and must stay behaviourally identical to it.
 """
 from __future__ import annotations
 

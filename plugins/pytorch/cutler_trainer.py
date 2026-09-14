@@ -28,7 +28,7 @@ from kwiver.vital.types import (
     DetectedObjectSet,
 )
 from functools import partial
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse", "help"])
 

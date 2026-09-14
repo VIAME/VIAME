@@ -9,7 +9,7 @@ from torchvision import models, transforms, datasets
 
 from PIL import Image as pilImage
 
-from viame.pytorch.utilities import get_gpu_device, init_cudnn
+from viame.object_detectors.base import get_gpu_device, init_cudnn
 
 class SafeNormalize(object):
     """Per-channel normalize that avoids PyTorch vectorization bug on Windows.

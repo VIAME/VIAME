@@ -50,7 +50,7 @@ from viame.pytorch.botsort_tracker import (
     get_DetectedObject_score,
     to_ObjectTrackSet,
 )
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 logger = logging.getLogger(__name__)
 
@@ -382,7 +382,7 @@ class MOTRTracker(TrackObjects):
     @report_cuda_errors("MOTRTracker initialization")
     def set_configuration(self, cfg_in):
         import torch
-        from viame.pytorch.utilities import vital_config_update, resolve_device
+        from viame.object_detectors.base import vital_config_update, resolve_device
 
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)

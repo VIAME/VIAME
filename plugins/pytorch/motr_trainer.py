@@ -29,7 +29,7 @@ import numpy as np
 
 from kwiver.vital.algo import TrainTracker
 
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 
 class MOTRTrainer(TrainTracker):

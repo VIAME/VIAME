@@ -44,7 +44,7 @@ from kwiver.vital.types import (
     DetectedObjectType,
 )
 
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 
 def _resolve_attr(model, names):

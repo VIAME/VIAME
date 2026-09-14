@@ -30,7 +30,7 @@ from kwiver.vital.types import (
     Polygon,
 )
 
-from viame.pytorch.sam3_utilities import (
+from viame.segmentation.sam3.sam3_utilities import (
     SAM3BaseConfig,
     SAM3ModelManager,
     mask_to_polygon,
@@ -39,7 +39,7 @@ from viame.pytorch.sam3_utilities import (
     compute_iou,
     image_to_rgb_numpy,
 )
-from viame.pytorch.utilities import vital_config_update, report_cuda_errors
+from viame.object_detectors.base import vital_config_update, report_cuda_errors
 
 
 class SAM3TrackerConfig(SAM3BaseConfig):

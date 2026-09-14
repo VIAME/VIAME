@@ -31,7 +31,7 @@ import shutil
 import json
 import random
 import numpy as np
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
     read_sequence_manifest, split_validation,
     load_computed_detections, match_to_groundtruth,

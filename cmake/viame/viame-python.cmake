@@ -279,7 +279,8 @@ endfunction()
 #+
 # Install a library directory's python sources as one package.
 #
-#   viame_add_python_package( modpath [DIRECTORY dir] [EXCLUDE regex...] )
+#   viame_add_python_package( modpath [DIRECTORY dir] [EXCLUDE regex...]
+#                             [CONDITION var...] )
 #
 # The python that belongs to a functional library sits beside its C++ rather
 # than in a `python/` subdirectory, so the package is whatever `.py` is in
@@ -290,11 +291,22 @@ endfunction()
 # `viame.<modpath>.mmdet.trainer`. `__pycache__` and `tests` are never
 # included; `EXCLUDE` takes regexes matched against the relative path for
 # anything else that should stay out.
+#
+# `CONDITION` names variables that must all be true for the package to be
+# installed at all -- `VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-MMDET`. A
+# gated subpackage carries its own declarations in its own `__init__.py`, so
+# a build without the option neither installs its modules nor declares them.
 #-
 function( viame_add_python_package modpath )
   set( oneValueArgs DIRECTORY )
-  set( multiValueArgs EXCLUDE )
+  set( multiValueArgs EXCLUDE CONDITION )
   cmake_parse_arguments( PKG "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
+  foreach( condition IN LISTS PKG_CONDITION )
+    if( NOT ${condition} )
+      return()
+    endif()
+  endforeach()
 
   if( NOT PKG_DIRECTORY )
     set( PKG_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )

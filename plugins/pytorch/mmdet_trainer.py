@@ -22,7 +22,7 @@ import pickle
 import os
 import signal
 import sys
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 
 def _load_deps():

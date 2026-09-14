@@ -21,7 +21,7 @@ import scriptconfig as scfg
 
 # Initialize cuDNN early at module import time to prevent
 # CUDNN_STATUS_SUBLIBRARY_LOADING_FAILED when running with other CUDA processes
-from viame.pytorch.utilities import init_cudnn, report_cuda_errors
+from viame.object_detectors.base import init_cudnn, report_cuda_errors
 
 
 from timeit import default_timer as timer
@@ -34,7 +34,7 @@ from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
 from kwiver.vital.types import new_descriptor
 from kwiver.vital.util.VitalPIL import get_pil_image
 
-from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
+from viame.object_detectors.base import Grid, gpu_list_desc, parse_gpu_list
 
 logger = logging.getLogger(__name__)
 
@@ -252,7 +252,7 @@ class SRNNTracker(TrackObjects):
 
     @report_cuda_errors("SRNNTracker initialization")
     def set_configuration(self, cfg_in):
-        from viame.pytorch.utilities import vital_config_update
+        from viame.object_detectors.base import vital_config_update
 
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)

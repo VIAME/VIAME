@@ -25,7 +25,7 @@ import subprocess
 import signal
 import time
 import threading
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 from viame.core.training_data import ( build_sequence_maps,
     read_sequence_manifest, split_validation, seed_everything )
 from viame.pytorch.siammask import ( VALIDATION_RECORD,

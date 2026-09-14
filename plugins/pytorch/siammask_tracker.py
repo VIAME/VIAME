@@ -32,7 +32,7 @@ from viame.pytorch.siammask.models.model_builder import ModelBuilder
 from viame.pytorch.siammask.tracker.tracker_builder import build_tracker
 from viame.pytorch.siammask.utils.bbox import get_axis_aligned_bbox
 from viame.pytorch.siammask.utils.model_load import load_pretrain
-from viame.pytorch.utilities import gpu_list_desc, parse_gpu_list, report_cuda_errors
+from viame.object_detectors.base import gpu_list_desc, parse_gpu_list, report_cuda_errors
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ class SiamMaskTracker(TrackObjects):
 
     @report_cuda_errors("SiamMaskTracker initialization")
     def set_configuration(self, cfg_in):
-        from viame.pytorch.utilities import vital_config_update
+        from viame.object_detectors.base import vital_config_update
 
         config = self.get_configuration()
         vital_config_update(config, cfg_in)

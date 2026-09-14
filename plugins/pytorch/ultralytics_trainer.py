@@ -10,7 +10,7 @@ import scriptconfig as scfg
 import ubelt as ub
 import yaml
 
-from viame.pytorch.utilities import (
+from viame.object_detectors.base import (
     report_cuda_errors,
     vital_config_update,
     resolve_device,

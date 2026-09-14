@@ -628,7 +628,7 @@ class OCSORTTracker(TrackObjects):
 
     def set_configuration(self, cfg_in):
         """Set the algorithm configuration."""
-        from viame.pytorch.utilities import vital_config_update
+        from viame.object_detectors.base import vital_config_update
 
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)

@@ -53,14 +53,16 @@ THIRD_PARTY = [
     "transformers",
 ]
 
-# VIAME and KWIVER packages. viame.pytorch pulls the trainers' shared
-# utilities, which is where the RF-DETR and netharn entry points live.
+# VIAME and KWIVER packages. `viame.object_detectors.base` is the shared
+# pytorch helpers every detector, tracker and trainer imports -- it was
+# `viame.object_detectors.base` until P2-T05 -- and it is where the RF-DETR and
+# netharn entry points reach for their device and config handling.
 VIAME = [
     "kwiver.vital.algo",
     "viame.core",
     "viame.onnx",
     "viame.pytorch",
-    "viame.pytorch.utilities",
+    "viame.object_detectors.base",
 ]
 
 

@@ -18,7 +18,7 @@ import scipy.special
 from tqdm import tqdm
 tqdm.monitor_interval = 0
 
-from viame.pytorch.utilities import Grid
+from viame.object_detectors.base import Grid
 
 from .storage import DataStorage, SequenceList
 from .utilities import load_track_feature_file

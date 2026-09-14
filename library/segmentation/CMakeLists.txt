@@ -9,7 +9,8 @@
 #
 # The polygon-and-mask geometry the readers and writers share went to
 # `image_ops` in P2-T04, one level down, because `file_io`'s CSV readers
-# need it too. The SAM family is still in `plugins/pytorch`.
+# need it too. The SAM family came from `plugins/pytorch` in P2-T05, as
+# `sam2/` and `sam3/` subpackages gated on their options.
 ##
 
 set( plugin_headers
@@ -64,5 +65,16 @@ viame_register_statically( viame_segmentation
 # Python
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_add_python_package( segmentation )
+  viame_add_python_package( segmentation EXCLUDE "^(sam2|sam3)/" )
+
+  # The SAM family, from `plugins/pytorch` in P2-T05, one subpackage per
+  # option.
+  foreach( gate IN ITEMS "sam2:SAM2" "sam3:SAM3" )
+    string( REPLACE ":" ";" gate "${gate}" )
+    list( GET gate 0 subdir )
+    list( GET gate 1 option )
+    viame_add_python_package( segmentation/${subdir}
+      DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}
+      CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-${option} )
+  endforeach()
 endif()

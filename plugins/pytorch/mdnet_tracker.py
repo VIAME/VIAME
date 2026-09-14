@@ -17,7 +17,7 @@ from kwiver.vital.types import (
     Track,
 )
 
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 
 def _load_deps():
@@ -86,7 +86,7 @@ class MDNetTracker(TrackObjects):
 
     @report_cuda_errors("MDNetTracker initialization")
     def set_configuration(self, cfg_in):
-        from viame.pytorch.utilities import vital_config_update
+        from viame.object_detectors.base import vital_config_update
 
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)

@@ -11,7 +11,7 @@ from PIL import Image as pilImage
 
 from kwiver.vital.types import BoundingBoxD
 from .models import Siamese
-from viame.pytorch.utilities import get_gpu_device, init_cudnn
+from viame.object_detectors.base import get_gpu_device, init_cudnn
 
 
 class SafeNormalize(object):

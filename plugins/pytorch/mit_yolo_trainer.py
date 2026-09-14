@@ -23,7 +23,7 @@ import time
 
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
-from viame.pytorch.utilities import vital_config_update, report_cuda_errors
+from viame.object_detectors.base import vital_config_update, report_cuda_errors
 
 import scriptconfig as scfg
 import ubelt as ub

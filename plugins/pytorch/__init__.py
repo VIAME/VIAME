@@ -18,8 +18,13 @@
 #
 # Generated from the running registry rather than read off the source, for
 # the reason finding 1.30 gives: the build knows what it registers and the
-# source only suggests it. Regenerate with
-# `tests/baseline/declarations.py --record` if an implementation is added.
+# source only suggests it. The `tests/baseline/declarations.py --record` this
+# used to say regenerates the list was never committed; add an entry by hand.
+#
+# The detectors, classifiers and segmenters are gated subpackages of
+# `viame.object_detectors`, `viame.classifiers` and `viame.segmentation` since
+# P2-T05, each declaring what its option installs. What is left here are the
+# trackers, trainers, stereo and descriptor modules P2-T06 and P2-T07 take.
 __vital_algorithm_declarations__ = [
     ( "compute_stereo_depth_map", "fast_foundation_stereo",
       "Stereo depth/disparity estimation using NVIDIA Fast-Foundation-Stereo (real-time variant)",
@@ -27,54 +32,6 @@ __vital_algorithm_declarations__ = [
     ( "compute_stereo_depth_map", "foundation_stereo",
       "Stereo depth/disparity estimation using NVIDIA Foundation-Stereo model",
       "viame.pytorch.foundation_stereo:FoundationStereo" ),
-    ( "image_object_detector", "huggingface_zeroshot_detector",
-      "HuggingFace ZeroShot Object Detection",
-      "viame.pytorch.huggingface_zeroshot_detector:HuggingFaceZeroShotDetector" ),
-    ( "image_object_detector", "mit_yolo",
-      "PyTorch MIT YOLO detection routine",
-      "viame.pytorch.mit_yolo_detector:MITYoloDetector" ),
-    ( "image_object_detector", "mmdet",
-      "PyTorch MMDetection inference routine",
-      "viame.pytorch.mmdet_detector:MMDetDetector" ),
-    ( "image_object_detector", "netharn",
-      "PyTorch Netharn detection routine",
-      "viame.pytorch.netharn_detector:NetharnDetector" ),
-    ( "image_object_detector", "netharn_classifier",
-      "PyTorch Netharn classification routine",
-      "viame.pytorch.netharn_classifier:NetharnClassifier" ),
-    ( "image_object_detector", "rf_detr",
-      "PyTorch RF-DETR detection routine",
-      "viame.pytorch.rf_detr_detector:RFDETRDetector" ),
-    ( "image_object_detector", "ultralytics",
-      "PyTorch Ultralytics detection routine",
-      "viame.pytorch.ultralytics_detector:UltralyticsDetector" ),
-    ( "perform_text_query", "sam3",
-      "SAM3-based text query for object detection and track refinement",
-      "viame.pytorch.sam3_text_query:SAM3TextQuery" ),
-    ( "refine_detections", "netharn",
-      "PyTorch Netharn refiner routine",
-      "viame.pytorch.netharn_refiner:NetharnRefiner" ),
-    ( "refine_detections", "rf_detr",
-      "Run RF-DETR segmentation/keypoint heads on existing boxes",
-      "viame.pytorch.rf_detr_refiner:RFDETRRefiner" ),
-    ( "refine_detections", "sam2",
-      "SAM2-based detection refiner",
-      "viame.pytorch.sam2_refiner:Sam2Refiner" ),
-    ( "refine_detections", "sam3",
-      "SAM3 (SAM 2.1) based detection refiner for adding segmentation masks",
-      "viame.pytorch.sam3_refiner:Sam3DetectionRefiner" ),
-    ( "refine_tracks", "sam2",
-      "SAM2-based track refiner for adding segmentation masks to tracks",
-      "viame.pytorch.sam2_refiner:Sam2TrackRefiner" ),
-    ( "refine_tracks", "sam3",
-      "SAM3 (Segment Anything Model 3) based track refiner with text queries",
-      "viame.pytorch.sam3_refiner:SAM3Refiner" ),
-    ( "segment_via_points", "sam2",
-      "SAM2-based point segmentation algorithm",
-      "viame.pytorch.sam2_segmenter:SAM2Segmenter" ),
-    ( "segment_via_points", "sam3",
-      "SAM3-based point segmentation algorithm",
-      "viame.pytorch.sam3_segmenter:SAM3Segmenter" ),
     ( "track_objects", "botsort",
       "BoT-SORT multi-object tracker with CMC and IoU-ReID fusion",
       "viame.pytorch.botsort_tracker:BoTSORTTracker" ),

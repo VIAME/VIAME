@@ -14,7 +14,7 @@ from kwiver.vital.algo import TrainDetector
 import scriptconfig as scfg
 import ubelt as ub
 
-from viame.pytorch.utilities import (
+from viame.object_detectors.base import (
     ensure_fork_start_method,
     report_cuda_errors,
     vital_config_update,

@@ -25,7 +25,7 @@ def build_and_train(params):
         message=r".*Checkpoint directory .* exists and is not empty.*",
         module=r"pytorch_lightning\.callbacks\.model_checkpoint")
 
-    from viame.pytorch.utilities import (
+    from viame.object_detectors.base import (
         apply_rfdetr_stem_lr, ensure_fork_start_method,
         ensure_rfdetr_compatibility, parse_resolution, resolution_is_set,
         rfdetr_resume_lr_callback)

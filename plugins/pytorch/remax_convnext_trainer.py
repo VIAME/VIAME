@@ -14,7 +14,7 @@ from viame.utilities.compat import strtobool
 from kwiver.vital.algo import TrainDetector
 
 
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 
 
@@ -29,8 +29,8 @@ def _load_deps():
     from functools import partial
     import viame.pytorch.learn.mmdet.register_modules
     from mmdet.models.builder import LOSSES
-    from viame.pytorch.remax.util.coco import CocoDetection
-    from viame.pytorch.remax.ReMax import ReMax
+    from viame.object_detectors.learn.remax.util.coco import CocoDetection
+    from viame.object_detectors.learn.remax.ReMax import ReMax
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse"])
 

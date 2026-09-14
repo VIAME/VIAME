@@ -17,7 +17,7 @@ from kwiver.vital.algo import TrainDetector
 
 
 
-from viame.pytorch.utilities import report_cuda_errors
+from viame.object_detectors.base import report_cuda_errors
 
 
 def _load_deps():
@@ -26,11 +26,11 @@ def _load_deps():
     import mmcv
     import torch
     import scipy
-    from viame.pytorch.remax.util.slconfig import SLConfig
-    from viame.pytorch.remax.model.dino import build_dino
-    from viame.pytorch.remax.util.coco import build as build_dataset
-    from viame.pytorch.remax.util.box_ops import box_xyxy_to_cxcywh
-    from viame.pytorch.remax.ReMax import ReMax
+    from viame.object_detectors.learn.remax.util.slconfig import SLConfig
+    from viame.object_detectors.learn.remax.model.dino import build_dino
+    from viame.object_detectors.learn.remax.util.coco import build as build_dataset
+    from viame.object_detectors.learn.remax.util.box_ops import box_xyxy_to_cxcywh
+    from viame.object_detectors.learn.remax.ReMax import ReMax
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse", "help"])
 

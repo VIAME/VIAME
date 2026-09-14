@@ -76,13 +76,13 @@ def modules(monkeypatch):
         module = ModuleType(name)
         module.__path__ = [str(path)]
         monkeypatch.setitem(sys.modules, name, module)
-    for name in ['kwiver', 'kwiver.vital', 'kwiver.vital.algo', 'kwiver.vital.types', 'viame.pytorch.utilities']:
+    for name in ['kwiver', 'kwiver.vital', 'kwiver.vital.algo', 'kwiver.vital.types', 'viame.object_detectors.base']:
         monkeypatch.setitem(sys.modules, name, ModuleType(name))
     algo = sys.modules['kwiver.vital.algo']
     algo.TrainDetector = algo.RefineDetections = Algorithm
     types = sys.modules['kwiver.vital.types']
     types.DetectedObjectSet, types.Point2d = DetectionSet, Point
-    sys.modules['viame.pytorch.utilities'].register_vital_algorithm = lambda *args: None
+    sys.modules['viame.object_detectors.base'].register_vital_algorithm = lambda *args: None
     for name in ['sleap_common', 'sleap_trainer', 'sleap_refiner', 'sleap_launcher']:
         monkeypatch.delitem(sys.modules, 'viame.pytorch.' + name, raising=False)
     loaded = SimpleNamespace(**{name: importlib.import_module('viame.pytorch.' + name)

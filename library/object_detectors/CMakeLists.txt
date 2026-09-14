@@ -12,8 +12,9 @@
 # and `windowed_detector` is the merge of the two chippers that were in
 # `plugins/core` and `plugins/opencv`: one implementation, registered as
 # `windowed` with `ocv_windowed` an alias. `windowed_utils` went down to
-# `image_ops`, where the refiner and the trainer can reach it too. VIAME's
-# own pytorch detectors are still in plugins/.
+# `image_ops`, where the refiner and the trainer can reach it too. The
+# pytorch detectors and the shared `base` helpers came from `plugins/pytorch`
+# in P2-T05, the detectors as one python subpackage per option.
 
 set( plugin_headers
   detect_heat_map.h
@@ -174,15 +175,37 @@ if( VIAME_ENABLE_PYTHON )
   # until P7-T04 -- the Hough gradient transform is not an image_ops
   # primitive, so it stays cv2's -- and the GMM motion detector
   # (`stereo_algos`, `stereo_processes`) from `plugins/opencv` in P2-T05.
-  viame_add_python_package( object_detectors EXCLUDE "^onnx/" )
+  viame_add_python_package( object_detectors
+    EXCLUDE "^(onnx|mmdet|netharn|huggingface|mit_yolo|ultralytics|learn|rf_detr|litdet|detectron2)/" )
 
   # The onnxruntime detector, from `plugins/onnx` in P2-T05. Its own
   # subpackage so that a build without ONNX neither installs it nor
   # declares it -- which is what `plugins/onnx` not being added achieved.
-  if( VIAME_ENABLE_ONNX )
-    viame_add_python_package( object_detectors/onnx
-      DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/onnx )
-  endif()
+  viame_add_python_package( object_detectors/onnx
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/onnx
+    CONDITION VIAME_ENABLE_ONNX )
+
+  # The pytorch detectors, from `plugins/pytorch` in P2-T05: one subpackage
+  # per option, each declaring only what it installs.
+  foreach( gate IN ITEMS
+      "mmdet:MMDET" "netharn:NETHARN" "huggingface:HUGGINGFACE"
+      "mit_yolo:MIT-YOLO" "ultralytics:ULTRALYTICS" "rf_detr:RF-DETR"
+      "litdet:LITDET" "detectron2:DETECTRON2" )
+    string( REPLACE ":" ";" gate "${gate}" )
+    list( GET gate 0 subdir )
+    list( GET gate 1 option )
+    viame_add_python_package( object_detectors/${subdir}
+      DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}
+      CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-${option} )
+  endforeach()
+
+  # `learn/` also carries the vendored ReMax tree the remax detectors build
+  # on, which lite-library-layout.md sends to a wheel in P9. Its CUDA
+  # extension's `setup.py` and `test.py` were never installed and are not now.
+  viame_add_python_package( object_detectors/learn
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/learn
+    EXCLUDE "^remax/model/ops/(setup|test)\\.py$"
+    CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-LEARN )
 endif()
 
 target_include_directories( viame_processes_object_detectors PRIVATE

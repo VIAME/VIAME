@@ -117,6 +117,14 @@ def rewrite_includes(path, headers, owner):
         name = os.path.basename(match.group("name"))
         if name not in headers:
             return match.group(0)
+        # An include that still resolves from where the file is is right as it
+        # stands. The case that found this: ReMax's CUDA extension, a tree
+        # that moved whole, includes `"cpu/ms_deform_attn_cpu.h"` -- and
+        # rewriting by basename turned it into `"ms_deform_attn_cpu.h"`, which
+        # its own `setup.py` build could no longer find.
+        if os.path.exists(os.path.join(ROOT, os.path.dirname(path),
+                                       match.group("name"))):
+            return match.group(0)
         directory, base = headers[name]
         if mine == directory:
             new = '#include "%s"' % base
@@ -203,7 +211,12 @@ def fix_relative_imports():
             return "%sfrom %s.%s import" % (
                 match.group(1), package_of(candidates[0]), name)
 
-        original = open(os.path.join(ROOT, path), encoding="utf-8").read()
+        try:
+            original = open(os.path.join(ROOT, path), encoding="utf-8").read()
+        except (UnicodeDecodeError, FileNotFoundError):
+            # Deleted in the tree but not yet in the index -- a file the map
+            # deletes, removed before the move that follows it.
+            continue
         updated = pattern.sub(replace, original)
         if updated != original:
             open(os.path.join(ROOT, path), "w", encoding="utf-8").write(updated)

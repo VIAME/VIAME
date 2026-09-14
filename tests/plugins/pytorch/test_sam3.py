@@ -251,7 +251,7 @@ class TestSAM3Utilities:
 
     def test_import_sam3_utilities(self):
         """Test that sam3_utilities can be imported."""
-        from viame.pytorch import sam3_utilities
+        from viame.segmentation.sam3 import sam3_utilities
         assert hasattr(sam3_utilities, 'SAM3BaseConfig')
         assert hasattr(sam3_utilities, 'SAM3ModelManager')
         assert hasattr(sam3_utilities, 'mask_to_polygon')
@@ -260,7 +260,7 @@ class TestSAM3Utilities:
 
     def test_sam3_base_config(self):
         """Test SAM3BaseConfig initialization and defaults."""
-        from viame.pytorch.sam3_utilities import SAM3BaseConfig
+        from viame.segmentation.sam3.sam3_utilities import SAM3BaseConfig
 
         config = SAM3BaseConfig()
         assert config.sam_model_id is not None
@@ -271,7 +271,7 @@ class TestSAM3Utilities:
 
     def test_sam3_base_config_text_query_parsing(self):
         """Test that text queries are parsed correctly."""
-        from viame.pytorch.sam3_utilities import SAM3BaseConfig
+        from viame.segmentation.sam3.sam3_utilities import SAM3BaseConfig
 
         config = SAM3BaseConfig(text_query="fish, crab, starfish")
         config.__post_init__()
@@ -280,7 +280,7 @@ class TestSAM3Utilities:
     @pytest.mark.skip(reason="cv2 segfaults in test environment - run manually with full KWIVER env")
     def test_mask_to_polygon(self):
         """Test mask to polygon conversion."""
-        from viame.pytorch.sam3_utilities import mask_to_polygon
+        from viame.segmentation.sam3.sam3_utilities import mask_to_polygon
 
         # Create a simple circular mask
         mask = np.zeros((100, 100), dtype=np.uint8)
@@ -296,7 +296,7 @@ class TestSAM3Utilities:
     @pytest.mark.skip(reason="cv2 segfaults in test environment - run manually with full KWIVER env")
     def test_mask_to_polygon_empty(self):
         """Test mask to polygon with empty mask."""
-        from viame.pytorch.sam3_utilities import mask_to_polygon
+        from viame.segmentation.sam3.sam3_utilities import mask_to_polygon
 
         mask = np.zeros((100, 100), dtype=np.uint8)
         polygon = mask_to_polygon(mask)
@@ -305,7 +305,7 @@ class TestSAM3Utilities:
     @pytest.mark.skip(reason="cv2 segfaults in test environment - run manually with full KWIVER env")
     def test_mask_to_points(self):
         """Test mask to points extraction."""
-        from viame.pytorch.sam3_utilities import mask_to_points
+        from viame.segmentation.sam3.sam3_utilities import mask_to_points
 
         # Create a rectangular mask
         mask = np.zeros((100, 100), dtype=np.uint8)
@@ -321,7 +321,7 @@ class TestSAM3Utilities:
     @pytest.mark.skip(reason="KWIVER BoundingBoxD segfaults in test environment - run manually")
     def test_box_from_mask(self):
         """Test bounding box extraction from mask."""
-        from viame.pytorch.sam3_utilities import box_from_mask
+        from viame.segmentation.sam3.sam3_utilities import box_from_mask
 
         # Create a rectangular mask
         mask = np.zeros((100, 100), dtype=np.uint8)
@@ -336,7 +336,7 @@ class TestSAM3Utilities:
 
     def test_compute_iou(self):
         """Test IoU computation."""
-        from viame.pytorch.sam3_utilities import compute_iou
+        from viame.segmentation.sam3.sam3_utilities import compute_iou
 
         # Same box - IoU should be 1.0
         box1 = [0, 0, 100, 100]
@@ -358,7 +358,7 @@ class TestSAM3Utilities:
     @pytest.mark.skip(reason="KWIVER types segfault in test environment - run manually")
     def test_image_to_rgb_numpy(self):
         """Test image container to numpy conversion."""
-        from viame.pytorch.sam3_utilities import image_to_rgb_numpy
+        from viame.segmentation.sam3.sam3_utilities import image_to_rgb_numpy
         from kwiver.vital.types import ImageContainer
         from kwiver.vital.util import VitalPIL
 
@@ -373,7 +373,7 @@ class TestSAM3Utilities:
     def test_get_autocast_context_cuda(self):
         """Test autocast context for CUDA device."""
         import torch
-        from viame.pytorch.sam3_utilities import get_autocast_context
+        from viame.segmentation.sam3.sam3_utilities import get_autocast_context
 
         if torch.cuda.is_available():
             ctx = get_autocast_context('cuda')
@@ -381,7 +381,7 @@ class TestSAM3Utilities:
 
     def test_get_autocast_context_cpu(self):
         """Test autocast context for CPU device."""
-        from viame.pytorch.sam3_utilities import get_autocast_context
+        from viame.segmentation.sam3.sam3_utilities import get_autocast_context
         import contextlib
 
         ctx = get_autocast_context('cpu')
@@ -389,7 +389,7 @@ class TestSAM3Utilities:
 
     def test_parse_bool(self):
         """Test boolean parsing utility."""
-        from viame.pytorch.sam3_utilities import parse_bool
+        from viame.segmentation.sam3.sam3_utilities import parse_bool
 
         # True values
         assert parse_bool(True) is True
@@ -419,7 +419,7 @@ class TestSAM3ModelManager:
 
     def test_model_manager_initialization(self):
         """Test SAM3ModelManager can be instantiated."""
-        from viame.pytorch.sam3_utilities import SAM3ModelManager
+        from viame.segmentation.sam3.sam3_utilities import SAM3ModelManager
 
         manager = SAM3ModelManager()
         assert manager._sam_predictor is None
@@ -429,7 +429,7 @@ class TestSAM3ModelManager:
     @pytest.mark.skipif(not sam3_models_available(), reason="SAM3 models not available")
     def test_model_manager_local_detection(self, sam3_models):
         """Test that model manager can detect local model files."""
-        from viame.pytorch.sam3_utilities import SAM3ModelManager
+        from viame.segmentation.sam3.sam3_utilities import SAM3ModelManager
 
         manager = SAM3ModelManager()
 
@@ -451,21 +451,21 @@ class TestSAM3VitalAlgorithms:
     def test_import_sam3_segmenter(self):
         """Test that sam3_segmenter can be imported."""
         pytest.importorskip('kwiver', reason="KWIVER not installed")
-        from viame.pytorch import sam3_segmenter
+        from viame.segmentation.sam3 import sam3_segmenter
         assert hasattr(sam3_segmenter, 'SAM3Segmenter')
         assert hasattr(sam3_segmenter, 'SAM3SegmenterConfig')
 
     def test_import_sam3_text_query(self):
         """Test that sam3_text_query can be imported."""
         pytest.importorskip('kwiver', reason="KWIVER not installed")
-        from viame.pytorch import sam3_text_query
+        from viame.segmentation.sam3 import sam3_text_query
         assert hasattr(sam3_text_query, 'SAM3TextQuery')
         assert hasattr(sam3_text_query, 'SAM3TextQueryConfig')
 
     def test_sam3_segmenter_config(self):
         """Test SAM3SegmenterConfig initialization and defaults."""
         pytest.importorskip('kwiver', reason="KWIVER not installed")
-        from viame.pytorch.sam3_segmenter import SAM3SegmenterConfig
+        from viame.segmentation.sam3.sam3_segmenter import SAM3SegmenterConfig
 
         config = SAM3SegmenterConfig()
         assert config.checkpoint == ''
@@ -475,7 +475,7 @@ class TestSAM3VitalAlgorithms:
     def test_sam3_text_query_config(self):
         """Test SAM3TextQueryConfig initialization and defaults."""
         pytest.importorskip('kwiver', reason="KWIVER not installed")
-        from viame.pytorch.sam3_text_query import SAM3TextQueryConfig
+        from viame.segmentation.sam3.sam3_text_query import SAM3TextQueryConfig
 
         config = SAM3TextQueryConfig()
         assert config.checkpoint == ''
@@ -485,14 +485,14 @@ class TestSAM3VitalAlgorithms:
 
     def test_shared_model_cache_import(self):
         """Test that SharedSAM3ModelCache can be imported."""
-        from viame.pytorch.sam3_utilities import SharedSAM3ModelCache
+        from viame.segmentation.sam3.sam3_utilities import SharedSAM3ModelCache
         assert hasattr(SharedSAM3ModelCache, 'get_or_create')
         assert hasattr(SharedSAM3ModelCache, 'get_lock')
         assert hasattr(SharedSAM3ModelCache, 'clear')
 
     def test_shared_model_cache_key_generation(self):
         """Test SharedSAM3ModelCache key generation."""
-        from viame.pytorch.sam3_utilities import SharedSAM3ModelCache
+        from viame.segmentation.sam3.sam3_utilities import SharedSAM3ModelCache
 
         key1 = SharedSAM3ModelCache._make_key("/path/to/model.pt", None, "cuda")
         key2 = SharedSAM3ModelCache._make_key("/path/to/model.pt", None, "cuda")
@@ -503,7 +503,7 @@ class TestSAM3VitalAlgorithms:
 
     def test_shared_model_cache_lock(self):
         """Test SharedSAM3ModelCache lock retrieval."""
-        from viame.pytorch.sam3_utilities import SharedSAM3ModelCache
+        from viame.segmentation.sam3.sam3_utilities import SharedSAM3ModelCache
         import threading
 
         lock1 = SharedSAM3ModelCache.get_lock("/path/a.pt", None, "cuda")
@@ -600,7 +600,7 @@ class TestSAM3Refiner:
     def test_import_sam3_refiner(self):
         """Test that sam3_refiner can be imported."""
         try:
-            from viame.pytorch import sam3_refiner
+            from viame.segmentation.sam3 import sam3_refiner
             assert hasattr(sam3_refiner, 'SAM3Refiner')
             assert hasattr(sam3_refiner, 'Sam3DetectionRefiner')
         except Exception as e:
@@ -609,7 +609,7 @@ class TestSAM3Refiner:
     def test_sam3_refiner_config(self):
         """Test SAM3RefinerConfig has expected attributes."""
         try:
-            from viame.pytorch.sam3_refiner import SAM3RefinerConfig
+            from viame.segmentation.sam3.sam3_refiner import SAM3RefinerConfig
 
             config = SAM3RefinerConfig()
             assert hasattr(config, 'iou_threshold')
@@ -624,7 +624,7 @@ class TestSAM3Refiner:
     def test_sam3_refiner_initialization(self):
         """Test SAM3Refiner can be instantiated."""
         try:
-            from viame.pytorch.sam3_refiner import SAM3Refiner
+            from viame.segmentation.sam3.sam3_refiner import SAM3Refiner
 
             refiner = SAM3Refiner()
             assert refiner is not None
@@ -636,7 +636,7 @@ class TestSAM3Refiner:
     def test_sam3_detection_refiner_initialization(self):
         """Test Sam3DetectionRefiner can be instantiated."""
         try:
-            from viame.pytorch.sam3_refiner import Sam3DetectionRefiner
+            from viame.segmentation.sam3.sam3_refiner import Sam3DetectionRefiner
 
             refiner = Sam3DetectionRefiner()
             assert refiner is not None
@@ -883,7 +883,7 @@ class TestSAM3TextQueries:
 
     def test_text_query_parsing(self):
         """Test that text queries are correctly parsed into list."""
-        from viame.pytorch.sam3_utilities import SAM3BaseConfig
+        from viame.segmentation.sam3.sam3_utilities import SAM3BaseConfig
 
         # Single query
         config1 = SAM3BaseConfig(text_query="fish")
@@ -1010,7 +1010,7 @@ class TestSAM3AlgorithmRegistration:
             from kwiver.vital.algo import algorithm_factory
 
             # Import to trigger registration
-            from viame.pytorch import sam3_refiner
+            from viame.segmentation.sam3 import sam3_refiner
 
             # Check RefineDetections registration
             det_type = sam3_refiner.Sam3DetectionRefiner.static_type_name()
@@ -1031,7 +1031,7 @@ class TestSAM3AlgorithmRegistration:
             from kwiver.vital.algo import SegmentViaPoints, algorithm_factory
 
             # Import to trigger registration
-            from viame.pytorch import sam3_segmenter
+            from viame.segmentation.sam3 import sam3_segmenter
 
             # Check SegmentViaPoints registration with name "sam3"
             type_name = sam3_segmenter.SAM3Segmenter.static_type_name()
@@ -1049,7 +1049,7 @@ class TestSAM3AlgorithmRegistration:
             from kwiver.vital.algo import PerformTextQuery, algorithm_factory
 
             # Import to trigger registration
-            from viame.pytorch import sam3_text_query
+            from viame.segmentation.sam3 import sam3_text_query
 
             # Check PerformTextQuery registration with name "sam3"
             type_name = sam3_text_query.SAM3TextQuery.static_type_name()
@@ -1067,7 +1067,7 @@ class TestSAM3AlgorithmRegistration:
             from kwiver.vital.algo import SegmentViaPoints
 
             # Import to trigger registration
-            from viame.pytorch import sam2_segmenter
+            from viame.segmentation.sam2 import sam2_segmenter
 
             # Check SegmentViaPoints registration with name "sam2"
             type_name = sam2_segmenter.SAM2Segmenter.static_type_name()

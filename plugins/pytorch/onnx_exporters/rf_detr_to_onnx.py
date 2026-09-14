@@ -38,8 +38,8 @@ def build_rfdetr_model(weight_fpath, device='cpu', resolution_override=0):
     """Rebuild the trained RF-DETR wrapper (an rfdetr.RFDETR* object with an
     ``.export()`` method) from a checkpoint, mirroring RFDETRDetector._build_model."""
     import torch
-    from viame.pytorch.rf_detr_detector import RFDETRDetector
-    from viame.pytorch.utilities import (
+    from viame.object_detectors.rf_detr.rf_detr_detector import RFDETRDetector
+    from viame.object_detectors.base import (
         ensure_rfdetr_compatibility, parse_resolution, resolution_is_set)
 
     ensure_rfdetr_compatibility()

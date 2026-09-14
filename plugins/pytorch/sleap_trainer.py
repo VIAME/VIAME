@@ -13,7 +13,7 @@ from viame.pytorch.sleap_common import (
     as_rgb, crop_detection, detection_points, parse_keypoint_names,
     read_config, transform_points,
 )
-from viame.pytorch.utilities import register_vital_algorithm
+from viame.object_detectors.base import register_vital_algorithm
 
 
 class SleapTrainer(TrainDetector):

@@ -162,7 +162,7 @@ the `netharn` refiner respectively:
 * **`onnx`** (a `refine_detections`) crops a chip per input detection,
   classifies it, and rewrites the detection's type. The chip geometry, area and
   border filters, target-scale normalization and prior/taxonomy blending are
-  ports of `viame.pytorch.netharn_refiner` and behave identically.
+  ports of `viame.classifiers.netharn.netharn_refiner` and behave identically.
 
 Both share `onnx_clf_predictor`, whose `letterbox_resize` is a pixel-exact port
 of `kwimage.imresize(..., letterbox=True)`. Two details there are load-bearing:
