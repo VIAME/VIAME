@@ -5,6 +5,7 @@ This is a simple generalized harness for training a classifier on a coco dataset
 from os.path import join
 import numpy as np
 import sys
+import traceback
 import torch
 import ubelt as ub
 
@@ -499,12 +500,28 @@ class ClfHarn(nh.FitHarn):
             'ap', 'auc', 'mcc', 'brier',
         ]
 
-        ovr_report = clf_report.ovr_classification_report(
-            mc_y_true, mc_probs, target_names=target_names,
-            sample_weight=sample_weight, metrics=metrics,
-            remove_unsupported=remove_unsupported,
-            verbose=1, log=harn.info
-        )
+        # One-vs-rest needs a "rest" to compare against. With a single
+        # category -- a presence/absence classifier, which VIAME trains
+        # routinely -- there is none, and kwcoco indexes the empty array of
+        # other-class scores:
+        #
+        #     IndexError: index 0 is out of bounds for axis 0 with size 0
+        #
+        # That killed the train loop at the end of the first epoch, and netharn
+        # then deployed the snapshot anyway, so the run reported success with a
+        # model trained by a loop that had crashed.
+        if len(target_names) > 1:
+            ovr_report = clf_report.ovr_classification_report(
+                mc_y_true, mc_probs, target_names=target_names,
+                sample_weight=sample_weight, metrics=metrics,
+                remove_unsupported=remove_unsupported,
+                verbose=1, log=harn.info
+            )
+        else:
+            harn.info('Skipping one-vs-rest report: only one category '
+                      '({!r}), so there is no rest to compare against.'.format(
+                          list(target_names)[0] if len(target_names) else None))
+            ovr_report = None
         if not sys.platform.startswith('win'):
             clf_report.classification_report(
                 y_true, y_pred, target_names=target_names,
@@ -524,10 +541,11 @@ class ClfHarn(nh.FitHarn):
         percent_error = (1.0 - acc) * 100
 
         metrics_dict = ub.odict()
-        metrics_dict['ave_brier'] = ovr_report['ave']['brier']
-        metrics_dict['ave_mcc'] = ovr_report['ave']['mcc']
-        metrics_dict['ave_auc'] = ovr_report['ave']['auc']
-        metrics_dict['ave_ap'] = ovr_report['ave']['ap']
+        if ovr_report is not None:
+            metrics_dict['ave_brier'] = ovr_report['ave']['brier']
+            metrics_dict['ave_mcc'] = ovr_report['ave']['mcc']
+            metrics_dict['ave_auc'] = ovr_report['ave']['auc']
+            metrics_dict['ave_ap'] = ovr_report['ave']['ap']
         metrics_dict['percent_error'] = percent_error
         metrics_dict['acc'] = acc
 
@@ -886,5 +904,14 @@ if __name__ == '__main__':
     try:
         main()
     except IndexError:
-        print( "ERROR: Category is missing from validation set.\n" )
-        print( "This usually happens when you don't have enough labels for one category\n" )
+        # This caught the error, printed a guess at the cause, and then fell
+        # off the end of the script -- exit 0. netharn had already deployed a
+        # snapshot from the crashed loop, so the caller found a model file and
+        # reported "Model training complete!" for a run that had failed.
+        # Keep the hint, which is the usual cause but was not the cause here,
+        # and make the exit code say what happened.
+        traceback.print_exc()
+        print( "\nERROR: training failed with an IndexError.\n", file=sys.stderr )
+        print( "This usually means a category has too few labels to appear in "
+               "both the training and validation splits.\n", file=sys.stderr )
+        sys.exit( 1 )
