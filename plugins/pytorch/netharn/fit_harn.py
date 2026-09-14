@@ -813,7 +813,11 @@ class ProgMixin(object):
         parts = ['{}:{:.4g}'.format(k, v) for k, v in metric_dict.items()]
 
         if learn and harn.dynamics['warmup_iters'] and not harn._warmup_done:
-            lrs = set(harn._current_lrs())
+            # dict.fromkeys, not set: _current_lrs returns one entry per
+            # optimizer param group in a fixed order, and a set reorders them
+            # by float hash, so the per-component rates printed here swapped
+            # places from line to line and could not be read as a series.
+            lrs = list(dict.fromkeys(harn._current_lrs()))
             lr_str = ','.join(['{:.4g}'.format(lr) for lr in lrs])
             parts.append('lr=' + lr_str)
 
@@ -848,7 +852,7 @@ class ProgMixin(object):
             })
 
     def _update_main_prog_desc(harn):
-        lrs = set(harn._current_lrs())
+        lrs = list(dict.fromkeys(harn._current_lrs()))  # see _update_prog_postfix
         lr_str = ','.join(['{:.4g}'.format(lr) for lr in lrs])
         if not harn.preferences['allow_unicode']:
             desc = 'epoch lr:{} | {}'.format(lr_str, harn.monitor.message())
@@ -2661,8 +2665,27 @@ class CoreCallbacks(object):
                     return
 
                 if total_norm > harn.dynamics['grad_norm_max'] * 100:
-                    harn.warn('grad norm is too high: '
-                              'total_norm = {!r}'.format(total_norm))
+                    # DETR recipes set grad_norm_max to the value the
+                    # architecture itself clips at -- RF-DETR uses 0.1 -- while
+                    # their natural gradient norms sit in the hundreds. This
+                    # test is then true on every batch, so the warning fired
+                    # thousands of times per run and buried everything else in
+                    # the log, including the non-finite case just above that
+                    # actually needs attention. Clipping doing its job is not
+                    # news. Report the first, then periodically, carrying the
+                    # count and running maximum so the lines that are printed
+                    # say more than the ones they replace.
+                    count = getattr(harn, '_grad_norm_clip_count', 0) + 1
+                    harn._grad_norm_clip_count = count
+                    peak = max(getattr(harn, '_grad_norm_clip_max', 0.0),
+                               float(total_norm))
+                    harn._grad_norm_clip_max = peak
+                    if count == 1 or count % 500 == 0:
+                        harn.warn(
+                            'grad norm over {:.4g} on {} batch(es) so far; '
+                            'latest = {:.4g}, max = {:.4g}'.format(
+                                harn.dynamics['grad_norm_max'] * 100,
+                                count, float(total_norm), peak))
             elif harn.preferences['log_gradients']:
                 if harn.check_interval('log_iter_' + tag, iter_idx, first=True):
                     total_norm = torch.nn.utils.clip_grad_norm_(
