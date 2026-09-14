@@ -15,9 +15,7 @@
 #include "filter_object_tracks_process.h"
 #include "object_track_descriptors_process.h"
 #include "stack_frames_process.h"
-#include "detect_shot_breaks_process.h"
 #include "measure_objects_process.h"
-#include "read_habcam_metadata_process.h"
 #include "refine_measurements_process.h"
 #include "track_conductor_process.h"
 #include "warp_detections_process.h"
@@ -167,18 +165,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::detect_shot_breaks_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::detect_shot_breaks_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "detect_shot_breaks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Detect shot breaks and create tracks for each shot" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
   
   fact = new sprokit::cpp_process_factory(
     typeid( viame::core::filter_frame_index_process ).name(),
@@ -258,18 +244,6 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::read_habcam_metadata_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::read_habcam_metadata_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "read_habcam_metadata" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Read HabCam metadata from input files" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   fact = new sprokit::cpp_process_factory(
     typeid( viame::core::refine_measurements_process ).name(),

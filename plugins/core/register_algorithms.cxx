@@ -12,7 +12,6 @@
 
 #include "adaptive_tracker_trainer.h"
 #include "adaptive_detector_trainer.h"
-#include "add_timestamp_from_filename.h"
 #include "auto_detect_transform.h"
 #include "average_track_descriptors.h"
 #include "convert_head_tail_points.h"
@@ -40,7 +39,6 @@
 #include "windowed_refiner.h"
 #include "windowed_trainer.h"
 #include "write_detected_object_set_viame_csv.h"
-#include "write_disparity_maps.h"
 #include "write_object_track_set_viame_csv.h"
 #include "write_object_track_set_dive.h"
 #include "write_detected_object_set_dive.h"
@@ -83,8 +81,6 @@ register_factories( kv::registry& vpm )
   }
 
   // Algorithms using PLUGGABLE_IMPL
-  register_algorithm< kv::algo::image_io,
-    add_timestamp_from_filename >( vpm );
   register_algorithm< kv::algo::transform_2d_io,
     auto_detect_transform_io >( vpm );
   register_algorithm< kv::algo::refine_detections,
@@ -119,8 +115,6 @@ register_factories( kv::registry& vpm )
     read_transform_homography_json >( vpm );
   register_algorithm< kv::algo::detected_object_set_output,
     write_detected_object_set_viame_csv >( vpm );
-  register_algorithm< kv::algo::image_io,
-    write_disparity_maps >( vpm );
   register_algorithm< kv::algo::write_object_track_set,
     write_object_track_set_viame_csv >( vpm );
   register_algorithm< kv::algo::write_object_track_set,

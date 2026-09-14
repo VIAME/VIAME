@@ -10,6 +10,11 @@
  * `sprokit/processes/core` and `image_viewer` from `sprokit/processes/ocv`.
  * The processes themselves are unchanged and are still in kwiver's
  * namespace; what moved is where they are built and where they register.
+ *
+ * `detect_shot_breaks` and `read_habcam_metadata` joined them from
+ * `plugins/core` in P2-T04. They are still in `viame::core` -- the
+ * namespaces are normalised once at the end of phase 2, not capability by
+ * capability.
  */
 
 #include "viame_processes_video_io_export.h"
@@ -17,9 +22,11 @@
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
+#include "detect_shot_breaks_process.h"
 #include "frame_list_process.h"
 #include "image_file_reader_process.h"
 #include "image_writer_process.h"
+#include "read_habcam_metadata_process.h"
 #include "video_input_process.h"
 #include "video_output_process.h"
 
@@ -77,6 +84,14 @@ register_factories( kwiver::vital::registry& vpm )
     kwiver::frame_list_process, "frame_list_input",
     "Reads a list of image file names and generates stream of "
     "images and associated time stamps." )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::detect_shot_breaks_process, "detect_shot_breaks",
+    "Detect shot breaks and create tracks for each shot" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::read_habcam_metadata_process, "read_habcam_metadata",
+    "Read HabCam metadata from input files" )
 
 #undef VIAME_REGISTER_PROCESS
 

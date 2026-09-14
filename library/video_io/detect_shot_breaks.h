@@ -7,10 +7,10 @@
  * \brief Shot break detection utility functions
  */
 
-#ifndef VIAME_CORE_DETECT_SHOT_BREAKS_H
-#define VIAME_CORE_DETECT_SHOT_BREAKS_H
+#ifndef VIAME_VIDEO_IO_DETECT_SHOT_BREAKS_H
+#define VIAME_VIDEO_IO_DETECT_SHOT_BREAKS_H
 
-#include "viame_core_export.h"
+#include "viame_video_io_export.h"
 
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/descriptor.h>
@@ -39,7 +39,7 @@ namespace kv = kwiver::vital;
  * \param histogram_bins Number of bins per channel (typically 32)
  * \return Normalized histogram vector (size = histogram_bins * depth)
  */
-VIAME_CORE_EXPORT std::vector< double > compute_image_histogram(
+VIAME_VIDEO_IO_EXPORT std::vector< double > compute_image_histogram(
   const kv::image_container_sptr& image,
   unsigned histogram_bins );
 
@@ -54,7 +54,7 @@ VIAME_CORE_EXPORT std::vector< double > compute_image_histogram(
  * \param histogram_bins Number of bins per channel
  * \return Histogram difference in range [0, 1]
  */
-VIAME_CORE_EXPORT double compute_histogram_difference(
+VIAME_VIDEO_IO_EXPORT double compute_histogram_difference(
   const kv::image_container_sptr& image1,
   const kv::image_container_sptr& image2,
   unsigned histogram_bins );
@@ -69,7 +69,7 @@ VIAME_CORE_EXPORT double compute_histogram_difference(
  * \param image2 Second image
  * \return Normalized pixel difference in range [0, 1]
  */
-VIAME_CORE_EXPORT double compute_pixel_difference(
+VIAME_VIDEO_IO_EXPORT double compute_pixel_difference(
   const kv::image_container_sptr& image1,
   const kv::image_container_sptr& image2 );
 
@@ -82,7 +82,7 @@ VIAME_CORE_EXPORT double compute_pixel_difference(
  * \param desc2 Second descriptor
  * \return Normalized distance in range [0, 1], or 1.0 if descriptors are incompatible
  */
-VIAME_CORE_EXPORT double compute_descriptor_distance(
+VIAME_VIDEO_IO_EXPORT double compute_descriptor_distance(
   const kv::descriptor_sptr& desc1,
   const kv::descriptor_sptr& desc2 );
 
@@ -90,4 +90,4 @@ VIAME_CORE_EXPORT double compute_descriptor_distance(
 
 } // end namespace viame
 
-#endif // VIAME_CORE_DETECT_SHOT_BREAKS_H
+#endif // VIAME_VIDEO_IO_DETECT_SHOT_BREAKS_H

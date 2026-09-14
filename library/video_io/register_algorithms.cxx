@@ -5,6 +5,11 @@
 /**
  * \file
  * \brief In-house video and image reader registration
+ *
+ * The two image writers that came from `plugins/core` in P2-T04 --
+ * `add_timestamp_from_filename` and the disparity-map writer -- register
+ * through the template below rather than the macro, because they carry
+ * `plugin_name()` and `plugin_description()` of their own.
  */
 
 #include "viame_video_io_plugin_export.h"
@@ -14,12 +19,33 @@
 
 #include <viame/algorithm_framework/plugin/registry.h>
 
+#include "add_timestamp_from_filename.h"
 #include "core_image_io.h"
 #include "video_input_image_list.h"
+#include "write_disparity_maps.h"
 
 namespace viame {
 
 namespace kv = kwiver::vital;
+
+namespace {
+
+// An algorithm declared with PLUGGABLE_IMPL, which names and describes
+// itself.
+template < typename interface_t, typename algorithm_t >
+void register_algorithm( kv::registry& vpm, std::string const& module_name )
+{
+  using kvpf = kv::plugin_factory;
+
+  auto fact = vpm.add_factory< interface_t, algorithm_t >(
+    algorithm_t::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_NAME, algorithm_t::plugin_name() )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                    algorithm_t::plugin_description() );
+}
+
+}
 
 extern "C"
 VIAME_VIDEO_IO_PLUGIN_EXPORT
@@ -59,6 +85,11 @@ register_factories( kv::registry& vpm )
   // answer to, are python: see pyav_video_input.py and pyav_video_output.py
 
 #undef VIAME_REGISTER
+
+  register_algorithm< kv::algo::image_io,
+    add_timestamp_from_filename >( vpm, module_name );
+  register_algorithm< kv::algo::image_io,
+    write_disparity_maps >( vpm, module_name );
 
   // Imported from kwiver in P5-T04. Registers the way kwiver's arrows did,
   // by class rather than through the macro above, because it is still in

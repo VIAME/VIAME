@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_FILENAME_TO_TIMESTAMP_H
-#define VIAME_CORE_FILENAME_TO_TIMESTAMP_H
+#ifndef VIAME_VIDEO_IO_FILENAME_TO_TIMESTAMP_H
+#define VIAME_VIDEO_IO_FILENAME_TO_TIMESTAMP_H
 
-#include "viame_core_export.h"
+#include "viame_video_io_export.h"
 
 #include <viame/core_types/timestamp.h>
 
@@ -19,11 +19,11 @@ namespace viame
 ///
 /// @throws runtime_error on invalid or unable to parse filename format
 ///
-VIAME_CORE_EXPORT
+VIAME_VIDEO_IO_EXPORT
 kwiver::vital::time_usec_t
 convert_to_timestamp( const std::string& filename,
                       const bool auto_discover = false );
 
 } // end namespace viame
 
-#endif // VIAME_CORE_FILENAME_TO_TIMESTAMP_H
+#endif // VIAME_VIDEO_IO_FILENAME_TO_TIMESTAMP_H

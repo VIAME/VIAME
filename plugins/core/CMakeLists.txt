@@ -3,7 +3,6 @@
 set( plugin_headers
   adaptive_detector_trainer.h
   adaptive_tracker_trainer.h
-  add_timestamp_from_filename.h
   auto_detect_transform.h
   average_track_descriptors.h
   camera_io.h
@@ -12,10 +11,8 @@ set( plugin_headers
   convert_head_tail_points.h
   convert_notes_to_attributes.h
   convert_polygons_to_mask.h
-  detect_shot_breaks.h
   empty_detector.h
   evaluate_models.h
-  filename_to_timestamp.h
   full_frame_detector.h
   measurement_utilities.h
   merge_detections_suppress_in_regions.h
@@ -44,7 +41,6 @@ set( plugin_headers
   windowed_refiner.h
   windowed_trainer.h
   write_detected_object_set_viame_csv.h
-  write_disparity_maps.h
   write_object_track_set_viame_csv.h
   write_object_track_set_dive.h
   convert_annotations.h
@@ -54,7 +50,6 @@ set( plugin_headers
 set( plugin_sources
   adaptive_detector_trainer.cxx
   adaptive_tracker_trainer.cxx
-  add_timestamp_from_filename.cxx
   auto_detect_transform.cxx
   average_track_descriptors.cxx
   camera_io.cxx
@@ -63,10 +58,8 @@ set( plugin_sources
   convert_head_tail_points.cxx
   convert_notes_to_attributes.cxx
   convert_polygons_to_mask.cxx
-  detect_shot_breaks.cxx
   empty_detector.cxx
   evaluate_models.cxx
-  filename_to_timestamp.cxx
   full_frame_detector.cxx
   measurement_utilities.cxx
   merge_detections_suppress_in_regions.cxx
@@ -95,7 +88,6 @@ set( plugin_sources
   windowed_refiner.cxx
   windowed_trainer.cxx
   write_detected_object_set_viame_csv.cxx
-  write_disparity_maps.cxx
   write_object_track_set_viame_csv.cxx
   write_object_track_set_dive.cxx
   convert_annotations.cxx
@@ -223,7 +215,6 @@ set( process_headers
   align_multimodal_imagery_process.h
   calibrate_cameras_from_tracks_process.h
   create_database_query_process.h
-  detect_shot_breaks_process.h
   extract_desc_ids_for_training_process.h
   fetch_descriptors_process.h
   filter_frame_index_process.h
@@ -235,7 +226,6 @@ set( process_headers
   object_track_descriptors_process.h
   pair_stereo_detections_process.h
   process_query_process_adaboost.h
-  read_habcam_metadata_process.h
   refine_measurements_process.h
   resample_object_tracks_process.h
   select_database_query_process.h
@@ -256,7 +246,6 @@ set( process_sources
   align_multimodal_imagery_process.cxx
   calibrate_cameras_from_tracks_process.cxx
   create_database_query_process.cxx
-  detect_shot_breaks_process.cxx
   extract_desc_ids_for_training_process.cxx
   fetch_descriptors_process.cxx
   filter_frame_index_process.cxx
@@ -268,7 +257,6 @@ set( process_sources
   object_track_descriptors_process.cxx
   pair_stereo_detections_process.cxx
   process_query_process_adaboost.cxx
-  read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
   resample_object_tracks_process.cxx
   select_database_query_process.cxx

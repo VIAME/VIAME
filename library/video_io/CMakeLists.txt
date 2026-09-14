@@ -9,9 +9,18 @@
 # arrows/ocv's image_io. The code is unchanged apart from its include paths
 # and its export macro, which is this library's now; the namespace is still
 # kwiver's, and phase 8 is where that changes.
+#
+# `add_timestamp_from_filename`, `detect_shot_breaks`, `filename_to_timestamp`
+# and `write_disparity_maps` came from `plugins/core` in P2-T04: when a frame
+# was taken and where one shot ends are properties of the video, not of
+# whatever happened to read it.
 set( plugin_headers
+  add_timestamp_from_filename.h
   core_image_io.h
+  detect_shot_breaks.h
+  filename_to_timestamp.h
   video_input_image_list.h
+  write_disparity_maps.h
   )
 
 set( codec_headers
@@ -20,8 +29,12 @@ set( codec_headers
   )
 
 set( plugin_sources
+  add_timestamp_from_filename.cxx
   core_image_io.cxx
+  detect_shot_breaks.cxx
+  filename_to_timestamp.cxx
   video_input_image_list.cxx
+  write_disparity_maps.cxx
   codecs/image_codec.cxx
   codecs/tiff.cxx
   )
@@ -87,18 +100,22 @@ viame_register_statically( viame_video_io
 # `image_ops` counterpart.
 ##
 set( process_headers
+  detect_shot_breaks_process.h
   frame_list_process.h
   image_file_reader_process.h
   image_writer_process.h
+  read_habcam_metadata_process.h
   video_input_process.h
   video_output_process.h
   )
 
 set( process_sources
   register_processes.cxx
+  detect_shot_breaks_process.cxx
   frame_list_process.cxx
   image_file_reader_process.cxx
   image_writer_process.cxx
+  read_habcam_metadata_process.cxx
   video_input_process.cxx
   video_output_process.cxx
   )
@@ -114,6 +131,7 @@ viame_add_plugin( viame_processes_video_io
                    kwiver::vital_config
                    kwiver::vital_util
                    kwiver::vital_exceptions
+                   kwiver::vital_algo
                    viame_video_io
   )
 

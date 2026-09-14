@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
-#define VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
+#ifndef VIAME_VIDEO_IO_ADD_TIMESTAMP_FROM_FILENAME_H
+#define VIAME_VIDEO_IO_ADD_TIMESTAMP_FROM_FILENAME_H
 
-#include "viame_core_export.h"
+#include "viame_video_io_export.h"
 
 #include <viame/algorithm_framework/algo/image_io.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -13,7 +13,7 @@
 namespace viame
 {
 
-class VIAME_CORE_EXPORT add_timestamp_from_filename
+class VIAME_VIDEO_IO_EXPORT add_timestamp_from_filename
   : public kwiver::vital::algo::image_io
 {
 public:
@@ -53,4 +53,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
+#endif // VIAME_VIDEO_IO_ADD_TIMESTAMP_FROM_FILENAME_H

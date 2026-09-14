@@ -135,9 +135,16 @@ def retarget_exports(path, directory):
     upper = directory.upper()
     original = text
 
-    text = re.sub(r'viame_[a-z0-9_]+_export\.h',
+    # A process is built into `viame_processes_<dir>`, not `viame_<dir>`, and
+    # its export header is named for the target it is in.
+    text = re.sub(r'viame_processes_[a-z0-9_]+_export\.h',
+                  "viame_processes_%s_export.h" % directory, text)
+    text = re.sub(r'\bVIAME_PROCESSES_[A-Z0-9_]+_EXPORT\b',
+                  "VIAME_PROCESSES_%s_EXPORT" % upper, text)
+
+    text = re.sub(r'viame_(?!processes_)[a-z0-9_]+_export\.h',
                   "viame_%s_export.h" % directory, text)
-    text = re.sub(r'\bVIAME_[A-Z0-9_]+_EXPORT\b',
+    text = re.sub(r'\bVIAME_(?!PROCESSES_)[A-Z0-9_]+_EXPORT\b',
                   "VIAME_%s_EXPORT" % upper, text)
 
     # The include guard, taken from the file's own `#ifndef` rather than
