@@ -14,18 +14,6 @@
 # implementation module at startup, which was the only way the classes came
 # to exist for the subclass walk that registers them. See P8-T10.
 __vital_algorithm_declarations__ = [
-    ( "merge_detections", "coverage_reinforce",
-      "Reinforce detections using a weakly-localizing evidence source",
-      "viame.core.merge_detections_coverage_reinforce:MergeDetectionsCoverageReinforce" ),
-    ( "merge_detections", "merge",
-      "Concatenate all input detection sets without resolving overlaps",
-      "viame.core.merge_detections_simple:MergeDetectionsMerge" ),
-    ( "merge_detections", "nms_fusion",
-      "Fusion of multiple different detections",
-      "viame.core.merge_detections_nms_fusion:MergeDetectionsNMSFusion" ),
-    ( "merge_detections", "simple",
-      "Concatenate all input detection sets without resolving overlaps",
-      "viame.core.merge_detections_simple:MergeDetectionsSimple" ),
     ( "track_objects", "bytetrack",
       "ByteTrack multi-object tracker with two-stage association",
       "viame.core.bytetrack_tracker:ByteTrackTracker" ),
@@ -54,9 +42,6 @@ __sprokit_process_declarations__ = [
     ( "merge_track_sets_tube_iou",
       "Fusion of multiple object track sets via tube-IoU association",
       "viame.core.merge_tracks_tube_iou:MergeTracksTubeIoU" ),
-    ( "multicam_homog_det_suppressor",
-      "Multi-camera homography-based detection suppressor",
-      "viame.core.multicam_homog_det_suppressor:MulticamHomogDetSuppressor" ),
     ( "multicam_homog_tracker",
       "Multi-camera IOU-based tracker with homography support",
       "viame.core.multicam_homog_tracker:MulticamHomogTracker" ),

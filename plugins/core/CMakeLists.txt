@@ -4,18 +4,13 @@ set( plugin_headers
   adaptive_detector_trainer.h
   adaptive_tracker_trainer.h
   average_track_descriptors.h
-  convert_head_tail_points.h
   empty_detector.h
   evaluate_models.h
   full_frame_detector.h
   measurement_utilities.h
-  merge_detections_suppress_in_regions.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
   query_track_descriptor_set_csv.h
-  refine_detections_add_fixed.h
-  refine_detections_nms.h
-  refine_tracks_average_tot.h
   utilities_training.h
   windowed_detector.h
   windowed_refiner.h
@@ -26,18 +21,13 @@ set( plugin_sources
   adaptive_detector_trainer.cxx
   adaptive_tracker_trainer.cxx
   average_track_descriptors.cxx
-  convert_head_tail_points.cxx
   empty_detector.cxx
   evaluate_models.cxx
   full_frame_detector.cxx
   measurement_utilities.cxx
-  merge_detections_suppress_in_regions.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
   query_track_descriptor_set_csv.cxx
-  refine_detections_add_fixed.cxx
-  refine_detections_nms.cxx
-  refine_tracks_average_tot.cxx
   utilities_training.cxx
   windowed_detector.cxx
   windowed_refiner.cxx
@@ -294,25 +284,9 @@ if( VIAME_ENABLE_PYTHON )
     core
     tracker_param_search )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/detection_fusion_core.py
-    core
-    detection_fusion_core )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
-    core
-    merge_detections_nms_fusion )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_coverage_reinforce.py
-    core
-    merge_detections_coverage_reinforce )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_simple.py
-    core
-    merge_detections_simple )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_tracks_tube_iou.py
@@ -320,10 +294,6 @@ if( VIAME_ENABLE_PYTHON )
     merge_tracks_tube_iou )
 
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
-    core
-    multicam_homog_det_suppressor )
 
 
   viame_add_python_module(
@@ -354,15 +324,7 @@ if( VIAME_ENABLE_PYTHON )
 
 
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py
-    core
-    segmentation_utils )
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
-    core
-    interactive_service )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/survey_metadata.py
@@ -380,10 +342,6 @@ if( VIAME_ENABLE_PYTHON )
 
 
 
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_segmentation.py
-    core
-    interactive_segmentation )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/curved_measurement.py

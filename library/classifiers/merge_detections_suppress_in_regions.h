@@ -2,10 +2,10 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#ifndef VIAME_CORE_MERGE_DETECTIONS_SUPPRESS_IN_REGIONS_H
-#define VIAME_CORE_MERGE_DETECTIONS_SUPPRESS_IN_REGIONS_H
+#ifndef VIAME_CLASSIFIERS_MERGE_DETECTIONS_SUPPRESS_IN_REGIONS_H
+#define VIAME_CLASSIFIERS_MERGE_DETECTIONS_SUPPRESS_IN_REGIONS_H
 
-#include "viame_core_export.h"
+#include "viame_classifiers_export.h"
 
 #include <viame/algorithm_framework/algo/merge_detections.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -18,7 +18,7 @@ namespace viame {
  *
  * \brief Prunes detections overlapping with regions identified by class string
  */
-class VIAME_CORE_EXPORT merge_detections_suppress_in_regions
+class VIAME_CLASSIFIERS_EXPORT merge_detections_suppress_in_regions
   : public kwiver::vital::algo::merge_detections
 {
 
@@ -79,4 +79,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_MERGE_DETECTIONS_SUPPRESS_IN_REGIONS_H
+#endif // VIAME_CLASSIFIERS_MERGE_DETECTIONS_SUPPRESS_IN_REGIONS_H

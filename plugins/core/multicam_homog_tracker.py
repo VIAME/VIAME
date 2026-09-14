@@ -24,7 +24,7 @@ from .simple_homog_tracker import (
     match_boxes_homog, min_track, optimize_iou_based_assignment,
     to_DetectedObject_list, transform_matrix_box, wrap_F2FHomography,
 )
-from .stabilize_many_images import (
+from viame.image_processing.stabilize_many_images import (
     add_declare_input_port, add_declare_output_port,
 )
 

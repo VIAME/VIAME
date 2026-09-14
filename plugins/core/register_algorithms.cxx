@@ -13,14 +13,9 @@
 #include "adaptive_tracker_trainer.h"
 #include "adaptive_detector_trainer.h"
 #include "average_track_descriptors.h"
-#include "convert_head_tail_points.h"
 #include "empty_detector.h"
 #include "full_frame_detector.h"
-#include "merge_detections_suppress_in_regions.h"
 #include "query_track_descriptor_set_csv.h"
-#include "refine_detections_add_fixed.h"
-#include "refine_detections_nms.h"
-#include "refine_tracks_average_tot.h"
 #include "windowed_detector.h"
 #include "windowed_refiner.h"
 #include "windowed_trainer.h"
@@ -63,8 +58,6 @@ register_factories( kv::registry& vpm )
   }
 
   // Algorithms using PLUGGABLE_IMPL
-  register_algorithm< kv::algo::refine_detections,
-    convert_head_tail_points >( vpm );
   register_algorithm< kv::algo::image_object_detector,
     empty_detector >( vpm );
   register_algorithm< kv::algo::query_track_descriptor_set,
@@ -79,14 +72,6 @@ register_factories( kv::registry& vpm )
     average_track_descriptors >( vpm );
   register_algorithm< kv::algo::image_object_detector,
     full_frame_detector >( vpm );
-  register_algorithm< kv::algo::merge_detections,
-    merge_detections_suppress_in_regions >( vpm );
-  register_algorithm< kv::algo::refine_detections,
-    refine_detections_add_fixed >( vpm );
-  register_algorithm< kv::algo::refine_detections,
-    refine_detections_nms >( vpm );
-  register_algorithm< kv::algo::refine_tracks,
-    refine_tracks_average_tot >( vpm );
   register_algorithm< kv::algo::image_object_detector,
     windowed_detector >( vpm );
   register_algorithm< kv::algo::refine_detections,

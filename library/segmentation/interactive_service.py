@@ -26,7 +26,7 @@ Protocol is identical to the individual services: newline-delimited JSON request
 on stdin, JSON responses on stdout, with each response echoing the request ``id``.
 
 Usage:
-    python -m viame.core.interactive_service \\
+    python -m viame.segmentation.interactive_service \\
         --segmentation-config /path/to/interactive_segmenter_default.conf \\
         --stereo-config /path/to/interactive_stereo_default.conf
 """
@@ -52,7 +52,7 @@ warnings.filterwarnings(
     "ignore", message=r'The "\w+" class attribute of .* was deprecated in scriptconfig')
 logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)
 
-from viame.core.interactive_segmentation import (  # noqa: E402
+from viame.segmentation.interactive_segmentation import (  # noqa: E402
     InteractiveSegmentationService,
     load_algorithms_from_config,
     find_viame_config as find_segmentation_config,

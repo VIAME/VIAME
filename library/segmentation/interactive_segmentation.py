@@ -15,8 +15,8 @@ This service uses KWIVER vital algorithms configured via config files:
 - PerformTextQuery: For text-based detection/segmentation (optional)
 
 Usage:
-    python -m viame.core.interactive_segmentation --config /path/to/config.pipe
-    python -m viame.core.interactive_segmentation --config /path/to/config.pipe --plugin-path /path/to/plugins
+    python -m viame.segmentation.interactive_segmentation --config /path/to/config.pipe
+    python -m viame.segmentation.interactive_segmentation --config /path/to/config.pipe --plugin-path /path/to/plugins
 
 Protocol:
     Input (JSON per line on stdin):
@@ -207,7 +207,7 @@ class InteractiveSegmentationService:
 
     def _detections_to_response(self, detected_objects) -> List[Dict[str, Any]]:
         """Convert DetectedObjectSet to response dictionaries."""
-        from viame.core.segmentation_utils import (
+        from viame.segmentation.segmentation_utils import (
             mask_to_polygon,
             mask_to_polygons,
             simplify_polygon_to_max_points,
@@ -456,7 +456,7 @@ class InteractiveSegmentationService:
                     if det_obj.mask is not None:
                         mask = det_obj.mask.image().asarray()
                         if mask is not None and mask.size > 0:
-                            from viame.core.segmentation_utils import (
+                            from viame.segmentation.segmentation_utils import (
                                 mask_to_polygon,
                                 simplify_polygon_to_max_points,
                                 adaptive_simplify_polygon,
@@ -994,13 +994,13 @@ def main():
         epilog="""
 Examples:
     # Use a config file
-    python -m viame.core.interactive_segmentation --config /path/to/config.pipe
+    python -m viame.segmentation.interactive_segmentation --config /path/to/config.pipe
 
     # Generate a default config file
-    python -m viame.core.interactive_segmentation --generate-config sam2.pipe --model sam2
+    python -m viame.segmentation.interactive_segmentation --generate-config sam2.pipe --model sam2
 
     # With additional plugin paths
-    python -m viame.core.interactive_segmentation --config config.pipe --plugin-path /path/to/plugins
+    python -m viame.segmentation.interactive_segmentation --config config.pipe --plugin-path /path/to/plugins
         """
     )
     parser.add_argument(

@@ -6,15 +6,26 @@
 # which is this library's now; the namespace is still kwiver's, and phase 8
 # is where that changes.
 #
-# VIAME's own refiners and classifiers -- the pytorch and ONNX ones, the
-# detection mergers -- are still in plugins/ and join this in phase 2.
+# VIAME's own refiners and mergers came from `plugins/core` in P2-T05; the
+# pytorch and ONNX classifiers and the merged `ocv_windowed_refiner` are
+# still in plugins/ and join them later in the phase.
 
 set( plugin_headers
   class_probability_filter.h
+  convert_head_tail_points.h
+  merge_detections_suppress_in_regions.h
+  refine_detections_add_fixed.h
+  refine_detections_nms.h
+  refine_tracks_average_tot.h
   )
 
 set( plugin_sources
   class_probability_filter.cxx
+  convert_head_tail_points.cxx
+  merge_detections_suppress_in_regions.cxx
+  refine_detections_add_fixed.cxx
+  refine_detections_nms.cxx
+  refine_tracks_average_tot.cxx
   )
 
 viame_install_headers(
@@ -44,6 +55,9 @@ target_link_libraries( viame_classifiers
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
+                       # `refine_tracks_average_tot` averages the
+                       # classification scores over a track
+                       viame_utilities
   )
 
 set_target_properties( viame_classifiers PROPERTIES
@@ -91,3 +105,13 @@ target_include_directories( viame_processes_classifiers PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
+
+###
+# Python
+#
+# The detection mergers and the multi-camera suppressor, from
+# `plugins/core` in P2-T05.
+##
+if( VIAME_ENABLE_PYTHON )
+  viame_add_python_package( classifiers )
+endif()

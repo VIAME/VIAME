@@ -135,6 +135,77 @@ def rewrite_includes(path, headers, owner):
     return changed
 
 
+def package_of(path):
+    """The importable package a python file belongs to, or None.
+
+    `library/classifiers/x.py` is `viame.classifiers`;
+    `plugins/pytorch/srnn/y.py` is `viame.pytorch.srnn`.
+    """
+    parts = path.split("/")
+    if parts[0] == "library":
+        return ".".join(["viame"] + parts[1:-1])
+    if parts[0] == "plugins":
+        return ".".join(["viame"] + parts[1:-1])
+    return None
+
+
+def fix_relative_imports():
+    """Make a broken `from .x import` absolute.
+
+    `multicam_homog_det_suppressor` is a classifier and `multicam_homog_tracker`
+    is a tracker, and they were one package until the move split them. A
+    relative import that no longer has a sibling to reach is the failure mode
+    of every one of these moves, and it is an ImportError at plugin-discovery
+    time rather than a build error, so it is worth repairing by rule.
+
+    A relative import whose sibling is still beside the file is left alone:
+    inside a vendored subtree -- netharn, loftr, remax -- every one of them is.
+    """
+    homes = {}
+    for path in run("git", "ls-files", "library", "plugins").split():
+        if path.endswith(".py"):
+            homes.setdefault(os.path.basename(path)[:-3], []).append(path)
+
+    pattern = re.compile(r"^(\s*)from \.([A-Za-z_][A-Za-z0-9_]*) import",
+                         re.MULTILINE)
+    fixed = 0
+
+    for path in run("git", "ls-files", "library", "plugins").split():
+        if not path.endswith(".py"):
+            continue
+        directory = os.path.dirname(path)
+        package = package_of(path)
+        if not package:
+            continue
+
+        def replace(match):
+            nonlocal fixed
+            name = match.group(2)
+            beside = os.path.join(ROOT, directory, name)
+            if os.path.exists(beside + ".py") or \
+                    os.path.exists(os.path.join(beside, "__init__.py")):
+                return match.group(0)
+            # Only a sibling that moved into `library/`: that is what these
+            # moves break. A name that happens to match something in an
+            # unrelated vendored subtree is a coincidence -- and sometimes it
+            # is not even code, but a `from .mixins import *` in a doctest.
+            candidates = [p for p in homes.get(name, [])
+                          if p.startswith("library/")
+                          and package_of(p) != package]
+            if len(candidates) != 1:
+                return match.group(0)
+            fixed += 1
+            return "%sfrom %s.%s import" % (
+                match.group(1), package_of(candidates[0]), name)
+
+        original = open(os.path.join(ROOT, path), encoding="utf-8").read()
+        updated = pattern.sub(replace, original)
+        if updated != original:
+            open(os.path.join(ROOT, path), "w", encoding="utf-8").write(updated)
+
+    return fixed
+
+
 def retarget_exports(path, directory):
     """Point a moved file's export macro and include guard at its new library.
 
@@ -195,6 +266,8 @@ def main():
                         help="repair includes for files already moved")
     parser.add_argument("--from", dest="source_prefix",
                         help="only files under this path, e.g. plugins/core")
+    parser.add_argument("--exclude", action="append", default=[],
+                        help="skip sources matching this regex; repeatable")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -222,6 +295,9 @@ def main():
         if args.source_prefix:
             selected = [(s, d) for s, d in selected
                         if s.startswith(args.source_prefix)]
+        for pattern in args.exclude:
+            selected = [(s, d) for s, d in selected
+                        if not re.search(pattern, s)]
         if not selected:
             print("nothing pending for library/%s" % args.only)
             return 0
@@ -262,7 +338,9 @@ def main():
         if path.endswith((".h", ".hpp", ".cxx", ".cpp", ".txx", ".c")):
             touched += 1 if rewrite_includes(path, headers, owner) else 0
 
-    print("moved %d files; rewrote includes in %d" % (len(selected), touched))
+    relative = fix_relative_imports()
+    print("moved %d files; rewrote includes in %d; %d relative imports made "
+          "absolute" % (len(selected), touched, relative))
     return 0
 
 

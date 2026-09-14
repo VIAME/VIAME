@@ -2,17 +2,17 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_CONVERT_HEAD_TAIL_POINTS_H
-#define VIAME_CORE_CONVERT_HEAD_TAIL_POINTS_H
+#ifndef VIAME_CLASSIFIERS_CONVERT_HEAD_TAIL_POINTS_H
+#define VIAME_CLASSIFIERS_CONVERT_HEAD_TAIL_POINTS_H
 
-#include "viame_core_export.h"
+#include "viame_classifiers_export.h"
 
 #include <viame/algorithm_framework/algo/refine_detections.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 namespace viame {
 
-class VIAME_CORE_EXPORT convert_head_tail_points :
+class VIAME_CLASSIFIERS_EXPORT convert_head_tail_points :
   public kwiver::vital::algo::refine_detections
 {
 public:

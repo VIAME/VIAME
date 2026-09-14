@@ -5,19 +5,50 @@
 /**
  * \file
  * \brief Classifier and detection filter registration
+ *
+ * VIAME's own refiners and mergers came from `plugins/core` in P2-T05. They
+ * are declared with PLUGGABLE_IMPL and name and describe themselves, so they
+ * register through the template rather than the macro.
  */
 
 #include "viame_classifiers_plugin_export.h"
 
 #include <viame/algorithm_framework/algo/detected_object_filter.h>
+#include <viame/algorithm_framework/algo/merge_detections.h>
+#include <viame/algorithm_framework/algo/refine_detections.h>
+#include <viame/algorithm_framework/algo/refine_tracks.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "class_probability_filter.h"
+#include "convert_head_tail_points.h"
+#include "merge_detections_suppress_in_regions.h"
+#include "refine_detections_add_fixed.h"
+#include "refine_detections_nms.h"
+#include "refine_tracks_average_tot.h"
 
 
 namespace viame {
 
 namespace kv = kwiver::vital;
+
+namespace {
+
+// An algorithm declared with PLUGGABLE_IMPL, which names and describes
+// itself.
+template < typename interface_t, typename algorithm_t >
+void register_algorithm( kv::registry& vpm, std::string const& module_name )
+{
+  using kvpf = kv::plugin_factory;
+
+  auto fact = vpm.add_factory< interface_t, algorithm_t >(
+    algorithm_t::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_NAME, algorithm_t::plugin_name() )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                    algorithm_t::plugin_description() );
+}
+
+}
 
 extern "C"
 VIAME_CLASSIFIERS_PLUGIN_EXPORT
@@ -49,6 +80,17 @@ register_factories( kv::registry& vpm )
     "Filter detections by the probability of their classes" )
 
 #undef VIAME_REGISTER_IMPORTED
+
+  register_algorithm< kv::algo::refine_detections,
+    convert_head_tail_points >( vpm, module_name );
+  register_algorithm< kv::algo::merge_detections,
+    merge_detections_suppress_in_regions >( vpm, module_name );
+  register_algorithm< kv::algo::refine_detections,
+    refine_detections_add_fixed >( vpm, module_name );
+  register_algorithm< kv::algo::refine_detections,
+    refine_detections_nms >( vpm, module_name );
+  register_algorithm< kv::algo::refine_tracks,
+    refine_tracks_average_tot >( vpm, module_name );
 
   vpm.mark_module_as_loaded( module_name );
 }

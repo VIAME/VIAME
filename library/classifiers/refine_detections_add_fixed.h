@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_REFINE_DETECTIONS_ADD_FIXED_H
-#define VIAME_CORE_REFINE_DETECTIONS_ADD_FIXED_H
+#ifndef VIAME_CLASSIFIERS_REFINE_DETECTIONS_ADD_FIXED_H
+#define VIAME_CLASSIFIERS_REFINE_DETECTIONS_ADD_FIXED_H
 
-#include "viame_core_export.h"
+#include "viame_classifiers_export.h"
 
 #include <viame/algorithm_framework/algo/refine_detections.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -24,7 +24,7 @@ namespace viame {
  * \oports
  * \oport{pruned_detections}
  */
-class VIAME_CORE_EXPORT refine_detections_add_fixed
+class VIAME_CLASSIFIERS_EXPORT refine_detections_add_fixed
   : public kwiver::vital::algo::refine_detections
 {
 
@@ -67,4 +67,4 @@ public:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_REFINE_DETECTIONS_ADD_FIXED_H
+#endif // VIAME_CLASSIFIERS_REFINE_DETECTIONS_ADD_FIXED_H

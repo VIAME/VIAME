@@ -22,6 +22,7 @@ add_subdirectory( utilities )
 
 add_subdirectory( image_ops )
 add_subdirectory( classifiers )
+add_subdirectory( segmentation )
 add_subdirectory( image_processing )
 add_subdirectory( object_detectors )
 add_subdirectory( object_trackers )

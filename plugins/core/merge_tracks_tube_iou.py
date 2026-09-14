@@ -36,7 +36,7 @@ from kwiver.vital.types import (
 )
 
 from .simple_homog_tracker import add_declare_config
-from .stabilize_many_images import (
+from viame.image_processing.stabilize_many_images import (
     add_declare_input_port, add_declare_output_port,
 )
 

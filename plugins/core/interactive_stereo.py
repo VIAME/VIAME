@@ -528,7 +528,7 @@ class InteractiveStereoService:
             return self._load_video_frame(image_path, frame_time)
 
         from kwiver.vital.types import ImageContainer, Image
-        from viame.core.segmentation_utils import load_image
+        from viame.segmentation.segmentation_utils import load_image
 
         imdata = load_image(image_path)
         return ImageContainer(Image(imdata))

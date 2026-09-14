@@ -326,6 +326,7 @@ def _get_concrete_pluggable_types() -> List[Type[Pluggable]]:
 BUILTIN_PLUGIN_PACKAGES = (
     "kwiver.sprokit.processes",
     "kwiver.sprokit.schedulers",
+    "viame.classifiers",
     "viame.core",
     "viame.file_io",
     "viame.image_processing",

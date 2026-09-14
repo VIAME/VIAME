@@ -21,15 +21,15 @@ from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
 from kwiver.vital.types import Image, ImageContainer
 
-from .multicam_homog_tracker import MultiHomographyF2F
-from .multicam_homog_det_suppressor import (
+from viame.core.multicam_homog_tracker import MultiHomographyF2F
+from viame.classifiers.multicam_homog_det_suppressor import (
     concat_suppression_homogs_and_sizes,
     find_all_suppression_homogs_and_sizes,
     find_prev_suppression_homogs_and_sizes,
     get_self_suppression_homogs_and_sizes,
     suppression_polys,
 )
-from .simple_homog_tracker import add_declare_config, wrap_F2FHomography
+from viame.core.simple_homog_tracker import add_declare_config, wrap_F2FHomography
 from .stabilize_many_images import (
     add_declare_input_port, add_declare_output_port,
 )

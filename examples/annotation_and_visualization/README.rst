@@ -95,7 +95,7 @@ To manually start the interactive segmentation service outside of DIVE (e.g., fo
 scripting or integration with other tools)::
 
   source /path/to/VIAME/install/setup_viame.sh
-  python -m viame.core.interactive_segmentation \
+  python -m viame.segmentation.interactive_segmentation \
     --config configs/pipelines/interactive_segmenter_watershed.conf
 
 **************
