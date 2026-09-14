@@ -25,8 +25,6 @@
 #include "random_hue_shift.h"
 #include "split_image_habcam.h"
 #include "split_image_horizontally.h"
-#include "windowed_detector.h"
-#include "windowed_refiner.h"
 #include "warp_image_ocv.h"
 #include "windowed_trainer.h"
 
@@ -92,14 +90,9 @@ register_factories( kv::registry& vpm )
     split_image_horizontally::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.add_factory< kv::algo::image_object_detector, ocv_windowed_detector >(
-    ocv_windowed_detector::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::refine_detections, ocv_windowed_refiner >(
-    ocv_windowed_refiner::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
+  // `ocv_windowed` for the detector and the refiner is `library` now: one
+  // implementation registered under both `windowed` and `ocv_windowed`
+  // (P2-T05). The trainer follows when `library/training` exists.
   fact = vpm.add_factory< kv::algo::train_detector, ocv_windowed_trainer >(
     ocv_windowed_trainer::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );

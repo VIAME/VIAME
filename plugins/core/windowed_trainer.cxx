@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "windowed_trainer.h"
-#include <object_detectors/windowed_utils.h>
+#include <viame/image_ops/windowed_utils.h>
 #include <viame/utilities/utilities_file.h>
 
 #include <viame/algorithm_framework/algo/algorithm.txx>

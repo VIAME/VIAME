@@ -815,6 +815,7 @@ include/viame/algorithm_framework/plugin/plugin_info.h
 include/viame/algorithm_framework/plugin/plugin_manager.h
 include/viame/algorithm_framework/plugin/plugin_manager_internal.h
 include/viame/algorithm_framework/plugin/plugin_registrar.h
+include/viame/algorithm_framework/plugin/register_algorithm.h
 include/viame/algorithm_framework/plugin/registry.h
 include/viame/algorithm_framework/plugin/vital_vpm_export.h
 include/viame/algorithm_framework/range
@@ -865,6 +866,7 @@ include/viame/classifiers/refine_detections_add_fixed.h
 include/viame/classifiers/refine_detections_nms.h
 include/viame/classifiers/refine_tracks_average_tot.h
 include/viame/classifiers/viame_classifiers_export.h
+include/viame/classifiers/windowed_refiner.h
 include/viame/convert_color_space.h
 include/viame/core_types
 include/viame/core_types/activity.h
@@ -1024,6 +1026,7 @@ include/viame/image_ops/threshold.h
 include/viame/image_ops/utilities_segmentation.h
 include/viame/image_ops/viame_image_ops_export.h
 include/viame/image_ops/warp.h
+include/viame/image_ops/windowed_utils.h
 include/viame/image_processing/average_frames.h
 include/viame/image_processing/close_loops_appearance_indexed.h
 include/viame/image_processing/close_loops_bad_frames_only.h
@@ -1060,7 +1063,7 @@ include/viame/object_detectors/example_detector.h
 include/viame/object_detectors/full_frame_detector.h
 include/viame/object_detectors/viame_object_detectors_darknet_export.h
 include/viame/object_detectors/viame_object_detectors_export.h
-include/viame/object_detectors/windowed_utils.h
+include/viame/object_detectors/windowed_detector.h
 include/viame/object_trackers/associate_detections_to_tracks_threshold.h
 include/viame/object_trackers/initialize_object_tracks_threshold.h
 include/viame/object_trackers/viame_object_trackers_export.h
@@ -1154,8 +1157,6 @@ include/viame/video_io/viame_video_io_export.h
 include/viame/video_io/video_input_image_list.h
 include/viame/video_io/write_disparity_maps.h
 include/viame/warp_image_ocv.h
-include/viame/windowed_detector.h
-include/viame/windowed_refiner.h
 include/viame/windowed_trainer.h
 include/viame/windowed_utils.h
 launch_dive_interface.sh

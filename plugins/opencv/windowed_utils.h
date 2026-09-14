@@ -8,7 +8,7 @@
 // Include core windowed utilities for shared types and functions
 // This provides: rescale_option, window_settings, image_rect, windowed_region_prop,
 // and all detection manipulation functions (rescale_detections, scale_detections, etc.)
-#include <object_detectors/windowed_utils.h>
+#include <viame/image_ops/windowed_utils.h>
 
 #include "viame_opencv_export.h"
 

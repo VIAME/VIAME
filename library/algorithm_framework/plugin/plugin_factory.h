@@ -103,6 +103,12 @@ public:
   static const std::string PLUGIN_ORGANIZATION;
   static const std::string PLUGIN_LICENSE;
 
+  // Set on the second and later factories for one implementation: the name
+  // the alias stands for. `registry-dump` collects these into its `aliases`
+  // map, and `compare_registry` counts a baseline name as still present when
+  // it resolves through one. See `viame_register_alias`.
+  static const std::string PLUGIN_ALIAS_OF;
+
   // plugin categories
   static const std::string APPLET_CATEGORY;
   static const std::string PROCESS_CATEGORY;

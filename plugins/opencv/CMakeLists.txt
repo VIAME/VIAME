@@ -17,8 +17,6 @@ set( plugin_headers
   split_image_habcam.h
   split_image_horizontally.h
   warp_image_ocv.h
-  windowed_detector.h
-  windowed_refiner.h
   windowed_trainer.h
   windowed_utils.h
 )
@@ -33,8 +31,6 @@ set( plugin_sources
   split_image_habcam.cxx
   split_image_horizontally.cxx
   warp_image_ocv.cxx
-  windowed_detector.cxx
-  windowed_refiner.cxx
   windowed_trainer.cxx
   windowed_utils.cxx
 )

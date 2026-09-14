@@ -10,8 +10,6 @@ set( plugin_headers
   pair_stereo_tracks.h
   query_track_descriptor_set_csv.h
   utilities_training.h
-  windowed_detector.h
-  windowed_refiner.h
   windowed_trainer.h
 )
 
@@ -25,8 +23,6 @@ set( plugin_sources
   pair_stereo_tracks.cxx
   query_track_descriptor_set_csv.cxx
   utilities_training.cxx
-  windowed_detector.cxx
-  windowed_refiner.cxx
   windowed_trainer.cxx
 )
 

@@ -6,7 +6,7 @@
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-#include "windowed_utils.h"
+#include <viame/image_ops/windowed_utils.h>
 
 #include <viame/algorithm_framework/util/wall_timer.h>
 #include <viame/algorithm_framework/exceptions/io.h>
@@ -28,11 +28,11 @@ namespace viame {
 namespace kv = kwiver::vital;
 
 // =============================================================================
-ocv_windowed_refiner::~ocv_windowed_refiner() = default;
+windowed_refiner::~windowed_refiner() = default;
 
 // -----------------------------------------------------------------------------
 bool
-ocv_windowed_refiner
+windowed_refiner
 ::check_configuration( kv::config_block_sptr config ) const
 {
   return kv::check_nested_algo_configuration<kv::algo::refine_detections>(
@@ -54,7 +54,7 @@ ocv_windowed_refiner
 // their original position. Everything else is refined by refine_core(). The
 // returned set is guaranteed 1:1 with, and in the same order as, the input.
 kv::detected_object_set_sptr
-ocv_windowed_refiner
+windowed_refiner
 ::refine( kv::image_container_sptr image_data,
          kv::detected_object_set_sptr detections ) const
 {
@@ -120,7 +120,7 @@ ocv_windowed_refiner
 
 
 kv::detected_object_set_sptr
-ocv_windowed_refiner
+windowed_refiner
 ::refine_core( kv::image_container_sptr image_data,
           kv::detected_object_set_sptr detections ) const
 {
@@ -340,7 +340,7 @@ ocv_windowed_refiner
   });
 
   return refined_detections;
-} // ocv_windowed_refiner::refine
+} // windowed_refiner::refine
 
 
 } // end namespace viame

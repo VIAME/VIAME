@@ -14,6 +14,7 @@ set(vital_vpm_headers_public
   registry.h
   plugin_manager.h
   plugin_registrar.h
+  register_algorithm.h
 #  plugin_info.h
   )
 

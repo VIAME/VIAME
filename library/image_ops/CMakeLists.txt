@@ -11,6 +11,11 @@
 # helper moves the helper down. They both build on the kernels here --
 # `polygon.h` and `contours.h` -- so this is as far down as they go, and it
 # is why the target is a library rather than an INTERFACE.
+#
+# `windowed_utils` came down here for the same reason in P2-T05, once the
+# two chippers became one: the detector is `object_detectors`, the refiner
+# is `classifiers` and the trainer is `training`, and it needs nothing above
+# `warp.h`.
 
 set( image_ops_headers
   channels.h
@@ -38,11 +43,13 @@ set( image_ops_headers
 
   convert_polygons_to_mask.h
   utilities_segmentation.h
+  windowed_utils.h
 )
 
 set( image_ops_sources
   convert_polygons_to_mask.cxx
   utilities_segmentation.cxx
+  windowed_utils.cxx
 )
 
 viame_add_library( viame_image_ops
@@ -61,6 +68,10 @@ target_include_directories( viame_image_ops PUBLIC
 
 target_link_libraries( viame_image_ops
   PUBLIC  kwiver::vital
+          # `windowed_utils` names `image_object_detector` in its interface
+          kwiver::vital_algo
+          kwiver::vital_config
+          kwiver::vital_logger
           kwiver::vital_util
 )
 

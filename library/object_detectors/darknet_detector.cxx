@@ -12,7 +12,7 @@
 // The chipping, the aspect-preserving fit and the crop, all of which this
 // shared with `ocv_windowed` and none of which was ever OpenCV's arithmetic.
 // `darknet_custom_resize` was a second copy of the first two and is gone.
-#include "windowed_utils.h"
+#include <viame/image_ops/windowed_utils.h>
 
 #include <image_ops/color.h>
 #include <image_ops/warp.h>

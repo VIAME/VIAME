@@ -4,7 +4,7 @@
 
 #include "windowed_utils.h"
 
-#include <image_ops/warp.h>
+#include "warp.h"
 
 #include <cmath>
 #include <cstring>

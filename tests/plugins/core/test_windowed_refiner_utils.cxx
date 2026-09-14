@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include <object_detectors/windowed_utils.h>
+#include <viame/image_ops/windowed_utils.h>
 
 #include <viame/core_types/detected_object.h>
 #include <viame/core_types/detected_object_set.h>

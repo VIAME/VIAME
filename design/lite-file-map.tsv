@@ -299,8 +299,8 @@ plugins/opencv/windowed_refiner.cxx	library/classifiers/ocv_windowed_refiner.cxx
 plugins/opencv/windowed_refiner.h	library/classifiers/ocv_windowed_refiner.h
 plugins/opencv/windowed_trainer.cxx	library/training/ocv_windowed_trainer.cxx
 plugins/opencv/windowed_trainer.h	library/training/ocv_windowed_trainer.h
-plugins/opencv/windowed_utils.cxx	library/object_detectors/windowed_utils.cxx
-plugins/opencv/windowed_utils.h	library/object_detectors/windowed_utils.h
+plugins/opencv/windowed_utils.cxx	library/image_ops/windowed_utils.cxx
+plugins/opencv/windowed_utils.h	library/image_ops/windowed_utils.h
 plugins/pytorch/CMakeLists.txt	STRUCTURAL
 plugins/pytorch/__init__.py	STRUCTURAL
 plugins/pytorch/botsort_tracker.py	library/object_trackers/botsort_tracker.py

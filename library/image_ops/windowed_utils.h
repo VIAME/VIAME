@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_OBJECT_DETECTORS_WINDOWED_UTILS_H
-#define VIAME_OBJECT_DETECTORS_WINDOWED_UTILS_H
+#ifndef VIAME_IMAGE_OPS_WINDOWED_UTILS_H
+#define VIAME_IMAGE_OPS_WINDOWED_UTILS_H
 
-#include "viame_object_detectors_export.h"
+#include "viame_image_ops_export.h"
 
 #include <map>
 
@@ -43,7 +43,7 @@ ENUM_CONVERTER( rescale_option_converter, rescale_option,
 // =============================================================================
 // Simple rectangle struct to replace cv::Rect
 // =============================================================================
-struct VIAME_OBJECT_DETECTORS_EXPORT image_rect
+struct VIAME_IMAGE_OPS_EXPORT image_rect
 {
   int x, y, width, height;
 
@@ -66,7 +66,7 @@ contains( const image_rect& rect, int px, int py )
 // =============================================================================
 // Window settings configuration
 // =============================================================================
-struct VIAME_OBJECT_DETECTORS_EXPORT window_settings
+struct VIAME_IMAGE_OPS_EXPORT window_settings
 {
   window_settings();
   ~window_settings() {}
@@ -100,7 +100,7 @@ struct VIAME_OBJECT_DETECTORS_EXPORT window_settings
 // =============================================================================
 // Region properties for windowed processing
 // =============================================================================
-struct VIAME_OBJECT_DETECTORS_EXPORT windowed_region_prop
+struct VIAME_IMAGE_OPS_EXPORT windowed_region_prop
 {
   explicit windowed_region_prop( image_rect r, double s1 );
 
@@ -126,14 +126,14 @@ struct VIAME_OBJECT_DETECTORS_EXPORT windowed_region_prop
 /// \param dst_width Destination width
 /// \param dst_height Destination height
 /// \returns Resized image
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 kv::image
 resize_image_by_scale(
   const kv::image& src,
   double scale );
 
 /// Resize to an exact size
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 kv::image
 resize_image_bilinear(
   const kv::image& src,
@@ -148,7 +148,7 @@ resize_image_bilinear(
 /// \param pad If true, pad the result to exactly width x height
 /// \param scale_out Output parameter for the scale factor applied
 /// \returns Scaled image
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 kv::image
 scale_image_maintaining_ar(
   const kv::image& src,
@@ -167,7 +167,7 @@ scale_image_maintaining_ar(
 /// \param pad Whether to pad the result
 /// \param scale_out Output parameter for the scale factor applied
 /// \returns Formatted image
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 kv::image
 format_image(
   const kv::image& src,
@@ -183,7 +183,7 @@ format_image(
 // =============================================================================
 
 /// Rescale detections from chip coordinates to original image coordinates
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 kv::detected_object_set_sptr
 rescale_detections(
   const kv::detected_object_set_sptr detections,
@@ -191,7 +191,7 @@ rescale_detections(
   double chip_edge_max_prob );
 
 /// Prepare image regions for windowed processing
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 void
 prepare_image_regions(
   const kv::image& image,
@@ -200,20 +200,20 @@ prepare_image_regions(
   std::vector< windowed_region_prop >& region_properties );
 
 /// Scale detections by region properties (inverse transform)
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 void scale_detections(
   kv::detected_object_set_sptr& detections,
   const windowed_region_prop& region_info );
 
 /// Scale detections to fit within a region
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 kv::detected_object_set_sptr
 scale_detections_to_region(
   const kv::detected_object_set_sptr detections,
   const windowed_region_prop& region_info );
 
 /// Scale detections to region with mapping to original detections
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 void
 scale_detections_to_region_with_mapping(
   const kv::detected_object_set_sptr detections,
@@ -231,14 +231,14 @@ scale_detections_to_region_with_mapping(
 /// is used as a fallback (current first-overlap behavior is thereby improved
 /// without ever dropping a detection).  Detections map to exactly one region,
 /// so per-detection refinement counts are preserved.
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 std::map< kv::detected_object_sptr, size_t >
 compute_preferred_regions(
   const kv::detected_object_set_sptr detections,
   const std::vector< windowed_region_prop >& region_properties );
 
 /// Separate detections that touch image boundaries from interior detections
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 void
 separate_boundary_detections(
   const kv::detected_object_set_sptr detections,
@@ -261,7 +261,7 @@ separate_boundary_detections(
 /// \param src Source image
 /// \param roi Region of interest to crop
 /// \returns Cropped image view (shares memory with source)
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 kv::image
 crop_image(
   const kv::image& src,
@@ -272,7 +272,7 @@ crop_image(
 // =============================================================================
 
 /// Entry pairing a detection with the tile ROI it was produced from.
-struct VIAME_OBJECT_DETECTORS_EXPORT det_tile_entry
+struct VIAME_IMAGE_OPS_EXPORT det_tile_entry
 {
   kv::detected_object_sptr det;
   image_rect tile_roi;
@@ -280,7 +280,7 @@ struct VIAME_OBJECT_DETECTORS_EXPORT det_tile_entry
 
 /// Compute the overlap strip between two tile ROIs.
 /// Returns true if the tiles overlap, writing the strip to ox,oy,ow,oh.
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 bool
 tile_overlap_strip(
   const image_rect& a, const image_rect& b,
@@ -292,7 +292,7 @@ tile_overlap_strip(
 /// \param det  Detection with optional mask (relative to its bbox)
 /// \param ox,oy,ow,oh  Strip region in image coordinates
 /// \param[out] out  Output binary image (ow x oh, single channel)
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 int
 render_mask_in_strip(
   kv::detected_object_sptr det,
@@ -300,7 +300,7 @@ render_mask_in_strip(
   kv::image& out );
 
 /// Merge det_b's mask into det_a producing a union mask and bounding box.
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 void
 merge_mask_into(
   kv::detected_object_sptr det_a,
@@ -310,7 +310,7 @@ merge_mask_into(
 /// Merge detections from overlapping tiles whose masks overlap by at
 /// least ``threshold`` in BOTH directions within the shared tile-overlap
 /// strip.  Returns a new detection set with merged duplicates removed.
-VIAME_OBJECT_DETECTORS_EXPORT
+VIAME_IMAGE_OPS_EXPORT
 kv::detected_object_set_sptr
 merge_tile_boundary_detections(
   std::vector< det_tile_entry >& entries,
@@ -319,4 +319,4 @@ merge_tile_boundary_detections(
 
 } // end namespace viame
 
-#endif /* VIAME_OBJECT_DETECTORS_WINDOWED_UTILS_H */
+#endif /* VIAME_IMAGE_OPS_WINDOWED_UTILS_H */

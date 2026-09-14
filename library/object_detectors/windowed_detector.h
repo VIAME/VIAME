@@ -2,12 +2,14 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_WINDOWED_DETECTOR_H
-#define VIAME_CORE_WINDOWED_DETECTOR_H
+#ifndef VIAME_OBJECT_DETECTORS_WINDOWED_DETECTOR_H
+#define VIAME_OBJECT_DETECTORS_WINDOWED_DETECTOR_H
 
-#include "viame_core_export.h"
+
+#include "viame_object_detectors_export.h"
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 namespace viame {
@@ -16,19 +18,15 @@ namespace viame {
 /**
  * @brief Window an arbitrary other detector over an image
  *
- * This algorithm wraps another detector and runs it over windowed regions
- * of the input image, then combines the results. This is useful for running
- * detectors that work best on smaller image sizes on larger images.
- *
- * This is a pure vital::image implementation with no OpenCV dependency.
+ * This process should be moved to core from ocv when able
  */
-class VIAME_CORE_EXPORT windowed_detector
+class VIAME_OBJECT_DETECTORS_EXPORT windowed_detector
   : public kwiver::vital::algo::image_object_detector
 {
 public:
   PLUGGABLE_IMPL_NAMED(
     windowed_detector, "windowed",
-    "Window some other arbitrary detector across the image (no OpenCV)",
+    "Window some other arbitrary detector across the image",
     PARAM_DEFAULT(
       mode, std::string,
       "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
@@ -81,25 +79,22 @@ public:
     PARAM_DEFAULT(
       black_pad, bool,
       "Black pad the edges of resized chips to ensure consistent dimensions",
-      false )
+      false ),
+    PARAM(
+      detector, kwiver::vital::algo::image_object_detector_sptr,
+      "Algorithm pointer to nested detector" )
   )
 
-  virtual ~windowed_detector();
-
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual ~windowed_detector() = default;
 
   virtual kwiver::vital::detected_object_set_sptr detect(
     kwiver::vital::image_container_sptr image_data ) const;
 
-  void set_configuration_internal( kwiver::vital::config_block_sptr config ) override;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
 private:
-  void initialize() override;
-
-  class priv;
-  KWIVER_UNIQUE_PTR( priv, d );
 };
 
 } // end namespace viame
 
-#endif /* VIAME_CORE_WINDOWED_DETECTOR_H */
+#endif /* VIAME_OBJECT_DETECTORS_WINDOWED_DETECTOR_H */

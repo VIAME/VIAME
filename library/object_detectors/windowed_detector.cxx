@@ -6,7 +6,7 @@
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-#include "windowed_utils.h"
+#include <viame/image_ops/windowed_utils.h>
 
 #include <viame/algorithm_framework/util/wall_timer.h>
 #include <viame/algorithm_framework/exceptions/io.h>
@@ -31,7 +31,7 @@ namespace kv = kwiver::vital;
 
 // -----------------------------------------------------------------------------
 bool
-ocv_windowed_detector
+windowed_detector
 ::check_configuration( kv::config_block_sptr config ) const
 {
   return kv::check_nested_algo_configuration<kv::algo::image_object_detector>(
@@ -41,7 +41,7 @@ ocv_windowed_detector
 
 // -----------------------------------------------------------------------------
 kv::detected_object_set_sptr
-ocv_windowed_detector
+windowed_detector
 ::detect( kv::image_container_sptr image_data ) const
 {
   kv::scoped_wall_timer t( "Time to Detect Objects" );
@@ -124,6 +124,6 @@ ocv_windowed_detector
   });
 
   return detections;
-} // ocv_windowed_detector::detect
+} // windowed_detector::detect
 
 } // end namespace viame

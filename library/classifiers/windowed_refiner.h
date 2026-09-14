@@ -2,15 +2,15 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_WINDOWED_REFINER_H
-#define VIAME_CORE_WINDOWED_REFINER_H
+#ifndef VIAME_CLASSIFIERS_WINDOWED_REFINER_H
+#define VIAME_CLASSIFIERS_WINDOWED_REFINER_H
 
-#include "viame_core_export.h"
+
+#include "viame_classifiers_export.h"
 
 #include <viame/algorithm_framework/algo/refine_detections.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
-
-#include <object_detectors/windowed_utils.h>
 
 namespace viame {
 
@@ -18,18 +18,74 @@ namespace viame {
 /**
  * @brief Window an arbitrary detection refiner over an image
  *
- * This algorithm applies a detection refinement algorithm across multiple
+ * This process applies a detection refinement algorithm across multiple
  * windowed regions of an image, scaling input detections to each region.
- *
- * This is a pure vital::image implementation with no OpenCV dependency.
  */
-class VIAME_CORE_EXPORT windowed_refiner
+class VIAME_CLASSIFIERS_EXPORT windowed_refiner
   : public kwiver::vital::algo::refine_detections
 {
 public:
   PLUGGABLE_IMPL_NAMED(
     windowed_refiner, "windowed",
-    "Window some other arbitrary refiner across the image (no OpenCV)",
+    "Window some other arbitrary refiner across the image",
+    PARAM_DEFAULT(
+      mode, std::string,
+      "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
+      "chip, chip_and_original, original_and_resized, or adaptive.",
+      "disabled" ),
+    PARAM_DEFAULT(
+      scale, double,
+      "Image scaling factor used when mode is scale or chip.",
+      1.0 ),
+    PARAM_DEFAULT(
+      chip_width, int,
+      "When in chip mode, the chip width.",
+      1000 ),
+    PARAM_DEFAULT(
+      chip_height, int,
+      "When in chip mode, the chip height.",
+      1000 ),
+    PARAM_DEFAULT(
+      chip_step_width, int,
+      "When in chip mode, the chip step size between chips.",
+      500 ),
+    PARAM_DEFAULT(
+      chip_step_height, int,
+      "When in chip mode, the chip step size between chips.",
+      500 ),
+    PARAM_DEFAULT(
+      chip_edge_filter, int,
+      "If using chipping, filter out detections this pixel count near borders.",
+      -1 ),
+    PARAM_DEFAULT(
+      chip_edge_max_prob, double,
+      "If using chipping, maximum type probability for edge detections",
+      -1.0 ),
+    PARAM_DEFAULT(
+      chip_adaptive_thresh, int,
+      "If using adaptive selection, total pixel count at which we start to chip.",
+      2000000 ),
+    PARAM_DEFAULT(
+      batch_size, int,
+      "Optional processing batch size to send to the detector.",
+      1 ),
+    PARAM_DEFAULT(
+      min_refine_dimension, int,
+      "Detections smaller than this in either dimension are passed through "
+      "unmodified rather than refined",
+      1 ),
+    PARAM_DEFAULT(
+      min_detection_dim, int,
+      "Minimum detection dimension in original image space.",
+      1 ),
+    PARAM_DEFAULT(
+      original_to_chip_size, bool,
+      "Optionally enforce the input image is the specified chip size",
+      false ),
+    PARAM_DEFAULT(
+      black_pad, bool,
+      "Black pad the edges of resized chips to ensure consistent dimensions",
+      false ),
     PARAM_DEFAULT(
       process_boundary_dets, bool,
       "Pass through detections touching tile boundaries unmodified in refiner",
@@ -56,10 +112,13 @@ public:
       "Merge detections from overlapping tiles whose masks overlap by at "
       "least this fraction within the shared tile-overlap region.  "
       "0 disables merging.",
-      0.0 )
+      0.0 ),
+    PARAM(
+      refiner, kwiver::vital::algo::refine_detections_sptr,
+      "Algorithm pointer to nested refiner" )
   )
 
-  virtual ~windowed_refiner() = default;
+  virtual ~windowed_refiner();
 
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
@@ -67,11 +126,8 @@ public:
     kwiver::vital::image_container_sptr image_data,
     kwiver::vital::detected_object_set_sptr detections ) const;
 
-protected:
-  void initialize() override;
-  void set_configuration_internal( kwiver::vital::config_block_sptr config ) override;
-
 private:
+
   // Core windowing refinement. Refines every input detection that overlaps a
   // processing region; detections too small/degenerate to refine are handled
   // by the public refine() wrapper (passed through unmodified) so that the
@@ -79,12 +135,8 @@ private:
   kwiver::vital::detected_object_set_sptr refine_core(
     kwiver::vital::image_container_sptr image_data,
     kwiver::vital::detected_object_set_sptr detections ) const;
-
-  window_settings m_settings;
-  kwiver::vital::algo::refine_detections_sptr m_refiner;
-  kwiver::vital::logger_handle_t m_logger;
 };
 
 } // end namespace viame
 
-#endif /* VIAME_CORE_WINDOWED_REFINER_H */
+#endif /* VIAME_CLASSIFIERS_WINDOWED_REFINER_H */

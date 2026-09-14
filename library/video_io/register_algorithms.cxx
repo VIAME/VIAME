@@ -17,6 +17,7 @@
 #include <viame/algorithm_framework/algo/image_io.h>
 #include <viame/algorithm_framework/algo/video_input.h>
 
+#include <viame/algorithm_framework/plugin/register_algorithm.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "add_timestamp_from_filename.h"
@@ -27,25 +28,6 @@
 namespace viame {
 
 namespace kv = kwiver::vital;
-
-namespace {
-
-// An algorithm declared with PLUGGABLE_IMPL, which names and describes
-// itself.
-template < typename interface_t, typename algorithm_t >
-void register_algorithm( kv::registry& vpm, std::string const& module_name )
-{
-  using kvpf = kv::plugin_factory;
-
-  auto fact = vpm.add_factory< interface_t, algorithm_t >(
-    algorithm_t::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_NAME, algorithm_t::plugin_name() )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-                    algorithm_t::plugin_description() );
-}
-
-}
 
 extern "C"
 VIAME_VIDEO_IO_PLUGIN_EXPORT

@@ -11,6 +11,7 @@
 
 #include <viame/algorithm_framework/algo/detect_motion.h>
 #include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/plugin/register_algorithm.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include "detect_heat_map.h"
@@ -18,31 +19,13 @@
 #include "detect_motion_3frame_differencing.h"
 #include "example_detector.h"
 #include "full_frame_detector.h"
+#include "windowed_detector.h"
 
 
 
 namespace viame {
 
 namespace kv = kwiver::vital;
-
-namespace {
-
-// An algorithm declared with PLUGGABLE_IMPL, which names and describes
-// itself.
-template < typename interface_t, typename algorithm_t >
-void register_algorithm( kv::registry& vpm, std::string const& module_name )
-{
-  using kvpf = kv::plugin_factory;
-
-  auto fact = vpm.add_factory< interface_t, algorithm_t >(
-    algorithm_t::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_NAME, algorithm_t::plugin_name() )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-                    algorithm_t::plugin_description() );
-}
-
-}
 
 extern "C"
 VIAME_OBJECT_DETECTORS_PLUGIN_EXPORT
@@ -89,6 +72,15 @@ register_factories( kv::registry& vpm )
     empty_detector >( vpm, module_name );
   register_algorithm< kv::algo::image_object_detector,
     full_frame_detector >( vpm, module_name );
+
+  // One chipper, two names. `plugins/core` and `plugins/opencv` each had an
+  // implementation of it, and P2-T05 kept this one; `tests/golden/opencv`
+  // holds the seven chipping variants of both, byte-identical. 276 config
+  // lines select `ocv_windowed` and 17 select `windowed`, so both answer.
+  register_algorithm< kv::algo::image_object_detector,
+    windowed_detector >( vpm, module_name );
+  register_alias< kv::algo::image_object_detector,
+    windowed_detector >( vpm, module_name, "ocv_windowed" );
 
   vpm.mark_module_as_loaded( module_name );
 }

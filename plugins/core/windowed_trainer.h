@@ -11,7 +11,7 @@
 #include <viame/algorithm_framework/algo/image_io.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
-#include <object_detectors/windowed_utils.h>
+#include <viame/image_ops/windowed_utils.h>
 
 #include <map>
 #include <mutex>

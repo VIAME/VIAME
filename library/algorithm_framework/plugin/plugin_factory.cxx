@@ -18,6 +18,7 @@ const std::string plugin_factory::PLUGIN_FACTORY_TYPE( "plugin-factory-type" );
 const std::string plugin_factory::PLUGIN_AUTHOR( "plugin-author" );
 const std::string plugin_factory::PLUGIN_ORGANIZATION( "plugin-organization" );
 const std::string plugin_factory::PLUGIN_LICENSE( "plugin-license" );
+const std::string plugin_factory::PLUGIN_ALIAS_OF( "viame.alias_of" );
 const std::string plugin_factory::PLUGIN_CATEGORY( "plugin-category" );
 const std::string plugin_factory::PLUGIN_PROCESS_PROPERTIES(
   "plugin-process-properties" );

@@ -98,7 +98,10 @@ readers and writers need `convert_polygons_to_mask` and
 `image_ops`, and they need `utilities_target_clfr` alongside stereo track
 pairing and `refine_tracks_average_tot`, which makes `utilities` its lowest
 common home. `utilities_target_clfr` touches no image, only
-`detected_object_type`.
+`detected_object_type`. `windowed_utils` went the same way for the same
+reason once P2-T05 merged the two chippers: the detector is
+`object_detectors`, the refiner is `classifiers` and the trainer is
+`training`, three siblings, and it needs nothing above `image_ops`.
 
 ## 2. Mapping: kwiver code -> library (P5)
 
@@ -131,8 +134,8 @@ common home. `utilities_target_clfr` touches no image, only
 | `video_io/` | `add_timestamp_from_filename`, `filename_to_timestamp`, `write_disparity_maps`, `read_habcam_metadata_process`, `detect_shot_breaks` (+ process) |
 | `file_io/` | `read_detected_object_set_{auto,cvat,dive,fishnet,habcam,oceaneyes,viame_csv,yolo}`, `read_object_track_set_{auto,dive,viame_csv}`, `write_detected_object_set_viame_csv`, `write_object_track_set_viame_csv`, `read_transform_homography_json`, `auto_detect_transform`, `convert_notes_to_attributes`, `camera_io`, `camera_rig_io`, `store_descriptors_csv`, `write_homography_list_process`; python `read/write_*_coco.py`, `utilities_coco.py` |
 | `image_processing/` | `equalize_via_percentiles` (cxx + py), `optical_flow.py`, `stabilize_many_images.py`, `multicam_homog_mosaic.py`, `multicam_homog_blackout.py`, `align_multimodal_imagery_process`, `warp_image_process`, `warp_detections_process`, `alignment_core.py`, `align_cameras_process.py`, `accumulate_image_statistics_process`, `stack_frames_process`, `utility_processes.py` |
-| `image_ops/` | `convert_polygons_to_mask`, `utilities_segmentation` (RDP + `mask_to_contours`) |
-| `object_detectors/` | `empty_detector`, `full_frame_detector`, `windowed_detector`, `windowed_utils` |
+| `image_ops/` | `convert_polygons_to_mask`, `utilities_segmentation` (RDP + `mask_to_contours`), `windowed_utils` |
+| `object_detectors/` | `empty_detector`, `full_frame_detector`, `windowed_detector` |
 | `object_trackers/` | `bytetrack_tracker.py`, `ocsort_tracker.py`, `simple_homog_tracker.py`, `multicam_homog_tracker.py`, `track_conductor_process`, `accumulate_object_tracks_process`, `filter_object_tracks_process`, `resample_object_tracks_process`, `split_tracks_to_feature_landmarks_process`, `merge_tracks_tube_iou.py` |
 | `classifiers/` | `convert_head_tail_points`, `refine_detections_add_fixed`, `refine_detections_nms`, `refine_tracks_average_tot`, `windowed_refiner`, `merge_detections_suppress_in_regions`, `merge_detections_{nms_fusion,coverage_reinforce,simple}.py`, `detection_fusion_core.py`, `multicam_homog_det_suppressor.py` |
 | `segmentation/` | `interactive_segmentation.py`, `segmentation_utils.py`, `interactive_service.py` |
@@ -147,7 +150,7 @@ common home. `utilities_target_clfr` touches no image, only
 | Destination | Files |
 |---|---|
 | `image_processing/` | `apply_color_correction`, `convert_color_space`, `debayer_filter`, `enhance_images`, `random_hue_shift`, `split_image_habcam`, `split_image_horizontally`, `warp_image_ocv`, `fft_filter_based_on_ref.py`, `multimodal_registration.py`, `registration_utils.py` |
-| `object_detectors/` | `detect_calibration_targets`, `windowed_detector` + `windowed_utils` (merged with core's in P2), `diff_of_gauss_detector`, `canny_edge_detector`, `ellipse_proposal.h`, `detect_in_subregions_process`, `stereo_processes.py::GMMDetectFishProcess`, `stereo_algos.py::GMMForegroundObjectDetector` |
+| `object_detectors/` | `detect_calibration_targets`, `windowed_detector` (merged with core's in P2), `diff_of_gauss_detector`, `canny_edge_detector`, `ellipse_proposal.h`, `detect_in_subregions_process`, `stereo_processes.py::GMMDetectFishProcess`, `stereo_algos.py::GMMForegroundObjectDetector` |
 | `classifiers/` | `classify_fish_hierarchical_svm`, `windowed_refiner` (merged), `refine_detections_util` |
 | `segmentation/` | `add_keypoints_from_mask`, `refine_detections_grabcut`, `refine_detections_watershed`, `watershed_segmenter.py` |
 | `descriptors/` | `adaboost_classifier`, `iqr_session_adaboost.h`, `gabor_features`, `hog_features`, `kmedians`, `process_query_process_adaboost` |

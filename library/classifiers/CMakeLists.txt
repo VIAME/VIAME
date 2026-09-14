@@ -17,6 +17,7 @@ set( plugin_headers
   refine_detections_add_fixed.h
   refine_detections_nms.h
   refine_tracks_average_tot.h
+  windowed_refiner.h
   )
 
 set( plugin_sources
@@ -26,6 +27,7 @@ set( plugin_sources
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
   refine_tracks_average_tot.cxx
+  windowed_refiner.cxx
   )
 
 viame_install_headers(
@@ -58,6 +60,8 @@ target_link_libraries( viame_classifiers
                        # `refine_tracks_average_tot` averages the
                        # classification scores over a track
                        viame_utilities
+                       # `windowed_refiner`'s chipping
+                       viame_image_ops
   )
 
 set_target_properties( viame_classifiers PROPERTIES

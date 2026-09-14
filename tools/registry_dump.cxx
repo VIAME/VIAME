@@ -521,6 +521,13 @@ registry_dump_applet
   entry_map_t schedulers;
   entry_map_t applets;
 
+  // A second name for an implementation already registered under its own,
+  // carrying `PLUGIN_ALIAS_OF`. `compare_registry` counts a baseline name as
+  // still present when it resolves through one of these, which is what lets
+  // two implementations that turn out to do the same thing become one plus
+  // an alias without the compatibility contract calling it a removal.
+  std::map< std::string, std::string > aliases;
+
   for( auto const& interface_entry : pm.plugin_map() )
   {
     std::string const& interface_name = interface_entry.first;
@@ -535,6 +542,12 @@ registry_dump_applet
       }
 
       std::string const category = attribute( fact, kvpf::PLUGIN_CATEGORY );
+
+      std::string const alias_of = attribute( fact, kvpf::PLUGIN_ALIAS_OF );
+      if( !alias_of.empty() )
+      {
+        aliases[ name ] = alias_of;
+      }
 
       registered_entry entry;
       entry.description = attribute( fact, kvpf::PLUGIN_DESCRIPTION );
@@ -567,8 +580,18 @@ registry_dump_applet
 
   std::ostringstream os;
 
-  os << "{\n" << indent( 1 ) << "\"aliases\": {},\n"
-     << indent( 1 ) << "\"algorithms\": {";
+  os << "{\n" << indent( 1 ) << "\"aliases\": {";
+
+  bool first_alias = true;
+  for( auto const& alias : aliases )
+  {
+    os << ( first_alias ? "\n" : ",\n" ) << indent( 2 )
+       << quote( alias.first ) << ": " << quote( alias.second );
+    first_alias = false;
+  }
+  os << ( aliases.empty() ? "}" : "\n" + indent( 1 ) + "}" ) << ",\n";
+
+  os << indent( 1 ) << "\"algorithms\": {";
 
   bool first_interface = true;
   for( auto const& item : algorithms )
