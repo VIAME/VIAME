@@ -75,8 +75,14 @@ def doc_assignments():
             # cell names the plugin and the right cell holds
             # `destination/` (`name`, `name`) groups.
             source = re.sub(r"[`/]", "", left)
+            # `object_detectors/python` (`onnx_predictor`, ...),
+            # `classifiers/` (`refine_detections_svm`), `file_io/database/`
+            # (`*_db` algos). The pattern used to insist on a trailing slash
+            # inside the backticks, so the `/python` rows -- all of onnx and
+            # colmap -- matched nothing and were never checked.
             for destination, names in re.findall(
-                    r"`([a-z_0-9/]+)/`[^(]*\(([^)]*)\)", right):
+                    r"`([a-z_0-9]+(?:/[a-z_0-9]*)*)/?`\s*\(([^)]*)\)",
+                    right):
                 for name in re.findall(r"`([^`]+)`", names):
                     for stem in expand(name):
                         rows.append((destination.split("/")[0],

@@ -61,7 +61,7 @@ class OnnxClassifier(ImageObjectDetector):
         for key in self._config.keys():
             self._config[key] = str(cfg.get_value(key))
 
-        from viame.onnx.onnx_clf_predictor import OnnxClassifierPredictor
+        from viame.classifiers.onnx.onnx_clf_predictor import OnnxClassifierPredictor
         self._predictor = OnnxClassifierPredictor(
             self._config["model"],
             device=self._config["device"] or "cpu",

@@ -8,14 +8,14 @@ Convert a darknet YOLO model (``.cfg`` + ``.weights``) to ONNX.
 Rebuilds the darknet graph in PyTorch with the bundled ``darknet2onnx`` package
 (patched under ``packages/patches/darknet-to-pytorch-onnx`` for the YOLOv2
 ``[region]`` head and YOLOv7-tiny routes), traces it, and writes the
-``.modelspec.json`` sidecar for :mod:`viame.onnx.onnx_detector`.
+``.modelspec.json`` sidecar for :mod:`viame.object_detectors.onnx.onnx_detector`.
 
 Output contract
 ---------------
 Input ``input`` of shape ``(1, 3, H, W)``; three outputs -- ``boxes``
 ``(1, N, 4)`` as **normalized** ``cxcywh``, ``probs`` ``(1, N, C)`` per-class
 scores, and ``confs`` ``(1, N, 1)`` objectness. No NMS in the graph; the
-``darknet`` decoder of :class:`viame.onnx.onnx_predictor.OnnxPredictor`
+``darknet`` decoder of :class:`viame.object_detectors.onnx.onnx_predictor.OnnxPredictor`
 applies it host-side.
 
 CLI:

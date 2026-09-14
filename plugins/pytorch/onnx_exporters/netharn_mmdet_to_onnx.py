@@ -15,7 +15,7 @@ packages from https://github.com/VIAME/depr-mmdet-plugin, an external plugin
 that is no longer built (and can no longer be built: its prebuilt ``_ext`` is a
 cp310 binary against an ancient torch). Running these models through this
 converter produces a self-contained ``.onnx`` graph plus a
-``.modelspec.json`` sidecar that :mod:`viame.onnx.onnx_detector` executes with
+``.modelspec.json`` sidecar that :mod:`viame.object_detectors.onnx.onnx_detector` executes with
 nothing but onnxruntime -- no torch, no mmdet, no depr plugin.
 
 The exported graph uses only standard ONNX operators (``RoiAlign`` and
@@ -30,7 +30,7 @@ Output contract
 One input ``input`` of shape ``(1, 3, H, W)`` and one output ``detections`` of
 shape ``(1, N, 6)`` holding ``[x1, y1, x2, y2, score, label]`` in model-input
 pixel coordinates, already NMS'd by the graph. That is the ``mmdet`` decoder of
-:class:`viame.onnx.onnx_predictor.OnnxPredictor`. Boxes and labels are fused
+:class:`viame.object_detectors.onnx.onnx_predictor.OnnxPredictor`. Boxes and labels are fused
 into a single tensor on purpose: a multi-output graph trips a tuple-lowering
 assert in the TorchScript ONNX exporter.
 

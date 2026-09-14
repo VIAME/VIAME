@@ -5,7 +5,7 @@ plugins/claude/train_supervisor.cxx	library/training/train_supervisor.cxx
 plugins/claude/train_supervisor.h	library/training/train_supervisor.h
 plugins/colmap/CMakeLists.txt	STRUCTURAL
 plugins/colmap/__init__.py	STRUCTURAL
-plugins/colmap/colmap_registration.py	library/measurement/colmap_registration.py
+plugins/colmap/colmap_registration.py	library/image_processing/colmap_registration.py
 plugins/colmap/prior_coverage_sfm.py	library/measurement/prior_coverage_sfm.py
 plugins/colmap/reconstruction.py	library/measurement/reconstruction.py
 plugins/compat.py	library/utilities/compat.py
@@ -243,11 +243,11 @@ plugins/onnx/epipolar_matcher.py	library/measurement/epipolar_matcher.py
 plugins/onnx/export_stereo_mapping.py	library/measurement/export_stereo_mapping.py
 plugins/onnx/fast_foundation_stereo.py	library/measurement/onnx_fast_foundation_stereo.py
 plugins/onnx/geometry_numpy.py	library/measurement/geometry_numpy.py
-plugins/onnx/onnx_classifier.py	library/object_detectors/onnx_classifier.py
-plugins/onnx/onnx_clf_predictor.py	library/object_detectors/onnx_clf_predictor.py
-plugins/onnx/onnx_detector.py	library/object_detectors/onnx_detector.py
-plugins/onnx/onnx_predictor.py	library/object_detectors/onnx_predictor.py
-plugins/onnx/onnx_refiner.py	library/classifiers/onnx_refiner.py
+plugins/onnx/onnx_classifier.py	library/classifiers/onnx/onnx_classifier.py
+plugins/onnx/onnx_clf_predictor.py	library/classifiers/onnx/onnx_clf_predictor.py
+plugins/onnx/onnx_detector.py	library/object_detectors/onnx/onnx_detector.py
+plugins/onnx/onnx_predictor.py	library/object_detectors/onnx/onnx_predictor.py
+plugins/onnx/onnx_refiner.py	library/classifiers/onnx/onnx_refiner.py
 plugins/onnx/run_epipolar_onnx.py	library/measurement/run_epipolar_onnx.py
 plugins/onnx/triangulate.py	library/measurement/triangulate.py
 plugins/opencv/CMakeLists.txt	STRUCTURAL

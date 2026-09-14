@@ -174,7 +174,15 @@ if( VIAME_ENABLE_PYTHON )
   # until P7-T04 -- the Hough gradient transform is not an image_ops
   # primitive, so it stays cv2's -- and the GMM motion detector
   # (`stereo_algos`, `stereo_processes`) from `plugins/opencv` in P2-T05.
-  viame_add_python_package( object_detectors )
+  viame_add_python_package( object_detectors EXCLUDE "^onnx/" )
+
+  # The onnxruntime detector, from `plugins/onnx` in P2-T05. Its own
+  # subpackage so that a build without ONNX neither installs it nor
+  # declares it -- which is what `plugins/onnx` not being added achieved.
+  if( VIAME_ENABLE_ONNX )
+    viame_add_python_package( object_detectors/onnx
+      DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/onnx )
+  endif()
 endif()
 
 target_include_directories( viame_processes_object_detectors PRIVATE

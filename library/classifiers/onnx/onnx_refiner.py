@@ -117,7 +117,7 @@ class OnnxRefiner(RefineDetections):
         batch_size = self._config['batch_size']
         batch_size = 4 if batch_size in ("", "auto") else int(batch_size)
 
-        from viame.onnx.onnx_clf_predictor import OnnxClassifierPredictor
+        from viame.classifiers.onnx.onnx_clf_predictor import OnnxClassifierPredictor
         self._predictor = OnnxClassifierPredictor(
             self._config['model'],
             device=self._config['device'] or "cpu",

@@ -4,8 +4,9 @@
 
 """VIAME ONNX plugins (installed as the ``viame.onnx`` package).
 
-Holds the generic onnxruntime object detector plus the epipolar / foundation
-stereo ONNX utilities, declared below rather than imported.
+The epipolar / foundation stereo ONNX utilities, declared below rather than
+imported. The generic detector is `viame.object_detectors.onnx` and the
+classifiers are `viame.classifiers.onnx` since P2-T05.
 """
 
 # ----------------------------------------------------------------------------
@@ -22,13 +23,4 @@ __vital_algorithm_declarations__ = [
     ( "compute_stereo_depth_map", "fast_foundation_stereo_onnx",
       "Stereo depth/disparity estimation using NVIDIA Fast-Foundation-Stereo ONNX/TensorRT export",
       "viame.onnx.fast_foundation_stereo:FastFoundationStereoOnnx" ),
-    ( "image_object_detector", "onnx",
-      "Generic ONNX object detector (onnxruntime, no torch)",
-      "viame.onnx.onnx_detector:OnnxDetector" ),
-    ( "image_object_detector", "onnx_classifier",
-      "Whole-frame ONNX classifier (onnxruntime, no torch)",
-      "viame.onnx.onnx_classifier:OnnxClassifier" ),
-    ( "refine_detections", "onnx",
-      "ONNX detection reclassifier (onnxruntime, no torch)",
-      "viame.onnx.onnx_refiner:OnnxRefiner" ),
 ]

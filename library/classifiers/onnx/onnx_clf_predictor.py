@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from viame.onnx.onnx_predictor import (
+from viame.object_detectors.onnx.onnx_predictor import (
     _open_onnx_package, _providers_for_device, _cuda_device_id)
 
 

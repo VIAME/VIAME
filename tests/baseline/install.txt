@@ -1423,6 +1423,10 @@ lib/python3.10/site-packages/viame/classifiers/merge_detections_coverage_reinfor
 lib/python3.10/site-packages/viame/classifiers/merge_detections_nms_fusion.py
 lib/python3.10/site-packages/viame/classifiers/merge_detections_simple.py
 lib/python3.10/site-packages/viame/classifiers/multicam_homog_det_suppressor.py
+lib/python3.10/site-packages/viame/classifiers/onnx/__init__.py
+lib/python3.10/site-packages/viame/classifiers/onnx/onnx_classifier.py
+lib/python3.10/site-packages/viame/classifiers/onnx/onnx_clf_predictor.py
+lib/python3.10/site-packages/viame/classifiers/onnx/onnx_refiner.py
 lib/python3.10/site-packages/viame/colmap/__init__.py
 lib/python3.10/site-packages/viame/colmap/colmap_registration.py
 lib/python3.10/site-packages/viame/colmap/prior_coverage_sfm.py
@@ -1482,6 +1486,9 @@ lib/python3.10/site-packages/viame/measurement/ocv_stereo_disparity.py
 lib/python3.10/site-packages/viame/measurement/stereo_frame_selection.py
 lib/python3.10/site-packages/viame/object_detectors/__init__.py
 lib/python3.10/site-packages/viame/object_detectors/hough_circle_detector.py
+lib/python3.10/site-packages/viame/object_detectors/onnx/__init__.py
+lib/python3.10/site-packages/viame/object_detectors/onnx/onnx_detector.py
+lib/python3.10/site-packages/viame/object_detectors/onnx/onnx_predictor.py
 lib/python3.10/site-packages/viame/object_detectors/stereo_algos.py
 lib/python3.10/site-packages/viame/object_detectors/stereo_processes.py
 lib/python3.10/site-packages/viame/onnx/__init__.py
@@ -1491,11 +1498,6 @@ lib/python3.10/site-packages/viame/onnx/epipolar_matcher.py
 lib/python3.10/site-packages/viame/onnx/export_stereo_mapping.py
 lib/python3.10/site-packages/viame/onnx/fast_foundation_stereo.py
 lib/python3.10/site-packages/viame/onnx/geometry_numpy.py
-lib/python3.10/site-packages/viame/onnx/onnx_classifier.py
-lib/python3.10/site-packages/viame/onnx/onnx_clf_predictor.py
-lib/python3.10/site-packages/viame/onnx/onnx_detector.py
-lib/python3.10/site-packages/viame/onnx/onnx_predictor.py
-lib/python3.10/site-packages/viame/onnx/onnx_refiner.py
 lib/python3.10/site-packages/viame/onnx/run_epipolar_onnx.py
 lib/python3.10/site-packages/viame/onnx/triangulate.py
 lib/python3.10/site-packages/viame/opencv/__init__.py

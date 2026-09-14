@@ -117,5 +117,12 @@ target_include_directories( viame_processes_classifiers PRIVATE
 # `plugins/core` in P2-T05.
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_add_python_package( classifiers )
+  viame_add_python_package( classifiers EXCLUDE "^onnx/" )
+
+  # The onnxruntime classifier and reclassifier, from `plugins/onnx` in
+  # P2-T05, gated the way that directory was.
+  if( VIAME_ENABLE_ONNX )
+    viame_add_python_package( classifiers/onnx
+      DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/onnx )
+  endif()
 endif()

@@ -49,8 +49,8 @@ The predictors can also be used directly from Python after loading the VIAME
 environment:
 
 ```python
-from viame.onnx.onnx_predictor import OnnxPredictor
-from viame.onnx.onnx_clf_predictor import OnnxClassifierPredictor
+from viame.object_detectors.onnx.onnx_predictor import OnnxPredictor
+from viame.classifiers.onnx.onnx_clf_predictor import OnnxClassifierPredictor
 
 # frame and chips are HxWx3 uint8 NumPy arrays in the model's channel order.
 detector = OnnxPredictor("models/detector.onnx", device="cpu")

@@ -119,7 +119,7 @@ class OnnxDetector(ImageObjectDetector):
         for k in self._config.keys():
             self._config[k] = str(cfg.get_value(k))
 
-        from viame.onnx.onnx_predictor import OnnxPredictor
+        from viame.object_detectors.onnx.onnx_predictor import OnnxPredictor
         opt = lambda s: None if s in ("", "None") else s
         self._predictor = OnnxPredictor(
             self._config["model"],
