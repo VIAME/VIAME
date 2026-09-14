@@ -83,6 +83,21 @@ static kv::config_block_sptr default_config()
   kv::config_block_sptr config
     = kv::config_block::empty_config( "detector_trainer_tool" );
 
+  // groundtruth_reader:type and image_reader:type are the two keys that
+  // common_train_detector.conf supplies but the tool did not, so a tracker-only
+  // run -- which loads no detector config at all -- failed on them in turn,
+  // first with a bare "Configuration not valid." and then with "Invalid image
+  // reader type specified". Both are needed by the frame preparation step that
+  // detector and tracker runs share. The detector configs set the same values
+  // and still override these.
+  config->set_value( "groundtruth_reader:type", "auto",
+    "Reader for per-frame groundtruth." );
+  config->set_value( "track_reader:type", "viame_csv",
+    "Reader for groundtruth re-read as tracks, with track ids preserved. Used "
+    "by tracker training only; all packaged tracker configs set this same "
+    "value and override it." );
+  config->set_value( "image_reader:type", "ocv",
+    "Reader used to check bit depth and load sample imagery." );
   config->set_value( "groundtruth_extensions", ".csv",
     "Groundtruth file extensions (csv, kw18, txt, etc...). Note: this is independent of "
     "the format that's stored in the file" );
@@ -128,8 +143,14 @@ static kv::config_block_sptr default_config()
     "rather than the decode is what limits extraction on HD footage. Set to "
     "png for a lossless cache. Ignored when preserving input bit depth, which "
     "requires a lossless format." );
-  config->set_value( "video_extractor", "ffmpeg",
-    "Method to use to extract frames from video, can either be ffmpeg or a pipe file" );
+  // extract_video_frames() runs this value as a kwiver pipeline; "ffmpeg" was
+  // never a code path, only doc text, so the default could not extract a
+  // frame. Detector runs are unaffected -- common_train_detector.conf sets the
+  // same pipeline as a relativepath and still overrides this -- but a
+  // tracker-only run loads no config and so got the broken value.
+  config->set_value( "video_extractor", "filter_default.pipe",
+    "Pipeline used to extract frames from video. Either a path, or the name of "
+    "a pipeline packaged in configs/pipelines." );
   config->set_value( "frame_rate", "5",
     "Default frame rate to use for videos when it is not manually specified inside of a "
     "groundtruth file." );
@@ -483,13 +504,13 @@ static std::vector< std::string > packaged_config_dirs()
 
 static const std::string default_train_config = "train_detector_default.conf";
 
-// Full path of the packaged default training config, or empty if none is
-// installed
-static std::string find_default_train_config()
+// Full path of a config or pipeline packaged under configs/pipelines, or
+// empty if no such file is installed
+static std::string find_packaged_config( const std::string& name )
 {
   for( const auto& dir : packaged_config_dirs() )
   {
-    const std::string candidate = append_path( dir, default_train_config );
+    const std::string candidate = append_path( dir, name );
 
     if( does_file_exist( candidate ) )
     {
@@ -498,6 +519,13 @@ static std::string find_default_train_config()
   }
 
   return "";
+}
+
+// Full path of the packaged default training config, or empty if none is
+// installed
+static std::string find_default_train_config()
+{
+  return find_packaged_config( default_train_config );
 }
 
 // Newline-separated list of packaged train_*.conf files, as full paths so any
@@ -1881,6 +1909,20 @@ train_applet
     config->get_value< std::string >( "video_extensions" );
   std::string video_extractor =
     config->get_value< std::string >( "video_extractor" );
+
+  // A config that sets this as a relativepath already hands over a full path.
+  // A bare name -- including the default above -- resolves against the same
+  // packaged directories -c searches, so that a run with no config at all
+  // still finds the shipped extractor.
+  if( !video_extractor.empty() && !does_file_exist( video_extractor ) )
+  {
+    const std::string packaged = find_packaged_config( video_extractor );
+
+    if( !packaged.empty() )
+    {
+      video_extractor = packaged;
+    }
+  }
   std::string frame_format =
     config->get_value< std::string >( "frame_format" );
   double frame_rate =
@@ -3674,6 +3716,13 @@ train_applet
     kv::set_nested_algo_configuration< kv::algo::read_object_track_set >
       ( "track_reader", config, track_reader );
 
+    if( !track_reader )
+    {
+      std::cerr << "Error: no track_reader could be configured, so no tracks "
+                << "can be read. Set track_reader:type." << std::endl;
+      return EXIT_FAILURE;
+    }
+
     if( track_reader )
     {
       // Re-read groundtruth files as tracks for training data
@@ -3743,6 +3792,18 @@ train_applet
 
       std::cout << "Loaded " << train_tracks.size() << " training track sets, "
                 << validation_tracks.size() << " validation track sets" << std::endl;
+
+      // Every tracker estimator falls back to its compiled-in defaults when it
+      // has no data, so an empty read here yields a parameter file that is
+      // indistinguishable from an untrained one. Fail instead.
+      if( train_tracks.empty() )
+      {
+        std::cerr << "Error: no tracks were read from the groundtruth. Tracker "
+                  << "training needs groundtruth with track ids; check "
+                  << "track_reader:type and that the groundtruth files parse."
+                  << std::endl;
+        return EXIT_FAILURE;
+      }
 
       // Write the frame-to-track-set association out for the trainers. Each
       // line gives a track set, the range of the flat frame list that belongs
@@ -3829,6 +3890,32 @@ train_applet
 
       // Merge the run's config so one -c file can carry detector and tracker
       kv::config_block_sptr tracker_config = default_config();
+
+      // With no -c the run has no tracker settings at all, which is the form
+      // every tracker example documents. Pull in the packaged config for this
+      // tracker so that form works. Merged before the run's config, so an
+      // explicit -c still overrides it, and only consulted when there is no -c
+      // to override it with.
+      if( training_configs.empty() )
+      {
+        const std::string packaged =
+          find_packaged_config( "train_tracker_" + current_tracker + ".conf" );
+
+        if( !packaged.empty() )
+        {
+          try
+          {
+            tracker_config->merge_config( kv::read_config_file( packaged ) );
+            std::cout << "Using packaged config " << packaged << std::endl;
+          }
+          catch( const std::exception& e )
+          {
+            std::cerr << "Warning: could not read " << packaged << ": "
+                      << e.what() << std::endl;
+          }
+        }
+      }
+
       tracker_config->merge_config( config );
       tracker_config->set_value( "tracker_trainer:type", current_tracker );
 
@@ -3866,6 +3953,7 @@ train_applet
       if( !kv::check_nested_algo_configuration< kv::algo::train_tracker >( "tracker_trainer", tracker_config ) )
       {
         std::cout << "Configuration not valid for tracker: " << current_tracker << std::endl;
+        training_failed = true;
         continue;
       }
 
