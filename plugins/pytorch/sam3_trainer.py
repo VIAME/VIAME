@@ -880,8 +880,9 @@ class SAM3Trainer(TrainDetector):
         best_model = checkpoint_dir / "best_model.pth"
 
         if not best_model.exists():
-            print("\n[SAM3Trainer] No best model found, training may have failed")
-            return output
+            raise RuntimeError(
+                "SAM3 training produced no model at {}. The trainer output "
+                "above carries the reason.".format(best_model))
 
         algo = "sam3"
 

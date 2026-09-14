@@ -586,8 +586,9 @@ class UltralyticsTrainer(TrainDetector):
                 if pt_files:
                     final_ckpt = pt_files[-1]
                 else:
-                    print("[UltralyticsTrainer] No checkpoint found")
-                    return output
+                    raise RuntimeError(
+                        "Ultralytics training produced no checkpoint. The "
+                        "trainer output above carries the reason.")
 
             algo = "ultralytics"
 

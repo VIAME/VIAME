@@ -690,8 +690,9 @@ class Detectron2Trainer(KWCocoTrainDetector):
         output_model_path = ub.Path(self._train_directory) / output_model_name
 
         if not output_model_path.exists():
-            print("\n[Detectron2Trainer] No model found, training may have failed\n")
-            return output
+            raise RuntimeError(
+                "Detectron2 training produced no model at {}. The trainer "
+                "output above carries the reason.".format(output_model_path))
 
         algo = "detectron2"
 

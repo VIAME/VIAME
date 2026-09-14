@@ -576,8 +576,9 @@ class SRNNTrainer( TrainTracker ):
             print( f"Found Target LSTM (variable) model: {target_lstm_V}" )
 
         if not found_any:
-            print( "\nNo trained models found, training may have failed" )
-            return output
+            raise RuntimeError(
+                "SRNN training produced no model. The trainer output above "
+                "carries the reason." )
 
         print( f"\nThe {self._train_directory} directory can now be deleted, "
                "unless you want to review training metrics first." )

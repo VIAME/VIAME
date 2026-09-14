@@ -427,8 +427,9 @@ class MMDetTrainer(TrainDetector):
         output_lbl_file_fp = os.path.join(self._train_directory, output_lbl_file)
 
         if not os.path.exists(output_wgt_file_fp):
-            print("\nNo model found, training may have failed\n")
-            return output
+            raise RuntimeError(
+                "MMDet training produced no model at {}. The trainer output "
+                "above carries the reason.".format(output_wgt_file_fp))
 
         algo = "mmdet"
 
