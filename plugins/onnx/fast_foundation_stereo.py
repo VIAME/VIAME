@@ -213,28 +213,28 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
         import onnxruntime as ort
 
         device = self._config["device"]
-        avail = ort.get_available_providers()
+        has_cuda = "CUDAExecutionProvider" in ort.get_available_providers()
+        if device.startswith("cuda") and not has_cuda:
+            raise RuntimeError(
+                f"device '{device}' requested but onnxruntime has no CUDA provider"
+            )
+        use_cuda = has_cuda and device != "cpu"
         providers = []
-        if device == "cpu":
-            providers.append("CPUExecutionProvider")
-        else:
-            if "CUDAExecutionProvider" in avail:
-                # device_id from 'cuda' or 'cuda:N'
-                device_id = 0
-                if ":" in device:
-                    try:
-                        device_id = int(device.split(":", 1)[1])
-                    except ValueError:
-                        device_id = 0
-                providers.append(
-                    (
-                        "CUDAExecutionProvider",
-                        {"device_id": device_id},
-                    )
-                )
-            providers.append("CPUExecutionProvider")
+        if use_cuda:
+            # device_id from 'cuda' or 'cuda:N'
+            device_id = 0
+            if ":" in device:
+                try:
+                    device_id = int(device.split(":", 1)[1])
+                except ValueError:
+                    device_id = 0
+            providers.append(("CUDAExecutionProvider", {"device_id": device_id}))
+        providers.append("CPUExecutionProvider")
 
         session = ort.InferenceSession(onnx_path, providers=providers)
+        # onnxruntime silently drops to CPU if the CUDA provider fails to start
+        if use_cuda and "CUDAExecutionProvider" not in session.get_providers():
+            raise RuntimeError("CUDA provider failed to initialize for this model")
 
         in_names = [inp.name for inp in session.get_inputs()]
         out_names = [out.name for out in session.get_outputs()]
