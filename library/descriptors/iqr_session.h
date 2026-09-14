@@ -8,10 +8,10 @@
  *        Subclasses implement classifier-specific train/predict methods.
  */
 
-#ifndef VIAME_IQR_SESSION_H
-#define VIAME_IQR_SESSION_H
+#ifndef VIAME_DESCRIPTORS_SESSION_H
+#define VIAME_DESCRIPTORS_SESSION_H
 
-#include <core/utilities_iqr.h>
+#include "utilities_iqr.h"
 
 #include <viame/algorithm_framework/logger/logger.h>
 
@@ -736,4 +736,4 @@ protected:
 } // end namespace iqr
 } // end namespace viame
 
-#endif // VIAME_IQR_SESSION_H
+#endif // VIAME_DESCRIPTORS_SESSION_H

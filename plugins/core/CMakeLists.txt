@@ -3,12 +3,10 @@
 set( plugin_headers
   adaptive_detector_trainer.h
   adaptive_tracker_trainer.h
-  average_track_descriptors.h
   evaluate_models.h
   measurement_utilities.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
-  query_track_descriptor_set_csv.h
   utilities_training.h
   windowed_trainer.h
 )
@@ -16,12 +14,10 @@ set( plugin_headers
 set( plugin_sources
   adaptive_detector_trainer.cxx
   adaptive_tracker_trainer.cxx
-  average_track_descriptors.cxx
   evaluate_models.cxx
   measurement_utilities.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
-  query_track_descriptor_set_csv.cxx
   utilities_training.cxx
   windowed_trainer.cxx
 )
@@ -115,43 +111,26 @@ viame_register_statically( viame_core
   register_algorithms.cxx
   )
 
-
 # Add process library
 set( process_headers
   calibrate_cameras_from_tracks_process.h
-  create_database_query_process.h
-  extract_desc_ids_for_training_process.h
-  fetch_descriptors_process.h
   filter_frame_index_process.h
   filter_frame_process.h
   image_to_image_set_process.h
-  ingest_descriptors_process.h
   measure_objects_process.h
-  object_track_descriptors_process.h
   pair_stereo_detections_process.h
-  process_query_process_adaboost.h
   refine_measurements_process.h
-  select_database_query_process.h
-  write_query_results_as_tracks_process.h
 )
 
 set( process_sources
   register_processes.cxx
   calibrate_cameras_from_tracks_process.cxx
-  create_database_query_process.cxx
-  extract_desc_ids_for_training_process.cxx
-  fetch_descriptors_process.cxx
   filter_frame_index_process.cxx
   filter_frame_process.cxx
   image_to_image_set_process.cxx
-  ingest_descriptors_process.cxx
   measure_objects_process.cxx
-  object_track_descriptors_process.cxx
   pair_stereo_detections_process.cxx
-  process_query_process_adaboost.cxx
   refine_measurements_process.cxx
-  select_database_query_process.cxx
-  write_query_results_as_tracks_process.cxx
 )
 
 viame_add_plugin( viame_processes_core
@@ -170,64 +149,7 @@ viame_add_plugin( viame_processes_core
 target_include_directories( viame_processes_core PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  # `iqr_session.h` reaches its neighbours as `core/...`, which is how it
-  # was written for the plugins that include it from outside
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
   )
-
-###
-# The IQR AdaBoost session
-#
-# Its own library, and the only thing in VIAME that calls the interpreter
-# from C++: it trains and scores through `viame.core.iqr_adaboost`, which is
-# scikit-learn. Kept out of `viame_core` on purpose -- the library
-# everything links stays free of libpython, and only what needs the model
-# picks the dependency up.
-#
-# Without python it compiles to a stub that reports no model, and the base
-# class falls back to similarity scoring against the positive exemplars, so
-# the query still returns ranked results.
-##
-viame_install_headers(
-  SUBDIR     viame
-  iqr_session_adaboost.h
-  )
-
-viame_add_library( viame_iqr
-  iqr_session_adaboost.h
-  iqr_session_adaboost.cxx
-  )
-
-target_include_directories( viame_iqr PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
-  )
-
-target_link_libraries( viame_iqr
-  PUBLIC               kwiver::vital
-                       kwiver::vital_logger
-                       viame_core
-  )
-
-set_target_properties( viame_iqr PROPERTIES
-  SOVERSION            ${VIAME_VERSION_MAJOR}
-  )
-
-if( VIAME_ENABLE_PYTHON )
-  # pybind11 is vendored in `library/tpl/pybind11`; the targets it used to
-  # come from are defined there
-
-  target_compile_definitions( viame_iqr PRIVATE VIAME_CORE_HAVE_PYTHON )
-
-  # `${PYTHON_LIBRARIES}` as well as pybind11: VIAME links with
-  # `-Wl,--no-undefined`, so leaving the interpreter symbols to be resolved
-  # at load time does not link at all here.
-  target_link_libraries( viame_iqr
-    PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> )
-endif()
-
-target_link_libraries( viame_processes_core PRIVATE viame_iqr )
 
 if( VIAME_ENABLE_PYTHON )
 
@@ -237,15 +159,6 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     core
     __init__ )
-
-
-  # The model behind `process_query_adaboost`, called from
-  # `iqr_session_adaboost.cxx`
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/iqr_adaboost.py
-    core
-    iqr_adaboost )
-
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_trainer.py
@@ -262,48 +175,20 @@ if( VIAME_ENABLE_PYTHON )
     core
     tracker_param_search )
 
-
-
-
-
-
-
-
-
-
-
-
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/frame_diff_trainer.py
     core
     frame_diff_trainer )
-
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_trainer.py
     core
     ocsort_trainer )
 
-
-
-
-
-
-
-
-
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/survey_metadata.py
     core
     survey_metadata )
-
-
-
-
-
-
-
-
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/curved_measurement.py
@@ -314,19 +199,6 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
     core
     interactive_stereo )
-
-
-
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/query_service.py
-    core
-    query_service )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/index_descriptors.py
-    core
-    index_descriptors )
 
   # Compiled bindings exposing the C++ stereo measurement (compute_stereo_measurement,
   # aggregate_lengths) to Python so the interactive stereo service reuses them rather

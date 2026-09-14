@@ -82,15 +82,15 @@ class ResNetDescriptors(KwiverProcess):
         batch_size = int(self.config_value('batch_size'))
 
         if model_arch == "resnet":
-            from viame.pytorch.torchvision.resnet_feature_extractor import ResNetFeatureExtractor
+            from viame.descriptors.torchvision.resnet_feature_extractor import ResNetFeatureExtractor
             self._app_feature_extractor = ResNetFeatureExtractor(model_path,
                 img_size, batch_size, self._gpu_list)
         elif model_arch == "alexnet":
-            from viame.pytorch.torchvision.alexnet_feature_extractor import AlexNetFeatureExtractor
+            from viame.descriptors.torchvision.alexnet_feature_extractor import AlexNetFeatureExtractor
             self._app_feature_extractor = AlexNetFeatureExtractor(model_path,
                 img_size, batch_size, self._gpu_list)
         elif model_arch == "efficientnet":
-            from viame.pytorch.torchvision.enet_feature_extractor import EfficientNetFeatureExtractor
+            from viame.descriptors.torchvision.enet_feature_extractor import EfficientNetFeatureExtractor
             self._app_feature_extractor = EfficientNetFeatureExtractor(model_path,
                 img_size, batch_size, self._gpu_list)
         else:

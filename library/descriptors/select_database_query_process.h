@@ -7,12 +7,12 @@
  * \brief Select between two database query inputs
  */
 
-#ifndef VIAME_CORE_SELECT_DATABASE_QUERY_PROCESS_H
-#define VIAME_CORE_SELECT_DATABASE_QUERY_PROCESS_H
+#ifndef VIAME_DESCRIPTORS_SELECT_DATABASE_QUERY_PROCESS_H
+#define VIAME_DESCRIPTORS_SELECT_DATABASE_QUERY_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_descriptors_export.h"
 
 #include <memory>
 
@@ -30,7 +30,7 @@ namespace core
  * outputs the primary if it's non-null, otherwise outputs the fallback.
  * Useful for conditionally routing auto-generated queries vs external queries.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT select_database_query_process
+class VIAME_PROCESSES_DESCRIPTORS_EXPORT select_database_query_process
   : public sprokit::process
 {
 public:
@@ -54,4 +54,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_SELECT_DATABASE_QUERY_PROCESS_H
+#endif // VIAME_DESCRIPTORS_SELECT_DATABASE_QUERY_PROCESS_H

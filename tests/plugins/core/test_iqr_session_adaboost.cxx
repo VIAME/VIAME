@@ -27,7 +27,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/iqr_session_adaboost.h"
+#include <viame/descriptors/iqr_session_adaboost.h>
 
 #include <pybind11/embed.h>
 
@@ -186,7 +186,7 @@ const std::vector< variant > VARIANTS = {
 };
 
 // ----------------------------------------------------------------------------
-/// The session trains and scores through `viame.core.iqr_adaboost`, so the
+/// The session trains and scores through `viame.descriptors.iqr_adaboost`, so the
 /// test has to provide an interpreter the way a VIAME pipeline does -- there
 /// the plugin loader brings python up before any process runs, and a bare
 /// gtest has nobody to do that. Without one the session reports no model and

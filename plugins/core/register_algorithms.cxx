@@ -12,8 +12,6 @@
 
 #include "adaptive_tracker_trainer.h"
 #include "adaptive_detector_trainer.h"
-#include "average_track_descriptors.h"
-#include "query_track_descriptor_set_csv.h"
 #include "windowed_trainer.h"
 
 namespace viame {
@@ -54,16 +52,12 @@ register_factories( kv::registry& vpm )
   }
 
   // Algorithms using PLUGGABLE_IMPL
-  register_algorithm< kv::algo::query_track_descriptor_set,
-    query_track_descriptor_set_csv >( vpm );
 
   // Algorithms using PLUGGABLE_IMPL
   register_algorithm< kv::algo::train_tracker,
     adaptive_tracker_trainer >( vpm );
   register_algorithm< kv::algo::train_detector,
     adaptive_detector_trainer >( vpm );
-  register_algorithm< kv::algo::compute_track_descriptors,
-    average_track_descriptors >( vpm );
   register_algorithm< kv::algo::train_detector,
     windowed_trainer >( vpm );
 

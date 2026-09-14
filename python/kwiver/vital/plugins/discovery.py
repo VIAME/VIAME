@@ -332,6 +332,7 @@ BUILTIN_PLUGIN_PACKAGES = (
     "viame.classifiers.rf_detr",
     "viame.classifiers.sleap",
     "viame.core",
+    "viame.descriptors.torchvision",
     "viame.file_io",
     "viame.image_processing",
     "viame.measurement",

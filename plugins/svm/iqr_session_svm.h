@@ -10,7 +10,7 @@
 #ifndef VIAME_IQR_SESSION_SVM_H
 #define VIAME_IQR_SESSION_SVM_H
 
-#include <core/iqr_session.h>
+#include <viame/descriptors/iqr_session.h>
 
 #include <svm.h>
 

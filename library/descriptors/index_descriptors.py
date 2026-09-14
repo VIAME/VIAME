@@ -6,7 +6,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Descriptor indexing for VIAME video search (viame.core.index_descriptors).
+Descriptor indexing for VIAME video search (viame.descriptors.index_descriptors).
 
 Implements ITQ (Iterative Quantization) locality-sensitive hashing with only
 numpy, the descriptor sources it can be trained from (CSV, KWIVER descriptor

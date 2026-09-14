@@ -85,13 +85,7 @@ __sprokit_process_declarations__ = [
     ( "convert_to_onnx",
       "Convert a VIAME model to onnx",
       "viame.pytorch.convert_to_onnx_process:OnnxConverter" ),
-    ( "desc_augmentation",
-      "Pytorch-Based Augmentation",
-      "viame.pytorch.torchvision_augment_process:DataAugmentation" ),
     ( "pair_stereo_tracks_pytorch",
       "Pair stereo detections using deep descriptor cosine distance",
       "viame.pytorch.pair_stereo_tracks:PairStereoTracks" ),
-    ( "pytorch_descriptors",
-      "pytorch feature extraction",
-      "viame.pytorch.torchvision_descriptors:ResNetDescriptors" ),
 ]

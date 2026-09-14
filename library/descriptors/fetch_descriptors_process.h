@@ -4,15 +4,15 @@
 
 /**
  * \file
- * \brief Extract descriptor IDs overlapping with groundtruth
+ * \brief Fetch descriptors from file given UIDs
  */
 
-#ifndef VIAME_CORE_EXTRACT_DESC_IDS_FOR_TRAINING_PROCESS_H
-#define VIAME_CORE_EXTRACT_DESC_IDS_FOR_TRAINING_PROCESS_H
+#ifndef VIAME_DESCRIPTORS_FETCH_DESCRIPTORS_PROCESS_H
+#define VIAME_DESCRIPTORS_FETCH_DESCRIPTORS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_descriptors_export.h"
 
 #include <viame/pipeline_framework/type_traits.h>
 
@@ -26,23 +26,22 @@ namespace core
 
 // -----------------------------------------------------------------------------
 /**
- * @brief Extract descriptor IDs overlapping with groundtruth
+ * @brief Fetch descriptors from file given UIDs
  *
- * This process extracts descriptor IDs stored in some database or data store
- * for later model training.
+ * This process takes in a vector of UIDs and fetches the corresponding
+ * descriptors from a CSV file.
  *
- * Currently the only thing it is used for is training SVM models without user
- * interaction.
+ * The input file format is CSV: uid,val1,val2,...,valN (one descriptor per line)
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT extract_desc_ids_for_training_process
+class VIAME_PROCESSES_DESCRIPTORS_EXPORT fetch_descriptors_process
   : public sprokit::process
 {
 public:
   using config_block_sptr = kwiver::vital::config_block_sptr;
 
   // -- CONSTRUCTORS --
-  extract_desc_ids_for_training_process( config_block_sptr const& config );
-  virtual ~extract_desc_ids_for_training_process();
+  fetch_descriptors_process( config_block_sptr const& config );
+  virtual ~fetch_descriptors_process();
 
 protected:
   virtual void _configure();
@@ -51,13 +50,14 @@ protected:
 private:
   void make_ports();
   void make_config();
+  void load_descriptor_index();
 
   class priv;
   const std::unique_ptr< priv > d;
 
-}; // end class extract_desc_ids_for_training_process
+}; // end class fetch_descriptors_process
 
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_EXTRACT_DESC_IDS_FOR_TRAINING_PROCESS_H
+#endif // VIAME_DESCRIPTORS_FETCH_DESCRIPTORS_PROCESS_H

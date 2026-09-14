@@ -7,12 +7,12 @@
  * \brief Write query results as object track CSV
  */
 
-#ifndef VIAME_CORE_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H
-#define VIAME_CORE_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H
+#ifndef VIAME_DESCRIPTORS_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H
+#define VIAME_DESCRIPTORS_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_descriptors_export.h"
 
 #include <memory>
 
@@ -32,7 +32,7 @@ namespace core
  * as the detection confidence. This supports both single-frame detections
  * (as single-state tracks) and multi-frame tracks.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT write_query_results_as_tracks_process
+class VIAME_PROCESSES_DESCRIPTORS_EXPORT write_query_results_as_tracks_process
   : public sprokit::process
 {
 public:
@@ -57,4 +57,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H
+#endif // VIAME_DESCRIPTORS_WRITE_QUERY_RESULTS_AS_TRACKS_PROCESS_H

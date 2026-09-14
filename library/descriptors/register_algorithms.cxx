@@ -10,9 +10,14 @@
 #include "viame_descriptors_plugin_export.h"
 
 #include <viame/algorithm_framework/algo/handle_descriptor_request.h>
+#include <viame/algorithm_framework/algo/compute_track_descriptors.h>
+#include <viame/algorithm_framework/algo/query_track_descriptor_set.h>
+#include <viame/algorithm_framework/plugin/register_algorithm.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
+#include "average_track_descriptors.h"
 #include "handle_descriptor_request_core.h"
+#include "query_track_descriptor_set_csv.h"
 
 
 namespace viame {
@@ -49,6 +54,12 @@ register_factories( kv::registry& vpm )
             "a descriptor computer over the requested imagery" )
 
 #undef VIAME_REGISTER_IMPORTED
+
+  // From `plugins/core` in P2-T06.
+  register_algorithm< kv::algo::compute_track_descriptors,
+    average_track_descriptors >( vpm, module_name );
+  register_algorithm< kv::algo::query_track_descriptor_set,
+    query_track_descriptor_set_csv >( vpm, module_name );
 
   vpm.mark_module_as_loaded( module_name );
 }

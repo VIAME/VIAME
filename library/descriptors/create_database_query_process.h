@@ -7,12 +7,12 @@
  * \brief Create a database query from track descriptors
  */
 
-#ifndef VIAME_CORE_CREATE_DATABASE_QUERY_PROCESS_H
-#define VIAME_CORE_CREATE_DATABASE_QUERY_PROCESS_H
+#ifndef VIAME_DESCRIPTORS_CREATE_DATABASE_QUERY_PROCESS_H
+#define VIAME_DESCRIPTORS_CREATE_DATABASE_QUERY_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_descriptors_export.h"
 
 #include <memory>
 
@@ -30,7 +30,7 @@ namespace core
  * object that can be used with the perform_query process for similarity
  * searches in the indexed database.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT create_database_query_process
+class VIAME_PROCESSES_DESCRIPTORS_EXPORT create_database_query_process
   : public sprokit::process
 {
 public:
@@ -54,4 +54,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_CREATE_DATABASE_QUERY_PROCESS_H
+#endif // VIAME_DESCRIPTORS_CREATE_DATABASE_QUERY_PROCESS_H

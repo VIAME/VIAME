@@ -8,8 +8,8 @@
  *        lsh_index, and distance functions.
  */
 
-#ifndef VIAME_IQR_UTILITIES_IQR_H
-#define VIAME_IQR_UTILITIES_IQR_H
+#ifndef VIAME_DESCRIPTORS_UTILITIES_IQR_H
+#define VIAME_DESCRIPTORS_UTILITIES_IQR_H
 
 #include <algorithm>
 #include <cmath>
@@ -753,4 +753,4 @@ private:
 } // end namespace iqr
 } // end namespace viame
 
-#endif // VIAME_IQR_UTILITIES_IQR_H
+#endif // VIAME_DESCRIPTORS_UTILITIES_IQR_H

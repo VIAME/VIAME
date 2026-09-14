@@ -596,7 +596,7 @@ def homography_output_settings_list( output_dir, basename, cid = None ):
 # Index (search) output settings. The index pipelines write the per-video
 # files the query pipelines read.
 def search_output_settings_list( output_dir, basename ):
-  from viame.core import index_descriptors
+  from viame.descriptors import index_descriptors
 
   return list( itertools.chain(
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
@@ -1478,7 +1478,7 @@ if __name__ == "__main__" :
       print( "Warning: building a ball tree is deprecated" )
 
     try:
-      from viame.core.index_descriptors import build_index_bundles
+      from viame.descriptors.index_descriptors import build_index_bundles
 
       summary = build_index_bundles( database_dir=args.output_directory,
                                      strip_vectors=True, verbose=True )

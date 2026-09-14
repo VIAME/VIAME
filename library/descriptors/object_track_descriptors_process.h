@@ -7,12 +7,12 @@
  * \brief Attach descriptors to object track states from file
  */
 
-#ifndef VIAME_CORE_OBJECT_TRACK_DESCRIPTORS_PROCESS_H
-#define VIAME_CORE_OBJECT_TRACK_DESCRIPTORS_PROCESS_H
+#ifndef VIAME_DESCRIPTORS_OBJECT_TRACK_DESCRIPTORS_PROCESS_H
+#define VIAME_DESCRIPTORS_OBJECT_TRACK_DESCRIPTORS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_descriptors_export.h"
 
 #include <viame/pipeline_framework/type_traits.h>
 
@@ -33,7 +33,7 @@ namespace core
  *
  * The input file format is CSV: track_id,frame_id,val1,val2,...,valN
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT object_track_descriptors_process
+class VIAME_PROCESSES_DESCRIPTORS_EXPORT object_track_descriptors_process
   : public sprokit::process
 {
 public:
@@ -60,4 +60,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_OBJECT_TRACK_DESCRIPTORS_PROCESS_H
+#endif // VIAME_DESCRIPTORS_OBJECT_TRACK_DESCRIPTORS_PROCESS_H

@@ -7,12 +7,12 @@
  * \brief Ingest descriptors from a pipeline and write to file
  */
 
-#ifndef VIAME_CORE_INGEST_DESCRIPTORS_PROCESS_H
-#define VIAME_CORE_INGEST_DESCRIPTORS_PROCESS_H
+#ifndef VIAME_DESCRIPTORS_INGEST_DESCRIPTORS_PROCESS_H
+#define VIAME_DESCRIPTORS_INGEST_DESCRIPTORS_PROCESS_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_descriptors_export.h"
 
 #include <viame/pipeline_framework/type_traits.h>
 
@@ -36,7 +36,7 @@ namespace core
  * - CSV output format with UID and descriptor vector
  * - Pass-through of inputs to outputs for pipeline chaining
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT ingest_descriptors_process
+class VIAME_PROCESSES_DESCRIPTORS_EXPORT ingest_descriptors_process
   : public sprokit::process
 {
 public:
@@ -64,4 +64,4 @@ private:
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_INGEST_DESCRIPTORS_PROCESS_H
+#endif // VIAME_DESCRIPTORS_INGEST_DESCRIPTORS_PROCESS_H

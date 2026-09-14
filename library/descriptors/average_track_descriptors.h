@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_AVERAGE_TRACK_DESCRIPTORS_H
-#define VIAME_CORE_AVERAGE_TRACK_DESCRIPTORS_H
+#ifndef VIAME_DESCRIPTORS_AVERAGE_TRACK_DESCRIPTORS_H
+#define VIAME_DESCRIPTORS_AVERAGE_TRACK_DESCRIPTORS_H
 
-#include "viame_core_export.h"
+#include "viame_descriptors_export.h"
 
 #include <viame/algorithm_framework/algo/compute_track_descriptors.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -16,7 +16,7 @@
 
 namespace viame {
 
-class VIAME_CORE_EXPORT average_track_descriptors
+class VIAME_DESCRIPTORS_EXPORT average_track_descriptors
   : public kwiver::vital::algo::compute_track_descriptors
 {
 public:
@@ -57,4 +57,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_AVERAGE_TRACK_DESCRIPTORS_H
+#endif // VIAME_DESCRIPTORS_AVERAGE_TRACK_DESCRIPTORS_H

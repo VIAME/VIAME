@@ -7,10 +7,10 @@
  * \brief Interface for query_track_descriptor_set_csv
  */
 
-#ifndef VIAME_CORE_QUERY_TRACK_DESCRIPTOR_SET_CSV_H
-#define VIAME_CORE_QUERY_TRACK_DESCRIPTOR_SET_CSV_H
+#ifndef VIAME_DESCRIPTORS_QUERY_TRACK_DESCRIPTOR_SET_CSV_H
+#define VIAME_DESCRIPTORS_QUERY_TRACK_DESCRIPTOR_SET_CSV_H
 
-#include "viame_core_export.h"
+#include "viame_descriptors_export.h"
 
 #include <viame/algorithm_framework/algo/query_track_descriptor_set.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -34,7 +34,7 @@ namespace viame {
  * descriptor, tracks) map, mirroring what the database-backed
  * implementation answers from its tables.
  */
-class VIAME_CORE_EXPORT query_track_descriptor_set_csv
+class VIAME_DESCRIPTORS_EXPORT query_track_descriptor_set_csv
   : public kwiver::vital::algo::query_track_descriptor_set
 {
 public:
@@ -83,4 +83,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_QUERY_TRACK_DESCRIPTOR_SET_CSV_H
+#endif // VIAME_DESCRIPTORS_QUERY_TRACK_DESCRIPTOR_SET_CSV_H

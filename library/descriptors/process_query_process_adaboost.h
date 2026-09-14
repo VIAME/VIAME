@@ -7,12 +7,12 @@
  * \brief Process query descriptors using IQR and AdaBoost ranking
  */
 
-#ifndef VIAME_OPENCV_PROCESS_QUERY_PROCESS_ADABOOST_H
-#define VIAME_OPENCV_PROCESS_QUERY_PROCESS_ADABOOST_H
+#ifndef VIAME_DESCRIPTORS_PROCESS_QUERY_PROCESS_ADABOOST_H
+#define VIAME_DESCRIPTORS_PROCESS_QUERY_PROCESS_ADABOOST_H
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_core_export.h"
+#include "viame_processes_descriptors_export.h"
 
 #include <viame/pipeline_framework/type_traits.h>
 
@@ -38,7 +38,7 @@ namespace viame
  * - Feedback descriptors for active learning
  * - Serializable AdaBoost model support
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT process_query_process_adaboost
+class VIAME_PROCESSES_DESCRIPTORS_EXPORT process_query_process_adaboost
   : public sprokit::process
 {
 public:
@@ -63,4 +63,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_OPENCV_PROCESS_QUERY_PROCESS_ADABOOST_H
+#endif // VIAME_DESCRIPTORS_PROCESS_QUERY_PROCESS_ADABOOST_H

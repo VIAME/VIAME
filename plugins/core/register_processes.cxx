@@ -6,21 +6,13 @@
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
-#include "extract_desc_ids_for_training_process.h"
-#include "fetch_descriptors_process.h"
 #include "filter_frame_process.h"
-#include "ingest_descriptors_process.h"
-#include "object_track_descriptors_process.h"
 #include "measure_objects_process.h"
 #include "refine_measurements_process.h"
 #include "filter_frame_index_process.h"
 #include "calibrate_cameras_from_tracks_process.h"
 #include "pair_stereo_detections_process.h"
-#include "write_query_results_as_tracks_process.h"
-#include "create_database_query_process.h"
-#include "select_database_query_process.h"
 #include "image_to_image_set_process.h"
-#include "process_query_process_adaboost.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -44,59 +36,11 @@ register_factories( kwiver::vital::registry& vpm )
 
 
 
+
+
+
+
   kwiver::vital::plugin_factory* fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::extract_desc_ids_for_training_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::extract_desc_ids_for_training_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "extract_desc_ids_for_training" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Extract descriptor IDs overlapping with groundtruth" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
-
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::ingest_descriptors_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::ingest_descriptors_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "ingest_descriptors" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Ingest descriptors with UIDs and write to file" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
-
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::fetch_descriptors_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::fetch_descriptors_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "fetch_descriptors" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Fetch descriptors from file given UIDs" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
-
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::object_track_descriptors_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::object_track_descriptors_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "object_track_descriptors" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Attach descriptors to object track states from file" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
-
-  fact = new sprokit::cpp_process_factory(
     typeid( viame::core::filter_frame_process ).name(),
     sprokit::process::interface_name(),
     sprokit::create_new_process< viame::core::filter_frame_process > );
@@ -184,44 +128,8 @@ register_factories( kwiver::vital::registry& vpm )
 
 
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::write_query_results_as_tracks_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::write_query_results_as_tracks_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "write_query_results_as_tracks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Write query results as object track CSV with NN scores as confidence" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::create_database_query_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::create_database_query_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "create_database_query" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Create database query from track descriptors for use with perform_query" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::core::select_database_query_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::core::select_database_query_process > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "select_database_query" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Select between two database query inputs (primary if non-null, otherwise fallback)" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   fact = new sprokit::cpp_process_factory(
     typeid( viame::core::image_to_image_set_process ).name(),
@@ -239,18 +147,6 @@ register_factories( kwiver::vital::registry& vpm )
 
   // `process_query_adaboost` was registered by `viame_processes_opencv`
   // until P7-T09 took its session from `cv::ml::Boost` to scikit-learn.
-  fact = new sprokit::cpp_process_factory(
-    typeid( viame::process_query_process_adaboost ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::process_query_process_adaboost > );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "process_query_adaboost" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Process query descriptors using IQR and AdaBoost ranking" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-  vpm.add_factory( fact );
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

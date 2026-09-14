@@ -46,7 +46,7 @@ import subprocess
 import sys
 import time
 
-from viame.core import index_descriptors
+from viame.descriptors import index_descriptors
 
 lb1 = os.linesep
 

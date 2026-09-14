@@ -792,14 +792,14 @@ plugins/pytorch/srnn/train_everything.py	library/object_trackers/pytorch/srnn/tr
 plugins/pytorch/srnn/utilities.py	library/object_trackers/pytorch/srnn/utilities.py
 plugins/pytorch/srnn_tracker.py	library/object_trackers/pytorch/srnn_tracker.py
 plugins/pytorch/srnn_trainer.py	library/training/srnn_trainer.py
-plugins/pytorch/torchvision/CMakeLists.txt	library/descriptors/torchvision/CMakeLists.txt
+plugins/pytorch/torchvision/CMakeLists.txt	STRUCTURAL
 plugins/pytorch/torchvision/__init__.py	library/descriptors/torchvision/__init__.py
 plugins/pytorch/torchvision/alexnet_feature_extractor.py	library/descriptors/torchvision/alexnet_feature_extractor.py
 plugins/pytorch/torchvision/enet_feature_extractor.py	library/descriptors/torchvision/enet_feature_extractor.py
 plugins/pytorch/torchvision/resnet_augmenter.py	library/descriptors/torchvision/resnet_augmenter.py
 plugins/pytorch/torchvision/resnet_feature_extractor.py	library/descriptors/torchvision/resnet_feature_extractor.py
-plugins/pytorch/torchvision_augment_process.py	library/descriptors/torchvision_augment_process.py
-plugins/pytorch/torchvision_descriptors.py	library/descriptors/torchvision_descriptors.py
+plugins/pytorch/torchvision_augment_process.py	library/descriptors/torchvision/torchvision_augment_process.py
+plugins/pytorch/torchvision_descriptors.py	library/descriptors/torchvision/torchvision_descriptors.py
 plugins/pytorch/ultralytics_detector.py	library/object_detectors/ultralytics/ultralytics_detector.py
 plugins/pytorch/ultralytics_trainer.py	library/training/ultralytics_trainer.py
 plugins/pytorch/utilities.py	library/object_detectors/base.py

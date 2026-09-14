@@ -7,12 +7,12 @@
  * \brief AdaBoost IQR session, backed by scikit-learn.
  */
 
-#ifndef VIAME_CORE_IQR_SESSION_ADABOOST_H
-#define VIAME_CORE_IQR_SESSION_ADABOOST_H
+#ifndef VIAME_DESCRIPTORS_IQR_SESSION_ADABOOST_H
+#define VIAME_DESCRIPTORS_IQR_SESSION_ADABOOST_H
 
 #include "iqr_session.h"
 
-#include "viame_core_export.h"
+#include "viame_iqr_export.h"
 
 #include <memory>
 #include <string>
@@ -28,7 +28,7 @@ namespace iqr
 /// The IQR session `process_query_adaboost` trains and ranks with.
 ///
 /// `cv::ml::Boost` until P7-T09, `sklearn.ensemble.AdaBoostClassifier` since.
-/// The model lives in python -- `viame.core.iqr_adaboost` -- and this is the
+/// The model lives in python -- `viame.descriptors.iqr_adaboost` -- and this is the
 /// C++ side of the four calls that were the model: fit, score, save, load.
 /// Everything else about an IQR session, which is most of it, is the base
 /// class and did not move.
@@ -45,7 +45,7 @@ namespace iqr
 /// without scikit-learn -- `train_model` fails and the session falls back to
 /// similarity scoring against the positive exemplars, which is what the base
 /// class does whenever there is no model. The query still returns results.
-class VIAME_CORE_EXPORT iqr_session_adaboost : public iqr_session
+class VIAME_IQR_EXPORT iqr_session_adaboost : public iqr_session
 {
 public:
   explicit iqr_session_adaboost( unsigned pos_seed_neighbors );
@@ -93,4 +93,4 @@ private:
 } // end namespace iqr
 } // end namespace viame
 
-#endif // VIAME_CORE_IQR_SESSION_ADABOOST_H
+#endif // VIAME_DESCRIPTORS_IQR_SESSION_ADABOOST_H

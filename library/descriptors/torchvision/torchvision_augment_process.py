@@ -27,7 +27,7 @@ from viame.object_detectors.base import Grid, gpu_list_desc, parse_gpu_list
 
 def _load_deps():
     global AugmentedResNetFeatureExtractor
-    from viame.pytorch.torchvision.resnet_augmenter import AugmentedResNetFeatureExtractor
+    from viame.descriptors.torchvision.resnet_augmenter import AugmentedResNetFeatureExtractor
 
 def to_vital(raw_data):
     if len(raw_data) == 0:

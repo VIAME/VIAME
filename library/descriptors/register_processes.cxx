@@ -9,6 +9,14 @@
 #include "compute_track_descriptors_process.h"
 #include "handle_descriptor_request_process.h"
 #include "perform_query_process.h"
+#include "create_database_query_process.h"
+#include "extract_desc_ids_for_training_process.h"
+#include "fetch_descriptors_process.h"
+#include "ingest_descriptors_process.h"
+#include "object_track_descriptors_process.h"
+#include "process_query_process_adaboost.h"
+#include "select_database_query_process.h"
+#include "write_query_results_as_tracks_process.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -68,6 +76,38 @@ register_factories( kwiver::vital::registry& vpm )
     kwiver::handle_descriptor_request_process, "handle_descriptor_request",
     "Handle a new descriptor request, producing desired "
     "descriptors on the input." )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::create_database_query_process, "create_database_query",
+    "Create a database query from track descriptors" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::extract_desc_ids_for_training_process, "extract_desc_ids_for_training",
+    "Extract descriptor IDs overlapping with groundtruth" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::fetch_descriptors_process, "fetch_descriptors",
+    "Fetch descriptors from file given UIDs" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::ingest_descriptors_process, "ingest_descriptors",
+    "Ingest descriptors from a pipeline and write to file" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::object_track_descriptors_process, "object_track_descriptors",
+    "Attach descriptors to object track states from file" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::process_query_process_adaboost, "process_query_adaboost",
+    "Process query descriptors using IQR and AdaBoost ranking" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::select_database_query_process, "select_database_query",
+    "Select between two database query inputs" )
+
+  VIAME_REGISTER_PROCESS(
+    viame::core::write_query_results_as_tracks_process, "write_query_results_as_tracks",
+    "Write query results as object track CSV" )
 
 #undef VIAME_REGISTER_PROCESS
 

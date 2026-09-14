@@ -1,5 +1,5 @@
-# What is left of `plugins/pytorch`: the trainers (P2-T07), the stereo and
-# descriptor modules (P2-T06), and the vendored netharn and learn trees. The
+# What is left of `plugins/pytorch`: the trainers (P2-T07), the stereo
+# modules (P2-T06), and the vendored netharn and learn trees. The
 # trackers, with the srnn, siammask and mdnet trees, are
 # `library/object_trackers` since P2-T06. The detectors, classifiers
 # and segmenters are gated subpackages of `library/object_detectors`,
@@ -220,17 +220,6 @@ if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-VISION )
-  add_subdirectory( torchvision )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/torchvision_descriptors.py
-    pytorch
-    torchvision_descriptors )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/torchvision_augment_process.py
-    pytorch
-    torchvision_augment_process )
 
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/pair_stereo_tracks.py

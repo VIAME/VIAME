@@ -26,7 +26,7 @@ namespace iqr
 namespace
 {
 
-constexpr const char* LOGGER_NAME = "viame.core.process_query_adaboost";
+constexpr const char* LOGGER_NAME = "viame.descriptors.process_query_adaboost";
 
 #ifdef VIAME_CORE_HAVE_PYTHON
 
@@ -44,7 +44,7 @@ python_is_up()
 }
 
 // ----------------------------------------------------------------------------
-/// `viame.core.iqr_adaboost`, imported once.
+/// `viame.descriptors.iqr_adaboost`, imported once.
 ///
 /// Held rather than imported per call: importing scikit-learn is seconds,
 /// and `predict_score` is called once per item in the working index, which
@@ -52,7 +52,7 @@ python_is_up()
 py::module_&
 backend()
 {
-  static py::module_ module = py::module_::import( "viame.core.iqr_adaboost" );
+  static py::module_ module = py::module_::import( "viame.descriptors.iqr_adaboost" );
   return module;
 }
 
