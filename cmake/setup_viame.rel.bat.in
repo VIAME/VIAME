@@ -7,11 +7,6 @@ SET PATH=%VIAME_INSTALL%\bin;%VIAME_INSTALL%\Scripts;%PATH%
 
 SET LD_LIBRARY_PATH=%VIAME_INSTALL%\bin;%PATH%
 
-SET QT_PLUGIN_PATH=%VIAME_INSTALL%\lib\qt5\plugins
-SET VIDTK_MODULE_PATH=%VIAME_INSTALL%\lib\modules
-SET VG_PLUGIN_PATH=%VIAME_INSTALL%
-
-SET PYTHONPATH=%VIAME_INSTALL%\python;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\lib\@VIAME_PYTHON_STRING@;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\lib\@VIAME_PYTHON_STRING@\site-packages;%PYTHONPATH%
 SET PYTHONNOUSERSITE=1
@@ -20,10 +15,7 @@ REM Force UTF-8 encoding for Python to avoid UnicodeEncodeError with emoji
 REM characters in third-party libraries (rich, lightning, yolo) on Windows
 SET PYTHONUTF8=1
 
-SET KWIVER_DEFAULT_LOG_LEVEL=info
-REM kwiver also carries the plugin paths that were compiled in from its build
-REM CMAKE_INSTALL_PREFIX. This install lists its own directories above, and the
-REM build tree may not even be present -- or worse, may be present and stale,
-REM in which case every factory registers twice and each duplicate is logged.
-SET KWIVER_PLUGIN_PATH_NO_DEFAULTS=1
-
+REM Default log level. KWIVER_DEFAULT_LOG_LEVEL, the old name, is still
+REM read when this is unset.
+IF NOT DEFINED VIAME_LOG_LEVEL IF DEFINED KWIVER_DEFAULT_LOG_LEVEL SET VIAME_LOG_LEVEL=%KWIVER_DEFAULT_LOG_LEVEL%
+IF NOT DEFINED VIAME_LOG_LEVEL SET VIAME_LOG_LEVEL=info

@@ -6,7 +6,7 @@ export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Adjust log level
-export KWIVER_DEFAULT_LOG_LEVEL=info
+export VIAME_LOG_LEVEL=info
 
 # Train SiamMask visual tracking network
 #

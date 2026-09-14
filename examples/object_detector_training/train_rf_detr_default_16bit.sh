@@ -6,7 +6,7 @@ export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Adjust log level
-export KWIVER_DEFAULT_LOG_LEVEL=info
+export VIAME_LOG_LEVEL=info
 
 # Train RF-DETR detector on 16-bit imagery with automatic normalization
 # The --normalize-16bit flag enables percentile normalization for non-8-bit imagery

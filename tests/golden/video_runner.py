@@ -45,7 +45,7 @@ def run_isolated(impl, config, path, action="read"):
         [sys.executable, "-W", "ignore", "-c", script],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         env=dict(pipeline_runner.sourced_environment(),
-                 KWIVER_DEFAULT_LOG_LEVEL="error"))
+                 VIAME_LOG_LEVEL="error"))
 
     if result.returncode != 0:
         raise AssertionError("{} in a child process exited {}:\n{}".format(

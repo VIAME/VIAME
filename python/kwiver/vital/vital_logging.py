@@ -15,8 +15,10 @@ def _configure_logging():
     SeeAlso:
         kwiver/vital/logger: logic for the vital logger
     """
-    # Use the C++ logging level by default, but allow python to be different
-    cxx_level = os.environ.get("KWIVER_DEFAULT_LOG_LEVEL", "DEBUG")
+    # Use the C++ logging level by default, but allow python to be different.
+    # `VIAME_LOG_LEVEL` first, then the old name, as the C++ logger reads them.
+    cxx_level = (os.environ.get("VIAME_LOG_LEVEL") or
+                 os.environ.get("KWIVER_DEFAULT_LOG_LEVEL") or "DEBUG")
 
     # C++ logging supports trace as it's lowest level but python doesn't
     if "KWIVER_PYTHON_DEFAULT_LOG_LEVEL" in os.environ:

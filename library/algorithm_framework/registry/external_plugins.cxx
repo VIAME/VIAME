@@ -18,6 +18,7 @@
 namespace viame {
 
 char const* const plugin_path_variable = "VIAME_PLUGIN_PATH";
+char const* const old_plugin_path_variable = "KWIVER_PLUGIN_PATH";
 char const* const plugin_entry_point = "viame_register_plugin";
 
 namespace {
@@ -59,6 +60,34 @@ split_path( std::string const& value )
   }
 
   return entries;
+}
+
+// ----------------------------------------------------------------------------
+/// Say, once per process, that `KWIVER_PLUGIN_PATH` does nothing.
+///
+/// Silently ignoring it would turn "my plugin loads" into "my plugin is not
+/// there" with nothing to say why; failing on it would break every
+/// environment that sets it out of habit and loads nothing through it.
+void
+warn_about_old_plugin_path()
+{
+  static bool warned = false;
+
+  char const* const value = std::getenv( old_plugin_path_variable );
+
+  if( warned || !value || !*value )
+  {
+    return;
+  }
+
+  warned = true;
+
+  LOG_WARN(
+    kwiver::vital::get_logger( "viame.external_plugins" ),
+    old_plugin_path_variable
+      << " is set and ignored: VIAME's plugins are linked in, and a plugin "
+         "built outside VIAME is loaded by naming its library in "
+      << plugin_path_variable << "." );
 }
 
 // ----------------------------------------------------------------------------
@@ -117,6 +146,8 @@ std::vector< std::string >
 register_external_plugins( kwiver::vital::registry& loader )
 {
   std::vector< std::string > registered;
+
+  warn_about_old_plugin_path();
 
   char const* const value = std::getenv( plugin_path_variable );
 

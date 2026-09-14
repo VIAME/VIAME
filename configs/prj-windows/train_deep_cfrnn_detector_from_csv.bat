@@ -14,7 +14,7 @@ REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Adjust log level
-SET KWIVER_DEFAULT_LOG_LEVEL=info
+SET VIAME_LOG_LEVEL=info
 
 viame.exe train ^
   -i "%INPUT_DIRECTORY%" ^

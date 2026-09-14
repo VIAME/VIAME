@@ -72,6 +72,7 @@ protected:
   TearDown() override
   {
     set_plugin_path( {} );
+    unsetenv( viame::old_plugin_path_variable );
   }
 
   kv::registry loader;
@@ -230,4 +231,30 @@ TEST_F( external_plugins, a_bad_entry_does_not_stop_the_good_ones )
   ASSERT_EQ( 1u, loaded.size() );
   EXPECT_EQ( plugin_library, loaded.front() );
   EXPECT_TRUE( has_say( loader, "external" ) );
+}
+
+// ----------------------------------------------------------------------------
+// `KWIVER_PLUGIN_PATH` named the directory to scan, and is what an environment
+// set up for an older VIAME still carries. It loads nothing -- not even from
+// the directory holding a real plugin -- and says so the first time, not on
+// every call: the registry is asked more than once in a run.
+TEST_F( external_plugins, the_old_plugin_path_is_ignored_with_one_warning )
+{
+  auto const plugin_dir =
+    plugin_library.substr( 0, plugin_library.find_last_of( '/' ) );
+  setenv( viame::old_plugin_path_variable, plugin_dir.c_str(), 1 );
+
+  ::testing::internal::CaptureStderr();
+  auto const loaded = viame::register_external_plugins( loader );
+  auto const first = ::testing::internal::GetCapturedStderr();
+
+  ::testing::internal::CaptureStderr();
+  viame::register_external_plugins( loader );
+  auto const second = ::testing::internal::GetCapturedStderr();
+
+  EXPECT_TRUE( loaded.empty() );
+  EXPECT_FALSE( has_say( loader, "external" ) );
+  EXPECT_NE( std::string::npos, first.find( "KWIVER_PLUGIN_PATH is set and ignored" ) )
+    << first;
+  EXPECT_EQ( std::string::npos, second.find( "KWIVER_PLUGIN_PATH" ) ) << second;
 }

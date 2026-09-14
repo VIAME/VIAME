@@ -11,7 +11,7 @@ export DEFAULT_FRAME_RATE=5.0
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Adjust log level
-export KWIVER_DEFAULT_LOG_LEVEL=info
+export VIAME_LOG_LEVEL=info
 
 viame train \
   -i ${INPUT_DIRECTORY} \

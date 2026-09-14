@@ -11,7 +11,7 @@ export SEED_MODEL=category_models/trained_detector.zip
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Adjust log level
-export KWIVER_DEFAULT_LOG_LEVEL=info
+export VIAME_LOG_LEVEL=info
 
 if [ -f ${SEED_MODEL} ]; then
   viame train \

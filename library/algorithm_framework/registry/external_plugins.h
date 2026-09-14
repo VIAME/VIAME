@@ -40,6 +40,12 @@ namespace viame {
 VIAME_REGISTRY_EXPORT
 extern char const* const plugin_path_variable;
 
+/// The variable that named plugin *directories* before P8-T03 took the scan
+/// out. It loads nothing now; `register_external_plugins` says so, once, if
+/// an environment written for an older VIAME still sets it.
+VIAME_REGISTRY_EXPORT
+extern char const* const old_plugin_path_variable;
+
 /// The entry point an out-of-tree plugin has to export.
 ///
 /// `extern "C" void viame_register_plugin( kwiver::vital::registry& )`.
@@ -50,7 +56,9 @@ extern char const* const plugin_entry_point;
 ///
 /// Does nothing when the variable is unset or empty. A named library that
 /// cannot be opened, or that does not export the entry point, is logged and
-/// skipped -- one bad entry does not cost the caller the others.
+/// skipped -- one bad entry does not cost the caller the others. A set
+/// `KWIVER_PLUGIN_PATH` is warned about on the first call and otherwise
+/// ignored.
 ///
 /// @return The libraries whose registration function was called.
 VIAME_REGISTRY_EXPORT

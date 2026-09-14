@@ -6,7 +6,7 @@ SET VIAME_INSTALL=.\..\..
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Adjust log level
-SET KWIVER_DEFAULT_LOG_LEVEL=info
+SET VIAME_LOG_LEVEL=info
 
 REM Train RF-DETR detector on 16-bit imagery with automatic normalization
 REM The --normalize-16bit flag enables percentile normalization for non-8-bit imagery

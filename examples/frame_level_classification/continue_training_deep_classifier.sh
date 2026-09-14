@@ -11,7 +11,7 @@ export INITIAL_MODEL=category_models/trained_classifier.zip
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Adjust log level
-export KWIVER_DEFAULT_LOG_LEVEL=info
+export VIAME_LOG_LEVEL=info
 
 if [ -f ${INITIAL_MODEL} ]; then
   viame train \

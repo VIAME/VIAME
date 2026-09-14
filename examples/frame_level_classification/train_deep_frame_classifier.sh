@@ -10,7 +10,7 @@ export INPUT_DIRECTORY=../examples/example_imagery/small_example_image_set1
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Adjust log level
-export KWIVER_DEFAULT_LOG_LEVEL=info
+export VIAME_LOG_LEVEL=info
 
 viame train \
   -i ${INPUT_DIRECTORY} \
