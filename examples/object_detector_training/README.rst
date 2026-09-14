@@ -325,7 +325,7 @@ points predicted within 5% of that diagonal). Missing predictions count as
 failures in PCK. To evaluate another exported model against the retained
 validation crops::
 
-    python -m viame.pytorch.sleap_launcher deep_training/sleap-RUN/request.json \
+    python -m viame.classifiers.sleap.sleap_launcher deep_training/sleap-RUN/request.json \
         --evaluate category_models/trained_keypoints.pt --output keypoint_metrics.json
 
 The default trainer uses one selected GPU (or CPU). Increasing inference batch

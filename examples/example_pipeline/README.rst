@@ -6,14 +6,14 @@ New Module Creation Examples
 This document corresponds to `this runable example`_ of `these example simple plugins`_,
 alongside `these example plugin templates`_. Additionally, all of the former can be found in
 [viame-install]/examples/example_pipeline folder,
-[viame-source]/plugins/hello_world folder,
-and [viame-source]/plugins/templates folder in a VIAME installation, respectively.
+[viame-source]/library/examples folder,
+and [viame-source]/library/examples/templates folder in a VIAME source tree, respectively.
 Throughout these folders are example object detectors, image filters, and image classifier
 implementations written in both Python and C++.
 
 .. _this runable example: https://github.com/VIAME/VIAME/tree/master/examples/example_pipeline
-.. _these example simple plugins: https://github.com/VIAME/VIAME/tree/master/plugins/hello_world
-.. _these example plugin templates: https://github.com/VIAME/VIAME/tree/master/plugins/templates
+.. _these example simple plugins: https://github.com/VIAME/VIAME/tree/master/library/examples
+.. _these example plugin templates: https://github.com/VIAME/VIAME/tree/master/library/examples/templates
 
 
 **********************************
@@ -22,10 +22,11 @@ Simple C++ Detector Plugin Example
 
 A new detector plugin can be added by creating a class that implements the
 kwiver::vital::algo::image_object_detector interface. This interface
-is defined in an abstract base class in file vital/algo/image_object_detector.h.
+is defined in an abstract base class in file
+viame/algorithm_framework/algo/image_object_detector.h.
 Similar interfaces exist for several other types of functions.
 
-The directory `plugins/templates/cxx` contains files that can be used
+The directory `library/examples/templates/cxx` contains files that can be used
 as a starting point for implementing new detectors. These files
 contain markers in the form `@text@` that are to be replaced with the
 string (the title) of your new detector.
@@ -45,7 +46,7 @@ personalize the detector.
 detector. Can be the same name as the detector.
 
 @template_dir@ - name of the source subdirectory containing the detector
-files. For example if the detector is in the directory plugins/ex_fish_detector,
+files. For example if the detector is in the directory library/ex_fish_detector,
 then 'template_dir' should be replaced with 'ex_fish_detector'.
 
 The place holders also appear in capital letters indicating that the

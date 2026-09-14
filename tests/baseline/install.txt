@@ -970,6 +970,9 @@ include/viame/descriptors/viame_descriptors_export.h
 include/viame/descriptors/viame_iqr_export.h
 include/viame/evaluation/evaluate_models.h
 include/viame/evaluation/viame_evaluation_export.h
+include/viame/examples/hello_world_detector.h
+include/viame/examples/hello_world_filter.h
+include/viame/examples/viame_examples_export.h
 include/viame/file_io/auto_detect_transform.h
 include/viame/file_io/camera_io.h
 include/viame/file_io/camera_rig_io.h
@@ -1000,8 +1003,6 @@ include/viame/file_io/write_detected_object_set_viame_csv.h
 include/viame/file_io/write_object_track_set_dive.h
 include/viame/file_io/write_object_track_set_kw18.h
 include/viame/file_io/write_object_track_set_viame_csv.h
-include/viame/hello_world_detector.h
-include/viame/hello_world_filter.h
 include/viame/image_ops/channels.h
 include/viame/image_ops/color.h
 include/viame/image_ops/commonality.h
@@ -1155,7 +1156,6 @@ include/viame/utilities/utilities_image.h
 include/viame/utilities/utilities_target_clfr.h
 include/viame/utilities/utilities_tracks.h
 include/viame/utilities/viame_utilities_export.h
-include/viame/viame_examples_export.h
 include/viame/viame_svm_export.h
 include/viame/video_io/add_timestamp_from_filename.h
 include/viame/video_io/codecs/image_codec.h

@@ -4,13 +4,14 @@
 
 /**
  * \file
- * \brief Default plugin algorithm registration interface impl
+ * \brief @template_lib@ algorithm registration
  */
 
 #include "viame_@template_lib@_plugin_export.h"
-#include <viame/algorithm_framework/plugin/registry.h>
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/plugin/register_algorithm.h>
+#include <viame/algorithm_framework/plugin/registry.h>
 
 #include "@template@_detector.h"
 
@@ -23,7 +24,6 @@ VIAME_@TEMPLATE_LIB@_PLUGIN_EXPORT
 void
 register_factories( kv::registry& vpm )
 {
-  using kvpf = kv::plugin_factory;
   const std::string module_name = "viame.@template_lib@";
 
   if( vpm.is_module_loaded( module_name ) )
@@ -31,9 +31,10 @@ register_factories( kv::registry& vpm )
     return;
   }
 
-  auto fact = vpm.add_factory< kv::algo::image_object_detector, @template@_detector >(
-    "@template@_detector" );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  // Registers under the name and description PLUGGABLE_IMPL declares. A
+  // second name for the same implementation is `register_alias`.
+  register_algorithm< kv::algo::image_object_detector,
+    @template@_detector >( vpm, module_name );
 
   vpm.mark_module_as_loaded( module_name );
 }

@@ -1,5 +1,8 @@
 ###
-# Example CMakeLists file for generating plugins
+# @template_dir@
+#
+# A library of its own under `library/`, named for what it does. Add
+# `add_subdirectory( @template_dir@ )` to `library/CMakeLists.txt`.
 ##
 
 set( plugin_headers
@@ -11,18 +14,23 @@ set( plugin_sources
   )
 
 viame_install_headers(
-  SUBDIR     viame
+  SUBDIR     viame/@template_dir@
   ${plugin_headers}
   )
 
 viame_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/viame_@template_lib@_export.h
-  NOPATH   SUBDIR     viame
+  NOPATH   SUBDIR     viame/@template_dir@
   )
 
 viame_add_library( viame_@template_lib@
   ${plugin_headers}
   ${plugin_sources}
+  )
+
+target_include_directories( viame_@template_lib@ PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
 
 target_link_libraries( viame_@template_lib@
@@ -31,6 +39,10 @@ target_link_libraries( viame_@template_lib@
                        kwiver::vital_config
                        kwiver::vital_exceptions
                        kwiver::vital_logger
+  )
+
+set_target_properties( viame_@template_lib@ PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
 viame_register_statically( viame_@template_lib@

@@ -8,19 +8,24 @@
 
 import logging
 
-from vital.algo import ImageObjectDetector
+import numpy as np
+
+from kwiver.vital.algo import ImageObjectDetector
+from kwiver.vital.types import (
+    BoundingBoxD,
+    DetectedObject,
+    DetectedObjectSet,
+    DetectedObjectType,
+)
 
 logger = logging.getLogger(__name__)
 
-from vital.types import Image
-from vital.types import ImageContainer
-from vital.types import DetectedObject
-from vital.types import DetectedObjectSet
-from vital.types import BoundingBox
 
 class @template@Detector( ImageObjectDetector ):
     """
     Implementation of ImageObjectDetector class
+
+    Registered by the declaration in this package's `__init__.py`.
     """
     def __init__( self ):
         ImageObjectDetector.__init__( self )
@@ -30,7 +35,7 @@ class @template@Detector( ImageObjectDetector ):
         self._weight_file = ""
         self._class_names = ""
 
-    def get_configuration(self):
+    def get_configuration( self ):
         # Inherit from the base class
         cfg = super( ImageObjectDetector, self ).get_configuration()
 
@@ -50,7 +55,6 @@ class @template@Detector( ImageObjectDetector ):
         self._class_names = str( cfg.get_value( "class_names" ) )
 
     def check_configuration( self, cfg ):
-
         # TODO: Keep these config variables or make new ones
         if not cfg.has_value( "net_config" ):
             logger.error( "A network config file must be specified!" )
@@ -64,36 +68,25 @@ class @template@Detector( ImageObjectDetector ):
         return True
 
     def detect( self, image_data ):
-
         # Convert image to 8-bit numpy
         input_image = image_data.asarray().astype( 'uint8' )
 
-        # TODO: do something with numpy image producing detections
+        # TODO: do something with numpy image producing detections, as
+        # boxes (min_x, min_y, max_x, max_y), labels and confidences
         bboxes = []
         labels = []
+        scores = []
 
         # Convert detections to kwiver format
         output = DetectedObjectSet()
 
-        for bbox, label in zip( bboxes, labels ):
+        for bbox, label, score in zip( bboxes, labels, scores ):
+            bounding_box = BoundingBoxD( float( bbox[0] ), float( bbox[1] ),
+                                         float( bbox[2] ), float( bbox[3] ) )
 
-            bbox_int = bbox.astype( np.int32 )
+            detected_object_type = DetectedObjectType( label, float( score ) )
 
-            bounding_box = BoundingBox( bbox_int[0], bbox_int[1],
-                                        bbox_int[2], bbox_int[3] )
-
-            detected_object_type = DetectedObjectType( label, 1.0 )
-
-            detected_object = DetectedObject( bounding_box,
-                                              np.max( class_confidence ),
-                                              detected_object_type )
-
-            output.add( detected_object )
+            output.add( DetectedObject( bounding_box, float( score ),
+                                        detected_object_type ) )
 
         return output
-
-def __vital_algorithm_register__():
-    from viame.utilities.vital_registration import register_vital_algorithm
-
-    register_vital_algorithm(
-        @template@Detector, "@template@", "@template@ detector" )

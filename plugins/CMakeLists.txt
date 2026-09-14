@@ -6,8 +6,6 @@
 set( viame_plugin_subdir           viame )
 set( viame_plugin_process_subdir   ${viame_plugin_subdir}/processes )
 
-add_subdirectory( examples )
-
 if( VIAME_ENABLE_PYTHON )
   viame_create_python_init( arrows )
   viame_create_python_init( processes )
