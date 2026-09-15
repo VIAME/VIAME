@@ -1896,3 +1896,32 @@ for the python it found and stops when there is none. The CI locks job
 resolves each set with its own python. Compiled for 3.12, the versions that
 move include numpy 2.2.6 and pandas 3.0.5, against which nothing in VIAME
 has been run on 3.12 until the Docker image's CRITICAL tests are.
+
+### 2.12 The published add-on packs are older than their pipelines
+
+`docker/Dockerfile`'s default image adds `DEFAULT-FISH` and `GENERIC` with
+`download_viame_addons.sh`, which unzips the published archive into the
+install. The web preset the image is built from turns those packs off, so
+`configs/add-ons/<pack>/`, which CMake installs only for an enabled pack,
+never reaches the image: what the pack's pipelines are is whatever was in the
+archive when it was published.
+
+That is behind the source. Compared file by file, with each archive's MD5
+matching `download_viame_addons.csv`:
+
+- `DEFAULT-FISH` lacks `stereo_detect_and_measure_default_fish.pipe`,
+  `stereo_track_and_measure_default_fish.pipe` and the two
+  `utility_add_*_fish_rf_detr.pipe`, still carries
+  `measurement_default_fish_fully_auto.pipe`, which b05941487 renamed, and
+  has older copies of `common_fish_detector_mask_and_kp.pipe`,
+  `common_stereo_fish_detector.pipe` and `index_default_fish.svm.pipe`.
+- `GENERIC` has older copies of `index_generic.pipe`,
+  `index_generic.svm.pipe`, `index_generic.trk.pipe` and
+  `query_image_exemplar.pipe`.
+
+So the CRITICAL `TestMeasureViaDefaultFish` skips in the default image --
+`measure_via_default_fish.sh` runs the renamed pipeline -- and
+`build_server_docker_default.sh`, which requires every test to run in the
+default image, fails it. Main has the same script, the same packs and the
+same gate, so this is not the lite tree's doing; it is fixed by publishing
+the packs again from `configs/add-ons`, which is a release step.
