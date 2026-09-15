@@ -33,6 +33,10 @@ warnings.filterwarnings("ignore", message="TripleDES has been moved")
 
 import numpy as np
 
+# Re-exported so existing plugin imports keep working; it lives in viame.core so
+# plugins that do not depend on the pytorch package can share it.
+from viame.core.utils import vital_config_update  # noqa: F401
+
 # Lazy imports to avoid circular dependencies
 # kwiver imports are done inside functions
 
@@ -594,32 +598,6 @@ def find_python_interpreter():
 # =============================================================================
 
 
-def vital_config_update(cfg, cfg_in):
-    """
-    Update a vital Config object from a dictionary or another Config.
-
-    This is a utility to work around the fact that vital's merge_config
-    doesn't support dictionary input.
-
-    Args:
-        cfg (kwiver.vital.config.config.Config): Config object to update
-        cfg_in (dict | kwiver.vital.config.config.Config): New values
-
-    Returns:
-        kwiver.vital.config.config.Config: The updated config object
-
-    Raises:
-        KeyError: If cfg_in contains a key not present in cfg
-    """
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError(f"cfg has no key={key}")
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
 
 
 def parse_bool(value):

@@ -19,7 +19,9 @@ import scriptconfig as scfg
 from kwiver.vital.algo import ComputeStereoDepthMap
 from kwiver.vital.types import Image, ImageContainer
 
-from viame.core.utils import str2bool
+from viame.core.utils import (
+    str2bool, image_container_to_uint8_hwc, read_stereo_calibration,
+)
 
 from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
@@ -234,54 +236,14 @@ class FoundationStereo(ComputeStereoDepthMap):
         return True
 
     def _load_calibration(self, cal_fpath):
-        """Load stereo calibration via the consolidated viame::core::read_stereo_rig
-        loader (the viame.core._measurement bindings), the same loader used by the
-        measurement pipeline and interactive stereo. Supports .json, .yml/.yaml,
-        .npz, .mat and OpenCV calibration directories.
-
-        Only the left focal length, principal point and baseline are used here
-        (FoundationStereo produces a rectified disparity map).
-
-        Args:
-            cal_fpath: Path to the calibration file
-        """
-        from viame.core import _measurement
-
-        cal = _measurement.load_stereo_calibration(cal_fpath)
-        k_left = cal["k_left"]  # flat row-major 3x3
-        self._focal_length = float(k_left[0])
-        self._principal_x = float(k_left[2])
-        self._principal_y = float(k_left[5])
-
-        # Baseline: absolute X component for horizontal stereo, else full magnitude
-        T = cal["translation"]
-        self._baseline = abs(float(T[0]))
-        if self._baseline < 1e-6:
-            self._baseline = float(np.sqrt(T[0] ** 2 + T[1] ** 2 + T[2] ** 2))
-
-        print(
-            f"Loaded calibration: focal_length={self._focal_length}, "
-            f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})"
-        )
+        cal = read_stereo_calibration(cal_fpath)
+        self._focal_length = cal["focal_length"]
+        self._principal_x = cal["principal_x"]
+        self._principal_y = cal["principal_y"]
+        self._baseline = cal["baseline"]
 
     def _format_image(self, image_container):
-        """Convert KWIVER ImageContainer to numpy array.
-
-        Args:
-            image_container: KWIVER ImageContainer
-
-        Returns:
-            numpy array in (H, W, C) format, RGB, uint8
-        """
-        img_npy = image_container.image().asarray().astype("uint8")
-
-        # Handle grayscale images
-        if len(img_npy.shape) == 2:
-            img_npy = np.stack((img_npy,) * 3, axis=-1)
-        elif img_npy.shape[2] == 1:
-            img_npy = np.concatenate([img_npy] * 3, axis=-1)
-
-        return img_npy
+        return image_container_to_uint8_hwc(image_container)
 
     @report_cuda_errors("FoundationStereo computation")
     def compute(self, left_image, right_image):

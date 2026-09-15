@@ -23,7 +23,6 @@ containing one) to use TensorRT instead.
 
 import os
 import sys
-import json
 import numpy as np
 
 import scriptconfig as scfg
@@ -31,20 +30,10 @@ import scriptconfig as scfg
 from kwiver.vital.algo import ComputeStereoDepthMap
 from kwiver.vital.types import Image, ImageContainer
 
-from viame.core.utils import str2bool
+from viame.core.utils import (
+    str2bool, vital_config_update, image_container_to_uint8_hwc, read_stereo_calibration,
+)
 
-
-def vital_config_update(cfg, cfg_in):
-    """Update a vital Config from a dict or another Config."""
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError(f"cfg has no key={key}")
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
 
 
 _IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
@@ -487,34 +476,14 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
         return TrtRunner()
 
     def _load_calibration(self, cal_fpath):
-        with open(cal_fpath, "r") as f:
-            data = json.load(f)
-
-        self._focal_length = float(data.get("fx_left", 0.0))
-        self._principal_x = float(data.get("cx_left", 0.0))
-        self._principal_y = float(data.get("cy_left", 0.0))
-
-        T = data.get("T", [0.0, 0.0, 0.0])
-        if isinstance(T, list) and len(T) >= 3:
-            self._baseline = abs(T[0])
-            if self._baseline < 1e-6:
-                self._baseline = float(np.sqrt(T[0] ** 2 + T[1] ** 2 + T[2] ** 2))
-        else:
-            self._baseline = 0.0
-
-        print(
-            f"Loaded calibration: focal_length={self._focal_length}, "
-            f"baseline={self._baseline}, principal=({self._principal_x}, "
-            f"{self._principal_y})"
-        )
+        cal = read_stereo_calibration(cal_fpath)
+        self._focal_length = cal["focal_length"]
+        self._principal_x = cal["principal_x"]
+        self._principal_y = cal["principal_y"]
+        self._baseline = cal["baseline"]
 
     def _format_image(self, image_container):
-        img_npy = image_container.image().asarray().astype("uint8")
-        if len(img_npy.shape) == 2:
-            img_npy = np.stack((img_npy,) * 3, axis=-1)
-        elif img_npy.shape[2] == 1:
-            img_npy = np.concatenate([img_npy] * 3, axis=-1)
-        return img_npy
+        return image_container_to_uint8_hwc(image_container)
 
     def compute(self, left_image, right_image):
         import cv2
