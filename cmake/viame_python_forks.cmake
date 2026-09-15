@@ -181,6 +181,12 @@ foreach( _fork IN LISTS _viame_forks )
             "-DPYTHON_BUILD_CMD=${Python_EXECUTABLE}-----m----pip----wheel------no-build-isolation------no-deps------no-cache-dir------wheel-dir----${_wheels}----${_source}"
             "-DENV_VARS=PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
             -DPIP_INSTALL_SCRIPT=${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake
+            # Install the wheel --no-deps as well as building it that way.
+            # Without this a fork's first install resolved its requirements
+            # from the index, around the locks and their exclusions: mmdeploy
+            # brought opencv-python, a second cv2 that needs libGL, and yolo
+            # brought triton and wandb. What a fork needs is in forks.lock.
+            -DNO_DEPS=TRUE
             -P "${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake"
     COMMAND "${CMAKE_COMMAND}" -E touch "${_stamp}"
     DEPENDS ${_viame_fork_extra_deps_${_fork}}
