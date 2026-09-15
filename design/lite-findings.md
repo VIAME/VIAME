@@ -1987,3 +1987,13 @@ from `CUDA_ARCHITECTURES`, and `-allow-unsupported-compiler` for nvcc when
 CUDA is on; mmcv gets `MMCV_WITH_OPS=1`; and sam2 builds its extension with
 `SAM2_BUILD_ALLOW_ERRORS=0`, so a failure stops the build instead of being
 dropped.
+
+That made a second sam2 problem visible. `packages/patches/sam2` is a Windows
+fix, which the superbuild copied over sam2 only on Windows; the fork step
+copied every patch directory on every platform. Its `setup.py` passes
+`CUDAExtension(..., library_dirs=None)` when it found no Windows python
+library directory, torch then adds a list to that, and on Linux sam2 fails
+preparing its metadata -- in the image, and here with the patch laid over a
+copy, while the same copy unpatched builds `sam2/_C.so`. The patch is copied
+on Windows only again. It is the only fork patch the superbuild made
+conditional.

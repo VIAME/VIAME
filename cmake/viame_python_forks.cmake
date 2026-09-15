@@ -191,8 +191,15 @@ foreach( _fork IN LISTS _viame_forks )
 
   # A fork VIAME patches gets the patch copied over its source first. The
   # patch directories are `packages/patches/<fork>`.
+  #
+  # sam2's patch is for Windows, and the superbuild applied it only there. It
+  # passes CUDAExtension `library_dirs=None` when it has found no Windows
+  # python library directory, which torch then adds a list to, so on Linux
+  # sam2 does not get past preparing its metadata.
   set( _patch_cmd "" )
-  if( IS_DIRECTORY "${VIAME_PATCHES_DIR}/${_fork}" )
+  set( _viame_fork_patch_win32_only sam2 )
+  if( IS_DIRECTORY "${VIAME_PATCHES_DIR}/${_fork}" AND
+      ( WIN32 OR NOT _fork IN_LIST _viame_fork_patch_win32_only ) )
     set( _patch_cmd COMMAND "${CMAKE_COMMAND}" -E copy_directory
          "${VIAME_PATCHES_DIR}/${_fork}" "${_source}" )
   endif()
