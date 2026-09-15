@@ -940,7 +940,11 @@ run_build() {
   # pipefail inside the subshell so make's status is seen rather than tee's
   local status=0
   # VIAME_BUILD_JOBS caps the parallelism, for a builder with little memory.
-  if ( set -o pipefail; make -j"${VIAME_BUILD_JOBS:-$(nproc)}" 2>&1 | tee "$log_file" ); then
+  # Then install: `make` builds, and only `make install` writes the prefix
+  # that setup_viame.sh, the CRITICAL tests and cpack all read. (The
+  # superbuild installed as it built, which these scripts were written for.)
+  if ( set -o pipefail; make -j"${VIAME_BUILD_JOBS:-$(nproc)}" 2>&1 | tee "$log_file" \
+       && make install 2>&1 | tee -a "$log_file" ); then
     status=0
   else
     status=$?
@@ -992,8 +996,9 @@ run_build_and_setup_libraries() {
   local cudnn_base="${2:-$(get_default_lib_base)}"
   local lib_base="${3:-$(get_default_lib_base)}"
 
-  # Perform multi-threaded build
-  make -j$(nproc)
+  # Perform multi-threaded build, and install: everything below copies into
+  # install/lib, which only `make install` creates
+  make -j$(nproc) && make install
 
   # Below be krakens
   # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)

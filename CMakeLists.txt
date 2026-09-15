@@ -79,9 +79,10 @@ set( VIAME_DOWNLOAD_DIR             "${VIAME_PACKAGES_DIR}/downloads" )
 ###
 # Add paths which control the output directories of all final install files
 #
-# When in super-build mode, everything is 'make installed' into these directories
-# at build time ('make') instead of at ('make install') time due to the nature
-# of cmake super-builds.
+# The libraries, configs and setup scripts get here with `make install` (or
+# `cmake --install`), not with `make`. Configure and build do write some things
+# here themselves: downloaded model packs, the standalone python, DIVE and the
+# python packages.
 ##
 set( VIAME_BUILD_INSTALL_PREFIX     "${CMAKE_BINARY_DIR}/install"
      CACHE STRING                   "Installation directory to place all final output files" )
