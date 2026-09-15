@@ -77,6 +77,10 @@ create_config_trait( max_bbox_area_ratio, double, "-1.0",
   "fish in one camera and a large fish or school in the other). Set to "
   "<= 0 to disable. Typical value: 3.0." );
 
+create_config_trait( create_synthetic_detections, bool, "true",
+  "If true, creates synthetic right bounding boxes for left-only detections. "
+  "If false, left-only tracks are skipped and not measured." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -102,6 +106,7 @@ public:
   double m_max_stereo_rms;
   double m_max_bbox_y_center_offset;
   double m_max_bbox_area_ratio;
+  bool m_create_synthetic_detections;
 
   // Measurement settings (contains all algo parameters and algorithm pointers)
   map_keypoints_to_camera_settings m_settings;
@@ -205,6 +210,7 @@ measure_objects_process
   declare_config_using_trait( max_stereo_rms );
   declare_config_using_trait( max_bbox_y_center_offset );
   declare_config_using_trait( max_bbox_area_ratio );
+  declare_config_using_trait( create_synthetic_detections );
 
   // Merge in map_keypoints_to_camera_settings configuration
   kv::config_block_sptr settings_config = d->m_settings.get_configuration();
@@ -238,6 +244,7 @@ measure_objects_process
   d->m_max_stereo_rms = config_value_using_trait( max_stereo_rms );
   d->m_max_bbox_y_center_offset = config_value_using_trait( max_bbox_y_center_offset );
   d->m_max_bbox_area_ratio = config_value_using_trait( max_bbox_area_ratio );
+  d->m_create_synthetic_detections = config_value_using_trait( create_synthetic_detections );
 
   if( d->m_calibration_file.empty() )
   {
@@ -933,6 +940,11 @@ measure_objects_process
       }
 
       bool is_left_only = ( dets[1].find( id ) == dets[1].end() );
+
+      if( is_left_only && !d->m_create_synthetic_detections )
+      {
+        continue;
+      }
 
       kv::vector_2d left_head( kp1.at("head")[0], kp1.at("head")[1] );
       kv::vector_2d left_tail( kp1.at("tail")[0], kp1.at("tail")[1] );
