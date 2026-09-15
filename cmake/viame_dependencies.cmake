@@ -257,6 +257,16 @@ if( VIAME_ENABLE_PYTHON )
   option( VIAME_BUILD_PYTHON_FROM_SOURCE "Build the actual CPython interpreter" OFF )
   mark_as_advanced( VIAME_BUILD_PYTHON_FROM_SOURCE )
 
+  # Or download a pinned, relocatable one into the install; see
+  # cmake/viame_python_standalone.cmake
+  option( VIAME_PYTHON_STANDALONE
+    "Download a pinned python-build-standalone CPython into the install and build against it" OFF )
+
+  if( VIAME_PYTHON_STANDALONE AND VIAME_BUILD_PYTHON_FROM_SOURCE )
+    message( FATAL_ERROR "VIAME_PYTHON_STANDALONE and VIAME_BUILD_PYTHON_FROM_SOURCE "
+      "both provide the install's python; turn one of them off." )
+  endif()
+
   if( VIAME_BUILD_PYTHON_FROM_SOURCE )
     set( VIAME_PYTHON_VERSION 3.12.12
          CACHE STRING "Select the version of Python to build." )
@@ -273,6 +283,10 @@ if( VIAME_ENABLE_PYTHON )
     endif()
 
     include( setup_internal_python )
+  elseif( VIAME_PYTHON_STANDALONE )
+    include( viame_python_standalone )
+    find_package( Python ${VIAME_PYTHON_STANDALONE_VERSION} EXACT
+      COMPONENTS Interpreter Development REQUIRED )
   else()
     find_package( Python COMPONENTS Interpreter Development REQUIRED )
   endif()

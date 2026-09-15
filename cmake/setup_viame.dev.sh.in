@@ -2,12 +2,12 @@
 #       This script sets up all paths required for standard VIAME Usage       #
 ###############################################################################
 
-@SETUP_PYTHON_LOCATION@
-
 # Nothing here names a plugin directory: every built-in plugin is linked in.
 # `VIAME_PLUGIN_PATH` and `VIAME_PYTHON_PLUGINS` load add-ons and are unset
 # unless you set them.
 @SETUP_READLINK_CMD@
+
+@SETUP_PYTHON_LOCATION@
 
 # Setup VIAME install path
 export VIAME_INSTALL=$this_dir
@@ -22,6 +22,7 @@ export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
 export VIAME_LOG_LEVEL=${VIAME_LOG_LEVEL:-${KWIVER_DEFAULT_LOG_LEVEL:-debug}}
 
 # Paths for adding exes to path (must occur after python)
+@SETUP_PYTHON_PATH@
 export PATH=$this_dir/bin:$PATH
 @SETUP_LIBRARY_PATH@
 

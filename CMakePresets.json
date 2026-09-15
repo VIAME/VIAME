@@ -124,12 +124,20 @@
       "name": "windows-gpu",
       "displayName": "Windows, GPU",
       "description": "The Windows desktop release build",
-      "inherits": [ "desktop", "gpu", "base" ]
+      "inherits": [ "desktop", "gpu", "base" ],
+      "cacheVariables": {
+        "VIAME_BUILD_PYTHON_FROM_SOURCE": "OFF",
+        "VIAME_PYTHON_STANDALONE": "ON"
+      }
     },
     {
       "name": "windows-cpu",
       "displayName": "Windows, CPU only",
-      "inherits": [ "cpu", "desktop", "base" ]
+      "inherits": [ "cpu", "desktop", "base" ],
+      "cacheVariables": {
+        "VIAME_BUILD_PYTHON_FROM_SOURCE": "OFF",
+        "VIAME_PYTHON_STANDALONE": "ON"
+      }
     },
     {
       "name": "macos",
