@@ -419,6 +419,16 @@ public:
   /// matching without NCC refinement.
   int dino_top_k;
 
+  /// Alpha rectification factor
+  double rectification_alpha;
+
+  /// Percentile used to select disparity value in given area
+  double refine_keypoints_disparity_percentile;
+  double refine_keypoints_disparity_min_valid_fraction;
+
+  /// Use a circle instead of a square to extract disparity
+  bool refine_keypoints_disparity_use_circle;
+
   // -------------------------------------------------------------------------
   // Algorithm pointers (configured via nested algo configuration)
   // -------------------------------------------------------------------------
@@ -852,6 +862,11 @@ private:
   std::string m_dino_weights_path;
   int m_dino_top_k;
   double m_dino_crop_max_area_ratio;
+
+  double m_rectification_alpha;
+  double m_disparity_percentile;
+  double m_disparity_min_valid_fraction;
+  bool m_disparity_use_circle;
 
   // Feature algorithms
   kv::algo::detect_features_sptr m_feature_detector;

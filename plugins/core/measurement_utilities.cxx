@@ -459,6 +459,9 @@ map_keypoints_to_camera_settings
   , dino_weights_path( "" )
   , dino_top_k( 100 )
   , rectification_alpha( 0.0 )
+  , refine_keypoints_disparity_percentile( 0.5 )
+  , refine_keypoints_disparity_min_valid_fraction( 0.0 )
+  , refine_keypoints_disparity_use_circle( false )
 {
 }
 
@@ -744,6 +747,15 @@ map_keypoints_to_camera_settings
     "0.0 zooms and crops to valid pixels (default). "
     "-1.0 preserves all original image pixels (adds black borders)." );
 
+  config->set_value( "refine_keypoints_disparity_percentile", refine_keypoints_disparity_percentile,
+    "Percentile (0.0 to 1.0) to use when extracting disparity in a window. Default is 0.5 (median)." );
+
+  config->set_value( "refine_keypoints_disparity_min_valid_fraction", refine_keypoints_disparity_min_valid_fraction,
+    "Minimum fraction of valid disparity pixels required in the search window (0.0 to 1.0)." );
+
+  config->set_value( "refine_keypoints_disparity_use_circle", refine_keypoints_disparity_use_circle,
+    "If true, use a circular search region instead of a square for disparity sampling." );
+
   // Add nested algorithm configurations
   kv::get_nested_algo_configuration<kv::algo::detect_features>(
     "feature_detector", config, feature_detector );
@@ -811,6 +823,9 @@ map_keypoints_to_camera_settings
   dino_weights_path = config->get_value< std::string >( "dino_weights_path", dino_weights_path );
   dino_top_k = config->get_value< int >( "dino_top_k", dino_top_k );
   rectification_alpha = config->get_value< double >( "rectification_alpha", rectification_alpha );
+  refine_keypoints_disparity_percentile = config->get_value< double >( "refine_keypoints_disparity_percentile", refine_keypoints_disparity_percentile );
+  refine_keypoints_disparity_min_valid_fraction = config->get_value< double >( "refine_keypoints_disparity_min_valid_fraction", refine_keypoints_disparity_min_valid_fraction );
+  refine_keypoints_disparity_use_circle = config->get_value< bool >( "refine_keypoints_disparity_use_circle", refine_keypoints_disparity_use_circle );
 
   // Configure nested algorithms
   kv::set_nested_algo_configuration<kv::algo::detect_features>(
@@ -995,6 +1010,9 @@ map_keypoints_to_camera
   , m_dino_top_k( 100 )
   , m_dino_crop_max_area_ratio( 0.05 )
   , m_rectification_alpha( 0.0 )
+  , m_disparity_percentile( 0.5 )
+  , m_disparity_min_valid_fraction( 0.0 )
+  , m_disparity_use_circle( false )
   , m_cached_frame_id( -1 )
 #ifdef VIAME_ENABLE_OPENCV
   , m_dino_full_images_set( false )
@@ -1206,6 +1224,10 @@ map_keypoints_to_camera
   m_dino_crop_max_area_ratio = settings.dino_crop_max_area_ratio;
 
   m_rectification_alpha = settings.rectification_alpha;
+
+  m_disparity_percentile = settings.refine_keypoints_disparity_percentile;
+  m_disparity_min_valid_fraction = settings.refine_keypoints_disparity_min_valid_fraction;
+  m_disparity_use_circle = settings.refine_keypoints_disparity_use_circle;
 
   // Set the stereo depth map algorithm for compute_disparity method
   m_stereo_depth_map_algorithm = settings.stereo_depth_map_algorithm;
@@ -4135,20 +4157,30 @@ map_keypoints_to_camera
   }
   else
   {
-    // Neighborhood median lookup over (2w+1) x (2w+1) window
     int x_min = std::max( 0, cx - search_window );
     int x_max = std::min( w - 1, cx + search_window );
     int y_min = std::max( 0, cy - search_window );
     int y_max = std::min( h - 1, cy + search_window );
 
     std::vector< double > valid_disparities;
-    valid_disparities.reserve(
-      ( x_max - x_min + 1 ) * ( y_max - y_min + 1 ) );
+    int total_pixels_in_window = 0;
+    valid_disparities.reserve( ( x_max - x_min + 1 ) * ( y_max - y_min + 1 ) );
 
     for( int py = y_min; py <= y_max; ++py )
     {
       for( int px = x_min; px <= x_max; ++px )
       {
+        if( m_disparity_use_circle )
+        {
+          int dx = px - cx;
+          int dy = py - cy;
+          if( (dx * dx + dy * dy) > (search_window * search_window) )
+          {
+            continue;
+          }
+        }
+
+        total_pixels_in_window++;
         double d = read_disparity( px, py );
         if( d > 0.0 && std::isfinite( d ) )
         {
@@ -4157,16 +4189,23 @@ map_keypoints_to_camera
       }
     }
 
-    if( valid_disparities.empty() )
+    if( valid_disparities.empty() ||
+        valid_disparities.size() < (total_pixels_in_window * m_disparity_min_valid_fraction) )
     {
       return false;
     }
 
-    size_t mid = valid_disparities.size() / 2;
+    size_t target_idx = static_cast<size_t>( valid_disparities.size() * m_disparity_percentile );
+    if( target_idx >= valid_disparities.size() )
+    {
+      target_idx = valid_disparities.size() - 1;
+    }
+
     std::nth_element( valid_disparities.begin(),
-                      valid_disparities.begin() + mid,
+                      valid_disparities.begin() + target_idx,
                       valid_disparities.end() );
-    disparity = valid_disparities[ mid ];
+
+    disparity = valid_disparities[ target_idx ];
   }
 
   // Compute right point (standard stereo: right_x = left_x - disparity)
