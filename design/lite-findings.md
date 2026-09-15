@@ -1997,3 +1997,19 @@ preparing its metadata -- in the image, and here with the patch laid over a
 copy, while the same copy unpatched builds `sam2/_C.so`. The patch is copied
 on Windows only again. It is the only fork patch the superbuild made
 conditional.
+
+### 2.15 mmcv's ops compile one file at a time
+
+The image build spends over an hour in mmcv. torch's `BuildExtension` uses
+ninja when it can find one and falls back to distutils, one translation unit
+at a time, when it cannot; no ninja is installed in the image -- not by
+`install_deps_apt`, which is the same list main uses, and no lock pins the
+`ninja` wheel. Watched in the build container: one `cicc` at 100% of one
+core, 61 objects in 38 minutes, load average 1.2 on a machine building with
+eight jobs. mmcv's CUDA sources times six architectures is the whole cost.
+
+Main's images were built the same way, so this is inherited rather than new,
+and it is not correctness: the wheel that comes out has the ops. Installing
+ninja -- `ninja-build` in `install_deps_apt`, or the `ninja` wheel in the
+locks -- should cut it to the machine's job count, and is worth measuring
+against a build where nothing else changed.
