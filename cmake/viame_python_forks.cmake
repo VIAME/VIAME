@@ -36,7 +36,13 @@ set( _viame_forks )
 # Which forks this configuration needs
 ##
 macro( _viame_fork name condition location )
-  if( ${condition} )
+  # The condition arrives as one string, and `if( ${condition} )` would pass
+  # it to if() as one argument -- a variable named "A OR B", which is never
+  # set -- so every condition with more than one word was false and imgaug,
+  # mmdeploy and darknet-to-pytorch-onnx were never built. Split it into
+  # words first.
+  separate_arguments( _viame_fork_condition UNIX_COMMAND "${condition}" )
+  if( ${_viame_fork_condition} )
     # A submodule that was never checked out is an empty directory, and pip
     # given an empty directory says "neither 'setup.py' nor 'pyproject.toml'
     # found", which sends the reader looking at the wrong thing. Say what is
