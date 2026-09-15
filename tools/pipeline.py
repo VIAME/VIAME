@@ -10,7 +10,7 @@ Usage:
   viame pipeline get     <pipe> <key> [<key> ...]
   viame pipeline set     <pipe> -s <key>=<value> ... [-o <out>] [--dry-run]
   viame pipeline flatten <pipe> [-o <out>]
-  viame pipeline check   <pipe> ...
+  viame pipeline check   <pipe> ... [--ignore-missing-files] [--no-resolve]
   viame pipeline multicam --cams N --mode tracker|suppressor --detector NAME
                           [-o <out>] [...]
 
@@ -21,6 +21,8 @@ import argparse
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -412,11 +414,77 @@ def check_document(doc, missing_files_fatal=True):
     return errors, warnings
 
 
+def find_viame_executable():
+    """The `viame` to ask the registry with, or None."""
+    found = shutil.which('viame')
+    if found:
+        return found
+    install = os.environ.get('VIAME_INSTALL')
+    if install:
+        name = 'viame.exe' if os.name == 'nt' else 'viame'
+        candidate = Path(install) / 'bin' / name
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
+def run_pipe_check(pipe, viame):
+    """What the registry makes of one file: `viame pipe-check -i <pipe>`.
+
+    pipe-check bakes the file the way the runner does and reports each
+    process's `:type` selections with whether they are registered. It exits 0
+    either way -- its JSON is the answer.
+    """
+    env = dict(os.environ)
+    env.setdefault('VIAME_LOG_LEVEL', 'error')
+    result = subprocess.run([viame, 'pipe-check', '-i', str(pipe)],
+                            capture_output=True, text=True, env=env)
+    if result.returncode != 0:
+        raise RuntimeError((result.stderr or result.stdout).strip()[-400:]
+                           or f'pipe-check exited {result.returncode}')
+    report = json.loads(result.stdout)
+    if len(report) != 1:
+        raise RuntimeError(f'pipe-check reported {len(report)} files for one')
+    return next(iter(report.values()))
+
+
+def resolution_errors(doc, pipe, report):
+    """The errors a pipe-check report means for a loaded document."""
+    errors = []
+    if report.get('status') != 'ok':
+        message = report.get('message', '').split(', thrown from ')[0]
+        errors.append(f'{pipe}: {message or "the pipeline does not build"}')
+    for name, process in report.get('processes', {}).items():
+        where = doc.processes.get(name, (None, str(pipe)))[1]
+        for key, selection in sorted(process.get('algos', {}).items()):
+            if not selection.get('resolved', False):
+                errors.append(
+                    f'{where}: {key} selects "{selection.get("impl", "")}", '
+                    'which no registered implementation provides')
+    return errors
+
+
 def cmd_check(args):
+    # Syntax, includes, paths and connections first; then, unless told not to,
+    # whether the names in the file exist. A pipeline whose process type or
+    # detector was removed parses perfectly and fails only when run.
+    viame = None if args.no_resolve else find_viame_executable()
     failed = 0
     for pipe in args.pipes:
         doc = load(pipe)
         errors, warnings = check_document(doc, not args.ignore_missing_files)
+        if not args.no_resolve:
+            if viame is None:
+                warnings.append(f'{pipe}: process types and implementations '
+                                'not checked: no viame executable (source '
+                                'setup_viame.sh, or pass --no-resolve)')
+            else:
+                try:
+                    errors.extend(resolution_errors(
+                        doc, pipe, run_pipe_check(pipe, viame)))
+                except (RuntimeError, ValueError, OSError) as ex:
+                    warnings.append(f'{pipe}: process types and '
+                                    f'implementations not checked: {ex}')
         for w in warnings:
             print(f'warning: {w}')
         for e in errors:
@@ -637,11 +705,17 @@ def build_parser():
     s.add_argument('-o', '--output', help='Output file (default: stdout)')
     s.set_defaults(func=cmd_flatten)
 
-    s = sub.add_parser('check', help='Validate includes, paths and connections')
+    s = sub.add_parser('check',
+                       help='Validate includes, paths and connections, and '
+                            'that every process type and algorithm '
+                            'implementation is registered')
     s.add_argument('pipes', nargs='+', metavar='pipe')
     s.add_argument('--ignore-missing-files', action='store_true',
                    help='Report missing relativepath targets (e.g. models '
                         'not yet downloaded) as warnings instead of errors')
+    s.add_argument('--no-resolve', action='store_true',
+                   help='Do not ask the registry (viame pipe-check) whether '
+                        'the process types and implementations exist')
     s.set_defaults(func=cmd_check)
 
     s = sub.add_parser('multicam',

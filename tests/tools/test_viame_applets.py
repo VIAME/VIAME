@@ -1566,6 +1566,30 @@ class TestPipelineApplet:
         assert 'unknown process "ghost"' in relaxed.stdout
         assert "warning:" in relaxed.stdout
 
+    def test_check_asks_the_registry_about_names(self, viame_env, tmp_path):
+        # Both parse; neither can run. A removed process type, and an
+        # implementation no build registers.
+        removed = tmp_path / "removed_process.pipe"
+        removed.write_text("process in\n  :: collate\n")
+        missing = tmp_path / "missing_impl.pipe"
+        missing.write_text(
+            "process detector\n  :: image_object_detector\n"
+            "  :detector:type                               no_such_detector\n"
+        )
+
+        result = run_viame(viame_env, "pipeline", "check", str(removed))
+        assert result.returncode != 0, result.stdout
+        assert "no such process of type 'collate'" in result.stdout
+
+        result = run_viame(viame_env, "pipeline", "check", str(missing))
+        assert result.returncode != 0, result.stdout
+        assert 'detector:type selects "no_such_detector"' in result.stdout
+
+        syntax_only = run_viame(
+            viame_env, "pipeline", "check", "--no-resolve", str(removed), str(missing)
+        )
+        assert syntax_only.returncode == 0, syntax_only.stdout
+
     def test_flatten_inlines_includes(self, viame_env, small_pipe, tmp_path):
         out = tmp_path / "flat.pipe"
         result = run_viame(
@@ -1580,8 +1604,11 @@ class TestPipelineApplet:
         assert "process input" in text
         assert "relativepath deployed =" in text
 
+        # --no-resolve: this is about what flattening writes, and netharn,
+        # which the small pipeline selects, is not in every build.
         flat_check = run_viame(
-            viame_env, "pipeline", "check", "--ignore-missing-files", str(out)
+            viame_env, "pipeline", "check", "--ignore-missing-files",
+            "--no-resolve", str(out)
         )
         assert flat_check.returncode == 0, flat_check.stdout
 
