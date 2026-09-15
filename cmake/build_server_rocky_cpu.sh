@@ -44,9 +44,7 @@ run_build_and_setup_libraries > build_log.txt 2>&1
 
 # Verify build success and create tarball
 if verify_build_success build_log.txt; then
-  prepare_linux_desktop_install install "$VIAME_SOURCE_DIR"
-  create_install_tarball "CPU-$VIAME_VERSION" "Linux-64Bit"
-  restore_linux_desktop_install install
+  create_install_package "CPU-$VIAME_VERSION" "Linux-64Bit"
 else
   exit 1
 fi

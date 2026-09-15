@@ -75,9 +75,7 @@ if verify_build_success build_log.txt; then
     TESTS_PASSED=true
   fi
 
-  prepare_linux_desktop_install install "$VIAME_SOURCE_DIR"
-  create_install_tarball "$VIAME_VERSION" "Linux-64Bit"
-  restore_linux_desktop_install install
+  create_install_package "$VIAME_VERSION" "Linux-64Bit"
 
   if [ "$TESTS_PASSED" = "false" ]; then
     rename_tarball_broken "$TARBALL_NAME"

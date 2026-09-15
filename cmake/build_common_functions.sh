@@ -835,98 +835,24 @@ fix_libsvm_symlink() {
   fi
 }
 
-# Prepare Linux desktop install by removing unneeded directories and adding LICENSE
-# Arguments:
-#   $1 = install directory (default: install)
-#   $2 = source directory containing LICENSE.txt (default: ..)
-prepare_linux_desktop_install() {
-  local install_dir="${1:-install}"
-  local source_dir="${2:-..}"
-  local excluded_dir="${install_dir}_excluded"
+# Package the install with CPack (cmake/viame_packaging.cmake): a gzipped
+# tarball VIAME-<version>-<platform>.tar.gz in the build directory, with the
+# install under viame/ and what a binary release does not carry left out.
+# This was three helpers -- move seven directories out of the install, tar
+# what was left, move them back -- and the prefix was tarred as it stood.
+create_install_package() {
+  local version="$1"
+  local platform="$2"
+  local build_dir="${3:-.}"
+  local package_name="VIAME-${version}-${platform}"
 
-  echo "Preparing Linux desktop install..."
-
-  # Move directories not needed for desktop distribution to temp location
-  rm -rf "$excluded_dir"
-  mkdir -p "$excluded_dir"
-
-  local dirs_to_exclude=(
-    "sbin"
-    "qml"
-    "include"
-    "mkspecs"
-    "etc"
-    "doc"
-  )
-
-  for dir in "${dirs_to_exclude[@]}"; do
-    if [ -d "$install_dir/$dir" ]; then
-      mv "$install_dir/$dir" "$excluded_dir/$dir"
-      echo "  Moved $dir"
-    fi
-  done
-
-  # Move share directory. The dance that used to preserve share/postgresql
-  # went with the PostgreSQL backend.
-  if [ -d "$install_dir/share" ]; then
-    mv "$install_dir/share" "$excluded_dir/share"
-    echo "  Moved share"
+  if ! ( cd "$build_dir" && rm -f "${package_name}.tar.gz" \
+         && cpack -G TGZ -D CPACK_PACKAGE_FILE_NAME="$package_name" ); then
+    echo "Error: cpack could not package $package_name"
+    return 1
   fi
 
-  # Copy LICENSE.txt to install root
-  if [ -f "$source_dir/LICENSE.txt" ]; then
-    cp "$source_dir/LICENSE.txt" "$install_dir/"
-    echo "  Copied LICENSE.txt to install root"
-  else
-    echo "  Warning: LICENSE.txt not found at $source_dir/LICENSE.txt"
-  fi
-
-  echo "Linux desktop install preparation complete"
-}
-
-# Restore directories moved out by prepare_linux_desktop_install
-# Arguments:
-#   $1 = install directory (default: install)
-restore_linux_desktop_install() {
-  local install_dir="${1:-install}"
-  local excluded_dir="${install_dir}_excluded"
-
-  if [ ! -d "$excluded_dir" ]; then
-    echo "No excluded directories to restore"
-    return 0
-  fi
-
-  echo "Restoring development folders..."
-
-  local dirs_to_restore=(
-    "sbin"
-    "qml"
-    "include"
-    "mkspecs"
-    "etc"
-    "doc"
-  )
-
-  for dir in "${dirs_to_restore[@]}"; do
-    if [ -d "$excluded_dir/$dir" ]; then
-      mv "$excluded_dir/$dir" "$install_dir/$dir"
-    fi
-  done
-
-  # Restore share directory, merging back with preserved postgresql
-  if [ -d "$excluded_dir/share" ]; then
-    if [ -d "$install_dir/share/postgresql" ]; then
-      mv "$install_dir/share/postgresql" "$install_dir/postgresql_temp"
-      rm -rf "$install_dir/share"
-    fi
-    mv "$excluded_dir/share" "$install_dir/share"
-    if [ -d "$install_dir/postgresql_temp" ]; then
-      mv "$install_dir/postgresql_temp" "$install_dir/share/postgresql"
-    fi
-  fi
-
-  rm -rf "$excluded_dir"
-  echo "Development folders restored"
+  echo "Created package: ${build_dir}/${package_name}.tar.gz"
 }
 
 # Run CRITICAL CTest tests against the build folder.
@@ -975,29 +901,6 @@ rename_tarball_broken() {
   echo "Renaming tarball to VIAME-BROKEN.tar.gz"
   rm -f "$broken_tarball" 2>/dev/null || true
   mv "$tarball" "$broken_tarball"
-}
-
-# Create tarball of install directory
-# Arguments:
-#   $1 = version string
-#   $2 = platform suffix (e.g., "Linux-64Bit", "Ubuntu-64Bit")
-#   $3 = install directory (default: install)
-create_install_tarball() {
-  local version="$1"
-  local platform="$2"
-  local install_dir="${3:-install}"
-  local tarball_name="VIAME-${version}-${platform}.tar.gz"
-
-  if [ -d "$install_dir" ]; then
-    mv "$install_dir" viame
-    rm -f "$tarball_name" 2>/dev/null || true
-    tar -zcvf "$tarball_name" viame
-    mv viame "$install_dir"
-    echo "Created tarball: $tarball_name"
-  else
-    echo "Error: Install directory not found: $install_dir"
-    return 1
-  fi
 }
 
 # Finalize Docker/server install by relocating to /opt/noaa

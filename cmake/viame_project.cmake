@@ -380,3 +380,8 @@ if( VIAME_FIXUP_BUNDLE )
     )
   install( SCRIPT ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake )
 endif()
+
+###
+# Release packaging: `cpack -G TGZ` of the finished install
+##
+include( "${VIAME_SOURCE_DIR}/cmake/viame_packaging.cmake" )

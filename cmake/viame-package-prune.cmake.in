@@ -1,0 +1,30 @@
+# Run by CPack on its copy of the install before archiving it; written from
+# `cmake/viame-package-prune.cmake.in`.
+#
+# What the old tarball steps did that is not part of the install: leave out
+# what a binary release does not need, and put the licence at the top.
+
+set( _viame_devel "@VIAME_PACKAGE_DEVEL@" )
+set( _viame_root "${CPACK_TEMPORARY_INSTALL_DIRECTORY}/viame" )
+
+if( NOT IS_DIRECTORY "${_viame_root}" )
+  message( FATAL_ERROR "viame-package-prune: no viame/ under ${CPACK_TEMPORARY_INSTALL_DIRECTORY}" )
+endif()
+
+# The directories `prepare_linux_desktop_install` moved out of the tarball.
+# VIAME installs nothing in them; in a prefix other software also installed
+# into they are that software's headers, man pages and data.
+set( _viame_prune sbin qml mkspecs etc doc share )
+
+if( NOT _viame_devel )
+  list( APPEND _viame_prune include lib/cmake )
+endif()
+
+foreach( _viame_dir IN LISTS _viame_prune )
+  if( IS_DIRECTORY "${_viame_root}/${_viame_dir}" )
+    file( REMOVE_RECURSE "${_viame_root}/${_viame_dir}" )
+    message( STATUS "viame-package-prune: left out ${_viame_dir}/" )
+  endif()
+endforeach()
+
+file( COPY "@VIAME_SOURCE_DIR@/LICENSE.txt" DESTINATION "${_viame_root}" )
