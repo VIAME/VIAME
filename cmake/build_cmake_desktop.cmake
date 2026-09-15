@@ -20,6 +20,11 @@ set(VIAME_ENABLE_DIVE ON CACHE BOOL "Enable DIVE")
 set(VIAME_ENABLE_PYTORCH-LEARN ON CACHE BOOL "Enable learning/training")
 set(VIAME_ENABLE_POSTGRESQL ON CACHE BOOL "Enable PostgreSQL")
 
+# TensorRT lean runtime (~110 MB) for the prebuilt engines model add-ons ship;
+# the full package with the engine builder is ~3.7 GB and not needed on desktop
+set(VIAME_ENABLE_TENSORRT ON CACHE BOOL "Enable TensorRT plugins")
+set(VIAME_TENSORRT_RUNTIME_ONLY ON CACHE BOOL "Install only the TensorRT lean runtime")
+
 # Model downloads for desktop
 set(VIAME_DOWNLOAD_MODELS-DEFAULT-FISH ON CACHE BOOL "Download fish models")
 set(VIAME_DOWNLOAD_MODELS-GENERIC ON CACHE BOOL "Download generic models")

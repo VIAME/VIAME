@@ -8,5 +8,6 @@ set(VIAME_ENABLE_CUDA OFF CACHE BOOL "Enable CUDA")
 set(VIAME_ENABLE_CUDNN OFF CACHE BOOL "Enable cuDNN")
 
 # Disable CUDA-dependent features
+set(VIAME_ENABLE_TENSORRT OFF CACHE BOOL "Enable TensorRT plugins")
 set(VIAME_ENABLE_PYTORCH-LEARN OFF CACHE BOOL "Enable learning/training")
 set(VIAME_ENABLE_PYTORCH-ULTRALYTICS OFF CACHE BOOL "Enable Ultralytics")
