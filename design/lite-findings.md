@@ -1925,3 +1925,21 @@ So the CRITICAL `TestMeasureViaDefaultFish` skips in the default image --
 default image, fails it. Main has the same script, the same packs and the
 same gate, so this is not the lite tree's doing; it is fixed by publishing
 the packs again from `configs/add-ons`, which is a release step.
+
+### 2.13 A process that throws does not end the pipeline
+
+When a process raises out of its step, `thread_per_process_scheduler`
+logs `Process '<name>' threw an exception: ...` and the pipeline then
+neither finishes nor exits: `viame` stays up with nothing running until
+something kills it. Seen twice. In the Docker web image, `filter_enhance.pipe`
+hit a `cv2` that could not load `libGL.so.1` and ran until the CRITICAL
+harness's timeout, so a broken package showed up as a hang rather than a
+failure. And on this machine's install, the same pipeline with a stand-in
+`cv2` that raises `ImportError` was still up after 90 s; with the real `cv2`
+it finishes in 13.
+
+Whether main behaves the same is not settled: its enhancer did not import
+the stand-in, so the comparison run there proved nothing. A test for it
+wants a process that is certain to throw, run under both schedulers, with a
+timeout; the fix is that an exception in any process stops the pipeline and
+`viame` exits non-zero.
