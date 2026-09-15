@@ -1943,3 +1943,30 @@ the stand-in, so the comparison run there proved nothing. A test for it
 wants a process that is certain to throw, run under both schedulers, with a
 timeout; the fix is that an exception in any process stops the pipeline and
 `viame` exits non-zero.
+
+### 2.14 The forks were built without the environment that compiles their code
+
+`viame_python_forks.cmake` handed each fork build one environment variable,
+`PYTHONUSERBASE`. The superbuild's `add_project_pytorch.cmake` set a dozen
+for every one of them, and three forks depend on those to compile anything:
+
+- mmcv reads `MMCV_WITH_OPS`, which defaults to 0. Unset, it builds as the
+  pure-python `mmcv` wheel -- `mmcv-1.7.1-py2.py3-none-any.whl` in every
+  Docker image build -- with no `mmcv._ext`, and the CRITICAL netharn
+  training test fails on importing it. Its CUDA ops also need `FORCE_CUDA=1`
+  where no GPU is visible, as in `docker build`.
+- sam2 tries its CUDA extension by default but `SAM2_BUILD_ALLOW_ERRORS`
+  also defaults to 1, so without an architecture list to build for it
+  printed an error and installed without `sam2._C`. The reference install
+  has it; the image did not.
+- mmdeploy's ORT custom ops are a separate CMake build
+  (`MMDEPLOY_TARGET_BACKENDS=ort`, `ONNXRUNTIME_DIR`) that the superbuild ran
+  before the wheel. The fork step fetches onnxruntime for it and never runs
+  that build, so `libmmdeploy_onnxruntime_ops.so` is not installed. Nothing
+  in VIAME imports mmdeploy, so this one is recorded and not restored.
+
+The fork builds now get `FORCE_CUDA`, `CUDA_HOME`, `TORCH_CUDA_ARCH_LIST`
+from `CUDA_ARCHITECTURES`, and `-allow-unsupported-compiler` for nvcc when
+CUDA is on; mmcv gets `MMCV_WITH_OPS=1`; and sam2 builds its extension with
+`SAM2_BUILD_ALLOW_ERRORS=0`, so a failure stops the build instead of being
+dropped.

@@ -153,12 +153,41 @@ endif()
 # nothing.
 set( _viame_fork_stamps )
 
+# What the forks with compiled code need to compile it, which the superbuild's
+# add_project_pytorch.cmake set for every one of them. Without it mmcv builds
+# as the pure-python `mmcv` wheel -- MMCV_WITH_OPS defaults to 0 -- and
+# netharn's training fails on `mmcv._ext`; and sam2 skips its CUDA extension
+# in silence, since SAM2_BUILD_ALLOW_ERRORS defaults to 1. FORCE_CUDA and
+# TORCH_CUDA_ARCH_LIST because a build may have no GPU to ask (`docker build`
+# has none); -allow-unsupported-compiler because Ubuntu 24.04's GCC 13.3 is
+# newer than CUDA 12.6 declares support for.
+set( _viame_fork_env "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}" )
+if( VIAME_ENABLE_CUDA )
+  string( REPLACE ";" " " _viame_fork_arch_list "${CUDA_ARCHITECTURES}" )
+  list( APPEND _viame_fork_env
+    "FORCE_CUDA=1"
+    "CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}"
+    "TORCH_CUDA_ARCH_LIST=${_viame_fork_arch_list}"
+    "NVCC_APPEND_FLAGS=-allow-unsupported-compiler"
+    "MMCV_CUDA_ARGS=-allow-unsupported-compiler" )
+endif()
+set( _viame_fork_env_mmcv "MMCV_WITH_OPS=1" )
+if( VIAME_ENABLE_CUDA )
+  # Stop on a failed extension build rather than install sam2 without it
+  set( _viame_fork_env_sam2 "SAM2_BUILD_CUDA=1" "SAM2_BUILD_ALLOW_ERRORS=0" )
+else()
+  set( _viame_fork_env_sam2 "SAM2_BUILD_CUDA=0" )
+endif()
+
 set( _viame_fork_extra_deps_mmdeploy ${_ort_stamp} )
 
 foreach( _fork IN LISTS _viame_forks )
   set( _source "${_viame_fork_source_${_fork}}" )
   set( _stamp "${_viame_forks_dir}/${_fork}.stamp" )
   set( _wheels "${_viame_forks_dir}/${_fork}" )
+
+  set( _env ${_viame_fork_env} ${_viame_fork_env_${_fork}} )
+  string( REPLACE ";" "----" _env "${_env}" )
 
   # A fork VIAME patches gets the patch copied over its source first. The
   # patch directories are `packages/patches/<fork>`.
@@ -179,7 +208,7 @@ foreach( _fork IN LISTS _viame_forks )
             -DWHEEL_DIR=${_wheels}
             -DPython_EXECUTABLE=${Python_EXECUTABLE}
             "-DPYTHON_BUILD_CMD=${Python_EXECUTABLE}-----m----pip----wheel------no-build-isolation------no-deps------no-cache-dir------wheel-dir----${_wheels}----${_source}"
-            "-DENV_VARS=PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
+            "-DENV_VARS:STRING=${_env}"
             -DPIP_INSTALL_SCRIPT=${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake
             # Install the wheel --no-deps as well as building it that way.
             # Without this a fork's first install resolved its requirements
