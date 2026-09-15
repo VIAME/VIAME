@@ -21,6 +21,7 @@ set( plugin_headers
   full_frame_detector.h
   manipulate_pipelines.h
   measurement_utilities.h
+  disparity_segment.h
   merge_detections_suppress_in_regions.h
   equalize_via_percentiles.h
   pair_stereo_detections.h
@@ -78,6 +79,7 @@ set( plugin_sources
   full_frame_detector.cxx
   manipulate_pipelines.cxx
   measurement_utilities.cxx
+  disparity_segment.cxx
   merge_detections_suppress_in_regions.cxx
   equalize_via_percentiles.cxx
   pair_stereo_detections.cxx
