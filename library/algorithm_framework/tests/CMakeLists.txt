@@ -114,3 +114,20 @@ viame_discover_gtests( viame config_block
             kwiver::vital_exceptions
             kwiver::vital_util
             GTest::gtest )
+
+###
+# The python library finder
+#
+# What the python module loader preloads libpython with when `PYTHON_LIBRARY`
+# is not set, which since P10-T01 is always. It returned nothing on Debian
+# and Ubuntu pythons; the test fakes their layout and a CPython built into
+# the install, and loads the module from the source tree.
+##
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
+    NAME    "unit:algorithm_framework:find_python_library"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_find_python_library.py"
+    LABELS  UNIT
+    TIMEOUT 120
+  )
+endif()
