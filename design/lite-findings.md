@@ -1875,3 +1875,24 @@ check, and several were not ones it accepts.
   fix is to take CUDA from whichever image the script is running in, and
   bring the manual and installer images to 12.6.3; that is not done until a
   Rocky release build has been run.
+
+### 2.11 A lock is for the python that compiled it
+
+The locks in `python/requirements` were compiled with python 3.10, and the
+build installed them into whatever python it had found. pip-compile keeps
+only the requirements whose markers hold for the interpreter it runs on, and
+`base.in` marks its numpy, numba, llvmlite, imageio, scikit-image,
+matplotlib, kwcoco, networkx and pandas lines by python version -- so a 3.10
+lock has none of them for 3.12, and installing it on 3.12 left all nine out
+without an error. Pythons that were 3.12: the Docker images (Ubuntu 24.04),
+`VIAME_PYTHON_STANDALONE`, and the CPU CI job, whose apt `python3` is 3.12
+on `ubuntu-latest`. The image build showed it as pip's closing complaint
+that `ultralytics`, `kwimage` and `ndsampler` required packages "not
+installed"; the build did not fail.
+
+The locks are now one set per version, `py3.10/` and `py3.12/`, the second
+compiled with python-build-standalone's 3.12.14. Configure installs the set
+for the python it found and stops when there is none. The CI locks job
+resolves each set with its own python. Compiled for 3.12, the versions that
+move include numpy 2.2.6 and pandas 3.0.5, against which nothing in VIAME
+has been run on 3.12 until the Docker image's CRITICAL tests are.

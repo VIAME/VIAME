@@ -139,10 +139,17 @@ jobs:
   # resolve fails there. What that cannot catch is a lock the *other*
   # accelerators cannot resolve, and an exclusion that has quietly stopped
   # holding. Both are seconds to check and neither needs a build.
+  #
+  # A lock set is per python version, so each set is resolved by its own
+  # python: a 3.12 set checked by a 3.10 pip would skip every marked line.
   locks:
-    name: Python dependency locks
+    name: Python dependency locks (${{ matrix.python }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12']
 
     steps:
       - name: Checkout
@@ -150,12 +157,12 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: ${{ matrix.python }}
 
       - name: Resolve every lock
         run: |
           python -m pip install --upgrade pip
-          for lock in python/requirements/*.lock; do
+          for lock in python/requirements/py${{ matrix.python }}/*.lock; do
             echo "--- $lock"
             python -m pip install --no-deps --dry-run -r "$lock"
           done
@@ -166,7 +173,7 @@ jobs:
       - name: Check the exclusions held
         run: |
           for pkg in opencv-python opencv-python-headless triton wandb decord; do
-            if grep -qE "^${pkg}==" python/requirements/*.lock; then
+            if grep -qE "^${pkg}==" python/requirements/py*/*.lock; then
               echo "ERROR: ${pkg} is pinned in a lock file; it is on the"
               echo "exclusion list in python/requirements/README.md"
               exit 1

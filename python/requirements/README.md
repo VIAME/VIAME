@@ -1,8 +1,16 @@
 # VIAME's python dependencies
 
-`*.in` says what VIAME needs and why. `*.lock` is the pinned resolution
-`pip-compile` produced from it, committed beside it. The build installs the
-locks with `--no-deps`, so pip fetches and does not resolve.
+`*.in` says what VIAME needs and why. `py3.X/*.lock` is the pinned
+resolution `pip-compile` produced from it with python 3.X, committed beside
+it. The build installs the locks for the python it was configured with,
+`--no-deps`, so pip fetches and does not resolve; with no directory for that
+python it stops at configure.
+
+A lock belongs to the python that compiled it. pip-compile keeps only the
+requirements whose markers hold for its interpreter, so `base.in`'s
+`python_version >= "3.12"` lines -- numpy, numba, scikit-image, matplotlib,
+pandas, kwcoco and more -- are not in a 3.10 lock at all, and installing a
+3.10 lock into a 3.12 python leaves them out without an error.
 
 | file | what it is |
 |---|---|
@@ -21,26 +29,31 @@ passes one `-r` per selected lock to a single `pip install`.
 
 Edit the `.in`, recompile the `.lock`s it feeds, commit both:
 
+Once for each python there is a directory for, run with that python:
+
 ```sh
-pip install pip-tools
+python -m pip install pip-tools
 cd python/requirements
+PY=py$(python -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 EXCLUDE="--unsafe-package=triton --unsafe-package=opencv-python \
          --unsafe-package=opencv-python-headless \
          --unsafe-package=wandb --unsafe-package=decord"
 
 for variant in cuda12 cuda13 cpu; do
-    pip-compile --strip-extras $EXCLUDE -o $variant.lock $variant.in
+    python -m piptools compile --strip-extras $EXCLUDE -o $PY/$variant.lock $variant.in
 done
 
 for extra in forks learn sleap colmap test; do
-    pip-compile --strip-extras $EXCLUDE -c cuda12.lock -o $extra.lock $extra.in
+    python -m piptools compile --strip-extras $EXCLUDE -c $PY/cuda12.lock -o $PY/$extra.lock $extra.in
 done
 ```
 
-A lock is per (python, accelerator). These were compiled on the reference
-machine -- python 3.10, CUDA 12.6 -- and phase 9 moves the compilation into
-CI so that the other variants are produced the same way.
+A lock is per (python, accelerator). `py3.10` was compiled on the reference
+machine, python 3.10 with CUDA 12.6; `py3.12` with python-build-standalone's
+3.12.14, the python `VIAME_PYTHON_STANDALONE` downloads and the version the
+Docker images' Ubuntu 24.04 has. Phase 9 moves the compilation into CI so
+that every set is produced the same way.
 
 ## What is deliberately excluded
 

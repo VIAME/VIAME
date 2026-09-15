@@ -8,7 +8,7 @@
 # of the same VIAME commit a month apart did not get the same environment,
 # and the difference was invisible -- there was no file to diff.
 #
-# `python/requirements/*.in` says what VIAME needs and why; `*.lock` is the
+# `python/requirements/*.in` says what VIAME needs and why; `py3.X/*.lock` is the
 # pinned resolution `pip-compile` produced from it, committed. This installs
 # the lock, `--no-deps`, so pip resolves nothing at build time.
 ##
@@ -45,7 +45,28 @@ if( NOT VIAME_ENABLE_PYTHON )
   return()
 endif()
 
-set( _viame_req_dir "${VIAME_SOURCE_DIR}/python/requirements" )
+# A lock is a resolution for one python version: pip-compile keeps only the
+# requirements whose markers hold for the interpreter it ran on, so a 3.10
+# lock has no numpy, matplotlib or pandas for a 3.12 python -- their lines in
+# `base.in` are marked `python_version >= "3.12"`. Each version has its own
+# directory, and one with none is an error rather than an install with
+# packages silently missing.
+set( _viame_req_dir
+  "${VIAME_SOURCE_DIR}/python/requirements/py${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" )
+
+if( VIAME_INSTALL_PYTHON_DEPS AND NOT IS_DIRECTORY "${_viame_req_dir}" )
+  file( GLOB _viame_lock_dirs LIST_DIRECTORIES true RELATIVE
+    "${VIAME_SOURCE_DIR}/python/requirements"
+    "${VIAME_SOURCE_DIR}/python/requirements/py3.*" )
+  list( FILTER _viame_lock_dirs INCLUDE REGEX "^py3\\.[0-9]+$" )
+  string( REPLACE ";" ", " _viame_lock_versions "${_viame_lock_dirs}" )
+  message( FATAL_ERROR
+    "There are no python dependency locks for python ${Python_VERSION_MAJOR}."
+    "${Python_VERSION_MINOR} (${Python_EXECUTABLE}); there are for "
+    "${_viame_lock_versions}. Compile a set as python/requirements/README.md "
+    "says, use one of those pythons, or set VIAME_INSTALL_PYTHON_DEPS=OFF and "
+    "provide the environment yourself." )
+endif()
 
 ###
 # Which locks this configuration needs

@@ -160,7 +160,7 @@ dynamic plugin loader goes. Everything built in tree registers statically.
 - Registration from python is declarative (§4): packages list their
   implementations; nothing heavy is imported until an implementation is
   instantiated.
-- Dependencies: `python/requirements/*.in` compiled to `*.lock`. Target
+- Dependencies: `python/requirements/*.in` compiled to `py3.X/*.lock`, one set per python version. Target
   `viame_python_deps` runs
   `pip install --user --no-deps -r <lock> --extra-index-url <VIAME_PYTHON_INDEX_URL>`
   with `PYTHONUSERBASE=<install>` and `PYTHONNOUSERSITE=1`, hash-stamped.

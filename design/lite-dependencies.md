@@ -81,6 +81,6 @@ plan. Summary of what is never copied:
 | darknet (optional, temporary) | ~30k C/CUDA | until models are ONNX |
 | googletest (tests only, FetchContent) | | unit tests |
 
-Python runtime wheels are governed by `python/requirements/*.lock`;
+Python runtime wheels are governed by `python/requirements/py3.X/*.lock` (one set per python version);
 `numpy`, `torch`, `opencv-python-headless`, `av`, `scipy`, `pillow` are the
 ones VIAME core code imports directly.
