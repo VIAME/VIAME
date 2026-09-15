@@ -101,11 +101,19 @@ if( VIAME_ENABLE_CUDA )
 
   target_compile_definitions( viame_darknet_core PUBLIC GPU )
 
-  # `cuda_driver` as well as the runtime: `dark_cuda.c` calls
-  # `cuCtxGetCurrent`, which is the driver API
+  # Not `cuda_driver` except on Windows. `dark_cuda.c` calls `cuCtxGetCurrent`,
+  # the driver API, and linking libcuda.so.1 puts it in libviame's NEEDED: then
+  # nothing linked with libviame loads without an NVIDIA driver, not a test
+  # executable gtest_discover_tests runs inside `docker build`, not `viame` on
+  # a CPU-only host. Elsewhere it is looked up with dlopen when called.
   target_link_libraries( viame_darknet_core
-    PRIVATE CUDA::cudart CUDA::cublas CUDA::curand CUDA::cuda_driver
+    PRIVATE CUDA::cudart CUDA::cublas CUDA::curand
     )
+  if( WIN32 )
+    target_link_libraries( viame_darknet_core PRIVATE CUDA::cuda_driver )
+  else()
+    target_link_libraries( viame_darknet_core PRIVATE ${CMAKE_DL_LIBS} )
+  endif()
 
   # Darknet's kernels are self-contained, so no separable compilation and no
   # device link step for a consumer to get wrong

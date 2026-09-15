@@ -46,6 +46,7 @@ int cuda_get_device()
     return n;
 }
 
+#ifdef _WIN32
 void *cuda_get_context()
 {
     CUcontext pctx;
@@ -53,6 +54,23 @@ void *cuda_get_context()
     if(status != CUDA_SUCCESS) fprintf(stderr, " Error: cuCtxGetCurrent() is failed \n");
     return (void *)pctx;
 }
+#else  // _WIN32
+// VIAME: cuCtxGetCurrent is the driver API, in libcuda.so.1, which only a
+// machine with an NVIDIA driver has. Linking it would make every library and
+// program linked with darknet fail to load without one -- a docker build, a
+// CPU-only host -- so it is looked up when this is called instead.
+#include <dlfcn.h>
+
+void *cuda_get_context()
+{
+    CUcontext pctx = NULL;
+    void *driver = dlopen("libcuda.so.1", RTLD_LAZY | RTLD_GLOBAL);
+    CUresult (*get_current)(CUcontext *) =
+        driver ? (CUresult (*)(CUcontext *))dlsym(driver, "cuCtxGetCurrent") : NULL;
+    if(!get_current || get_current(&pctx) != CUDA_SUCCESS) fprintf(stderr, " Error: cuCtxGetCurrent() is failed \n");
+    return (void *)pctx;
+}
+#endif  // _WIN32
 
 void check_error(cudaError_t status, const char * const filename, const char * const funcname, const int line)
 {
