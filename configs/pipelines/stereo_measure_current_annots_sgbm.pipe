@@ -20,7 +20,7 @@ config measurer
   :disparity_segment_samples                      11       # DIVE_PARAM["Segment Samples", range_int, 3, 101]
   :disparity_segment_max_outliers                 3        # DIVE_PARAM["Max Invalid or Outlier Samples", range_int, 0, 49]
   :disparity_segment_max_error                    10.0     # DIVE_PARAM["Max Disparity Residual (px)", range_float, 0.1, 15, 0.1]
-  :detection_pairing_method                       disparity_projection
+  :detection_pairing_method                       epipolar_iou,keypoint_projection
   :detection_pairing_threshold                    25.0
   :accumulate_track_pairings                      true
   :length_aggregation_method                      median
@@ -29,6 +29,7 @@ config measurer
   :refine_keypoints_disparity_min_valid_fraction  0.5
   :refine_keypoints_disparity_use_circle          true
   :create_synthetic_detections                    false
+  :update_right_keypoints                         false
 
   :stereo_disparity:type                        ocv_stereo_disparity
   block stereo_disparity:ocv_stereo_disparity

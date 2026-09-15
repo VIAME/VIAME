@@ -81,6 +81,11 @@ create_config_trait( create_synthetic_detections, bool, "true",
   "If true, creates synthetic right bounding boxes for left-only detections. "
   "If false, left-only tracks are skipped and not measured." );
 
+create_config_trait( update_right_keypoints, bool, "true",
+  "If true, right camera keypoints are overwritten with the disparity-refined "
+  "coordinates. If false, the refined coordinates are only used internally to "
+  "compute the 3D length, but the original output keypoints are left untouched." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -107,6 +112,7 @@ public:
   double m_max_bbox_y_center_offset;
   double m_max_bbox_area_ratio;
   bool m_create_synthetic_detections;
+  bool m_update_right_keypoints;
 
   // Measurement settings (contains all algo parameters and algorithm pointers)
   map_keypoints_to_camera_settings m_settings;
@@ -144,6 +150,8 @@ measure_objects_process::priv
   , m_max_stereo_rms( -1.0 )
   , m_max_bbox_y_center_offset( -1.0 )
   , m_max_bbox_area_ratio( -1.0 )
+  , m_create_synthetic_detections( true )
+  , m_update_right_keypoints( true )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -211,6 +219,7 @@ measure_objects_process
   declare_config_using_trait( max_bbox_y_center_offset );
   declare_config_using_trait( max_bbox_area_ratio );
   declare_config_using_trait( create_synthetic_detections );
+  declare_config_using_trait( update_right_keypoints );
 
   // Merge in map_keypoints_to_camera_settings configuration
   kv::config_block_sptr settings_config = d->m_settings.get_configuration();
@@ -245,6 +254,7 @@ measure_objects_process
   d->m_max_bbox_y_center_offset = config_value_using_trait( max_bbox_y_center_offset );
   d->m_max_bbox_area_ratio = config_value_using_trait( max_bbox_area_ratio );
   d->m_create_synthetic_detections = config_value_using_trait( create_synthetic_detections );
+  d->m_update_right_keypoints = config_value_using_trait( update_right_keypoints );
 
   if( d->m_calibration_file.empty() )
   {
@@ -860,14 +870,16 @@ measure_objects_process
     if( head_refined )
     {
       right_head = refined_head;
-      det2->add_keypoint( "head",
-        kv::point_2d( right_head.x(), right_head.y() ) );
+      if( d->m_update_right_keypoints ) {
+        det2->add_keypoint( "head", kv::point_2d( right_head.x(), right_head.y() ) );
+      }
     }
     if( tail_refined )
     {
       right_tail = refined_tail;
-      det2->add_keypoint( "tail",
-        kv::point_2d( right_tail.x(), right_tail.y() ) );
+      if( d->m_update_right_keypoints ) {
+        det2->add_keypoint( "tail", kv::point_2d( right_tail.x(), right_tail.y() ) );
+      }
     }
 
     const auto measurement = viame::core::compute_stereo_measurement(
@@ -1158,10 +1170,13 @@ measure_objects_process
       {
         auto& det2 = dets[1][id];
 
-        if( result.head_found )
-          det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
-        if( result.tail_found )
-          det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
+        if( d->m_update_right_keypoints )
+        {
+          if( result.head_found )
+            det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
+          if( result.tail_found )
+            det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
+        }
 
         if( d->m_settings.record_stereo_method )
         {
