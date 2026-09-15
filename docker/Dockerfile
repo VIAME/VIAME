@@ -20,11 +20,9 @@
 #       --build-arg VIAME_CMAKE_ARGS="-DVIAME_ENABLE_PYTORCH-LEARN=ON -DVIAME_ENABLE_WEB_EXCLUDES=ON -DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL=ON -DVIAME_DOWNLOAD_MODELS-HABCAM=ON -DVIAME_DOWNLOAD_MODELS-MOUSS-DEEP7=ON" \
 #       -t kitware/viame:gpu-algorithms-everything .
 #
-# The CUDA 11.8 and IFREMER web images are the web target with other
-# arguments:
-#
-#   --build-arg CUDA_IMAGE=nvidia/cuda:11.8.0-cudnn8 --build-arg BASE_OS=ubuntu22.04 \
-#   --build-arg CUDA_ARCHITECTURES="7.0 7.5 8.0 8.6 8.9 9.0" --build-arg VIAME_LEGACY_MMDET=ON
+# The IFREMER web image is the web target with other arguments. The CUDA
+# 11.8 image is not buildable from this tree: it built PyTorch from source,
+# which is gone, and there is no cu118 lock or PyTorch 2.12 cu118 wheel.
 #
 #   --build-arg CUDA_ARCHITECTURES=7.5 --build-arg VIAME_BUILD_JOBS=4 \
 #   --build-arg VIAME_LEGACY_MMDET=ON --build-arg VIAME_KEEP_BUILD=ON
@@ -34,7 +32,10 @@
 # runs them against the finished images with --gpus.
 ##############################################################################
 
-ARG CUDA_IMAGE=nvidia/cuda:12.9.1-cudnn
+# The CUDA version has to be one the PyTorch wheels in the lock were built
+# for (cuda12.lock names the cu126 index; cuda13.lock is picked from 13.0);
+# configure stops on any other.
+ARG CUDA_IMAGE=nvidia/cuda:12.6.3-cudnn
 ARG BASE_OS=ubuntu24.04
 
 # ---------------------------------------------------------------------------

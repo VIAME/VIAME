@@ -1852,3 +1852,26 @@ build. A different OpenCV is a different implementation, and the exactness
 these recordings are held to -- byte-identical descriptors -- will not
 survive a version change. Whoever makes the switch should re-record and diff,
 rather than loosening the tolerances to make it pass.
+
+### 2.10 CUDA versions picked for a source build of PyTorch
+
+P1-T02 removed `VIAME_BUILD_PYTORCH_FROM_SOURCE`, and with it the gate on
+the configure check that CUDA is 12.6, 13.0 or 13.2 when PyTorch is 2.12.0:
+every build now installs the wheels the lock names, and those exist only for
+those versions. Main's images and release scripts set the option on through
+`build_cmake_base.cmake`, so their CUDA versions were never held to the
+check, and several were not ones it accepts.
+
+- The web and default images were on `nvidia/cuda:12.9.1`. The first build
+  of `docker/Dockerfile` stopped at configure; it is on 12.6.3 now, which
+  matches `cuda12.lock`'s cu126 index and this machine's builds.
+- The CUDA 11.8 web image cannot be built: no cu118 lock, no 2.12 cu118
+  wheel. The Dockerfile says so instead of documenting its arguments.
+- `cmake/build_server_rocky.sh` moves `/usr/local/cuda-12.8` into place, and
+  `manual_linux_install_gen_gpu.sh` and `docker/viame_gpu_installer.docker`
+  run it on a 12.8.1 image, which the check rejects. `build-release.yml`
+  runs the same script on a 12.6.3 image, where `cuda-12.8` does not exist,
+  so the `mv` fails before configure. This was already true on main. The
+  fix is to take CUDA from whichever image the script is running in, and
+  bring the manual and installer images to 12.6.3; that is not done until a
+  Rocky release build has been run.

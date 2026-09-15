@@ -91,6 +91,12 @@ endfunction()
 function( DownloadFile _URL _OutputLoc _MD5 )
   NormalizeDownloadUrl( "${_URL}" _URL )
   get_filename_component( _filename "${_OutputLoc}" NAME )
+  # A link to an archive somewhere else, copied to where it points at
+  # nothing (into a container, say): EXISTS is false, and DOWNLOAD would
+  # try to write through it.
+  if( IS_SYMLINK "${_OutputLoc}" AND NOT EXISTS "${_OutputLoc}" )
+    file( REMOVE "${_OutputLoc}" )
+  endif()
   if( EXISTS "${_OutputLoc}" )
     file( MD5 "${_OutputLoc}" _existing_md5 )
     if( "${_existing_md5}" STREQUAL "${_MD5}" )

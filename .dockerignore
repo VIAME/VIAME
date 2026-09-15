@@ -7,3 +7,25 @@ _build
 **/__pycache__
 **/*.pyc
 **/node_modules
+
+# What the build downloads and unpacks, which a fresh clone does not have --
+# the same rules as each directory's .gitignore. A checkout's own copies can
+# be links into another tree, which in the image point at nothing.
+packages/downloads/*.tar.gz
+packages/downloads/*.tar.bz2
+packages/downloads/*.tar
+packages/downloads/*.zip
+packages/downloads/*.whl
+configs/pipelines/models/*
+!configs/pipelines/models/.gitignore
+!configs/pipelines/models/burnout_default_classifier.adb
+!configs/pipelines/models/default_cfrnn.py
+!configs/pipelines/models/default_cfrnn.lbl
+!configs/pipelines/models/generic_cfrnn.py
+!configs/pipelines/models/generic_cfrnn.lbl
+!configs/pipelines/models/cfrnn_train.py
+!configs/pipelines/models/yolo_train.cfg
+examples/example_imagery/*
+!examples/example_imagery/CMakeLists.txt
+!examples/example_imagery/README.rst
+examples/object_detector_training/training_data_*/seq[0-9]*
