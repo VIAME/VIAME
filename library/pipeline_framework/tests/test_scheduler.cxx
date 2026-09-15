@@ -20,6 +20,8 @@
 #include <viame/pipeline_framework/pipe_bakery.h>
 #include <viame/pipeline_framework/pipe_parser.h>
 #include <viame/pipeline_framework/pipeline.h>
+#include <viame/pipeline_framework/process.h>
+#include <viame/pipeline_framework/process_factory.h>
 #include <viame/pipeline_framework/scheduler.h>
 #include <viame/pipeline_framework/scheduler_factory.h>
 
@@ -28,15 +30,48 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
+#include <future>
+#include <iostream>
+#include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace kv = kwiver::vital;
 
 namespace {
+
+// ----------------------------------------------------------------------------
+// Takes a number and throws, which is what a process does when a package it
+// needs is broken -- the case this was found by, a cv2 that could not load.
+class failing_process
+  : public sprokit::process
+{
+public:
+  explicit failing_process( kv::config_block_sptr const& config )
+    : process( config )
+  {
+    port_flags_t required;
+    required.insert( flag_required );
+
+    declare_input_port( "number", "integer", required,
+                        port_description_t( "A number to fail on." ) );
+    declare_output_port( "number", "integer", required,
+                         port_description_t( "Never written." ) );
+  }
+
+protected:
+  void _step() override
+  {
+    (void)grab_from_port_as< int32_t >( "number" );
+    throw std::runtime_error( "failing_process: failing on purpose" );
+  }
+};
 
 // ----------------------------------------------------------------------------
 class scratch_output
@@ -135,6 +170,68 @@ TEST ( scheduler, the_range_excludes_its_end )
 
   ASSERT_FALSE( output.lines().empty() );
   EXPECT_EQ( "4", output.lines().back() );
+}
+
+// ----------------------------------------------------------------------------
+// A process that throws stops the pipeline, and wait() reports it.
+//
+// It used to hang instead. The thread that threw left, and the ones beside it
+// were blocked on edges -- `sink` waiting for a number `fail` would never
+// send -- so they never looked at the error flag and wait() joined them
+// forever. `viame` did the same with a real pipeline: a cv2 that could not
+// load libGL made `filter_enhance.pipe` sit until something killed it.
+TEST ( scheduler, thread_per_process_stops_when_a_process_throws )
+{
+  scratch_output output( "scheduler_throws.txt" );
+
+  auto const source_config = kv::config_block::empty_config();
+  source_config->set_value( "start", "0" );
+  source_config->set_value( "end", "1000000" );
+
+  auto const fail_config = kv::config_block::empty_config();
+  fail_config->set_value( sprokit::process::config_name, "fail" );
+
+  auto const sink_config = kv::config_block::empty_config();
+  sink_config->set_value( "output", output.path() );
+
+  auto const pipeline = std::make_shared< sprokit::pipeline >();
+  pipeline->add_process(
+    sprokit::create_process( "numbers", "source", source_config ) );
+  pipeline->add_process( std::make_shared< failing_process >( fail_config ) );
+  pipeline->add_process(
+    sprokit::create_process( "print_number", "sink", sink_config ) );
+  pipeline->connect( "source", "number", "fail", "number" );
+  pipeline->connect( "fail", "number", "sink", "number" );
+  pipeline->setup_pipeline();
+
+  auto const scheduler = sprokit::create_scheduler(
+    "thread_per_process", pipeline, kv::config_block::empty_config() );
+  ASSERT_TRUE( scheduler != nullptr );
+
+  scheduler->start();
+
+  auto waited = std::async( std::launch::async,
+                            [ &scheduler ]() { scheduler->wait(); } );
+
+  if( waited.wait_for( std::chrono::seconds( 30 ) ) !=
+      std::future_status::ready )
+  {
+    // A hung wait() cannot be abandoned: the future would join it on the way
+    // out. Say what happened and leave.
+    std::cerr << "thread_per_process_stops_when_a_process_throws: wait() was "
+                 "still blocked after 30 s; the pipeline hung\n";
+    std::_Exit( EXIT_FAILURE );
+  }
+
+  try
+  {
+    waited.get();
+    FAIL() << "wait() returned normally from a pipeline whose process threw";
+  }
+  catch( std::runtime_error const& e )
+  {
+    EXPECT_STREQ( "failing_process: failing on purpose", e.what() );
+  }
 }
 
 // ----------------------------------------------------------------------------

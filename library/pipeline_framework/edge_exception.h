@@ -85,6 +85,27 @@ class SPROKIT_PIPELINE_EXPORT datum_requested_after_complete
 };
 
 /**
+ * \class edge_interrupted edge_exception.h <sprokit/pipeline/edge_exception.h>
+ *
+ * \brief Thrown when data is requested from an edge the scheduler interrupted.
+ *
+ * \ingroup exceptions
+ */
+class SPROKIT_PIPELINE_EXPORT edge_interrupted
+  : public edge_exception
+{
+  public:
+    /**
+     * \brief Constructor.
+     */
+    edge_interrupted() noexcept;
+    /**
+     * \brief Destructor.
+     */
+    ~edge_interrupted() noexcept;
+};
+
+/**
  * \class edge_connection_exception edge_exception.h <sprokit/pipeline/edge_exception.h>
  *
  * \brief The base class for all exceptions thrown from an \ref edge due to connections.

@@ -107,6 +107,12 @@ class edge::priv
 
     bool downstream_complete;
 
+    /// Set by interrupt(), under `mutex`: nothing waits on this edge again.
+    bool interrupted = false;
+
+    /// Throw if interrupted with nothing left to hand out. Call with `mutex`.
+    void interrupted_check() const;
+
     process_ref_t upstream;
     process_ref_t downstream;
 
@@ -235,7 +241,12 @@ edge
 
   priv::shared_lock_t lock(d->mutex);
 
-  d->cond_have_data.wait(lock, [this, idx]() { return d->q.size() > idx; });
+  d->cond_have_data.wait(lock, [this, idx]() { return d->q.size() > idx || d->interrupted; });
+
+  if (d->q.size() <= idx)
+  {
+    d->interrupted_check();
+  }
 
   return d->q.at(idx);
 }
@@ -250,7 +261,12 @@ edge
   {
     priv::unique_lock_t lock(d->mutex);
 
-    d->cond_have_data.wait(lock, [this]() { return !d->q.empty(); });
+    d->cond_have_data.wait(lock, [this]() { return !d->q.empty() || d->interrupted; });
+
+    if (d->q.empty())
+    {
+      d->interrupted_check();
+    }
 
     d->q.pop_front();
   }
@@ -293,6 +309,23 @@ edge
   }
 
   d->cond_have_space.notify_one();
+}
+
+// ------------------------------------------------------------------
+void
+edge
+::interrupt()
+{
+  {
+    priv::unique_lock_t const lock(d->mutex);
+
+    (void)lock;
+
+    d->interrupted = true;
+  }
+
+  d->cond_have_data.notify_all();
+  d->cond_have_space.notify_all();
 }
 
 // ------------------------------------------------------------------
@@ -402,6 +435,17 @@ edge::priv
 }
 
 // ------------------------------------------------------------------
+void
+edge::priv
+::interrupted_check() const
+{
+  if (interrupted)
+  {
+    VITAL_THROW( edge_interrupted );
+  }
+}
+
+// ------------------------------------------------------------------
 bool
 edge::priv
 ::push(edge_datum_t const& datum, std::optional<duration_t> const& duration)
@@ -420,7 +464,7 @@ edge::priv
 
   {
     unique_lock_t lock(mutex);
-    auto predicate = [this]() { return !full_of_data(); };
+    auto predicate = [this]() { return !full_of_data() || interrupted; };
 
     if (duration)
     {
@@ -433,6 +477,12 @@ edge::priv
     else
     {
       cond_have_space.wait(lock, predicate);
+    }
+
+    // Nobody will take it: the pipeline is stopping
+    if (interrupted)
+    {
+      return true;
     }
 
     q.push_back(datum);
@@ -454,7 +504,7 @@ edge::priv
 
   {
     unique_lock_t lock(mutex);
-    auto predicate = [this]() { return !q.empty(); };
+    auto predicate = [this]() { return !q.empty() || interrupted; };
 
     if (duration)
     {
@@ -466,6 +516,11 @@ edge::priv
     else
     {
       cond_have_data.wait(lock, predicate);
+    }
+
+    if (q.empty())
+    {
+      interrupted_check();
     }
 
     dat = q.front();

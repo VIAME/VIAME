@@ -1939,10 +1939,27 @@ failure. And on this machine's install, the same pipeline with a stand-in
 it finishes in 13.
 
 Whether main behaves the same is not settled: its enhancer did not import
-the stand-in, so the comparison run there proved nothing. A test for it
-wants a process that is certain to throw, run under both schedulers, with a
-timeout; the fix is that an exception in any process stops the pipeline and
-`viame` exits non-zero.
+the stand-in, so the comparison run there proved nothing.
+
+**Fixed.** The thread that throws leaves, and the threads beside it are
+blocked inside a step on an edge -- waiting for data the failed process will
+never send, or for space it will never make -- so they never see the error
+flag, and `_wait()` joins them forever. Edges now have `interrupt()`: it wakes
+every waiter, after which a push returns without waiting and a get or peek on
+an empty edge throws `edge_interrupted`. `thread_per_process` collects the
+pipeline's edges at start and interrupts them all on the first exception, so
+every thread returns to its loop, sees the flag and exits, and `_wait()`
+rethrows the original exception. `pythread_per_process` already avoided the
+hang its own way, by daemonising its threads and not joining once a process
+has failed.
+
+`scheduler.thread_per_process_stops_when_a_process_throws` runs
+`numbers -> failing_process -> print_number` and requires `wait()` to throw the
+process's exception within 30 s: with the fix it does in 6 ms; with the two
+`interrupt_edges()` calls taken out it is still blocked after 30 s. The
+installed pipeline with the stand-in `cv2` now exits 255 in 4 s. Stopping a
+pipeline on request (`stop()`) still only sets the flag, and could block the
+same way; nothing exercises it.
 
 ### 2.14 The forks were built without the environment that compiles their code
 

@@ -15,6 +15,7 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <shared_mutex>
 #include <sstream>
 #include <thread>
@@ -73,6 +74,21 @@ class thread_per_process_scheduler::priv
     std::mutex m_error_mutex;
     std::string m_error_message;
     std::exception_ptr m_exception_ptr;
+
+    // Every edge in the pipeline. When a process throws, the threads feeding
+    // and draining it are usually blocked inside a step on one of these and
+    // never see m_error_occurred; interrupting the edges returns them to the
+    // loop, so the pipeline stops and _wait() reports the failure rather than
+    // hanging in join_all().
+    std::vector<edge_t> m_edges;
+
+    void interrupt_edges()
+    {
+      for (auto const& e : m_edges)
+      {
+        e->interrupt();
+      }
+    }
 };
 
 // ------------------------------------------------------------------
@@ -138,6 +154,20 @@ thread_per_process_scheduler
   d->m_exception_ptr = nullptr;
   d->m_error_message.clear();
   d->process_threads.clear();
+
+  std::set<edge_t> edges;
+  for (process::name_t const& name : names)
+  {
+    for (auto const& e : p->input_edges_for_process(name))
+    {
+      edges.insert(e);
+    }
+    for (auto const& e : p->output_edges_for_process(name))
+    {
+      edges.insert(e);
+    }
+  }
+  d->m_edges.assign(edges.begin(), edges.end());
 
   for (process::name_t const& name : names)
   {
@@ -277,6 +307,8 @@ thread_per_process_scheduler::priv
       m_error_message = msg.str();
 
       LOG_ERROR(logger, m_error_message);
+
+      interrupt_edges();
     }
   }
   catch (...)
@@ -294,6 +326,8 @@ thread_per_process_scheduler::priv
       m_error_message = msg.str();
 
       LOG_ERROR(logger, m_error_message);
+
+      interrupt_edges();
     }
   }
 }

@@ -62,6 +62,24 @@ datum_requested_after_complete
 }
 
 // ----------------------------------------------------------------------------
+edge_interrupted
+::edge_interrupted() noexcept
+  : edge_exception()
+{
+  std::ostringstream sstr;
+
+  sstr << "A datum was requested from an edge that was "
+          "interrupted because the pipeline is stopping";
+
+  m_what = sstr.str();
+}
+
+edge_interrupted
+::~edge_interrupted() noexcept
+{
+}
+
+// ----------------------------------------------------------------------------
 edge_connection_exception
 ::edge_connection_exception() noexcept
   : edge_exception()

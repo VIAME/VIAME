@@ -269,6 +269,18 @@ public:
   bool is_downstream_complete() const;
 
   /**
+   * \brief Wake everything waiting on the edge, for good.
+   *
+   * For a scheduler stopping a pipeline that has failed. A process that
+   * throws never marks itself complete, so the process feeding it can wait for
+   * space and the one it feeds can wait for data, forever. After this, a push
+   * returns without waiting and a get or peek on an empty edge throws
+   * \ref edge_interrupted, so every step blocked on the edge returns to its
+   * scheduler.
+   */
+  void interrupt();
+
+  /**
    * \brief Set the process which is connected to the input side of the edge.
    *
    * \preconds
