@@ -965,7 +965,8 @@ run_build() {
   # (discarded) image, which previously let broken builds pass silently.
   # pipefail inside the subshell so make's status is seen rather than tee's
   local status=0
-  if ( set -o pipefail; make -j$(nproc) 2>&1 | tee "$log_file" ); then
+  # VIAME_BUILD_JOBS caps the parallelism, for a builder with little memory.
+  if ( set -o pipefail; make -j"${VIAME_BUILD_JOBS:-$(nproc)}" 2>&1 | tee "$log_file" ); then
     status=0
   else
     status=$?

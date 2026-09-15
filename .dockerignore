@@ -1,0 +1,9 @@
+# The build context of docker/Dockerfile is the whole checkout. Keep out what
+# is large and not source: build trees and python caches. .git is kept, so
+# the build can check out submodules a checkout has not.
+build
+build-*
+_build
+**/__pycache__
+**/*.pyc
+**/node_modules

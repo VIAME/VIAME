@@ -13,9 +13,9 @@ set -u
 
 # Path to a VIAME source checkout. Leave empty when this script runs from its
 # place in cmake/ inside a checkout; set it when the script is copied anywhere
-# else, e.g. VIAME_INSTALL=/data/src/VIAME. Only docker/ (the two Dockerfiles,
-# which clone VIAME from GitHub themselves) and tests/ (the CRITICAL gate) are
-# read from it, so it does not need to be built. May also be given in the
+# else, e.g. VIAME_INSTALL=/data/src/VIAME. The images are built from it --
+# it is docker/Dockerfile's build context, so its submodules must be checked
+# out -- and tests/ in it is the CRITICAL gate. May also be given in the
 # environment. This is a source tree, not an /opt/noaa/viame install prefix.
 VIAME_INSTALL="${VIAME_INSTALL:-}"
 
@@ -26,7 +26,7 @@ if [ -n "$VIAME_INSTALL" ]; then
 else
   SRC_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 fi
-if [ ! -f "$SRC_DIR/docker/viame_gpu_web.docker" ] || [ ! -d "$SRC_DIR/tests" ]; then
+if [ ! -f "$SRC_DIR/docker/Dockerfile" ] || [ ! -d "$SRC_DIR/tests" ]; then
   echo "No VIAME source tree at $SRC_DIR (need docker/ and tests/)."
   echo "Set VIAME_INSTALL at the top of this script, or in the environment, to a VIAME checkout."
   exit 2
@@ -114,14 +114,16 @@ run_critical() {
 if [ "$TEST_ONLY" -eq 0 ]; then
   echo "=== building $WEB ==="
   docker image rm -f "$WEB" >/dev/null 2>&1
-  docker build --no-cache -t "$WEB" -f "$SRC_DIR/docker/viame_gpu_web.docker" \
-    "$SRC_DIR/docker" > web_build.log 2>&1 \
+  docker build --no-cache --target web -t "$WEB" -f "$SRC_DIR/docker/Dockerfile" \
+    "$SRC_DIR" > web_build.log 2>&1 \
     || { echo "web build failed, see web_build.log"; exit 1; }
 
   echo "=== building $DEFAULT (web plus model packs) ==="
   docker image rm -f "$DEFAULT" >/dev/null 2>&1
-  docker build --no-cache -t "$DEFAULT" -f "$SRC_DIR/docker/viame_gpu_default.docker" \
-    "$SRC_DIR/docker" > default_build.log 2>&1 \
+  # No --no-cache: the web stages were just built, and default is web plus
+  # the model packs.
+  docker build --target default -t "$DEFAULT" -f "$SRC_DIR/docker/Dockerfile" \
+    "$SRC_DIR" > default_build.log 2>&1 \
     || { echo "default build failed, see default_build.log"; exit 1; }
 fi
 
