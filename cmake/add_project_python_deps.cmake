@@ -91,6 +91,21 @@ if( VIAME_ENABLE_PYTORCH-SAM3 )
 endif()
 
 # For PostgreSQL database support (used by native ITQ indexer, etc.)
+# TensorRT from NVIDIA's pip wheels, matched to the CUDA major. The full
+# package carries the builder (~3.7 GB installed) so plugins can compile engines
+# from ONNX on first use; VIAME_TENSORRT_RUNTIME_ONLY installs the lean runtime
+# (~110 MB) that only runs engines shipped prebuilt (hardware/version
+# compatible), e.g. in model add-ons.
+if( VIAME_ENABLE_TENSORRT )
+  if( VIAME_TENSORRT_RUNTIME_ONLY )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS
+      "tensorrt_lean_cu${CUDA_VERSION_MAJOR}_libs==10.16.1.11"
+      "tensorrt_lean_cu${CUDA_VERSION_MAJOR}_bindings==10.16.1.11" )
+  else()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorrt-cu${CUDA_VERSION_MAJOR}==10.16.1.11" )
+  endif()
+endif()
+
 if( VIAME_ENABLE_POSTGRESQL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
 endif()

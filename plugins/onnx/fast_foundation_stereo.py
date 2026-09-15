@@ -22,6 +22,7 @@ containing one) to use TensorRT instead.
 """
 
 import os
+import sys
 import json
 import numpy as np
 
@@ -50,6 +51,44 @@ _IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 _IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
 
+def _import_tensorrt():
+    """
+    The full ``tensorrt`` package (VIAME_ENABLE_TENSORRT) can build and
+    run engines; the lean runtime (VIAME_ENABLE_TENSORRT with VIAME_TENSORRT_RUNTIME_ONLY) can only run
+    prebuilt ones. Returns (module, can_build).
+    """
+    try:
+        import tensorrt as trt
+
+        return trt, True
+    except ImportError:
+        pass
+    try:
+        import tensorrt_lean_bindings as trt
+
+        return trt, False
+    except ImportError as exc:
+        raise RuntimeError(
+            "backend 'tensorrt' needs the tensorrt (VIAME_ENABLE_TENSORRT) or "
+            "tensorrt_lean (VIAME_ENABLE_TENSORRT with VIAME_TENSORRT_RUNTIME_ONLY) python package"
+        ) from exc
+
+
+def _tensorrt_available():
+    try:
+        _import_tensorrt()
+        return True
+    except RuntimeError:
+        return False
+
+
+def _shipped_engine_path(onnx_path):
+    """A prebuilt, hardware-compatible engine shipped next to the model."""
+    base = os.path.splitext(onnx_path)[0]
+    platform = "windows" if sys.platform.startswith("win") else "linux"
+    return f"{base}.{platform}.engine"
+
+
 class FastFoundationStereoOnnxConfig(scfg.DataConfig):
     """
     Configuration for :class:`FastFoundationStereoOnnx`.
@@ -67,7 +106,11 @@ class FastFoundationStereoOnnxConfig(scfg.DataConfig):
         "next to the model file.",
     )
     backend = scfg.Value(
-        "auto", help="'auto' (pick from extension), 'onnxruntime', or 'tensorrt'."
+        "auto",
+        help="'auto' (TensorRT when an .engine is given or shipped beside the "
+        ".onnx and a TensorRT runtime is installed, else onnxruntime), "
+        "'onnxruntime', or 'tensorrt' (builds an engine on first use if none "
+        "is shipped; needs full TensorRT).",
     )
     device = scfg.Value(
         "auto",
@@ -87,6 +130,18 @@ class FastFoundationStereoOnnxConfig(scfg.DataConfig):
     )
     remove_invisible = scfg.Value(
         True, help="Set invalid disparity (negative x in right image) to " "infinity."
+    )
+    engine_cache_dir = scfg.Value(
+        "",
+        help="Where engines built from an .onnx are cached when backend is "
+        "'tensorrt'. Empty: next to the model. Engines are specific to the "
+        "GPU and TensorRT version, so they are keyed on both.",
+    )
+    trt_precision = scfg.Value(
+        "fp32",
+        help="'fp32' or 'fp16' for engines built from an .onnx. fp16 is not "
+        "faster on recent GPUs for this model and costs ~0.2 px mean / 1 px "
+        "p99 of disparity accuracy.",
     )
 
 
@@ -164,14 +219,25 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
                     "required for depth output"
                 )
 
-        # Pick backend
+        # Pick backend. 'auto' takes TensorRT when it costs nothing extra: an
+        # .engine path, or an engine shipped beside the .onnx plus a TensorRT
+        # runtime to run it. It never builds an engine (minutes) on its own.
         backend = self._config["backend"]
         if backend == "auto":
-            backend = "tensorrt" if model_path.endswith(".engine") else "onnxruntime"
+            if model_path.endswith(".engine"):
+                backend = "tensorrt"
+            elif os.path.exists(_shipped_engine_path(model_path)) and _tensorrt_available():
+                backend = "tensorrt"
+            else:
+                backend = "onnxruntime"
 
         if backend == "onnxruntime":
+            print(f"fast_foundation_stereo_onnx: onnxruntime, {model_path}", file=sys.stderr, flush=True)
             self._runner = self._build_ort_runner(model_path)
         elif backend == "tensorrt":
+            if not model_path.endswith(".engine"):
+                model_path = self._ensure_engine(model_path)
+            print(f"fast_foundation_stereo_onnx: TensorRT, {model_path}", file=sys.stderr, flush=True)
             self._runner = self._build_trt_runner(model_path)
         else:
             raise RuntimeError(f"Unknown backend: {backend}")
@@ -271,9 +337,76 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
             self._output_disp_name,
         )
 
+    def _engine_cache_path(self, onnx_path):
+        """Engine file for this .onnx on this GPU and TensorRT version."""
+        import torch
+
+        trt, _ = _import_tensorrt()
+
+        cache_dir = self._config["engine_cache_dir"] or os.path.dirname(onnx_path)
+        gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"
+        gpu = "".join(c if c.isalnum() else "_" for c in gpu).strip("_")
+        base = os.path.splitext(os.path.basename(onnx_path))[0]
+        name = f"{base}.{gpu}.trt{trt.__version__}.{self._config['trt_precision']}.engine"
+        return os.path.join(cache_dir, name)
+
+    def _ensure_engine(self, onnx_path):
+        """
+        The engine to run for an .onnx, in order: one shipped next to it
+        (``<model>.<linux|windows>.engine``, built hardware/version compatible
+        so one file serves every Ampere-or-newer GPU), one this plugin built
+        and cached earlier, or a fresh build. Building takes several minutes
+        and needs the full TensorRT package; the lean runtime can only use
+        the first two.
+        """
+        shipped = _shipped_engine_path(onnx_path)
+        if os.path.exists(shipped):
+            return shipped
+        trt, can_build = _import_tensorrt()
+        engine_path = self._engine_cache_path(onnx_path)
+        if os.path.exists(engine_path):
+            return engine_path
+        if not can_build:
+            raise RuntimeError(
+                f"No TensorRT engine for {onnx_path}: expected {shipped} (or {engine_path}), "
+                "and the lean runtime cannot build one; install full TensorRT "
+                "(VIAME_ENABLE_TENSORRT) or use backend 'onnxruntime'"
+            )
+        precision = self._config["trt_precision"]
+        if precision not in ("fp32", "fp16"):
+            raise RuntimeError(f"trt_precision must be fp32 or fp16, got {precision}")
+        print(
+            f"Building TensorRT {precision} engine for {os.path.basename(onnx_path)} "
+            f"(one-time, several minutes): {engine_path}",
+            file=sys.stderr, flush=True,
+        )
+        logger = trt.Logger(trt.Logger.WARNING)
+        builder = trt.Builder(logger)
+        network = builder.create_network(0)
+        parser = trt.OnnxParser(network, logger)
+        with open(onnx_path, "rb") as f:
+            if not parser.parse(f.read()):
+                errors = [str(parser.get_error(i)) for i in range(parser.num_errors)]
+                raise RuntimeError(f"TensorRT could not parse {onnx_path}: {errors}")
+        config = builder.create_builder_config()
+        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 8 << 30)
+        if precision == "fp16":
+            config.set_flag(trt.BuilderFlag.FP16)
+        plan = builder.build_serialized_network(network, config)
+        if plan is None:
+            raise RuntimeError(f"TensorRT failed to build an engine for {onnx_path}")
+        os.makedirs(os.path.dirname(engine_path), exist_ok=True)
+        tmp_path = engine_path + ".part"
+        with open(tmp_path, "wb") as f:
+            f.write(plan)
+        os.replace(tmp_path, engine_path)
+        print(f"TensorRT engine ready: {engine_path}", file=sys.stderr, flush=True)
+        return engine_path
+
     def _build_trt_runner(self, engine_path):
         import torch
-        import tensorrt as trt
+
+        trt, _ = _import_tensorrt()
 
         logger = trt.Logger(trt.Logger.WARNING)
         with open(engine_path, "rb") as f:

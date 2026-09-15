@@ -372,6 +372,10 @@ function( CheckAddonPlatform _platform _result )
     else()
       set( ${_result} FALSE PARENT_SCOPE )
     endif()
+  elseif( "${_platform}" STREQUAL "WEB-ONLY" )
+    # Fetched by the DIVE web server at run time (raw model files), never by a
+    # desktop build.
+    set( ${_result} FALSE PARENT_SCOPE )
   else()
     message( WARNING "Unknown platform specifier: ${_platform}, defaulting to ALL-PLATFORMS" )
     set( ${_result} TRUE PARENT_SCOPE )

@@ -116,6 +116,8 @@ option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
 ##
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
+option( VIAME_TENSORRT_RUNTIME_ONLY "Install only the TensorRT lean runtime (runs prebuilt engines; ~110 MB instead of ~3.7 GB, cannot build engines)" OFF )
+mark_as_advanced( VIAME_TENSORRT_RUNTIME_ONLY )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 
 ###
@@ -875,6 +877,10 @@ if( VIAME_ENABLE_OPENCV )
   endif()
 endif()
 
+if( VIAME_ENABLE_TENSORRT AND NOT ( VIAME_ENABLE_CUDA AND VIAME_ENABLE_PYTHON ) )
+  message( FATAL_ERROR "VIAME_ENABLE_TENSORRT requires VIAME_ENABLE_CUDA and VIAME_ENABLE_PYTHON" )
+endif()
+
 if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
   message( FATAL_ERROR "VIAME_ENABLE_DIVE requires VIAME_ENABLE_FFMPEG-X264 flag" )
 endif()
@@ -986,7 +992,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_dive )
   endif()
 
-  if( VIAME_ENABLE_TENSORRT )
+  # The TensorRT python runtime comes from pip (add_project_python_deps). The
+  # legacy TensorRT-OSS build against NVIDIA's binaries only runs when a
+  # TENSORRT_LIB_DIR is supplied.
+  if( VIAME_ENABLE_TENSORRT AND TENSORRT_LIB_DIR )
     include( add_project_tensorrt )
   endif()
 

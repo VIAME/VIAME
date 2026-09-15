@@ -1,4 +1,6 @@
-# TensorRT External Project
+# TensorRT External Project (legacy TensorRT-OSS build against NVIDIA's
+# binaries; only included when TENSORRT_LIB_DIR is set. The python runtime the
+# plugins use comes from pip, see add_project_python_deps.cmake.)
 #
 # Required symbols are:
 #   VIAME_BUILD_PREFIX - where packages are built
