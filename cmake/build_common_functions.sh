@@ -500,20 +500,6 @@ install_openssl() {
 }
 
 # ==============================================================================
-# OPENCV EXTRAS
-# ==============================================================================
-
-# Download OpenCV extra files from Kitware data server
-# (Downloads locally instead of from notoriously failing opencv repo)
-download_opencv_extras() {
-  echo "Downloading OpenCV extras..."
-  curl https://data.kitware.com/api/v1/item/682bf0110dcd2dfb445a5404/download --output tmp.tar.gz
-  tar -xvf tmp.tar.gz
-  rm tmp.tar.gz
-  echo "OpenCV extras download complete"
-}
-
-# ==============================================================================
 # CUDNN PATCHING
 # ==============================================================================
 
@@ -823,18 +809,6 @@ verify_build_success() {
   return 0
 }
 
-# Fix libsvm symlink issue
-# Arguments: $1 = path to install directory (default: install)
-fix_libsvm_symlink() {
-  local install_dir="${1:-install}"
-
-  if [ -f "$install_dir/lib/libsvm.so.2" ]; then
-    rm -f "$install_dir/lib/libsvm.so"
-    cp "$install_dir/lib/libsvm.so.2" "$install_dir/lib/libsvm.so"
-    echo "Fixed libsvm symlink"
-  fi
-}
-
 # Package the install with CPack (cmake/viame_packaging.cmake): a gzipped
 # tarball VIAME-<version>-<platform>.tar.gz in the build directory, with the
 # install under viame/ and what a binary release does not carry left out.
@@ -1027,9 +1001,6 @@ run_build_and_setup_libraries() {
   export CUDA_BASE="$cuda_base"
   export CUDNN_BASE="$cudnn_base"
   export LIB_BASE="$lib_base"
-
-  # Fix libsvm symlink issue
-  fix_libsvm_symlink install
 
   # Copy CUDA libraries if available
   copy_cuda_libraries "$CUDA_BASE" install/lib

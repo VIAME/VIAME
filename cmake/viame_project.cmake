@@ -312,11 +312,11 @@ if( WIN32 )
   endif()
 
   install( PROGRAMS      ${VIAME_SETUP_SCRIPT}
-           DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+           DESTINATION   . )
 
   if( VIAME_ENABLE_DIVE )
     install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_dive_interface.bat"
-             DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+             DESTINATION   . )
   endif()
 else()
   set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
@@ -336,21 +336,21 @@ else()
   endif()
 
   install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
-           DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+           DESTINATION   . )
   install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.sh
-           DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+           DESTINATION   bin )
   install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.csv
-           DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+           DESTINATION   bin )
   install( PROGRAMS      ${VIAME_CMAKE_DIR}/filter_non_web_pipelines.sh
-           DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+           DESTINATION   bin )
   install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
-           DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+           DESTINATION   bin )
   install( PROGRAMS      ${VIAME_CMAKE_DIR}/viame_train_detector
-           DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+           DESTINATION   bin )
 
   if( VIAME_ENABLE_DIVE )
     install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_dive_interface.sh"
-             DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+             DESTINATION   . )
   endif()
 endif()
 
@@ -361,7 +361,7 @@ if( VIAME_FIXUP_BUNDLE )
   set( VIAME_RELEASE_NOTES_FILE "RELEASE_NOTES.md" )
 
   install( PROGRAMS      ${VIAME_RELEASE_NOTES_FILE}
-           DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+           DESTINATION   . )
 
   set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
   include( InstallRequiredSystemLibraries )

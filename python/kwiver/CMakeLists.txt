@@ -14,8 +14,3 @@ endif()
 #  add_subdirectory(arrows)
 #endif()
 
-#if(SKBUILD)
-#viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/kwiver_tools.py
-#                         ""
-#                         kwiver_tools)
-#endif()

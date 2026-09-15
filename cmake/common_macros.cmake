@@ -527,12 +527,38 @@ function( DownloadAndInstallAddonModels _name _addons_src_dir )
   # Download the file
   DownloadFile( "${_url}" "${_dl_file}" "${_md5}" )
 
-  # Extract to temporary location
-  message( STATUS "Extracting addon ${_name} to ${_extract_dir}" )
-  file( MAKE_DIRECTORY "${_extract_dir}" )
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} -E tar xzf "${_dl_file}"
-    WORKING_DIRECTORY "${_extract_dir}" )
+  # Extract to a temporary location, once per archive. Every configure used
+  # to extract every enabled pack again -- about 4 GB for SAM3 alone -- which
+  # was most of a reconfigure's time. A stamp beside the extraction directory
+  # records the MD5 of the archive it holds; beside it, not in it, because the
+  # content-root search below globs the directory and a stamp inside would be
+  # taken for content.
+  set( _stamp "${_extract_dir}.md5" )
+  set( _extracted_md5 "" )
+  if( EXISTS "${_stamp}" AND IS_DIRECTORY "${_extract_dir}" )
+    file( READ "${_stamp}" _extracted_md5 )
+    string( STRIP "${_extracted_md5}" _extracted_md5 )
+  endif()
+
+  if( "${_extracted_md5}" STREQUAL "${_md5}" )
+    message( STATUS "Skipping extraction of addon ${_name} (already extracted, MD5 matches)" )
+  else()
+    message( STATUS "Extracting addon ${_name} to ${_extract_dir}" )
+    # A different archive: nothing the previous one left may survive into it.
+    file( REMOVE_RECURSE "${_extract_dir}" )
+    file( REMOVE "${_stamp}" )
+    file( MAKE_DIRECTORY "${_extract_dir}" )
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} -E tar xzf "${_dl_file}"
+      WORKING_DIRECTORY "${_extract_dir}"
+      RESULT_VARIABLE _extract_result )
+    if( _extract_result EQUAL 0 )
+      file( WRITE "${_stamp}" "${_md5}\n" )
+    else()
+      # No stamp, so the next configure tries again.
+      message( WARNING "Could not extract addon ${_name} from ${_dl_file}" )
+    endif()
+  endif()
 
   # Determine content root (handle nested wrapper directories vs flat layout)
   # Some zips have multiple levels of single-dir wrapping (e.g. configs/pipelines/models/)

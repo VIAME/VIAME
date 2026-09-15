@@ -13,89 +13,35 @@
 // ----------------------------------------------------------------------------
 /// @page Logger Logger Documentation
 ///
-/// <P>The kwiver logger (class kwiver_logger) provides a interface to an
-/// underlying log implementation. Log4cxx is the baseline implementation,
-/// which is why this interface looks the way it does. Alternate loggers
-/// can be instantiated as needed for specific applications, products, or
-/// projects. These alternate logger implementations are supplied by a
-/// factory class and can provide any functionality consistent with the
-/// kwiver_logger interface. The semantics of the underlying logger
-/// largely pass through to this implementation.</P>
+/// <P>All calls to log a message require a logger object, obtained with
+/// kwiver::vital::get_logger( <name> ). Every call with the same name gets
+/// the same logger, so it is cheapest to fetch the handle once and keep it in
+/// a member. The macros below -- LOG_ERROR, LOG_WARN and the rest -- test the
+/// level before they build the message.</P>
 ///
-/// <P>All calls to log a message require a logger object which is
-/// obtained through the kwiver::vital::get_logger( <name> ) call. The
-/// supplied name is used to retrieve a logger object with that
-/// name. Calls that use the same name will get the same logger
-/// object. Depending on the underlying logger being used, more than one
-/// name may map to the same logger object.</P>
-///
-/// <P>If Log4cxx is not available or not enabled, a minimal logger is
-/// supplied which routes all log messages to standard error output
-/// (std::err). This is a case where multiple names map to the same logger
-/// object.</P>
-///
-/// <P>The easiest way to applying the logger is to use the macros in the
-/// logger/logger.h file. It is most efficient to locally cache the logger
-/// pointer in a class member variable.</p>
+/// <P>There is one implementation, and nothing is loaded at run time to
+/// provide it. Each line goes to standard error as
+/// <tt>YYYY-MM-DD HH:MM:SS.mmm LEVEL file(line): message</tt>, local time. A
+/// logger may also have a callback, and all loggers a global one, which see
+/// each message instead of the default output.</P>
 ///
 /// @sa kwiver_logger
 ///
-/// <h2>Internal Operation</h2>
-///
-/// <p>During construction, the logger_manager instantiates a factory
-/// class from a loadable module, named "vital_logger_plugin.so" (or
-/// "vital_logger_plugin.dll" for windows). This plugin is expected to be
-/// somewhere in the standard library loading path. If the logger plugin
-/// has a different name or in a specific location, the environment
-/// variable \b VITAL_LOGGER_FACTORY can be used to specify the name and
-/// location (full path and file name). If a valid logger plugin can not
-/// be found the default minimal logger is used.</P>
-///
-/// <p>Using a default plugin allows a logger factory to be supplied by
-/// the installed set of libraries. This helps in cases where it is not
-/// practical to set an environment variable. A log4cxx logger factory is
-/// built by default and can be set up as the default plugin by renaming
-/// it or using a symbolic link.</p>
-///
-/// <P>The ability to support alternate underlying logger implementations
-/// is designed to make this logging component easy(er) to transport to
-/// projects that have a specific (not log4cxx) logging implementation
-/// requirement. Alternate logger factories are dynamically loaded at run
-/// time.</p>
-///
-/// <P>An alternate logger back end is created by implementing a concrete
-/// version of the logger interface derived from
-/// kwiver::vital::logger_ns::kwiver_logger_factory class and a logger
-/// factory class derived from
-/// kwiver::vital::logger_ns::kwiver_logger_factory. Finally a bootstrap
-/// function is needed by the registry to get an instance of the
-/// logger factory. Refer to logger/log4cxx_factory.cxx file for guidance.
-/// </P>
-///
 /// <h2>Configuration</h2>
 ///
-/// <h3>Log4cxx</H3>
+/// Two environment variables, read when a logger is first created:
 ///
-/// The Log4cxx implementation uses a specific configuration file format that is
-/// described at:
-/// <P> @link https://logging.apache.org/log4cxx/usage.html </p>
+/// - \b VIAME_LOG_LEVEL -- trace, debug, info, warn or error, in any case.
+///   \b KWIVER_DEFAULT_LOG_LEVEL, the older name, is read when it is unset.
+///   A value that names no level is ignored. Without either, a release build
+///   logs warnings and errors and a debug build logs everything.
 ///
-/// The configuration process is as follows:
+/// - \b VIAME_LOG_FILE -- a file to append every line to as well as standard
+///   error. If it cannot be opened, the process says so once and logs to
+///   standard error only.
 ///
-/// - Look for the \b LOG4CXX_CONFIGURATION environment variable. If set,
-/// use this as the configuration file.
-///
-/// - If no environment variable set, look for the first of "log4cxx.xml",
-/// "log4cxx.properties", "log4j.xml" and "log4j.properties" in the
-/// current working directory and use that as the configuration file.
-///
-/// If still no configuration file can be found, then a default
-/// configuration is used, which generally does not do what you really
-/// want.
-///
-/// <h3>Other logger back ends</H3>
-///
-/// <P>Other underlying loggers may have different configuration procedures.</P>
+/// A level set on a logger with set_level() overrides the environment for
+/// that logger.
 ///
 /// <h2>Example</h2>
 ///

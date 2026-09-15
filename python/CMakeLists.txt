@@ -45,7 +45,7 @@ if(NOT SKBUILD)
 
   install(
     DIRECTORY ${KWIVER_BINARY_DIR}/${python_site_packages}/kwiver.egg-info
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/${python_site_packages}/
+    DESTINATION ${python_site_packages}/
   )
 
 endif()

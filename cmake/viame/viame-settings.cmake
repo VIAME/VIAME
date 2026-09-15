@@ -35,12 +35,6 @@ set( kwiver_config_subdir share/kwiver/${KWIVER_VERSION}/config )
 
 add_definitions( -DKWIVER_DEFAULT_PLUGIN_ORGANIZATION="Kitware Inc." )
 
-# Vital's applets parse their arguments with cxxopts, which needs std::regex
-# or Boost's. `kwiver-configcheck` sets VITAL_USE_STD_REGEX.
-if( NOT VITAL_USE_STD_REGEX AND Boost_FOUND )
-  set( VITAL_BOOST_REGEX ${Boost_REGEX_LIBRARY} )
-  add_definitions( -DKWIVER_USE_BOOST_REGEX )
-endif()
 
 ###
 # vital/version.h

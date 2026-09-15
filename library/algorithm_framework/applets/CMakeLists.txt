@@ -20,8 +20,7 @@ viame_add_library( vital_applets
 )
 
 target_link_libraries( vital_applets
-  PUBLIC      ${VITAL_BOOST_REGEX}
-              vital_util
+  PUBLIC      vital_util
               vital_config
               vital_logger
               vital_vpm  # uses pluggable
