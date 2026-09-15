@@ -42,7 +42,9 @@ ARG BASE_OS=ubuntu24.04
 FROM ${CUDA_IMAGE}-devel-${BASE_OS} AS build
 
 ARG VIAME_PRESET=docker-web
-ARG CUDA_ARCHITECTURES="7.0 7.5 8.0 8.6 8.9 9.0 10.0 12.0"
+# What nvcc 12.6 can build for: it stops at 9.0. 10.0 and 12.0 need a CUDA 13
+# base, which cuda13.lock is picked for; this list was CUDA 12.9's.
+ARG CUDA_ARCHITECTURES="7.0 7.5 8.0 8.6 8.9 9.0"
 ARG VIAME_CMAKE_ARGS=
 ARG VIAME_BUILD_JOBS=
 ARG VIAME_LEGACY_MMDET=OFF
