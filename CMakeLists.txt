@@ -116,8 +116,6 @@ option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
 ##
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
-option( VIAME_TENSORRT_RUNTIME_ONLY "Install only the TensorRT lean runtime (runs prebuilt engines; ~110 MB instead of ~3.7 GB, cannot build engines)" OFF )
-mark_as_advanced( VIAME_TENSORRT_RUNTIME_ONLY )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 
 ###
@@ -202,7 +200,7 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-SAM3        "Enable SAM3 algorithms"         OFF )
   option( VIAME_ENABLE_PYTORCH-STEREO      "Enable stereo algorithms"       OFF )
   option( VIAME_ENABLE_PYTORCH-ULTRALYTICS "Enable ultralytics algorithms"  OFF )
-  option( VIAME_ENABLE_PYTORCH-SLEAP       "Enable SLEAP-NN keypoint algorithms" OFF )
+  option( VIAME_ENABLE_PYTORCH-SLEAP       "Enable SLEAP-NN algorithms"     OFF )
   option( VIAME_ENABLE_PYTORCH-LITDET      "Enable LitDet algorithms"       OFF )
   option( VIAME_ENABLE_PYTORCH-DINO3       "Enable DINOv3 algorithms"       OFF )
 
@@ -242,6 +240,15 @@ if( VIAME_ENABLE_PYTORCH )
   if( NOT VIAME_ENABLE_PYTORCH-VISION )
     set( VIAME_BUILD_TORCHVISION_FROM_SOURCE  OFF CACHE BOOL "Forced off" FORCE )
   endif()
+endif()
+
+###
+# Additional tensor-rt options
+##
+if( VIAME_ENABLE_TENSORRT )
+  option( VIAME_TENSORRT_RUNTIME_ONLY "Install only the TensorRT runtime" ON )
+
+  mark_as_advanced( VIAME_TENSORRT_RUNTIME_ONLY )
 endif()
 
 ###
