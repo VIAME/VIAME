@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/write_track_descriptor_set.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class write_track_descriptor_set_base = kwiver::vital::algo::write_track_descriptor_set >
+template< class write_track_descriptor_set_base = viame::algo::write_track_descriptor_set >
 class write_track_descriptor_set_trampoline
     : public algorithm_trampoline< write_track_descriptor_set_base >
 {
@@ -26,7 +26,7 @@ class write_track_descriptor_set_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::write_track_descriptor_set,
+      viame::algo::write_track_descriptor_set,
       open,
       filename
       );
@@ -37,23 +37,23 @@ class write_track_descriptor_set_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::write_track_descriptor_set,
+      viame::algo::write_track_descriptor_set,
       close,
       
       );
   }
 
   void
-  write_set(::kwiver::vital::track_descriptor_set_sptr const set, ::std::string const & source_id) override
+  write_set(::viame::track_descriptor_set_sptr const set, ::std::string const & source_id) override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::write_track_descriptor_set,
+      viame::algo::write_track_descriptor_set,
       write_set,
       set, source_id
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

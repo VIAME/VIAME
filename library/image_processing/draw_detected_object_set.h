@@ -14,16 +14,14 @@
 
 #include <vector>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
 /// An abstract base class for algorithms which draw tracks on top of
 /// images in various ways, for analyzing results.
 class VIAME_IMAGE_PROCESSING_EXPORT draw_detected_object_set
-  : public vital::algo::draw_detected_object_set
+  : public viame::algo::draw_detected_object_set
 {
 public:
   PLUGGABLE_IMPL(
@@ -97,7 +95,7 @@ public:
 
   virtual ~draw_detected_object_set();
 
-  bool check_configuration( vital::config_block_sptr config ) const override;
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
   /// Draw detected object boxes om image.
   ///
@@ -105,13 +103,13 @@ public:
   /// @param image Boxes are drawn in this image
   ///
   /// @return Image with boxes and other annotations added.
-  kwiver::vital::image_container_sptr
+  viame::image_container_sptr
   draw(
-    kwiver::vital::detected_object_set_sptr detected_set,
-    kwiver::vital::image_container_sptr image ) override;
+    viame::detected_object_set_sptr detected_set,
+    viame::image_container_sptr image ) override;
 
 private:
-  void set_configuration_internal( vital::config_block_sptr config ) override;
+  void set_configuration_internal( viame::config_block_sptr config ) override;
   void initialize() override;
   class priv;
 
@@ -124,8 +122,6 @@ typedef std::shared_ptr< draw_detected_object_set >
 
 } // namespace ocv
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame
 
 #endif // ARROWS_OCV_DRAW_DETECTED_OBJECT_SET_H

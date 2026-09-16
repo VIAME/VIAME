@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/refine_detections.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class refine_detections_base = kwiver::vital::algo::refine_detections >
+template< class refine_detections_base = viame::algo::refine_detections >
 class refine_detections_trampoline
     : public algorithm_trampoline< refine_detections_base >
 {
@@ -21,17 +21,17 @@ class refine_detections_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::detected_object_set_sptr
-  refine(::kwiver::vital::image_container_sptr image_data, ::kwiver::vital::detected_object_set_sptr detections) const override
+  viame::detected_object_set_sptr
+  refine(::viame::image_container_sptr image_data, ::viame::detected_object_set_sptr detections) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::detected_object_set_sptr,
-      kwiver::vital::algo::refine_detections,
+      viame::detected_object_set_sptr,
+      viame::algo::refine_detections,
       refine,
       image_data, detections
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

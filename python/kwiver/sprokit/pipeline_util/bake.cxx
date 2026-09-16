@@ -24,22 +24,22 @@
 
 using namespace pybind11;
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
-static ::sprokit::pipeline_t bake_pipe_file( std::string const& path );
-static ::sprokit::pipeline_t bake_pipe( object stream );
+static ::viame::pipeline::pipeline_t bake_pipe_file( std::string const& path );
+static ::viame::pipeline::pipeline_t bake_pipe( object stream );
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
-using namespace kwiver::sprokit::python;
+using namespace viame::pipeline::python;
 PYBIND11_MODULE( bake, m )
 {
   m.def(
@@ -52,44 +52,44 @@ PYBIND11_MODULE( bake, m )
     ( arg( "stream" ) ),
     "Build a pipeline from a stream." );
   m.def(
-    "bake_pipe_blocks", &sprokit::bake_pipe_blocks,
+    "bake_pipe_blocks", &viame::pipeline::bake_pipe_blocks,
     call_guard< pybind11::gil_scoped_release >(),
     ( arg( "blocks" ) ),
     "Build a pipeline from pipe blocks." );
   m.def(
-    "extract_configuration", &sprokit::extract_configuration,
+    "extract_configuration", &viame::pipeline::extract_configuration,
     call_guard< pybind11::gil_scoped_release >(),
     ( arg( "blocks" ) ),
     "Extract the configuration from pipe blocks." );
 }
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
 // ------------------------------------------------------------------
-::sprokit::pipeline_t
+::viame::pipeline::pipeline_t
 bake_pipe_file( std::string const& path )
 {
-  ::sprokit::pipeline_builder builder;
+  ::viame::pipeline::pipeline_builder builder;
   builder.load_pipeline( path );
   return builder.pipeline();
 }
 
 // ------------------------------------------------------------------
-::sprokit::pipeline_t
+::viame::pipeline::pipeline_t
 bake_pipe( object stream )
 {
-  ::sprokit::python::pyistream istr( stream );
-  ::sprokit::pipeline_builder builder;
+  ::viame::pipeline::python::pyistream istr( stream );
+  ::viame::pipeline::pipeline_builder builder;
   builder.load_pipeline( istr );
   return builder.pipeline();
 }
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame

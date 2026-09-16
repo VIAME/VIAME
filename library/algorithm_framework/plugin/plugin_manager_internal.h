@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 // This class just exposes the protected members of the base class.
@@ -32,8 +30,6 @@ public:
   registry* get_registry() { return plugin_manager::get_registry(); }
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_PLUGIN_MANAGER_INTERNAL_H

@@ -7,9 +7,7 @@
 
 #include <viame/core_types/video_settings.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 video_settings::~video_settings()
@@ -47,6 +45,4 @@ simple_video_settings
   return m_frame_rate;
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -15,7 +15,7 @@
 #include <set>
 #include <vector>
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( merger );
 
@@ -28,12 +28,12 @@ public:
   std::set< std::string > p_port_list;
 
   // Optional merge algorithm. When unset the input sets are concatenated.
-  vital::algo::merge_detections_sptr m_merger;
+  viame::algo::merge_detections_sptr m_merger;
 };
 
 // ----------------------------------------------------------------------------
 merge_detection_sets_process
-::merge_detection_sets_process( vital::config_block_sptr const& config )
+::merge_detection_sets_process( viame::config_block_sptr const& config )
   : process( config )
   , d( new priv )
 {
@@ -53,7 +53,7 @@ merge_detection_sets_process
 void merge_detection_sets_process
 ::_configure()
 {
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   // The merger is optional: with no type configured the process keeps its
   // historical behaviour of concatenating every input set.
@@ -68,7 +68,7 @@ void merge_detection_sets_process
 
   if( !d->m_merger )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Unable to create \"merger\"" );
   }
 
@@ -78,7 +78,7 @@ void merge_detection_sets_process
   if( !check_nested_algo_configuration_using_trait(
         merger, algo_config, d->m_merger ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Configuration check failed." );
   }
 }
@@ -103,15 +103,15 @@ merge_detection_sets_process
   // sum up all the time spent adding the input sets to the output
   // sets, but that is not very interesting.
 
-  std::vector< vital::detected_object_set_sptr > set_list;
+  std::vector< viame::detected_object_set_sptr > set_list;
 
   for ( auto const& port_name : d->p_port_list )
   {
     set_list.push_back(
-      grab_from_port_as<vital::detected_object_set_sptr>( port_name ) );
+      grab_from_port_as<viame::detected_object_set_sptr>( port_name ) );
   } // end for
 
-  vital::detected_object_set_sptr set_out;
+  viame::detected_object_set_sptr set_out;
 
   if( d->m_merger )
   {
@@ -119,7 +119,7 @@ merge_detection_sets_process
   }
   else
   {
-    set_out = std::make_shared< vital::detected_object_set > ();
+    set_out = std::make_shared< viame::detected_object_set > ();
     for ( auto const& set_in : set_list )
     {
       set_out->add( set_in );
@@ -135,7 +135,7 @@ merge_detection_sets_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- output --
@@ -158,7 +158,7 @@ merge_detection_sets_process
   LOG_TRACE( logger(), "Processing undefined input port: \"" << port_name << "\"" );
 
   // Just create an input port to read detections from
-  if (! kwiver::vital::starts_with( port_name, "_" ) )
+  if (! viame::starts_with( port_name, "_" ) )
   {
     // Check for unique port name
     if ( d->p_port_list.count( port_name ) == 0 )
@@ -178,4 +178,4 @@ merge_detection_sets_process
   }
 }
 
-} // end namespace
+} // namespace viame

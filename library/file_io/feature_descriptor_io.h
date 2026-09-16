@@ -15,15 +15,13 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 /// A class for reading and writing feature and desriptor sets
 class VIAME_FILE_IO_EXPORT feature_descriptor_io
-  : public vital::algo::feature_descriptor_io
+  : public viame::algo::feature_descriptor_io
 {
 public:
   PLUGGABLE_IMPL(
@@ -41,7 +39,7 @@ public:
   virtual ~feature_descriptor_io();
 
   /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
 private:
   /// Implementation specific load functionality.
@@ -54,8 +52,8 @@ private:
   /// \param desc the set of descriptors to load from the file
   virtual void load_(
     std::string const& filename,
-    vital::feature_set_sptr& feat,
-    vital::descriptor_set_sptr& desc ) const;
+    viame::feature_set_sptr& feat,
+    viame::descriptor_set_sptr& desc ) const;
 
   /// Implementation specific save functionality.
   ///
@@ -67,8 +65,8 @@ private:
   /// \param desc the set of descriptors to write to the file
   virtual void save_(
     std::string const& filename,
-    vital::feature_set_sptr feat,
-    vital::descriptor_set_sptr desc ) const;
+    viame::feature_set_sptr feat,
+    viame::descriptor_set_sptr desc ) const;
 
   void initialize() override;
   /// private implementation class
@@ -76,10 +74,8 @@ private:
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

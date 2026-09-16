@@ -12,9 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// @brief Printf style formatting for std::string
 ///
@@ -139,8 +137,6 @@ string_trim( std::string& s )
 VITAL_UTIL_EXPORT double
 time_str_to_seconds( const std::string& str );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_UTIL_STRING_FORMAT_H

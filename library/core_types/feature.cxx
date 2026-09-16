@@ -8,9 +8,7 @@
 #include "feature.h"
 #include <viame/algorithm_framework/io/eigen_io.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// output stream operator for a feature base class
 std::ostream&
@@ -126,6 +124,4 @@ INSTANTIATE_FEATURE( float );
 #undef INSTANTIATE_FEATURE
 /// \endcond
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

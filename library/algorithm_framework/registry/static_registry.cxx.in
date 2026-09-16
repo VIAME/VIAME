@@ -21,14 +21,14 @@ namespace viame {
 
 namespace {
 
-using pm = kwiver::vital::plugin_manager;
+using pm = viame::plugin_manager;
 
 } // namespace
 
 void
 register_builtins(
-  kwiver::vital::registry& loader,
-  kwiver::vital::plugin_manager::plugin_types types )
+  viame::registry& loader,
+  viame::plugin_manager::plugin_types types )
 {
 @calls@
   // Nothing built in is registering any more, and a factory added after this
@@ -63,7 +63,7 @@ struct static_registrar
 {
   static_registrar()
   {
-    kwiver::vital::plugin_manager::add_static_registrar(
+    viame::plugin_manager::add_static_registrar(
       &viame::register_builtins );
   }
 };

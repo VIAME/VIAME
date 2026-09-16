@@ -3,16 +3,14 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Instantiation of \link kwiver::vital::algo::algorithm_def
+/// \brief Instantiation of \link viame::algo::algorithm_def
 /// algorithm_def<T>
-///        \endlink for \link kwiver::vital::algo::filter_features
+///        \endlink for \link viame::algo::filter_features
 ///        filter_features \endlink
 
 #include <viame/algorithm_framework/algo/filter_features.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -48,14 +46,12 @@ filter_features
   }
 
   descriptor_set_sptr filt_descr =
-    std::make_shared< kwiver::vital::simple_descriptor_set >(
-      kwiver::vital::simple_descriptor_set( filtered_descr ) );
+    std::make_shared< viame::simple_descriptor_set >(
+      viame::simple_descriptor_set( filtered_descr ) );
 
   return std::make_pair( filt_feat, filt_descr );
 }
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

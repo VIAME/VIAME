@@ -7,12 +7,12 @@
 
 #include <pybind11/pybind11.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 void estimator_extras( pybind11::module& m );
 
 void optimize_cameras_extras( pybind11::module& m );
 
-} // namespace kwiver::vital::python
+} // namespace viame::python
 
 #endif

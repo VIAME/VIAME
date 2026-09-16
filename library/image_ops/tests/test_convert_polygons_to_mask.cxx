@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 

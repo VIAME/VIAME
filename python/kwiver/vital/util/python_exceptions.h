@@ -8,9 +8,7 @@
 #include <pybind11/pybind11.h>
 #include <python/kwiver/vital/util/vital_python_util_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -25,9 +23,9 @@ try                                                               \
 }                                                                 \
 catch( pybind11::error_already_set const& e )                     \
 {                                                                 \
-  auto logger = kwiver::vital::get_logger( "python_exceptions" ); \
+  auto logger = viame::get_logger( "python_exceptions" ); \
   LOG_WARN( logger, "Ignore Python Exception:\n" << e.what() );   \
-  kwiver::vital::python::python_print_exception();                \
+  viame::python::python_print_exception();                \
                                                                   \
   throw;                                                          \
 }
@@ -39,9 +37,9 @@ try                                                               \
 }                                                                 \
 catch( pybind11::error_already_set const& e )                     \
 {                                                                 \
-  auto logger = kwiver::vital::get_logger( "python_exceptions" ); \
+  auto logger = viame::get_logger( "python_exceptions" ); \
   LOG_WARN( logger, "Ignore Python Exception:\n" << e.what() );   \
-  kwiver::vital::python::python_print_exception();                \
+  viame::python::python_print_exception();                \
 }
 
 #define VITAL_PYTHON_TRANSLATE_EXCEPTION( call )   \
@@ -60,8 +58,6 @@ catch( std::exception const& e )                   \
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_PYTHON_UTIL_PYTHON_EXCEPTIONS_H

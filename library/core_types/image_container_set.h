@@ -15,9 +15,7 @@
 #include <viame/core_types/set.h>
 #include <viame/core_types/vital_types_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// An abstract ordered collection of feature images.
 ///
@@ -35,17 +33,15 @@ public:
 
 protected:
   image_container_set()
-    : m_logger( kwiver::vital::get_logger( "vital.image_container_set" ) )
+    : m_logger( viame::get_logger( "vital.image_container_set" ) )
   {}
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 };
 
 /// Shared pointer for base image_container_set type
 typedef std::shared_ptr< image_container_set > image_container_set_sptr;
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_IMAGE_CONTAINER_SET_H_

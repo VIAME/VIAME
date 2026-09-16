@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/detected_object_filter.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class detected_object_filter_base = kwiver::vital::algo::detected_object_filter >
+template< class detected_object_filter_base = viame::algo::detected_object_filter >
 class detected_object_filter_trampoline
     : public algorithm_trampoline< detected_object_filter_base >
 {
@@ -21,17 +21,17 @@ class detected_object_filter_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::detected_object_set_sptr
-  filter(::kwiver::vital::detected_object_set_sptr const input_set) const override
+  viame::detected_object_set_sptr
+  filter(::viame::detected_object_set_sptr const input_set) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::detected_object_set_sptr,
-      kwiver::vital::algo::detected_object_filter,
+      viame::detected_object_set_sptr,
+      viame::algo::detected_object_filter,
       filter,
       input_set
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

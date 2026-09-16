@@ -79,7 +79,7 @@ struct VIAME_FILE_IO_EXPORT dive_annotation_file
 /// \return true if parsing succeeded, false otherwise
 VIAME_FILE_IO_EXPORT
 bool parse_dive_json_file( std::string const& filename,
-                           kwiver::vital::logger_handle_t logger,
+                           viame::logger_handle_t logger,
                            dive_annotation_file& dive_data );
 
 /// \brief Manual fallback parser for DIVE JSON format
@@ -90,7 +90,7 @@ bool parse_dive_json_file( std::string const& filename,
 /// \return true if parsing succeeded, false otherwise
 VIAME_FILE_IO_EXPORT
 bool parse_dive_json_manual( std::string const& content,
-                             kwiver::vital::logger_handle_t logger,
+                             viame::logger_handle_t logger,
                              dive_annotation_file& dive_data );
 
 /// \brief Create a detected_object from a DIVE feature and track confidence pairs
@@ -105,7 +105,7 @@ std::vector< std::string > dive_json_files_from_stream(
   std::istream& stream, std::string const& filename );
 
 VIAME_FILE_IO_EXPORT
-kwiver::vital::detected_object_sptr
+viame::detected_object_sptr
 create_detected_object_from_dive(
   dive_feature const& feature,
   std::vector< std::pair< std::string, double > > const& confidence_pairs );
@@ -115,7 +115,7 @@ create_detected_object_from_dive(
 // -----------------------------------------------------------------------------------
 
 class VIAME_FILE_IO_EXPORT read_detected_object_set_dive
-  : public kwiver::vital::algo::detected_object_set_input
+  : public viame::algo::detected_object_set_input
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -130,11 +130,11 @@ public:
 
   virtual ~read_detected_object_set_dive();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   virtual void open( std::string const& filename );
 
-  virtual bool read_set( kwiver::vital::detected_object_set_sptr& set,
+  virtual bool read_set( viame::detected_object_set_sptr& set,
                          std::string& image_name );
 
 private:

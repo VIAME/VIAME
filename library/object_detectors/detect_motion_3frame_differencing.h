@@ -18,15 +18,13 @@
 
 #include "viame_object_detectors_export.h"
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
 /// OCV implementation of detect_motion using three-frame differencing
 class VIAME_OBJECT_DETECTORS_EXPORT detect_motion_3frame_differencing
-  : public vital::algo::detect_motion
+  : public viame::algo::detect_motion
 {
 public:
   PLUGGABLE_IMPL(
@@ -83,8 +81,8 @@ public:
   /// Destructor
   virtual ~detect_motion_3frame_differencing() noexcept;
 
-  /// Check that the algorithm's configuration vital::config_block is valid
-  bool check_configuration( vital::config_block_sptr config ) const override;
+  /// Check that the algorithm's configuration viame::config_block is valid
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
   /// Detect motion from a sequence of images
   ///
@@ -103,25 +101,23 @@ public:
   /// \returns A heat map image is returned indicating the confidence
   /// that motion occurred at each pixel. Heat map image is single channel
   /// and has the same width and height dimensions as the input image.
-  kwiver::vital::image_container_sptr
+  viame::image_container_sptr
   process_image(
-    const kwiver::vital::timestamp& ts,
-    const kwiver::vital::image_container_sptr image,
+    const viame::timestamp& ts,
+    const viame::image_container_sptr image,
     bool reset_model ) override;
 
 private:
   void initialize() override;
-  void set_configuration_internal( vital::config_block_sptr config ) override;
+  void set_configuration_internal( viame::config_block_sptr config ) override;
   // private implementation class
   class priv;
 
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

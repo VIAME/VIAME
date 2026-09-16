@@ -9,9 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Master list of all type names, and members associated with the same
 template < typename T > signal< std::string const& >
@@ -351,6 +349,4 @@ template < typename T > constexpr double
 class_map< T >
 ::INVALID_SCORE;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

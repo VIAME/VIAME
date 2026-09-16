@@ -4,9 +4,7 @@
 
 #include <viame/algorithm_framework/algo/associate_detections_to_tracks.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -18,6 +16,4 @@ associate_detections_to_tracks
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

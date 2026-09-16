@@ -14,15 +14,13 @@
 /// \file
 /// \brief Header for filtering features with non-max suppression
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 /// \brief Algorithm that filters features using non-max suppression
 class VIAME_IMAGE_PROCESSING_EXPORT filter_features_nonmax
-  : public vital::algo::filter_features
+  : public viame::algo::filter_features
 {
 public:
   PLUGGABLE_IMPL(
@@ -62,7 +60,7 @@ public:
   virtual ~filter_features_nonmax();
 
   /// Check that the algorithm's configuration config_block is valid
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
 protected:
   /// filter a feature set
@@ -70,9 +68,9 @@ protected:
   /// \param [in] feature set to filter
   /// \param [out] indices of the kept features to the original feature set
   /// \returns a filtered version of the feature set
-  virtual vital::feature_set_sptr
+  virtual viame::feature_set_sptr
   filter(
-    vital::feature_set_sptr input,
+    viame::feature_set_sptr input,
     std::vector< size_t >& indices ) const;
   using filter_features::filter;
 
@@ -83,10 +81,8 @@ private:
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif // KWIVER_ARROWS_CORE_FILTER_FEATURES_NONMAX_H_

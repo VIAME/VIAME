@@ -21,7 +21,7 @@
 
 #include <viame/pipeline_framework/type_traits.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 
@@ -75,8 +75,8 @@ pair_stereo_tracks_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -155,7 +155,7 @@ pair_stereo_tracks_process
   d->pair_left_right_tracks( left_tracks, left_3d_pos, right_tracks, timestamp );
 
   auto port_info = peek_at_port_using_trait( object_track_set1 );
-  auto is_input_complete = port_info.datum->type() == sprokit::datum::complete;
+  auto is_input_complete = port_info.datum->type() == viame::pipeline::datum::complete;
   if( is_input_complete )
   {
     auto left_right_tracks = d->get_left_right_tracks_with_pairing();
@@ -167,7 +167,7 @@ pair_stereo_tracks_process
     push_to_port_using_trait( filtered_object_track_set2, output2 );
 
     mark_process_as_complete();
-    const auto complete_dat = sprokit::datum::complete_datum();
+    const auto complete_dat = viame::pipeline::datum::complete_datum();
     push_datum_to_port_using_trait( timestamp, complete_dat );
     push_datum_to_port_using_trait( filtered_object_track_set1, complete_dat );
     push_datum_to_port_using_trait( filtered_object_track_set2, complete_dat );

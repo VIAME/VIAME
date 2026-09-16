@@ -5,9 +5,7 @@
 #ifndef VITAL_RANGE_IOTA_H
 #define VITAL_RANGE_IOTA_H
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace range {
 
@@ -67,8 +65,6 @@ iota( T upper_bound )
 
 } // namespace range
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

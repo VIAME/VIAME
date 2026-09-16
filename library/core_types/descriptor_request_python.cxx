@@ -10,15 +10,15 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 PYBIND11_MODULE( descriptor_request, m )
 {
   py::module::import( "kwiver.vital.types.timestamp" );
   py::module::import( "kwiver.vital.types.uid" );
 
-  py::class_< kwiver::vital::descriptor_request,
-    std::shared_ptr< kwiver::vital::descriptor_request > >(
+  py::class_< viame::descriptor_request,
+    std::shared_ptr< viame::descriptor_request > >(
     m,
     "DescriptorRequest" )
     .def( py::init<>() )

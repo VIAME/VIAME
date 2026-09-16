@@ -24,7 +24,7 @@ namespace tiff {
 
 namespace {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // ----------------------------------------------------------------------------
 // The tags this reader looks at. Everything else in the file is skipped;

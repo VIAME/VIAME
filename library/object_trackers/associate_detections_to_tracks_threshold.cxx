@@ -19,13 +19,11 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
-using namespace kwiver::vital;
+using namespace viame;
 
 /// Private implementation class
 class associate_detections_to_tracks_threshold::priv
@@ -58,7 +56,7 @@ associate_detections_to_tracks_threshold
 
 bool
 associate_detections_to_tracks_threshold
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -67,18 +65,18 @@ associate_detections_to_tracks_threshold
 bool
 associate_detections_to_tracks_threshold
 ::associate(
-  kwiver::vital::timestamp ts,
-  kwiver::vital::image_container_sptr /* image */,
-  kwiver::vital::object_track_set_sptr tracks,
-  kwiver::vital::detected_object_set_sptr detections,
-  kwiver::vital::matrix_d matrix,
-  kwiver::vital::object_track_set_sptr& output,
-  kwiver::vital::detected_object_set_sptr& unused ) const
+  viame::timestamp ts,
+  viame::image_container_sptr /* image */,
+  viame::object_track_set_sptr tracks,
+  viame::detected_object_set_sptr detections,
+  viame::matrix_d matrix,
+  viame::object_track_set_sptr& output,
+  viame::detected_object_set_sptr& unused ) const
 {
   auto all_detections = detections;
   auto all_tracks = tracks->tracks();
 
-  std::vector< vital::track_sptr > tracks_to_output;
+  std::vector< viame::track_sptr > tracks_to_output;
   std::vector< bool > detections_used( all_detections->size(), false );
 
   for( size_t t = 0; t < all_tracks.size(); ++t )
@@ -112,12 +110,12 @@ associate_detections_to_tracks_threshold
 
     if( best_index < all_detections->size() )
     {
-      vital::track_state_sptr new_track_state(
-        new vital::object_track_state(
+      viame::track_state_sptr new_track_state(
+        new viame::object_track_state(
           ts,
           all_detections->at( best_index ) ) );
 
-      vital::track_sptr adj_track( all_tracks[ t ]->clone() );
+      viame::track_sptr adj_track( all_tracks[ t ]->clone() );
       adj_track->append( new_track_state );
       tracks_to_output.push_back( adj_track );
 
@@ -129,7 +127,7 @@ associate_detections_to_tracks_threshold
     }
   }
 
-  std::vector< vital::detected_object_sptr > unused_dets;
+  std::vector< viame::detected_object_sptr > unused_dets;
 
   for( size_t i = 0; i < all_detections->size(); ++i )
   {
@@ -139,16 +137,14 @@ associate_detections_to_tracks_threshold
     }
   }
 
-  output = vital::object_track_set_sptr(
+  output = viame::object_track_set_sptr(
     new object_track_set( tracks_to_output ) );
-  unused = vital::detected_object_set_sptr(
-    new vital::detected_object_set( unused_dets ) );
+  unused = viame::detected_object_set_sptr(
+    new viame::detected_object_set( unused_dets ) );
 
   return ( unused->size() != all_detections->size() );
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

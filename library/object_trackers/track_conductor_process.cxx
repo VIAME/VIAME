@@ -27,7 +27,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 
 namespace viame
@@ -150,7 +150,7 @@ track_conductor_process::priv
 
 // =============================================================================
 track_conductor_process
-::track_conductor_process( kwiver::vital::config_block_sptr const& config )
+::track_conductor_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new track_conductor_process::priv( this ) )
 {
@@ -173,8 +173,8 @@ track_conductor_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -241,7 +241,7 @@ track_conductor_process
 
   auto port_info = peek_at_port_using_trait( timestamp );
 
-  if( port_info.datum->type() == sprokit::datum::complete )
+  if( port_info.datum->type() == viame::pipeline::datum::complete )
   {
     d->m_received_complete = true;
     grab_edge_datum_using_trait( timestamp );
@@ -295,7 +295,7 @@ track_conductor_process                                                      \
   kv::object_track_set_sptr tracks;                                          \
   auto port_info = peek_at_port_using_trait( TRACKER ## _timestamp );        \
                                                                              \
-  if( port_info.datum->type() == sprokit::datum::complete )                  \
+  if( port_info.datum->type() == viame::pipeline::datum::complete )                  \
   {                                                                          \
     d->m_received_complete = true;                                           \
                                                                              \
@@ -432,7 +432,7 @@ track_conductor_process
   {
     mark_process_as_complete();
 
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( image, dat );
     push_datum_to_port_using_trait( timestamp, dat );

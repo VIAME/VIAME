@@ -26,26 +26,26 @@
 extern "C"
 VIAME_PROCESSES_OBJECT_DETECTORS_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
   static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_object_detectors" );
+    viame::plugin_manager::module_t( "viame_processes_object_detectors" );
 
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
 // The parameters are spelled unusually because `typeid( x ).name()` is in
 // the body: a parameter called `name` would be substituted inside it.
 #define VIAME_REGISTER_PROCESS( process_type, plugin, blurb )             \
   {                                                                      \
-    auto* fact = new sprokit::cpp_process_factory(                       \
+    auto* fact = new viame::pipeline::cpp_process_factory(                       \
       typeid( process_type ).name(),                                     \
-      sprokit::process::interface_name(),                                \
-      sprokit::create_new_process< process_type > );                     \
+      viame::pipeline::process::interface_name(),                                \
+      viame::pipeline::create_new_process< process_type > );                     \
                                                                          \
     fact->add_attribute( kvpf::PLUGIN_NAME, plugin )                     \
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
@@ -56,11 +56,11 @@ register_factories( kwiver::vital::registry& vpm )
   }
 
   VIAME_REGISTER_PROCESS(
-    kwiver::image_object_detector_process, "image_object_detector",
+    viame::image_object_detector_process, "image_object_detector",
     "Apply selected image object detector algorithm to incoming images." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::detect_motion_process, "detect_motion",
+    viame::detect_motion_process, "detect_motion",
     "Detect motion in a sequence of images." )
 
   VIAME_REGISTER_PROCESS(
@@ -70,5 +70,5 @@ register_factories( kwiver::vital::registry& vpm )
 
 #undef VIAME_REGISTER_PROCESS
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  viame::pipeline::mark_process_module_as_loaded( vpm, module_name );
 }

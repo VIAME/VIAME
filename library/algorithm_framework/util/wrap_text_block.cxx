@@ -9,9 +9,7 @@
 #include <list>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 wrap_text_block
@@ -104,6 +102,4 @@ wrap_text_block
   return output_text;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

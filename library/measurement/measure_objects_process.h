@@ -30,11 +30,11 @@ namespace core
  * points between left and right camera views and triangulating to get 3D lengths.
  */
 class VIAME_PROCESSES_MEASUREMENT_EXPORT measure_objects_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  measure_objects_process( kwiver::vital::config_block_sptr const& config );
+  measure_objects_process( viame::config_block_sptr const& config );
   virtual ~measure_objects_process();
 
 protected:

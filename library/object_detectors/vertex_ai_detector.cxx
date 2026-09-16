@@ -50,7 +50,7 @@ public:
 };
 
 vertex_ai_detector::vertex_ai_detector(
-  kwiver::vital::config_block_sptr const& config )
+  viame::config_block_sptr const& config )
   : process( config ),
     d( new priv )
 {
@@ -83,7 +83,7 @@ void vertex_ai_detector::_configure()
 
   if( !d->authenticated )
   {
-    throw sprokit::invalid_configuration_exception(
+    throw viame::pipeline::invalid_configuration_exception(
       name(), "Failed to authenticate with GCP" );
   }
 }
@@ -145,21 +145,21 @@ void vertex_ai_detector::_step()
 
     // TODO: parse model-specific response into detected_object_set
     auto det_set =
-      std::make_shared< kwiver::vital::detected_object_set >();
+      std::make_shared< viame::detected_object_set >();
     push_to_port_using_trait( detected_object_set, det_set );
   }
   else
   {
     push_to_port_as< std::string >( "raw_json_output", "" );
     push_to_port_using_trait( detected_object_set,
-      std::make_shared< kwiver::vital::detected_object_set >() );
+      std::make_shared< viame::detected_object_set >() );
   }
 }
 
 void vertex_ai_detector::make_ports()
 {
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional_;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional_;
 
   required.insert( flag_required );
 

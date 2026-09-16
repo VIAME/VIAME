@@ -11,15 +11,15 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 PYBIND11_MODULE( geo_covariance, m )
 {
   // This is needed to subclass geo_point
   py::module::import( "kwiver.vital.types.geo_point" );
 
-  py::class_< kwiver::vital::geo_covariance,
-    std::shared_ptr< kwiver::vital::geo_covariance >,
+  py::class_< viame::geo_covariance,
+    std::shared_ptr< viame::geo_covariance >,
     kv::geo_point >( m, "GeoCovariance" )
     .def( py::init<>() )
     .def( py::init< kv::geo_point::geo_2d_point_t const&, int >() )

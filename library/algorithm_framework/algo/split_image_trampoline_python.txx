@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/split_image.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class split_image_base = kwiver::vital::algo::split_image >
+template< class split_image_base = viame::algo::split_image >
 class split_image_trampoline
     : public algorithm_trampoline< split_image_base >
 {
@@ -21,17 +21,17 @@ class split_image_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  std::vector<std::shared_ptr<kwiver::vital::image_container> >
-  split(::kwiver::vital::image_container_sptr img) const override
+  std::vector<std::shared_ptr<viame::image_container> >
+  split(::viame::image_container_sptr img) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      std::vector<std::shared_ptr<kwiver::vital::image_container> >,
-      kwiver::vital::algo::split_image,
+      std::vector<std::shared_ptr<viame::image_container> >,
+      viame::algo::split_image,
       split,
       img
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

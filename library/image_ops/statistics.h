@@ -38,7 +38,7 @@ namespace image_ops {
 ///                     dominating a percentile.
 template < typename T >
 std::vector< T >
-sample_and_sort( kwiver::vital::image_of< T > const& image,
+sample_and_sort( viame::image_of< T > const& image,
                  size_t sampling_points,
                  bool remove_extremes = false )
 {
@@ -108,7 +108,7 @@ sample_and_sort( kwiver::vital::image_of< T > const& image,
 /// \param fractions Values in [0, 1]; 0.5 is the median.
 template < typename T >
 std::vector< T >
-percentiles( kwiver::vital::image_of< T > const& image,
+percentiles( viame::image_of< T > const& image,
              std::vector< double > const& fractions,
              size_t sampling_points,
              bool remove_extremes = false )

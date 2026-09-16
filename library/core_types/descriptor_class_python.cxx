@@ -10,9 +10,7 @@
 
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -29,17 +27,17 @@ public:
   virtual py::object get_slice( py::slice slice ) { return py::none(); }
 
   virtual std::vector< double > as_double() { return std::vector< double >(); }
-  virtual kwiver::vital::byte const* as_bytes() { return nullptr; }
+  virtual viame::byte const* as_bytes() { return nullptr; }
 };
 
 class PyDescriptorD
   : public PyDescriptorBase
 {
-  kwiver::vital::descriptor_dynamic< double > desc;
+  viame::descriptor_dynamic< double > desc;
 
 public:
   PyDescriptorD( size_t len )
-    : desc( kwiver::vital::descriptor_dynamic< double >( len ) )
+    : desc( viame::descriptor_dynamic< double >( len ) )
   {}
 
   size_t get_size() { return desc.size(); }
@@ -58,7 +56,7 @@ public:
   }
 
   std::vector< double > as_double() { return desc.as_double(); }
-  kwiver::vital::byte const* as_bytes() { return desc.as_bytes(); }
+  viame::byte const* as_bytes() { return desc.as_bytes(); }
 
   void
   set_slice( py::slice slice, py::object val_obj )
@@ -108,11 +106,11 @@ public:
 class PyDescriptorF
   : public PyDescriptorBase
 {
-  kwiver::vital::descriptor_dynamic< float > desc;
+  viame::descriptor_dynamic< float > desc;
 
 public:
   PyDescriptorF( size_t len )
-    : desc( kwiver::vital::descriptor_dynamic< float >( len ) )
+    : desc( viame::descriptor_dynamic< float >( len ) )
   {}
 
   size_t get_size() { return desc.size(); }
@@ -131,7 +129,7 @@ public:
   }
 
   std::vector< double > as_double() { return desc.as_double(); }
-  kwiver::vital::byte const* as_bytes() { return desc.as_bytes(); }
+  viame::byte const* as_bytes() { return desc.as_bytes(); }
 
   void
   set_slice( py::slice slice, py::object val_obj )
@@ -220,6 +218,4 @@ public:
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -27,11 +27,11 @@ namespace core
  * @brief Calibrate two cameras from two objects track set
  */
 class VIAME_PROCESSES_MEASUREMENT_EXPORT calibrate_cameras_from_tracks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  calibrate_cameras_from_tracks_process( kwiver::vital::config_block_sptr const& config );
+  calibrate_cameras_from_tracks_process( viame::config_block_sptr const& config );
   virtual ~calibrate_cameras_from_tracks_process();
 
 protected:

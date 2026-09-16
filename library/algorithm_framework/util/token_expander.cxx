@@ -8,16 +8,14 @@
 
 #include <viame/algorithm_framework/util/regex.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Constructor.
 ///
 token_expander
 ::token_expander()
-  : m_logger( kwiver::vital::get_logger( "vital.token_expander" ) )
+  : m_logger( viame::get_logger( "vital.token_expander" ) )
 {}
 
 token_expander::
@@ -30,10 +28,10 @@ token_expander::
 //
 bool
 token_expander
-::add_token_type( kwiver::vital::token_type* tt )
+::add_token_type( viame::token_type* tt )
 {
   const std::string name( tt->token_type_name() );
-  m_typeList[ name ] = std::shared_ptr< kwiver::vital::token_type >( tt );
+  m_typeList[ name ] = std::shared_ptr< viame::token_type >( tt );
 
   return true;
 }
@@ -54,7 +52,7 @@ token_expander
 ::expand_token( std::string const& initial_string )
 {
   std::string new_value;
-  kwiver::vital::regex exp(
+  viame::regex exp(
     "\\$([a-zA-Z][a-zA-Z0-9_]*)\\{([a-zA-Z0-9._:]+)?\\}" );
 
   std::string::const_iterator start, end;
@@ -147,6 +145,4 @@ token_expander
   return true;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

@@ -16,16 +16,14 @@
 
 #include <viame/core_types/camera_intrinsics.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
 /// return OpenCV distortion coefficients given the camera intrinsics
 VIAME_MEASUREMENT_EXPORT
 std::vector< double >
-get_ocv_dist_coeffs( vital::camera_intrinsics_sptr intrinsics );
+get_ocv_dist_coeffs( viame::camera_intrinsics_sptr intrinsics );
 
 /// return OpenCV formatted distortion coefficients based on vital distortion
 /// coefficients
@@ -33,10 +31,8 @@ VIAME_MEASUREMENT_EXPORT
 std::vector< double >
 dist_coeffs_to_ocv( std::vector< double > const& vital_dist_coeffs );
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

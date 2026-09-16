@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "video_input_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void video_input(py::module& m)
@@ -19,15 +19,15 @@ void video_input(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::video_input,
-               std::shared_ptr<kwiver::vital::algo::video_input>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::video_input,
+               std::shared_ptr<viame::algo::video_input>,
+               viame::algorithm,
                video_input_trampoline<> > instance(m,  "VideoInput");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::video_input::interface_name)
-    .def("open", &kwiver::vital::algo::video_input::open, py::doc(R"( \brief Open a video stream.
+    .def_static("interface_name", &viame::algo::video_input::interface_name)
+    .def("open", &viame::algo::video_input::open, py::doc(R"( \brief Open a video stream.
 
  This method opens the specified video stream for reading. The
  format of the name depends on the concrete implementation. It
@@ -42,11 +42,11 @@ void video_input(py::module& m)
  to step to the first frame of video before calling \c frame_image().
 
  \throws exception if open failed)"), py::arg("video_name"))
-    .def("close", &kwiver::vital::algo::video_input::close, py::doc(R"( \brief Close video stream.
+    .def("close", &viame::algo::video_input::close, py::doc(R"( \brief Close video stream.
 
  Close the currently opened stream and release resources.  Closing
  a stream that is already closed does not cause a problem.)"))
-    .def("end_of_video", &kwiver::vital::algo::video_input::end_of_video, py::doc(R"( \brief Return end of video status.
+    .def("end_of_video", &viame::algo::video_input::end_of_video, py::doc(R"( \brief Return end of video status.
 
  This method returns the end-of-video status of the input
  video. \b true is returned if the last frame has been returned.
@@ -55,7 +55,7 @@ void video_input(py::module& m)
  no ability to detect end of video, such as network streams.
 
  \return \b true if at end of video, \b false otherwise.)"))
-    .def("good", &kwiver::vital::algo::video_input::good, py::doc(R"( \brief Check whether state of video stream is good.
+    .def("good", &viame::algo::video_input::good, py::doc(R"( \brief Check whether state of video stream is good.
 
  This method checks the current state of the video stream to see
  if it is good. A stream is good if it refers to a valid frame
@@ -65,7 +65,7 @@ void video_input(py::module& m)
  \c next_frame().
 
  \return \b true if video stream is good, \b false if not good.)"))
-    .def("num_frames", &kwiver::vital::algo::video_input::num_frames, py::doc(R"( \brief Get the number of frames in the video stream.
+    .def("num_frames", &viame::algo::video_input::num_frames, py::doc(R"( \brief Get the number of frames in the video stream.
 
  Get the number of frames available in the video stream.
 
@@ -73,7 +73,7 @@ void video_input(py::module& m)
  is not seekable.
 
  \throws video_stream_exception when there is an error in the video stream.)"))
-    .def("next_frame", &kwiver::vital::algo::video_input::next_frame, py::doc(R"( \brief Advance to next frame in video stream.
+    .def("next_frame", &viame::algo::video_input::next_frame, py::doc(R"( \brief Advance to next frame in video stream.
 
  This method advances the video stream to the next frame, making
  the image and metadata available.
@@ -94,7 +94,7 @@ void video_input(py::module& m)
 
  \throws video_input_timeout_exception when the timeout expires.
  \throws video_stream_exception when there is an error in the video stream.)"), py::arg("timeout") = 0)
-    .def("seek_frame", &kwiver::vital::algo::video_input::seek_frame, py::doc(R"( \brief Seek to the given frame number in video stream.
+    .def("seek_frame", &viame::algo::video_input::seek_frame, py::doc(R"( \brief Seek to the given frame number in video stream.
 
  This method seeks the video stream to the requested frame, making
  the image and metadata available.
@@ -119,7 +119,7 @@ void video_input(py::module& m)
 
  \throws video_input_timeout_exception when the timeout expires.
  \throws video_stream_exception when there is an error in the video stream.)"), py::arg("frame_number"), py::arg("timeout") = 0)
-    .def("seek_time", &kwiver::vital::algo::video_input::seek_time, py::doc(R"( Seek to the given timestamp in the video stream.
+    .def("seek_time", &viame::algo::video_input::seek_time, py::doc(R"( Seek to the given timestamp in the video stream.
 
  This method seeks the video stream to the first frame with a timestamp
  greater than or equal to \p time_usec.
@@ -140,7 +140,7 @@ void video_input(py::module& m)
 
  \throws video_input_timeout_exception when the timeout expires.
  \throws video_stream_exception when there is an error in the video stream.)"), py::arg("time_usec"), py::arg("timeout") = 0)
-    .def("frame_timestamp", &kwiver::vital::algo::video_input::frame_timestamp, py::doc(R"( \brief Obtain the time stamp of the current frame.
+    .def("frame_timestamp", &viame::algo::video_input::frame_timestamp, py::doc(R"( \brief Obtain the time stamp of the current frame.
 
  This method returns the time stamp of the current frame, if any, or an
  invalid time stamp. The returned time stamp shall have the same value
@@ -150,7 +150,7 @@ void video_input(py::module& m)
  calling next_frame() will return the same time stamp.
 
  \return The time stamp of the current frame.)"))
-    .def("frame_image", &kwiver::vital::algo::video_input::frame_image, py::doc(R"( \brief Get current frame from video stream.
+    .def("frame_image", &viame::algo::video_input::frame_image, py::doc(R"( \brief Get current frame from video stream.
 
  This method returns the image from the current frame.  If the
  video input is already an end, then calling this method will
@@ -162,7 +162,7 @@ void video_input(py::module& m)
  \return Pointer to image container.
 
  \throws video_stream_exception when there is an error in the video stream.)"))
-    .def("raw_frame_image", &kwiver::vital::algo::video_input::raw_frame_image, py::doc(R"( Return implementation-defined data for efficiently copying this frame's
+    .def("raw_frame_image", &viame::algo::video_input::raw_frame_image, py::doc(R"( Return implementation-defined data for efficiently copying this frame's
  image.
 
  Using this method can help avoid the loss of efficiency and fidelity that
@@ -171,7 +171,7 @@ void video_input(py::module& m)
  the reader does not support this operation.
 
  \return Pointer to raw image data.)"))
-    .def("frame_metadata", &kwiver::vital::algo::video_input::frame_metadata, py::doc(R"( \brief Get metadata collection for current frame.
+    .def("frame_metadata", &viame::algo::video_input::frame_metadata, py::doc(R"( \brief Get metadata collection for current frame.
 
  This method returns the metadata collection for the current
  frame. It is best to call this after calling next_frame() to make
@@ -211,7 +211,7 @@ void video_input(py::module& m)
  @return Vector of metadata pointers.
 
  \throws video_stream_exception when there is an error in the video stream.)"))
-    .def("raw_frame_metadata", &kwiver::vital::algo::video_input::raw_frame_metadata, py::doc(R"( Return implementation-defined data for efficiently copying this frame's
+    .def("raw_frame_metadata", &viame::algo::video_input::raw_frame_metadata, py::doc(R"( Return implementation-defined data for efficiently copying this frame's
  metadata.
 
  Using this method can help avoid the loss of efficiency and fidelity that
@@ -220,45 +220,45 @@ void video_input(py::module& m)
  the reader does not support this operation.
 
  \return Pointer to raw metadata.)"))
-    .def("frame_rate", &kwiver::vital::algo::video_input::frame_rate, py::doc(R"( \brief Get frame rate from the video.
+    .def("frame_rate", &viame::algo::video_input::frame_rate, py::doc(R"( \brief Get frame rate from the video.
 
  If frame rate is not supported, return -1.
 
  \return Frame rate.)"))
-    .def("filename", &kwiver::vital::algo::video_input::filename, py::doc(R"( Get filename for the current video or video frame.
+    .def("filename", &viame::algo::video_input::filename, py::doc(R"( Get filename for the current video or video frame.
 
  If filename is not supported by the implementation, returns an empty
  string.
 
  \return Current filename.)"))
-    .def("implementation_settings", &kwiver::vital::algo::video_input::implementation_settings, py::doc(R"( Extract implementation-specific video encoding settings.
+    .def("implementation_settings", &viame::algo::video_input::implementation_settings, py::doc(R"( Extract implementation-specific video encoding settings.
 
  The returned structure is intended to be passed to a video encoder of
  similar implementation so that the output video can be encoded using the
  settings of the input video.
 
  \return Implementation video settings, or \c nullptr if none are needed.)"))
-    .def("get_implementation_capabilities", &kwiver::vital::algo::video_input::get_implementation_capabilities, py::doc(R"( \brief Return capabilities of concrete implementation.
+    .def("get_implementation_capabilities", &viame::algo::video_input::get_implementation_capabilities, py::doc(R"( \brief Return capabilities of concrete implementation.
 
  This method returns the capabilities for the currently opened
  video.
 
  \return Reference to supported video capabilities.)"))
-    .def_readonly_static("HAS_EOV", &kwiver::vital::algo::video_input::HAS_EOV)
-    .def_readonly_static("HAS_FRAME_NUMBERS", &kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS)
-    .def_readonly_static("HAS_FRAME_TIME", &kwiver::vital::algo::video_input::HAS_FRAME_TIME)
-    .def_readonly_static("HAS_FRAME_DATA", &kwiver::vital::algo::video_input::HAS_FRAME_DATA)
-    .def_readonly_static("HAS_FRAME_RATE", &kwiver::vital::algo::video_input::HAS_FRAME_RATE)
-    .def_readonly_static("HAS_ABSOLUTE_FRAME_TIME", &kwiver::vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME)
-    .def_readonly_static("HAS_METADATA", &kwiver::vital::algo::video_input::HAS_METADATA)
-    .def_readonly_static("HAS_TIMEOUT", &kwiver::vital::algo::video_input::HAS_TIMEOUT)
-    .def_readonly_static("IS_SEEKABLE_BY_FRAME", &kwiver::vital::algo::video_input::IS_SEEKABLE_BY_FRAME)
-    .def_readonly_static("IS_SEEKABLE_BY_TIME", &kwiver::vital::algo::video_input::IS_SEEKABLE_BY_TIME)
-    .def_readonly_static("HAS_RAW_IMAGE", &kwiver::vital::algo::video_input::HAS_RAW_IMAGE)
-    .def_readonly_static("HAS_RAW_METADATA", &kwiver::vital::algo::video_input::HAS_RAW_METADATA)
-    .def_readonly_static("HAS_UNINTERPRETED_DATA", &kwiver::vital::algo::video_input::HAS_UNINTERPRETED_DATA)
+    .def_readonly_static("HAS_EOV", &viame::algo::video_input::HAS_EOV)
+    .def_readonly_static("HAS_FRAME_NUMBERS", &viame::algo::video_input::HAS_FRAME_NUMBERS)
+    .def_readonly_static("HAS_FRAME_TIME", &viame::algo::video_input::HAS_FRAME_TIME)
+    .def_readonly_static("HAS_FRAME_DATA", &viame::algo::video_input::HAS_FRAME_DATA)
+    .def_readonly_static("HAS_FRAME_RATE", &viame::algo::video_input::HAS_FRAME_RATE)
+    .def_readonly_static("HAS_ABSOLUTE_FRAME_TIME", &viame::algo::video_input::HAS_ABSOLUTE_FRAME_TIME)
+    .def_readonly_static("HAS_METADATA", &viame::algo::video_input::HAS_METADATA)
+    .def_readonly_static("HAS_TIMEOUT", &viame::algo::video_input::HAS_TIMEOUT)
+    .def_readonly_static("IS_SEEKABLE_BY_FRAME", &viame::algo::video_input::IS_SEEKABLE_BY_FRAME)
+    .def_readonly_static("IS_SEEKABLE_BY_TIME", &viame::algo::video_input::IS_SEEKABLE_BY_TIME)
+    .def_readonly_static("HAS_RAW_IMAGE", &viame::algo::video_input::HAS_RAW_IMAGE)
+    .def_readonly_static("HAS_RAW_METADATA", &viame::algo::video_input::HAS_RAW_METADATA)
+    .def_readonly_static("HAS_UNINTERPRETED_DATA", &viame::algo::video_input::HAS_UNINTERPRETED_DATA)
     ;
-  register_algorithm< kwiver::vital::algo::video_input > (instance);
+  register_algorithm< viame::algo::video_input > (instance);
 }
 
 }

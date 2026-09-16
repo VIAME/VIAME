@@ -7,12 +7,8 @@
 
 #include <viame/core_types/video_raw_metadata.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 video_raw_metadata::~video_raw_metadata() {}
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

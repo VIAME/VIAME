@@ -28,7 +28,7 @@
 #define LEX_DEBUG 0
 
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace {
 
@@ -47,24 +47,24 @@ public:
     : m_fstream( file_name, std::ios_base::in ) // open file stream
     , m_stream( &m_fstream )
     , m_reader( m_fstream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >( kwiver::vital::real_path(file_name) ) )
+    , m_filename( std::make_shared< std::string >( viame::real_path(file_name) ) )
   {
     if ( ! m_stream )
     {
-      VITAL_THROW( kwiver::vital::config_file_not_found_exception, file_name, "could not open file");
+      VITAL_THROW( viame::config_file_not_found_exception, file_name, "could not open file");
     }
 
     // make sure file is readable
-    if( !kwiver::vital::file_is_readable( file_name ) )
+    if( !viame::file_is_readable( file_name ) )
     {
-      VITAL_THROW( kwiver::vital::config_file_not_found_exception, file_name, "could not access file");
+      VITAL_THROW( viame::config_file_not_found_exception, file_name, "could not access file");
     }
   }
 
   include_context( std::istream& str, const std::string& file_name )
     : m_stream( &str ) // open file stream
     , m_reader( *m_stream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >( kwiver::vital::real_path(file_name) ) )
+    , m_filename( std::make_shared< std::string >( viame::real_path(file_name) ) )
   {
   }
 
@@ -83,7 +83,7 @@ public:
 
   // This reader operates on the above stream to provide trimmed input
   // with no comments or blank lines
-  kwiver::vital::data_stream_reader m_reader;
+  viame::data_stream_reader m_reader;
   std::shared_ptr< std::string > m_filename;
 };
 
@@ -119,7 +119,7 @@ public:
    *
    * @return The current source location (file and line) is returned.
    */
-  kwiver::vital::source_location current_loc() const;
+  viame::source_location current_loc() const;
 
   /**
    * @brief Get new input line
@@ -135,7 +135,7 @@ public:
    */
   void flush_line();
 
-  kwiver::vital::config_path_t resolve_file_name( kwiver::vital::config_path_t const& file_name );
+  viame::config_path_t resolve_file_name( viame::config_path_t const& file_name );
 
   //------------------------------------------------------------------
   // These absorb* attributes are not the prettiest way of handling
@@ -177,9 +177,9 @@ public:
   std::vector< std::shared_ptr< include_context > > m_include_stack;
 
   // file search path list
-  kwiver::vital::config_path_list_t m_search_path;
+  viame::config_path_list_t m_search_path;
 
-  kwiver::vital::token_expander m_token_expander;
+  viame::token_expander m_token_expander;
 };
 
 /* ---------------------------------------------------
@@ -187,7 +187,7 @@ public:
  */
 lex_processor
 ::lex_processor()
-  : m_logger( kwiver::vital::get_logger( "sprokit.pipe_processor" ) )
+  : m_logger( viame::get_logger( "sprokit.pipe_processor" ) )
   , m_priv( new lex_processor::priv )
 { }
 
@@ -213,7 +213,7 @@ lex_processor
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::source_location
+viame::source_location
 lex_processor
 ::current_location() const
 {
@@ -226,7 +226,7 @@ lex_processor
 ::get_rest_of_line()
 {
   std::string line( m_priv->m_cur_char, m_priv->m_input_line.end() );
-  kwiver::vital::string_trim( line );
+  viame::string_trim( line );
 
   m_priv->flush_line();
   return line;
@@ -243,7 +243,7 @@ lex_processor
 // ------------------------------------------------------------------
 void
 lex_processor
-::add_search_path( kwiver::vital::config_path_t const& file_path )
+::add_search_path( viame::config_path_t const& file_path )
 {
   m_priv->m_search_path.push_back( file_path );
   LOG_DEBUG( m_logger, "Adding \"" << file_path << "\" to search path" );
@@ -252,12 +252,12 @@ lex_processor
 // ------------------------------------------------------------------
 void
 lex_processor
-::add_search_path( kwiver::vital::config_path_list_t const& file_path )
+::add_search_path( viame::config_path_list_t const& file_path )
 {
   m_priv->m_search_path.insert( m_priv->m_search_path.end(),
                               file_path.begin(), file_path.end() );
 
-  LOG_DEBUG( m_logger, "Adding \"" << kwiver::vital::join( file_path, ", " )
+  LOG_DEBUG( m_logger, "Adding \"" << viame::join( file_path, ", " )
              << "\" to search path" );
 }
 
@@ -367,7 +367,7 @@ lex_processor
         {
           // Collect description text from after token to EOL
           text = std::string{ m_priv->m_cur_char + 1, m_priv->m_input_line.end() };
-          kwiver::vital::string_trim( text );
+          viame::string_trim( text );
         }
         else
         {
@@ -394,7 +394,7 @@ lex_processor
       {
         // Collect rest of line as text
         std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
-        kwiver::vital::string_trim( text );
+        viame::string_trim( text );
         token_sptr tok = std::make_shared< token > ( m_priv->find_res_word( ":=" ), text );
         tok->set_location( current_location() );
 
@@ -411,7 +411,7 @@ lex_processor
       // assignment operator
       // Collect rest of line as text
       std::string text( m_priv->m_cur_char, m_priv->m_input_line.end() );
-      kwiver::vital::string_trim( text );
+      viame::string_trim( text );
       t = std::make_shared< token > ( TK_ASSIGN, text );
       t->set_location( current_location() );
 
@@ -478,7 +478,7 @@ lex_processor
     m_priv->m_cur_char++;
   }
 
-  if ( kwiver::vital::starts_with( std::string( m_priv->m_cur_char,
+  if ( viame::starts_with( std::string( m_priv->m_cur_char,
                                                    m_priv->m_input_line.end() ),
                                       "include " ) )
   {
@@ -486,12 +486,12 @@ lex_processor
     m_priv->m_cur_char += 8;
 
     std::string file_name( m_priv->m_cur_char, m_priv->m_input_line.end() );
-    kwiver::vital::string_trim( file_name );
+    viame::string_trim( file_name );
 
     // Perform macro substitutions first
     file_name = m_priv->m_token_expander.expand_token( file_name );
 
-    kwiver::vital::config_path_t resolv_filename = m_priv->resolve_file_name(
+    viame::config_path_t resolv_filename = m_priv->resolve_file_name(
       file_name );
     if ( "" == resolv_filename )   // could not resolve
     {
@@ -499,7 +499,7 @@ lex_processor
       sstr << file_name << " included from " << current_location() <<
         " could not be found in search path.";
 
-      VITAL_THROW( sprokit::file_no_exist_exception, sstr.str() );
+      VITAL_THROW( viame::pipeline::file_no_exist_exception, sstr.str() );
     }
 
     LOG_TRACE( m_logger, "Including file: \"" << resolv_filename << "\"" );
@@ -561,8 +561,8 @@ lex_processor::priv
   m_keyword_table["::"]           = TK_DOUBLE_COLON;
   m_keyword_table[":="]           = TK_LOCAL_ASSIGN;
 
-  m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
-  m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );
+  m_token_expander.add_token_type( new viame::token_type_env() );
+  m_token_expander.add_token_type( new viame::token_type_sysenv() );
 }
 
 // ------------------------------------------------------------------
@@ -621,12 +621,12 @@ lex_processor::priv
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::source_location
+viame::source_location
 lex_processor::priv
 ::current_loc() const
 {
   // Get current location from the include file stack top element
-  return kwiver::vital::source_location( m_include_stack.back()->m_filename,
+  return viame::source_location( m_include_stack.back()->m_filename,
            static_cast<int>(m_include_stack.back()->m_reader.line_number()) );
 }
 
@@ -639,7 +639,7 @@ lex_processor::priv
 
   if ( status )
   {
-    kwiver::vital::string_trim( m_input_line );
+    viame::string_trim( m_input_line );
     m_cur_char = m_input_line.begin();
   }
   return status;
@@ -676,12 +676,12 @@ lex_processor::priv
  *
  * @return Full file path, or empty string on failure.
  */
-kwiver::vital::config_path_t
+viame::config_path_t
 lex_processor::priv
-::resolve_file_name( kwiver::vital::config_path_t const& file_name )
+::resolve_file_name( viame::config_path_t const& file_name )
 {
   // Test for absolute file name
-  if ( kwiver::vital::file_is_full_path( file_name ) )
+  if ( viame::file_is_full_path( file_name ) )
   {
     return file_name;
   }
@@ -689,7 +689,7 @@ lex_processor::priv
   // The file is on a relative path.
   // See if file can be found in the search path.
   std::string res_file =
-    kwiver::vital::find_file( file_name, this->m_search_path );
+    viame::find_file( file_name, this->m_search_path );
 
   if ( "" != res_file )
   {
@@ -700,11 +700,11 @@ lex_processor::priv
   // include stack. First we have to reverse the include stack and
   // remove duplicate paths.
   std::set< std::string > dir_set;
-  kwiver::vital::config_path_list_t include_paths;
+  viame::config_path_list_t include_paths;
   const auto eit = m_include_stack.rend();
   for ( auto it = m_include_stack.rbegin(); it != eit; ++it )
   {
-    kwiver::vital::config_path_t config_file_dir( kwiver::vital::filename_path( (*it)->file() ) );
+    viame::config_path_t config_file_dir( viame::filename_path( (*it)->file() ) );
     if ( "" == config_file_dir )
     {
       config_file_dir = ".";
@@ -717,7 +717,7 @@ lex_processor::priv
     }
   }
 
-  res_file = kwiver::vital::find_file( file_name, include_paths );
+  res_file = viame::find_file( file_name, include_paths );
 
   if ( "" != res_file )
   {
@@ -726,7 +726,7 @@ lex_processor::priv
 
   // Lastly, as a last resort, see if file can be found in a local directory.
   std::vector< std::string > relative_path( 1, "." );
-  return kwiver::vital::find_file( file_name, relative_path );
+  return viame::find_file( file_name, relative_path );
 }
 
-} // end namespace
+} // namespace viame::pipeline

@@ -8,29 +8,27 @@
 #include "image_container_python.h"
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
 std::shared_ptr< s_image_cont_t >
-kwiver::vital::python::image_container
-::new_cont( kwiver::vital::image& img )
+viame::python::image_container
+::new_cont( viame::image& img )
 {
   return std::shared_ptr< s_image_cont_t >( new s_image_cont_t( img ) );
 }
 
-kwiver::vital::image
-kwiver::vital::python::image_container
+viame::image
+viame::python::image_container
 ::get_image( std::shared_ptr< image_cont_t > self )
 {
-  kwiver::vital::image img;
+  viame::image img;
   img.copy_from( self->get_image() );
   return img;
 }
 
-void kwiver::vital::python::image_container
+void viame::python::image_container
 ::image_container( py::module& m )
 {
   /*
@@ -51,12 +49,12 @@ void kwiver::vital::python::image_container
     .def( "width", &image_cont_t::width )
     .def( "height", &image_cont_t::height )
     .def( "depth", &image_cont_t::depth )
-    .def( "image", &kwiver::vital::python::image_container::get_image )
+    .def( "image", &viame::python::image_container::get_image )
     .def(
       "asarray",
       [](image_cont_t& img_cont){
         py::object np_arr =
-          kwiver::vital::python::image::asarray( img_cont.get_image() );
+          viame::python::image::asarray( img_cont.get_image() );
         return np_arr;
       },
       py::doc(
@@ -134,14 +132,14 @@ void kwiver::vital::python::image_container
     )" )
 
     .def(
-    py::init( &kwiver::vital::python::image_container::new_cont ),
+    py::init( &viame::python::image_container::new_cont ),
     py::arg( "image" ) )
 
   // Create initializer based on numpy array type
 #define def_fromarray( T )                                                        \
 .def_static(                                                                      \
     "fromarray",                                                                  \
-    &kwiver::vital::python::image_container::new_image_container_from_numpy< T >, \
+    &viame::python::image_container::new_image_container_from_numpy< T >, \
     py::arg( "array" ),                                                           \
     py::doc( "Create an ImageContainer from a numpy array" ) )
   def_fromarray( uint8_t )
@@ -160,6 +158,4 @@ void kwiver::vital::python::image_container
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -6,6 +6,7 @@
     kwiver::arrows::<a>    -> viame::<a>
     kwiver::tools          -> viame::tools
     kwiver::<process>      -> viame::<process>
+    kwiver::sprokit        -> viame::pipeline
     sprokit                -> viame::pipeline
 
 The longest mapped prefix wins, so `kwiver::vital::streamable` follows
@@ -23,6 +24,9 @@ so this rewrites the declarations and the qualified uses and nothing else:
   `sprokit_pipeline`, ...) are a separate pass: `generate_export_header`
   derives `VITAL_ALGO_EXPORT` from the target, so renaming the macro means
   renaming the target, which means touching the facade list.
+- A bare `kwiver` or `sprokit` is only a namespace when it qualifies
+  something. Upstream's license URL, a path in a comment and a sentence about
+  kwiver all keep the word.
 - `library/tpl` is vendored and names none of this.
 
 The namespaces do not map one to one. `kwiver::vital` is two namespaces and
@@ -34,6 +38,9 @@ braces that are code, not the ones in `"{"`, in `'}'`, in a raw string or in
 a comment -- and then checks that the file it produced nests the way it
 should. A file it cannot follow is named and left alone rather than
 half-rewritten.
+
+Both brace styles are namespaces: `namespace kwiver {` and `namespace kwiver`
+with the brace on the line below.
 
 Usage:
     rename_namespaces.py [--check] [--verbose] [PATH ...]
@@ -70,6 +77,22 @@ QUALIFIED = (
     # what the `register_processes.cxx` files name. Their declarations follow
     # ("kwiver",) to `viame`, so their uses have to as well.
     ("kwiver", "viame"),
+    # Written from inside `namespace kwiver`, where `vital::pluggable` meant
+    # `kwiver::vital::pluggable` and `arrows::ocv::x` meant `kwiver::arrows`.
+    # Neither namespace exists afterwards, so every one of these is a name
+    # that would no longer resolve.
+    ("vital", "viame"),
+    ("arrows", "viame"),
+)
+
+# `using namespace <old>;`, which names a namespace without qualifying anything.
+USING = (
+    ("kwiver::vital", "viame"),
+    ("kwiver::sprokit", "viame::pipeline"),
+    ("kwiver", "viame"),
+    ("sprokit", "viame::pipeline"),
+    ("vital", "viame"),
+    ("arrows", "viame"),
 )
 
 # A namespace path as declared, to what it becomes.
@@ -85,7 +108,14 @@ DECLARED = {
 
 NS_OPEN = re.compile(r"^(\s*)namespace\s+([A-Za-z_][\w:]*)\s*(\{?)\s*(//.*)?$")
 NS_CLOSE = re.compile(r"^(\s*)((?:\}\s*)+)(//.*|/\*.*)?$")
-OLD_NAME = re.compile(r"(?<![\w:])(kwiver|sprokit)(::|\s*\{)")
+BRACE_ONLY = re.compile(r"^\s*\{\s*(//.*)?$")
+OLD_NAME = re.compile(r"(?<![\w:])(kwiver|sprokit)(::|\s*$|\s*\{)")
+
+# A qualified name split over a macro's line continuation: `&kwiver::` on one
+# line and `vital::` on the next are one name, and rewriting the lines
+# separately makes `viame::viame::`. This is rare enough to report rather than
+# join -- KWIVER_UNIQUE_PTR in pluggable_macro_magic.h was the only one.
+SPLIT_NAME = re.compile(r"(?<![\w:])(kwiver|sprokit|vital|arrows|viame)::\s*\\\s*$")
 RAW_START = re.compile(r'R"([^(\s\\]{0,16})\(')
 
 CLEAN = (False, None)      # not in a block comment, not in a raw string
@@ -196,9 +226,43 @@ def rewrite_qualified(line):
     """
     if re.match(r"^\s*namespace\b", line) and "{" in line:
         return line
+    # `using namespace kwiver;` has no braces and no `::`, so nothing below
+    # would see it.
+    for old, new in USING:
+        line = re.sub(r"\busing\s+namespace\s+" + re.escape(old) + r"\s*;",
+                      "using namespace " + new + ";", line)
+
+    # A leading `::` is part of the name, not something in front of it: the
+    # trampolines are full of `::kwiver::vital::timestamp`. It is kept.
+    lead = r"(?<![\w:])(::)?"
     for old, new in QUALIFIED:
-        line = re.sub(r"(?<![\w:])" + re.escape(old) + r"(?![\w])", new, line)
+        if "::" in old:
+            line = re.sub(lead + re.escape(old) + r"(?![\w])", r"\1" + new, line)
+        else:
+            # A bare name only counts when it qualifies something. Without the
+            # `::` this rewrites the word wherever it appears: upstream's
+            # license URL, a path in a comment, a sentence about kwiver.
+            line = re.sub(lead + re.escape(old) + r"::", r"\1" + new + "::", line)
     return line
+
+
+def opening_at(lines, i, state):
+    """The namespace opening at `lines[i]`, or None.
+
+    Returns (path, indent, comment, lines used): two when the brace is on the
+    line below, which is the other style in this tree.
+    """
+    in_comment = state[0] or state[1] is not None
+    if in_comment:
+        return None
+    m = NS_OPEN.match(lines[i])
+    if not m:
+        return None
+    if m.group(3) == "{":
+        return split_path(m.group(2)), m.group(1), m.group(4) or "", 1
+    if i + 1 < len(lines) and BRACE_ONLY.match(lines[i + 1]):
+        return split_path(m.group(2)), m.group(1), m.group(4) or "", 2
+    return None
 
 
 def namespace_paths(text, mapped=False):
@@ -210,19 +274,21 @@ def namespace_paths(text, mapped=False):
     namespace that lands on the one already enclosing it is left out -- which
     is what collapsing `kwiver::vital` into `viame` does to it.
     """
+    lines = text.split("\n")
     shape = []
     stack = []          # (path as declared, path it becomes)
     depth = []
     braces = 0
     state = CLEAN
+    i = 0
 
-    for line in text.split("\n"):
+    while i < len(lines):
+        line = lines[i]
         code, next_state = code_of(line, state)
-        in_comment = state[0] or state[1] is not None
 
-        m = NS_OPEN.match(line)
-        if m and m.group(3) == "{" and not in_comment:
-            path = split_path(m.group(2))
+        opened = opening_at(lines, i, state)
+        if opened:
+            path, _, _, used = opened
             full = (stack[-1][0] + path) if stack else path
             here = stack[-1][1] if stack else ()
             if mapped:
@@ -233,9 +299,10 @@ def namespace_paths(text, mapped=False):
             stack.append((full, emitted))
             depth.append(braces)
             braces += 1
-            state = next_state
             if not (mapped and emitted == here):
                 shape.append(emitted)
+            state = next_state if used == 1 else code_of(lines[i + 1], next_state)[1]
+            i += used
             continue
 
         close = NS_CLOSE.match(line)
@@ -247,10 +314,12 @@ def namespace_paths(text, mapped=False):
                 depth.pop()
                 braces -= 1
             state = next_state
+            i += 1
             continue
 
         braces += code.count("{") - code.count("}")
         state = next_state
+        i += 1
 
     return shape
 
@@ -266,29 +335,32 @@ def rewrite(text):
     dropped = 0
     skip_blank = False
     state = CLEAN
+    i = 0
 
-    for line in lines:
+    while i < len(lines):
+        line = lines[i]
         code, next_state = code_of(line, state)
-        in_comment = state[0] or state[1] is not None
 
         if skip_blank:
             skip_blank = False
             if not line.strip():
                 state = next_state
+                i += 1
                 continue
 
-        m = NS_OPEN.match(line)
-        if m and m.group(3) == "{" and not in_comment:
-            indent, name, comment = m.group(1), m.group(2), m.group(4) or ""
-            path = split_path(name)
+        opened = opening_at(lines, i, state)
+        if opened:
+            path, indent, comment, used = opened
             parent = stack[-1][0] if stack else ()
             full = parent + path
             target = map_path(full)
             here = stack[-1][1] if stack else ()
+            brace_line = lines[i + 1] if used == 2 else None
 
             depth.append(braces)
             braces += 1
-            state = next_state
+            state = next_state if used == 1 else code_of(brace_line, next_state)[1]
+            i += used
 
             # The third element is what this opening now says: None when the
             # line was left alone, so its closing comment is left alone too,
@@ -296,6 +368,8 @@ def rewrite(text):
             if target is None:
                 stack.append((full, (here + path) if here else path, None))
                 out.append(line)
+                if brace_line is not None:
+                    out.append(brace_line)
                 continue
 
             if target == here:
@@ -303,6 +377,8 @@ def rewrite(text):
                 # closing brace, and a blank line beside each, go.
                 stack.append((full, target, ""))
                 out.append(None)
+                if brace_line is not None:
+                    out.append(None)
                 changed += 1
                 dropped += 1
                 skip_blank = True
@@ -311,8 +387,13 @@ def rewrite(text):
             rest = target[len(here):] if target[:len(here)] == here else target
             emitted = "::".join(rest)
             stack.append((full, target, emitted))
-            out.append("{}namespace {} {{{}".format(
-                indent, emitted, (" " + comment.strip()) if comment else ""))
+            if brace_line is None:
+                out.append("{}namespace {} {{{}".format(
+                    indent, emitted, (" " + comment.strip()) if comment else ""))
+            else:
+                out.append("{}namespace {}{}".format(
+                    indent, emitted, (" " + comment.strip()) if comment else ""))
+                out.append(brace_line)
             changed += 1
             continue
 
@@ -331,6 +412,7 @@ def rewrite(text):
                     continue          # its opening went, so this brace goes
                 pieces.append(emitted)
             state = next_state
+            i += 1
 
             if not pieces:
                 if out and out[-1] is not None and not out[-1].strip():
@@ -347,6 +429,7 @@ def rewrite(text):
 
         braces += code.count("{") - code.count("}")
         state = next_state
+        i += 1
         if braces < 0:
             raise Unfollowable("negative brace depth")
         out.append(rewrite_qualified(line))
@@ -379,6 +462,7 @@ def main(argv=None):
     touched = collections.Counter()
     refused = []
     residue = []
+    split = []
     total_ns = 0
 
     for path in files:
@@ -397,6 +481,9 @@ def main(argv=None):
 
         if OLD_NAME.search(new_text):
             residue.append(path)
+
+        if SPLIT_NAME.search(text):
+            split.append(path)
 
         if new_text == text:
             continue
@@ -423,6 +510,13 @@ def main(argv=None):
         print("\n{} file(s) still name kwiver or sprokit afterwards:".format(
             len(residue)))
         for path in residue[:20]:
+            print("  {}".format(path))
+
+    if split:
+        print("\n{} file(s) carry a qualified name across a line continuation, "
+              "which is rewritten a line at a time and wants reading:".format(
+                  len(split)))
+        for path in split:
             print("  {}".format(path))
 
     return 0

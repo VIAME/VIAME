@@ -10,10 +10,10 @@
 /**
  * \file pipeline_exception.cxx
  *
- * \brief Implementation of exceptions used within \link sprokit::pipeline pipelines\endlink.
+ * \brief Implementation of exceptions used within \link viame::pipeline::pipeline pipelines\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 pipeline_addition_exception

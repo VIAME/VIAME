@@ -14,9 +14,7 @@
 #include <mutex>
 #include <unordered_set>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class signal_base;
 
@@ -50,8 +48,6 @@ private:
   std::unordered_set< signal_base* > m_connections;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

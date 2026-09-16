@@ -19,9 +19,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class track_descriptor;
 
@@ -67,7 +65,7 @@ public:
     /// @param img_loc Image location for object
     /// @param world_loc World location for image
     history_entry(
-      const vital::timestamp& ts,
+      const viame::timestamp& ts,
       const image_bbox_t& img_loc,
       const world_bbox_t& world_loc );
 
@@ -76,13 +74,13 @@ public:
     /// @param ts Timestamp for object.
     /// @param img_loc Image location for object.
     history_entry(
-      const vital::timestamp& ts,
+      const viame::timestamp& ts,
       const image_bbox_t& img_loc );
 
     /// \brief Get timestamp.
     ///
     /// @return timestamp for this entry
-    vital::timestamp get_timestamp() const;
+    viame::timestamp get_timestamp() const;
 
     /// \brief Get image location.
     ///
@@ -98,7 +96,7 @@ public:
     history_entry(); // not implemented
 
     /// Frame ID and timestamp of the current frame
-    vital::timestamp ts_;
+    viame::timestamp ts_;
 
     /// Image location (pixels)
     image_bbox_t img_loc_;
@@ -109,7 +107,7 @@ public:
 
   // -- TYPES --
   typedef std::vector< track_descriptor_sptr > vector_t;
-  typedef kwiver::vital::descriptor_dynamic< double > descriptor_data_t;
+  typedef viame::descriptor_dynamic< double > descriptor_data_t;
   typedef std::shared_ptr< descriptor_data_t > descriptor_data_sptr;
   typedef std::vector< history_entry > descriptor_history_t;
   typedef std::string descriptor_id_t;
@@ -156,14 +154,14 @@ public:
   /// Sets a new identifier for this descriptor.
   ///
   /// @param id The descriptor identifier
-  void set_uid( const vital::uid& id );
+  void set_uid( const viame::uid& id );
 
   /// \brief Returns the descriptor uid.
   ///
   /// This function returns the descriptor uid.
   ///
   /// @return The descriptor unique identifier.
-  vital::uid const& get_uid() const;
+  viame::uid const& get_uid() const;
 
   /// \brief Add new track id to raw descriptor.
   ///
@@ -324,7 +322,7 @@ private:
   descriptor_id_t type_;
 
   /// Descriptor unique ID
-  vital::uid uid_;
+  viame::uid uid_;
 
   /// IDs of tracks this descriptor came from, if exists.
   std::vector< uint64_t > track_ids_;
@@ -336,8 +334,6 @@ private:
   descriptor_history_t history_;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

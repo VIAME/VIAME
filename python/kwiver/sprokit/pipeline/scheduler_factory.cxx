@@ -5,7 +5,7 @@
 /**
  * \file scheduler_factory.cxx
  *
- * \brief Python bindings for \link sprokit::scheduler_factory\endlink.
+ * \brief Python bindings for \link viame::pipeline::scheduler_factory\endlink.
  */
 
 #include <viame/pipeline_framework/pipeline.h>
@@ -22,15 +22,15 @@
 
 using namespace pybind11;
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
 static void register_scheduler(
-  ::sprokit::scheduler::type_t const& type,
-  ::sprokit::scheduler::description_t const& desc,
+  ::viame::pipeline::scheduler::type_t const& type,
+  ::viame::pipeline::scheduler::description_t const& desc,
   object obj );
 static bool is_scheduler_loaded( const std::string& name );
 static void mark_scheduler_loaded( const std::string& name );
@@ -39,12 +39,12 @@ static std::vector< std::string > scheduler_names();
 static std::string get_default_type();
 
 // ============================================================================
-typedef std::function< pybind11::object ( ::sprokit::pipeline_t const& pipe,
-                                          kwiver::vital::config_block_sptr const& config ) >
+typedef std::function< pybind11::object ( ::viame::pipeline::pipeline_t const& pipe,
+                                          viame::config_block_sptr const& config ) >
   py_scheduler_factory_func_t;
 
 class python_scheduler_factory
-  : public ::sprokit::scheduler_factory
+  : public ::viame::pipeline::scheduler_factory
 {
 public:
   python_scheduler_factory(
@@ -54,9 +54,9 @@ public:
 
   virtual ~python_scheduler_factory() = default;
 
-  virtual ::sprokit::scheduler_t create_object(
-    ::sprokit::pipeline_t const& pipe,
-    kwiver::vital::config_block_sptr const& config );
+  virtual ::viame::pipeline::scheduler_t create_object(
+    ::viame::pipeline::pipeline_t const& pipe,
+    viame::config_block_sptr const& config );
 
 private:
   py_scheduler_factory_func_t m_factory;
@@ -79,11 +79,11 @@ python_scheduler_factory
 }
 
 // ----------------------------------------------------------------------------
-::sprokit::scheduler_t
+::viame::pipeline::scheduler_t
 python_scheduler_factory
 ::create_object(
-  ::sprokit::pipeline_t const& pipe,
-  kwiver::vital::config_block_sptr const& config )
+  ::viame::pipeline::pipeline_t const& pipe,
+  viame::config_block_sptr const& config )
 {
   pybind11::gil_scoped_acquire acquire;
   ( void ) acquire;
@@ -91,17 +91,17 @@ python_scheduler_factory
   // Call sprokit factory function.
   pybind11::object obj = m_factory( pipe, config );
   obj.inc_ref();
-  ::sprokit::scheduler_t schd_ptr = obj.cast< ::sprokit::scheduler_t >();
+  ::viame::pipeline::scheduler_t schd_ptr = obj.cast< ::viame::pipeline::scheduler_t >();
   return schd_ptr;
 }
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
-using namespace kwiver::sprokit::python;
+using namespace viame::pipeline::python;
 
 // ==================================================================
 PYBIND11_MODULE( scheduler_factory, m )
@@ -117,10 +117,10 @@ PYBIND11_MODULE( scheduler_factory, m )
     return_value_policy::reference_internal );
 
   m.def(
-    "create_scheduler", &sprokit::create_scheduler,
+    "create_scheduler", &viame::pipeline::create_scheduler,
     call_guard< pybind11::gil_scoped_release >(),
     arg( "type" ), arg( "pipeline" ),
-    arg( "config" ) = kwiver::vital::config_block::empty_config(),
+    arg( "config" ) = viame::config_block::empty_config(),
     "Creates a new scheduler of the given type." );
 
   m.def(
@@ -154,9 +154,9 @@ PYBIND11_MODULE( scheduler_factory, m )
     m.import( "kwiver.sprokit.pipeline.scheduler" ).attr( "PythonScheduler" );
 }
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
@@ -167,8 +167,8 @@ public:
   ~python_scheduler_wrapper();
 
   object operator()(
-    ::sprokit::pipeline_t const& pipeline,
-    kwiver::vital::config_block_sptr const& config );
+    ::viame::pipeline::pipeline_t const& pipeline,
+    viame::config_block_sptr const& config );
 
 private:
   object const m_obj;
@@ -176,22 +176,22 @@ private:
 
 void
 register_scheduler(
-  ::sprokit::scheduler::type_t const& type,
-  ::sprokit::scheduler::description_t const& desc,
+  ::viame::pipeline::scheduler::type_t const& type,
+  ::viame::pipeline::scheduler::description_t const& desc,
   object obj )
 {
   python_scheduler_wrapper const wrap( obj );
 
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
   auto fact = vpm.add_factory(
     new python_scheduler_factory(
       type,
-      ::sprokit::scheduler::interface_name(),
+      ::viame::pipeline::scheduler::interface_name(),
       wrap ) );
 
   fact->add_attribute(
-    kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    viame::plugin_factory::PLUGIN_DESCRIPTION,
     desc );
 }
 
@@ -199,8 +199,8 @@ register_scheduler(
 bool
 is_scheduler_loaded( const std::string& name )
 {
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
   return vpm.is_module_loaded( name );
 }
 
@@ -208,8 +208,8 @@ is_scheduler_loaded( const std::string& name )
 void
 mark_scheduler_loaded( const std::string& name )
 {
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
   vpm.mark_module_as_loaded( name );
 }
 
@@ -217,11 +217,11 @@ mark_scheduler_loaded( const std::string& name )
 std::string
 get_description( const std::string& type )
 {
-  kwiver::vital::plugin_factory_handle_t a_fact;
+  viame::plugin_factory_handle_t a_fact;
 
-  // Python schedulers are registered with sprokit::scheduler interface type,
+  // Python schedulers are registered with viame::pipeline::scheduler interface type,
   // so we only need to look up using that type.
-  typedef kwiver::vital::implementation_factory_by_name< ::sprokit::scheduler >
+  typedef viame::implementation_factory_by_name< ::viame::pipeline::scheduler >
     proc_factory;
 
   proc_factory ifact;
@@ -232,7 +232,7 @@ get_description( const std::string& type )
 
   std::string buf = "-- Not Set --";
   a_fact->get_attribute(
-    kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    viame::plugin_factory::PLUGIN_DESCRIPTION,
     buf );
 
   return buf;
@@ -244,13 +244,13 @@ scheduler_names()
 {
   std::vector< std::string > name_list;
 
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
-  auto fact_list = vpm.get_factories< ::sprokit::scheduler >();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
+  auto fact_list = vpm.get_factories< ::viame::pipeline::scheduler >();
   for( auto fact : fact_list )
   {
     std::string buf;
-    if( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ) )
+    if( fact->get_attribute( viame::plugin_factory::PLUGIN_NAME, buf ) )
     {
       name_list.push_back( buf );
     }
@@ -263,7 +263,7 @@ scheduler_names()
 std::string
 get_default_type()
 {
-  return ::sprokit::scheduler_factory::default_type;
+  return ::viame::pipeline::scheduler_factory::default_type;
 }
 
 // ------------------------------------------------------------------
@@ -280,8 +280,8 @@ python_scheduler_wrapper
 object
 python_scheduler_wrapper
 ::operator()(
-  ::sprokit::pipeline_t const& pipeline,
-  kwiver::vital::config_block_sptr const& config )
+  ::viame::pipeline::pipeline_t const& pipeline,
+  viame::config_block_sptr const& config )
 {
   pybind11::gil_scoped_acquire acquire;
   ( void ) acquire;
@@ -290,6 +290,6 @@ python_scheduler_wrapper
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame

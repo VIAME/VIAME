@@ -12,15 +12,13 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/detected_object_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for merging detection sets
 class VITAL_ALGO_EXPORT merge_detections
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   merge_detections();
@@ -37,9 +35,9 @@ public:
   ///
   /// \returns The merged detection set. Empty if \p sets is empty or contains
   ///          no detections.
-  virtual kwiver::vital::detected_object_set_sptr
+  virtual viame::detected_object_set_sptr
   merge(
-    std::vector< kwiver::vital::detected_object_set_sptr > const& sets ) const =
+    std::vector< viame::detected_object_set_sptr > const& sets ) const =
   0;
 };
 
@@ -47,6 +45,4 @@ typedef std::shared_ptr< merge_detections > merge_detections_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame

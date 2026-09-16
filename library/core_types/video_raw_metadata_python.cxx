@@ -10,7 +10,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE( video_raw_metadata, m )
 {
-  py::class_< kwiver::vital::video_raw_metadata,
-    kwiver::vital::video_raw_metadata_sptr >( m, "VideoRawMetadata" )
+  py::class_< viame::video_raw_metadata,
+    viame::video_raw_metadata_sptr >( m, "VideoRawMetadata" )
     .def( py::init<>() );
 }

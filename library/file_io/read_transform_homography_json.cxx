@@ -35,14 +35,14 @@ struct registration_pair
   std::string right;
   bool has_left_to_right = false;
   bool has_right_to_left = false;
-  kwiver::vital::matrix_< 3, 3, double > left_to_right;
-  kwiver::vital::matrix_< 3, 3, double > right_to_left;
+  viame::matrix_< 3, 3, double > left_to_right;
+  viame::matrix_< 3, 3, double > right_to_left;
 };
 
 // Read a row-major 3x3 matrix stored as [ [ a, b, c ], ... ]; false when the
 // value is null or otherwise not a numeric 3x3
 bool read_matrix3( rapidjson::Value const& value,
-                   kwiver::vital::matrix_< 3, 3, double >& output )
+                   viame::matrix_< 3, 3, double >& output )
 {
   if( !value.IsArray() || value.Size() != 3 )
   {
@@ -72,8 +72,8 @@ bool read_matrix3( rapidjson::Value const& value,
   return true;
 }
 
-kwiver::vital::matrix_< 3, 3, double >
-invert_homography( kwiver::vital::matrix_< 3, 3, double > const& matrix,
+viame::matrix_< 3, 3, double >
+invert_homography( viame::matrix_< 3, 3, double > const& matrix,
                    std::string const& filename )
 {
   if( std::abs( matrix.determinant() ) <= 1e-12 )
@@ -164,7 +164,7 @@ parse_registration_file( std::string const& filename )
 
 // Resolve the selected pair to a from->to matrix, inverting the stored
 // direction when only the opposite one was fitted
-kwiver::vital::matrix_< 3, 3, double >
+viame::matrix_< 3, 3, double >
 forward_matrix( registration_pair const& pair, std::string const& filename )
 {
   if( pair.has_left_to_right )
@@ -175,7 +175,7 @@ forward_matrix( registration_pair const& pair, std::string const& filename )
   return invert_homography( pair.right_to_left, filename );
 }
 
-kwiver::vital::matrix_< 3, 3, double >
+viame::matrix_< 3, 3, double >
 reverse_matrix( registration_pair const& pair, std::string const& filename )
 {
   if( pair.has_right_to_left )
@@ -191,20 +191,20 @@ reverse_matrix( registration_pair const& pair, std::string const& filename )
 
 bool
 read_transform_homography_json
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   // Camera selection is meaningless unless both endpoints are named
   return config->get_value< std::string >( "from_camera", "" ).empty() ==
          config->get_value< std::string >( "to_camera", "" ).empty();
 }
 
-kwiver::vital::transform_2d_sptr
+viame::transform_2d_sptr
 read_transform_homography_json
 ::load_( std::string const& filename ) const
 {
   auto const pairs = parse_registration_file( filename );
 
-  kwiver::vital::matrix_< 3, 3, double > matrix;
+  viame::matrix_< 3, 3, double > matrix;
 
   if( c_from_camera.empty() && c_to_camera.empty() )
   {
@@ -243,16 +243,16 @@ read_transform_homography_json
     }
   }
 
-  return std::make_shared< kwiver::vital::homography_< double > >( matrix );
+  return std::make_shared< viame::homography_< double > >( matrix );
 }
 
 void
 read_transform_homography_json
 ::save_( std::string const& filename,
-         kwiver::vital::transform_2d_sptr data ) const
+         viame::transform_2d_sptr data ) const
 {
   auto homog =
-    std::dynamic_pointer_cast< kwiver::vital::homography >( data );
+    std::dynamic_pointer_cast< viame::homography >( data );
 
   if( !homog )
   {
@@ -260,7 +260,7 @@ read_transform_homography_json
       "Only homography transforms can be saved in DIVE format" );
   }
 
-  kwiver::vital::matrix_< 3, 3, double > const matrix = homog->matrix();
+  viame::matrix_< 3, 3, double > const matrix = homog->matrix();
 
   std::string const left =
     c_from_camera.empty() ? "left" : c_from_camera;
@@ -275,7 +275,7 @@ read_transform_homography_json
     rapidjson::Value( registration_file_type.c_str(), alloc ), alloc );
   document.AddMember( "version", 2, alloc );
 
-  auto make_matrix = [&alloc]( kwiver::vital::matrix_< 3, 3, double > const& m )
+  auto make_matrix = [&alloc]( viame::matrix_< 3, 3, double > const& m )
   {
     rapidjson::Value rows( rapidjson::kArrayType );
     for( unsigned r = 0; r < 3; ++r )
@@ -298,7 +298,7 @@ read_transform_homography_json
   if( std::abs( matrix.determinant() ) > 1e-12 )
   {
     pair.AddMember( "rightToLeft",
-      make_matrix( kwiver::vital::matrix_< 3, 3, double >( matrix.inverse() ) ), alloc );
+      make_matrix( viame::matrix_< 3, 3, double >( matrix.inverse() ) ), alloc );
   }
   else
   {

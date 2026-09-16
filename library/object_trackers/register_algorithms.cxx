@@ -19,7 +19,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_OBJECT_TRACKERS_PLUGIN_EXPORT
@@ -46,12 +46,12 @@ register_factories( kv::registry& vpm )
 
   VIAME_REGISTER_IMPORTED(
     kv::algo::initialize_object_tracks,
-    kwiver::arrows::core::initialize_object_tracks_threshold,
+    viame::core::initialize_object_tracks_threshold,
     "threshold", "Start a track for every detection above a threshold" )
 
   VIAME_REGISTER_IMPORTED(
     kv::algo::associate_detections_to_tracks,
-    kwiver::arrows::core::associate_detections_to_tracks_threshold,
+    viame::core::associate_detections_to_tracks_threshold,
     "threshold", "Associate detections to tracks by thresholding a cost matrix" )
 
 #undef VIAME_REGISTER_IMPORTED

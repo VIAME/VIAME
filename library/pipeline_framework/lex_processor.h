@@ -17,7 +17,7 @@
 #include <string>
 #include <memory>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ----------------------------------------------------------------
 /**
@@ -58,7 +58,7 @@ public:
    *
    * @param file_name Name of file to open.
    *
-   * @throws kwiver::vital::file_not_found_exception
+   * @throws viame::file_not_found_exception
    */
   void open_file( const std::string& file_name );
 
@@ -82,7 +82,7 @@ public:
    * @return Source location object indicating current file and line
    * number being processed.
    */
-  kwiver::vital::source_location current_location() const;
+  viame::source_location current_location() const;
 
   /**
    * @brief Return next token from input.
@@ -139,8 +139,8 @@ public:
    *
    * @param file_path Directory or list to add to end of search path.
    */
-  void add_search_path( kwiver::vital::config_path_t const& file_path );
-  void add_search_path( kwiver::vital::config_path_list_t const& file_path );
+  void add_search_path( viame::config_path_t const& file_path );
+  void add_search_path( viame::config_path_list_t const& file_path );
 //@}
 
   /**
@@ -169,13 +169,13 @@ private:
   token_sptr get_next_token();
   bool get_next_line();
 
-  kwiver::vital::logger_handle_t m_logger;
-  kwiver::vital::config_path_t m_config_file;
+  viame::logger_handle_t m_logger;
+  viame::config_path_t m_config_file;
 
   class priv;
   std::unique_ptr< priv > m_priv;
 };
 
-} // end namespace
+} // namespace viame::pipeline
 
 #endif /* SPROKIT_PIPELINE_LEX_PROCESS_H */

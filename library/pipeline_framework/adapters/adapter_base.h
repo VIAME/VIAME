@@ -19,7 +19,7 @@
 
 #include <set>
 
-namespace kwiver {
+namespace viame {
 namespace adapter {
 
 // ----------------------------------------------------------------
@@ -55,13 +55,13 @@ public:
    *
    * @return List of connected ports
    */
-  sprokit::process::ports_t port_list() const;
+  viame::pipeline::process::ports_t port_list() const;
 
   virtual adapter::ports_info_t get_ports() = 0;
 
 protected:
 
-  std::set< sprokit::process::port_t > m_active_ports;
+  std::set< viame::pipeline::process::port_t > m_active_ports;
 
   // The interface queue is managed by shared pointer because it is
   // shared amongst the client API, and the process threads, so it
@@ -70,6 +70,6 @@ protected:
 
 }; // end class
 
-} }  // end namespace
+} } // namespace viame
 
 #endif /* PROCESS_ADAPTER_BASE_H */

@@ -24,19 +24,17 @@
 
 #include <sstream>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
 // Constant for offsetting drawn labels
 static const int MULTI_LABEL_OFFSET( 15 );
 
-typedef  kwiver::vital::vector_< 3, unsigned int > ColorVector;
+typedef  viame::vector_< 3, unsigned int > ColorVector;
 
 namespace io = viame::image_ops;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // ----------------------------------------------------------------------------
 /// @brief
@@ -113,14 +111,14 @@ public:
   void
   draw_box(
     kv::image_of< uint8_t >&     image,
-    const vital::detected_object_sptr dos,
+    const viame::detected_object_sptr dos,
     std::string label,
     double prob,
     bool just_text = false,
     int offset_index = 0 ) const
   {
     // A copy to draw on, blended back at the end so that the alpha shading
-    // is over the frame rather than over the previous box. `vital::image`
+    // is over the frame rather than over the previous box. `viame::image`
     // copies share their memory, so this is a deep one.
     kv::image_of< uint8_t > overlay( image.width(), image.height(),
                                      image.depth() );
@@ -136,12 +134,12 @@ public:
       }
     }
 
-    vital::bounding_box_d bbox = dos->bounding_box();
+    viame::bounding_box_d bbox = dos->bounding_box();
     if( m_clip_box_to_image() )
     {
-      vital::bounding_box_d img(
-        vital::bounding_box_d::vector_type( 0, 0 ),
-        vital::bounding_box_d::vector_type(
+      viame::bounding_box_d img(
+        viame::bounding_box_d::vector_type( 0, 0 ),
+        viame::bounding_box_d::vector_type(
           static_cast< double >( image.width() ),
           static_cast< double >( image.height() ) ) );
       bbox = intersection( img, bbox );
@@ -241,10 +239,10 @@ public:
   /// @param input_set List of detections to draw.
   ///
   /// @return New image with boxes drawn.
-  vital::image_container_sptr
+  viame::image_container_sptr
   draw_detections(
-    vital::image_container_sptr image_data,
-    vital::detected_object_set_sptr in_set ) const
+    viame::image_container_sptr image_data,
+    viame::detected_object_set_sptr in_set ) const
   {
     // Three planes and eight bit, whatever came in: the overlay is drawn in
     // colour and a grey frame would have nowhere to put it.
@@ -293,8 +291,8 @@ public:
       }
     } // end foreach
 
-    return std::make_shared< vital::simple_image_container >(
-      vital::image( image ) );
+    return std::make_shared< viame::simple_image_container >(
+      viame::image( image ) );
   } // end draw_detections
 
 // ----------------------------------------------------------------------------
@@ -325,13 +323,13 @@ public:
     // e.g. person/3.5/0 0 255;
     {
       std::vector< std::string > cspec;
-      kwiver::vital::tokenize(
+      viame::tokenize(
         m_parent.c_custom_class_color, cspec, ";",
-        kwiver::vital::TokenizeTrimEmpty );
+        viame::TokenizeTrimEmpty );
 
       for( auto cs : cspec )
       {
-        kwiver::vital::regex exp(
+        viame::regex exp(
           "\\$([^/]+)/([0-9.]+)/([0-9]+) ([0-9]+) ([0-9]+)" );
 
         if( !exp.find( cs ) )
@@ -365,7 +363,7 @@ public:
 
     {
       // parse defaults default color
-      kwiver::vital::regex exp( "([0-9]+) ([0-9]+) ([0-9]+)" );
+      viame::regex exp( "([0-9]+) ([0-9]+) ([0-9]+)" );
 
       if( !exp.find( m_parent.c_default_color ) )
       {
@@ -388,9 +386,9 @@ public:
     } // end local scope
 
     // Parse selected class_names
-    kwiver::vital::tokenize(
+    viame::tokenize(
       m_parent.c_select_classes, m_select_classes, ";",
-      kwiver::vital::TokenizeTrimEmpty );
+      viame::TokenizeTrimEmpty );
   }
 }; // end priv class
 
@@ -408,10 +406,10 @@ draw_detected_object_set::
 
 void
 draw_detected_object_set
-::set_configuration_internal( vital::config_block_sptr in_config )
+::set_configuration_internal( viame::config_block_sptr in_config )
 {
-  vital::config_block_sptr config = this->get_configuration();
-  kwiver::vital::config_difference cd( config, in_config );
+  viame::config_block_sptr config = this->get_configuration();
+  viame::config_difference cd( config, in_config );
   cd.warn_extra_keys( logger() );
 
   d->process_config();
@@ -420,7 +418,7 @@ draw_detected_object_set
 // ----------------------------------------------------------------------------
 bool
 draw_detected_object_set
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   // This can be called before the config is "set". A more robust way
   // of determining validity should be used.
@@ -428,11 +426,11 @@ draw_detected_object_set
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::image_container_sptr
+viame::image_container_sptr
 draw_detected_object_set
 ::draw(
-  kwiver::vital::detected_object_set_sptr detected_set,
-  kwiver::vital::image_container_sptr image )
+  viame::detected_object_set_sptr detected_set,
+  viame::image_container_sptr image )
 {
   //  Update config to get the latest values which could be set via setters
   d->process_config();
@@ -443,6 +441,4 @@ draw_detected_object_set
 
 } // namespace ocv
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame

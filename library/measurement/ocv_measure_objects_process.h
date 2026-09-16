@@ -30,11 +30,11 @@ namespace viame
  * annotations and track sets for matched/unmatched detections.
  */
 class VIAME_MEASUREMENT_EXPORT measure_objects_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  measure_objects_process( kwiver::vital::config_block_sptr const& config );
+  measure_objects_process( viame::config_block_sptr const& config );
   virtual ~measure_objects_process();
 
 protected:

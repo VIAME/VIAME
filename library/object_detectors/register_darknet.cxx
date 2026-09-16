@@ -12,7 +12,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_OBJECT_DETECTORS_DARKNET_PLUGIN_EXPORT

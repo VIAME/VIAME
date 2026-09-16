@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::track track \endlink.
+/// \brief Implementation of \link viame::track track \endlink.
 
 #include "track.h"
 
@@ -19,8 +19,8 @@ class compare_state_frame
 public:
   bool
   operator()(
-    const kwiver::vital::track_state_sptr& ts,
-    kwiver::vital::frame_id_t frame )
+    const viame::track_state_sptr& ts,
+    viame::frame_id_t frame )
   {
     return ts && ts->frame() < frame;
   }
@@ -28,9 +28,7 @@ public:
 
 } // namespace
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 track
@@ -327,6 +325,4 @@ track
   return attrs_->has( key );
 }
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

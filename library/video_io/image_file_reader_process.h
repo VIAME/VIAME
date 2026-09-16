@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // ----------------------------------------------------------------
@@ -34,13 +34,13 @@ namespace kwiver
  *
  */
 class VIAME_PROCESSES_VIDEO_IO_NO_EXPORT image_file_reader_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "image_file_reader",
                "Reads an image file given the file name." )
 
-  image_file_reader_process( kwiver::vital::config_block_sptr const& config );
+  image_file_reader_process( viame::config_block_sptr const& config );
   virtual ~image_file_reader_process();
 
 protected:
@@ -55,6 +55,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class image_file_reader_process
 
-}  // end namespace
+} // namespace viame
 
 #endif // _KWIVER_IMAGE_FILE_READER_PROCESS_H_

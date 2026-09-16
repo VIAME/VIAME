@@ -14,9 +14,7 @@
 
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -28,7 +26,7 @@ namespace algo {
 /// input set. It all depends on the actual implementation. In any
 /// case, the input detection set shall be unmodified.
 class VITAL_ALGO_EXPORT detected_object_filter
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   detected_object_filter();
@@ -49,8 +47,6 @@ typedef std::shared_ptr< detected_object_filter > detected_object_filter_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

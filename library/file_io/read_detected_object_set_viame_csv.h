@@ -49,7 +49,7 @@ enum viame_csv_column
 /// \param cols Vector of CSV column values
 /// \returns Bounding box created from columns 3-6
 VIAME_FILE_IO_EXPORT
-kwiver::vital::bounding_box_d
+viame::bounding_box_d
 create_viame_csv_bbox( std::vector< std::string > const& cols );
 
 /// Split a CSV line, honoring double quoted fields
@@ -86,7 +86,7 @@ VIAME_FILE_IO_EXPORT
 size_t parse_viame_csv_species(
   std::vector< std::string > const& cols,
   double confidence_override,
-  kwiver::vital::detected_object_type_sptr& dot );
+  viame::detected_object_type_sptr& dot );
 
 /// Extract polygon vertices from VIAME CSV optional fields
 ///
@@ -117,7 +117,7 @@ std::vector< std::vector< double > > extract_viame_csv_polygons(
 /// \param confidence_override If > 0, use this value for all confidences
 /// \returns Created detected object, or nullptr on error
 VIAME_FILE_IO_EXPORT
-kwiver::vital::detected_object_sptr
+viame::detected_object_sptr
 create_viame_csv_detection(
   std::vector< std::string > const& cols,
   double confidence_override = -1.0 );
@@ -127,7 +127,7 @@ create_viame_csv_detection(
 // =============================================================================
 
 class VIAME_FILE_IO_EXPORT read_detected_object_set_viame_csv
-  : public kwiver::vital::algo::detected_object_set_input
+  : public viame::algo::detected_object_set_input
 {
 public:
   // NOTE: Keep description in sync with write_detected_object_set_viame_csv
@@ -157,9 +157,9 @@ public:
 
   virtual ~read_detected_object_set_viame_csv();
 
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+  virtual bool check_configuration(viame::config_block_sptr config) const;
 
-  virtual bool read_set( kwiver::vital::detected_object_set_sptr& set,
+  virtual bool read_set( viame::detected_object_set_sptr& set,
                          std::string& image_name );
 
 private:

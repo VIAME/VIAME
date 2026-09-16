@@ -8,10 +8,10 @@
 #include <viame/core_types/timestamp.h>
 #include <viame/opencv_bridge/image_container.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 using namespace viame::core;
 
-namespace kwiver::vital {
+namespace viame {
 /// @brief Pretty print for BBox for Gtest
 void PrintTo(const kv::bounding_box_d &bbox, ::std::ostream *os) {
   *os << "kv::bounding_box_d( upperLeft {" << bbox.upper_left().x() << ", " << bbox.upper_left().y()
@@ -22,7 +22,7 @@ std::ostream &operator<<(std::ostream &os, const kv::bounding_box_d &bbox) {
   PrintTo(bbox, &os);
   return os;
 }
-} // kwiver::vital
+} // namespace viame
 
 bool is_near(double a, double b, double tol) {
   return std::abs(a - b) < tol;
@@ -383,8 +383,8 @@ inline kv::detected_object_sptr create_detection(const kv::bounding_box_d &bbox,
   auto detection = std::make_shared<kv::detected_object>(bbox, 1.0);
   if (do_use_mask) {
     auto mask_image = create_uniform_image(255, cv::Size((int) bbox.width(), (int) bbox.height()));
-    using ic = kwiver::arrows::ocv::image_container;
-    auto vital_img = std::make_shared<kwiver::vital::simple_image_container>(
+    using ic = viame::ocv::image_container;
+    auto vital_img = std::make_shared<viame::simple_image_container>(
         ic::ocv_to_vital(mask_image, ic::ColorMode::OTHER_COLOR));
     detection->set_mask(vital_img);
   }

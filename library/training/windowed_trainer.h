@@ -39,7 +39,7 @@ namespace viame {
  * config selects that name, and the detector answers to both.
  */
 class VIAME_TRAINING_EXPORT windowed_trainer
-  : public kwiver::vital::algo::train_detector
+  : public viame::algo::train_detector
 {
 public:
 #define VIAME_WT_PARAMS \
@@ -194,65 +194,65 @@ public:
 
   virtual ~windowed_trainer() = default;
 
-  virtual kwiver::vital::config_block_sptr get_configuration() const override;
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual viame::config_block_sptr get_configuration() const override;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
 
 
   virtual void
-  add_data_from_disk( kwiver::vital::category_hierarchy_sptr object_labels,
+  add_data_from_disk( viame::category_hierarchy_sptr object_labels,
     std::vector< std::string > train_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+    std::vector< viame::detected_object_set_sptr > train_groundtruth,
     std::vector< std::string > test_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth );
+    std::vector< viame::detected_object_set_sptr > test_groundtruth );
 
   virtual void
-  add_data_from_memory( kwiver::vital::category_hierarchy_sptr object_labels,
-    std::vector< kwiver::vital::image_container_sptr > train_images,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-    std::vector< kwiver::vital::image_container_sptr > test_images,
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth );
+  add_data_from_memory( viame::category_hierarchy_sptr object_labels,
+    std::vector< viame::image_container_sptr > train_images,
+    std::vector< viame::detected_object_set_sptr > train_groundtruth,
+    std::vector< viame::image_container_sptr > test_images,
+    std::vector< viame::detected_object_set_sptr > test_groundtruth );
 
   virtual std::map<std::string, std::string> update_model() override;
 
 private:
   void initialize() override;
-  void set_configuration_internal( kwiver::vital::config_block_sptr config ) override;
+  void set_configuration_internal( viame::config_block_sptr config ) override;
 
   // Helper functions
   void format_images_from_disk(
     std::vector< std::string > image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
+    std::vector< viame::detected_object_set_sptr > groundtruth,
     std::vector< std::string >& formatted_names,
-    std::vector< kwiver::vital::detected_object_set_sptr >& formatted_truth );
+    std::vector< viame::detected_object_set_sptr >& formatted_truth );
 
   void process_one_frame(
     unsigned fid,
     const std::vector< std::string >& image_names,
-    const std::vector< kwiver::vital::detected_object_set_sptr >& groundtruth,
+    const std::vector< viame::detected_object_set_sptr >& groundtruth,
     double negative_ds_factor,
     std::vector< std::string >& names,
-    std::vector< kwiver::vital::detected_object_set_sptr >& truth );
+    std::vector< viame::detected_object_set_sptr >& truth );
 
   void format_image_from_memory(
-    const kwiver::vital::image& image,
-    kwiver::vital::detected_object_set_sptr groundtruth,
+    const viame::image& image,
+    viame::detected_object_set_sptr groundtruth,
     const rescale_option format_method,
     std::vector< std::string >& formatted_names,
-    std::vector< kwiver::vital::detected_object_set_sptr >& formatted_truth,
+    std::vector< viame::detected_object_set_sptr >& formatted_truth,
     const std::string& frame_tag,
     std::mt19937& rng );
 
   bool filter_detections_in_roi(
-    kwiver::vital::detected_object_set_sptr all_detections,
-    kwiver::vital::bounding_box_d region,
-    kwiver::vital::detected_object_set_sptr& filt_detections,
+    viame::detected_object_set_sptr all_detections,
+    viame::bounding_box_d region,
+    viame::detected_object_set_sptr& filt_detections,
     bool* overlapped = nullptr );
 
   std::string generate_filename( const std::string& frame_tag, int chip_idx );
 
   bool write_chip_to_disk( const std::string& filename,
-                           const kwiver::vital::image& image );
+                           const viame::image& image );
 
   // Chip-cache (manifest) helpers
   std::string frame_tag_for( unsigned fid, const std::string& image_fn );
@@ -260,14 +260,14 @@ private:
   bool load_manifest(
     const std::string& frame_tag,
     std::vector< std::string >& names,
-    std::vector< kwiver::vital::detected_object_set_sptr >& truth );
+    std::vector< viame::detected_object_set_sptr >& truth );
   void write_manifest(
     const std::string& frame_tag,
     const std::vector< std::string >& names,
-    const std::vector< kwiver::vital::detected_object_set_sptr >& truth );
+    const std::vector< viame::detected_object_set_sptr >& truth );
 
-  kwiver::vital::category_hierarchy_sptr labels_without_ignored(
-    kwiver::vital::category_hierarchy_sptr in );
+  viame::category_hierarchy_sptr labels_without_ignored(
+    viame::category_hierarchy_sptr in );
 
   // Common chip settings, materialised from the pluggable parameters
   window_settings m_settings;
@@ -280,14 +280,14 @@ private:
   // they are not built until after the training directory has been reset --
   // a nested trainer opens its output files during set_configuration, and
   // wiping the directory afterwards would unlink them.
-  kwiver::vital::algo::image_io_sptr m_image_io;
-  kwiver::vital::algo::train_detector_sptr m_trainer;
+  viame::algo::image_io_sptr m_image_io;
+  viame::algo::train_detector_sptr m_trainer;
 
   // Runtime state
   std::mutex m_category_mutex;
-  kwiver::vital::category_hierarchy_sptr m_labels;
+  viame::category_hierarchy_sptr m_labels;
   std::map< std::string, int > m_category_map;
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   // Constants
   static const std::string m_chip_subdirectory;

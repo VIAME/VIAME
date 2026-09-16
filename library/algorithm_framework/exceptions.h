@@ -5,7 +5,7 @@
 /// \file
 /// \brief Base include file for all vital exceptions
 ///
-/// All exception types for vital::core are included through this file.
+/// All exception types for viame::core are included through this file.
 
 #ifndef VITAL_EXCEPTIONS_H_
 #define VITAL_EXCEPTIONS_H_

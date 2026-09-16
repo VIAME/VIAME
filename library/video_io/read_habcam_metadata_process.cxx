@@ -29,7 +29,7 @@
 #endif
 
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -198,8 +198,8 @@ read_habcam_metadata_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -234,11 +234,11 @@ read_habcam_metadata_process
 {
   std::string file_name = grab_from_port_using_trait( file_name );
 
-  kwiver::vital::metadata_vector output_md_vec;
+  viame::metadata_vector output_md_vec;
   double output_gsd = -1.0;
 
-  std::shared_ptr< kwiver::vital::metadata > output_md =
-    std::make_shared< kwiver::vital::metadata >();
+  std::shared_ptr< viame::metadata > output_md =
+    std::make_shared< viame::metadata >();
 
   if( is_tiff( file_name ) )
   {
@@ -326,14 +326,14 @@ read_habcam_metadata_process
       CHECK_ANGLE( "hdg", yaw );
       CHECK_ANGLE( "pitch", pitch );
       CHECK_ANGLE( "roll", roll );
-      CHECK_FIELD( "alt0", kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
-      CHECK_FIELD( "alt1", kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( "alt0", viame::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( "alt1", viame::VITAL_META_DENSITY_ALTITUDE );
     }
 
     if( have_orientation )
     {
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_ORIENTATION >(
-        kwiver::vital::rotation_d( yaw, pitch, roll ) );
+      output_md->add< viame::VITAL_META_SENSOR_ORIENTATION >(
+        viame::rotation_d( yaw, pitch, roll ) );
     }
 
   #undef CHECK_ANGLE
@@ -376,12 +376,12 @@ read_habcam_metadata_process
     {
       constexpr double deg_to_rad = 3.14159265358979323846 / 180.0;
 
-      output_md->add< kwiver::vital::VITAL_META_DENSITY_ALTITUDE >(
+      output_md->add< viame::VITAL_META_DENSITY_ALTITUDE >(
         std::stod( tokens[ image_id_ind + 2 ] ) );
 
       // Yaw, pitch and roll are stored in degrees; rotation_d takes radians.
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_ORIENTATION >(
-        kwiver::vital::rotation_d(
+      output_md->add< viame::VITAL_META_SENSOR_ORIENTATION >(
+        viame::rotation_d(
           std::stod( tokens[ image_id_ind + 3 ] ) * deg_to_rad,
           std::stod( tokens[ image_id_ind + 4 ] ) * deg_to_rad,
           std::stod( tokens[ image_id_ind + 5 ] ) * deg_to_rad ) );

@@ -15,9 +15,7 @@
 
 #include <cmath>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -417,7 +415,7 @@ metadata
 // ----------------------------------------------------------------------------
 void
 metadata
-::set_timestamp( kwiver::vital::timestamp const& ts )
+::set_timestamp( viame::timestamp const& ts )
 {
   if( ts.has_valid_frame() )
   {
@@ -440,11 +438,11 @@ metadata
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::timestamp
+viame::timestamp
 metadata
 ::timestamp() const
 {
-  kwiver::vital::timestamp timestamp_;
+  viame::timestamp timestamp_;
   if( this->has( VITAL_META_VIDEO_FRAME_NUMBER ) )
   {
     timestamp_.set_frame(
@@ -515,6 +513,4 @@ print_metadata( std::ostream& os, metadata const& metadata )
   return os;
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -20,15 +20,11 @@
 
 #include <string>
 
-namespace kwiver {
-namespace vital {
-
+namespace viame {
   class source_location;
+} // namespace viame
 
-} // end namespace vital
-} // end namespace kwiver
-
-namespace sprokit {
+namespace viame::pipeline {
 
 // ------------------------------------------------------------------
 /**
@@ -70,14 +66,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
      * \param key The key the flag was on.
      * \param flag The unrecognized flag.
      */
-    unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) noexcept;
+    unrecognized_config_flag_exception(viame::config_block_key_t const& key, config_flag_t const& flag) noexcept;
     /**
      * \brief Destructor.
      */
     virtual ~unrecognized_config_flag_exception() noexcept;
 
     /// The key the flag was on.
-    kwiver::vital::config_block_key_t const m_key;
+    viame::config_block_key_t const m_key;
 
     /// The unrecognized flag.
     config_flag_t const m_flag;
@@ -101,14 +97,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
      * \param key The key the flag was on.
      * \param reason The reason for the mismatch.
      */
-    config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) noexcept;
+    config_flag_mismatch_exception(viame::config_block_key_t const& key, std::string const& reason) noexcept;
     /**
      * \brief Destructor.
      */
     virtual ~config_flag_mismatch_exception() noexcept;
 
     /// The key the flag was on.
-    kwiver::vital::config_block_key_t const m_key;
+    viame::config_block_key_t const m_key;
 
     /// The reason for the mismatch.
     std::string const m_reason;
@@ -123,7 +119,7 @@ public:
    * \brief Constructor.
    */
   relativepath_exception( const std::string& msg,
-                          const kwiver::vital::source_location& loc) noexcept;
+                          const viame::source_location& loc) noexcept;
 
   /**
    * \brief Destructor.
@@ -141,7 +137,7 @@ public:
    * \brief Constructor.
    */
   provider_error_exception( const std::string& msg,
-                            const kwiver::vital::source_location& loc) noexcept;
+                            const viame::source_location& loc) noexcept;
 
   provider_error_exception( const std::string& msg ) noexcept;
 

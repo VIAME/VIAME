@@ -9,9 +9,7 @@
 #include <cstring>
 #include <utility>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 template < typename T > VITAL_TYPES_EXPORT
 image_pixel_traits::pixel_type const image_pixel_traits_of< T >::static_type;
@@ -474,6 +472,4 @@ equal_content( const image& img1, const image& img2 )
   return true;
 }
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

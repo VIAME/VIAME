@@ -31,9 +31,9 @@
 extern "C"
 PROCESSES_EXAMPLES_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
-  using namespace sprokit;
+  using namespace viame::pipeline;
 
   process_registrar reg( vpm, "sprokit.example_processes" );
 

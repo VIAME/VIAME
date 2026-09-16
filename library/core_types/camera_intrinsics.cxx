@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::camera_intrinsics_
+/// \brief Implementation of \link viame::camera_intrinsics_
 ///        camera_intrinsics_<T> \endlink class
 ///        for \c T = { \c float, \c double }
 #include <viame/algorithm_framework/io/eigen_io.h>
@@ -13,9 +13,7 @@
 #include <cmath>
 #include <iomanip>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Convert to a 3x3 calibration matrix
 matrix_3x3d
@@ -311,7 +309,7 @@ simple_camera_intrinsics
 ::max_distort_radius_sq( double a, double b, double c )
 {
   constexpr double inf = std::numeric_limits< double >::infinity();
-  using kwiver::vital::pi;
+  using viame::pi;
   // this function finds the smallest positive root of
   //   (1 + a r^2 + b r^4 + c r^6) r
   // the derivative with respect to r is
@@ -433,6 +431,4 @@ operator>>( std::istream& s, simple_camera_intrinsics& k )
   return s;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

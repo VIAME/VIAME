@@ -15,7 +15,7 @@ namespace viame {
 // parameter: `text` below becomes `c_text`, with the default and the
 // description the pipeline's `--help` prints.
 class external_example_detector
-  : public kwiver::vital::algo::image_object_detector
+  : public viame::algo::image_object_detector
 {
 public:
   PLUGGABLE_IMPL(
@@ -33,11 +33,11 @@ public:
   // Called once the configuration is in place; the pipeline rejects the
   // process if this returns false.
   bool check_configuration(
-    kwiver::vital::config_block_sptr config ) const override;
+    viame::config_block_sptr config ) const override;
 
   // Main detection method
-  kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const override;
+  viame::detected_object_set_sptr detect(
+    viame::image_container_sptr image_data ) const override;
 };
 
 } // end namespace

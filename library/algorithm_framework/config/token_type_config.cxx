@@ -4,13 +4,11 @@
 
 #include "token_type_config.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 token_type_config
-::token_type_config( kwiver::vital::config_block_sptr blk )
+::token_type_config( viame::config_block_sptr blk )
   : token_type( "CONFIG" ),
     m_config( blk )
 {}
@@ -24,7 +22,7 @@ token_type_config::
 bool
 token_type_config
 ::lookup_entry(
-  kwiver::vital::config_block_key_t const& name,
+  viame::config_block_key_t const& name,
   std::string& result ) const
 {
   bool retcode( true );
@@ -33,7 +31,7 @@ token_type_config
   {
     result = m_config->get_value< std::string >( name );
   }
-  catch( kwiver::vital::config_block_exception& )
+  catch( viame::config_block_exception& )
   {
     retcode = false; // not found
   }
@@ -45,6 +43,4 @@ token_type_config
   return retcode;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

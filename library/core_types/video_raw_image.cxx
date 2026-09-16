@@ -7,12 +7,8 @@
 
 #include <viame/core_types/video_raw_image.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 video_raw_image::~video_raw_image() {}
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

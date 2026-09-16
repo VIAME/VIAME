@@ -20,9 +20,7 @@
 
 #include <cstring>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Shared pointer for base descriptor type
 class descriptor;
@@ -285,7 +283,7 @@ protected:
 
 /// return the hamming_distance between two descriptors
 VITAL_TYPES_EXPORT
-int hamming_distance( vital::descriptor_sptr d1, vital::descriptor_sptr d2 );
+int hamming_distance( viame::descriptor_sptr d1, viame::descriptor_sptr d2 );
 
 // ----------------------------------------------------------------------------
 /// output stream operator for a feature
@@ -296,8 +294,6 @@ VITAL_TYPES_EXPORT std::ostream& operator<<(
 /// input stream operator for a feature
 VITAL_TYPES_EXPORT std::istream& operator>>( std::istream& s, descriptor& d );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_DESCRIPTOR_H_

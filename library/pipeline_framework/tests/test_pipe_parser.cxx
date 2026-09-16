@@ -36,11 +36,11 @@
 namespace {
 
 // ----------------------------------------------------------------------------
-sprokit::pipe_blocks
+viame::pipeline::pipe_blocks
 parse( std::string const& text )
 {
   std::istringstream input( text );
-  sprokit::pipe_parser parser;
+  viame::pipeline::pipe_parser parser;
   return parser.parse_pipeline( input, "test.pipe" );
 }
 
@@ -49,7 +49,7 @@ parse( std::string const& text )
 // three kinds by index rather than all of them in order.
 template < typename Block >
 std::vector< Block >
-only( sprokit::pipe_blocks const& blocks )
+only( viame::pipeline::pipe_blocks const& blocks )
 {
   std::vector< Block > out;
   for( auto const& block : blocks )
@@ -62,13 +62,13 @@ only( sprokit::pipe_blocks const& blocks )
   return out;
 }
 
-using configs = std::vector< sprokit::config_pipe_block >;
-using processes = std::vector< sprokit::process_pipe_block >;
-using connections = std::vector< sprokit::connect_pipe_block >;
+using configs = std::vector< viame::pipeline::config_pipe_block >;
+using processes = std::vector< viame::pipeline::process_pipe_block >;
+using connections = std::vector< viame::pipeline::connect_pipe_block >;
 
 // ----------------------------------------------------------------------------
 std::string
-joined( kwiver::vital::config_block_keys_t const& keys )
+joined( viame::config_block_keys_t const& keys )
 {
   std::string out;
   for( auto const& key : keys )
@@ -88,7 +88,7 @@ TEST ( pipe_parser, a_process_block_is_a_name_and_a_type )
     "process reader\n"
     "  :: frame_list_input\n" );
 
-  auto const found = only< sprokit::process_pipe_block >( blocks );
+  auto const found = only< viame::pipeline::process_pipe_block >( blocks );
   ASSERT_EQ( 1u, found.size() );
   EXPECT_EQ( "reader", found[ 0 ].name );
   EXPECT_EQ( "frame_list_input", found[ 0 ].type );
@@ -107,7 +107,7 @@ TEST ( pipe_parser, a_process_keeps_its_own_config )
     "  :image_list_file  input.txt\n"
     "  :frame_time       0.03333\n" );
 
-  auto const found = only< sprokit::process_pipe_block >( blocks );
+  auto const found = only< viame::pipeline::process_pipe_block >( blocks );
   ASSERT_EQ( 1u, found.size() );
   ASSERT_EQ( 2u, found[ 0 ].config_values.size() );
 
@@ -128,7 +128,7 @@ TEST ( pipe_parser, a_value_is_the_rest_of_the_line )
     "  :: frame_list_input\n"
     "  :image_list_file  a path with spaces.txt\n" );
 
-  auto const found = only< sprokit::process_pipe_block >( blocks );
+  auto const found = only< viame::pipeline::process_pipe_block >( blocks );
   ASSERT_EQ( 1u, found.size() );
   ASSERT_EQ( 1u, found[ 0 ].config_values.size() );
   EXPECT_EQ( "a path with spaces.txt", found[ 0 ].config_values[ 0 ].value );
@@ -142,7 +142,7 @@ TEST ( pipe_parser, a_config_block_prefixes_every_key_in_it )
     "  :type          netharn\n"
     "  :netharn:mode  detector\n" );
 
-  auto const found = only< sprokit::config_pipe_block >( blocks );
+  auto const found = only< viame::pipeline::config_pipe_block >( blocks );
   ASSERT_EQ( 1u, found.size() );
   EXPECT_EQ( "detector", joined( found[ 0 ].key ) );
   ASSERT_EQ( 2u, found[ 0 ].values.size() );
@@ -161,7 +161,7 @@ TEST ( pipe_parser, a_connection_is_two_addresses )
     "connect from reader.image\n"
     "        to   detector.image\n" );
 
-  auto const found = only< sprokit::connect_pipe_block >( blocks );
+  auto const found = only< viame::pipeline::connect_pipe_block >( blocks );
   ASSERT_EQ( 1u, found.size() );
   EXPECT_EQ( "reader", found[ 0 ].from.first );
   EXPECT_EQ( "image", found[ 0 ].from.second );
@@ -179,7 +179,7 @@ TEST ( pipe_parser, flags_belong_to_the_key )
     "  :fixed[RO]  1\n"
     "  :plain      3\n" );
 
-  auto const found = only< sprokit::config_pipe_block >( blocks );
+  auto const found = only< viame::pipeline::config_pipe_block >( blocks );
   ASSERT_EQ( 1u, found.size() );
   ASSERT_EQ( 2u, found[ 0 ].values.size() );
 
@@ -210,7 +210,7 @@ TEST ( pipe_parser, a_bracket_may_hold_more_than_one_flag )
     "  :two[ro,local]        2\n"
     "  :three[ro,local,tunable] 3\n" );
 
-  auto const found = only< sprokit::config_pipe_block >( blocks );
+  auto const found = only< viame::pipeline::config_pipe_block >( blocks );
   ASSERT_EQ( 1u, found.size() );
   ASSERT_EQ( 3u, found[ 0 ].values.size() );
 
@@ -238,7 +238,7 @@ TEST ( pipe_parser, comments_produce_nothing )
     "# another\n" );
 
   EXPECT_EQ( 1u, blocks.size() );
-  EXPECT_EQ( 1u, only< sprokit::process_pipe_block >( blocks ).size() );
+  EXPECT_EQ( 1u, only< viame::pipeline::process_pipe_block >( blocks ).size() );
 }
 
 // ----------------------------------------------------------------------------
@@ -255,8 +255,8 @@ TEST ( pipe_parser, every_block_remembers_its_line )
     "connect from reader.image\n"
     "        to   detector.image\n" );
 
-  auto const p = only< sprokit::process_pipe_block >( blocks );
-  auto const c = only< sprokit::connect_pipe_block >( blocks );
+  auto const p = only< viame::pipeline::process_pipe_block >( blocks );
+  auto const c = only< viame::pipeline::connect_pipe_block >( blocks );
   ASSERT_EQ( 1u, p.size() );
   ASSERT_EQ( 1u, c.size() );
 
@@ -279,11 +279,11 @@ TEST ( pipe_parser, order_is_preserved_and_blocks_do_not_merge )
     "  :: two\n" );
 
   ASSERT_EQ( 3u, blocks.size() );
-  EXPECT_TRUE( std::holds_alternative< sprokit::process_pipe_block >( blocks[ 0 ] ) );
-  EXPECT_TRUE( std::holds_alternative< sprokit::config_pipe_block >( blocks[ 1 ] ) );
-  EXPECT_TRUE( std::holds_alternative< sprokit::process_pipe_block >( blocks[ 2 ] ) );
+  EXPECT_TRUE( std::holds_alternative< viame::pipeline::process_pipe_block >( blocks[ 0 ] ) );
+  EXPECT_TRUE( std::holds_alternative< viame::pipeline::config_pipe_block >( blocks[ 1 ] ) );
+  EXPECT_TRUE( std::holds_alternative< viame::pipeline::process_pipe_block >( blocks[ 2 ] ) );
 
-  auto const found = only< sprokit::process_pipe_block >( blocks );
+  auto const found = only< viame::pipeline::process_pipe_block >( blocks );
   EXPECT_EQ( "a", found[ 0 ].name );
   EXPECT_EQ( "b", found[ 1 ].name );
 }

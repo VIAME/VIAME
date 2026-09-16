@@ -13,7 +13,7 @@
 #include "image_container_python.h"
 
 namespace py = pybind11;
-using namespace kwiver::vital::python;
+using namespace viame::python;
 
 PYBIND11_MODULE( types, m )
 {

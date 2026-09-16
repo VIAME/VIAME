@@ -22,9 +22,9 @@
 #include <memory>
 #include <ctime>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "",
@@ -79,7 +79,7 @@ public:
   bool m_write_time_as_uid{ false };
 
   /// Frame time as HH:MM:SS.ssssss, empty if it cannot be formatted.
-  std::string format_time( kwiver::vital::timestamp const& ts ) const;
+  std::string format_time( viame::timestamp const& ts ) const;
 
   algo::detected_object_set_output_sptr m_writer;
   std::unique_ptr< std::ofstream > m_frame_list_writer;
@@ -88,7 +88,7 @@ public:
 // ================================================================
 
 detected_object_output_process
-::detected_object_output_process( kwiver::vital::config_block_sptr const& config )
+::detected_object_output_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new detected_object_output_process::priv )
 {
@@ -117,7 +117,7 @@ void detected_object_output_process
 
   if( d->m_file_name.empty() )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
              "Required file name not specified." );
   }
 
@@ -146,14 +146,14 @@ void detected_object_output_process
   }
 
   // Get algo config entries
-  kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  viame::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
   if ( ! check_nested_algo_configuration_using_trait(
          writer,
          algo_config, d->m_writer ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Configuration check failed." );
   }
 
@@ -164,7 +164,7 @@ void detected_object_output_process
     d->m_writer);
   if ( !d->m_writer )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Unable to create writer." );
   }
 }
@@ -184,7 +184,7 @@ void detected_object_output_process
 {
   auto datum = peek_at_datum_using_trait( detected_object_set );
 
-  if ( datum->type() == sprokit::datum::complete )
+  if ( datum->type() == viame::pipeline::datum::complete )
   {
     grab_edge_datum_using_trait( detected_object_set );
     mark_process_as_complete();
@@ -226,7 +226,7 @@ void detected_object_output_process
     *d->m_frame_list_writer << file_name << std::endl;
   }
 
-  kwiver::vital::detected_object_set_sptr input =
+  viame::detected_object_set_sptr input =
     grab_from_port_using_trait( detected_object_set );
 
   {
@@ -248,8 +248,8 @@ void detected_object_output_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   declare_input_port_using_trait( image_file_name, optional );
@@ -286,9 +286,9 @@ detected_object_output_process::priv
 // ----------------------------------------------------------------
 std::string
 detected_object_output_process::priv
-::format_time( kwiver::vital::timestamp const& ts ) const
+::format_time( viame::timestamp const& ts ) const
 {
-  const kwiver::vital::time_usec_t usec( 1000000 );
+  const viame::time_usec_t usec( 1000000 );
   const std::time_t time_s =
     static_cast< std::time_t >( ts.get_time_usec() / usec );
   const unsigned time_us =
@@ -311,4 +311,4 @@ detected_object_output_process::priv
   return std::string( buffer ) + "." + time_us_str;
 }
 
-} // end namespace
+} // namespace viame

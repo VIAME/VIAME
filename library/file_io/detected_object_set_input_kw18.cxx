@@ -16,9 +16,7 @@
 #include <map>
 #include <sstream>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -67,7 +65,7 @@ public:
 
   // Map of detected objects indexed by frame number. Each set
   // contains all detections for a single frame.
-  std::map< int, kwiver::vital::detected_object_set_sptr > m_detected_sets;
+  std::map< int, viame::detected_object_set_sptr > m_detected_sets;
 };
 
 void
@@ -86,7 +84,7 @@ detected_object_set_input_kw18
 // ----------------------------------------------------------------------------
 bool
 detected_object_set_input_kw18
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -95,7 +93,7 @@ detected_object_set_input_kw18
 bool
 detected_object_set_input_kw18
 ::read_set(
-  kwiver::vital::detected_object_set_sptr& set,
+  viame::detected_object_set_sptr& set,
   [[maybe_unused]] std::string& image_name )
 {
   if( d->m_first )
@@ -119,7 +117,7 @@ detected_object_set_input_kw18
   if( 0 == d->m_detected_sets.count( d->m_current_idx ) )
   {
     // return empty set
-    set = std::make_shared< kwiver::vital::detected_object_set >();
+    set = std::make_shared< viame::detected_object_set >();
   }
   else
   {
@@ -146,21 +144,21 @@ detected_object_set_input_kw18::priv
 ::read_all()
 {
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent.stream() );
+  viame::data_stream_reader stream_reader( m_parent.stream() );
 
   m_detected_sets.clear();
 
   while( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, " ", kwiver::vital::TokenizeTrimEmpty );
+    viame::tokenize( line, col, " ", viame::TokenizeTrimEmpty );
 
     if( ( col.size() < 18 ) || ( col.size() > 20 ) )
     {
       std::stringstream str;
       str << "This is not a kw18 kw19 or kw20 file; found " << col.size()
           << " columns in\n\"" << line << "\"";
-      VITAL_THROW( kwiver::vital::invalid_data, str.str() );
+      VITAL_THROW( viame::invalid_data, str.str() );
     }
 
     //  Check to see if we have seen this frame before. If we have,
@@ -174,10 +172,10 @@ detected_object_set_input_kw18::priv
     if( 0 == m_detected_sets.count( index ) )
     {
       // create a new detection set entry
-      m_detected_sets[ index ] = std::make_shared< kwiver::vital::detected_object_set >();
+      m_detected_sets[ index ] = std::make_shared< viame::detected_object_set >();
     }
 
-    kwiver::vital::bounding_box_d bbox(
+    viame::bounding_box_d bbox(
       atof( col[ COL_MIN_X ].c_str() ),
       atof( col[ COL_MIN_Y ].c_str() ),
       atof( col[ COL_MAX_X ].c_str() ),
@@ -190,7 +188,7 @@ detected_object_set_input_kw18::priv
     }
 
     // Create detection
-    kwiver::vital::detected_object_sptr dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf );
+    viame::detected_object_sptr dob = std::make_shared< viame::detected_object >( bbox, conf );
 
     // Add detection to set for the frame
     m_detected_sets[ index ]->add( dob );
@@ -199,6 +197,4 @@ detected_object_set_input_kw18::priv
 
 } // namespace core
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame

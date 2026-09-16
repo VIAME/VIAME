@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/segment_via_points.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ segment_via_points
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -10,9 +10,7 @@
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/config/vital_config_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Config token type.
@@ -28,10 +26,10 @@ namespace vital {
 ///
 /// Example:
 /// \code
-/// kwiver::vital::config_block block;
-/// kwiver::vital::token_expander m_token_expander;
+/// viame::config_block block;
+/// viame::token_expander m_token_expander;
 ///
-/// m_token_expander.add_token_type( new kwiver::vital::token_type_config( block
+/// m_token_expander.add_token_type( new viame::token_type_config( block
 /// ) );
 /// \endcode
 class VITAL_CONFIG_EXPORT token_type_config
@@ -43,7 +41,7 @@ public:
   /// remains with the creator.
   ///
   /// @param[in] blk - config block
-  token_type_config( kwiver::vital::config_block_sptr blk );
+  token_type_config( viame::config_block_sptr blk );
   virtual ~token_type_config();
 
   /// Lookup name in token type resolver.
@@ -52,11 +50,9 @@ public:
     std::string& result ) const;
 
 private:
-  kwiver::vital::config_block_sptr m_config;
+  viame::config_block_sptr m_config;
 }; // end class token_type_config
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // _TOKEN_TYPE_CONFIG_H_

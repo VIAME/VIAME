@@ -11,9 +11,7 @@
 
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Plugin manager private implementation.
@@ -46,7 +44,7 @@ public:
 // ----------------------------------------------------------------------------
 registry
 ::registry()
-  : m_logger( kwiver::vital::get_logger( "vital.registry" ) ),
+  : m_logger( viame::get_logger( "vital.registry" ) ),
     m_impl( new registry_impl() )
 {}
 
@@ -225,6 +223,4 @@ registry
   m_impl->m_registering_library = name;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

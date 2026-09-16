@@ -20,9 +20,7 @@
 #include <memory>
 #include <typeinfo>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// A representation of a 2D image feature point.
 ///
@@ -235,8 +233,6 @@ VITAL_TYPES_EXPORT std::istream& operator>>(
   std::istream& s,
   feature_< T >& f );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_FEATURE_H_

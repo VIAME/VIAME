@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "compute_stereo_depth_map_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void compute_stereo_depth_map(py::module& m)
@@ -19,15 +19,15 @@ void compute_stereo_depth_map(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::compute_stereo_depth_map,
-               std::shared_ptr<kwiver::vital::algo::compute_stereo_depth_map>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::compute_stereo_depth_map,
+               std::shared_ptr<viame::algo::compute_stereo_depth_map>,
+               viame::algorithm,
                compute_stereo_depth_map_trampoline<> > instance(m,  "ComputeStereoDepthMap");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::compute_stereo_depth_map::interface_name)
-    .def("compute", &kwiver::vital::algo::compute_stereo_depth_map::compute, py::doc(R"( Compute a stereo depth map given two images
+    .def_static("interface_name", &viame::algo::compute_stereo_depth_map::interface_name)
+    .def("compute", &viame::algo::compute_stereo_depth_map::compute, py::doc(R"( Compute a stereo depth map given two images
 
  \throws image_size_mismatch_exception
     When the given input image sizes do not match.
@@ -36,7 +36,7 @@ void compute_stereo_depth_map(py::module& m)
  \param right_image contains the second image to process
  \returns a depth map image)"), py::arg("left_image"), py::arg("right_image"))
     ;
-  register_algorithm< kwiver::vital::algo::compute_stereo_depth_map > (instance);
+  register_algorithm< viame::algo::compute_stereo_depth_map > (instance);
 }
 
 }

@@ -12,9 +12,7 @@
 #include <string>
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// VITAL Generic IO exception
@@ -147,8 +145,6 @@ public:
   virtual ~file_write_exception() noexcept;
 };
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame
 
 #endif // VITAL_CORE_EXCEPTIONS_IO_H

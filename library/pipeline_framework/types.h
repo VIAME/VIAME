@@ -20,7 +20,7 @@
 /**
  * \brief The namespace for all sprokit-related symbols.
  */
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -62,7 +62,7 @@ typedef std::shared_ptr<stamp const> stamp_t;
  * \ingroup exceptions
  */
 class SPROKIT_PIPELINE_EXPORT pipeline_exception
-  : public kwiver::vital::vital_exception
+  : public viame::vital_exception
 {
   public:
     /**

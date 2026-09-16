@@ -14,7 +14,7 @@
 
 #include <sstream>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ------------------------------------------------------------------
 pipe_bakery_exception
@@ -30,7 +30,7 @@ pipe_bakery_exception
 
 // ------------------------------------------------------------------
 unrecognized_config_flag_exception
-::unrecognized_config_flag_exception( kwiver::vital::config_block_key_t const& key, config_flag_t const& flag ) noexcept
+::unrecognized_config_flag_exception( viame::config_block_key_t const& key, config_flag_t const& flag ) noexcept
   : pipe_bakery_exception(),
   m_key( key ),
   m_flag( flag )
@@ -51,7 +51,7 @@ unrecognized_config_flag_exception
 
 // ------------------------------------------------------------------
 config_flag_mismatch_exception
-::config_flag_mismatch_exception( kwiver::vital::config_block_key_t const& key,
+::config_flag_mismatch_exception( viame::config_block_key_t const& key,
                                   std::string const&                       reason ) noexcept
   : pipe_bakery_exception()
   , m_key( key )
@@ -74,7 +74,7 @@ config_flag_mismatch_exception
 // ------------------------------------------------------------------
 relativepath_exception
 ::relativepath_exception( const std::string&                    msg,
-                          const kwiver::vital::source_location& loc ) noexcept
+                          const viame::source_location& loc ) noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -90,7 +90,7 @@ relativepath_exception::
 // ------------------------------------------------------------------
 provider_error_exception::
 provider_error_exception( const std::string&                    msg,
-                          const kwiver::vital::source_location& loc ) noexcept
+                          const viame::source_location& loc ) noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -113,4 +113,4 @@ provider_error_exception::
   ~provider_error_exception() noexcept
 { }
 
-} // end namespace
+} // namespace viame::pipeline

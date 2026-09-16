@@ -7,18 +7,16 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-typedef kwiver::vital::object_track_state obj_track_state;
-typedef kwiver::vital::object_track_set obj_track_set;
+typedef viame::object_track_state obj_track_state;
+typedef viame::object_track_set obj_track_set;
 
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
-std::shared_ptr< kwiver::vital::track >
+std::shared_ptr< viame::track >
 get_track( std::shared_ptr< obj_track_set >& self, uint64_t id )
 {
   auto track = self->get_track( id );
@@ -31,34 +29,32 @@ get_track( std::shared_ptr< obj_track_set >& self, uint64_t id )
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital::python;
+using namespace viame::python;
 PYBIND11_MODULE( object_track_set, m )
 {
-  py::class_< obj_track_state, kwiver::vital::track_state,
+  py::class_< obj_track_state, viame::track_state,
     std::shared_ptr< obj_track_state > >( m, "ObjectTrackState" )
     .def(
     py::init< int64_t, int64_t,
-      std::shared_ptr< kwiver::vital::detected_object > >() )
-    .def_property_readonly( "frame_id", &kwiver::vital::track_state::frame )
+      std::shared_ptr< viame::detected_object > >() )
+    .def_property_readonly( "frame_id", &viame::track_state::frame )
     .def_property_readonly(
       "time_usec",
-      &kwiver::vital::object_track_state::time )
+      &viame::object_track_state::time )
     .def(
       "detection",
-      ( kwiver::vital::detected_object_sptr ( obj_track_state::* )() ) &
+      ( viame::detected_object_sptr ( obj_track_state::* )() ) &
       obj_track_state::detection )
     .def( "image_point", &obj_track_state::image_point )
     .def( "track_point", &obj_track_state::track_point )
   ;
 
-  py::class_< obj_track_set, kwiver::vital::track_set,
+  py::class_< obj_track_set, viame::track_set,
     std::shared_ptr< obj_track_set > >( m, "ObjectTrackSet" )
     .def( py::init<>() )
-    .def( py::init< std::vector< std::shared_ptr< kwiver::vital::track > > >() )
+    .def( py::init< std::vector< std::shared_ptr< viame::track > > >() )
     .def( "all_frame_ids", &obj_track_set::all_frame_ids )
     .def(
       "get_track", &get_track,

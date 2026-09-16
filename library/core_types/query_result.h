@@ -22,9 +22,7 @@
 #include <memory>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// A representation of a database query result.
@@ -45,10 +43,10 @@ public:
   unsigned instance_id() const;
   double relevancy_score() const;
 
-  vital::timestamp start_time() const;
-  vital::timestamp end_time() const;
+  viame::timestamp start_time() const;
+  viame::timestamp end_time() const;
 
-  vital::geo_point location() const;
+  viame::geo_point location() const;
 
   object_track_set_sptr tracks() const;
   track_descriptor_set_sptr descriptors() const;
@@ -63,7 +61,7 @@ public:
 
   void set_temporal_bounds( timestamp const&, timestamp const& );
 
-  void set_location( vital::geo_point );
+  void set_location( viame::geo_point );
 
   void set_tracks( object_track_set_sptr );
   void set_descriptors( track_descriptor_set_sptr );
@@ -71,16 +69,16 @@ public:
   void set_image_data( std::vector< image_container_sptr > const& );
 
 protected:
-  vital::uid m_query_id;
+  viame::uid m_query_id;
   std::string m_stream_id;
 
   unsigned m_instance_id;
   double m_relevancy_score;
 
-  vital::timestamp m_start_time;
-  vital::timestamp m_end_time;
+  viame::timestamp m_start_time;
+  viame::timestamp m_end_time;
 
-  vital::geo_point m_location;
+  viame::geo_point m_location;
 
   object_track_set_sptr m_tracks;
   track_descriptor_set_sptr m_descriptors;
@@ -91,8 +89,6 @@ protected:
 /// Shared pointer for query result
 typedef std::shared_ptr< query_result > query_result_sptr;
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_QUERY_RESULT_H_

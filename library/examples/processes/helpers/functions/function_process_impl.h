@@ -116,7 +116,7 @@
  * \param desc A description of the port.
  */
 #define DEFINE_IPORT_VARS(cls, name, type, port_type, flags, desc) \
-  sprokit::process::port_t const CLASS_NAME(cls)::priv::IPORT_VAR(name) = sprokit::process::port_t(#name)
+  viame::pipeline::process::port_t const CLASS_NAME(cls)::priv::IPORT_VAR(name) = viame::pipeline::process::port_t(#name)
 
 /**
  * \def DECLARE_OPORT_VARS
@@ -145,7 +145,7 @@
  * \param desc A description of the port.
  */
 #define DEFINE_OPORT_VARS(cls, name, type, port_type, flags, desc) \
-  sprokit::process::port_t const CLASS_NAME(cls)::priv::OPORT_VAR(name) = sprokit::process::port_t(#name)
+  viame::pipeline::process::port_t const CLASS_NAME(cls)::priv::OPORT_VAR(name) = viame::pipeline::process::port_t(#name)
 
 /**
  * \def DECLARE_CONF_VARS
@@ -159,8 +159,8 @@
  * \param desc A description of the configuration.
  */
 #define DECLARE_CONF_VARS(cls, name, type, default, desc) \
-  static kwiver::vital::config_block_key_t const CONF_VAR(name);       \
-  static kwiver::vital::config_block_value_t const CONF_DEF_VAR(name); \
+  static viame::config_block_key_t const CONF_VAR(name);       \
+  static viame::config_block_value_t const CONF_DEF_VAR(name); \
   type const CONF_VALUE_VAR(name)
 /**
  * \def DEFINE_CONF_VARS
@@ -174,8 +174,8 @@
  * \param desc A description of the configuration.
  */
 #define DEFINE_CONF_VARS(cls, name, type, default, desc)                                          \
-  kwiver::vital::config_block_key_t const CLASS_NAME(cls)::priv::CONF_VAR(name) = kwiver::vital::config_block_key_t(#name); \
-  kwiver::vital::config_block_value_t const CLASS_NAME(cls)::priv::CONF_DEF_VAR(name) = kwiver::vital::config_block_value_t(default)
+  viame::config_block_key_t const CLASS_NAME(cls)::priv::CONF_VAR(name) = viame::config_block_key_t(#name); \
+  viame::config_block_value_t const CLASS_NAME(cls)::priv::CONF_DEF_VAR(name) = viame::config_block_value_t(default)
 
 /**
  * \def CONFIG_DECLARE_ARGS
@@ -242,7 +242,7 @@
   declare_configuration_key(                           \
     priv::CONF_VAR(name),                              \
     priv::CONF_DEF_VAR(name),                          \
-    kwiver::vital::config_block_description_t(desc))
+    viame::config_block_description_t(desc))
 
 /**
  * \def GRAB_CONFIG_VALUE
@@ -526,8 +526,8 @@ iports(DEFINE_IPORT_VARS, LINES)                                      \
 oports(DEFINE_OPORT_VARS, LINES)                                      \
                                                                       \
 CLASS_NAME(name)                                                      \
-::CLASS_NAME(name)(kwiver::vital::config_block_sptr const& config)    \
-                  : sprokit::process(config)                          \
+::CLASS_NAME(name)(viame::config_block_sptr const& config)    \
+                  : viame::pipeline::process(config)                          \
 {                                                                     \
   port_flags_t required;                                              \
                                                                       \

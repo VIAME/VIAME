@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace {
 

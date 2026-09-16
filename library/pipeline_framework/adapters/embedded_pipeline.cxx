@@ -33,34 +33,34 @@
 
 namespace {
 
-static kwiver::vital::config_block_key_t const scheduler_block = kwiver::vital::config_block_key_t("_scheduler");
-static kwiver::vital::config_block_key_t const epx_block_key = kwiver::vital::config_block_key_t("_pipeline:embedded_pipeline_extension");
+static viame::config_block_key_t const scheduler_block = viame::config_block_key_t("_scheduler");
+static viame::config_block_key_t const epx_block_key = viame::config_block_key_t("_pipeline:embedded_pipeline_extension");
 
 // Helper function to create EPX by name
-kwiver::embedded_pipeline_extension_sptr create_epx_by_name( const std::string& name )
+viame::embedded_pipeline_extension_sptr create_epx_by_name( const std::string& name )
 {
-  auto& vpm = kwiver::vital::plugin_manager::instance();
-  auto fact_list = vpm.get_factories( typeid( kwiver::embedded_pipeline_extension ).name() );
+  auto& vpm = viame::plugin_manager::instance();
+  auto fact_list = vpm.get_factories( typeid( viame::embedded_pipeline_extension ).name() );
 
   for ( auto fact : fact_list )
   {
     std::string plugin_name;
-    if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, plugin_name ) &&
+    if ( fact->get_attribute( viame::plugin_factory::PLUGIN_NAME, plugin_name ) &&
          plugin_name == name )
     {
-      auto epx_fact = std::dynamic_pointer_cast< kwiver::epx_factory >( fact );
+      auto epx_fact = std::dynamic_pointer_cast< viame::epx_factory >( fact );
       if ( epx_fact )
       {
         return epx_fact->create_object();
       }
     }
   }
-  throw kwiver::vital::plugin_factory_not_found( "embedded_pipeline_extension named: " + name );
+  throw viame::plugin_factory_not_found( "embedded_pipeline_extension named: " + name );
 }
 
 } // end
 
-namespace kwiver {
+namespace viame {
 
 
 // ----------------------------------------------------------------
@@ -69,7 +69,7 @@ class embedded_pipeline::priv
 public:
   // -- CONSTRUCTORS --
   priv()
-    : m_logger( kwiver::vital::get_logger( "sprokit.embedded_pipeline" ))
+    : m_logger( viame::get_logger( "sprokit.embedded_pipeline" ))
   { }
 
   ~priv()
@@ -90,19 +90,19 @@ public:
   bool connect_input_adapter();
   bool connect_output_adapter();
 
-  vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
   bool m_at_end {false};
   bool m_stop_flag {false};
   bool m_input_adapter_connected {false};
   bool m_output_adapter_connected {false};
 
-  kwiver::input_adapter m_input_adapter;
-  kwiver::output_adapter m_output_adapter;
+  viame::input_adapter m_input_adapter;
+  viame::output_adapter m_output_adapter;
 
-  sprokit::pipeline_t m_pipeline;
-  kwiver::vital::config_block_sptr m_pipe_config;
-  kwiver::vital::config_block_sptr m_scheduler_config;
-  sprokit::scheduler_t m_scheduler;
+  viame::pipeline::pipeline_t m_pipeline;
+  viame::config_block_sptr m_pipe_config;
+  viame::config_block_sptr m_scheduler_config;
+  viame::pipeline::scheduler_t m_scheduler;
 
   embedded_pipeline_extension_sptr m_hooks;
   std::shared_ptr< embedded_pipeline_extension::context> m_context;
@@ -126,9 +126,9 @@ public:
   real_context( std::shared_ptr< embedded_pipeline::priv> p );
   virtual ~real_context() = default;
 
-  virtual sprokit::pipeline_t pipeline() override { return m_priv->m_pipeline; }
-  virtual vital::logger_handle_t logger() override { return m_priv->m_logger; }
-  virtual kwiver::vital::config_block_sptr pipe_config() override { return m_priv->m_pipe_config; }
+  virtual viame::pipeline::pipeline_t pipeline() override { return m_priv->m_pipeline; }
+  virtual viame::logger_handle_t logger() override { return m_priv->m_logger; }
+  virtual viame::config_block_sptr pipe_config() override { return m_priv->m_pipe_config; }
 
   // add other context items as needed.
 
@@ -147,7 +147,7 @@ embedded_pipeline
   : m_priv( new priv() )
 {
   // load processes
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
+  viame::plugin_manager::instance().load_all_plugins();
 
   // make our context object
   m_priv->m_context = std::make_shared< real_context >( m_priv );
@@ -177,16 +177,16 @@ embedded_pipeline
 ::build_pipeline( std::istream& istr, std::string const& def_dir )
 {
   // create a pipeline
-  sprokit::pipeline_builder builder;
+  viame::pipeline::pipeline_builder builder;
 
   builder.add_search_path(
-    vital::application_config_file_paths(
+    viame::application_config_file_paths(
       m_priv->m_app_name, m_priv->m_app_version, m_priv->m_app_prefix ) );
 
   std::string cur_file( def_dir );
   if ( def_dir.empty() )
   {
-    cur_file = kwiver::vital::current_working_directory();
+    cur_file = viame::current_working_directory();
   }
 
   builder.load_pipeline( istr, cur_file + "/in-stream" );
@@ -208,7 +208,7 @@ embedded_pipeline
   // embedded_pipeline_extension:type = foo
   // embedded_pipeline_extension:foo:param = value
 
-  kwiver::vital::config_block_sptr epx_config = m_priv->m_pipe_config->subblock( epx_block_key );
+  viame::config_block_sptr epx_config = m_priv->m_pipe_config->subblock( epx_block_key );
 
   if ( epx_config->has_value( "type" ))
   {
@@ -239,7 +239,7 @@ embedded_pipeline
   {
     m_priv->m_pipeline->setup_pipeline();
   }
-  catch( sprokit::pipeline_exception const& e)
+  catch( viame::pipeline::pipeline_exception const& e)
   {
     std::stringstream str;
     str << "Error setting up pipeline: " << e.what();
@@ -266,18 +266,18 @@ embedded_pipeline
   // Setup scheduler
   //
   // Determine if new scheduler type has been specified in the config
-  sprokit::scheduler::type_t scheduler_type =
+  viame::pipeline::scheduler::type_t scheduler_type =
     m_priv->m_pipe_config->get_value(
-      scheduler_block + kwiver::vital::config_block::block_sep() + "type",  // key string
-      sprokit::scheduler_factory::default_type ); // default value
+      scheduler_block + viame::config_block::block_sep() + "type",  // key string
+      viame::pipeline::scheduler_factory::default_type ); // default value
 
   // Get config sub block based on selected scheduler type from the main config
   m_priv->m_scheduler_config = m_priv->m_pipe_config->subblock(scheduler_block +
-                          kwiver::vital::config_block::block_sep() +
+                          viame::config_block::block_sep() +
                           scheduler_type);
 
   // Create the scheduler and attach the already built pipeline
-  m_priv->m_scheduler = sprokit::create_scheduler(scheduler_type,
+  m_priv->m_scheduler = viame::pipeline::create_scheduler(scheduler_type,
                                                   m_priv->m_pipeline,
                                                   m_priv->m_scheduler_config);
 
@@ -290,7 +290,7 @@ embedded_pipeline
 // ------------------------------------------------------------------
 void
 embedded_pipeline
-::send( kwiver::adapter::adapter_data_set_t ads )
+::send( viame::adapter::adapter_data_set_t ads )
 {
   if ( ! input_adapter_connected() )
   {
@@ -310,12 +310,12 @@ embedded_pipeline
     throw std::runtime_error( "Input adapter not connected." );
   }
 
-  auto ds = kwiver::adapter::adapter_data_set::create( kwiver::adapter::adapter_data_set::end_of_input );
+  auto ds = viame::adapter::adapter_data_set::create( viame::adapter::adapter_data_set::end_of_input );
   this->send( ds );
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set_t
+viame::adapter::adapter_data_set_t
 embedded_pipeline
 ::receive()
 {
@@ -410,7 +410,7 @@ embedded_pipeline
 }
 
 // ------------------------------------------------------------------
-sprokit::process::ports_t
+viame::pipeline::process::ports_t
 embedded_pipeline
 ::input_port_names() const
 {
@@ -423,7 +423,7 @@ embedded_pipeline
 }
 
 // ------------------------------------------------------------------
-sprokit::process::ports_t
+viame::pipeline::process::ports_t
 embedded_pipeline
 ::output_port_names() const
 {
@@ -470,7 +470,7 @@ embedded_pipeline
 // ----------------------------------------------------------------------------
 void
 embedded_pipeline::
-update_config( [[maybe_unused]] kwiver::vital::config_block_sptr config )
+update_config( [[maybe_unused]] viame::config_block_sptr config )
 {
 }
 
@@ -512,4 +512,4 @@ connect_output_adapter()
   return false;
 }
 
-} // end namespace kwiver
+} // namespace viame

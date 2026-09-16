@@ -14,9 +14,7 @@
 
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// An abstract ordered collection of 2D image feature points.
 ///
@@ -65,8 +63,6 @@ protected:
   std::vector< feature_sptr > data_;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_FEATURE_SET_H_

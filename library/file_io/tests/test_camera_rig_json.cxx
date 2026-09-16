@@ -33,7 +33,7 @@
 #include <sstream>
 #include <string>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 

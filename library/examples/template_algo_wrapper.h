@@ -32,10 +32,10 @@ namespace group_ns {
 //++ Processes are not exported, so add the appropriate NO_EXPORT
 //++ symbol to the class.
 class VIAME_PROCESSES_EXAMPLES_NO_EXPORT template_algo_wrapper
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
-  template_algo_wrapper( kwiver::vital::config_block_sptr const& config );
+  template_algo_wrapper( viame::config_block_sptr const& config );
   virtual ~template_algo_wrapper();
 
 protected:
@@ -51,7 +51,7 @@ protected:
   virtual void _init();
   virtual void _reset();
   virtual void _flush();
-  virtual void _reconfigure(kwiver::vital::config_block_sptr const& conf);
+  virtual void _reconfigure(viame::config_block_sptr const& conf);
 
 private:
   //++ these methods group config creation operations and port

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Function to generate \ref kwiver::vital::camera_rpc from metadata
+/// \brief Function to generate \ref viame::camera_rpc from metadata
 
 #ifndef VITAL_CAMERA_FROM_METADATA_H_
 #define VITAL_CAMERA_FROM_METADATA_H_
@@ -16,9 +16,7 @@
 #include <viame/core_types/local_tangent_space.h>
 #include <viame/core_types/metadata.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Convert space separated sting to Eigen vector
 ///
@@ -120,8 +118,6 @@ update_metadata_from_camera(
   local_tangent_space const& local_space,
   metadata& md );
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

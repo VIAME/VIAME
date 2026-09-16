@@ -11,9 +11,7 @@
 #include <viame/algorithm_framework/util/tokenize.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -63,18 +61,18 @@ public:
   // Local values
   bool m_first;
 
-  vital::frame_id_t m_current_idx;
-  vital::frame_id_t m_last_idx;
+  viame::frame_id_t m_current_idx;
+  viame::frame_id_t m_last_idx;
 
   void read_all();
 
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
-  std::map< vital::frame_id_t,
-    std::vector< vital::track_sptr > > m_tracks_by_frame_id;
+  std::map< viame::frame_id_t,
+    std::vector< viame::track_sptr > > m_tracks_by_frame_id;
 
   // Compilation of all loaded tracks, track id -> track sptr mapping
-  std::map< vital::frame_id_t, vital::track_sptr > m_all_tracks;
+  std::map< viame::frame_id_t, viame::track_sptr > m_all_tracks;
 };
 
 // ----------------------------------------------------------------------------
@@ -93,7 +91,7 @@ read_object_track_set_kw18
 // ----------------------------------------------------------------------------
 bool
 read_object_track_set_kw18
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -101,7 +99,7 @@ read_object_track_set_kw18
 // ----------------------------------------------------------------------------
 bool
 read_object_track_set_kw18
-::read_set( vital::object_track_set_sptr& set )
+::read_set( viame::object_track_set_sptr& set )
 {
   auto const first = d->m_first;
   if( first )
@@ -118,14 +116,14 @@ read_object_track_set_kw18
       return false;
     }
 
-    std::vector< vital::track_sptr > trks;
+    std::vector< viame::track_sptr > trks;
 
     for( auto const& it : d->m_all_tracks )
     {
       trks.push_back( it.second );
     }
 
-    set = std::make_shared< vital::object_track_set >( trks );
+    set = std::make_shared< viame::object_track_set >( trks );
     return true;
   }
 
@@ -133,13 +131,13 @@ read_object_track_set_kw18
   if( d->m_tracks_by_frame_id.count( d->m_current_idx ) == 0 )
   {
     // Return empty set
-    set = std::make_shared< vital::object_track_set >();
+    set = std::make_shared< viame::object_track_set >();
   }
   else
   {
     // Return tracks for this frame
-    vital::object_track_set_sptr new_set(
-      new vital::object_track_set(
+    viame::object_track_set_sptr new_set(
+      new viame::object_track_set(
         d->m_tracks_by_frame_id[ d->m_current_idx ] ) );
 
     set = new_set;
@@ -157,7 +155,7 @@ read_object_track_set_kw18::priv
 ::read_all()
 {
   std::string line;
-  vital::data_stream_reader stream_reader( parent.stream() );
+  viame::data_stream_reader stream_reader( parent.stream() );
 
   m_tracks_by_frame_id.clear();
   m_all_tracks.clear();
@@ -170,7 +168,7 @@ read_object_track_set_kw18::priv
     }
 
     std::vector< std::string > col;
-    vital::tokenize( line, col, c_delim(), true );
+    viame::tokenize( line, col, c_delim(), true );
 
     if( ( col.size() < 18 ) || ( col.size() > 20 ) )
     {
@@ -179,7 +177,7 @@ read_object_track_set_kw18::priv
       str << "This is not a kw18 kw19 or kw20 file; found "
           << col.size() << " columns in\n\"" << line << "\"";
 
-      VITAL_THROW( vital::invalid_data, str.str() );
+      VITAL_THROW( viame::invalid_data, str.str() );
     }
 
     //  Check to see if we have seen this frame before. If we have,
@@ -189,11 +187,11 @@ read_object_track_set_kw18::priv
     //
     //  This allows for track states to be written in a non-contiguous
     //  manner as may be done by streaming writers.
-    vital::frame_id_t frame_index = atoi( col[ COL_FRAME ].c_str() );
-    vital::time_usec_t frame_time = atof( col[ COL_TIME ].c_str() );
+    viame::frame_id_t frame_index = atoi( col[ COL_FRAME ].c_str() );
+    viame::time_usec_t frame_time = atof( col[ COL_TIME ].c_str() );
     int track_index = atoi( col[ COL_ID ].c_str() );
 
-    vital::bounding_box_d bbox(
+    viame::bounding_box_d bbox(
       atof( col[ COL_MIN_X ].c_str() ),
       atof( col[ COL_MIN_Y ].c_str() ),
       atof( col[ COL_MAX_X ].c_str() ),
@@ -207,21 +205,21 @@ read_object_track_set_kw18::priv
     }
 
     // Create new detection
-    vital::detected_object_sptr det =
-      std::make_shared< vital::detected_object >( bbox, conf );
+    viame::detected_object_sptr det =
+      std::make_shared< viame::detected_object >( bbox, conf );
 
     // Create new object track state
-    vital::track_state_sptr ots =
-      std::make_shared< vital::object_track_state >(
+    viame::track_state_sptr ots =
+      std::make_shared< viame::object_track_state >(
         frame_index, frame_time,
         det );
 
     // Assign object track state to track
-    vital::track_sptr trk;
+    viame::track_sptr trk;
 
     if( m_all_tracks.count( track_index ) == 0 )
     {
-      trk = vital::track::create();
+      trk = viame::track::create();
       trk->set_id( track_index );
       m_all_tracks[ track_index ] = trk;
     }
@@ -243,6 +241,4 @@ read_object_track_set_kw18::priv
 
 } // namespace core
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame

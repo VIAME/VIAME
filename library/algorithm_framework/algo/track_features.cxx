@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/track_features.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ track_features
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

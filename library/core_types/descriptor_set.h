@@ -13,9 +13,7 @@
 #include <viame/core_types/set.h>
 #include <viame/core_types/vital_types_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// An abstract ordered collection of feature descriptors.
 ///
@@ -40,10 +38,10 @@ public:
 protected:
   descriptor_set();
 
-  kwiver::vital::logger_handle_t logger();
+  viame::logger_handle_t logger();
 
 private:
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 };
 
 /// Shared pointer for base descriptor_set type
@@ -100,8 +98,6 @@ protected:
   const_iterator::next_value_func_t get_const_iter_next_func() const override;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_DESCRIPTOR_SET_H_

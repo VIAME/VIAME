@@ -15,11 +15,11 @@ namespace vertex_ai {
 /// Sprokit process that submits a custom training job to Vertex AI
 /// and optionally waits for completion. Runs once per pipeline execution.
 class vertex_ai_trainer
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   vertex_ai_trainer(
-    kwiver::vital::config_block_sptr const& config );
+    viame::config_block_sptr const& config );
   virtual ~vertex_ai_trainer();
 
 protected:

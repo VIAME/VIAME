@@ -26,7 +26,7 @@
 #include <string>
 
 namespace io = viame::image_ops;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace golden_image = viame::testing::golden_image;
 

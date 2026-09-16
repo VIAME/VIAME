@@ -7,9 +7,7 @@
 
 #include <pybind11/pybind11.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace python {
 
@@ -19,8 +17,6 @@ void serialize_object_track_set( py::module& m );
 
 } // namespace python
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

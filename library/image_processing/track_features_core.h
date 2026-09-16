@@ -23,15 +23,13 @@
 #include <viame/algorithm_framework/algo/feature_descriptor_io.h>
 #include <viame/algorithm_framework/algo/match_features.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 /// A basic feature tracker
 class VIAME_IMAGE_PROCESSING_EXPORT track_features_core
-  : public vital::algo::track_features
+  : public viame::algo::track_features
 {
 public:
   PLUGGABLE_IMPL(
@@ -39,25 +37,25 @@ public:
     "Track features from frame to frame"
     " using feature detection, matching, and loop closure.",
     PARAM_DEFAULT(
-      features_dir, kwiver::vital::config_path_t,
+      features_dir, viame::config_path_t,
       "Path to a directory in which to read or write the feature "
       "detection and description files.\n"
       "Using this directory requires a feature_io algorithm.",
       "" ),
     PARAM(
-      feature_detector, vital::algo::detect_features_sptr,
+      feature_detector, viame::algo::detect_features_sptr,
       "feature_detector" ),
     PARAM(
-      descriptor_extractor, vital::algo::extract_descriptors_sptr,
+      descriptor_extractor, viame::algo::extract_descriptors_sptr,
       "descriptor_extractor" ),
     PARAM(
-      feature_io, vital::algo::feature_descriptor_io_sptr,
+      feature_io, viame::algo::feature_descriptor_io_sptr,
       "feature_io" ),
     PARAM(
-      feature_matcher, vital::algo::match_features_sptr,
+      feature_matcher, viame::algo::match_features_sptr,
       "feature_matcher" ),
     PARAM(
-      loop_closer, vital::algo::close_loops_sptr,
+      loop_closer, viame::algo::close_loops_sptr,
       "loop_closer" )
   )
 
@@ -73,7 +71,7 @@ public:
   /// \param config  The config block to check configuration of.
   ///
   /// \returns true if the configuration check passed and false if it didn't.
-  bool check_configuration( vital::config_block_sptr config ) const override;
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
   /// Extend a previous set of feature tracks using the current frame
   ///
@@ -89,12 +87,12 @@ public:
   ///                  tracking. An empty sptr indicates no mask (default
   ///                  value).
   /// \returns an updated set of feature tracks including the current frame
-  vital::feature_track_set_sptr
+  viame::feature_track_set_sptr
   track(
-    vital::feature_track_set_sptr prev_tracks,
-    vital::frame_id_t frame_number,
-    vital::image_container_sptr image_data,
-    vital::image_container_sptr mask = {} ) const override;
+    viame::feature_track_set_sptr prev_tracks,
+    viame::frame_id_t frame_number,
+    viame::image_container_sptr image_data,
+    viame::image_container_sptr mask = {} ) const override;
 
 private:
   void initialize() override;
@@ -103,10 +101,8 @@ private:
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

@@ -13,9 +13,7 @@
 // Define config block supporting types
 //
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class config_block;
 
@@ -39,8 +37,6 @@ typedef std::string config_path_t;
 
 typedef std::vector< std::string > config_path_list_t;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

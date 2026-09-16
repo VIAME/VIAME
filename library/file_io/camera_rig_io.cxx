@@ -172,7 +172,7 @@ class intrinsics_builder
 private:
   bool valid_;
   double fx_, fy_, cx_, cy_;
-  kwiver::vital::vector_d dist_;
+  viame::vector_d dist_;
 
 public:
   intrinsics_builder(): valid_(false) {}
@@ -180,11 +180,11 @@ public:
                       double fy,                // focal point y
                       double cx,                // principal point x
                       double cy,                // principal point y
-                      const kwiver::vital::vector_d& dist ) // distortion parameters
+                      const viame::vector_d& dist ) // distortion parameters
     : valid_(true), fx_(fx), fy_(fy), cx_(cx), cy_(cy), dist_(dist)
   {}
 
-  kwiver::vital::camera_intrinsics_sptr make_intrinsics( void ) const
+  viame::camera_intrinsics_sptr make_intrinsics( void ) const
   {
     if (!valid_)
     {
@@ -193,10 +193,10 @@ public:
 
     double focal_length = fx_;
     double dx = 2*cx_, dy = 2*cy_;
-    kwiver::vital::vector_2d principal_point(cx_, cy_);
+    viame::vector_2d principal_point(cx_, cy_);
     auto const aspect_ratio = fx_ / fy_, skew = 0.0;
 
-    return std::make_shared<kwiver::vital::simple_camera_intrinsics>(
+    return std::make_shared<viame::simple_camera_intrinsics>(
       focal_length,
       principal_point,
       aspect_ratio,
@@ -527,7 +527,7 @@ std::map<std::string, std::vector<double>> read_npz_arrays( const std::string& f
 
 namespace viame {
 
-using namespace kwiver::vital;
+using namespace viame;
 
 static auto logger = get_logger( "viame.camera_rig_io" );
 
@@ -1441,7 +1441,7 @@ camera_rig_stereo_sptr
 read_stereo_rig( path_t const& FN )
 {
   // Check if the path is a directory (OpenCV calibration format)
-  if( kwiver::vital::file_is_directory( FN ) )
+  if( viame::file_is_directory( FN ) )
   {
     return read_stereo_rig_from_ocv_dir( FN );
   }

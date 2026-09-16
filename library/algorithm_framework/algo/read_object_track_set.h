@@ -16,9 +16,7 @@
 #include <fstream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -33,7 +31,7 @@ namespace algo {
 /// and an associated set of object tracks. Alternatively, tracks can be read in
 /// batch mode.
 class VITAL_ALGO_EXPORT read_object_track_set
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   virtual ~read_object_track_set();
@@ -46,13 +44,13 @@ public:
   ///
   /// \param filename Name of file to open
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the given path does not
+  /// \throws viame::path_not_exists Thrown when the given path does not
   ///    exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file Thrown when the given path does
+  /// \throws viame::path_not_a_file Thrown when the given path does
   ///    not point to a file (i.e. it points to a directory).
   ///
-  /// \throws kwiver::vital::file_not_found_exception
+  /// \throws viame::file_not_found_exception
   virtual void open( std::string const& filename );
 
   /// Read object tracks from an existing stream
@@ -79,7 +77,7 @@ public:
   /// empty if there are no object tracks on an image.
   ///
   /// @return \b true if object tracks are returned, \b false if end of file.
-  virtual bool read_set( kwiver::vital::object_track_set_sptr& set ) = 0;
+  virtual bool read_set( viame::object_track_set_sptr& set ) = 0;
 
   /// Determine if input file is at end of file.
   ///
@@ -104,8 +102,6 @@ typedef std::shared_ptr< read_object_track_set > read_object_track_set_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_READ_OBJECT_TRACK_SET_H

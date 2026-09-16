@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::similarity_ similarity_<T>
+/// \brief Implementation of \link viame::similarity_ similarity_<T>
 /// \endlink
 ///        for \c T = { \c float, \c double }
 
@@ -13,16 +13,14 @@
 #include <cmath>
 #include <viame/algorithm_framework/io/eigen_io.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Constructor - from a matrix
 template < typename T >
 similarity_< T >
 
 ::similarity_( const matrix_< 4, 4, T >& M )
-  : m_logger( kwiver::vital::get_logger( "vital.similarity" ) )
+  : m_logger( viame::get_logger( "vital.similarity" ) )
 {
   if( ( M( 3, 0 ) != T( 0 ) ) ||
       ( M( 3, 1 ) != T( 0 ) ) ||
@@ -127,6 +125,4 @@ INSTANTIATE_SIMILARITY( float );
 #undef INSTANTIATE_SIMILARITY
 /// \endcond
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

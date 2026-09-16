@@ -14,9 +14,7 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -91,6 +89,4 @@ detected_object_set_output
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

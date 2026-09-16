@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for kwiver::vital::sfm_constraints class storing constraints
+/// \brief Header for viame::sfm_constraints class storing constraints
 /// to be
 ///       used in SfM.
 
@@ -17,9 +17,7 @@
 #ifndef KWIVER_VITAL_SFM_CONSTRAINTS_H_
 #define KWIVER_VITAL_SFM_CONSTRAINTS_H_
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class VITAL_TYPES_EXPORT sfm_constraints
 {
@@ -120,8 +118,6 @@ protected:
 
 typedef std::shared_ptr< sfm_constraints > sfm_constraints_sptr;
 
-} // namespace vital
-
-}  /// end namespace kwiver vital
+} // namespace viame
 
 #endif

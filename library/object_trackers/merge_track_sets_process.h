@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 
@@ -28,20 +28,20 @@ namespace kwiver {
  *
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT merge_track_sets_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO(
     "merge_track_sets",
     "Merge multiple input track sets into one output set." )
 
-  merge_track_sets_process( kwiver::vital::config_block_sptr const& config );
+  merge_track_sets_process( viame::config_block_sptr const& config );
   virtual ~merge_track_sets_process();
 
 protected:
   virtual void _configure();
   virtual void _step();
-  virtual sprokit::process::port_info_t _input_port_info( port_t const& port );
+  virtual viame::pipeline::process::port_info_t _input_port_info( port_t const& port );
 
 private:
   void make_ports();
@@ -52,4 +52,4 @@ private:
   const std::unique_ptr< priv > d;
 }; // end class merge_track_sets_process
 
-} // end namespace
+} // namespace viame

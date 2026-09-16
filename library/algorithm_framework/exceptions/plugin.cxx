@@ -7,9 +7,7 @@
 
 #include "plugin.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 plugin_exception
@@ -65,6 +63,4 @@ plugin_already_exists
 ::~plugin_already_exists() noexcept
 {}
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

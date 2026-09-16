@@ -17,9 +17,7 @@
 #include <string>
 #include <utility>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -33,7 +31,7 @@ namespace algo {
 /// with enough information to recreate a unique image identifier,
 /// usually the file name, and an associated set of detections.
 class VITAL_ALGO_EXPORT detected_object_set_input
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   virtual ~detected_object_set_input();
@@ -47,13 +45,13 @@ public:
   ///
   /// \param filename Name of file to open
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the given path does not
+  /// \throws viame::path_not_exists Thrown when the given path does not
   ///         exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file Thrown when the given path does
+  /// \throws viame::path_not_a_file Thrown when the given path does
   ///         not point to a file (i.e. it points to a directory).
   ///
-  /// \throws kwiver::vital::file_not_found_exception
+  /// \throws viame::file_not_found_exception
   virtual void open( std::string const& filename );
 
   /// Read detections from an existing stream
@@ -85,10 +83,10 @@ public:
   ///
   /// @return \b true if detections are returned, \b false if end of file.
   virtual bool read_set(
-    kwiver::vital::detected_object_set_sptr& set,
+    viame::detected_object_set_sptr& set,
     std::string& image_name ) = 0;
 
-  std::pair< kwiver::vital::detected_object_set_sptr, std::string > read_set();
+  std::pair< viame::detected_object_set_sptr, std::string > read_set();
 
   /// Determine if input file is at end of file.
   ///
@@ -115,8 +113,6 @@ typedef std::shared_ptr< detected_object_set_input >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // _VITAL_DETECTED_OBJECT_SET_INPUT_H

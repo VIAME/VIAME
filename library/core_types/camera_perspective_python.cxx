@@ -12,7 +12,7 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 class camera_perspective_trampoline
   : public kv::camera_perspective

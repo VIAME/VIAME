@@ -34,7 +34,7 @@ namespace viame
 namespace core
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 create_config_trait( output_label, std::string, "query_result",
   "Label to assign to output detections" );
@@ -156,7 +156,7 @@ write_query_results_as_tracks_process
   // Check for completion signal
   auto const& p_info = peek_at_port_using_trait( query_result );
 
-  if( p_info.datum->type() == sprokit::datum::complete )
+  if( p_info.datum->type() == viame::pipeline::datum::complete )
   {
     grab_edge_datum_using_trait( query_result );
 
@@ -334,7 +334,7 @@ write_query_results_as_tracks_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
 
   required.insert( flag_required );
 

@@ -19,7 +19,7 @@
 /**
  * \file edge.cxx
  *
- * \brief Implementation of the \link sprokit::edge edge\endlink class.
+ * \brief Implementation of the \link viame::pipeline::edge edge\endlink class.
  */
 
 // Check to see if there is an external specification for default edge
@@ -28,7 +28,7 @@
 #  define SPROKIT_DEFAULT_EDGE_CAPACITY 10 // default size
 #endif
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ------------------------------------------------------------------
 edge_datum_t
@@ -75,9 +75,9 @@ edge_datum_t
 // This config parameter is used internally to signal that the edge
 // has no dependency. See process::flag_input_nodep for additional
 // description.
-kwiver::vital::config_block_key_t const edge::config_dependency = kwiver::vital::config_block_key_t("_dependency");
-kwiver::vital::config_block_key_t const edge::config_capacity   = kwiver::vital::config_block_key_t("capacity");
-kwiver::vital::config_block_key_t const edge::config_blocking   = kwiver::vital::config_block_key_t("blocking");
+viame::config_block_key_t const edge::config_dependency = viame::config_block_key_t("_dependency");
+viame::config_block_key_t const edge::config_capacity   = viame::config_block_key_t("capacity");
+viame::config_block_key_t const edge::config_blocking   = viame::config_block_key_t("blocking");
 
 // ==================================================================
 class edge::priv
@@ -130,12 +130,12 @@ class edge::priv
     mutable mutex_t mutex;
     mutable mutex_t complete_mutex;
 
-    kwiver::vital::logger_handle_t m_logger;
+    viame::logger_handle_t m_logger;
 };
 
 // ==================================================================
 edge
-::edge(kwiver::vital::config_block_sptr const& config)
+::edge(viame::config_block_sptr const& config)
   : d()
 {
   if (!config)
@@ -396,7 +396,7 @@ edge::priv
   , cond_have_space()
   , mutex()
   , complete_mutex()
-  , m_logger( kwiver::vital::get_logger( "sprokit.edge" ))
+  , m_logger( viame::get_logger( "sprokit.edge" ))
 {
 }
 

@@ -20,9 +20,7 @@
 #include <memory>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// A representation of iterative query refinement feedback.
@@ -33,18 +31,18 @@ public:
 
   ~iqr_feedback() = default;
 
-  vital::uid query_id() const;
+  viame::uid query_id() const;
 
   std::vector< unsigned > const& positive_ids() const;
   std::vector< unsigned > const& negative_ids() const;
 
-  void set_query_id( vital::uid const& );
+  void set_query_id( viame::uid const& );
 
   void set_positive_ids( std::vector< unsigned > const& );
   void set_negative_ids( std::vector< unsigned > const& );
 
 protected:
-  vital::uid m_query_id;
+  viame::uid m_query_id;
 
   std::vector< unsigned > m_positive_ids;
   std::vector< unsigned > m_negative_ids;
@@ -53,8 +51,6 @@ protected:
 /// Shared pointer for query plan
 typedef std::shared_ptr< iqr_feedback > iqr_feedback_sptr;
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_IQR_FEEDBACK_H_

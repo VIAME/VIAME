@@ -4,7 +4,7 @@
 
 #include "plugin_factory.h"
 
-namespace kwiver::vital {
+namespace viame {
 
 const std::string plugin_factory::INTERFACE_TYPE( "interface-type" );
 const std::string plugin_factory::CONCRETE_TYPE( "concrete-type" );
@@ -62,4 +62,4 @@ plugin_factory
   return *this;
 }
 
-} // end namespace
+} // namespace viame

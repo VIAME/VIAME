@@ -5,9 +5,7 @@
 #include "token_type_env.h"
 #include <viame/algorithm_framework/util/file_system.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 token_type_env
@@ -28,7 +26,7 @@ token_type_env
   bool retcode( true );
 
   const char* v = name.c_str();
-  const char* env_expansion = kwiver::vital::get_env( v );
+  const char* env_expansion = viame::get_env( v );
   if( env_expansion != nullptr )
   {
     result = env_expansion;
@@ -42,6 +40,4 @@ token_type_env
   return retcode;
 }
 
-} // end namespace
-
-} // end namespace
+} // namespace viame

@@ -46,36 +46,34 @@
 #include <viame/core_types/math/decomp.h>
 
 #include <viame/measurement/epipolar_geometry.h>
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace mvg {
 
 // Triangulates 2 views
 void
 Triangulate_DLT(
-  kwiver::vital::matrix_3x4d const& pose1,
-  kwiver::vital::matrix_3x4d const& pose2,
-  kwiver::vital::vector_2d const& point1,
-  kwiver::vital::vector_2d const& point2,
-  kwiver::vital::vector_4d& triangulated_point )
+  viame::matrix_3x4d const& pose1,
+  viame::matrix_3x4d const& pose2,
+  viame::vector_2d const& point1,
+  viame::vector_2d const& point2,
+  viame::vector_4d& triangulated_point )
 {
   // code modified from code found at
   // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.h
 
-  kwiver::vital::matrix_4x4d design_matrix;
+  viame::matrix_4x4d design_matrix;
   design_matrix.set_row( 0, point1[ 0 ] * pose1.row( 2 ) - pose1.row( 0 ) );
   design_matrix.set_row( 1, point1[ 1 ] * pose1.row( 2 ) - pose1.row( 1 ) );
   design_matrix.set_row( 2, point2[ 0 ] * pose2.row( 2 ) - pose2.row( 0 ) );
   design_matrix.set_row( 3, point2[ 1 ] * pose2.row( 2 ) - pose2.row( 1 ) );
 
   // Extract nullspace: the column of V for the smallest singular value.
-  vital::jacobi_svd< double > const svd{
-    vital::dynamic_matrix< double >( design_matrix ) };
+  viame::jacobi_svd< double > const svd{
+    viame::dynamic_matrix< double >( design_matrix ) };
   auto const null = svd.null_vector();
   triangulated_point =
-    kwiver::vital::vector_4d( null[ 0 ], null[ 1 ], null[ 2 ], null[ 3 ] );
+    viame::vector_4d( null[ 0 ], null[ 1 ], null[ 2 ], null[ 3 ] );
 }
 
 // Given either a fundamental or essential matrix and two corresponding images
@@ -84,28 +82,28 @@ Triangulate_DLT(
 // corrected_point1^t * ematrix * corrected_point2 = 0.
 void
 find_optimal_image_points(
-  kwiver::vital::essential_matrix_sptr ematrix,
-  const vital::vector_2d& point1,
-  const vital::vector_2d& point2,
-  vital::vector_2d& corrected_point1,
-  vital::vector_2d& corrected_point2 )
+  viame::essential_matrix_sptr ematrix,
+  const viame::vector_2d& point1,
+  const viame::vector_2d& point2,
+  viame::vector_2d& corrected_point1,
+  viame::vector_2d& corrected_point2 )
 {
   // code modified from code found at
   // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.cc
   auto E = ematrix->matrix();
 
-  vital::vector_3d point1_homog = point1.homogeneous();
-  vital::vector_3d point2_homog = point2.homogeneous();
+  viame::vector_3d point1_homog = point1.homogeneous();
+  viame::vector_3d point2_homog = point2.homogeneous();
 
   // A helper matrix to isolate certain coordinates.
-  vital::matrix_< 2, 3, double > s_matrix;
+  viame::matrix_< 2, 3, double > s_matrix;
   s_matrix << 1, 0, 0, 0, 1, 0;
 
-  const vital::matrix_2x2d e_submatrix = E.block< 2, 2 >( 0, 0 );
+  const viame::matrix_2x2d e_submatrix = E.block< 2, 2 >( 0, 0 );
 
   // The epipolar line from one image point in the other image.
-  vital::vector_2d epipolar_line1 = s_matrix * E * point2_homog;
-  vital::vector_2d epipolar_line2 = s_matrix * E.transpose() * point1_homog;
+  viame::vector_2d epipolar_line1 = s_matrix * E * point2_homog;
+  viame::vector_2d epipolar_line2 = s_matrix * E.transpose() * point1_homog;
 
   const double a =
     epipolar_line1.dot( e_submatrix * epipolar_line2 );
@@ -132,28 +130,28 @@ find_optimal_image_points(
 }
 
 template < typename T >
-vital::vector_< 3, T >
+viame::vector_< 3, T >
 triangulate_fast_two_view(
-  const vital::simple_camera_perspective& camera0,
-  const vital::simple_camera_perspective& camera1,
-  const vital::vector_< 2, T >& point0,
-  const vital::vector_< 2, T >& point1 )
+  const viame::simple_camera_perspective& camera0,
+  const viame::simple_camera_perspective& camera1,
+  const viame::vector_< 2, T >& point0,
+  const viame::vector_< 2, T >& point1 )
 {
   // code modified from code found at
   // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.cc
 
   auto E = essential_matrix_from_cameras( camera0, camera1 );
 
-  const vital::vector_2d pt0 =
+  const viame::vector_2d pt0 =
     camera0.get_intrinsics()->unmap( point0.template cast< double >() );
-  const vital::vector_2d pt1 =
+  const viame::vector_2d pt1 =
     camera1.get_intrinsics()->unmap( point1.template cast< double >() );
 
-  vital::vector_2d corrected_pt0, corrected_pt1;
+  viame::vector_2d corrected_pt0, corrected_pt1;
 
   find_optimal_image_points( E, pt0, pt1, corrected_pt0, corrected_pt1 );
 
-  vital::vector_4d triangulated_point;
+  viame::vector_4d triangulated_point;
   Triangulate_DLT(
     camera0.pose_matrix(), camera1.pose_matrix(), corrected_pt0,
     corrected_pt1, triangulated_point );
@@ -162,15 +160,15 @@ triangulate_fast_two_view(
 
 /// Triangulate a 3D point from a set of cameras and 2D image points
 template < typename T >
-vital::vector_< 3, T >
+viame::vector_< 3, T >
 triangulate_inhomog(
-  const std::vector< vital::simple_camera_perspective >& cameras,
-  const std::vector< vital::vector_< 2, T > >& points )
+  const std::vector< viame::simple_camera_perspective >& cameras,
+  const std::vector< viame::vector_< 2, T > >& points )
 {
-  typedef vital::vector_< 2, T > vector_2;
-  typedef vital::vector_< 3, T > vector_3;
-  typedef vital::matrix_< 3, 3, T > matrix_3x3;
-  typedef vital::dynamic_matrix< T > data_matrix_t;
+  typedef viame::vector_< 2, T > vector_2;
+  typedef viame::vector_< 3, T > vector_3;
+  typedef viame::matrix_< 3, 3, T > matrix_3x3;
+  typedef viame::dynamic_matrix< T > data_matrix_t;
 
   auto const num_rows = 2 * points.size();
   data_matrix_t A( static_cast< unsigned >( num_rows ), 3 );
@@ -178,11 +176,11 @@ triangulate_inhomog(
   for( size_t i = 0; i < points.size(); ++i )
   {
     // the camera
-    const vital::simple_camera_perspective& cam = cameras[ i ];
+    const viame::simple_camera_perspective& cam = cameras[ i ];
     const matrix_3x3 R( cam.get_rotation().matrix().cast< T >() );
     const vector_3 t( cam.translation().cast< T >() );
     // the point in normalized coordinates
-    const vital::vector_2d p2d = points[ i ].template cast< double >();
+    const viame::vector_2d p2d = points[ i ].template cast< double >();
     const vector_2 pt = cam.get_intrinsics()->unmap( p2d ).template cast< T >();
     A( 2 * i,   0 ) = R( 0, 0 ) - pt.x() * R( 2, 0 );
     A( 2 * i,   1 ) = R( 0, 1 ) - pt.x() * R( 2, 1 );
@@ -194,32 +192,32 @@ triangulate_inhomog(
     b[ 2 * i + 1 ] = t.z() * pt.y() - t.y();
   }
 
-  auto const x = vital::solve_least_squares( A, b );
+  auto const x = viame::solve_least_squares( A, b );
   return vector_3( x[ 0 ], x[ 1 ], x[ 2 ] );
 }
 
 /// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
 template < typename T >
-vital::vector_< 4, T >
+viame::vector_< 4, T >
 triangulate_homog(
-  const std::vector< vital::simple_camera_perspective >& cameras,
-  const std::vector< vital::vector_< 2, T > >& points )
+  const std::vector< viame::simple_camera_perspective >& cameras,
+  const std::vector< viame::vector_< 2, T > >& points )
 {
-  typedef vital::vector_< 2, T > vector_2;
-  typedef vital::vector_< 3, T > vector_3;
-  typedef vital::matrix_< 3, 3, T > matrix_3x3;
-  typedef vital::dynamic_matrix< T > data_matrix_t;
+  typedef viame::vector_< 2, T > vector_2;
+  typedef viame::vector_< 3, T > vector_3;
+  typedef viame::matrix_< 3, 3, T > matrix_3x3;
+  typedef viame::dynamic_matrix< T > data_matrix_t;
 
   auto const num_rows = 2 * points.size();
   data_matrix_t A( static_cast< unsigned >( num_rows ), 4 );
   for( size_t i = 0; i < points.size(); ++i )
   {
     // the camera
-    const vital::simple_camera_perspective& cam = cameras[ i ];
+    const viame::simple_camera_perspective& cam = cameras[ i ];
     const matrix_3x3 R( cam.get_rotation().matrix().cast< T >() );
     const vector_3 t( cam.translation().cast< T >() );
     // the point in normalized coordinates
-    const vital::vector_2d p2d = points[ i ].template cast< double >();
+    const viame::vector_2d p2d = points[ i ].template cast< double >();
     const vector_2 pt = cam.get_intrinsics()->unmap( p2d ).template cast< T >();
     A( 2 * i,   0 ) = R( 0, 0 ) - pt.x() * R( 2, 0 );
     A( 2 * i,   1 ) = R( 0, 1 ) - pt.x() * R( 2, 1 );
@@ -231,27 +229,27 @@ triangulate_homog(
     A( 2 * i + 1, 3 ) = t.y()  - pt.y() * t.z();
   }
 
-  vital::jacobi_svd< T > const svd( A );
+  viame::jacobi_svd< T > const svd( A );
   auto const null = svd.null_vector();
-  return vital::vector_< 4, T >( null[ 0 ], null[ 1 ], null[ 2 ], null[ 3 ] );
+  return viame::vector_< 4, T >( null[ 0 ], null[ 1 ], null[ 2 ], null[ 3 ] );
 }
 
 /// Triangulate a 3D point from a set of RPC cameras and 2D image points
 template < typename T >
-vital::vector_< 3, T >
+viame::vector_< 3, T >
 triangulate_rpc(
-  const std::vector< vital::simple_camera_rpc >& cameras,
-  const std::vector< vital::vector_< 2, T > >& points )
+  const std::vector< viame::simple_camera_rpc >& cameras,
+  const std::vector< viame::vector_< 2, T > >& points )
 {
   // Get the pairs of points to define the rays
-  std::vector< std::pair< vital::vector_3d, vital::vector_3d > > pts;
+  std::vector< std::pair< viame::vector_3d, viame::vector_3d > > pts;
 
   // Eigen spelled these `Array3d` so that the arithmetic would be
   // element-wise; on a vector it already is.
-  vital::vector_3d curr_scale = cameras[ 0 ].world_scale();
-  vital::vector_3d curr_offset = cameras[ 0 ].world_offset();
-  vital::vector_3d min_pos = curr_offset - curr_scale;
-  vital::vector_3d max_pos = curr_offset + curr_scale;
+  viame::vector_3d curr_scale = cameras[ 0 ].world_scale();
+  viame::vector_3d curr_offset = cameras[ 0 ].world_offset();
+  viame::vector_3d min_pos = curr_offset - curr_scale;
+  viame::vector_3d max_pos = curr_offset + curr_scale;
 
   for( size_t i = 0; i < points.size(); ++i )
   {
@@ -265,32 +263,32 @@ triangulate_rpc(
     double h1 = ( curr_offset - curr_scale )[ 2 ];
     double h2 = ( curr_offset + curr_scale )[ 2 ];
 
-    vital::vector_3d pt1 =
+    viame::vector_3d pt1 =
       cameras[ i ].back_project( points[ i ].template cast< double >(), h1 );
-    vital::vector_3d pt2 =
+    viame::vector_3d pt2 =
       cameras[ i ].back_project( points[ i ].template cast< double >(), h2 );
     pts.push_back(
-      std::pair< vital::vector_3d, vital::vector_3d >( pt1, pt2 ) );
+      std::pair< viame::vector_3d, viame::vector_3d >( pt1, pt2 ) );
   }
 
   // Get normalization factors for full point set
-  vital::vector_3d scale = 0.5 * ( max_pos - min_pos );
-  vital::vector_3d offset = 0.5 * ( max_pos + min_pos );
+  viame::vector_3d scale = 0.5 * ( max_pos - min_pos );
+  viame::vector_3d offset = 0.5 * ( max_pos + min_pos );
 
-  vital::matrix_3x3d M = vital::matrix_3x3d::Zero();
-  vital::vector_3d v( 0., 0., 0. );
+  viame::matrix_3x3d M = viame::matrix_3x3d::Zero();
+  viame::vector_3d v( 0., 0., 0. );
 
   for( auto& pt : pts )
   {
     // Normalize points
-    vital::vector_3d p = ( pt.first - offset ).cwiseQuotient( scale );
-    vital::vector_3d x = ( pt.second - offset ).cwiseQuotient( scale );
+    viame::vector_3d p = ( pt.first - offset ).cwiseQuotient( scale );
+    viame::vector_3d x = ( pt.second - offset ).cwiseQuotient( scale );
 
     // Unit vector along ray
-    vital::vector_3d unit_vec = ( x - p ).normalized();
+    viame::vector_3d unit_vec = ( x - p ).normalized();
 
-    vital::matrix_3x3d tmp_mat =
-      vital::matrix_3x3d::Identity() - unit_vec * unit_vec.transpose();
+    viame::matrix_3x3d tmp_mat =
+      viame::matrix_3x3d::Identity() - unit_vec * unit_vec.transpose();
     M += tmp_mat;
     v += tmp_mat * p;
   }
@@ -302,24 +300,24 @@ triangulate_rpc(
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRIANGULATE( T )                              \
-template VIAME_MEASUREMENT_EXPORT vital::vector_< 3, T >          \
+template VIAME_MEASUREMENT_EXPORT viame::vector_< 3, T >          \
 triangulate_fast_two_view(                                        \
-  const vital::simple_camera_perspective& camera0,                \
-  const vital::simple_camera_perspective& camera1,                \
-  const vital::vector_< 2, T >& point0,                         \
-  const vital::vector_< 2, T >& point1 );                       \
-template VIAME_MEASUREMENT_EXPORT vital::vector_< 4, T >          \
+  const viame::simple_camera_perspective& camera0,                \
+  const viame::simple_camera_perspective& camera1,                \
+  const viame::vector_< 2, T >& point0,                         \
+  const viame::vector_< 2, T >& point1 );                       \
+template VIAME_MEASUREMENT_EXPORT viame::vector_< 4, T >          \
 triangulate_homog(                                                \
-  const std::vector< vital::simple_camera_perspective >& cameras, \
-  const std::vector< vital::vector_< 2, T > >& points );        \
-template VIAME_MEASUREMENT_EXPORT vital::vector_< 3, T >          \
+  const std::vector< viame::simple_camera_perspective >& cameras, \
+  const std::vector< viame::vector_< 2, T > >& points );        \
+template VIAME_MEASUREMENT_EXPORT viame::vector_< 3, T >          \
 triangulate_inhomog(                                              \
-  const std::vector< vital::simple_camera_perspective >& cameras, \
-  const std::vector< vital::vector_< 2, T > >& points );        \
-template VIAME_MEASUREMENT_EXPORT vital::vector_< 3, T >          \
+  const std::vector< viame::simple_camera_perspective >& cameras, \
+  const std::vector< viame::vector_< 2, T > >& points );        \
+template VIAME_MEASUREMENT_EXPORT viame::vector_< 3, T >          \
 triangulate_rpc(                                                  \
-  const std::vector< vital::simple_camera_rpc >& cameras,         \
-  const std::vector< vital::vector_< 2, T > >& points );
+  const std::vector< viame::simple_camera_rpc >& cameras,         \
+  const std::vector< viame::vector_< 2, T > >& points );
 
 INSTANTIATE_TRIANGULATE( double );
 INSTANTIATE_TRIANGULATE( float );
@@ -327,8 +325,6 @@ INSTANTIATE_TRIANGULATE( float );
 #undef INSTANTIATE_TRIANGULATE
 /// \endcond
 
-} // end namespace mvg
+} // namespace mvg
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

@@ -37,7 +37,7 @@ namespace viame {
 
 namespace {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // ----------------------------------------------------------------------------
 /// Whether a space is one of the two plane orders rather than a conversion.
@@ -59,16 +59,16 @@ is_supported( kv::color_space space )
 // ----------------------------------------------------------------------------
 /// The planes in the other order, which is what BGR and RGB differ by.
 template < typename T >
-kwiver::vital::image_of< T >
-swap_channels( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+swap_channels( viame::image_of< T > const& image )
 {
   return io::swap_rb( image );
 }
 
 // ----------------------------------------------------------------------------
 template < typename T >
-kwiver::vital::image_of< T >
-convert( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+convert( viame::image_of< T > const& image,
          kv::color_space from, kv::color_space to )
 {
   // One of the two ends is always a channel order: the C++ had no pair that
@@ -88,7 +88,7 @@ convert( kwiver::vital::image_of< T > const& image,
   }
   else if( is_channel_order( to ) )
   {
-    kwiver::vital::image_of< T > rgb;
+    viame::image_of< T > rgb;
 
     switch( from )
     {
@@ -123,7 +123,7 @@ convert_color_space
 void
 convert_color_space
 ::set_configuration_internal(
-  [[maybe_unused]] kwiver::vital::config_block_sptr config )
+  [[maybe_unused]] viame::config_block_sptr config )
 {
   resolve_conversion_code();
 }
@@ -133,9 +133,9 @@ void
 convert_color_space
 ::resolve_conversion_code()
 {
-  auto const input = kwiver::vital::string_to_color_space(
+  auto const input = viame::string_to_color_space(
     c_input_color_space );
-  auto const output = kwiver::vital::string_to_color_space(
+  auto const output = viame::string_to_color_space(
     c_output_color_space );
 
   auto const usable =
@@ -144,7 +144,7 @@ convert_color_space
 
   if( !usable )
   {
-    throw kwiver::vital::algorithm_configuration_exception(
+    throw viame::algorithm_configuration_exception(
       "convert_color_space", this->impl_name(),
       "No conversion available between specified color spaces" );
   }
@@ -153,22 +153,22 @@ convert_color_space
 // ----------------------------------------------------------------------------
 bool
 convert_color_space
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
-  if( kwiver::vital::string_to_color_space(
+  if( viame::string_to_color_space(
     config->get_value< std::string >( "input_color_space" ) ) ==
-      kwiver::vital::INVALID_CS )
+      viame::INVALID_CS )
   {
-    throw kwiver::vital::algorithm_configuration_exception(
+    throw viame::algorithm_configuration_exception(
       "convert_color_space", this->impl_name(),
       "Invalid input color space specified: " +
       config->get_value< std::string >( "input_color_space" ) );
   }
-  if( kwiver::vital::string_to_color_space(
+  if( viame::string_to_color_space(
     config->get_value< std::string >( "output_color_space" ) ) ==
-      kwiver::vital::INVALID_CS )
+      viame::INVALID_CS )
   {
-    throw kwiver::vital::algorithm_configuration_exception(
+    throw viame::algorithm_configuration_exception(
       "convert_color_space", this->impl_name(),
       "Invalid output color space specified: " +
       config->get_value< std::string >( "output_color_space" ) );
@@ -179,28 +179,28 @@ convert_color_space
 
 // ----------------------------------------------------------------------------
 // Perform color conversion
-kwiver::vital::image_container_sptr
+viame::image_container_sptr
 convert_color_space
-::filter( kwiver::vital::image_container_sptr image_data )
+::filter( viame::image_container_sptr image_data )
 {
   if( !image_data )
   {
-    return kwiver::vital::image_container_sptr();
+    return viame::image_container_sptr();
   }
 
-  auto const input = kwiver::vital::string_to_color_space(
+  auto const input = viame::string_to_color_space(
     c_input_color_space );
-  auto const output = kwiver::vital::string_to_color_space(
+  auto const output = viame::string_to_color_space(
     c_output_color_space );
 
   auto const converted = io::dispatch_pixel_type(
     image_data->get_image(),
-    [ & ]( auto const& typed ) -> kwiver::vital::image
+    [ & ]( auto const& typed ) -> viame::image
     {
-      return kwiver::vital::image( convert( typed, input, output ) );
+      return viame::image( convert( typed, input, output ) );
     } );
 
-  return std::make_shared< kwiver::vital::simple_image_container >(
+  return std::make_shared< viame::simple_image_container >(
     converted );
 }
 

@@ -8,9 +8,7 @@
 #include "database_query.h"
 #include <stdexcept>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 database_query
@@ -21,7 +19,7 @@ database_query
 {}
 
 // ----------------------------------------------------------------------------
-vital::uid
+viame::uid
 database_query
 ::id() const
 {
@@ -31,7 +29,7 @@ database_query
 // ----------------------------------------------------------------------------
 void
 database_query
-::set_id( vital::uid const& id )
+::set_id( viame::uid const& id )
 {
   m_id = id;
 }
@@ -178,6 +176,4 @@ database_query
   m_threshold = threshold;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

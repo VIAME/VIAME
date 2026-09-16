@@ -49,7 +49,7 @@ public:
   std::unordered_map< std::string, std::vector< double > > m_uid_index;
 
   // (track_id, frame_id) -> descriptor values (direct mapping)
-  using track_frame_key = std::pair< kwiver::vital::track_id_t, kwiver::vital::frame_id_t >;
+  using track_frame_key = std::pair< viame::track_id_t, viame::frame_id_t >;
   std::map< track_frame_key, std::vector< double > > m_track_frame_index;
 
   // (track_id, frame_id) -> UID mapping
@@ -218,8 +218,8 @@ csv_descriptor_backend
         {
           try
           {
-            kwiver::vital::track_id_t track_id = std::stoll( track_id_str );
-            kwiver::vital::frame_id_t frame_id = std::stoll( frame_id_str );
+            viame::track_id_t track_id = std::stoll( track_id_str );
+            viame::frame_id_t frame_id = std::stoll( frame_id_str );
             p->m_track_frame_index[{ track_id, frame_id }] = std::move( values );
           }
           catch( const std::exception& ) {}
@@ -247,8 +247,8 @@ csv_descriptor_backend
 
         try
         {
-          kwiver::vital::track_id_t track_id = std::stoll( track_id_str );
-          kwiver::vital::frame_id_t frame_id = std::stoll( frame_id_str );
+          viame::track_id_t track_id = std::stoll( track_id_str );
+          viame::frame_id_t frame_id = std::stoll( frame_id_str );
           p->m_track_frame_to_uid[{ track_id, frame_id }] = uid;
         }
         catch( const std::exception& ) {}
@@ -277,8 +277,8 @@ csv_descriptor_backend
 bool
 csv_descriptor_backend
 ::get_descriptor_by_track_frame(
-  kwiver::vital::track_id_t track_id,
-  kwiver::vital::frame_id_t frame_id,
+  viame::track_id_t track_id,
+  viame::frame_id_t frame_id,
   std::vector< double >& values )
 {
   impl::track_frame_key key{ track_id, frame_id };

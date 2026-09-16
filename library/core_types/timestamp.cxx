@@ -9,9 +9,7 @@
 #include <sstream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 timestamp
 ::timestamp()
@@ -242,6 +240,4 @@ timestamp
   return str.str();
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

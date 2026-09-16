@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/range/defs.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace range {
 
@@ -20,7 +18,7 @@ namespace range {
 ///
 /// \par Example:
 /// \code
-/// namespace r = kwiver::vital::range;
+/// namespace r = viame::range;
 ///
 /// std::vector<int> values = { 1, 2, 3, 4, 5 };
 /// auto times_3 = []( int x ){ return x * 3; };
@@ -98,8 +96,6 @@ KWIVER_RANGE_ADAPTER_FUNCTION( transform )
 
 } // namespace range
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

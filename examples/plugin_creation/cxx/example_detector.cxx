@@ -13,17 +13,17 @@ namespace viame {
 // ----------------------------------------------------------------------------
 bool
 external_example_detector
-::check_configuration( kwiver::vital::config_block_sptr /*config*/ ) const
+::check_configuration( viame::config_block_sptr /*config*/ ) const
 {
   return !c_text.empty();
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 external_example_detector
-::detect( kwiver::vital::image_container_sptr /*image_data*/ ) const
+::detect( viame::image_container_sptr /*image_data*/ ) const
 {
-  auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
+  auto detected_set = std::make_shared< viame::detected_object_set >();
 
   std::cout << "Text: " << c_text << std::endl;
 

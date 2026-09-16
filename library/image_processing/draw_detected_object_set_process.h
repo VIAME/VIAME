@@ -7,7 +7,7 @@
 
 #include <memory>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -24,14 +24,14 @@ namespace kwiver {
  *
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT draw_detected_object_set_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "draw_detected_object_set",
                "Draws border around detected objects in the set using the selected algorithm.\n\n"
                "This process is a wrapper around a `draw_detected_object_set` algorithm.")
 
-  draw_detected_object_set_process( kwiver::vital::config_block_sptr const& config );
+  draw_detected_object_set_process( viame::config_block_sptr const& config );
   virtual ~draw_detected_object_set_process();
 
 protected:
@@ -46,4 +46,4 @@ private:
   std::unique_ptr< priv > d;
 };   // end class
 
-} // end namespace
+} // namespace viame

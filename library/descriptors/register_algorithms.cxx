@@ -22,7 +22,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_DESCRIPTORS_PLUGIN_EXPORT
@@ -49,7 +49,7 @@ register_factories( kv::registry& vpm )
 
   VIAME_REGISTER_IMPORTED(
     kv::algo::handle_descriptor_request,
-    kwiver::arrows::core::handle_descriptor_request_core,
+    viame::core::handle_descriptor_request_core,
     "core", "Handle a descriptor request by running a detector and "
             "a descriptor computer over the requested imagery" )
 

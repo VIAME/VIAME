@@ -3,8 +3,8 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header file for an abstract \link kwiver::vital::track_set track_set
-///        \endlink and a concrete \link kwiver::vital::simple_track_set
+/// \brief Header file for an abstract \link viame::track_set track_set
+///        \endlink and a concrete \link viame::simple_track_set
 ///        simple_track_set \endlink
 
 #ifndef VITAL_TRACK_SET_H_
@@ -21,9 +21,7 @@
 #include <set>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class track_set;
 /// Shared pointer for base track_set type
@@ -774,8 +772,6 @@ protected:
   track_set_frame_data_map_t frame_data_;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_TRACK_SET_H_

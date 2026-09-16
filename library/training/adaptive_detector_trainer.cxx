@@ -21,7 +21,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // =============================================================================
 // Statistics structure for training data analysis

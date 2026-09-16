@@ -20,9 +20,7 @@
 
 #include <cstddef>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// A struct containing traits of the data type stored at each pixel
 struct VITAL_TYPES_EXPORT image_pixel_traits
@@ -460,7 +458,7 @@ public:
   {
     if( i >= width_ || j >= height_ )
     {
-      throw std::out_of_range( "kwiver::vital::image::at<T>(size_t, size_t)" );
+      throw std::out_of_range( "viame::image::at<T>(size_t, size_t)" );
     }
     return reinterpret_cast< T* >( first_pixel_ )[ w_step_ * i + h_step_ * j ];
   }
@@ -473,7 +471,7 @@ public:
     if( i >= width_ || j >= height_ )
     {
       throw std::out_of_range(
-        "kwiver::vital::image::at<T>(size_t, size_t) const" );
+        "viame::image::at<T>(size_t, size_t) const" );
     }
     return reinterpret_cast< const T* >( first_pixel_ )[ w_step_ * i + h_step_ *
                                                          j ];
@@ -487,7 +485,7 @@ public:
     if( i >= width_ || j >= height_ || k >= depth_ )
     {
       throw std::out_of_range(
-        "kwiver::vital::image::at<T>(size_t, size_t, size_t)" );
+        "viame::image::at<T>(size_t, size_t, size_t)" );
     }
     return reinterpret_cast< T* >( first_pixel_ )[ w_step_ * i + h_step_ * j +
                                                    d_step_ * k ];
@@ -501,7 +499,7 @@ public:
     if( i >= width_ || j >= height_ || k >= depth_ )
     {
       throw std::out_of_range(
-        "kwiver::vital::image::at<T>(size_t, size_t, size_t) const" );
+        "viame::image::at<T>(size_t, size_t, size_t) const" );
     }
     return reinterpret_cast< const T* >( first_pixel_ )[ w_step_ * i + h_step_ *
                                                          j + d_step_ * k ];
@@ -679,7 +677,7 @@ public:
     {
       VITAL_THROW(
         image_type_mismatch_exception,
-        "kwiver::vital::image_of<T>(kwiver::vital::image)" );
+        "viame::image_of<T>(viame::image)" );
     }
   }
 
@@ -692,7 +690,7 @@ public:
     {
       VITAL_THROW(
         image_type_mismatch_exception,
-        "kwiver::vital::image_of<T>::operator=(kwiver::vital::image)" );
+        "viame::image_of<T>::operator=(viame::image)" );
     }
     image::operator=( other );
     return *this;
@@ -731,7 +729,7 @@ public:
     if( i >= width_ || j >= height_ )
     {
       throw std::out_of_range(
-        "kwiver::vital::image::at(size_t, size_t) const" );
+        "viame::image::at(size_t, size_t) const" );
     }
 
     T const* data = this->first_pixel();
@@ -791,8 +789,6 @@ public:
 /// \param img2 second image to compare
 VITAL_TYPES_EXPORT bool equal_content( const image& img1, const image& img2 );
 
-} // namespace vital
-
-}     // end namespace vital
+} // namespace viame
 
 #endif // VITAL_IMAGE_H_

@@ -4,9 +4,7 @@
 
 #include "split_image.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -18,6 +16,4 @@ split_image
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

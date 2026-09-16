@@ -12,9 +12,7 @@
 
 #include <cstdint>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Struct to represent an RGB tuple.
@@ -89,8 +87,6 @@ operator>>( std::istream& s, rgb_color& c )
   return s;
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

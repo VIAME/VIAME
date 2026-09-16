@@ -55,11 +55,11 @@ integer_log2( T value )
 /// \param scale  Output value for a bin holding every pixel; 0 means the
 ///               type maximum.
 template < typename T >
-kwiver::vital::image_of< T >
-color_commonality( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+color_commonality( viame::image_of< T > const& image,
                    unsigned bins, unsigned scale )
 {
-  kwiver::vital::image_of< T > result( image.width(), image.height(), 1 );
+  viame::image_of< T > result( image.width(), image.height(), 1 );
 
   auto const width = image.width();
   auto const height = image.height();
@@ -156,12 +156,12 @@ color_commonality( kwiver::vital::image_of< T > const& image,
 /// compatible with, so this computes what the option says it computes. No
 /// shipped pipeline uses it. See tests/golden/README.md.
 template < typename T >
-kwiver::vital::image_of< T >
-color_commonality_grid( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+color_commonality_grid( viame::image_of< T > const& image,
                         unsigned bins, unsigned scale,
                         unsigned columns, unsigned rows )
 {
-  kwiver::vital::image_of< T > result( image.width(), image.height(), 1 );
+  viame::image_of< T > result( image.width(), image.height(), 1 );
 
   if( columns == 0 || rows == 0 )
   {
@@ -186,7 +186,7 @@ color_commonality_grid( kwiver::vital::image_of< T > const& image,
         continue;
       }
 
-      kwiver::vital::image_of< T > tile( right - left, bottom - top,
+      viame::image_of< T > tile( right - left, bottom - top,
                                          image.depth() );
 
       for( size_t plane = 0; plane < image.depth(); ++plane )

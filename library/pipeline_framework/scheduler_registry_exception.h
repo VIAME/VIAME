@@ -5,7 +5,7 @@
 /**
  * \file scheduler_registry_exception.h
  *
- * \brief Header for exceptions used within the \link sprokit::scheduler_registry scheduler registry\endlink.
+ * \brief Header for exceptions used within the \link viame::pipeline::scheduler_registry scheduler registry\endlink.
  */
 
 #ifndef SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
@@ -17,7 +17,7 @@
 #include "scheduler.h"
 #include "types.h"
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class scheduler_registry_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
@@ -56,14 +56,14 @@ public:
    *
    * \param type The type the ctor is for.
    */
-  null_scheduler_ctor_exception( sprokit::scheduler::type_t const& type ) throw ( );
+  null_scheduler_ctor_exception( viame::pipeline::scheduler::type_t const& type ) throw ( );
   /**
    * \brief Destructor.
    */
   ~null_scheduler_ctor_exception() throw ( );
 
   /// The type that was passed a \c NULL constructor.
-  sprokit::scheduler::type_t const m_type;
+  viame::pipeline::scheduler::type_t const m_type;
 };
 
 /**
@@ -90,7 +90,7 @@ public:
 /**
  * \class null_scheduler_registry_pipeline_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
  *
- * \brief Thrown when a \c NULL \link sprokit::pipeline\endlink is passed to a scheduler.
+ * \brief Thrown when a \c NULL \link viame::pipeline::pipeline\endlink is passed to a scheduler.
  *
  * \ingroup exceptions
  */
@@ -124,14 +124,14 @@ public:
    *
    * \param type The type requested.
    */
-  no_such_scheduler_type_exception( sprokit::scheduler::type_t const& type ) throw ( );
+  no_such_scheduler_type_exception( viame::pipeline::scheduler::type_t const& type ) throw ( );
   /**
    * \brief Destructor.
    */
   ~no_such_scheduler_type_exception() throw ( );
 
   /// The type that was requested from the \link scheduler_registry scheduler registry\endlink.
-  sprokit::scheduler::type_t const m_type;
+  viame::pipeline::scheduler::type_t const m_type;
 };
 
 /**
@@ -150,14 +150,14 @@ public:
    *
    * \param type The type requested.
    */
-  scheduler_type_already_exists_exception( sprokit::scheduler::type_t const& type ) throw ( );
+  scheduler_type_already_exists_exception( viame::pipeline::scheduler::type_t const& type ) throw ( );
   /**
    * \brief Destructor.
    */
   ~scheduler_type_already_exists_exception() throw ( );
 
   /// The type that was requested from the \link scheduler_registry scheduler registry\endlink.
-  sprokit::scheduler::type_t const m_type;
+  viame::pipeline::scheduler::type_t const m_type;
 };
 
 }

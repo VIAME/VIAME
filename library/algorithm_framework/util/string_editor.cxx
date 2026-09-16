@@ -4,9 +4,7 @@
 
 #include "string_editor.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 string_editor
@@ -44,6 +42,4 @@ string_editor
   return result;
 }
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame

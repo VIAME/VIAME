@@ -10,11 +10,11 @@
 
 namespace py = pybind11;
 
-typedef kwiver::vital::detected_object_set det_obj_set;
-using detected_object_sptr = std::shared_ptr< kwiver::vital::detected_object >;
-using detected_object_scptr = std::shared_ptr< kwiver::vital::detected_object const >;
+typedef viame::detected_object_set det_obj_set;
+using detected_object_sptr = std::shared_ptr< viame::detected_object >;
+using detected_object_scptr = std::shared_ptr< viame::detected_object const >;
 
-class det_obj_set_trampoline : public kwiver::vital::detected_object_set
+class det_obj_set_trampoline : public viame::detected_object_set
 {
   using det_obj_set::det_obj_set;
   size_t size() const override;
@@ -106,14 +106,14 @@ PYBIND11_MODULE( detected_object_set, m )
     )" )
     .def( py::init<>() )
     .def(
-      py::init< std::vector< std::shared_ptr< kwiver::vital::detected_object > > >()
+      py::init< std::vector< std::shared_ptr< viame::detected_object > > >()
     )
     .def(
       "add", [](det_obj_set& self, py::object object){
         try
         {
           auto det_obj =
-            object.cast< std::shared_ptr< kwiver::vital::detected_object > >();
+            object.cast< std::shared_ptr< viame::detected_object > >();
           return self.add( det_obj );
         }
         catch( ... )
@@ -142,7 +142,7 @@ PYBIND11_MODULE( detected_object_set, m )
         return self.select( class_name.cast< std::string >(), threshold );
       },
       py::arg( "threshold" ) =
-        kwiver::vital::detected_object_type::INVALID_SCORE,
+        viame::detected_object_type::INVALID_SCORE,
       py::arg( "class_name" ) = py::none() )
     .def(
       "__getitem__", [](det_obj_set& self, size_t idx){

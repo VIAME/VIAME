@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/compute_track_descriptors.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class compute_track_descriptors_base = kwiver::vital::algo::compute_track_descriptors >
+template< class compute_track_descriptors_base = viame::algo::compute_track_descriptors >
 class compute_track_descriptors_trampoline
     : public algorithm_trampoline< compute_track_descriptors_base >
 {
@@ -21,28 +21,28 @@ class compute_track_descriptors_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::track_descriptor_set_sptr
-  compute(::kwiver::vital::timestamp ts, ::kwiver::vital::image_container_sptr image_data, ::kwiver::vital::object_track_set_sptr tracks) override
+  viame::track_descriptor_set_sptr
+  compute(::viame::timestamp ts, ::viame::image_container_sptr image_data, ::viame::object_track_set_sptr tracks) override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::track_descriptor_set_sptr,
-      kwiver::vital::algo::compute_track_descriptors,
+      viame::track_descriptor_set_sptr,
+      viame::algo::compute_track_descriptors,
       compute,
       ts, image_data, tracks
       );
   }
 
-  kwiver::vital::track_descriptor_set_sptr
+  viame::track_descriptor_set_sptr
   flush() override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::track_descriptor_set_sptr,
-      kwiver::vital::algo::compute_track_descriptors,
+      viame::track_descriptor_set_sptr,
+      viame::algo::compute_track_descriptors,
       flush,
       
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

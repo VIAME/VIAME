@@ -27,11 +27,11 @@ namespace core
  * @brief Filter object tracks
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT filter_object_tracks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  filter_object_tracks_process( kwiver::vital::config_block_sptr const& config );
+  filter_object_tracks_process( viame::config_block_sptr const& config );
   virtual ~filter_object_tracks_process();
 
 protected:

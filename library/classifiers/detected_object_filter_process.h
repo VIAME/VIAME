@@ -16,19 +16,19 @@
 
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver
+namespace viame
 {
 
 // ----------------------------------------------------------------
 class VIAME_PROCESSES_CLASSIFIERS_EXPORT detected_object_filter_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "detected_object_filter",
                "Filters sets of detected objects using the "
                "detected_object_filter algorithm." )
 
-  detected_object_filter_process( kwiver::vital::config_block_sptr const& config );
+  detected_object_filter_process( viame::config_block_sptr const& config );
   virtual ~detected_object_filter_process();
 
 protected:
@@ -43,6 +43,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class detected_object_filter_process
 
-} //end namespace
+} // namespace viame
 
 #endif // SPROKIT_PROCESSES_CODE_DETECTED_OBJECT_FILTER_PROCESS_H

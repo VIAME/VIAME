@@ -17,15 +17,13 @@
 #include <map>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for training object detectors
 class VITAL_ALGO_EXPORT train_detector
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   train_detector();
@@ -41,12 +39,12 @@ public:
   /// \param test_groundtruth annotations loaded for each image
   virtual void
   add_data_from_disk(
-    vital::category_hierarchy_sptr object_labels,
+    viame::category_hierarchy_sptr object_labels,
     std::vector< std::string > train_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+    std::vector< viame::detected_object_set_sptr > train_groundtruth,
     std::vector< std::string > test_image_names = std::vector< std::string >( ),
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth
-    = std::vector< kwiver::vital::detected_object_set_sptr >( ) );
+    std::vector< viame::detected_object_set_sptr > test_groundtruth
+    = std::vector< viame::detected_object_set_sptr >( ) );
 
   /// Add training data from memory
   ///
@@ -62,13 +60,13 @@ public:
   /// \param test_groundtruth optional annotations loaded for each test image
   virtual void
   add_data_from_memory(
-    vital::category_hierarchy_sptr object_labels,
-    std::vector< kwiver::vital::image_container_sptr > train_images,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-    std::vector< kwiver::vital::image_container_sptr > test_images
-    = std::vector< kwiver::vital::image_container_sptr >( ),
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth
-    = std::vector< kwiver::vital::detected_object_set_sptr >( ) );
+    viame::category_hierarchy_sptr object_labels,
+    std::vector< viame::image_container_sptr > train_images,
+    std::vector< viame::detected_object_set_sptr > train_groundtruth,
+    std::vector< viame::image_container_sptr > test_images
+    = std::vector< viame::image_container_sptr >( ),
+    std::vector< viame::detected_object_set_sptr > test_groundtruth
+    = std::vector< viame::detected_object_set_sptr >( ) );
 
   /// Train a detection model given all loaded data
   ///
@@ -87,8 +85,6 @@ typedef std::shared_ptr< train_detector > train_detector_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_TRAIN_DETECTOR_H_

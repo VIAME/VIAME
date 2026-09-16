@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief IO Operation utilities for \c kwiver::config
+/// \brief IO Operation utilities for \c viame::config
 ///
 /// Refer to \ref config_file_format "config file format" for more
 /// information on the file entries.
@@ -16,9 +16,7 @@
 
 #include <ostream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Read in a configuration file, producing a \c config_block object
@@ -290,8 +288,6 @@ application_config_file_paths(
 config_path_list_t VITAL_CONFIG_EXPORT
 kwiver_config_file_paths( config_path_t const& install_prefix );
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::similarity_ similarity_<T> \endlink
+/// \brief Header for \link viame::similarity_ similarity_<T> \endlink
 /// class
 ///        for similarity transformations
 
@@ -17,9 +17,7 @@
 #include <viame/core_types/rotation.h>
 #include <viame/core_types/vector.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// A representation of a 3D similarity transformation.
 ///
@@ -127,7 +125,7 @@ protected:
   /// translation
   vector_< 3, T > trans_;
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 };
 
 /// \cond DoxygenSuppress
@@ -148,8 +146,6 @@ VITAL_TYPES_EXPORT std::istream&  operator>>(
   std::istream& s,
   similarity_< T >& t );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_SIMILARITY_H_

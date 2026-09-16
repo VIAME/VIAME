@@ -15,8 +15,8 @@ namespace viame
 
 void convert_polys_to_mask(
   const std::vector< std::string >& polygons,
-  const kwiver::vital::bounding_box_d& bbox,
-  kwiver::vital::image_of< uint8_t >& output )
+  const viame::bounding_box_d& bbox,
+  viame::image_of< uint8_t >& output )
 {
   if( polygons.empty() )
   {
@@ -33,7 +33,7 @@ void convert_polys_to_mask(
   size_t bbox_height = bbox_max_y - bbox_min_y;
 
   // Create the mask as the size of the detection
-  output = kwiver::vital::image_of< uint8_t >( bbox_width, bbox_height, 1 );
+  output = viame::image_of< uint8_t >( bbox_width, bbox_height, 1 );
 
   // Set all the the data to 0
   transform_image( output, []( uint8_t ){ return 0; } );
@@ -42,7 +42,7 @@ void convert_polys_to_mask(
   {
     // Split the last field by spaces
     std::vector< std::string > poly_elements;
-    kwiver::vital::tokenize( polygons[i], poly_elements, " ", true );
+    viame::tokenize( polygons[i], poly_elements, " ", true );
 
     // Extract the x, y points from the split text, skipping '(poly)', and
     // shift them into the coordinates of the box

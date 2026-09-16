@@ -11,17 +11,17 @@
 
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 class VIAME_PROCESSES_MEASUREMENT_EXPORT compute_stereo_depth_map_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "compute_stereo_depth_map",
                "Compute a stereo depth map given two frames." )
 
-  compute_stereo_depth_map_process( kwiver::vital::config_block_sptr const& config );
+  compute_stereo_depth_map_process( viame::config_block_sptr const& config );
   virtual ~compute_stereo_depth_map_process();
 
 protected:
@@ -36,6 +36,6 @@ private:
   const std::unique_ptr<priv> d;
 };
 
-} // end namespace
+} // namespace viame
 
 #endif /* ARROWS_PROCESSES_COMPUTE_STEREO_DEPTH_MAP_PROCESS_H */

@@ -21,7 +21,7 @@
 #include <memory>
 
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -106,8 +106,8 @@ accumulate_object_tracks_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -145,7 +145,7 @@ accumulate_object_tracks_process
   {
     std::stringstream ss;
     ss  << "Invalid min/max frame count limits (" << d->m_min_frame_count << ", " << d->m_max_frame_count << ")";
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), ss.str());
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), ss.str());
   }
 }
 
@@ -203,7 +203,7 @@ accumulate_object_tracks_process
   // if the process has reached its end.
   // Otherwise, send an empty datum in the output ports
   auto port_info = peek_at_port_using_trait( detected_object_set );
-  auto is_input_complete = port_info.datum->type() == sprokit::datum::complete;
+  auto is_input_complete = port_info.datum->type() == viame::pipeline::datum::complete;
   if( !d->m_single_final_output || is_input_complete )
   {
     LOG_DEBUG( d->m_logger, "Sending accumulated object tracks." );
@@ -213,14 +213,14 @@ accumulate_object_tracks_process
   else
   {
     LOG_DEBUG( d->m_logger, "Sending empty." );
-    const auto dat = sprokit::datum::empty_datum();
+    const auto dat = viame::pipeline::datum::empty_datum();
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( object_track_set, dat );
   }
 
   if( is_input_complete )
   {
-    const auto complete_dat = sprokit::datum::complete_datum();
+    const auto complete_dat = viame::pipeline::datum::complete_datum();
     push_datum_to_port_using_trait( timestamp, complete_dat );
     push_datum_to_port_using_trait( object_track_set, complete_dat );
     mark_process_as_complete();

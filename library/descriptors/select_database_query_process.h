@@ -31,11 +31,11 @@ namespace core
  * Useful for conditionally routing auto-generated queries vs external queries.
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT select_database_query_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  select_database_query_process( kwiver::vital::config_block_sptr const& config );
+  select_database_query_process( viame::config_block_sptr const& config );
   virtual ~select_database_query_process();
 
 protected:

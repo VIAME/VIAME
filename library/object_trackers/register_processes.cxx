@@ -31,26 +31,26 @@
 extern "C"
 VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
   static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_object_trackers" );
+    viame::plugin_manager::module_t( "viame_processes_object_trackers" );
 
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
 // The parameters are spelled unusually because `typeid( x ).name()` is in
 // the body: a parameter called `name` would be substituted inside it.
 #define VIAME_REGISTER_PROCESS( process_type, plugin, blurb )             \
   {                                                                      \
-    auto* fact = new sprokit::cpp_process_factory(                       \
+    auto* fact = new viame::pipeline::cpp_process_factory(                       \
       typeid( process_type ).name(),                                     \
-      sprokit::process::interface_name(),                                \
-      sprokit::create_new_process< process_type > );                     \
+      viame::pipeline::process::interface_name(),                                \
+      viame::pipeline::create_new_process< process_type > );                     \
                                                                          \
     fact->add_attribute( kvpf::PLUGIN_NAME, plugin )                     \
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
@@ -61,23 +61,23 @@ register_factories( kwiver::vital::registry& vpm )
   }
 
   VIAME_REGISTER_PROCESS(
-    kwiver::track_objects_process, "track_objects",
+    viame::track_objects_process, "track_objects",
     "Tracks detected objects across frames." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::initialize_object_tracks_process, "initialize_object_tracks",
+    viame::initialize_object_tracks_process, "initialize_object_tracks",
     "Initialize new object tracks given detections for the current frame." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::merge_track_sets_process, "merge_track_sets",
+    viame::merge_track_sets_process, "merge_track_sets",
     "Merge multiple input track sets into one output set." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::convert_tracks_to_detections_process, "convert_tracks_to_detections",
+    viame::convert_tracks_to_detections_process, "convert_tracks_to_detections",
     "Convert input object track sets into detection sets for each frame." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::unwrap_detections_process, "unwrap_detections",
+    viame::unwrap_detections_process, "unwrap_detections",
     "Unwrap object detections from object tracks." )
 
   VIAME_REGISTER_PROCESS(
@@ -102,5 +102,5 @@ register_factories( kwiver::vital::registry& vpm )
 
 #undef VIAME_REGISTER_PROCESS
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  viame::pipeline::mark_process_module_as_loaded( vpm, module_name );
 }

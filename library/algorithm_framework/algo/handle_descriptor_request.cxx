@@ -4,9 +4,7 @@
 
 #include "handle_descriptor_request.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -19,7 +17,7 @@ handle_descriptor_request
 /// Set this algorithm's properties via a config block
 void
 handle_descriptor_request
-::set_configuration( kwiver::vital::config_block_sptr config )
+::set_configuration( viame::config_block_sptr config )
 {
   ( void ) config;
 }
@@ -27,7 +25,7 @@ handle_descriptor_request
 /// Check that the algorithm's current configuration is valid
 bool
 handle_descriptor_request
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   ( void ) config;
   return true;
@@ -35,6 +33,4 @@ handle_descriptor_request
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

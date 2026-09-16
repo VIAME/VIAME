@@ -74,11 +74,11 @@ namespace core
  *   measurement algorithms.
  */
 class VIAME_PROCESSES_MEASUREMENT_EXPORT pair_stereo_detections_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  pair_stereo_detections_process( kwiver::vital::config_block_sptr const& config );
+  pair_stereo_detections_process( viame::config_block_sptr const& config );
   virtual ~pair_stereo_detections_process();
 
 protected:

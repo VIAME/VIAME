@@ -15,7 +15,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // =============================================================================
 // Rescale option enum - shared between core and opencv versions

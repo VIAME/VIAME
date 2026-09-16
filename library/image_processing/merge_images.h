@@ -11,15 +11,13 @@
 
 #include <viame/algorithm_framework/algo/merge_images.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
 // Implementation of merge image channels.
 class VIAME_IMAGE_PROCESSING_EXPORT merge_images
-  : public vital::algo::merge_images
+  : public viame::algo::merge_images
 {
 public:
   PLUGGABLE_IMPL(
@@ -36,18 +34,16 @@ public:
 
   bool
   check_configuration(
-    [[maybe_unused]] kwiver::vital::config_block_sptr config ) const override
+    [[maybe_unused]] viame::config_block_sptr config ) const override
   { return true; }
 
   /// Merge images
-  kwiver::vital::image_container_sptr
+  viame::image_container_sptr
   merge(
-    kwiver::vital::image_container_sptr image1,
-    kwiver::vital::image_container_sptr image2 ) const override;
+    viame::image_container_sptr image1,
+    viame::image_container_sptr image2 ) const override;
 };
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

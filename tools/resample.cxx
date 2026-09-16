@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 namespace tools {
@@ -134,7 +134,7 @@ resample_applet
     return EXIT_FAILURE;
   }
 
-  if( !kwiver::vital::file_exists( opt_input ) )
+  if( !viame::file_exists( opt_input ) )
   {
     LOG_ERROR( logger, "Input file does not exist: " << opt_input );
     return EXIT_FAILURE;

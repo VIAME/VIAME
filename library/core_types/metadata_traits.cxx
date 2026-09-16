@@ -10,9 +10,7 @@
 #include <viame/core_types/metadata.h>
 #include <viame/algorithm_framework/util/demangle.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -486,6 +484,4 @@ tag_traits_by_enum_name( std::string const& name )
   return ( it == map.end() ) ? unknown_tag_traits() : *it->second;
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

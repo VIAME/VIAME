@@ -15,11 +15,11 @@ namespace vertex_ai {
 /// Sprokit process that sends inference requests to a deployed Vertex AI
 /// endpoint and returns results as detected_object_set or raw JSON.
 class vertex_ai_detector
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   vertex_ai_detector(
-    kwiver::vital::config_block_sptr const& config );
+    viame::config_block_sptr const& config );
   virtual ~vertex_ai_detector();
 
 protected:

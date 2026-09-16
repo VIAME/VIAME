@@ -19,7 +19,7 @@
 #include <istream>
 #include <string>
 
-namespace kwiver {
+namespace viame {
 
 // -----------------------------------------------------------------
 /**
@@ -63,7 +63,7 @@ namespace kwiver {
     ;
 
   // create embedded pipeline
-  kwiver::embedded_pipeline ep;
+  viame::embedded_pipeline ep;
   ep.build_pipeline( pipeline_desc );
 
   // Query adapters for ports
@@ -82,7 +82,7 @@ namespace kwiver {
   for ( int i = 0; i < 10; ++i)
   {
     // Create dataset for input
-    auto ds = kwiver::adapter::adapter_data_set::create();
+    auto ds = viame::adapter::adapter_data_set::create();
 
     // Add value to be pushed to the named port
     ds.add_value( "counter", i );
@@ -126,7 +126,7 @@ public:
    * @brief Set application information
    *
    * This method sets the application information that will be used when
-   * searching for pipeline files. See kwiver::vital::read_config_file for a
+   * searching for pipeline files. See viame::read_config_file for a
    * detailed explanation of the parameters and how search paths work.
    *
    * \sa build_pipeline
@@ -140,7 +140,7 @@ public:
    *
    * This method creates the pipeline based on the contents of the supplied
    * stream. Inclusions will be resolved using the search paths in the same
-   * manner as kwiver::vital::read_config_file.
+   * manner as viame::read_config_file.
    *
    * @param istr Input stream containing the pipeline description.
    *
@@ -175,7 +175,7 @@ public:
    *
    * @param ads Data set to send
    */
-  void send( kwiver::adapter::adapter_data_set_t ads );
+  void send( viame::adapter::adapter_data_set_t ads );
 
   /**
    * @brief Send end of input into pipeline.
@@ -210,7 +210,7 @@ public:
    *
    * @return Data set from the pipeline.
    */
-  kwiver::adapter::adapter_data_set_t receive();
+  viame::adapter::adapter_data_set_t receive();
 
   /**
    * @brief Can pipeline accept more input?
@@ -290,7 +290,7 @@ public:
    *
    * @return List of input port names
    */
-  sprokit::process::ports_t input_port_names() const;
+  viame::pipeline::process::ports_t input_port_names() const;
 
   /**
    * @brief Get list of output ports.
@@ -305,7 +305,7 @@ public:
    *
    * @return List of output port names
    */
-  sprokit::process::ports_t output_port_names() const;
+  viame::pipeline::process::ports_t output_port_names() const;
 
   /**
    * @brief Report if input adapter is connected.
@@ -360,13 +360,13 @@ protected:
    *
    * @param[in,out] config Configuration to update.
    */
-  virtual void update_config( kwiver::vital::config_block_sptr config );
+  virtual void update_config( viame::config_block_sptr config );
 
 private:
   std::shared_ptr< priv > m_priv;
 
 }; // end class embedded_pipeline
 
-} // end namespace
+} // namespace viame
 
 #endif /* ARROWS_PROCESSES_EMBEDDED_PIPELINE_H */

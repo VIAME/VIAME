@@ -9,9 +9,7 @@
 
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 image_exception
@@ -66,6 +64,4 @@ image_size_mismatch_exception
 ::~image_size_mismatch_exception() noexcept
 {}
 
-} // end namespace vital
-
-} // end namespace kwiver
+} // namespace viame

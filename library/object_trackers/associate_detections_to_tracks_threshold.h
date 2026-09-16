@@ -12,15 +12,13 @@
 #include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/algo/associate_detections_to_tracks.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 /// Initialize object tracks via simple single frame thresholding
 class VIAME_OBJECT_TRACKERS_EXPORT associate_detections_to_tracks_threshold
-  : public vital::algo::associate_detections_to_tracks
+  : public viame::algo::associate_detections_to_tracks
 {
 public:
   PLUGGABLE_IMPL(
@@ -48,7 +46,7 @@ public:
   /// \param config  The config block to check configuration of.
   ///
   /// \returns true if the configuration check passed and false if it didn't.
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   /// Use cost matrices to assign detections to existing tracks
   ///
@@ -62,13 +60,13 @@ public:
   /// \returns whether or not any tracks were updated
   virtual bool
   associate(
-    kwiver::vital::timestamp ts,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::object_track_set_sptr tracks,
-    kwiver::vital::detected_object_set_sptr detections,
-    kwiver::vital::matrix_d matrix,
-    kwiver::vital::object_track_set_sptr& output,
-    kwiver::vital::detected_object_set_sptr& unused ) const;
+    viame::timestamp ts,
+    viame::image_container_sptr image,
+    viame::object_track_set_sptr tracks,
+    viame::detected_object_set_sptr detections,
+    viame::matrix_d matrix,
+    viame::object_track_set_sptr& output,
+    viame::detected_object_set_sptr& unused ) const;
 
 private:
   void initialize() override;
@@ -77,10 +75,8 @@ private:
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

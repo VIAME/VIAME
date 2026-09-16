@@ -18,9 +18,7 @@
 #include <iostream>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 template < typename T > class transposed_vector_view;
@@ -146,8 +144,6 @@ typedef dynamic_vector< double > vector_d;
 typedef dynamic_vector< float >  vector_f;
 /// \endcond
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

@@ -12,9 +12,7 @@
 
 #include <memory>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Base class for holding a single frame of uninterpreted data.
@@ -28,8 +26,6 @@ using video_uninterpreted_data_sptr =
 using video_uninterpreted_data_uptr =
   std::unique_ptr< video_uninterpreted_data >;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

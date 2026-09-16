@@ -10,7 +10,7 @@
 
 namespace py = pybind11;
 
-using ts = kwiver::vital::timestamp;
+using ts = viame::timestamp;
 
 PYBIND11_MODULE( timestamp, m )
 {
@@ -27,7 +27,7 @@ PYBIND11_MODULE( timestamp, m )
     )" )
 
     .def( py::init<>() )
-    .def( py::init< kwiver::vital::time_usec_t, kwiver::vital::frame_id_t >() )
+    .def( py::init< viame::time_usec_t, viame::frame_id_t >() )
 
     .def( "is_valid", &ts::is_valid )
     .def( "has_valid_time", &ts::has_valid_time )
@@ -69,7 +69,7 @@ PYBIND11_MODULE( timestamp, m )
         return locals[ "retval" ].cast< std::string >();
       } )
 
-    .def( "__str__", &kwiver::vital::timestamp::pretty_print )
+    .def( "__str__", &viame::timestamp::pretty_print )
     .def( py::self == py::self )
     .def( py::self != py::self )
     .def( py::self <= py::self )

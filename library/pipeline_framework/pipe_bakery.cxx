@@ -24,11 +24,11 @@
  * \brief Implementation of baking a pipeline.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace {
 
-static kwiver::vital::config_block_key_t const config_pipeline_key = kwiver::vital::config_block_key_t( "_pipeline" );
+static viame::config_block_key_t const config_pipeline_key = viame::config_block_key_t( "_pipeline" );
 
 } // end anonymous
 
@@ -60,10 +60,10 @@ bake_pipe_blocks( pipe_blocks const& blocks )
   bakery_base::config_decls_t& configs = bakery.m_configs;
 
   // Convert config entries to global config.
-  kwiver::vital::config_block_sptr global_conf = bakery_base::extract_configuration_from_decls( configs );
+  viame::config_block_sptr global_conf = bakery_base::extract_configuration_from_decls( configs );
 
   // Create pipeline.
-  kwiver::vital::config_block_sptr const pipeline_conf = global_conf->subblock_view( config_pipeline_key );
+  viame::config_block_sptr const pipeline_conf = global_conf->subblock_view( config_pipeline_key );
 
   pipe = std::make_shared< pipeline > ( pipeline_conf );
 
@@ -73,7 +73,7 @@ bake_pipe_blocks( pipe_blocks const& blocks )
     {
       process::name_t const& proc_name = decl.first;
       process::type_t const& proc_type = decl.second;
-      kwiver::vital::config_block_sptr const proc_conf = global_conf->subblock_view( proc_name );
+      viame::config_block_sptr const proc_conf = global_conf->subblock_view( proc_name );
 
       // Create process with its config block.
       process_t const proc = create_process( proc_type, proc_name, proc_conf );
@@ -102,7 +102,7 @@ bake_pipe_blocks( pipe_blocks const& blocks )
 } // bake_pipe_blocks
 
 // ------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 extract_configuration( pipe_blocks const& blocks )
 {
   pipe_bakery bakery;

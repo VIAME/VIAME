@@ -12,9 +12,7 @@
 
 #include <viame/core_types/vital_types_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 struct detected_object_type_tag {};
 
@@ -27,8 +25,6 @@ using detected_object_type_sptr = std::shared_ptr< detected_object_type >;
 using detected_object_type_scptr =
   std::shared_ptr< detected_object_type const >;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

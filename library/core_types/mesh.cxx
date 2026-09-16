@@ -3,15 +3,13 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::mesh mesh \endlink class
+/// \brief Implementation of \link viame::mesh mesh \endlink class
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/core_types/mesh.h>
 
 #include <map>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// compute the vector normal to the plane defined by 3 vertices
 vector_3d
@@ -957,6 +955,4 @@ mesh
   }
 }
 
-} // end namespace vital
-
-} // end namespace kwiver
+} // namespace viame

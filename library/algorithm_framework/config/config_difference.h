@@ -12,9 +12,7 @@
 #include <viame/algorithm_framework/logger/kwiver_logger.h>
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Config difference class for validating provided config.
@@ -42,14 +40,14 @@ namespace vital {
 /// \code
 /// //                                    ref-config
 ///                received-config
-/// kwiver::vital::config_difference cd( this->get_configuration(), config );
+/// viame::config_difference cd( this->get_configuration(), config );
 /// const auto key_list = cd.extra_keys();
 /// if ( ! key_list.empty() )
 /// {
 ///  // This may be considered an error in some cases
 ///  LOG_WARN( logger(), "Additional parameters found in config block that are
 /// not required or desired: "
-///            << kwiver::vital::join( key_list, ", " ) );
+///            << viame::join( key_list, ", " ) );
 /// }
 ///
 /// key_list = cd.unspecified_keys();
@@ -57,7 +55,7 @@ namespace vital {
 /// {
 ///  LOG_WARN( logger(), "Parameters that were not supplied in the config, using
 /// default values: "
-///            << kwiver::vital::join( key_list, ", " ) );
+///            << viame::join( key_list, ", " ) );
 /// }
 /// \endcode
 ///
@@ -113,7 +111,7 @@ public:
   /// @param logger - A logger handle
   ///
   /// @return True if warning was generated
-  bool warn_extra_keys( kwiver::vital::logger_handle_t logger ) const;
+  bool warn_extra_keys( viame::logger_handle_t logger ) const;
 
   /// @brief Issue log warning for unspecified keys
   ///
@@ -123,15 +121,13 @@ public:
   /// @param logger - A logger handle
   ///
   /// @return True if warning was generated
-  bool warn_unspecified_keys( kwiver::vital::logger_handle_t logger ) const;
+  bool warn_unspecified_keys( viame::logger_handle_t logger ) const;
 
 private:
   config_block_keys_t m_extra_keys;
   config_block_keys_t m_missing_keys;
 }; // end class config_difference
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // CONFIG_CONFIG_DIFFERENCE_H

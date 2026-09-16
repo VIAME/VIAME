@@ -10,7 +10,7 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Note that this is unlike database_query::descriptors().
 // This returns a copy of the track_descriptor_set, while

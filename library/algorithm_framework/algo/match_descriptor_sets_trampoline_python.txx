@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/match_descriptor_sets.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class match_descriptor_sets_base = kwiver::vital::algo::match_descriptor_sets >
+template< class match_descriptor_sets_base = viame::algo::match_descriptor_sets >
 class match_descriptor_sets_trampoline
     : public algorithm_trampoline< match_descriptor_sets_base >
 {
@@ -22,38 +22,38 @@ class match_descriptor_sets_trampoline
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
   void
-  append_to_index(::kwiver::vital::descriptor_set_sptr const desc, ::kwiver::vital::frame_id_t frame) override
+  append_to_index(::viame::descriptor_set_sptr const desc, ::viame::frame_id_t frame) override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::match_descriptor_sets,
+      viame::algo::match_descriptor_sets,
       append_to_index,
       desc, frame
       );
   }
 
   std::vector<long>
-  query(::kwiver::vital::descriptor_set_sptr const desc) override
+  query(::viame::descriptor_set_sptr const desc) override
   {
     PYBIND11_OVERLOAD_PURE(
       std::vector<long>,
-      kwiver::vital::algo::match_descriptor_sets,
+      viame::algo::match_descriptor_sets,
       query,
       desc
       );
   }
 
   std::vector<long>
-  query_and_append(::kwiver::vital::descriptor_set_sptr const desc, ::kwiver::vital::frame_id_t frame) override
+  query_and_append(::viame::descriptor_set_sptr const desc, ::viame::frame_id_t frame) override
   {
     PYBIND11_OVERLOAD(
       std::vector<long>,
-      kwiver::vital::algo::match_descriptor_sets,
+      viame::algo::match_descriptor_sets,
       query_and_append,
       desc, frame
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

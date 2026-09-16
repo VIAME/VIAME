@@ -48,7 +48,7 @@ namespace codecs {
 
 namespace {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // ----------------------------------------------------------------------------
 /// The extension, lower cased, with its dot.

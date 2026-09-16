@@ -17,9 +17,9 @@
 #include <memory>
 #include <utility>
 
-// using applet_factory = kwiver::vital::implementation_factory_by_name<
-// kwiver::tools::kwiver_applet >;
-using applet_context_t = std::shared_ptr< kwiver::tools::applet_context >;
+// using applet_factory = viame::implementation_factory_by_name<
+// viame::tools::kwiver_applet >;
+using applet_context_t = std::shared_ptr< viame::tools::applet_context >;
 
 // ============================================================================
 
@@ -84,7 +84,7 @@ public:
 void
 tool_runner_usage(
   [[maybe_unused]] applet_context_t ctxt,
-  kwiver::vital::plugin_manager& vpm )
+  viame::plugin_manager& vpm )
 {
   // display help message
   std::cout << "Usage: kwiver  <applet>  [args]" << std::endl
@@ -93,7 +93,7 @@ tool_runner_usage(
             << "Available tools are listed below:" << std::endl;
 
   // Get list of factories for implementations of the applet
-  const auto fact_list = vpm.get_factories< kwiver::tools::kwiver_applet >();
+  const auto fact_list = vpm.get_factories< viame::tools::kwiver_applet >();
 
   // Loop over all factories in the list and display name and description
   using help_pair = std::pair< std::string, std::string >;
@@ -104,11 +104,11 @@ tool_runner_usage(
   for( auto fact : fact_list )
   {
     std::string buf = "-- Not Set --";
-    fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf );
+    fact->get_attribute( viame::plugin_factory::PLUGIN_NAME, buf );
 
     std::string descr = "-- Not Set --";
     fact->get_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+      viame::plugin_factory::PLUGIN_DESCRIPTION,
       descr );
 
     // All we want is the first line of the description.
@@ -152,7 +152,7 @@ void
 help_applet(
   const command_line_parser& options,
   applet_context_t tool_context,
-  kwiver::vital::plugin_manager& vpm )
+  viame::plugin_manager& vpm )
 {
   if( options.m_applet_args.size() < 2 )
   {
@@ -162,14 +162,14 @@ help_applet(
 
   // Create applet based on the name provided
   std::string buf = "-- Not Set --";
-  kwiver::vital::implementation_factory_by_name< kwiver::tools::kwiver_applet >
+  viame::implementation_factory_by_name< viame::tools::kwiver_applet >
   impl_fact;
   auto fact = impl_fact.find_factory( options.m_applet_name );
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+  fact->get_attribute( viame::plugin_factory::PLUGIN_DESCRIPTION, buf );
 
-  kwiver::vital::config_block_sptr config =
-    kwiver::vital::config_block::empty_config();
-  kwiver::tools::kwiver_applet_sptr applet( impl_fact.create(
+  viame::config_block_sptr config =
+    viame::config_block::empty_config();
+  viame::tools::kwiver_applet_sptr applet( impl_fact.create(
     options.m_applet_name, config ) );
 
   tool_context->m_applet_name = options.m_applet_args[ 1 ];
@@ -188,10 +188,10 @@ main( int argc, char* argv[] )
   // Global shared context
   // Allocated on the stack so it will automatically clean up
   //
-  applet_context_t tool_context = std::make_shared< kwiver::tools::applet_context >();
+  applet_context_t tool_context = std::make_shared< viame::tools::applet_context >();
 
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
 
   vpm.load_all_plugins();
 
@@ -210,10 +210,10 @@ main( int argc, char* argv[] )
   try
   {
     // Create applet based on the name provided
-    kwiver::vital::implementation_factory_by_name< kwiver::tools::kwiver_applet > app_fact;
-    kwiver::vital::config_block_sptr config =
-      kwiver::vital::config_block::empty_config();
-    kwiver::tools::kwiver_applet_sptr applet( app_fact.create(
+    viame::implementation_factory_by_name< viame::tools::kwiver_applet > app_fact;
+    viame::config_block_sptr config =
+      viame::config_block::empty_config();
+    viame::tools::kwiver_applet_sptr applet( app_fact.create(
       options.m_applet_name, config ) );
 
     tool_context->m_applet_name = options.m_applet_name;
@@ -271,16 +271,16 @@ main( int argc, char* argv[] )
     std::cerr << "Command argument error: " << e.what() << std::endl;
     exit( -1 );
   }
-  catch( kwiver::vital::plugin_factory_not_found& )
+  catch( viame::plugin_factory_not_found& )
   {
     std::cerr << "Tool \"" << argv[ 1 ] << "\" not found. Type \""
               << argv[ 0 ] << " help\" to list available tools." << std::endl;
 
     exit( -1 );
   }
-  catch( kwiver::vital::vital_exception& e )
+  catch( viame::vital_exception& e )
   {
-    std::cerr << "Caught unhandled kwiver::vital::vital_exception: " <<
+    std::cerr << "Caught unhandled viame::vital_exception: " <<
       e.what() << std::endl;
     exit( -1 );
   }

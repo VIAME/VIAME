@@ -31,7 +31,7 @@
 namespace viame {
 namespace tools {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 
@@ -167,7 +167,7 @@ describe( annotation_conversion_summary const& summary )
   out << summary.detections << " detection" << ( summary.detections == 1 ? "" : "s" );
   if( !summary.frame_source.empty() )
   {
-    out << ", frames from " << kwiver::vital::filename_name( summary.frame_source );
+    out << ", frames from " << viame::filename_name( summary.frame_source );
   }
   return out.str();
 }
@@ -387,8 +387,8 @@ convert_applet
       return EXIT_FAILURE;
     }
 
-    const std::string input_root = kwiver::vital::collapse_full_path( input );
-    const std::string output_root = kwiver::vital::collapse_full_path( output );
+    const std::string input_root = viame::collapse_full_path( input );
+    const std::string output_root = viame::collapse_full_path( output );
     const auto files = list_annotation_files(
       input, explicit_annotation_format ? input_format : std::string() );
 
@@ -399,14 +399,14 @@ convert_applet
 
     for( auto const& file : files )
     {
-      const std::string full = kwiver::vital::collapse_full_path( file );
+      const std::string full = viame::collapse_full_path( file );
       std::string relative = full.substr( input_root.size() );
       while( !relative.empty() && ( relative[0] == '/' || relative[0] == '\\' ) )
       {
         relative = relative.substr( 1 );
       }
       const std::string target = append_path( output_root, replace_ext_with( relative, ext ) );
-      if( kwiver::vital::collapse_full_path( target ) == full )
+      if( viame::collapse_full_path( target ) == full )
       {
         LOG_WARN( logger, "Skipping " << file << ": it would overwrite itself" );
         continue;
@@ -468,7 +468,7 @@ convert_applet
     {
       const std::string ext = extension_for_format( writer_format );
       jobs.emplace_back( input, append_path( output,
-        replace_ext_with( kwiver::vital::filename_name( input ), ext ) ) );
+        replace_ext_with( viame::filename_name( input ), ext ) ) );
     }
     else
     {

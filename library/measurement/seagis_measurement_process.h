@@ -30,11 +30,11 @@ namespace seagis
  * StereoLibLX library for camera calibration and 3D intersection calculations.
  */
 class VIAME_PROCESSES_SEAGIS_NO_EXPORT seagis_measurement_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  seagis_measurement_process( kwiver::vital::config_block_sptr const& config );
+  seagis_measurement_process( viame::config_block_sptr const& config );
   virtual ~seagis_measurement_process();
 
 protected:

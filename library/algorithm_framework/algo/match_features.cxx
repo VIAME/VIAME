@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/match_features.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ match_features
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -4,7 +4,7 @@
 
 #include "estimator_extras_python.h"
 
-// The numpy caster for `vital::vector_2d`. Without it a point list has to be
+// The numpy caster for `viame::vector_2d`. Without it a point list has to be
 // built out of the bound C++ type rather than out of arrays, which is not
 // what any caller has.
 #define KWIVER_PYBIND11_INCLUDE
@@ -19,7 +19,7 @@
 #include <utility>
 #include <vector>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 namespace py = pybind11;
 
@@ -50,8 +50,8 @@ bind_estimator( py::module& m, char const* python_name )
 
   cls.attr( "estimate" ) = py::cpp_function(
     []( Algorithm const& self,
-        std::vector< kwiver::vital::vector_2d > const& pts1,
-        std::vector< kwiver::vital::vector_2d > const& pts2,
+        std::vector< viame::vector_2d > const& pts1,
+        std::vector< viame::vector_2d > const& pts2,
         double inlier_scale )
     {
       std::vector< bool > inliers;
@@ -70,9 +70,9 @@ bind_estimator( py::module& m, char const* python_name )
   // as one overload set.
   cls.attr( "estimate_matches" ) = py::cpp_function(
     []( Algorithm const& self,
-        kwiver::vital::feature_set_sptr feat1,
-        kwiver::vital::feature_set_sptr feat2,
-        kwiver::vital::match_set_sptr matches,
+        viame::feature_set_sptr feat1,
+        viame::feature_set_sptr feat2,
+        viame::match_set_sptr matches,
         double inlier_scale )
     {
       std::vector< bool > inliers;
@@ -95,10 +95,10 @@ bind_estimator( py::module& m, char const* python_name )
 void
 estimator_extras( py::module& m )
 {
-  bind_estimator< kwiver::vital::algo::estimate_homography,
-                  kwiver::vital::homography_sptr >( m, "EstimateHomography" );
-  bind_estimator< kwiver::vital::algo::estimate_fundamental_matrix,
-                  kwiver::vital::fundamental_matrix_sptr >(
+  bind_estimator< viame::algo::estimate_homography,
+                  viame::homography_sptr >( m, "EstimateHomography" );
+  bind_estimator< viame::algo::estimate_fundamental_matrix,
+                  viame::fundamental_matrix_sptr >(
     m, "EstimateFundamentalMatrix" );
 }
 
@@ -115,16 +115,16 @@ estimator_extras( py::module& m )
 void
 optimize_cameras_extras( py::module& m )
 {
-  using algorithm = kwiver::vital::algo::optimize_cameras;
+  using algorithm = viame::algo::optimize_cameras;
 
   py::object cls = m.attr( "OptimizeCameras" );
 
   cls.attr( "optimize" ) = py::cpp_function(
     []( algorithm const& self,
-        kwiver::vital::camera_map_sptr cameras,
-        kwiver::vital::feature_track_set_sptr tracks,
-        kwiver::vital::landmark_map_sptr landmarks,
-        kwiver::vital::sfm_constraints_sptr constraints )
+        viame::camera_map_sptr cameras,
+        viame::feature_track_set_sptr tracks,
+        viame::landmark_map_sptr landmarks,
+        viame::sfm_constraints_sptr constraints )
     {
       self.optimize( cameras, tracks, landmarks, constraints );
       return cameras;
@@ -140,10 +140,10 @@ optimize_cameras_extras( py::module& m )
 
   cls.attr( "optimize_camera" ) = py::cpp_function(
     []( algorithm const& self,
-        kwiver::vital::camera_perspective_sptr camera,
-        std::vector< kwiver::vital::feature_sptr > const& features,
-        std::vector< kwiver::vital::landmark_sptr > const& landmarks,
-        kwiver::vital::sfm_constraints_sptr constraints )
+        viame::camera_perspective_sptr camera,
+        std::vector< viame::feature_sptr > const& features,
+        std::vector< viame::landmark_sptr > const& landmarks,
+        viame::sfm_constraints_sptr constraints )
     {
       self.optimize( camera, features, landmarks, constraints );
       return camera;
@@ -157,4 +157,4 @@ optimize_cameras_extras( py::module& m )
     py::arg( "constraints" ) = py::none() );
 }
 
-} // namespace kwiver::vital::python
+} // namespace viame::python

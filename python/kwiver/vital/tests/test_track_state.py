@@ -41,7 +41,7 @@ import numpy
 from kwiver.vital.types import TrackState
 
 
-# TODO: Uncomment below tests? kwiver::vital::track_state doesn't
+# TODO: Uncomment below tests? viame::track_state doesn't
 # have features or descriptors. Would need to be added to bindings.
 class TestTrackState(unittest.TestCase):
     def test_new_ts(self):

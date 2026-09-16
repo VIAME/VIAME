@@ -58,7 +58,7 @@
  * \brief Implementation of pipeline utilities.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 #ifdef NAME_THREAD_USING_PRCTL

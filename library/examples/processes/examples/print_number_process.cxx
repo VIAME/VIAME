@@ -18,7 +18,7 @@
  * \brief Implementation of the number printer process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class print_number_process::priv
@@ -33,22 +33,22 @@ class print_number_process::priv
 
     std::ofstream fout;
 
-    static kwiver::vital::config_block_key_t const config_path;
+    static viame::config_block_key_t const config_path;
     static port_t const port_input;
 };
 
-kwiver::vital::config_block_key_t const print_number_process::priv::config_path = kwiver::vital::config_block_key_t("output");
+viame::config_block_key_t const print_number_process::priv::config_path = viame::config_block_key_t("output");
 process::port_t const print_number_process::priv::port_input = port_t("number");
 
 print_number_process
-::print_number_process(kwiver::vital::config_block_sptr const& config)
+::print_number_process(viame::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_path,
-    kwiver::vital::config_block_value_t(),
-    kwiver::vital::config_block_description_t("The path of the file to output to."));
+    viame::config_block_value_t(),
+    viame::config_block_description_t("The path of the file to output to."));
 
   port_flags_t required;
 
@@ -80,7 +80,7 @@ print_number_process
   if (d->path.empty())
   {
     static std::string const reason = "The path given was empty";
-    kwiver::vital::config_block_value_t const value = d->path.string();
+    viame::config_block_value_t const value = d->path.string();
 
     VITAL_THROW( invalid_configuration_value_exception,
                  name(), priv::config_path, value, reason);

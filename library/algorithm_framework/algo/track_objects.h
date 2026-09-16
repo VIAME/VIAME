@@ -17,9 +17,7 @@
 #include <viame/core_types/object_track_set.h>
 #include <viame/core_types/timestamp.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -41,7 +39,7 @@ namespace algo {
 /// frame-by-frame processing. Optional methods support initialization,
 /// finalization, and state management.
 class VITAL_ALGO_EXPORT track_objects
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   track_objects();
@@ -59,11 +57,11 @@ public:
   ///              for trackers that don't require image data)
   /// \param detections Detected objects from the current frame
   /// \returns Updated object track set containing all active tracks
-  virtual kwiver::vital::object_track_set_sptr
+  virtual viame::object_track_set_sptr
   track(
-    kwiver::vital::timestamp ts,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::detected_object_set_sptr detections ) const = 0;
+    viame::timestamp ts,
+    viame::image_container_sptr image,
+    viame::detected_object_set_sptr detections ) const = 0;
 
   /// Track objects with homography support.
   ///
@@ -77,12 +75,12 @@ public:
   /// \param src_to_ref Homography from source (current frame) to
   ///                   reference coordinates
   /// \returns Updated object track set containing all active tracks
-  virtual kwiver::vital::object_track_set_sptr
+  virtual viame::object_track_set_sptr
   track(
-    kwiver::vital::timestamp ts,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::detected_object_set_sptr detections,
-    kwiver::vital::f2f_homography_sptr src_to_ref ) const;
+    viame::timestamp ts,
+    viame::image_container_sptr image,
+    viame::detected_object_set_sptr detections,
+    viame::f2f_homography_sptr src_to_ref ) const;
 
   /// Track objects with existing tracks provided.
   ///
@@ -95,12 +93,12 @@ public:
   /// \param detections Detected objects from the current frame
   /// \param existing_tracks Previously computed tracks to continue
   /// \returns Updated object track set with both existing and new tracks
-  virtual kwiver::vital::object_track_set_sptr
+  virtual viame::object_track_set_sptr
   track(
-    kwiver::vital::timestamp ts,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::detected_object_set_sptr detections,
-    kwiver::vital::object_track_set_sptr existing_tracks ) const;
+    viame::timestamp ts,
+    viame::image_container_sptr image,
+    viame::detected_object_set_sptr detections,
+    viame::object_track_set_sptr existing_tracks ) const;
 
   /// Initialize the tracker for a new sequence.
   ///
@@ -112,11 +110,11 @@ public:
   /// \param image Initial frame image
   /// \param seed_detections Optional initial detections to seed tracks
   /// \returns Initial track set (may be empty if no seeds provided)
-  virtual kwiver::vital::object_track_set_sptr
+  virtual viame::object_track_set_sptr
   initialize(
-    kwiver::vital::timestamp ts,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::detected_object_set_sptr seed_detections ) const;
+    viame::timestamp ts,
+    viame::image_container_sptr image,
+    viame::detected_object_set_sptr seed_detections ) const;
 
   /// Finalize tracking and return all tracks.
   ///
@@ -125,7 +123,7 @@ public:
   /// that were previously lost but should still be returned.
   ///
   /// \returns Final object track set with all tracks from the sequence
-  virtual kwiver::vital::object_track_set_sptr
+  virtual viame::object_track_set_sptr
   finalize() const;
 
   /// Reset the tracker state.
@@ -140,8 +138,6 @@ typedef std::shared_ptr< track_objects > track_objects_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_TRACK_OBJECTS_H_

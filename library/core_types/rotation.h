@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::rotation_ rotation_<T> \endlink class
+/// \brief Header for \link viame::rotation_ rotation_<T> \endlink class
 
 #ifndef VITAL_TYPES_ROTATION_H_
 #define VITAL_TYPES_ROTATION_H_
@@ -18,9 +18,7 @@
 #include "vector.h"
 #include <viame/core_types/matrix.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// A representation of 3D rotation.
 ///
@@ -276,8 +274,6 @@ VITAL_TYPES_EXPORT
 rotation_< T >
 camera_to_sensor( rotation_< T > const& r );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_TYPES_ROTATION_H_

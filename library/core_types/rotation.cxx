@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::rotation_ rotation_<T>
+/// \brief Implementation of \link viame::rotation_ rotation_<T>
 /// \endlink
 ///        for \c T = { \c float, \c double }
 
@@ -15,9 +15,7 @@
 #include <cmath>
 #include <limits>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Constructor - from a Rodrigues vector
 template < typename T >
@@ -304,6 +302,4 @@ INSTANTIATE_ROTATION( float );
 #undef INSTANTIATE_ROTATION
 /// \endcond
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

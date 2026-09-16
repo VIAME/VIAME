@@ -11,13 +11,11 @@
 #include <iterator>
 #include <limits>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
-using namespace kwiver::vital;
+using namespace viame;
 
 frame_index_track_set_impl
 ::frame_index_track_set_impl()
@@ -81,7 +79,7 @@ frame_index_track_set_impl
 /// Return true if the set contains a specific track
 bool
 frame_index_track_set_impl
-::contains( vital::track_sptr t ) const
+::contains( viame::track_sptr t ) const
 {
   if( !t )
   {
@@ -95,7 +93,7 @@ frame_index_track_set_impl
 /// Assign a vector of track shared pointers to this container
 void
 frame_index_track_set_impl
-::set_tracks( std::vector< vital::track_sptr > const& tracks )
+::set_tracks( std::vector< viame::track_sptr > const& tracks )
 {
   all_tracks_.clear();
 
@@ -113,7 +111,7 @@ frame_index_track_set_impl
 /// Insert a track shared pointer into this container
 void
 frame_index_track_set_impl
-::insert( vital::track_sptr const& t )
+::insert( viame::track_sptr const& t )
 {
   if( !t )
   {
@@ -135,7 +133,7 @@ frame_index_track_set_impl
 /// Insert a track shared pointer into this container
 void
 frame_index_track_set_impl
-::insert( vital::track_sptr&& t )
+::insert( viame::track_sptr&& t )
 {
   if( !t )
   {
@@ -157,7 +155,7 @@ frame_index_track_set_impl
 /// Notify the container that a new state has been added to an existing track
 void
 frame_index_track_set_impl
-::notify_new_state( vital::track_state_sptr ts )
+::notify_new_state( viame::track_state_sptr ts )
 {
   if( !frame_map_.empty() )
   {
@@ -169,7 +167,7 @@ frame_index_track_set_impl
 /// Notify the container that a state has been removed from an existing track
 void
 frame_index_track_set_impl
-::notify_removed_state( vital::track_state_sptr ts )
+::notify_removed_state( viame::track_state_sptr ts )
 {
   if( frame_map_.empty() )
   {
@@ -200,7 +198,7 @@ frame_index_track_set_impl
 /// Remove a track from the set and return true if successful
 bool
 frame_index_track_set_impl
-::remove( vital::track_sptr t )
+::remove( viame::track_sptr t )
 {
   if( !t )
   {
@@ -523,7 +521,7 @@ frame_index_track_set_impl
 
 track_set_implementation_uptr
 frame_index_track_set_impl
-::clone( vital::clone_type ct ) const
+::clone( viame::clone_type ct ) const
 {
   std::unique_ptr< frame_index_track_set_impl > the_clone =
     std::unique_ptr< frame_index_track_set_impl >(
@@ -548,8 +546,6 @@ frame_index_track_set_impl
 #endif
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

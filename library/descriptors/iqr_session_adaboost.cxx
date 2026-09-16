@@ -15,7 +15,7 @@
 namespace py = pybind11;
 #endif
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {

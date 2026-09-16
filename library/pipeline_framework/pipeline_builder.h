@@ -18,7 +18,7 @@
 #include <string>
 #include <memory>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ----------------------------------------------------------------
 /**
@@ -33,7 +33,7 @@ namespace sprokit {
  * the pipeline which is ready to process.
  */
 class SPROKIT_PIPELINE_UTIL_EXPORT pipeline_builder
-  : kwiver::vital::noncopyable
+  : viame::noncopyable
 {
 public:
   /**
@@ -55,7 +55,7 @@ public:
    * from the stream. The directory portion is used when resolving
    * included files and relpath specifiers.
    */
-  void load_pipeline(std::istream& istr, kwiver::vital::path_t const& def_file = "" );
+  void load_pipeline(std::istream& istr, viame::path_t const& def_file = "" );
 
   /**
    * \brief Load pipeline configuration from file name.
@@ -66,7 +66,7 @@ public:
    *
    * \param def_file The name of the pipeline file to use.
    */
-  void load_pipeline( kwiver::vital::path_t const& def_file );
+  void load_pipeline( viame::path_t const& def_file );
 
   /**
    * \brief Load supplemental data into pipeline description.
@@ -75,7 +75,7 @@ public:
    *
    * \param path File to read.
    */
-  void load_supplement( kwiver::vital::path_t const& path );
+  void load_supplement( viame::path_t const& path );
 
   /**
    * \brief Add single config entry
@@ -97,8 +97,8 @@ public:
    *
    * @param file_path Directory or list to add to end of search path.
    */
-  void add_search_path( kwiver::vital::config_path_t const& file_path );
-  void add_search_path( kwiver::vital::config_path_list_t const& file_path );
+  void add_search_path( viame::config_path_t const& file_path );
+  void add_search_path( viame::config_path_list_t const& file_path );
   //@}
 
   /**
@@ -109,7 +109,7 @@ public:
    *
    * \return A new pipeline object.
    */
-  sprokit::pipeline_t pipeline() const;
+  viame::pipeline::pipeline_t pipeline() const;
 
   /**
    * \brief Extract config block from pipeline.
@@ -118,7 +118,7 @@ public:
    *
    * \return Block containing the whole pipeline config.
    */
-  kwiver::vital::config_block_sptr config() const;
+  viame::config_block_sptr config() const;
 
   /**
    * \brief Get internal representation of pipeline.
@@ -126,19 +126,19 @@ public:
    *
    * \return List of internal pipeline blocks.
    */
-  sprokit::pipe_blocks pipeline_blocks() const;
+  viame::pipeline::pipe_blocks pipeline_blocks() const;
 
 protected:
   void process_env(); // get default search path and env path. Add to m_search_path.
 
 private:
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   // List of pipe blocks
-  sprokit::pipe_blocks m_blocks;
+  viame::pipeline::pipe_blocks m_blocks;
 
   // file search path list
-  kwiver::vital::config_path_list_t m_search_path;
+  viame::config_path_list_t m_search_path;
 };
 
 using  pipeline_builder_sptr = std::shared_ptr< pipeline_builder>;

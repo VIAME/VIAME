@@ -25,7 +25,7 @@ namespace viame {
  * version of each track id.
  */
 class VIAME_CLASSIFIERS_EXPORT refine_tracks_average_tot
-  : public kwiver::vital::algo::refine_tracks
+  : public viame::algo::refine_tracks
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -48,25 +48,25 @@ public:
   virtual ~refine_tracks_average_tot() = default;
 
   virtual bool check_configuration(
-    kwiver::vital::config_block_sptr config ) const;
+    viame::config_block_sptr config ) const;
 
   /// Record the frame's tracks and pass them through unmodified
-  virtual kwiver::vital::object_track_set_sptr
-  refine( kwiver::vital::timestamp ts,
-          kwiver::vital::image_container_sptr image_data,
-          kwiver::vital::object_track_set_sptr tracks ) const;
+  virtual viame::object_track_set_sptr
+  refine( viame::timestamp ts,
+          viame::image_container_sptr image_data,
+          viame::object_track_set_sptr tracks ) const;
 
   /// Emit every accumulated track with its averaged classification applied
-  virtual kwiver::vital::object_track_set_sptr
+  virtual viame::object_track_set_sptr
   finalize() const;
 
 private:
   void set_configuration_internal(
-    kwiver::vital::config_block_sptr config ) override;
+    viame::config_block_sptr config ) override;
 
   /// Latest version of each track seen, keyed by track id
-  mutable std::map< kwiver::vital::track_id_t,
-                    kwiver::vital::track_sptr > m_tracks;
+  mutable std::map< viame::track_id_t,
+                    viame::track_sptr > m_tracks;
 };
 
 } // end namespace

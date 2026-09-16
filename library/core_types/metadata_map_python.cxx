@@ -9,7 +9,7 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 class metadata_map_trampoline
   : public kv::metadata_map

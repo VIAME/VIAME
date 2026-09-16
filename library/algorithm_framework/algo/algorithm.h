@@ -27,9 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Forward declaration of algorithm
 class algorithm;
@@ -42,13 +40,13 @@ typedef std::shared_ptr< algorithm > algorithm_sptr;
 ///
 /// This class is an abstract base class for all algorithm
 /// implementations.
-class VITAL_ALGO_EXPORT algorithm :  public vital::pluggable
+class VITAL_ALGO_EXPORT algorithm :  public viame::pluggable
 {
 public:
   algorithm();
   PLUGGABLE_INTERFACE( algorithm );
 
-  /// Get \link kwiver::vital::config_block configuration
+  /// Get \link viame::config_block configuration
   /// block \endlink holding the default configuration values for this class.
   ///
   /// This base function implementation returns the config block unmodified.
@@ -56,7 +54,7 @@ public:
   /// \returns \c config_block containing the configuration for this algorithm
   ///          and any nested components.
   static void get_default_config(
-    [[maybe_unused]] ::kwiver::vital::config_block& cb );
+    [[maybe_unused]] ::viame::config_block& cb );
 
   /// Set this algorithm's properties via a config block
   ///
@@ -76,7 +74,7 @@ public:
   ///                parameters for this algorithm
   virtual void set_configuration( config_block_sptr config ) = 0;
 
-  /// Get this algorithm's \link kwiver::vital::config_block configuration
+  /// Get this algorithm's \link viame::config_block configuration
   /// block \endlink
   ///
   /// This method returns the required configuration for the
@@ -103,7 +101,7 @@ public:
 
   void set_impl_name( const std::string& name );
   std::string impl_name() const;
-  kwiver::vital::logger_handle_t logger() const;
+  viame::logger_handle_t logger() const;
 
 protected:
   /// \brief Attach logger to this object.
@@ -133,13 +131,11 @@ private:
   /// \brief Logger handle.
   ///
   /// This handle supplies a logger for all derived classes.
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   std::string m_impl_name;
 };
 
-}  // namespace kwiver::vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_ALGORITHM_H_

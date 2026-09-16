@@ -9,9 +9,7 @@
 #include <viame/core_types/any.h>
 #include <viame/core_types/detected_object_type.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace python {
 
@@ -20,18 +18,16 @@ serialize_detected_object_type( py::module& m )
 {
   m.def(
     "serialize_detected_object_type",
-    &kwiver::python::arrows::json::serialize<
-      kwiver::vital::detected_object_type,
-      kwiver::arrows::serialize::json::detected_object_type > );
+    &viame::python::arrows::json::serialize<
+      viame::detected_object_type,
+      viame::serialize::json::detected_object_type > );
   m.def(
     "deserialize_detected_object_type",
-    &kwiver::python::arrows::json::deserialize<
-      kwiver::vital::detected_object_type,
-      kwiver::arrows::serialize::json::detected_object_type > );
+    &viame::python::arrows::json::deserialize<
+      viame::detected_object_type,
+      viame::serialize::json::detected_object_type > );
 }
 
 } // namespace python
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame

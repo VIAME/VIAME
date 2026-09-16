@@ -9,10 +9,10 @@
 /**
  * \file scheduler_exception.cxx
  *
- * \brief Implementation of exceptions used within \link sprokit::scheduler schedulers\endlink.
+ * \brief Implementation of exceptions used within \link viame::pipeline::scheduler schedulers\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 scheduler_exception

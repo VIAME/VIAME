@@ -14,9 +14,7 @@
 
 #include <cstdint>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Base class for holding information about how to encode a video.
@@ -56,8 +54,6 @@ private:
 
 using simple_video_settings_sptr = std::shared_ptr< simple_video_settings >;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

@@ -31,7 +31,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace fs = std::filesystem;
 
 // =============================================================================

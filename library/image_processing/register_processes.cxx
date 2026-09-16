@@ -37,26 +37,26 @@
 extern "C"
 VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
   static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_image_processing" );
+    viame::plugin_manager::module_t( "viame_processes_image_processing" );
 
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
 // The parameters are spelled unusually because `typeid( x ).name()` is in
 // the body: a parameter called `name` would be substituted inside it.
 #define VIAME_REGISTER_PROCESS( process_type, plugin, blurb )             \
   {                                                                      \
-    auto* fact = new sprokit::cpp_process_factory(                       \
+    auto* fact = new viame::pipeline::cpp_process_factory(                       \
       typeid( process_type ).name(),                                     \
-      sprokit::process::interface_name(),                                \
-      sprokit::create_new_process< process_type > );                     \
+      viame::pipeline::process::interface_name(),                                \
+      viame::pipeline::create_new_process< process_type > );                     \
                                                                          \
     fact->add_attribute( kvpf::PLUGIN_NAME, plugin )                     \
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
@@ -67,23 +67,23 @@ register_factories( kwiver::vital::registry& vpm )
   }
 
   VIAME_REGISTER_PROCESS(
-    kwiver::image_filter_process, "image_filter",
+    viame::image_filter_process, "image_filter",
     "Apply an image filter to an image." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::split_image_process, "split_image",
+    viame::split_image_process, "split_image",
     "Split an image into two images." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::merge_images_process, "merge_images",
+    viame::merge_images_process, "merge_images",
     "Merge two images into one." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::stabilize_image_process, "stabilize_image",
+    viame::stabilize_image_process, "stabilize_image",
     "Generate current-to-reference image homographies." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::draw_detected_object_set_process, "draw_detected_object_set",
+    viame::draw_detected_object_set_process, "draw_detected_object_set",
     "Draw detected object set boxes on an image." )
 
   VIAME_REGISTER_PROCESS(
@@ -111,5 +111,5 @@ register_factories( kwiver::vital::registry& vpm )
 
 #undef VIAME_REGISTER_PROCESS
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  viame::pipeline::mark_process_module_as_loaded( vpm, module_name );
 }

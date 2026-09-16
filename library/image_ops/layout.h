@@ -30,8 +30,8 @@ namespace image_ops {
 /// different heights resizes or pads first, because which of those it wanted
 /// is not something this can guess.
 template < typename T >
-kwiver::vital::image_of< T >
-horizontal_concat( std::vector< kwiver::vital::image_of< T > > const& images )
+viame::image_of< T >
+horizontal_concat( std::vector< viame::image_of< T > > const& images )
 {
   if( images.empty() )
   {
@@ -53,7 +53,7 @@ horizontal_concat( std::vector< kwiver::vital::image_of< T > > const& images )
     width += image.width();
   }
 
-  kwiver::vital::image_of< T > out( width, height, depth );
+  viame::image_of< T > out( width, height, depth );
 
   size_t offset = 0;
 
@@ -79,8 +79,8 @@ horizontal_concat( std::vector< kwiver::vital::image_of< T > > const& images )
 // ----------------------------------------------------------------------------
 /// The images laid top to bottom, which is `cv::vconcat`.
 template < typename T >
-kwiver::vital::image_of< T >
-vertical_concat( std::vector< kwiver::vital::image_of< T > > const& images )
+viame::image_of< T >
+vertical_concat( std::vector< viame::image_of< T > > const& images )
 {
   if( images.empty() )
   {
@@ -102,7 +102,7 @@ vertical_concat( std::vector< kwiver::vital::image_of< T > > const& images )
     height += image.height();
   }
 
-  kwiver::vital::image_of< T > out( width, height, depth );
+  viame::image_of< T > out( width, height, depth );
 
   size_t offset = 0;
 

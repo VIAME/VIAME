@@ -19,16 +19,16 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace {
 
 class expander_bakery
-  : public kwiver::vital::token_expander
+  : public viame::token_expander
 {
 public:
-  expander_bakery( kwiver::vital::logger_handle_t logger)
-    : kwiver::vital::token_expander()
+  expander_bakery( viame::logger_handle_t logger)
+    : viame::token_expander()
     , m_logger( logger )
   { }
 
@@ -56,7 +56,7 @@ protected:
   }
 
 private:
-    kwiver::vital::logger_handle_t m_logger;
+    viame::logger_handle_t m_logger;
 };
 
 } // end namespace
@@ -72,15 +72,15 @@ bakery_base
   : m_configs()
   , m_processes()
   , m_connections()
-  , m_symtab( new kwiver::vital::token_type_symtab("LOCAL") )
-  , m_ref_config( kwiver::vital::config_block::empty_config() )
-  , m_logger( kwiver::vital::get_logger( "sprokit.bakery_base" ) )
+  , m_symtab( new viame::token_type_symtab("LOCAL") )
+  , m_ref_config( viame::config_block::empty_config() )
+  , m_logger( viame::get_logger( "sprokit.bakery_base" ) )
 {
   m_token_expander = std::make_shared < expander_bakery >(m_logger);
-  m_token_expander->add_token_type( new kwiver::vital::token_type_env() );
-  m_token_expander->add_token_type( new kwiver::vital::token_type_sysenv() );
+  m_token_expander->add_token_type( new viame::token_type_env() );
+  m_token_expander->add_token_type( new viame::token_type_sysenv() );
   m_token_expander->add_token_type( m_symtab );
-  m_token_expander->add_token_type( new kwiver::vital::token_type_config( m_ref_config ) );
+  m_token_expander->add_token_type( new viame::token_type_config( m_ref_config ) );
 }
 
 bakery_base
@@ -93,7 +93,7 @@ void
 bakery_base
 ::operator () (config_pipe_block const& config_block)
 {
-  kwiver::vital::config_block_key_t const root_key = flatten_keys(config_block.key);
+  viame::config_block_key_t const root_key = flatten_keys(config_block.key);
 
   config_values_t const& values = config_block.values;
 
@@ -139,12 +139,12 @@ bakery_base
  */
 void
 bakery_base
-::register_config_value(kwiver::vital::config_block_key_t const& root_key,
+::register_config_value(viame::config_block_key_t const& root_key,
                         config_value_t const& value)
 {
-  kwiver::vital::config_block_key_t const subkey = flatten_keys(value.key_path);
-  kwiver::vital::config_block_key_t const full_key = root_key +
-     kwiver::vital::config_block::block_sep() + subkey;
+  viame::config_block_key_t const subkey = flatten_keys(value.key_path);
+  viame::config_block_key_t const full_key = root_key +
+     viame::config_block::block_sep() + subkey;
   bool is_readonly = false;
   bool is_relativepath = false;
   bool is_local_assign = false;
@@ -155,7 +155,7 @@ bakery_base
     for (config_flag_t const& flag_v : value.flags)
     {
       // normalize the case of attributes for comparison.
-      std::string flag = kwiver::vital::lower_case( flag_v );
+      std::string flag = viame::lower_case( flag_v );
       if (flag == flag_read_only)
       {
         is_readonly = true;
@@ -223,10 +223,10 @@ bakery_base
 
 // ------------------------------------------------------------------
 bakery_base::config_info_t
-::config_info_t(const kwiver::vital::config_block_value_t& val,
+::config_info_t(const viame::config_block_value_t& val,
                 bool                                  ro,
                 bool                                  rel_path,
-                const kwiver::vital::source_location& loc)
+                const viame::source_location& loc)
   : value(val)
   , read_only(ro)
   , relative_path(rel_path)
@@ -242,11 +242,11 @@ bakery_base::config_info_t
 // ==================================================================
 // Static methods
 // ------------------------------------------------------------------
-kwiver::vital::config_block_key_t
+viame::config_block_key_t
 bakery_base::
-flatten_keys(kwiver::vital::config_block_keys_t const& keys)
+flatten_keys(viame::config_block_keys_t const& keys)
 {
-  return kwiver::vital::join(keys, kwiver::vital::config_block::block_sep());
+  return viame::join(keys, viame::config_block::block_sep());
 }
 
 // ------------------------------------------------------------------
@@ -260,24 +260,24 @@ flatten_keys(kwiver::vital::config_block_keys_t const& keys)
  *
  * @return A config block containing the entries from the input.
  */
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 bakery_base::
 extract_configuration_from_decls( bakery_base::config_decls_t& configs )
 {
-  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
+  viame::config_block_sptr conf = viame::config_block::empty_config();
 
   for( bakery_base::config_decl_t& decl : configs )
   {
-    kwiver::vital::config_block_key_t const& key = decl.first;
+    viame::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& info = decl.second;
-    kwiver::vital::config_block_value_t val = info.value;
+    viame::config_block_value_t val = info.value;
 
     if ( info.relative_path)
     {
       if ( info.defined_loc.valid() )
       {
         // Prepend CWD to val
-        const std::string cwd = kwiver::vital::filename_path( info.defined_loc.file() );
+        const std::string cwd = viame::filename_path( info.defined_loc.file() );
         val = cwd + "/" + val;
 
         conf->set_location( key, info.defined_loc );
@@ -308,4 +308,4 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
   return conf;
 } // extract_configuration_from_decls
 
-} // end namespace
+} // namespace viame::pipeline

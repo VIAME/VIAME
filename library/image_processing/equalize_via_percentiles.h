@@ -41,7 +41,7 @@ namespace viame {
 ///     :filter:equalize_via_percentiles:output_format           native
 /// @endcode
 class VIAME_IMAGE_PROCESSING_EXPORT equalize_via_percentiles :
-  public kwiver::vital::algo::image_filter
+  public viame::algo::image_filter
 {
 public:
   PLUGGABLE_IMPL(
@@ -66,10 +66,10 @@ public:
 
   virtual ~equalize_via_percentiles();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual kwiver::vital::image_container_sptr filter(
-    kwiver::vital::image_container_sptr image_data );
+  virtual viame::image_container_sptr filter(
+    viame::image_container_sptr image_data );
 };
 
 } // end namespace viame

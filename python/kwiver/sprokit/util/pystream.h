@@ -14,7 +14,7 @@
 #include <streambuf>
 #include <vector>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace python {
 
@@ -81,6 +81,6 @@ private:
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace viame::pipeline
 
 #endif // SPROKIT_PYTHON_UTIL_PYSTREAM_H

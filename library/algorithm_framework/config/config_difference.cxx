@@ -11,9 +11,7 @@
 // - Methods to help iterate through a config block given a list of keys.
 // - Easy way to drill down to get source_loc for some entries.
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 config_difference
@@ -84,7 +82,7 @@ config_difference
     LOG_WARN(
       logger,
       "Additional parameters found in config block that are not required or desired: "
-        << kwiver::vital::join( key_list, ", " ) );
+        << viame::join( key_list, ", " ) );
     return true;
   }
 
@@ -102,13 +100,11 @@ config_difference
     LOG_WARN(
       logger,
       "Parameters that were not supplied in the config, using default values: "
-        << kwiver::vital::join( key_list, ", " ) );
+        << viame::join( key_list, ", " ) );
     return true;
   }
 
   return false;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

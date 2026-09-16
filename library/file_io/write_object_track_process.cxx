@@ -17,9 +17,9 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "",
@@ -44,7 +44,7 @@ public:
 // ===============================================================================
 
 write_object_track_process
-::write_object_track_process( kwiver::vital::config_block_sptr const& config )
+::write_object_track_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new write_object_track_process::priv )
 {
@@ -68,18 +68,18 @@ void write_object_track_process
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
              "Required file name not specified." );
   }
 
   // Get algo conrig entries
-  kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  viame::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
   if( ! check_nested_algo_configuration_using_trait(
         writer, algo_config, d->m_writer ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
@@ -90,7 +90,7 @@ void write_object_track_process
 
   if( ! d->m_writer )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
              "Unable to create writer." );
   }
 }
@@ -107,7 +107,7 @@ void write_object_track_process
 ::_step()
 {
   auto const& p_info = peek_at_port_using_trait( object_track_set );
-  if( p_info.datum->type() == sprokit::datum::complete )
+  if( p_info.datum->type() == viame::pipeline::datum::complete )
   {
     grab_edge_datum_using_trait( object_track_set );
     d->m_writer->close();
@@ -120,11 +120,11 @@ void write_object_track_process
   // Optional ports may carry a complete datum if their upstream source
   // finished before us (e.g. when refine_tracks emits a final batch
   // in _finalize).  Peek before grabbing to avoid a bad cast.
-  vital::timestamp ts;
+  viame::timestamp ts;
   if( has_input_port_edge_using_trait( timestamp ) )
   {
     auto const& ts_info = peek_at_port_using_trait( timestamp );
-    if( ts_info.datum->type() != sprokit::datum::complete )
+    if( ts_info.datum->type() != viame::pipeline::datum::complete )
     {
       ts = grab_from_port_using_trait( timestamp );
     }
@@ -134,7 +134,7 @@ void write_object_track_process
   if( has_input_port_edge_using_trait( image_file_name ) )
   {
     auto const& fn_info = peek_at_port_using_trait( image_file_name );
-    if( fn_info.datum->type() != sprokit::datum::complete )
+    if( fn_info.datum->type() != viame::pipeline::datum::complete )
     {
       file_name = grab_from_port_using_trait( image_file_name );
     }
@@ -152,8 +152,8 @@ void write_object_track_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   declare_input_port_using_trait( image_file_name, optional );
@@ -180,4 +180,4 @@ write_object_track_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

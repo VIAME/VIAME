@@ -17,25 +17,23 @@
 #include <viame/algorithm_framework/algo/compute_track_descriptors.h>
 #include <viame/algorithm_framework/algo/image_io.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 /// A basic query formulator
 class VIAME_DESCRIPTORS_EXPORT handle_descriptor_request_core
-  : public vital::algo::handle_descriptor_request
+  : public viame::algo::handle_descriptor_request
 {
 public:
   PLUGGABLE_IMPL(
     handle_descriptor_request_core,
     "Formulate descriptors for later queries.",
     PARAM(
-      image_reader, vital::algo::image_io_sptr,
+      image_reader, viame::algo::image_io_sptr,
       "image_reader" ),
     PARAM(
-      descriptor_extractor, vital::algo::compute_track_descriptors_sptr,
+      descriptor_extractor, viame::algo::compute_track_descriptors_sptr,
       "descriptor_extractor" )
   )
 
@@ -51,22 +49,20 @@ public:
   /// \param config  The config block to check configuration of.
   ///
   /// \returns true if the configuration check passed and false if it didn't.
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   /// Formulate query
   virtual bool handle(
-    kwiver::vital::descriptor_request_sptr request,
-    kwiver::vital::track_descriptor_set_sptr& desc,
-    std::vector< kwiver::vital::image_container_sptr >& imgs );
+    viame::descriptor_request_sptr request,
+    viame::track_descriptor_set_sptr& desc,
+    std::vector< viame::image_container_sptr >& imgs );
 
 private:
   void initialize() override;
 };
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

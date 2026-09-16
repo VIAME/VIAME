@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/read_track_descriptor_set.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class read_track_descriptor_set_base = kwiver::vital::algo::read_track_descriptor_set >
+template< class read_track_descriptor_set_base = viame::algo::read_track_descriptor_set >
 class read_track_descriptor_set_trampoline
     : public algorithm_trampoline< read_track_descriptor_set_base >
 {
@@ -26,7 +26,7 @@ class read_track_descriptor_set_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::read_track_descriptor_set,
+      viame::algo::read_track_descriptor_set,
       open,
       filename
       );
@@ -37,18 +37,18 @@ class read_track_descriptor_set_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::read_track_descriptor_set,
+      viame::algo::read_track_descriptor_set,
       close,
       
       );
   }
 
   bool
-  read_set(::kwiver::vital::track_descriptor_set_sptr & set) override
+  read_set(::viame::track_descriptor_set_sptr & set) override
   {
     PYBIND11_OVERLOAD_PURE(
       bool,
-      kwiver::vital::algo::read_track_descriptor_set,
+      viame::algo::read_track_descriptor_set,
       read_set,
       set
       );
@@ -59,12 +59,12 @@ class read_track_descriptor_set_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::read_track_descriptor_set,
+      viame::algo::read_track_descriptor_set,
       new_stream,
       
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

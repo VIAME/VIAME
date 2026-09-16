@@ -9,9 +9,7 @@
 #include <viame/core_types/any.h>
 #include <viame/core_types/bounding_box.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace python {
 
@@ -20,18 +18,16 @@ serialize_bounding_box( py::module& m )
 {
   m.def(
     "serialize_bounding_box",
-    &kwiver::python::arrows::json::serialize<
-      kwiver::vital::bounding_box< double >,
-      kwiver::arrows::serialize::json::bounding_box > );
+    &viame::python::arrows::json::serialize<
+      viame::bounding_box< double >,
+      viame::serialize::json::bounding_box > );
   m.def(
     "deserialize_bounding_box",
-    &kwiver::python::arrows::json::deserialize<
-      kwiver::vital::bounding_box< double >,
-      kwiver::arrows::serialize::json::bounding_box > );
+    &viame::python::arrows::json::deserialize<
+      viame::bounding_box< double >,
+      viame::serialize::json::bounding_box > );
 }
 
 } // namespace python
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame

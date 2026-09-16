@@ -24,7 +24,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // =============================================================================
 // =============================================================================
@@ -80,7 +80,7 @@ windowed_detector
   settings.black_pad = c_black_pad;
 
   // Prepare image regions using utility function
-  std::vector< kwiver::vital::image > regions_to_process;
+  std::vector< viame::image > regions_to_process;
   std::vector< windowed_region_prop > region_properties;
 
   prepare_image_regions( cv_image, settings, regions_to_process, region_properties );
@@ -101,7 +101,7 @@ windowed_detector
     {
       imgs.push_back(
         kv::image_container_sptr(
-          new kwiver::vital::simple_image_container(
+          new viame::simple_image_container(
             regions_to_process[i+j] ) ) );
     }
 

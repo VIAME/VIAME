@@ -10,8 +10,8 @@
 #include <string>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
-using namespace kwiver::vital;
+namespace kv = viame;
+using namespace viame;
 
 template < typename T >
 auto
@@ -34,7 +34,7 @@ define_landmark( PyClass& pyclass )
   pyclass
     .def( py::init() )
     .def(
-      py::init< kwiver::vital::vector_< 3, T > const&, T >(), py::arg( "loc" ),
+      py::init< viame::vector_< 3, T > const&, T >(), py::arg( "loc" ),
       py::arg( "scale" ) = 1 )
     .def( py::init< kv::landmark const& >(), py::arg( "other" ) )
     .def_property_readonly(

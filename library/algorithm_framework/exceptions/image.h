@@ -12,9 +12,7 @@
 
 #include <viame/algorithm_framework/exceptions/base.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic image exception
@@ -85,8 +83,6 @@ public:
   size_t const m_given_h;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_CORE_EXCEPTIONS_IMAGE_H

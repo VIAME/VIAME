@@ -12,9 +12,7 @@
 
 #include <viame/core_types/vital_types_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 struct activity_type_tag {};
 
@@ -26,8 +24,6 @@ using activity_type = class_map< activity_type_tag >;
 using activity_type_sptr = std::shared_ptr< activity_type >;
 using activity_type_scptr = std::shared_ptr< activity_type const >;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

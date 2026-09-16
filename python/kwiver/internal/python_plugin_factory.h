@@ -14,7 +14,7 @@
 
 namespace py = pybind11;
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 /// @brief Factory to register and generate python instances for an interface.
 class python_plugin_factory
@@ -93,6 +93,6 @@ private:
   py::object m_python_type;
 };
 
-} // namespace
+} // namespace viame::python
 
 #endif // PYTHON_PLUGIN_FACTORY_H

@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/video_output.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class video_output_base = kwiver::vital::algo::video_output >
+template< class video_output_base = viame::algo::video_output >
 class video_output_trampoline
     : public algorithm_trampoline< video_output_base >
 {
@@ -22,11 +22,11 @@ class video_output_trampoline
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
   void
-  open(::std::string video_name, ::kwiver::vital::video_settings const * settings) override
+  open(::std::string video_name, ::viame::video_settings const * settings) override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::video_output,
+      viame::algo::video_output,
       open,
       video_name, settings
       );
@@ -37,7 +37,7 @@ class video_output_trampoline
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::video_output,
+      viame::algo::video_output,
       close,
       
       );
@@ -48,78 +48,78 @@ class video_output_trampoline
   {
     PYBIND11_OVERLOAD_PURE(
       bool,
-      kwiver::vital::algo::video_output,
+      viame::algo::video_output,
       good,
       
       );
   }
 
   void
-  add_image(::kwiver::vital::image_container_sptr const & image, ::kwiver::vital::timestamp const & ts) override
+  add_image(::viame::image_container_sptr const & image, ::viame::timestamp const & ts) override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::video_output,
+      viame::algo::video_output,
       add_image,
       image, ts
       );
   }
 
   void
-  add_image(::kwiver::vital::video_raw_image const & image) override
+  add_image(::viame::video_raw_image const & image) override
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::video_output,
+      viame::algo::video_output,
       add_image,
       image
       );
   }
 
   void
-  add_metadata(::kwiver::vital::metadata const & md) override
+  add_metadata(::viame::metadata const & md) override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::video_output,
+      viame::algo::video_output,
       add_metadata,
       md
       );
   }
 
   void
-  add_metadata(::kwiver::vital::video_raw_metadata const & md) override
+  add_metadata(::viame::video_raw_metadata const & md) override
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::video_output,
+      viame::algo::video_output,
       add_metadata,
       md
       );
   }
 
   void
-  add_uninterpreted_data(::kwiver::vital::video_uninterpreted_data const & misc_data) override
+  add_uninterpreted_data(::viame::video_uninterpreted_data const & misc_data) override
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::video_output,
+      viame::algo::video_output,
       add_uninterpreted_data,
       misc_data
       );
   }
 
-  kwiver::vital::video_settings_sptr
+  viame::video_settings_sptr
   implementation_settings() const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::video_settings_sptr,
-      kwiver::vital::algo::video_output,
+      viame::video_settings_sptr,
+      viame::algo::video_output,
       implementation_settings,
       
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

@@ -25,10 +25,10 @@
 /**
  * \file process.h
  *
- * \brief Header for \link sprokit::process processes\endlink.
+ * \brief Header for \link viame::pipeline::process processes\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /// A group of processes.
 typedef std::vector<process_t> processes_t;
@@ -175,8 +175,8 @@ class SPROKIT_PIPELINE_EXPORT process
          * \param description_ A description of the value.
          * \param tunable_ Whether the parameter is tunable or not.
          */
-        conf_info(kwiver::vital::config_block_value_t const& def_,
-                  kwiver::vital::config_block_description_t const& description_,
+        conf_info(viame::config_block_value_t const& def_,
+                  viame::config_block_description_t const& description_,
                   bool tunable_);
         /**
          * \brief Destructor.
@@ -184,9 +184,9 @@ class SPROKIT_PIPELINE_EXPORT process
         ~conf_info();
 
         /// The default value for the parameter.
-        kwiver::vital::config_block_value_t const def;
+        viame::config_block_value_t const def;
         /// A description of the value.
-        kwiver::vital::config_block_description_t const description;
+        viame::config_block_description_t const description;
         /// Whether the parameter is tunable or not.
         bool const tunable;
     };
@@ -434,14 +434,14 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns The names of all available configuration keys.
      */
-    kwiver::vital::config_block_keys_t available_config() const;
+    viame::config_block_keys_t available_config() const;
 
     /**
      * \brief Request available tunable configuration options for the process.
      *
      * \returns The names of all available tunable configuration keys.
      */
-    kwiver::vital::config_block_keys_t available_tunable_config();
+    viame::config_block_keys_t available_tunable_config();
 
     /**
      * \brief Retrieve information about a configuration parameter.
@@ -452,7 +452,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns Information about the parameter.
      */
-    conf_info_t config_info(kwiver::vital::config_block_key_t const& key);
+    conf_info_t config_info(viame::config_block_key_t const& key);
 
     /**
      * \brief Determine difference between process config and pipe config
@@ -467,7 +467,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \return Object with the config differences
      */
-    kwiver::vital::config_difference config_diff() const;
+    viame::config_difference config_diff() const;
 
     /**
      * \brief The name of the process.
@@ -518,10 +518,10 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_t const port_heartbeat;
 
     /// The name of the configuration value for the name.
-    static kwiver::vital::config_block_key_t const config_name;
+    static viame::config_block_key_t const config_name;
 
     /// The name of the configuration value for the type.
-    static kwiver::vital::config_block_key_t const config_type;
+    static viame::config_block_key_t const config_type;
 
     /*
      * Port types.
@@ -654,7 +654,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param config Contains configuration for the process.
      */
-    process(kwiver::vital::config_block_sptr const& config);
+    process(viame::config_block_sptr const& config);
 
     /**
      * \brief Destructor.
@@ -744,7 +744,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \params conf The configuration block to apply.
      */
-    virtual void _reconfigure(kwiver::vital::config_block_sptr const& conf);
+    virtual void _reconfigure(viame::config_block_sptr const& conf);
 
     /**
      * \brief Subclass property query method.
@@ -772,7 +772,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \return Previous logger is returned.
      */
-    kwiver::vital::logger_handle_t attach_logger( kwiver::vital::logger_handle_t logger );
+    viame::logger_handle_t attach_logger( viame::logger_handle_t logger );
 
     /**
      * \brief Get process logger.
@@ -782,7 +782,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \return Process logger.
      */
-    kwiver::vital::logger_handle_t logger() const;
+    viame::logger_handle_t logger() const;
 
     /**
      * \brief Subclass input ports.
@@ -876,7 +876,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns The names of all available configuration keys.
      */
-    virtual kwiver::vital::config_block_keys_t _available_config() const;
+    virtual viame::config_block_keys_t _available_config() const;
 
     /**
      * \brief Subclass configuration information.
@@ -885,7 +885,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns Information about the parameter.
      */
-    virtual conf_info_t _config_info(kwiver::vital::config_block_key_t const& key);
+    virtual conf_info_t _config_info(viame::config_block_key_t const& key);
 
     /**
      * \brief Declare an input port for the process.
@@ -954,7 +954,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param key The configuration key.
      * \param info Information about the port.
      */
-    void declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info);
+    void declare_configuration_key(viame::config_block_key_t const& key, conf_info_t const& info);
 
     /**
      * \brief Declare a configuration value for the process.
@@ -964,9 +964,9 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param description_ A description of the value.
      * \param tunable_ Whether the parameter is tunable or not.
      */
-    void declare_configuration_key(kwiver::vital::config_block_key_t const& key,
-                                   kwiver::vital::config_block_value_t const& def_,
-                                   kwiver::vital::config_block_description_t const& description_,
+    void declare_configuration_key(viame::config_block_key_t const& key,
+                                   viame::config_block_value_t const& def_,
+                                   viame::config_block_description_t const& description_,
                                    bool tunable_ = false);
 
     /**
@@ -1144,7 +1144,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * If the templated data type does not have a conversion from a
      * string to an instance of the data type, you will need to
      * provide one in the form of
-     * kwiver::vital::config_block_get_value_cast()
+     * viame::config_block_get_value_cast()
      *
      * \param port The port to get data from.
      *
@@ -1190,7 +1190,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \returns The whole configuration for the process.
      */
-    kwiver::vital::config_block_sptr get_config() const;
+    viame::config_block_sptr get_config() const;
 
     /**
      * \brief Retrieve a configuration item.
@@ -1207,7 +1207,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns The value of the configuration.
      */
     template <typename T>
-    T config_value(kwiver::vital::config_block_key_t const& key) const;
+    T config_value(viame::config_block_key_t const& key) const;
 
     /**
      * \brief Set whether synchronization checking is enabled before stepping.
@@ -1356,15 +1356,15 @@ SCOPED_INSTRUMENTATION(reconfigure);
     std::shared_ptr<priv> d;
 
   private:
-    kwiver::vital::config_block_value_t config_value_raw(kwiver::vital::config_block_key_t const& key) const;
+    viame::config_block_value_t config_value_raw(viame::config_block_key_t const& key) const;
 
     bool is_static_input(port_t const& port) const;
-    static kwiver::vital::config_block_key_t const static_input_prefix;
+    static viame::config_block_key_t const static_input_prefix;
 
     friend class pipeline;
-    SPROKIT_PIPELINE_NO_EXPORT void reconfigure(kwiver::vital::config_block_sptr const& conf);
+    SPROKIT_PIPELINE_NO_EXPORT void reconfigure(viame::config_block_sptr const& conf);
 
-    SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf);
+    SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(viame::config_block_sptr const& conf);
 
     friend class process_factory;
     SPROKIT_PIPELINE_NO_EXPORT void add_property ( const property_t& prop );
@@ -1374,9 +1374,9 @@ SCOPED_INSTRUMENTATION(reconfigure);
 template <typename T>
 T
 process
-::config_value(kwiver::vital::config_block_key_t const& key) const
+::config_value(viame::config_block_key_t const& key) const
 {
-  return kwiver::vital::config_block_get_value_cast<T>(config_value_raw(key));
+  return viame::config_block_get_value_cast<T>(config_value_raw(key));
 }
 
 // ----------------------------------------------------------------------------

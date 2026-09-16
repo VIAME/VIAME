@@ -15,7 +15,7 @@
  * \brief Declaration of the expect process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -48,7 +48,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  expect_process(kwiver::vital::config_block_sptr const& config);
+  expect_process(viame::config_block_sptr const& config);
   /**
    * \brief Destructor.
    */
@@ -57,7 +57,7 @@ public:
 protected:
   void _configure() override;
   void _step() override;
-  void _reconfigure(kwiver::vital::config_block_sptr const& conf) override;
+  void _reconfigure(viame::config_block_sptr const& conf) override;
 
 private:
   class priv;

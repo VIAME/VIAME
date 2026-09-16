@@ -17,7 +17,7 @@ namespace viame
 
 /// Automatically detect transform type and load it
 class VIAME_FILE_IO_EXPORT auto_detect_transform_io
-  : public kwiver::vital::algo::transform_2d_io
+  : public viame::algo::transform_2d_io
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -28,7 +28,7 @@ public:
     "tools/convert_itk.py." )
   virtual ~auto_detect_transform_io() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  virtual bool check_configuration( viame::config_block_sptr config ) const override;
 private:
   /// Implementation specific load functionality.
   /**
@@ -38,7 +38,7 @@ private:
    * \param filename the path to the file the load
    * \returns a transform instance referring to the loaded transform
    */
-  virtual kwiver::vital::transform_2d_sptr load_(
+  virtual viame::transform_2d_sptr load_(
     std::string const& filename ) const;
 
   /// Implementation specific save functionality.
@@ -50,7 +50,7 @@ private:
    * \param data the transform instance referring to the transform to write
    */
   virtual void save_( std::string const& filename,
-                      kwiver::vital::transform_2d_sptr data ) const;
+                      viame::transform_2d_sptr data ) const;
 
 };
 

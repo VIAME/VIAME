@@ -12,7 +12,7 @@
 #include <memory>
 #include <ostream>
 
-namespace kwiver {
+namespace viame {
 
 namespace tools {
 
@@ -25,7 +25,7 @@ class applet_context
 {
 public:
   // Used to wrap large text blocks
-  kwiver::vital::wrap_text_block m_wtb;
+  viame::wrap_text_block m_wtb;
 
   // name of the applet. as in kwiver <applet> <args..>
   std::string m_applet_name;
@@ -43,6 +43,6 @@ public:
 
 } // namespace tools
 
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_TOOLS_APP_CONTEXT_H

@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/compute_stereo_depth_map.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ compute_stereo_depth_map
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

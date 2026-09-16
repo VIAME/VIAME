@@ -17,16 +17,14 @@
 #include <unordered_set>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class to resection a camera using 3D feature and point
 /// projection pairs.
 class VITAL_ALGO_EXPORT resection_camera
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   resection_camera();
@@ -43,11 +41,11 @@ public:
   /// \param [out] inliers estimated inlier status for the point pairs
   /// \return estimated camera parameters
   virtual
-  kwiver::vital::camera_perspective_sptr
+  viame::camera_perspective_sptr
   resection(
-    std::vector< kwiver::vital::vector_2d > const& image_points,
-    std::vector< kwiver::vital::vector_3d > const& world_points,
-    kwiver::vital::camera_intrinsics_sptr initial_calibration,
+    std::vector< viame::vector_2d > const& image_points,
+    std::vector< viame::vector_3d > const& world_points,
+    viame::camera_intrinsics_sptr initial_calibration,
     std::vector< bool >* inliers = nullptr ) const = 0;
 
   /// Estimate camera parameters for a frame from landmarks and tracks.
@@ -67,11 +65,11 @@ public:
   /// \param [out] inliers landmark identifiers of inliers
   /// \return estimated camera parameters
   virtual
-  kwiver::vital::camera_perspective_sptr
+  viame::camera_perspective_sptr
   resection(
-    kwiver::vital::frame_id_t frame_id,
-    kwiver::vital::landmark_map_sptr landmarks,
-    kwiver::vital::feature_track_set_sptr tracks,
+    viame::frame_id_t frame_id,
+    viame::landmark_map_sptr landmarks,
+    viame::feature_track_set_sptr tracks,
     size_t width, size_t height,
     std::unordered_set< landmark_id_t >* inliers = nullptr ) const;
 
@@ -90,12 +88,12 @@ public:
   /// \param [out] inliers landmark identifiers of inliers
   /// \return estimated camera parameters
   virtual
-  kwiver::vital::camera_perspective_sptr
+  viame::camera_perspective_sptr
   resection(
-    kwiver::vital::frame_id_t frame_id,
-    kwiver::vital::landmark_map_sptr landmarks,
-    kwiver::vital::feature_track_set_sptr tracks,
-    kwiver::vital::camera_intrinsics_sptr initial_calibration,
+    viame::frame_id_t frame_id,
+    viame::landmark_map_sptr landmarks,
+    viame::feature_track_set_sptr tracks,
+    viame::camera_intrinsics_sptr initial_calibration,
     std::unordered_set< landmark_id_t >* inliers = nullptr ) const;
 };
 
@@ -104,8 +102,6 @@ using resection_camera_sptr = std::shared_ptr< resection_camera >;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

@@ -17,9 +17,9 @@
 #include <viame/pipeline_framework/process_exception.h>
 #include <viame/pipeline_framework/datum.h>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( video_filename, std::string, "",
@@ -54,26 +54,26 @@ public:
 
   // Configuration values
   std::string                           m_config_video_filename;
-  kwiver::vital::time_usec_t            m_config_frame_time;
+  viame::time_usec_t            m_config_frame_time;
   bool                                  m_has_config_frame_time;
   bool                                  m_no_path_in_name;
   bool                                  m_exit_on_invalid;
 
-  kwiver::vital::algo::video_input_sptr m_video_reader;
-  kwiver::vital::algorithm_capabilities m_video_traits;
+  viame::algo::video_input_sptr m_video_reader;
+  viame::algorithm_capabilities m_video_traits;
 
-  kwiver::vital::frame_id_t             m_frame_number;
-  kwiver::vital::time_usec_t            m_frame_time;
+  viame::frame_id_t             m_frame_number;
+  viame::time_usec_t            m_frame_time;
   bool                                  m_first_frame;
 
-  kwiver::vital::metadata_vector        m_last_metadata;
+  viame::metadata_vector        m_last_metadata;
 
 }; // end priv class
 
 // ================================================================
 
 video_input_process
-::video_input_process( kwiver::vital::config_block_sptr const& config )
+::video_input_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new video_input_process::priv )
 {
@@ -94,12 +94,12 @@ void video_input_process
 
   // Examine the configuration
   d->m_config_video_filename = config_value_using_trait( video_filename );
-  d->m_config_frame_time = static_cast<vital::time_usec_t>(
+  d->m_config_frame_time = static_cast<viame::time_usec_t>(
     config_value_using_trait( frame_time ) * 1e6 ); // in usec
   d->m_no_path_in_name = config_value_using_trait( no_path_in_name );
   d->m_exit_on_invalid = config_value_using_trait( exit_on_invalid );
 
-  kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  viame::config_block_sptr algo_config = get_config(); // config for process
 
   if( algo_config->has_value( "frame_time" ) )
   {
@@ -109,7 +109,7 @@ void video_input_process
   if ( ! check_nested_algo_configuration_using_trait(
          video_reader, algo_config, d->m_video_reader ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // instantiate requested/configured algo type
@@ -117,7 +117,7 @@ void video_input_process
     video_reader, algo_config, d->m_video_reader );
   if ( ! d->m_video_reader )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create video_reader." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create video_reader." );
   }
 }
 
@@ -138,7 +138,7 @@ void video_input_process
 void video_input_process
 ::_step()
 {
-  kwiver::vital::timestamp ts;
+  viame::timestamp ts;
 
   bool frame_read = false;
   bool bad_frame = false;
@@ -147,7 +147,7 @@ void video_input_process
   {
     frame_read = d->m_video_reader->next_frame();
   }
-  catch( const kwiver::vital::image_exception& e )
+  catch( const viame::image_exception& e )
   {
     if ( d->m_exit_on_invalid || d->m_first_frame )
     {
@@ -175,8 +175,8 @@ void video_input_process
 
   if ( frame_read )
   {
-    kwiver::vital::metadata_vector metadata;
-    kwiver::vital::image_container_sptr frame;
+    viame::metadata_vector metadata;
+    viame::image_container_sptr frame;
     {
       scoped_step_instrumentation();
 
@@ -189,13 +189,13 @@ void video_input_process
       //
       // Sometimes the video source can not determine either the frame
       // number or frame time or both.
-      if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
+      if ( ! d->m_video_traits.capability( viame::algo::video_input::HAS_FRAME_DATA ) )
       {
-        VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+        VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                      "Video reader selected does not supply image data." );
       }
 
-      if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
+      if ( d->m_video_traits.capability( viame::algo::video_input::HAS_FRAME_NUMBERS ) )
       {
         d->m_frame_number = ts.get_frame();
       }
@@ -205,10 +205,10 @@ void video_input_process
         ts.set_frame( d->m_frame_number );
       }
 
-      if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_TIME ) )
+      if ( ! d->m_video_traits.capability( viame::algo::video_input::HAS_FRAME_TIME ) )
       {
         // create an internal time standard
-        if( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_RATE ) ||
+        if( ! d->m_video_traits.capability( viame::algo::video_input::HAS_FRAME_RATE ) ||
             video_frame_rate <= 0.0 || d->m_has_config_frame_time )
         {
           video_frame_rate = 1e6 / d->m_config_frame_time;
@@ -245,7 +245,7 @@ void video_input_process
       }
     }
 
-    kwiver::vital::path_t filename = d->m_video_reader->filename();
+    viame::path_t filename = d->m_video_reader->filename();
 
     if ( d->m_no_path_in_name )
     {
@@ -271,7 +271,7 @@ void video_input_process
 
     // indicate done
     mark_process_as_complete();
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( image, dat );
@@ -286,11 +286,11 @@ void video_input_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
   // We are outputting a shared ref to the output image, therefore we
   // should mark it as shared.
-  sprokit::process::port_flags_t shared;
+  viame::pipeline::process::port_flags_t shared;
   shared.insert( flag_output_shared );
 
   declare_output_port_using_trait( timestamp, optional );
@@ -328,4 +328,4 @@ video_input_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

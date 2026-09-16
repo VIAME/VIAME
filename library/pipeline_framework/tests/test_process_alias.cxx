@@ -31,17 +31,17 @@
 #include <sstream>
 #include <string>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 
 // ----------------------------------------------------------------------------
-sprokit::pipeline_t
+viame::pipeline::pipeline_t
 bake( std::string const& text )
 {
   std::istringstream input( text );
-  sprokit::pipe_parser parser;
-  return sprokit::bake_pipe_blocks(
+  viame::pipeline::pipe_parser parser;
+  return viame::pipeline::bake_pipe_blocks(
     parser.parse_pipeline( input, "alias.pipe" ) );
 }
 
@@ -53,17 +53,17 @@ TEST ( process_alias, an_unregistered_type_is_still_an_error )
   // The table is consulted only after the real name has failed, so a type
   // that is neither registered nor aliased fails exactly as before.
   EXPECT_THROW(
-    sprokit::create_process( "not_a_process", "p",
+    viame::pipeline::create_process( "not_a_process", "p",
                              kv::config_block::empty_config() ),
-    sprokit::no_such_process_type_exception );
+    viame::pipeline::no_such_process_type_exception );
 }
 
 // ----------------------------------------------------------------------------
 TEST ( process_alias, an_alias_resolves_to_its_target )
 {
-  sprokit::add_process_alias( "old_numbers", "numbers" );
+  viame::pipeline::add_process_alias( "old_numbers", "numbers" );
 
-  auto const proc = sprokit::create_process(
+  auto const proc = viame::pipeline::create_process(
     "old_numbers", "source", kv::config_block::empty_config() );
 
   ASSERT_TRUE( proc != nullptr );
@@ -79,7 +79,7 @@ TEST ( process_alias, an_alias_resolves_to_its_target )
 // ----------------------------------------------------------------------------
 TEST ( process_alias, a_pipeline_may_name_the_old_type )
 {
-  sprokit::add_process_alias( "old_print_number", "print_number" );
+  viame::pipeline::add_process_alias( "old_print_number", "print_number" );
 
   auto const pipeline = bake(
     "process source\n"
@@ -102,15 +102,15 @@ TEST ( process_alias, a_pipeline_may_name_the_old_type )
 // caller wrote rather than the one it resolved to.
 TEST ( process_alias, an_alias_to_nothing_reports_the_name_that_was_used )
 {
-  sprokit::add_process_alias( "points_nowhere", "also_not_a_process" );
+  viame::pipeline::add_process_alias( "points_nowhere", "also_not_a_process" );
 
   try
   {
-    sprokit::create_process( "points_nowhere", "p",
+    viame::pipeline::create_process( "points_nowhere", "p",
                              kv::config_block::empty_config() );
     FAIL() << "expected no_such_process_type_exception";
   }
-  catch( sprokit::no_such_process_type_exception const& e )
+  catch( viame::pipeline::no_such_process_type_exception const& e )
   {
     EXPECT_NE( std::string::npos,
                std::string( e.what() ).find( "points_nowhere" ) );
@@ -120,9 +120,9 @@ TEST ( process_alias, an_alias_to_nothing_reports_the_name_that_was_used )
 // ----------------------------------------------------------------------------
 TEST ( process_alias, the_table_is_readable )
 {
-  sprokit::add_process_alias( "readable_alias", "numbers" );
+  viame::pipeline::add_process_alias( "readable_alias", "numbers" );
 
-  auto const aliases = sprokit::process_aliases();
+  auto const aliases = viame::pipeline::process_aliases();
   auto const entry = aliases.find( "readable_alias" );
 
   ASSERT_NE( aliases.end(), entry );

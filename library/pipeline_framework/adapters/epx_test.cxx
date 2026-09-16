@@ -12,7 +12,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace kwiver {
+namespace viame {
 
 epx_test::
 epx_test()
@@ -29,7 +29,7 @@ pre_setup( context& ctxt )
   // print config
   std::stringstream str;
 
-  vital::config_block_formatter fmt( ctxt.pipe_config() );
+  viame::config_block_formatter fmt( ctxt.pipe_config() );
   fmt.print( str );
 
   std::cout <<  "exp_test: pipe config:\n" << str.str() <<std::endl;
@@ -44,27 +44,27 @@ end_of_output( [[maybe_unused]] context& ctxt )
 }
 
 // ----------------------------------------------------------------------------
-void epx_test::configure( kwiver::vital::config_block_sptr const conf )
+void epx_test::configure( viame::config_block_sptr const conf )
 {
   // print config
   std::stringstream str;
-  vital::config_block_formatter fmt( conf);
+  viame::config_block_formatter fmt( conf);
   fmt.print( str );
 
   std::cout <<  "exp_test: configure called with config:\n" << str.str() <<std::endl;
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::config_block_sptr epx_test::get_configuration() const
+viame::config_block_sptr epx_test::get_configuration() const
 {
-  auto conf = kwiver::vital::config_block::empty_config();
+  auto conf = viame::config_block::empty_config();
   conf->set_value( "def-key1", "def_val" );
   conf->set_value( "one", "def_one" );
 
   return conf;
 }
 
-} // end namespace
+} // namespace viame
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter Extension
@@ -74,11 +74,11 @@ kwiver::vital::config_block_sptr epx_test::get_configuration() const
 extern "C"
 KWIVER_EPX_TEST_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 
 {
-  kwiver::embedded_pipeline_extension_registrar reg( vpm, "kwiver_epx_test" );
-  using namespace kwiver;
+  viame::embedded_pipeline_extension_registrar reg( vpm, "kwiver_epx_test" );
+  using namespace viame;
 
   if ( reg.is_module_loaded() )
   {

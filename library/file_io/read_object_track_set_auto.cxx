@@ -113,8 +113,8 @@ public:
   std::string m_current_filename;
 
   // The underlying reader we delegate to
-  kwiver::vital::algo::read_object_track_set_sptr m_reader;
-  kwiver::vital::config_block_sptr m_config;
+  viame::algo::read_object_track_set_sptr m_reader;
+  viame::config_block_sptr m_config;
 };
 
 
@@ -136,7 +136,7 @@ read_object_track_set_auto::priv
 
   // Check general extensions
   std::string ext = to_lower(
-    kwiver::vital::filename_last_extension( filename ) );
+    viame::filename_last_extension( filename ) );
 
   if( ext == ".csv" )
   {
@@ -208,7 +208,7 @@ read_object_track_set_auto
 // -----------------------------------------------------------------------------------
 void
 read_object_track_set_auto
-::set_configuration_internal( kwiver::vital::config_block_sptr config )
+::set_configuration_internal( viame::config_block_sptr config )
 {
   d->m_config = config;
 }
@@ -217,7 +217,7 @@ read_object_track_set_auto
 // -----------------------------------------------------------------------------------
 bool
 read_object_track_set_auto
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -260,13 +260,13 @@ read_object_track_set_auto
   else if( d->m_detected_format == "coco" )
   {
     // COCO reader is in Python, use algorithm factory
-    kwiver::vital::set_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
+    viame::set_nested_algo_configuration< viame::algo::read_object_track_set >(
       "reader", d->m_config, d->m_reader );
 
     if( !d->m_reader )
     {
       // Try to create via factory
-      kwiver::vital::get_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
+      viame::get_nested_algo_configuration< viame::algo::read_object_track_set >(
         "reader", d->m_config, d->m_reader );
 
       if( d->m_config )
@@ -274,14 +274,14 @@ read_object_track_set_auto
         d->m_config->set_value( "reader:type", "coco" );
       }
 
-      kwiver::vital::set_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
+      viame::set_nested_algo_configuration< viame::algo::read_object_track_set >(
         "reader", d->m_config, d->m_reader );
     }
 
     // If still no reader, throw error
     if( !d->m_reader )
     {
-      VITAL_THROW( kwiver::vital::algorithm_configuration_exception,
+      VITAL_THROW( viame::algorithm_configuration_exception,
                    "read_object_track_set", "coco",
                    "COCO track reader not available. Make sure Python support is enabled." );
     }
@@ -307,7 +307,7 @@ read_object_track_set_auto
   }
   else
   {
-    VITAL_THROW( kwiver::vital::invalid_data,
+    VITAL_THROW( viame::invalid_data,
                  "Unknown track format detected: " + d->m_detected_format );
   }
 
@@ -335,7 +335,7 @@ read_object_track_set_auto
 // -----------------------------------------------------------------------------------
 bool
 read_object_track_set_auto
-::read_set( kwiver::vital::object_track_set_sptr& set )
+::read_set( viame::object_track_set_sptr& set )
 {
   if( !d->m_reader )
   {

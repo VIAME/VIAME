@@ -4,7 +4,7 @@
 
 /// \file
 /// \brief Interface for feature_descriptor_io \link
-/// kwiver::vital::algo::algorithm_def algorithm
+/// viame::algo::algorithm_def algorithm
 ///        definition \endlink.
 
 #ifndef VITAL_ALGO_FEATURE_DESCRIPTOR_IO_H_
@@ -18,9 +18,7 @@
 #include <viame/core_types/descriptor_set.h>
 #include <viame/core_types/feature_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -29,17 +27,17 @@ namespace algo {
 /// This class represents an abstract interface for reading and writing
 /// feature and descriptor sets
 class VITAL_ALGO_EXPORT feature_descriptor_io
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   feature_descriptor_io();
   PLUGGABLE_INTERFACE( feature_descriptor_io );
   /// Load features and descriptors from a file
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the given path does not
+  /// \throws viame::path_not_exists Thrown when the given path does not
   /// exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file Thrown when the given path does
+  /// \throws viame::path_not_a_file Thrown when the given path does
   ///    not point to a file (i.e. it points to a directory).
   ///
   /// \param filename the path to the file the load
@@ -56,10 +54,10 @@ public:
   /// may be Null, but not both.  If both \p feat and \p desc are provided then
   /// the must be of the same size.
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the expected
+  /// \throws viame::path_not_exists Thrown when the expected
   ///    containing directory of the given path does not exist.
   ///
-  /// \throws kwiver::vital::path_not_a_directory Thrown when the expected
+  /// \throws viame::path_not_a_directory Thrown when the expected
   ///    containing directory of the given path is not actually a
   ///    directory.
   ///
@@ -104,8 +102,6 @@ typedef std::shared_ptr< feature_descriptor_io > feature_descriptor_io_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_FEATURE_DESCRIPTOR_IO_H_

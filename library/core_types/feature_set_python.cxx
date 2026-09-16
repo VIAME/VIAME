@@ -10,7 +10,7 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 class feature_set_trampoline
   : public kv::feature_set

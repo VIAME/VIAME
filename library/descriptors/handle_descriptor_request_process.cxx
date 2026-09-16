@@ -19,9 +19,9 @@
 
 #include <filesystem>
 
-namespace kwiver {
+namespace viame {
 
-namespace algo = vital::algo;
+namespace algo = viame::algo;
 
 create_port_trait( filename, file_name, "KWA input filename" );
 create_port_trait( stream_id, string, "Stream ID to place in file" );
@@ -44,7 +44,7 @@ public:
 // =============================================================================
 
 handle_descriptor_request_process
-::handle_descriptor_request_process( vital::config_block_sptr const& config )
+::handle_descriptor_request_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new handle_descriptor_request_process::priv )
 {
@@ -61,7 +61,7 @@ handle_descriptor_request_process
 void handle_descriptor_request_process
 ::_configure()
 {
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     handler,
@@ -70,7 +70,7 @@ void handle_descriptor_request_process
 
   if( !d->m_handler )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Unable to create handle_descriptor_request" );
   }
 
@@ -83,7 +83,7 @@ void handle_descriptor_request_process
   if( !check_nested_algo_configuration_using_trait(
     handler, algo_config, d->m_handler ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Configuration check failed." );
   }
 }
@@ -94,28 +94,28 @@ handle_descriptor_request_process
 ::_step()
 {
   // Retrieve inputs from ports
-  vital::descriptor_request_sptr request;
+  viame::descriptor_request_sptr request;
 
   request = grab_from_port_using_trait( descriptor_request );
 
   // Special case, output empty results
   if( !request )
   {
-    push_to_port_using_trait( track_descriptor_set, vital::track_descriptor_set_sptr() );
+    push_to_port_using_trait( track_descriptor_set, viame::track_descriptor_set_sptr() );
 
-    push_to_port_using_trait( image, vital::image_container_sptr() );
-    push_to_port_using_trait( timestamp, vital::timestamp() );
+    push_to_port_using_trait( image, viame::image_container_sptr() );
+    push_to_port_using_trait( timestamp, viame::timestamp() );
     push_to_port_using_trait( filename, "" );
     push_to_port_using_trait( stream_id, "" );
     return;
   }
 
   // Get output matrix and detections
-  vital::track_descriptor_set_sptr descriptors;
-  std::vector< vital::image_container_sptr > images;
+  viame::track_descriptor_set_sptr descriptors;
+  std::vector< viame::image_container_sptr > images;
 
-  vital::string_t filename;
-  vital::string_t stream_id;
+  viame::string_t filename;
+  viame::string_t stream_id;
 
   if( request && !d->m_handler->handle( request, descriptors, images ) )
   {
@@ -135,7 +135,7 @@ handle_descriptor_request_process
   // Step image output pipeline if connected
   for( auto image : images )
   {
-    vital::timestamp ts;
+    viame::timestamp ts;
 
     push_to_port_using_trait( image, image );
     push_to_port_using_trait( timestamp, ts );
@@ -149,12 +149,12 @@ void handle_descriptor_request_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
-  sprokit::process::port_flags_t shared;
+  viame::pipeline::process::port_flags_t shared;
   shared.insert( flag_output_shared );
 
   // -- input --
@@ -187,4 +187,4 @@ handle_descriptor_request_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

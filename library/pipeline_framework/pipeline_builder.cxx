@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 
 namespace {
@@ -37,7 +37,7 @@ static std::string const path_separator( 1, PATH_SEPARATOR_CHAR );
 // ==================================================================
 pipeline_builder
 ::pipeline_builder()
-  : m_logger( kwiver::vital::get_logger( "sprokit.pipeline_builder" ) )
+  : m_logger( viame::get_logger( "sprokit.pipeline_builder" ) )
   , m_blocks()
 {
   // extract search paths from env and default
@@ -47,9 +47,9 @@ pipeline_builder
 // ------------------------------------------------------------------
 void
 pipeline_builder
-::load_pipeline( std::istream& istr, kwiver::vital::path_t const& def_file )
+::load_pipeline( std::istream& istr, viame::path_t const& def_file )
 {
-  sprokit::pipe_parser the_parser;
+  viame::pipeline::pipe_parser the_parser;
   the_parser.add_search_path( m_search_path );
 
   // process the input stream
@@ -59,15 +59,15 @@ pipeline_builder
 // ------------------------------------------------------------------
 void
 pipeline_builder
-::load_pipeline( kwiver::vital::path_t const& def_file )
+::load_pipeline( viame::path_t const& def_file )
 {
-  sprokit::pipe_parser the_parser;
+  viame::pipeline::pipe_parser the_parser;
   the_parser.add_search_path( m_search_path );
 
   std::ifstream input( def_file );
   if ( ! input )
   {
-    VITAL_THROW( sprokit::file_no_exist_exception, def_file );
+    VITAL_THROW( viame::pipeline::file_no_exist_exception, def_file );
   }
 
   // process the input stream
@@ -77,19 +77,19 @@ pipeline_builder
 // ------------------------------------------------------------------
 void
 pipeline_builder
-::load_supplement( kwiver::vital::path_t const& path)
+::load_supplement( viame::path_t const& path)
 {
-  sprokit::pipe_parser the_parser;
+  viame::pipeline::pipe_parser the_parser;
   the_parser.add_search_path( m_search_path );
 
   std::ifstream input( path );
   if ( ! input )
   {
-    VITAL_THROW( sprokit::file_no_exist_exception, path );
+    VITAL_THROW( viame::pipeline::file_no_exist_exception, path );
   }
 
   // process the input stream
-  sprokit::pipe_blocks const supplement = the_parser.parse_pipeline( input, path );
+  viame::pipeline::pipe_blocks const supplement = the_parser.parse_pipeline( input, path );
 
   m_blocks.insert(m_blocks.end(), supplement.begin(), supplement.end());
 }
@@ -110,14 +110,14 @@ pipeline_builder
     throw std::runtime_error(reason);
   }
 
-  kwiver::vital::config_block_key_t setting_key = setting.substr(0, split_pos);
-  kwiver::vital::config_block_value_t setting_value = setting.substr(split_pos + split_str.size());
+  viame::config_block_key_t setting_key = setting.substr(0, split_pos);
+  viame::config_block_value_t setting_value = setting.substr(split_pos + split_str.size());
 
-  kwiver::vital::config_block_keys_t keys;
+  viame::config_block_keys_t keys;
 
-  kwiver::vital::tokenize( setting_key, keys,
-                 kwiver::vital::config_block::block_sep(),
-                 kwiver::vital::TokenizeTrimEmpty );
+  viame::tokenize( setting_key, keys,
+                 viame::config_block::block_sep(),
+                 viame::TokenizeTrimEmpty );
 
   if (keys.size() < 2)
   {
@@ -127,16 +127,16 @@ pipeline_builder
     throw std::runtime_error(reason);
   }
 
-  sprokit::config_value_t value;
+  viame::pipeline::config_value_t value;
   value.key_path.push_back(keys.back());
   value.value = setting_value;
-  value.loc = ::kwiver::vital::source_location( command_line_src, 1 );
+  value.loc = ::viame::source_location( command_line_src, 1 );
   keys.pop_back();
 
-  sprokit::config_pipe_block block;
+  viame::pipeline::config_pipe_block block;
   block.key = keys;
   block.values.push_back(value);
-  block.loc = ::kwiver::vital::source_location( command_line_src, 1 );
+  block.loc = ::viame::source_location( command_line_src, 1 );
 
   // Add to pipe blocks
   m_blocks.push_back(block);
@@ -145,7 +145,7 @@ pipeline_builder
 // ------------------------------------------------------------------
 void
 pipeline_builder
-::add_search_path( kwiver::vital::config_path_t const& file_path )
+::add_search_path( viame::config_path_t const& file_path )
 {
   m_search_path.push_back( file_path );
   LOG_DEBUG( m_logger, "Adding \"" << file_path << "\" to search path" );
@@ -154,36 +154,36 @@ pipeline_builder
 // ------------------------------------------------------------------
 void
 pipeline_builder
-::add_search_path( kwiver::vital::config_path_list_t const& file_path )
+::add_search_path( viame::config_path_list_t const& file_path )
 {
   if ( file_path.size() > 0 )
   {
     m_search_path.insert( m_search_path.end(),
                           file_path.begin(), file_path.end() );
 
-    LOG_DEBUG( m_logger, "Adding \"" << kwiver::vital::join( file_path, ", " )
+    LOG_DEBUG( m_logger, "Adding \"" << viame::join( file_path, ", " )
                << "\" to search path" );
   }
 }
 
 // ------------------------------------------------------------------
-sprokit::pipeline_t
+viame::pipeline::pipeline_t
 pipeline_builder
 ::pipeline() const
 {
-  return sprokit::bake_pipe_blocks(m_blocks);
+  return viame::pipeline::bake_pipe_blocks(m_blocks);
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 pipeline_builder
 ::config() const
 {
-  return sprokit::extract_configuration(m_blocks);
+  return viame::pipeline::extract_configuration(m_blocks);
 }
 
 // ------------------------------------------------------------------
-sprokit::pipe_blocks
+viame::pipeline::pipe_blocks
 pipeline_builder
 ::pipeline_blocks() const
 {
@@ -196,16 +196,16 @@ pipeline_builder
 ::process_env()
 {
   // Add path from the environment
-  kwiver::vital::path_list_t path_list;
-  kwiver::vital::environment_path( sprokit_include_envvar, path_list );
+  viame::path_list_t path_list;
+  viame::environment_path( sprokit_include_envvar, path_list );
 
   // Add the default search path
-  ::kwiver::vital::tokenize( default_include_dirs, path_list, path_separator,
-                             kwiver::vital::TokenizeTrimEmpty );
+  ::viame::tokenize( default_include_dirs, path_list, path_separator,
+                             viame::TokenizeTrimEmpty );
   if ( ! path_list.empty() )
   {
     add_search_path( path_list );
   }
 }
 
-} // end namespace
+} // namespace viame::pipeline

@@ -28,7 +28,7 @@ namespace viame
 namespace core
 {
 
-create_config_trait( transformation_file, kwiver::vital::path_t, "",
+create_config_trait( transformation_file, viame::path_t, "",
   "File containing the 2D homography mapping this image's coordinates "
   "into the target camera's. Read with the transform_reader algorithm "
   "(default type \"auto\": DIVE camera registration .json or plain text "
@@ -41,15 +41,15 @@ create_port_trait( size_image, image, "Image to get output size from." );
 namespace
 {
 
-kwiver::vital::image_container_sptr
-blank_canvas( const kwiver::vital::image& source, size_t width, size_t height )
+viame::image_container_sptr
+blank_canvas( const viame::image& source, size_t width, size_t height )
 {
-  kwiver::vital::image output(
+  viame::image output(
     width, height, source.depth(), true, source.pixel_traits() );
 
   std::memset( output.memory()->data(), 0, output.memory()->size() );
 
-  return std::make_shared< kwiver::vital::simple_image_container >( output );
+  return std::make_shared< viame::simple_image_container >( output );
 }
 
 } // end anonymous namespace
@@ -63,16 +63,16 @@ public:
   ~priv() {}
 
   // Configuration values
-  kwiver::vital::path_t m_transformation_file;
+  viame::path_t m_transformation_file;
   bool m_inverse = false;
-  kwiver::vital::homography_sptr m_homography;
-  kwiver::vital::algo::warp_image_sptr m_warper;
+  viame::homography_sptr m_homography;
+  viame::algo::warp_image_sptr m_warper;
 };
 
 // =============================================================================
 
 warp_image_process
-::warp_image_process( kwiver::vital::config_block_sptr const& config )
+::warp_image_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new warp_image_process::priv() )
 {
@@ -100,7 +100,7 @@ warp_image_process
     throw std::runtime_error( "warp_image requires a transformation_file" );
   }
 
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   if( !algo_config->has_value( "transform_reader:type" ) )
   {
@@ -112,10 +112,10 @@ warp_image_process
     algo_config->set_value( "warper:type", "ocv" );
   }
 
-  kwiver::vital::algo::transform_2d_io_sptr reader;
+  viame::algo::transform_2d_io_sptr reader;
 
-  kwiver::vital::set_nested_algo_configuration<
-    kwiver::vital::algo::transform_2d_io >(
+  viame::set_nested_algo_configuration<
+    viame::algo::transform_2d_io >(
     "transform_reader", algo_config, reader );
 
   if( !reader )
@@ -123,8 +123,8 @@ warp_image_process
     throw std::runtime_error( "Unable to create transform_reader" );
   }
 
-  kwiver::vital::set_nested_algo_configuration<
-    kwiver::vital::algo::warp_image >(
+  viame::set_nested_algo_configuration<
+    viame::algo::warp_image >(
     "warper", algo_config, d->m_warper );
 
   if( !d->m_warper )
@@ -132,7 +132,7 @@ warp_image_process
     throw std::runtime_error( "Unable to create warper" );
   }
 
-  kwiver::vital::transform_2d_sptr transform =
+  viame::transform_2d_sptr transform =
     reader->load( d->m_transformation_file );
 
   if( d->m_inverse )
@@ -143,7 +143,7 @@ warp_image_process
   // Image warping needs the full 3x3 matrix, not just point mapping, so
   // only homography transforms (DIVE .json, plain text) are supported.
   d->m_homography =
-    std::dynamic_pointer_cast< kwiver::vital::homography >( transform );
+    std::dynamic_pointer_cast< viame::homography >( transform );
 
   if( !d->m_homography )
   {
@@ -158,7 +158,7 @@ void
 warp_image_process
 ::_step()
 {
-  kwiver::vital::image_container_sptr image, size_image;
+  viame::image_container_sptr image, size_image;
 
   image = grab_from_port_using_trait( image );
 
@@ -182,7 +182,7 @@ warp_image_process
   }
   catch( ... )
   {
-    push_to_port_using_trait( image, kwiver::vital::image_container_sptr() );
+    push_to_port_using_trait( image, viame::image_container_sptr() );
   }
 }
 
@@ -193,8 +193,8 @@ warp_image_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- input --

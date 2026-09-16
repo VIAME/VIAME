@@ -42,10 +42,10 @@ namespace svm
  * - Serializable SVM model support
  */
 class VIAME_PROCESSES_DESCRIPTORS_SVM_NO_EXPORT process_query_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
-  using config_block_sptr = kwiver::vital::config_block_sptr;
+  using config_block_sptr = viame::config_block_sptr;
 
   // -- CONSTRUCTORS --
   process_query_process( config_block_sptr const& config );

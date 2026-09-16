@@ -7,9 +7,7 @@
 
 #include "source_location.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 source_location
@@ -59,6 +57,4 @@ source_location
          ( !m_file_name->empty() );
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

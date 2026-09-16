@@ -12,7 +12,7 @@
  * \brief Implementation of the constant number process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class const_number_process::priv
@@ -25,24 +25,24 @@ class const_number_process::priv
 
     number_t const value;
 
-    static kwiver::vital::config_block_key_t const config_value;
-    static kwiver::vital::config_block_value_t const default_value;
+    static viame::config_block_key_t const config_value;
+    static viame::config_block_value_t const default_value;
     static port_t const port_output;
 };
 
-kwiver::vital::config_block_key_t const const_number_process::priv::config_value = kwiver::vital::config_block_key_t("value");
-kwiver::vital::config_block_value_t const const_number_process::priv::default_value = kwiver::vital::config_block_value_t("0");
+viame::config_block_key_t const const_number_process::priv::config_value = viame::config_block_key_t("value");
+viame::config_block_value_t const const_number_process::priv::default_value = viame::config_block_value_t("0");
 process::port_t const const_number_process::priv::port_output = port_t("number");
 
 const_number_process
-::const_number_process(kwiver::vital::config_block_sptr const& config)
+::const_number_process(viame::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_value,
     priv::default_value,
-    kwiver::vital::config_block_description_t("The value to start counting at."));
+    viame::config_block_description_t("The value to start counting at."));
 
   port_flags_t required;
 

@@ -7,9 +7,7 @@
 
 #include "detected_object.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 detected_object
@@ -34,7 +32,7 @@ detected_object
 // ----------------------------------------------------------------------------
 detected_object
 ::detected_object(
-  kwiver::vital::geo_point const& gp,
+  viame::geo_point const& gp,
   double confidence,
   detected_object_type_sptr classifications )
   : m_geo_point{ gp },
@@ -102,7 +100,7 @@ detected_object
     new_type = std::make_shared< detected_object_type >( *this->m_type );
   }
 
-  auto new_obj = std::make_shared< kwiver::vital::detected_object >(
+  auto new_obj = std::make_shared< viame::detected_object >(
     this->m_bounding_box, this->m_confidence, new_type );
 
   // Be cheap and don't deep copy the image mask or descriptor; we can get away
@@ -132,7 +130,7 @@ detected_object
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::geo_point
+viame::geo_point
 detected_object
 ::geo_point() const
 {
@@ -142,7 +140,7 @@ detected_object
 // ----------------------------------------------------------------------------
 void
 detected_object
-::set_geo_point( kwiver::vital::geo_point const& gp )
+::set_geo_point( viame::geo_point const& gp )
 {
   m_geo_point = gp;
 }
@@ -284,7 +282,7 @@ detected_object
 }
 
 // ----------------------------------------------------------------------------
-std::map< std::string, vital::point_2d >
+std::map< std::string, viame::point_2d >
 detected_object
 ::keypoints() const
 {
@@ -294,7 +292,7 @@ detected_object
 // ----------------------------------------------------------------------------
 void
 detected_object
-::add_keypoint( std::string const& id, vital::point_2d const& p )
+::add_keypoint( std::string const& id, viame::point_2d const& p )
 {
   m_keypoints[ id ] = p;
 }
@@ -420,6 +418,4 @@ detected_object
   return m_attrs->has( key );
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

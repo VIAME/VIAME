@@ -50,7 +50,7 @@ struct extremum
 /// tie-breaking rule has to fix on to be repeatable.
 template < typename T >
 void
-min_max( kwiver::vital::image_of< T > const& image, extremum& lowest,
+min_max( viame::image_of< T > const& image, extremum& lowest,
          extremum& highest )
 {
   if( image.width() == 0 || image.height() == 0 || image.depth() == 0 )
@@ -91,7 +91,7 @@ min_max( kwiver::vital::image_of< T > const& image, extremum& lowest,
 /// dropped.
 template < typename T >
 std::vector< size_t >
-histogram( kwiver::vital::image_of< T > const& image, size_t bins,
+histogram( viame::image_of< T > const& image, size_t bins,
            double low, double high, size_t plane = 0 )
 {
   if( bins == 0 )
@@ -144,7 +144,7 @@ histogram( kwiver::vital::image_of< T > const& image, size_t bins,
 /// equalisation wants and what `cv::equalizeHist` builds.
 template < typename T >
 std::vector< size_t >
-histogram_full( kwiver::vital::image_of< T > const& image, size_t plane = 0 )
+histogram_full( viame::image_of< T > const& image, size_t plane = 0 )
 {
   static_assert( std::is_integral< T >::value,
                  "histogram_full is for integer pixels; give a range" );
@@ -159,8 +159,8 @@ histogram_full( kwiver::vital::image_of< T > const& image, size_t plane = 0 )
 /// A flat image has no range to stretch and comes back at \p low, which is
 /// what OpenCV does with it.
 template < typename T >
-kwiver::vital::image_of< T >
-normalize_min_max( kwiver::vital::image_of< T > const& image, double low,
+viame::image_of< T >
+normalize_min_max( viame::image_of< T > const& image, double low,
                    double high )
 {
   extremum lowest;
@@ -169,7 +169,7 @@ normalize_min_max( kwiver::vital::image_of< T > const& image, double low,
 
   auto const span = highest.value - lowest.value;
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(),
+  viame::image_of< T > out( image.width(), image.height(),
                                     image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -200,15 +200,15 @@ normalize_min_max( kwiver::vital::image_of< T > const& image, double low,
 /// occupied value maps to zero exactly. On an image with a large flat
 /// background the two differ across the whole range, not at the ends.
 template < typename T >
-kwiver::vital::image_of< T >
-equalize( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+equalize( viame::image_of< T > const& image )
 {
   static_assert( std::is_integral< T >::value,
                  "equalize is for integer pixels" );
 
   auto const levels = static_cast< size_t >( pixel_max< T >() ) + 1;
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(),
+  viame::image_of< T > out( image.width(), image.height(),
                                     image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -288,8 +288,8 @@ equalize( kwiver::vital::image_of< T > const& image )
 /// @param tiles_x how many tiles across
 /// @param tiles_y how many tiles down
 template < typename T >
-kwiver::vital::image_of< T >
-clahe( kwiver::vital::image_of< T > const& image, double clip_limit = 40.0,
+viame::image_of< T >
+clahe( viame::image_of< T > const& image, double clip_limit = 40.0,
        size_t tiles_x = 8, size_t tiles_y = 8 )
 {
   static_assert( std::is_integral< T >::value,
@@ -424,7 +424,7 @@ clahe( kwiver::vital::image_of< T > const& image, double clip_limit = 40.0,
   }
 
   // Interpolate between the four surrounding tile centres
-  kwiver::vital::image_of< T > out( width, height, 1 );
+  viame::image_of< T > out( width, height, 1 );
 
   auto const half_w = static_cast< double >( tile_w ) / 2.0;
   auto const half_h = static_cast< double >( tile_h ) / 2.0;

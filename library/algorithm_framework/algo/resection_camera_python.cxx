@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "resection_camera_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void resection_camera(py::module& m)
@@ -19,15 +19,15 @@ void resection_camera(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::resection_camera,
-               std::shared_ptr<kwiver::vital::algo::resection_camera>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::resection_camera,
+               std::shared_ptr<viame::algo::resection_camera>,
+               viame::algorithm,
                resection_camera_trampoline<> > instance(m,  "ResectionCamera");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::resection_camera::interface_name)
-    .def("resection", (kwiver::vital::camera_perspective_sptr (kwiver::vital::algo::resection_camera::*)(::std::vector<kwiver::vital::vector_<2, double> > const &, ::std::vector<kwiver::vital::vector_<3, double> > const &, ::kwiver::vital::camera_intrinsics_sptr, ::std::vector<bool> *) const) &kwiver::vital::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters from 3D points and their corresponding
+    .def_static("interface_name", &viame::algo::resection_camera::interface_name)
+    .def("resection", (viame::camera_perspective_sptr (viame::algo::resection_camera::*)(::std::vector<viame::vector_<2, double> > const &, ::std::vector<viame::vector_<3, double> > const &, ::viame::camera_intrinsics_sptr, ::std::vector<bool> *) const) &viame::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters from 3D points and their corresponding
  projections.
 
  \param [in] image_points
@@ -38,7 +38,7 @@ void resection_camera(py::module& m)
    initial guess on intrinsic parameters of the camera
  \param [out] inliers estimated inlier status for the point pairs
  \return estimated camera parameters)"), py::arg("image_points"), py::arg("world_points"), py::arg("initial_calibration"), py::arg("inliers"))
-    .def("resection", (kwiver::vital::camera_perspective_sptr (kwiver::vital::algo::resection_camera::*)(::kwiver::vital::frame_id_t, ::kwiver::vital::landmark_map_sptr, ::kwiver::vital::feature_track_set_sptr, ::size_t, ::size_t, ::std::unordered_set<long> *) const) &kwiver::vital::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters for a frame from landmarks and tracks.
+    .def("resection", (viame::camera_perspective_sptr (viame::algo::resection_camera::*)(::viame::frame_id_t, ::viame::landmark_map_sptr, ::viame::feature_track_set_sptr, ::size_t, ::size_t, ::std::unordered_set<long> *) const) &viame::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters for a frame from landmarks and tracks.
 
  This is a convenience function for resectioning a camera for a particular
  frame number in a collection of tracks with corresponding landmarks.
@@ -54,7 +54,7 @@ void resection_camera(py::module& m)
  \param [in] height image size in the y dimension in pixels
  \param [out] inliers landmark identifiers of inliers
  \return estimated camera parameters)"), py::arg("frame_id"), py::arg("landmarks"), py::arg("tracks"), py::arg("width"), py::arg("height"), py::arg("inliers"))
-    .def("resection", (kwiver::vital::camera_perspective_sptr (kwiver::vital::algo::resection_camera::*)(::kwiver::vital::frame_id_t, ::kwiver::vital::landmark_map_sptr, ::kwiver::vital::feature_track_set_sptr, ::kwiver::vital::camera_intrinsics_sptr, ::std::unordered_set<long> *) const) &kwiver::vital::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters for a frame from landmarks and tracks.
+    .def("resection", (viame::camera_perspective_sptr (viame::algo::resection_camera::*)(::viame::frame_id_t, ::viame::landmark_map_sptr, ::viame::feature_track_set_sptr, ::viame::camera_intrinsics_sptr, ::std::unordered_set<long> *) const) &viame::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters for a frame from landmarks and tracks.
 
  This is a convenience function for resectioning a camera for a particular
  frame number in a collection of tracks with corresponding landmarks.
@@ -69,7 +69,7 @@ void resection_camera(py::module& m)
  \param [out] inliers landmark identifiers of inliers
  \return estimated camera parameters)"), py::arg("frame_id"), py::arg("landmarks"), py::arg("tracks"), py::arg("initial_calibration"), py::arg("inliers"))
     ;
-  register_algorithm< kwiver::vital::algo::resection_camera > (instance);
+  register_algorithm< viame::algo::resection_camera > (instance);
 }
 
 }

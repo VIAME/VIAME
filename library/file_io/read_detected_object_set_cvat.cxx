@@ -39,7 +39,7 @@ public:
 
   void read_all();
   void parse_xml_file( std::string const& filename );
-  kwiver::vital::detected_object_set_sptr parse_image_element( TiXmlElement* image_elem );
+  viame::detected_object_set_sptr parse_image_element( TiXmlElement* image_elem );
   std::vector< double > parse_polygon_points( std::string const& points_str );
 
   read_detected_object_set_cvat* m_parent;
@@ -50,7 +50,7 @@ public:
   int m_current_idx;
 
   // Map of detected objects indexed by image name
-  std::map< std::string, kwiver::vital::detected_object_set_sptr > m_detection_by_str;
+  std::map< std::string, viame::detected_object_set_sptr > m_detection_by_str;
 };
 
 
@@ -74,7 +74,7 @@ read_detected_object_set_cvat
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_cvat
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -83,7 +83,7 @@ read_detected_object_set_cvat
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_cvat
-::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+::read_set( viame::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -131,7 +131,7 @@ read_detected_object_set_cvat
 
       if( !found )
       {
-        set = std::make_shared< kwiver::vital::detected_object_set >();
+        set = std::make_shared< viame::detected_object_set >();
       }
     }
     return true;
@@ -140,7 +140,7 @@ read_detected_object_set_cvat
   // Test for end of all loaded images
   if( d->m_current_idx >= static_cast< int >( d->m_image_list.size() ) )
   {
-    set = std::make_shared< kwiver::vital::detected_object_set >();
+    set = std::make_shared< viame::detected_object_set >();
     return false;
   }
 
@@ -154,7 +154,7 @@ read_detected_object_set_cvat
   }
   else
   {
-    set = std::make_shared< kwiver::vital::detected_object_set >();
+    set = std::make_shared< viame::detected_object_set >();
   }
 
   ++d->m_current_idx;
@@ -184,7 +184,7 @@ read_detected_object_set_cvat::priv
 
   // Read the XML filename from the stream (first non-empty, non-comment line)
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+  viame::data_stream_reader stream_reader( m_parent->stream() );
 
   while( stream_reader.getline( line ) )
   {
@@ -268,11 +268,11 @@ read_detected_object_set_cvat::priv
 
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 read_detected_object_set_cvat::priv
 ::parse_image_element( TiXmlElement* image_elem )
 {
-  auto det_set = std::make_shared< kwiver::vital::detected_object_set >();
+  auto det_set = std::make_shared< viame::detected_object_set >();
 
   // Iterate through child elements (box, polygon, etc.)
   for( TiXmlElement* elem = image_elem->FirstChildElement();
@@ -302,14 +302,14 @@ read_detected_object_set_cvat::priv
       double xbr = std::atof( xbr_attr );
       double ybr = std::atof( ybr_attr );
 
-      kwiver::vital::bounding_box_d bbox( xtl, ytl, xbr, ybr );
+      viame::bounding_box_d bbox( xtl, ytl, xbr, ybr );
 
       // Create detected object type
-      auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+      auto dot = std::make_shared< viame::detected_object_type >();
       dot->set_score( label, m_parent->c_default_confidence );
 
       // Create and add detection
-      auto det = std::make_shared< kwiver::vital::detected_object >(
+      auto det = std::make_shared< viame::detected_object >(
         bbox, m_parent->c_default_confidence, dot );
       det_set->add( det );
     }
@@ -346,14 +346,14 @@ read_detected_object_set_cvat::priv
         max_y = std::max( max_y, points[i + 1] );
       }
 
-      kwiver::vital::bounding_box_d bbox( min_x, min_y, max_x, max_y );
+      viame::bounding_box_d bbox( min_x, min_y, max_x, max_y );
 
       // Create detected object type
-      auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+      auto dot = std::make_shared< viame::detected_object_type >();
       dot->set_score( label, m_parent->c_default_confidence );
 
       // Create detection with polygon
-      auto det = std::make_shared< kwiver::vital::detected_object >(
+      auto det = std::make_shared< viame::detected_object >(
         bbox, m_parent->c_default_confidence, dot );
       det->set_flattened_polygon( points );
       det_set->add( det );
@@ -390,14 +390,14 @@ read_detected_object_set_cvat::priv
         max_y = std::max( max_y, points[i + 1] );
       }
 
-      kwiver::vital::bounding_box_d bbox( min_x, min_y, max_x, max_y );
+      viame::bounding_box_d bbox( min_x, min_y, max_x, max_y );
 
       // Create detected object type
-      auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+      auto dot = std::make_shared< viame::detected_object_type >();
       dot->set_score( label, m_parent->c_default_confidence );
 
       // Create detection
-      auto det = std::make_shared< kwiver::vital::detected_object >(
+      auto det = std::make_shared< viame::detected_object >(
         bbox, m_parent->c_default_confidence, dot );
       det_set->add( det );
     }

@@ -12,9 +12,7 @@
 #include <cmath>
 
 #include <viame/algorithm_framework/exceptions/math.h>
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Compute the twisted pair rotation from the rotation and translation
 rotation_d
@@ -241,6 +239,4 @@ INSTANTIATE_ESSENTIAL_MATRIX( double );
 #undef INSTANTIATE_ESSENTIAL_MATRIX
 /// \endcond
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame

@@ -16,7 +16,7 @@
 namespace viame
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace kva = kv::algo;
 
 create_config_trait( detector, std::string, "", "Algorithm configuration "
@@ -247,7 +247,7 @@ detect_in_subregions_process
   if( !kv::check_nested_algo_configuration< kva::image_object_detector >(
         "detector", algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    throw viame::pipeline::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
   kv::set_nested_algo_configuration< kva::image_object_detector >(
@@ -255,7 +255,7 @@ detect_in_subregions_process
 
   if( !d->m_detector )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create detector" );
+    throw viame::pipeline::invalid_configuration_exception( name(), "Unable to create detector" );
   }
 
   std::string method = config_value_using_trait( method );
@@ -270,7 +270,7 @@ detect_in_subregions_process
   }
   else
   {
-    throw sprokit::invalid_configuration_exception( name(), "Invalid method: " + method );
+    throw viame::pipeline::invalid_configuration_exception( name(), "Invalid method: " + method );
   }
 
   d->m_max_subregion_count = config_value_using_trait( max_subregion_count );
@@ -322,8 +322,8 @@ detect_in_subregions_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 

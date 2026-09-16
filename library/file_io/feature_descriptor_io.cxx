@@ -13,11 +13,9 @@
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-using namespace kwiver::vital;
+using namespace viame;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -53,7 +51,7 @@ feature_descriptor_io
 // Check that the algorithm's currently configuration is valid
 bool
 feature_descriptor_io
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -69,7 +67,7 @@ save_features( Archive& ar, std::vector< feature_sptr > const& features )
   {
     if( !f )
     {
-      VITAL_THROW( vital::invalid_data, "not able to write a Null feature" );
+      VITAL_THROW( viame::invalid_data, "not able to write a Null feature" );
     }
     if( auto ft = std::dynamic_pointer_cast< feature_< T > >( f ) )
     {
@@ -85,7 +83,7 @@ save_features( Archive& ar, std::vector< feature_sptr > const& features )
 // ----------------------------------------------------------------------------
 // Helper function to unserialized a vector of N features of known type
 template < typename Archive, typename T >
-vital::feature_set_sptr
+viame::feature_set_sptr
 read_features( Archive& ar, size_t num_feat )
 {
   std::vector< feature_sptr > features;
@@ -96,7 +94,7 @@ read_features( Archive& ar, size_t num_feat )
     ar( *f );
     features.push_back( f );
   }
-  return std::make_shared< vital::simple_feature_set >( features );
+  return std::make_shared< viame::simple_feature_set >( features );
 }
 
 // ----------------------------------------------------------------------------
@@ -112,12 +110,12 @@ save_descriptors( Archive& ar, descriptor_set_sptr const& descriptors )
   {
     if( !d )
     {
-      VITAL_THROW( vital::invalid_data, "not able to write a Null descriptor" );
+      VITAL_THROW( viame::invalid_data, "not able to write a Null descriptor" );
     }
     if( d->size() != dim )
     {
       VITAL_THROW(
-        vital::invalid_data, std::string( "descriptor dimension is not " ) +
+        viame::invalid_data, std::string( "descriptor dimension is not " ) +
         "consistent, should be " + std::to_string( dim ) +
         ", is " + std::to_string( d->size() ) );
     }
@@ -132,7 +130,7 @@ save_descriptors( Archive& ar, descriptor_set_sptr const& descriptors )
     else
     {
       VITAL_THROW(
-        vital::invalid_data, std::string( "saving descriptors of type " ) +
+        viame::invalid_data, std::string( "saving descriptors of type " ) +
         typeid( T ).name() + " but received type " +
         d->data_type().name() );
     }
@@ -142,7 +140,7 @@ save_descriptors( Archive& ar, descriptor_set_sptr const& descriptors )
 // ----------------------------------------------------------------------------
 // Helper function to unserialized a vector of N descriptors of known type
 template < typename Archive, typename T >
-vital::descriptor_set_sptr
+viame::descriptor_set_sptr
 read_descriptors( Archive& ar, size_t num_desc )
 {
   // dimensionality of each descriptor
@@ -174,7 +172,7 @@ read_descriptors( Archive& ar, size_t num_desc )
     }
     descriptors.push_back( d );
   }
-  return std::make_shared< vital::simple_descriptor_set >( descriptors );
+  return std::make_shared< viame::simple_descriptor_set >( descriptors );
 }
 
 // ----------------------------------------------------------------------------
@@ -229,8 +227,8 @@ void
 feature_descriptor_io
 ::load_(
   std::string const& filename,
-  vital::feature_set_sptr& feat,
-  vital::descriptor_set_sptr& desc ) const
+  viame::feature_set_sptr& feat,
+  viame::descriptor_set_sptr& desc ) const
 {
   // open input file
   std::ifstream ifile( filename.c_str(), std::ios::binary );
@@ -242,7 +240,7 @@ feature_descriptor_io
   if( std::strncmp( file_id, "KWFD", 4 ) != 0 )
   {
     VITAL_THROW(
-      vital::invalid_data,
+      viame::invalid_data,
       "Does not look like a KWIVER feature/descriptor file: " +
       filename );
   }
@@ -257,7 +255,7 @@ feature_descriptor_io
   if( version != 1 )
   {
     VITAL_THROW(
-      vital::invalid_data, "Unknown file format version: " +
+      viame::invalid_data, "Unknown file format version: " +
       std::to_string( version ) );
   }
 
@@ -277,7 +275,7 @@ feature_descriptor_io
         break;
       default:
         VITAL_THROW(
-          vital::invalid_data, "unknown feature type code: " +
+          viame::invalid_data, "unknown feature type code: " +
           std::to_string( type_code ) );
     }
   }
@@ -313,7 +311,7 @@ feature_descriptor_io
 
       default:
         VITAL_THROW(
-          vital::invalid_data, "unknown descriptor type code: " +
+          viame::invalid_data, "unknown descriptor type code: " +
           std::to_string( type_code ) );
     }
   }
@@ -329,8 +327,8 @@ void
 feature_descriptor_io
 ::save_(
   std::string const& filename,
-  vital::feature_set_sptr feat,
-  vital::descriptor_set_sptr desc ) const
+  viame::feature_set_sptr feat,
+  viame::descriptor_set_sptr desc ) const
 {
   if( !( feat && feat->size() > 0 ) &&
       !( desc && desc->size() > 0 ) )
@@ -374,7 +372,7 @@ feature_descriptor_io
         save_features< Archive_t, double >( ar, features );
         break;
       default:
-        VITAL_THROW( vital::invalid_data, "features must be float or double" );
+        VITAL_THROW( viame::invalid_data, "features must be float or double" );
     }
   }
   else
@@ -409,7 +407,7 @@ feature_descriptor_io
 
       default:
         VITAL_THROW(
-          vital::invalid_data,
+          viame::invalid_data,
           std::string( "descriptor type not supported: " ) +
           desc->at( 0 )->data_type().name() );
     }
@@ -420,8 +418,6 @@ feature_descriptor_io
   }
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

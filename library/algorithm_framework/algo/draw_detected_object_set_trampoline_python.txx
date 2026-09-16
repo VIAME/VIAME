@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/draw_detected_object_set.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class draw_detected_object_set_base = kwiver::vital::algo::draw_detected_object_set >
+template< class draw_detected_object_set_base = viame::algo::draw_detected_object_set >
 class draw_detected_object_set_trampoline
     : public algorithm_trampoline< draw_detected_object_set_base >
 {
@@ -21,17 +21,17 @@ class draw_detected_object_set_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::image_container_sptr
-  draw(::kwiver::vital::detected_object_set_sptr detected_set, ::kwiver::vital::image_container_sptr image) override
+  viame::image_container_sptr
+  draw(::viame::detected_object_set_sptr detected_set, ::viame::image_container_sptr image) override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::image_container_sptr,
-      kwiver::vital::algo::draw_detected_object_set,
+      viame::image_container_sptr,
+      viame::algo::draw_detected_object_set,
       draw,
       detected_set, image
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

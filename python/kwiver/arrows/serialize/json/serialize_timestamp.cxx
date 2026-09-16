@@ -9,9 +9,7 @@
 #include <viame/core_types/any.h>
 #include <viame/core_types/timestamp.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace python {
 
@@ -20,18 +18,16 @@ serialize_timestamp( py::module& m )
 {
   m.def(
     "serialize_timestamp",
-    &kwiver::python::arrows::json::serialize<
-      kwiver::vital::timestamp,
-      kwiver::arrows::serialize::json::timestamp > );
+    &viame::python::arrows::json::serialize<
+      viame::timestamp,
+      viame::serialize::json::timestamp > );
   m.def(
     "deserialize_timestamp",
-    &kwiver::python::arrows::json::deserialize<
-      kwiver::vital::timestamp,
-      kwiver::arrows::serialize::json::timestamp > );
+    &viame::python::arrows::json::deserialize<
+      viame::timestamp,
+      viame::serialize::json::timestamp > );
 }
 
 } // namespace python
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame

@@ -28,7 +28,7 @@ notes_to_attributes( const std::vector< std::string >& notes,
 
 
 VIAME_FILE_IO_EXPORT void
-add_attributes_to_detection( kwiver::vital::detected_object& detection,
+add_attributes_to_detection( viame::detected_object& detection,
                              const std::vector< std::string >& attrs );
 
 

@@ -8,9 +8,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 namespace {
@@ -213,7 +211,7 @@ detected_object_set
   for( auto detection : m_detected_objects )
   {
     auto bbox = detection->bounding_box();
-    bbox = kwiver::vital::scale( bbox, scale_factor );
+    bbox = viame::scale( bbox, scale_factor );
     detection->set_bounding_box( bbox );
 
     // Scale the segmentation polygons too, so they stay aligned with the
@@ -243,7 +241,7 @@ detected_object_set
   for( auto detection : m_detected_objects )
   {
     auto bbox = detection->bounding_box();
-    bbox = kwiver::vital::translate(
+    bbox = viame::translate(
       bbox,
       bounding_box_d::vector_type( col_shift, row_shift ) );
     detection->set_bounding_box( bbox );
@@ -264,7 +262,7 @@ detected_object_set
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::attribute_set_sptr
+viame::attribute_set_sptr
 detected_object_set
 ::attributes() const
 {
@@ -329,6 +327,4 @@ detected_object_set
          };
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

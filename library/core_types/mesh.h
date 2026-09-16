@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::mesh mesh \endlink and
+/// \brief Header for \link viame::mesh mesh \endlink and
 ///        related classes.
 ///
 /// This indexed mesh implementation is based on imesh from VXL.
@@ -20,9 +20,7 @@
 #include <viame/core_types/vector.h>
 #include <viame/core_types/vital_types_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 // Mesh vertices
@@ -1281,8 +1279,6 @@ private:
 // shared pointer typedef
 typedef std::shared_ptr< mesh > mesh_sptr;
 
-} // end namespace vital
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif // VITAL_MESH_H_

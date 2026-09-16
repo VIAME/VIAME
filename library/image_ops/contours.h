@@ -130,8 +130,8 @@ enum class connectivity
 /// @param how which neighbours join
 /// @param[out] count how many components were found, background excluded
 template < typename T >
-kwiver::vital::image_of< int32_t >
-label_components( kwiver::vital::image_of< T > const& mask,
+viame::image_of< int32_t >
+label_components( viame::image_of< T > const& mask,
                   connectivity how, size_t& count )
 {
   if( mask.depth() != 1 )
@@ -142,7 +142,7 @@ label_components( kwiver::vital::image_of< T > const& mask,
   auto const width = mask.width();
   auto const height = mask.height();
 
-  kwiver::vital::image_of< int32_t > labels( width, height, 1 );
+  viame::image_of< int32_t > labels( width, height, 1 );
 
   for( size_t j = 0; j < height; ++j )
   {
@@ -286,7 +286,7 @@ label_components( kwiver::vital::image_of< T > const& mask,
 /// and `detect_heat_map` is one.
 template < typename T >
 std::vector< std::vector< point > >
-find_contours( kwiver::vital::image_of< T > const& mask )
+find_contours( viame::image_of< T > const& mask )
 {
   if( mask.depth() != 1 )
   {
@@ -665,7 +665,7 @@ struct border
 /// that and `ring` the second.
 template < typename T >
 std::vector< border >
-find_borders( kwiver::vital::image_of< T > const& mask )
+find_borders( viame::image_of< T > const& mask )
 {
   if( mask.depth() != 1 )
   {

@@ -4,9 +4,7 @@
 
 #include "bounding_box.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 //
 // Instantiate operators
@@ -27,6 +25,4 @@ instantiate( double );
 
 #undef instantiate
 
-} // namespace vital
-
-}                               // end namespace
+} // namespace viame

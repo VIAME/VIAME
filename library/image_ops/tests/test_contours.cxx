@@ -34,7 +34,7 @@
 #include <vector>
 
 namespace io = viame::image_ops;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 using viame::testing::golden_json;
 namespace golden_image = viame::testing::golden_image;

@@ -9,7 +9,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( refiner );
 
@@ -21,13 +21,13 @@ public:
   priv();
   ~priv();
 
-   vital::frame_id_t m_current_idx;
-   vital::algo::refine_tracks_sptr m_refiner;
+   viame::frame_id_t m_current_idx;
+   viame::algo::refine_tracks_sptr m_refiner;
 }; // end priv class
 
 // ==================================================================
 refine_tracks_process::
-refine_tracks_process( kwiver::vital::config_block_sptr const& config )
+refine_tracks_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new refine_tracks_process::priv )
 {
@@ -47,19 +47,19 @@ _configure()
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
   if( ! check_nested_algo_configuration_using_trait( refiner, algo_config, d->m_refiner ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   set_nested_algo_configuration_using_trait( refiner, algo_config, d->m_refiner );
 
   if( ! d->m_refiner )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create refiner" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create refiner" );
   }
 }
 
@@ -78,7 +78,7 @@ _finalize()
 
   mark_process_as_complete();
 
-  const sprokit::datum_t dat = sprokit::datum::complete_datum();
+  const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
   push_datum_to_port_using_trait( object_track_set, dat );
 }
@@ -88,16 +88,16 @@ void
 refine_tracks_process::
 _step()
 {
-  vital::image_container_sptr image;
-  vital::timestamp timestamp;
-  vital::object_track_set_sptr tracks;
-  vital::frame_id_t cur_frame_id;
+  viame::image_container_sptr image;
+  viame::timestamp timestamp;
+  viame::object_track_set_sptr tracks;
+  viame::frame_id_t cur_frame_id;
 
   if( has_input_port_edge_using_trait( object_track_set ) )
   {
     auto port_check = peek_at_port_using_trait( object_track_set );
 
-    if( port_check.datum->type() == sprokit::datum::complete )
+    if( port_check.datum->type() == viame::pipeline::datum::complete )
     {
       this->_finalize();
       return;
@@ -110,7 +110,7 @@ _step()
   {
     auto port_check = peek_at_port_using_trait( image );
 
-    if( port_check.datum->type() == sprokit::datum::complete )
+    if( port_check.datum->type() == viame::pipeline::datum::complete )
     {
       this->_finalize();
       return;
@@ -123,7 +123,7 @@ _step()
   {
     auto port_check = peek_at_port_using_trait( timestamp );
 
-    if( port_check.datum->type() == sprokit::datum::complete )
+    if( port_check.datum->type() == viame::pipeline::datum::complete )
     {
       this->_finalize();
       return;
@@ -142,7 +142,7 @@ _step()
     timestamp.set_frame( cur_frame_id );
   }
 
-  vital::object_track_set_sptr output_tracks;
+  viame::object_track_set_sptr output_tracks;
 
   {
     scoped_step_instrumentation();
@@ -152,7 +152,7 @@ _step()
     // new objects.
     if( !tracks )
     {
-      tracks = std::make_shared< kwiver::vital::object_track_set >();
+      tracks = std::make_shared< viame::object_track_set >();
     }
     output_tracks = d->m_refiner->refine( timestamp, image, tracks );
   }
@@ -168,7 +168,7 @@ refine_tracks_process::
 make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
   // -- input --
   declare_input_port_using_trait( image, optional );
@@ -199,4 +199,4 @@ refine_tracks_process::priv
 {
 }
 
-} // end namespace kwiver
+} // namespace viame

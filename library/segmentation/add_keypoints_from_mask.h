@@ -39,8 +39,8 @@ namespace viame
 /// \param det The detection to extract mask points from
 /// \return Vector of points in image coordinates, empty if no mask
 VIAME_SEGMENTATION_EXPORT
-std::vector< kwiver::vital::vector_2d >
-get_mask_points( kwiver::vital::detected_object_sptr det );
+std::vector< viame::vector_2d >
+get_mask_points( viame::detected_object_sptr det );
 
 /// Compute oriented bounding box corner points from a detection's mask or bounding box.
 ///
@@ -51,8 +51,8 @@ get_mask_points( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute box points for
 /// \return Vector of 4 corner points in image coordinates
 VIAME_SEGMENTATION_EXPORT
-std::vector< kwiver::vital::vector_2d >
-compute_box_points( kwiver::vital::detected_object_sptr det );
+std::vector< viame::vector_2d >
+compute_box_points( viame::detected_object_sptr det );
 
 /// Compute head and tail keypoints from oriented bounding box points.
 ///
@@ -63,8 +63,8 @@ compute_box_points( kwiver::vital::detected_object_sptr det );
 /// \param box_points Vector of 4 corner points
 /// \return Pair of (head, tail) points where head has max x and tail has min x
 VIAME_SEGMENTATION_EXPORT
-std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
-center_keypoints( const std::vector< kwiver::vital::vector_2d >& box_points );
+std::pair< viame::vector_2d, viame::vector_2d >
+center_keypoints( const std::vector< viame::vector_2d >& box_points );
 
 /// Add head and tail keypoints to a detection based on its mask or bounding box.
 ///
@@ -75,7 +75,7 @@ center_keypoints( const std::vector< kwiver::vital::vector_2d >& box_points );
 /// \return true if keypoints were added, false if detection has no valid geometry
 VIAME_SEGMENTATION_EXPORT
 bool
-add_keypoints_from_box( kwiver::vital::detected_object_sptr det );
+add_keypoints_from_box( viame::detected_object_sptr det );
 
 /// Compute keypoints using oriented bounding box method.
 ///
@@ -84,8 +84,8 @@ add_keypoints_from_box( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_SEGMENTATION_EXPORT
-std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
-compute_keypoints_oriented_bbox( kwiver::vital::detected_object_sptr det );
+std::pair< viame::vector_2d, viame::vector_2d >
+compute_keypoints_oriented_bbox( viame::detected_object_sptr det );
 
 /// Compute keypoints using Principal Component Analysis.
 ///
@@ -95,8 +95,8 @@ compute_keypoints_oriented_bbox( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_SEGMENTATION_EXPORT
-std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
-compute_keypoints_pca( kwiver::vital::detected_object_sptr det );
+std::pair< viame::vector_2d, viame::vector_2d >
+compute_keypoints_pca( viame::detected_object_sptr det );
 
 /// Compute keypoints using farthest points method.
 ///
@@ -106,8 +106,8 @@ compute_keypoints_pca( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_SEGMENTATION_EXPORT
-std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
-compute_keypoints_farthest( kwiver::vital::detected_object_sptr det );
+std::pair< viame::vector_2d, viame::vector_2d >
+compute_keypoints_farthest( viame::detected_object_sptr det );
 
 /// Compute keypoints using convex hull extremes method.
 ///
@@ -117,8 +117,8 @@ compute_keypoints_farthest( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_SEGMENTATION_EXPORT
-std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
-compute_keypoints_hull_extremes( kwiver::vital::detected_object_sptr det );
+std::pair< viame::vector_2d, viame::vector_2d >
+compute_keypoints_hull_extremes( viame::detected_object_sptr det );
 
 /// Compute keypoints using skeleton/medial axis method.
 ///
@@ -129,8 +129,8 @@ compute_keypoints_hull_extremes( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_SEGMENTATION_EXPORT
-std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
-compute_keypoints_skeleton( kwiver::vital::detected_object_sptr det );
+std::pair< viame::vector_2d, viame::vector_2d >
+compute_keypoints_skeleton( viame::detected_object_sptr det );
 
 /// Compute keypoints using specified method.
 ///
@@ -141,8 +141,8 @@ compute_keypoints_skeleton( kwiver::vital::detected_object_sptr det );
 /// \param method Method name: "oriented_bbox", "pca", "farthest", "hull_extremes", or "skeleton"
 /// \return Pair of (head, tail) points where head has max x
 VIAME_SEGMENTATION_EXPORT
-std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
-compute_keypoints( kwiver::vital::detected_object_sptr det, const std::string& method );
+std::pair< viame::vector_2d, viame::vector_2d >
+compute_keypoints( viame::detected_object_sptr det, const std::string& method );
 
 /// Clip a point to the nearest point on a detection's mask boundary.
 ///
@@ -157,9 +157,9 @@ compute_keypoints( kwiver::vital::detected_object_sptr det, const std::string& m
 /// \param det The detection containing the mask
 /// \return The nearest point on the mask boundary (in image coordinates)
 VIAME_SEGMENTATION_EXPORT
-kwiver::vital::vector_2d
-clip_point_to_mask_boundary( const kwiver::vital::vector_2d& target,
-                             kwiver::vital::detected_object_sptr det );
+viame::vector_2d
+clip_point_to_mask_boundary( const viame::vector_2d& target,
+                             viame::detected_object_sptr det );
 
 /// Check if a keypoint method string is valid.
 ///
@@ -190,7 +190,7 @@ keypoint_method_description();
  * the end with the larger x coordinate.
  */
 class VIAME_SEGMENTATION_EXPORT add_keypoints_from_mask
-  : public kwiver::vital::algo::refine_detections
+  : public viame::algo::refine_detections
 {
 public:
   PLUGGABLE_IMPL( add_keypoints_from_mask,
@@ -208,11 +208,11 @@ public:
 
   virtual ~add_keypoints_from_mask() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  virtual bool check_configuration( viame::config_block_sptr config ) const override;
 
-  virtual kwiver::vital::detected_object_set_sptr
-  refine( kwiver::vital::image_container_sptr image_data,
-          kwiver::vital::detected_object_set_sptr detections ) const override;
+  virtual viame::detected_object_set_sptr
+  refine( viame::image_container_sptr image_data,
+          viame::detected_object_set_sptr detections ) const override;
 
 }; // end class add_keypoints_from_mask
 

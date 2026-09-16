@@ -54,7 +54,7 @@ public:
 // =============================================================================
 
 filter_frame_process
-::filter_frame_process( kwiver::vital::config_block_sptr const& config )
+::filter_frame_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new filter_frame_process::priv() )
 {
@@ -84,8 +84,8 @@ void
 filter_frame_process
 ::_step()
 {
-  kwiver::vital::image_container_sptr image;
-  kwiver::vital::detected_object_set_sptr detections;
+  viame::image_container_sptr image;
+  viame::detected_object_set_sptr detections;
 
   image = grab_from_port_using_trait( image );
 
@@ -138,7 +138,7 @@ filter_frame_process
   }
   else
   {
-    push_to_port_using_trait( image, kwiver::vital::image_container_sptr() );
+    push_to_port_using_trait( image, viame::image_container_sptr() );
   }
 }
 
@@ -149,8 +149,8 @@ filter_frame_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 

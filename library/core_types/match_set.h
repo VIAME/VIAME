@@ -13,9 +13,7 @@
 #include <memory>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Index pair indicating matching features between two arrays
@@ -64,8 +62,6 @@ protected:
   std::vector< match > data_;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_MATCH_SET_H_

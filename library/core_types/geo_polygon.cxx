@@ -15,9 +15,7 @@
 #include <numeric>
 #include <stdexcept>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 using geo_raw_polygon_t = geo_polygon::geo_raw_polygon_t;
 
@@ -186,7 +184,7 @@ config_block_set_value_cast( geo_polygon const& value )
 
 // ----------------------------------------------------------------------------
 std::ostream&
-operator<<( std::ostream& str, vital::geo_polygon const& obj )
+operator<<( std::ostream& str, viame::geo_polygon const& obj )
 {
   if( obj.is_empty() )
   {
@@ -232,6 +230,4 @@ operator!=( geo_polygon const& lhs, geo_polygon const& rhs )
   return !( lhs == rhs );
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

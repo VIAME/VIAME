@@ -33,26 +33,26 @@
 extern "C"
 VIAME_PROCESSES_VIDEO_IO_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
   static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_video_io" );
+    viame::plugin_manager::module_t( "viame_processes_video_io" );
 
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
 // The parameters are spelled unusually because `typeid( x ).name()` is in
 // the body: a parameter called `name` would be substituted inside it.
 #define VIAME_REGISTER_PROCESS( process_type, plugin, blurb )             \
   {                                                                      \
-    auto* fact = new sprokit::cpp_process_factory(                       \
+    auto* fact = new viame::pipeline::cpp_process_factory(                       \
       typeid( process_type ).name(),                                     \
-      sprokit::process::interface_name(),                                \
-      sprokit::create_new_process< process_type > );                     \
+      viame::pipeline::process::interface_name(),                                \
+      viame::pipeline::create_new_process< process_type > );                     \
                                                                          \
     fact->add_attribute( kvpf::PLUGIN_NAME, plugin )                     \
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
@@ -63,25 +63,25 @@ register_factories( kwiver::vital::registry& vpm )
   }
 
   VIAME_REGISTER_PROCESS(
-    kwiver::video_input_process, "video_input",
+    viame::video_input_process, "video_input",
     "Reads video files and produces sequential images with metadata per "
     "frame." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::video_output_process, "video_output",
+    viame::video_output_process, "video_output",
     "Writes video file based on sequential images with optional metadata "
     "per frame." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::image_writer_process, "image_writer",
+    viame::image_writer_process, "image_writer",
     "Write image to disk." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::image_file_reader_process, "image_file_reader",
+    viame::image_file_reader_process, "image_file_reader",
     "Reads an image file given the file name." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::frame_list_process, "frame_list_input",
+    viame::frame_list_process, "frame_list_input",
     "Reads a list of image file names and generates stream of "
     "images and associated time stamps." )
 
@@ -95,5 +95,5 @@ register_factories( kwiver::vital::registry& vpm )
 
 #undef VIAME_REGISTER_PROCESS
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  viame::pipeline::mark_process_module_as_loaded( vpm, module_name );
 }

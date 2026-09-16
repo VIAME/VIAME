@@ -67,13 +67,13 @@ TEST_F( label_files, training_maps_aliases_and_retains_hierarchy_in_all_formats 
   for( const auto& format : formats )
   {
     SCOPED_TRACE( format.first );
-    auto labels = std::make_shared< kwiver::vital::category_hierarchy >(
+    auto labels = std::make_shared< viame::category_hierarchy >(
       write( format.first, format.second ) );
-    auto truth = std::make_shared< kwiver::vital::detected_object_set >();
+    auto truth = std::make_shared< viame::detected_object_set >();
     for( const auto& name : { "athletic glove", "glove", "unlisted" } )
     {
-      truth->add( std::make_shared< kwiver::vital::detected_object >( 1.0,
-        std::make_shared< kwiver::vital::detected_object_type >( name, 0.9 ) ) );
+      truth->add( std::make_shared< viame::detected_object >( 1.0,
+        std::make_shared< viame::detected_object_type >( name, 0.9 ) ) );
     }
     EXPECT_TRUE( viame::adjust_labels( truth, labels, {} ) );
     ASSERT_EQ( truth->size(), 2 );

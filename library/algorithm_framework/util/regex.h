@@ -19,9 +19,7 @@
 #include <memory>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// A compiled pattern, and the last thing it matched.
@@ -74,8 +72,6 @@ private:
   std::unique_ptr< impl > m_impl;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // KWIVER_VITAL_UTIL_REGEX_H

@@ -5,9 +5,7 @@
 #ifndef KWIVER_VITAL_OVERLOAD_H
 #define KWIVER_VITAL_OVERLOAD_H
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 template < class... Args, class T, class R >
@@ -23,8 +21,6 @@ auto
 overload( R ( T::* m )() ) -> decltype( m )
 { return m; }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

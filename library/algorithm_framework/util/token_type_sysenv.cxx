@@ -36,9 +36,7 @@
 #endif
 #endif
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -323,7 +321,7 @@ token_type_sysenv
   // --------------------------------------------------------------------------
   if( "cwd" == name || "curdir" == name )
   {
-    result = kwiver::vital::current_working_directory();
+    result = viame::current_working_directory();
     return true;
   }
 
@@ -454,7 +452,7 @@ token_type_sysenv
   if( "homedir" == name )
   {
     std::string home;
-    kwiver::vital::get_env( HOME_ENV_NAME, home );
+    viame::get_env( HOME_ENV_NAME, home );
 
     if( !home.empty() )
     {
@@ -477,6 +475,4 @@ token_type_sysenv
   return false;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

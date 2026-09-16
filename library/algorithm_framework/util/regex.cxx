@@ -6,9 +6,7 @@
 
 #include <regex>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 class regex::impl
@@ -89,6 +87,4 @@ regex
     m_impl->m_match.position( index ) + m_impl->m_match.length( index ) );
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

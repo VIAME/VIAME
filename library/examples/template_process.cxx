@@ -77,11 +77,11 @@ public:
   priv();
   ~priv();
 
-  //++ Your work goes here. `vital::image_of< T >` indexes as
+  //++ Your work goes here. `viame::image_of< T >` indexes as
   //++ `image( column, row, plane )` and its planes are separate, which is
   //++ what every VIAME process and every `image_ops` function expects.
-  kwiver::vital::image_of< uint8_t >
-  process_image( kwiver::vital::image_of< uint8_t > const& img )
+  viame::image_of< uint8_t >
+  process_image( viame::image_of< uint8_t > const& img )
   {
     return img;
   }
@@ -95,7 +95,7 @@ public:
 // ================================================================
 //++ This is the standard form for a constructor.
 template_process
-::template_process( kwiver::vital::config_block_sptr const& config )
+::template_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new template_process::priv )
 {
@@ -135,7 +135,7 @@ void
 template_process
 ::_step()
 {
-  kwiver::vital::timestamp frame_time;
+  viame::timestamp frame_time;
 
   // See if optional input port has been connected.
   // Get input only if connected.
@@ -145,9 +145,9 @@ template_process
     frame_time = grab_from_port_using_trait( timestamp );
   }
 
-  kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
+  viame::image_container_sptr img = grab_from_port_using_trait( image );
 
-  kwiver::vital::image_container_sptr out_image;
+  viame::image_container_sptr out_image;
 
   // Process Instrumentation call should be just before the real core
   // of the process step processing. It must be after getting the
@@ -161,11 +161,11 @@ template_process
     //++ type; constructing it from an image of a different type throws, so a
     //++ process that must take whatever arrives uses
     //++ `image_ops::dispatch_pixel_type` instead.
-    kwiver::vital::image_of< uint8_t > const in_image( img->get_image() );
+    viame::image_of< uint8_t > const in_image( img->get_image() );
 
     //++ Here is where the process does its work.
-    out_image = std::make_shared< kwiver::vital::simple_image_container >(
-      kwiver::vital::image( d->process_image( in_image ) ) );
+    out_image = std::make_shared< viame::simple_image_container >(
+      viame::image( d->process_image( in_image ) ) );
   }
 
   push_to_port_using_trait( image, out_image );
@@ -218,7 +218,7 @@ template_process
 //++ to get the new config values from the supplied config
 void
 template_process
-::_reconfigure( [[maybe_unused]] kwiver::vital::config_block_sptr const& conf)
+::_reconfigure( [[maybe_unused]] viame::config_block_sptr const& conf)
 {
   scoped_reconfigure_instrumentation();
 
@@ -232,12 +232,12 @@ template_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
 
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
   required.insert( flag_required );
 
-  sprokit::process::port_flags_t shared;
+  viame::pipeline::process::port_flags_t shared;
   shared.insert( flag_output_shared );
 
   // -- input --

@@ -12,9 +12,7 @@
 #include <memory>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class token_type;
 
@@ -32,14 +30,14 @@ class token_type;
 /// intact.
 ///
 /// @code
-/// kwiver::vital::token_expander * exp;
+/// viame::token_expander * exp;
 ///
-/// exp->add_token_type( new kwiver::vital::token_type_env() );
-/// exp->add_token_type( new kwiver::vital::token_type_sysenv() );
+/// exp->add_token_type( new viame::token_type_env() );
+/// exp->add_token_type( new viame::token_type_sysenv() );
 ///
 /// // Create a symtab expander
-/// kwiver::vital::token_type_symtab* sym = new
-/// kwiver::vital::token_type_symtab();
+/// viame::token_type_symtab* sym = new
+/// viame::token_type_symtab();
 /// sym.add_entry( "foo", "bar" );  // add some entries to the symbol table
 /// sym.add_entry( "home", "on the range" );
 /// sym.add_entry( "pi", "3.14159265358979323846264338327950288419716939937510"
@@ -52,14 +50,14 @@ class token_type;
 /// Usage example
 /// @code
 /// // Derived class just loads all needed token types.
-/// class app_expander : public kwiver::vital::token_expander
+/// class app_expander : public viame::token_expander
 /// {
 /// public:
 /// app_expander()
 /// {
 ///  // Load the usual token types
-///  this->add_token_type( new kwiver::vital::token_type_env() );
-///  this->add_token_type( new kwiver::vital::token_type_sysenv() );
+///  this->add_token_type( new viame::token_type_env() );
+///  this->add_token_type( new viame::token_type_sysenv() );
 /// }
 /// };
 /// @endcode
@@ -83,10 +81,10 @@ public:
   /// with desired token types.
   ///
 /// @code
-/// kwiver::vital::token_expander * exp = new
-/// kwiver::vital::token_expander::instance();
-/// exp->add_token_type( new kwiver::vital::token_type_env() );
-/// exp->add_token_type( new kwiver::vital::token_type_sysenv() );
+/// viame::token_expander * exp = new
+/// viame::token_expander::instance();
+/// exp->add_token_type( new viame::token_type_env() );
+/// exp->add_token_type( new viame::token_type_sysenv() );
 /// @endcode
 ///
 /// The token expander can be easily referenced anywhere in the code
@@ -94,7 +92,7 @@ public:
 ///
 /// @code
 /// std::string text = get_raw_text();
-/// text = kwiver::vital::token_expander::instance()->expand_token( text );
+/// text = viame::token_expander::instance()->expand_token( text );
 /// @endcode
 
   /// @brief Add new token type to expander.
@@ -108,7 +106,7 @@ public:
   /// @param[in] tt - token type handler to add
   ///
   /// @return True indicates the handler has been added.
-  bool add_token_type( kwiver::vital::token_type* tt );
+  bool add_token_type( viame::token_type* tt );
 
   /// @brief Expand tokens over a string.
   ///
@@ -153,7 +151,7 @@ protected:
 
 private:
   typedef std::map< std::string,
-    std::shared_ptr< kwiver::vital::token_type > > map_t;
+    std::shared_ptr< viame::token_type > > map_t;
   typedef map_t::iterator iterator_t;
 
   map_t m_typeList;
@@ -161,8 +159,6 @@ private:
   logger_handle_t m_logger;
 }; // end class token_expander
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // _TOKEN_EXPANDER_H_

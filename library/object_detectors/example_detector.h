@@ -12,14 +12,12 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 class VIAME_OBJECT_DETECTORS_EXPORT example_detector
-  : public vital::algo::image_object_detector
+  : public viame::algo::image_object_detector
 {
 public:
   PLUGGABLE_IMPL(
@@ -53,11 +51,11 @@ public:
 
   virtual ~example_detector();
 
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   // Main detection method
-  virtual vital::detected_object_set_sptr detect(
-    vital::image_container_sptr image_data ) const;
+  virtual viame::detected_object_set_sptr detect(
+    viame::image_container_sptr image_data ) const;
 
 private:
   void initialize() override;
@@ -68,8 +66,6 @@ private:
 
 } // namespace core
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame
 
 #endif // KWIVER_EXAMPLE_DETECTOR_H

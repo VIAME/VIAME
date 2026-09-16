@@ -13,7 +13,7 @@
 #include <viame/core_types/image.h>
 #include <viame/core_types/image_container.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 using namespace viame;
 
 // =============================================================================

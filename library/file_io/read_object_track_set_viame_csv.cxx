@@ -43,7 +43,7 @@ class read_object_track_set_viame_csv::priv
 public:
   priv( read_object_track_set_viame_csv& parent )
     : m_parent( &parent )
-    , m_logger( kwiver::vital::get_logger( "read_object_track_set_viame_csv" ) )
+    , m_logger( viame::get_logger( "read_object_track_set_viame_csv" ) )
     , m_first( true )
     , m_current_idx( 0 )
     , m_last_idx( 1 )
@@ -51,11 +51,11 @@ public:
 
   ~priv() {}
 
-  typedef std::vector< kwiver::vital::track_sptr > track_vector;
+  typedef std::vector< viame::track_sptr > track_vector;
   typedef int frame_id_t;
 
   read_object_track_set_viame_csv* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   // Internal counters
   bool m_first;
@@ -69,14 +69,14 @@ public:
   track_vector format_tracks( const track_vector& tracks, const frame_id_t frame_id );
 
   // Helper function - propagate species pairs to states lacking them
-  void fill_missing_types( kwiver::vital::track_sptr trk );
+  void fill_missing_types( viame::track_sptr trk );
 
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
   std::map< frame_id_t, track_vector > m_tracks_by_frame_id;
 
   // Compilation of all loaded tracks, track id -> track sptr mapping
-  std::map< frame_id_t, kwiver::vital::track_sptr > m_all_tracks;
+  std::map< frame_id_t, viame::track_sptr > m_all_tracks;
 
   // Compilation of all loaded track IDs, track id -> type string
   std::map< frame_id_t, std::string > m_track_ids;
@@ -102,7 +102,7 @@ void
 read_object_track_set_viame_csv
 ::open( std::string const& filename )
 {
-  kwiver::vital::algo::read_object_track_set::open( filename );
+  viame::algo::read_object_track_set::open( filename );
 
   d->m_first = true;
 
@@ -115,7 +115,7 @@ read_object_track_set_viame_csv
 // -------------------------------------------------------------------------------
 bool
 read_object_track_set_viame_csv
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   if( c_multi_state_only && c_single_state_only )
   {
@@ -128,7 +128,7 @@ read_object_track_set_viame_csv
 // -------------------------------------------------------------------------------
 bool
 read_object_track_set_viame_csv
-::read_set( kwiver::vital::object_track_set_sptr& set )
+::read_set( viame::object_track_set_sptr& set )
 {
   bool was_first = d->m_first;
 
@@ -145,7 +145,7 @@ read_object_track_set_viame_csv
     {
       return false;
     }
-    std::vector< kwiver::vital::track_sptr > trks;
+    std::vector< viame::track_sptr > trks;
 
     for( auto it = d->m_all_tracks.begin(); it != d->m_all_tracks.end(); ++it )
     {
@@ -160,8 +160,8 @@ read_object_track_set_viame_csv
       trks.push_back( it->second );
     }
 
-    set = kwiver::vital::object_track_set_sptr(
-      new kwiver::vital::object_track_set( trks ) );
+    set = viame::object_track_set_sptr(
+      new viame::object_track_set( trks ) );
 
     return true;
   }
@@ -170,13 +170,13 @@ read_object_track_set_viame_csv
   if( d->m_tracks_by_frame_id.count( d->m_current_idx ) == 0 )
   {
     // Return empty set
-    set = std::make_shared< kwiver::vital::object_track_set>();
+    set = std::make_shared< viame::object_track_set>();
   }
   else
   {
     // Return tracks for this frame
-    kwiver::vital::object_track_set_sptr new_set(
-      new kwiver::vital::object_track_set(
+    viame::object_track_set_sptr new_set(
+      new viame::object_track_set(
         d->format_tracks( 
           d->m_tracks_by_frame_id[ d->m_current_idx ],
           d->m_current_idx ) ) );
@@ -195,7 +195,7 @@ read_object_track_set_viame_csv::priv
 ::read_all()
 {
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+  viame::data_stream_reader stream_reader( m_parent->stream() );
 
   m_tracks_by_frame_id.clear();
   m_all_tracks.clear();
@@ -228,7 +228,7 @@ read_object_track_set_viame_csv::priv
       std::stringstream str;
       str << "This is not a viame_csv file; found " << col.size()
           << " columns in\n\"" << line << "\"";
-      throw kwiver::vital::invalid_data( str.str() );
+      throw viame::invalid_data( str.str() );
     }
 
     /*
@@ -243,10 +243,10 @@ read_object_track_set_viame_csv::priv
     int trk_id = atoi( col[COL_DET_ID].c_str() );
     frame_id_t frame_id = atoi( col[COL_FRAME_ID].c_str() );
     frame_id = frame_id + m_parent->c_frame_id_adjustment;
-    kwiver::vital::time_usec_t frame_time;
+    viame::time_usec_t frame_time;
     std::string str_id = col[COL_SOURCE_ID];
 
-    kwiver::vital::bounding_box_d bbox(
+    viame::bounding_box_d bbox(
       atof( col[COL_MIN_X].c_str() ),
       atof( col[COL_MIN_Y].c_str() ),
       atof( col[COL_MAX_X].c_str() ),
@@ -260,10 +260,10 @@ read_object_track_set_viame_csv::priv
     }
 
     // Create detection object
-    kwiver::vital::detected_object_sptr dob;
+    viame::detected_object_sptr dob;
 
-    kwiver::vital::detected_object_type_sptr dot =
-      std::make_shared<kwiver::vital::detected_object_type>();
+    viame::detected_object_type_sptr dot =
+      std::make_shared<viame::detected_object_type>();
 
     bool found_attribute = false;
 
@@ -280,7 +280,7 @@ read_object_track_set_viame_csv::priv
         std::stringstream str;
         str << "Every species pair must contain a confidence; error "
             << "at\n\"" << line << "\"";
-        throw kwiver::vital::invalid_data( str.str() );
+        throw viame::invalid_data( str.str() );
       }
 
       std::string spec_id = col[i];
@@ -296,11 +296,11 @@ read_object_track_set_viame_csv::priv
 
     if( COL_TOT < col.size() )
     {
-      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+      dob = std::make_shared< viame::detected_object>( bbox, conf, dot );
     }
     else
     {
-      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
+      dob = std::make_shared< viame::detected_object>( bbox, conf );
     }
 
     // Read length from column 9 and store as attribute
@@ -346,7 +346,7 @@ read_object_track_set_viame_csv::priv
         if( col[i].size() >= 5 && col[i].substr( 0, 5 ) == "(kp) " )
         {
           std::vector< std::string > kp_parts;
-          kwiver::vital::tokenize( col[i], kp_parts, " ", true );
+          viame::tokenize( col[i], kp_parts, " ", true );
           if( kp_parts.size() >= 4 )
           {
             try
@@ -359,7 +359,7 @@ read_object_track_set_viame_csv::priv
                 kp_name += " " + kp_parts[j];
               }
               dob->add_keypoint( kp_name,
-                kwiver::vital::point_2d( kp_x, kp_y ) );
+                viame::point_2d( kp_x, kp_y ) );
             }
             catch( ... )
             {
@@ -374,12 +374,12 @@ read_object_track_set_viame_csv::priv
 
     if( m_parent->c_poly_to_mask && found_attribute )
     {
-      kwiver::vital::image_of< uint8_t > mask_data;
+      viame::image_of< uint8_t > mask_data;
 
       convert_polys_to_mask( poly_strings, bbox, mask_data );
 
-      kwiver::vital::image_container_scptr computed_mask =
-        std::make_shared< kwiver::vital::simple_image_container >( mask_data );
+      viame::image_container_scptr computed_mask =
+        std::make_shared< viame::simple_image_container >( mask_data );
 
       dob->set_mask( computed_mask );
     }
@@ -390,16 +390,16 @@ read_object_track_set_viame_csv::priv
     }
 
     // Create new object track state
-    kwiver::vital::track_state_sptr ots =
-      std::make_shared< kwiver::vital::object_track_state >(
+    viame::track_state_sptr ots =
+      std::make_shared< viame::object_track_state >(
         frame_id, frame_time, dob );
 
     // Assign object track state to track
-    kwiver::vital::track_sptr trk;
+    viame::track_sptr trk;
 
     if( m_all_tracks.count( trk_id ) == 0 )
     {
-      trk = kwiver::vital::track::create();
+      trk = viame::track::create();
       trk->set_id( trk_id );
       m_all_tracks[ trk_id ] = trk;
     }
@@ -437,14 +437,14 @@ read_object_track_set_viame_csv::priv
 // the first typed state after them if none precedes.
 void
 read_object_track_set_viame_csv::priv
-::fill_missing_types( kwiver::vital::track_sptr trk )
+::fill_missing_types( viame::track_sptr trk )
 {
-  std::vector< kwiver::vital::object_track_state* > states;
-  kwiver::vital::detected_object_type_sptr first_type;
+  std::vector< viame::object_track_state* > states;
+  viame::detected_object_type_sptr first_type;
 
   for( auto ts_ptr : *trk )
   {
-    auto* ts = dynamic_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
+    auto* ts = dynamic_cast< viame::object_track_state* >( ts_ptr.get() );
     if( !ts || !ts->detection() )
     {
       continue;
@@ -463,7 +463,7 @@ read_object_track_set_viame_csv::priv
     return;
   }
 
-  kwiver::vital::detected_object_type_sptr current = first_type;
+  viame::detected_object_type_sptr current = first_type;
 
   for( auto* ts : states )
   {
@@ -475,7 +475,7 @@ read_object_track_set_viame_csv::priv
     else
     {
       ts->detection()->set_type(
-        std::make_shared< kwiver::vital::detected_object_type >( *current ) );
+        std::make_shared< viame::detected_object_type >( *current ) );
     }
   }
 }

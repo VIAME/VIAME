@@ -5,9 +5,7 @@
 #include <python/kwiver/vital/util/python.h>
 #include <python/kwiver/vital/util/python_exceptions.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -38,6 +36,4 @@ python_print_exception()
 
 } // namespace python
 
-} // namespace vital
-
-}     // end of namespaces
+} // namespace viame

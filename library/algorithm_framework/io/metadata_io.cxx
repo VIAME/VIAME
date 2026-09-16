@@ -16,9 +16,7 @@
 #include <viame/core_types/metadata_traits.h>
 #include <viame/algorithm_framework/util/tokenize.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Extract an image file basename from metadata and (if needed) frame number
 std::string
@@ -30,17 +28,17 @@ basename_from_metadata(
   std::string basename = "frame";
   if( md )
   {
-    if( auto& mdi = md->find( kwiver::vital::VITAL_META_IMAGE_URI ) )
+    if( auto& mdi = md->find( viame::VITAL_META_IMAGE_URI ) )
     {
-      return kwiver::vital::filename_without_last_extension( mdi.as_string() );
+      return viame::filename_without_last_extension( mdi.as_string() );
     }
   }
 
   if( md )
   {
-    if( auto& mdi = md->find( kwiver::vital::VITAL_META_VIDEO_URI ) )
+    if( auto& mdi = md->find( viame::VITAL_META_VIDEO_URI ) )
     {
-      basename = kwiver::vital::filename_without_last_extension( mdi.as_string() );
+      basename = viame::filename_without_last_extension( mdi.as_string() );
     }
   }
 
@@ -53,13 +51,13 @@ basename_from_metadata(
 
 std::string
 basename_from_metadata(
-  kwiver::vital::metadata_vector const& mdv,
+  viame::metadata_vector const& mdv,
   frame_id_t frame )
 {
   for( auto const& md : mdv )
   {
-    if( md->has( kwiver::vital::VITAL_META_IMAGE_URI ) ||
-        md->has( kwiver::vital::VITAL_META_VIDEO_URI ) )
+    if( md->has( viame::VITAL_META_IMAGE_URI ) ||
+        md->has( viame::VITAL_META_VIDEO_URI ) )
     {
       return basename_from_metadata( md, frame );
     }
@@ -73,13 +71,13 @@ metadata_sptr
 read_pos_file( path_t const& file_path )
 {
   // Check that file exists
-  if( !kwiver::vital::file_exists( file_path ) )
+  if( !viame::file_exists( file_path ) )
   {
     VITAL_THROW(
       file_not_found_exception,
       file_path, "File does not exist." );
   }
-  else if( kwiver::vital::file_is_directory( file_path ) )
+  else if( viame::file_is_directory( file_path ) )
   {
     VITAL_THROW(
       file_not_found_exception,
@@ -102,7 +100,7 @@ read_pos_file( path_t const& file_path )
 
   // Tokenize the string
   std::vector< std::string > tokens;
-  kwiver::vital::tokenize( line, tokens, ",", true );
+  viame::tokenize( line, tokens, ",", true );
 
   size_t base = 0;
 
@@ -114,7 +112,7 @@ read_pos_file( path_t const& file_path )
        << file_path
        << "  (discovered " << tokens.size() << " field(s), expected "
        << "14 or 15).";
-    VITAL_THROW( vital::invalid_data, ss.str() );
+    VITAL_THROW( viame::invalid_data, ss.str() );
   }
 
   // make a new metadata container.
@@ -141,10 +139,10 @@ read_pos_file( path_t const& file_path )
   // altitude is in feet in a POS file and needs to be converted to meters
   constexpr double feet2meters = 0.3048;
   const double altitude = std::stod( tokens[ base + 5 ] ) * feet2meters;
-  kwiver::vital::vector_3d raw_geo{ std::stod( tokens[ base + 4 ] ),
+  viame::vector_3d raw_geo{ std::stod( tokens[ base + 4 ] ),
                                     std::stod( tokens[ base + 3 ] ),
                                     altitude };
-  kwiver::vital::geo_point geo_pt{ raw_geo, SRID::lat_lon_WGS84 };
+  viame::geo_point geo_pt{ raw_geo, SRID::lat_lon_WGS84 };
   md->add< VITAL_META_SENSOR_LOCATION >( geo_pt );
 
   md->add< VITAL_META_GPS_SEC >( std::stod( tokens[ base + 6 ] ) );
@@ -167,7 +165,7 @@ write_pos_file(
   path_t const& file_path )
 {
   // If the given path is a directory, we obviously can't write to it.
-  if( kwiver::vital::file_is_directory( file_path ) )
+  if( viame::file_is_directory( file_path ) )
   {
     VITAL_THROW(
       file_write_exception, file_path,
@@ -176,11 +174,11 @@ write_pos_file(
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  std::string parent_dir = kwiver::vital::filename_path(
-    kwiver::vital::collapse_full_path( file_path ) );
-  if( !kwiver::vital::file_is_directory( parent_dir ) )
+  std::string parent_dir = viame::filename_path(
+    viame::collapse_full_path( file_path ) );
+  if( !viame::file_is_directory( parent_dir ) )
   {
-    if( !kwiver::vital::make_directory( parent_dir ) )
+    if( !viame::make_directory( parent_dir ) )
     {
       VITAL_THROW(
         file_write_exception, parent_dir,
@@ -221,7 +219,7 @@ write_pos_file(
 
   if( auto& mdi = md.find( VITAL_META_SENSOR_LOCATION ) )
   {
-    auto const geo_pt = mdi.get< kwiver::vital::geo_point >();
+    auto const geo_pt = mdi.get< viame::geo_point >();
     auto const& raw_loc = geo_pt.location( SRID::lat_lon_WGS84 );
     // altitude is in feet in a POS file and needs to be converted to feet
     constexpr double feet2meters = 0.3048;
@@ -246,6 +244,4 @@ write_pos_file(
   ofile.close();
 }
 
-} // namespace vital
-
-}   // end of namespace
+} // namespace viame

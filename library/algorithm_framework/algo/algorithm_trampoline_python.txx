@@ -5,7 +5,7 @@
 /**
  * \file algorithm_trampoline.txx
  *
- * \brief trampoline for overriding virtual functions of vital::algorithm
+ * \brief trampoline for overriding virtual functions of viame::algorithm
  */
 
 #ifndef ALGORITHM_TRAMPOLINE_TXX
@@ -15,30 +15,28 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
-template < class algorithm_base = kwiver::vital::algorithm >
+template < class algorithm_base = viame::algorithm >
 class algorithm_trampoline : public algorithm_base
 {
 public:
   using algorithm_base::algorithm_base;
 
-  kwiver::vital::config_block_sptr
+  viame::config_block_sptr
   get_configuration() const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::config_block_sptr,
+      viame::config_block_sptr,
       algorithm_base,
       get_configuration,
     );
   }
 
   void
-  set_configuration( kwiver::vital::config_block_sptr config ) override
+  set_configuration( viame::config_block_sptr config ) override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
@@ -49,7 +47,7 @@ public:
   }
 
   bool
-  check_configuration( kwiver::vital::config_block_sptr config ) const override
+  check_configuration( viame::config_block_sptr config ) const override
   {
     PYBIND11_OVERLOAD_PURE(
       bool,
@@ -62,8 +60,6 @@ public:
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

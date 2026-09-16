@@ -15,9 +15,7 @@
 
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -35,7 +33,7 @@ namespace algo {
 /// - Algorithm returns detected objects with segmentation masks
 ///
 class VITAL_ALGO_EXPORT segment_via_points
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   segment_via_points();
@@ -71,8 +69,6 @@ typedef std::shared_ptr< segment_via_points > segment_via_points_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_SEGMENT_VIA_POINTS_H_

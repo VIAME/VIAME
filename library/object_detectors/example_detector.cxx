@@ -9,9 +9,7 @@
 
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -56,20 +54,20 @@ example_detector::
 // ----------------------------------------------------------------------------
 bool
 example_detector
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 example_detector
-::detect( [[maybe_unused]] vital::image_container_sptr image_data ) const
+::detect( [[maybe_unused]] viame::image_container_sptr image_data ) const
 {
-  auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
+  auto detected_set = std::make_shared< viame::detected_object_set >();
   const double ct = static_cast< double >( d->m_frame_ct );
 
-  kwiver::vital::bounding_box_d bbox(
+  viame::bounding_box_d bbox(
     d->c_center_x() + ct * d->c_dx() - d->c_width() / 2.0,
     d->c_center_y() + ct * d->c_dy() - d->c_height() / 2.0,
     d->c_center_x() + ct * d->c_dx() + d->c_width() / 2.0,
@@ -77,11 +75,11 @@ example_detector
 
   ++d->m_frame_ct;
 
-  auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+  auto dot = std::make_shared< viame::detected_object_type >();
   dot->set_score( "detection", 1.0 );
 
   detected_set->add(
-    std::make_shared< kwiver::vital::detected_object >(
+    std::make_shared< viame::detected_object >(
       bbox,
       1.0, dot ) );
 
@@ -90,6 +88,4 @@ example_detector
 
 } // namespace core
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame

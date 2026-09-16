@@ -18,16 +18,14 @@
 #include <viame/core_types/fundamental_matrix.h>
 #include <viame/core_types/match_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for estimating a fundamental matrix from matching 2D
 /// points
 class VITAL_ALGO_EXPORT estimate_fundamental_matrix
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   estimate_fundamental_matrix();
@@ -43,11 +41,11 @@ public:
   /// \param [in]  inlier_scale error distance tolerated for matches to be
   /// inliers
   virtual
-  kwiver::vital::fundamental_matrix_sptr
+  viame::fundamental_matrix_sptr
   estimate(
-    const kwiver::vital::feature_set_sptr feat1,
-    const kwiver::vital::feature_set_sptr feat2,
-    const kwiver::vital::match_set_sptr matches,
+    const viame::feature_set_sptr feat1,
+    const viame::feature_set_sptr feat2,
+    const viame::match_set_sptr matches,
     std::vector< bool >& inliers,
     double inlier_scale = 1.0 ) const;
 
@@ -60,10 +58,10 @@ public:
   /// \param [in]  inlier_scale error distance tolerated for matches to be
   /// inliers
   virtual
-  kwiver::vital::fundamental_matrix_sptr
+  viame::fundamental_matrix_sptr
   estimate(
-    const std::vector< kwiver::vital::vector_2d >& pts1,
-    const std::vector< kwiver::vital::vector_2d >& pts2,
+    const std::vector< viame::vector_2d >& pts1,
+    const std::vector< viame::vector_2d >& pts2,
     std::vector< bool >& inliers,
     double inlier_scale = 1.0 ) const = 0;
 };
@@ -75,8 +73,6 @@ typedef std::shared_ptr< estimate_fundamental_matrix >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_ESTIMATE_FUNDAMENTAL_MATRIX_H_

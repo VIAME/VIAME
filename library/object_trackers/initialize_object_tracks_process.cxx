@@ -16,9 +16,9 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
-namespace algo = vital::algo;
+namespace algo = viame::algo;
 
 create_algorithm_name_config_trait( track_initializer );
 
@@ -36,7 +36,7 @@ public:
 // =============================================================================
 
 initialize_object_tracks_process
-::initialize_object_tracks_process( vital::config_block_sptr const& config )
+::initialize_object_tracks_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new initialize_object_tracks_process::priv )
 {
@@ -55,7 +55,7 @@ void initialize_object_tracks_process
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     track_initializer,
@@ -64,7 +64,7 @@ void initialize_object_tracks_process
 
   if( !d->m_track_initializer )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Unable to create initialize_object_tracks" );
   }
 
@@ -77,7 +77,7 @@ void initialize_object_tracks_process
   if( !check_nested_algo_configuration_using_trait(
         track_initializer, algo_config, d->m_track_initializer ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Configuration check failed." );
   }
 }
@@ -87,12 +87,12 @@ void
 initialize_object_tracks_process
 ::_step()
 {
-  vital::timestamp frame_id;
-  vital::image_container_sptr image;
-  vital::detected_object_set_sptr detections;
-  vital::object_track_set_sptr old_tracks;
+  viame::timestamp frame_id;
+  viame::image_container_sptr image;
+  viame::detected_object_set_sptr detections;
+  viame::object_track_set_sptr old_tracks;
 
-  vital::object_track_set_sptr new_tracks;
+  viame::object_track_set_sptr new_tracks;
 
   if( process::has_input_port_edge( "timestamp" ) )
   {
@@ -124,13 +124,13 @@ initialize_object_tracks_process
   // Union optional input tracks if available
   if( old_tracks )
   {
-    std::vector< vital::track_sptr > net_tracks = old_tracks->tracks();
-    std::vector< vital::track_sptr > to_add = new_tracks->tracks();
+    std::vector< viame::track_sptr > net_tracks = old_tracks->tracks();
+    std::vector< viame::track_sptr > to_add = new_tracks->tracks();
 
     net_tracks.insert( net_tracks.end(), to_add.begin(), to_add.end() );
 
-    vital::object_track_set_sptr joined_tracks(
-      new vital::object_track_set( net_tracks ) );
+    viame::object_track_set_sptr joined_tracks(
+      new viame::object_track_set( net_tracks ) );
     push_to_port_using_trait( object_track_set, joined_tracks );
   }
   else
@@ -144,8 +144,8 @@ void initialize_object_tracks_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- input --
@@ -182,4 +182,4 @@ initialize_object_tracks_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

@@ -13,9 +13,7 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -37,11 +35,11 @@ image_io
   if( !skip_path_validation_() )
   {
     // Make sure that the given file path exists and is a file.
-    if( !kwiver::vital::file_exists( filename ) )
+    if( !viame::file_exists( filename ) )
     {
       VITAL_THROW( path_not_exists, filename );
     }
-    else if( kwiver::vital::file_is_directory( filename ) )
+    else if( viame::file_is_directory( filename ) )
     {
       VITAL_THROW( path_not_a_file, filename );
     }
@@ -59,14 +57,14 @@ image_io
   {
     // Make sure that the given file path's containing directory exists and is
     // actually a directory.
-    std::string containing_dir = kwiver::vital::filename_path(
-      kwiver::vital::collapse_full_path( filename ) );
+    std::string containing_dir = viame::filename_path(
+      viame::collapse_full_path( filename ) );
 
-    if( !kwiver::vital::file_exists( containing_dir ) )
+    if( !viame::file_exists( containing_dir ) )
     {
       VITAL_THROW( path_not_exists, containing_dir );
     }
-    else if( !kwiver::vital::file_is_directory( containing_dir ) )
+    else if( !viame::file_is_directory( containing_dir ) )
     {
       VITAL_THROW( path_not_a_directory, containing_dir );
     }
@@ -83,11 +81,11 @@ image_io
   if( !skip_path_validation_() )
   {
     // Make sure that the given file path exists and is a file.
-    if( !kwiver::vital::file_exists( filename ) )
+    if( !viame::file_exists( filename ) )
     {
       VITAL_THROW( path_not_exists, filename );
     }
-    else if( kwiver::vital::file_is_directory( filename ) )
+    else if( viame::file_is_directory( filename ) )
     {
       VITAL_THROW( path_not_a_file, filename );
     }
@@ -97,7 +95,7 @@ image_io
 }
 
 // ----------------------------------------------------------------------------
-const vital::algorithm_capabilities&
+const viame::algorithm_capabilities&
 image_io
 ::get_implementation_capabilities() const
 {
@@ -133,6 +131,4 @@ image_io
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

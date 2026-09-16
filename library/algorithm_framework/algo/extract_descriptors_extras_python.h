@@ -7,12 +7,12 @@
 
 #include <pybind11/pybind11.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 // Hand-written adjustments layered over the generated ExtractDescriptors
 // binding; must run after extract_descriptors(m).
 void extract_descriptors_extras( pybind11::module& m );
 
-} // namespace kwiver::vital::python
+} // namespace viame::python
 
 #endif

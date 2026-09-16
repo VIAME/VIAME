@@ -7,9 +7,7 @@
 
 #include "gpu.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 gpu_exception
@@ -33,6 +31,4 @@ gpu_memory_exception
 ::~gpu_memory_exception() noexcept
 {}
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

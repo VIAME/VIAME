@@ -24,16 +24,14 @@
 #include <cmath>
 #include <cstdint>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace io = viame::image_ops;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 
@@ -106,7 +104,7 @@ public:
     return parent.get_max_foreground_fract_thresh();
   }
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
   bool m_output_to_debug_dir = false;
 
   /// Constructor
@@ -435,7 +433,7 @@ public:
   setup_debug_dir()
   {
     LOG_DEBUG( m_logger, "Creating debug directory: " + m_debug_dir() );
-    kwiver::vital::make_directory( m_debug_dir() );
+    viame::make_directory( m_debug_dir() );
     m_output_to_debug_dir = true;
   }
 };
@@ -458,7 +456,7 @@ detect_motion_3frame_differencing
 /// Set this algo's properties via a config block
 void
 detect_motion_3frame_differencing
-::set_configuration_internal( [[maybe_unused]] vital::config_block_sptr config )
+::set_configuration_internal( [[maybe_unused]] viame::config_block_sptr config )
 {
   if( this->get_frame_separation() < 0 )
   {
@@ -518,7 +516,7 @@ detect_motion_3frame_differencing
 
 bool
 detect_motion_3frame_differencing
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -534,7 +532,7 @@ detect_motion_3frame_differencing
   if( !image )
   {
     VITAL_THROW(
-      vital::invalid_data,
+      viame::invalid_data,
       "Inputs to ocv::detect_motion_3frame_differencing are null" );
   }
 
@@ -545,12 +543,10 @@ detect_motion_3frame_differencing
 
   kv::image_of< uint8_t > const source( image->get_image() );
 
-  return std::make_shared< vital::simple_image_container >(
-    vital::image( d_->process_image( source ) ) );
+  return std::make_shared< viame::simple_image_container >(
+    viame::image( d_->process_image( source ) ) );
 }
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

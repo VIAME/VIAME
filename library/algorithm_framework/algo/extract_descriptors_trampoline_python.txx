@@ -19,26 +19,26 @@
 #include "out_parameter_python.txx"
 #include <viame/algorithm_framework/algo/extract_descriptors.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 template< class extract_descriptors_base =
-            kwiver::vital::algo::extract_descriptors >
+            viame::algo::extract_descriptors >
 class extract_descriptors_trampoline
   : public algorithm_trampoline< extract_descriptors_base >
 {
 public:
   using algorithm_trampoline< extract_descriptors_base >::algorithm_trampoline;
 
-  kwiver::vital::descriptor_set_sptr
+  viame::descriptor_set_sptr
   extract(
-    ::kwiver::vital::image_container_sptr image_data,
-    ::kwiver::vital::feature_set_sptr& features,
-    ::kwiver::vital::image_container_sptr image_mask ) const override
+    ::viame::image_container_sptr image_data,
+    ::viame::feature_set_sptr& features,
+    ::viame::image_container_sptr image_mask ) const override
   {
     pybind11::gil_scoped_acquire gil;
     pybind11::function overload =
       pybind11::get_override(
-        static_cast< kwiver::vital::algo::extract_descriptors const* >( this ),
+        static_cast< viame::algo::extract_descriptors const* >( this ),
         "extract" );
 
     if( !overload )
@@ -48,13 +48,13 @@ public:
         "\"extract_descriptors::extract\"" );
     }
 
-    return unpack_out_parameters< kwiver::vital::descriptor_set_sptr >(
+    return unpack_out_parameters< viame::descriptor_set_sptr >(
       overload( image_data, features, image_mask ),
       "extract_descriptors.extract", features );
   }
 };
 
-} // namespace kwiver::vital::python
+} // namespace viame::python
 
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

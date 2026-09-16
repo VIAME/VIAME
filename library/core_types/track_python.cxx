@@ -13,14 +13,12 @@
 
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
 py::object
-track_find_state( kwiver::vital::track& self, int64_t frame_id )
+track_find_state( viame::track& self, int64_t frame_id )
 {
   auto frame_itr = self.find( frame_id );
   if( frame_itr == self.end() )
@@ -33,7 +31,7 @@ track_find_state( kwiver::vital::track& self, int64_t frame_id )
 // Helper function to set an attribute from a Python object
 void
 track_set_attribute(
-  kwiver::vital::track& self, std::string const& key,
+  viame::track& self, std::string const& key,
   py::object value )
 {
   // Convert Python object to appropriate C++ type and store
@@ -62,7 +60,7 @@ track_set_attribute(
 
 // Helper function to get an attribute as a Python object
 py::object
-track_get_attribute( kwiver::vital::track const& self, std::string const& key )
+track_get_attribute( viame::track const& self, std::string const& key )
 {
   auto attrs = self.attributes();
   if( !attrs )
@@ -80,23 +78,23 @@ track_get_attribute( kwiver::vital::track const& self, std::string const& key )
   // Try to convert to known types
   if( data.type() == typeid( bool ) )
   {
-    return py::cast( kwiver::vital::any_cast< bool >( data ) );
+    return py::cast( viame::any_cast< bool >( data ) );
   }
   else if( data.type() == typeid( int ) )
   {
-    return py::cast( kwiver::vital::any_cast< int >( data ) );
+    return py::cast( viame::any_cast< int >( data ) );
   }
   else if( data.type() == typeid( int64_t ) )
   {
-    return py::cast( kwiver::vital::any_cast< int64_t >( data ) );
+    return py::cast( viame::any_cast< int64_t >( data ) );
   }
   else if( data.type() == typeid( double ) )
   {
-    return py::cast( kwiver::vital::any_cast< double >( data ) );
+    return py::cast( viame::any_cast< double >( data ) );
   }
   else if( data.type() == typeid( std::string ) )
   {
-    return py::cast( kwiver::vital::any_cast< std::string >( data ) );
+    return py::cast( viame::any_cast< std::string >( data ) );
   }
   else
   {
@@ -107,14 +105,14 @@ track_get_attribute( kwiver::vital::track const& self, std::string const& key )
 
 // Helper to check if attribute exists
 bool
-track_has_attribute( kwiver::vital::track const& self, std::string const& key )
+track_has_attribute( viame::track const& self, std::string const& key )
 {
   return self.has_attribute( key );
 }
 
 // Helper to get all attribute keys
 std::vector< std::string >
-track_attribute_keys( kwiver::vital::track const& self )
+track_attribute_keys( viame::track const& self )
 {
   std::vector< std::string > keys;
   auto attrs = self.attributes();
@@ -130,59 +128,57 @@ track_attribute_keys( kwiver::vital::track const& self )
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital::python;
+using namespace viame::python;
 PYBIND11_MODULE( track, m )
 {
-  py::class_< kwiver::vital::track_state,
-    std::shared_ptr< kwiver::vital::track_state > >( m, "TrackState" )
+  py::class_< viame::track_state,
+    std::shared_ptr< viame::track_state > >( m, "TrackState" )
     .def( py::init< int64_t >(), py::arg( "frame_id" ) )
     .def( py::self == py::self, py::arg( "other" ) )
     .def_property(
-      "frame_id", &kwiver::vital::track_state::frame,
-      &kwiver::vital::track_state::set_frame )
+      "frame_id", &viame::track_state::frame,
+      &viame::track_state::set_frame )
   ;
 
-  py::class_< kwiver::vital::track,
-    std::shared_ptr< kwiver::vital::track > >( m, "Track" )
+  py::class_< viame::track,
+    std::shared_ptr< viame::track > >( m, "Track" )
     .def(
     py::init(
       [](int64_t id){
-        auto track = kwiver::vital::track::create();
+        auto track = viame::track::create();
         track->set_id( id );
         return track;
       } ),
     py::arg( "id" ) = 0 )
-    .def( "all_frame_ids", &kwiver::vital::track::all_frame_ids )
+    .def( "all_frame_ids", &viame::track::all_frame_ids )
     .def(
       "append",
-      [](kwiver::vital::track& self,
-         std::shared_ptr< kwiver::vital::track_state > track_state){
+      [](viame::track& self,
+         std::shared_ptr< viame::track_state > track_state){
         return self.append( track_state );
       }, py::arg( "state" ) )
     .def(
-      "append", [](kwiver::vital::track& self, kwiver::vital::track& track){
+      "append", [](viame::track& self, viame::track& track){
         return self.append( track );
       }, py::arg( "track" ) )
     .def( "find_state", &track_find_state, py::arg( "frame_id" ) )
     .def(
-      "__iter__", [](const kwiver::vital::track& self){
+      "__iter__", [](const viame::track& self){
         return py::make_iterator( self.begin(), self.end() );
       }, py::keep_alive< 0, 1 >() )
-    .def( "__len__", &kwiver::vital::track::size )
+    .def( "__len__", &viame::track::size )
     .def( "__getitem__", &track_find_state, py::arg( "frame_id" ) )
     .def_property(
-      "id", &kwiver::vital::track::id,
-      &kwiver::vital::track::set_id )
-    .def_property_readonly( "size", &kwiver::vital::track::size )
-    .def_property_readonly( "is_empty", &kwiver::vital::track::empty )
-    .def_property_readonly( "first_frame", &kwiver::vital::track::first_frame )
-    .def_property_readonly( "last_frame", &kwiver::vital::track::last_frame )
+      "id", &viame::track::id,
+      &viame::track::set_id )
+    .def_property_readonly( "size", &viame::track::size )
+    .def_property_readonly( "is_empty", &viame::track::empty )
+    .def_property_readonly( "first_frame", &viame::track::first_frame )
+    .def_property_readonly( "last_frame", &viame::track::last_frame )
     .def(
-      "set_attribute", &kwiver::vital::python::track_set_attribute,
+      "set_attribute", &viame::python::track_set_attribute,
       py::arg( "key" ), py::arg( "value" ),
       R"(
       Set an attribute value for this track.
@@ -203,7 +199,7 @@ PYBIND11_MODULE( track, m )
           >>> track.set_attribute("is_verified", True)
       )" )
     .def(
-      "get_attribute", &kwiver::vital::python::track_get_attribute,
+      "get_attribute", &viame::python::track_get_attribute,
       py::arg( "key" ),
       R"(
       Get an attribute value from this track.
@@ -221,7 +217,7 @@ PYBIND11_MODULE( track, m )
           >>> species = track.get_attribute("species")
       )" )
     .def(
-      "has_attribute", &kwiver::vital::python::track_has_attribute,
+      "has_attribute", &viame::python::track_has_attribute,
       py::arg( "key" ),
       R"(
       Check if an attribute exists.
@@ -237,7 +233,7 @@ PYBIND11_MODULE( track, m )
           >>>     print(track.get_attribute("species"))
       )" )
     .def(
-      "attribute_keys", &kwiver::vital::python::track_attribute_keys,
+      "attribute_keys", &viame::python::track_attribute_keys,
       R"(
       Get list of all attribute keys.
 

@@ -11,7 +11,7 @@
 #include <sstream>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Easy way to automate bindings of templated classes.
 // For more information, see below link
@@ -27,7 +27,7 @@ declare_fundamental_matrix(
 
   const std::string pyclass_name = std::string( "FundamentalMatrix" ) +
                                    class_typestr;
-  typedef kwiver::vital::matrix_< 3, 3, T > matrix_t;
+  typedef viame::matrix_< 3, 3, T > matrix_t;
 
   py::class_< Class, std::shared_ptr< Class >, kv::fundamental_matrix >(
     m,

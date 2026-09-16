@@ -16,7 +16,7 @@ hello_world_detector::
 // -------------------------------------------------------------------------------------------------
 bool
 hello_world_detector::
-check_configuration( kwiver::vital::config_block_sptr config ) const
+check_configuration( viame::config_block_sptr config ) const
 {
   if( get_text().empty() )
   {
@@ -29,11 +29,11 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 
 
 // -------------------------------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 hello_world_detector::
-detect( kwiver::vital::image_container_sptr image_data ) const
+detect( viame::image_container_sptr image_data ) const
 {
-  auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
+  auto detected_set = std::make_shared< viame::detected_object_set >();
 
   LOG_INFO( logger(), "Text: " << get_text() );
 

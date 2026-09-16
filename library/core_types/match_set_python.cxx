@@ -9,10 +9,10 @@
 #include <viame/core_types/match_set.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
-typedef kwiver::vital::match match_t;
-typedef kwiver::vital::match_set match_set_t;
-typedef kwiver::vital::simple_match_set s_match_set_t;
+namespace kv = viame;
+typedef viame::match match_t;
+typedef viame::match_set match_set_t;
+typedef viame::simple_match_set s_match_set_t;
 
 PYBIND11_MODULE( match_set, m )
 {

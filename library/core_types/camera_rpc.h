@@ -3,8 +3,8 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::camera_rpc camera_rpc \endlink and
-///        \link kwiver::vital::camera_rpc_ camera_rpc_<T> \endlink classes
+/// \brief Header for \link viame::camera_rpc camera_rpc \endlink and
+///        \link viame::camera_rpc_ camera_rpc_<T> \endlink classes
 
 #ifndef VITAL_CAMERA_RPC_H_
 #define VITAL_CAMERA_RPC_H_
@@ -20,9 +20,7 @@
 #include <viame/core_types/vector.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 typedef matrix_< 4, 20, double > rpc_matrix;
 typedef matrix_< 4, 10, double > rpc_deriv_matrix;
@@ -85,7 +83,7 @@ protected:
     const vector_3d& pt, matrix_2x2d& J,
     vector_2d& norm_pt ) const = 0;
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 };
 
 /// A representation of a camera
@@ -206,8 +204,6 @@ protected:
   size_t image_height_;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_CAMERA_RPC_H_

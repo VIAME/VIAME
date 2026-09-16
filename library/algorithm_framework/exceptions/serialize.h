@@ -12,9 +12,7 @@
 
 #include <viame/algorithm_framework/exceptions/base.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 class VITAL_EXCEPTIONS_EXPORT serialization_exception
@@ -27,8 +25,6 @@ public:
   virtual ~serialization_exception() noexcept;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_CORE_EXCEPTIONS_SERIALIZATION_H_

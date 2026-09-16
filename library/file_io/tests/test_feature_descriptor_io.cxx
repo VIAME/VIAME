@@ -53,8 +53,8 @@
 #include <string>
 #include <vector>
 
-namespace kv = kwiver::vital;
-namespace core = kwiver::arrows::core;
+namespace kv = viame;
+namespace core = viame::core;
 
 namespace {
 

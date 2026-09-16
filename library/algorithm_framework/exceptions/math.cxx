@@ -7,9 +7,7 @@
 
 #include "math.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 math_exception
 ::math_exception() noexcept
@@ -51,6 +49,4 @@ invalid_matrix_operation
 ::~invalid_matrix_operation() noexcept
 {}
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame

@@ -25,18 +25,18 @@
 extern "C"
 VIAME_PROCESSES_DESCRIPTORS_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
-  using namespace sprokit;
-  static auto const module_name = kwiver::vital::plugin_manager::module_t( "viame_processes_descriptors" );
-  kwiver::vital::plugin_factory_handle_t fact_handle;
-    if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  using namespace viame::pipeline;
+  static auto const module_name = viame::plugin_manager::module_t( "viame_processes_descriptors" );
+  viame::plugin_factory_handle_t fact_handle;
+    if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
   // ---------------------------------------------------------------------------
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
   // `format_images_srm` registered here until upstream de7d0779f removed it:
   // nothing had used KWA since search indexes stopped writing it. It arrived
@@ -51,10 +51,10 @@ register_factories( kwiver::vital::registry& vpm )
   // the body: a parameter called `name` would be substituted inside it.
 #define VIAME_REGISTER_PROCESS( process_type, plugin, blurb )             \
   {                                                                      \
-    auto* imported = new sprokit::cpp_process_factory(                   \
+    auto* imported = new viame::pipeline::cpp_process_factory(                   \
       typeid( process_type ).name(),                                     \
-      sprokit::process::interface_name(),                                \
-      sprokit::create_new_process< process_type > );                     \
+      viame::pipeline::process::interface_name(),                                \
+      viame::pipeline::create_new_process< process_type > );                     \
                                                                          \
     imported->add_attribute( kvpf::PLUGIN_NAME, plugin )                 \
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
@@ -65,15 +65,15 @@ register_factories( kwiver::vital::registry& vpm )
   }
 
   VIAME_REGISTER_PROCESS(
-    kwiver::compute_track_descriptors_process, "compute_track_descriptors",
+    viame::compute_track_descriptors_process, "compute_track_descriptors",
     "Compute track descriptors on the input tracks or detections." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::perform_query_process, "perform_query",
+    viame::perform_query_process, "perform_query",
     "Perform a query." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::handle_descriptor_request_process, "handle_descriptor_request",
+    viame::handle_descriptor_request_process, "handle_descriptor_request",
     "Handle a new descriptor request, producing desired "
     "descriptors on the input." )
 
@@ -112,5 +112,5 @@ register_factories( kwiver::vital::registry& vpm )
 #undef VIAME_REGISTER_PROCESS
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  viame::pipeline::mark_process_module_as_loaded( vpm, module_name );
 }

@@ -12,7 +12,7 @@
  * \brief Implementation of the data dependent process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class data_dependent_process::priv
@@ -26,37 +26,37 @@ class data_dependent_process::priv
     bool configuring;
     bool type_set;
 
-    static kwiver::vital::config_block_key_t const config_reject;
-    static kwiver::vital::config_block_key_t const config_set_on_configure;
-    static kwiver::vital::config_block_value_t const default_reject;
-    static kwiver::vital::config_block_value_t const default_set_on_configure;
+    static viame::config_block_key_t const config_reject;
+    static viame::config_block_key_t const config_set_on_configure;
+    static viame::config_block_value_t const default_reject;
+    static viame::config_block_value_t const default_set_on_configure;
     static port_t const port_output;
 };
 
-kwiver::vital::config_block_key_t const data_dependent_process::priv::config_reject =
-  kwiver::vital::config_block_key_t("reject");
-kwiver::vital::config_block_key_t const data_dependent_process::priv::config_set_on_configure =
-  kwiver::vital::config_block_key_t("set_on_configure");
-kwiver::vital::config_block_value_t const data_dependent_process::priv::default_reject =
-  kwiver::vital::config_block_value_t("false");
-kwiver::vital::config_block_value_t const data_dependent_process::priv::default_set_on_configure =
-  kwiver::vital::config_block_value_t("true");
+viame::config_block_key_t const data_dependent_process::priv::config_reject =
+  viame::config_block_key_t("reject");
+viame::config_block_key_t const data_dependent_process::priv::config_set_on_configure =
+  viame::config_block_key_t("set_on_configure");
+viame::config_block_value_t const data_dependent_process::priv::default_reject =
+  viame::config_block_value_t("false");
+viame::config_block_value_t const data_dependent_process::priv::default_set_on_configure =
+  viame::config_block_value_t("true");
 process::port_t const data_dependent_process::priv::port_output = port_t("output");
 
 data_dependent_process
-::data_dependent_process(kwiver::vital::config_block_sptr const& config)
+::data_dependent_process(viame::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_reject,
     priv::default_reject,
-    kwiver::vital::config_block_description_t("Whether to reject type setting requests or not."));
+    viame::config_block_description_t("Whether to reject type setting requests or not."));
 
   declare_configuration_key(
     priv::config_set_on_configure,
     priv::default_set_on_configure,
-    kwiver::vital::config_block_description_t("Whether to set the type on configure or not."));
+    viame::config_block_description_t("Whether to set the type on configure or not."));
 
   bool const reject = config_value<bool>(priv::config_reject);
   bool const set_on_configure = config_value<bool>(priv::config_set_on_configure);

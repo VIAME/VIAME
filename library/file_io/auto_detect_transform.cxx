@@ -10,7 +10,7 @@
 namespace viame
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace kva = kv::algo;
 
 bool

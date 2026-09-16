@@ -68,7 +68,7 @@ public:
   double m_positive_min_overlap;
   double m_negative_max_overlap;
 
-  kwiver::vital::category_hierarchy_sptr m_classes;
+  viame::category_hierarchy_sptr m_classes;
   std::vector< std::unique_ptr< std::ofstream > > m_writers;
 };
 
@@ -109,7 +109,7 @@ extract_desc_ids_for_training_process
   d->m_positive_min_overlap = config_value_using_trait( positive_min_overlap );
   d->m_negative_max_overlap = config_value_using_trait( negative_max_overlap );
 
-  d->m_classes.reset( new kwiver::vital::category_hierarchy( d->m_category_file ) );
+  d->m_classes.reset( new viame::category_hierarchy( d->m_category_file ) );
   d->m_writers.resize( d->m_classes->size() + 1 );
 
   std::string filename = d->m_background_label + "." + d->m_output_extension;
@@ -150,10 +150,10 @@ extract_desc_ids_for_training_process
 ::_step()
 {
   bool timestamp_set = false;
-  kwiver::vital::timestamp timestamp;
+  viame::timestamp timestamp;
 
-  kwiver::vital::track_descriptor_set_sptr descriptors;
-  kwiver::vital::detected_object_set_sptr detections;
+  viame::track_descriptor_set_sptr descriptors;
+  viame::detected_object_set_sptr detections;
 
   if( has_input_port_edge_using_trait( timestamp ) )
   {
@@ -164,10 +164,10 @@ extract_desc_ids_for_training_process
   descriptors = grab_from_port_using_trait( track_descriptor_set );
   detections = grab_from_port_using_trait( detected_object_set );
 
-  for( kwiver::vital::track_descriptor_sptr desc : *descriptors )
+  for( viame::track_descriptor_sptr desc : *descriptors )
   {
     // Find bounding box for current frame
-    kwiver::vital::bounding_box_d desc_box( 0, 0, 0, 0 );
+    viame::bounding_box_d desc_box( 0, 0, 0, 0 );
 
     if( !timestamp_set && desc->get_history().size() == 1 )
     {
@@ -192,10 +192,10 @@ extract_desc_ids_for_training_process
 
     bool is_background = true;
 
-    for( kwiver::vital::detected_object_sptr det : *detections )
+    for( viame::detected_object_sptr det : *detections )
     {
       // Check type on detection, is it in our training set
-      kwiver::vital::detected_object_type_sptr type_sptr = det->type();
+      viame::detected_object_type_sptr type_sptr = det->type();
 
       std::string top_category;
       double top_score;
@@ -208,11 +208,11 @@ extract_desc_ids_for_training_process
       }
 
       // Check bounding box overlap with detection
-      const kwiver::vital::bounding_box_d& det_box =
+      const viame::bounding_box_d& det_box =
         det->bounding_box();
 
-      kwiver::vital::bounding_box_d intersect =
-        kwiver::vital::intersection( desc_box, det_box );
+      viame::bounding_box_d intersect =
+        viame::intersection( desc_box, det_box );
 
       // Print out in correct category file if match
       if( intersect.height() <= 0 || intersect.width() <= 0 )
@@ -253,9 +253,9 @@ void
 extract_desc_ids_for_training_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- inputs --

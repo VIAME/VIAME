@@ -12,6 +12,10 @@ set( viame_plugin_process_subdir   ${viame_plugin_subdir}/processes )
 
 # Vital first: everything below links it, and `core_types` is a subdirectory
 # of `algorithm_framework` in the build even though it is a sibling here.
+# Headers only, and nothing here depends on it: the old namespace names,
+# for one release (open decision 8).
+add_subdirectory( compat )
+
 add_subdirectory( algorithm_framework )
 add_subdirectory( pipeline_framework )
 

@@ -10,9 +10,7 @@
 #include <atomic>
 #include <cmath>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -123,6 +121,4 @@ utm_ups_zone( vector_3d const& lon_lat_alt )
   return utm_ups_zone( lon_lat_alt[ 0 ], lon_lat_alt[ 1 ] );
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

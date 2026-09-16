@@ -19,7 +19,7 @@ namespace viame {
  * \brief Prunes detections overlapping with regions identified by class string
  */
 class VIAME_CLASSIFIERS_EXPORT merge_detections_suppress_in_regions
-  : public kwiver::vital::algo::merge_detections
+  : public viame::algo::merge_detections
 {
 
 public:
@@ -60,7 +60,7 @@ public:
   virtual ~merge_detections_suppress_in_regions() = default;
 
   /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   /// Refine all input object detections
   /**
@@ -69,8 +69,8 @@ public:
    * \param sets Input detection sets
    * \returns vector of refined detections
    */
-  virtual kwiver::vital::detected_object_set_sptr
-  merge( std::vector< kwiver::vital::detected_object_set_sptr > const& sets ) const;
+  virtual viame::detected_object_set_sptr
+  merge( std::vector< viame::detected_object_set_sptr > const& sets ) const;
 
 private:
   bool compare_classes( const std::string& c1, const std::string& c2 ) const;

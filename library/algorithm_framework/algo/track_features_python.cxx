@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "track_features_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void track_features(py::module& m)
@@ -19,15 +19,15 @@ void track_features(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::track_features,
-               std::shared_ptr<kwiver::vital::algo::track_features>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::track_features,
+               std::shared_ptr<viame::algo::track_features>,
+               viame::algorithm,
                track_features_trampoline<> > instance(m,  "TrackFeatures");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::track_features::interface_name)
-    .def("track", &kwiver::vital::algo::track_features::track, py::doc(R"( Extend a previous set of feature tracks using the current frame
+    .def_static("interface_name", &viame::algo::track_features::interface_name)
+    .def("track", &viame::algo::track_features::track, py::doc(R"( Extend a previous set of feature tracks using the current frame
 
  \throws image_size_mismatch_exception
     When the given non-zero mask image does not match the size of the
@@ -42,7 +42,7 @@ void track_features(py::module& m)
                   value).
  \returns an updated set of feature tracks including the current frame)"), py::arg("prev_tracks"), py::arg("frame_number"), py::arg("image_data"), py::arg("mask"))
     ;
-  register_algorithm< kwiver::vital::algo::track_features > (instance);
+  register_algorithm< viame::algo::track_features > (instance);
 }
 
 }

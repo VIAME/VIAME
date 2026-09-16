@@ -9,11 +9,11 @@
 
 #include <viame/pipeline_framework/process.h>
 
-namespace kwiver
+namespace viame
 {
 
 class VIAME_PROCESSES_CLASSIFIERS_EXPORT merge_detection_sets_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 
 public:
@@ -24,7 +24,7 @@ public:
                "The input port names do not matter since they will be connected "
                "upon connection.")
 
-  merge_detection_sets_process( vital::config_block_sptr const& config );
+  merge_detection_sets_process( viame::config_block_sptr const& config );
   virtual ~merge_detection_sets_process();
 
 protected:
@@ -43,6 +43,6 @@ private:
 
 }; //end class merge_detection_sets_process
 
-} // end namespace
+} // namespace viame
 
 #endif /*_KWIVER_MERGE_DETECTION_SETS_PROCESS_H_*/

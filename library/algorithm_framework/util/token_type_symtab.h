@@ -11,9 +11,7 @@
 
 #include <map>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Symbol table token expander.
@@ -48,8 +46,6 @@ private:
   std::map< std::string, std::string > m_table;
 }; // end class token_type_symtab
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // _TOKEN_TYPE_SYMTAB_H_

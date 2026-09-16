@@ -25,7 +25,7 @@
 #include <set>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 using namespace viame::core;
 
 // =============================================================================

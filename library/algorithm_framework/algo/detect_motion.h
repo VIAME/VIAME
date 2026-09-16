@@ -13,15 +13,13 @@
 #include <viame/core_types/timestamp.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// \brief Abstract base class for motion detection algorithms.
 class VITAL_ALGO_EXPORT detect_motion
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   /// Return the name of this algorithm.
@@ -56,8 +54,6 @@ typedef std::shared_ptr< detect_motion > detect_motion_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_DETECT_MOTION_H

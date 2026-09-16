@@ -8,13 +8,11 @@
 
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Easy way to automate bindings of templated classes.
 // For more information, see below link
@@ -24,7 +22,7 @@ void
 declare_homogaphy( py::module& m, std::string const& typestr )
 {
   using Class = kv::homography_< T >;
-  using matrix_t = kwiver::vital::matrix_< 3, 3, T >;
+  using matrix_t = viame::matrix_< 3, 3, T >;
 
   const std::string pyclass_name = std::string( "Homography" ) + typestr;
 
@@ -53,11 +51,9 @@ declare_homogaphy( py::module& m, std::string const& typestr )
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital::python;
+using namespace viame::python;
 PYBIND11_MODULE( homography, m )
 {
   py::module::import( "kwiver.vital.types.transform_2d" );

@@ -4,9 +4,7 @@
 
 #include <viame/algorithm_framework/algo/compute_ref_homography.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -18,6 +16,4 @@ compute_ref_homography
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

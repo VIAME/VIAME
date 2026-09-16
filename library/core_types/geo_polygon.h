@@ -15,9 +15,7 @@
 
 #include <unordered_map>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Geo-polygon.
@@ -30,7 +28,7 @@ namespace vital {
 class VITAL_TYPES_EXPORT geo_polygon
 {
 public:
-  typedef kwiver::vital::polygon geo_raw_polygon_t;
+  typedef viame::polygon geo_raw_polygon_t;
 
   geo_polygon();
   geo_polygon( geo_raw_polygon_t const&, int crs );
@@ -92,8 +90,6 @@ bool operator==( geo_polygon const& lhs, geo_polygon const& rhs );
 VITAL_TYPES_EXPORT
 bool operator!=( geo_polygon const& lhs, geo_polygon const& rhs );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

@@ -31,7 +31,7 @@ namespace tools {
 
 namespace {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace fs = std::filesystem;
 typedef kv::plugin_factory kvpf;
 
@@ -212,7 +212,7 @@ check_pipe_file( fs::path const& path,
 
   try
   {
-    sprokit::pipeline_builder builder;
+    viame::pipeline::pipeline_builder builder;
 
     for( auto const& dir : search_paths )
     {

@@ -9,14 +9,14 @@
 /**
  * \file datum.cxx
  *
- * \brief Implementation of a piece of \link sprokit::datum data\endlink in the pipeline.
+ * \brief Implementation of a piece of \link viame::pipeline::datum data\endlink in the pipeline.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ------------------------------------------------------------------
 datum_t
-datum::new_datum(kwiver::vital::any const& dat)
+datum::new_datum(viame::any const& dat)
 {
   return datum_t(new datum(dat));
 }
@@ -69,7 +69,7 @@ datum
   return m_error;
 }
 
-static bool any_equal(kwiver::vital::any const& a, kwiver::vital::any const& b);
+static bool any_equal(viame::any const& a, viame::any const& b);
 
 // ------------------------------------------------------------------
 bool
@@ -141,7 +141,7 @@ datum
 
 // ------------------------------------------------------------------
 datum
-::datum(kwiver::vital::any const& dat)
+::datum(viame::any const& dat)
   : m_type(data)
   , m_error()
   , m_datum(dat)
@@ -211,7 +211,7 @@ bad_datum_cast_exception
 
 // ------------------------------------------------------------------
 bool
-any_equal(kwiver::vital::any const& a, kwiver::vital::any const& b)
+any_equal(viame::any const& a, viame::any const& b)
 {
   if (!a.has_value() && !b.has_value())
   {

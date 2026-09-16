@@ -5,7 +5,7 @@
 #include "embedded_pipeline_extension.h"
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
+namespace viame {
 
 embedded_pipeline_extension::
 embedded_pipeline_extension()
@@ -14,16 +14,16 @@ embedded_pipeline_extension()
 // ----------------------------------------------------------------------------
 void
 embedded_pipeline_extension::
-configure( [[maybe_unused]] kwiver::vital::config_block_sptr const conf )
+configure( [[maybe_unused]] viame::config_block_sptr const conf )
 { }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 embedded_pipeline_extension::
 get_configuration() const
 {
-  auto conf = kwiver::vital::config_block::empty_config();
+  auto conf = viame::config_block::empty_config();
   return conf;
 }
 
-} // end namespace kwiver
+} // namespace viame

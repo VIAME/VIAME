@@ -25,9 +25,7 @@
 #include <limits>
 #include <type_traits>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 template < unsigned R, unsigned C, typename T > class matrix_;
 
@@ -474,8 +472,6 @@ typedef vector_< 4, double > vector_4d;
 typedef vector_< 4, float >  vector_4f;
 /// \endcond
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

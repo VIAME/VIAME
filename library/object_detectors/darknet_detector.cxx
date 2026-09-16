@@ -32,7 +32,7 @@ namespace viame {
 
 namespace {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // ----------------------------------------------------------------------------
 /// The `image_t` darknet's own `cv::Mat` overload would have built.
@@ -169,14 +169,14 @@ public:
     double scale2;
   };
 
-  std::vector< kwiver::vital::detected_object_set_sptr > process_images(
-    const std::vector< kwiver::vital::image >& images );
+  std::vector< viame::detected_object_set_sptr > process_images(
+    const std::vector< viame::image >& images );
 
-  kwiver::vital::detected_object_set_sptr scale_detections(
-    const kwiver::vital::detected_object_set_sptr detections,
+  viame::detected_object_set_sptr scale_detections(
+    const viame::detected_object_set_sptr detections,
     const region_info& roi );
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 };
 
 
@@ -200,7 +200,7 @@ darknet_detector
 // -----------------------------------------------------------------------------
 void
 darknet_detector
-::set_configuration_internal( kwiver::vital::config_block_sptr config )
+::set_configuration_internal( viame::config_block_sptr config )
 {
   // Copy config params from class members to priv
   d->m_net_config  = c_net_config;
@@ -245,7 +245,7 @@ darknet_detector
 // -----------------------------------------------------------------------------
 bool
 darknet_detector
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   std::string net_config = config->get_value< std::string >( "net_config" );
   std::string class_file = config->get_value< std::string >( "class_names" );
@@ -255,13 +255,13 @@ darknet_detector
   if( net_config.empty() )
   {
     std::stringstream str;
-    kwiver::vital::config_block_formatter fmt( config );
+    viame::config_block_formatter fmt( config );
     fmt.print( str );
     LOG_ERROR( logger(), "Required net config file not specified. "
       "Configuration is as follows:\n" << str.str() );
     success = false;
   }
-  else if( !kwiver::vital::file_exists( net_config ) )
+  else if( !viame::file_exists( net_config ) )
   {
     LOG_ERROR( logger(), "net config file \"" << net_config << "\" not found." );
     success = false;
@@ -270,13 +270,13 @@ darknet_detector
   if( class_file.empty() )
   {
     std::stringstream str;
-    kwiver::vital::config_block_formatter fmt( config );
+    viame::config_block_formatter fmt( config );
     fmt.print( str );
     LOG_ERROR( logger(), "Required class name list file not specified, "
       "Configuration is as follows:\n" << str.str() );
     success = false;
   }
-  else if( !kwiver::vital::file_exists( class_file ) )
+  else if( !viame::file_exists( class_file ) )
   {
     LOG_ERROR( logger(), "class names file \"" << class_file << "\" not found." );
     success = false;
@@ -287,19 +287,19 @@ darknet_detector
 
 
 // -----------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 darknet_detector
-::detect( kwiver::vital::image_container_sptr image_data ) const
+::detect( viame::image_container_sptr image_data ) const
 {
-  kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
+  viame::scoped_cpu_timer t( "Time to Detect Objects" );
 
   if( !image_data )
   {
     LOG_WARN( d->m_logger, "Input image is empty." );
-    return std::make_shared< kwiver::vital::detected_object_set >();
+    return std::make_shared< viame::detected_object_set >();
   }
 
-  const kwiver::vital::image source_image = image_data->get_image();
+  const viame::image source_image = image_data->get_image();
 
   const int image_width = static_cast< int >( source_image.width() );
   const int image_height = static_cast< int >( source_image.height() );
@@ -307,7 +307,7 @@ darknet_detector
   if( image_width == 0 || image_height == 0 )
   {
     LOG_WARN( d->m_logger, "Input image is empty." );
-    return std::make_shared< kwiver::vital::detected_object_set >();
+    return std::make_shared< viame::detected_object_set >();
   }
   else if( d->m_resize_option == "adaptive" )
   {
@@ -321,9 +321,9 @@ darknet_detector
     }
   }
 
-  kwiver::vital::image resized_image;
+  viame::image resized_image;
 
-  kwiver::vital::detected_object_set_sptr detections;
+  viame::detected_object_set_sptr detections;
 
   // resizes image if enabled
   double scale_factor = 1.0;
@@ -347,16 +347,16 @@ darknet_detector
   // configuration key is still there and still means this.
   if( d->m_gs_to_rgb && resized_image.depth() == 1 )
   {
-    resized_image = kwiver::vital::image( image_ops::gray_to_rgb(
-      kwiver::vital::image_of< uint8_t >( resized_image ) ) );
+    resized_image = viame::image( image_ops::gray_to_rgb(
+      viame::image_of< uint8_t >( resized_image ) ) );
   }
 
   // Run detector
-  detections = std::make_shared< kwiver::vital::detected_object_set >();
+  detections = std::make_shared< viame::detected_object_set >();
 
   image_rect original_dims( 0, 0, image_width, image_height );
 
-  std::vector< kwiver::vital::image > regions_to_process;
+  std::vector< viame::image > regions_to_process;
   std::vector< priv::region_info > region_properties;
 
   const int resized_width = static_cast< int >( resized_image.width() );
@@ -390,12 +390,12 @@ darknet_detector
                                  (ti-li) / scale_factor,
                                  (tj-lj) / scale_factor );
 
-        kwiver::vital::image cropped_chip =
+        viame::image cropped_chip =
           crop_image( resized_image, resized_roi );
 
         double scaled_crop_scale = 1.0;
 
-        kwiver::vital::image scaled_crop = scale_image_maintaining_ar(
+        viame::image scaled_crop = scale_image_maintaining_ar(
           cropped_chip, d->m_net->get_net_width(), d->m_net->get_net_height(),
           true, scaled_crop_scale );
 
@@ -415,14 +415,14 @@ darknet_detector
     {
       double scaled_original_scale = 1.0;
 
-      kwiver::vital::image scaled_original = scale_image_maintaining_ar(
+      viame::image scaled_original = scale_image_maintaining_ar(
         source_image, d->m_net->get_net_width(), d->m_net->get_net_height(),
         true, scaled_original_scale );
 
       if( d->m_gs_to_rgb && scaled_original.depth() == 1 )
       {
-        scaled_original = kwiver::vital::image( image_ops::gray_to_rgb(
-          kwiver::vital::image_of< uint8_t >( scaled_original ) ) );
+        scaled_original = viame::image( image_ops::gray_to_rgb(
+          viame::image_of< uint8_t >( scaled_original ) ) );
       }
 
       regions_to_process.push_back( scaled_original );
@@ -440,14 +440,14 @@ darknet_detector
     unsigned batch_size = std::min( max_count,
       static_cast< unsigned >( regions_to_process.size() ) - i );
 
-    std::vector< kwiver::vital::image > imgs;
+    std::vector< viame::image > imgs;
 
     for( unsigned j = 0; j < batch_size; j++ )
     {
       imgs.push_back( regions_to_process[ i + j ] );
     }
 
-    std::vector< kwiver::vital::detected_object_set_sptr > out = d->process_images( imgs );
+    std::vector< viame::detected_object_set_sptr > out = d->process_images( imgs );
 
     for( unsigned j = 0; j < batch_size; j++ )
     {
@@ -460,11 +460,11 @@ darknet_detector
 
 
 // -----------------------------------------------------------------------------
-std::vector< kwiver::vital::detected_object_set_sptr >
+std::vector< viame::detected_object_set_sptr >
 darknet_detector::priv
-::process_images( const std::vector< kwiver::vital::image >& images )
+::process_images( const std::vector< viame::image >& images )
 {
-  std::vector< kwiver::vital::detected_object_set_sptr > output;
+  std::vector< viame::detected_object_set_sptr > output;
 
   for( unsigned i = 0; i < images.size(); i++ )
   {
@@ -493,16 +493,16 @@ darknet_detector::priv
       box.h = static_cast< unsigned >( box.h * height_ratio );
     }
 
-    auto detected_objects = std::make_shared< kwiver::vital::detected_object_set >();
+    auto detected_objects = std::make_shared< viame::detected_object_set >();
 
     for( const auto& det : darknet_output )
     {
-      kwiver::vital::bounding_box_d bbox( det.x, det.y, det.x + det.w, det.y + det.h );
-      auto dot = std::make_shared< kwiver::vital::detected_object_type >(
+      viame::bounding_box_d bbox( det.x, det.y, det.x + det.w, det.y + det.h );
+      auto dot = std::make_shared< viame::detected_object_type >(
         m_names[ det.obj_id ], det.prob );
 
       detected_objects->add(
-        std::make_shared< kwiver::vital::detected_object >(
+        std::make_shared< viame::detected_object >(
           bbox, det.prob, dot ) );
     }
 
@@ -514,25 +514,25 @@ darknet_detector::priv
 
 
 // -----------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 darknet_detector::priv
 ::scale_detections(
-  const kwiver::vital::detected_object_set_sptr dets,
+  const viame::detected_object_set_sptr dets,
   const region_info& info )
 {
   if( info.scale1 != 1.0 )
   {
-    kwiver::vital::scale_detections( dets, info.scale1 );
+    viame::scale_detections( dets, info.scale1 );
   }
 
   if( info.shiftx != 0 || info.shifty != 0 )
   {
-    kwiver::vital::shift_detections( dets, info.shiftx, info.shifty );
+    viame::shift_detections( dets, info.shiftx, info.shifty );
   }
 
   if( info.scale2 != 1.0 )
   {
-    kwiver::vital::scale_detections( dets, info.scale2 );
+    viame::scale_detections( dets, info.scale2 );
   }
 
   const int dist = info.edge_filter;
@@ -544,7 +544,7 @@ darknet_detector::priv
 
   const image_rect& roi = info.original_roi;
 
-  std::vector< kwiver::vital::detected_object_sptr > filtered_dets;
+  std::vector< viame::detected_object_sptr > filtered_dets;
 
   for( auto det : *dets )
   {
@@ -572,8 +572,8 @@ darknet_detector::priv
     filtered_dets.push_back( det );
   }
 
-  return kwiver::vital::detected_object_set_sptr(
-    new kwiver::vital::detected_object_set( filtered_dets ) );
+  return viame::detected_object_set_sptr(
+    new viame::detected_object_set( filtered_dets ) );
 }
 
 

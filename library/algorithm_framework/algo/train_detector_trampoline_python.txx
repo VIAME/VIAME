@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/train_detector.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class train_detector_base = kwiver::vital::algo::train_detector >
+template< class train_detector_base = viame::algo::train_detector >
 class train_detector_trampoline
     : public algorithm_trampoline< train_detector_base >
 {
@@ -22,22 +22,22 @@ class train_detector_trampoline
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
   void
-  add_data_from_disk(::kwiver::vital::category_hierarchy_sptr object_labels, ::std::vector<std::basic_string<char> > train_image_names, ::std::vector<std::shared_ptr<kwiver::vital::detected_object_set> > train_groundtruth, ::std::vector<std::basic_string<char> > test_image_names, ::std::vector<std::shared_ptr<kwiver::vital::detected_object_set> > test_groundtruth) override
+  add_data_from_disk(::viame::category_hierarchy_sptr object_labels, ::std::vector<std::basic_string<char> > train_image_names, ::std::vector<std::shared_ptr<viame::detected_object_set> > train_groundtruth, ::std::vector<std::basic_string<char> > test_image_names, ::std::vector<std::shared_ptr<viame::detected_object_set> > test_groundtruth) override
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::train_detector,
+      viame::algo::train_detector,
       add_data_from_disk,
       object_labels, train_image_names, train_groundtruth, test_image_names, test_groundtruth
       );
   }
 
   void
-  add_data_from_memory(::kwiver::vital::category_hierarchy_sptr object_labels, ::std::vector<std::shared_ptr<kwiver::vital::image_container> > train_images, ::std::vector<std::shared_ptr<kwiver::vital::detected_object_set> > train_groundtruth, ::std::vector<std::shared_ptr<kwiver::vital::image_container> > test_images, ::std::vector<std::shared_ptr<kwiver::vital::detected_object_set> > test_groundtruth) override
+  add_data_from_memory(::viame::category_hierarchy_sptr object_labels, ::std::vector<std::shared_ptr<viame::image_container> > train_images, ::std::vector<std::shared_ptr<viame::detected_object_set> > train_groundtruth, ::std::vector<std::shared_ptr<viame::image_container> > test_images, ::std::vector<std::shared_ptr<viame::detected_object_set> > test_groundtruth) override
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::train_detector,
+      viame::algo::train_detector,
       add_data_from_memory,
       object_labels, train_images, train_groundtruth, test_images, test_groundtruth
       );
@@ -49,12 +49,12 @@ class train_detector_trampoline
     using update_model_return_t = std::map<std::basic_string<char>, std::basic_string<char> >;
     PYBIND11_OVERLOAD_PURE(
       update_model_return_t,
-      kwiver::vital::algo::train_detector,
+      viame::algo::train_detector,
       update_model,
       
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

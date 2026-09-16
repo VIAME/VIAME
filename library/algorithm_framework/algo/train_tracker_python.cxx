@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "train_tracker_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void train_tracker(py::module& m)
@@ -19,15 +19,15 @@ void train_tracker(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::train_tracker,
-               std::shared_ptr<kwiver::vital::algo::train_tracker>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::train_tracker,
+               std::shared_ptr<viame::algo::train_tracker>,
+               viame::algorithm,
                train_tracker_trampoline<> > instance(m,  "TrainTracker");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::train_tracker::interface_name)
-    .def("add_data_from_disk", &kwiver::vital::algo::train_tracker::add_data_from_disk, py::doc(R"( Train a tracking model given a list of images and tracks
+    .def_static("interface_name", &viame::algo::train_tracker::interface_name)
+    .def("add_data_from_disk", &viame::algo::train_tracker::add_data_from_disk, py::doc(R"( Train a tracking model given a list of images and tracks
 
  This varient is geared towards offline training.
 
@@ -36,7 +36,7 @@ void train_tracker(py::module& m)
  \param train_groundtruth track annotations loaded for each sequence
  \param test_image_list list of test image filenames
  \param test_groundtruth track annotations loaded for each sequence)"), py::arg("object_labels"), py::arg("train_image_names"), py::arg("train_groundtruth"), py::arg("test_image_names"), py::arg("test_groundtruth"))
-    .def("add_data_from_memory", &kwiver::vital::algo::train_tracker::add_data_from_memory, py::doc(R"( Train a tracking model given images and tracks
+    .def("add_data_from_memory", &viame::algo::train_tracker::add_data_from_memory, py::doc(R"( Train a tracking model given images and tracks
 
  This varient is geared towards online training, and is not required
  to be defined.
@@ -49,7 +49,7 @@ void train_tracker(py::module& m)
  \param test_images optional vector of input test images
  \param test_groundtruth optional track annotations loaded for each test
  sequence)"), py::arg("object_labels"), py::arg("train_images"), py::arg("train_groundtruth"), py::arg("test_images"), py::arg("test_groundtruth"))
-    .def("update_model", &kwiver::vital::algo::train_tracker::update_model, py::doc(R"( Train a tracking model given all loaded data
+    .def("update_model", &viame::algo::train_tracker::update_model, py::doc(R"( Train a tracking model given all loaded data
 
  This varient is geared towards either offline or online training
  depending on the implementation.
@@ -59,7 +59,7 @@ void train_tracker(py::module& m)
  \returns Map containing locations of final model files or other
           general configuration parameters for model inference.)"))
     ;
-  register_algorithm< kwiver::vital::algo::train_tracker > (instance);
+  register_algorithm< viame::algo::train_tracker > (instance);
 }
 
 }

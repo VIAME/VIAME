@@ -14,9 +14,7 @@
 #include <viame/core_types/camera_perspective.h>
 #include <viame/core_types/camera_rpc.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace mvg {
 
@@ -32,10 +30,10 @@ namespace mvg {
 ///  \return a 3D triangulated point location
 template < typename T >
 VIAME_MEASUREMENT_EXPORT
-vital::vector_< 3, T >
+viame::vector_< 3, T >
 triangulate_inhomog(
-  const std::vector< vital::simple_camera_perspective >& cameras,
-  const std::vector< vital::vector_< 2, T > >& points );
+  const std::vector< viame::simple_camera_perspective >& cameras,
+  const std::vector< viame::vector_< 2, T > >& points );
 
 /// Triangulate a 3D point from a set of cameras and 2D image points
 ///
@@ -53,12 +51,12 @@ triangulate_inhomog(
 /// \return a 3D triangulated point location
 template < typename T >
 VIAME_MEASUREMENT_EXPORT
-vital::vector_< 3, T >
+viame::vector_< 3, T >
 triangulate_fast_two_view(
-  const vital::simple_camera_perspective& camera0,
-  const vital::simple_camera_perspective& camera1,
-  const vital::vector_< 2, T >& point0,
-  const vital::vector_< 2, T >& point1 );
+  const viame::simple_camera_perspective& camera0,
+  const viame::simple_camera_perspective& camera1,
+  const viame::vector_< 2, T >& point0,
+  const viame::vector_< 2, T >& point1 );
 
 /// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
 ///
@@ -72,10 +70,10 @@ triangulate_fast_two_view(
 ///  \return a homogeneous 3D triangulated point location
 template < typename T >
 VIAME_MEASUREMENT_EXPORT
-vital::vector_< 4, T >
+viame::vector_< 4, T >
 triangulate_homog(
-  const std::vector< vital::simple_camera_perspective >& cameras,
-  const std::vector< vital::vector_< 2, T > >& points );
+  const std::vector< viame::simple_camera_perspective >& cameras,
+  const std::vector< viame::vector_< 2, T > >& points );
 
 /// Triangulate a 3D point from a set of RPC cameras and 2D image points
 ///
@@ -87,15 +85,13 @@ triangulate_homog(
 ///  \return a 3D triangulated point location
 template < typename T >
 VIAME_MEASUREMENT_EXPORT
-vital::vector_< 3, T >
+viame::vector_< 3, T >
 triangulate_rpc(
-  const std::vector< vital::simple_camera_rpc >& cameras,
-  const std::vector< vital::vector_< 2, T > >& points );
+  const std::vector< viame::simple_camera_rpc >& cameras,
+  const std::vector< viame::vector_< 2, T > >& points );
 
-} // end namespace mvg
+} // namespace mvg
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

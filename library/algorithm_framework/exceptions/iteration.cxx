@@ -9,9 +9,7 @@
 
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 stop_iteration_exception
@@ -25,6 +23,4 @@ stop_iteration_exception
   m_what = ss.str();
 }
 
-} // namespace vital
-
-}   // end namespaces
+} // namespace viame

@@ -7,9 +7,7 @@
 
 #include "query_track_descriptor_set.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ query_track_descriptor_set
 
 } // namespace algo
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame

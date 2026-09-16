@@ -11,13 +11,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-typedef kwiver::vital::image image_t;
-typedef kwiver::vital::image_pixel_traits pixel_traits;
+typedef viame::image image_t;
+typedef viame::image_pixel_traits pixel_traits;
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -58,7 +56,7 @@ new_image_from_numpy( py::array_t< T > array )
 
   // Determine if the type has numeric_limits, is integral, and / or is signed
   // Note: the following function does not handle float16. Should it?
-  pixel_traits traits = kwiver::vital::image_pixel_traits_of< T >();
+  pixel_traits traits = viame::image_pixel_traits_of< T >();
 
   // numpy images are in height x width format by default (row major)
   size_t height = info.shape[ 0 ];
@@ -103,8 +101,6 @@ py::object asarray( image_t img );
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

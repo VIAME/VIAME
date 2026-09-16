@@ -8,7 +8,7 @@
 #include <viame/pipeline_framework/process.h>
 #include "viame_processes_video_io_export.h"
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -23,14 +23,14 @@ namespace kwiver {
  * \oport{time}
  */
 class VIAME_PROCESSES_VIDEO_IO_EXPORT frame_list_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "frame_list_input",
                "Reads a list of image file names and generates stream of "
                "images and associated time stamps." )
 
-  frame_list_process( kwiver::vital::config_block_sptr const& config );
+  frame_list_process( viame::config_block_sptr const& config );
   virtual ~frame_list_process();
 
 protected:
@@ -46,6 +46,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class frame_list_process
 
-}  // end namespace
+} // namespace viame
 
 #endif /* _KWIVER_FRAME_LIST_PROCESS_H_ */

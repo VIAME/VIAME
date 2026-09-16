@@ -9,9 +9,7 @@
 #include <viame/core_types/any.h>
 #include <viame/core_types/object_track_set.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace python {
 
@@ -20,18 +18,16 @@ serialize_object_track_set( py::module& m )
 {
   m.def(
     "serialize_object_track_set",
-    &kwiver::python::arrows::json::serialize<
-      kwiver::vital::object_track_set_sptr,
-      kwiver::arrows::serialize::json::object_track_set > );
+    &viame::python::arrows::json::serialize<
+      viame::object_track_set_sptr,
+      viame::serialize::json::object_track_set > );
   m.def(
     "deserialize_object_track_set",
-    &kwiver::python::arrows::json::deserialize<
-      kwiver::vital::object_track_set_sptr,
-      kwiver::arrows::serialize::json::object_track_set > );
+    &viame::python::arrows::json::deserialize<
+      viame::object_track_set_sptr,
+      viame::serialize::json::object_track_set > );
 }
 
 } // namespace python
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame

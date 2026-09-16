@@ -2013,3 +2013,37 @@ and it is not correctness: the wheel that comes out has the ops. Installing
 ninja -- `ninja-build` in `install_deps_apt`, or the `ninja` wheel in the
 locks -- should cut it to the machine's job count, and is worth measuring
 against a build where nothing else changed.
+
+### 2.16 What the namespace rename touched that a rename should not have
+
+P11-T01 renamed `kwiver::vital` to `viame`, `kwiver::arrows::<a>` to
+`viame::<a>` and `sprokit` to `viame::pipeline`, in 1216 files. Three things
+in the tree turned out not to be namespace text at all, and each broke the
+build in its own way:
+
+- **A qualified name split across a macro's line continuation.**
+  `KWIVER_UNIQUE_PTR` in `pluggable_macro_magic.h` wrote `&kwiver::` on one
+  line and `vital::` on the next. Rewriting a line at a time made
+  `viame::viame::`, which compiles nowhere. It was the only one; the script
+  now reports a file whose line ends in a namespace qualifier and a
+  backslash rather than joining it silently.
+
+- **Two implementations of the same functions, told apart only by their
+  namespace.** `kwiver::vital::read_krtd_file` and VIAME's own
+  `viame::read_krtd_file` were the same KRTD camera IO, imported once and
+  written once, differing in whitespace. With both namespaces spelled
+  `viame` they became one symbol defined twice, and the link said so. The
+  imported copy, `library/algorithm_framework/io/camera_io.{h,cxx}`, had no
+  in-tree consumer and is deleted; `library/file_io/camera_io.*`, which
+  `camera_rig_io.cxx` and `calibrate_cameras_from_tracks_process.cxx` use,
+  stays. The install manifest lost a header because of it.
+
+- **An interface whose identity is its mangled C++ type name.**
+  `embedded_pipeline_extension` registers under `typeid(T).name()` rather
+  than a declared `interface_name()`, so the registry key
+  `N6kwiver27embedded_pipeline_extensionE` became
+  `N5viame27embedded_pipeline_extensionE` -- same algorithm, `test`, under a
+  new key. `plugin_factory.h` says the accessor exists so that names do not
+  depend on the mangling; this interface does not use it. Anything outside
+  VIAME that looked up that key by string has to change, which is a thing
+  the migration guide should say.

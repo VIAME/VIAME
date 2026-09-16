@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/image_filter.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class image_filter_base = kwiver::vital::algo::image_filter >
+template< class image_filter_base = viame::algo::image_filter >
 class image_filter_trampoline
     : public algorithm_trampoline< image_filter_base >
 {
@@ -21,17 +21,17 @@ class image_filter_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::image_container_sptr
-  filter(::kwiver::vital::image_container_sptr image_data) override
+  viame::image_container_sptr
+  filter(::viame::image_container_sptr image_data) override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::image_container_sptr,
-      kwiver::vital::algo::image_filter,
+      viame::image_container_sptr,
+      viame::algo::image_filter,
       filter,
       image_data
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

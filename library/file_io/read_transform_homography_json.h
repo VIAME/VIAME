@@ -26,7 +26,7 @@ namespace viame
 /// which may be null when unfitted). This reader selects one pair and
 /// direction and returns it as a homography transform.
 class VIAME_FILE_IO_EXPORT read_transform_homography_json
-  : public kwiver::vital::algo::transform_2d_io
+  : public viame::algo::transform_2d_io
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -50,7 +50,7 @@ public:
   virtual ~read_transform_homography_json() = default;
 
   virtual bool check_configuration(
-    kwiver::vital::config_block_sptr config ) const override;
+    viame::config_block_sptr config ) const override;
 
 private:
   /// Implementation specific load functionality.
@@ -58,7 +58,7 @@ private:
    * \param filename the path to the file the load
    * \returns a transform instance referring to the loaded transform
    */
-  virtual kwiver::vital::transform_2d_sptr load_(
+  virtual viame::transform_2d_sptr load_(
     std::string const& filename ) const;
 
   /// Implementation specific save functionality.
@@ -67,7 +67,7 @@ private:
    * \param data the transform instance referring to the transform to write
    */
   virtual void save_( std::string const& filename,
-                      kwiver::vital::transform_2d_sptr data ) const;
+                      viame::transform_2d_sptr data ) const;
 };
 
 } // end namespace viame

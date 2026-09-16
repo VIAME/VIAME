@@ -6,9 +6,7 @@
 
 #include <utility>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 activity
 ::activity()
@@ -17,8 +15,8 @@ activity
     m_type{ nullptr },
     m_confidence{ -1.0 },
     m_participants{ nullptr },
-    m_start_frame{ kwiver::vital::timestamp( -1, -1 ) },
-    m_end_frame{ kwiver::vital::timestamp( -1, -1 ) }
+    m_start_frame{ viame::timestamp( -1, -1 ) },
+    m_end_frame{ viame::timestamp( -1, -1 ) }
 {}
 
 activity
@@ -27,9 +25,9 @@ activity
   activity_label_t label,
   double confidence,
   activity_type_sptr classifications,
-  kwiver::vital::timestamp start,
-  kwiver::vital::timestamp end,
-  kwiver::vital::object_track_set_sptr participants )
+  viame::timestamp start,
+  viame::timestamp end,
+  viame::object_track_set_sptr participants )
   : m_id{ id },
     m_label{ label },
     m_type{ classifications },
@@ -95,7 +93,7 @@ activity
   m_confidence = confidence;
 }
 
-kwiver::vital::timestamp
+viame::timestamp
 activity
 ::start() const
 {
@@ -104,12 +102,12 @@ activity
 
 void
 activity
-::set_start( kwiver::vital::timestamp start_frame )
+::set_start( viame::timestamp start_frame )
 {
   m_start_frame = start_frame;
 }
 
-kwiver::vital::timestamp
+viame::timestamp
 activity
 ::end() const
 {
@@ -118,19 +116,19 @@ activity
 
 void
 activity
-::set_end( kwiver::vital::timestamp end_frame )
+::set_end( viame::timestamp end_frame )
 {
   m_end_frame = end_frame;
 }
 
-std::pair< kwiver::vital::timestamp, kwiver::vital::timestamp >
+std::pair< viame::timestamp, viame::timestamp >
 activity
 ::duration() const
 {
   return std::make_pair( m_start_frame, m_end_frame );
 }
 
-kwiver::vital::object_track_set_sptr
+viame::object_track_set_sptr
 activity
 ::participants() const
 {
@@ -139,11 +137,9 @@ activity
 
 void
 activity
-::set_participants( kwiver::vital::object_track_set_sptr participants )
+::set_participants( viame::object_track_set_sptr participants )
 {
   m_participants = participants;
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

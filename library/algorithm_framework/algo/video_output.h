@@ -28,9 +28,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -39,7 +37,7 @@ namespace algo {
 /// This class represents an abstract interface for writing videos. Once the
 /// video is opened, frames may be added in order.
 class VITAL_ALGO_EXPORT video_output
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   /// Writer supports a global frame rate.
@@ -110,8 +108,8 @@ public:
   /// \throws video_stream_exception
   ///   Thrown if is an error in the video stream.
   virtual void add_image(
-    kwiver::vital::image_container_sptr const& image,
-    kwiver::vital::timestamp const& ts ) = 0;
+    viame::image_container_sptr const& image,
+    viame::timestamp const& ts ) = 0;
 
   /// Add a raw frame image to the video stream.
   ///
@@ -132,7 +130,7 @@ public:
   ///
   /// \throws video_stream_exception
   ///   Thrown if is an error in the video stream.
-  virtual void add_metadata( kwiver::vital::metadata const& md ) = 0;
+  virtual void add_metadata( viame::metadata const& md ) = 0;
 
   /// Add a frame of raw metadata to the video stream.
   ///
@@ -155,7 +153,7 @@ public:
   /// open().
   ///
   /// \return Implementation video settings, or \c nullptr if none are needed.
-  virtual vital::video_settings_sptr implementation_settings() const;
+  virtual viame::video_settings_sptr implementation_settings() const;
 
   /// Return capabilities of concrete implementation.
   ///
@@ -177,8 +175,6 @@ using video_output_sptr = std::shared_ptr< video_output >;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

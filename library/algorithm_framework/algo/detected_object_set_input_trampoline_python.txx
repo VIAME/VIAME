@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/detected_object_set_input.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class detected_object_set_input_base = kwiver::vital::algo::detected_object_set_input >
+template< class detected_object_set_input_base = viame::algo::detected_object_set_input >
 class detected_object_set_input_trampoline
     : public algorithm_trampoline< detected_object_set_input_base >
 {
@@ -26,7 +26,7 @@ class detected_object_set_input_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::detected_object_set_input,
+      viame::algo::detected_object_set_input,
       new_stream,
       
       );
@@ -37,7 +37,7 @@ class detected_object_set_input_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::detected_object_set_input,
+      viame::algo::detected_object_set_input,
       open,
       filename
       );
@@ -48,23 +48,23 @@ class detected_object_set_input_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::detected_object_set_input,
+      viame::algo::detected_object_set_input,
       close,
       
       );
   }
 
   bool
-  read_set(::kwiver::vital::detected_object_set_sptr & set, ::std::string & image_name) override
+  read_set(::viame::detected_object_set_sptr & set, ::std::string & image_name) override
   {
     PYBIND11_OVERLOAD_PURE(
       bool,
-      kwiver::vital::algo::detected_object_set_input,
+      viame::algo::detected_object_set_input,
       read_set,
       set, image_name
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

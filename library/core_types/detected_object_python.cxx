@@ -12,13 +12,11 @@
 
 #include <stdexcept>
 
-typedef kwiver::vital::detected_object det_obj;
+typedef viame::detected_object det_obj;
 
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -28,8 +26,8 @@ std::shared_ptr< det_obj >
 new_detected_object(
   bounding_box< double > bbox,
   double conf,
-  kwiver::vital::detected_object_type_sptr type,
-  kwiver::vital::image_container_sptr mask )
+  viame::detected_object_type_sptr type,
+  viame::image_container_sptr mask )
 {
   std::shared_ptr< det_obj > new_obj( new det_obj( bbox, conf, type ) );
 
@@ -193,23 +191,23 @@ det_obj_get_attribute( detected_object const& self, std::string const& key )
   // Try to convert to known types
   if( data.type() == typeid( bool ) )
   {
-    return py::cast( kwiver::vital::any_cast< bool >( data ) );
+    return py::cast( viame::any_cast< bool >( data ) );
   }
   else if( data.type() == typeid( int ) )
   {
-    return py::cast( kwiver::vital::any_cast< int >( data ) );
+    return py::cast( viame::any_cast< int >( data ) );
   }
   else if( data.type() == typeid( int64_t ) )
   {
-    return py::cast( kwiver::vital::any_cast< int64_t >( data ) );
+    return py::cast( viame::any_cast< int64_t >( data ) );
   }
   else if( data.type() == typeid( double ) )
   {
-    return py::cast( kwiver::vital::any_cast< double >( data ) );
+    return py::cast( viame::any_cast< double >( data ) );
   }
   else if( data.type() == typeid( std::string ) )
   {
-    return py::cast( kwiver::vital::any_cast< std::string >( data ) );
+    return py::cast( viame::any_cast< std::string >( data ) );
   }
   else
   {
@@ -243,11 +241,9 @@ det_obj_attribute_keys( detected_object const& self )
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital;
+using namespace viame;
 
 PYBIND11_MODULE( detected_object, m )
 {
@@ -288,8 +284,8 @@ PYBIND11_MODULE( detected_object, m )
     .def(
     py::init( &python::new_detected_object ),
     py::arg( "bbox" ), py::arg( "confidence" ) = 1.0,
-    py::arg( "classifications" ) = kwiver::vital::detected_object_type_sptr(),
-    py::arg( "mask" ) = kwiver::vital::image_container_sptr(),
+    py::arg( "classifications" ) = viame::detected_object_type_sptr(),
+    py::arg( "mask" ) = viame::image_container_sptr(),
     py::doc(
       R"(
       Args:

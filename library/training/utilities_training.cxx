@@ -401,21 +401,21 @@ void downsample_data( std::vector< std::string >& input_files,
 
 pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 {
-  std::unique_ptr< kwiver::embedded_pipeline > external_pipeline;
+  std::unique_ptr< viame::embedded_pipeline > external_pipeline;
 
   if( !pipeline_filename.empty() )
   {
     auto dir = filesystem::path( pipeline_filename ).parent_path();
 
-    std::unique_ptr< kwiver::embedded_pipeline > new_pipeline =
-      std::unique_ptr< kwiver::embedded_pipeline >( new kwiver::embedded_pipeline() );
+    std::unique_ptr< viame::embedded_pipeline > new_pipeline =
+      std::unique_ptr< viame::embedded_pipeline >( new viame::embedded_pipeline() );
 
     std::ifstream pipe_stream;
     pipe_stream.open( pipeline_filename, std::ifstream::in );
 
     if( !pipe_stream )
     {
-      throw sprokit::invalid_configuration_exception( "viame",
+      throw viame::pipeline::invalid_configuration_exception( "viame",
         "Unable to open pipeline file: " + pipeline_filename );
     }
 
@@ -426,7 +426,7 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
     }
     catch( const std::exception& e )
     {
-      throw sprokit::invalid_configuration_exception( "viame", e.what() );
+      throw viame::pipeline::invalid_configuration_exception( "viame", e.what() );
     }
 
     external_pipeline = std::move( new_pipeline );
@@ -441,8 +441,8 @@ bool run_pipeline_on_image( pipeline_t& pipe,
                             const std::string& input_name,
                             const std::string& output_name )
 {
-  kwiver::adapter::adapter_data_set_t ids =
-    kwiver::adapter::adapter_data_set::create();
+  viame::adapter::adapter_data_set_t ids =
+    viame::adapter::adapter_data_set::create();
 
   ids->add_value( "input_file_name", input_name );
 
@@ -482,7 +482,7 @@ std::string get_augmented_filename( const std::string& name,
                                     const std::string& ext )
 {
   std::string file_name =
-    kwiver::vital::filename_name( name );
+    viame::filename_name( name );
 
   std::size_t last_index = file_name.find_last_of( "." );
   std::string file_name_no_ext = file_name.substr( 0, last_index );
@@ -506,7 +506,7 @@ std::string get_augmented_filename( const std::string& name,
   }
   full_path.push_back( file_name_no_ext + ext );
 
-  std::string mod_path = kwiver::vital::join_path( full_path );
+  std::string mod_path = viame::join_path( full_path );
   return mod_path;
 }
 
@@ -633,7 +633,7 @@ extract_video_frames( const std::string& video_filename,
   // Guarded on the pipeline actually declaring a track_reader, so extractors
   // without one are unaffected.
   if( !groundtruth_file.empty() &&
-      kwiver::vital::file_is_regular( groundtruth_file ) &&
+      viame::file_is_regular( groundtruth_file ) &&
       pipeline_declares_process( pipeline_filename, "track_reader" ) )
   {
     cmd = cmd + "-s track_reader:file_name=" + add_quotes( groundtruth_file ) + " ";

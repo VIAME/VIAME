@@ -12,9 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Editing operations on string.
@@ -139,7 +137,7 @@ public:
   virtual bool
   process( std::string& s )
   {
-    kwiver::vital::left_trim( s );
+    viame::left_trim( s );
     return true;
   }
 };   // end class left_trim
@@ -155,15 +153,13 @@ public:
   virtual bool
   process( std::string& s )
   {
-    kwiver::vital::right_trim( s );
+    viame::right_trim( s );
     return true;
   }
 }; // end class right_trim
 
-} // end namespace edit_operation
+} // namespace edit_operation
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_STRING_EDITOR_H

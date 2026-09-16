@@ -21,7 +21,7 @@ namespace viame {
  * This process should be moved to core from ocv when able
  */
 class VIAME_OBJECT_DETECTORS_EXPORT windowed_detector
-  : public kwiver::vital::algo::image_object_detector
+  : public viame::algo::image_object_detector
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -81,16 +81,16 @@ public:
       "Black pad the edges of resized chips to ensure consistent dimensions",
       false ),
     PARAM(
-      detector, kwiver::vital::algo::image_object_detector_sptr,
+      detector, viame::algo::image_object_detector_sptr,
       "Algorithm pointer to nested detector" )
   )
 
   virtual ~windowed_detector() = default;
 
-  virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const;
+  virtual viame::detected_object_set_sptr detect(
+    viame::image_container_sptr image_data ) const;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
 private:
 };

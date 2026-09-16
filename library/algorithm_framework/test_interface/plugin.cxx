@@ -8,7 +8,7 @@
 #include "say_cpp_export.h"
 
 // ----------------------------------------------------------------------------
-namespace kwiver::vital {
+namespace viame {
 
 class cpp_say_impl : public say
 {
@@ -69,15 +69,15 @@ private:
   say_sptr m_speaker;
 };
 
-} // namespace kwiver::vital
+} // namespace viame
 
 // ----------------------------------------------------------------------------
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 SAY_CPP_EXPORT
 void
-register_factories( kwiver::vital::registry& vpl )
+register_factories( viame::registry& vpl )
 {
   vpl.add_factory< kv::say, kv::cpp_say_impl >( "cpp" );
   vpl.add_factory< kv::say, kv::cpp_they_say >( "cpp_they" );

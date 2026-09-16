@@ -27,7 +27,7 @@ namespace viame
 namespace core
 {
 
-create_config_trait( transformation_file, kwiver::vital::path_t, "",
+create_config_trait( transformation_file, viame::path_t, "",
   "File containing the 2D transform mapping this camera's image "
   "coordinates into the target camera's. Read with the transform_reader "
   "algorithm (default type \"auto\": DIVE camera registration .json or "
@@ -44,15 +44,15 @@ public:
   ~priv() {}
 
   // Configuration values
-  kwiver::vital::path_t m_transformation_file;
+  viame::path_t m_transformation_file;
   bool m_inverse = false;
-  kwiver::vital::transform_2d_sptr m_transform;
+  viame::transform_2d_sptr m_transform;
 };
 
 // =============================================================================
 
 warp_detections_process
-::warp_detections_process( kwiver::vital::config_block_sptr const& config )
+::warp_detections_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new warp_detections_process::priv() )
 {
@@ -80,17 +80,17 @@ warp_detections_process
     throw std::runtime_error( "warp_detections requires a transformation_file" );
   }
 
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   if( !algo_config->has_value( "transform_reader:type" ) )
   {
     algo_config->set_value( "transform_reader:type", "auto" );
   }
 
-  kwiver::vital::algo::transform_2d_io_sptr reader;
+  viame::algo::transform_2d_io_sptr reader;
 
-  kwiver::vital::set_nested_algo_configuration<
-    kwiver::vital::algo::transform_2d_io >(
+  viame::set_nested_algo_configuration<
+    viame::algo::transform_2d_io >(
     "transform_reader", algo_config, reader );
 
   if( !reader )
@@ -112,8 +112,8 @@ void
 warp_detections_process
 ::_step()
 {
-  kwiver::vital::detected_object_set_sptr input;
-  kwiver::vital::detected_object_set_sptr output;
+  viame::detected_object_set_sptr input;
+  viame::detected_object_set_sptr output;
 
   input = grab_from_port_using_trait( detected_object_set );
 
@@ -127,7 +127,7 @@ warp_detections_process
       {
         auto const& bbox = detection->bounding_box();
 
-        kwiver::vital::vector_2d const corners[4] = {
+        viame::vector_2d const corners[4] = {
           d->m_transform->map( { bbox.min_x(), bbox.min_y() } ),
           d->m_transform->map( { bbox.max_x(), bbox.min_y() } ),
           d->m_transform->map( { bbox.max_x(), bbox.max_y() } ),
@@ -145,14 +145,14 @@ warp_detections_process
         }
 
         detection->set_bounding_box(
-          kwiver::vital::bounding_box_d( min_x, min_y, max_x, max_y ) );
+          viame::bounding_box_d( min_x, min_y, max_x, max_y ) );
       }
     }
   }
   catch( ... )
   {
     push_to_port_using_trait( detected_object_set,
-      kwiver::vital::detected_object_set_sptr() );
+      viame::detected_object_set_sptr() );
     return;
   }
 
@@ -166,7 +166,7 @@ warp_detections_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- input --

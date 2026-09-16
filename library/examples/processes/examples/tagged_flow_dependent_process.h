@@ -15,7 +15,7 @@
  * \brief Declaration of the tagged flow dependent process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -48,7 +48,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  tagged_flow_dependent_process(kwiver::vital::config_block_sptr const& config);
+  tagged_flow_dependent_process(viame::config_block_sptr const& config);
 
   /**
    * \brief Destructor.

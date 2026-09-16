@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/refine_detections.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ refine_detections
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

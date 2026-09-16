@@ -18,9 +18,7 @@
 #include <iostream>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 template < typename T >
@@ -171,8 +169,6 @@ typedef dynamic_matrix< double > matrix_d;
 typedef dynamic_matrix< float >  matrix_f;
 /// \endcond
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

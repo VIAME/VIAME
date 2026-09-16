@@ -11,9 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// \brief Algorithm capability set.
@@ -86,8 +84,6 @@ private:
   std::unique_ptr< priv > d;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_ALGORITHM_CAPABILITIES_H

@@ -16,7 +16,7 @@
 
 #include <string>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 class process; // incomplete type
 
@@ -37,7 +37,7 @@ public:
   process_instrumentation();
   virtual ~process_instrumentation() = default;
 
-  void set_process( sprokit::process const& proc );
+  void set_process( viame::pipeline::process const& proc );
 
   virtual void start_init_processing( std::string const& data ) = 0;
   virtual void stop_init_processing() = 0;
@@ -66,7 +66,7 @@ public:
    *
    * @return Pointer to process object.
    */
-  sprokit::process const* process() const { return m_process; }
+  viame::pipeline::process const* process() const { return m_process; }
 
   /**
    * @brief Get name or process
@@ -84,7 +84,7 @@ public:
    *
    * @param conf Configuration block.
    */
-  virtual void configure( kwiver::vital::config_block_sptr const conf );
+  virtual void configure( viame::config_block_sptr const conf );
 
   /**
    * @brief Get default configuration block.
@@ -94,12 +94,12 @@ public:
    *
    * @return Pointer to config block.
    */
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
+  virtual viame::config_block_sptr get_configuration() const;
 
 private:
-  sprokit::process const* m_process;
+  viame::pipeline::process const* m_process;
 }; // end class process_instrumentation
 
-} // end namespace
+} // namespace viame::pipeline
 
 #endif /* SPROKIT_PROCESS_INSTRUMENTATION_H */

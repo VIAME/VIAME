@@ -16,7 +16,7 @@
  * \brief Runtime version checks.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**

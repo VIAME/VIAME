@@ -22,10 +22,10 @@ constexpr double blue_weight = 0.0721;
 // ----------------------------------------------------------------------------
 /// Weighted luminance of the first three planes.
 template < typename T >
-kwiver::vital::image_of< T >
-planes_to_grey( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+planes_to_grey( viame::image_of< T > const& image )
 {
-  kwiver::vital::image_of< T > result( image.width(), image.height(), 1 );
+  viame::image_of< T > result( image.width(), image.height(), 1 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -52,10 +52,10 @@ planes_to_grey( kwiver::vital::image_of< T > const& image )
 /// average to 22. Callers that want the obvious answer for three planes get
 /// it from `planes_to_grey`, which accumulates in double.
 template < typename T >
-kwiver::vital::image_of< T >
-mean_over_planes( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+mean_over_planes( viame::image_of< T > const& image )
 {
-  kwiver::vital::image_of< T > result( image.width(), image.height(), 1 );
+  viame::image_of< T > result( image.width(), image.height(), 1 );
 
   auto const depth = image.depth();
 
@@ -83,8 +83,8 @@ mean_over_planes( kwiver::vital::image_of< T > const& image )
 /// Three planes are treated as RGB and take the luminance weights; any other
 /// count is averaged flat. This is VXL's `combine_channels`.
 template < typename T >
-kwiver::vital::image_of< T >
-combine_channels( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+combine_channels( viame::image_of< T > const& image )
 {
   if( image.depth() == 3 )
   {
@@ -100,15 +100,15 @@ combine_channels( kwiver::vital::image_of< T > const& image )
 /// A four plane image keeps its first three; the alpha is dropped rather
 /// than composited, which is what VXL's `force_three_channels` does.
 template < typename T >
-kwiver::vital::image_of< T >
-force_three_channels( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+force_three_channels( viame::image_of< T > const& image )
 {
   if( image.depth() == 3 )
   {
     return image;
   }
 
-  kwiver::vital::image_of< T > result( image.width(), image.height(), 3 );
+  viame::image_of< T > result( image.width(), image.height(), 3 );
 
   auto const depth = image.depth();
 
@@ -131,11 +131,11 @@ force_three_channels( kwiver::vital::image_of< T > const& image )
 // ----------------------------------------------------------------------------
 /// Copy \p plane of \p image into every plane of a \p depth plane image.
 template < typename T >
-kwiver::vital::image_of< T >
-broadcast_plane( kwiver::vital::image_of< T > const& image, size_t plane,
+viame::image_of< T >
+broadcast_plane( viame::image_of< T > const& image, size_t plane,
                  size_t depth )
 {
-  kwiver::vital::image_of< T > result( image.width(), image.height(), depth );
+  viame::image_of< T > result( image.width(), image.height(), depth );
 
   for( size_t target = 0; target < depth; ++target )
   {

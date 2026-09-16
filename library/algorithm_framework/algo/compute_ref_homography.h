@@ -17,9 +17,7 @@
 #include <viame/core_types/homography_f2f.h>
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -31,7 +29,7 @@ namespace algo {
 /// feature tracks, which can transform each image back to the same coordinate
 /// space derived from some initial refrerence image.
 class VITAL_ALGO_EXPORT compute_ref_homography
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   compute_ref_homography();
@@ -52,10 +50,10 @@ public:
   /// \param [in]   frame_number frame identifier for the current frame
   /// \param [in]   tracks the set of all tracked features from the image
   /// \return estimated homography
-  virtual kwiver::vital::f2f_homography_sptr
+  virtual viame::f2f_homography_sptr
   estimate(
-    kwiver::vital::frame_id_t frame_number,
-    kwiver::vital::feature_track_set_sptr tracks ) const = 0;
+    viame::frame_id_t frame_number,
+    viame::feature_track_set_sptr tracks ) const = 0;
 };
 
 /// Shared pointer type of base compute_ref_homography algorithm definition
@@ -64,8 +62,6 @@ typedef std::shared_ptr< compute_ref_homography > compute_ref_homography_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_COMPUTE_REF_HOMOGRAPHY_H_

@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "split_image_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void split_image(py::module& m)
@@ -19,17 +19,17 @@ void split_image(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::split_image,
-               std::shared_ptr<kwiver::vital::algo::split_image>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::split_image,
+               std::shared_ptr<viame::algo::split_image>,
+               viame::algorithm,
                split_image_trampoline<> > instance(m,  "SplitImage");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::split_image::interface_name)
-    .def("split", &kwiver::vital::algo::split_image::split, py::doc(R"( Split image)"), py::arg("img"))
+    .def_static("interface_name", &viame::algo::split_image::interface_name)
+    .def("split", &viame::algo::split_image::split, py::doc(R"( Split image)"), py::arg("img"))
     ;
-  register_algorithm< kwiver::vital::algo::split_image > (instance);
+  register_algorithm< viame::algo::split_image > (instance);
 }
 
 }

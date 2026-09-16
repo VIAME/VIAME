@@ -14,40 +14,40 @@ PYBIND11_MODULE( camera_map, m )
 {
   py::module::import( "kwiver.vital.types.camera_perspective" );
 
-  py::class_< kwiver::vital::simple_camera_map,
-    std::shared_ptr< kwiver::vital::simple_camera_map > >( m, "CameraMap" )
+  py::class_< viame::simple_camera_map,
+    std::shared_ptr< viame::simple_camera_map > >( m, "CameraMap" )
     .def( py::init<>() )
     .def(
       py::init(
         [](py::dict dict){
-          std::map< kwiver::vital::frame_id_t, kwiver::vital::camera_sptr > cm;
+          std::map< viame::frame_id_t, viame::camera_sptr > cm;
           for( auto item : dict )
           {
-            auto const c = item.second.cast< kwiver::vital::camera* >();
+            auto const c = item.second.cast< viame::camera* >();
             auto const cp_ptr =
-              dynamic_cast< kwiver::vital::simple_camera_perspective& >( *c );
+              dynamic_cast< viame::simple_camera_perspective& >( *c );
             auto c_ptr =
-              std::make_shared< kwiver::vital::simple_camera_perspective >(
+              std::make_shared< viame::simple_camera_perspective >(
                 cp_ptr );
             cm.insert(
               std::make_pair(
-                item.first.cast< kwiver::vital::frame_id_t >(),
+                item.first.cast< viame::frame_id_t >(),
                 c_ptr ) );
           }
-          return kwiver::vital::simple_camera_map( cm );
+          return viame::simple_camera_map( cm );
         } ), py::arg( "cameras" ) )
-    .def_property_readonly( "size", &kwiver::vital::simple_camera_map::size )
+    .def_property_readonly( "size", &viame::simple_camera_map::size )
     .def(
-      "as_dict", [](kwiver::vital::simple_camera_map& cm){
-        std::map< kwiver::vital::frame_id_t,
-          kwiver::vital::simple_camera_perspective > dict;
+      "as_dict", [](viame::simple_camera_map& cm){
+        std::map< viame::frame_id_t,
+          viame::simple_camera_perspective > dict;
         auto cam_list = cm.cameras();
         for( auto item : cam_list )
         {
           auto cam_ptr =
-            std::dynamic_pointer_cast< kwiver::vital::camera_perspective >(
+            std::dynamic_pointer_cast< viame::camera_perspective >(
               item.second );
-          kwiver::vital::simple_camera_perspective cam( *( cam_ptr ) );
+          viame::simple_camera_perspective cam( *( cam_ptr ) );
           dict.insert( std::make_pair( item.first, cam ) );
         }
         return dict;

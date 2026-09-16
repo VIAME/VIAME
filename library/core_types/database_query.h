@@ -19,9 +19,7 @@
 #include <memory>
 #include <stdexcept>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// A representation of a filter used within database queries.
@@ -56,7 +54,7 @@ public:
   ~database_query() = default;
 
 /// Accessor for query plan unique identifier. \see set_id
-  vital::uid id() const;
+  viame::uid id() const;
 /// Accessor for query plan type. \see set_type
   query_type type() const;
 
@@ -87,7 +85,7 @@ public:
 /// permits the system to recognize if the same query plan is reused. Once the
 /// query plan has been seen by any component other than the original creator,
 /// the identifier should be changed if the query plan is modified in any way.
-  void set_id( vital::uid const& );
+  void set_id( viame::uid const& );
   void set_type( query_type );
 
 /// \brief Set the temporal filter.
@@ -140,7 +138,7 @@ public:
   void set_threshold( double );
 
 protected:
-  vital::uid m_id;
+  viame::uid m_id;
   query_type m_type;
   query_filter m_temporal_filter;
   timestamp m_temporal_lower;
@@ -155,8 +153,6 @@ protected:
 /// Shared pointer for query plan
 typedef std::shared_ptr< database_query > database_query_sptr;
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_DATABASE_QUERY_H_

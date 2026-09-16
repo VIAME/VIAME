@@ -17,9 +17,7 @@
 #include <typeindex>
 #include <variant>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Call \p visitor with template type parameter corresponding to \p type.
@@ -109,7 +107,7 @@ visit_types( Visitor&& visitor, std::type_info const& type )
   if( it == map.cend() )
   {
     throw std::out_of_range(
-      "`" + kwiver::vital::demangle( type.name() ) +
+      "`" + viame::demangle( type.name() ) +
       "` not found in types provided to "
       "visit_types()" );
   }
@@ -130,7 +128,7 @@ visit_types_return( Visitor&& visitor, std::type_info const& type )
   if( it == map.cend() )
   {
     throw std::out_of_range(
-      "`" + kwiver::vital::demangle( type.name() ) +
+      "`" + viame::demangle( type.name() ) +
       "` not found in types provided to "
       "visit_types_return()" );
   }
@@ -183,8 +181,6 @@ visit_variant_types_return(
     static_cast< Variant const* >( nullptr ) );
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

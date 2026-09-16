@@ -12,7 +12,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// @brief Running average of the frames seen so far.
 ///

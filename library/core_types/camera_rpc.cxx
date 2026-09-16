@@ -3,20 +3,18 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::camera_rpc
+/// \brief Implementation of \link viame::camera_rpc
 /// camera_rpc \endlink class
 #include <viame/algorithm_framework/io/eigen_io.h>
 #include <viame/core_types/camera_rpc.h>
 
 #include <iomanip>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 camera_rpc
 ::camera_rpc()
-  : m_logger( kwiver::vital::get_logger( "vital.camera_rpc" ) )
+  : m_logger( viame::get_logger( "vital.camera_rpc" ) )
 {}
 
 /// Project a 3D point into a 2D image point
@@ -194,6 +192,4 @@ simple_camera_rpc
   norm_pt << ply[ 0 ] / ply[ 1 ], ply[ 2 ] / ply[ 3 ];
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

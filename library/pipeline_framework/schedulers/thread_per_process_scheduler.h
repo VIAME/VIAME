@@ -15,7 +15,7 @@
  * \brief Declaration of the thread-per-process scheduler.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -35,7 +35,7 @@ class SCHEDULERS_NO_EXPORT thread_per_process_scheduler
      * \param pipe The pipeline to scheduler.
      * \param config Contains config for the scheduler.
      */
-    thread_per_process_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
+    thread_per_process_scheduler(pipeline_t const& pipe, viame::config_block_sptr const& config);
 
     /**
      * \brief Destructor.

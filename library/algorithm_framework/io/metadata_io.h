@@ -16,9 +16,7 @@
 #include <viame/algorithm_framework/vital_export.h>
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Extract an image file basename from metadata and (if needed) frame number
 ///
@@ -42,7 +40,7 @@ basename_from_metadata(
 std::string
 VITAL_EXPORT
 basename_from_metadata(
-  kwiver::vital::metadata_vector const& mds,
+  viame::metadata_vector const& mds,
   frame_id_t frame );
 
 /// Read in a POS file, producing a metadata object
@@ -76,8 +74,6 @@ write_pos_file(
   metadata const& md,
   path_t const& file_path );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_METADATA_IO_H_

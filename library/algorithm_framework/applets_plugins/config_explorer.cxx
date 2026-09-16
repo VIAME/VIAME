@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver::tools {
+namespace viame::tools {
 
 namespace {} // end namespace
 
@@ -110,8 +110,8 @@ config_explorer
       return EXIT_FAILURE;
     }
 
-    kwiver::vital::config_path_list_t search_path =
-      kwiver::vital::application_config_file_paths(
+    viame::config_path_list_t search_path =
+      viame::application_config_file_paths(
         opt_app_name,
         opt_app_version,
         opt_install_prefix );
@@ -145,19 +145,19 @@ config_explorer
     return EXIT_FAILURE;
   }
 
-  kwiver::vital::config_block_sptr config;
+  viame::config_block_sptr config;
 
   if( !opt_path.empty() )
   {
     std::cout << "Using custom search path.\n";
-    config = kwiver::vital::read_config_file(
+    config = viame::read_config_file(
       opt_config_file,
       opt_path );
   }
   else
   {
     std::cout << "Using application default search path.\n";
-    config = kwiver::vital::read_config_file(
+    config = viame::read_config_file(
       opt_config_file,
       opt_app_name,
       opt_app_version,
@@ -176,10 +176,10 @@ config_explorer
               << " Install Prefix: " << opt_install_prefix << std::endl
               << std::endl;
 
-    kwiver::vital::write_config( config, std::cout );
+    viame::write_config( config, std::cout );
   }
 
   return EXIT_SUCCESS;
 } // run
 
-} // end namespace
+} // namespace viame::tools

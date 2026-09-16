@@ -17,7 +17,7 @@
 #include <fstream>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 PYBIND11_MODULE( _config, m )
 {

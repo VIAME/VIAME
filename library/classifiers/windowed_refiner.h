@@ -22,7 +22,7 @@ namespace viame {
  * windowed regions of an image, scaling input detections to each region.
  */
 class VIAME_CLASSIFIERS_EXPORT windowed_refiner
-  : public kwiver::vital::algo::refine_detections
+  : public viame::algo::refine_detections
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -114,17 +114,17 @@ public:
       "0 disables merging.",
       0.0 ),
     PARAM(
-      refiner, kwiver::vital::algo::refine_detections_sptr,
+      refiner, viame::algo::refine_detections_sptr,
       "Algorithm pointer to nested refiner" )
   )
 
   virtual ~windowed_refiner();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual kwiver::vital::detected_object_set_sptr refine(
-    kwiver::vital::image_container_sptr image_data,
-    kwiver::vital::detected_object_set_sptr detections ) const;
+  virtual viame::detected_object_set_sptr refine(
+    viame::image_container_sptr image_data,
+    viame::detected_object_set_sptr detections ) const;
 
 private:
 
@@ -132,9 +132,9 @@ private:
   // processing region; detections too small/degenerate to refine are handled
   // by the public refine() wrapper (passed through unmodified) so that the
   // returned set stays 1:1 with the input.
-  kwiver::vital::detected_object_set_sptr refine_core(
-    kwiver::vital::image_container_sptr image_data,
-    kwiver::vital::detected_object_set_sptr detections ) const;
+  viame::detected_object_set_sptr refine_core(
+    viame::image_container_sptr image_data,
+    viame::detected_object_set_sptr detections ) const;
 };
 
 } // end namespace viame

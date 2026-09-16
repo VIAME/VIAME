@@ -12,9 +12,7 @@
 
 #include <viame/algorithm_framework/exceptions/base.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic video exception
@@ -89,8 +87,6 @@ public:
   virtual ~video_runtime_exception() noexcept;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_CORE_EXCEPTIONS_VIDEO_H

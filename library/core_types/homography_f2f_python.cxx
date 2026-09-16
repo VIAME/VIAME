@@ -11,12 +11,12 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace py = pybind11;
 
 using f2f_homography = kv::f2f_homography;
-using float_mat_t = kwiver::vital::matrix_< 3, 3, float >;
-using double_mat_t = kwiver::vital::matrix_< 3, 3, double >;
+using float_mat_t = viame::matrix_< 3, 3, float >;
+using double_mat_t = viame::matrix_< 3, 3, double >;
 
 PYBIND11_MODULE( homography_f2f, m )
 {

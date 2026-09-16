@@ -32,11 +32,11 @@ namespace core
  * @brief Stack frames with some gap into one output image temporally.
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT stack_frames_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  stack_frames_process( kwiver::vital::config_block_sptr const& config );
+  stack_frames_process( viame::config_block_sptr const& config );
   virtual ~stack_frames_process();
 
 protected:
@@ -45,14 +45,14 @@ protected:
 
   struct buffered_frame
   {
-    buffered_frame( kwiver::vital::image_container_sptr _image,
-                    kwiver::vital::timestamp _ts )
+    buffered_frame( viame::image_container_sptr _image,
+                    viame::timestamp _ts )
      : image( _image ),
        ts( _ts )
     {}
 
-    kwiver::vital::image_container_sptr image;
-    kwiver::vital::timestamp ts;
+    viame::image_container_sptr image;
+    viame::timestamp ts;
 
     double time()
     {

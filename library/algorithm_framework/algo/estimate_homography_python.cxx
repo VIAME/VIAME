@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "estimate_homography_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void estimate_homography(py::module& m)
@@ -19,15 +19,15 @@ void estimate_homography(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::estimate_homography,
-               std::shared_ptr<kwiver::vital::algo::estimate_homography>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::estimate_homography,
+               std::shared_ptr<viame::algo::estimate_homography>,
+               viame::algorithm,
                estimate_homography_trampoline<> > instance(m,  "EstimateHomography");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::estimate_homography::interface_name)
-    .def("estimate", (kwiver::vital::homography_sptr (kwiver::vital::algo::estimate_homography::*)(::kwiver::vital::feature_set_sptr, ::kwiver::vital::feature_set_sptr, ::kwiver::vital::match_set_sptr, ::std::vector<bool> &, double) const) &kwiver::vital::algo::estimate_homography::estimate, py::doc(R"( Estimate a homography matrix from corresponding features
+    .def_static("interface_name", &viame::algo::estimate_homography::interface_name)
+    .def("estimate", (viame::homography_sptr (viame::algo::estimate_homography::*)(::viame::feature_set_sptr, ::viame::feature_set_sptr, ::viame::match_set_sptr, ::std::vector<bool> &, double) const) &viame::algo::estimate_homography::estimate, py::doc(R"( Estimate a homography matrix from corresponding features
 
  If estimation fails, a NULL-containing sptr is returned
 
@@ -39,7 +39,7 @@ void estimate_homography(py::module& m)
                       this pair is an inlier to the homography estimate
  \param [in]  inlier_scale error distance tolerated for matches to be
  inliers)"), py::arg("feat1"), py::arg("feat2"), py::arg("matches"), py::arg("inliers"), py::arg("inlier_scale") = 1.)
-    .def("estimate", (kwiver::vital::homography_sptr (kwiver::vital::algo::estimate_homography::*)(::std::vector<kwiver::vital::vector_<2, double> > const &, ::std::vector<kwiver::vital::vector_<2, double> > const &, ::std::vector<bool> &, double) const) &kwiver::vital::algo::estimate_homography::estimate, py::doc(R"( Estimate a homography matrix from corresponding points
+    .def("estimate", (viame::homography_sptr (viame::algo::estimate_homography::*)(::std::vector<viame::vector_<2, double> > const &, ::std::vector<viame::vector_<2, double> > const &, ::std::vector<bool> &, double) const) &viame::algo::estimate_homography::estimate, py::doc(R"( Estimate a homography matrix from corresponding points
 
  If estimation fails, a NULL-containing sptr is returned
 
@@ -51,7 +51,7 @@ void estimate_homography(py::module& m)
  \param [in]  inlier_scale error distance tolerated for matches to be
  inliers)"), py::arg("pts1"), py::arg("pts2"), py::arg("inliers"), py::arg("inlier_scale") = 1.)
     ;
-  register_algorithm< kwiver::vital::algo::estimate_homography > (instance);
+  register_algorithm< viame::algo::estimate_homography > (instance);
 }
 
 }

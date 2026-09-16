@@ -25,26 +25,26 @@
 extern "C"
 VIAME_PROCESSES_CLASSIFIERS_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
   static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_classifiers" );
+    viame::plugin_manager::module_t( "viame_processes_classifiers" );
 
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
 // The parameters are spelled unusually because `typeid( x ).name()` is in
 // the body: a parameter called `name` would be substituted inside it.
 #define VIAME_REGISTER_PROCESS( process_type, plugin, blurb )             \
   {                                                                      \
-    auto* fact = new sprokit::cpp_process_factory(                       \
+    auto* fact = new viame::pipeline::cpp_process_factory(                       \
       typeid( process_type ).name(),                                     \
-      sprokit::process::interface_name(),                                \
-      sprokit::create_new_process< process_type > );                     \
+      viame::pipeline::process::interface_name(),                                \
+      viame::pipeline::create_new_process< process_type > );                     \
                                                                          \
     fact->add_attribute( kvpf::PLUGIN_NAME, plugin )                     \
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
@@ -55,20 +55,20 @@ register_factories( kwiver::vital::registry& vpm )
   }
 
   VIAME_REGISTER_PROCESS(
-    kwiver::refine_detections_process, "refine_detections",
+    viame::refine_detections_process, "refine_detections",
     "Refines detections for a given frame," )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::refine_tracks_process, "refine_tracks",
+    viame::refine_tracks_process, "refine_tracks",
     "Refines object tracks for a given frame" )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::detected_object_filter_process, "detected_object_filter",
+    viame::detected_object_filter_process, "detected_object_filter",
     "Filters sets of detected objects using the "
     "detected_object_filter algorithm." )
 
   VIAME_REGISTER_PROCESS(
-    kwiver::merge_detection_sets_process, "merge_detection_sets",
+    viame::merge_detection_sets_process, "merge_detection_sets",
     "Merge multiple input detection sets into one output set.\n\n"
     "This process will accept one or more input ports of detected_object_set "
     "type. They will all be added to the output detection set. "
@@ -77,5 +77,5 @@ register_factories( kwiver::vital::registry& vpm )
 
 #undef VIAME_REGISTER_PROCESS
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  viame::pipeline::mark_process_module_as_loaded( vpm, module_name );
 }

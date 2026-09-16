@@ -134,24 +134,24 @@ simplify_polygon_impl( std::vector< PointType > const& curve, size_t max_points 
 } // anonymous namespace
 
 // Integer point version
-std::vector< kwiver::vital::point_2i >
-simplify_polygon( std::vector< kwiver::vital::point_2i > const& curve,
+std::vector< viame::point_2i >
+simplify_polygon( std::vector< viame::point_2i > const& curve,
                   size_t max_points )
 {
-  return simplify_polygon_impl< kwiver::vital::point_2i, int >( curve, max_points );
+  return simplify_polygon_impl< viame::point_2i, int >( curve, max_points );
 }
 
 // Double point version
-std::vector< kwiver::vital::point_2d >
-simplify_polygon( std::vector< kwiver::vital::point_2d > const& curve,
+std::vector< viame::point_2d >
+simplify_polygon( std::vector< viame::point_2d > const& curve,
                   size_t max_points )
 {
-  return simplify_polygon_impl< kwiver::vital::point_2d, double >( curve, max_points );
+  return simplify_polygon_impl< viame::point_2d, double >( curve, max_points );
 }
 
 // ----------------------------------------------------------------------------
 std::vector< mask_contour >
-mask_to_contours( kwiver::vital::image const& mask,
+mask_to_contours( viame::image const& mask,
                   double tolerance, int max_points )
 {
   namespace io = viame::image_ops;
@@ -163,7 +163,7 @@ mask_to_contours( kwiver::vital::image const& mask,
     return out;
   }
 
-  kwiver::vital::image_of< uint8_t > const typed( mask );
+  viame::image_of< uint8_t > const typed( mask );
 
   for( auto const& traced : io::find_borders( typed ) )
   {
@@ -187,7 +187,7 @@ mask_to_contours( kwiver::vital::image const& mask,
       y_max = std::max( y_max, at.j );
     }
 
-    std::vector< kwiver::vital::point_2i > simplified;
+    std::vector< viame::point_2i > simplified;
 
     if( tolerance >= 0 )
     {
@@ -203,7 +203,7 @@ mask_to_contours( kwiver::vital::image const& mask,
     }
     else
     {
-      std::vector< kwiver::vital::point_2i > points;
+      std::vector< viame::point_2i > points;
       points.reserve( contour.size() );
 
       for( auto const& at : contour )

@@ -22,7 +22,7 @@
  * \brief Functions to bake a pipeline.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -41,7 +41,7 @@ SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& bloc
  *
  * \returns A configuration extracted from \p blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT kwiver::vital::config_block_sptr
+SPROKIT_PIPELINE_UTIL_EXPORT viame::config_block_sptr
   extract_configuration(pipe_blocks const& blocks);
 
 }

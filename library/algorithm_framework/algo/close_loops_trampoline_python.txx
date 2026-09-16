@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/close_loops.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class close_loops_base = kwiver::vital::algo::close_loops >
+template< class close_loops_base = viame::algo::close_loops >
 class close_loops_trampoline
     : public algorithm_trampoline< close_loops_base >
 {
@@ -21,17 +21,17 @@ class close_loops_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::feature_track_set_sptr
-  stitch(::kwiver::vital::frame_id_t frame_number, ::kwiver::vital::feature_track_set_sptr input, ::kwiver::vital::image_container_sptr image, ::kwiver::vital::image_container_sptr mask) const override
+  viame::feature_track_set_sptr
+  stitch(::viame::frame_id_t frame_number, ::viame::feature_track_set_sptr input, ::viame::image_container_sptr image, ::viame::image_container_sptr mask) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::feature_track_set_sptr,
-      kwiver::vital::algo::close_loops,
+      viame::feature_track_set_sptr,
+      viame::algo::close_loops,
       stitch,
       frame_number, input, image, mask
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

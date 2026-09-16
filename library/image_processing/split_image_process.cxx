@@ -13,9 +13,9 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( split_image );
 
@@ -33,7 +33,7 @@ public:
 // ================================================================
 
 split_image_process
-::split_image_process( kwiver::vital::config_block_sptr const& config )
+::split_image_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new split_image_process::priv )
 {
@@ -50,14 +50,14 @@ split_image_process
 void split_image_process
 ::_configure()
 {
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     split_image, algo_config, d->m_image_splitter );
 
   if( !d->m_image_splitter )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
       name(), "Unable to create \"split_image\"" );
   }
   get_nested_algo_configuration_using_trait(
@@ -67,7 +67,7 @@ void split_image_process
   if( !check_nested_algo_configuration_using_trait(
         split_image, algo_config, d->m_image_splitter ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
       "Configuration check failed." );
   }
 }
@@ -78,8 +78,8 @@ split_image_process
 ::_step()
 {
   // Get image
-  kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
-  std::vector< kwiver::vital::image_container_sptr > outputs;
+  viame::image_container_sptr img = grab_from_port_using_trait( image );
+  std::vector< viame::image_container_sptr > outputs;
 
   // Get feature tracks
   outputs = d->m_image_splitter->split( img );
@@ -101,8 +101,8 @@ void split_image_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- input --
@@ -130,4 +130,4 @@ split_image_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

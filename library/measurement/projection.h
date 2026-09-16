@@ -50,10 +50,10 @@ using distortion_t = std::vector< double >;
 /// z, distort, then apply the intrinsic matrix. The two callers that used it
 /// both passed a zero rvec and tvec.
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::vector_2d
+viame::vector_2d
 project_point(
-  kwiver::vital::vector_3d const& point,
-  kwiver::vital::matrix_3x3d const& intrinsics,
+  viame::vector_3d const& point,
+  viame::matrix_3x3d const& intrinsics,
   distortion_t const& coefficients );
 
 // ----------------------------------------------------------------------------
@@ -62,22 +62,22 @@ project_point(
 /// `cv::projectPoints` with an `rvec` given as a matrix. `stereo_rectify`
 /// needs this and nothing else does.
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::vector_2d
+viame::vector_2d
 project_point(
-  kwiver::vital::vector_3d const& point,
-  kwiver::vital::matrix_3x3d const& rotation,
-  kwiver::vital::matrix_3x3d const& intrinsics,
+  viame::vector_3d const& point,
+  viame::matrix_3x3d const& rotation,
+  viame::matrix_3x3d const& intrinsics,
   distortion_t const& coefficients );
 
 // ----------------------------------------------------------------------------
 /// `cv::projectPoints` with a full pose: rotate, translate, then project.
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::vector_2d
+viame::vector_2d
 project_point(
-  kwiver::vital::vector_3d const& point,
-  kwiver::vital::matrix_3x3d const& rotation,
-  kwiver::vital::vector_3d const& translation,
-  kwiver::vital::matrix_3x3d const& intrinsics,
+  viame::vector_3d const& point,
+  viame::matrix_3x3d const& rotation,
+  viame::vector_3d const& translation,
+  viame::matrix_3x3d const& intrinsics,
   distortion_t const& coefficients );
 
 // ----------------------------------------------------------------------------
@@ -89,10 +89,10 @@ project_point(
 /// caller in VIAME forgets: a **16-bit signed** disparity is taken to have
 /// no fractional bits, and SGBM's has four.
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::image_of< float >
+viame::image_of< float >
 reproject_to_3d(
-  kwiver::vital::image const& disparity,
-  kwiver::vital::matrix_4x4d const& disparity_to_depth );
+  viame::image const& disparity,
+  viame::matrix_4x4d const& disparity_to_depth );
 
 // ----------------------------------------------------------------------------
 /// A rotation matrix from an axis-angle vector, and the inverse.
@@ -100,12 +100,12 @@ reproject_to_3d(
 /// `cv::Rodrigues`, both directions. Exported because the stereo pairing
 /// needs the vector form to hand to `project_point`.
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::matrix_3x3d
-rodrigues( kwiver::vital::vector_3d const& vector );
+viame::matrix_3x3d
+rodrigues( viame::vector_3d const& vector );
 
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::vector_3d
-inverse_rodrigues( kwiver::vital::matrix_3x3d const& matrix );
+viame::vector_3d
+inverse_rodrigues( viame::matrix_3x3d const& matrix );
 
 // ----------------------------------------------------------------------------
 /// Undo the lens, rotate, and project through a new matrix.
@@ -123,29 +123,29 @@ inverse_rodrigues( kwiver::vital::matrix_3x3d const& matrix );
 /// the identity to get normalised coordinates back, which is what OpenCV's
 /// null `P` means.
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::vector_2d
+viame::vector_2d
 undistort_point(
-  kwiver::vital::vector_2d const& point,
-  kwiver::vital::matrix_3x3d const& intrinsics,
+  viame::vector_2d const& point,
+  viame::matrix_3x3d const& intrinsics,
   distortion_t const& coefficients,
-  kwiver::vital::matrix_3x3d const& rotation,
-  kwiver::vital::matrix_3x4d const& projection );
+  viame::matrix_3x3d const& rotation,
+  viame::matrix_3x4d const& projection );
 
 // ----------------------------------------------------------------------------
 /// What a stereo rectification produces.
 struct VIAME_MEASUREMENT_EXPORT rectification
 {
   /// The rotation that takes each camera into the rectified frame.
-  kwiver::vital::matrix_3x3d left_rotation;
-  kwiver::vital::matrix_3x3d right_rotation;
+  viame::matrix_3x3d left_rotation;
+  viame::matrix_3x3d right_rotation;
 
   /// The rectified projection matrices. `right_projection( 0, 3 )` is the
   /// baseline times the focal length, negated, for a horizontal rig.
-  kwiver::vital::matrix_3x4d left_projection;
-  kwiver::vital::matrix_3x4d right_projection;
+  viame::matrix_3x4d left_projection;
+  viame::matrix_3x4d right_projection;
 
   /// Disparity to depth, for `reprojectImageTo3D`.
-  kwiver::vital::matrix_4x4d disparity_to_depth;
+  viame::matrix_4x4d disparity_to_depth;
 };
 
 // ----------------------------------------------------------------------------
@@ -161,13 +161,13 @@ struct VIAME_MEASUREMENT_EXPORT rectification
 VIAME_MEASUREMENT_EXPORT
 rectification
 stereo_rectify(
-  kwiver::vital::matrix_3x3d const& left_intrinsics,
+  viame::matrix_3x3d const& left_intrinsics,
   distortion_t const& left_distortion,
-  kwiver::vital::matrix_3x3d const& right_intrinsics,
+  viame::matrix_3x3d const& right_intrinsics,
   distortion_t const& right_distortion,
   size_t width, size_t height,
-  kwiver::vital::matrix_3x3d const& rotation,
-  kwiver::vital::vector_3d const& translation );
+  viame::matrix_3x3d const& rotation,
+  viame::vector_3d const& translation );
 
 // ----------------------------------------------------------------------------
 /// The two sampling maps a rectification needs, which is
@@ -178,13 +178,13 @@ stereo_rectify(
 VIAME_MEASUREMENT_EXPORT
 void
 rectification_maps(
-  kwiver::vital::matrix_3x3d const& intrinsics,
+  viame::matrix_3x3d const& intrinsics,
   distortion_t const& coefficients,
-  kwiver::vital::matrix_3x3d const& rotation,
-  kwiver::vital::matrix_3x4d const& projection,
+  viame::matrix_3x3d const& rotation,
+  viame::matrix_3x4d const& projection,
   size_t width, size_t height,
-  kwiver::vital::image_of< float >& map_x,
-  kwiver::vital::image_of< float >& map_y );
+  viame::image_of< float >& map_x,
+  viame::image_of< float >& map_y );
 
 } // namespace measurement
 

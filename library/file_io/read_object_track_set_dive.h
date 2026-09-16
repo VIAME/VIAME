@@ -20,7 +20,7 @@
 namespace viame {
 
 class VIAME_FILE_IO_EXPORT read_object_track_set_dive
-  : public kwiver::vital::algo::read_object_track_set
+  : public viame::algo::read_object_track_set
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -40,11 +40,11 @@ public:
 
   virtual ~read_object_track_set_dive();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   virtual void open( std::string const& filename );
 
-  virtual bool read_set( kwiver::vital::object_track_set_sptr& set );
+  virtual bool read_set( viame::object_track_set_sptr& set );
 
 private:
   void initialize() override;

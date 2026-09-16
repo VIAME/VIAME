@@ -15,7 +15,7 @@
  * \brief Declaration of the const process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class const_process
@@ -45,7 +45,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  const_process(kwiver::vital::config_block_sptr const& config);
+  const_process(viame::config_block_sptr const& config);
   /**
    * \brief Destructor.
    */

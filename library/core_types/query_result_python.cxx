@@ -10,7 +10,7 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Note that this is unlike query_result::descriptors().
 // This returns a copy of the track_descriptor_set, while
@@ -46,8 +46,8 @@ query_result_set_descriptors(
 
 PYBIND11_MODULE( query_result, m )
 {
-  py::class_< kwiver::vital::query_result,
-    std::shared_ptr< kwiver::vital::query_result > >( m, "QueryResult" )
+  py::class_< viame::query_result,
+    std::shared_ptr< viame::query_result > >( m, "QueryResult" )
     .def( py::init<>() )
     // Expose the member variables with getters and setters
     .def_property(

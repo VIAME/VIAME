@@ -9,10 +9,10 @@
 /**
  * \file stamp.cxx
  *
- * \brief Implementation of \link sprokit::stamp stamps\endlink.
+ * \brief Implementation of \link viame::pipeline::stamp stamps\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 stamp_t

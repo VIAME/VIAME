@@ -14,9 +14,7 @@
 #include <stdexcept>
 #include <unordered_set>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 std::string
@@ -170,6 +168,4 @@ lower_case( const std::string& input )
   return out;
 }
 
-} // namespace vital
-
-}  // end namespace
+} // namespace viame

@@ -12,7 +12,7 @@
 
 #include <sstream>
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 load_pipe_exception
@@ -28,7 +28,7 @@ load_pipe_exception
 
 // ------------------------------------------------------------------
 file_no_exist_exception
-::file_no_exist_exception( kwiver::vital::path_t const& fname) noexcept
+::file_no_exist_exception( viame::path_t const& fname) noexcept
   : load_pipe_exception()
   , m_fname(fname)
 {

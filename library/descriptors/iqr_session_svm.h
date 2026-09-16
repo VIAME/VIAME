@@ -215,7 +215,7 @@ protected:
     size_t n_total = n_pos + n_neg;
 
     {
-      auto logger = kwiver::vital::get_logger( logger_name() );
+      auto logger = viame::get_logger( logger_name() );
       LOG_INFO( logger, "SVM training: " << n_pos << " positives, "
         << n_neg << " negatives (" << auto_negatives.size()
         << " auto-negatives)" );

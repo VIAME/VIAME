@@ -22,7 +22,7 @@ namespace viame {
 
 // -----------------------------------------------------------------------------
 class VIAME_FILE_IO_EXPORT write_detected_object_set_dive
-  : public kwiver::vital::algo::detected_object_set_output
+  : public viame::algo::detected_object_set_output
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -47,9 +47,9 @@ public:
 
   virtual ~write_detected_object_set_dive() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::detected_object_set_sptr set,
+  virtual void write_set( const viame::detected_object_set_sptr set,
                           std::string const& image_name );
 
   virtual void close();
@@ -58,8 +58,8 @@ private:
   void initialize() override;
 
   int m_frame_number;
-  kwiver::vital::track_id_t m_next_id;
-  std::vector< kwiver::vital::track_sptr > m_tracks;
+  viame::track_id_t m_next_id;
+  std::vector< viame::track_sptr > m_tracks;
 };
 
 } // end namespace

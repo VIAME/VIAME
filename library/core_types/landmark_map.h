@@ -15,9 +15,7 @@
 #include <map>
 #include <memory>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// An abstract mapping between track IDs and landmarks
@@ -66,8 +64,6 @@ protected:
   map_landmark_t data_;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_LANDMARK_MAP_H_

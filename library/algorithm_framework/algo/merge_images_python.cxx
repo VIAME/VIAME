@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "merge_images_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void merge_images(py::module& m)
@@ -19,17 +19,17 @@ void merge_images(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::merge_images,
-               std::shared_ptr<kwiver::vital::algo::merge_images>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::merge_images,
+               std::shared_ptr<viame::algo::merge_images>,
+               viame::algorithm,
                merge_images_trampoline<> > instance(m,  "MergeImages");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::merge_images::interface_name)
-    .def("merge", &kwiver::vital::algo::merge_images::merge, py::doc(R"( Merge images)"), py::arg("image1"), py::arg("image2"))
+    .def_static("interface_name", &viame::algo::merge_images::interface_name)
+    .def("merge", &viame::algo::merge_images::merge, py::doc(R"( Merge images)"), py::arg("image1"), py::arg("image2"))
     ;
-  register_algorithm< kwiver::vital::algo::merge_images > (instance);
+  register_algorithm< viame::algo::merge_images > (instance);
 }
 
 }

@@ -5,7 +5,7 @@
 /**
  * \file process_factory.cxx
  *
- * \brief Python bindings for \link sprokit::process_factory\endlink.
+ * \brief Python bindings for \link viame::pipeline::process_factory\endlink.
  */
 
 #include <viame/pipeline_framework/process.h>
@@ -27,15 +27,15 @@ using namespace pybind11;
 // This is hopefully something pybind11 will deal with soon, and we can
 // eliminate this class
 // Otherwise, we can rewrite process_factory to have multiple entrypoints
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
 static void register_process(
-  ::sprokit::process::type_t const& type,
-  ::sprokit::process::description_t const& desc,
+  ::viame::pipeline::process::type_t const& type,
+  ::viame::pipeline::process::description_t const& desc,
   object obj );
 
 static bool is_process_loaded( const std::string& name );
@@ -44,11 +44,11 @@ static std::string get_description( const std::string& name );
 static std::vector< std::string > process_names();
 
 // ============================================================================
-typedef std::function< pybind11::object ( kwiver::vital::config_block_sptr const& config ) >
+typedef std::function< pybind11::object ( viame::config_block_sptr const& config ) >
   py_process_factory_func_t;
 
 class python_process_factory
-  : public ::sprokit::process_factory
+  : public ::viame::pipeline::process_factory
 {
   /**
    * @brief CTOR for factory object
@@ -68,8 +68,8 @@ public:
 
   virtual ~python_process_factory();
 
-  virtual ::sprokit::process_t create_object(
-    kwiver::vital::config_block_sptr const& config );
+  virtual ::viame::pipeline::process_t create_object(
+    viame::config_block_sptr const& config );
 
 private:
   py_process_factory_func_t m_factory;
@@ -96,9 +96,9 @@ python_process_factory::
 {}
 
 // ----------------------------------------------------------------------------
-::sprokit::process_t
+::viame::pipeline::process_t
 python_process_factory
-::create_object( kwiver::vital::config_block_sptr const& config )
+::create_object( viame::config_block_sptr const& config )
 {
   pybind11::gil_scoped_acquire acquire;
   ( void ) acquire;
@@ -108,22 +108,22 @@ python_process_factory
 
   // We need to do it this way because of how pybind11 handles memory
   obj.inc_ref();
-  ::sprokit::process_t proc_ptr = obj.cast< ::sprokit::process_t >();
+  ::viame::pipeline::process_t proc_ptr = obj.cast< ::viame::pipeline::process_t >();
   return proc_ptr;
 }
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
-using namespace kwiver::sprokit::python;
+using namespace viame::pipeline::python;
 
 // ==================================================================
 PYBIND11_MODULE( process_factory, m )
 {
-  class_< sprokit::processes_t >(
+  class_< viame::pipeline::processes_t >(
     m, "Processes",
     "A collection of processes." );
 
@@ -148,10 +148,10 @@ PYBIND11_MODULE( process_factory, m )
     "Registers a function which creates a process of the given type." );
 
   m.def(
-    "create_process", &sprokit::create_process,
+    "create_process", &viame::pipeline::create_process,
     call_guard< pybind11::gil_scoped_release >(),
     arg( "type" ), arg( "name" ),
-    arg( "config" ) = kwiver::vital::config_block::empty_config(),
+    arg( "config" ) = viame::config_block::empty_config(),
     "Creates a new process of the given type.",
     return_value_policy::reference_internal );
 
@@ -169,9 +169,9 @@ PYBIND11_MODULE( process_factory, m )
     m.import( "kwiver.sprokit.pipeline.process" ).attr( "PythonProcess" );
 }
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
@@ -182,7 +182,7 @@ public:
   python_process_wrapper( object obj );
   ~python_process_wrapper();
 
-  object operator()( kwiver::vital::config_block_sptr const& config );
+  object operator()( viame::config_block_sptr const& config );
 
 private:
   object const m_obj;
@@ -191,8 +191,8 @@ private:
 // ------------------------------------------------------------------
 void
 register_process(
-  ::sprokit::process::type_t const&        type,
-  ::sprokit::process::description_t const& desc,
+  ::viame::pipeline::process::type_t const&        type,
+  ::viame::pipeline::process::description_t const& desc,
   object obj )
 {
   pybind11::gil_scoped_acquire acquire;
@@ -200,16 +200,16 @@ register_process(
 
   python_process_wrapper const& wrap( obj );
 
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
   auto fact = vpm.add_factory(
     new python_process_factory(
       type,
-      ::sprokit::process::interface_name(),
+      ::viame::pipeline::process::interface_name(),
       wrap ) );
 
   fact->add_attribute(
-    kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    viame::plugin_factory::PLUGIN_DESCRIPTION,
     desc );
 }
 
@@ -217,8 +217,8 @@ register_process(
 bool
 is_process_loaded( const std::string& name )
 {
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
   return vpm.is_module_loaded( name );
 }
 
@@ -226,8 +226,8 @@ is_process_loaded( const std::string& name )
 void
 mark_process_loaded( const std::string& name )
 {
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
   vpm.mark_module_as_loaded( name );
 }
 
@@ -235,11 +235,11 @@ mark_process_loaded( const std::string& name )
 std::string
 get_description( const std::string& type )
 {
-  kwiver::vital::plugin_factory_handle_t a_fact;
+  viame::plugin_factory_handle_t a_fact;
 
-  // Python processes are registered with sprokit::process interface type
+  // Python processes are registered with viame::pipeline::process interface type
   // (see register_process above), so we only need to look up using that type.
-  typedef kwiver::vital::implementation_factory_by_name< ::sprokit::process >
+  typedef viame::implementation_factory_by_name< ::viame::pipeline::process >
     proc_factory;
 
   proc_factory ifact;
@@ -250,7 +250,7 @@ get_description( const std::string& type )
 
   std::string buf = "-- Not Set --";
   a_fact->get_attribute(
-    kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    viame::plugin_factory::PLUGIN_DESCRIPTION,
     buf );
 
   return buf;
@@ -262,11 +262,11 @@ process_names()
 {
   std::vector< std::string > name_list;
 
-  auto fact_list = ::sprokit::get_process_list();
+  auto fact_list = ::viame::pipeline::get_process_list();
   for( auto fact : fact_list )
   {
     std::string buf;
-    if( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ) )
+    if( fact->get_attribute( viame::plugin_factory::PLUGIN_NAME, buf ) )
     {
       name_list.push_back( buf );
     }
@@ -288,7 +288,7 @@ python_process_wrapper
 // ------------------------------------------------------------------
 object
 python_process_wrapper
-::operator()( kwiver::vital::config_block_sptr const& config )
+::operator()( viame::config_block_sptr const& config )
 {
   pybind11::gil_scoped_acquire acquire;
   ( void ) acquire;
@@ -297,6 +297,6 @@ python_process_wrapper
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame

@@ -17,9 +17,9 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "",
@@ -44,7 +44,7 @@ public:
 // ===============================================================================
 
 write_track_descriptor_process
-::write_track_descriptor_process( kwiver::vital::config_block_sptr const& config )
+::write_track_descriptor_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new write_track_descriptor_process::priv )
 {
@@ -67,18 +67,18 @@ void write_track_descriptor_process
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
              "Required file name not specified." );
   }
 
   // Get algo conrig entries
-  kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  viame::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
   if ( ! check_nested_algo_configuration_using_trait(
          writer, algo_config, d->m_writer ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
@@ -88,7 +88,7 @@ void write_track_descriptor_process
     d->m_writer);
   if ( ! d->m_writer )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
              "Unable to create writer." );
   }
 }
@@ -114,7 +114,7 @@ void write_track_descriptor_process
     file_name = grab_from_port_using_trait( image_file_name );
   }
 
-  kwiver::vital::track_descriptor_set_sptr input
+  viame::track_descriptor_set_sptr input
     = grab_from_port_using_trait( track_descriptor_set );
 
   {
@@ -128,8 +128,8 @@ void write_track_descriptor_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   declare_input_port_using_trait( image_file_name, optional );
@@ -155,4 +155,4 @@ write_track_descriptor_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

@@ -10,13 +10,11 @@
 #include <memory>
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 template < typename T >
 void
@@ -35,8 +33,8 @@ declare_similarity(
     .def( py::init< kv::similarity_< double > const& >() )
     .def(
       py::init< T const&, kv::rotation_< T > const&,
-        kwiver::vital::vector_< 3, T > const& >() )
-    .def( py::init< kwiver::vital::matrix_< 4, 4, T > const& >() )
+        viame::vector_< 3, T > const& >() )
+    .def( py::init< viame::matrix_< 4, 4, T > const& >() )
     .def( "matrix", &Class::matrix )
     .def( "inverse", &Class::inverse )
     .def(
@@ -44,7 +42,7 @@ declare_similarity(
         return self * other;
       } )
     .def(
-      "__mul__", []( Class const& self, kwiver::vital::vector_< 3, T > const& rhs ){
+      "__mul__", []( Class const& self, viame::vector_< 3, T > const& rhs ){
         return self * rhs;
       } )
     .def(
@@ -67,11 +65,9 @@ declare_similarity(
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital::python;
+using namespace viame::python;
 PYBIND11_MODULE( similarity, m )
 {
   declare_similarity< float >( m, "F", "f" );

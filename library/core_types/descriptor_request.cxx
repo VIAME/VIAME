@@ -7,9 +7,7 @@
 
 #include "descriptor_request.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 descriptor_request
@@ -105,6 +103,4 @@ descriptor_request
   m_image_data = i;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

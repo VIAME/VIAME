@@ -27,11 +27,11 @@ namespace core
  * @brief Pass frame with step index and in min max limits
  */
 class VIAME_PROCESSES_PIPELINE_FRAMEWORK_EXPORT filter_frame_index_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  filter_frame_index_process( kwiver::vital::config_block_sptr const& config );
+  filter_frame_index_process( viame::config_block_sptr const& config );
   virtual ~filter_frame_index_process();
 
 protected:

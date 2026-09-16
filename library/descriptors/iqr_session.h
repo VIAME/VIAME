@@ -131,7 +131,7 @@ public:
       }
     }
 
-    auto logger = kwiver::vital::get_logger( logger_name() );
+    auto logger = viame::get_logger( logger_name() );
     LOG_INFO( logger, "Working index size after neighbor expansion: "
       << m_working_index.size()
       << " (positives: " << m_positive_descriptors.size()
@@ -158,7 +158,7 @@ public:
     // If still no negatives (manual or auto), return true but no model
     if( m_negative_descriptors.empty() && auto_negatives.empty() )
     {
-      auto logger = kwiver::vital::get_logger( logger_name() );
+      auto logger = viame::get_logger( logger_name() );
       LOG_WARN( logger, "No negatives available and autoneg_select_ratio="
         << m_autoneg_select_ratio << ", skipping model training" );
       return true;
@@ -181,7 +181,7 @@ public:
 
     if( !results.empty() )
     {
-      auto logger = kwiver::vital::get_logger( logger_name() );
+      auto logger = viame::get_logger( logger_name() );
 
       bool used_model = is_model_valid();
       LOG_INFO( logger, "Scoring method: "
@@ -233,7 +233,7 @@ public:
       // If positive examples have lower average probability, invert all scores
       if( pos_avg < all_avg )
       {
-        auto logger = kwiver::vital::get_logger( logger_name() );
+        auto logger = viame::get_logger( logger_name() );
         LOG_INFO( logger, "Score inversion triggered (pos_avg="
           << pos_avg << " < all_avg=" << all_avg << ")" );
         for( auto& r : results )
@@ -418,7 +418,7 @@ protected:
     }
 
     // Verify descriptor norm
-    auto logger = kwiver::vital::get_logger( logger_name() );
+    auto logger = viame::get_logger( logger_name() );
     for( const auto& p : m_positive_descriptors )
     {
       double norm_sq = 0.0;

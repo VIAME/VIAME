@@ -3,9 +3,9 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::camera_perspective camera_perspective
+/// \brief Header for \link viame::camera_perspective camera_perspective
 /// \endlink and
-///        \link kwiver::vital::camera_perspective_ camera_perspective_<T>
+///        \link viame::camera_perspective_ camera_perspective_<T>
 /// \endlink classes
 
 #ifndef VITAL_CAMERA_PERSPECTIVE_H_
@@ -26,9 +26,7 @@
 #include <viame/core_types/vector.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// forward declaration of perspective camera class
 class camera_perspective;
@@ -100,7 +98,7 @@ public:
 protected:
   camera_perspective();
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 };
 
 /// output stream operator for a base class camera_perspective
@@ -294,8 +292,6 @@ VITAL_TYPES_EXPORT std::istream& operator>>(
   std::istream& s,
   simple_camera_perspective& c );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_CAMERA_PERSPECTIVE_H_

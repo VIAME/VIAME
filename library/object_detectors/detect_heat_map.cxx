@@ -22,16 +22,14 @@
 #include <viame/core_types/image_container.h>
 
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
 namespace io = viame::image_ops;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
-using namespace kwiver::vital;
+using namespace viame;
 
 template < class T >
 static
@@ -109,7 +107,7 @@ mask_bounding_box(
 {
   if( image.depth() > 1 )
   {
-    VITAL_THROW( vital::invalid_data, "image must be single channel." );
+    VITAL_THROW( viame::invalid_data, "image must be single channel." );
   }
 
   auto const rows = static_cast< int >( image.height() );
@@ -260,8 +258,8 @@ public:
   // detector configured for connected components (force_bbox_* = -1) can take
   // the fixed-size branch and build a box filter from those -1 dimensions.
   bool m_force_bbox_size = false;
-  kwiver::vital::logger_handle_t m_logger;
-  kwiver::vital::wall_timer m_timer;
+  viame::logger_handle_t m_logger;
+  viame::wall_timer m_timer;
 
   detect_heat_map& parent;
 
@@ -380,7 +378,7 @@ public:
     else
     {
       // A deep copy: the search below erases each box it takes, and
-      // `vital::image` copies share their memory
+      // `viame::image` copies share their memory
       heat_map = kv::image_of< uint8_t >( heat_map0.width(),
                                           heat_map0.height(), 1 );
 
@@ -464,7 +462,7 @@ public:
       auto max_y = static_cast< int >( highest.j );
 
       // Define the bounding box
-      // vital::bounding_box lower-right point is not inclusive, so must add 1.
+      // viame::bounding_box lower-right point is not inclusive, so must add 1.
       x1 = max_x - hr1f;
       y1 = max_y - vr1f;
       x2 = max_x + hr2f + 1;
@@ -494,7 +492,7 @@ public:
         max_y = ( y1t + y2t ) / 2;
       }
 
-      // vital::bounding_box lower-right point is not inclusive, so must add 1.
+      // viame::bounding_box lower-right point is not inclusive, so must add 1.
       y1 = max_y - vr1f;
       y2 = max_y + vr2f + 1;
       x1 = max_x - hr1f;
@@ -509,7 +507,7 @@ public:
       y1 += dy;
       y2 += dy;
 
-      kwiver::vital::bounding_box_d bbox( x1 * bbox_out_width_rescale,
+      viame::bounding_box_d bbox( x1 * bbox_out_width_rescale,
         y1 * bbox_out_height_rescale,
         x2 * bbox_out_width_rescale,
         y2 * bbox_out_height_rescale );
@@ -524,7 +522,7 @@ public:
       auto dot = std::make_shared< detected_object_type >();
       dot->set_score( m_class_name(), max_val );
       detected_objects->add(
-        std::make_shared< kwiver::vital::detected_object >(
+        std::make_shared< viame::detected_object >(
           bbox, max_val, dot ) );
 
       // Erase the region so the next iteration looks elsewhere.
@@ -625,11 +623,11 @@ public:
                     static_cast< double >( bounds.height() ) *
                     m_min_fill_fraction() )
         {
-          kwiver::vital::bounding_box_d bbox( bounds.left, bounds.top,
+          viame::bounding_box_d bbox( bounds.left, bounds.top,
                                               bounds.right, bounds.bottom );
 
           detected_objects->add(
-            std::make_shared< kwiver::vital::detected_object >(
+            std::make_shared< viame::detected_object >(
               bbox,
               m_fixed_score(),
               dot ) );
@@ -662,11 +660,11 @@ detect_heat_map
 void
 detect_heat_map
 ::set_configuration_internal(
-  [[maybe_unused]] vital::config_block_sptr in_config )
+  [[maybe_unused]] viame::config_block_sptr in_config )
 {
-  vital::config_block_sptr config = this->get_configuration();
+  viame::config_block_sptr config = this->get_configuration();
 
-  kwiver::vital::config_difference cd( config, in_config );
+  viame::config_difference cd( config, in_config );
   cd.warn_extra_keys( logger() );
 
   if( ( d_->m_force_bbox_width() == -1  && d_->m_force_bbox_height() != -1 ) ||
@@ -750,11 +748,11 @@ detect_heat_map
 
 bool
 detect_heat_map
-::check_configuration( vital::config_block_sptr config_in ) const
+::check_configuration( viame::config_block_sptr config_in ) const
 {
-  vital::config_block_sptr config = this->get_configuration();
+  viame::config_block_sptr config = this->get_configuration();
 
-  kwiver::vital::config_difference cd( config, config_in );
+  viame::config_difference cd( config, config_in );
   return !cd.warn_extra_keys( logger() );
 }
 
@@ -766,7 +764,7 @@ detect_heat_map
   if( !image_data )
   {
     VITAL_THROW(
-      vital::invalid_data,
+      viame::invalid_data,
       "Inputs to ocv::detect_heat_map are null" );
   }
   LOG_TRACE( logger(), "Received image" );
@@ -776,15 +774,13 @@ detect_heat_map
   if( source.depth() > 1 )
   {
     VITAL_THROW(
-      vital::invalid_data,
+      viame::invalid_data,
       "Heat map image must be single channel." );
   }
 
   return d_->get_bounding_boxes( kv::image_of< uint8_t >( source ) );
 }
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

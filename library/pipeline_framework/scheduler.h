@@ -15,10 +15,10 @@
 /**
  * \file scheduler.h
  *
- * \brief Header for \link sprokit::scheduler schedulers\endlink.
+ * \brief Header for \link viame::pipeline::scheduler schedulers\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class scheduler scheduler.h <sprokit/pipeline/scheduler.h>
@@ -32,7 +32,7 @@ namespace sprokit {
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT scheduler
-  : private kwiver::vital::noncopyable
+  : private viame::noncopyable
 {
   public:
     /// The type of registry keys.
@@ -90,7 +90,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler
      * \param pipe The pipeline to run.
      * \param config Contains configuration for the scheduler.
      */
-    scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
+    scheduler(pipeline_t const& pipe, viame::config_block_sptr const& config);
 
     /**
      * \brief Start execution.
@@ -146,10 +146,10 @@ class SPROKIT_PIPELINE_EXPORT scheduler
      *
      * \returns Logger handle so log messages can be generated.
      */
-    kwiver::vital::logger_handle_t logger();
+    viame::logger_handle_t logger();
 
     // The logger handle
-    kwiver::vital::logger_handle_t m_logger;
+    viame::logger_handle_t m_logger;
 
   private:
 

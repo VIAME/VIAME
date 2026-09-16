@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::pointcloud pointcloud \endlink
+/// \brief Header for \link viame::pointcloud pointcloud \endlink
 /// objects
 
 #ifndef VITAL_POINTCLOUD_H_
@@ -18,9 +18,7 @@
 #include "color.h"
 #include "vector.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// forward declaration of pointcloud class
 class pointcloud;
@@ -144,8 +142,6 @@ typedef pointcloud_< double > pointcloud_d;
 /// A single precision pointcloud
 typedef pointcloud_< float > pointcloud_f;
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_POINTCLOUD_H_

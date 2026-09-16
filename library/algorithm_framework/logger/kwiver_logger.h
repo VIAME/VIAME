@@ -15,9 +15,7 @@
 
 #include <viame/core_types/noncopyable.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief A named logger.
@@ -37,7 +35,7 @@ namespace vital {
 /// `dlopen` at static-initialisation time on every process start.
 class VITAL_LOGGER_EXPORT kwiver_logger
   : public std::enable_shared_from_this< kwiver_logger >,
-    private kwiver::vital::noncopyable
+    private viame::noncopyable
 {
 public:
   enum log_level_t
@@ -138,8 +136,6 @@ private:
 /// @brief Handle for kwiver logger objects.
 typedef std::shared_ptr< kwiver_logger > logger_handle_t;
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

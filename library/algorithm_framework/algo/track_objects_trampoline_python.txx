@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/track_objects.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class track_objects_base = kwiver::vital::algo::track_objects >
+template< class track_objects_base = viame::algo::track_objects >
 class track_objects_trampoline
     : public algorithm_trampoline< track_objects_base >
 {
@@ -21,56 +21,56 @@ class track_objects_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::object_track_set_sptr
-  track(::kwiver::vital::timestamp ts, ::kwiver::vital::image_container_sptr image, ::kwiver::vital::detected_object_set_sptr detections) const override
+  viame::object_track_set_sptr
+  track(::viame::timestamp ts, ::viame::image_container_sptr image, ::viame::detected_object_set_sptr detections) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::object_track_set_sptr,
-      kwiver::vital::algo::track_objects,
+      viame::object_track_set_sptr,
+      viame::algo::track_objects,
       track,
       ts, image, detections
       );
   }
 
-  kwiver::vital::object_track_set_sptr
-  track(::kwiver::vital::timestamp ts, ::kwiver::vital::image_container_sptr image, ::kwiver::vital::detected_object_set_sptr detections, ::kwiver::vital::f2f_homography_sptr src_to_ref) const override
+  viame::object_track_set_sptr
+  track(::viame::timestamp ts, ::viame::image_container_sptr image, ::viame::detected_object_set_sptr detections, ::viame::f2f_homography_sptr src_to_ref) const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::object_track_set_sptr,
-      kwiver::vital::algo::track_objects,
+      viame::object_track_set_sptr,
+      viame::algo::track_objects,
       track,
       ts, image, detections, src_to_ref
       );
   }
 
-  kwiver::vital::object_track_set_sptr
-  track(::kwiver::vital::timestamp ts, ::kwiver::vital::image_container_sptr image, ::kwiver::vital::detected_object_set_sptr detections, ::kwiver::vital::object_track_set_sptr existing_tracks) const override
+  viame::object_track_set_sptr
+  track(::viame::timestamp ts, ::viame::image_container_sptr image, ::viame::detected_object_set_sptr detections, ::viame::object_track_set_sptr existing_tracks) const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::object_track_set_sptr,
-      kwiver::vital::algo::track_objects,
+      viame::object_track_set_sptr,
+      viame::algo::track_objects,
       track,
       ts, image, detections, existing_tracks
       );
   }
 
-  kwiver::vital::object_track_set_sptr
-  initialize(::kwiver::vital::timestamp ts, ::kwiver::vital::image_container_sptr image, ::kwiver::vital::detected_object_set_sptr seed_detections) const override
+  viame::object_track_set_sptr
+  initialize(::viame::timestamp ts, ::viame::image_container_sptr image, ::viame::detected_object_set_sptr seed_detections) const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::object_track_set_sptr,
-      kwiver::vital::algo::track_objects,
+      viame::object_track_set_sptr,
+      viame::algo::track_objects,
       initialize,
       ts, image, seed_detections
       );
   }
 
-  kwiver::vital::object_track_set_sptr
+  viame::object_track_set_sptr
   finalize() const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::object_track_set_sptr,
-      kwiver::vital::algo::track_objects,
+      viame::object_track_set_sptr,
+      viame::algo::track_objects,
       finalize,
       
       );
@@ -81,12 +81,12 @@ class track_objects_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::track_objects,
+      viame::algo::track_objects,
       reset,
       
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

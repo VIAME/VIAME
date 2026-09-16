@@ -21,7 +21,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// Train SVM models for object detection using descriptor-based classification
 ///

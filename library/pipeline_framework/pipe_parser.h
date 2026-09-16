@@ -22,7 +22,7 @@
 #include <viame/core_types/vital_types.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ----------------------------------------------------------------
 /**
@@ -46,8 +46,8 @@ public:
    *
    * \param file_path Directory or list to add to end of search path.
    */
-  void add_search_path( kwiver::vital::config_path_t const& file_path );
-  void add_search_path( kwiver::vital::config_path_list_t const& file_path );
+  void add_search_path( viame::config_path_t const& file_path );
+  void add_search_path( viame::config_path_list_t const& file_path );
   //@}
 
   /**
@@ -60,7 +60,7 @@ public:
    *
    * \return A vector of pipe blocks representing the pipeline.
    */
-  sprokit::pipe_blocks parse_pipeline( std::istream& input, const std::string& name = "" );
+  viame::pipeline::pipe_blocks parse_pipeline( std::istream& input, const std::string& name = "" );
 
   /** Compatibility mode.
    *
@@ -102,9 +102,9 @@ private:
   void parse_port_addr( process::port_addr_t& out_pa );
   void parse_config( config_values_t& out_config );
   bool parse_config_line( config_value_t& config_val );
-  void old_config( sprokit::config_value_t& val );
-  void new_config( sprokit::config_value_t& val );
-  void parse_attrs( sprokit::config_value_t& val );
+  void old_config( viame::pipeline::config_value_t& val );
+  void new_config( viame::pipeline::config_value_t& val );
+  void parse_attrs( viame::pipeline::config_value_t& val );
 
   std::string parse_config_key();
   std::string parse_process_name();
@@ -117,14 +117,14 @@ private:
   compatibility_mode_t m_compatibility_mode;
 
   // root of the pipeline AST
-  sprokit::pipe_blocks m_pipe_blocks;
+  viame::pipeline::pipe_blocks m_pipe_blocks;
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
-  sprokit::lex_processor m_lexer;
+  viame::pipeline::lex_processor m_lexer;
 
 }; // end class pipe_parser
 
-} // end namespace
+} // namespace viame::pipeline
 
 #endif /* SPROKIT_PIPELINE_UTIL_PIPE_PARSER_H */

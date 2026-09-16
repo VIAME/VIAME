@@ -15,7 +15,7 @@
 #include "adapter_types.h"
 #include "adapter_data_set.h"
 
-namespace kwiver {
+namespace viame {
 
 class input_adapter_process;
 
@@ -44,9 +44,9 @@ public:
    *
    * @return Pointer to adapter base object
    *
-   * @throws sprokit::no_such_port_exception if the process is not found
+   * @throws viame::pipeline::no_such_port_exception if the process is not found
    */
-  void connect( sprokit::process::name_t proc, sprokit::pipeline_t pipe );
+  void connect( viame::pipeline::process::name_t proc, viame::pipeline::pipeline_t pipe );
 
   /**
    * @brief Return list of ports connected to adapter process.
@@ -56,7 +56,7 @@ public:
    *
    * @return List of port names
    */
-  sprokit::process::ports_t port_list() const;
+  viame::pipeline::process::ports_t port_list() const;
 
   /**
    * @brief Return list of active ports.
@@ -76,7 +76,7 @@ public:
    *
    * @param dat Data set to send.
    */
-  void send( kwiver::adapter::adapter_data_set_t dat );
+  void send( viame::adapter::adapter_data_set_t dat );
 
   /**
    * @brief Is interface queue full?
@@ -90,10 +90,10 @@ public:
   bool full() const;
 
 private:
-  kwiver::input_adapter_process* m_process;
-  kwiver::adapter::interface_ref_t m_interface_queue;
+  viame::input_adapter_process* m_process;
+  viame::adapter::interface_ref_t m_interface_queue;
 }; // end class input_adapter
 
-} // end namespace
+} // namespace viame
 
 #endif // KWIVER_INPUT_ADAPTER_H

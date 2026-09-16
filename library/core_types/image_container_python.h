@@ -13,12 +13,10 @@
 
 namespace py = pybind11;
 
-typedef kwiver::vital::image_container image_cont_t;
-typedef kwiver::vital::simple_image_container s_image_cont_t;
+typedef viame::image_container image_cont_t;
+typedef viame::simple_image_container s_image_cont_t;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -27,18 +25,18 @@ namespace image_container {
 void image_container( py::module& m );
 
 // We need to return a shared pointer--otherwise, pybind11 may lose the subtype
-std::shared_ptr< s_image_cont_t > new_cont( kwiver::vital::image& img );
+std::shared_ptr< s_image_cont_t > new_cont( viame::image& img );
 
 // We need to do a deep copy instead of just calling get_image, so we can ref
 // track in python
-kwiver::vital::image get_image( std::shared_ptr< image_cont_t > self );
+viame::image get_image( std::shared_ptr< image_cont_t > self );
 
 template < typename T >
 s_image_cont_t
 new_image_container_from_numpy( py::array_t< T > array )
 {
-  kwiver::vital::image img =
-    kwiver::vital::python::image::new_image_from_numpy( array );
+  viame::image img =
+    viame::python::image::new_image_from_numpy( array );
   return s_image_cont_t( img );
 }
 
@@ -46,8 +44,6 @@ new_image_container_from_numpy( py::array_t< T > array )
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

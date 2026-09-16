@@ -9,7 +9,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace py = pybind11;
 
 PYBIND11_MODULE( mesh, m )

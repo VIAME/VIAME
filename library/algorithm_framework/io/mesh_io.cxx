@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of file IO functions for a \ref kwiver::vital::mesh
+/// \brief Implementation of file IO functions for a \ref viame::mesh
 
 #include "mesh_io.h"
 
@@ -15,9 +15,7 @@
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -26,7 +24,7 @@ std::ofstream
 open_output_file( const std::string& filename )
 {
   // Check if the given path is a directory
-  if( kwiver::vital::file_is_directory( filename ) )
+  if( viame::file_is_directory( filename ) )
   {
     VITAL_THROW(
       file_write_exception, filename,
@@ -34,11 +32,11 @@ open_output_file( const std::string& filename )
   }
 
   // Ensure the directory of the given filepath exists, create if necessary
-  std::string parent_dir = kwiver::vital::filename_path(
-    kwiver::vital::collapse_full_path( filename ) );
-  if( !kwiver::vital::file_is_directory( parent_dir ) )
+  std::string parent_dir = viame::filename_path(
+    viame::collapse_full_path( filename ) );
+  if( !viame::file_is_directory( parent_dir ) )
   {
-    if( !kwiver::vital::make_directory( parent_dir ) )
+    if( !viame::make_directory( parent_dir ) )
     {
       VITAL_THROW(
         file_write_exception, parent_dir,
@@ -63,13 +61,13 @@ std::ifstream
 open_input_file( const std::string& filename )
 {
   // Check that file exists and is not a directory
-  if( !kwiver::vital::file_exists( filename ) )
+  if( !viame::file_exists( filename ) )
   {
     VITAL_THROW(
       file_not_found_exception,
       filename, "File does not exist." );
   }
-  else if( kwiver::vital::file_is_directory( filename ) )
+  else if( viame::file_is_directory( filename ) )
   {
     VITAL_THROW(
       file_not_found_exception, filename,
@@ -96,7 +94,7 @@ read_mesh( const std::string& filename )
 {
   std::ifstream input_stream = open_input_file( filename );
   const std::string ext =
-    kwiver::vital::filename_last_extension( filename );
+    viame::filename_last_extension( filename );
 
   if( ext == ".ply2" )
   {
@@ -896,6 +894,4 @@ write_vrml( std::ostream& os, const mesh& mesh )
   os << "}\n";
 }
 
-} // end namespace vital
-
-} // end namespace kwiver
+} // namespace viame

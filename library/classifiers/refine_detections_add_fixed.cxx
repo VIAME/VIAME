@@ -6,7 +6,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// Check that the algorithm's currently configuration is valid
 bool

@@ -12,7 +12,7 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 // -----------------------------------------------------------------------------
 // Private implementation class
@@ -25,20 +25,20 @@ public:
 
   std::set< std::string > p_port_list;
 
-  vital::track_id_t highest_id;
-  std::set< vital::track_id_t > used_ids;
-  std::vector< std::map< vital::track_id_t, vital::track_id_t > > id_remapping;
+  viame::track_id_t highest_id;
+  std::set< viame::track_id_t > used_ids;
+  std::vector< std::map< viame::track_id_t, viame::track_id_t > > id_remapping;
 
   void add_tracks_to_set(
-    vital::track_set_sptr input, unsigned index,
-    vital::track_set_sptr& output );
+    viame::track_set_sptr input, unsigned index,
+    viame::track_set_sptr& output );
 };
 
 void
 merge_track_sets_process::priv
 ::add_tracks_to_set(
-  vital::track_set_sptr input, unsigned index,
-  vital::track_set_sptr& output )
+  viame::track_set_sptr input, unsigned index,
+  viame::track_set_sptr& output )
 {
   if( !input )
   {
@@ -46,8 +46,8 @@ merge_track_sets_process::priv
   }
 
 
-  std::map< vital::track_id_t,
-    vital::track_id_t >& mappings = id_remapping[ index ];
+  std::map< viame::track_id_t,
+    viame::track_id_t >& mappings = id_remapping[ index ];
 
   for( auto track_ptr : input->tracks() )
   {
@@ -57,8 +57,8 @@ merge_track_sets_process::priv
     }
 
 
-    const vital::track_id_t id = track_ptr->id();
-    vital::track_id_t mapped_id;
+    const viame::track_id_t id = track_ptr->id();
+    viame::track_id_t mapped_id;
     auto element = mappings.find( id );
 
     if( element != mappings.end() )
@@ -90,7 +90,7 @@ merge_track_sets_process::priv
 // ============================================================================
 
 merge_track_sets_process
-::merge_track_sets_process( vital::config_block_sptr const& config )
+::merge_track_sets_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new merge_track_sets_process::priv )
 {
@@ -113,12 +113,12 @@ void
 merge_track_sets_process
 ::_step()
 {
-  std::vector< vital::track_set_sptr > track_list;
+  std::vector< viame::track_set_sptr > track_list;
 
   for( const auto port_name : d->p_port_list )
   {
-    vital::track_set_sptr track_sptr =
-      grab_from_port_as< vital::object_track_set_sptr >( port_name );
+    viame::track_set_sptr track_sptr =
+      grab_from_port_as< viame::object_track_set_sptr >( port_name );
 
     track_list.push_back( track_sptr );
   }
@@ -130,7 +130,7 @@ merge_track_sets_process
 
 
   // Merge tracks sequentially
-  vital::track_set_sptr output = std::make_shared< vital::object_track_set >();
+  viame::track_set_sptr output = std::make_shared< viame::object_track_set >();
 
   if( track_list.empty() )
   {
@@ -145,7 +145,7 @@ merge_track_sets_process
   // Return by value
   push_to_port_using_trait(
     object_track_set,
-    std::dynamic_pointer_cast< vital::object_track_set >( output ) );
+    std::dynamic_pointer_cast< viame::object_track_set >( output ) );
 }
 
 // ----------------------------------------------------------------------------
@@ -154,8 +154,8 @@ merge_track_sets_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- output --
@@ -169,14 +169,14 @@ merge_track_sets_process
 {}
 
 // ============================================================================
-sprokit::process::port_info_t
+viame::pipeline::process::port_info_t
 merge_track_sets_process
 ::_input_port_info( port_t const& port_name )
 {
   LOG_TRACE( logger(), "Processing input port info: \"" << port_name << "\"" );
 
   // Just create an input port to read detections from
-  if( !vital::starts_with( port_name, "_" ) )
+  if( !viame::starts_with( port_name, "_" ) )
   {
     // Check for unique port name
     if( d->p_port_list.count( port_name ) == 0 )
@@ -199,4 +199,4 @@ merge_track_sets_process
   return process::_input_port_info( port_name );
 }
 
-} // end namespace
+} // namespace viame

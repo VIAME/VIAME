@@ -33,11 +33,11 @@ namespace core
  * (as single-state tracks) and multi-frame tracks.
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT write_query_results_as_tracks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  write_query_results_as_tracks_process( kwiver::vital::config_block_sptr const& config );
+  write_query_results_as_tracks_process( viame::config_block_sptr const& config );
   virtual ~write_query_results_as_tracks_process();
 
 protected:

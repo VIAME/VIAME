@@ -14,7 +14,7 @@
  * \brief Implementation of the expect process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class expect_process::priv
@@ -26,37 +26,37 @@ class expect_process::priv
     std::string const expect;
     bool const expect_key;
 
-    static kwiver::vital::config_block_key_t const config_tunable;
-    static kwiver::vital::config_block_key_t const config_expect;
-    static kwiver::vital::config_block_key_t const config_expect_key;
-    static kwiver::vital::config_block_value_t const default_expect_key;
+    static viame::config_block_key_t const config_tunable;
+    static viame::config_block_key_t const config_expect;
+    static viame::config_block_key_t const config_expect_key;
+    static viame::config_block_value_t const default_expect_key;
     static port_t const port_output;
 };
 
-kwiver::vital::config_block_key_t const expect_process::priv::config_tunable = kwiver::vital::config_block_key_t("tunable");
-kwiver::vital::config_block_key_t const expect_process::priv::config_expect = kwiver::vital::config_block_key_t("expect");
-kwiver::vital::config_block_key_t const expect_process::priv::config_expect_key = kwiver::vital::config_block_key_t("expect_key");
-kwiver::vital::config_block_value_t const expect_process::priv::default_expect_key = kwiver::vital::config_block_value_t("false");
+viame::config_block_key_t const expect_process::priv::config_tunable = viame::config_block_key_t("tunable");
+viame::config_block_key_t const expect_process::priv::config_expect = viame::config_block_key_t("expect");
+viame::config_block_key_t const expect_process::priv::config_expect_key = viame::config_block_key_t("expect_key");
+viame::config_block_value_t const expect_process::priv::default_expect_key = viame::config_block_value_t("false");
 process::port_t const expect_process::priv::port_output = port_t("dummy");
 
 expect_process
-::expect_process(kwiver::vital::config_block_sptr const& config)
+::expect_process(viame::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_tunable,
-    kwiver::vital::config_block_value_t(),
-    kwiver::vital::config_block_description_t("A tunable value."),
+    viame::config_block_value_t(),
+    viame::config_block_description_t("A tunable value."),
     true);
   declare_configuration_key(
     priv::config_expect,
-    kwiver::vital::config_block_value_t(),
-    kwiver::vital::config_block_description_t("The expected value."));
+    viame::config_block_value_t(),
+    viame::config_block_description_t("The expected value."));
   declare_configuration_key(
     priv::config_expect_key,
     priv::default_expect_key,
-    kwiver::vital::config_block_description_t("Whether to expect a key or a value."));
+    viame::config_block_description_t("Whether to expect a key or a value."));
 
   port_flags_t const none;
 
@@ -100,7 +100,7 @@ expect_process
 
 void
 expect_process
-::_reconfigure(kwiver::vital::config_block_sptr const& conf)
+::_reconfigure(viame::config_block_sptr const& conf)
 {
   if (d->expect_key)
   {

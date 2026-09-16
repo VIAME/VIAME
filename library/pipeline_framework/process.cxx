@@ -21,22 +21,22 @@
 /**
  * \file process.cxx
  *
- * \brief Implementation of the base class for \link sprokit::process processes\endlink.
+ * \brief Implementation of the base class for \link viame::pipeline::process processes\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace { // anonymous
 
-typedef kwiver::vital::implementation_factory_by_name< sprokit::process_instrumentation > instrumentation_factory;
+typedef viame::implementation_factory_by_name< viame::pipeline::process_instrumentation > instrumentation_factory;
 
 } // anonymous
 
-static kwiver::vital::config_block_key_t const instrumentation_block_key =
-  kwiver::vital::config_block_key_t("_instrumentation");
-static kwiver::vital::config_block_key_t const instrumentation_type_key =
-  kwiver::vital::config_block_key_t(instrumentation_block_key
-                              + kwiver::vital::config_block::block_sep() + "type" );
+static viame::config_block_key_t const instrumentation_block_key =
+  viame::config_block_key_t("_instrumentation");
+static viame::config_block_key_t const instrumentation_type_key =
+  viame::config_block_key_t(instrumentation_block_key
+                              + viame::config_block::block_sep() + "type" );
 
 process::property_t const process::property_no_threads = property_t("_no_thread");
 process::property_t const process::property_no_reentrancy = property_t("_no_reentrant");
@@ -47,8 +47,8 @@ process::property_t const process::property_python = property_t("_python");
 
 process::port_t const process::port_heartbeat = port_t("_heartbeat");
 
-kwiver::vital::config_block_key_t const process::config_name = kwiver::vital::config_block_key_t("_name");
-kwiver::vital::config_block_key_t const process::config_type = kwiver::vital::config_block_key_t("_type");
+viame::config_block_key_t const process::config_name = viame::config_block_key_t("_name");
+viame::config_block_key_t const process::config_type = viame::config_block_key_t("_type");
 
 process::port_type_t const process::type_any = port_type_t("_any");
 process::port_type_t const process::type_none = port_type_t("_none");
@@ -61,7 +61,7 @@ process::port_flag_t const process::flag_input_mutable = port_flag_t("_mutable")
 process::port_flag_t const process::flag_input_nodep = port_flag_t("_nodep");
 process::port_flag_t const process::flag_required = port_flag_t("_required");
 
-kwiver::vital::config_block_key_t const process::static_input_prefix = kwiver::vital::config_block_key_t("static/");
+viame::config_block_key_t const process::static_input_prefix = viame::config_block_key_t("static/");
 
 process::port_info
 ::port_info(port_type_t const& type_,
@@ -79,8 +79,8 @@ process::port_info
 }
 
 process::conf_info
-::conf_info(kwiver::vital::config_block_value_t const& def_,
-            kwiver::vital::config_block_description_t const& description_,
+::conf_info(viame::config_block_value_t const& def_,
+            viame::config_block_description_t const& description_,
             bool tunable_)
   : def(def_)
   , description(description_)
@@ -110,7 +110,7 @@ process::data_info
 class process::priv
 {
   public:
-    priv(process* proc,kwiver::vital::config_block_sptr const& c);
+    priv(process* proc,viame::config_block_sptr const& c);
     ~priv();
 
     void run_heartbeat();
@@ -126,7 +126,7 @@ class process::priv
     type_t type; // name of class of type of process
 
     typedef std::map<port_t, port_info_t> port_map_t;
-    typedef std::map<kwiver::vital::config_block_key_t, conf_info_t> conf_map_t;
+    typedef std::map<viame::config_block_key_t, conf_info_t> conf_map_t;
 
     typedef std::shared_mutex mutex_t;
     typedef std::shared_lock<mutex_t> shared_lock_t;
@@ -182,7 +182,7 @@ class process::priv
     mutable mutex_t output_edges_mut;
 
     process* const q;
-    kwiver::vital::config_block_sptr conf;
+    viame::config_block_sptr conf;
 
     typedef std::set<port_t> port_set_t;
 
@@ -209,18 +209,18 @@ class process::priv
 
     mutex_t reconfigure_mut;
 
-    kwiver::vital::logger_handle_t m_logger;
-    std::shared_ptr< sprokit::process_instrumentation > m_proc_instrumentation; // instrumentation provider
+    viame::logger_handle_t m_logger;
+    std::shared_ptr< viame::pipeline::process_instrumentation > m_proc_instrumentation; // instrumentation provider
 
     // List of properties that are associated with this object
     properties_t m_properties;
 
-    static kwiver::vital::config_block_value_t const default_name;
+    static viame::config_block_value_t const default_name;
 };
 
 // ==================================================================
 
-kwiver::vital::config_block_value_t const process::priv::default_name = "(unnamed)";
+viame::config_block_value_t const process::priv::default_name = "(unnamed)";
 
 void
 process
@@ -519,15 +519,15 @@ process
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::config_block_keys_t
+viame::config_block_keys_t
 process
 ::available_config() const
 {
-  kwiver::vital::config_block_keys_t keys = _available_config();
+  viame::config_block_keys_t keys = _available_config();
 
   for (priv::conf_map_t::value_type const& conf : d->config_keys)
   {
-    kwiver::vital::config_block_key_t const& key = conf.first;
+    viame::config_block_key_t const& key = conf.first;
 
     keys.push_back(key);
   }
@@ -536,14 +536,14 @@ process
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::config_block_keys_t
+viame::config_block_keys_t
 process
 ::available_tunable_config()
 {
-  kwiver::vital::config_block_keys_t const all_keys = available_config();
-  kwiver::vital::config_block_keys_t keys;
+  viame::config_block_keys_t const all_keys = available_config();
+  viame::config_block_keys_t keys;
 
-  for (kwiver::vital::config_block_key_t const& key : all_keys)
+  for (viame::config_block_key_t const& key : all_keys)
   {
     // Read-only parameters aren't tunable.
     if (d->conf->is_read_only(key))
@@ -565,19 +565,19 @@ process
 // ------------------------------------------------------------------
 process::conf_info_t
 process
-::config_info(kwiver::vital::config_block_key_t const& key)
+::config_info(viame::config_block_key_t const& key)
 {
   return _config_info(key);
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::config_difference
+viame::config_difference
 process
 ::config_diff() const
 {
   auto avail_conf = available_config();
   //                                       ref-config  supplied-conf
-  return kwiver::vital::config_difference( avail_conf, d->conf );
+  return viame::config_difference( avail_conf, d->conf );
 }
 
 // ------------------------------------------------------------------
@@ -601,7 +601,7 @@ process
 // CTOR
 //
 process
-::process(kwiver::vital::config_block_sptr const& config)
+::process(viame::config_block_sptr const& config)
   : d()
 {
   if (!config)
@@ -613,13 +613,13 @@ process
 
   declare_configuration_key(
     config_name,
-    kwiver::vital::config_block_value_t(),
-    kwiver::vital::config_block_description_t("The name of the process."));
+    viame::config_block_value_t(),
+    viame::config_block_description_t("The name of the process."));
 
   declare_configuration_key(
     config_type,
-    kwiver::vital::config_block_value_t(),
-    kwiver::vital::config_block_description_t("The type of the process."));
+    viame::config_block_value_t(),
+    viame::config_block_description_t("The type of the process."));
 
   d->name = config_value<name_t>(config_name);
   d->type = config_value<type_t>(config_type);
@@ -638,15 +638,15 @@ process
     if (instr_prov != "none" )
     {
       // Get instrumentation interface
-      kwiver::vital::config_block_sptr instr_block =
+      viame::config_block_sptr instr_block =
         d->conf->subblock_view( instrumentation_block_key
-                    + kwiver::vital::config_block::block_sep() + instr_prov );
+                    + viame::config_block::block_sep() + instr_prov );
 
       instrumentation_factory ifact;
       d->m_proc_instrumentation = ifact.create( instr_prov, instr_block );
       d->m_proc_instrumentation->set_process( *this );
 
-      kwiver::vital::config_block_sptr prov_block = instr_block->subblock_view( instr_prov );
+      viame::config_block_sptr prov_block = instr_block->subblock_view( instr_prov );
       d->m_proc_instrumentation->configure( instr_block );
 
       // Add this as a property
@@ -655,7 +655,7 @@ process
   }
 
   // Set default logger name
-  attach_logger( kwiver::vital::get_logger( std::string( "sprokit.process." ) + name() ) );
+  attach_logger( viame::get_logger( std::string( "sprokit.process." ) + name() ) );
 }
 
 // ------------------------------------------------------------------
@@ -709,7 +709,7 @@ process
 // ------------------------------------------------------------------
 void
 process
-::_reconfigure(kwiver::vital::config_block_sptr const& /*conf*/)
+::_reconfigure(viame::config_block_sptr const& /*conf*/)
 {
 }
 
@@ -821,7 +821,7 @@ process
   }
 
   bool const is_data_dependent = (old_type == type_data_dependent);
-  bool const is_flow_dependent = kwiver::vital::starts_with(old_type, type_flow_dependent);
+  bool const is_flow_dependent = viame::starts_with(old_type, type_flow_dependent);
   bool const is_any = (old_type == type_any);
 
   if (!is_data_dependent && !is_flow_dependent && !is_any)
@@ -894,7 +894,7 @@ process
   }
 
   bool const is_data_dependent = (old_type == type_data_dependent);
-  bool const is_flow_dependent = kwiver::vital::starts_with(old_type, type_flow_dependent);
+  bool const is_flow_dependent = viame::starts_with(old_type, type_flow_dependent);
   bool const is_any = (old_type == type_any);
 
   if (!is_data_dependent && !is_flow_dependent && !is_any)
@@ -959,17 +959,17 @@ process
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::config_block_keys_t
+viame::config_block_keys_t
 process
 ::_available_config() const
 {
-  return kwiver::vital::config_block_keys_t();
+  return viame::config_block_keys_t();
 }
 
 // ------------------------------------------------------------------
 process::conf_info_t
 process
-::_config_info(kwiver::vital::config_block_key_t const& key)
+::_config_info(viame::config_block_key_t const& key)
 {
   priv::conf_map_t::iterator i = d->config_keys.find(key);
 
@@ -1038,8 +1038,8 @@ process
     // knows to add the static prefix also.
     declare_configuration_key(
       static_input_prefix + port,
-      kwiver::vital::config_block_value_t(),
-      kwiver::vital::config_block_description_t("A default value to use for the \'"
+      viame::config_block_value_t(),
+      viame::config_block_description_t("A default value to use for the \'"
                                                 + port + "\' port if it is not connected."));
 
     d->static_inputs.insert(port);
@@ -1240,7 +1240,7 @@ process
 // ------------------------------------------------------------------
 void
 process
-::declare_configuration_key(kwiver::vital::config_block_key_t const& key, conf_info_t const& info)
+::declare_configuration_key(viame::config_block_key_t const& key, conf_info_t const& info)
 {
   if (!info)
   {
@@ -1254,9 +1254,9 @@ process
 // ------------------------------------------------------------------
 void
 process
-::declare_configuration_key(kwiver::vital::config_block_key_t const& key,
-                            kwiver::vital::config_block_value_t const& def_,
-                            kwiver::vital::config_block_description_t const& description_,
+::declare_configuration_key(viame::config_block_key_t const& key,
+                            viame::config_block_value_t const& def_,
+                            viame::config_block_description_t const& description_,
                             bool tunable_)
 {
   declare_configuration_key(key, std::make_shared<conf_info>(
@@ -1490,7 +1490,7 @@ process
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 process
 ::get_config() const
 {
@@ -1539,9 +1539,9 @@ process
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::config_block_value_t
+viame::config_block_value_t
 process
-::config_value_raw(kwiver::vital::config_block_key_t const& key) const
+::config_value_raw(viame::config_block_key_t const& key) const
 {
   priv::conf_map_t::const_iterator const i = d->config_keys.find(key);
 
@@ -1553,7 +1553,7 @@ process
 
   if (d->conf->has_value(key))
   {
-    return d->conf->get_value<kwiver::vital::config_block_value_t>(key);
+    return d->conf->get_value<viame::config_block_value_t>(key);
   }
 
   conf_info_t const& info = i->second;
@@ -1572,7 +1572,7 @@ process
 // ------------------------------------------------------------------
 void
 process
-::reconfigure(kwiver::vital::config_block_sptr const& conf)
+::reconfigure(viame::config_block_sptr const& conf)
 {
   if (!d->configured)
   {
@@ -1581,20 +1581,20 @@ process
     throw std::logic_error(reason);
   }
 
-  kwiver::vital::config_block_keys_t const new_keys = conf->available_values();
+  viame::config_block_keys_t const new_keys = conf->available_values();
 
   if (new_keys.empty())
   {
     return;
   }
 
-  kwiver::vital::config_block_keys_t const process_keys = available_config();
-  kwiver::vital::config_block_keys_t const tunable_keys = available_tunable_config();
+  viame::config_block_keys_t const process_keys = available_config();
+  viame::config_block_keys_t const tunable_keys = available_tunable_config();
 
   // Loop over all entires in the supplied config block and select all
   // entries that are for this process and are flagged as tunable.
   // Then update the process config with the new value.
-  for (kwiver::vital::config_block_key_t const& key : new_keys)
+  for (viame::config_block_key_t const& key : new_keys)
   {
     bool const for_process = (0 != std::count(process_keys.begin(), process_keys.end(), key));
 
@@ -1608,7 +1608,7 @@ process
       }
     }
 
-    kwiver::vital::config_block_value_t const value = conf->get_value<kwiver::vital::config_block_value_t>(key);
+    viame::config_block_value_t const value = conf->get_value<viame::config_block_value_t>(key);
     LOG_DEBUG(d->m_logger, "Reconfiguring process \"" << name() << "\": "  << key << " = " << value );
     d->conf->set_value(key, value);
   } // end foreach
@@ -1624,7 +1624,7 @@ process
 // ------------------------------------------------------------------
 void
 process
-::reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf)
+::reconfigure_with_provides(viame::config_block_sptr const& conf)
 {
   if (!d->configured)
   {
@@ -1633,7 +1633,7 @@ process
     throw std::logic_error(reason);
   }
 
-  kwiver::vital::config_block_keys_t const new_keys = conf->available_values();
+  viame::config_block_keys_t const new_keys = conf->available_values();
 
   if (new_keys.empty())
   {
@@ -1647,19 +1647,19 @@ process
   // only called by process_cluster and it only sets values which are mapped to
   // this process by it. This allows cluster parameters to be tunable and
   // provided as read-only to the process.
-  kwiver::vital::config_block_keys_t const process_keys = available_config();
-  kwiver::vital::config_block_keys_t const current_keys = d->conf->available_values();
+  viame::config_block_keys_t const process_keys = available_config();
+  viame::config_block_keys_t const current_keys = d->conf->available_values();
 
-  typedef std::set<kwiver::vital::config_block_key_t> key_set_t;
+  typedef std::set<viame::config_block_key_t> key_set_t;
 
   key_set_t all_keys;
 
   all_keys.insert(current_keys.begin(), current_keys.end());
   all_keys.insert(new_keys.begin(), new_keys.end());
 
- kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
+ viame::config_block_sptr const new_conf = viame::config_block::empty_config();
 
-  for (kwiver::vital::config_block_key_t const& key : all_keys)
+  for (viame::config_block_key_t const& key : all_keys)
   {
     bool const has_old_value = d->conf->has_value(key);
     bool const for_process = (0 != std::count(process_keys.begin(), process_keys.end(), key));
@@ -1667,7 +1667,7 @@ process
     if (has_old_value)
     {
       // Pass the value down as-is.
-      kwiver::vital::config_block_value_t const value = d->conf->get_value<kwiver::vital::config_block_value_t>(key);
+      viame::config_block_value_t const value = d->conf->get_value<viame::config_block_value_t>(key);
 
       new_conf->set_value(key, value);
     }
@@ -1688,7 +1688,7 @@ process
 
     if (can_override && has_new_value)
     {
-      kwiver::vital::config_block_value_t const value = conf->get_value<kwiver::vital::config_block_value_t>(key);
+      viame::config_block_value_t const value = conf->get_value<viame::config_block_value_t>(key);
 
       new_conf->set_value(key, value);
     }
@@ -1712,17 +1712,17 @@ process
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::logger_handle_t
+viame::logger_handle_t
 process
-::attach_logger( kwiver::vital::logger_handle_t log )
+::attach_logger( viame::logger_handle_t log )
 {
-  kwiver::vital::logger_handle_t temp = d->m_logger;
+  viame::logger_handle_t temp = d->m_logger;
   d->m_logger = log;
   return temp;
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::logger_handle_t
+viame::logger_handle_t
 process::logger() const
 {
   return d->m_logger;
@@ -1765,7 +1765,7 @@ INSTR( reconfigure )
 
 // ==================================================================
 process::priv
-::priv(process* proc,kwiver::vital::config_block_sptr const& c)
+::priv(process* proc,viame::config_block_sptr const& c)
   : name()
   , type()
   , input_ports()
@@ -1789,7 +1789,7 @@ process::priv
   , is_complete(false)
   , check_input_level(check_valid)
   , stamp_for_inputs()
-  , m_logger( kwiver::vital::get_logger( "sprokit.process" ))
+  , m_logger( viame::get_logger( "sprokit.process" ))
 {
 }
 
@@ -2122,7 +2122,7 @@ process::priv::tag_t
 process::priv
 ::port_flow_tag_name(port_type_t const& port_type) const
 {
-  if (kwiver::vital::starts_with(port_type, type_flow_dependent))
+  if (viame::starts_with(port_type, type_flow_dependent))
   {
     return port_type.substr(type_flow_dependent.size());
   }
@@ -2221,4 +2221,4 @@ process::priv::output_port_info_t
 {
 }
 
-} // end name space
+} // namespace viame::pipeline

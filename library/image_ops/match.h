@@ -43,9 +43,9 @@ namespace image_ops {
 /// one score, not one per channel. The mean subtracted is per plane, which
 /// is also OpenCV's and is not the same as one mean over the whole patch.
 template < typename T >
-kwiver::vital::image_of< float >
-match_template_ncc( kwiver::vital::image_of< T > const& image,
-                    kwiver::vital::image_of< T > const& pattern )
+viame::image_of< float >
+match_template_ncc( viame::image_of< T > const& image,
+                    viame::image_of< T > const& pattern )
 {
   if( image.depth() != pattern.depth() )
   {
@@ -109,7 +109,7 @@ match_template_ncc( kwiver::vital::image_of< T > const& image,
     }
   }
 
-  kwiver::vital::image_of< float > out( out_w, out_h, 1 );
+  viame::image_of< float > out( out_w, out_h, 1 );
 
   std::vector< double > window_mean( planes, 0.0 );
 

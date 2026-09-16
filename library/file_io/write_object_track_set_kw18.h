@@ -18,14 +18,12 @@
 
 #include <memory>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 class VIAME_FILE_IO_EXPORT write_object_track_set_kw18
-  : public vital::algo::write_object_track_set
+  : public viame::algo::write_object_track_set
 {
 public:
   PLUGGABLE_IMPL(
@@ -36,11 +34,11 @@ public:
 
   ~write_object_track_set_kw18();
 
-  bool check_configuration( vital::config_block_sptr config ) const override;
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
   void write_set(
-    kwiver::vital::object_track_set_sptr const& set,
-    kwiver::vital::timestamp const& ts = {},
+    viame::object_track_set_sptr const& set,
+    viame::timestamp const& ts = {},
     std::string const& frame_identifier = {} ) override;
 
   void close() override;
@@ -54,8 +52,6 @@ private:
 
 } // namespace core
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame
 
 #endif // KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_KW18_H

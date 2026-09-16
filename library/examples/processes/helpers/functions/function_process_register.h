@@ -23,8 +23,8 @@
  * \param desc A description of the process.
  */
 #define REGISTER_FUNCTION(name, desc)                                   \
-  kwiver::vital::plugin_factory_handle_t fact = vpm.ADD_PROCESS( name ); \
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, #name ); \
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, desc );
+  viame::plugin_factory_handle_t fact = vpm.ADD_PROCESS( name ); \
+  fact->add_attribute( viame::plugin_factory::PLUGIN_NAME, #name ); \
+  fact->add_attribute( viame::plugin_factory::PLUGIN_DESCRIPTION, desc );
 
 #endif // SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_REGISTER_H

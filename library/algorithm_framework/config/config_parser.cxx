@@ -29,9 +29,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -78,14 +76,14 @@ public:
     : m_line_number( 0 ),
       m_file_count( 0 ),
       m_parse_error( false ),
-      m_symtab( new kwiver::vital::token_type_symtab( "LOCAL" ) ),
-      m_config_block( kwiver::vital::config_block::empty_config() ),
-      m_logger( kwiver::vital::get_logger( "vital.config_parser" ) )
+      m_symtab( new viame::token_type_symtab( "LOCAL" ) ),
+      m_config_block( viame::config_block::empty_config() ),
+      m_logger( viame::get_logger( "vital.config_parser" ) )
   {
-    m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
-    m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );
+    m_token_expander.add_token_type( new viame::token_type_env() );
+    m_token_expander.add_token_type( new viame::token_type_sysenv() );
     m_token_expander.add_token_type(
-      new kwiver::vital::token_type_config(
+      new viame::token_type_config(
         m_config_block ) );
     m_token_expander.add_token_type( m_symtab );
   }
@@ -103,7 +101,7 @@ public:
   process_file( config_path_t const&  file_path )
   {
     auto file_path_sptr( std::make_shared< std::string >(
-      kwiver::vital::real_path(
+      viame::real_path(
         file_path ) ) );
     m_current_file = file_path;
 
@@ -125,7 +123,7 @@ public:
     m_include_stack.push_back( file_path_sptr );
 
     // Get directory part of the input file
-    config_path_t config_file_dir( kwiver::vital::filename_path(
+    config_path_t config_file_dir( viame::filename_path(
       *file_path_sptr ) );
     // if file_path has no directory prefix then use "." for the current
     // directory
@@ -210,7 +208,7 @@ public:
                                         << file_path << ":" << m_line_number );
 
         // The file specified really must be a file.
-        if( !kwiver::vital::file_exists( resolv_filename ) )
+        if( !viame::file_exists( resolv_filename ) )
         {
           std::ostringstream sstr;
           sstr << "file included from " << file_path << ":" << m_line_number
@@ -221,7 +219,7 @@ public:
             exp_filename, sstr.str() );
         }
 
-        if( kwiver::vital::file_is_directory( resolv_filename ) )
+        if( viame::file_is_directory( resolv_filename ) )
         {
           std::ostringstream sstr;
           sstr << "file included from " << file_path << ":" << m_line_number
@@ -264,7 +262,7 @@ public:
         block_ctxt.m_previous_context = m_current_context;
 
         m_current_context += token.value +
-                             kwiver::vital::config_block::block_sep();
+                             viame::config_block::block_sep();
 
         LOG_DEBUG(
           m_logger, "Starting new block \"" << m_current_context
@@ -346,7 +344,7 @@ public:
 
       while( token.type == token_t::TK_FLAG )
       {
-        std::string upper = kwiver::vital::upper_case( token.value );
+        std::string upper = viame::upper_case( token.value );
 
         // Currently only the RO (read only) flag is supported.
         // Others can be added here.
@@ -373,7 +371,7 @@ public:
       {
         //  Handle config entry definition
         //  <key> = <value>
-        kwiver::vital::config_block_key_t key = m_current_context + lhs;
+        viame::config_block_key_t key = m_current_context + lhs;
         std::string val;
         val = m_token_expander.expand_token( token.value );
 
@@ -488,9 +486,9 @@ public:
     // Words are LHS tokens, which start with a letter, and can not end with a
     // ':'
     // A *word* can contain these symbols "- _ : . /"
-    kwiver::vital::regex re_word(
+    viame::regex re_word(
       "^[a-zA-Z][-a-zA-Z0-9.:/_]+[-a-zA-Z0-9./_]" );
-    kwiver::vital::regex re_flag( "^\\[[a-zA-Z,]+\\]" );
+    viame::regex re_flag( "^\\[[a-zA-Z,]+\\]" );
 
     // Test for end of line while processing
     if( m_token_line.size() == 0 )
@@ -584,7 +582,7 @@ public:
   resolve_file_name( config_path_t const& file_name )
   {
     // Test for absolute file name
-    if( kwiver::vital::file_is_full_path( file_name ) )
+    if( viame::file_is_full_path( file_name ) )
     {
       return file_name;
     }
@@ -592,7 +590,7 @@ public:
     // The file is on a relative path.
     // See if file can be found in the search path.
     std::string res_file =
-      kwiver::vital::find_file( file_name, this->m_search_path );
+      viame::find_file( file_name, this->m_search_path );
     if( "" != res_file )
     {
       return res_file;
@@ -605,7 +603,7 @@ public:
     const auto eit = m_include_stack.rend();
     for( auto it = m_include_stack.rbegin(); it != eit; ++it )
     {
-      config_path_t config_file_dir( kwiver::vital::filename_path(
+      config_path_t config_file_dir( viame::filename_path(
         **it ) );
       if( "" == config_file_dir )
       {
@@ -617,7 +615,7 @@ public:
 
     erase_duplicates( include_paths );
 
-    return kwiver::vital::find_file( file_name, include_paths );
+    return viame::find_file( file_name, include_paths );
   }
 
   // --------------------------------------------------------------------------
@@ -657,9 +655,9 @@ public:
   config_path_list_t m_search_path;
 
   // config block being created
-  kwiver::vital::config_block_sptr m_config_block;
+  viame::config_block_sptr m_config_block;
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   // -- token extractor data
   int m_token_state;
@@ -713,13 +711,11 @@ config_parser
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 config_parser
 ::get_config() const
 {
   return m_priv->m_config_block;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

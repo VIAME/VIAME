@@ -11,7 +11,7 @@
 
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -25,13 +25,13 @@ namespace kwiver {
  * \oport{detected_object_set}
  */
 class VIAME_PROCESSES_CLASSIFIERS_EXPORT refine_detections_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "refine_detections",
                "Refines detections for a given frame," )
 
-  refine_detections_process( kwiver::vital::config_block_sptr const& config );
+  refine_detections_process( viame::config_block_sptr const& config );
   virtual ~refine_detections_process();
 
 protected:
@@ -47,6 +47,6 @@ private:
   const std::unique_ptr<priv> d;
 };
 
-} // end namespace
+} // namespace viame
 
 #endif /* ARROWS_PROCESSES_REFINE_DETECTIONS_PROCESS_H */

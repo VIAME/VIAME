@@ -4,9 +4,7 @@
 
 #include "token_type_symtab.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 token_type_symtab
@@ -52,6 +50,4 @@ token_type_symtab
   return retcode;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

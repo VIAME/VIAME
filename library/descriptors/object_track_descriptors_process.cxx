@@ -53,7 +53,7 @@ public:
   bool m_index_loaded;
 
   // Map from (track_id, frame_id) to descriptor vector
-  using key_type = std::pair< kwiver::vital::track_id_t, kwiver::vital::frame_id_t >;
+  using key_type = std::pair< viame::track_id_t, viame::frame_id_t >;
   std::map< key_type, std::vector< double > > m_descriptor_index;
 };
 
@@ -151,8 +151,8 @@ object_track_descriptors_process
 
       try
       {
-        kwiver::vital::track_id_t track_id = std::stoll( track_id_str );
-        kwiver::vital::frame_id_t frame_id = std::stoll( frame_id_str );
+        viame::track_id_t track_id = std::stoll( track_id_str );
+        viame::frame_id_t frame_id = std::stoll( frame_id_str );
 
         auto it = uid_to_desc.find( uid );
         if( it != uid_to_desc.end() )
@@ -197,8 +197,8 @@ object_track_descriptors_process
       {
         try
         {
-          kwiver::vital::track_id_t track_id = std::stoll( track_id_str );
-          kwiver::vital::frame_id_t frame_id = std::stoll( frame_id_str );
+          viame::track_id_t track_id = std::stoll( track_id_str );
+          viame::frame_id_t frame_id = std::stoll( frame_id_str );
           d->m_descriptor_index[{ track_id, frame_id }] = std::move( values );
         }
         catch( const std::exception& ) {}
@@ -216,21 +216,21 @@ object_track_descriptors_process
 ::_step()
 {
   // Grab input object tracks
-  kwiver::vital::object_track_set_sptr object_tracks =
+  viame::object_track_set_sptr object_tracks =
     grab_from_port_using_trait( object_track_set );
 
   // Iterate through all tracks and states
   for( auto track : object_tracks->tracks() )
   {
-    for( auto state : *track | kwiver::vital::as_object_track )
+    for( auto state : *track | viame::as_object_track )
     {
       if( !state )
       {
         continue;
       }
 
-      kwiver::vital::track_id_t track_id = track->id();
-      kwiver::vital::frame_id_t frame_id = state->frame();
+      viame::track_id_t track_id = track->id();
+      viame::frame_id_t frame_id = state->frame();
 
       auto it = d->m_descriptor_index.find( { track_id, frame_id } );
 
@@ -240,7 +240,7 @@ object_track_descriptors_process
 
         // Create descriptor and attach to detection
         auto desc = std::make_shared<
-          kwiver::vital::descriptor_dynamic< double > >( values.size() );
+          viame::descriptor_dynamic< double > >( values.size() );
 
         double* raw = desc->raw_data();
         for( size_t i = 0; i < values.size(); ++i )
@@ -248,7 +248,7 @@ object_track_descriptors_process
           raw[i] = values[i];
         }
 
-        kwiver::vital::detected_object_sptr detection = state->detection();
+        viame::detected_object_sptr detection = state->detection();
         if( detection )
         {
           detection->set_descriptor( desc );
@@ -267,9 +267,9 @@ void
 object_track_descriptors_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- inputs --

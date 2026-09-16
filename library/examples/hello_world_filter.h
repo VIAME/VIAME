@@ -47,7 +47,7 @@ namespace viame {
  * @see hello_world_detector for an object detector example
  */
 class VIAME_EXAMPLES_EXPORT hello_world_filter :
-  public kwiver::vital::algo::image_filter
+  public viame::algo::image_filter
 {
 public:
   PLUGGABLE_IMPL(
@@ -61,10 +61,10 @@ public:
 
   virtual ~hello_world_filter();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual kwiver::vital::image_container_sptr filter(
-    kwiver::vital::image_container_sptr image_data );
+  virtual viame::image_container_sptr filter(
+    viame::image_container_sptr image_data );
 };
 
 } // end namespace viame

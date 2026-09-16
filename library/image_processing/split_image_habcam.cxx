@@ -21,16 +21,16 @@
 
 namespace io = viame::image_ops;
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 
 /// Split image
-std::vector< kwiver::vital::image_container_sptr >
+std::vector< viame::image_container_sptr >
 split_image_habcam
-::split( kwiver::vital::image_container_sptr image ) const
+::split( viame::image_container_sptr image ) const
 {
-  std::vector< kwiver::vital::image_container_sptr > output;
+  std::vector< viame::image_container_sptr > output;
 
   if( image->width() >= c_required_width_factor * image->height() )
   {

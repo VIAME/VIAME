@@ -37,12 +37,12 @@ struct VIAME_FILE_IO_EXPORT dive_write_options
 /// the class scores averaged over the states that carry a classification.
 VIAME_FILE_IO_EXPORT
 void write_dive_json( std::ostream& stream,
-                      std::vector< kwiver::vital::track_sptr > const& tracks,
+                      std::vector< viame::track_sptr > const& tracks,
                       dive_write_options const& options );
 
 // -----------------------------------------------------------------------------
 class VIAME_FILE_IO_EXPORT write_object_track_set_dive
-  : public kwiver::vital::algo::write_object_track_set
+  : public viame::algo::write_object_track_set
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -69,10 +69,10 @@ public:
 
   virtual ~write_object_track_set_dive() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::object_track_set_sptr& set,
-                          const kwiver::vital::timestamp& ts,
+  virtual void write_set( const viame::object_track_set_sptr& set,
+                          const viame::timestamp& ts,
                           const std::string& file_id );
 
   virtual void close();
@@ -80,7 +80,7 @@ public:
 private:
   void initialize() override;
 
-  std::map< kwiver::vital::track_id_t, kwiver::vital::track_sptr > m_tracks;
+  std::map< viame::track_id_t, viame::track_sptr > m_tracks;
 };
 
 } // end namespace

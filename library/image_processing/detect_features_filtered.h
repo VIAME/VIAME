@@ -15,15 +15,13 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 /// A feature detector that applies a filter to results
 class VIAME_IMAGE_PROCESSING_EXPORT detect_features_filtered
-  : public kwiver::vital::algo::detect_features
+  : public viame::algo::detect_features
 {
 public:
   PLUGGABLE_IMPL(
@@ -31,10 +29,10 @@ public:
     "Wrapper that runs a feature detector and "
     "applies a filter to the detector output",
     PARAM(
-      detector, vital::algo::detect_features_sptr,
+      detector, viame::algo::detect_features_sptr,
       "detector" ),
     PARAM(
-      filter, vital::algo::filter_features_sptr,
+      filter, viame::algo::filter_features_sptr,
       "filter" )
   )
 
@@ -42,7 +40,7 @@ public:
   virtual ~detect_features_filtered();
 
   /// Check that the algorithm's configuration config_block is valid
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   /// Extract a set of image features from the provided image
   ///
@@ -55,10 +53,10 @@ public:
   ///             indicate regions to consider. Only the first channel will be
   ///             considered.
   /// \returns a set of image features
-  virtual vital::feature_set_sptr
+  virtual viame::feature_set_sptr
   detect(
-    vital::image_container_sptr image_data,
-    vital::image_container_sptr mask = vital::image_container_sptr() ) const;
+    viame::image_container_sptr image_data,
+    viame::image_container_sptr mask = viame::image_container_sptr() ) const;
 
 private:
   void initialize() override;
@@ -67,10 +65,8 @@ private:
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif // KWIVER_ARROWS_CORE_DETECT_FEATURES_FILTERED_H_

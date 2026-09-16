@@ -17,7 +17,7 @@
  * \brief Implementation of the string taking process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class take_string_process::priv
@@ -34,7 +34,7 @@ class take_string_process::priv
 process::port_t const take_string_process::priv::port_input = port_t("string");
 
 take_string_process
-::take_string_process(kwiver::vital::config_block_sptr const& config)
+::take_string_process(viame::config_block_sptr const& config)
   : process(config)
   , d()
 {

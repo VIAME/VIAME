@@ -54,7 +54,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_FILE_IO_PLUGIN_EXPORT
@@ -78,23 +78,23 @@ register_factories( kv::registry& vpm )
   }
 
   VIAME_REGISTER( kv::algo::detected_object_set_input,
-                  kwiver::arrows::core::detected_object_set_input_kw18,
+                  viame::core::detected_object_set_input_kw18,
                   "kw18", "Read detected object sets in kw18 format" )
 
   VIAME_REGISTER( kv::algo::detected_object_set_output,
-                  kwiver::arrows::core::detected_object_set_output_kw18,
+                  viame::core::detected_object_set_output_kw18,
                   "kw18", "Write detected object sets in kw18 format" )
 
   VIAME_REGISTER( kv::algo::read_object_track_set,
-                  kwiver::arrows::core::read_object_track_set_kw18,
+                  viame::core::read_object_track_set_kw18,
                   "kw18", "Read object track sets in kw18 format" )
 
   VIAME_REGISTER( kv::algo::write_object_track_set,
-                  kwiver::arrows::core::write_object_track_set_kw18,
+                  viame::core::write_object_track_set_kw18,
                   "kw18", "Write object track sets in kw18 format" )
 
   VIAME_REGISTER( kv::algo::feature_descriptor_io,
-                  kwiver::arrows::core::feature_descriptor_io,
+                  viame::core::feature_descriptor_io,
                   "core", "Read and write features and descriptors as KWFD" )
 
 #undef VIAME_REGISTER

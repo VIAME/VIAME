@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "detect_features_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void detect_features(py::module& m)
@@ -19,15 +19,15 @@ void detect_features(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::detect_features,
-               std::shared_ptr<kwiver::vital::algo::detect_features>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::detect_features,
+               std::shared_ptr<viame::algo::detect_features>,
+               viame::algorithm,
                detect_features_trampoline<> > instance(m,  "DetectFeatures");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::detect_features::interface_name)
-    .def("detect", &kwiver::vital::algo::detect_features::detect, py::doc(R"( Extract a set of image features from the provided image
+    .def_static("interface_name", &viame::algo::detect_features::interface_name)
+    .def("detect", &viame::algo::detect_features::detect, py::doc(R"( Extract a set of image features from the provided image
 
  A given mask image should be one-channel (mask->depth() == 1). If the
  given mask image has more than one channel, only the first will be
@@ -43,7 +43,7 @@ void detect_features(py::module& m)
              considered.
  \returns a set of image features)"), py::arg("image_data"), py::arg("mask") = py::none())
     ;
-  register_algorithm< kwiver::vital::algo::detect_features > (instance);
+  register_algorithm< viame::algo::detect_features > (instance);
 }
 
 }

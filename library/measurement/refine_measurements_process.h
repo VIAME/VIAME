@@ -27,11 +27,11 @@ namespace core
  * @brief Filter object tracks
  */
 class VIAME_PROCESSES_MEASUREMENT_EXPORT refine_measurements_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  refine_measurements_process( kwiver::vital::config_block_sptr const& config );
+  refine_measurements_process( viame::config_block_sptr const& config );
   virtual ~refine_measurements_process();
 
 protected:

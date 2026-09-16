@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/merge_images.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class merge_images_base = kwiver::vital::algo::merge_images >
+template< class merge_images_base = viame::algo::merge_images >
 class merge_images_trampoline
     : public algorithm_trampoline< merge_images_base >
 {
@@ -21,17 +21,17 @@ class merge_images_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::image_container_sptr
-  merge(::kwiver::vital::image_container_sptr image1, ::kwiver::vital::image_container_sptr image2) const override
+  viame::image_container_sptr
+  merge(::viame::image_container_sptr image1, ::viame::image_container_sptr image2) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::image_container_sptr,
-      kwiver::vital::algo::merge_images,
+      viame::image_container_sptr,
+      viame::algo::merge_images,
       merge,
       image1, image2
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

@@ -14,9 +14,9 @@
 #include <filesystem>
 #include <tuple>
 
-namespace kwiver {
+namespace viame {
 
-namespace algo = vital::algo;
+namespace algo = viame::algo;
 
 create_port_trait( external_descriptor_set, descriptor_set,
   "Descriptor set to be processed by external query handler" );
@@ -68,11 +68,11 @@ public:
   unsigned max_result_count;
 
   bool is_first;
-  std::map< unsigned, vital::query_result_sptr > previous_results;
+  std::map< unsigned, viame::query_result_sptr > previous_results;
   std::map< std::string, unsigned > instance_ids;
-  std::map< unsigned, vital::query_result_sptr > forced_positives;
-  std::map< unsigned, vital::query_result_sptr > forced_negatives;
-  vital::uid active_uid;
+  std::map< unsigned, viame::query_result_sptr > forced_positives;
+  std::map< unsigned, viame::query_result_sptr > forced_negatives;
+  viame::uid active_uid;
 
   unsigned result_counter;
   bool database_populated;
@@ -82,21 +82,21 @@ public:
 
   // Video name <=> descriptor sptr <=> track sptr tuple
   typedef std::tuple< std::string,
-                      vital::track_descriptor_sptr,
-                      std::vector< vital::track_sptr > > desc_tuple_t;
+                      viame::track_descriptor_sptr,
+                      std::vector< viame::track_sptr > > desc_tuple_t;
 
   std::map< std::string, desc_tuple_t > uid_to_desc;
 
   void populate_database();
 
-  void reset_query( const vital::database_query_sptr& query );
+  void reset_query( const viame::database_query_sptr& query );
   unsigned get_instance_id( const std::string& uid );
 }; // end priv class
 
 // =============================================================================
 
 perform_query_process
-::perform_query_process( vital::config_block_sptr const& config )
+::perform_query_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new perform_query_process::priv( this ) )
 {
@@ -116,7 +116,7 @@ perform_query_process
 void perform_query_process
 ::_configure()
 {
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   d->external_handler = config_value_using_trait( external_handler );
   d->database_folder = config_value_using_trait( database_folder );
@@ -134,7 +134,7 @@ void perform_query_process
 
     if( !d->descriptor_reader )
     {
-      VITAL_THROW( sprokit::invalid_configuration_exception,
+      VITAL_THROW( viame::pipeline::invalid_configuration_exception,
         name(), "Unable to create descriptor reader" );
     }
 
@@ -148,7 +148,7 @@ void perform_query_process
           algo_config,
           d->descriptor_reader ) )
     {
-      VITAL_THROW( sprokit::invalid_configuration_exception,
+      VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                    name(), "Configuration check failed." );
     }
 
@@ -159,7 +159,7 @@ void perform_query_process
 
     if( !d->track_reader )
     {
-      VITAL_THROW( sprokit::invalid_configuration_exception,
+      VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                    name(), "Unable to create track reader" );
     }
 
@@ -173,7 +173,7 @@ void perform_query_process
           algo_config,
           d->track_reader ) )
     {
-      VITAL_THROW( sprokit::invalid_configuration_exception,
+      VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                    name(), "Configuration check failed." );
     }
   }
@@ -187,13 +187,13 @@ perform_query_process
   // Check for termination since we are in manual mode
   auto p_info = peek_at_port_using_trait( database_query );
 
-  if( p_info.datum->type() == sprokit::datum::complete )
+  if( p_info.datum->type() == viame::pipeline::datum::complete )
   {
     grab_edge_datum_using_trait( database_query );
     grab_edge_datum_using_trait( iqr_feedback );
     mark_process_as_complete();
 
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( query_result, dat );
 
@@ -209,14 +209,14 @@ perform_query_process
   }
 
   // Retrieve inputs from ports
-  vital::database_query_sptr query;
-  vital::iqr_feedback_sptr feedback;
+  viame::database_query_sptr query;
+  viame::iqr_feedback_sptr feedback;
 
   query = grab_from_port_using_trait( database_query );
   feedback = grab_from_port_using_trait( iqr_feedback );
 
   // Declare output
-  vital::query_result_set_sptr output( new vital::query_result_set() );
+  viame::query_result_set_sptr output( new viame::query_result_set() );
 
   // No query received, do nothing, return no results
   if( !query && !feedback )
@@ -239,8 +239,8 @@ perform_query_process
   {
     d->populate_database();
 
-    vital::string_vector_sptr positive_uids( new vital::string_vector() );
-    vital::string_vector_sptr negative_uids( new vital::string_vector() );
+    viame::string_vector_sptr positive_uids( new viame::string_vector() );
+    viame::string_vector_sptr negative_uids( new viame::string_vector() );
 
     if( feedback &&
       ( !feedback->positive_ids().empty() ) )
@@ -285,9 +285,9 @@ perform_query_process
     }
 
     // Format data to simplified format for external
-    std::vector< vital::descriptor_sptr > exemplar_raw_descs;
+    std::vector< viame::descriptor_sptr > exemplar_raw_descs;
 
-    vital::string_vector_sptr exemplar_uids( new vital::string_vector() );
+    viame::string_vector_sptr exemplar_uids( new viame::string_vector() );
 
     for( auto track_desc : *query->descriptors() )
     {
@@ -295,11 +295,11 @@ perform_query_process
       exemplar_raw_descs.push_back( track_desc->get_descriptor() );
     }
 
-    vital::descriptor_set_sptr exemplar_descs(
-      new vital::simple_descriptor_set( exemplar_raw_descs ) );
+    viame::descriptor_set_sptr exemplar_descs(
+      new viame::simple_descriptor_set( exemplar_raw_descs ) );
 
-    vital::string_vector_sptr result_uids;
-    vital::double_vector_sptr result_scores;
+    viame::string_vector_sptr result_uids;
+    viame::double_vector_sptr result_scores;
 
     // Send data to external process
     push_to_port_using_trait( external_descriptor_set, exemplar_descs );
@@ -347,7 +347,7 @@ perform_query_process
         continue;
       }
 
-      vital::query_result_sptr entry( new vital::query_result() );
+      viame::query_result_sptr entry( new viame::query_result() );
 
       entry->set_query_id( d->active_uid );
       entry->set_stream_id( std::get<0>( db_res->second ) );
@@ -355,14 +355,14 @@ perform_query_process
       entry->set_relevancy_score( result_score );
 
       // Assign track descriptor set to result
-      vital::track_descriptor_set_sptr desc_set(
-        new vital::track_descriptor_set() );
+      viame::track_descriptor_set_sptr desc_set(
+        new viame::track_descriptor_set() );
 
       desc_set->push_back( std::get<1>( db_res->second ) );
       entry->set_descriptors( desc_set );
 
       // Assign temporal bounds to this query result
-      vital::timestamp ts1, ts2;
+      viame::timestamp ts1, ts2;
       bool is_first = true;
 
       for( auto desc : *desc_set )
@@ -389,8 +389,8 @@ perform_query_process
       entry->set_temporal_bounds( ts1, ts2 );
 
       // Assign track set to result
-      vital::object_track_set_sptr trk_set(
-        new vital::object_track_set( std::get<2>( db_res->second ) ) );
+      viame::object_track_set_sptr trk_set(
+        new viame::object_track_set( std::get<2>( db_res->second ) ) );
 
       entry->set_tracks( trk_set );
 
@@ -422,9 +422,9 @@ void perform_query_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t optional_no_dep;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional_no_dep;
+  viame::pipeline::process::port_flags_t required;
 
   required.insert( flag_required );
   optional_no_dep.insert( flag_input_nodep );
@@ -508,8 +508,8 @@ void perform_query_process::priv
     descriptor_reader->open( desc_file );
     track_reader->open( track_file );
 
-    vital::track_descriptor_set_sptr descs;
-    vital::object_track_set_sptr tracks;
+    viame::track_descriptor_set_sptr descs;
+    viame::object_track_set_sptr tracks;
 
     if( !descriptor_reader->read_set( descs ) )
     {
@@ -523,7 +523,7 @@ void perform_query_process::priv
       continue;
     }
 
-    std::map< unsigned, vital::track_sptr > id_to_track;
+    std::map< unsigned, viame::track_sptr > id_to_track;
 
     for( auto trk_sptr : tracks->tracks() )
     {
@@ -533,7 +533,7 @@ void perform_query_process::priv
     for( auto desc_sptr : *descs )
     {
       // Identify associated tracks
-      std::vector< vital::track_sptr > assc_trks;
+      std::vector< viame::track_sptr > assc_trks;
 
       for( auto id : desc_sptr->get_track_ids() )
       {
@@ -550,7 +550,7 @@ void perform_query_process::priv
 }
 
 void perform_query_process::priv
-::reset_query( const vital::database_query_sptr& query )
+::reset_query( const viame::database_query_sptr& query )
 {
   result_counter = 0;
   instance_ids.clear();
@@ -574,4 +574,4 @@ unsigned perform_query_process::priv
   return result_counter;
 }
 
-} // end namespace
+} // namespace viame

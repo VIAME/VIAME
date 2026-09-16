@@ -40,7 +40,7 @@ namespace viame {
 // ===================================================================================
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::detected_object_sptr
+viame::detected_object_sptr
 create_detected_object_from_dive(
   dive_feature const& feature,
   std::vector< std::pair< std::string, double > > const& confidence_pairs )
@@ -51,7 +51,7 @@ create_detected_object_from_dive(
   }
 
   // Create bounding box from bounds [x1, y1, x2, y2]
-  kwiver::vital::bounding_box_d bbox(
+  viame::bounding_box_d bbox(
     feature.bounds[0],
     feature.bounds[1],
     feature.bounds[2],
@@ -65,14 +65,14 @@ create_detected_object_from_dive(
   }
 
   // Create detected object type with all confidence pairs
-  auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+  auto dot = std::make_shared< viame::detected_object_type >();
   for( auto const& cp : confidence_pairs )
   {
     dot->set_score( cp.first, cp.second );
   }
 
   // Create detection
-  auto det = std::make_shared< kwiver::vital::detected_object >(
+  auto det = std::make_shared< viame::detected_object >(
     bbox, primary_confidence, dot );
 
   if( feature.head.size() >= 2 )
@@ -105,7 +105,7 @@ create_detected_object_from_dive(
   }
   if( !feature.polygon.empty() )
   {
-    std::vector< kwiver::vital::vector_2d > polygon;
+    std::vector< viame::vector_2d > polygon;
     for( auto const& p : feature.polygon )
     {
       polygon.emplace_back( p.first, p.second );
@@ -132,7 +132,7 @@ dive_json_files_from_stream( std::istream& stream, std::string const& filename )
 {
   std::vector< std::string > files;
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( stream );
+  viame::data_stream_reader stream_reader( stream );
 
   while( stream_reader.getline( line ) )
   {
@@ -406,7 +406,7 @@ parse_track( std::string const& key, rapidjson::Value const& value, dive_track& 
 // -----------------------------------------------------------------------------------
 bool
 parse_dive_document( rapidjson::Document const& doc,
-                     kwiver::vital::logger_handle_t logger,
+                     viame::logger_handle_t logger,
                      dive_annotation_file& dive_data )
 {
   dive_data.tracks.clear();
@@ -446,7 +446,7 @@ parse_dive_document( rapidjson::Document const& doc,
 // -----------------------------------------------------------------------------------
 bool
 parse_dive_json_manual( std::string const& content,
-                        kwiver::vital::logger_handle_t logger,
+                        viame::logger_handle_t logger,
                         dive_annotation_file& dive_data )
 {
   rapidjson::Document doc;
@@ -463,7 +463,7 @@ parse_dive_json_manual( std::string const& content,
 // -----------------------------------------------------------------------------------
 bool
 parse_dive_json_file( std::string const& filename,
-                      kwiver::vital::logger_handle_t logger,
+                      viame::logger_handle_t logger,
                       dive_annotation_file& dive_data )
 {
   std::ifstream ifs( filename, std::ios::binary );
@@ -506,7 +506,7 @@ public:
   int m_max_frame;
 
   // Map of detected objects indexed by frame number
-  std::map< int, kwiver::vital::detected_object_set_sptr > m_detection_by_frame;
+  std::map< int, viame::detected_object_set_sptr > m_detection_by_frame;
 
   // Map of frame number to image name (if provided in the input)
   std::map< int, std::string > m_frame_to_image;
@@ -533,7 +533,7 @@ read_detected_object_set_dive
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_dive
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -544,14 +544,14 @@ void
 read_detected_object_set_dive
 ::open( std::string const& filename )
 {
-  kwiver::vital::algo::detected_object_set_input::open( filename );
+  viame::algo::detected_object_set_input::open( filename );
   d->m_filename = filename;
 }
 
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_dive
-::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+::read_set( viame::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -564,7 +564,7 @@ read_detected_object_set_dive
   // Test for end of all frames
   if( d->m_current_frame > d->m_max_frame )
   {
-    set = std::make_shared< kwiver::vital::detected_object_set >();
+    set = std::make_shared< viame::detected_object_set >();
     return false;
   }
 
@@ -576,7 +576,7 @@ read_detected_object_set_dive
   }
   else
   {
-    set = std::make_shared< kwiver::vital::detected_object_set >();
+    set = std::make_shared< viame::detected_object_set >();
   }
 
   // Set image name if we have it
@@ -653,7 +653,7 @@ read_detected_object_set_dive::priv
         if( m_detection_by_frame.find( frame ) == m_detection_by_frame.end() )
         {
           m_detection_by_frame[ frame ] =
-            std::make_shared< kwiver::vital::detected_object_set >();
+            std::make_shared< viame::detected_object_set >();
         }
 
         m_detection_by_frame[ frame ]->add( det );

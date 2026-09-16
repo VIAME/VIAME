@@ -27,9 +27,7 @@
 #include <viame/core_types/vector.h>
 
 #include <viame/algorithm_framework/io/eigen_io.h>
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // forward declaration of detected_object class
 class detected_object;
@@ -53,7 +51,7 @@ public:
   using descriptor_t = descriptor_dynamic< double >;
   using descriptor_scptr = std::shared_ptr< descriptor_t const >;
   using notes_t = std::vector< std::string >;
-  using keypoints_t = std::map< std::string, vital::point_2d >;
+  using keypoints_t = std::map< std::string, viame::point_2d >;
 
   /// @brief Create default detected object.
   ///
@@ -80,7 +78,7 @@ public:
   /// @param confidence Detectors confidence in this detection.
   /// @param classifications Optional object classification.
   detected_object(
-    kwiver::vital::geo_point const& geo_pt,
+    viame::geo_point const& geo_pt,
     double confidence = 1.0,
     detected_object_type_sptr classifications = nullptr );
 
@@ -124,14 +122,14 @@ public:
   /// if no point has been supplied for this detection.
   ///
   /// @return A copy of the geo_point.
-  kwiver::vital::geo_point geo_point() const;
+  viame::geo_point geo_point() const;
 
   /// @brief Set new geo_point for this detection.
   ///
   /// The supplied geo_point replaces the point for this detection.
   ///
   /// @param gp geo_point for this detection.
-  void set_geo_point( kwiver::vital::geo_point const& gp );
+  void set_geo_point( viame::geo_point const& gp );
 
   /// @brief Get confidence for this detection.
   ///
@@ -275,7 +273,7 @@ public:
   ///
   /// @param id String id of the keypoint
   /// @param p The location of the keypoint
-  void add_keypoint( std::string const& id, vital::point_2d const& p );
+  void add_keypoint( std::string const& id, viame::point_2d const& p );
 
   /// @brief Reset keypoints for this detection
   ///
@@ -382,7 +380,7 @@ public:
   ///
   /// @throws attribute_set_exception if no attribute set exists or if the
   ///         named attribute is not in the set.
-  /// @throws kwiver::vital::bad_any_cast if actual type does not match
+  /// @throws viame::bad_any_cast if actual type does not match
   ///         requested type.
   template < typename T >
   T
@@ -398,7 +396,7 @@ public:
   }
 
 private:
-  kwiver::vital::geo_point m_geo_point;
+  viame::geo_point m_geo_point;
   bounding_box_d m_bounding_box;
   double m_confidence;
   image_container_scptr m_mask_image;
@@ -411,15 +409,13 @@ private:
   std::string m_detector_name;
 
   std::vector< std::string > m_notes;
-  std::map< std::string, vital::point_2d > m_keypoints;
+  std::map< std::string, viame::point_2d > m_keypoints;
   std::vector< std::vector< vector_2d > > m_polygons;
 
   attribute_set_sptr m_attrs;
   mutable std::mutex m_attrs_mutex; ///< mutex for thread-safe attribute access
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

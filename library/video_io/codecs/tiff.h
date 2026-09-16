@@ -57,7 +57,7 @@ std::string unsupported_reason( std::string const& filename );
 /// @returns the image, 8 or 16 bit to match the file
 /// @throws std::runtime_error if the file is not one of those
 VIAME_VIDEO_IO_EXPORT
-kwiver::vital::image read( std::string const& filename );
+viame::image read( std::string const& filename );
 
 /// @brief Write an uncompressed, stripped TIFF.
 ///
@@ -70,7 +70,7 @@ kwiver::vital::image read( std::string const& filename );
 /// @param image the image to write
 /// @throws std::runtime_error if the pixel type is not 8 or 16 bit
 VIAME_VIDEO_IO_EXPORT
-void write( std::string const& filename, kwiver::vital::image const& image );
+void write( std::string const& filename, viame::image const& image );
 
 } // end namespace tiff
 

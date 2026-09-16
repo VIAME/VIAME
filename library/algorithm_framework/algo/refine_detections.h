@@ -14,9 +14,7 @@
 
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -25,7 +23,7 @@ namespace algo {
 /// @brief Case class for refining detected object sets.
 ///
 class VITAL_ALGO_EXPORT refine_detections
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   refine_detections();
@@ -49,8 +47,6 @@ typedef std::shared_ptr< refine_detections > refine_detections_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_REFINE_DETECTIONS_H_

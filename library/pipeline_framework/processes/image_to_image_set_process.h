@@ -30,13 +30,13 @@ namespace core
  * for use with processes that require image sets.
  */
 class VIAME_PROCESSES_PIPELINE_FRAMEWORK_EXPORT image_to_image_set_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "image_to_image_set",
                "Convert single image to image_set" )
 
-  image_to_image_set_process( kwiver::vital::config_block_sptr const& config );
+  image_to_image_set_process( viame::config_block_sptr const& config );
   virtual ~image_to_image_set_process();
 
 protected:

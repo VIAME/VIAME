@@ -13,9 +13,7 @@
 #include <functional>
 #include <unordered_map>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// \brief Base class for ::signal.
@@ -123,8 +121,6 @@ private:
   std::unordered_map< context*, slot_t > m_slots;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

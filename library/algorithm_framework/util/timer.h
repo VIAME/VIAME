@@ -14,9 +14,7 @@
 #include <iostream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Abstract base class for timers.
@@ -131,8 +129,6 @@ private:
   timer_t m_timer;
 }; // end class scoped timer
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_TIMER_H

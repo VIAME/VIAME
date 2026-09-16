@@ -4,9 +4,7 @@
 
 #include "data_stream_reader.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 data_stream_reader
 ::data_stream_reader( std::istream& strm )
@@ -74,6 +72,4 @@ data_stream_reader
   m_string_editor.add( op );
 }
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame

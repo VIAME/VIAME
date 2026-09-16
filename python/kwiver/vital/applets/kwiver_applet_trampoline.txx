@@ -15,13 +15,13 @@
 #include <viame/algorithm_framework/applets/kwiver_applet.h>
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
+namespace viame {
 
 namespace tools {
 
 namespace python {
 
-template < class applet_base = kwiver::tools::kwiver_applet >
+template < class applet_base = viame::tools::kwiver_applet >
 class kwiver_applet_trampoline : public applet_base
 {
 public:
@@ -50,7 +50,7 @@ public:
   }
 
   void
-  set_configuration( kwiver::vital::config_block_sptr cb ) override
+  set_configuration( viame::config_block_sptr cb ) override
   {
     PYBIND11_OVERLOAD(
       void,
@@ -60,11 +60,11 @@ public:
     );
   }
 
-  kwiver::vital::config_block_sptr
+  viame::config_block_sptr
   get_configuration() const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::config_block_sptr,
+      viame::config_block_sptr,
       applet_base,
       get_configuration,
     );
@@ -81,7 +81,7 @@ public:
   }
 
   void
-  set_configuration_internal( kwiver::vital::config_block_sptr cb ) override
+  set_configuration_internal( viame::config_block_sptr cb ) override
   {
     PYBIND11_OVERLOAD(
       void,
@@ -115,6 +115,6 @@ public:
 
 } // namespace tools
 
-} // namespace kwiver
+} // namespace viame
 
 #endif

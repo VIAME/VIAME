@@ -10,7 +10,7 @@
 #include <memory>
 #include <sstream>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace py = pybind11;
 
 PYBIND11_MODULE( geo_point, m )

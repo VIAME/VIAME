@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "perform_text_query_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void perform_text_query(py::module& m)
@@ -19,15 +19,15 @@ void perform_text_query(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::perform_text_query,
-               std::shared_ptr<kwiver::vital::algo::perform_text_query>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::perform_text_query,
+               std::shared_ptr<viame::algo::perform_text_query>,
+               viame::algorithm,
                perform_text_query_trampoline<> > instance(m,  "PerformTextQuery");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::perform_text_query::interface_name)
-    .def("perform_query", &kwiver::vital::algo::perform_text_query::perform_query, py::doc(R"( Perform text-based detection/segmentation on images.
+    .def_static("interface_name", &viame::algo::perform_text_query::interface_name)
+    .def("perform_query", &viame::algo::perform_text_query::perform_query, py::doc(R"( Perform text-based detection/segmentation on images.
 
  \param text_query Natural language description of objects to detect.
         Examples: "fish", "red car", "person wearing hat"
@@ -54,7 +54,7 @@ void perform_text_query(py::module& m)
           confidence score, classification, and optional polygon mask.
 )"), py::arg("text_query"), py::arg("images"), py::arg("timestamps"), py::arg("input_tracks"))
     ;
-  register_algorithm< kwiver::vital::algo::perform_text_query > (instance);
+  register_algorithm< viame::algo::perform_text_query > (instance);
 }
 
 }

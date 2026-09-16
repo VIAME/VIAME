@@ -49,8 +49,8 @@ public:
   std::list< buffered_frame > m_optical_frames;
   std::list< buffered_frame > m_thermal_frames;
 
-  kwiver::vital::timestamp m_last_optical_ts;
-  kwiver::vital::timestamp m_last_thermal_ts;
+  viame::timestamp m_last_optical_ts;
+  viame::timestamp m_last_thermal_ts;
 
   bool m_optical_finished;
   bool m_thermal_finished;
@@ -62,7 +62,7 @@ public:
 // =============================================================================
 
 align_multimodal_imagery_process
-::align_multimodal_imagery_process( kwiver::vital::config_block_sptr const& config )
+::align_multimodal_imagery_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new align_multimodal_imagery_process::priv() )
 {
@@ -96,12 +96,12 @@ void
 align_multimodal_imagery_process
 ::_step()
 {
-  kwiver::vital::timestamp optical_time;
-  kwiver::vital::image_container_sptr optical_image;
+  viame::timestamp optical_time;
+  viame::image_container_sptr optical_image;
   std::string optical_file_name;
 
-  kwiver::vital::timestamp thermal_time;
-  kwiver::vital::image_container_sptr thermal_image;
+  viame::timestamp thermal_time;
+  viame::image_container_sptr thermal_image;
   std::string thermal_file_name;
 
   // Check for completion of optical frame stream
@@ -109,7 +109,7 @@ align_multimodal_imagery_process
   {
     auto port_info = peek_at_port_using_trait( optical_image );
 
-    if( port_info.datum->type() == sprokit::datum::complete )
+    if( port_info.datum->type() == viame::pipeline::datum::complete )
     {
       d->m_optical_finished = true;
       grab_edge_datum_using_trait( optical_image );
@@ -154,7 +154,7 @@ align_multimodal_imagery_process
   {
     auto port_info = peek_at_port_using_trait( thermal_image );
 
-    if( port_info.datum->type() == sprokit::datum::complete )
+    if( port_info.datum->type() == viame::pipeline::datum::complete )
     {
       d->m_thermal_finished = true;
       grab_edge_datum_using_trait( thermal_image );
@@ -359,7 +359,7 @@ align_multimodal_imagery_process
     // Send complete messages, shut down
     mark_process_as_complete();
 
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( optical_image, dat );
     push_datum_to_port_using_trait( optical_file_name, dat );
@@ -381,8 +381,8 @@ align_multimodal_imagery_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -453,13 +453,13 @@ align_multimodal_imagery_process
   this->push_to_port_using_trait( timestamp,
      output_frame1_time ? frame1.ts : frame2.ts );
   this->push_to_port_using_trait( warped_optical_image,
-    kwiver::vital::image_container_sptr() );
+    viame::image_container_sptr() );
   this->push_to_port_using_trait( warped_thermal_image,
-    kwiver::vital::image_container_sptr() );
+    viame::image_container_sptr() );
   this->push_to_port_using_trait( optical_to_thermal_homog,
-    kwiver::vital::homography_sptr() );
+    viame::homography_sptr() );
   this->push_to_port_using_trait( thermal_to_optical_homog,
-    kwiver::vital::homography_sptr() );
+    viame::homography_sptr() );
   this->push_to_port_using_trait( success_flag,
     true );
 }
@@ -479,7 +479,7 @@ align_multimodal_imagery_process
     this->push_to_port_using_trait( optical_image,
       frame.image );
     this->push_to_port_using_trait( thermal_image,
-      kwiver::vital::image_container_sptr() );
+      viame::image_container_sptr() );
     this->push_to_port_using_trait( optical_file_name,
       frame.name );
     this->push_to_port_using_trait( thermal_file_name,
@@ -488,7 +488,7 @@ align_multimodal_imagery_process
   else if( stream_id == 1 )
   {
     this->push_to_port_using_trait( optical_image,
-      kwiver::vital::image_container_sptr() );
+      viame::image_container_sptr() );
     this->push_to_port_using_trait( thermal_image,
       frame.image );
     this->push_to_port_using_trait( optical_file_name,
@@ -504,13 +504,13 @@ align_multimodal_imagery_process
   this->push_to_port_using_trait( timestamp,
     frame.ts );
   this->push_to_port_using_trait( warped_optical_image,
-    kwiver::vital::image_container_sptr() );
+    viame::image_container_sptr() );
   this->push_to_port_using_trait( warped_thermal_image,
-    kwiver::vital::image_container_sptr() );
+    viame::image_container_sptr() );
   this->push_to_port_using_trait( optical_to_thermal_homog,
-    kwiver::vital::homography_sptr() );
+    viame::homography_sptr() );
   this->push_to_port_using_trait( thermal_to_optical_homog,
-    kwiver::vital::homography_sptr() );
+    viame::homography_sptr() );
   this->push_to_port_using_trait( success_flag,
     false );
 }

@@ -20,7 +20,7 @@
 #include <string>
 #include <cstddef>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class load_pipe_exception load_pipe_exception.h <sprokit/pipeline_util/load_pipe_exception.h>
@@ -60,14 +60,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT file_no_exist_exception
      *
      * \param fname The path that does not exist.
      */
-  file_no_exist_exception(kwiver::vital::path_t const& fname) noexcept;
+  file_no_exist_exception(viame::path_t const& fname) noexcept;
     /**
      * \brief Destructor.
      */
     virtual ~file_no_exist_exception() noexcept;
 
     /// The path that does not exist.
-    kwiver::vital::path_t const m_fname;
+    viame::path_t const m_fname;
 };
 
 // ------------------------------------------------------------------

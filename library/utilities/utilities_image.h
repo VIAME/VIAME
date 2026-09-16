@@ -27,7 +27,7 @@ namespace viame {
 /// @return true if the image is non-8-bit, false if it is standard 8-bit unsigned
 VIAME_UTILITIES_EXPORT
 bool is_non_8bit_image(
-  const kwiver::vital::image_container_sptr& image,
+  const viame::image_container_sptr& image,
   std::string& bit_depth_desc );
 
 /// @brief Get a human-readable description of image pixel format.
@@ -37,7 +37,7 @@ bool is_non_8bit_image(
 ///         "16-bit unsigned", "32-bit float")
 VIAME_UTILITIES_EXPORT
 std::string get_image_bit_depth_description(
-  const kwiver::vital::image_container_sptr& image );
+  const viame::image_container_sptr& image );
 
 } // end namespace viame
 

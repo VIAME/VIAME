@@ -76,14 +76,14 @@ public:
   //++ type that this process wraps. The base class pointer is needed
   //++ here because the actual derived class is determined from the run
   //++ time config entries.
-  kwiver::vital::algo::image_object_detector_sptr m_algo;
+  viame::algo::image_object_detector_sptr m_algo;
 
 }; // end priv class
 
 // ================================================================
 //++ This is the standard form for a constructor.
 template_algo_wrapper
-::template_algo_wrapper( kwiver::vital::config_block_sptr const& config )
+::template_algo_wrapper( viame::config_block_sptr const& config )
   : process( config ),
     d( new template_algo_wrapper::priv )
 {
@@ -110,20 +110,20 @@ template_algo_wrapper
   scoped_configure_instrumentation();
 
   // Get process configurartion block.
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
   //++ The name supplied here must match the one defined in the coinfig_trait defined above.
-  //++ Note that these are free functions in the kwiver::vital namespace.
-  if ( ! kwiver::vital::check_nested_algo_configuration<kwiver::vital::algo::image_object_detector>( "algo_name", algo_config ) )
+  //++ Note that these are free functions in the viame namespace.
+  if ( ! viame::check_nested_algo_configuration<viame::algo::image_object_detector>( "algo_name", algo_config ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
-  kwiver::vital::set_nested_algo_configuration( "algo_name", algo_config, d->m_algo );
+  viame::set_nested_algo_configuration( "algo_name", algo_config, d->m_algo );
   if ( ! d->m_algo )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create algorithm." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create algorithm." );
   }
 }
 
@@ -132,7 +132,7 @@ void
 template_algo_wrapper
 ::_step()
 {
-  kwiver::vital::timestamp frame_time;
+  viame::timestamp frame_time;
 
   // See if optional input port has been connected.
   // Get input only if connected.
@@ -144,9 +144,9 @@ template_algo_wrapper
     frame_time = grab_from_port_using_trait( timestamp );
   }
 
-  kwiver::vital::image_container_sptr in_image = grab_from_port_using_trait( image );
+  viame::image_container_sptr in_image = grab_from_port_using_trait( image );
 
-  kwiver::vital::detected_object_set_sptr out_set;
+  viame::detected_object_set_sptr out_set;
 
   // Process Instrumentation call should be just before the real core
   // of the process step processing. It must be after getting the
@@ -208,7 +208,7 @@ template_algo_wrapper
 //++ to get the new config values from the supplied config
 void
 template_algo_wrapper
-::_reconfigure( [[maybe_unused]] kwiver::vital::config_block_sptr const& conf)
+::_reconfigure( [[maybe_unused]] viame::config_block_sptr const& conf)
 {
   scoped_reconfigure_instrumentation();
 
@@ -222,8 +222,8 @@ template_algo_wrapper
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
   required.insert( flag_required );
 
   // -- input --

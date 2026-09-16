@@ -13,9 +13,7 @@
 
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// @brief Get path to current executable.
 ///
@@ -30,8 +28,6 @@ std::string VITAL_UTIL_EXPORT get_executable_path();
 /// @return Directory name.
 std::string VITAL_UTIL_EXPORT get_module_path();
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // KWIVER_GET_PATHS_H

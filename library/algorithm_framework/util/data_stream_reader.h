@@ -13,9 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class string_editor;
 
@@ -41,7 +39,7 @@ class string_editor;
 /// }
 ///
 /// // use data stream reader to allow for comments and blank lines
-/// kwiver::vital::data_stream_reader dsr( ifs );
+/// viame::data_stream_reader dsr( ifs );
 ///
 /// std::string line;
 /// while ( dsr.getline( line ) ) // fails on EOF
@@ -119,8 +117,6 @@ private:
   string_editor m_string_editor;
 }; // end class file_reader
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_UTIL_STREAM_DATA_READER_H

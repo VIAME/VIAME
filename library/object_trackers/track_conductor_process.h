@@ -29,11 +29,11 @@ namespace core
  * The output of multiple trackers can be combined via multiple methods
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT track_conductor_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  track_conductor_process( kwiver::vital::config_block_sptr const& config );
+  track_conductor_process( viame::config_block_sptr const& config );
   virtual ~track_conductor_process();
 
 protected:

@@ -10,21 +10,19 @@
 
 #include <sstream>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /**
  * \file config.cxx
  *
- * \brief Python bindings for \link kwiver::vital::config \endlink.
+ * \brief Python bindings for \link viame::config \endlink.
  */
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
-kwiver::vital::config_block_value_t
+viame::config_block_value_t
 config_block_set_value_cast( py::object const& value )
 {
   return value.cast< std::string >();
@@ -32,28 +30,28 @@ config_block_set_value_cast( py::object const& value )
 
 void
 config_set_value(
-  kwiver::vital::config_block_sptr self,
-  kwiver::vital::config_block_key_t const&  key,
-  kwiver::vital::config_block_key_t const&  value )
+  viame::config_block_sptr self,
+  viame::config_block_key_t const&  key,
+  viame::config_block_key_t const&  value )
 {
-  self->set_value< kwiver::vital::config_block_value_t >( key, value );
+  self->set_value< viame::config_block_value_t >( key, value );
 }
 
-kwiver::vital::config_block_value_t
+viame::config_block_value_t
 config_get_value(
-  kwiver::vital::config_block_sptr self,
-  kwiver::vital::config_block_key_t const&  key )
+  viame::config_block_sptr self,
+  viame::config_block_key_t const&  key )
 {
-  return self->get_value< kwiver::vital::config_block_value_t >( key );
+  return self->get_value< viame::config_block_value_t >( key );
 }
 
-kwiver::vital::config_block_value_t
+viame::config_block_value_t
 config_get_value_with_default(
-  kwiver::vital::config_block_sptr self,
-  kwiver::vital::config_block_key_t const&   key,
-  kwiver::vital::config_block_value_t const& def )
+  viame::config_block_sptr self,
+  viame::config_block_key_t const&   key,
+  viame::config_block_value_t const& def )
 {
-  return self->get_value< kwiver::vital::config_block_value_t >( key, def );
+  return self->get_value< viame::config_block_value_t >( key, def );
 }
 
 pybind11::size_t
@@ -119,6 +117,4 @@ config_delitem(
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

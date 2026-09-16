@@ -13,7 +13,7 @@
 #include <viame/pipeline_framework/pipeline.h>
 #include <viame/pipeline_framework/pipeline_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 output_adapter
 ::output_adapter()
@@ -26,18 +26,18 @@ output_adapter
 // ------------------------------------------------------------------
 void
 output_adapter
-::connect( sprokit::process::name_t proc, sprokit::pipeline_t pipe )
+::connect( viame::pipeline::process::name_t proc, viame::pipeline::pipeline_t pipe )
 {
 
   // Find process in pipeline
-  sprokit::process_t proc_ptr = pipe->process_by_name( proc ); // throws
+  viame::pipeline::process_t proc_ptr = pipe->process_by_name( proc ); // throws
 
-  m_process = static_cast< kwiver::output_adapter_process* > ( proc_ptr.get() );
+  m_process = static_cast< viame::output_adapter_process* > ( proc_ptr.get() );
   m_interface_queue = m_process->get_interface_queue();
 }
 
 // ------------------------------------------------------------------
-  sprokit::process::ports_t
+  viame::pipeline::process::ports_t
 output_adapter
 ::port_list() const
 {
@@ -53,7 +53,7 @@ output_adapter
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set_t
+viame::adapter::adapter_data_set_t
 output_adapter
 ::receive()
 {
@@ -68,4 +68,4 @@ output_adapter
   return m_interface_queue->Empty();
 }
 
-} // end namespace
+} // namespace viame

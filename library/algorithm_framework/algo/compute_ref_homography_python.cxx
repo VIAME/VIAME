@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "compute_ref_homography_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void compute_ref_homography(py::module& m)
@@ -19,15 +19,15 @@ void compute_ref_homography(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::compute_ref_homography,
-               std::shared_ptr<kwiver::vital::algo::compute_ref_homography>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::compute_ref_homography,
+               std::shared_ptr<viame::algo::compute_ref_homography>,
+               viame::algorithm,
                compute_ref_homography_trampoline<> > instance(m,  "ComputeRefHomography");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::compute_ref_homography::interface_name)
-    .def("estimate", &kwiver::vital::algo::compute_ref_homography::estimate, py::doc(R"( Estimate the transformation which maps some frame to a reference frame
+    .def_static("interface_name", &viame::algo::compute_ref_homography::interface_name)
+    .def("estimate", &viame::algo::compute_ref_homography::estimate, py::doc(R"( Estimate the transformation which maps some frame to a reference frame
 
  Similarly to track_features, this class was designed to be called in
  an online fashion for each sequential frame. The output homography
@@ -44,7 +44,7 @@ void compute_ref_homography(py::module& m)
  \param [in]   tracks the set of all tracked features from the image
  \return estimated homography)"), py::arg("frame_number"), py::arg("tracks"))
     ;
-  register_algorithm< kwiver::vital::algo::compute_ref_homography > (instance);
+  register_algorithm< viame::algo::compute_ref_homography > (instance);
 }
 
 }

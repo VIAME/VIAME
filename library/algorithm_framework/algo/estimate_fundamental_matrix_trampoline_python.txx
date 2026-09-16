@@ -22,21 +22,21 @@
 #include "out_parameter_python.txx"
 #include <viame/algorithm_framework/algo/estimate_fundamental_matrix.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 template< class estimate_fundamental_matrix_base =
-            kwiver::vital::algo::estimate_fundamental_matrix >
+            viame::algo::estimate_fundamental_matrix >
 class estimate_fundamental_matrix_trampoline
   : public algorithm_trampoline< estimate_fundamental_matrix_base >
 {
 public:
   using algorithm_trampoline< estimate_fundamental_matrix_base >::algorithm_trampoline;
 
-  kwiver::vital::fundamental_matrix_sptr
+  viame::fundamental_matrix_sptr
   estimate(
-    ::kwiver::vital::feature_set_sptr const feat1,
-    ::kwiver::vital::feature_set_sptr const feat2,
-    ::kwiver::vital::match_set_sptr const matches,
+    ::viame::feature_set_sptr const feat1,
+    ::viame::feature_set_sptr const feat2,
+    ::viame::match_set_sptr const matches,
     ::std::vector< bool >& inliers,
     double inlier_scale ) const override
   {
@@ -50,7 +50,7 @@ public:
     pybind11::gil_scoped_acquire gil;
     pybind11::function overload =
       pybind11::get_override(
-        static_cast< kwiver::vital::algo::estimate_fundamental_matrix const* >( this ),
+        static_cast< viame::algo::estimate_fundamental_matrix const* >( this ),
         "estimate_matches" );
 
     if( !overload )
@@ -59,22 +59,22 @@ public:
         feat1, feat2, matches, inliers, inlier_scale );
     }
 
-    return unpack_out_parameters< kwiver::vital::fundamental_matrix_sptr >(
+    return unpack_out_parameters< viame::fundamental_matrix_sptr >(
       overload( feat1, feat2, matches, inlier_scale ),
       "estimate_fundamental_matrix.estimate_matches", inliers );
   }
 
-  kwiver::vital::fundamental_matrix_sptr
+  viame::fundamental_matrix_sptr
   estimate(
-    ::std::vector< kwiver::vital::vector_< 2, double > > const& pts1,
-    ::std::vector< kwiver::vital::vector_< 2, double > > const& pts2,
+    ::std::vector< viame::vector_< 2, double > > const& pts1,
+    ::std::vector< viame::vector_< 2, double > > const& pts2,
     ::std::vector< bool >& inliers,
     double inlier_scale ) const override
   {
     pybind11::gil_scoped_acquire gil;
     pybind11::function overload =
       pybind11::get_override(
-        static_cast< kwiver::vital::algo::estimate_fundamental_matrix const* >( this ),
+        static_cast< viame::algo::estimate_fundamental_matrix const* >( this ),
         "estimate" );
 
     if( !overload )
@@ -84,13 +84,13 @@ public:
         "\"estimate_fundamental_matrix::estimate\"" );
     }
 
-    return unpack_out_parameters< kwiver::vital::fundamental_matrix_sptr >(
+    return unpack_out_parameters< viame::fundamental_matrix_sptr >(
       overload( pts1, pts2, inlier_scale ),
       "estimate_fundamental_matrix.estimate", inliers );
   }
 };
 
-} // namespace kwiver::vital::python
+} // namespace viame::python
 
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

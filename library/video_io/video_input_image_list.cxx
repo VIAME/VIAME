@@ -29,16 +29,14 @@
 
 #include <cstdint>
 
-namespace kv = kwiver::vital;
-namespace kvr = kwiver::vital::range;
+namespace kv = viame;
+namespace kvr = viame::range;
 
 
 using kv::algo::video_input;
 using kv::algo::image_io;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -96,11 +94,11 @@ public:
 
   // Metadata map
   bool m_have_metadata_map = false;
-  vital::metadata_map::map_metadata_t m_metadata_map;
+  viame::metadata_map::map_metadata_t m_metadata_map;
   std::map< kv::path_t, kv::metadata_sptr > m_metadata_by_path;
 
   // Processing classes
-  vital::algo::image_io_sptr
+  viame::algo::image_io_sptr
   m_image_reader()
   {
     return m_parent.get_image_reader();
@@ -109,7 +107,7 @@ public:
   void read_from_file( std::string const& filename );
   void read_from_directory( std::string const& dirname );
   void sort_by_time( std::vector< kv::path_t >& files );
-  vital::metadata_sptr frame_metadata(
+  viame::metadata_sptr frame_metadata(
     kv::path_t const& file, kv::image_container_sptr image = nullptr );
 };
 
@@ -141,7 +139,7 @@ video_input_image_list
 // ----------------------------------------------------------------------------
 void
 video_input_image_list
-::set_configuration_internal( vital::config_block_sptr in_config )
+::set_configuration_internal( viame::config_block_sptr in_config )
 {
   auto const& config = this->get_configuration();
   config->merge_config( in_config );
@@ -160,10 +158,10 @@ video_input_image_list
 // ----------------------------------------------------------------------------
 bool
 video_input_image_list
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   // Check the reader configuration.
-  return kwiver::vital::check_nested_algo_configuration< image_io >(
+  return viame::check_nested_algo_configuration< image_io >(
     "image_reader", config );
 }
 
@@ -182,7 +180,7 @@ video_input_image_list
       interface_name(), plugin_name(), "invalid image_reader." );
   }
 
-  if( kwiver::vital::file_is_directory( list_name ) )
+  if( viame::file_is_directory( list_name ) )
   {
     d->read_from_directory( list_name );
   }
@@ -292,8 +290,8 @@ video_input_image_list
 bool
 video_input_image_list
 ::seek_time(
-  [[maybe_unused]] vital::timestamp::time_t time_usec,
-  [[maybe_unused]] vital::time_usec_t timeout )
+  [[maybe_unused]] viame::timestamp::time_t time_usec,
+  [[maybe_unused]] viame::time_usec_t timeout )
 {
   // TODO: Unimplemented
   return false;
@@ -420,7 +418,7 @@ video_input_image_list::priv
   std::vector< std::string > search_path = this->c_search_path();
 
   // Add directory that contains the list file to the path
-  auto const& list_path = kwiver::vital::filename_path( filename );
+  auto const& list_path = viame::filename_path( filename );
   if( !list_path.empty() )
   {
     search_path.push_back( list_path );
@@ -436,17 +434,17 @@ video_input_image_list::priv
   if( stream_reader.getline( line ) )
   {
     auto resolved_file = line;
-    if( !kwiver::vital::file_exists( resolved_file ) && !this->c_disable_image_load() )
+    if( !viame::file_exists( resolved_file ) && !this->c_disable_image_load() )
     {
       // Resolve against specified path
-      resolved_file = kwiver::vital::find_file( line, search_path );
+      resolved_file = viame::find_file( line, search_path );
       if( resolved_file.empty() )
       {
         VITAL_THROW(
           kv::file_not_found_exception, line,
           "could not locate file in path" );
       }
-      if( kwiver::vital::ends_with( resolved_file.c_str(), line.c_str() ) )
+      if( viame::ends_with( resolved_file.c_str(), line.c_str() ) )
       {
         // extract the prefix added to get the full path
         data_dir =
@@ -461,10 +459,10 @@ video_input_image_list::priv
   while( stream_reader.getline( line ) )
   {
     auto resolved_file = line;
-    if( !kwiver::vital::file_exists( resolved_file ) && !this->c_disable_image_load() )
+    if( !viame::file_exists( resolved_file ) && !this->c_disable_image_load() )
     {
       resolved_file = data_dir + line;
-      if( !kwiver::vital::file_exists( resolved_file ) )
+      if( !viame::file_exists( resolved_file ) )
       {
         VITAL_THROW(
           kv::file_not_found_exception, line,
@@ -533,7 +531,7 @@ video_input_image_list::priv
 ::read_from_directory( std::string const& dirname )
 {
   // Open the directory and read the entries
-  if( !kwiver::vital::file_is_directory( dirname ) )
+  if( !viame::file_is_directory( dirname ) )
   {
     VITAL_THROW(
       kv::invalid_file, dirname,
@@ -541,17 +539,17 @@ video_input_image_list::priv
   }
 
   // Read each entry
-  for( auto const& filename : kwiver::vital::directory_entries( dirname ) )
+  for( auto const& filename : viame::directory_entries( dirname ) )
   {
     auto const& resolved_file = dirname + "/" + filename;
 
-    if( !kwiver::vital::file_exists( resolved_file ) )
+    if( !viame::file_exists( resolved_file ) )
     {
       VITAL_THROW(
         kv::file_not_found_exception, filename,
         "could not locate file in path" );
     }
-    if( !kwiver::vital::file_is_directory( resolved_file ) )
+    if( !viame::file_is_directory( resolved_file ) )
     {
       if( this->c_allowed_extensions().empty() )
       {
@@ -561,9 +559,9 @@ video_input_image_list::priv
       {
         for( auto const& extension : this->c_allowed_extensions() )
         {
-          std::string resolved_lower = kwiver::vital::lower_case( resolved_file );
-          std::string extension_lower = kwiver::vital::lower_case( extension );
-          if( kwiver::vital::ends_with(
+          std::string resolved_lower = viame::lower_case( resolved_file );
+          std::string extension_lower = viame::lower_case( extension );
+          if( viame::ends_with(
             resolved_lower,
             extension_lower.c_str() ) )
           {
@@ -613,7 +611,7 @@ video_input_image_list::priv
     md = std::make_shared< kv::metadata >();
   }
 
-  md->add< vital::VITAL_META_IMAGE_URI >( file );
+  md->add< viame::VITAL_META_IMAGE_URI >( file );
 
   m_metadata_by_path[ file ] = md;
   return md;
@@ -621,6 +619,4 @@ video_input_image_list::priv
 
 } // namespace core
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame

@@ -112,13 +112,13 @@ CONFIG_VAR_NAME( name )( name )
 #define PARAM_CONFIG_GET_( name, type, description_str, default ) \
 CPP_MAGIC_IF_ELSE( CPP_MAGIC_HAS_ARGS( default ) )                \
 (                                                                 \
-  kwiver::vital::get_config_helper< type >( cb, #name, default ), \
-  kwiver::vital::get_config_helper< type >( cb, #name )           \
+  viame::get_config_helper< type >( cb, #name, default ), \
+  viame::get_config_helper< type >( cb, #name )           \
 )
 
 #define PARAM_CONFIG_GET_FROM_THIS( tuple ) PARAM_CONFIG_GET_FROM_THIS_ tuple
 #define PARAM_CONFIG_GET_FROM_THIS_( name, type, description_str, default ) \
-kwiver::vital::set_config_helper< type >(                                   \
+viame::set_config_helper< type >(                                   \
   cb, #name,                                                                \
   this->CONFIG_VAR_NAME(                                                    \
   name ), description_str );
@@ -132,10 +132,10 @@ kwiver::vital::set_config_helper< type >(                                   \
                                    default )                    \
 CPP_MAGIC_IF_ELSE( CPP_MAGIC_HAS_ARGS( default ) )              \
 (                                                               \
-  kwiver::vital::set_config_helper< type >(                     \
+  viame::set_config_helper< type >(                     \
   cb, #name, default,                                           \
   description_str ); ,                                          \
-  kwiver::vital::set_config_helper< type >(                     \
+  viame::set_config_helper< type >(                     \
   cb, #name, type(),                                            \
   description_str );                                            \
 )
@@ -175,8 +175,8 @@ CPP_MAGIC_IF( CPP_MAGIC_HAS_ARGS( __VA_ARGS__ ) )(                        \
 
 #define PLUGGABLE_STATIC_FROM_CONFIG( class_name, ... )           \
 public:                                                            \
-static ::kwiver::vital::pluggable_sptr from_config(               \
-  [[maybe_unused]] ::kwiver::vital::config_block_sptr const cb )  \
+static ::viame::pluggable_sptr from_config(               \
+  [[maybe_unused]] ::viame::config_block_sptr const cb )  \
 {                                                                 \
   return std::make_shared< class_name >(                          \
   CPP_MAGIC_MAP( PARAM_CONFIG_GET, CPP_MAGIC_COMMA, __VA_ARGS__ ) \
@@ -186,20 +186,20 @@ static ::kwiver::vital::pluggable_sptr from_config(               \
 #define PLUGGABLE_STATIC_GET_DEFAULT( ... )                               \
 public:                                                                    \
 static void get_default_config(                                           \
-  [[maybe_unused]] ::kwiver::vital::config_block& config )                \
+  [[maybe_unused]] ::viame::config_block& config )                \
 {                                                                         \
-  kwiver::vital::config_block_sptr cb =                                   \
-    kwiver::vital::config_block::empty_config();                          \
+  viame::config_block_sptr cb =                                   \
+    viame::config_block::empty_config();                          \
   CPP_MAGIC_MAP( PARAM_CONFIG_DEFAULT_SET, CPP_MAGIC_EMPTY, __VA_ARGS__ ) \
   config.merge_config( cb );                                              \
 }
 
 #define PLUGGABLE_GET_CONFIGURATION( ... )                                  \
 public:                                                                      \
-kwiver::vital::config_block_sptr get_configuration()     const override     \
+viame::config_block_sptr get_configuration()     const override     \
 {                                                                           \
-  kwiver::vital::config_block_sptr cb =                                     \
-    kwiver::vital::config_block::empty_config();                            \
+  viame::config_block_sptr cb =                                     \
+    viame::config_block::empty_config();                            \
   CPP_MAGIC_MAP( PARAM_CONFIG_GET_FROM_THIS, CPP_MAGIC_EMPTY, __VA_ARGS__ ) \
   return cb;                                                                \
 }                                                                           \
@@ -211,7 +211,7 @@ kwiver::vital::config_block_sptr get_configuration()     const override     \
 #define PARAM_CONFIG_SET( tuple ) PARAM_CONFIG_SET_ tuple
 #define PARAM_CONFIG_SET_( name, type, description_str, default ) \
 this->CONFIG_VAR_NAME( name ) =                                   \
-  kwiver::vital::get_config_helper< type >( config, #name );      \
+  viame::get_config_helper< type >( config, #name );      \
 
 
 /**
@@ -220,10 +220,10 @@ this->CONFIG_VAR_NAME( name ) =                                   \
 #define PLUGGABLE_SET_CONFIGURATION( class_name, ... )              \
 public:                                                              \
 void set_configuration(                                             \
-  ::kwiver::vital::config_block_sptr in_config )  override          \
+  ::viame::config_block_sptr in_config )  override          \
 {                                                                   \
-  kwiver::vital::config_block_sptr config =                         \
-    kwiver::vital::config_block::empty_config();                    \
+  viame::config_block_sptr config =                         \
+    viame::config_block::empty_config();                    \
   class_name::get_default_config( *config );                        \
   config->merge_config( in_config );                                \
   CPP_MAGIC_IF( CPP_MAGIC_HAS_ARGS( __VA_ARGS__ ) )(                \
@@ -321,7 +321,7 @@ PLUGGABLE_GET_CONFIGURATION( __VA_ARGS__ )              \
 // ----------------------------------------------------------------------------
 // utilties for PIMPL
 // TODO document why nwe need them
-namespace kwiver::vital::detail {
+namespace viame::detail {
 
 template < typename T >
 void
@@ -337,21 +337,20 @@ KwiverEmptyDeleter( T* p )
   ( void ) ( p );
 }
 
-} // namespace kwiver::vital::detail
+} // namespace viame::detail
 
 #define KWIVER_UNIQUE_PTR( type, name ) \
 std::unique_ptr< type,                  \
-  decltype( &kwiver::                   \
-            vital::                     \
+  decltype( &viame::                   \
             detail::                    \
             KwiverEmptyDeleter          \
             < type > ) >                \
-name = { nullptr, kwiver::vital::detail::KwiverEmptyDeleter< type > }
+name = { nullptr, viame::detail::KwiverEmptyDeleter< type > }
 #define KWIVER_INITIALIZE_UNIQUE_PTR( type,                                      \
                                       name ) this->name = std::unique_ptr< type, \
-  decltype( &kwiver::vital::detail::KwiverDefaultDeleter< type > ) >(            \
+  decltype( &viame::detail::KwiverDefaultDeleter< type > ) >(            \
   new type(                                                                      \
-  *this ), kwiver::vital::detail::KwiverDefaultDeleter< type > )
+  *this ), viame::detail::KwiverDefaultDeleter< type > )
 // ----------------------------------------------------------------------------
 
 #endif // PLUGGABLE_MACRO_MAGIC_H

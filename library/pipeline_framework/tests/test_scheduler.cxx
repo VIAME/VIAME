@@ -42,7 +42,7 @@
 #include <string>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 
@@ -50,7 +50,7 @@ namespace {
 // Takes a number and throws, which is what a process does when a package it
 // needs is broken -- the case this was found by, a cv2 that could not load.
 class failing_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   explicit failing_process( kv::config_block_sptr const& config )
@@ -104,7 +104,7 @@ private:
 // ----------------------------------------------------------------------------
 // Five numbers into a file, which is the smallest pipeline that has an
 // upstream, a downstream, an edge between them and an observable result.
-sprokit::pipeline_t
+viame::pipeline::pipeline_t
 counting_pipeline( std::string const& output )
 {
   std::ostringstream text;
@@ -119,8 +119,8 @@ counting_pipeline( std::string const& output )
        << "        to   sink.number\n";
 
   std::istringstream input( text.str() );
-  sprokit::pipe_parser parser;
-  auto const pipeline = sprokit::bake_pipe_blocks(
+  viame::pipeline::pipe_parser parser;
+  auto const pipeline = viame::pipeline::bake_pipe_blocks(
     parser.parse_pipeline( input, "counting.pipe" ) );
   pipeline->setup_pipeline();
   return pipeline;
@@ -131,7 +131,7 @@ void
 run_under( std::string const& type, std::string const& output )
 {
   auto const pipeline = counting_pipeline( output );
-  auto const scheduler = sprokit::create_scheduler(
+  auto const scheduler = viame::pipeline::create_scheduler(
     type, pipeline, kv::config_block::empty_config() );
   ASSERT_TRUE( scheduler != nullptr ) << "no scheduler named " << type;
 
@@ -147,7 +147,7 @@ TEST ( scheduler, the_default_is_thread_per_process )
   // Named rather than asserted about behaviour: this is what a pipeline that
   // says nothing about scheduling gets, and every embedded pipeline says
   // nothing.
-  EXPECT_EQ( "thread_per_process", sprokit::scheduler_factory::default_type );
+  EXPECT_EQ( "thread_per_process", viame::pipeline::scheduler_factory::default_type );
 }
 
 // ----------------------------------------------------------------------------
@@ -189,22 +189,22 @@ TEST ( scheduler, thread_per_process_stops_when_a_process_throws )
   source_config->set_value( "end", "1000000" );
 
   auto const fail_config = kv::config_block::empty_config();
-  fail_config->set_value( sprokit::process::config_name, "fail" );
+  fail_config->set_value( viame::pipeline::process::config_name, "fail" );
 
   auto const sink_config = kv::config_block::empty_config();
   sink_config->set_value( "output", output.path() );
 
-  auto const pipeline = std::make_shared< sprokit::pipeline >();
+  auto const pipeline = std::make_shared< viame::pipeline::pipeline >();
   pipeline->add_process(
-    sprokit::create_process( "numbers", "source", source_config ) );
+    viame::pipeline::create_process( "numbers", "source", source_config ) );
   pipeline->add_process( std::make_shared< failing_process >( fail_config ) );
   pipeline->add_process(
-    sprokit::create_process( "print_number", "sink", sink_config ) );
+    viame::pipeline::create_process( "print_number", "sink", sink_config ) );
   pipeline->connect( "source", "number", "fail", "number" );
   pipeline->connect( "fail", "number", "sink", "number" );
   pipeline->setup_pipeline();
 
-  auto const scheduler = sprokit::create_scheduler(
+  auto const scheduler = viame::pipeline::create_scheduler(
     "thread_per_process", pipeline, kv::config_block::empty_config() );
   ASSERT_TRUE( scheduler != nullptr );
 

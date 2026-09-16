@@ -96,7 +96,7 @@ public:
 // =======================================================================================
 // Define global variables
 // =======================================================================================
-static kwiver::vital::logger_handle_t g_logger;
+static viame::logger_handle_t g_logger;
 
 // =======================================================================================
 // Parameter type inference
@@ -445,13 +445,13 @@ get_algorithm_implementations( const std::string& algo_type )
 {
   std::vector< std::string > impls;
 
-  auto& pm = kwiver::vital::plugin_manager::instance();
+  auto& pm = viame::plugin_manager::instance();
   auto factories = pm.get_factories( algo_type );
 
   for( auto const& fact : factories )
   {
     std::string impl_name;
-    if( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl_name ) )
+    if( fact->get_attribute( viame::plugin_factory::PLUGIN_NAME, impl_name ) )
     {
       impls.push_back( impl_name );
     }
@@ -463,7 +463,7 @@ get_algorithm_implementations( const std::string& algo_type )
 // =======================================================================================
 // Get configuration for an algorithm instance
 // =======================================================================================
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 get_algorithm_config( const std::string& algo_type, const std::string& impl_name )
 {
   // Note: create_algorithm is now a template function requiring compile-time type.
@@ -549,17 +549,17 @@ std::vector< std::string > extraction_errors;
 void extract_process_params(
   const std::string& proc_name,
   const std::string& proc_type,
-  kwiver::vital::config_block_sptr file_config,
+  viame::config_block_sptr file_config,
   std::vector< config_param_info >& params,
   bool all_impls )
 {
   try
   {
     // Create empty config for process creation
-    auto proc_config = kwiver::vital::config_block::empty_config();
+    auto proc_config = viame::config_block::empty_config();
 
     // Create process instance to get available config
-    auto proc = sprokit::create_process( proc_type, proc_name, proc_config );
+    auto proc = viame::pipeline::create_process( proc_type, proc_name, proc_config );
 
     if( !proc )
     {
@@ -590,7 +590,7 @@ void extract_process_params(
         param.description = info->description;
 
         // Check if we have an override value from the file config
-        std::string full_key = proc_name + kwiver::vital::config_block::block_sep() + key;
+        std::string full_key = proc_name + viame::config_block::block_sep() + key;
         if( file_config && file_config->has_value( full_key ) )
         {
           param.value = file_config->get_value< std::string >( full_key );
@@ -621,7 +621,7 @@ void extract_process_params(
         std::string selected_impl;
 
         // Get selected implementation from file or default
-        std::string full_key = proc_name + kwiver::vital::config_block::block_sep() + key;
+        std::string full_key = proc_name + viame::config_block::block_sep() + key;
         if( file_config && file_config->has_value( full_key ) )
         {
           selected_impl = file_config->get_value< std::string >( full_key );
@@ -674,9 +674,9 @@ void extract_process_params(
                 algo_param.name = proc_name + ":" + algo_prefix + ":" + impl + ":" + impl_key;
 
                 // Check for override in file config
-                std::string override_key = proc_name + kwiver::vital::config_block::block_sep()
-                                         + algo_prefix + kwiver::vital::config_block::block_sep()
-                                         + impl + kwiver::vital::config_block::block_sep()
+                std::string override_key = proc_name + viame::config_block::block_sep()
+                                         + algo_prefix + viame::config_block::block_sep()
+                                         + impl + viame::config_block::block_sep()
                                          + impl_key;
                 if( file_config && file_config->has_value( override_key ) )
                 {
@@ -720,7 +720,7 @@ bool extract_pipe_config( const std::string& pipe_file,
   {
     // Set pipeline name from filename
     config.file_path = pipe_file;
-    config.name = kwiver::vital::filename_without_last_extension( pipe_file );
+    config.name = viame::filename_without_last_extension( pipe_file );
 
     // Parse pipe file to find process definitions
     auto processes = parse_pipe_file_for_processes( pipe_file );
@@ -732,10 +732,10 @@ bool extract_pipe_config( const std::string& pipe_file,
     }
 
     // Read the config file to get values
-    kwiver::vital::config_block_sptr file_config;
+    viame::config_block_sptr file_config;
     try
     {
-      file_config = kwiver::vital::read_config_file( pipe_file );
+      file_config = viame::read_config_file( pipe_file );
     }
     catch( const std::exception& e )
     {
@@ -769,10 +769,10 @@ bool extract_conf_config( const std::string& conf_file,
   {
     // Set config name from filename
     config.file_path = conf_file;
-    config.name = kwiver::vital::filename_without_last_extension( conf_file );
+    config.name = viame::filename_without_last_extension( conf_file );
 
     // Read config file
-    auto file_config = kwiver::vital::read_config_file( conf_file );
+    auto file_config = viame::read_config_file( conf_file );
 
     if( !file_config )
     {
@@ -1103,7 +1103,7 @@ int
 configs_applet
 ::run()
 {
-  g_logger = kwiver::vital::get_logger( "viame.tools.configs" );
+  g_logger = viame::get_logger( "viame.tools.configs" );
 
   auto& cmd_args = command_args();
 
@@ -1141,29 +1141,29 @@ configs_applet
   }
 
   // Check path exists
-  if( !kwiver::vital::file_exists( params.opt_input_path ) )
+  if( !viame::file_exists( params.opt_input_path ) )
   {
     LOG_ERROR( g_logger, "Input path does not exist: " << params.opt_input_path );
     return EXIT_FAILURE;
   }
 
   // Load plugins
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
+  viame::plugin_manager::instance().load_all_plugins();
 
   // Collect files to process
   std::vector< std::string > files_to_process;
 
-  if( kwiver::vital::file_is_directory( params.opt_input_path ) )
+  if( viame::file_is_directory( params.opt_input_path ) )
   {
     // Process directory
-    if( !kwiver::vital::file_is_directory( params.opt_input_path ) )
+    if( !viame::file_is_directory( params.opt_input_path ) )
     {
       LOG_ERROR( g_logger, "Could not read directory: " << params.opt_input_path );
       return EXIT_FAILURE;
     }
 
     for( auto const& filename :
-         kwiver::vital::directory_entries( params.opt_input_path ) )
+         viame::directory_entries( params.opt_input_path ) )
     {
       if( filename == "." || filename == ".." )
       {
@@ -1171,7 +1171,7 @@ configs_applet
       }
 
       std::string filepath = params.opt_input_path + "/" + filename;
-      std::string ext = kwiver::vital::filename_last_extension( filename );
+      std::string ext = viame::filename_last_extension( filename );
       std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
 
       if( ext == ".pipe" )
@@ -1204,7 +1204,7 @@ configs_applet
 
   for( const auto& file : files_to_process )
   {
-    std::string ext = kwiver::vital::filename_last_extension( file );
+    std::string ext = viame::filename_last_extension( file );
     std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
 
     pipeline_config config;

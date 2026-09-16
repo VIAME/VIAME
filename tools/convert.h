@@ -20,7 +20,7 @@ namespace tools {
 /// annotation file (stereo calibrations, ITK transforms) is handed to the
 /// convert.py script.
 class VIAME_TOOLS_APPLETS_EXPORT convert_applet
-  : public kwiver::tools::kwiver_applet
+  : public viame::tools::kwiver_applet
 {
 public:
   convert_applet();

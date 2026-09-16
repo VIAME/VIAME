@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::track_interval type
+/// \brief Header for \link viame::track_interval type
 
 #ifndef VITAL_TRACK_INTERVAL_H_
 #define VITAL_TRACK_INTERVAL_H_
@@ -12,9 +12,7 @@
 
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 struct track_interval
@@ -24,8 +22,6 @@ struct track_interval
   timestamp stop;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

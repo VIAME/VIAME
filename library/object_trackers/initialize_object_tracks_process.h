@@ -11,7 +11,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // -----------------------------------------------------------------------------
@@ -33,13 +33,13 @@ namespace kwiver
  * \oport{tracks}
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT initialize_object_tracks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "initialize_object_tracks",
                "Initialize new object tracks given detections for the current frame." )
 
-  initialize_object_tracks_process( vital::config_block_sptr const& config );
+  initialize_object_tracks_process( viame::config_block_sptr const& config );
   virtual ~initialize_object_tracks_process();
 
 protected:
@@ -55,5 +55,5 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class initialize_object_tracks_process
 
-} // end namespace
+} // namespace viame
 #endif /* _KWIVER_INITIALIZE_OBJECT_TRACKS_PROCESS_H_ */

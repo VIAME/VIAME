@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver::tools {
+namespace viame::tools {
 
 class config_explorer
   : public kwiver_applet
@@ -27,6 +27,6 @@ public:
   void add_command_options() override;
 }; // end of class
 
-} // end namespace
+} // namespace viame::tools
 
 #endif /* KWIVER_TOOL_CONFIG_EXPLORER_H */

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Interface for image_io \link kwiver::vital::algo::algorithm_def
+/// \brief Interface for image_io \link viame::algo::algorithm_def
 /// algorithm
 ///        definition \endlink.
 
@@ -19,9 +19,7 @@
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/metadata.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -37,7 +35,7 @@ namespace algo {
 ///     available in the metadata for the image. If the timestamp
 ///     is not supplied, then the metadata will not have the timestamp set.
 class VITAL_ALGO_EXPORT image_io
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   // Common capabilities
@@ -48,25 +46,25 @@ public:
   PLUGGABLE_INTERFACE( image_io );
   /// Load image from the file
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the given path does not
+  /// \throws viame::path_not_exists Thrown when the given path does not
   /// exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file Thrown when the given path does
+  /// \throws viame::path_not_a_file Thrown when the given path does
   ///    not point to a file (i.e. it points to a directory).
   ///
   /// \param filename the path to the file to load
   /// \returns an image container refering to the loaded image
-  kwiver::vital::image_container_sptr load(
+  viame::image_container_sptr load(
     std::string const& filename ) const;
 
   /// Save image to a file
   ///
   /// Image file format is based on file extension.
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the expected
+  /// \throws viame::path_not_exists Thrown when the expected
   ///    containing directory of the given path does not exist.
   ///
-  /// \throws kwiver::vital::path_not_a_directory Thrown when the expected
+  /// \throws viame::path_not_a_directory Thrown when the expected
   ///    containing directory of the given path is not actually a
   ///    directory.
   ///
@@ -74,19 +72,19 @@ public:
   /// \param data the image container refering to the image to write
   void save(
     std::string const& filename,
-    kwiver::vital::image_container_sptr data ) const;
+    viame::image_container_sptr data ) const;
 
   /// Get the image metadata
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the given path does not
+  /// \throws viame::path_not_exists Thrown when the given path does not
   /// exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file Thrown when the given path does
+  /// \throws viame::path_not_a_file Thrown when the given path does
   ///    not point to a file (i.e. it points to a directory).
   ///
   /// \param filename the path to the file to read
   /// \returns pointer to the loaded metadata
-  kwiver::vital::metadata_sptr load_metadata( std::string const& filename )
+  viame::metadata_sptr load_metadata( std::string const& filename )
   const;
 
   /// \brief Return capabilities of concrete implementation.
@@ -109,7 +107,7 @@ private:
   ///
   /// \param filename the path to the file the load
   /// \returns an image container refering to the loaded image
-  virtual kwiver::vital::image_container_sptr load_(
+  virtual viame::image_container_sptr load_(
     std::string const& filename ) const = 0;
 
   /// Implementation specific save functionality.
@@ -121,7 +119,7 @@ private:
   /// \param data the image container refering to the image to write
   virtual void save_(
     std::string const& filename,
-    kwiver::vital::image_container_sptr data ) const = 0;
+    viame::image_container_sptr data ) const = 0;
 
   /// Implementation specific metadata functionality.
   ///
@@ -132,7 +130,7 @@ private:
   ///
   /// \param filename the path to the file to read
   /// \returns pointer to the loaded metadata
-  virtual kwiver::vital::metadata_sptr load_metadata_(
+  virtual viame::metadata_sptr load_metadata_(
     std::string const& filename ) const;
 
   /// Return \c true if the implementation will handle its own filepath
@@ -152,8 +150,6 @@ typedef std::shared_ptr< image_io > image_io_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_IMAGE_IO_H_

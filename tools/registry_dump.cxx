@@ -28,7 +28,7 @@ namespace tools {
 
 namespace {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 typedef kv::plugin_factory kvpf;
 
 // ----------------------------------------------------------------------------
@@ -352,11 +352,11 @@ collect_algorithm_config( kv::plugin_factory_handle_t const& fact,
 void
 collect_process_details( std::string const& type, registered_entry& entry )
 {
-  sprokit::process_t proc;
+  viame::pipeline::process_t proc;
 
   try
   {
-    proc = sprokit::create_process( type, "registry_dump_probe" );
+    proc = viame::pipeline::create_process( type, "registry_dump_probe" );
   }
   catch( std::exception const& e )
   {

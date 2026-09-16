@@ -16,14 +16,12 @@
 #include <memory>
 #include <string>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 class VIAME_FILE_IO_EXPORT detected_object_set_output_kw18
-  : public vital::algo::detected_object_set_output
+  : public viame::algo::detected_object_set_output
 {
 public:
   // NOTE: Keep description in sync with detected_object_set_input_kw18
@@ -56,10 +54,10 @@ public:
 
   virtual ~detected_object_set_output_kw18();
 
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   virtual void write_set(
-    const kwiver::vital::detected_object_set_sptr set,
+    const viame::detected_object_set_sptr set,
     std::string const& image_name );
 
 private:
@@ -71,8 +69,6 @@ private:
 
 } // namespace core
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame
 
 #endif // KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KW18_H

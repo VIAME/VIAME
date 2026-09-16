@@ -94,7 +94,7 @@ notes_to_attributes( const std::vector< std::string >& notes,
 }
 
 void
-add_attributes_to_detection( kwiver::vital::detected_object& detection,
+add_attributes_to_detection( viame::detected_object& detection,
                              const std::vector< std::string >& attrs )
 {
   for( unsigned i = 0; i < attrs.size(); ++i )
@@ -108,7 +108,7 @@ add_attributes_to_detection( kwiver::vital::detected_object& detection,
 
     // tokensize attribute
     std::vector< std::string > col;
-    kwiver::vital::tokenize( attr, col, " ", false );
+    viame::tokenize( attr, col, " ", false );
 
     if( col.empty() )
     {

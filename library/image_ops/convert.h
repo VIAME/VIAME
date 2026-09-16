@@ -21,10 +21,10 @@ namespace image_ops {
 // ----------------------------------------------------------------------------
 /// Convert every pixel to \p Out with a plain cast.
 template < typename Out, typename In >
-kwiver::vital::image_of< Out >
-cast( kwiver::vital::image_of< In > const& image )
+viame::image_of< Out >
+cast( viame::image_of< In > const& image )
 {
-  kwiver::vital::image_of< Out > result( image.width(), image.height(),
+  viame::image_of< Out > result( image.width(), image.height(),
                                          image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -51,10 +51,10 @@ cast( kwiver::vital::image_of< In > const& image )
 /// negative side casts the way `round_pixel` does. That asymmetry is VXL's
 /// `scale_image` and pipelines depend on the clamp at the top.
 template < typename Out, typename In >
-kwiver::vital::image_of< Out >
-scale( kwiver::vital::image_of< In > const& image, double factor )
+viame::image_of< Out >
+scale( viame::image_of< In > const& image, double factor )
 {
-  kwiver::vital::image_of< Out > result( image.width(), image.height(),
+  viame::image_of< Out > result( image.width(), image.height(),
                                          image.depth() );
 
   constexpr Out max_output = std::numeric_limits< Out >::max();
@@ -91,8 +91,8 @@ scale( kwiver::vital::image_of< In > const& image, double factor )
 /// \param lower, upper   Fractions in [0, 1].
 /// \param sampling_points How many samples the percentiles are taken from.
 template < typename Out, typename In >
-kwiver::vital::image_of< Out >
-percentile_stretch( kwiver::vital::image_of< In > const& image,
+viame::image_of< Out >
+percentile_stretch( viame::image_of< In > const& image,
                     double lower, double upper,
                     size_t sampling_points,
                     bool ignore_extremes = true )
@@ -118,7 +118,7 @@ percentile_stretch( kwiver::vital::image_of< In > const& image,
     factor = pixel_max< Out >() / pixel_max< In >();
   }
 
-  kwiver::vital::image_of< Out > result( image.width(), image.height(),
+  viame::image_of< Out > result( image.width(), image.height(),
                                          image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )

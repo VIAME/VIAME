@@ -16,10 +16,10 @@
 /**
  * \file stamp.h
  *
- * \brief Header for \link sprokit::stamp stamps\endlink.
+ * \brief Header for \link viame::pipeline::stamp stamps\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -30,7 +30,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT stamp
-  : private kwiver::vital::noncopyable
+  : private viame::noncopyable
 {
   public:
     /// The type for an increment size.

@@ -13,9 +13,7 @@
 
 #include <viame/algorithm_framework/exceptions/iteration.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Internal base class for vital iterator types, fulfilling the input-iterator
@@ -329,7 +327,7 @@ public:
 // ----------------------------------------------------------------------------
 /// Vital templated const iterator class.
 ///
-/// This class is similar to the vital::iterator except that returned references
+/// This class is similar to the viame::iterator except that returned references
 /// and pointers from dereferencing and arrow operators are const.
 ///
 /// This subclass provides additional overloaded implementations of
@@ -471,8 +469,8 @@ template < typename T >
 class iterable
 {
 public:
-  using iterator       = vital::iterator< T >;
-  using const_iterator = vital::const_iterator< T >;
+  using iterator       = viame::iterator< T >;
+  using const_iterator = viame::const_iterator< T >;
 
   /// Constructor
   iterable() = default;
@@ -488,7 +486,7 @@ public:
   virtual iterator
   begin()
   {
-    return vital::iterator< T >( get_iter_next_func() );
+    return viame::iterator< T >( get_iter_next_func() );
   }
 
   /// Get the non-const iterator past the end of the collection
@@ -496,7 +494,7 @@ public:
   virtual iterator
   end()
   {
-    return vital::iterator< T >();
+    return viame::iterator< T >();
   }
 
   /// Get the const iterator to the beginning of the collection.
@@ -504,7 +502,7 @@ public:
   virtual const_iterator
   cbegin() const
   {
-    return vital::const_iterator< T >( get_const_iter_next_func() );
+    return viame::const_iterator< T >( get_const_iter_next_func() );
   }
 
   /// Get the const iterator past the end of the collection
@@ -512,7 +510,7 @@ public:
   virtual const_iterator
   cend() const
   {
-    return vital::const_iterator< T >();
+    return viame::const_iterator< T >();
   }
 
   ///@}
@@ -533,8 +531,6 @@ protected:
   get_const_iter_next_func() const = 0;
 };
 
-} // namespace vital
-
-}   // end namespaces
+} // namespace viame
 
 #endif // KWIVER_VITAL_ITERATOR_H_

@@ -13,9 +13,7 @@
 #include <mutex>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -53,12 +51,12 @@ class plugin_manager::priv
 public:
   priv()
     : m_registry( new registry() ),
-      m_logger( kwiver::vital::get_logger( "vital.plugin_manager" ) )
+      m_logger( viame::get_logger( "vital.plugin_manager" ) )
   {}
 
   plugin_types m_loaded; // bitmask of kinds registered
   std::unique_ptr< registry > m_registry; // the registry itself
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   // Run the registration functions of the libraries linked into this
   // process. There is no file to find and no order to discover: the list is
@@ -224,7 +222,7 @@ plugin_manager
 // Private =====================================================================
 
 // ----------------------------------------------------------------------------
-kwiver::vital::logger_handle_t
+viame::logger_handle_t
 plugin_manager
 ::logger()
 {
@@ -232,13 +230,11 @@ plugin_manager
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::registry*
+viame::registry*
 plugin_manager
 ::get_registry()
 {
   return m_priv->m_registry.get();
 }
 
-} // namespace vital
-
-}   // end namespace kwiver
+} // namespace viame

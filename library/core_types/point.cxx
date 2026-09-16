@@ -7,9 +7,7 @@
 #include <iomanip>
 #include <stdexcept>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 template class point< 2, int >;
 template class point< 2, double >;
@@ -101,6 +99,4 @@ operator<<( std::ostream& str, const point_4d& p ) { return out( str, p ); }
 std::ostream&
 operator<<( std::ostream& str, const point_4f& p ) { return out( str, p ); }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

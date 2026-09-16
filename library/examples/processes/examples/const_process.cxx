@@ -12,7 +12,7 @@
  * \brief Implementation of the const process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class const_process::priv
@@ -27,7 +27,7 @@ class const_process::priv
 process::port_t const const_process::priv::port_output = port_t("const");
 
 const_process
-::const_process(kwiver::vital::config_block_sptr const& config)
+::const_process(viame::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

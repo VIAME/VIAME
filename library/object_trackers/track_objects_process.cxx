@@ -17,9 +17,9 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver
+namespace viame
 {
 
 create_algorithm_name_config_trait( track_objects );
@@ -67,7 +67,7 @@ public:
 // ================================================================
 
  track_objects_process
-::track_objects_process( kwiver::vital::config_block_sptr const& config )
+::track_objects_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new track_objects_process::priv )
 {
@@ -87,13 +87,13 @@ void track_objects_process
   scoped_configure_instrumentation();
 
   // Get our process config
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic if any config problems
   // are found
   if ( ! check_nested_algo_configuration_using_trait( track_objects, algo_config, d->m_tracker ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
       "Configuration check failed." );
   }
 
@@ -102,7 +102,7 @@ void track_objects_process
 
   if ( ! d->m_tracker )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
       "Unable to create track_objects" );
   }
 
@@ -114,12 +114,12 @@ track_objects_process
 ::_step()
 {
   // Grab inputs
-  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
-  kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
-  kwiver::vital::detected_object_set_sptr detections =
+  viame::timestamp frame_time = grab_from_port_using_trait( timestamp );
+  viame::image_container_sptr img = grab_from_port_using_trait( image );
+  viame::detected_object_set_sptr detections =
     grab_from_port_using_trait( detected_object_set );
 
-  kwiver::vital::object_track_set_sptr tracks;
+  viame::object_track_set_sptr tracks;
 
   {
     scoped_step_instrumentation();
@@ -139,8 +139,8 @@ void track_objects_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- input --
@@ -170,4 +170,4 @@ track_objects_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

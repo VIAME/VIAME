@@ -14,9 +14,7 @@
 #include <iostream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Interval timer class.
@@ -93,8 +91,6 @@ private:
 template class scoped_timer< cpu_timer >;
 typedef scoped_timer< cpu_timer > scoped_cpu_timer;
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_CPU_TIMER_H

@@ -25,7 +25,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_OBJECT_DETECTORS_PLUGIN_EXPORT
@@ -52,15 +52,15 @@ register_factories( kv::registry& vpm )
   // gradient transform is cv2's, and only the language changed.
 
   VIAME_REGISTER( kv::algo::image_object_detector,
-                  kwiver::arrows::ocv::detect_heat_map,
+                  viame::ocv::detect_heat_map,
                   "detect_heat_map", "Detect regions of a heat map above a threshold" )
 
   VIAME_REGISTER( kv::algo::detect_motion,
-                  kwiver::arrows::ocv::detect_motion_3frame_differencing,
+                  viame::ocv::detect_motion_3frame_differencing,
                   "ocv_3frame_differencing", "Detect motion by differencing three frames with OpenCV" )
 
   VIAME_REGISTER( kv::algo::image_object_detector,
-                  kwiver::arrows::core::example_detector,
+                  viame::core::example_detector,
                   "example_detector", "Detect a fixed box, for testing a pipeline" )
 
 #undef VIAME_REGISTER

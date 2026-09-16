@@ -44,7 +44,7 @@ namespace viame
 namespace core
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // =============================================================================
 // Free-standing structs and utility functions
@@ -569,7 +569,7 @@ public:
 
   /// Prepare stereo images for matching (convert to grayscale, rectify, compute disparity)
   ///
-  /// `cv::Mat` until P7-T06, `vital::image` since; the images are RGB where
+  /// `cv::Mat` until P7-T06, `viame::image` since; the images are RGB where
   /// they used to be BGR, because the bridge swapped on the way in and back
   /// on the way out and nothing in between depended on the order except the
   /// greyscale conversion, which `image_ops` spells `rgb_to_gray`.

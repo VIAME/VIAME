@@ -7,7 +7,7 @@
 
 #include <pybind11/pybind11.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void write_object_track_set(py::module& m);

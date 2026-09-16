@@ -9,7 +9,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( detector );
 
@@ -21,13 +21,13 @@ public:
   priv();
   ~priv();
 
-   vital::algo::image_object_detector_sptr m_detector;
+   viame::algo::image_object_detector_sptr m_detector;
 
 }; // end priv class
 
 // ==================================================================
 image_object_detector_process::
-image_object_detector_process( kwiver::vital::config_block_sptr const& config )
+image_object_detector_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new image_object_detector_process::priv )
 {
@@ -47,18 +47,18 @@ _configure()
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
   if ( ! check_nested_algo_configuration_using_trait( detector, algo_config, d->m_detector ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   set_nested_algo_configuration_using_trait( detector, algo_config, d->m_detector );
   if ( ! d->m_detector )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create detector" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create detector" );
   }
 }
 
@@ -67,9 +67,9 @@ void
 image_object_detector_process::
 _step()
 {
-  vital::image_container_sptr input = grab_from_port_using_trait( image );
+  viame::image_container_sptr input = grab_from_port_using_trait( image );
 
-  vital::detected_object_set_sptr result;
+  viame::detected_object_set_sptr result;
   {
     scoped_step_instrumentation();
 
@@ -86,8 +86,8 @@ image_object_detector_process::
 make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -117,4 +117,4 @@ image_object_detector_process::priv
 {
 }
 
-} // end namespace kwiver
+} // namespace viame

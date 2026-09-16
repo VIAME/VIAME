@@ -10,14 +10,12 @@
 
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // --------------------------------------------------------------------------
 descriptor_set
 ::descriptor_set()
-  : m_logger( kwiver::vital::get_logger( "vital.descriptor_set" ) )
+  : m_logger( viame::get_logger( "vital.descriptor_set" ) )
 {}
 
 descriptor_set
@@ -25,7 +23,7 @@ descriptor_set
 {}
 
 // ----------------------------------------------------------------------------
-kwiver::vital::logger_handle_t
+viame::logger_handle_t
 descriptor_set
 ::logger()
 {
@@ -123,6 +121,4 @@ simple_descriptor_set
          };
 }
 
-} // end namespace: vital
-
-} // end namespace: kwiver
+} // namespace viame

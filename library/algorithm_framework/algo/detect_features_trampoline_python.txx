@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/detect_features.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class detect_features_base = kwiver::vital::algo::detect_features >
+template< class detect_features_base = viame::algo::detect_features >
 class detect_features_trampoline
     : public algorithm_trampoline< detect_features_base >
 {
@@ -21,17 +21,17 @@ class detect_features_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::feature_set_sptr
-  detect(::kwiver::vital::image_container_sptr image_data, ::kwiver::vital::image_container_sptr mask) const override
+  viame::feature_set_sptr
+  detect(::viame::image_container_sptr image_data, ::viame::image_container_sptr mask) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::feature_set_sptr,
-      kwiver::vital::algo::detect_features,
+      viame::feature_set_sptr,
+      viame::algo::detect_features,
       detect,
       image_data, mask
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

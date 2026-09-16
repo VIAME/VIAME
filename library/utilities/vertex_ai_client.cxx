@@ -23,10 +23,10 @@ public:
   std::string credentials_file;
   std::string access_token;
   int timeout_seconds = 120;
-  kwiver::vital::logger_handle_t logger;
+  viame::logger_handle_t logger;
 
   priv()
-    : logger( kwiver::vital::get_logger( "viame.vertex_ai.client" ) )
+    : logger( viame::get_logger( "viame.vertex_ai.client" ) )
   {}
 
   std::string api_host() const

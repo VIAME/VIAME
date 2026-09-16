@@ -9,10 +9,10 @@
 /**
  * \file edge_exception.cxx
  *
- * \brief Implementation of exceptions used within \link sprokit::edge edges\endlink.
+ * \brief Implementation of exceptions used within \link viame::pipeline::edge edges\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 edge_exception

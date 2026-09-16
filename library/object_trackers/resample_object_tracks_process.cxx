@@ -25,8 +25,8 @@
 #include <map>
 #include <vector>
 
-namespace kv = kwiver::vital;
-namespace algo = kwiver::vital::algo;
+namespace kv = viame;
+namespace algo = viame::algo;
 
 namespace viame
 {
@@ -216,8 +216,8 @@ void
 resample_object_tracks_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -252,19 +252,19 @@ resample_object_tracks_process
 
   if( d->m_track_file.empty() )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "track_file must be specified" );
   }
 
   if( d->m_input_rate == 0 )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "input_rate must be greater than 0" );
   }
 
   if( d->m_output_rate == 0 )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "output_rate must be greater than 0" );
   }
 
@@ -283,7 +283,7 @@ resample_object_tracks_process
   if( !check_nested_algo_configuration_using_trait(
         reader, algo_config, d->m_reader ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Reader algorithm configuration check failed." );
   }
 
@@ -292,7 +292,7 @@ resample_object_tracks_process
 
   if( !d->m_reader )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Unable to create track reader." );
   }
 

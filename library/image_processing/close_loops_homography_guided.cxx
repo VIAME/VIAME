@@ -21,7 +21,7 @@
 
 #include <image_ops/homography_overlap.h>
 
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace viame {
 
@@ -72,7 +72,7 @@ convert(
   }
   catch( ... )
   {
-    kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger(
+    viame::logger_handle_t logger( viame::get_logger(
       "viame.image_processing.close_loops_homography_guided" ) );
     LOG_ERROR(logger, "Warn: Invalid homography received" );
   }
@@ -114,10 +114,10 @@ public:
   checkpoint_buffert buffer;
 
   /// Reference frame homography computer
-  kwiver::vital::algo::compute_ref_homography_sptr ref_computer;
+  viame::algo::compute_ref_homography_sptr ref_computer;
 
   /// The feature matching algorithm to use
-  kwiver::vital::algo::match_features_sptr matcher;
+  viame::algo::match_features_sptr matcher;
 };
 
 // ----------------------------------------------------------------------------
@@ -132,14 +132,14 @@ close_loops_homography_guided
 // ----------------------------------------------------------------------------
 bool
 close_loops_homography_guided
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return
     (
-    kwiver::vital::check_nested_algo_configuration< kwiver::vital::algo::compute_ref_homography >(
+    viame::check_nested_algo_configuration< viame::algo::compute_ref_homography >(
       "ref_computer", config )
     &&
-    kwiver::vital::check_nested_algo_configuration< kwiver::vital::algo::match_features >(
+    viame::check_nested_algo_configuration< viame::algo::match_features >(
       "feature_matcher", config )
     );
 }

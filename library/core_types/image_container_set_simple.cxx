@@ -4,9 +4,7 @@
 
 #include "image_container_set_simple.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 // Default Constructor
@@ -96,6 +94,4 @@ simple_image_container_set
          };
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

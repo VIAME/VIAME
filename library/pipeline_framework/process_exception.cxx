@@ -11,10 +11,10 @@
 /**
  * \file process_exception.cxx
  *
- * \brief Implementation of exceptions used within \link sprokit::process processes\endlink.
+ * \brief Implementation of exceptions used within \link viame::pipeline::process processes\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ----------------------------------------------------------------------------
 process_exception
@@ -119,7 +119,7 @@ reinitialization_exception
 
 // ----------------------------------------------------------------------------
 null_conf_info_exception
-::null_conf_info_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) noexcept
+::null_conf_info_exception(process::name_t const& name, viame::config_block_key_t const& key) noexcept
   : process_exception()
   , m_name(name)
   , m_key(key)
@@ -300,7 +300,7 @@ no_such_port_exception
   sstr << "The port \'"
        << m_port << "\' on process \'"
        << m_name << "\' does not exist.  Available ports: "
-       << kwiver::vital::join( all_ports, ", ");
+       << viame::join( all_ports, ", ");
 
   m_what = sstr.str();
 }
@@ -405,7 +405,7 @@ process_configuration_exception
 // ----------------------------------------------------------------------------
 unknown_configuration_value_exception
 ::unknown_configuration_value_exception(process::name_t const& name,
-                                        kwiver::vital::config_block_key_t const& key) noexcept
+                                        viame::config_block_key_t const& key) noexcept
   : process_configuration_exception()
   , m_name(name)
   , m_key(key)
@@ -426,9 +426,9 @@ unknown_configuration_value_exception
 // ----------------------------------------------------------------------------
 invalid_configuration_value_exception
 ::invalid_configuration_value_exception(process::name_t const& name,
-                                        kwiver::vital::config_block_key_t const& key,
-                                        kwiver::vital::config_block_value_t const& value,
-                                        kwiver::vital::config_block_description_t const& desc) noexcept
+                                        viame::config_block_key_t const& key,
+                                        viame::config_block_value_t const& value,
+                                        viame::config_block_description_t const& desc) noexcept
   : process_configuration_exception()
   , m_name(name)
   , m_key(key)

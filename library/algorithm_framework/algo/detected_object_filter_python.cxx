@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "detected_object_filter_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void detected_object_filter(py::module& m)
@@ -19,15 +19,15 @@ void detected_object_filter(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::detected_object_filter,
-               std::shared_ptr<kwiver::vital::algo::detected_object_filter>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::detected_object_filter,
+               std::shared_ptr<viame::algo::detected_object_filter>,
+               viame::algorithm,
                detected_object_filter_trampoline<> > instance(m,  "DetectedObjectFilter");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::detected_object_filter::interface_name)
-    .def("filter", &kwiver::vital::algo::detected_object_filter::filter, py::doc(R"( Filter set of detected objects.
+    .def_static("interface_name", &viame::algo::detected_object_filter::interface_name)
+    .def("filter", &viame::algo::detected_object_filter::filter, py::doc(R"( Filter set of detected objects.
 
  This method applies a filter to the input set to create an output
  set. The input set of detections is unmodified.
@@ -35,7 +35,7 @@ void detected_object_filter(py::module& m)
  \param input_set Set of detections to be filtered.
  \returns Filtered set of detections.)"), py::arg("input_set"))
     ;
-  register_algorithm< kwiver::vital::algo::detected_object_filter > (instance);
+  register_algorithm< viame::algo::detected_object_filter > (instance);
 }
 
 }

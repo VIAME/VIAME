@@ -12,9 +12,7 @@
 #include <viame/core_types/vital_types_export.h>
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// \brief Frame time.
@@ -37,8 +35,8 @@ namespace vital {
 class VITAL_TYPES_EXPORT timestamp
 {
 public:
-  typedef kwiver::vital::frame_id_t frame_t;
-  typedef kwiver::vital::time_usec_t time_t;
+  typedef viame::frame_id_t frame_t;
+  typedef viame::time_usec_t time_t;
 
   /// \brief Default constructor.
   ///
@@ -169,8 +167,6 @@ inline std::ostream&
 operator<<( std::ostream& str, timestamp const& obj )
 { str << obj.pretty_print().c_str(); return str; }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // _VITAL_TIMESTAMP_H_

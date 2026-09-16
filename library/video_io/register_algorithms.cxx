@@ -27,7 +27,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_VIDEO_IO_PLUGIN_EXPORT
@@ -78,7 +78,7 @@ register_factories( kv::registry& vpm )
   // kwiver's namespace and carries no plugin_name().
   {
     auto fact = vpm.add_factory< kv::algo::video_input,
-      kwiver::arrows::core::video_input_image_list >( "image_list" );
+      viame::core::video_input_image_list >( "image_list" );
     fact->add_attribute( kvpf::PLUGIN_NAME, "image_list" )
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,

@@ -19,9 +19,7 @@
 #include <memory>
 #include <set>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// An abstract mapping between frame IDs and metadata vectors
 //  \note a vector of metadata objects is used because each frame could
@@ -190,8 +188,6 @@ protected:
   map_metadata_t data_;
 };
 
-} // end namespace vital
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

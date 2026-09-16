@@ -34,7 +34,7 @@ namespace viame {
  * - Invalid disparity handling
  */
 class VIAME_VIDEO_IO_EXPORT write_disparity_maps :
-  public kwiver::vital::algo::image_io
+  public viame::algo::image_io
 {
 public:
   PLUGGABLE_IMPL(
@@ -72,29 +72,29 @@ public:
   virtual ~write_disparity_maps() = default;
 
   /// Check configuration validity
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  virtual bool check_configuration( viame::config_block_sptr config ) const override;
 
 private:
   void initialize() override;
 
   void set_configuration_internal(
-    kwiver::vital::config_block_sptr config ) override;
+    viame::config_block_sptr config ) override;
 
   /// Load is not supported - this is a write-only algorithm
-  virtual kwiver::vital::image_container_sptr load_(
+  virtual viame::image_container_sptr load_(
     std::string const& filename ) const override;
 
   /// Save disparity map with visualization
   virtual void save_(
     std::string const& filename,
-    kwiver::vital::image_container_sptr data ) const override;
+    viame::image_container_sptr data ) const override;
 
   // Parsed invalid color components
   uint8_t m_invalid_color_r;
   uint8_t m_invalid_color_g;
   uint8_t m_invalid_color_b;
 
-  kwiver::vital::algo::image_io_sptr m_image_writer;
+  viame::algo::image_io_sptr m_image_writer;
 };
 
 } // namespace viame

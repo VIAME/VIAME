@@ -20,9 +20,7 @@
 
 #include <limits>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 template < typename T, unsigned N >
@@ -146,8 +144,6 @@ private:
   point_type max_;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

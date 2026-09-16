@@ -54,11 +54,11 @@ create_port_trait( thermal_to_optical_homog, homography, "Homography" );
  * register the images together.
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT align_multimodal_imagery_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  align_multimodal_imagery_process( kwiver::vital::config_block_sptr const& config );
+  align_multimodal_imagery_process( viame::config_block_sptr const& config );
   virtual ~align_multimodal_imagery_process();
 
 protected:
@@ -67,16 +67,16 @@ protected:
 
   struct buffered_frame
   {
-    buffered_frame( kwiver::vital::image_container_sptr _image,
-                    kwiver::vital::timestamp _ts,
+    buffered_frame( viame::image_container_sptr _image,
+                    viame::timestamp _ts,
                     std::string _name )
      : image( _image ),
        ts( _ts ),
        name( _name )
     {}
 
-    kwiver::vital::image_container_sptr image;
-    kwiver::vital::timestamp ts;
+    viame::image_container_sptr image;
+    viame::timestamp ts;
     std::string name;
 
     double time()

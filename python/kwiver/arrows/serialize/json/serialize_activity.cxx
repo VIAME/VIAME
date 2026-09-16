@@ -9,9 +9,7 @@
 #include <viame/core_types/any.h>
 #include <viame/core_types/activity.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace python {
 
@@ -20,18 +18,16 @@ serialize_activity( py::module& m )
 {
   m.def(
     "serialize_activity",
-    &kwiver::python::arrows::json::serialize<
-      kwiver::vital::activity,
-      kwiver::arrows::serialize::json::activity > );
+    &viame::python::arrows::json::serialize<
+      viame::activity,
+      viame::serialize::json::activity > );
   m.def(
     "deserialize_activity",
-    &kwiver::python::arrows::json::deserialize<
-      kwiver::vital::activity,
-      kwiver::arrows::serialize::json::activity > );
+    &viame::python::arrows::json::deserialize<
+      viame::activity,
+      viame::serialize::json::activity > );
 }
 
 } // namespace python
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame

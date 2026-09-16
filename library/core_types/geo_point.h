@@ -14,9 +14,7 @@
 
 #include <unordered_map>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Geo-coordinate.
@@ -29,7 +27,7 @@ namespace vital {
 ///
 /// The CRS values shall correspond to geodetic CRS's as specified by the
 /// European Petroleum Survey Group (EPSG) Spatial Reference System Identifiers
-/// (SRID's). Some well known values are defined by kwiver::vital::SRID.
+/// (SRID's). Some well known values are defined by viame::SRID.
 ///
 /// Note that the underlying values are ordered easting, northing, for
 /// consistency with Euclidean convention (X, Y), and \em not northing, easting
@@ -40,8 +38,8 @@ namespace vital {
 class VITAL_TYPES_EXPORT geo_point
 {
 public:
-  using geo_3d_point_t = kwiver::vital::vector_3d;
-  using geo_2d_point_t = kwiver::vital::vector_2d;
+  using geo_3d_point_t = viame::vector_3d;
+  using geo_2d_point_t = viame::vector_2d;
 
   geo_point();
   geo_point( geo_2d_point_t const&, int crs );
@@ -101,8 +99,6 @@ bool operator==( geo_point const& lhs, geo_point const& rhs );
 VITAL_TYPES_EXPORT
 bool operator!=( geo_point const& lhs, geo_point const& rhs );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

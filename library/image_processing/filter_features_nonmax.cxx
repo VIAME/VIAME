@@ -12,11 +12,9 @@
 
 #include <algorithm>
 #include <cmath>
-using namespace kwiver::vital;
+using namespace viame;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -323,8 +321,8 @@ public:
         " features with non-max radius "
                                   << parent.c_suppression_radius);
 
-    return std::make_shared< vital::simple_feature_set >(
-      vital::simple_feature_set( filtered ) );
+    return std::make_shared< viame::simple_feature_set >(
+      viame::simple_feature_set( filtered ) );
   }
 
 private:
@@ -345,10 +343,10 @@ filter_features_nonmax
 {}
 
 // ----------------------------------------------------------------------------
-// Check that the algorithm's configuration vital::config_block is valid
+// Check that the algorithm's configuration viame::config_block is valid
 bool
 filter_features_nonmax
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   size_t resolution =
     config->get_value< size_t >( "resolution", d_->c_resolution() );
@@ -363,17 +361,15 @@ filter_features_nonmax
 
 // ----------------------------------------------------------------------------
 // Filter feature set
-vital::feature_set_sptr
+viame::feature_set_sptr
 filter_features_nonmax
 ::filter(
-  vital::feature_set_sptr feat,
+  viame::feature_set_sptr feat,
   std::vector< size_t >& indices ) const
 {
   return d_->filter( feat, indices );
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

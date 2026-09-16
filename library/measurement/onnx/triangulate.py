@@ -6,7 +6,7 @@
 Two-view triangulation, in two flavors:
 
   * triangulate_fast_numpy -- a bit-exact NumPy port of
-    kwiver::arrows::mvg::triangulate_fast_two_view (essential-matrix optimal
+    viame::mvg::triangulate_fast_two_view (essential-matrix optimal
     correction + homogeneous DLT via SVD). Used host-side for the
     matching-only ONNX model so results are identical to the C++ measurer.
 

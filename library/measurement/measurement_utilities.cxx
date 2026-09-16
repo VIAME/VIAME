@@ -112,7 +112,7 @@ parse_stereo_rms_from_notes( const kv::detected_object_sptr& det )
 namespace
 {
 
-static auto logger = kwiver::vital::get_logger( "viame.core.measurement_utilities" );
+static auto logger = viame::get_logger( "viame.core.measurement_utilities" );
 
 namespace io = viame::image_ops;
 
@@ -270,7 +270,7 @@ bool dino_ensure_initialized(
 
 /// The bytes a `numpy` array of this image would hold: row major, channels
 /// interleaved, which is what `cv::Mat::data` was and what the python side
-/// reads. `vital::image` is planar, so this is the one place the two layouts
+/// reads. `viame::image` is planar, so this is the one place the two layouts
 /// have to be spelled out rather than aliased.
 ///
 /// **In BGR**, and that is not decoration. `viame.measurement.dino.dino_matcher`
@@ -1754,7 +1754,7 @@ triangulate_point(
   kv::vector_< 2, double > left_pt( left_point.x(), left_point.y() );
   kv::vector_< 2, double > right_pt( right_point.x(), right_point.y() );
 
-  auto point_3d = kwiver::arrows::mvg::triangulate_fast_two_view(
+  auto point_3d = viame::mvg::triangulate_fast_two_view(
     left_cam, right_cam, left_pt, right_pt );
 
   return kv::vector_3d( point_3d.x(), point_3d.y(), point_3d.z() );
@@ -4166,7 +4166,7 @@ get_valid_methods()
 #include <stdexcept>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 

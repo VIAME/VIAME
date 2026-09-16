@@ -8,11 +8,9 @@
 #include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/algo/filter_features.h>
 
-using namespace kwiver::vital;
+using namespace viame;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -27,9 +25,9 @@ public:
   detect_features_filtered& parent;
 
   // Processing classes
-  vital::algo::detect_features_sptr feature_detector()
+  viame::algo::detect_features_sptr feature_detector()
   { return parent.c_detector; }
-  vital::algo::filter_features_sptr feature_filter()
+  viame::algo::filter_features_sptr feature_filter()
   { return parent.c_filter; }
 };
 
@@ -51,24 +49,24 @@ detect_features_filtered
 {}
 
 // ----------------------------------------------------------------------------
-// Check that the algorithm's configuration vital::config_block is valid
+// Check that the algorithm's configuration viame::config_block is valid
 bool
 detect_features_filtered
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
-  bool detector_valid = check_nested_algo_configuration< vital::algo::detect_features >(
+  bool detector_valid = check_nested_algo_configuration< viame::algo::detect_features >(
     "detector", config );
-  bool filter_valid = check_nested_algo_configuration< vital::algo::filter_features >(
+  bool filter_valid = check_nested_algo_configuration< viame::algo::filter_features >(
     "filter", config );
   return detector_valid && filter_valid;
 }
 
 /// Extract a set of image features from the provided image
-vital::feature_set_sptr
+viame::feature_set_sptr
 detect_features_filtered
 ::detect(
-  vital::image_container_sptr image_data,
-  vital::image_container_sptr mask ) const
+  viame::image_container_sptr image_data,
+  viame::image_container_sptr mask ) const
 {
   if( !d_->feature_detector() )
   {
@@ -89,8 +87,6 @@ detect_features_filtered
   return features;
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

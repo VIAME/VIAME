@@ -12,7 +12,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// @brief Erode, dilate, open or close a binary mask.
 ///

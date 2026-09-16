@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 
@@ -331,7 +331,7 @@ TEST ( logger, a_global_callback_sees_what_the_line_does_not )
   kv::kwiver_logger::set_global_callback(
     [ & ]( kv::kwiver_logger::log_level_t level, std::string const& name,
            std::string const& msg,
-           kwiver::vital::logger_ns::location_info const& loc )
+           viame::logger_ns::location_info const& loc )
     {
       seen_level = level;
       seen_name = name;

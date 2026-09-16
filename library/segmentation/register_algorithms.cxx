@@ -21,7 +21,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_SEGMENTATION_PLUGIN_EXPORT

@@ -12,9 +12,7 @@
 
 #include <viame/algorithm_framework/algo/split_image.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
@@ -22,7 +20,7 @@ namespace ocv {
 /// process
 /// for ensuring that the refine detections process is running on desired ROIs.
 class VIAME_IMAGE_PROCESSING_EXPORT split_image
-  : public vital::algo::split_image
+  : public viame::algo::split_image
 {
 public:
   PLUGGABLE_IMPL(
@@ -34,20 +32,18 @@ public:
 
   bool
   check_configuration(
-    [[maybe_unused]] kwiver::vital::config_block_sptr config ) const override
+    [[maybe_unused]] viame::config_block_sptr config ) const override
   {
     return true;
   }
 
   /// Split image
-  std::vector< kwiver::vital::image_container_sptr >
-  split( kwiver::vital::image_container_sptr img ) const override;
+  std::vector< viame::image_container_sptr >
+  split( viame::image_container_sptr img ) const override;
 };
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

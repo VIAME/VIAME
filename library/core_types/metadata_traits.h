@@ -17,9 +17,7 @@
 
 #include <typeinfo>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 template < vital_metadata_tag Tag > struct metadata_tag_static_traits;
@@ -178,8 +176,6 @@ VITAL_TYPES_EXPORT
 metadata_tag_traits const&
 tag_traits_by_enum_name( std::string const& name );
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

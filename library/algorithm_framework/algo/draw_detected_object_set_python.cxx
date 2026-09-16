@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "draw_detected_object_set_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void draw_detected_object_set(py::module& m)
@@ -19,15 +19,15 @@ void draw_detected_object_set(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::draw_detected_object_set,
-               std::shared_ptr<kwiver::vital::algo::draw_detected_object_set>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::draw_detected_object_set,
+               std::shared_ptr<viame::algo::draw_detected_object_set>,
+               viame::algorithm,
                draw_detected_object_set_trampoline<> > instance(m,  "DrawDetectedObjectSet");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::draw_detected_object_set::interface_name)
-    .def("draw", &kwiver::vital::algo::draw_detected_object_set::draw, py::doc(R"( Draw detected object boxes on Image.
+    .def_static("interface_name", &viame::algo::draw_detected_object_set::interface_name)
+    .def("draw", &viame::algo::draw_detected_object_set::draw, py::doc(R"( Draw detected object boxes on Image.
 
  This method draws the detections on a copy of the image. The
  input image is unmodified. The actual boxes that are drawn are
@@ -38,7 +38,7 @@ void draw_detected_object_set(py::module& m)
 
  @return Image with boxes and other annotations added.)"), py::arg("detected_set"), py::arg("image"))
     ;
-  register_algorithm< kwiver::vital::algo::draw_detected_object_set > (instance);
+  register_algorithm< viame::algo::draw_detected_object_set > (instance);
 }
 
 }

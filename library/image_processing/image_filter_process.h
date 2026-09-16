@@ -11,7 +11,7 @@
 
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -19,13 +19,13 @@ namespace kwiver {
  *
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT image_filter_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "image_filter",
                "Apply selected image filter algorithm to incoming images." )
 
-  image_filter_process( kwiver::vital::config_block_sptr const& config );
+  image_filter_process( viame::config_block_sptr const& config );
   virtual ~image_filter_process();
 
 protected:
@@ -40,6 +40,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class object_detector_process
 
-} // end namespace
+} // namespace viame
 
 #endif // ARROWS_PROCESSES_IMAGE_FILTER_PROCESS_H

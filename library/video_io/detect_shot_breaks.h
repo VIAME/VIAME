@@ -23,7 +23,7 @@ namespace viame
 namespace core
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // =============================================================================
 // Utility functions for shot break detection

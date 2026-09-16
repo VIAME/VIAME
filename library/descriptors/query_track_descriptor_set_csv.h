@@ -35,7 +35,7 @@ namespace viame {
  * implementation answers from its tables.
  */
 class VIAME_DESCRIPTORS_EXPORT query_track_descriptor_set_csv
-  : public kwiver::vital::algo::query_track_descriptor_set
+  : public viame::algo::query_track_descriptor_set
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -68,7 +68,7 @@ public:
 
   virtual ~query_track_descriptor_set_csv();
 
-  bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
   bool get_track_descriptor( std::string const& uid, desc_tuple_t& result ) override;
 

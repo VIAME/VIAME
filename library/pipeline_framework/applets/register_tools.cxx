@@ -13,11 +13,11 @@
 extern "C"
 SPROKIT_APPLETS_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
-  using namespace sprokit::tools;
+  using namespace viame::pipeline::tools;
 
-  kwiver::applet_registrar reg( vpm, "sprokit_tool_group" );
+  viame::applet_registrar reg( vpm, "sprokit_tool_group" );
 
   if (reg.is_module_loaded())
   {

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::camera_rig camera_rig \endlink
+/// \brief Header for \link viame::camera_rig camera_rig \endlink
 
 #ifndef VITAL_CAMERA_RIG_H_
 #define VITAL_CAMERA_RIG_H_
@@ -13,9 +13,7 @@
 
 #include <unordered_map>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// forward declaration of camera_rig class
 class camera_rig;
@@ -109,8 +107,6 @@ public:
 
 using camera_rig_stereo_sptr = std::shared_ptr< camera_rig_stereo >;
 
-} // vital
-
-} // kwiver
+} // namespace viame
 
 #endif // VITAL_CAMERA_RIG_H_

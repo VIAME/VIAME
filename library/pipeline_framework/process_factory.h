@@ -23,11 +23,11 @@
 #include <map>
 #include <memory>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 
 // returns: process_t - shared_ptr<process>
-typedef std::function< process_t( kwiver::vital::config_block_sptr const& config ) > process_factory_func_t;
+typedef std::function< process_t( viame::config_block_sptr const& config ) > process_factory_func_t;
 
   /**
  * \brief A template function to create a process.
@@ -43,7 +43,7 @@ typedef std::function< process_t( kwiver::vital::config_block_sptr const& config
  */
 template <typename T>
 process_t
-create_new_process(kwiver::vital::config_block_sptr const& conf)
+create_new_process(viame::config_block_sptr const& conf)
 {
   // Note shared pointer
   return std::make_shared<T>(conf);
@@ -63,7 +63,7 @@ create_new_process(kwiver::vital::config_block_sptr const& conf)
  * \tparam C Concrete process class type.
  */
 class SPROKIT_PIPELINE_EXPORT process_factory
-: public kwiver::vital::plugin_factory
+: public viame::plugin_factory
 {
 public:
   /**
@@ -80,19 +80,19 @@ public:
 
   virtual ~process_factory() = default;
 
-  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config) = 0;
+  virtual viame::pipeline::process_t create_object(viame::config_block_sptr const& config) = 0;
 
-  void copy_attributes( sprokit::process_t proc );
+  void copy_attributes( viame::pipeline::process_t proc );
 
   // Implement pure virtual methods from plugin_factory base class
   // Sprokit processes use their own configuration mechanism, so these are stubs
-  kwiver::vital::pluggable_sptr from_config( [[maybe_unused]] kwiver::vital::config_block_sptr const cb ) const override
+  viame::pluggable_sptr from_config( [[maybe_unused]] viame::config_block_sptr const cb ) const override
   {
     // Sprokit processes are not pluggable in the same way as vital algorithms
     return nullptr;
   }
 
-  void get_default_config( [[maybe_unused]] kwiver::vital::config_block& cb ) const override
+  void get_default_config( [[maybe_unused]] viame::config_block& cb ) const override
   {
     // Sprokit processes configure themselves differently
   }
@@ -124,7 +124,7 @@ public:
 
   virtual ~cpp_process_factory() = default;
 
-  sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config) override;
+  viame::pipeline::process_t create_object(viame::config_block_sptr const& config) override;
 
 private:
   process_factory_func_t m_factory;
@@ -153,14 +153,14 @@ private:
  * \param target The type it now resolves to.
  */
 SPROKIT_PIPELINE_EXPORT
-void add_process_alias( sprokit::process::type_t const& alias,
-                        sprokit::process::type_t const& target );
+void add_process_alias( viame::pipeline::process::type_t const& alias,
+                        viame::pipeline::process::type_t const& target );
 
 /**
  * \brief Every process type alias, old name to new.
  */
 SPROKIT_PIPELINE_EXPORT
-std::map< sprokit::process::type_t, sprokit::process::type_t >
+std::map< viame::pipeline::process::type_t, viame::pipeline::process::type_t >
 process_aliases();
 
 /**
@@ -175,9 +175,9 @@ process_aliases();
  * \returns A new process of type \p type.
  */
 SPROKIT_PIPELINE_EXPORT
-sprokit::process_t create_process(const sprokit::process::type_t&        type,
-                                  const sprokit::process::name_t&        name,
-                                  const kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config() );
+viame::pipeline::process_t create_process(const viame::pipeline::process::type_t&        type,
+                                  const viame::pipeline::process::name_t&        name,
+                                  const viame::config_block_sptr config = viame::config_block::empty_config() );
 
 /**
  * \brief Mark a process as loaded.
@@ -186,7 +186,7 @@ sprokit::process_t create_process(const sprokit::process::type_t&        type,
  * \param module The process to mark as loaded.
  */
 SPROKIT_PIPELINE_EXPORT
-  void mark_process_module_as_loaded( kwiver::vital::registry& vpl,
+  void mark_process_module_as_loaded( viame::registry& vpl,
                                       const module_t& module );
 
 /**
@@ -198,7 +198,7 @@ SPROKIT_PIPELINE_EXPORT
  * \returns True if the process has already been loaded, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT
-  bool is_process_module_loaded( kwiver::vital::registry& vpl,
+  bool is_process_module_loaded( viame::registry& vpl,
                                  module_t const& module );
 
 /**
@@ -207,21 +207,21 @@ SPROKIT_PIPELINE_EXPORT
  * \return List of all process implementation factories.
  */
 SPROKIT_PIPELINE_EXPORT
-kwiver::vital::plugin_factory_vector_t const& get_process_list();
+viame::plugin_factory_vector_t const& get_process_list();
 
 //
 // Convenience macro for adding processes
 //
 #define ADD_PROCESS( proc_type )                                        \
-  add_factory( new sprokit::cpp_process_factory( typeid( proc_type ).name(), \
-                                                 sprokit::process::interface_name(), \
-                                                 sprokit::create_new_process< proc_type > ) )
+  add_factory( new viame::pipeline::cpp_process_factory( typeid( proc_type ).name(), \
+                                                 viame::pipeline::process::interface_name(), \
+                                                 viame::pipeline::create_new_process< proc_type > ) )
 
 /// Convenience macro to create a process factory (for use in tests)
 #define MAKE_PROCESS_FACTORY( proc_type ) \
-  new sprokit::cpp_process_factory( typeid( proc_type ).name(), \
-                                    sprokit::process::interface_name(), \
-                                    sprokit::create_new_process< proc_type > )
+  new viame::pipeline::cpp_process_factory( typeid( proc_type ).name(), \
+                                    viame::pipeline::process::interface_name(), \
+                                    viame::pipeline::create_new_process< proc_type > )
 
 // ============================================================================
 /// Derived class to register processes
@@ -230,7 +230,7 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list();
  * processes with the registry.
  */
 class process_registrar
-  : public kwiver::plugin_registrar
+  : public viame::plugin_registrar
 {
 public:
   enum option {
@@ -238,7 +238,7 @@ public:
     no_test = 1
   };
 
-  process_registrar( kwiver::vital::registry& vpl,
+  process_registrar( viame::registry& vpl,
                        const std::string& mod_name_ )
     : plugin_registrar( vpl, mod_name_ )
   {
@@ -266,15 +266,15 @@ public:
    * \return the registry reference is returned.
    */
   template <typename process_t>
-  kwiver::vital::plugin_factory_handle_t
+  viame::plugin_factory_handle_t
   register_process( option opt = none )
   {
-    using kvpf = kwiver::vital::plugin_factory;
+    using kvpf = viame::plugin_factory;
 
-    kwiver::vital::plugin_factory* fact =  new sprokit::cpp_process_factory(
+    viame::plugin_factory* fact =  new viame::pipeline::cpp_process_factory(
       typeid( process_t ).name(),
-      sprokit::process::interface_name(),
-      sprokit::create_new_process< process_t > );
+      viame::pipeline::process::interface_name(),
+      viame::pipeline::create_new_process< process_t > );
 
     fact->add_attribute( kvpf::PLUGIN_NAME,      process_t::_plugin_name )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,  process_t::_plugin_description )
@@ -291,6 +291,6 @@ public:
   }
 };
 
-} // end namespace
+} // namespace viame::pipeline
 
 #endif /* SPROKIT_PIPELINE_PROCESS_FACTORY_H */

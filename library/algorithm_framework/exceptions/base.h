@@ -14,9 +14,7 @@
 #include <exception>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// The base class for all vital exceptions
@@ -82,9 +80,7 @@ public:
   virtual ~invalid_value() noexcept;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 // ----------------------------------------------------------------------------
 /// Exception helper macro.

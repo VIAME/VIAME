@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "extract_descriptors_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void extract_descriptors(py::module& m)
@@ -19,15 +19,15 @@ void extract_descriptors(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::extract_descriptors,
-               std::shared_ptr<kwiver::vital::algo::extract_descriptors>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::extract_descriptors,
+               std::shared_ptr<viame::algo::extract_descriptors>,
+               viame::algorithm,
                extract_descriptors_trampoline<> > instance(m,  "ExtractDescriptors");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::extract_descriptors::interface_name)
-    .def("extract", &kwiver::vital::algo::extract_descriptors::extract, py::doc(R"( Extract from the image a descriptor corresoponding to each feature
+    .def_static("interface_name", &viame::algo::extract_descriptors::interface_name)
+    .def("extract", &viame::algo::extract_descriptors::extract, py::doc(R"( Extract from the image a descriptor corresoponding to each feature
 
  \param [in]     image_data contains the image data to process
  \param [in,out] features the feature locations at which descriptors
@@ -42,7 +42,7 @@ void extract_descriptors(py::module& m)
        set of descriptors detected.  If the feature_set needs to change,
        a new feature_set is created and returned by reference.)"), py::arg("image_data"), py::arg("features"), py::arg("image_mask") = py::none())
     ;
-  register_algorithm< kwiver::vital::algo::extract_descriptors > (instance);
+  register_algorithm< viame::algo::extract_descriptors > (instance);
 }
 
 }

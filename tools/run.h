@@ -19,7 +19,7 @@ namespace tools {
 /// "pipeline stage N:" markers run as a sequence of pipelines. Any other
 /// command line is forwarded to the run.py batch driver.
 class VIAME_TOOLS_APPLETS_EXPORT run_applet
-  : public kwiver::tools::kwiver_applet
+  : public viame::tools::kwiver_applet
 {
 public:
   PLUGIN_INFO( "run",

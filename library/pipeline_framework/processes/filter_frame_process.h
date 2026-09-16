@@ -27,11 +27,11 @@ namespace core
  * @brief Filters out frames if certain criteria are not met
  */
 class VIAME_PROCESSES_PIPELINE_FRAMEWORK_EXPORT filter_frame_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  filter_frame_process( kwiver::vital::config_block_sptr const& config );
+  filter_frame_process( viame::config_block_sptr const& config );
   virtual ~filter_frame_process();
 
 protected:

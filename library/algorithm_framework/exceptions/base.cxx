@@ -8,9 +8,7 @@
 #include "base.h"
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 vital_exception
 ::vital_exception() noexcept
@@ -62,6 +60,4 @@ invalid_value
 ::~invalid_value() noexcept
 {}
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

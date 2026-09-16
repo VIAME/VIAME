@@ -10,11 +10,9 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -32,11 +30,9 @@ class camera_trampoline
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital::python;
+using namespace viame::python;
 PYBIND11_MODULE( camera, m )
 {
   py::class_< kv::camera,

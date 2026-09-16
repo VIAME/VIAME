@@ -46,7 +46,7 @@ namespace viame {
 ///
 /// An internal assertion means the document is not the shape the call
 /// assumed -- asking an array for a member, say. It is a programming error
-/// rather than a data error, which is why it is not `vital::invalid_data`.
+/// rather than a data error, which is why it is not `viame::invalid_data`.
 struct json_internal_error : std::runtime_error
 {
   explicit json_internal_error( char const* what )

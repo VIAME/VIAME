@@ -16,7 +16,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
   // -----------------------------------------------------------------------------
@@ -30,14 +30,14 @@ namespace kwiver
  *
  */
 class VIAME_PROCESSES_FILE_IO_EXPORT write_track_descriptor_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "write_track_descriptor",
                "Writes track descriptor sets to an output file. "
                "All descriptors are written to the same file." )
 
-  write_track_descriptor_process( kwiver::vital::config_block_sptr const& config );
+  write_track_descriptor_process( viame::config_block_sptr const& config );
   virtual ~write_track_descriptor_process();
 
 protected:
@@ -53,6 +53,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class write_track_descriptor_process
 
-} // end namespace
+} // namespace viame
 
 #endif // _KWIVER_WRITE_TRACK_DESCRIPTOR_PROCESS_H

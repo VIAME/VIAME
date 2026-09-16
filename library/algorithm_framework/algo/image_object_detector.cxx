@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ image_object_detector
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

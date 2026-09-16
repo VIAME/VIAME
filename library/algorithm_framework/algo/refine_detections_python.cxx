@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "refine_detections_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void refine_detections(py::module& m)
@@ -19,15 +19,15 @@ void refine_detections(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::refine_detections,
-               std::shared_ptr<kwiver::vital::algo::refine_detections>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::refine_detections,
+               std::shared_ptr<viame::algo::refine_detections>,
+               viame::algorithm,
                refine_detections_trampoline<> > instance(m,  "RefineDetections");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::refine_detections::interface_name)
-    .def("refine", &kwiver::vital::algo::refine_detections::refine, py::doc(R"( Refine all object detections on the provided image
+    .def_static("interface_name", &viame::algo::refine_detections::interface_name)
+    .def("refine", &viame::algo::refine_detections::refine, py::doc(R"( Refine all object detections on the provided image
 
  This method analyzes the supplied image and and detections on it,
  returning a refined set of detections.
@@ -36,7 +36,7 @@ void refine_detections(py::module& m)
  \param detections detected objects
  \returns vector of image objects refined)"), py::arg("image_data"), py::arg("detections"))
     ;
-  register_algorithm< kwiver::vital::algo::refine_detections > (instance);
+  register_algorithm< viame::algo::refine_detections > (instance);
 }
 
 }

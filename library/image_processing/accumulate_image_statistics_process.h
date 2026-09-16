@@ -31,11 +31,11 @@ namespace core
  * have been processed.
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT accumulate_image_statistics_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  accumulate_image_statistics_process( kwiver::vital::config_block_sptr const& config );
+  accumulate_image_statistics_process( viame::config_block_sptr const& config );
   virtual ~accumulate_image_statistics_process();
 
 protected:

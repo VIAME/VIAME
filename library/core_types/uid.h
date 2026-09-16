@@ -14,9 +14,7 @@
 #include <cstdint>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Container for global uid value
@@ -73,8 +71,6 @@ private:
   std::string m_uid;
 }; // end class uid
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_TYPES_UID_H

@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/filter_features.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class filter_features_base = kwiver::vital::algo::filter_features >
+template< class filter_features_base = viame::algo::filter_features >
 class filter_features_trampoline
     : public algorithm_trampoline< filter_features_base >
 {
@@ -21,39 +21,39 @@ class filter_features_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::feature_set_sptr
-  filter(::kwiver::vital::feature_set_sptr feat, ::std::vector<unsigned long> & indices) const override
+  viame::feature_set_sptr
+  filter(::viame::feature_set_sptr feat, ::std::vector<unsigned long> & indices) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::feature_set_sptr,
-      kwiver::vital::algo::filter_features,
+      viame::feature_set_sptr,
+      viame::algo::filter_features,
       filter,
       feat, indices
       );
   }
 
-  kwiver::vital::feature_set_sptr
-  filter(::kwiver::vital::feature_set_sptr input) const override
+  viame::feature_set_sptr
+  filter(::viame::feature_set_sptr input) const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::feature_set_sptr,
-      kwiver::vital::algo::filter_features,
+      viame::feature_set_sptr,
+      viame::algo::filter_features,
       filter,
       input
       );
   }
 
-  kwiver::vital::algo::filter_features::filter_return_value
-  filter(::kwiver::vital::feature_set_sptr feat, ::kwiver::vital::descriptor_set_sptr descr) const override
+  viame::algo::filter_features::filter_return_value
+  filter(::viame::feature_set_sptr feat, ::viame::descriptor_set_sptr descr) const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::algo::filter_features::filter_return_value,
-      kwiver::vital::algo::filter_features,
+      viame::algo::filter_features::filter_return_value,
+      viame::algo::filter_features,
       filter,
       feat, descr
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

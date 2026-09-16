@@ -8,7 +8,7 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-using namespace kwiver::vital;
+using namespace viame;
 
 // ----------------------------------------------------------------------------
 PYBIND11_MODULE( video_settings, m )

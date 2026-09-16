@@ -20,7 +20,7 @@
 #include <viame/file_io/convert_notes_to_attributes.h>
 
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 
 namespace viame
@@ -98,8 +98,8 @@ split_tracks_to_feature_landmarks_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 

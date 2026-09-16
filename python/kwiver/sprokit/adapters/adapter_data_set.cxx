@@ -26,12 +26,12 @@ PYBIND11_MAKE_OPAQUE( std::vector< unsigned char > );
 PYBIND11_MAKE_OPAQUE( std::vector< double > );
 PYBIND11_MAKE_OPAQUE( std::vector< std::string > );
 
-namespace ka = ::kwiver::adapter;
+namespace ka = ::viame::adapter;
 namespace py = pybind11;
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
@@ -43,16 +43,16 @@ namespace python {
 void
 add_value_correct_type(
   ka::adapter_data_set& self,
-  ::sprokit::process::port_t const& port, py::object obj )
+  ::viame::pipeline::process::port_t const& port, py::object obj )
 {
   if( obj.is_none() )
   {
     throw py::type_error( "Cannot add NoneType to adapter_data_set" );
   }
 
-  if( py::isinstance< ::sprokit::datum >( obj ) )
+  if( py::isinstance< ::viame::pipeline::datum >( obj ) )
   {
-    ::sprokit::datum_t casted_obj = obj.cast< ::sprokit::datum_t >();
+    ::viame::pipeline::datum_t casted_obj = obj.cast< ::viame::pipeline::datum_t >();
     self.add_datum( port, casted_obj );
     return;
   }
@@ -69,23 +69,23 @@ if( py::isinstance< PYTYPE >( obj ) )         \
   ADS_ADD_OBJECT( py::float_, float )
   ADS_ADD_OBJECT( py::str, std::string )
   ADS_ADD_OBJECT(
-    kwiver::vital::image_container,
-    std::shared_ptr< kwiver::vital::image_container > )
+    viame::image_container,
+    std::shared_ptr< viame::image_container > )
   ADS_ADD_OBJECT(
-    kwiver::vital::descriptor_set,
-    std::shared_ptr< kwiver::vital::descriptor_set > )
+    viame::descriptor_set,
+    std::shared_ptr< viame::descriptor_set > )
   ADS_ADD_OBJECT(
-    kwiver::vital::detected_object_set,
-    std::shared_ptr< kwiver::vital::detected_object_set > )
+    viame::detected_object_set,
+    std::shared_ptr< viame::detected_object_set > )
   ADS_ADD_OBJECT(
-    kwiver::vital::track_set,
-    std::shared_ptr< kwiver::vital::track_set > )
+    viame::track_set,
+    std::shared_ptr< viame::track_set > )
   ADS_ADD_OBJECT(
-    kwiver::vital::feature_track_set,
-    std::shared_ptr< kwiver::vital::feature_track_set > )
+    viame::feature_track_set,
+    std::shared_ptr< viame::feature_track_set > )
   ADS_ADD_OBJECT(
-    kwiver::vital::object_track_set,
-    std::shared_ptr< kwiver::vital::object_track_set > )
+    viame::object_track_set,
+    std::shared_ptr< viame::object_track_set > )
   ADS_ADD_OBJECT(
     std::vector< double >,
     std::shared_ptr< std::vector< double > > )
@@ -95,10 +95,10 @@ if( py::isinstance< PYTYPE >( obj ) )         \
   ADS_ADD_OBJECT(
     std::vector< unsigned char >,
     std::shared_ptr< std::vector< unsigned char > > )
-  ADS_ADD_OBJECT( kwiver::vital::bounding_box_d, kwiver::vital::bounding_box_d )
-  ADS_ADD_OBJECT( kwiver::vital::timestamp, kwiver::vital::timestamp )
-  ADS_ADD_OBJECT( kwiver::vital::geo_polygon, kwiver::vital::geo_polygon )
-  ADS_ADD_OBJECT( kwiver::vital::f2f_homography, kwiver::vital::f2f_homography )
+  ADS_ADD_OBJECT( viame::bounding_box_d, viame::bounding_box_d )
+  ADS_ADD_OBJECT( viame::timestamp, viame::timestamp )
+  ADS_ADD_OBJECT( viame::geo_polygon, viame::geo_polygon )
+  ADS_ADD_OBJECT( viame::f2f_homography, viame::f2f_homography )
 
 #undef ADS_ADD_OBJECT
 
@@ -128,33 +128,33 @@ if( py::isinstance< PYTYPE >( obj ) )         \
 py::object
 get_port_data_correct_type(
   ka::adapter_data_set& self,
-  ::sprokit::process::port_t const& port )
+  ::viame::pipeline::process::port_t const& port )
 {
-  kwiver::vital::any const any =
-    self.get_port_data< kwiver::vital::any >( port );
+  viame::any const any =
+    self.get_port_data< viame::any >( port );
 
 #define ADS_GET_OBJECT( TYPE )                               \
 if( any.type() == typeid( TYPE ) )                           \
 {                                                            \
-  return py::cast( kwiver::vital::any_cast< TYPE >( any ) ); \
+  return py::cast( viame::any_cast< TYPE >( any ) ); \
 }
 
   ADS_GET_OBJECT( int )
   ADS_GET_OBJECT( float )
   ADS_GET_OBJECT( std::string )
-  ADS_GET_OBJECT( std::shared_ptr< kwiver::vital::image_container > )
-  ADS_GET_OBJECT( std::shared_ptr< kwiver::vital::descriptor_set > )
-  ADS_GET_OBJECT( std::shared_ptr< kwiver::vital::detected_object_set > )
-  ADS_GET_OBJECT( std::shared_ptr< kwiver::vital::track_set > )
-  ADS_GET_OBJECT( std::shared_ptr< kwiver::vital::feature_track_set > )
-  ADS_GET_OBJECT( std::shared_ptr< kwiver::vital::object_track_set > )
+  ADS_GET_OBJECT( std::shared_ptr< viame::image_container > )
+  ADS_GET_OBJECT( std::shared_ptr< viame::descriptor_set > )
+  ADS_GET_OBJECT( std::shared_ptr< viame::detected_object_set > )
+  ADS_GET_OBJECT( std::shared_ptr< viame::track_set > )
+  ADS_GET_OBJECT( std::shared_ptr< viame::feature_track_set > )
+  ADS_GET_OBJECT( std::shared_ptr< viame::object_track_set > )
   ADS_GET_OBJECT( std::shared_ptr< std::vector< double > > )
   ADS_GET_OBJECT( std::shared_ptr< std::vector< std::string > > )
   ADS_GET_OBJECT( std::shared_ptr< std::vector< unsigned char > > )
-  ADS_GET_OBJECT( kwiver::vital::bounding_box_d )
-  ADS_GET_OBJECT( kwiver::vital::timestamp )
-  ADS_GET_OBJECT( kwiver::vital::geo_polygon )
-  ADS_GET_OBJECT( kwiver::vital::f2f_homography )
+  ADS_GET_OBJECT( viame::bounding_box_d )
+  ADS_GET_OBJECT( viame::timestamp )
+  ADS_GET_OBJECT( viame::geo_polygon )
+  ADS_GET_OBJECT( viame::f2f_homography )
 
 #undef ADS_GET_OBJECT
 
@@ -168,9 +168,9 @@ if( any.type() == typeid( TYPE ) )                           \
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
 PYBIND11_MODULE( adapter_data_set, m )
 {
@@ -221,17 +221,17 @@ PYBIND11_MODULE( adapter_data_set, m )
 
     // General add_value which adds any type, and __setitem__
     .def(
-      "add_value", &kwiver::sprokit::python::add_value_correct_type,
+      "add_value", &viame::pipeline::python::add_value_correct_type,
       "This method is equivalent to using __setitem__" )
-    .def( "__setitem__", &kwiver::sprokit::python::add_value_correct_type )
+    .def( "__setitem__", &viame::pipeline::python::add_value_correct_type )
 
     .def( "add_datum", &ka::adapter_data_set::add_datum )
 
     // General get_value which gets data of any type from a port and __getitem__
     .def(
-      "get_port_data", &kwiver::sprokit::python::get_port_data_correct_type,
+      "get_port_data", &viame::pipeline::python::get_port_data_correct_type,
       "This method is equivalent to using __getitem__" )
-    .def( "__getitem__", &kwiver::sprokit::python::get_port_data_correct_type )
+    .def( "__getitem__", &viame::pipeline::python::get_port_data_correct_type )
 
     // The add_value function is templated.
     // To bind the function, we must bind explicit instances of it,
@@ -243,32 +243,32 @@ PYBIND11_MODULE( adapter_data_set, m )
     // Next shared ptrs to kwiver vital types
     .def(
       "_add_image_container",
-      &ka::adapter_data_set::add_value< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::add_value< std::shared_ptr< viame::
         image_container > >,
       py::arg( "port" ), py::arg( "val" ).none( false ) )
     .def(
       "_add_descriptor_set",
-      &ka::adapter_data_set::add_value< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::add_value< std::shared_ptr< viame::
         descriptor_set > >,
       py::arg( "port" ), py::arg( "val" ).none( false ) )
     .def(
       "_add_detected_object_set",
-      &ka::adapter_data_set::add_value< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::add_value< std::shared_ptr< viame::
         detected_object_set > >,
       py::arg( "port" ), py::arg( "val" ).none( false ) )
     .def(
       "_add_track_set",
-      &ka::adapter_data_set::add_value< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::add_value< std::shared_ptr< viame::
         track_set > >,
       py::arg( "port" ), py::arg( "val" ).none( false ) )
     .def(
       "_add_feature_track_set",
-      &ka::adapter_data_set::add_value< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::add_value< std::shared_ptr< viame::
         feature_track_set > >,
       py::arg( "port" ), py::arg( "val" ).none( false ) )
     .def(
       "_add_object_track_set",
-      &ka::adapter_data_set::add_value< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::add_value< std::shared_ptr< viame::
         object_track_set > >,
       py::arg( "port" ), py::arg( "val" ).none( false ) )
     // Next shared ptrs to native C++ types
@@ -289,16 +289,16 @@ PYBIND11_MODULE( adapter_data_set, m )
     // Next kwiver vital types
     .def(
       "_add_bounding_box",
-      &ka::adapter_data_set::add_value< kwiver::vital::bounding_box_d > )
+      &ka::adapter_data_set::add_value< viame::bounding_box_d > )
     .def(
       "_add_timestamp",
-      &ka::adapter_data_set::add_value< kwiver::vital::timestamp > )
+      &ka::adapter_data_set::add_value< viame::timestamp > )
     .def(
       "_add_corner_points",
-      &ka::adapter_data_set::add_value< kwiver::vital::geo_polygon > )
+      &ka::adapter_data_set::add_value< viame::geo_polygon > )
     .def(
       "_add_f2f_homography",
-      &ka::adapter_data_set::add_value< kwiver::vital::f2f_homography > )
+      &ka::adapter_data_set::add_value< viame::f2f_homography > )
 
     .def( "empty", &ka::adapter_data_set::empty )
 
@@ -313,27 +313,27 @@ PYBIND11_MODULE( adapter_data_set, m )
     // Next shared ptrs to kwiver vital types
     .def(
       "_get_port_data_image_container",
-      &ka::adapter_data_set::get_port_data< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::get_port_data< std::shared_ptr< viame::
         image_container > > )
     .def(
       "_get_port_data_descriptor_set",
-      &ka::adapter_data_set::get_port_data< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::get_port_data< std::shared_ptr< viame::
         descriptor_set > > )
     .def(
       "_get_port_data_detected_object_set",
-      &ka::adapter_data_set::get_port_data< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::get_port_data< std::shared_ptr< viame::
         detected_object_set > > )
     .def(
       "_get_port_data_track_set",
-      &ka::adapter_data_set::get_port_data< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::get_port_data< std::shared_ptr< viame::
         track_set > > )
     .def(
       "_get_port_data_feature_track_set",
-      &ka::adapter_data_set::get_port_data< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::get_port_data< std::shared_ptr< viame::
         feature_track_set > > )
     .def(
       "_get_port_data_object_track_set",
-      &ka::adapter_data_set::get_port_data< std::shared_ptr< kwiver::vital::
+      &ka::adapter_data_set::get_port_data< std::shared_ptr< viame::
         object_track_set > > )
     // Next shared ptrs to native C++ types
     .def(
@@ -350,16 +350,16 @@ PYBIND11_MODULE( adapter_data_set, m )
     // Next kwiver vital types
     .def(
       "_get_port_data_bounding_box",
-      &ka::adapter_data_set::get_port_data< kwiver::vital::bounding_box_d > )
+      &ka::adapter_data_set::get_port_data< viame::bounding_box_d > )
     .def(
       "_get_port_data_timestamp",
-      &ka::adapter_data_set::get_port_data< kwiver::vital::timestamp > )
+      &ka::adapter_data_set::get_port_data< viame::timestamp > )
     .def(
       "_get_port_data_corner_points",
-      &ka::adapter_data_set::get_port_data< kwiver::vital::geo_polygon > )
+      &ka::adapter_data_set::get_port_data< viame::geo_polygon > )
     .def(
       "_get_port_data_f2f_homography",
-      &ka::adapter_data_set::get_port_data< kwiver::vital::f2f_homography > )
+      &ka::adapter_data_set::get_port_data< viame::f2f_homography > )
     .def(
       "__nice__", [](const ka::adapter_data_set& self) -> std::string {
         auto locals = py::dict( py::arg( "self" ) = self );
@@ -407,7 +407,7 @@ PYBIND11_MODULE( adapter_data_set, m )
 
   ads.doc() =
     R"(
-      Python bindings for kwiver::adapter::adapter_data_set
+      Python bindings for viame::adapter::adapter_data_set
 
       Example:
           >>> from kwiver.sprokit.adapters import adapter_data_set

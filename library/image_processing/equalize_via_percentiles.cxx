@@ -23,7 +23,7 @@ equalize_via_percentiles::
 // -------------------------------------------------------------------------------------------------
 bool
 equalize_via_percentiles::
-check_configuration( kwiver::vital::config_block_sptr config ) const
+check_configuration( viame::config_block_sptr config ) const
 {
   double lower = config->get_value< double >( "lower_percentile" );
   double upper = config->get_value< double >( "upper_percentile" );
@@ -86,7 +86,7 @@ double calculate_percentile( const std::vector< T >& sorted_values, double perce
 
 /// Extract all pixel values from an image into a vector (for any pixel type)
 template< typename T >
-std::vector< T > extract_pixel_values( const kwiver::vital::image& img )
+std::vector< T > extract_pixel_values( const viame::image& img )
 {
   std::vector< T > values;
   values.reserve( img.width() * img.height() * img.depth() );
@@ -107,14 +107,14 @@ std::vector< T > extract_pixel_values( const kwiver::vital::image& img )
 
 /// Get input pixel value as double
 template< typename T >
-double get_pixel_value( const kwiver::vital::image& img, size_t i, size_t j, size_t p )
+double get_pixel_value( const viame::image& img, size_t i, size_t j, size_t p )
 {
   return static_cast< double >( img.at< T >( i, j, p ) );
 }
 
 /// Set output pixel value from normalized [0,1] value
 template< typename T >
-void set_pixel_value( kwiver::vital::image& img, size_t i, size_t j, size_t p,
+void set_pixel_value( viame::image& img, size_t i, size_t j, size_t p,
                       double normalized, double max_val, double min_val = 0.0 )
 {
   double scaled = normalized * ( max_val - min_val ) + min_val;
@@ -136,9 +136,9 @@ void set_pixel_value( kwiver::vital::image& img, size_t i, size_t j, size_t p,
 
 
 // -------------------------------------------------------------------------------------------------
-kwiver::vital::image_container_sptr
+viame::image_container_sptr
 equalize_via_percentiles::
-filter( kwiver::vital::image_container_sptr image_data )
+filter( viame::image_container_sptr image_data )
 {
   if( !image_data )
   {
@@ -146,7 +146,7 @@ filter( kwiver::vital::image_container_sptr image_data )
     return image_data;
   }
 
-  kwiver::vital::image input_img = image_data->get_image();
+  viame::image input_img = image_data->get_image();
 
   size_t width = input_img.width();
   size_t height = input_img.height();
@@ -162,9 +162,9 @@ filter( kwiver::vital::image_container_sptr image_data )
   double p_low = 0.0;
   double p_high = 255.0;
 
-  kwiver::vital::image_pixel_traits input_traits = input_img.pixel_traits();
+  viame::image_pixel_traits input_traits = input_img.pixel_traits();
 
-  if( input_traits.type == kwiver::vital::image_pixel_traits::UNSIGNED )
+  if( input_traits.type == viame::image_pixel_traits::UNSIGNED )
   {
     if( input_traits.num_bytes == 1 )
     {
@@ -186,7 +186,7 @@ filter( kwiver::vital::image_container_sptr image_data )
       return image_data;
     }
   }
-  else if( input_traits.type == kwiver::vital::image_pixel_traits::SIGNED )
+  else if( input_traits.type == viame::image_pixel_traits::SIGNED )
   {
     if( input_traits.num_bytes == 2 )
     {
@@ -201,7 +201,7 @@ filter( kwiver::vital::image_container_sptr image_data )
       return image_data;
     }
   }
-  else if( input_traits.type == kwiver::vital::image_pixel_traits::FLOAT )
+  else if( input_traits.type == viame::image_pixel_traits::FLOAT )
   {
     if( input_traits.num_bytes == 4 )
     {
@@ -238,7 +238,7 @@ filter( kwiver::vital::image_container_sptr image_data )
   }
 
   // Determine output pixel traits and range
-  kwiver::vital::image_pixel_traits output_traits;
+  viame::image_pixel_traits output_traits;
   double output_max = 255.0;
   double output_min = 0.0;
 
@@ -246,7 +246,7 @@ filter( kwiver::vital::image_container_sptr image_data )
   {
     output_traits = input_traits;
 
-    if( input_traits.type == kwiver::vital::image_pixel_traits::UNSIGNED )
+    if( input_traits.type == viame::image_pixel_traits::UNSIGNED )
     {
       if( input_traits.num_bytes == 1 )
       {
@@ -257,7 +257,7 @@ filter( kwiver::vital::image_container_sptr image_data )
         output_max = 65535.0;
       }
     }
-    else if( input_traits.type == kwiver::vital::image_pixel_traits::SIGNED )
+    else if( input_traits.type == viame::image_pixel_traits::SIGNED )
     {
       if( input_traits.num_bytes == 2 )
       {
@@ -265,7 +265,7 @@ filter( kwiver::vital::image_container_sptr image_data )
         output_max = 32767.0;
       }
     }
-    else if( input_traits.type == kwiver::vital::image_pixel_traits::FLOAT )
+    else if( input_traits.type == viame::image_pixel_traits::FLOAT )
     {
       output_min = 0.0;
       output_max = 1.0;
@@ -274,13 +274,13 @@ filter( kwiver::vital::image_container_sptr image_data )
   else
   {
     // 8-bit output
-    output_traits = kwiver::vital::image_pixel_traits_of< uint8_t >();
+    output_traits = viame::image_pixel_traits_of< uint8_t >();
     output_max = 255.0;
     output_min = 0.0;
   }
 
   // Create output image
-  kwiver::vital::image output_img( width, height, depth, false, output_traits );
+  viame::image output_img( width, height, depth, false, output_traits );
 
   // Process each pixel
   for( size_t p = 0; p < depth; ++p )
@@ -292,7 +292,7 @@ filter( kwiver::vital::image_container_sptr image_data )
         // Get input value as double
         double value = 0.0;
 
-        if( input_traits.type == kwiver::vital::image_pixel_traits::UNSIGNED )
+        if( input_traits.type == viame::image_pixel_traits::UNSIGNED )
         {
           if( input_traits.num_bytes == 1 )
           {
@@ -303,14 +303,14 @@ filter( kwiver::vital::image_container_sptr image_data )
             value = get_pixel_value< uint16_t >( input_img, i, j, p );
           }
         }
-        else if( input_traits.type == kwiver::vital::image_pixel_traits::SIGNED )
+        else if( input_traits.type == viame::image_pixel_traits::SIGNED )
         {
           if( input_traits.num_bytes == 2 )
           {
             value = get_pixel_value< int16_t >( input_img, i, j, p );
           }
         }
-        else if( input_traits.type == kwiver::vital::image_pixel_traits::FLOAT )
+        else if( input_traits.type == viame::image_pixel_traits::FLOAT )
         {
           if( input_traits.num_bytes == 4 )
           {
@@ -338,7 +338,7 @@ filter( kwiver::vital::image_container_sptr image_data )
         // Set output value based on output format
         if( get_output_format() == "native" )
         {
-          if( output_traits.type == kwiver::vital::image_pixel_traits::UNSIGNED )
+          if( output_traits.type == viame::image_pixel_traits::UNSIGNED )
           {
             if( output_traits.num_bytes == 1 )
             {
@@ -349,14 +349,14 @@ filter( kwiver::vital::image_container_sptr image_data )
               set_pixel_value< uint16_t >( output_img, i, j, p, normalized, output_max, output_min );
             }
           }
-          else if( output_traits.type == kwiver::vital::image_pixel_traits::SIGNED )
+          else if( output_traits.type == viame::image_pixel_traits::SIGNED )
           {
             if( output_traits.num_bytes == 2 )
             {
               set_pixel_value< int16_t >( output_img, i, j, p, normalized, output_max, output_min );
             }
           }
-          else if( output_traits.type == kwiver::vital::image_pixel_traits::FLOAT )
+          else if( output_traits.type == viame::image_pixel_traits::FLOAT )
           {
             if( output_traits.num_bytes == 4 )
             {
@@ -377,7 +377,7 @@ filter( kwiver::vital::image_container_sptr image_data )
     }
   }
 
-  return std::make_shared< kwiver::vital::simple_image_container >( output_img );
+  return std::make_shared< viame::simple_image_container >( output_img );
 }
 
 

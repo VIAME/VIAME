@@ -20,12 +20,12 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // =============================================================================
 // Pipeline type alias
 // =============================================================================
-typedef std::unique_ptr< kwiver::embedded_pipeline > pipeline_t;
+typedef std::unique_ptr< viame::embedded_pipeline > pipeline_t;
 
 // =============================================================================
 // Training sequence utilities
@@ -184,7 +184,7 @@ void downsample_data( std::vector< std::string >& input_files,
 ///
 /// \param pipeline_filename Path to pipeline file
 /// \returns Unique pointer to started pipeline, or nullptr if filename is empty
-/// \throws sprokit::invalid_configuration_exception on pipeline errors
+/// \throws viame::pipeline::invalid_configuration_exception on pipeline errors
 VIAME_TRAINING_EXPORT
 pipeline_t load_embedded_pipeline( const std::string& pipeline_filename );
 

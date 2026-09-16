@@ -13,15 +13,13 @@
 #include <viame/core_types/image_container.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for detecting feature points
 class VITAL_ALGO_EXPORT detect_features
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   detect_features();
@@ -41,10 +39,10 @@ public:
   ///             indicate regions to consider. Only the first channel will be
   ///             considered.
   /// \returns a set of image features
-  virtual kwiver::vital::feature_set_sptr
+  virtual viame::feature_set_sptr
   detect(
-    kwiver::vital::image_container_sptr image_data,
-    kwiver::vital::image_container_sptr mask = kwiver::vital::
+    viame::image_container_sptr image_data,
+    viame::image_container_sptr mask = viame::
     image_container_sptr() )
   const = 0;
 };
@@ -54,8 +52,6 @@ typedef std::shared_ptr< detect_features > detect_features_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_DETECT_FEATURES_H_

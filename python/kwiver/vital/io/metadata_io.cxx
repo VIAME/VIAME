@@ -18,11 +18,11 @@ PYBIND11_MODULE( metadata_io, m )
   m.def(
     "basename_from_metadata",
     ( std::string ( * )(
-      kwiver::vital::metadata_sptr,
-      kwiver::vital::frame_id_t ) ) & kwiver::vital::basename_from_metadata );
+      viame::metadata_sptr,
+      viame::frame_id_t ) ) & viame::basename_from_metadata );
   m.def(
     "basename_from_metadata",
     ( std::string ( * )(
-      kwiver::vital::metadata_vector const&,
-      kwiver::vital::frame_id_t ) ) & kwiver::vital::basename_from_metadata );
+      viame::metadata_vector const&,
+      viame::frame_id_t ) ) & viame::basename_from_metadata );
 }

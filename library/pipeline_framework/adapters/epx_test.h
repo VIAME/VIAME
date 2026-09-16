@@ -9,7 +9,7 @@
 
 #include "embedded_pipeline_extension.h"
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -29,11 +29,11 @@ public:
 
   void pre_setup( context& ctxt ) override;
   void end_of_output( context& ctxt ) override;
-  void configure( kwiver::vital::config_block_sptr const conf ) override;
-  kwiver::vital::config_block_sptr get_configuration() const override;
+  void configure( viame::config_block_sptr const conf ) override;
+  viame::config_block_sptr get_configuration() const override;
 
 }; // end class epx_test
 
-} // end namespace
+} // namespace viame
 
 #endif // SPROKIT_EMBEDDED_PIPELINE_EPX_TEST_H

@@ -11,9 +11,7 @@
 #include "base.h"
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Base class for all algorithm related exceptions
@@ -75,8 +73,6 @@ public:
   virtual ~invalid_name_exception() noexcept;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_CORE_EXCEPTIONS_ALGORITHM_H

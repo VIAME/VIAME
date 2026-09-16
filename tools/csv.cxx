@@ -22,7 +22,7 @@
 #include <iomanip>
 #include <stdexcept>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 namespace tools {

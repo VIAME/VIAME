@@ -82,7 +82,7 @@ public:
   virtual ~score_params() = default;
 };
 
-static kwiver::vital::logger_handle_t g_logger;
+static viame::logger_handle_t g_logger;
 
 // =============================================================================
 // Helper functions
@@ -113,18 +113,18 @@ collect_files( const std::string& path, const std::string& ext )
 {
   std::vector< std::string > files;
 
-  if( kwiver::vital::file_is_directory( path ) )
+  if( viame::file_is_directory( path ) )
   {
-    if( kwiver::vital::file_is_directory( path ) )
+    if( viame::file_is_directory( path ) )
     {
-      for( auto const& filename : kwiver::vital::directory_entries( path ) )
+      for( auto const& filename : viame::directory_entries( path ) )
       {
         if( filename == "." || filename == ".." )
         {
           continue;
         }
 
-        std::string file_ext = kwiver::vital::filename_last_extension( filename );
+        std::string file_ext = viame::filename_last_extension( filename );
         if( ext.empty() || file_ext == ext )
         {
           files.push_back( path + "/" + filename );
@@ -133,7 +133,7 @@ collect_files( const std::string& path, const std::string& ext )
     }
     std::sort( files.begin(), files.end() );
   }
-  else if( kwiver::vital::file_exists( path ) )
+  else if( viame::file_exists( path ) )
   {
     files.push_back( path );
   }
@@ -151,7 +151,7 @@ pair_files( const std::vector< std::string >& computed,
   std::map< std::string, std::string > truth_map;
   for( const auto& t : truth )
   {
-    std::string base = kwiver::vital::filename_without_last_extension( t );
+    std::string base = viame::filename_without_last_extension( t );
     truth_map[ base ] = t;
   }
 
@@ -160,7 +160,7 @@ pair_files( const std::vector< std::string >& computed,
 
   for( const auto& c : computed )
   {
-    std::string base = kwiver::vital::filename_without_last_extension( c );
+    std::string base = viame::filename_without_last_extension( c );
 
     auto it = truth_map.find( base );
     if( it != truth_map.end() )
@@ -395,7 +395,7 @@ bool load_label_synonyms( const std::string& path,
 
   // Retain scoring's legacy "canonical: alias, alias" TXT syntax.
   // All standard label files use the shared training label reader.
-  std::string extension = kwiver::vital::filename_last_extension( path );
+  std::string extension = viame::filename_last_extension( path );
   std::transform( extension.begin(), extension.end(), extension.begin(),
     []( unsigned char c ) { return std::tolower( c ); } );
   bool legacy = false;
@@ -432,7 +432,7 @@ bool load_label_synonyms( const std::string& path,
   {
     try
     {
-      const kwiver::vital::category_hierarchy labels( path );
+      const viame::category_hierarchy labels( path );
       for( const auto& name : labels.all_class_names() )
       {
         out[name] = name;
@@ -537,7 +537,7 @@ select_track_or_detection_files( const std::vector< std::string >& files,
   auto stem_of = []( const std::string& path ) -> std::string
   {
     std::string base =
-      kwiver::vital::filename_without_last_extension( path );
+      viame::filename_without_last_extension( path );
     for( const char* suffix : { "_detections", "_tracks" } )
     {
       const size_t n = std::string( suffix ).size();
@@ -552,7 +552,7 @@ select_track_or_detection_files( const std::vector< std::string >& files,
   auto is_tracks = []( const std::string& path ) -> bool
   {
     const std::string base =
-      kwiver::vital::filename_without_last_extension( path );
+      viame::filename_without_last_extension( path );
     return base.size() > 7 &&
            base.compare( base.size() - 7, 7, "_tracks" ) == 0;
   };
@@ -563,7 +563,7 @@ select_track_or_detection_files( const std::vector< std::string >& files,
   for( const auto& f : files )
   {
     const std::string base =
-      kwiver::vital::filename_without_last_extension( f );
+      viame::filename_without_last_extension( f );
     const bool tracks = is_tracks( f );
     const bool dets = base.size() > 11 &&
                       base.compare( base.size() - 11, 11, "_detections" ) == 0;
@@ -1172,7 +1172,7 @@ int
 score_applet
 ::run()
 {
-  g_logger = kwiver::vital::get_logger( "viame.tools.score" );
+  g_logger = viame::get_logger( "viame.tools.score" );
 
   auto& cmd_args = command_args();
 
@@ -1253,13 +1253,13 @@ score_applet
     return EXIT_FAILURE;
   }
 
-  if( !kwiver::vital::file_exists( params.opt_computed ) )
+  if( !viame::file_exists( params.opt_computed ) )
   {
     LOG_ERROR( g_logger, "Computed path does not exist: " << params.opt_computed );
     return EXIT_FAILURE;
   }
 
-  if( !kwiver::vital::file_exists( params.opt_truth ) )
+  if( !viame::file_exists( params.opt_truth ) )
   {
     LOG_ERROR( g_logger, "Ground truth path does not exist: " << params.opt_truth );
     return EXIT_FAILURE;
@@ -1276,7 +1276,7 @@ score_applet
   }
 
   // Load plugins (needed for CSV readers)
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
+  viame::plugin_manager::instance().load_all_plugins();
 
   // Collect input files
   auto computed_files = select_track_or_detection_files(
@@ -1481,8 +1481,8 @@ score_applet
       ? std::string( "." ) : params.opt_output_sweep;
 
     if( !params.opt_output_sweep.empty() &&
-        !kwiver::vital::file_is_directory( sweep_dir ) &&
-        !kwiver::vital::make_directory( sweep_dir ) )
+        !viame::file_is_directory( sweep_dir ) &&
+        !viame::make_directory( sweep_dir ) )
     {
       LOG_ERROR( g_logger, "Could not create sweep output directory: " << sweep_dir );
       return EXIT_FAILURE;
@@ -1585,8 +1585,8 @@ score_applet
       if( !params.opt_output_plots.empty() )
       {
         // Create output directory if needed
-        if( !kwiver::vital::file_is_directory( params.opt_output_plots ) &&
-            !kwiver::vital::make_directory( params.opt_output_plots ) )
+        if( !viame::file_is_directory( params.opt_output_plots ) &&
+            !viame::make_directory( params.opt_output_plots ) )
         {
           LOG_ERROR( g_logger, "Could not create plot output directory: "
                      << params.opt_output_plots );

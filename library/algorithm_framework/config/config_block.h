@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// @file
-/// \brief Header for \link kwiver::vital::config_block configuration \endlink
+/// \brief Header for \link viame::config_block configuration \endlink
 /// object
 
 #ifndef KWIVER_CONFIG_BLOCK_H_
@@ -32,9 +32,7 @@
 #include <typeinfo>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 template < typename R >
 R config_block_get_value_cast_default( config_block_value_t const& value );
@@ -81,7 +79,7 @@ R config_block_get_value_cast_default( config_block_value_t const& value );
 
 class VITAL_CONFIG_EXPORT config_block
   : public std::enable_shared_from_this< config_block >,
-    private kwiver::vital::noncopyable
+    private viame::noncopyable
 {
 public:
   /// Create an empty configuration.
@@ -379,7 +377,7 @@ public:
     std::shared_ptr< std::string > file, int line );
   void set_location(
     config_block_key_t const& key,
-    const kwiver::vital::source_location& loc );
+    const viame::source_location& loc );
 
   /// Get file location where config key was defined.
   ///
@@ -409,7 +407,7 @@ public:
   /// \return \b true if the location is available.
   bool get_location(
     config_block_key_t const& key,
-    kwiver::vital::source_location& loc ) const;
+    viame::source_location& loc ) const;
 
 private:
   /// Internal constructor
@@ -484,7 +482,7 @@ private:
   ro_list_t m_ro_list;
 
   typedef std::map< config_block_key_t,
-    kwiver::vital::source_location > location_t;
+    viame::source_location > location_t;
 
   // location where key was defined.
   location_t m_def_store;
@@ -561,11 +559,11 @@ config_block_get_value_cast_default( config_block_value_t const& value )
 /// std::stringstream str;
 /// str << value;
 ///
-/// kwiver::vital::time_usec_t t;
+/// viame::time_usec_t t;
 /// str >> t;
 /// obj.set_time( t );
 ///
-/// kwiver::vital::frame_id_t f;
+/// viame::frame_id_t f;
 /// str >> f;
 /// obj.set_frame( f );
 ///
@@ -676,7 +674,7 @@ config_block
   {
     config_block_value_t val = get_value< std::string >( key );
     // Split string by delimeter into vector of strings
-    tokenize( val, sv, delim, kwiver::vital::TokenizeTrimEmpty );
+    tokenize( val, sv, delim, viame::TokenizeTrimEmpty );
   }
 
   // iterate over all strings and convert to target type
@@ -762,7 +760,7 @@ config_block_set_value_cast_default( T const& value )
 
   try
   {
-    if constexpr( kwiver::vital::streamable::is_streamable< T >::value )
+    if constexpr( viame::streamable::is_streamable< T >::value )
     {
       val_str << value;
     }
@@ -925,8 +923,6 @@ config_block_set_value_cast( std::array< unsigned, 2 > const& value )
 
 //@}
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

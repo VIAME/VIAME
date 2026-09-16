@@ -12,15 +12,13 @@
 #include <viame/core_types/image_container.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for detecting feature points
 class VITAL_ALGO_EXPORT compute_stereo_depth_map
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   compute_stereo_depth_map();
@@ -33,10 +31,10 @@ public:
   /// \param left_image contains the first image to process
   /// \param right_image contains the second image to process
   /// \returns a depth map image
-  virtual kwiver::vital::image_container_sptr
+  virtual viame::image_container_sptr
   compute(
-    kwiver::vital::image_container_sptr left_image,
-    kwiver::vital::image_container_sptr right_image ) const = 0;
+    viame::image_container_sptr left_image,
+    viame::image_container_sptr right_image ) const = 0;
 };
 
 /// Shared pointer for compute_stereo_depth_map algorithm definition class
@@ -45,8 +43,6 @@ typedef std::shared_ptr< compute_stereo_depth_map >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_COMPUTE_STEREO_DEPTH_MAP_H_

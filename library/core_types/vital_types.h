@@ -15,9 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// The type to be used for general strings
 typedef std::string string_t;
@@ -63,8 +61,6 @@ typedef std::string activity_label_t;
 /// Global activity used to denote an undefined activity label
 const activity_label_t UNDEFINED_ACTIVITY( "UNDEFINED_ACTIVITY" );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_CORE_TYPES_H

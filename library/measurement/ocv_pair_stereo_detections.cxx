@@ -12,7 +12,7 @@ namespace
 {
 
 namespace mp = viame::measurement;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// The intersection of two rectangles, which is `cv::Rect`'s `operator&`:
 /// an empty rectangle when they do not meet.
@@ -65,7 +65,7 @@ viame::pair_stereo_detections
 
   if( !rig || !rig->left() || !rig->right() )
   {
-    VITAL_THROW( kwiver::vital::invalid_data,
+    VITAL_THROW( viame::invalid_data,
                  "Could not read calibration : " + m_calibration_file );
   }
 
@@ -76,7 +76,7 @@ viame::pair_stereo_detections
 
   if( !left || !right )
   {
-    VITAL_THROW( kwiver::vital::invalid_data,
+    VITAL_THROW( viame::invalid_data,
                  "Calibration is not a pair of perspective cameras : " +
                    m_calibration_file );
   }
@@ -125,7 +125,7 @@ viame::pair_stereo_detections
 
 viame::image_rect
 viame::pair_stereo_detections
-::bbox_to_mask_rect( const kwiver::vital::bounding_box_d& bbox )
+::bbox_to_mask_rect( const viame::bounding_box_d& bbox )
 {
   // `cv::Rect` from two points truncates each toward zero and takes the
   // difference, which is what this does.
@@ -138,19 +138,19 @@ viame::pair_stereo_detections
 }
 
 
-kwiver::vital::bounding_box_d
+viame::bounding_box_d
 viame::pair_stereo_detections
 ::mask_rect_to_bbox( const image_rect& rect )
 {
-  return { kwiver::vital::vector_2d( rect.x, rect.y ),
-           kwiver::vital::vector_2d( rect.x + rect.width,
+  return { viame::vector_2d( rect.x, rect.y ),
+           viame::vector_2d( rect.x + rect.width,
                                      rect.y + rect.height ) };
 }
 
 
-kwiver::vital::image_of< uint8_t >
+viame::image_of< uint8_t >
 viame::pair_stereo_detections
-::get_standard_mask( const kwiver::vital::detected_object_sptr& det )
+::get_standard_mask( const viame::detected_object_sptr& det )
 {
   auto vital_mask = det->mask();
   if( !vital_mask )
@@ -185,7 +185,7 @@ viame::pair_stereo_detections
   return standard_mask;
 }
 
-inline void print( const kwiver::vital::bounding_box_d& bbox, const std::string& context = "" )
+inline void print( const viame::bounding_box_d& bbox, const std::string& context = "" )
 {
   if( !bbox.is_valid() )
   {
@@ -199,13 +199,13 @@ inline void print( const kwiver::vital::bounding_box_d& bbox, const std::string&
             << bbox.lower_right().y() << "})" << std::endl;
 }
 
-inline void print( const kwiver::vital::vector_< 2, double >& mat, const std::string& context )
+inline void print( const viame::vector_< 2, double >& mat, const std::string& context )
 {
   std::cout << context << " {" << mat.x() << ", " << mat.y() << "}" << std::endl;
 }
 
 
-inline void print( const kwiver::vital::vector_< 3, double >& mat, const std::string& context )
+inline void print( const viame::vector_< 3, double >& mat, const std::string& context )
 {
   std::cout << context << " {" << mat[0] << ", " << mat[1] << ", " << mat[2] << "}" << std::endl;
 }
@@ -221,8 +221,8 @@ inline void print( const viame::image_rect& bbox, const std::string& context = "
 viame::Detections3DPositions
 viame::pair_stereo_detections
 ::estimate_3d_position_from_detection(
-    const kwiver::vital::detected_object_sptr& detection,
-    const kwiver::vital::image_of< float >& pos_3d_map,
+    const viame::detected_object_sptr& detection,
+    const viame::image_of< float >& pos_3d_map,
     bool do_undistort_points,
     float bbox_crop_ratio ) const
 {
@@ -241,9 +241,9 @@ viame::pair_stereo_detections
                                                      mask, do_undistort_points );
 }
 
-kwiver::vital::bounding_box_d
+viame::bounding_box_d
 viame::pair_stereo_detections
-::get_rectified_bbox( const kwiver::vital::bounding_box_d& bbox,
+::get_rectified_bbox( const viame::bounding_box_d& bbox,
                       bool is_left_image ) const
 {
   const auto tl = undistort_point( kv::vector_2d( bbox.upper_left().x(), bbox.upper_left().y() ), is_left_image );
@@ -260,7 +260,7 @@ viame::pair_stereo_detections
 
 bool
 viame::pair_stereo_detections
-::point_is_valid( const kwiver::vital::vector_3d& pt )
+::point_is_valid( const viame::vector_3d& pt )
 {
   return point_is_valid( static_cast< float >( pt[ 0 ] ),
                          static_cast< float >( pt[ 1 ] ),
@@ -269,8 +269,8 @@ viame::pair_stereo_detections
 
 viame::Detections3DPositions
 viame::pair_stereo_detections
-::estimate_3d_position_from_bbox( const kwiver::vital::bounding_box_d& bbox,
-                                  const kwiver::vital::image_of< float >& pos_3d_map,
+::estimate_3d_position_from_bbox( const viame::bounding_box_d& bbox,
+                                  const viame::image_of< float >& pos_3d_map,
                                   float crop_ratio,
                                   bool do_undistort_points ) const
 {
@@ -333,9 +333,9 @@ viame::pair_stereo_detections
 viame::Detections3DPositions
 viame::pair_stereo_detections
 ::estimate_3d_position_from_unrectified_mask(
-    const kwiver::vital::bounding_box_d& bbox,
-    const kwiver::vital::image_of< float >& pos_3d_map,
-    const kwiver::vital::image_of< uint8_t >& mask,
+    const viame::bounding_box_d& bbox,
+    const viame::image_of< float >& pos_3d_map,
+    const viame::image_of< uint8_t >& mask,
     bool do_undistort_points ) const
 {
   // Early return if bbox crop is out of the 3D map
@@ -376,9 +376,9 @@ viame::pair_stereo_detections
 viame::Detections3DPositions
 viame::pair_stereo_detections
 ::estimate_3d_position_from_point_coordinates(
-    const kwiver::vital::bounding_box_d& rectified_bbox,
-    const std::vector< kwiver::vital::vector_2d >& undistorted_mask_coords,
-    const kwiver::vital::image_of< float >& pos_3d_map ) const
+    const viame::bounding_box_d& rectified_bbox,
+    const std::vector< viame::vector_2d >& undistorted_mask_coords,
+    const viame::image_of< float >& pos_3d_map ) const
 {
   // Early return if no segmentation points
   if( undistorted_mask_coords.empty() )
@@ -430,25 +430,25 @@ viame::pair_stereo_detections
 ::create_3d_position( const std::vector< float >& xs,
                       const std::vector< float >& ys,
                       const std::vector< float >& zs,
-                      const kwiver::vital::bounding_box_d& bbox,
-                      const kwiver::vital::image_of< float >& pos_3d_map,
+                      const viame::bounding_box_d& bbox,
+                      const viame::image_of< float >& pos_3d_map,
                       float score ) const
 {
-  const auto saturate_corner = [&pos_3d_map]( const kwiver::vital::vector_< 2, double >& corner )
+  const auto saturate_corner = [&pos_3d_map]( const viame::vector_< 2, double >& corner )
   {
-    return kwiver::vital::vector_< 2, double >{
+    return viame::vector_< 2, double >{
       std::max( 0., std::min( pos_3d_map.width() - 1., corner.x() ) ),
       std::max( 0., std::min( pos_3d_map.height() - 1., corner.y() ) ) };
   };
 
-  const auto saturate_bbox = [&saturate_corner]( const kwiver::vital::bounding_box_d& bbox )
+  const auto saturate_bbox = [&saturate_corner]( const viame::bounding_box_d& bbox )
   {
     if( !bbox.is_valid() )
     {
       return bbox;
     }
 
-    return kwiver::vital::bounding_box_d{ saturate_corner( bbox.upper_left() ),
+    return viame::bounding_box_d{ saturate_corner( bbox.upper_left() ),
                                           saturate_corner( bbox.lower_right() ) };
   };
 
@@ -505,17 +505,17 @@ viame::pair_stereo_detections
   return position;
 }
 
-kwiver::vital::bounding_box_d
+viame::bounding_box_d
 viame::pair_stereo_detections
-::project_to_right_image( const kwiver::vital::bounding_box_d& bbox,
-                          const kwiver::vital::image_of< float >& pos_3d_map ) const
+::project_to_right_image( const viame::bounding_box_d& bbox,
+                          const viame::image_of< float >& pos_3d_map ) const
 {
-  auto saturate_pos = [&pos_3d_map]( const kwiver::vital::vector_< 2, double >& corner )
+  auto saturate_pos = [&pos_3d_map]( const viame::vector_< 2, double >& corner )
   {
     auto x = std::min( std::max( corner.x(), 0. ), pos_3d_map.width() - 1. );
     auto y = std::min( std::max( corner.y(), 0. ), pos_3d_map.height() - 1. );
 
-    return kwiver::vital::vector_< 2, double >{ x, y };
+    return viame::vector_< 2, double >{ x, y };
   };
 
   // Saturate upper left and lower right coordinates to image coordinates
@@ -523,7 +523,7 @@ viame::pair_stereo_detections
   auto bbox_lr = saturate_pos( bbox.lower_right() );
 
   // Find 3D points associated with input bounding box
-  auto const at = [ & ]( const kwiver::vital::vector_< 2, double >& corner )
+  auto const at = [ & ]( const viame::vector_< 2, double >& corner )
   {
     auto const px = static_cast< size_t >( corner.x() );
     auto const py = static_cast< size_t >( corner.y() );
@@ -544,14 +544,14 @@ viame::pair_stereo_detections
   return project_to_right_image( std::vector< kv::vector_3d >{ tl_3d, br_3d } );
 }
 
-kwiver::vital::bounding_box_d
+viame::bounding_box_d
 viame::pair_stereo_detections
-::project_to_right_image( const std::vector< kwiver::vital::vector_3d >& points_3d ) const
+::project_to_right_image( const std::vector< viame::vector_3d >& points_3d ) const
 {
   // Sanity check on input vect list
   if( points_3d.size() != 2 )
   {
-    VITAL_THROW( kwiver::vital::invalid_data,
+    VITAL_THROW( viame::invalid_data,
                  "Wrong input 3D point number. Expected 2, got : " + std::to_string( points_3d.size() ) );
   }
 
@@ -562,9 +562,9 @@ viame::pair_stereo_detections
   return { first.x(), first.y(), second.x(), second.y() };
 }
 
-kwiver::vital::vector_2d
+viame::vector_2d
 viame::pair_stereo_detections
-::project_to_right_image( const kwiver::vital::vector_3d& points_3d ) const
+::project_to_right_image( const viame::vector_3d& points_3d ) const
 {
   return mp::project_point( points_3d, m_R, m_T, m_K2, m_D2 );
 }
@@ -573,8 +573,8 @@ viame::pair_stereo_detections
 std::vector< viame::Detections3DPositions >
 viame::pair_stereo_detections
 ::update_left_detections_3d_positions(
-    const std::vector< kwiver::vital::detected_object_sptr >& detections,
-    const kwiver::vital::image& disparity_map ) const
+    const std::vector< viame::detected_object_sptr >& detections,
+    const viame::image& disparity_map ) const
 {
   const auto pos_3d_map = reproject_3d_depth_map( disparity_map );
   std::vector< Detections3DPositions > positions;
@@ -589,8 +589,8 @@ viame::pair_stereo_detections
 viame::Detections3DPositions
 viame::pair_stereo_detections
 ::update_left_detection_3d_position(
-    const kwiver::vital::detected_object_sptr& detection,
-    const kwiver::vital::image_of< float >& pos_3d_map ) const
+    const viame::detected_object_sptr& detection,
+    const viame::image_of< float >& pos_3d_map ) const
 {
   // Process 3D coordinates for frame matching the current depth image
   auto position = estimate_3d_position_from_detection( detection, pos_3d_map, true, 1.f / 3.f );
@@ -610,11 +610,11 @@ viame::pair_stereo_detections
 
 double
 viame::pair_stereo_detections
-::iou_distance( const kwiver::vital::bounding_box_d& bbox1,
-                const kwiver::vital::bounding_box_d& bbox2 )
+::iou_distance( const viame::bounding_box_d& bbox1,
+                const viame::bounding_box_d& bbox2 )
 {
-  kwiver::vital::aligned_box< double, 2 > bbox1_box{ bbox1.upper_left(), bbox1.lower_right() };
-  kwiver::vital::aligned_box< double, 2 > bbox2_box{ bbox2.upper_left(), bbox2.lower_right() };
+  viame::aligned_box< double, 2 > bbox1_box{ bbox1.upper_left(), bbox1.lower_right() };
+  viame::aligned_box< double, 2 > bbox2_box{ bbox2.upper_left(), bbox2.lower_right() };
 
   // Early return if the input bounding boxes are invalid or don't intersect
   if( !bbox1.is_valid() || !bbox2.is_valid() || !bbox1_box.intersects( bbox2_box ) )
@@ -628,9 +628,9 @@ viame::pair_stereo_detections
 }
 
 
-kwiver::vital::image_of< float >
+viame::image_of< float >
 viame::pair_stereo_detections
-::reproject_3d_depth_map( const kwiver::vital::image& disparity_left ) const
+::reproject_3d_depth_map( const viame::image& disparity_left ) const
 {
   // Every path that consumes the rectification transforms runs through here
   // first, so this is where a single-file calibration gets them derived.
@@ -662,9 +662,9 @@ viame::pair_stereo_detections
 }
 
 
-kwiver::vital::vector_2d
+viame::vector_2d
 viame::pair_stereo_detections
-::undistort_point( const kwiver::vital::vector_2d& point,
+::undistort_point( const viame::vector_2d& point,
                    bool is_left_image ) const
 {
   if( is_left_image )
@@ -676,12 +676,12 @@ viame::pair_stereo_detections
 }
 
 
-std::vector< kwiver::vital::vector_2d >
+std::vector< viame::vector_2d >
 viame::pair_stereo_detections
-::undistort_point( const std::vector< kwiver::vital::vector_2d >& point,
+::undistort_point( const std::vector< viame::vector_2d >& point,
                    bool is_left_image ) const
 {
-  std::vector< kwiver::vital::vector_2d > points_undist;
+  std::vector< viame::vector_2d > points_undist;
   points_undist.reserve( point.size() );
 
   for( auto const& one : point )
@@ -720,15 +720,15 @@ private:
 std::vector< std::vector< size_t > >
 viame::pair_stereo_detections
 ::pair_left_right_detections_using_3d_center(
-    const std::vector< kwiver::vital::detected_object_sptr >& left_detections,
+    const std::vector< viame::detected_object_sptr >& left_detections,
     const std::vector< viame::Detections3DPositions >& left_3d_pos,
-    const std::vector< kwiver::vital::detected_object_sptr >& right_detections )
+    const std::vector< viame::detected_object_sptr >& right_detections )
 {
   std::vector< std::vector< size_t > > paired_detections;
   ProcessTracker< size_t > tracker;
 
   const auto most_probable_right_detection = [&right_detections, &tracker](
-      const kwiver::vital::vector_< 2, double >& left_point, const std::string& left_class )
+      const viame::vector_< 2, double >& left_point, const std::string& left_class )
   {
     int i_best = -1;
     auto dist_best = std::numeric_limits< double >::max();
@@ -789,15 +789,15 @@ viame::pair_stereo_detections
 std::vector< std::vector< size_t > >
 viame::pair_stereo_detections
 ::pair_left_right_tracks_using_bbox_iou(
-    const std::vector< kwiver::vital::detected_object_sptr >& left_detections,
-    const std::vector< kwiver::vital::detected_object_sptr >& right_detections,
+    const std::vector< viame::detected_object_sptr >& left_detections,
+    const std::vector< viame::detected_object_sptr >& right_detections,
     bool do_rectify_bbox )
 {
   std::vector< std::vector< size_t > > paired_detections;
   ProcessTracker< size_t > tracker;
 
   const auto most_probable_right_track = [&right_detections, do_rectify_bbox, &tracker, this](
-      const kwiver::vital::detected_object_sptr& left_detection, const std::string& left_class )
+      const viame::detected_object_sptr& left_detection, const std::string& left_class )
   {
     int i_best = -1;
     auto best_iou = std::numeric_limits< double >::lowest();
@@ -865,9 +865,9 @@ viame::pair_stereo_detections
 std::vector< std::vector< size_t > >
 viame::pair_stereo_detections
 ::pair_left_right_detections(
-    const std::vector< kwiver::vital::detected_object_sptr >& left_detections,
+    const std::vector< viame::detected_object_sptr >& left_detections,
     const std::vector< viame::Detections3DPositions >& left_3d_pos,
-    const std::vector< kwiver::vital::detected_object_sptr >& right_detections )
+    const std::vector< viame::detected_object_sptr >& right_detections )
 {
   bool do_rectify_bbox = m_pairing_method == "PAIRING_RECTIFIED_IOU";
   if( m_pairing_method == "PAIRING_3D" )
@@ -883,7 +883,7 @@ viame::pair_stereo_detections
 
 std::string
 viame::pair_stereo_detections
-::most_likely_detection_class( const kwiver::vital::detected_object_sptr& detection )
+::most_likely_detection_class( const viame::detected_object_sptr& detection )
 {
   if( !detection )
   {

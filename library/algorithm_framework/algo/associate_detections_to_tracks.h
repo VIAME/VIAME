@@ -16,16 +16,14 @@
 #include <viame/core_types/matrix.h>
 #include <viame/core_types/object_track_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for using cost matrices to assign detections to
 /// tracks
 class VITAL_ALGO_EXPORT associate_detections_to_tracks
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   associate_detections_to_tracks();
@@ -43,13 +41,13 @@ public:
   /// \returns whether or not any tracks were updated
   virtual bool
   associate(
-    kwiver::vital::timestamp ts,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::object_track_set_sptr tracks,
-    kwiver::vital::detected_object_set_sptr detections,
-    kwiver::vital::matrix_d matrix,
-    kwiver::vital::object_track_set_sptr& output,
-    kwiver::vital::detected_object_set_sptr& unused ) const = 0;
+    viame::timestamp ts,
+    viame::image_container_sptr image,
+    viame::object_track_set_sptr tracks,
+    viame::detected_object_set_sptr detections,
+    viame::matrix_d matrix,
+    viame::object_track_set_sptr& output,
+    viame::detected_object_set_sptr& unused ) const = 0;
 };
 
 /// Shared pointer for associate_detections_to_tracks algorithm definition
@@ -59,8 +57,6 @@ typedef std::shared_ptr< associate_detections_to_tracks >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_ASSOCIATE_DETECTIONS_TO_TRACKS_H_

@@ -9,7 +9,7 @@
 #include <utility>
 #include <viame/core_types/any.h>
 
-namespace kwiver {
+namespace viame {
 
 namespace python {
 
@@ -22,7 +22,7 @@ std::string
 serialize( type t )
 {
   serializer serializer_algo{};
-  kwiver::vital::any any_t{ t };
+  viame::any any_t{ t };
   return *serializer_algo.serialize( any_t );
 }
 
@@ -31,8 +31,8 @@ type
 deserialize( const std::string& message )
 {
   serializer serializer_algo{};
-  kwiver::vital::any any_t{ serializer_algo.deserialize( message ) };
-  return kwiver::vital::any_cast< type >( any_t );
+  viame::any any_t{ serializer_algo.deserialize( message ) };
+  return viame::any_cast< type >( any_t );
 }
 
 } // namespace json
@@ -41,6 +41,6 @@ deserialize( const std::string& message )
 
 } // namespace python
 
-} // namespace kwiver
+} // namespace viame
 
 #endif

@@ -9,7 +9,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 // (config-key, value-type, default-value, description )
 create_algorithm_name_config_trait( draw_algo );
@@ -49,14 +49,14 @@ public:
   priv();
   ~priv();
 
-  vital::algo::draw_detected_object_set_sptr m_algo;
+  viame::algo::draw_detected_object_set_sptr m_algo;
 
 }; // end priv class
 
 // ================================================================
 
 draw_detected_object_set_process
-::draw_detected_object_set_process( kwiver::vital::config_block_sptr const& config )
+::draw_detected_object_set_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new draw_detected_object_set_process::priv )
 {
@@ -81,7 +81,7 @@ void draw_detected_object_set_process
   if ( ! check_nested_algo_configuration_using_trait(
          draw_algo, algo_config, d->m_algo ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   set_nested_algo_configuration_using_trait(
@@ -90,7 +90,7 @@ void draw_detected_object_set_process
     d->m_algo );
   if ( ! d->m_algo )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create algorithm." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create algorithm." );
   }
 }
 
@@ -101,7 +101,7 @@ void draw_detected_object_set_process
   auto input_image = grab_from_port_using_trait( image );
   auto obj_set = grab_from_port_using_trait( detected_object_set );
 
-  kwiver::vital::image_container_sptr out_image;
+  viame::image_container_sptr out_image;
 
   {
     scoped_step_instrumentation();
@@ -117,10 +117,10 @@ void draw_detected_object_set_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t output;
+  viame::pipeline::process::port_flags_t output;
   output.insert( flag_output_shared );
 
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- input --
@@ -149,4 +149,4 @@ draw_detected_object_set_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

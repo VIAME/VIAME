@@ -7,11 +7,9 @@
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -34,6 +32,4 @@ algorithm_capabilities( py::module& m )
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

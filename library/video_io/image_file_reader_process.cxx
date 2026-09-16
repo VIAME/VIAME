@@ -31,9 +31,9 @@
 #include <fstream>
 #include <string>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( error_mode, std::string, "abort",
@@ -74,11 +74,11 @@ public:
   // Configuration values
   int m_config_error_mode; // error mode
   std::vector< std::string > m_config_path;
-  kwiver::vital::time_usec_t m_config_frame_time;
+  viame::time_usec_t m_config_frame_time;
 
   // local state
-  kwiver::vital::frame_id_t m_frame_number;
-  kwiver::vital::time_usec_t m_frame_time;
+  viame::frame_id_t m_frame_number;
+  viame::time_usec_t m_frame_time;
 
   // processing classes
   algo::image_io_sptr m_image_reader;
@@ -88,7 +88,7 @@ public:
 // ================================================================
 
 image_file_reader_process
-::image_file_reader_process( kwiver::vital::config_block_sptr const& config )
+::image_file_reader_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new image_file_reader_process::priv )
 {
@@ -112,12 +112,12 @@ void image_file_reader_process
   std::string path = config_value_using_trait( path );
   d->m_config_frame_time = config_value_using_trait( frame_time ) * 1e6; // in usec
 
-  kwiver::vital::tokenize( path, d->m_config_path, ":", kwiver::vital::TokenizeTrimEmpty );
+  viame::tokenize( path, d->m_config_path, ":", viame::TokenizeTrimEmpty );
   d->m_config_path.push_back( "." ); // add current directory
 
   d->m_config_error_mode = priv::mode_converter().from_string( mode );
 
-  kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  viame::config_block_sptr algo_config = get_config(); // config for process
 
   set_nested_algo_configuration_using_trait(
     image_reader,
@@ -125,7 +125,7 @@ void image_file_reader_process
     d->m_image_reader);
   if ( ! d->m_image_reader )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Unable to create image_reader." );
   }
 
@@ -139,7 +139,7 @@ void image_file_reader_process
          image_reader,
          algo_config, d->m_image_reader ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -150,10 +150,10 @@ void image_file_reader_process
   std::string file = grab_from_port_using_trait( image_file_name );
 
   std::string resolved_file = file;
-  if ( ! kwiver::vital::file_exists( file ) )
+  if ( ! viame::file_exists( file ) )
   {
     // Resolve against specified path
-    resolved_file = kwiver::vital::find_file( file, d->m_config_path );
+    resolved_file = viame::find_file( file, d->m_config_path );
     if ( resolved_file.empty() )
     {
       switch (d->m_config_error_mode)
@@ -164,13 +164,13 @@ void image_file_reader_process
 
       case priv::ERROR_ABORT:
       default:
-        VITAL_THROW( kwiver::vital::file_not_found_exception, file, "could not locate file in path" );
+        VITAL_THROW( viame::file_not_found_exception, file, "could not locate file in path" );
       } // end switch
     }
   }
 
-  kwiver::vital::image_container_sptr img_c;
-  kwiver::vital::timestamp frame_ts;
+  viame::image_container_sptr img_c;
+  viame::timestamp frame_ts;
 
   {
     scoped_step_instrumentation();
@@ -183,7 +183,7 @@ void image_file_reader_process
     // we are going to pass it downstream using the sptr.
     img_c = d->m_image_reader->load( resolved_file );
 
-    frame_ts = kwiver::vital::timestamp( d->m_frame_time, d->m_frame_number );
+    frame_ts = viame::timestamp( d->m_frame_time, d->m_frame_number );
 
     // update timestamp
     ++d->m_frame_number;
@@ -200,11 +200,11 @@ void image_file_reader_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t shared;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t shared;
   shared.insert( flag_output_shared );
 
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- inputs --
@@ -242,4 +242,4 @@ image_file_reader_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

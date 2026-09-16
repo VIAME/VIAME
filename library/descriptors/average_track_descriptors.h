@@ -17,7 +17,7 @@
 namespace viame {
 
 class VIAME_DESCRIPTORS_EXPORT average_track_descriptors
-  : public kwiver::vital::algo::compute_track_descriptors
+  : public viame::algo::compute_track_descriptors
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -39,20 +39,20 @@ public:
 
   virtual ~average_track_descriptors() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks );
+  virtual viame::track_descriptor_set_sptr
+  compute( viame::timestamp ts,
+           viame::image_container_sptr image_data,
+           viame::object_track_set_sptr tracks );
 
-  virtual kwiver::vital::track_descriptor_set_sptr flush();
+  virtual viame::track_descriptor_set_sptr flush();
 
 private:
   void initialize() override;
 
-  kwiver::vital::logger_handle_t m_logger;
-  std::map< kwiver::vital::track_id_t, std::deque< std::vector< double > > > m_history;
+  viame::logger_handle_t m_logger;
+  std::map< viame::track_id_t, std::deque< std::vector< double > > > m_history;
 };
 
 } // end namespace viame

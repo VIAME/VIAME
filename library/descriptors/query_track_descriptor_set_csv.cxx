@@ -20,7 +20,7 @@
 #include <map>
 #include <unordered_map>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 

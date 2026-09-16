@@ -9,10 +9,10 @@
 /**
  * \file scheduler_registry_exception.cxx
  *
- * \brief Implementation of exceptions used within the \link sprokit::scheduler_registry scheduler registry\endlink.
+ * \brief Implementation of exceptions used within the \link viame::pipeline::scheduler_registry scheduler registry\endlink.
  */
 
-namespace sprokit{
+namespace viame::pipeline {
 
 // ------------------------------------------------------------------
 scheduler_registry_exception
@@ -29,7 +29,7 @@ scheduler_registry_exception
 
 // ------------------------------------------------------------------
 null_scheduler_ctor_exception
-::null_scheduler_ctor_exception(sprokit::scheduler::type_t const& type) noexcept
+::null_scheduler_ctor_exception(viame::pipeline::scheduler::type_t const& type) noexcept
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -85,7 +85,7 @@ null_scheduler_registry_pipeline_exception
 
 // ------------------------------------------------------------------
 no_such_scheduler_type_exception
-::no_such_scheduler_type_exception(sprokit::scheduler::type_t const& type) noexcept
+::no_such_scheduler_type_exception(viame::pipeline::scheduler::type_t const& type) noexcept
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -105,7 +105,7 @@ no_such_scheduler_type_exception
 
 // ------------------------------------------------------------------
 scheduler_type_already_exists_exception
-::scheduler_type_already_exists_exception(sprokit::scheduler::type_t const& type) noexcept
+::scheduler_type_already_exists_exception(viame::pipeline::scheduler::type_t const& type) noexcept
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -123,4 +123,4 @@ scheduler_type_already_exists_exception
 {
 }
 
-} // end namespace
+} // namespace viame::pipeline

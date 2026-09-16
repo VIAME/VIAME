@@ -19,7 +19,7 @@ namespace viame {
 
 /// A class for warping an image onto another with a homography.
 class VIAME_IMAGE_PROCESSING_EXPORT warp_image_ocv
-  : public kwiver::vital::algo::warp_image
+  : public viame::algo::warp_image
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -29,14 +29,14 @@ public:
   virtual ~warp_image_ocv() = default;
 
   virtual bool check_configuration(
-    kwiver::vital::config_block_sptr config ) const { return true; }
+    viame::config_block_sptr config ) const { return true; }
 
   /// Warp src_image onto dst_image
-  virtual kwiver::vital::image_container_sptr warp(
-    kwiver::vital::image_container_sptr src_image,
-    kwiver::vital::image_container_sptr dst_image,
-    kwiver::vital::homography_sptr homography,
-    kwiver::vital::image_container_sptr alpha_mask = nullptr ) const;
+  virtual viame::image_container_sptr warp(
+    viame::image_container_sptr src_image,
+    viame::image_container_sptr dst_image,
+    viame::homography_sptr homography,
+    viame::image_container_sptr alpha_mask = nullptr ) const;
 };
 
 } // end namespace viame

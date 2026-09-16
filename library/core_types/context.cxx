@@ -7,9 +7,7 @@
 
 #include <thread>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 context
@@ -72,6 +70,4 @@ context
   this->m_connections.erase( signal );
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

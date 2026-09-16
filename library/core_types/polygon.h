@@ -17,9 +17,7 @@
 #include <optional>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Abstract base polygon class.
@@ -39,7 +37,7 @@ namespace vital {
 class VITAL_TYPES_EXPORT polygon
 {
 public:
-  typedef kwiver::vital::vector_2d point_t;
+  typedef viame::vector_2d point_t;
 
   polygon();
   polygon( const std::vector< point_t >& dat );
@@ -172,8 +170,6 @@ bool operator==( polygon const& lhs, polygon const& rhs );
 VITAL_TYPES_EXPORT
 bool operator!=( polygon const& lhs, polygon const& rhs );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_TYPES_POLYGON_H

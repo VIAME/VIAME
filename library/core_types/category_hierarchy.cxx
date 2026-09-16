@@ -21,9 +21,7 @@
 #include <string>
 #include <utility>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -576,6 +574,4 @@ category_hierarchy
   return sorted_cats;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

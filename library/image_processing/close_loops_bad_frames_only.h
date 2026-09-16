@@ -19,9 +19,7 @@
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -32,7 +30,7 @@ namespace core {
 /// principle that when a bad frame occurs, there is generally a lower
 /// percentage of feature tracks.
 class VIAME_IMAGE_PROCESSING_EXPORT close_loops_bad_frames_only
-  : public vital::algo::close_loops
+  : public viame::algo::close_loops
 {
 public:
   PLUGGABLE_IMPL(
@@ -64,7 +62,7 @@ public:
       "the end of the last shot.",
       5 ),
     PARAM(
-      feature_matcher, kwiver::vital::algo::match_features_sptr,
+      feature_matcher, viame::algo::match_features_sptr,
       "feature_matcher" )
   )
   /// Destructor
@@ -79,7 +77,7 @@ public:
   /// \param config  The config block to check configuration of.
   ///
   /// \returns true if the configuration check passed and false if it didn't.
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   /// Perform basic shot stitching for bad frame detection
   ///
@@ -89,22 +87,20 @@ public:
   /// \param [in] mask Optional mask image where positive values indicate
   ///                  regions to consider in the input image.
   /// \returns an updated set a feature tracks after the stitching operation
-  virtual vital::feature_track_set_sptr
+  virtual viame::feature_track_set_sptr
   stitch(
-    vital::frame_id_t frame_number,
-    vital::feature_track_set_sptr input,
-    vital::image_container_sptr image,
-    vital::image_container_sptr mask = vital::image_container_sptr() ) const;
+    viame::frame_id_t frame_number,
+    viame::feature_track_set_sptr input,
+    viame::image_container_sptr image,
+    viame::image_container_sptr mask = viame::image_container_sptr() ) const;
 
 protected:
   void initialize() override;
-  void set_configuration_internal( vital::config_block_sptr config ) override;
+  void set_configuration_internal( viame::config_block_sptr config ) override;
 };
 
-} // end namespace algo
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header file for \link kwiver::vital::algo::query_track_descriptor_set
+/// \brief Header file for \link viame::algo::query_track_descriptor_set
 ///        query_track_descriptor_set \endlink
 
 #ifndef VITAL_QUERY_TRACK_DESCRIPTOR_SET_H_
@@ -15,16 +15,14 @@
 #include <viame/core_types/track.h>
 #include <viame/core_types/track_descriptor.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 // ------------------------------------------------------------------
 /// Abstract interface for a collection of track descriptors that can be queried
 class VITAL_ALGO_EXPORT query_track_descriptor_set
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   query_track_descriptor_set();
@@ -32,8 +30,8 @@ public:
 
   /// Tuple containing video name, descriptor, and tracks
   typedef std::tuple< std::string,
-    vital::track_descriptor_sptr,
-    std::vector< vital::track_sptr > > desc_tuple_t;
+    viame::track_descriptor_sptr,
+    std::vector< viame::track_sptr > > desc_tuple_t;
 
   /// Set whether object tracks are used for track descriptor history
   ///
@@ -60,8 +58,6 @@ typedef std::shared_ptr< query_track_descriptor_set >
 
 } // namespace algo
 
-} // namespace vital
-
-}     // end namespace algo
+} // namespace viame
 
 #endif // VITAL_QUERY_TRACK_DESCRIPTOR_SET_H_

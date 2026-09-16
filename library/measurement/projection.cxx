@@ -13,7 +13,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 

@@ -56,7 +56,7 @@
 #include "write_track_descriptor_set_python.h"
 #include "extract_descriptors_extras_python.h"
 #include "estimator_extras_python.h"
-namespace kwiver::vital::python {
+namespace viame::python {
 PYBIND11_MODULE(algos,m)
 {
    algorithm(m);
@@ -108,4 +108,4 @@ PYBIND11_MODULE(algos,m)
    estimator_extras(m);
    optimize_cameras_extras(m);
 }
-} // namespace 
+} // namespace viame::python

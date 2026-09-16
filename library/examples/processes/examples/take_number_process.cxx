@@ -15,7 +15,7 @@
  * \brief Implementation of the number taking process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class take_number_process::priv
@@ -32,7 +32,7 @@ class take_number_process::priv
 process::port_t const take_number_process::priv::port_input = port_t("number");
 
 take_number_process
-::take_number_process(kwiver::vital::config_block_sptr const& config)
+::take_number_process(viame::config_block_sptr const& config)
   : process(config)
   , d()
 {

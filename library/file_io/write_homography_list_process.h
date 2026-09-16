@@ -27,11 +27,11 @@ namespace core
  * @brief Register optical and thermal imagery using core
  */
 class VIAME_PROCESSES_FILE_IO_EXPORT write_homography_list_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  write_homography_list_process( kwiver::vital::config_block_sptr const& config );
+  write_homography_list_process( viame::config_block_sptr const& config );
   virtual ~write_homography_list_process();
 
 protected:

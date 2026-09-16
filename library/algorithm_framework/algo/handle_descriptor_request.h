@@ -15,30 +15,28 @@
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/track_descriptor_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for formulating descriptors for queries
 class VITAL_ALGO_EXPORT handle_descriptor_request
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   handle_descriptor_request();
   PLUGGABLE_INTERFACE( handle_descriptor_request );
   /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual void set_configuration( viame::config_block_sptr config );
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(
-    kwiver::vital::config_block_sptr config ) const;
+    viame::config_block_sptr config ) const;
 
   /// Formulate query
   virtual bool handle(
-    kwiver::vital::descriptor_request_sptr request,
-    kwiver::vital::track_descriptor_set_sptr& desc,
-    std::vector< kwiver::vital::image_container_sptr >& imgs ) = 0;
+    viame::descriptor_request_sptr request,
+    viame::track_descriptor_set_sptr& desc,
+    std::vector< viame::image_container_sptr >& imgs ) = 0;
 };
 
 typedef std::shared_ptr< handle_descriptor_request >
@@ -46,8 +44,6 @@ typedef std::shared_ptr< handle_descriptor_request >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_CONVERT_IMAGE_H_

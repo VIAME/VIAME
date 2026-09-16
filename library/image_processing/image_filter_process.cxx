@@ -9,7 +9,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( filter );
 
@@ -21,13 +21,13 @@ public:
   priv();
   ~priv();
 
-   vital::algo::image_filter_sptr m_filter;
+   viame::algo::image_filter_sptr m_filter;
 
 }; // end priv class
 
 // ==================================================================
 image_filter_process::
-image_filter_process( kwiver::vital::config_block_sptr const& config )
+image_filter_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new image_filter_process::priv )
 {
@@ -47,7 +47,7 @@ _configure()
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     filter,
@@ -56,7 +56,7 @@ _configure()
 
   if ( ! d->m_filter )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create filter" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create filter" );
   }
 
   get_nested_algo_configuration_using_trait(
@@ -68,7 +68,7 @@ _configure()
   if ( ! check_nested_algo_configuration_using_trait(
          filter, algo_config, d->m_filter ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -77,9 +77,9 @@ void
 image_filter_process::
 _step()
 {
-  vital::image_container_sptr input = grab_from_port_using_trait( image );
+  viame::image_container_sptr input = grab_from_port_using_trait( image );
 
-  vital::image_container_sptr result;
+  viame::image_container_sptr result;
 
   {
     scoped_step_instrumentation();
@@ -97,12 +97,12 @@ image_filter_process::
 make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // We are outputting a shared ref to the output image, therefore we
   // should mark it as shared.
-  sprokit::process::port_flags_t output;
+  viame::pipeline::process::port_flags_t output;
   output.insert( flag_output_shared );
 
   // -- input --
@@ -131,4 +131,4 @@ image_filter_process::priv
 {
 }
 
-} // end namespace kwiver
+} // namespace viame

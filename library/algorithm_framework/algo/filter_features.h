@@ -16,18 +16,16 @@
 #include <viame/core_types/feature_set.h>
 
 /// \file
-/// \brief Header defining abstract \link kwiver::vital::algo::filter_features
+/// \brief Header defining abstract \link viame::algo::filter_features
 ///        filter features \endlink algorithm
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// \brief Abstract base class for feature set filter algorithms.
 class VITAL_ALGO_EXPORT filter_features
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   /// Return the name of this algorithm.
@@ -39,8 +37,8 @@ public:
   /// filter(feature_set_sptr feat, std::vector<size_t> &indices) const
   /// \param [in] input The feature set to filter
   /// \returns a filtered version of the feature set (simple_feature_set)
-  virtual kwiver::vital::feature_set_sptr
-  filter( kwiver::vital::feature_set_sptr input ) const;
+  virtual viame::feature_set_sptr
+  filter( viame::feature_set_sptr input ) const;
 
   /// Filter a feature_set and its coresponding descriptor_set
   ///
@@ -51,12 +49,12 @@ public:
   /// \param [in] feat The feature set to filter
   /// \param [in] descr The parallel descriptor set to filter
   /// \returns a pair of the filtered features and descriptors
-  using filter_return_value = std::pair< kwiver::vital::feature_set_sptr,
-    kwiver::vital::descriptor_set_sptr >;
+  using filter_return_value = std::pair< viame::feature_set_sptr,
+    viame::descriptor_set_sptr >;
   virtual filter_return_value
   filter(
-    kwiver::vital::feature_set_sptr feat,
-    kwiver::vital::descriptor_set_sptr descr ) const;
+    viame::feature_set_sptr feat,
+    viame::descriptor_set_sptr descr ) const;
 
 protected:
   /// Filter a feature set and return a new feature set with a subset of
@@ -66,9 +64,9 @@ protected:
   /// \param [in,out] indices The indices into \p feat of the features retained
   /// \return a new feature set containing the subset of features noted by \p
   /// indices
-  virtual kwiver::vital::feature_set_sptr
+  virtual viame::feature_set_sptr
   filter(
-    kwiver::vital::feature_set_sptr feat,
+    viame::feature_set_sptr feat,
     std::vector< size_t >& indices ) const = 0;
 };
 
@@ -77,8 +75,6 @@ typedef std::shared_ptr< filter_features > filter_features_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_FILTER_FEATURES_H_

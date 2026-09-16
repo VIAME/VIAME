@@ -17,7 +17,7 @@
 
 #include <viame/pipeline_framework/type_traits.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 
@@ -58,8 +58,8 @@ pair_stereo_detections_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -110,7 +110,7 @@ pair_stereo_detections_process
   auto const disparity_left = depth_map->get_image();
 
   // Format detection sets as detection object vectors
-  std::vector< kwiver::vital::detected_object_sptr > left_detections, right_detections;
+  std::vector< viame::detected_object_sptr > left_detections, right_detections;
   for( const auto& left_detection : *left_detected_object_set )
   {
     left_detections.emplace_back( left_detection );

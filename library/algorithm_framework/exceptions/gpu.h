@@ -12,9 +12,7 @@
 
 #include <viame/algorithm_framework/exceptions/base.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic GPU exception
@@ -43,8 +41,6 @@ public:
   virtual ~gpu_memory_exception() noexcept;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_CORE_EXCEPTIONS_GPU_H

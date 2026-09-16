@@ -9,7 +9,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( computer );
 
@@ -47,13 +47,13 @@ public:
   priv();
   ~priv();
 
-   vital::algo::compute_stereo_depth_map_sptr m_computer;
+   viame::algo::compute_stereo_depth_map_sptr m_computer;
 
 }; // end priv class
 
 // ==================================================================
 compute_stereo_depth_map_process::
-compute_stereo_depth_map_process( kwiver::vital::config_block_sptr const& config )
+compute_stereo_depth_map_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new compute_stereo_depth_map_process::priv )
 {
@@ -73,7 +73,7 @@ _configure()
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     computer,
@@ -82,7 +82,7 @@ _configure()
 
   if ( ! d->m_computer )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create computer" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create computer" );
   }
 
   get_nested_algo_configuration_using_trait(
@@ -94,7 +94,7 @@ _configure()
   if ( ! check_nested_algo_configuration_using_trait(
          computer, algo_config, d->m_computer ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -103,12 +103,12 @@ void
 compute_stereo_depth_map_process::
 _step()
 {
-  vital::image_container_sptr left_image =
+  viame::image_container_sptr left_image =
       grab_from_port_using_trait( left_image );
-  vital::image_container_sptr right_image =
+  viame::image_container_sptr right_image =
       grab_from_port_using_trait( right_image );
 
-  vital::image_container_sptr depth_map;
+  viame::image_container_sptr depth_map;
 
   {
     scoped_step_instrumentation();
@@ -126,8 +126,8 @@ compute_stereo_depth_map_process::
 make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -158,4 +158,4 @@ compute_stereo_depth_map_process::priv
 {
 }
 
-} // end namespace kwiver
+} // namespace viame

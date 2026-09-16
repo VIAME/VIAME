@@ -22,7 +22,7 @@ namespace viame {
  * and `get_configuration` / `set_configuration` are generated from the list.
  */
 class VIAME_@TEMPLATE_LIB@_EXPORT @template@_detector
-  : public kwiver::vital::algo::image_object_detector
+  : public viame::algo::image_object_detector
 {
 public:
   PLUGGABLE_IMPL(
@@ -38,11 +38,11 @@ public:
 
   // Check for anything that would stop the detector from running
   virtual bool check_configuration(
-    kwiver::vital::config_block_sptr config ) const override;
+    viame::config_block_sptr config ) const override;
 
   // Main detection method
-  virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const override;
+  virtual viame::detected_object_set_sptr detect(
+    viame::image_container_sptr image_data ) const override;
 };
 
 } // end namespace viame

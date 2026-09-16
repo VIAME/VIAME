@@ -27,7 +27,7 @@
 
 #include <unistd.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace codecs = viame::codecs;
 
 namespace {

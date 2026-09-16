@@ -10,9 +10,7 @@
 
 #include <viame/core_types/homography.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class VITAL_TYPES_EXPORT f2f_homography
 {
@@ -101,8 +99,6 @@ VITAL_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   f2f_homography const& h );
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame
 
 #endif // VITAL_HOMOGRAPHY_F2F_H

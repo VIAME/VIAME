@@ -20,7 +20,7 @@ namespace image_ops {
 template < typename Image > struct pixel_type_of;
 
 template < typename T >
-struct pixel_type_of< kwiver::vital::image_of< T > > { using type = T; };
+struct pixel_type_of< viame::image_of< T > > { using type = T; };
 
 template < typename Image >
 using pixel_type_t =
@@ -29,7 +29,7 @@ using pixel_type_t =
 // ----------------------------------------------------------------------------
 /// Call \p functor with the image typed as whatever it actually holds.
 ///
-/// A `vital::image` carries its pixel type as traits rather than in the C++
+/// A `viame::image` carries its pixel type as traits rather than in the C++
 /// type, so anything that works pixel by pixel has to recover the type
 /// first. \p functor is a generic lambda taking `image_of< T > const&`; every
 /// pixel type vital can hold is instantiated for it.
@@ -37,16 +37,16 @@ using pixel_type_t =
 /// \throws std::runtime_error if the image holds a type not listed here.
 template < typename Functor >
 auto
-dispatch_pixel_type( kwiver::vital::image const& image, Functor&& functor )
-  -> decltype( functor( kwiver::vital::image_of< uint8_t >() ) )
+dispatch_pixel_type( viame::image const& image, Functor&& functor )
+  -> decltype( functor( viame::image_of< uint8_t >() ) )
 {
   auto const& traits = image.pixel_traits();
 
 #define VIAME_DISPATCH_CASE( KIND, BYTES, PIXEL )                     \
-  if( traits.type == kwiver::vital::image_pixel_traits::KIND &&       \
+  if( traits.type == viame::image_pixel_traits::KIND &&       \
       traits.num_bytes == BYTES )                                     \
   {                                                                   \
-    return functor( kwiver::vital::image_of< PIXEL >( image ) );      \
+    return functor( viame::image_of< PIXEL >( image ) );      \
   }
 
   VIAME_DISPATCH_CASE( BOOL, sizeof( bool ), bool )

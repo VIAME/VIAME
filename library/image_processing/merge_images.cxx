@@ -18,22 +18,20 @@
 
 #include <stdexcept>
 
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace io = viame::image_ops;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
 /// Merge images
-kwiver::vital::image_container_sptr
+viame::image_container_sptr
 merge_images
 ::merge(
-  kwiver::vital::image_container_sptr image1,
-  kwiver::vital::image_container_sptr image2 ) const
+  viame::image_container_sptr image1,
+  viame::image_container_sptr image2 ) const
 {
   if( !image1 || !image2 )
   {
@@ -51,13 +49,13 @@ merge_images
 
   auto const merged = io::dispatch_pixel_type(
     first,
-    [ & ]( auto const& typed ) -> vital::image
+    [ & ]( auto const& typed ) -> viame::image
     {
       using pixel_t = io::pixel_type_t< decltype( typed ) >;
 
-      vital::image_of< pixel_t > other( second );
+      viame::image_of< pixel_t > other( second );
 
-      vital::image_of< pixel_t > out( typed.width(), typed.height(),
+      viame::image_of< pixel_t > out( typed.width(), typed.height(),
                                       typed.depth() + other.depth() );
 
       for( size_t j = 0; j < typed.height(); ++j )
@@ -78,14 +76,12 @@ merge_images
         }
       }
 
-      return vital::image( out );
+      return viame::image( out );
     } );
 
-  return std::make_shared< vital::simple_image_container >( merged );
+  return std::make_shared< viame::simple_image_container >( merged );
 }
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ==================================================================
 /**
@@ -36,7 +36,7 @@ public:
   virtual ~pipe_display();
 
   // display internal config blocks
-  void display_pipe_blocks( const sprokit::pipe_blocks blocks );
+  void display_pipe_blocks( const viame::pipeline::pipe_blocks blocks );
 
   void print_loc( bool opt = true );
 
@@ -46,6 +46,6 @@ private:
 
 }; // end class pipe_display
 
-} // end namespace
+} // namespace viame::pipeline
 
 #endif // SPROKIT_PIPELINE_UTIL_PIPE_DISPLAY_H

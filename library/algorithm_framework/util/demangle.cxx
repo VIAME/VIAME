@@ -13,9 +13,7 @@
 
 #endif
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 std::string
@@ -45,6 +43,4 @@ demangle( char const* sym )
 #endif
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

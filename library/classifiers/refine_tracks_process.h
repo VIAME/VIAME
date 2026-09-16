@@ -9,7 +9,7 @@
 #include "viame_processes_classifiers_export.h"
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
+namespace viame {
 
 /// @brief Track refiner process.
 ///
@@ -28,13 +28,13 @@ namespace kwiver {
 /// \oport{object_track_set} Refined object tracks
 ///
 class VIAME_PROCESSES_CLASSIFIERS_EXPORT refine_tracks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "refine_tracks",
                "Refines object tracks for a given frame" )
 
-  refine_tracks_process( kwiver::vital::config_block_sptr const& config );
+  refine_tracks_process( viame::config_block_sptr const& config );
   virtual ~refine_tracks_process();
 
 protected:
@@ -50,6 +50,6 @@ private:
   const std::unique_ptr<priv> d;
 };
 
-} // end namespace kwiver
+} // namespace viame
 
 #endif // ARROWS_PROCESSES_REFINE_TRACKS_PROCESS_H

@@ -61,14 +61,14 @@ std::vector< std::string > split( const std::string &s, std::string delims )
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::time_usec_t
+viame::time_usec_t
 convert_to_timestamp( const std::string& filename, const bool auto_discover )
 {
-  kwiver::vital::time_usec_t utc_time_usec = 0;
+  viame::time_usec_t utc_time_usec = 0;
 
   if( filename.size() > 10 )
   {
-    std::string name_only = kwiver::vital::filename_name( filename );
+    std::string name_only = viame::filename_name( filename );
     std::vector< std::string > parts = split( name_only, '_' );
 
     // Example: CHESS_FL1_C_160407_234502.428_COLOR-8-BIT.JPG
@@ -85,10 +85,10 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
       t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
       t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
 
-      kwiver::vital::time_usec_t usec =
+      viame::time_usec_t usec =
         std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
       utc_time_usec =
-        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+        static_cast< viame::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
     }
     // Example: CHESS2016_N94S_FL23_P__20160518012412.111GMT_THERM-16BIT.PNG
     else if( parts.size() > 5 && parts[0].size() > 5 &&
@@ -108,10 +108,10 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
         t.tm_min = std::stoi( date_str.substr( 10, 2 ) );
         t.tm_sec = std::stoi( date_str.substr( 12, 2 ) );
 
-        kwiver::vital::time_usec_t usec =
+        viame::time_usec_t usec =
           std::stoi( date_str.substr( 15, 3 ) ) * 1e3;
         utc_time_usec =
-          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+          static_cast< viame::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
     }
     // Example: *_20190507_004346.455104* or *_20190401_220727.714*
@@ -133,7 +133,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
           t.tm_min = std::stoi( parts[i+1].substr( 2, 2 ) );
           t.tm_sec = std::stoi( parts[i+1].substr( 4, 2 ) );
 
-          kwiver::vital::time_usec_t usec;
+          viame::time_usec_t usec;
 
           if( parts[i+1].size() < 12 )
           {
@@ -144,7 +144,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
             usec = std::stoi( parts[i+1].substr( 7, 6 ) );
           }
 
-          utc_time_usec = static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+          utc_time_usec = static_cast< viame::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
           break;
         }
       }
@@ -167,10 +167,10 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
         t.tm_min = std::stoi( parts[1].substr( 2, 2 ) );
         t.tm_sec = std::stoi( parts[1].substr( 4, 2 ) );
 
-        kwiver::vital::time_usec_t usec =
+        viame::time_usec_t usec =
           std::stoi( parts[2].substr( 0, 3 ) ) * 1e3;
         utc_time_usec =
-          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+          static_cast< viame::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
       // Example: 00231.00232.20171025.182621.170.004021.tif
      else if( parts.size() > 6 && parts[2].size() == 8 && parts[3].size() == 6 )
@@ -185,10 +185,10 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
         t.tm_min = std::stoi( parts[3].substr( 2, 2 ) );
         t.tm_sec = std::stoi( parts[3].substr( 4, 2 ) );
 
-        kwiver::vital::time_usec_t usec =
+        viame::time_usec_t usec =
           std::stoi( parts[4].substr( 0, 3 ) ) * 1e3;
         utc_time_usec =
-          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+          static_cast< viame::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
       // Example 201503.20150517.105551974.76450.png
       else if( parts.size() > 3 && parts[0].size() == 6 && parts[1].size() == 8 )
@@ -203,10 +203,10 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
         t.tm_min = std::stoi( parts[2].substr( 2, 2 ) );
         t.tm_sec = std::stoi( parts[2].substr( 4, 2 ) );
 
-        kwiver::vital::time_usec_t usec =
+        viame::time_usec_t usec =
           std::stoi( parts[2].substr( 6, 3 ) ) * 1e3;
         utc_time_usec =
-          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+          static_cast< viame::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
       else if( auto_discover ) // Match known formats first then rely on auto
       {
@@ -273,7 +273,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
             t.tm_mon = std::stoi( digit8.substr( 4, 2 ) ) - 1;
             t.tm_mday = std::stoi( digit8.substr( 6, 2 ) );
 
-            kwiver::vital::time_usec_t usec = 0;
+            viame::time_usec_t usec = 0;
 
             if( six_position >= 0 )
             {
@@ -307,7 +307,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
             }
 
             utc_time_usec =
-              static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+              static_cast< viame::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
           }
           else
           {

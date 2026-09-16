@@ -21,7 +21,7 @@
 #include <viame/algorithm_framework/plugin/pluggable.h>
 #include <viame/algorithm_framework/util/demangle.h>
 
-namespace kwiver::vital {
+namespace viame {
 
 class plugin_factory;
 
@@ -69,7 +69,7 @@ get_concrete_name()
  */
 class VITAL_VPM_EXPORT plugin_factory
   : public std::enable_shared_from_this< plugin_factory >,
-    private kwiver::vital::noncopyable
+    private viame::noncopyable
 {
 public:
   /// Default constructor
@@ -129,7 +129,7 @@ public:
    * interface type for this factory. If not, an exception is thrown.
    *
    * @return Object instance of the registered type.
-   * @throws kwiver::vital::plugin_factory_type_creation_error
+   * @throws viame::plugin_factory_type_creation_error
    */
   virtual pluggable_sptr from_config( config_block_sptr const cb ) const = 0;
 
@@ -247,7 +247,7 @@ public:
    *
    * This will pre-populate the interface and concrete type names based on the
    * typeid name of the template type inputs. These names are likely "mangled"
-   * and ``kwiver::vital::demangle()`` may be used to try to make such names
+   * and ``viame::demangle()`` may be used to try to make such names
    * more readable (if supported).
    */
   explicit concrete_plugin_factory( std::string const& plugin_name )
@@ -283,6 +283,6 @@ public:
   ~concrete_plugin_factory() override = default;
 };
 
-} // end namespace
+} // namespace viame
 
 #endif /* KWIVER_VITAL_PLUGIN_FACTORY_H */

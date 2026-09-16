@@ -31,7 +31,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_CLASSIFIERS_PLUGIN_EXPORT
@@ -58,7 +58,7 @@ register_factories( kv::registry& vpm )
 
   VIAME_REGISTER_IMPORTED(
     kv::algo::detected_object_filter,
-    kwiver::arrows::core::class_probability_filter,
+    viame::core::class_probability_filter,
     "class_probability_filter",
     "Filter detections by the probability of their classes" )
 

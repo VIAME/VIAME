@@ -10,11 +10,9 @@
 #include <sstream>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -35,7 +33,7 @@ declare_feature( py::module& m, std::string const& typestr )
     .def( py::init<>() )
     .def( py::init< kv::feature const& >() )
     .def(
-      py::init< kwiver::vital::vector_< 2, T > const&, T, T, T,
+      py::init< viame::vector_< 2, T > const&, T, T, T,
         kv::rgb_color const& >(),
       py::arg( "loc" ),
       py::arg( "mag" ) = 0.0,
@@ -66,11 +64,9 @@ declare_feature( py::module& m, std::string const& typestr )
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital::python;
+using namespace viame::python;
 PYBIND11_MODULE( feature, m )
 {
   py::module::import( "kwiver.vital.types.color" );

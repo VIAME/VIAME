@@ -27,11 +27,11 @@ namespace core
  * @brief Accumulate detected objects into an object track set
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT accumulate_object_tracks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  accumulate_object_tracks_process( kwiver::vital::config_block_sptr const& config );
+  accumulate_object_tracks_process( viame::config_block_sptr const& config );
   virtual ~accumulate_object_tracks_process();
 
 protected:

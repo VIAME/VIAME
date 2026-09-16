@@ -7,9 +7,7 @@
 #include <viame/core_types/math/aligned_box.h>
 #include <viame/core_types/vector.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Coordinate aligned bounding box.
@@ -299,8 +297,6 @@ scale_about_center(
     static_cast< T >( center[ 1 ] + half_height ) );
 }
 
-} // namespace vital
-
-}     // end namespace kwiver
+} // namespace viame
 
 #endif // KWIVER_VITAL_TYPES_BOUNDING_BOX_H

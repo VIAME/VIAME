@@ -12,12 +12,12 @@
 
 extern "C"
 VIAME_PROCESSES_VERTEX_AI_EXPORT
-void register_factories( kwiver::vital::registry& vpm )
+void register_factories( viame::registry& vpm )
 {
   static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_vertex_ai" );
+    viame::plugin_manager::module_t( "viame_processes_vertex_ai" );
 
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
@@ -25,30 +25,30 @@ void register_factories( kwiver::vital::registry& vpm )
   auto fact = vpm.ADD_PROCESS(
     viame::vertex_ai::vertex_ai_detector );
   fact->add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_NAME,
+      viame::plugin_factory::PLUGIN_NAME,
       "vertex_ai_detector" )
     .add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+      viame::plugin_factory::PLUGIN_MODULE_NAME,
       module_name )
     .add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+      viame::plugin_factory::PLUGIN_DESCRIPTION,
       "Send inference requests to a deployed Vertex AI endpoint" )
     .add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+      viame::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   fact = vpm.ADD_PROCESS(
     viame::vertex_ai::vertex_ai_trainer );
   fact->add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_NAME,
+      viame::plugin_factory::PLUGIN_NAME,
       "vertex_ai_trainer" )
     .add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+      viame::plugin_factory::PLUGIN_MODULE_NAME,
       module_name )
     .add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+      viame::plugin_factory::PLUGIN_DESCRIPTION,
       "Submit a custom training job to Vertex AI" )
     .add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+      viame::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  viame::pipeline::mark_process_module_as_loaded( vpm, module_name );
 }

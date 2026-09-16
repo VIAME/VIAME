@@ -16,7 +16,7 @@ hello_world_filter::
 // -------------------------------------------------------------------------------------------------
 bool
 hello_world_filter::
-check_configuration( kwiver::vital::config_block_sptr config ) const
+check_configuration( viame::config_block_sptr config ) const
 {
   if( get_text().empty() )
   {
@@ -29,9 +29,9 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 
 
 // -------------------------------------------------------------------------------------------------
-kwiver::vital::image_container_sptr
+viame::image_container_sptr
 hello_world_filter::
-filter( kwiver::vital::image_container_sptr image_data )
+filter( viame::image_container_sptr image_data )
 {
   LOG_INFO( logger(), "Text: " << get_text() );
 

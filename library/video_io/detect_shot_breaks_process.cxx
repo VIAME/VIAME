@@ -33,7 +33,7 @@
 #include <algorithm>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -573,8 +573,8 @@ detect_shot_breaks_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -836,7 +836,7 @@ detect_shot_breaks_process
   if( detections->size() == 1 )
   {
     d->m_states.push_back(
-      std::make_shared< kwiver::vital::object_track_state >(
+      std::make_shared< viame::object_track_state >(
         timestamp, detections->at( 0 ) ) );
   }
 

@@ -115,7 +115,7 @@ VIAME_PYTHON_SCRIPT_APPLET( gpu_applet, "gpu",
 /// Register an applet that needs no plugins loaded on its behalf.
 template < typename applet_t >
 static void
-register_standalone_tool( kwiver::applet_registrar& reg )
+register_standalone_tool( viame::applet_registrar& reg )
 {
   reg.register_tool< applet_t >()->add_attribute( SKIP_PLUGIN_PRELOAD, "true" );
 }
@@ -124,7 +124,7 @@ register_standalone_tool( kwiver::applet_registrar& reg )
 /// Register an applet that forwards its whole command line to a script.
 template < typename applet_t >
 static void
-register_script_tool( kwiver::applet_registrar& reg )
+register_script_tool( viame::applet_registrar& reg )
 {
   reg.register_tool< applet_t >()
     ->add_attribute( SKIP_PLUGIN_PRELOAD, "true" )
@@ -135,9 +135,9 @@ register_script_tool( kwiver::applet_registrar& reg )
 extern "C"
 VIAME_TOOLS_APPLETS_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
-  kwiver::applet_registrar reg( vpm, "viame.tools.applets" );
+  viame::applet_registrar reg( vpm, "viame.tools.applets" );
 
   if( reg.is_module_loaded() )
   {

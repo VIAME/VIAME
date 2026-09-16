@@ -19,7 +19,7 @@
 #include <tuple>
 #include <utility>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 /// Read `result` as the return value followed by the out parameters.
 ///
@@ -53,7 +53,7 @@ unpack_out_parameters(
     {
       warned = true;
       LOG_WARN(
-        kwiver::vital::get_logger( "python.algo" ),
+        viame::get_logger( "python.algo" ),
         what << " returned a single value where this build expects "
              << expected << " (the return value and then each output "
                 "parameter). Its output parameters are left as they were "
@@ -82,7 +82,7 @@ unpack_out_parameters(
   return values[ 0 ].template cast< Return >();
 }
 
-} // namespace kwiver::vital::python
+} // namespace viame::python
 
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

@@ -16,16 +16,16 @@
 
 using namespace pybind11;
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
 class compile
 {
 public:
-  typedef ::sprokit::version::version_t version_t;
+  typedef ::viame::pipeline::version::version_t version_t;
 
   static version_t const major;
   static version_t const minor;
@@ -39,9 +39,9 @@ public:
   static bool check( version_t major_, version_t minor_, version_t patch_ );
 };
 
-::sprokit::version::version_t const compile::major = KWIVER_VERSION_MAJOR;
-::sprokit::version::version_t const compile::minor = KWIVER_VERSION_MINOR;
-::sprokit::version::version_t const compile::patch = KWIVER_VERSION_PATCH;
+::viame::pipeline::version::version_t const compile::major = KWIVER_VERSION_MAJOR;
+::viame::pipeline::version::version_t const compile::minor = KWIVER_VERSION_MINOR;
+::viame::pipeline::version::version_t const compile::patch = KWIVER_VERSION_PATCH;
 
 std::string const compile::version_string = KWIVER_VERSION;
 bool const compile::git_build =
@@ -59,11 +59,11 @@ class runtime
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
-using namespace kwiver::sprokit::python;
+using namespace viame::pipeline::python;
 
 PYBIND11_MODULE( version, m )
 {
@@ -87,16 +87,16 @@ PYBIND11_MODULE( version, m )
   class_< runtime >(
     m, "runtime",
     "Runtime version information." )
-    .def_readonly_static( "major", &sprokit::version::major )
-    .def_readonly_static( "minor", &sprokit::version::minor )
-    .def_readonly_static( "patch", &sprokit::version::patch )
-    .def_readonly_static( "version_string", &sprokit::version::version_string )
-    .def_readonly_static( "git_build", &sprokit::version::git_build )
-    .def_readonly_static( "git_hash", &sprokit::version::git_hash )
-    .def_readonly_static( "git_hash_short", &sprokit::version::git_hash_short )
-    .def_readonly_static( "git_dirty", &sprokit::version::git_dirty )
+    .def_readonly_static( "major", &viame::pipeline::version::major )
+    .def_readonly_static( "minor", &viame::pipeline::version::minor )
+    .def_readonly_static( "patch", &viame::pipeline::version::patch )
+    .def_readonly_static( "version_string", &viame::pipeline::version::version_string )
+    .def_readonly_static( "git_build", &viame::pipeline::version::git_build )
+    .def_readonly_static( "git_hash", &viame::pipeline::version::git_hash )
+    .def_readonly_static( "git_hash_short", &viame::pipeline::version::git_hash_short )
+    .def_readonly_static( "git_dirty", &viame::pipeline::version::git_dirty )
     .def_static(
-      "check", &sprokit::version::check,
+      "check", &viame::pipeline::version::check,
       arg( "major" ), arg( "minor" ), arg( "patch" ),
       "Check for a sprokit of at least the given version." )
   ;
@@ -109,9 +109,9 @@ PYBIND11_MODULE( version, m )
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
@@ -124,9 +124,9 @@ compile
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

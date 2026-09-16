@@ -17,7 +17,7 @@ namespace image_ops {
 /// Smallest and largest value in the image.
 template < typename T >
 void
-value_range( kwiver::vital::image_of< T > const& image, T& low, T& high )
+value_range( viame::image_of< T > const& image, T& low, T& high )
 {
   low = T{ 0 };
   high = T{ 0 };
@@ -51,8 +51,8 @@ value_range( kwiver::vital::image_of< T > const& image, T& low, T& high )
 /// A flat image maps to \p low everywhere rather than dividing by zero.
 /// Reproduces `vil_convert_stretch_range`.
 template < typename T >
-kwiver::vital::image_of< double >
-stretch_range( kwiver::vital::image_of< T > const& image,
+viame::image_of< double >
+stretch_range( viame::image_of< T > const& image,
                double low, double high )
 {
   T source_low;
@@ -69,7 +69,7 @@ stretch_range( kwiver::vital::image_of< T > const& image,
 
   auto const offset = -1.0 * static_cast< double >( source_low ) * scale + low;
 
-  kwiver::vital::image_of< double > result( image.width(), image.height(),
+  viame::image_of< double > result( image.width(), image.height(),
                                             image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -94,15 +94,15 @@ stretch_range( kwiver::vital::image_of< T > const& image,
 /// the source high at \p high. Reproduces
 /// `vil_convert_stretch_range_limited`.
 template < typename T >
-kwiver::vital::image_of< double >
-stretch_range_limited( kwiver::vital::image_of< T > const& image,
+viame::image_of< double >
+stretch_range_limited( viame::image_of< T > const& image,
                        T source_low, T source_high,
                        double low, double high )
 {
   auto const scale = ( high - low ) /
                      static_cast< double >( source_high - source_low );
 
-  kwiver::vital::image_of< double > result( image.width(), image.height(),
+  viame::image_of< double > result( image.width(), image.height(),
                                             image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -131,8 +131,8 @@ stretch_range_limited( kwiver::vital::image_of< T > const& image,
 /// straight into the byte rather than through a double image, so the top
 /// value lands on 255 only when it divides exactly.
 template < typename T >
-kwiver::vital::image_of< uint8_t >
-stretch_to_byte( kwiver::vital::image_of< T > const& image )
+viame::image_of< uint8_t >
+stretch_to_byte( viame::image_of< T > const& image )
 {
   T source_low;
   T source_high;
@@ -146,7 +146,7 @@ stretch_to_byte( kwiver::vital::image_of< T > const& image )
     scale = 255.0 / static_cast< double >( source_high - source_low );
   }
 
-  kwiver::vital::image_of< uint8_t > result( image.width(), image.height(),
+  viame::image_of< uint8_t > result( image.width(), image.height(),
                                              image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )

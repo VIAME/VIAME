@@ -11,7 +11,7 @@
 
 #include <viame/pipeline_framework/type_traits.h>
 
-namespace kwiver {
+namespace viame {
 namespace adapter {
 
 namespace {
@@ -45,7 +45,7 @@ adapter_data_set
 // ------------------------------------------------------------------
 void
 adapter_data_set
-::add_datum( sprokit::process::port_t const& port, sprokit::datum_t const& datum )
+::add_datum( viame::pipeline::process::port_t const& port, viame::pipeline::datum_t const& datum )
 {
   m_port_datum_set[port] = datum;
 }
@@ -59,7 +59,7 @@ adapter_data_set
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set::datum_map_t::iterator
+viame::adapter::adapter_data_set::datum_map_t::iterator
 adapter_data_set
 ::begin()
 {
@@ -67,7 +67,7 @@ adapter_data_set
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+viame::adapter::adapter_data_set::datum_map_t::const_iterator
 adapter_data_set
 ::begin() const
 {
@@ -75,7 +75,7 @@ adapter_data_set
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+viame::adapter::adapter_data_set::datum_map_t::const_iterator
 adapter_data_set
 ::cbegin() const
 {
@@ -83,7 +83,7 @@ adapter_data_set
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set::datum_map_t::iterator
+viame::adapter::adapter_data_set::datum_map_t::iterator
 adapter_data_set
 ::end()
 {
@@ -91,7 +91,7 @@ adapter_data_set
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+viame::adapter::adapter_data_set::datum_map_t::const_iterator
 adapter_data_set
 ::end() const
 {
@@ -99,7 +99,7 @@ adapter_data_set
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+viame::adapter::adapter_data_set::datum_map_t::const_iterator
 adapter_data_set
 ::cend() const
 {
@@ -107,23 +107,23 @@ adapter_data_set
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+viame::adapter::adapter_data_set::datum_map_t::const_iterator
 adapter_data_set
-::find( sprokit::process::port_t const& port ) const
+::find( viame::pipeline::process::port_t const& port ) const
 {
   return m_port_datum_set.find( port );
 }
 
 // ------------------------------------------------------------------
 bool
-kwiver::adapter::adapter_data_set::is_end_of_data() const
+viame::adapter::adapter_data_set::is_end_of_data() const
 {
   return (m_set_type == end_of_input);
 }
 
 // ------------------------------------------------------------------
 adapter_data_set::data_set_type
-kwiver::adapter::adapter_data_set::type() const
+viame::adapter::adapter_data_set::type() const
 {
   return m_set_type;
 }
@@ -137,14 +137,14 @@ adapter_data_set::size() const
 
 // ------------------------------------------------------------------
 template <typename T>
-void adapter_data_set::add_value(::sprokit::process::port_t const& port, T const& val)
+void adapter_data_set::add_value(::viame::pipeline::process::port_t const& port, T const& val)
 {
-  m_port_datum_set[port] = ::sprokit::datum::new_datum<T>(val);
+  m_port_datum_set[port] = ::viame::pipeline::datum::new_datum<T>(val);
 }
 
 // ----------------------------------------------------------------------------
 template<typename T>
-T adapter_data_set::value( ::sprokit::process::port_t const& port )
+T adapter_data_set::value( ::viame::pipeline::process::port_t const& port )
 {
   auto it = this->find( port );
   if ( it == this->end() )
@@ -157,7 +157,7 @@ T adapter_data_set::value( ::sprokit::process::port_t const& port )
 
 // ----------------------------------------------------------------------------
 template<typename T>
-T adapter_data_set::value_or( ::sprokit::process::port_t const& port,
+T adapter_data_set::value_or( ::viame::pipeline::process::port_t const& port,
                               T const& value_if_missing )
 {
   auto it = this->find( port );
@@ -173,19 +173,19 @@ T adapter_data_set::value_or( ::sprokit::process::port_t const& port,
   template KWIVER_ADAPTER_EXPORT \
   void \
   adapter_data_set \
-  ::add_value( ::sprokit::process::port_t const& port, T const& val );
+  ::add_value( ::viame::pipeline::process::port_t const& port, T const& val );
 
 #define INSTANTIATE_ADS_VALUE( T ) \
   template KWIVER_ADAPTER_EXPORT \
   T \
   adapter_data_set \
-  ::value( ::sprokit::process::port_t const& port );
+  ::value( ::viame::pipeline::process::port_t const& port );
 
 #define INSTANTIATE_ADS_VALUE_OR( T ) \
   template KWIVER_ADAPTER_EXPORT \
   T \
   adapter_data_set \
-  ::value_or( ::sprokit::process::port_t const& port, \
+  ::value_or( ::viame::pipeline::process::port_t const& port, \
               T const& value_if_missing );
 
 #define INSTANTIATE_ADS_ALL( T ) \
@@ -198,37 +198,37 @@ INSTANTIATE_ADS_ALL( float );
 INSTANTIATE_ADS_ALL( double );
 INSTANTIATE_ADS_ALL( bool );
 
-INSTANTIATE_ADS_ALL( kwiver::vital::any );
-INSTANTIATE_ADS_ALL( kwiver::vital::bounding_box_d );
-INSTANTIATE_ADS_ALL( kwiver::vital::timestamp );
-INSTANTIATE_ADS_ALL( kwiver::vital::geo_polygon );
-INSTANTIATE_ADS_ALL( kwiver::vital::image_container_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::image_container_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::feature_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::database_query_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::descriptor_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::descriptor_request_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::query_result_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::iqr_feedback_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::string_t );
-INSTANTIATE_ADS_ALL( kwiver::vital::string_vector_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::track_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::feature_track_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::object_track_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::double_vector_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::detected_object_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::track_descriptor_set_sptr );
-INSTANTIATE_ADS_ALL( kwiver::vital::matrix_d );
-INSTANTIATE_ADS_ALL( kwiver::vital::f2f_homography );
-INSTANTIATE_ADS_ALL( kwiver::vital::metadata_vector );
-INSTANTIATE_ADS_ALL( kwiver::vital::uid );
+INSTANTIATE_ADS_ALL( viame::any );
+INSTANTIATE_ADS_ALL( viame::bounding_box_d );
+INSTANTIATE_ADS_ALL( viame::timestamp );
+INSTANTIATE_ADS_ALL( viame::geo_polygon );
+INSTANTIATE_ADS_ALL( viame::image_container_sptr );
+INSTANTIATE_ADS_ALL( viame::image_container_set_sptr );
+INSTANTIATE_ADS_ALL( viame::feature_set_sptr );
+INSTANTIATE_ADS_ALL( viame::database_query_sptr );
+INSTANTIATE_ADS_ALL( viame::descriptor_set_sptr );
+INSTANTIATE_ADS_ALL( viame::descriptor_request_sptr );
+INSTANTIATE_ADS_ALL( viame::query_result_set_sptr );
+INSTANTIATE_ADS_ALL( viame::iqr_feedback_sptr );
+INSTANTIATE_ADS_ALL( viame::string_t );
+INSTANTIATE_ADS_ALL( viame::string_vector_sptr );
+INSTANTIATE_ADS_ALL( viame::track_set_sptr );
+INSTANTIATE_ADS_ALL( viame::feature_track_set_sptr );
+INSTANTIATE_ADS_ALL( viame::object_track_set_sptr );
+INSTANTIATE_ADS_ALL( viame::double_vector_sptr );
+INSTANTIATE_ADS_ALL( viame::detected_object_set_sptr );
+INSTANTIATE_ADS_ALL( viame::track_descriptor_set_sptr );
+INSTANTIATE_ADS_ALL( viame::matrix_d );
+INSTANTIATE_ADS_ALL( viame::f2f_homography );
+INSTANTIATE_ADS_ALL( viame::metadata_vector );
+INSTANTIATE_ADS_ALL( viame::uid );
 
 INSTANTIATE_ADS_ALL( std::shared_ptr< std::vector< unsigned char > > );
-INSTANTIATE_ADS_ALL( kwiver::vital::string_sptr );
+INSTANTIATE_ADS_ALL( viame::string_sptr );
 
 #undef INSTANTIATE_ADS_ADD_VALUE
 #undef INSTANTIATE_ADS_VALUE
 #undef INSTANTIATE_ADS_VALUE_OR
 #undef INSTANTIATE_ADS_ALL
 
-} } // end namespace
+} } // namespace viame

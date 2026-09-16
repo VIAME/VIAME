@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/transform_2d_io.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class transform_2d_io_base = kwiver::vital::algo::transform_2d_io >
+template< class transform_2d_io_base = viame::algo::transform_2d_io >
 class transform_2d_io_trampoline
     : public algorithm_trampoline< transform_2d_io_base >
 {
@@ -21,28 +21,28 @@ class transform_2d_io_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::transform_2d_sptr
+  viame::transform_2d_sptr
   load_(::std::string const & filename) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::transform_2d_sptr,
-      kwiver::vital::algo::transform_2d_io,
+      viame::transform_2d_sptr,
+      viame::algo::transform_2d_io,
       load_,
       filename
       );
   }
 
   void
-  save_(::std::string const & filename, ::kwiver::vital::transform_2d_sptr data) const override
+  save_(::std::string const & filename, ::viame::transform_2d_sptr data) const override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::transform_2d_io,
+      viame::algo::transform_2d_io,
       save_,
       filename, data
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

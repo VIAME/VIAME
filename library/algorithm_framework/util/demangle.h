@@ -10,9 +10,7 @@
 #include <string>
 #include <typeinfo>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 VITAL_UTIL_EXPORT std::string demangle( char const* name );
 VITAL_UTIL_EXPORT std::string demangle( std::string const& name );
@@ -32,8 +30,6 @@ type_name( const T& t )
   return demangle( typeid( t ).name() );
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_DEMANGLE_H

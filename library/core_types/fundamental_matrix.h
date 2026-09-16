@@ -20,9 +20,7 @@
 #include <memory>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Forward declarations of abstract fundamental matrix class
 class fundamental_matrix;
@@ -118,8 +116,6 @@ VITAL_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   fundamental_matrix const& f );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_FUNDAMENTAL_MATRIX_H_

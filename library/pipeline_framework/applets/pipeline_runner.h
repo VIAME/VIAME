@@ -10,11 +10,11 @@
 #include <string>
 #include <vector>
 
-namespace sprokit {
+namespace viame::pipeline {
 namespace tools {
 
 class pipeline_runner
-  : public kwiver::tools::kwiver_applet
+  : public viame::tools::kwiver_applet
 {
 public:
   pipeline_runner();
@@ -27,6 +27,6 @@ public:
 
 }; // end of class
 
-} } // end namespace
+} } // namespace viame::pipeline
 
 #endif /* KWIVER_TOOL_PIPELINE_RUNNER_H */

@@ -25,8 +25,8 @@ namespace viame {
 /// \param max_points Maximum number of points in output (minimum 2)
 /// \returns Simplified polygon with at most max_points vertices
 VIAME_IMAGE_OPS_EXPORT
-std::vector< kwiver::vital::point_2i >
-simplify_polygon( std::vector< kwiver::vital::point_2i > const& curve,
+std::vector< viame::point_2i >
+simplify_polygon( std::vector< viame::point_2i > const& curve,
                   size_t max_points );
 
 /// Simplify a polygon to have at most max_points vertices (double precision)
@@ -39,14 +39,14 @@ simplify_polygon( std::vector< kwiver::vital::point_2i > const& curve,
 /// \param max_points Maximum number of points in output (minimum 2)
 /// \returns Simplified polygon with at most max_points vertices
 VIAME_IMAGE_OPS_EXPORT
-std::vector< kwiver::vital::point_2d >
-simplify_polygon( std::vector< kwiver::vital::point_2d > const& curve,
+std::vector< viame::point_2d >
+simplify_polygon( std::vector< viame::point_2d > const& curve,
                   size_t max_points );
 
 /// One `(poly)` or `(hole)` run of a detection's mask, ready to write
 struct VIAME_IMAGE_OPS_EXPORT mask_contour
 {
-  std::vector< kwiver::vital::point_2i > points;
+  std::vector< viame::point_2i > points;
 
   /// True when this is a hole, which the CSV spells `(hole)`
   bool is_hole = false;
@@ -67,7 +67,7 @@ struct VIAME_IMAGE_OPS_EXPORT mask_contour
 /// \param max_points the cap used when \p tolerance is negative
 VIAME_IMAGE_OPS_EXPORT
 std::vector< mask_contour >
-mask_to_contours( kwiver::vital::image const& mask,
+mask_to_contours( viame::image const& mask,
                   double tolerance, int max_points );
 
 } // end namespace viame

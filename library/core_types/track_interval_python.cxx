@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 PYBIND11_MODULE( track_interval, m )
 {

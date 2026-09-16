@@ -11,9 +11,7 @@
 
 #include <time.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -52,7 +50,7 @@ public:
   bool m_first;
   int m_frame_number;
   std::string m_delim;
-  std::map< size_t, vital::track_sptr > m_tracks;
+  std::map< size_t, viame::track_sptr > m_tracks;
 };
 
 // ----------------------------------------------------------------------------
@@ -78,8 +76,8 @@ write_object_track_set_kw18
 
     for( auto ts_ptr : *trk_ptr )
     {
-      vital::object_track_state* ts =
-        dynamic_cast< vital::object_track_state* >( ts_ptr.get() );
+      viame::object_track_state* ts =
+        dynamic_cast< viame::object_track_state* >( ts_ptr.get() );
 
       if( !ts )
       {
@@ -89,11 +87,11 @@ write_object_track_set_kw18
         continue;
       }
 
-      vital::detected_object_sptr det = ts->detection();
-      const vital::bounding_box_d empty_box = vital::bounding_box_d(
+      viame::detected_object_sptr det = ts->detection();
+      const viame::bounding_box_d empty_box = viame::bounding_box_d(
         -1, -1, -1,
         -1 );
-      vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
+      viame::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
       stream() << trk_ptr->id() << " "     // 1: track id
                << trk_ptr->size() << " "   // 2: track length
@@ -124,7 +122,7 @@ write_object_track_set_kw18
 // ----------------------------------------------------------------------------
 bool
 write_object_track_set_kw18
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -133,8 +131,8 @@ write_object_track_set_kw18
 void
 write_object_track_set_kw18
 ::write_set(
-  kwiver::vital::object_track_set_sptr const& set,
-  kwiver::vital::timestamp const& /*ts*/,
+  viame::object_track_set_sptr const& set,
+  viame::timestamp const& /*ts*/,
   std::string const& /*frame_identifier*/ )
 {
   if( d->m_first )
@@ -174,6 +172,4 @@ write_object_track_set_kw18
 
 } // namespace core
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame

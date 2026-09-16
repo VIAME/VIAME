@@ -13,7 +13,7 @@
 namespace viame {
 
 class VIAME_IMAGE_PROCESSING_EXPORT random_hue_shift
-  : public kwiver::vital::algo::image_filter
+  : public viame::algo::image_filter
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -32,11 +32,11 @@ public:
 
   virtual ~random_hue_shift() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   // Main filtering method
-  virtual kwiver::vital::image_container_sptr filter(
-    kwiver::vital::image_container_sptr image_data );
+  virtual viame::image_container_sptr filter(
+    viame::image_container_sptr image_data );
 };
 
 } // end namespace

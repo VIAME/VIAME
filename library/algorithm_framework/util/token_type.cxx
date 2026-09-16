@@ -4,9 +4,7 @@
 
 #include "token_type.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Constructor
@@ -30,6 +28,4 @@ token_type
   return m_typeName;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

@@ -31,7 +31,7 @@
 #include <exception>
 #include <filesystem>
 
-namespace kv = ::kwiver::vital;
+namespace kv = ::viame;
 namespace py = pybind11;
 
 // ----------------------------------------------------------------------------

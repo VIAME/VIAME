@@ -11,9 +11,7 @@
 #define DEBUG_CHECK_DATA_NULL
 #endif
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Factory methods
 track_descriptor_sptr
@@ -58,12 +56,12 @@ track_descriptor
 
 void
 track_descriptor
-::set_uid( const vital::uid& id )
+::set_uid( const viame::uid& id )
 {
   this->uid_ = id;
 }
 
-vital::uid const&
+viame::uid const&
 track_descriptor
 ::get_uid() const
 {
@@ -227,7 +225,7 @@ track_descriptor
 // ----------------------------------------------------------------------------
 track_descriptor::history_entry
 ::history_entry(
-  const vital::timestamp& ts,
+  const viame::timestamp& ts,
   const image_bbox_t& img_loc,
   const world_bbox_t& world_loc )
   : ts_( ts ),
@@ -237,14 +235,14 @@ track_descriptor::history_entry
 
 track_descriptor::history_entry
 ::history_entry(
-  const vital::timestamp& ts,
+  const viame::timestamp& ts,
   const image_bbox_t& img_loc )
   : ts_( ts ),
     img_loc_( img_loc ),
     world_loc_( 0, 0, 0, 0 )
 {}
 
-vital::timestamp
+viame::timestamp
 track_descriptor::history_entry
 ::get_timestamp() const
 {
@@ -265,6 +263,4 @@ track_descriptor::history_entry
   return this->world_loc_;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

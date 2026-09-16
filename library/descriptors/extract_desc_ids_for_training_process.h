@@ -35,10 +35,10 @@ namespace core
  * interaction.
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT extract_desc_ids_for_training_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
-  using config_block_sptr = kwiver::vital::config_block_sptr;
+  using config_block_sptr = viame::config_block_sptr;
 
   // -- CONSTRUCTORS --
   extract_desc_ids_for_training_process( config_block_sptr const& config );

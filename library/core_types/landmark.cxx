@@ -4,14 +4,12 @@
 
 /// \file
 /// \brief Implementation and template instantiation for
-/// \link kwiver::vital::landmark landmark \endlink objects
+/// \link viame::landmark landmark \endlink objects
 
 #include "landmark.h"
 #include <viame/algorithm_framework/io/eigen_io.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// output stream operator for a landmark base class
 std::ostream&
@@ -121,6 +119,4 @@ INSTANTIATE_LANDMARK( float );
 #undef INSTANTIATE_LANDMARK
 /// \endcond
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

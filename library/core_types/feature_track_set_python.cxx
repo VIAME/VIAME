@@ -9,18 +9,16 @@
 #include <typeinfo>
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
-typedef kwiver::vital::feature_track_state feat_track_state;
-typedef kwiver::vital::feature_track_set feat_track_set;
+typedef viame::feature_track_state feat_track_state;
+typedef viame::feature_track_set feat_track_set;
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
-std::shared_ptr< kwiver::vital::track >
+std::shared_ptr< viame::track >
 get_track( std::shared_ptr< feat_track_set >& self, uint64_t id )
 {
   auto track = self->get_track( id );
@@ -49,16 +47,14 @@ public:
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital::python;
+using namespace viame::python;
 PYBIND11_MODULE( feature_track_set, m )
 {
   py::module::import( "kwiver.vital.types.track" );
 
-  py::class_< feat_track_state, kwiver::vital::track_state,
+  py::class_< feat_track_state, viame::track_state,
     std::shared_ptr< feat_track_state > >( m, "FeatureTrackState" )
     .def(
     py::init< kv::frame_id_t, kv::feature_sptr, kv::descriptor_sptr,
@@ -79,7 +75,7 @@ PYBIND11_MODULE( feature_track_set, m )
     .def( "downcast", &kv::feature_track_state::downcast )
     // .def_property_readonly_static("downcast_transform",
     // &feat_track_state::downcast_transform)
-    .def_property_readonly( "frame_id", &kwiver::vital::track_state::frame )
+    .def_property_readonly( "frame_id", &viame::track_state::frame )
     .def_readwrite( "feature", &feat_track_state::feature )
     .def_readwrite( "descriptor", &feat_track_state::descriptor )
     .def_readwrite( "inlier", &feat_track_state::inlier )
@@ -87,11 +83,11 @@ PYBIND11_MODULE( feature_track_set, m )
 
   py::module::import( "kwiver.vital.types.track_set" );
 
-  py::class_< feat_track_set, kwiver::vital::track_set,
-    kwiver::vital::python::feature_track_set_trampoline,
+  py::class_< feat_track_set, viame::track_set,
+    viame::python::feature_track_set_trampoline,
     std::shared_ptr< feat_track_set > >( m, "FeatureTrackSet" )
     .def( py::init<>() )
-    .def( py::init< std::vector< std::shared_ptr< kwiver::vital::track > > >() )
+    .def( py::init< std::vector< std::shared_ptr< viame::track > > >() )
     .def( "all_frame_ids", &feat_track_set::all_frame_ids )
     .def(
       "get_track", &get_track,

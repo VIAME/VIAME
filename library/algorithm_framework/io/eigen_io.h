@@ -25,13 +25,11 @@
 
 #include <viame/algorithm_framework/exceptions/io.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Input stream operator for a fixed-size matrix
 ///
-/// \throws vital::invalid_data
+/// \throws viame::invalid_data
 ///    when the data being read is not in the valid form or format, such as a
 ///    character where a double should be
 template < unsigned R, unsigned C, typename T >
@@ -45,7 +43,7 @@ operator>>( std::istream& s, matrix_< R, C, T >& m )
       if( !( s >> std::skipws >> m( i, j ) ) )
       {
         VITAL_THROW(
-          kwiver::vital::invalid_data, "Encountered a non-numeric value while "
+          viame::invalid_data, "Encountered a non-numeric value while "
                                        "parsing a matrix" );
       }
     }
@@ -63,7 +61,7 @@ operator>>( std::istream& s, vector_< N, T >& v )
     if( !( s >> std::skipws >> v[ i ] ) )
     {
       VITAL_THROW(
-        kwiver::vital::invalid_data, "Encountered a non-numeric value while "
+        viame::invalid_data, "Encountered a non-numeric value while "
                                      "parsing a vector" );
     }
   }
@@ -86,7 +84,7 @@ operator>>( std::istream& s, dynamic_vector< T >& v )
   if( s.bad() )
   {
     VITAL_THROW(
-      kwiver::vital::invalid_data, "Encountered a non-numeric value while "
+      viame::invalid_data, "Encountered a non-numeric value while "
                                    "parsing a vector" );
   }
 
@@ -114,8 +112,6 @@ serialize( Archive& archive, vector_< N, T >& v )
   for( unsigned i = 0; i < N; ++i ) { archive( v[ i ] ); }
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_EIGEN_IO_H_

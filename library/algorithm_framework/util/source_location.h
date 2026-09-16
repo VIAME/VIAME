@@ -14,9 +14,7 @@
 #include <ostream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Location in a source file.
@@ -84,8 +82,6 @@ inline std::ostream&
 operator<<( std::ostream& str, source_location const& obj )
 { return obj.format( str ); }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_UTIL_SOURCE_LOCATION_H

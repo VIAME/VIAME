@@ -32,7 +32,7 @@
 #include "pair_stereo_tracks.h"
 #include <viame/file_io/camera_rig_io.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -176,8 +176,8 @@ measure_objects_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -373,7 +373,7 @@ measure_objects_process
 
   mark_process_as_complete();
 
-  const sprokit::datum_t dat = sprokit::datum::complete_datum();
+  const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
   push_datum_to_port_using_trait( object_track_set1, dat );
   push_datum_to_port_using_trait( object_track_set2, dat );
@@ -400,7 +400,7 @@ measure_objects_process
     {
       auto port_info = peek_at_port( port_name );
 
-      if( port_info.datum->type() == sprokit::datum::complete )
+      if( port_info.datum->type() == viame::pipeline::datum::complete )
       {
         _finalize();
         return;
@@ -412,7 +412,7 @@ measure_objects_process
   {
     auto ts_check = peek_at_port_using_trait( timestamp );
 
-    if( ts_check.datum->type() == sprokit::datum::complete )
+    if( ts_check.datum->type() == viame::pipeline::datum::complete )
     {
       _finalize();
       return;
@@ -507,7 +507,7 @@ measure_objects_process
       for( auto& state : *trk )
       {
         auto obj_state =
-          std::static_pointer_cast< kwiver::vital::object_track_state >( state );
+          std::static_pointer_cast< viame::object_track_state >( state );
 
         if( state->frame() == cur_frame_id )
         {
@@ -541,10 +541,10 @@ measure_objects_process
 
   // Get camera references
   kv::simple_camera_perspective& left_cam(
-    dynamic_cast< kwiver::vital::simple_camera_perspective& >(
+    dynamic_cast< viame::simple_camera_perspective& >(
       *(d->m_calibration->left())));
   kv::simple_camera_perspective& right_cam(
-    dynamic_cast< kwiver::vital::simple_camera_perspective& >(
+    dynamic_cast< viame::simple_camera_perspective& >(
       *(d->m_calibration->right())));
 
   // Detection pairing: match left-only and right-only detections.

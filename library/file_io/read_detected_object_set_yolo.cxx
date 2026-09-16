@@ -125,7 +125,7 @@ public:
   std::string find_label_file( std::string const& image_path );
   std::string find_classes_file( std::string const& image_path );
   bool detect_image_dimensions( std::string const& image_path );
-  kwiver::vital::detected_object_set_sptr read_labels( std::string const& label_path );
+  viame::detected_object_set_sptr read_labels( std::string const& label_path );
 
   read_detected_object_set_yolo* m_parent;
   bool m_first;
@@ -135,7 +135,7 @@ public:
   int m_image_height;
 
   // Image reader for dimension auto-detection
-  kwiver::vital::algo::image_io_sptr m_image_reader;
+  viame::algo::image_io_sptr m_image_reader;
 
   // Class names loaded from file
   std::vector< std::string > m_class_names;
@@ -145,7 +145,7 @@ public:
   int m_current_idx;
 
   // Map of detected objects indexed by image path
-  std::map< std::string, kwiver::vital::detected_object_set_sptr > m_detection_by_str;
+  std::map< std::string, viame::detected_object_set_sptr > m_detection_by_str;
 };
 
 
@@ -179,7 +179,7 @@ read_detected_object_set_yolo
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_yolo
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   // No longer require image dimensions - they can be auto-detected
   return true;
@@ -189,7 +189,7 @@ read_detected_object_set_yolo
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_yolo
-::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+::read_set( viame::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -219,7 +219,7 @@ read_detected_object_set_yolo
   // Test for end of all loaded images
   if( d->m_current_idx >= static_cast< int >( d->m_image_list.size() ) )
   {
-    set = std::make_shared< kwiver::vital::detected_object_set >();
+    set = std::make_shared< viame::detected_object_set >();
     return false;
   }
 
@@ -233,7 +233,7 @@ read_detected_object_set_yolo
   }
   else
   {
-    set = std::make_shared< kwiver::vital::detected_object_set >();
+    set = std::make_shared< viame::detected_object_set >();
   }
 
   ++d->m_current_idx;
@@ -262,7 +262,7 @@ read_detected_object_set_yolo::priv
 
   try
   {
-    const auto extension = kwiver::vital::filename_last_extension( filename );
+    const auto extension = viame::filename_last_extension( filename );
     if( extension == ".names" )
     {
       // Native Darknet .names files remain one literal class name per line.
@@ -281,7 +281,7 @@ read_detected_object_set_yolo::priv
     }
     else
     {
-      const kwiver::vital::category_hierarchy labels( filename );
+      const viame::category_hierarchy labels( filename );
       m_class_names = labels.all_class_names();
     }
   }
@@ -302,12 +302,12 @@ std::string
 read_detected_object_set_yolo::priv
 ::find_classes_file( std::string const& image_path )
 {
-  std::string image_dir = kwiver::vital::filename_path( image_path );
+  std::string image_dir = viame::filename_path( image_path );
 
   // Upstream's shape, with this tree's path helpers: the system-tools
-  // wrapper went in P8-T05 and `kwiver::vital::filename_path` is what
+  // wrapper went in P8-T05 and `viame::filename_path` is what
   // replaced `GetFilenamePath`.
-  const std::string parent_dir = kwiver::vital::filename_path( image_dir );
+  const std::string parent_dir = viame::filename_path( image_dir );
   for( const auto& directory : { image_dir, parent_dir } )
   {
     const auto path = find_labels_file( directory );
@@ -317,14 +317,14 @@ read_detected_object_set_yolo::priv
 
   // Strategy 3: classes.txt in same directory (alternative name)
   classes_path = image_dir + "/classes.txt";
-  if( kwiver::vital::file_exists( classes_path ) )
+  if( viame::file_exists( classes_path ) )
   {
     return classes_path;
   }
 
   // Strategy 4: classes.txt in parent directory
   classes_path = parent_dir + "/classes.txt";
-  if( kwiver::vital::file_exists( classes_path ) )
+  if( viame::file_exists( classes_path ) )
   {
     return classes_path;
   }
@@ -332,13 +332,13 @@ read_detected_object_set_yolo::priv
   // Strategy 5: Check in data.yaml or similar YOLO config files
   // Look for classes.names (common YOLO convention)
   classes_path = image_dir + "/classes.names";
-  if( kwiver::vital::file_exists( classes_path ) )
+  if( viame::file_exists( classes_path ) )
   {
     return classes_path;
   }
 
   classes_path = parent_dir + "/classes.names";
-  if( kwiver::vital::file_exists( classes_path ) )
+  if( viame::file_exists( classes_path ) )
   {
     return classes_path;
   }
@@ -352,7 +352,7 @@ bool
 read_detected_object_set_yolo::priv
 ::detect_image_dimensions( std::string const& image_path )
 {
-  if( !kwiver::vital::file_exists( image_path ) )
+  if( !viame::file_exists( image_path ) )
   {
     LOG_WARN( m_parent->logger(), "Image file does not exist: " << image_path );
     return false;
@@ -407,29 +407,29 @@ read_detected_object_set_yolo::priv
 ::find_label_file( std::string const& image_path )
 {
   // Get the base filename and replace extension with .txt
-  std::string base_name = kwiver::vital::filename_without_last_extension( image_path );
+  std::string base_name = viame::filename_without_last_extension( image_path );
   std::string txt_name = base_name + ".txt";
-  std::string image_dir = kwiver::vital::filename_path( image_path );
+  std::string image_dir = viame::filename_path( image_path );
 
   // Strategy 1: Same directory as image
   std::string label_path = image_dir + "/" + txt_name;
-  if( kwiver::vital::file_exists( label_path ) )
+  if( viame::file_exists( label_path ) )
   {
     return label_path;
   }
 
   // Strategy 2: ../labels/subdir/image.txt (parallel labels directory structure)
-  std::string parent_dir = kwiver::vital::filename_path( image_dir );
-  std::string subdir_name = kwiver::vital::filename_name( image_dir );
+  std::string parent_dir = viame::filename_path( image_dir );
+  std::string subdir_name = viame::filename_name( image_dir );
   label_path = parent_dir + "/labels/" + subdir_name + "/" + txt_name;
-  if( kwiver::vital::file_exists( label_path ) )
+  if( viame::file_exists( label_path ) )
   {
     return label_path;
   }
 
   // Strategy 3: ../labels/image.txt (simpler structure)
   label_path = parent_dir + "/labels/" + txt_name;
-  if( kwiver::vital::file_exists( label_path ) )
+  if( viame::file_exists( label_path ) )
   {
     return label_path;
   }
@@ -440,13 +440,13 @@ read_detected_object_set_yolo::priv
 
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 read_detected_object_set_yolo::priv
 ::read_labels( std::string const& label_path )
 {
-  auto det_set = std::make_shared< kwiver::vital::detected_object_set >();
+  auto det_set = std::make_shared< viame::detected_object_set >();
 
-  if( label_path.empty() || !kwiver::vital::file_exists( label_path ) )
+  if( label_path.empty() || !viame::file_exists( label_path ) )
   {
     // No label file means no detections for this image
     return det_set;
@@ -482,7 +482,7 @@ read_detected_object_set_yolo::priv
     }
 
     std::vector< std::string > tokens;
-    kwiver::vital::tokenize( line, tokens, " \t", kwiver::vital::TokenizeTrimEmpty );
+    viame::tokenize( line, tokens, " \t", viame::TokenizeTrimEmpty );
 
     if( tokens.size() < 5 )
     {
@@ -517,7 +517,7 @@ read_detected_object_set_yolo::priv
     double x2 = x_center + width / 2.0;
     double y2 = y_center + height / 2.0;
 
-    kwiver::vital::bounding_box_d bbox( x1, y1, x2, y2 );
+    viame::bounding_box_d bbox( x1, y1, x2, y2 );
 
     // Get class name
     std::string class_name;
@@ -531,11 +531,11 @@ read_detected_object_set_yolo::priv
     }
 
     // Create detected object type
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+    auto dot = std::make_shared< viame::detected_object_type >();
     dot->set_score( class_name, confidence );
 
     // Create and add detection
-    auto det = std::make_shared< kwiver::vital::detected_object >( bbox, confidence, dot );
+    auto det = std::make_shared< viame::detected_object >( bbox, confidence, dot );
     det_set->add( det );
   }
 
@@ -549,7 +549,7 @@ read_detected_object_set_yolo::priv
 ::read_all()
 {
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+  viame::data_stream_reader stream_reader( m_parent->stream() );
 
   m_image_list.clear();
   m_detection_by_str.clear();

@@ -16,11 +16,11 @@
 
 #include "adapter_base.h"
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 class KWIVER_ADAPTER_EXPORT output_adapter_process
-  : public sprokit::process,
+  : public viame::pipeline::process,
     public adapter::adapter_base
 {
 public:
@@ -31,7 +31,7 @@ public:
                "connections specified in the pipeline file." )
 
   // -- CONSTRUCTORS --
-  output_adapter_process( kwiver::vital::config_block_sptr const& config );
+  output_adapter_process( viame::config_block_sptr const& config );
   virtual ~output_adapter_process();
 
   // Process interface
@@ -59,6 +59,6 @@ private:
 
 }; // end class output_adapter_process
 
-} // end namespace
+} // namespace viame
 
 #endif // KWIVER_OUTPUT_ADAPTER_PROCESS_H

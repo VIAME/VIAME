@@ -15,10 +15,10 @@
 /**
  * \file edge_exception.h
  *
- * \brief Header for exceptions used within \link sprokit::edge edges\endlink.
+ * \brief Header for exceptions used within \link viame::pipeline::edge edges\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**

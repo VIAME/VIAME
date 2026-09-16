@@ -16,7 +16,7 @@
  * \brief Implementation of the tunable process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class tunable_process::priv
@@ -28,31 +28,31 @@ class tunable_process::priv
     std::string tunable;
     std::string const non_tunable;
 
-    static kwiver::vital::config_block_key_t const config_tunable;
-    static kwiver::vital::config_block_key_t const config_non_tunable;
+    static viame::config_block_key_t const config_tunable;
+    static viame::config_block_key_t const config_non_tunable;
     static port_t const port_tunable;
     static port_t const port_non_tunable;
 };
 
-kwiver::vital::config_block_key_t const tunable_process::priv::config_tunable = kwiver::vital::config_block_key_t("tunable");
-kwiver::vital::config_block_key_t const tunable_process::priv::config_non_tunable = kwiver::vital::config_block_key_t("non_tunable");
+viame::config_block_key_t const tunable_process::priv::config_tunable = viame::config_block_key_t("tunable");
+viame::config_block_key_t const tunable_process::priv::config_non_tunable = viame::config_block_key_t("non_tunable");
 process::port_t const tunable_process::priv::port_tunable = process::port_t("tunable");
 process::port_t const tunable_process::priv::port_non_tunable = process::port_t("non_tunable");
 
 tunable_process
-::tunable_process(kwiver::vital::config_block_sptr const& config)
+::tunable_process(viame::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_tunable,
-    kwiver::vital::config_block_value_t(),
-    kwiver::vital::config_block_description_t("The tunable output."),
+    viame::config_block_value_t(),
+    viame::config_block_description_t("The tunable output."),
     true);
   declare_configuration_key(
     priv::config_non_tunable,
-    kwiver::vital::config_block_value_t(),
-    kwiver::vital::config_block_description_t("The non-tunable output."));
+    viame::config_block_value_t(),
+    viame::config_block_description_t("The non-tunable output."));
 
   port_flags_t const none;
 
@@ -102,7 +102,7 @@ tunable_process
 
 void
 tunable_process
-::_reconfigure(kwiver::vital::config_block_sptr const& conf)
+::_reconfigure(viame::config_block_sptr const& conf)
 {
   d->tunable = config_value<std::string>(priv::config_tunable);
 

@@ -9,9 +9,7 @@
 
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 attribute_set_exception
@@ -52,12 +50,12 @@ attribute_set
 // ----------------------------------------------------------------------------
 void
 attribute_set
-::add( const std::string& name, const kwiver::vital::any& val )
+::add( const std::string& name, const viame::any& val )
 {
 #ifdef VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
-  m_attr_map[ name ] = std::make_unique< kwiver::vital::any >( val );
+  m_attr_map[ name ] = std::make_unique< viame::any >( val );
 #else
-  m_attr_map[ name ] = std::make_shared< kwiver::vital::any >( val );
+  m_attr_map[ name ] = std::make_shared< viame::any >( val );
 #endif
 }
 
@@ -110,7 +108,7 @@ attribute_set
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::any
+viame::any
 attribute_set
 ::data( const std::string& name ) const
 {
@@ -125,6 +123,4 @@ attribute_set
   return *( ix->second );
 }
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame

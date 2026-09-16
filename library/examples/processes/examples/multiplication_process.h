@@ -15,7 +15,7 @@
  * \brief Declaration of the multiplication process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class multiplication_process
@@ -51,7 +51,7 @@ public:
    * \param config The configuration for the process.
    */
 
-  multiplication_process(kwiver::vital::config_block_sptr const& config);
+  multiplication_process(viame::config_block_sptr const& config);
   /**
    * \brief Destructor.
    */

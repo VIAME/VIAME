@@ -12,30 +12,26 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for converting base image type
 class VITAL_ALGO_EXPORT split_image
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   split_image();
   PLUGGABLE_INTERFACE( split_image );
   /// Split image
-  virtual std::vector< kwiver::vital::image_container_sptr >
-  split( kwiver::vital::image_container_sptr img ) const = 0;
+  virtual std::vector< viame::image_container_sptr >
+  split( viame::image_container_sptr img ) const = 0;
 };
 
 typedef std::shared_ptr< split_image > split_image_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_SPLIT_IMAGE_H_

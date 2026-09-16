@@ -9,9 +9,7 @@
 
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace logger_ns {
 
@@ -57,9 +55,7 @@ private:
 
 } // namespace logger_ns
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame
 
 #if defined( _MSC_VER )
 #if _MSC_VER >= 1300
@@ -75,7 +71,7 @@ private:
 #endif
 
 #define KWIVER_LOGGER_SITE                 \
-::kwiver::vital::logger_ns::location_info( \
+::viame::logger_ns::location_info( \
   __FILE__,                                \
   __KWIVER_LOGGER_FUNC__,                  \
   __LINE__ )

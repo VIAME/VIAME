@@ -29,7 +29,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 
 /// Private implementation class
@@ -56,7 +56,7 @@ class refine_detections_svm::priv
   void dealloc_models();
   void load_models( const std::string& model_dir );
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   std::map<std::string, double> apply_svms( svm_node *x ) const;
 };

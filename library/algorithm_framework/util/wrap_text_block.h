@@ -9,9 +9,7 @@
 
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Format long text into wrapped text block.
@@ -57,8 +55,6 @@ private:
   size_t m_line_length;
 }; // end class wrap_text_block
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_UTIL_WRAP_TEXT_BLOCK_H

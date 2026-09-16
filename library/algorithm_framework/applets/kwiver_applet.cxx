@@ -9,11 +9,11 @@
 #include <viame/algorithm_framework/config/config_block_io.h>
 #include <viame/algorithm_framework/util/get_paths.h>
 
-namespace kwiver {
+namespace viame {
 
 namespace tools {
 
-namespace kv = ::kwiver::vital;
+namespace kv = ::viame;
 
 // ----------------------------------------------------------------------------
 kwiver_applet
@@ -65,7 +65,7 @@ kwiver_applet
 // ----------------------------------------------------------------------------
 void
 kwiver_applet
-::initialize( kwiver::tools::applet_context* ctxt )
+::initialize( viame::tools::applet_context* ctxt )
 {
   m_context = ctxt;
   m_cmd_options.reset( new cxxopts::Options( applet_name(), "" ) );
@@ -111,14 +111,14 @@ kwiver_applet
 }
 
 // ----------------------------------------------------------------------------
-vital::config_block_sptr
+viame::config_block_sptr
 kwiver_applet
 ::get_configuration() const
 {
-  vital::config_block_sptr cb = vital::config_block::empty_config();
+  viame::config_block_sptr cb = viame::config_block::empty_config();
   return cb;
 }
 
 } // namespace tools
 
-}   // end namespace kwiver
+} // namespace viame

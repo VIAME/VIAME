@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/compute_stereo_depth_map.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class compute_stereo_depth_map_base = kwiver::vital::algo::compute_stereo_depth_map >
+template< class compute_stereo_depth_map_base = viame::algo::compute_stereo_depth_map >
 class compute_stereo_depth_map_trampoline
     : public algorithm_trampoline< compute_stereo_depth_map_base >
 {
@@ -21,17 +21,17 @@ class compute_stereo_depth_map_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::image_container_sptr
-  compute(::kwiver::vital::image_container_sptr left_image, ::kwiver::vital::image_container_sptr right_image) const override
+  viame::image_container_sptr
+  compute(::viame::image_container_sptr left_image, ::viame::image_container_sptr right_image) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::image_container_sptr,
-      kwiver::vital::algo::compute_stereo_depth_map,
+      viame::image_container_sptr,
+      viame::algo::compute_stereo_depth_map,
       compute,
       left_image, right_image
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

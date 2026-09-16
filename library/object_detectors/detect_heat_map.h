@@ -18,9 +18,7 @@
 
 #include "viame_object_detectors_export.h"
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
@@ -51,7 +49,7 @@ namespace ocv {
 /// global optimum, as map cover problems are np hard.
 ///
 class VIAME_OBJECT_DETECTORS_EXPORT detect_heat_map
-  : public vital::algo::image_object_detector
+  : public viame::algo::image_object_detector
 {
 public:
   // "detect_heat_map",
@@ -145,8 +143,8 @@ public:
   /// Destructor
   virtual ~detect_heat_map() noexcept;
 
-  /// Check that the algorithm's configuration vital::config_block is valid
-  bool check_configuration( vital::config_block_sptr config ) const override;
+  /// Check that the algorithm's configuration viame::config_block is valid
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
   /// Find all objects on the provided image
   ///
@@ -155,22 +153,20 @@ public:
   ///
   /// \param image_data the image pixels
   /// \returns vector of image objects found
-  kwiver::vital::detected_object_set_sptr
-  detect( kwiver::vital::image_container_sptr image_data ) const override;
+  viame::detected_object_set_sptr
+  detect( viame::image_container_sptr image_data ) const override;
 
 private:
   void initialize()  override;
-  void set_configuration_internal( vital::config_block_sptr config ) override;
+  void set_configuration_internal( viame::config_block_sptr config ) override;
   // private implementation class
   class priv;
 
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

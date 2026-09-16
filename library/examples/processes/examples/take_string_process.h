@@ -15,7 +15,7 @@
  * \brief Declaration of the string taking process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class take_string_process
@@ -45,7 +45,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  take_string_process(kwiver::vital::config_block_sptr const& config);
+  take_string_process(viame::config_block_sptr const& config);
 
   /**
    * \brief Destructor.

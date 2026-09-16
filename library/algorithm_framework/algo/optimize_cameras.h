@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header defining abstract \link kwiver::vital::algo::optimize_cameras
+/// \brief Header defining abstract \link viame::algo::optimize_cameras
 /// camera
 ///        optimization \endlink algorithm
 
@@ -19,15 +19,13 @@
 #include <viame/core_types/landmark_map.h>
 #include <viame/core_types/sfm_constraints.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// Abstract algorithm definition base for optimizing cameras
 class VITAL_ALGO_EXPORT optimize_cameras
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   optimize_cameras();
@@ -48,10 +46,10 @@ public:
   ///                          optimization.
   virtual void
   optimize(
-    kwiver::vital::camera_map_sptr& cameras,
-    kwiver::vital::feature_track_set_sptr tracks,
-    kwiver::vital::landmark_map_sptr landmarks,
-    kwiver::vital::sfm_constraints_sptr constraints = nullptr ) const;
+    viame::camera_map_sptr& cameras,
+    viame::feature_track_set_sptr tracks,
+    viame::landmark_map_sptr landmarks,
+    viame::sfm_constraints_sptr constraints = nullptr ) const;
 
   /// Optimize a single camera given corresponding features and landmarks
   ///
@@ -68,10 +66,10 @@ public:
   ///                          optimization.
   virtual void
   optimize(
-    kwiver::vital::camera_perspective_sptr& camera,
-    const std::vector< kwiver::vital::feature_sptr >& features,
-    const std::vector< kwiver::vital::landmark_sptr >& landmarks,
-    kwiver::vital::sfm_constraints_sptr constraints = nullptr ) const = 0;
+    viame::camera_perspective_sptr& camera,
+    const std::vector< viame::feature_sptr >& features,
+    const std::vector< viame::landmark_sptr >& landmarks,
+    viame::sfm_constraints_sptr constraints = nullptr ) const = 0;
 };
 
 /// Type definition for shared pointer to an optimize cameras algorithm
@@ -79,8 +77,6 @@ typedef std::shared_ptr< optimize_cameras > optimize_cameras_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_OPTIMIZE_CAMERAS_H_

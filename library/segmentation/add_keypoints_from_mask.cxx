@@ -35,7 +35,7 @@
 #include <cmath>
 #include <limits>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace io = viame::image_ops;
 
 namespace viame

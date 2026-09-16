@@ -16,7 +16,7 @@
 
 #include <memory>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -40,13 +40,13 @@ public:
     virtual ~context() = default;
 
     // Returns pointer to pipeline object
-    virtual sprokit::pipeline_t pipeline() = 0;
+    virtual viame::pipeline::pipeline_t pipeline() = 0;
 
     // Returns a logger handle
-    virtual vital::logger_handle_t logger() = 0;
+    virtual viame::logger_handle_t logger() = 0;
 
     // Returns the whole pipeline config
-    virtual kwiver::vital::config_block_sptr pipe_config() = 0;
+    virtual viame::config_block_sptr pipe_config() = 0;
   };
 
   // -- CONSTRUCTORS --
@@ -95,7 +95,7 @@ public:
    *
    * @param conf Configuration block.
    */
-  virtual void configure( [[maybe_unused]] kwiver::vital::config_block_sptr const conf );
+  virtual void configure( [[maybe_unused]] viame::config_block_sptr const conf );
 
   /**
    * @brief Get default configuration block.
@@ -109,7 +109,7 @@ public:
    *
    * @return Pointer to config block.
    */
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
+  virtual viame::config_block_sptr get_configuration() const;
 
 protected:
   embedded_pipeline_extension();
@@ -122,7 +122,7 @@ using embedded_pipeline_extension_sptr = std::shared_ptr< embedded_pipeline_exte
 // ============================================================================
 /// Factory class for embedded pipeline extensions
 class KWIVER_ADAPTER_EXPORT epx_factory
-  : public kwiver::vital::plugin_factory
+  : public viame::plugin_factory
 {
 public:
   epx_factory( const std::string& type,
@@ -139,12 +139,12 @@ public:
   virtual embedded_pipeline_extension_sptr create_object() = 0;
 
   // Implement pure virtual methods from plugin_factory base class
-  kwiver::vital::pluggable_sptr from_config( kwiver::vital::config_block_sptr const ) const override
+  viame::pluggable_sptr from_config( viame::config_block_sptr const ) const override
   {
     return nullptr;
   }
 
-  void get_default_config( kwiver::vital::config_block& ) const override
+  void get_default_config( viame::config_block& ) const override
   {
   }
 };
@@ -181,7 +181,7 @@ class embedded_pipeline_extension_registrar
   : public plugin_registrar
 {
 public:
-  embedded_pipeline_extension_registrar( kwiver::vital::registry& p_vpl,
+  embedded_pipeline_extension_registrar( viame::registry& p_vpl,
                     const std::string& p_module_name )
     : plugin_registrar( p_vpl, p_module_name )
   {
@@ -209,25 +209,25 @@ public:
    * @return the registry reference is returned.
    */
   template <typename epx_t>
-  kwiver::vital::plugin_factory_handle_t register_EPX()
+  viame::plugin_factory_handle_t register_EPX()
   {
-    using kvpf = kwiver::vital::plugin_factory;
+    using kvpf = viame::plugin_factory;
 
-    kwiver::vital::plugin_factory* fact = new epx_factory_impl< epx_t >(
+    viame::plugin_factory* fact = new epx_factory_impl< epx_t >(
       epx_t::_plugin_name,
-      typeid( kwiver::embedded_pipeline_extension ).name(),
+      typeid( viame::embedded_pipeline_extension ).name(),
       typeid( epx_t ).name() );
 
     fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  epx_t::_plugin_description )
       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  this->module_name() )
       .add_attribute( kvpf::PLUGIN_ORGANIZATION, this->organization() )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "embedded-pipeline-extension" )
+      .add_attribute( viame::plugin_factory::PLUGIN_CATEGORY, "embedded-pipeline-extension" )
       ;
 
     return registry().add_factory( fact );
   }
 };
 
-} // end namespace
+} // namespace viame
 
 #endif // PROCESS_ADAPTERS_EMBEDDED_PIPELINE_EXTENSION_H_

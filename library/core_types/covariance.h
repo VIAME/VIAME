@@ -16,9 +16,7 @@
 
 #include <viame/core_types/matrix.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// A representation of covariance of a measurement
 template < size_t N, typename T >
@@ -201,8 +199,6 @@ using covariance_4d = covariance_< 4, double >;
 using covariance_4f = covariance_< 4, float >;
 /// \endcond
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_COVARIANCE_H_

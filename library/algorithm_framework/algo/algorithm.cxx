@@ -10,14 +10,12 @@
 
 #include "algorithm.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 algorithm
 ::algorithm()
-  : m_logger( kwiver::vital::get_logger( "vital.algorithm" ) )
+  : m_logger( viame::get_logger( "vital.algorithm" ) )
 {}
 
 // ----------------------------------------------------------------------------
@@ -25,7 +23,7 @@ void
 algorithm
 ::attach_logger( std::string const& name )
 {
-  m_logger = kwiver::vital::get_logger( name );
+  m_logger = viame::get_logger( name );
 }
 
 // ----------------------------------------------------------------------------
@@ -37,7 +35,7 @@ algorithm
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::logger_handle_t
+viame::logger_handle_t
 algorithm
 ::logger() const
 {
@@ -57,13 +55,13 @@ config_block_sptr
 algorithm
 ::get_configuration() const
 {
-  return kwiver::vital::config_block::empty_config();
+  return viame::config_block::empty_config();
 }
 
 // ----------------------------------------------------------------------------
 void
 algorithm
-::get_default_config( [[maybe_unused]] kwiver::vital::config_block& cb )
+::get_default_config( [[maybe_unused]] viame::config_block& cb )
 {}
 
 // ----------------------------------------------------------------------------
@@ -78,6 +76,4 @@ algorithm
 ::set_configuration_internal( [[maybe_unused]] config_block_sptr config )
 {}
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

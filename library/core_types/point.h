@@ -18,9 +18,7 @@
 
 #include <memory>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 template < unsigned N, typename T >
 class VITAL_TYPES_EXPORT point
@@ -112,8 +110,6 @@ VITAL_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream&,
   point_4f const& );
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

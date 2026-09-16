@@ -4,7 +4,7 @@
 
 #include "token.h"
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ------------------------------------------------------------------
 token::token()
@@ -143,4 +143,4 @@ token::format( std::ostream& str ) const
   return str;
 }
 
-} // end namespace
+} // namespace viame::pipeline

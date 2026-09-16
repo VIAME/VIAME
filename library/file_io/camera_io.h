@@ -24,8 +24,8 @@ namespace viame {
 ///
 /// \param file_path   The path to the file to read in.
 /// \return A new camera object representing the contents of the read-in file.
-kwiver::vital::camera_perspective_sptr
-VIAME_FILE_IO_EXPORT read_krtd_file( kwiver::vital::path_t const& file_path );
+viame::camera_perspective_sptr
+VIAME_FILE_IO_EXPORT read_krtd_file( viame::path_t const& file_path );
 
 /// Read in a KRTD file, producing a camera object
 ///
@@ -40,9 +40,9 @@ VIAME_FILE_IO_EXPORT read_krtd_file( kwiver::vital::path_t const& file_path );
 ///    The directory path containing the KRTD file for the given image.
 /// \return
 ///    A new camera object representing the contents of the read-in file.
-kwiver::vital::camera_perspective_sptr
-VIAME_FILE_IO_EXPORT read_krtd_file( kwiver::vital::path_t const& image_file,
-                                   kwiver::vital::path_t const& camera_dir );
+viame::camera_perspective_sptr
+VIAME_FILE_IO_EXPORT read_krtd_file( viame::path_t const& image_file,
+                                   viame::path_t const& camera_dir );
 
 /// Output the given \c camera object to the specified file path
 ///
@@ -56,8 +56,8 @@ VIAME_FILE_IO_EXPORT read_krtd_file( kwiver::vital::path_t const& image_file,
 /// \param cam       The \c camera object to output.
 /// \param file_path The path to output the file to.
 void
-VIAME_FILE_IO_EXPORT write_krtd_file( kwiver::vital::camera_perspective const& cam,
-                                    kwiver::vital::path_t const& file_path );
+VIAME_FILE_IO_EXPORT write_krtd_file( viame::camera_perspective const& cam,
+                                    viame::path_t const& file_path );
 
 } // namespace viame
 

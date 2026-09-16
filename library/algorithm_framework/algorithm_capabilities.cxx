@@ -6,9 +6,7 @@
 
 #include <map>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 class algorithm_capabilities::priv
@@ -93,6 +91,4 @@ algorithm_capabilities
   d->m_capabilities[ name ] = val;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

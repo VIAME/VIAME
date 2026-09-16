@@ -6,12 +6,8 @@
 
 #include "class_map.txx"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 template class class_map< activity_type_tag >;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

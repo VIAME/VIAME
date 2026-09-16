@@ -17,7 +17,7 @@
 
 #include <memory>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -92,8 +92,8 @@ accumulate_image_statistics_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -146,7 +146,7 @@ accumulate_image_statistics_process
 
   // Check if input is complete
   auto port_info = peek_at_port_using_trait( image );
-  auto is_input_complete = port_info.datum->type() == sprokit::datum::complete;
+  auto is_input_complete = port_info.datum->type() == viame::pipeline::datum::complete;
 
   if( is_input_complete )
   {
@@ -158,7 +158,7 @@ accumulate_image_statistics_process
     push_to_port_using_trait( image_height, static_cast<int64_t>( d->m_image_height ) );
 
     // Push complete datums to signal downstream processes
-    const auto complete_dat = sprokit::datum::complete_datum();
+    const auto complete_dat = viame::pipeline::datum::complete_datum();
     push_datum_to_port_using_trait( image_width, complete_dat );
     push_datum_to_port_using_trait( image_height, complete_dat );
 
@@ -167,7 +167,7 @@ accumulate_image_statistics_process
   else
   {
     // Send empty datum while still processing
-    const auto dat = sprokit::datum::empty_datum();
+    const auto dat = viame::pipeline::datum::empty_datum();
     push_datum_to_port_using_trait( image_width, dat );
     push_datum_to_port_using_trait( image_height, dat );
   }

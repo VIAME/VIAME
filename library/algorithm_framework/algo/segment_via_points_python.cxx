@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "segment_via_points_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void segment_via_points(py::module& m)
@@ -19,15 +19,15 @@ void segment_via_points(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::segment_via_points,
-               std::shared_ptr<kwiver::vital::algo::segment_via_points>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::segment_via_points,
+               std::shared_ptr<viame::algo::segment_via_points>,
+               viame::algorithm,
                segment_via_points_trampoline<> > instance(m,  "SegmentViaPoints");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::segment_via_points::interface_name)
-    .def("segment", &kwiver::vital::algo::segment_via_points::segment, py::doc(R"( Perform point-based segmentation on an image.
+    .def_static("interface_name", &viame::algo::segment_via_points::interface_name)
+    .def("segment", &viame::algo::segment_via_points::segment, py::doc(R"( Perform point-based segmentation on an image.
 
  \param image The image to segment
 
@@ -46,7 +46,7 @@ void segment_via_points(py::module& m)
           - Binary mask of the segmented region
 )"), py::arg("image"), py::arg("points"), py::arg("point_labels"))
     ;
-  register_algorithm< kwiver::vital::algo::segment_via_points > (instance);
+  register_algorithm< viame::algo::segment_via_points > (instance);
 }
 
 }

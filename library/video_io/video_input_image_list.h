@@ -12,9 +12,7 @@
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -29,7 +27,7 @@ namespace core {
 ///   # select reader type
 ///   image_reader:type = vxl
 class VIAME_VIDEO_IO_EXPORT video_input_image_list
-  : public vital::algo::video_input
+  : public viame::algo::video_input
 {
 public:
   PLUGGABLE_IMPL(
@@ -71,20 +69,20 @@ public:
       "to make use of this process for its output filenames.",
       false ),
     PARAM(
-      image_reader, kwiver::vital::algo::image_io_sptr,
+      image_reader, viame::algo::image_io_sptr,
       "Algorithm to use for reading the images" )
   );
 
   virtual ~video_input_image_list();
 
   /// Check that the algorithm's currently configuration is valid.
-  bool check_configuration( vital::config_block_sptr config ) const override;
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
   /// Path of the image currently being read.
   ///
   /// The base class returns an empty string, which leaves consumers such as
   /// video_input_process with no per-frame name to pass downstream.
-  kwiver::vital::path_t filename() const override;
+  viame::path_t filename() const override;
 
   /// \brief Open a list of images.
   ///
@@ -100,23 +98,23 @@ public:
   size_t num_frames() const override;
 
   bool next_frame(
-    vital::time_usec_t timeout = 0 ) override;
+    viame::time_usec_t timeout = 0 ) override;
 
   bool seek_frame(
-    vital::timestamp::frame_t frame_number,
-    vital::time_usec_t timeout = 0 ) override;
+    viame::timestamp::frame_t frame_number,
+    viame::time_usec_t timeout = 0 ) override;
   bool seek_time(
-    vital::timestamp::time_t time_usec,
-    vital::time_usec_t timeout = 0 ) override;
+    viame::timestamp::time_t time_usec,
+    viame::time_usec_t timeout = 0 ) override;
 
-  kwiver::vital::timestamp frame_timestamp() const override;
-  kwiver::vital::image_container_sptr frame_image() override;
-  kwiver::vital::metadata_vector frame_metadata() override;
+  viame::timestamp frame_timestamp() const override;
+  viame::image_container_sptr frame_image() override;
+  viame::metadata_vector frame_metadata() override;
 
 protected:
   void initialize() override;
   void set_configuration_internal(
-    vital::config_block_sptr in_config ) override;
+    viame::config_block_sptr in_config ) override;
 
 private:
   /// \brief Private implementation class.
@@ -127,8 +125,6 @@ private:
 
 } // namespace core
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

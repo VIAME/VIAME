@@ -27,11 +27,11 @@ namespace core
  * @brief Split an object track set into a feature_track_set and a landmark_map
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT split_tracks_to_feature_landmarks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  split_tracks_to_feature_landmarks_process( kwiver::vital::config_block_sptr const& config );
+  split_tracks_to_feature_landmarks_process( viame::config_block_sptr const& config );
   virtual ~split_tracks_to_feature_landmarks_process();
 
 protected:

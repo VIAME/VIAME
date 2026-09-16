@@ -45,10 +45,10 @@ constexpr char const* fallback_name = "pil";
 std::string
 plane_filename( std::string const& filename, unsigned index )
 {
-  auto const directory = kwiver::vital::parent_directory( filename );
-  auto const name = kwiver::vital::filename_name( filename );
-  auto const stem = kwiver::vital::filename_without_last_extension( name );
-  auto const extension = kwiver::vital::filename_last_extension( name );
+  auto const directory = viame::parent_directory( filename );
+  auto const name = viame::filename_name( filename );
+  auto const stem = viame::filename_without_last_extension( name );
+  auto const extension = viame::filename_last_extension( name );
 
   auto const suffix = ( index > 0 ) ? "_" + std::to_string( index )
                                     : std::string();
@@ -61,8 +61,8 @@ plane_filename( std::string const& filename, unsigned index )
 // ----------------------------------------------------------------------------
 /// Stack \p planes, which all have to share a size, into one image.
 template < typename T >
-kwiver::vital::image_of< T >
-stack_planes( std::vector< kwiver::vital::image_of< T > > const& planes )
+viame::image_of< T >
+stack_planes( std::vector< viame::image_of< T > > const& planes )
 {
   size_t depth = 0;
 
@@ -71,7 +71,7 @@ stack_planes( std::vector< kwiver::vital::image_of< T > > const& planes )
     depth += plane.depth();
   }
 
-  kwiver::vital::image_of< T > result(
+  viame::image_of< T > result(
     planes[ 0 ].width(), planes[ 0 ].height(), depth );
 
   size_t target = 0;
@@ -109,15 +109,15 @@ public:
   /// Made lazily rather than in `initialize`, because a build without python
   /// has no `pil` and most reads never need it; a missing fallback should
   /// only be an error for the file that actually wanted one.
-  kwiver::vital::algo::image_io_sptr
+  viame::algo::image_io_sptr
   fallback( std::string const& filename, std::string const& reason ) const
   {
     if( !m_fallback )
     {
-      kwiver::vital::implementation_factory_by_name<
-        kwiver::vital::algo::image_io > factory;
+      viame::implementation_factory_by_name<
+        viame::algo::image_io > factory;
       m_fallback = factory.create(
-        fallback_name, kwiver::vital::config_block::empty_config() );
+        fallback_name, viame::config_block::empty_config() );
 
       if( !m_fallback )
       {
@@ -132,18 +132,18 @@ public:
 
   /// Read one file, in house where possible and through the fallback where
   /// not.
-  kwiver::vital::image_container_sptr
+  viame::image_container_sptr
   decode( std::string const& filename ) const
   {
     std::string reason;
 
     if( viame::codecs::can_read( filename, reason ) )
     {
-      auto out = std::make_shared< kwiver::vital::simple_image_container >(
+      auto out = std::make_shared< viame::simple_image_container >(
         viame::codecs::read( filename ) );
 
-      auto md = std::make_shared< kwiver::vital::metadata >();
-      md->add< kwiver::vital::VITAL_META_IMAGE_URI >( filename );
+      auto md = std::make_shared< viame::metadata >();
+      md->add< viame::VITAL_META_IMAGE_URI >( filename );
       out->set_metadata( md );
 
       return out;
@@ -160,7 +160,7 @@ public:
   /// not.
   void
   encode( std::string const& filename,
-          kwiver::vital::image_container_sptr data ) const
+          viame::image_container_sptr data ) const
   {
     std::string reason;
 
@@ -183,7 +183,7 @@ public:
   manual_bounds( T& low, T& high ) const
   {
     std::vector< std::string > tokens;
-    kwiver::vital::tokenize( m_parent.get_intensity_range(), tokens, " ",
+    viame::tokenize( m_parent.get_intensity_range(), tokens, " ",
                              true );
 
     double values[ 2 ] = { 0.0, 255.0 };
@@ -199,8 +199,8 @@ public:
 
   /// Apply the configured range handling, producing \p Out pixels.
   template < typename Out, typename In >
-  kwiver::vital::image_of< Out >
-  convert( kwiver::vital::image_of< In > const& input ) const
+  viame::image_of< Out >
+  convert( viame::image_of< In > const& input ) const
   {
     // A byte target scales straight into the byte rather than through a
     // double image; the two differ in where the top value lands
@@ -248,7 +248,7 @@ public:
   }
 
 private:
-  mutable kwiver::vital::algo::image_io_sptr m_fallback;
+  mutable viame::algo::image_io_sptr m_fallback;
 };
 
 // ----------------------------------------------------------------------------
@@ -320,7 +320,7 @@ core_image_io
         {
           auto const plane_file = plane_filename( filename, index );
 
-          if( !kwiver::vital::file_exists( plane_file ) )
+          if( !viame::file_exists( plane_file ) )
           {
             break;
           }

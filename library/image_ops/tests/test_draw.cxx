@@ -26,7 +26,7 @@
 #include <vector>
 
 namespace io = viame::image_ops;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace golden_image = viame::testing::golden_image;
 
@@ -124,7 +124,7 @@ TEST ( draw, concatenation_matches_opencv )
 {
   auto const image = golden_image::input( "hconcat" );
 
-  // A fresh image, not a copy: `vital::image` copies share their memory, so
+  // A fresh image, not a copy: `viame::image` copies share their memory, so
   // writing into a copy while reading the original reads what was just
   // written
   kv::image_of< uint8_t > mirrored_i( image.width(), image.height(), 1 );

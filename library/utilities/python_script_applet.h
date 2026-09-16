@@ -31,7 +31,7 @@ VIAME_UTILITIES_EXPORT int run_tool_script( const std::string& script,
 /// then tells the tool runner to skip its own argument parsing, so every
 /// argument reaches the script untouched and the script owns its command line.
 class VIAME_UTILITIES_EXPORT python_script_applet
-  : public kwiver::tools::kwiver_applet
+  : public viame::tools::kwiver_applet
 {
 public:
   int run() override;

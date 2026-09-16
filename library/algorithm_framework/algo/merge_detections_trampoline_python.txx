@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/merge_detections.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class merge_detections_base = kwiver::vital::algo::merge_detections >
+template< class merge_detections_base = viame::algo::merge_detections >
 class merge_detections_trampoline
     : public algorithm_trampoline< merge_detections_base >
 {
@@ -21,17 +21,17 @@ class merge_detections_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::detected_object_set_sptr
-  merge(::std::vector<std::shared_ptr<kwiver::vital::detected_object_set> > const & sets) const override
+  viame::detected_object_set_sptr
+  merge(::std::vector<std::shared_ptr<viame::detected_object_set> > const & sets) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::detected_object_set_sptr,
-      kwiver::vital::algo::merge_detections,
+      viame::detected_object_set_sptr,
+      viame::algo::merge_detections,
       merge,
       sets
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

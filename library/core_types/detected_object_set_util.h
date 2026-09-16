@@ -8,9 +8,7 @@
 #include "detected_object_set.h"
 #include <viame/core_types/vital_types_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// @brief Scale all detection locations by some scale factor.
 ///
@@ -40,8 +38,6 @@ shift_detections(
   detected_object_set_sptr dos,
   double col_shift, double row_shift );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_DETECTED_OBJECT_SET_UTIL_H

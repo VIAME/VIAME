@@ -26,9 +26,7 @@
 #include <shlobj.h>
 #endif
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -37,7 +35,7 @@ std::string
 guess_install_prefix()
 {
   auto const& exe_path = get_executable_path();
-  auto const& last = kwiver::vital::filename_name( exe_path );
+  auto const& last = viame::filename_name( exe_path );
 
   return ( last == "bin" ? exe_path + "/.." : exe_path );
 }
@@ -52,7 +50,7 @@ add_windows_path( config_path_list_t& paths, int which )
   if( SHGetFolderPath( 0, which, 0, 0, buffer ) )
   {
     auto path = config_path_t{ buffer };
-    kwiver::vital::convert_to_unix_slashes( path );
+    viame::convert_to_unix_slashes( path );
     paths.push_back( path );
   }
 }
@@ -94,7 +92,7 @@ append_kwiver_config_paths( config_path_list_t& path_vector )
 {
   // Current working directory always takes precedence
   path_vector.push_back( "." );
-  kwiver::vital::environment_path( "KWIVER_CONFIG_PATH", path_vector );
+  viame::environment_path( "KWIVER_CONFIG_PATH", path_vector );
 }
 
 // ----------------------------------------------------------------------------
@@ -116,7 +114,7 @@ application_config_file_paths_helper(
   add_windows_path( data_paths, CSIDL_APPDATA );
   add_windows_path( data_paths, CSIDL_COMMON_APPDATA );
 #else
-  auto const home = kwiver::vital::get_env( "HOME" );
+  auto const home = viame::get_env( "HOME" );
 
 #if defined( __APPLE__ )
   if( home && *home )
@@ -129,7 +127,7 @@ application_config_file_paths_helper(
 
   // Get the list of configuration data paths
   auto config_paths = config_path_list_t{};
-  kwiver::vital::environment_path( "XDG_CONFIG_HOME", config_paths );
+  viame::environment_path( "XDG_CONFIG_HOME", config_paths );
   if( home && *home )
   {
     config_paths.push_back( config_path_t( home ) + "/.config" );
@@ -223,7 +221,7 @@ application_config_file_paths(
   }
 
   auto* const env =
-    kwiver::vital::get_env( "KWIVER_CONFIG_PREFIX" );
+    viame::get_env( "KWIVER_CONFIG_PREFIX" );
   if( env && *env )
   {
     auto const& kwiver_env_paths =
@@ -276,21 +274,21 @@ read_config_file(
   bool use_system_paths )
 {
   // The file specified really must be a file.
-  if( !kwiver::vital::file_exists( file_path ) )
+  if( !viame::file_exists( file_path ) )
   {
     VITAL_THROW(
       config_file_not_found_exception, file_path,
       "File does not exist." );
   }
 
-  if( kwiver::vital::file_is_directory( file_path ) )
+  if( viame::file_is_directory( file_path ) )
   {
     VITAL_THROW(
       config_file_not_found_exception, file_path,
       "Path given doesn't point to a regular file." );
   }
 
-  kwiver::vital::config_parser the_parser;
+  viame::config_parser the_parser;
   if( use_system_paths )
   {
     auto kw_config_paths = config_path_list_t{};
@@ -322,7 +320,7 @@ read_config_file(
       install_prefix );
 
   // See if file name is an absolute path. If so, then just process the file.
-  if( kwiver::vital::file_is_full_path( file_name ) )
+  if( viame::file_is_full_path( file_name ) )
   {
     // The file is on a absolute path.
     auto const& config = read_config_file( file_name, search_paths, true );
@@ -344,8 +342,8 @@ read_config_file(
     // Cant use the parsers exception as an indication of a bad file
     // because the parser will throw the same exception if an include
     // file is not found.
-    if( !kwiver::vital::file_exists( config_path ) ||
-        kwiver::vital::file_is_directory( config_path ) )
+    if( !viame::file_exists( config_path ) ||
+        viame::file_is_directory( config_path ) )
     {
       continue;
     }
@@ -389,7 +387,7 @@ find_config_file(
   bool find_all )
 {
   // If the file name is an absolute path, just return it
-  if( kwiver::vital::file_is_full_path( file_name ) )
+  if( viame::file_is_full_path( file_name ) )
   {
     return { file_name };
   }
@@ -405,8 +403,8 @@ find_config_file(
   {
     auto const& config_path = search_path + "/" + file_name;
 
-    if( kwiver::vital::file_exists( config_path ) &&
-        !kwiver::vital::file_is_directory( config_path ) )
+    if( viame::file_exists( config_path ) &&
+        !viame::file_is_directory( config_path ) )
     {
       if( !find_all )
       {
@@ -430,7 +428,7 @@ write_config_file(
   using std::endl;
 
   // If the given path is a directory, we obviously can't write to it.
-  if( kwiver::vital::file_is_directory( file_path ) )
+  if( viame::file_is_directory( file_path ) )
   {
     VITAL_THROW(
       config_file_write_exception, file_path,
@@ -439,11 +437,11 @@ write_config_file(
 
   // Check that the directory of the given filepath exists, creating necessary
   // directories where needed.
-  config_path_t parent_dir = kwiver::vital::filename_path(
-    kwiver::vital::collapse_full_path( file_path ) );
-  if( !kwiver::vital::file_is_directory( parent_dir ) )
+  config_path_t parent_dir = viame::filename_path(
+    viame::collapse_full_path( file_path ) );
+  if( !viame::file_is_directory( parent_dir ) )
   {
-    if( !kwiver::vital::make_directory( parent_dir ) )
+    if( !viame::make_directory( parent_dir ) )
     {
       VITAL_THROW(
         config_file_write_exception, parent_dir,
@@ -484,7 +482,7 @@ write_config(
   config_block_keys_t avail_keys = config->available_values();
   std::sort( avail_keys.begin(), avail_keys.end() );
 
-  kwiver::vital::wrap_text_block wtb;
+  viame::wrap_text_block wtb;
   wtb.set_indent_string( "# " );
   wtb.set_line_length( 80 );
 
@@ -527,6 +525,4 @@ write_config(
   ofile.flush();
 } // write_config_file
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame

@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // ----------------------------------------------------------------
@@ -30,15 +30,15 @@ namespace kwiver
  *
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT track_objects_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "track_objects",
                "Tracks detected objects across frames.")
 
-  typedef sprokit::process base_t;
+  typedef viame::pipeline::process base_t;
 
-  track_objects_process( kwiver::vital::config_block_sptr const& config );
+  track_objects_process( viame::config_block_sptr const& config );
   virtual ~track_objects_process();
 
 protected:
@@ -53,5 +53,5 @@ private:
     const std::unique_ptr<priv> d;
  }; // end class track_objects_process
 
-} // end namespace
+} // namespace viame
 #endif /* _KWIVER_TRACK_OBJECTS_PROCESS_H_ */

@@ -13,7 +13,7 @@ namespace viame {
 namespace tools {
 
 class VIAME_TOOLS_APPLETS_EXPORT registry_dump_applet
-  : public kwiver::tools::kwiver_applet
+  : public viame::tools::kwiver_applet
 {
 public:
   PLUGIN_INFO( "registry-dump",

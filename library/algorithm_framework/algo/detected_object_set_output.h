@@ -16,9 +16,7 @@
 #include <fstream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -33,7 +31,7 @@ namespace algo {
 /// usually the file name, and an associated wet of detections.
 ///
 class VITAL_ALGO_EXPORT detected_object_set_output
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   virtual ~detected_object_set_output();
@@ -46,10 +44,10 @@ public:
   ///
   /// \param filename Name of file to open
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the given path does not
+  /// \throws viame::path_not_exists Thrown when the given path does not
   /// exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file Thrown when the given path does
+  /// \throws viame::path_not_a_file Thrown when the given path does
   ///    not point to a file (i.e. it points to a directory).
   virtual void open( std::string const& filename );
 
@@ -76,7 +74,7 @@ public:
   /// \param set Detected object set
   /// \param image_path File path to image associated with the detections.
   virtual void write_set(
-    const kwiver::vital::detected_object_set_sptr set,
+    const viame::detected_object_set_sptr set,
     std::string const& image_path ) = 0;
 
   /// Perform end-of-stream actions.
@@ -110,8 +108,6 @@ typedef std::shared_ptr< detected_object_set_output >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // _VITAL_DETECTED_OBJECT_SET_OUTPUT_H

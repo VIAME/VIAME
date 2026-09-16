@@ -25,7 +25,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_TRAINING_PLUGIN_EXPORT

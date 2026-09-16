@@ -14,9 +14,7 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -45,12 +43,12 @@ detected_object_set_input
 ::open( std::string const& filename )
 {
   // Make sure that the given file path exists and is a file.
-  if( !kwiver::vital::file_exists( filename ) )
+  if( !viame::file_exists( filename ) )
   {
     VITAL_THROW( path_not_exists, filename );
   }
 
-  if( kwiver::vital::file_is_directory( filename ) )
+  if( viame::file_is_directory( filename ) )
   {
     VITAL_THROW( path_not_a_file, filename );
   }
@@ -122,11 +120,11 @@ detected_object_set_input
 {}
 
 // ----------------------------------------------------------------------------
-std::pair< kwiver::vital::detected_object_set_sptr, std::string >
+std::pair< viame::detected_object_set_sptr, std::string >
 detected_object_set_input
 ::read_set()
 {
-  kwiver::vital::detected_object_set_sptr set;
+  viame::detected_object_set_sptr set;
   std::string image_name;
   const bool success = this->read_set( set, image_name );
   if( !success )
@@ -138,6 +136,4 @@ detected_object_set_input
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

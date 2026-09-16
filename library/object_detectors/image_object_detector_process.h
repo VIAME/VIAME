@@ -11,7 +11,7 @@
 
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -25,13 +25,13 @@ namespace kwiver {
  * \oport{detected_object_set}
  */
 class VIAME_PROCESSES_OBJECT_DETECTORS_EXPORT image_object_detector_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "image_object_detector",
                "Apply selected image object detector algorithm to incoming images." )
 
-  image_object_detector_process( kwiver::vital::config_block_sptr const& config );
+  image_object_detector_process( viame::config_block_sptr const& config );
   virtual ~image_object_detector_process();
 
 protected:
@@ -46,6 +46,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class object_detector_process
 
-} // end namespace
+} // namespace viame
 
 #endif /* ARROWS_PROCESSES_IMAGE_OBJECT_DETECTOR_PROCESS_H */

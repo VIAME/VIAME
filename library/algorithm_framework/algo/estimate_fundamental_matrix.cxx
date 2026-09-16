@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/estimate_fundamental_matrix.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -49,6 +47,4 @@ estimate_fundamental_matrix
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

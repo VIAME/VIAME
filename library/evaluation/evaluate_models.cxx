@@ -27,7 +27,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // =============================================================================
 // Helper structures for internal processing
@@ -461,7 +461,7 @@ model_evaluator::priv::parse_via_kwiver( const std::string& filepath,
                                          bool is_ground_truth,
                                          int sequence_id )
 {
-  namespace kv = kwiver::vital;
+  namespace kv = viame;
 
   kv::algo::detected_object_set_input_sptr reader;
 

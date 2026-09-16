@@ -15,7 +15,7 @@
  * \brief Declaration of the tunable process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class tunable_process
@@ -51,7 +51,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  tunable_process(kwiver::vital::config_block_sptr const& config);
+  tunable_process(viame::config_block_sptr const& config);
 
   /**
    * \brief Destructor.
@@ -72,7 +72,7 @@ protected:
   /**
    * \brief Step the process.
    */
-  void _reconfigure(kwiver::vital::config_block_sptr const& conf) override;
+  void _reconfigure(viame::config_block_sptr const& conf) override;
 
 private:
   class priv;

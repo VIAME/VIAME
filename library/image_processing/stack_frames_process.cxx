@@ -51,7 +51,7 @@ public:
 // =============================================================================
 
 stack_frames_process
-::stack_frames_process( kwiver::vital::config_block_sptr const& config )
+::stack_frames_process( viame::config_block_sptr const& config )
   : process( config )
   , d( new stack_frames_process::priv() )
 {
@@ -92,8 +92,8 @@ stack_frames_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 

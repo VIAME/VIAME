@@ -220,7 +220,7 @@ public:
   std::unordered_map< std::string, std::vector< bool > > m_lsh_hash_codes;
   std::unordered_map< std::vector< bool >, std::vector< std::string > > m_hash_to_uids;
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   // Helper functions
   void load_descriptor_index();

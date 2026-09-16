@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/feature_descriptor_io.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class feature_descriptor_io_base = kwiver::vital::algo::feature_descriptor_io >
+template< class feature_descriptor_io_base = viame::algo::feature_descriptor_io >
 class feature_descriptor_io_trampoline
     : public algorithm_trampoline< feature_descriptor_io_base >
 {
@@ -22,27 +22,27 @@ class feature_descriptor_io_trampoline
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
   void
-  load_(::std::string const & filename, ::kwiver::vital::feature_set_sptr & feat, ::kwiver::vital::descriptor_set_sptr & desc) const override
+  load_(::std::string const & filename, ::viame::feature_set_sptr & feat, ::viame::descriptor_set_sptr & desc) const override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::feature_descriptor_io,
+      viame::algo::feature_descriptor_io,
       load_,
       filename, feat, desc
       );
   }
 
   void
-  save_(::std::string const & filename, ::kwiver::vital::feature_set_sptr feat, ::kwiver::vital::descriptor_set_sptr desc) const override
+  save_(::std::string const & filename, ::viame::feature_set_sptr feat, ::viame::descriptor_set_sptr desc) const override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::feature_descriptor_io,
+      viame::algo::feature_descriptor_io,
       save_,
       filename, feat, desc
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

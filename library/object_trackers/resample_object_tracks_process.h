@@ -31,11 +31,11 @@ namespace core
  * interpolated bounding boxes for intermediate frames.
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT resample_object_tracks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  resample_object_tracks_process( kwiver::vital::config_block_sptr const& config );
+  resample_object_tracks_process( viame::config_block_sptr const& config );
   virtual ~resample_object_tracks_process();
 
 protected:

@@ -13,19 +13,19 @@ namespace viame
 // -----------------------------------------------------------------------------
 bool
 convert_head_tail_points
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
 
 
 // -----------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 convert_head_tail_points
-::refine( kwiver::vital::image_container_sptr image_data,
-  kwiver::vital::detected_object_set_sptr input_dets ) const
+::refine( viame::image_container_sptr image_data,
+  viame::detected_object_set_sptr input_dets ) const
 {
-  auto output = std::make_shared< kwiver::vital::detected_object_set >();
+  auto output = std::make_shared< viame::detected_object_set >();
 
   return output;
 }

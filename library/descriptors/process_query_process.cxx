@@ -193,7 +193,7 @@ public:
     , m_index_loaded( false )
     , m_lsh_loaded( false )
     , m_iqr_session( nullptr )
-    , m_logger( kwiver::vital::get_logger( "viame.svm.process_query" ) ) {}
+    , m_logger( viame::get_logger( "viame.svm.process_query" ) ) {}
 
   ~priv() {}
 
@@ -239,7 +239,7 @@ public:
   // IQR session
   std::unique_ptr< iqr_session_svm > m_iqr_session;
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
   void load_descriptor_index()
   {
@@ -501,19 +501,19 @@ process_query_process
 ::_step()
 {
   // Grab inputs
-  kwiver::vital::descriptor_set_sptr pos_desc_set =
+  viame::descriptor_set_sptr pos_desc_set =
     grab_from_port_using_trait( positive_descriptor_set );
-  kwiver::vital::string_vector_sptr pos_uids =
+  viame::string_vector_sptr pos_uids =
     grab_from_port_using_trait( positive_exemplar_uids );
-  kwiver::vital::descriptor_set_sptr neg_desc_set =
+  viame::descriptor_set_sptr neg_desc_set =
     grab_from_port_using_trait( negative_descriptor_set );
-  kwiver::vital::string_vector_sptr neg_uids =
+  viame::string_vector_sptr neg_uids =
     grab_from_port_using_trait( negative_exemplar_uids );
-  kwiver::vital::string_vector_sptr iqr_pos_uids =
+  viame::string_vector_sptr iqr_pos_uids =
     grab_from_port_using_trait( iqr_positive_uids );
-  kwiver::vital::string_vector_sptr iqr_neg_uids =
+  viame::string_vector_sptr iqr_neg_uids =
     grab_from_port_using_trait( iqr_negative_uids );
-  kwiver::vital::uchar_vector_sptr iqr_model =
+  viame::uchar_vector_sptr iqr_model =
     grab_from_port_using_trait( iqr_query_model );
 
   // Reset IQR session if no feedback (new query)
@@ -572,7 +572,7 @@ process_query_process
 
   // Log IQR feedback resolution
   {
-    auto logger = kwiver::vital::get_logger( "viame.svm.process_query" );
+    auto logger = viame::get_logger( "viame.svm.process_query" );
     LOG_INFO( logger, "IQR feedback: "
       << iqr_pos_uids->size() << " positive UIDs received, "
       << iqr_pos_elements.size() << " resolved; "
@@ -604,7 +604,7 @@ process_query_process
   d->m_iqr_session->adjudicate( iqr_pos_elements, iqr_neg_elements );
 
   {
-    auto logger = kwiver::vital::get_logger( "viame.svm.process_query" );
+    auto logger = viame::get_logger( "viame.svm.process_query" );
     LOG_INFO( logger, "Session after adjudication: "
       << d->m_iqr_session->num_positives() << " total positives, "
       << d->m_iqr_session->num_negatives() << " total negatives" );
@@ -617,7 +617,7 @@ process_query_process
   bool svm_trained = d->m_iqr_session->refine();
 
   {
-    auto logger = kwiver::vital::get_logger( "viame.svm.process_query" );
+    auto logger = viame::get_logger( "viame.svm.process_query" );
     LOG_INFO( logger, "SVM refine result: "
       << ( svm_trained ? "model trained" : "no model (skipped or failed)" ) );
   }
@@ -642,11 +642,11 @@ process_query_process
   }
 
   // Build output vectors
-  auto result_uids_vec = std::make_shared< kwiver::vital::string_vector >();
-  auto result_scores_vec = std::make_shared< kwiver::vital::double_vector >();
-  auto feedback_uids_vec = std::make_shared< kwiver::vital::string_vector >();
-  auto feedback_dists_vec = std::make_shared< kwiver::vital::double_vector >();
-  auto feedback_scores_vec = std::make_shared< kwiver::vital::double_vector >();
+  auto result_uids_vec = std::make_shared< viame::string_vector >();
+  auto result_scores_vec = std::make_shared< viame::double_vector >();
+  auto feedback_uids_vec = std::make_shared< viame::string_vector >();
+  auto feedback_dists_vec = std::make_shared< viame::double_vector >();
+  auto feedback_scores_vec = std::make_shared< viame::double_vector >();
 
   for( const auto& r : ordered_results )
   {
@@ -666,7 +666,7 @@ process_query_process
 
   // Get SVM model bytes
   auto model_bytes = d->m_iqr_session->get_model_bytes();
-  auto result_model_vec = std::make_shared< kwiver::vital::uchar_vector >(
+  auto result_model_vec = std::make_shared< viame::uchar_vector >(
     model_bytes.begin(), model_bytes.end() );
 
   // Push outputs
@@ -684,9 +684,9 @@ void
 process_query_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- inputs --

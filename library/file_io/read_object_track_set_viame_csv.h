@@ -20,7 +20,7 @@
 namespace viame {
 
 class VIAME_FILE_IO_EXPORT read_object_track_set_viame_csv
-  : public kwiver::vital::algo::read_object_track_set
+  : public viame::algo::read_object_track_set
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -69,9 +69,9 @@ public:
 
   void open( std::string const& filename ) override;
 
-  bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
-  bool read_set( kwiver::vital::object_track_set_sptr& set ) override;
+  bool read_set( viame::object_track_set_sptr& set ) override;
 
 private:
   void initialize() override;

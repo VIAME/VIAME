@@ -30,10 +30,10 @@
 /**
  * \file pipeline.cxx
  *
- * \brief Implementation of the base class for \link sprokit::pipeline pipelines\endlink.
+ * \brief Implementation of the base class for \link viame::pipeline::pipeline pipelines\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace {
 
@@ -86,7 +86,7 @@ lcm( T a, T b )
 class pipeline::priv
 {
   public:
-    priv(pipeline* pipe, kwiver::vital::config_block_sptr conf);
+    priv(pipeline* pipe, viame::config_block_sptr conf);
     ~priv();
 
     void check_duplicate_name(process::name_t const& name);
@@ -138,7 +138,7 @@ class pipeline::priv
     void ensure_setup() const;
 
     pipeline* const q;
-    kwiver::vital::config_block_sptr const config;
+    viame::config_block_sptr const config;
 
     process::connections_t planned_connections;
     process::connections_t connections;
@@ -160,7 +160,7 @@ class pipeline::priv
     bool setup_successful;
     bool running;
 
-    kwiver::vital::logger_handle_t m_logger;
+    viame::logger_handle_t m_logger;
 
     static bool is_upstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
     static bool is_downstream_for(process::port_addr_t const& addr, process::connection_t const& connection);
@@ -188,27 +188,27 @@ class pipeline::priv
     };
 
   private:
-  static kwiver::vital::config_block_key_t const config_non_blocking;
-    static kwiver::vital::config_block_key_t const config_edge;
-    static kwiver::vital::config_block_key_t const config_edge_type;
-    static kwiver::vital::config_block_key_t const config_edge_conn;
-    static kwiver::vital::config_block_key_t const upstream_subblock;
-    static kwiver::vital::config_block_key_t const downstream_subblock;
+  static viame::config_block_key_t const config_non_blocking;
+    static viame::config_block_key_t const config_edge;
+    static viame::config_block_key_t const config_edge_type;
+    static viame::config_block_key_t const config_edge_conn;
+    static viame::config_block_key_t const upstream_subblock;
+    static viame::config_block_key_t const downstream_subblock;
 };
 
 // Process property
-kwiver::vital::config_block_key_t const pipeline::priv::config_non_blocking = kwiver::vital::config_block_key_t("_non_blocking");
+viame::config_block_key_t const pipeline::priv::config_non_blocking = viame::config_block_key_t("_non_blocking");
 
 // Pipeline properties
-kwiver::vital::config_block_key_t const pipeline::priv::config_edge         = kwiver::vital::config_block_key_t("_edge");
-kwiver::vital::config_block_key_t const pipeline::priv::config_edge_type    = kwiver::vital::config_block_key_t("_edge_by_type");
-kwiver::vital::config_block_key_t const pipeline::priv::config_edge_conn    = kwiver::vital::config_block_key_t("_edge_by_conn");
-kwiver::vital::config_block_key_t const pipeline::priv::upstream_subblock   = kwiver::vital::config_block_key_t("up");
-kwiver::vital::config_block_key_t const pipeline::priv::downstream_subblock = kwiver::vital::config_block_key_t("down");
+viame::config_block_key_t const pipeline::priv::config_edge         = viame::config_block_key_t("_edge");
+viame::config_block_key_t const pipeline::priv::config_edge_type    = viame::config_block_key_t("_edge_by_type");
+viame::config_block_key_t const pipeline::priv::config_edge_conn    = viame::config_block_key_t("_edge_by_conn");
+viame::config_block_key_t const pipeline::priv::upstream_subblock   = viame::config_block_key_t("up");
+viame::config_block_key_t const pipeline::priv::downstream_subblock = viame::config_block_key_t("down");
 
 // ------------------------------------------------------------------
 pipeline
-::pipeline(kwiver::vital::config_block_sptr const& config)
+::pipeline(viame::config_block_sptr const& config)
   : d()
 {
   if (!config)
@@ -486,7 +486,7 @@ pipeline
 // ------------------------------------------------------------------
 void
 pipeline
-::reconfigure(kwiver::vital::config_block_sptr const& conf) const
+::reconfigure(viame::config_block_sptr const& conf) const
 {
   if (!d->setup)
   {
@@ -497,7 +497,7 @@ pipeline
   {
     process::name_t const& name = proc_entry.first;
     process_t const& proc = proc_entry.second;
-    kwiver::vital::config_block_sptr const proc_conf = conf->subblock_view(name);
+    viame::config_block_sptr const proc_conf = conf->subblock_view(name);
 
     proc->reconfigure(proc_conf);
   }
@@ -970,7 +970,7 @@ pipeline
 
 // ------------------------------------------------------------------
 pipeline::priv
-::priv(pipeline* pipe, kwiver::vital::config_block_sptr conf)
+::priv(pipeline* pipe, viame::config_block_sptr conf)
   : q(pipe)
   , config(conf)
   , planned_connections()
@@ -984,12 +984,12 @@ pipeline::priv
   , setup_in_progress(false)
   , setup_successful(false)
   , running(false)
-  , m_logger( kwiver::vital::get_logger( "sprokit.pipeline" ) )
+  , m_logger( viame::get_logger( "sprokit.pipeline" ) )
 {
   if ( IS_DEBUG_ENABLED( m_logger ) )
   {
     std::stringstream msg;
-    kwiver::vital::config_block_formatter fmt( config );
+    viame::config_block_formatter fmt( config );
     fmt.print(msg);
     LOG_DEBUG( m_logger, "pipeline config:\n" << msg.str() );
   }
@@ -1051,8 +1051,8 @@ pipeline::priv
     return type_deferred;
   }
 
-  bool const up_flow_dep = kwiver::vital::starts_with(up_type, process::type_flow_dependent);
-  bool const down_flow_dep = kwiver::vital::starts_with(down_type, process::type_flow_dependent);
+  bool const up_flow_dep = viame::starts_with(up_type, process::type_flow_dependent);
+  bool const down_flow_dep = viame::starts_with(down_type, process::type_flow_dependent);
 
   if (up_flow_dep || down_flow_dep)
   {
@@ -1168,7 +1168,7 @@ pipeline::priv
         process::port_info_t const info = proc->input_port_info(downstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = kwiver::vital::starts_with(type, process::type_flow_dependent);
+        bool const flow_dep = viame::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
@@ -1196,7 +1196,7 @@ pipeline::priv
         process::port_info_t const info = proc->output_port_info(upstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = kwiver::vital::starts_with(type, process::type_flow_dependent);
+        bool const flow_dep = viame::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
@@ -1446,13 +1446,13 @@ pipeline::priv
     // This supplies the default or most general config values.
     // The edge type config will be merged in to override defaults for this edge.
     // Then the connection based config will be merged to override.
-    kwiver::vital::config_block_sptr edge_config = config->subblock(priv::config_edge);
+    viame::config_block_sptr edge_config = config->subblock(priv::config_edge);
 
     // Configure the edge based on its type. (_edge_by_type)
     {
       process::port_type_t const& down_type = down_info->type;  // data type on edge
-      kwiver::vital::config_block_sptr const type_config = config->subblock(priv::config_edge_type);
-      kwiver::vital::config_block_sptr const edge_type_config = type_config->subblock(down_type);
+      viame::config_block_sptr const type_config = config->subblock(priv::config_edge_type);
+      viame::config_block_sptr const edge_type_config = type_config->subblock(down_type);
 
       edge_config->merge_config(edge_type_config);
 
@@ -1460,7 +1460,7 @@ pipeline::priv
       {
         std::stringstream msg;
         msg << "-- Edge type config for type \"" << down_type << "\" :\n";
-        kwiver::vital::config_block_formatter fmt( edge_type_config );
+        viame::config_block_formatter fmt( edge_type_config );
         fmt.print( msg );
         LOG_TRACE( m_logger, msg.str() );
       }
@@ -1468,14 +1468,14 @@ pipeline::priv
 
     // Configure the edge based on the connected ports. (_edge_by_conn)
     {
-      kwiver::vital::config_block_sptr const conn_config = config->subblock(priv::config_edge_conn);
-      kwiver::vital::config_block_sptr const up_config =
-        conn_config->subblock(upstream_name + kwiver::vital::config_block::block_sep() +
-          upstream_subblock + kwiver::vital::config_block::block_sep() + upstream_port);
+      viame::config_block_sptr const conn_config = config->subblock(priv::config_edge_conn);
+      viame::config_block_sptr const up_config =
+        conn_config->subblock(upstream_name + viame::config_block::block_sep() +
+          upstream_subblock + viame::config_block::block_sep() + upstream_port);
 
-      kwiver::vital::config_block_sptr const down_config =
-        conn_config->subblock(downstream_name + kwiver::vital::config_block::block_sep() +
-          downstream_subblock + kwiver::vital::config_block::block_sep() + downstream_port);
+      viame::config_block_sptr const down_config =
+        conn_config->subblock(downstream_name + viame::config_block::block_sep() +
+          downstream_subblock + viame::config_block::block_sep() + downstream_port);
 
       edge_config->merge_config(up_config);
       edge_config->merge_config(down_config);
@@ -1484,17 +1484,17 @@ pipeline::priv
       {
         std::stringstream msg;
         msg << "-- Up_config for \""
-            << upstream_name + kwiver::vital::config_block::block_sep()
-             + upstream_subblock + kwiver::vital::config_block::block_sep() + upstream_port
+            << upstream_name + viame::config_block::block_sep()
+             + upstream_subblock + viame::config_block::block_sep() + upstream_port
             << "\" :\n";
-        kwiver::vital::config_block_formatter up_fmt( up_config );
+        viame::config_block_formatter up_fmt( up_config );
         up_fmt.print(msg);
         msg << "\n-- Down_config for \""
-            << downstream_name + kwiver::vital::config_block::block_sep()
-             + downstream_subblock + kwiver::vital::config_block::block_sep()
+            << downstream_name + viame::config_block::block_sep()
+             + downstream_subblock + viame::config_block::block_sep()
              + downstream_port
             << "\" :\n";
-        kwiver::vital::config_block_formatter down_fmt( up_config );
+        viame::config_block_formatter down_fmt( up_config );
         down_fmt.print(msg);
         LOG_TRACE( m_logger, msg.str() );
       }
@@ -1533,7 +1533,7 @@ pipeline::priv
     if ( IS_DEBUG_ENABLED( m_logger ) )
     {
       std::stringstream msg;
-      kwiver::vital::config_block_formatter fmt( edge_config );
+      viame::config_block_formatter fmt( edge_config );
       fmt.print(msg);
 
       LOG_TRACE( m_logger,
@@ -1659,7 +1659,7 @@ void
 pipeline::priv
 ::check_for_dag() const
 {
-  typedef kwiver::vital::directed_graph<process::name_t> pipeline_graph_t;
+  typedef viame::directed_graph<process::name_t> pipeline_graph_t;
   typedef pipeline_graph_t::vertex_descriptor vertex_t;
   typedef std::deque<vertex_t> vertices_t;
   typedef std::map<process::name_t, vertex_t> vertex_map_t;
@@ -1716,9 +1716,9 @@ pipeline::priv
 
   try
   {
-    kwiver::vital::topological_sort(graph, std::front_inserter(vertices));
+    viame::topological_sort(graph, std::front_inserter(vertices));
   }
-  catch (kwiver::vital::not_a_dag_exception const&)
+  catch (viame::not_a_dag_exception const&)
   {
     VITAL_THROW( not_a_dag_exception );
   }
@@ -1821,4 +1821,4 @@ pipeline::priv::propagation_exception
 {
 }
 
-} // end namespace
+} // namespace viame::pipeline

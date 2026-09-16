@@ -6,7 +6,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // -----------------------------------------------------------------------------
 void

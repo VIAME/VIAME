@@ -11,9 +11,7 @@
 #include <string>
 #include <viame/algorithm_framework/exceptions/base.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Exception thrown from next value function to signify the end of iteration.
 class VITAL_EXCEPTIONS_EXPORT stop_iteration_exception
@@ -27,8 +25,6 @@ public:
   virtual ~stop_iteration_exception() noexcept= default;
 };
 
-} // namespace vital
-
-}   // end namespaces
+} // namespace viame
 
 #endif // KWIVER_VITAL_EXCEPTIONS_ITERATION_H_

@@ -4,14 +4,12 @@
 
 /// \file
 /// \brief Implementation and template instantiation for
-/// \link kwiver::vital::pointcloud pointcloud \endlink objects
+/// \link viame::pointcloud pointcloud \endlink objects
 
 #include "pointcloud.h"
 #include <viame/algorithm_framework/io/eigen_io.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Default Constructor
 template < typename T >
@@ -92,6 +90,4 @@ INSTANTIATE_POINTCLOUD( float );
 #undef INSTANTIATE_POINTCLOUD
 /// \endcond
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

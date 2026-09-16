@@ -33,7 +33,7 @@
 #include <utility>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 namespace tools {

@@ -9,7 +9,7 @@
 #include <viame/algorithm_framework/util/string.h>
 #include <viame/algorithm_framework/util/wrap_text_block.h>
 
-namespace kwiver::vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Formats config block using markdown
@@ -39,14 +39,14 @@ format_config_block_markdown
 {
   wrap_text_block wtb;
 
-  kwiver::vital::config_block_keys_t all_keys = config->available_values();
+  viame::config_block_keys_t all_keys = config->available_values();
 
-  for( kwiver::vital::config_block_key_t key : all_keys )
+  for( viame::config_block_key_t key : all_keys )
   {
     std::string ro;
 
     auto const val =
-      config->get_value< kwiver::vital::config_block_value_t >( key );
+      config->get_value< viame::config_block_value_t >( key );
     if( config->is_read_only( key ) )
     {
       ro = "[RO]";
@@ -106,7 +106,7 @@ format_config_block_tree
   const config_block_sptr config,
   const std::string& prefix )
 {
-  kwiver::vital::config_block_keys_t all_keys = config->available_values();
+  viame::config_block_keys_t all_keys = config->available_values();
 
   auto ix = all_keys.begin();
   auto ex = all_keys.end();
@@ -153,7 +153,7 @@ format_config_block_tree
 
       std::string ro;
       auto const val =
-        config->get_value< kwiver::vital::config_block_value_t >( *ix );
+        config->get_value< viame::config_block_value_t >( *ix );
 
       if( config->is_read_only( *ix ) )
       {
@@ -188,41 +188,41 @@ format_config_block_tree
 extern "C"
 FORMAT_CONFIG_EXPORT
 void
-register_factories( kwiver::vital::registry& vpl )
+register_factories( viame::registry& vpl )
 {
   static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "format-config-block" );
+    viame::plugin_manager::module_t( "format-config-block" );
 
   // common handle, so we can add attributes to factories as we add them.
-  kwiver::vital::plugin_factory_handle_t fact;
+  viame::plugin_factory_handle_t fact;
 
   fact = vpl.add_factory<
-    kwiver::vital::format_config_block,
-    kwiver::vital::format_config_block_markdown >( "markdown" );
+    viame::format_config_block,
+    viame::format_config_block_markdown >( "markdown" );
   fact->add_attribute(
-    kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+    viame::plugin_factory::PLUGIN_MODULE_NAME,
     module_name )
     .add_attribute(
-    kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    viame::plugin_factory::PLUGIN_DESCRIPTION,
     "Formats the config block using markdown." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( viame::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION,
+      viame::plugin_factory::PLUGIN_ORGANIZATION,
       "Kitware Inc." );
 
   fact = vpl.add_factory<
-    kwiver::vital::format_config_block,
-    kwiver::vital::format_config_block_tree >( "tree" );
+    viame::format_config_block,
+    viame::format_config_block_tree >( "tree" );
   fact->add_attribute(
-    kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+    viame::plugin_factory::PLUGIN_MODULE_NAME,
     module_name )
     .add_attribute(
-    kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    viame::plugin_factory::PLUGIN_DESCRIPTION,
     "Formats the config block in an indented tree format." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( viame::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION,
+      viame::plugin_factory::PLUGIN_ORGANIZATION,
       "Kitware Inc." );
 }
 
-} // end namespace
+} // namespace viame

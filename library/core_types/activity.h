@@ -15,9 +15,7 @@
 #include <viame/core_types/vital_types_export.h>
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Activity class.
@@ -48,9 +46,9 @@ public:
     activity_label_t label = UNDEFINED_ACTIVITY,
     double confidence = -1.0,
     activity_type_sptr classifications = nullptr,
-    kwiver::vital::timestamp start = kwiver::vital::timestamp( -1, -1 ),
-    kwiver::vital::timestamp end = kwiver::vital::timestamp( -1, -1 ),
-    kwiver::vital::object_track_set_sptr participants = nullptr );
+    viame::timestamp start = viame::timestamp( -1, -1 ),
+    viame::timestamp end = viame::timestamp( -1, -1 ),
+    viame::object_track_set_sptr participants = nullptr );
 
   /// @brief Get activity id
   ///
@@ -95,52 +93,50 @@ public:
   /// @brief Get the starting frame for the activity
   ///
   /// @return Timestamp associated with the starting frame
-  kwiver::vital::timestamp start() const;
+  viame::timestamp start() const;
 
   /// @brief Set starting frame for the activity
   ///
   /// @param start frame timestamp for the starting frame
-  void set_start( kwiver::vital::timestamp start_frame );
+  void set_start( viame::timestamp start_frame );
 
   /// @brief Get the ending frame for the activity
   ///
   /// @return Timestamp associated with the activity
-  kwiver::vital::timestamp end() const;
+  viame::timestamp end() const;
 
   /// @brief Set ending frame for the activity
   ///
   /// @param ending frame timestamp for the activity
-  void set_end( kwiver::vital::timestamp end_frame );
+  void set_end( viame::timestamp end_frame );
 
   /// @brief Get activity duration
   ///
   /// @return pair of timestamp representing starting and ending timestamp for
   /// activity
-  std::pair< kwiver::vital::timestamp,
-    kwiver::vital::timestamp > duration() const;
+  std::pair< viame::timestamp,
+    viame::timestamp > duration() const;
 
   /// @brief Get participants
   ///
   /// @return the participants for the activity
-  kwiver::vital::object_track_set_sptr participants() const;
+  viame::object_track_set_sptr participants() const;
 
   /// @brief Set participants for the activity
   ///
   /// @param participants object track set representing trajectories of the
   /// participants
-  void set_participants( kwiver::vital::object_track_set_sptr participants );
+  void set_participants( viame::object_track_set_sptr participants );
 
 private:
   activity_id_t m_id;
   activity_label_t m_label;
   activity_type_sptr m_type;
   double m_confidence;
-  kwiver::vital::object_track_set_sptr m_participants;
-  kwiver::vital::timestamp m_start_frame, m_end_frame;
+  viame::object_track_set_sptr m_participants;
+  viame::timestamp m_start_frame, m_end_frame;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

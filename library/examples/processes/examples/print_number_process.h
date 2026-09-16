@@ -15,7 +15,7 @@
  * \brief Declaration of the number printer process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class print_number_process
@@ -49,7 +49,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  print_number_process(kwiver::vital::config_block_sptr const& config);
+  print_number_process(viame::config_block_sptr const& config);
 
   /**
    * \brief Destructor.

@@ -26,9 +26,7 @@
 #include <filesystem>
 #include <system_error>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace fs = std::filesystem;
 
@@ -526,6 +524,4 @@ get_env( std::string const& name )
   return std::getenv( name.c_str() );
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

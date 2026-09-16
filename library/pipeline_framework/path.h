@@ -14,7 +14,7 @@
  * \brief Types for paths.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /// A path on the filesystem.

@@ -22,9 +22,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// An \p R by \p C matrix of \p T, stored column-major.
@@ -529,9 +527,7 @@ typedef matrix_< 4, 4, double > matrix_4x4d;
 typedef matrix_< 4, 4, float >  matrix_4x4f;
 /// \endcond
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #include "matrix_detail.h"
 

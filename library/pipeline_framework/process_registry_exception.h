@@ -13,10 +13,10 @@
 /**
  * \file process_registry_exception.h
  *
- * \brief Header for exceptions used within the \link sprokit::process_registry process registry\endlink.
+ * \brief Header for exceptions used within the \link viame::pipeline::process_registry process registry\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**

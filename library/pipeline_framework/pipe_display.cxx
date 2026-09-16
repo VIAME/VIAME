@@ -22,7 +22,7 @@
 #include <string>
 #include <cstdlib>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace {
 
@@ -45,14 +45,14 @@ public:
   config_printer( display_context& ctxt );
   ~config_printer() = default;
 
-  void operator()( sprokit::config_pipe_block const& config_block );
-  void operator()( sprokit::process_pipe_block const& process_block );
-  void operator()( sprokit::connect_pipe_block const& connect_block ) const;
+  void operator()( viame::pipeline::config_pipe_block const& config_block );
+  void operator()( viame::pipeline::process_pipe_block const& process_block );
+  void operator()( viame::pipeline::connect_pipe_block const& connect_block ) const;
 
 private:
-  void print_config_value( sprokit::config_value_t const& config_value ) const;
+  void print_config_value( viame::pipeline::config_value_t const& config_value ) const;
 
-  using process_set_t = std::set< sprokit::process::name_t >;
+  using process_set_t = std::set< viame::pipeline::process::name_t >;
 
   display_context& m_ctxt;
 };
@@ -70,7 +70,7 @@ public:
   key_printer( display_context& ctxt );
   ~key_printer() = default;
 
-  void operator()( sprokit::config_value_t const& config_value ) const;
+  void operator()( viame::pipeline::config_value_t const& config_value ) const;
 
 private:
   display_context& m_ctxt;
@@ -79,14 +79,14 @@ private:
 // ------------------------------------------------------------------
 void
 config_printer
-::operator()( sprokit::config_pipe_block const& config_block )
+::operator()( viame::pipeline::config_pipe_block const& config_block )
 {
-  kwiver::vital::config_block_keys_t const& keys = config_block.key;
-  sprokit::config_values_t const& values = config_block.values;
+  viame::config_block_keys_t const& keys = config_block.key;
+  viame::pipeline::config_values_t const& values = config_block.values;
 
-  kwiver::vital::config_block_key_t const key_path =
-        kwiver::vital::join( keys,
-                             kwiver::vital::config_block::block_sep() );
+  viame::config_block_key_t const key_path =
+        viame::join( keys,
+                             viame::config_block::block_sep() );
 
   // generate pipe level config block
   m_ctxt.m_ostr << "config " << key_path << std::endl;
@@ -99,11 +99,11 @@ config_printer
 // ------------------------------------------------------------------
 void
 config_printer
-::operator()( sprokit::process_pipe_block const& process_block )
+::operator()( viame::pipeline::process_pipe_block const& process_block )
 {
-  sprokit::process::name_t const& name = process_block.name;
-  sprokit::process::type_t const& type = process_block.type;
-  sprokit::config_values_t const& values = process_block.config_values;
+  viame::pipeline::process::name_t const& name = process_block.name;
+  viame::pipeline::process::type_t const& type = process_block.type;
+  viame::pipeline::config_values_t const& values = process_block.config_values;
 
   m_ctxt.m_ostr << "process " << name << std::endl
          << " :: " << type;
@@ -123,15 +123,15 @@ config_printer
 // ------------------------------------------------------------------
 void
 config_printer
-::operator()( sprokit::connect_pipe_block const& connect_block ) const
+::operator()( viame::pipeline::connect_pipe_block const& connect_block ) const
 {
-  sprokit::process::port_addr_t const& upstream_addr = connect_block.from;
-  sprokit::process::port_addr_t const& downstream_addr = connect_block.to;
+  viame::pipeline::process::port_addr_t const& upstream_addr = connect_block.from;
+  viame::pipeline::process::port_addr_t const& downstream_addr = connect_block.to;
 
-  sprokit::process::name_t const& upstream_name = upstream_addr.first;
-  sprokit::process::port_t const& upstream_port = upstream_addr.second;
-  sprokit::process::name_t const& downstream_name = downstream_addr.first;
-  sprokit::process::port_t const& downstream_port = downstream_addr.second;
+  viame::pipeline::process::name_t const& upstream_name = upstream_addr.first;
+  viame::pipeline::process::port_t const& upstream_port = upstream_addr.second;
+  viame::pipeline::process::name_t const& downstream_name = downstream_addr.first;
+  viame::pipeline::process::port_t const& downstream_port = downstream_addr.second;
 
   m_ctxt.m_ostr << "connect from " << upstream_name << "." << upstream_port << std::endl
          << "        to   " << downstream_name << "." << downstream_port << std::endl;
@@ -153,12 +153,12 @@ key_printer
 // ------------------------------------------------------------------
 void
 key_printer
-::operator()( sprokit::config_value_t const& config_value ) const
+::operator()( viame::pipeline::config_value_t const& config_value ) const
 {
   const auto& value = config_value.value;
   const auto& keys = config_value.key_path;
-  const auto key_path = kwiver::vital::join( keys,
-                 kwiver::vital::config_block::block_sep() );
+  const auto key_path = viame::join( keys,
+                 viame::config_block::block_sep() );
 
   const auto& flags = config_value.flags;
 
@@ -166,7 +166,7 @@ key_printer
 
   if ( ! flags.empty() )
   {
-    const auto flag_list = kwiver::vital::join( flags, "," );
+    const auto flag_list = viame::join( flags, "," );
 
     m_ctxt.m_ostr << "[" << flag_list << "]";
   }
@@ -197,7 +197,7 @@ pipe_display
 // ------------------------------------------------------------------
 void
 pipe_display
-::display_pipe_blocks( const sprokit::pipe_blocks blocks )
+::display_pipe_blocks( const viame::pipeline::pipe_blocks blocks )
 {
   display_context local_ctxt( m_ostr, m_opt_print_loc );
   config_printer printer( local_ctxt );
@@ -217,4 +217,4 @@ pipe_display
 {
   m_opt_print_loc = opt;
 }
-} // end namespace
+} // namespace viame::pipeline

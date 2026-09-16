@@ -20,11 +20,11 @@
 #include <functional>
 #include <memory>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // returns: scheduler_t - shared_ptr<scheduler>
 typedef std::function< scheduler_t( pipeline_t const& pipe,
-        kwiver::vital::config_block_sptr const& config ) > scheduler_factory_func_t;
+        viame::config_block_sptr const& config ) > scheduler_factory_func_t;
 
 // ------------------------------------------------------------------
 /**
@@ -40,7 +40,7 @@ typedef std::function< scheduler_t( pipeline_t const& pipe,
 template <typename T>
 scheduler_t
 create_new_scheduler( pipeline_t const& pipe,
-                      kwiver::vital::config_block_sptr const& conf)
+                      viame::config_block_sptr const& conf)
 {
   return std::make_shared<T>(pipe, conf);
 }
@@ -58,7 +58,7 @@ create_new_scheduler( pipeline_t const& pipe,
  * \tparam C Concrete scheduler class type.
  */
 class SPROKIT_PIPELINE_EXPORT scheduler_factory
-: public kwiver::vital::plugin_factory
+: public viame::plugin_factory
 {
 public:
   static scheduler::type_t const default_type;
@@ -77,18 +77,18 @@ public:
 
   virtual ~scheduler_factory() = default;
 
-  virtual sprokit::scheduler_t create_object( pipeline_t const& pipe,
-                                              kwiver::vital::config_block_sptr const& config ) = 0;
+  virtual viame::pipeline::scheduler_t create_object( pipeline_t const& pipe,
+                                              viame::config_block_sptr const& config ) = 0;
 
   // Implement pure virtual methods from plugin_factory base class
   // Sprokit schedulers use their own configuration mechanism, so these are stubs
-  kwiver::vital::pluggable_sptr from_config( [[maybe_unused]] kwiver::vital::config_block_sptr const cb ) const override
+  viame::pluggable_sptr from_config( [[maybe_unused]] viame::config_block_sptr const cb ) const override
   {
     // Sprokit schedulers are not pluggable in the same way as vital algorithms
     return nullptr;
   }
 
-  void get_default_config( [[maybe_unused]] kwiver::vital::config_block& cb ) const override
+  void get_default_config( [[maybe_unused]] viame::config_block& cb ) const override
   {
     // Sprokit schedulers configure themselves differently
   }
@@ -117,8 +117,8 @@ public:
 
   virtual ~cpp_scheduler_factory() = default;
 
-  virtual sprokit::scheduler_t create_object( pipeline_t const& pipe,
-                                              kwiver::vital::config_block_sptr const& config );
+  virtual viame::pipeline::scheduler_t create_object( pipeline_t const& pipe,
+                                              viame::config_block_sptr const& config );
 
 private:
   scheduler_factory_func_t m_factory;
@@ -136,10 +136,10 @@ private:
  * \returns A new scheduler of type \p type.
  */
 SPROKIT_PIPELINE_EXPORT
-sprokit::scheduler_t
-create_scheduler( const sprokit::scheduler::type_t&      name,
-                  const sprokit::pipeline_t&             pipe,
-                  const kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config());
+viame::pipeline::scheduler_t
+create_scheduler( const viame::pipeline::scheduler::type_t&      name,
+                  const viame::pipeline::pipeline_t&             pipe,
+                  const viame::config_block_sptr config = viame::config_block::empty_config());
 
 /**
  * \brief Mark a scheduler as loaded.
@@ -148,7 +148,7 @@ create_scheduler( const sprokit::scheduler::type_t&      name,
  * \param module The scheduler to mark as loaded.
  */
 SPROKIT_PIPELINE_EXPORT
-void mark_scheduler_module_as_loaded( kwiver::vital::registry& vpl,
+void mark_scheduler_module_as_loaded( viame::registry& vpl,
                                       module_t const& module );
 
 /**
@@ -160,7 +160,7 @@ void mark_scheduler_module_as_loaded( kwiver::vital::registry& vpl,
  * \returns True if the scheduler has already been loaded, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT
-bool is_scheduler_module_loaded( kwiver::vital::registry& vpl,
+bool is_scheduler_module_loaded( viame::registry& vpl,
                                  module_t const& module );
 
 //
@@ -168,15 +168,15 @@ bool is_scheduler_module_loaded( kwiver::vital::registry& vpl,
 // NOTE: This macro is deprecated. Use scheduler_registrar instead.
 //
 #define ADD_SCHEDULER( type )                                           \
-  add_factory( new sprokit::cpp_scheduler_factory( typeid( type ).name(), \
-                                                   sprokit::scheduler::interface_name(), \
-                                                   sprokit::create_new_scheduler< type > ) )
+  add_factory( new viame::pipeline::cpp_scheduler_factory( typeid( type ).name(), \
+                                                   viame::pipeline::scheduler::interface_name(), \
+                                                   viame::pipeline::create_new_scheduler< type > ) )
 
 /// Convenience macro to create a scheduler factory (for use in tests)
 #define MAKE_SCHEDULER_FACTORY( type ) \
-  new sprokit::cpp_scheduler_factory( typeid( type ).name(), \
-                                      sprokit::scheduler::interface_name(), \
-                                      sprokit::create_new_scheduler< type > )
+  new viame::pipeline::cpp_scheduler_factory( typeid( type ).name(), \
+                                      viame::pipeline::scheduler::interface_name(), \
+                                      viame::pipeline::create_new_scheduler< type > )
 
 // ============================================================================
 /// Derived class to register schedulers
@@ -185,10 +185,10 @@ bool is_scheduler_module_loaded( kwiver::vital::registry& vpl,
  * schedulers with the registry.
  */
 class scheduler_registrar
-  : public kwiver::plugin_registrar
+  : public viame::plugin_registrar
 {
 public:
-  scheduler_registrar( kwiver::vital::registry& vpl,
+  scheduler_registrar( viame::registry& vpl,
                        const std::string& mod_name_ )
     : plugin_registrar( vpl, mod_name_ )
   {
@@ -219,17 +219,17 @@ public:
    * \return The plugin loader reference is returned.
    */
   template <typename scheduler_t>
-  kwiver::vital::plugin_factory_handle_t
+  viame::plugin_factory_handle_t
   register_scheduler( const std::string& name,
                       const std::string& description,
                       const std::string& version = "1.0" )
   {
-    using kvpf = kwiver::vital::plugin_factory;
+    using kvpf = viame::plugin_factory;
 
-    kwiver::vital::plugin_factory* fact = new sprokit::cpp_scheduler_factory(
+    viame::plugin_factory* fact = new viame::pipeline::cpp_scheduler_factory(
       typeid( scheduler_t ).name(),
-      sprokit::scheduler::interface_name(),
-      sprokit::create_new_scheduler< scheduler_t > );
+      viame::pipeline::scheduler::interface_name(),
+      viame::pipeline::create_new_scheduler< scheduler_t > );
 
     fact->add_attribute( kvpf::PLUGIN_NAME,        name )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,    description )
@@ -242,6 +242,6 @@ public:
   }
 };
 
-} // end namespace
+} // namespace viame::pipeline
 
 #endif /* SPROKIT_PIPELINE_SCHEDULER_FACTORY_H */

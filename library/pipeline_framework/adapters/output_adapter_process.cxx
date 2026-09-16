@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <sstream>
 
-namespace kwiver {
+namespace viame {
 
 /**
  * \class output_adapter_process
@@ -46,7 +46,7 @@ public:
 
 // ------------------------------------------------------------------
 output_adapter_process
-::output_adapter_process( kwiver::vital::config_block_sptr const& config )
+::output_adapter_process( viame::config_block_sptr const& config )
   : process( config )
   , d( new output_adapter_process::priv )
 {
@@ -67,11 +67,11 @@ _configure()
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::ports_info_t
+viame::adapter::ports_info_t
 output_adapter_process
 ::get_ports()
 {
-  kwiver::adapter::ports_info_t p_info;
+  viame::adapter::ports_info_t p_info;
 
   // formulate list of current output ports
   auto ports = this->output_ports();
@@ -115,7 +115,7 @@ output_adapter_process
 {
   LOG_TRACE( logger(), "Processing data set" );
 
-  auto data_set = kwiver::adapter::adapter_data_set::create();
+  auto data_set = viame::adapter::adapter_data_set::create();
 
   // The grab call is blocking, so it will wait until data is there.
   for( auto const& p : m_active_ports )
@@ -143,7 +143,7 @@ output_adapter_process
   LOG_DEBUG( logger(), "End of data detected." );
 
   // Send end of input into interface queue indicating no more data will be sent.
-  auto ds = kwiver::adapter::adapter_data_set::create( kwiver::adapter::adapter_data_set::end_of_input );
+  auto ds = viame::adapter::adapter_data_set::create( viame::adapter::adapter_data_set::end_of_input );
   this->get_interface_queue()->Send( ds );
 }
 
@@ -159,4 +159,4 @@ output_adapter_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

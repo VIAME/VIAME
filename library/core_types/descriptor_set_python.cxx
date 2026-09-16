@@ -11,14 +11,12 @@
 
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
-typedef kwiver::vital::descriptor_set desc_set;
-typedef kwiver::vital::simple_descriptor_set s_desc_set;
+typedef viame::descriptor_set desc_set;
+typedef viame::simple_descriptor_set s_desc_set;
 
 std::shared_ptr< s_desc_set >
 new_desc_set()
@@ -29,22 +27,20 @@ new_desc_set()
 std::shared_ptr< s_desc_set >
 new_desc_set1( py::list py_list )
 {
-  std::vector< std::shared_ptr< kwiver::vital::descriptor > > desc_list;
+  std::vector< std::shared_ptr< viame::descriptor > > desc_list;
   for( auto py_desc : py_list )
   {
     desc_list.push_back(
-      py::cast< std::shared_ptr< kwiver::vital::descriptor > >( py_desc ) );
+      py::cast< std::shared_ptr< viame::descriptor > >( py_desc ) );
   }
   return std::make_shared< s_desc_set >( desc_list );
 }
 
 } // namespace python
 
-} // namespace vital
+} // namespace viame
 
-} // namespace kwiver
-
-using namespace kwiver::vital::python;
+using namespace viame::python;
 PYBIND11_MODULE( descriptor_set, m )
 {
   // The accessors live on the base class: a descriptor set that reaches
@@ -59,7 +55,7 @@ PYBIND11_MODULE( descriptor_set, m )
     .def( "__len__", &desc_set::size )
     .def(
       "__getitem__",
-      static_cast< kwiver::vital::descriptor_sptr ( desc_set::* )( size_t ) >(
+      static_cast< viame::descriptor_sptr ( desc_set::* )( size_t ) >(
         &desc_set::at ) )
   ;
 

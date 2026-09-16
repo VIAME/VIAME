@@ -20,7 +20,7 @@
 namespace viame {
 
 class VIAME_FILE_IO_EXPORT read_detected_object_set_auto
-  : public kwiver::vital::algo::detected_object_set_input
+  : public viame::algo::detected_object_set_input
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -37,12 +37,12 @@ public:
 
   virtual ~read_detected_object_set_auto();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   virtual void open( std::string const& filename );
   virtual void close();
 
-  virtual bool read_set( kwiver::vital::detected_object_set_sptr& set,
+  virtual bool read_set( viame::detected_object_set_sptr& set,
                          std::string& image_name );
 
 private:

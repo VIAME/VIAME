@@ -22,21 +22,21 @@
 #include "out_parameter_python.txx"
 #include <viame/algorithm_framework/algo/estimate_homography.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 template< class estimate_homography_base =
-            kwiver::vital::algo::estimate_homography >
+            viame::algo::estimate_homography >
 class estimate_homography_trampoline
   : public algorithm_trampoline< estimate_homography_base >
 {
 public:
   using algorithm_trampoline< estimate_homography_base >::algorithm_trampoline;
 
-  kwiver::vital::homography_sptr
+  viame::homography_sptr
   estimate(
-    ::kwiver::vital::feature_set_sptr feat1,
-    ::kwiver::vital::feature_set_sptr feat2,
-    ::kwiver::vital::match_set_sptr matches,
+    ::viame::feature_set_sptr feat1,
+    ::viame::feature_set_sptr feat2,
+    ::viame::match_set_sptr matches,
     ::std::vector< bool >& inliers,
     double inlier_scale ) const override
   {
@@ -50,7 +50,7 @@ public:
     pybind11::gil_scoped_acquire gil;
     pybind11::function overload =
       pybind11::get_override(
-        static_cast< kwiver::vital::algo::estimate_homography const* >( this ),
+        static_cast< viame::algo::estimate_homography const* >( this ),
         "estimate_matches" );
 
     if( !overload )
@@ -59,22 +59,22 @@ public:
         feat1, feat2, matches, inliers, inlier_scale );
     }
 
-    return unpack_out_parameters< kwiver::vital::homography_sptr >(
+    return unpack_out_parameters< viame::homography_sptr >(
       overload( feat1, feat2, matches, inlier_scale ),
       "estimate_homography.estimate_matches", inliers );
   }
 
-  kwiver::vital::homography_sptr
+  viame::homography_sptr
   estimate(
-    ::std::vector< kwiver::vital::vector_< 2, double > > const& pts1,
-    ::std::vector< kwiver::vital::vector_< 2, double > > const& pts2,
+    ::std::vector< viame::vector_< 2, double > > const& pts1,
+    ::std::vector< viame::vector_< 2, double > > const& pts2,
     ::std::vector< bool >& inliers,
     double inlier_scale ) const override
   {
     pybind11::gil_scoped_acquire gil;
     pybind11::function overload =
       pybind11::get_override(
-        static_cast< kwiver::vital::algo::estimate_homography const* >( this ),
+        static_cast< viame::algo::estimate_homography const* >( this ),
         "estimate" );
 
     if( !overload )
@@ -84,13 +84,13 @@ public:
         "\"estimate_homography::estimate\"" );
     }
 
-    return unpack_out_parameters< kwiver::vital::homography_sptr >(
+    return unpack_out_parameters< viame::homography_sptr >(
       overload( pts1, pts2, inlier_scale ),
       "estimate_homography.estimate", inliers );
   }
 };
 
-} // namespace kwiver::vital::python
+} // namespace viame::python
 
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

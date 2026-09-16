@@ -21,7 +21,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Helper function for computing average track object type
 static kv::detected_object_type_sptr
@@ -36,10 +36,10 @@ compute_average_tot( kv::track_sptr trk_ptr,
   }
 
   // Extract detections from track states
-  std::vector< kwiver::vital::detected_object_sptr > detections;
+  std::vector< viame::detected_object_sptr > detections;
   for( auto ts_ptr : *trk_ptr )
   {
-    auto* ts = static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
+    auto* ts = static_cast< viame::object_track_state* >( ts_ptr.get() );
     if( ts->detection() )
     {
       detections.push_back( ts->detection() );

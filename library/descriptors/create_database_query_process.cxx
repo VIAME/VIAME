@@ -26,7 +26,7 @@ namespace viame
 namespace core
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 create_config_trait( query_type, std::string, "similarity",
   "Type of query: 'similarity' or 'retrieval'" );
@@ -103,7 +103,7 @@ create_database_query_process
   // Check for completion signal
   auto const& p_info = peek_at_port_using_trait( track_descriptor_set );
 
-  if( p_info.datum->type() == sprokit::datum::complete )
+  if( p_info.datum->type() == viame::pipeline::datum::complete )
   {
     grab_edge_datum_using_trait( track_descriptor_set );
     if( has_input_port_edge_using_trait( boxes_provided ) )
@@ -162,8 +162,8 @@ create_database_query_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 

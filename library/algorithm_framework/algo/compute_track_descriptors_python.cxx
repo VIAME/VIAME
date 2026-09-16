@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "compute_track_descriptors_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void compute_track_descriptors(py::module& m)
@@ -19,22 +19,22 @@ void compute_track_descriptors(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::compute_track_descriptors,
-               std::shared_ptr<kwiver::vital::algo::compute_track_descriptors>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::compute_track_descriptors,
+               std::shared_ptr<viame::algo::compute_track_descriptors>,
+               viame::algorithm,
                compute_track_descriptors_trampoline<> > instance(m,  "ComputeTrackDescriptors");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::compute_track_descriptors::interface_name)
-    .def("compute", &kwiver::vital::algo::compute_track_descriptors::compute, py::doc(R"( Compute track descriptors given an image and tracks
+    .def_static("interface_name", &viame::algo::compute_track_descriptors::interface_name)
+    .def("compute", &viame::algo::compute_track_descriptors::compute, py::doc(R"( Compute track descriptors given an image and tracks
 
  \param ts timestamp for the current frame
  \param image_data contains the image data to process
  \param tracks the tracks to extract descriptors around
 
  \returns a set of track descriptors)"), py::arg("ts"), py::arg("image_data"), py::arg("tracks"))
-    .def("flush", &kwiver::vital::algo::compute_track_descriptors::flush, py::doc(R"( Flush any remaining in-progress descriptors
+    .def("flush", &viame::algo::compute_track_descriptors::flush, py::doc(R"( Flush any remaining in-progress descriptors
 
  This is typically called at the end of a video, in case
  any temporal descriptors and currently in progress and
@@ -42,7 +42,7 @@ void compute_track_descriptors(py::module& m)
 
  \returns a set of track descriptors)"))
     ;
-  register_algorithm< kwiver::vital::algo::compute_track_descriptors > (instance);
+  register_algorithm< viame::algo::compute_track_descriptors > (instance);
 }
 
 }

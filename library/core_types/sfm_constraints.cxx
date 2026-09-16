@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation for kwiver::vital::sfm_constraints class storing
+/// \brief Implementation for viame::sfm_constraints class storing
 ///       constraints to be used in SfM.
 
 #include <viame/core_types/sfm_constraints.h>
@@ -12,9 +12,7 @@
 #include <viame/core_types/geodesy.h>
 #include <viame/core_types/rotation.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Private implementation class
 class sfm_constraints::priv
@@ -238,11 +236,11 @@ sfm_constraints
     return false;
   }
 
-  kwiver::vital::geo_point gloc;
+  viame::geo_point gloc;
   if( auto const& item =
         m_priv->m_md->get_item( VITAL_META_SENSOR_LOCATION, fid ) )
   {
-    pos_loc = m_priv->m_local_space.to_local( item.get< vital::geo_point >() );
+    pos_loc = m_priv->m_local_space.to_local( item.get< viame::geo_point >() );
     return true;
   }
   else
@@ -345,6 +343,4 @@ sfm_constraints
   }
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

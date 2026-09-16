@@ -29,13 +29,11 @@
 
 #include <viame/video_io/codecs/image_codec.h>
 
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace io = viame::image_ops;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
@@ -49,18 +47,18 @@ refine_detections_write_to_disk
 // Check that the algorithm's currently configuration is valid
 bool
 refine_detections_write_to_disk
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
 
 // ----------------------------------------------------------------------------
 // Output images with tracked features drawn on them
-vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 refine_detections_write_to_disk
 ::refine(
-  vital::image_container_sptr image_data,
-  vital::detected_object_set_sptr detections ) const
+  viame::image_container_sptr image_data,
+  viame::detected_object_set_sptr detections ) const
 {
   // Input validation and formatting
   this->frame_counter++;
@@ -80,17 +78,17 @@ refine_detections_write_to_disk
     if( auto& mdi = md->find( VITAL_META_IMAGE_URI ) )
     {
       // Get the full path, and then extract just the filename proper
-      filename = kwiver::vital::filename_name( mdi.as_string() );
+      filename = viame::filename_name( mdi.as_string() );
     }
   }
 
   for( auto det : *detections )
   {
-    vital::bounding_box_d bbox = det->bounding_box();
+    viame::bounding_box_d bbox = det->bounding_box();
 
-    vital::bounding_box_d bounds(
-      vital::bounding_box_d::vector_type( 0, 0 ),
-      vital::bounding_box_d::vector_type(
+    viame::bounding_box_d bounds(
+      viame::bounding_box_d::vector_type( 0, 0 ),
+      viame::bounding_box_d::vector_type(
         static_cast< double >( img.width() ),
         static_cast< double >( img.height() ) ) );
 
@@ -127,7 +125,7 @@ refine_detections_write_to_disk
       category_str = this->get_unknown_label();
     }
 
-    std::string ofn = kwiver::vital::string_format(
+    std::string ofn = viame::string_format(
       this->get_pattern(),
       category_str.c_str(),
       frame_str.c_str(),
@@ -151,9 +149,9 @@ refine_detections_write_to_disk
     // as it did when this was `cv::imwrite`.
     auto const chip = io::dispatch_pixel_type(
       img,
-      [ & ]( auto const& typed ) -> vital::image
+      [ & ]( auto const& typed ) -> viame::image
       {
-        return vital::image( io::crop(
+        return viame::image( io::crop(
           typed,
           static_cast< size_t >( bbox.upper_left()[ 0 ] ),
           static_cast< size_t >( bbox.upper_left()[ 1 ] ),
@@ -174,8 +172,6 @@ refine_detections_write_to_disk
   return detections;
 }
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

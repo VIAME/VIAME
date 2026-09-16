@@ -16,13 +16,11 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
-using namespace kwiver::vital;
+using namespace viame;
 
 /// Private implementation class
 class initialize_object_tracks_threshold::priv
@@ -39,7 +37,7 @@ public:
   size_t c_max_new_tracks() { return parent.c_max_new_tracks; }
 
   /// The feature matching algorithm to use
-  vital::algo::detected_object_filter_sptr
+  viame::algo::detected_object_filter_sptr
   c_filter()
   {
     return parent.c_filter;
@@ -68,7 +66,7 @@ initialize_object_tracks_threshold
 
 bool
 initialize_object_tracks_threshold
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return (
     check_nested_algo_configuration< algo::detected_object_filter >(
@@ -78,15 +76,15 @@ initialize_object_tracks_threshold
 }
 
 /// Initialize object tracks
-kwiver::vital::object_track_set_sptr
+viame::object_track_set_sptr
 initialize_object_tracks_threshold
 ::initialize(
-  kwiver::vital::timestamp ts,
-  kwiver::vital::image_container_sptr /*image*/,
-  kwiver::vital::detected_object_set_sptr detections ) const
+  viame::timestamp ts,
+  viame::image_container_sptr /*image*/,
+  viame::detected_object_set_sptr detections ) const
 {
   auto filtered = d_->c_filter()->filter( detections );
-  std::vector< vital::track_sptr > output;
+  std::vector< viame::track_sptr > output;
 
   size_t max_tracks = std::min(
     static_cast< size_t >( filtered->size() ),
@@ -96,22 +94,20 @@ initialize_object_tracks_threshold
   {
     size_t new_id = initialize_object_tracks_threshold::priv::next_track_id++;
 
-    vital::track_sptr new_track( vital::track::create() );
+    viame::track_sptr new_track( viame::track::create() );
     new_track->set_id( new_id );
 
-    vital::track_state_sptr first_track_state(
-      new vital::object_track_state( ts, filtered->at( i ) ) );
+    viame::track_state_sptr first_track_state(
+      new viame::object_track_state( ts, filtered->at( i ) ) );
 
     new_track->append( first_track_state );
 
     output.push_back( new_track );
   }
 
-  return vital::object_track_set_sptr( new object_track_set( output ) );
+  return viame::object_track_set_sptr( new object_track_set( output ) );
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

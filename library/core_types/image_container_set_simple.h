@@ -10,9 +10,7 @@
 
 #include <viame/core_types/image_container_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// A concrete image container set that simply wraps a vector of images.
 class VITAL_TYPES_EXPORT simple_image_container_set
@@ -45,8 +43,6 @@ protected:
   const_iterator::next_value_func_t get_const_iter_next_func() const;
 };
 
-} // namespace vital
-
-}   // end namespaces
+} // namespace viame
 
 #endif // VITAL_IMAGE_CONTAINER_SET_SIMPLE_H_

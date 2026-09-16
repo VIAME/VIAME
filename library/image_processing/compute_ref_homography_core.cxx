@@ -14,11 +14,9 @@
 #include <memory>
 #include <set>
 #include <vector>
-using namespace kwiver::vital;
+using namespace viame;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -141,7 +139,7 @@ public:
     return parent.c_allow_ref_frame_regression;
   }
 
-  vital::algo::estimate_homography_sptr
+  viame::algo::estimate_homography_sptr
   estimator() const
   {
     return parent.c_estimator;
@@ -273,7 +271,7 @@ compute_ref_homography_core
 // ----------------------------------------------------------------------------
 bool
 compute_ref_homography_core
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return
     (
@@ -516,8 +514,6 @@ compute_ref_homography_core
   return output;
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

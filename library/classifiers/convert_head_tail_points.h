@@ -13,7 +13,7 @@
 namespace viame {
 
 class VIAME_CLASSIFIERS_EXPORT convert_head_tail_points :
-  public kwiver::vital::algo::refine_detections
+  public viame::algo::refine_detections
 {
 public:
   PLUGGABLE_IMPL(
@@ -33,12 +33,12 @@ public:
 
   virtual ~convert_head_tail_points() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   // Main detection method
-  virtual kwiver::vital::detected_object_set_sptr refine(
-    kwiver::vital::image_container_sptr image_data,
-    kwiver::vital::detected_object_set_sptr input_dets ) const;
+  virtual viame::detected_object_set_sptr refine(
+    viame::image_container_sptr image_data,
+    viame::detected_object_set_sptr input_dets ) const;
 };
 
 } // end namespace

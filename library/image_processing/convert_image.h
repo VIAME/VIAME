@@ -12,7 +12,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// @brief Convert an image's pixel format, channel count and range.
 ///

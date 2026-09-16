@@ -4,9 +4,7 @@
 
 #include <viame/algorithm_framework/algo/close_loops.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -18,6 +16,4 @@ close_loops
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

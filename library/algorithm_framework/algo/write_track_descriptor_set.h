@@ -16,9 +16,7 @@
 #include <fstream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -34,7 +32,7 @@ namespace algo {
 /// usually the file name, and an associated wet of track descriptors.
 ///
 class VITAL_ALGO_EXPORT write_track_descriptor_set
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   write_track_descriptor_set();
@@ -45,10 +43,10 @@ public:
   ///
   /// \param filename Name of file to open
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the given path does not
+  /// \throws viame::path_not_exists Thrown when the given path does not
   /// exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file Thrown when the given path does
+  /// \throws viame::path_not_a_file Thrown when the given path does
   ///    not point to a file (i.e. it points to a directory).
   virtual void open( std::string const& filename );
 
@@ -74,7 +72,7 @@ public:
   /// \param set Detected object set
   /// \param source_id String source ID
   virtual void write_set(
-    const kwiver::vital::track_descriptor_set_sptr set,
+    const viame::track_descriptor_set_sptr set,
     const std::string& source_id ) = 0;
 
 protected:
@@ -95,8 +93,6 @@ typedef std::shared_ptr< write_track_descriptor_set >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_WRITE_TRACK_DESCRIPTOR_SET_H

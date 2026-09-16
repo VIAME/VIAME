@@ -15,7 +15,7 @@ namespace viame {
 // The worst detector in the world, always produces empty detections for debug
 // purposes, and to hack reseting into VIAME-web
 class VIAME_OBJECT_DETECTORS_EXPORT empty_detector :
-  public kwiver::vital::algo::image_object_detector
+  public viame::algo::image_object_detector
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -24,14 +24,14 @@ public:
 
   virtual ~empty_detector() = default;
 
-  bool check_configuration( kwiver::vital::config_block_sptr config ) const override
+  bool check_configuration( viame::config_block_sptr config ) const override
   {
     return true;
   }
 
   // Main detection method
-  virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const override;
+  virtual viame::detected_object_set_sptr detect(
+    viame::image_container_sptr image_data ) const override;
 };
 
 } // end namespace

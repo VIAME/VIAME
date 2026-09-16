@@ -7,7 +7,7 @@
 
 #include <viame/algorithm_framework/logger/logger.h>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 scheduler::type_t const scheduler_factory::default_type = scheduler::type_t("thread_per_process");
 
@@ -36,19 +36,19 @@ cpp_scheduler_factory( const std::string&       type,
 }
 
 // ----------------------------------------------------------------------------
-sprokit::scheduler_t
+viame::pipeline::scheduler_t
 cpp_scheduler_factory::
 create_object( pipeline_t const& pipe,
-               kwiver::vital::config_block_sptr const& config )
+               viame::config_block_sptr const& config )
 {
   // Call sprokit factory function.
   return m_factory( pipe, config );
 }
 
 // ------------------------------------------------------------------
-sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      name,
-                                       const sprokit::pipeline_t&             pipe,
-                                       const kwiver::vital::config_block_sptr config )
+viame::pipeline::scheduler_t create_scheduler( const viame::pipeline::scheduler::type_t&      name,
+                                       const viame::pipeline::pipeline_t&             pipe,
+                                       const viame::config_block_sptr config )
 {
   if ( ! config )
   {
@@ -60,23 +60,23 @@ sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      na
     VITAL_THROW( null_scheduler_registry_pipeline_exception );
   }
 
-  typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > instrumentation_factory;
+  typedef viame::implementation_factory_by_name< viame::pipeline::scheduler > instrumentation_factory;
   instrumentation_factory ifact;
 
-  kwiver::vital::plugin_factory_handle_t a_fact;
+  viame::plugin_factory_handle_t a_fact;
   try
   {
     a_fact = ifact.find_factory( name );
   }
-  catch ( kwiver::vital::plugin_factory_not_found& e )
+  catch ( viame::plugin_factory_not_found& e )
   {
-    auto logger = kwiver::vital::get_logger( "sprokit.scheduler_factory" );
+    auto logger = viame::get_logger( "sprokit.scheduler_factory" );
     LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
 
     VITAL_THROW( no_such_scheduler_type_exception, name );
   }
 
-  sprokit::scheduler_factory* pf = dynamic_cast< sprokit::scheduler_factory* > ( a_fact.get() );
+  viame::pipeline::scheduler_factory* pf = dynamic_cast< viame::pipeline::scheduler_factory* > ( a_fact.get() );
   if (!pf)
   {
     // wrong type of factory returned
@@ -88,7 +88,7 @@ sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      na
 
 // ------------------------------------------------------------------
 void
-mark_scheduler_module_as_loaded( kwiver::vital::registry& vpl,
+mark_scheduler_module_as_loaded( viame::registry& vpl,
                                  module_t const& module )
 {
   module_t mod = "scheduler.";
@@ -99,7 +99,7 @@ mark_scheduler_module_as_loaded( kwiver::vital::registry& vpl,
 
 // ------------------------------------------------------------------
 bool
-is_scheduler_module_loaded( kwiver::vital::registry& vpl,
+is_scheduler_module_loaded( viame::registry& vpl,
                             module_t const& module )
 {
   module_t mod = "scheduler.";
@@ -108,4 +108,4 @@ is_scheduler_module_loaded( kwiver::vital::registry& vpl,
   return vpl.is_module_loaded( mod );
 }
 
-} // end namespace
+} // namespace viame::pipeline

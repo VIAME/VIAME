@@ -20,7 +20,7 @@ namespace viame
 /// @throws runtime_error on invalid or unable to parse filename format
 ///
 VIAME_VIDEO_IO_EXPORT
-kwiver::vital::time_usec_t
+viame::time_usec_t
 convert_to_timestamp( const std::string& filename,
                       const bool auto_discover = false );
 

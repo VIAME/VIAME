@@ -18,9 +18,7 @@
 
 #include <algorithm>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // forward declaration of detected_object class
 class detected_object_set;
@@ -224,8 +222,6 @@ private:
   attribute_set_sptr m_attrs;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

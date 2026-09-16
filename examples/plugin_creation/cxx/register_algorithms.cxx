@@ -30,7 +30,7 @@
 extern "C"
 PLUGIN_EXPORT_FLAG
 void
-viame_register_plugin( kwiver::vital::registry& vpm )
+viame_register_plugin( viame::registry& vpm )
 {
   static auto const module_name = std::string( "viame.example_external_detector" );
 
@@ -41,7 +41,7 @@ viame_register_plugin( kwiver::vital::registry& vpm )
 
   // Registers under the name and description PLUGGABLE_IMPL declares. A
   // second name for the same implementation is `viame::register_alias`.
-  viame::register_algorithm< kwiver::vital::algo::image_object_detector,
+  viame::register_algorithm< viame::algo::image_object_detector,
                              viame::external_example_detector >( vpm, module_name );
 
   vpm.mark_module_as_loaded( module_name );

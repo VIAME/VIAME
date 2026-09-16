@@ -61,7 +61,7 @@ pattern_of( std::string const& name )
 // ----------------------------------------------------------------------------
 bool
 debayer_filter
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   if( !( c_pattern == "BG" ||
          c_pattern == "GB" ||
@@ -76,9 +76,9 @@ debayer_filter
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::image_container_sptr
+viame::image_container_sptr
 debayer_filter
-::filter( kwiver::vital::image_container_sptr image_data )
+::filter( viame::image_container_sptr image_data )
 {
   if( image_data->depth() != 1 )
   {
@@ -96,7 +96,7 @@ debayer_filter
 
   auto const out = io::dispatch_pixel_type(
     image_data->get_image(),
-    [ & ]( auto const& typed ) -> kwiver::vital::image
+    [ & ]( auto const& typed ) -> viame::image
     {
       using pixel_t = std::decay_t< decltype( typed( 0, 0, 0 ) ) >;
 
@@ -104,7 +104,7 @@ debayer_filter
 
       if( !force_8bit || sizeof( pixel_t ) == 1 )
       {
-        return kwiver::vital::image( colour );
+        return viame::image( colour );
       }
 
       // `cv::normalize( ..., 255, 0, NORM_MINMAX )` then a convert to 8U:
@@ -112,7 +112,7 @@ debayer_filter
       // together, and then rounded rather than truncated.
       auto const stretched = io::normalize_min_max( colour, 0.0, 255.0 );
 
-      kwiver::vital::image_of< uint8_t > bytes(
+      viame::image_of< uint8_t > bytes(
         stretched.width(), stretched.height(), stretched.depth() );
 
       for( size_t plane = 0; plane < stretched.depth(); ++plane )
@@ -127,10 +127,10 @@ debayer_filter
         }
       }
 
-      return kwiver::vital::image( bytes );
+      return viame::image( bytes );
     } );
 
-  return std::make_shared< kwiver::vital::simple_image_container >( out );
+  return std::make_shared< viame::simple_image_container >( out );
 }
 
 } // end namespace

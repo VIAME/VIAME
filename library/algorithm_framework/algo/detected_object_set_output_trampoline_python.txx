@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/detected_object_set_output.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class detected_object_set_output_base = kwiver::vital::algo::detected_object_set_output >
+template< class detected_object_set_output_base = viame::algo::detected_object_set_output >
 class detected_object_set_output_trampoline
     : public algorithm_trampoline< detected_object_set_output_base >
 {
@@ -26,7 +26,7 @@ class detected_object_set_output_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::detected_object_set_output,
+      viame::algo::detected_object_set_output,
       open,
       filename
       );
@@ -37,18 +37,18 @@ class detected_object_set_output_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::detected_object_set_output,
+      viame::algo::detected_object_set_output,
       close,
       
       );
   }
 
   void
-  write_set(::kwiver::vital::detected_object_set_sptr const set, ::std::string const & image_path) override
+  write_set(::viame::detected_object_set_sptr const set, ::std::string const & image_path) override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::detected_object_set_output,
+      viame::algo::detected_object_set_output,
       write_set,
       set, image_path
       );
@@ -59,12 +59,12 @@ class detected_object_set_output_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::detected_object_set_output,
+      viame::algo::detected_object_set_output,
       complete,
       
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

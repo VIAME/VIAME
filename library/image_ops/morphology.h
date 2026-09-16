@@ -148,11 +148,11 @@ cross_element( int width, int height )
 /// extreme of the type, so an out-of-image neighbour can never be the
 /// minimum of a dilation or the maximum of an erosion.
 template < typename T, typename Combine >
-kwiver::vital::image_of< T >
-grey_morphology( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+grey_morphology( viame::image_of< T > const& image,
                  structuring_element const& element, Combine combine )
 {
-  kwiver::vital::image_of< T > out( image.width(), image.height(),
+  viame::image_of< T > out( image.width(), image.height(),
                                     image.depth() );
 
   auto const width = static_cast< long >( image.width() );
@@ -192,8 +192,8 @@ grey_morphology( kwiver::vital::image_of< T > const& image,
 
 /// The smallest value under \p element, which is `cv::erode`.
 template < typename T >
-kwiver::vital::image_of< T >
-grey_erode( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+grey_erode( viame::image_of< T > const& image,
             structuring_element const& element )
 {
   return grey_morphology( image, element,
@@ -202,8 +202,8 @@ grey_erode( kwiver::vital::image_of< T > const& image,
 
 /// The largest value under \p element, which is `cv::dilate`.
 template < typename T >
-kwiver::vital::image_of< T >
-grey_dilate( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+grey_dilate( viame::image_of< T > const& image,
              structuring_element const& element )
 {
   return grey_morphology( image, element,
@@ -219,15 +219,15 @@ namespace detail {
 /// set or unset, so the element is effectively clipped to the border. That
 /// means eroding an all-true image leaves it all true, which is what VXL
 /// does and what the pipelines that erode near a frame edge expect.
-inline kwiver::vital::image_of< bool >
-apply( kwiver::vital::image_of< bool > const& image,
+inline viame::image_of< bool >
+apply( viame::image_of< bool > const& image,
        structuring_element const& element,
        bool erode )
 {
   auto const width = static_cast< int >( image.width() );
   auto const height = static_cast< int >( image.height() );
 
-  kwiver::vital::image_of< bool > result( image.width(), image.height(),
+  viame::image_of< bool > result( image.width(), image.height(),
                                           image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -272,16 +272,16 @@ apply( kwiver::vital::image_of< bool > const& image,
 } // namespace detail
 
 // ----------------------------------------------------------------------------
-inline kwiver::vital::image_of< bool >
-erode( kwiver::vital::image_of< bool > const& image,
+inline viame::image_of< bool >
+erode( viame::image_of< bool > const& image,
        structuring_element const& element )
 {
   return detail::apply( image, element, true );
 }
 
 // ----------------------------------------------------------------------------
-inline kwiver::vital::image_of< bool >
-dilate( kwiver::vital::image_of< bool > const& image,
+inline viame::image_of< bool >
+dilate( viame::image_of< bool > const& image,
         structuring_element const& element )
 {
   return detail::apply( image, element, false );
@@ -289,8 +289,8 @@ dilate( kwiver::vital::image_of< bool > const& image,
 
 // ----------------------------------------------------------------------------
 /// Erode then dilate: removes specks smaller than the element.
-inline kwiver::vital::image_of< bool >
-opening( kwiver::vital::image_of< bool > const& image,
+inline viame::image_of< bool >
+opening( viame::image_of< bool > const& image,
          structuring_element const& element )
 {
   return dilate( erode( image, element ), element );
@@ -298,8 +298,8 @@ opening( kwiver::vital::image_of< bool > const& image,
 
 // ----------------------------------------------------------------------------
 /// Dilate then erode: fills holes smaller than the element.
-inline kwiver::vital::image_of< bool >
-closing( kwiver::vital::image_of< bool > const& image,
+inline viame::image_of< bool >
+closing( viame::image_of< bool > const& image,
          structuring_element const& element )
 {
   return erode( dilate( image, element ), element );
@@ -307,10 +307,10 @@ closing( kwiver::vital::image_of< bool > const& image,
 
 // ----------------------------------------------------------------------------
 /// Collapse every plane into one with `or` (union) or `and` (intersection).
-inline kwiver::vital::image_of< bool >
-combine_planes( kwiver::vital::image_of< bool > const& image, bool use_union )
+inline viame::image_of< bool >
+combine_planes( viame::image_of< bool > const& image, bool use_union )
 {
-  kwiver::vital::image_of< bool > result( image.width(), image.height(), 1 );
+  viame::image_of< bool > result( image.width(), image.height(), 1 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {

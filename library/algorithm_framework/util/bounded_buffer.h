@@ -15,9 +15,7 @@
 
 #include <viame/core_types/noncopyable.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Simple bounded buffer.
@@ -25,7 +23,7 @@ namespace vital {
 /// This class represents a fixed size bounded buffer designed for
 /// communication between threads.
 template < class T >
-class bounded_buffer : private vital::noncopyable
+class bounded_buffer : private viame::noncopyable
 {
 public:
   typedef std::unique_lock< std::mutex > lock;
@@ -136,8 +134,6 @@ private:
   std::mutex monitor;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

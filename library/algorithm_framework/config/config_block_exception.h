@@ -16,13 +16,11 @@
 
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// \brief The base class for all exceptions thrown from \ref
-/// kwiver::vital::config_block
+/// viame::config_block
 /// \ingroup exceptions
 class VITAL_CONFIG_EXPORT config_block_exception
   : public vital_exception
@@ -178,17 +176,17 @@ public:
   /// \param type The type that was requested.
   /// \param reason The reason for the bad cast.
   bad_configuration_cast_exception(
-    kwiver::vital::config_block_key_t const& key,
-    kwiver::vital::config_block_value_t const& value,
+    viame::config_block_key_t const& key,
+    viame::config_block_value_t const& value,
     char const* type,
     char const* reason ) noexcept;
   /// \brief Destructor.
   ~bad_configuration_cast_exception() noexcept;
 
   /// The requested key name.
-  kwiver::vital::config_block_key_t const m_key;
+  viame::config_block_key_t const m_key;
   /// The value of the requested key.
-  kwiver::vital::config_block_value_t const m_value;
+  viame::config_block_value_t const m_value;
   /// The type requested for the cast.
   std::string const m_type;
   /// The reason for the failed cast.
@@ -285,8 +283,6 @@ public:
   virtual ~config_file_write_exception() noexcept;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

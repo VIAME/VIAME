@@ -12,7 +12,7 @@
 
 #include "close_loops_appearance_indexed.h"
 
-using namespace kwiver::vital;
+using namespace viame;
 
 #include <viame/algorithm_framework/util/file_system.h>
 #include <viame/algorithm_framework/algo/algorithm.h>
@@ -24,9 +24,7 @@ using namespace kwiver::vital;
 #include <viame/algorithm_framework/algo/match_features.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -43,21 +41,21 @@ public:
   // Values configured by PLUGGABLE_IMPL macro
 
   /// The feature matching algorithm to use
-  vital::algo::match_features_sptr
+  viame::algo::match_features_sptr
   c_matcher()
   {
     return parent.c_match_features;
   }
 
   /// The bag of words matching image finder
-  vital::algo::match_descriptor_sets_sptr
+  viame::algo::match_descriptor_sets_sptr
   c_bow()
   {
     return parent.c_bag_of_words_matching;
   }
 
   /// The fundamental matrix estimator for geometric verification
-  vital::algo::estimate_fundamental_matrix_sptr c_f_estimator()
+  viame::algo::estimate_fundamental_matrix_sptr c_f_estimator()
   { return parent.c_fundamental_mat_estimator; }
 
   /// The minimum number of inliers required for a putative loop to be accepted
@@ -92,15 +90,15 @@ public:
     feature_track_state_sptr > fs_match;
   typedef std::vector< fs_match > matches_vec;
 
-  kwiver::vital::feature_track_set_sptr
+  viame::feature_track_set_sptr
   detect(
-    kwiver::vital::feature_track_set_sptr feat_tracks,
-    kwiver::vital::frame_id_t frame_number );
+    viame::feature_track_set_sptr feat_tracks,
+    viame::frame_id_t frame_number );
 
-  kwiver::vital::feature_track_set_sptr
+  viame::feature_track_set_sptr
   verify_and_add_image_matches(
-    kwiver::vital::feature_track_set_sptr feat_tracks,
-    kwiver::vital::frame_id_t frame_number,
+    viame::feature_track_set_sptr feat_tracks,
+    viame::frame_id_t frame_number,
     std::vector< frame_id_t > const& putative_matches );
 
   void
@@ -109,10 +107,10 @@ public:
     const std::vector< feature_track_state_sptr >& vb,
     matches_vec& matches );
 
-  kwiver::vital::feature_track_set_sptr
+  viame::feature_track_set_sptr
   verify_and_add_image_matches_node_id_guided(
-    kwiver::vital::feature_track_set_sptr feat_tracks,
-    kwiver::vital::frame_id_t frame_number,
+    viame::feature_track_set_sptr feat_tracks,
+    viame::frame_id_t frame_number,
     std::vector< frame_id_t > const& putative_matches );
 
   typedef std::map< unsigned int,
@@ -184,7 +182,7 @@ close_loops_appearance_indexed::priv
   {
     int dist1 = max_int;
     int dist2 = max_int;
-    vital::feature_track_state_sptr best_match = nullptr;
+    viame::feature_track_state_sptr best_match = nullptr;
 
     // see if this track id already has a vb feature track state associate with
     // it
@@ -223,11 +221,11 @@ close_loops_appearance_indexed::priv
   }
 }
 
-kwiver::vital::feature_track_set_sptr
+viame::feature_track_set_sptr
 close_loops_appearance_indexed::priv
 ::verify_and_add_image_matches_node_id_guided(
-  kwiver::vital::feature_track_set_sptr feat_tracks,
-  kwiver::vital::frame_id_t frame_number,
+  viame::feature_track_set_sptr feat_tracks,
+  viame::frame_id_t frame_number,
   std::vector< frame_id_t > const& putative_matches )
 {
   auto cur_frame_fts = feat_tracks->frame_feature_track_states( frame_number );
@@ -427,11 +425,11 @@ close_loops_appearance_indexed::priv
 
 // ----------------------------------------------------------------------------
 
-kwiver::vital::feature_track_set_sptr
+viame::feature_track_set_sptr
 close_loops_appearance_indexed::priv
 ::verify_and_add_image_matches(
-  kwiver::vital::feature_track_set_sptr feat_tracks,
-  kwiver::vital::frame_id_t frame_number,
+  viame::feature_track_set_sptr feat_tracks,
+  viame::frame_id_t frame_number,
   std::vector< frame_id_t > const& putative_matches )
 {
   feature_set_sptr feat1, feat2;
@@ -587,7 +585,7 @@ close_loops_appearance_indexed::priv
     }
     matched_indices_1.insert( m.m1 );
     matched_indices_2.insert( m.m2 );
-    unique_matches.push_back( vital::match( m.m1, m.m2 ) );
+    unique_matches.push_back( viame::match( m.m1, m.m2 ) );
   }
 
   return std::make_shared< simple_match_set >( unique_matches );
@@ -595,11 +593,11 @@ close_loops_appearance_indexed::priv
 
 // ----------------------------------------------------------------------------
 
-kwiver::vital::feature_track_set_sptr
+viame::feature_track_set_sptr
 close_loops_appearance_indexed::priv
 ::detect(
-  kwiver::vital::feature_track_set_sptr feat_tracks,
-  kwiver::vital::frame_id_t frame_number )
+  viame::feature_track_set_sptr feat_tracks,
+  viame::frame_id_t frame_number )
 {
   if( !c_bow() )
   {
@@ -656,13 +654,13 @@ close_loops_appearance_indexed
 
 // ----------------------------------------------------------------------------
 
-kwiver::vital::feature_track_set_sptr
+viame::feature_track_set_sptr
 close_loops_appearance_indexed
 ::stitch(
-  kwiver::vital::frame_id_t frame_number,
-  kwiver::vital::feature_track_set_sptr input,
-  [[maybe_unused]] kwiver::vital::image_container_sptr image,
-  [[maybe_unused]] kwiver::vital::image_container_sptr mask ) const
+  viame::frame_id_t frame_number,
+  viame::feature_track_set_sptr input,
+  [[maybe_unused]] viame::image_container_sptr image,
+  [[maybe_unused]] viame::image_container_sptr mask ) const
 {
   return d_->detect( input, frame_number );
 }
@@ -670,7 +668,7 @@ close_loops_appearance_indexed
 // ----------------------------------------------------------------------------
 bool
 close_loops_appearance_indexed
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   bool config_valid = true;
 
@@ -698,8 +696,6 @@ close_loops_appearance_indexed
 
 // ----------------------------------------------------------------------------
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

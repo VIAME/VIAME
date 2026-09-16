@@ -14,7 +14,7 @@
 /// @page Logger Logger Documentation
 ///
 /// <P>All calls to log a message require a logger object, obtained with
-/// kwiver::vital::get_logger( <name> ). Every call with the same name gets
+/// viame::get_logger( <name> ). Every call with the same name gets
 /// the same logger, so it is cheapest to fetch the handle once and keep it in
 /// a member. The macros below -- LOG_ERROR, LOG_WARN and the rest -- test the
 /// level before they build the message.</P>
@@ -49,12 +49,12 @@
 /// #include <viame/algorithm_framework/logger/logger.h>
 /// #include <iostream>
 ///
-/// kwiver::vital::logger_handle_t m_logger;
+/// viame::logger_handle_t m_logger;
 ///
 /// int main(int argc, char *argv[])
 /// {
 ///
-/// m_logger = kwiver::vital::get_logger( "main.logger" );
+/// m_logger = viame::get_logger( "main.logger" );
 ///
 /// LOG_ERROR( m_logger, "first message" << " from here");
 ///
@@ -70,9 +70,7 @@
 /// \endcode
 ///
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 //@{
 /// @brief Get pointer to logger object.
@@ -175,8 +173,6 @@ do                                                         \
 #define IS_DEBUG_ENABLED( logger ) ( logger->is_debug_enabled() )
 #define IS_TRACE_ENABLED( logger ) ( logger->is_trace_enabled() )
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

@@ -25,7 +25,7 @@ namespace viame {
  * \oport{pruned_detections}
  */
 class VIAME_CLASSIFIERS_EXPORT refine_detections_nms
-  : public kwiver::vital::algo::refine_detections
+  : public viame::algo::refine_detections
 {
 
 public:
@@ -57,7 +57,7 @@ public:
   virtual ~refine_detections_nms() = default;
 
   /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+  virtual bool check_configuration(viame::config_block_sptr config) const;
 
   /// Refine all object detections on the provided image
   /**
@@ -68,9 +68,9 @@ public:
    * \param detections detected objects
    * \returns vector of image objects refined
    */
-  virtual kwiver::vital::detected_object_set_sptr
-  refine( kwiver::vital::image_container_sptr image_data,
-          kwiver::vital::detected_object_set_sptr detections ) const;
+  virtual viame::detected_object_set_sptr
+  refine( viame::image_container_sptr image_data,
+          viame::detected_object_set_sptr detections ) const;
 
 private:
   void initialize() override;

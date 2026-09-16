@@ -10,9 +10,7 @@
 
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// @brief Convert string to timestamp for config block.
 ///
@@ -67,8 +65,6 @@ config_block_set_value_cast( timestamp const& value )
   return str.str();
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // _VITAL_TYPES_TIMESTAMP_CONFIG_H

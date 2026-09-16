@@ -172,7 +172,7 @@ TEST ( homography_overlap, matches_the_vxl_implementation )
     }
 
     auto const expected =
-      kwiver::arrows::vxl::overlap( h, 640, 480 );
+      viame::vxl::overlap( h, 640, 480 );
     auto const actual =
       homography_overlap( entry.second.data(), 640, 480 );
 

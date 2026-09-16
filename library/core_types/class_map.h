@@ -18,9 +18,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Map of classifications to confidence scores for an object.
@@ -276,8 +274,6 @@ private:
   static std::mutex s_table_mutex;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

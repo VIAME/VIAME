@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "detect_motion_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void detect_motion(py::module& m)
@@ -19,15 +19,15 @@ void detect_motion(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::detect_motion,
-               std::shared_ptr<kwiver::vital::algo::detect_motion>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::detect_motion,
+               std::shared_ptr<viame::algo::detect_motion>,
+               viame::algorithm,
                detect_motion_trampoline<> > instance(m,  "DetectMotion");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::detect_motion::interface_name)
-    .def("process_image", &kwiver::vital::algo::detect_motion::process_image, py::doc(R"( Detect motion from a sequence of images
+    .def_static("interface_name", &viame::algo::detect_motion::interface_name)
+    .def("process_image", &viame::algo::detect_motion::process_image, py::doc(R"( Detect motion from a sequence of images
 
  This method detects motion of foreground objects within a
  sequence of images in which the background remains stationary.
@@ -45,7 +45,7 @@ void detect_motion(py::module& m)
  that motion occurred at each pixel. Heat map image is single channel
  and has the same width and height dimensions as the input image.)"), py::arg("ts"), py::arg("image"), py::arg("reset_model"))
     ;
-  register_algorithm< kwiver::vital::algo::detect_motion > (instance);
+  register_algorithm< viame::algo::detect_motion > (instance);
 }
 
 }

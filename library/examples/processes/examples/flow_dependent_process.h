@@ -15,7 +15,7 @@
  * \brief Declaration of the flow dependent process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class flow_dependent_process
@@ -47,7 +47,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  flow_dependent_process(kwiver::vital::config_block_sptr const &config);
+  flow_dependent_process(viame::config_block_sptr const &config);
   /**
    * \brief Destructor.
    */

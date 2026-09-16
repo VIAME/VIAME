@@ -21,15 +21,13 @@
 #include <viame/algorithm_framework/algo/match_descriptor_sets.h>
 #include <viame/algorithm_framework/algo/match_features.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
 /// Loop closure algorithm that using appearance indexing for fast matching
 class VIAME_IMAGE_PROCESSING_EXPORT close_loops_appearance_indexed
-  : public kwiver::vital::algo::close_loops
+  : public viame::algo::close_loops
 {
 public:
   PLUGGABLE_IMPL(
@@ -64,13 +62,13 @@ public:
       "Inlier fraction must be this high to accept a loop completion",
       0.5f ),
     PARAM(
-      match_features, vital::algo::match_features_sptr,
+      match_features, viame::algo::match_features_sptr,
       "match_features" ),
     PARAM(
-      bag_of_words_matching, vital::algo::match_descriptor_sets_sptr,
+      bag_of_words_matching, viame::algo::match_descriptor_sets_sptr,
       "bag_of_words_matching" ),
     PARAM(
-      fundamental_mat_estimator, vital::algo::estimate_fundamental_matrix_sptr,
+      fundamental_mat_estimator, viame::algo::estimate_fundamental_matrix_sptr,
       "fundamental_mat_estimator" )
   )
 
@@ -87,12 +85,12 @@ public:
   /// \param mask Optional mask image where positive values indicate
   ///                 regions to consider in the input image.
   /// \returns an updated set of feature tracks after the stitching operation
-  virtual kwiver::vital::feature_track_set_sptr
+  virtual viame::feature_track_set_sptr
   stitch(
-    kwiver::vital::frame_id_t frame_number,
-    kwiver::vital::feature_track_set_sptr input,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::image_container_sptr mask = kwiver::vital::
+    viame::frame_id_t frame_number,
+    viame::feature_track_set_sptr input,
+    viame::image_container_sptr image,
+    viame::image_container_sptr mask = viame::
     image_container_sptr() ) const;
 
   /// Check that the algorithm's currently configuration is valid
@@ -104,7 +102,7 @@ public:
   /// \param config  The config block to check configuration of.
   ///
   /// \returns true if the configuration check passed and false if it didn't.
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
 private:
   void initialize() override;
@@ -113,10 +111,8 @@ private:
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

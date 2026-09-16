@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "estimate_fundamental_matrix_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void estimate_fundamental_matrix(py::module& m)
@@ -19,15 +19,15 @@ void estimate_fundamental_matrix(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::estimate_fundamental_matrix,
-               std::shared_ptr<kwiver::vital::algo::estimate_fundamental_matrix>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::estimate_fundamental_matrix,
+               std::shared_ptr<viame::algo::estimate_fundamental_matrix>,
+               viame::algorithm,
                estimate_fundamental_matrix_trampoline<> > instance(m,  "EstimateFundamentalMatrix");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::estimate_fundamental_matrix::interface_name)
-    .def("estimate", (kwiver::vital::fundamental_matrix_sptr (kwiver::vital::algo::estimate_fundamental_matrix::*)(::kwiver::vital::feature_set_sptr const, ::kwiver::vital::feature_set_sptr const, ::kwiver::vital::match_set_sptr const, ::std::vector<bool> &, double) const) &kwiver::vital::algo::estimate_fundamental_matrix::estimate, py::doc(R"( Estimate an fundamental matrix from corresponding features
+    .def_static("interface_name", &viame::algo::estimate_fundamental_matrix::interface_name)
+    .def("estimate", (viame::fundamental_matrix_sptr (viame::algo::estimate_fundamental_matrix::*)(::viame::feature_set_sptr const, ::viame::feature_set_sptr const, ::viame::match_set_sptr const, ::std::vector<bool> &, double) const) &viame::algo::estimate_fundamental_matrix::estimate, py::doc(R"( Estimate an fundamental matrix from corresponding features
 
  \param [in]  feat1 the set of all features from the first image
  \param [in]  feat2 the set of all features from the second image
@@ -37,7 +37,7 @@ void estimate_fundamental_matrix(py::module& m)
                       this pair is an inlier to the estimate
  \param [in]  inlier_scale error distance tolerated for matches to be
  inliers)"), py::arg("feat1"), py::arg("feat2"), py::arg("matches"), py::arg("inliers"), py::arg("inlier_scale") = 1.)
-    .def("estimate", (kwiver::vital::fundamental_matrix_sptr (kwiver::vital::algo::estimate_fundamental_matrix::*)(::std::vector<kwiver::vital::vector_<2, double> > const &, ::std::vector<kwiver::vital::vector_<2, double> > const &, ::std::vector<bool> &, double) const) &kwiver::vital::algo::estimate_fundamental_matrix::estimate, py::doc(R"( Estimate an fundamental matrix from corresponding points
+    .def("estimate", (viame::fundamental_matrix_sptr (viame::algo::estimate_fundamental_matrix::*)(::std::vector<viame::vector_<2, double> > const &, ::std::vector<viame::vector_<2, double> > const &, ::std::vector<bool> &, double) const) &viame::algo::estimate_fundamental_matrix::estimate, py::doc(R"( Estimate an fundamental matrix from corresponding points
 
  \param [in]  pts1 the vector or corresponding points from the first image
  \param [in]  pts2 the vector of corresponding points from the second image
@@ -46,7 +46,7 @@ void estimate_fundamental_matrix(py::module& m)
  \param [in]  inlier_scale error distance tolerated for matches to be
  inliers)"), py::arg("pts1"), py::arg("pts2"), py::arg("inliers"), py::arg("inlier_scale") = 1.)
     ;
-  register_algorithm< kwiver::vital::algo::estimate_fundamental_matrix > (instance);
+  register_algorithm< viame::algo::estimate_fundamental_matrix > (instance);
 }
 
 }

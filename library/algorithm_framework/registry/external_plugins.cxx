@@ -29,7 +29,7 @@ constexpr char path_separator = ';';
 constexpr char path_separator = ':';
 #endif
 
-using register_fn = void ( * )( kwiver::vital::registry& );
+using register_fn = void ( * )( viame::registry& );
 
 // ----------------------------------------------------------------------------
 std::vector< std::string >
@@ -83,7 +83,7 @@ warn_about_old_plugin_path()
   warned = true;
 
   LOG_WARN(
-    kwiver::vital::get_logger( "viame.external_plugins" ),
+    viame::get_logger( "viame.external_plugins" ),
     old_plugin_path_variable
       << " is set and ignored: VIAME's plugins are linked in, and a plugin "
          "built outside VIAME is loaded by naming its library in "
@@ -97,7 +97,7 @@ warn_about_old_plugin_path()
 /// registers hold pointers into its code, and they outlive this function by
 /// the length of the program.
 register_fn
-entry_point_of( std::string const& path, kwiver::vital::logger_handle_t logger )
+entry_point_of( std::string const& path, viame::logger_handle_t logger )
 {
 #if defined( _WIN32 )
   auto* const handle = LoadLibraryA( path.c_str() );
@@ -143,7 +143,7 @@ entry_point_of( std::string const& path, kwiver::vital::logger_handle_t logger )
 
 // ----------------------------------------------------------------------------
 std::vector< std::string >
-register_external_plugins( kwiver::vital::registry& loader )
+register_external_plugins( viame::registry& loader )
 {
   std::vector< std::string > registered;
 
@@ -156,7 +156,7 @@ register_external_plugins( kwiver::vital::registry& loader )
     return registered;
   }
 
-  auto logger = kwiver::vital::get_logger( "viame.external_plugins" );
+  auto logger = viame::get_logger( "viame.external_plugins" );
 
   for( auto const& path : split_path( value ) )
   {

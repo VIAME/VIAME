@@ -24,7 +24,7 @@ namespace viame
 namespace core
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -69,7 +69,7 @@ image_to_image_set_process
   // Check for completion signal
   auto const& p_info = peek_at_port_using_trait( image );
 
-  if( p_info.datum->type() == sprokit::datum::complete )
+  if( p_info.datum->type() == viame::pipeline::datum::complete )
   {
     grab_edge_datum_using_trait( image );
     mark_process_as_complete();
@@ -97,8 +97,8 @@ image_to_image_set_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 

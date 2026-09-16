@@ -36,9 +36,7 @@
 #include <pybind11/stl.h>
 #endif
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 using metadata_value =
@@ -217,7 +215,7 @@ private:
 ///
 /// Metadata items from the different sources are converted into a
 /// small set of data types to simplify using these elements. Since the
-/// data item is represented as a kwiver::vital::any object, the actual
+/// data item is represented as a viame::any object, the actual
 /// type of the data contained is difficult to deal with if it is not
 /// constrained. There are three data types that are highly recommended
 /// for representing metadata. These types are:
@@ -388,7 +386,7 @@ public:
   /// auto ix = metadata_collection->begin();
   /// vital_metadata_tag tag = ix->first;
   /// std::string name = ix->second->name();
-  /// kwiver::vital::any data = ix->second->data();
+  /// viame::any data = ix->second->data();
   /// \endcode
   ///
   /// \return Iterator pointing to the first element in the collection.
@@ -441,7 +439,7 @@ public:
   /// back to other temporal data like a video image stream.
   ///
   /// \param ts Time stamp to add to this collection.
-  void set_timestamp( kwiver::vital::timestamp const& ts );
+  void set_timestamp( viame::timestamp const& ts );
 
   /// \brief Return timestamp associated with these metadata.
   ///
@@ -450,7 +448,7 @@ public:
   /// been set by set_timestamp().
   ///
   /// \return Timestamp value.
-  kwiver::vital::timestamp timestamp() const;
+  viame::timestamp timestamp() const;
 
   static std::string format_string( std::string const& val );
 
@@ -465,8 +463,6 @@ VITAL_TYPES_EXPORT std::ostream& print_metadata(
   std::ostream& str,
   metadata const& metadata );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

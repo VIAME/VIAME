@@ -13,7 +13,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // -----------------------------------------------------------------------------
@@ -32,13 +32,13 @@ namespace kwiver
  * \oport{track_descriptor_set}
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT compute_track_descriptors_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "compute_track_descriptors",
                "Compute track descriptors on the input tracks or detections." )
 
-  compute_track_descriptors_process( vital::config_block_sptr const& config );
+  compute_track_descriptors_process( viame::config_block_sptr const& config );
   virtual ~compute_track_descriptors_process();
 
 protected:
@@ -49,11 +49,11 @@ private:
   void make_ports();
   void make_config();
 
-  void push_outputs( vital::track_descriptor_set_sptr& to_output );
+  void push_outputs( viame::track_descriptor_set_sptr& to_output );
 
   class priv;
   const std::unique_ptr<priv> d;
 }; // end class compute_track_descriptors_process
 
-} // end namespace
+} // namespace viame
 #endif /* _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_ */

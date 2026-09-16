@@ -67,7 +67,7 @@ public:
 
   bool parse_box( const std::vector< std::string >& parsed_line,
                   unsigned index,
-                  kwiver::vital::bounding_box_d& bbox );
+                  viame::bounding_box_d& bbox );
 
   // -- initialized data --
   read_detected_object_set_habcam* m_parent;
@@ -82,7 +82,7 @@ public:
   int m_detected_version;
 
   std::map< int, std::string > m_species_map;
-  std::map< std::string, kwiver::vital::detected_object_set_sptr > m_gt_sets;
+  std::map< std::string, viame::detected_object_set_sptr > m_gt_sets;
   std::vector< std::string > m_filenames;
 };
 
@@ -105,7 +105,7 @@ read_detected_object_set_habcam
 // -----------------------------------------------------------------------------
 bool
 read_detected_object_set_habcam
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -114,7 +114,7 @@ read_detected_object_set_habcam
 // -----------------------------------------------------------------------------
 bool
 read_detected_object_set_habcam
-::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+::read_set( viame::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -134,7 +134,7 @@ read_detected_object_set_habcam
     if( d->m_gt_sets.find( image_name ) == d->m_gt_sets.end() )
     {
       // return empty set
-      set = std::make_shared< kwiver::vital::detected_object_set>();
+      set = std::make_shared< viame::detected_object_set>();
     }
     else
     {
@@ -188,13 +188,13 @@ read_detected_object_set_habcam::priv
   {
     // create a new detection set entry
     m_gt_sets[ parsed_line[0] ] =
-      std::make_shared<kwiver::vital::detected_object_set>();
+      std::make_shared<viame::detected_object_set>();
 
     m_filenames.push_back( parsed_line[0] );
   }
 
-  kwiver::vital::detected_object_type_sptr dot
-    = std::make_shared< kwiver::vital::detected_object_type >();
+  viame::detected_object_type_sptr dot
+    = std::make_shared< viame::detected_object_type >();
 
   std::string class_name;
 
@@ -222,7 +222,7 @@ read_detected_object_set_habcam::priv
 
   dot->set_score( class_name, 1.0 );
 
-  kwiver::vital::bounding_box_d bbox( 0, 0, 0, 0 );
+  viame::bounding_box_d bbox( 0, 0, 0, 0 );
 
   // Generate bbox based on annotation type
   if ( !parse_box( parsed_line, 3, bbox ) && !parse_box( parsed_line, 2, bbox ) )
@@ -233,7 +233,7 @@ read_detected_object_set_habcam::priv
   }
 
   m_gt_sets[ parsed_line[0] ]->add(
-    std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+    std::make_shared< viame::detected_object >( bbox, 1.0, dot ) );
 } // read_detected_object_set_habcam::priv::add_detection
 
 
@@ -242,14 +242,14 @@ bool
 read_detected_object_set_habcam::priv
 ::parse_box( const std::vector< std::string >& parsed_line,
              unsigned index,
-             kwiver::vital::bounding_box_d& bbox )
+             viame::bounding_box_d& bbox )
 {
   // Generate bbox based on annotation type
   if ( "boundingBox" == parsed_line[ index ] )
   {
     if ( parsed_line.size() > index + 4 )
     {
-      bbox = kwiver::vital::bounding_box_d(
+      bbox = viame::bounding_box_d(
         atof( parsed_line[ index + 1 ].c_str() ),
         atof( parsed_line[ index + 2 ].c_str() ),
         atof( parsed_line[ index + 3 ].c_str() ),
@@ -277,7 +277,7 @@ read_detected_object_set_habcam::priv
       const double dy = y1 - cy;
       const double r = sqrt( ( dx * dx ) + ( dy * dy ) );
 
-      bbox = kwiver::vital::bounding_box_d(
+      bbox = viame::bounding_box_d(
         cx - r, cy - r,
         cx + r, cy + r );
     }
@@ -294,7 +294,7 @@ read_detected_object_set_habcam::priv
       const double cx = atof( parsed_line[ index + 1 ].c_str() );
       const double cy = atof( parsed_line[ index + 2 ].c_str() );
 
-      bbox = kwiver::vital::bounding_box_d(
+      bbox = viame::bounding_box_d(
         cx - m_parent->c_point_dilation, cy - m_parent->c_point_dilation,
         cx + m_parent->c_point_dilation, cy + m_parent->c_point_dilation );
     }
@@ -320,7 +320,7 @@ read_detected_object_set_habcam::priv
       const double dy = y1 - cy;
       const double r = sqrt( ( dx * dx ) + ( dy * dy ) );
 
-      bbox = kwiver::vital::bounding_box_d(
+      bbox = viame::bounding_box_d(
         cx - r, cy - r,
         cx + r, cy + r );
     }
@@ -363,7 +363,7 @@ read_detected_object_set_habcam::priv
 ::read_all()
 {
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+  viame::data_stream_reader stream_reader( m_parent->stream() );
 
   m_gt_sets.clear();
 
@@ -402,7 +402,7 @@ read_detected_object_set_habcam::priv
     }
 
     std::vector< std::string > parsed_line;
-    kwiver::vital::tokenize( line, parsed_line, m_delim, true );
+    viame::tokenize( line, parsed_line, m_delim, true );
 
     // Test the minimum number of fields.
     if ( parsed_line.size() < 4 )
@@ -415,12 +415,12 @@ read_detected_object_set_habcam::priv
     if( m_detected_version == 2 )
     {
       std::vector< std::string > parsed_loc;
-      kwiver::vital::tokenize( parsed_line[3], parsed_loc, " ", true );
+      viame::tokenize( parsed_line[3], parsed_loc, " ", true );
       parsed_line.erase( parsed_line.begin() + 3 );
 
       if( parsed_loc.size() != 2 )
       {
-        throw kwiver::vital::invalid_data( "Invalid line: " + line );
+        throw viame::invalid_data( "Invalid line: " + line );
       }
 
       parsed_line.insert( parsed_line.begin() + 3, parsed_loc.begin(), parsed_loc.end() );

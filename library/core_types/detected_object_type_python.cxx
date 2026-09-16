@@ -8,12 +8,12 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 PYBIND11_MODULE( detected_object_type, m )
 {
-  py::class_< kwiver::vital::detected_object_type,
-    std::shared_ptr< kwiver::vital::detected_object_type > >(
+  py::class_< viame::detected_object_type,
+    std::shared_ptr< viame::detected_object_type > >(
     m,
     "DetectedObjectType" )
     .def( py::init<>() )
@@ -21,14 +21,14 @@ PYBIND11_MODULE( detected_object_type, m )
     .def( py::init< std::string, double >() )
 
     .def(
-      "has_class_name", &kwiver::vital::detected_object_type::has_class_name,
+      "has_class_name", &viame::detected_object_type::has_class_name,
       py::arg( "class_name" ) )
     .def(
-      "score", &kwiver::vital::detected_object_type::score,
+      "score", &viame::detected_object_type::score,
       py::arg( "class_name" ) )
     .def(
       "get_most_likely_class",
-      [](std::shared_ptr< kwiver::vital::detected_object_type > self){
+      [](std::shared_ptr< viame::detected_object_type > self){
         std::string max_name;
         double max_score;
         self->get_most_likely( max_name, max_score );
@@ -36,28 +36,28 @@ PYBIND11_MODULE( detected_object_type, m )
       } )
     .def(
       "get_most_likely_score",
-      [](std::shared_ptr< kwiver::vital::detected_object_type > self){
+      [](std::shared_ptr< viame::detected_object_type > self){
         std::string max_name;
         double max_score;
         self->get_most_likely( max_name, max_score );
         return max_score;
       } )
     .def(
-      "set_score", &kwiver::vital::detected_object_type::set_score,
+      "set_score", &viame::detected_object_type::set_score,
       py::arg( "class_name" ), py::arg( "score" ) )
     .def(
-      "delete_score", &kwiver::vital::detected_object_type::delete_score,
+      "delete_score", &viame::detected_object_type::delete_score,
       py::arg( "class_name" ) )
     .def(
-      "class_names", &kwiver::vital::detected_object_type::class_names,
+      "class_names", &viame::detected_object_type::class_names,
       py::arg( "threshold" ) =
-        kwiver::vital::detected_object_type::INVALID_SCORE )
+        viame::detected_object_type::INVALID_SCORE )
     .def_static(
       "all_class_names",
-      &kwiver::vital::detected_object_type::all_class_names )
-    .def( "__len__", &kwiver::vital::detected_object_type::size )
+      &viame::detected_object_type::all_class_names )
+    .def( "__len__", &viame::detected_object_type::size )
     .def(
-      "__iter__", [](kwiver::vital::detected_object_type& self){
+      "__iter__", [](viame::detected_object_type& self){
         return py::make_iterator( self.cbegin(), self.cend() );
       },
       py::keep_alive< 0, 1 >() )
@@ -74,7 +74,7 @@ PYBIND11_MODULE( detected_object_type, m )
         return info[ "retval" ].cast< std::string >();
       } )
     .def(
-      "__nice__", [](kwiver::vital::detected_object_type& self) -> std::string {
+      "__nice__", [](viame::detected_object_type& self) -> std::string {
         auto locals = py::dict( py::arg( "self" ) = self );
         py::exec( R"(
         retval = 'size={}'.format(len(self))

@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // ----------------------------------------------------------------
@@ -25,13 +25,13 @@ namespace kwiver
  *
  */
 class VIAME_PROCESSES_VIDEO_IO_NO_EXPORT image_writer_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "image_writer",
                "Write image to disk." )
 
-  image_writer_process( kwiver::vital::config_block_sptr const& config );
+  image_writer_process( viame::config_block_sptr const& config );
   virtual ~image_writer_process();
 
 protected:
@@ -46,6 +46,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class image_writer_process
 
-}  // end namespace
+} // namespace viame
 
 #endif // _KWIVER_IMAGE_WRITER_PROCESS_H_

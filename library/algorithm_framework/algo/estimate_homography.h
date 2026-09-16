@@ -18,15 +18,13 @@
 #include <viame/core_types/match_set.h>
 #include <viame/core_types/matrix.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for estimating a homography from matching 2D points
 class VITAL_ALGO_EXPORT estimate_homography
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   estimate_homography();
@@ -43,11 +41,11 @@ public:
   ///                      this pair is an inlier to the homography estimate
   /// \param [in]  inlier_scale error distance tolerated for matches to be
   /// inliers
-  virtual kwiver::vital::homography_sptr
+  virtual viame::homography_sptr
   estimate(
-    kwiver::vital::feature_set_sptr feat1,
-    kwiver::vital::feature_set_sptr feat2,
-    kwiver::vital::match_set_sptr matches,
+    viame::feature_set_sptr feat1,
+    viame::feature_set_sptr feat2,
+    viame::match_set_sptr matches,
     std::vector< bool >& inliers,
     double inlier_scale = 1.0 ) const;
 
@@ -62,10 +60,10 @@ public:
   ///                      this pair is an inlier to the homography estimate
   /// \param [in]  inlier_scale error distance tolerated for matches to be
   /// inliers
-  virtual kwiver::vital::homography_sptr
+  virtual viame::homography_sptr
   estimate(
-    const std::vector< kwiver::vital::vector_2d >& pts1,
-    const std::vector< kwiver::vital::vector_2d >& pts2,
+    const std::vector< viame::vector_2d >& pts1,
+    const std::vector< viame::vector_2d >& pts2,
     std::vector< bool >& inliers,
     double inlier_scale = 1.0 ) const = 0;
 };
@@ -75,8 +73,6 @@ typedef std::shared_ptr< estimate_homography > estimate_homography_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_ESTIMATE_HOMOGRAPHY_H_

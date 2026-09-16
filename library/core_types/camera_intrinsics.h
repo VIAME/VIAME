@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::camera_intrinsics camera_intrinsics
+/// \brief Header for \link viame::camera_intrinsics camera_intrinsics
 ///        \endlink class
 
 #ifndef VITAL_CAMERA_INTRINSICS_H_
@@ -19,9 +19,7 @@
 #include <viame/core_types/vector.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// forward declaration of camera intrinsics class
 class camera_intrinsics;
@@ -329,8 +327,6 @@ protected:
 VITAL_TYPES_EXPORT std::istream&
 operator>>( std::istream& s, simple_camera_intrinsics& k );
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_CAMERA_INTRINSICS_H_

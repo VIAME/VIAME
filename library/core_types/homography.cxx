@@ -10,9 +10,7 @@
 #include <cmath>
 
 #include <viame/algorithm_framework/exceptions/math.h>
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace // anonymous
 {
@@ -264,6 +262,4 @@ INSTANTIATE_HOMOGRAPHY( double );
 #undef INSTANTIATE_HOMOGRAPHY
 /// \endcond
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame

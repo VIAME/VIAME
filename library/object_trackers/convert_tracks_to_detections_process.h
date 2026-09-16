@@ -11,7 +11,7 @@
 
 #include <memory>
 
-namespace kwiver {
+namespace viame {
 
 // -----------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ namespace kwiver {
  * \oport{detection_set}
  */
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT convert_tracks_to_detections_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO(
@@ -36,7 +36,7 @@ public:
     "Convert input object track sets into detection sets for each frame." )
 
   convert_tracks_to_detections_process(
-    vital::config_block_sptr const& config );
+    viame::config_block_sptr const& config );
   virtual ~convert_tracks_to_detections_process();
 
 protected:
@@ -53,6 +53,6 @@ private:
   const std::unique_ptr< priv > d;
 }; // end class convert_tracks_to_detections_process
 
-} // end namespace
+} // namespace viame
 
 #endif /* _KWIVER_CONVERT_TRACKS_TO_DETECTIONS_PROCESS_H_ */

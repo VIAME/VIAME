@@ -25,7 +25,7 @@
 
 using namespace viame::image_ops;
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 

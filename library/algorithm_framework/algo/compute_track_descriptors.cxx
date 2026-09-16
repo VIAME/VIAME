@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/compute_track_descriptors.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ compute_track_descriptors
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

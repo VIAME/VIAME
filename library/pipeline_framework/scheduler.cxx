@@ -13,10 +13,10 @@
 /**
  * \file scheduler.cxx
  *
- * \brief Implementation of the base class for \link sprokit::scheduler schedulers\endlink.
+ * \brief Implementation of the base class for \link viame::pipeline::scheduler schedulers\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 class scheduler::priv
 {
@@ -44,8 +44,8 @@ scheduler
 }
 
 scheduler
-::scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
-  : m_logger( kwiver::vital::get_logger( "scheduler.base" ) )
+::scheduler(pipeline_t const& pipe, viame::config_block_sptr const& config)
+  : m_logger( viame::get_logger( "scheduler.base" ) )
   , d()
 {
   if (!config)
@@ -198,7 +198,7 @@ scheduler
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::logger_handle_t
+viame::logger_handle_t
 scheduler
 ::logger()
 {

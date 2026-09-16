@@ -8,9 +8,7 @@
 #include "token_type.h"
 #include <viame/algorithm_framework/util/vital_util_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Virtual base class for token types.
@@ -28,8 +26,6 @@ public:
     std::string& result ) const;
 }; // end class token_type_env
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // _TOKEN_TYPE_ENV_H_

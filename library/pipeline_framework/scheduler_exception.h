@@ -14,10 +14,10 @@
 /**
  * \file scheduler_exception.h
  *
- * \brief Header for exceptions used within \link sprokit::scheduler schedulers\endlink.
+ * \brief Header for exceptions used within \link viame::pipeline::scheduler schedulers\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**

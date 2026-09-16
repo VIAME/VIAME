@@ -10,18 +10,18 @@ namespace py = pybind11;
 
 PYBIND11_MODULE( uid, m )
 {
-  py::class_< kwiver::vital::uid, std::shared_ptr< kwiver::vital::uid > >(
+  py::class_< viame::uid, std::shared_ptr< viame::uid > >(
     m,
     "UID" )
     .def( py::init<>() )
     .def( py::init< const std::string& >() )
     .def( py::init< const char*, size_t >() )
-    .def( "is_valid", &kwiver::vital::uid::is_valid )
-    .def( "value", &kwiver::vital::uid::value )
-    .def( "size", &kwiver::vital::uid::size )
-    .def( "__len__", &kwiver::vital::uid::size )
-    .def( "__eq__", &kwiver::vital::uid::operator== )
-    .def( "__ne__", &kwiver::vital::uid::operator!= )
-    .def( "__lt__", &kwiver::vital::uid::operator< )
+    .def( "is_valid", &viame::uid::is_valid )
+    .def( "value", &viame::uid::value )
+    .def( "size", &viame::uid::size )
+    .def( "__len__", &viame::uid::size )
+    .def( "__eq__", &viame::uid::operator== )
+    .def( "__ne__", &viame::uid::operator!= )
+    .def( "__lt__", &viame::uid::operator< )
   ;
 }

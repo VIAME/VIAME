@@ -34,10 +34,10 @@ namespace viame {
 // Shared VIAME CSV utility implementations
 // =============================================================================
 
-kwiver::vital::bounding_box_d
+viame::bounding_box_d
 create_viame_csv_bbox( std::vector< std::string > const& cols )
 {
-  return kwiver::vital::bounding_box_d(
+  return viame::bounding_box_d(
     atof( cols[VIAME_CSV_COL_MIN_X].c_str() ),
     atof( cols[VIAME_CSV_COL_MIN_Y].c_str() ),
     atof( cols[VIAME_CSV_COL_MAX_X].c_str() ),
@@ -112,7 +112,7 @@ expand_packed_viame_csv_pairs( std::vector< std::string >& cols, char delim )
     }
 
     std::vector< std::string > parts;
-    kwiver::vital::tokenize( conf, parts, std::string( 1, delim ), false );
+    viame::tokenize( conf, parts, std::string( 1, delim ), false );
 
     cols.erase( cols.begin() + i + 1 );
     cols.insert( cols.begin() + i + 1, parts.begin(), parts.end() );
@@ -122,11 +122,11 @@ expand_packed_viame_csv_pairs( std::vector< std::string >& cols, char delim )
 size_t parse_viame_csv_species(
   std::vector< std::string > const& cols,
   double confidence_override,
-  kwiver::vital::detected_object_type_sptr& dot )
+  viame::detected_object_type_sptr& dot )
 {
   if( !dot )
   {
-    dot = std::make_shared< kwiver::vital::detected_object_type >();
+    dot = std::make_shared< viame::detected_object_type >();
   }
 
   for( size_t i = VIAME_CSV_COL_TOT; i < cols.size(); i += 2 )
@@ -168,7 +168,7 @@ std::vector< std::vector< double > > extract_viame_csv_polygons(
       continue;
     }
     std::vector< std::string > vertices;
-    kwiver::vital::tokenize( cols[i], vertices, " ", true );
+    viame::tokenize( cols[i], vertices, " ", true );
     std::vector< double > poly;
     try
     {
@@ -199,7 +199,7 @@ bool extract_viame_csv_polygon(
   return !polygon.empty();
 }
 
-kwiver::vital::detected_object_sptr
+viame::detected_object_sptr
 create_viame_csv_detection(
   std::vector< std::string > const& cols,
   double confidence_override )
@@ -209,7 +209,7 @@ create_viame_csv_detection(
     return nullptr;
   }
 
-  kwiver::vital::bounding_box_d bbox = create_viame_csv_bbox( cols );
+  viame::bounding_box_d bbox = create_viame_csv_bbox( cols );
 
   double conf = atof( cols[VIAME_CSV_COL_CONFIDENCE].c_str() );
   if( conf == -1.0 )
@@ -221,17 +221,17 @@ create_viame_csv_detection(
     conf = confidence_override;
   }
 
-  kwiver::vital::detected_object_type_sptr dot;
+  viame::detected_object_type_sptr dot;
   size_t optional_start = parse_viame_csv_species( cols, confidence_override, dot );
 
-  kwiver::vital::detected_object_sptr dob;
+  viame::detected_object_sptr dob;
   if( dot && dot->size() > 0 )
   {
-    dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf, dot );
+    dob = std::make_shared< viame::detected_object >( bbox, conf, dot );
   }
   else
   {
-    dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf );
+    dob = std::make_shared< viame::detected_object >( bbox, conf );
   }
 
   // Column 0 is kept so consumers can tell tracks from loose detections by
@@ -246,7 +246,7 @@ create_viame_csv_detection(
   {
     if( cols[i].compare( 0, 5, "(kp) " ) != 0 ) continue;
     std::vector< std::string > tokens;
-    kwiver::vital::tokenize( cols[i], tokens, " ", true );
+    viame::tokenize( cols[i], tokens, " ", true );
     if( tokens.size() < 4 ) continue;
     try
     {
@@ -254,7 +254,7 @@ create_viame_csv_detection(
       const double y = std::stod( tokens.back() );
       std::string name = tokens[1];
       for( size_t j = 2; j + 2 < tokens.size(); ++j ) name += " " + tokens[j];
-      dob->add_keypoint( name, kwiver::vital::point_2d( x, y ) );
+      dob->add_keypoint( name, viame::point_2d( x, y ) );
     }
     catch( std::exception const& ) {}
   }
@@ -310,11 +310,11 @@ public:
 
   // Map of detected objects indexed by frame number. Each set
   // contains all detections for a single frame.
-  std::map< int, kwiver::vital::detected_object_set_sptr > m_detection_by_id;
+  std::map< int, viame::detected_object_set_sptr > m_detection_by_id;
 
   // Map of detected objects indexed by frame name. Each set
   // contains all detections for a single frame.
-  std::map< std::string, kwiver::vital::detected_object_set_sptr > m_detection_by_str;
+  std::map< std::string, viame::detected_object_set_sptr > m_detection_by_str;
 
   // Alternative basepaths for strings as the above frame name might ref a full path.
   std::map< std::string, std::string > m_alt_filenames;
@@ -368,7 +368,7 @@ read_detected_object_set_viame_csv
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_viame_csv
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -377,7 +377,7 @@ read_detected_object_set_viame_csv
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_viame_csv
-::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+::read_set( viame::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -416,7 +416,7 @@ read_detected_object_set_viame_csv
       else
       {
         // return empty set
-        set = std::make_shared< kwiver::vital::detected_object_set>();
+        set = std::make_shared< viame::detected_object_set>();
 
         if( d->m_error_writer )
         {
@@ -440,7 +440,7 @@ read_detected_object_set_viame_csv
   // Test for end of all loaded detections
   if( image_name.empty() && d->m_current_idx > d->m_last_idx )
   {
-    set = std::make_shared< kwiver::vital::detected_object_set>();
+    set = std::make_shared< viame::detected_object_set>();
     return false;
   }
 
@@ -448,7 +448,7 @@ read_detected_object_set_viame_csv
   if( d->m_detection_by_id.count( d->m_current_idx ) == 0 )
   {
     // Return empty set
-    set = std::make_shared< kwiver::vital::detected_object_set>();
+    set = std::make_shared< viame::detected_object_set>();
   }
   else
   {
@@ -484,7 +484,7 @@ read_detected_object_set_viame_csv::priv
 ::read_all()
 {
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+  viame::data_stream_reader stream_reader( m_parent->stream() );
 
   // Read detections
   m_detection_by_id.clear();
@@ -507,7 +507,7 @@ read_detected_object_set_viame_csv::priv
       std::stringstream str;
       str << "This is not a viame_csv file; found " << col.size()
           << " columns in\n\"" << line << "\"";
-      throw kwiver::vital::invalid_data( str.str() );
+      throw viame::invalid_data( str.str() );
     }
 
     /*
@@ -531,7 +531,7 @@ read_detected_object_set_viame_csv::priv
     {
       // create a new detection set entry
       m_detection_by_id[ frame_id ] =
-        std::make_shared<kwiver::vital::detected_object_set>();
+        std::make_shared<viame::detected_object_set>();
     }
 
     if( !str_id.empty() &&
@@ -539,7 +539,7 @@ read_detected_object_set_viame_csv::priv
     {
       // create a new detection set entry
       m_detection_by_str[ str_id ] =
-        std::make_shared<kwiver::vital::detected_object_set>();
+        std::make_shared<viame::detected_object_set>();
 
       // if this name contains a path, populate synonyms
       std::string tmp = str_id;
@@ -554,7 +554,7 @@ read_detected_object_set_viame_csv::priv
       }
     }
 
-    kwiver::vital::bounding_box_d bbox(
+    viame::bounding_box_d bbox(
       atof( col[COL_MIN_X].c_str() ),
       atof( col[COL_MIN_Y].c_str() ),
       atof( col[COL_MAX_X].c_str() ),
@@ -573,10 +573,10 @@ read_detected_object_set_viame_csv::priv
     }
 
     // Create detection
-    kwiver::vital::detected_object_sptr dob;
+    viame::detected_object_sptr dob;
 
-    kwiver::vital::detected_object_type_sptr dot =
-      std::make_shared< kwiver::vital::detected_object_type >();
+    viame::detected_object_type_sptr dot =
+      std::make_shared< viame::detected_object_type >();
 
     bool found_optional_field = false;
 
@@ -593,7 +593,7 @@ read_detected_object_set_viame_csv::priv
         std::stringstream str;
         str << "Every species pair must contain a confidence; error "
             << "at\n\"" << line << "\"";
-        throw kwiver::vital::invalid_data( str.str() );
+        throw viame::invalid_data( str.str() );
       }
 
       std::string spec_id = col[i];
@@ -610,11 +610,11 @@ read_detected_object_set_viame_csv::priv
 
     if( COL_TOT < col.size() )
     {
-      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+      dob = std::make_shared< viame::detected_object>( bbox, conf, dot );
     }
     else
     {
-      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
+      dob = std::make_shared< viame::detected_object>( bbox, conf );
     }
 
     // Read length from column 9 and store as attribute
@@ -659,7 +659,7 @@ read_detected_object_set_viame_csv::priv
         if( col[i].size() >= 5 && col[i].substr( 0, 5 ) == "(kp) " )
         {
           std::vector< std::string > kp_parts;
-          kwiver::vital::tokenize( col[i], kp_parts, " ", true );
+          viame::tokenize( col[i], kp_parts, " ", true );
           if( kp_parts.size() >= 4 )
           {
             try
@@ -672,7 +672,7 @@ read_detected_object_set_viame_csv::priv
                 kp_name += " " + kp_parts[j];
               }
               dob->add_keypoint( kp_name,
-                kwiver::vital::point_2d( kp_x, kp_y ) );
+                viame::point_2d( kp_x, kp_y ) );
             }
             catch( ... )
             {
@@ -687,12 +687,12 @@ read_detected_object_set_viame_csv::priv
 
     if( m_parent->c_poly_to_mask && found_optional_field )
     {
-      kwiver::vital::image_of< uint8_t > mask_data;
+      viame::image_of< uint8_t > mask_data;
 
       convert_polys_to_mask( poly_strings, bbox, mask_data );
 
-      kwiver::vital::image_container_scptr computed_mask =
-        std::make_shared< kwiver::vital::simple_image_container >( mask_data );
+      viame::image_container_scptr computed_mask =
+        std::make_shared< viame::simple_image_container >( mask_data );
 
       dob->set_mask( computed_mask );
     }

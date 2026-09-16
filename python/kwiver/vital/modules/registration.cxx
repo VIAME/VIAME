@@ -50,14 +50,14 @@ static bool is_suppressed();
 // -- which aborts every process that loads this plugin, kwiver's own tools
 // included. The body already ignores python exceptions; catch everything else
 // here so the same is true of the C++ ones.
-static void register_factories_impl( kwiver::vital::registry& vpm );
+static void register_factories_impl( viame::registry& vpm );
 
 extern "C"
 MODULES_PYTHON_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
-  auto logger = kwiver::vital::get_logger( "vital.python_modules" );
+  auto logger = viame::get_logger( "vital.python_modules" );
   try
   {
     register_factories_impl( vpm );
@@ -79,7 +79,7 @@ register_factories( kwiver::vital::registry& vpm )
 }
 
 void
-register_factories_impl( kwiver::vital::registry& vpm )
+register_factories_impl( viame::registry& vpm )
 {
   if( is_suppressed() )
   {
@@ -87,7 +87,7 @@ register_factories_impl( kwiver::vital::registry& vpm )
   }
 
   static auto const module_name = std::string( "module_python" );
-  auto logger = kwiver::vital::get_logger( module_name );
+  auto logger = viame::get_logger( module_name );
   if( vpm.is_module_loaded( module_name ) )
   {
     return;
@@ -137,7 +137,7 @@ bool
 is_suppressed()
 {
   const char* python_suppress =
-    kwiver::vital::get_env( "SPROKIT_NO_PYTHON_MODULES" );
+    viame::get_env( "SPROKIT_NO_PYTHON_MODULES" );
   bool suppress_python_modules = false;
 
   if( python_suppress )

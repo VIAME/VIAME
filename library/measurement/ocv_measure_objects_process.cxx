@@ -40,7 +40,7 @@
 #include "ocv_measure_objects_process.h"
 #include <viame/segmentation/add_keypoints_from_mask.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -149,8 +149,8 @@ public:
   double triangulate_and_error(
     const kv::simple_camera_perspective& left_cam,
     const kv::simple_camera_perspective& right_cam,
-    const kwiver::vital::vector_2d& pt1,
-    const kwiver::vital::vector_2d& pt2,
+    const viame::vector_2d& pt1,
+    const viame::vector_2d& pt2,
     kv::vector_3f& world_pt );
 
   // Find optimal matching between detection sets
@@ -222,7 +222,7 @@ measure_objects_process::priv
   kv::vector_< 2, float > right_pt( static_cast< float >( pt2.x() ), static_cast< float >( pt2.y() ) );
 
   // Triangulate using kwiver's fast two-view method
-  world_pt = kwiver::arrows::mvg::triangulate_fast_two_view(
+  world_pt = viame::mvg::triangulate_fast_two_view(
     left_cam, right_cam, left_pt, right_pt );
 
   // Compute reprojection error
@@ -466,8 +466,8 @@ void
 measure_objects_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 

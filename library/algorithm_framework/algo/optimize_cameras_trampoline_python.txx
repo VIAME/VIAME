@@ -23,9 +23,9 @@
 #include <viame/algorithm_framework/algo/optimize_cameras.h>
 #include <viame/core_types/camera_map.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class optimize_cameras_base = kwiver::vital::algo::optimize_cameras >
+template< class optimize_cameras_base = viame::algo::optimize_cameras >
 class optimize_cameras_trampoline
   : public algorithm_trampoline< optimize_cameras_base >
 {
@@ -40,15 +40,15 @@ public:
   /// "return what you would have written into the parameter".
   void
   optimize(
-    ::kwiver::vital::camera_map_sptr& cameras,
-    ::kwiver::vital::feature_track_set_sptr tracks,
-    ::kwiver::vital::landmark_map_sptr landmarks,
-    ::kwiver::vital::sfm_constraints_sptr constraints ) const override
+    ::viame::camera_map_sptr& cameras,
+    ::viame::feature_track_set_sptr tracks,
+    ::viame::landmark_map_sptr landmarks,
+    ::viame::sfm_constraints_sptr constraints ) const override
   {
     pybind11::gil_scoped_acquire gil;
     pybind11::function overload =
       pybind11::get_override(
-        static_cast< kwiver::vital::algo::optimize_cameras const* >( this ),
+        static_cast< viame::algo::optimize_cameras const* >( this ),
         "optimize" );
 
     if( !overload )
@@ -66,7 +66,7 @@ public:
     if( result.is_none() )
     {
       LOG_WARN(
-        kwiver::vital::get_logger( "python.algo" ),
+        viame::get_logger( "python.algo" ),
         "optimize_cameras.optimize returned None; the caller keeps the "
         "cameras it passed in, unoptimised." );
       return;
@@ -76,7 +76,7 @@ public:
     // as the concrete class with no base declared, so pybind cannot hand it
     // over as the interface pointer. The upcast is free once it is in C++,
     // and `simple_camera_map` is the only camera map python can build.
-    cameras = result.cast< std::shared_ptr< kwiver::vital::simple_camera_map > >();
+    cameras = result.cast< std::shared_ptr< viame::simple_camera_map > >();
   }
 
   /// Optimize one camera against parallel feature and landmark vectors.
@@ -87,15 +87,15 @@ public:
   /// would otherwise be called with this one's arguments.
   void
   optimize(
-    ::kwiver::vital::camera_perspective_sptr& camera,
-    ::std::vector< std::shared_ptr< kwiver::vital::feature > > const& features,
-    ::std::vector< std::shared_ptr< kwiver::vital::landmark > > const& landmarks,
-    ::kwiver::vital::sfm_constraints_sptr constraints ) const override
+    ::viame::camera_perspective_sptr& camera,
+    ::std::vector< std::shared_ptr< viame::feature > > const& features,
+    ::std::vector< std::shared_ptr< viame::landmark > > const& landmarks,
+    ::viame::sfm_constraints_sptr constraints ) const override
   {
     pybind11::gil_scoped_acquire gil;
     pybind11::function overload =
       pybind11::get_override(
-        static_cast< kwiver::vital::algo::optimize_cameras const* >( this ),
+        static_cast< viame::algo::optimize_cameras const* >( this ),
         "optimize_camera" );
 
     if( !overload )
@@ -112,11 +112,11 @@ public:
       return;
     }
 
-    camera = result.cast< kwiver::vital::camera_perspective_sptr >();
+    camera = result.cast< viame::camera_perspective_sptr >();
   }
 };
 
-} // namespace kwiver::vital::python
+} // namespace viame::python
 
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

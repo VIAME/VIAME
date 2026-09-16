@@ -8,7 +8,7 @@
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Easy way to automate bindings of templated classes.
 // For more information, see below link
@@ -24,7 +24,7 @@ declare_covariance( py::module& m, std::string const& typestr )
   py::class_< Class, std::shared_ptr< Class > >( m, pyclass_name.c_str() )
     .def( py::init<>() )
     .def( py::init< const T& >() )
-    .def( py::init< kwiver::vital::matrix_< N, N, T > const& >() )
+    .def( py::init< viame::matrix_< N, N, T > const& >() )
     .def( "matrix", &Class::matrix )
     .def(
       "__setitem__", []( Class& self, py::tuple idx, T value ){

@@ -7,9 +7,7 @@
 
 #include "camera_intrinsics.h"
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
@@ -29,13 +27,11 @@ dist_coeffs_to_ocv( std::vector< double > const& vital_dist_coeffs )
 }
 
 std::vector< double >
-get_ocv_dist_coeffs( vital::camera_intrinsics_sptr intrinsics )
+get_ocv_dist_coeffs( viame::camera_intrinsics_sptr intrinsics )
 {
   return dist_coeffs_to_ocv( intrinsics->dist_coeffs() );
 }
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

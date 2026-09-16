@@ -7,7 +7,7 @@
  * \brief Implementation of split image horizontally algorithm
  *
  * Was a `cv::Mat` region of interest and a clone; since P7-T04b it is
- * `image_ops::crop`, which does the same thing on a `vital::image`. The
+ * `image_ops::crop`, which does the same thing on a `viame::image`. The
  * bridge was asked for an `RGB_COLOR` mat both ways, so it never swapped a
  * channel and there was nothing here for it to do but copy.
  */
@@ -23,7 +23,7 @@ namespace io = viame::image_ops;
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// Split image
 std::vector< kv::image_container_sptr >

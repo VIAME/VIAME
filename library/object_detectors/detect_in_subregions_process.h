@@ -30,14 +30,14 @@ namespace viame
  *
  */
 class VIAME_PROCESSES_OBJECT_DETECTORS_EXPORT detect_in_subregions_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "detect_in_subregions",
                "Run a detection algorithm on all of the chips represented "
                "by an incoming detected_object_set" )
 
-  detect_in_subregions_process( kwiver::vital::config_block_sptr const& config );
+  detect_in_subregions_process( viame::config_block_sptr const& config );
   virtual ~detect_in_subregions_process();
 
 protected:

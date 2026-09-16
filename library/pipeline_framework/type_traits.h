@@ -48,9 +48,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 typedef std::vector< double >  double_vector;
 typedef std::shared_ptr< double_vector > double_vector_sptr;
@@ -60,9 +58,7 @@ typedef std::vector< unsigned char > uchar_vector;
 typedef std::shared_ptr< uchar_vector > uchar_vector_sptr;
 using string_sptr = std::shared_ptr< std::string >;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 // ==================================================================================
 //
@@ -70,115 +66,115 @@ using string_sptr = std::shared_ptr< std::string >;
 // These are types that are passed through the pipeline.
 // ( type-trait-name, "canonical_type_name", concrete-type )
 //
-create_type_trait( activity, "kwiver:activity", kwiver::vital::activity );
+create_type_trait( activity, "kwiver:activity", viame::activity );
 create_type_trait( bool, "kwiver:bool", bool );
 create_type_trait(
   bounding_box, "kwiver:bounding_box",
-  kwiver::vital::bounding_box_d );
+  viame::bounding_box_d );
 create_type_trait(
   camera_perspective, "kwiver:camera_perspective",
-  kwiver::vital::camera_perspective_sptr );
+  viame::camera_perspective_sptr );
 create_type_trait(
   corner_points, "kwiver:corner_points",
-  kwiver::vital::geo_polygon );
+  viame::geo_polygon );
 create_type_trait(
   database_query, "kwiver:database_query",
-  kwiver::vital::database_query_sptr );
+  viame::database_query_sptr );
 create_type_trait(
   descriptor_request, "kwiver:descriptor_request",
-  kwiver::vital::descriptor_request_sptr );
+  viame::descriptor_request_sptr );
 create_type_trait(
   descriptor_set, "kwiver:descriptor_set",
-  kwiver::vital::descriptor_set_sptr );
+  viame::descriptor_set_sptr );
 create_type_trait(
   detected_object_set, "kwiver:detected_object_set",
-  kwiver::vital::detected_object_set_sptr );
+  viame::detected_object_set_sptr );
 create_type_trait(
   double_vector, "kwiver:d_vector",
-  kwiver::vital::double_vector_sptr );
+  viame::double_vector_sptr );
 create_type_trait(
   feature_set, "kwiver:feature_set",
-  kwiver::vital::feature_set_sptr );
+  viame::feature_set_sptr );
 create_type_trait(
   feature_track_set, "kwiver:feature_track_set",
-  kwiver::vital::feature_track_set_sptr );
-create_type_trait( file_name, "kwiver:file_name", kwiver::vital::path_t );
+  viame::feature_track_set_sptr );
+create_type_trait( file_name, "kwiver:file_name", viame::path_t );
 create_type_trait( frame_rate, "kwiver:frame_rate", double );
-create_type_trait( geo_point, "kwiver:geo_point", kwiver::vital::geo_point );
+create_type_trait( geo_point, "kwiver:geo_point", viame::geo_point );
 create_type_trait( gsd, "kwiver:gsd", double );
 create_type_trait(
   homography, "kwiver:homography",
-  kwiver::vital::homography_sptr );
+  viame::homography_sptr );
 create_type_trait(
   success_flag, "kwiver:success_flag",
   bool );
 create_type_trait(
   homography_ref_to_src, "kwiver:r2s_homography",
-  kwiver::vital::f2f_homography );
+  viame::f2f_homography );
 create_type_trait(
   homography_src_to_ref, "kwiver:s2r_homography",
-  kwiver::vital::f2f_homography );
-create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
+  viame::f2f_homography );
+create_type_trait( image, "kwiver:image", viame::image_container_sptr );
 create_type_trait(
   image_set, "kwiver:image_set",
-  kwiver::vital::image_container_set_sptr );
+  viame::image_container_set_sptr );
 create_type_trait(
   iqr_feedback, "kwiver:iqr_feedback",
-  kwiver::vital::iqr_feedback_sptr );
+  viame::iqr_feedback_sptr );
 create_type_trait( kwiver_logical, "kwiver:logical", bool );
 create_type_trait(
   landmark_map, "kwiver:landmark_map",
-  kwiver::vital::landmark_map_sptr );
+  viame::landmark_map_sptr );
 create_type_trait(
   local_tangent_space, "kwiver:local_tangent_space",
-  kwiver::vital::local_tangent_space );
-create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
-create_type_trait( matrix_d, "kwiver:matrix_d", kwiver::vital::matrix_d );
+  viame::local_tangent_space );
+create_type_trait( mask, "kwiver:mask", viame::image_container_sptr );
+create_type_trait( matrix_d, "kwiver:matrix_d", viame::matrix_d );
 create_type_trait(
   metadata, "kwiver:metadata",
-  kwiver::vital::metadata_vector );
+  viame::metadata_vector );
 create_type_trait(
   metadata_map, "kwiver:metadata_map",
-  kwiver::vital::metadata_map_sptr );
+  viame::metadata_map_sptr );
 create_type_trait(
   object_track_set, "kwiver:object_track_set",
-  kwiver::vital::object_track_set_sptr );
+  viame::object_track_set_sptr );
 create_type_trait(
   pointcloud, "kwiver:pointcloud",
-  kwiver::vital::pointcloud_sptr );
+  viame::pointcloud_sptr );
 create_type_trait(
   query_result, "kwiver:query_result",
-  kwiver::vital::query_result_set_sptr );
+  viame::query_result_set_sptr );
 create_type_trait(
   serialized_message, "kwiver:serialized_message",
-  kwiver::vital::string_sptr );
-create_type_trait( string, "kwiver:string", kwiver::vital::string_t );
+  viame::string_sptr );
+create_type_trait( string, "kwiver:string", viame::string_t );
 create_type_trait(
   string_vector, "kwiver:string_vector",
-  kwiver::vital::string_vector_sptr );
-create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
+  viame::string_vector_sptr );
+create_type_trait( timestamp, "kwiver:timestamp", viame::timestamp );
 create_type_trait(
   uchar_vector, "kwiver:uchar_vector",
-  kwiver::vital::uchar_vector_sptr );
+  viame::uchar_vector_sptr );
 create_type_trait(
   track_descriptor_set, "kwiver:track_descriptor_set",
-  kwiver::vital::track_descriptor_set_sptr );
+  viame::track_descriptor_set_sptr );
 create_type_trait(
   track_set, "kwiver:track_set",
-  kwiver::vital::track_set_sptr );
+  viame::track_set_sptr );
 create_type_trait(
   video_raw_image, "kwiver:video_raw_image",
-  kwiver::vital::video_raw_image_sptr );
+  viame::video_raw_image_sptr );
 create_type_trait(
   video_raw_metadata, "kwiver:video_raw_metadata",
-  kwiver::vital::video_raw_metadata_sptr );
+  viame::video_raw_metadata_sptr );
 create_type_trait(
   video_settings, "kwiver:video_settings",
-  kwiver::vital::video_settings_sptr );
-create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
+  viame::video_settings_sptr );
+create_type_trait( video_uid, "kwiver:video_uuid", viame::uid );
 create_type_trait(
   video_uninterpreted_data, "kwiver:video_uninterpreted_data",
-  kwiver::vital::video_uninterpreted_data_sptr );
+  viame::video_uninterpreted_data_sptr );
 
 // ==================================================================================
 //

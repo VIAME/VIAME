@@ -16,9 +16,7 @@
 #include <fstream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -32,7 +30,7 @@ namespace algo {
 /// enough information to recreate a unique image identifier, usually a frame
 /// number, and an associated set of object tracks.
 class VITAL_ALGO_EXPORT write_object_track_set
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   virtual ~write_object_track_set();
@@ -45,10 +43,10 @@ public:
   ///
   /// \param filename Name of file to open
   ///
-  /// \throws kwiver::vital::path_not_exists Thrown when the given path does not
+  /// \throws viame::path_not_exists Thrown when the given path does not
   /// exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file Thrown when the given path does
+  /// \throws viame::path_not_a_file Thrown when the given path does
   ///    not point to a file (i.e. it points to a directory).
   virtual void open( std::string const& filename );
 
@@ -75,8 +73,8 @@ public:
   /// \param ts Timestamp for the current frame
   /// \param frame_identifier Identifier for the current frame (e.g. file name)
   virtual void write_set(
-    kwiver::vital::object_track_set_sptr const& set,
-    kwiver::vital::timestamp const& ts = {},
+    viame::object_track_set_sptr const& set,
+    viame::timestamp const& ts = {},
     std::string const& frame_identifier = {} ) = 0;
 
 protected:
@@ -96,8 +94,6 @@ typedef std::shared_ptr< write_object_track_set > write_object_track_set_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_WRITE_OBJECT_TRACK_SET_H

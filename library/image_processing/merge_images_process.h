@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // ----------------------------------------------------------------
@@ -28,7 +28,7 @@ namespace kwiver
  *
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT merge_images_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "merge_images",
@@ -45,7 +45,7 @@ public:
                "connected will be added to the output image first."
     )
 
-  merge_images_process( kwiver::vital::config_block_sptr const& config );
+  merge_images_process( viame::config_block_sptr const& config );
   virtual ~merge_images_process();
 
 protected:
@@ -61,4 +61,4 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class merge_images_process
 
-} // end namespace
+} // namespace viame

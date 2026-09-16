@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class image_object_detector_base = kwiver::vital::algo::image_object_detector >
+template< class image_object_detector_base = viame::algo::image_object_detector >
 class image_object_detector_trampoline
     : public algorithm_trampoline< image_object_detector_base >
 {
@@ -21,28 +21,28 @@ class image_object_detector_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::detected_object_set_sptr
-  detect(::kwiver::vital::image_container_sptr image_data) const override
+  viame::detected_object_set_sptr
+  detect(::viame::image_container_sptr image_data) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::detected_object_set_sptr,
-      kwiver::vital::algo::image_object_detector,
+      viame::detected_object_set_sptr,
+      viame::algo::image_object_detector,
       detect,
       image_data
       );
   }
 
-  std::vector<std::shared_ptr<kwiver::vital::detected_object_set> >
-  batch_detect(::std::vector<std::shared_ptr<kwiver::vital::image_container> > const & images) const override
+  std::vector<std::shared_ptr<viame::detected_object_set> >
+  batch_detect(::std::vector<std::shared_ptr<viame::image_container> > const & images) const override
   {
     PYBIND11_OVERLOAD(
-      std::vector<std::shared_ptr<kwiver::vital::detected_object_set> >,
-      kwiver::vital::algo::image_object_detector,
+      std::vector<std::shared_ptr<viame::detected_object_set> >,
+      viame::algo::image_object_detector,
       batch_detect,
       images
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

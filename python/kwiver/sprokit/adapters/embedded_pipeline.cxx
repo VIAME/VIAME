@@ -13,9 +13,9 @@
 
 using namespace pybind11;
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
@@ -38,26 +38,26 @@ public:
 
   bool connect_input_adapter() override;
   bool connect_output_adapter() override;
-  void update_config( vital::config_block_sptr config ) override;
+  void update_config( viame::config_block_sptr config ) override;
 };
 
 void build_pipeline(
   embedded_pipeline& self,
-  vital::path_t const& desc_file,
+  viame::path_t const& desc_file,
   std::string const& def_dir = "" );
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
-namespace ksp = kwiver::sprokit::python;
+namespace ksp = viame::pipeline::python;
 
 PYBIND11_MODULE( embedded_pipeline, m )
 {
-  class_< kwiver::embedded_pipeline,
-    std::shared_ptr< kwiver::embedded_pipeline >,
+  class_< viame::embedded_pipeline,
+    std::shared_ptr< viame::embedded_pipeline >,
     ksp::embedded_pipeline_trampoline > ep( m, "EmbeddedPipeline" );
   ep.def( init<>() )
     .def(
@@ -66,32 +66,32 @@ PYBIND11_MODULE( embedded_pipeline, m )
       arg( "desc_file" ),
       arg( "def_dir" ) = "" )
     .def(
-      "send", &kwiver::embedded_pipeline::send,
+      "send", &viame::embedded_pipeline::send,
       call_guard< pybind11::gil_scoped_release >() )
     .def(
-      "send_end_of_input", &kwiver::embedded_pipeline::send_end_of_input,
+      "send_end_of_input", &viame::embedded_pipeline::send_end_of_input,
       call_guard< pybind11::gil_scoped_release >() )
     .def(
-      "receive", &kwiver::embedded_pipeline::receive,
+      "receive", &viame::embedded_pipeline::receive,
       call_guard< pybind11::gil_scoped_release >() )
     .def(
-      "full", &kwiver::embedded_pipeline::full,
+      "full", &viame::embedded_pipeline::full,
       call_guard< pybind11::gil_scoped_release >() )
     .def(
-      "empty", &kwiver::embedded_pipeline::empty,
+      "empty", &viame::embedded_pipeline::empty,
       call_guard< pybind11::gil_scoped_release >() )
-    .def( "at_end", &kwiver::embedded_pipeline::at_end )
+    .def( "at_end", &viame::embedded_pipeline::at_end )
     .def(
-      "start", &kwiver::embedded_pipeline::start,
-      call_guard< pybind11::gil_scoped_release >() )
-    .def(
-      "wait", &kwiver::embedded_pipeline::wait,
+      "start", &viame::embedded_pipeline::start,
       call_guard< pybind11::gil_scoped_release >() )
     .def(
-      "stop", &kwiver::embedded_pipeline::stop,
+      "wait", &viame::embedded_pipeline::wait,
       call_guard< pybind11::gil_scoped_release >() )
-    .def( "input_port_names", &kwiver::embedded_pipeline::input_port_names )
-    .def( "output_port_names", &kwiver::embedded_pipeline::output_port_names )
+    .def(
+      "stop", &viame::embedded_pipeline::stop,
+      call_guard< pybind11::gil_scoped_release >() )
+    .def( "input_port_names", &viame::embedded_pipeline::input_port_names )
+    .def( "output_port_names", &viame::embedded_pipeline::output_port_names )
     .def(
       "input_adapter_connected",
       &ksp::wrap_embedded_pipeline::input_adapter_connected )
@@ -100,24 +100,24 @@ PYBIND11_MODULE( embedded_pipeline, m )
       &ksp::wrap_embedded_pipeline::output_adapter_connected )
     .def(
       "connect_input_adapter",
-      static_cast< bool ( kwiver::embedded_pipeline::* )() >(
+      static_cast< bool ( viame::embedded_pipeline::* )() >(
         &ksp::wrap_embedded_pipeline::connect_input_adapter ),
       call_guard< pybind11::gil_scoped_release >() )
     .def(
       "connect_output_adapter",
-      static_cast< bool ( kwiver::embedded_pipeline::* )() >(
+      static_cast< bool ( viame::embedded_pipeline::* )() >(
         &ksp::wrap_embedded_pipeline::connect_output_adapter ),
       call_guard< pybind11::gil_scoped_release >() )
     .def(
       "update_config",
-      static_cast< void ( kwiver::embedded_pipeline::* )(
-        kwiver::vital::config_block_sptr ) >(
+      static_cast< void ( viame::embedded_pipeline::* )(
+        viame::config_block_sptr ) >(
         &ksp::wrap_embedded_pipeline::update_config ),
       call_guard< pybind11::gil_scoped_release >() )
   ;
   ep.doc() =
     R"(
-        Python bindings for kwiver::embedded_pipeline
+        Python bindings for viame::embedded_pipeline
 
         Example:
             >>> from kwiver.sprokit.adapters import adapter_data_set, embedded_pipeline
@@ -154,9 +154,9 @@ PYBIND11_MODULE( embedded_pipeline, m )
         )";
 }
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
@@ -184,7 +184,7 @@ embedded_pipeline_trampoline
 
 void
 embedded_pipeline_trampoline
-::update_config( vital::config_block_sptr config )
+::update_config( viame::config_block_sptr config )
 {
   PYBIND11_OVERLOAD(
     void,
@@ -197,19 +197,19 @@ embedded_pipeline_trampoline
 void
 build_pipeline(
   embedded_pipeline& self,
-  vital::path_t const& desc_file,
+  viame::path_t const& desc_file,
   std::string const& def_dir )
 {
   std::ifstream desc_stream( desc_file );
   if( !desc_stream )
   {
-    throw ::sprokit::file_no_exist_exception( desc_file );
+    throw ::viame::pipeline::file_no_exist_exception( desc_file );
   }
   self.build_pipeline( desc_stream, def_dir );
 }
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame

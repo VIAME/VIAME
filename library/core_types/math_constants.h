@@ -10,9 +10,7 @@
 #ifndef KWIVER_VITAL_MATH_CONSTANTS_H
 #define KWIVER_VITAL_MATH_CONSTANTS_H
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
 constexpr double pi = 3.14159265358979323;
@@ -23,8 +21,6 @@ constexpr double deg_to_rad = pi / 180.0;
 
 constexpr double rad_to_deg = 180.0 / pi;
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_MATH_CONSTANTS_H

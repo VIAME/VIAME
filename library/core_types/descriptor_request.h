@@ -20,9 +20,7 @@
 #include <memory>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// A representation of a descriptor request.
@@ -53,9 +51,9 @@ public:
   void set_image_data( std::vector< image_container_sptr > const& );
 
 protected:
-  vital::uid m_id;
-  vital::timestamp m_temporal_lower;
-  vital::timestamp m_temporal_upper;
+  viame::uid m_id;
+  viame::timestamp m_temporal_lower;
+  viame::timestamp m_temporal_upper;
   std::vector< bounding_box_i > m_spatial_regions;
   std::vector< image_container_sptr > m_image_data;
   std::string m_data_location;
@@ -64,8 +62,6 @@ protected:
 /// Shared pointer for query plan
 typedef std::shared_ptr< descriptor_request > descriptor_request_sptr;
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_DESCRIPTOR_REQUEST_H_

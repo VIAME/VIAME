@@ -10,9 +10,7 @@
 #include <viame/core_types/image.h>
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -50,8 +48,6 @@ using warp_image_sptr = std::shared_ptr< warp_image >;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

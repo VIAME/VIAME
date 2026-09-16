@@ -18,7 +18,7 @@
 #include <string>
 
 namespace py = pybind11;
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace {
 
@@ -153,7 +153,7 @@ PYBIND11_MODULE( metadata, m )
       [](py::object fileHandle, std::shared_ptr< metadata > metadata){
         std::ofstream fout;
         py::scoped_ostream_redirect stream( fout, fileHandle );
-        kwiver::vital::print_metadata( fout, *metadata.get() );
+        viame::print_metadata( fout, *metadata.get() );
       } )
   ;
 }

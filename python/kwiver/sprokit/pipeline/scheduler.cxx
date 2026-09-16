@@ -14,20 +14,20 @@
 /**
  * \file scheduler.cxx
  *
- * \brief Python bindings for \link sprokit::scheduler\endlink.
+ * \brief Python bindings for \link viame::pipeline::scheduler\endlink.
  */
 
 using namespace pybind11;
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
 // Publisher class to access virtual methods
 class wrap_scheduler
-  : public ::sprokit::scheduler
+  : public ::viame::pipeline::scheduler
 {
 public:
   using scheduler::scheduler;
@@ -41,12 +41,12 @@ public:
 
 // Trampoline class to allow us to to use virtual methods
 class scheduler_trampoline
-  : public ::sprokit::scheduler
+  : public ::viame::pipeline::scheduler
 {
 public:
   scheduler_trampoline(
-    ::sprokit::pipeline_t const& pipe,
-    kwiver::vital::config_block_sptr const& config ) : scheduler( pipe, config )
+    ::viame::pipeline::pipeline_t const& pipe,
+    viame::config_block_sptr const& config ) : scheduler( pipe, config )
   {}
   void _start() override;
   void _wait() override;
@@ -59,68 +59,68 @@ void scheduler_shutdown( object );
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
-using namespace kwiver::sprokit::python;
+using namespace viame::pipeline::python;
 
 PYBIND11_MODULE( scheduler, m )
 {
-  class_< sprokit::scheduler, scheduler_trampoline, sprokit::scheduler_t >(
+  class_< viame::pipeline::scheduler, scheduler_trampoline, viame::pipeline::scheduler_t >(
     m, "PythonScheduler",
     "The base class for Python schedulers." )
     .def(
-    init< sprokit::pipeline_t, kwiver::vital::config_block_sptr >(),
+    init< viame::pipeline::pipeline_t, viame::config_block_sptr >(),
     call_guard< pybind11::gil_scoped_release >() )
     .def(
-      "start", &sprokit::scheduler::start,
+      "start", &viame::pipeline::scheduler::start,
       call_guard< pybind11::gil_scoped_release >(),
       "Start the execution of the pipeline." )
     .def(
-      "wait", &sprokit::scheduler::wait,
+      "wait", &viame::pipeline::scheduler::wait,
       call_guard< pybind11::gil_scoped_release >(),
       "Wait until the pipeline execution is complete." )
     .def(
-      "pause", &sprokit::scheduler::pause,
+      "pause", &viame::pipeline::scheduler::pause,
       call_guard< pybind11::gil_scoped_release >(),
       "Pause execution." )
     .def(
-      "resume", &sprokit::scheduler::resume,
+      "resume", &viame::pipeline::scheduler::resume,
       call_guard< pybind11::gil_scoped_release >(),
       "Resume execution." )
     .def(
-      "stop", &sprokit::scheduler::stop,
+      "stop", &viame::pipeline::scheduler::stop,
       call_guard< pybind11::gil_scoped_release >(),
       "Stop the execution of the pipeline." )
     .def(
       "_start",
-      static_cast< void ( sprokit::scheduler::* )() >( &wrap_scheduler::_start ),
+      static_cast< void ( viame::pipeline::scheduler::* )() >( &wrap_scheduler::_start ),
       call_guard< pybind11::gil_scoped_release >(),
       "Implementation of starting the pipeline." )
     .def(
       "_wait",
-      static_cast< void ( sprokit::scheduler::* )() >( &wrap_scheduler::_wait ),
+      static_cast< void ( viame::pipeline::scheduler::* )() >( &wrap_scheduler::_wait ),
       call_guard< pybind11::gil_scoped_release >(),
       "Implementation of waiting until execution is complete." )
     .def(
       "_pause",
-      static_cast< void ( sprokit::scheduler::* )() >( &wrap_scheduler::_pause ),
+      static_cast< void ( viame::pipeline::scheduler::* )() >( &wrap_scheduler::_pause ),
       call_guard< pybind11::gil_scoped_release >(),
       "Implementation of pausing execution." )
     .def(
       "_resume",
-      static_cast< void ( sprokit::scheduler::* )() >( &wrap_scheduler::_resume ),
+      static_cast< void ( viame::pipeline::scheduler::* )() >( &wrap_scheduler::_resume ),
       call_guard< pybind11::gil_scoped_release >(),
       "Implementation of resuming execution." )
     .def(
       "_stop",
-      static_cast< void ( sprokit::scheduler::* )() >( &wrap_scheduler::_stop ),
+      static_cast< void ( viame::pipeline::scheduler::* )() >( &wrap_scheduler::_stop ),
       call_guard< pybind11::gil_scoped_release >(),
       "Implementation of stopping the pipeline." )
     .def(
       "pipeline",
-      static_cast< sprokit::pipeline_t ( sprokit::scheduler::* )() const >( &
+      static_cast< viame::pipeline::pipeline_t ( viame::pipeline::scheduler::* )() const >( &
                                                                             wrap_scheduler
                                                                             ::
                                                                             pipeline ),
@@ -132,9 +132,9 @@ PYBIND11_MODULE( scheduler, m )
   ;
 }
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
@@ -205,6 +205,6 @@ scheduler_trampoline
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame

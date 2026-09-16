@@ -9,8 +9,8 @@
 
 /// return the hamming_distance between two descriptors
 int
-kwiver::vital
-::hamming_distance( vital::descriptor_sptr d1, vital::descriptor_sptr d2 )
+viame
+::hamming_distance( viame::descriptor_sptr d1, viame::descriptor_sptr d2 )
 {
   // Bit set count operation from
   // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
@@ -20,7 +20,7 @@ kwiver::vital
   if( d1_bytes % 4 )
   {
     VITAL_THROW(
-      vital::invalid_value,
+      viame::invalid_value,
       "Descriptor must be a multiple of four bytes long." );
   }
 
@@ -28,7 +28,7 @@ kwiver::vital
   if( d1_bytes != d2_bytes )
   {
     VITAL_THROW(
-      vital::invalid_value,
+      viame::invalid_value,
       "Descriptors must be the same number of bytes long" );
   }
 

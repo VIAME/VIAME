@@ -7,7 +7,7 @@
 
 #include <viame/algorithm_framework/plugin/pluggable.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace py = pybind11;
 
 PYBIND11_MODULE( _pluggable, m )

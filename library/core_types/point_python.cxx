@@ -10,7 +10,7 @@
 #include <sstream>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Easy way to automate bindings of templated classes.
 // For more information, see below link
@@ -57,7 +57,7 @@ void
 declare_point2( py::module& m, std::string const& typestr )
 {
   using Class = kv::point< 2, T >;
-  using vector_type = kwiver::vital::vector_< 2, T >;
+  using vector_type = viame::vector_< 2, T >;
   using covariance_type = kv::covariance_< 2, float >;
 
   py::module::import( "kwiver.vital.types.covariance" );

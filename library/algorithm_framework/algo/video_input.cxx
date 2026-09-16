@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/video_input.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -60,7 +58,7 @@ video_input
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::path_t
+viame::path_t
 video_input
 ::filename() const
 {
@@ -119,6 +117,4 @@ video_input
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

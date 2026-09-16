@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver::vital {
+namespace viame {
 
 // base class of factory hierarchy
 class plugin_factory;
@@ -230,12 +230,12 @@ protected:
 
   // what friend classes are.
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
 
 private:
   const std::unique_ptr< registry_impl > m_impl;
 }; // end class registry
 
-} // end namespace
+} // namespace viame
 
 #endif

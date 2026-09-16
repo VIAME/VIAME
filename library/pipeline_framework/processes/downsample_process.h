@@ -11,17 +11,17 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 class VIAME_PROCESSES_PIPELINE_FRAMEWORK_NO_EXPORT downsample_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "downsample",
                "Downsample an input stream." )
 
-  downsample_process( vital::config_block_sptr const& config );
+  downsample_process( viame::config_block_sptr const& config );
   virtual ~downsample_process();
 
 protected:

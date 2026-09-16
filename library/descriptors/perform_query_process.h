@@ -11,7 +11,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // -----------------------------------------------------------------------------
@@ -28,13 +28,13 @@ namespace kwiver
  * \oport{query_result}
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT perform_query_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "perform_query",
                "Perform a query." )
 
-  perform_query_process( vital::config_block_sptr const& config );
+  perform_query_process( viame::config_block_sptr const& config );
   virtual ~perform_query_process();
 
 protected:
@@ -49,6 +49,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class perform_query_process
 
-} // end namespace
+} // namespace viame
 
 #endif /* _KWIVER_PERFORM_QUERY_PROCESS_H_ */

@@ -9,9 +9,7 @@
 
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 config_block_exception
@@ -152,8 +150,8 @@ bad_configuration_cast
 // ----------------------------------------------------------------------------
 bad_configuration_cast_exception
 ::bad_configuration_cast_exception(
-  kwiver::vital::config_block_key_t const& key,
-  kwiver::vital::config_block_value_t const& value,
+  viame::config_block_key_t const& key,
+  viame::config_block_value_t const& value,
   char const* type,
   char const* reason ) noexcept
   : config_block_exception(),
@@ -249,6 +247,4 @@ config_file_write_exception
 ::~config_file_write_exception() noexcept
 {}
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

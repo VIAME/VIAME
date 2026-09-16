@@ -15,15 +15,13 @@
 #include <viame/core_types/feature_set.h>
 #include <viame/core_types/match_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for matching feature points
 class VITAL_ALGO_EXPORT match_features
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   match_features();
@@ -35,12 +33,12 @@ public:
   /// \param feat2 the second set fof features to match
   /// \param desc2 the descriptors corresponding to \a feat2
   /// \returns a set of matching indices from \a feat1 to \a feat2
-  virtual kwiver::vital::match_set_sptr
+  virtual viame::match_set_sptr
   match(
-    kwiver::vital::feature_set_sptr feat1,
-    kwiver::vital::descriptor_set_sptr desc1,
-    kwiver::vital::feature_set_sptr feat2,
-    kwiver::vital::descriptor_set_sptr desc2 ) const = 0;
+    viame::feature_set_sptr feat1,
+    viame::descriptor_set_sptr desc1,
+    viame::feature_set_sptr feat2,
+    viame::descriptor_set_sptr desc2 ) const = 0;
 };
 
 /// Shared pointer type for match_features algorithm definition class
@@ -48,8 +46,6 @@ typedef std::shared_ptr< match_features > match_features_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_MATCH_FEATURES_H_

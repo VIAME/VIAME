@@ -16,7 +16,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace io = viame::image_ops;
 
 // =============================================================================

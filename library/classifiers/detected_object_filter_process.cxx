@@ -16,7 +16,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( filter );
 
@@ -55,14 +55,14 @@ public:
   priv();
   ~priv();
 
-  vital::algo::detected_object_filter_sptr m_filter;
+  viame::algo::detected_object_filter_sptr m_filter;
 
 }; // end priv class
 
 // ================================================================
 
 detected_object_filter_process
-::detected_object_filter_process( kwiver::vital::config_block_sptr const& config )
+::detected_object_filter_process( viame::config_block_sptr const& config )
   : process( config )
   , d( new detected_object_filter_process::priv )
 {
@@ -82,13 +82,13 @@ detected_object_filter_process
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
   if ( ! check_nested_algo_configuration_using_trait(
          filter, algo_config, d->m_filter ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   set_nested_algo_configuration_using_trait(
@@ -98,7 +98,7 @@ detected_object_filter_process
 
   if ( ! d->m_filter )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create filter" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create filter" );
   }
 }
 
@@ -107,9 +107,9 @@ void
 detected_object_filter_process
 ::_step()
 {
-  vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
+  viame::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
 
-  vital::detected_object_set_sptr result;
+  viame::detected_object_set_sptr result;
 
   {
     scoped_step_instrumentation();
@@ -126,8 +126,8 @@ detected_object_filter_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -157,4 +157,4 @@ detected_object_filter_process::priv
 {
 }
 
-} //end namespace
+} // namespace viame

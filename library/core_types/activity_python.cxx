@@ -9,7 +9,7 @@
 #include <viame/core_types/vital_types.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 PYBIND11_MODULE( activity, m )
 {

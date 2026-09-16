@@ -141,10 +141,10 @@ fetch_descriptors_process
 ::_step()
 {
   // Grab input UIDs
-  kwiver::vital::string_vector_sptr string_tuple =
+  viame::string_vector_sptr string_tuple =
     grab_from_port_using_trait( string_vector );
 
-  std::vector< kwiver::vital::descriptor_sptr > descriptors;
+  std::vector< viame::descriptor_sptr > descriptors;
 
   for( const std::string& uid : *string_tuple )
   {
@@ -155,7 +155,7 @@ fetch_descriptors_process
       const std::vector< double >& values = it->second;
 
       // Create a new descriptor with the values
-      auto desc = std::make_shared< kwiver::vital::descriptor_dynamic< double > >(
+      auto desc = std::make_shared< viame::descriptor_dynamic< double > >(
         values.size() );
 
       double* raw = desc->raw_data();
@@ -174,8 +174,8 @@ fetch_descriptors_process
   }
 
   // Create descriptor set and push to output
-  kwiver::vital::descriptor_set_sptr desc_set =
-    std::make_shared< kwiver::vital::simple_descriptor_set >( descriptors );
+  viame::descriptor_set_sptr desc_set =
+    std::make_shared< viame::simple_descriptor_set >( descriptors );
 
   push_to_port_using_trait( descriptor_set, desc_set );
 }
@@ -186,9 +186,9 @@ void
 fetch_descriptors_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- inputs --

@@ -11,8 +11,8 @@ namespace py = pybind11;
 
 PYBIND11_MODULE( activity_type, m )
 {
-  py::class_< kwiver::vital::activity_type,
-    std::shared_ptr< kwiver::vital::activity_type > >( m, "ActivityType" )
+  py::class_< viame::activity_type,
+    std::shared_ptr< viame::activity_type > >( m, "ActivityType" )
     .def( py::init<>() )
     .def(
       py::init< std::vector< std::string >, std::vector< double > >(),
@@ -22,14 +22,14 @@ PYBIND11_MODULE( activity_type, m )
       py::arg( "score" ) )
 
     .def(
-      "has_class_name", &kwiver::vital::activity_type::has_class_name,
+      "has_class_name", &viame::activity_type::has_class_name,
       py::arg( "class_name" ) )
     .def(
-      "score", &kwiver::vital::activity_type::score,
+      "score", &viame::activity_type::score,
       py::arg( "class_name" ) )
     .def(
       "get_most_likely_class",
-      [](std::shared_ptr< kwiver::vital::activity_type > self){
+      [](std::shared_ptr< viame::activity_type > self){
         std::string max_name;
         double max_score;
         self->get_most_likely( max_name, max_score );
@@ -37,27 +37,27 @@ PYBIND11_MODULE( activity_type, m )
       } )
     .def(
       "get_most_likely_score",
-      [](std::shared_ptr< kwiver::vital::activity_type > self){
+      [](std::shared_ptr< viame::activity_type > self){
         std::string max_name;
         double max_score;
         self->get_most_likely( max_name, max_score );
         return max_score;
       } )
     .def(
-      "set_score", &kwiver::vital::activity_type::set_score,
+      "set_score", &viame::activity_type::set_score,
       py::arg( "class_name" ), py::arg( "score" ) )
     .def(
-      "delete_score", &kwiver::vital::activity_type::delete_score,
+      "delete_score", &viame::activity_type::delete_score,
       py::arg( "class_name" ) )
     .def(
-      "class_names", &kwiver::vital::activity_type::class_names,
-      py::arg( "threshold" ) = kwiver::vital::activity_type::INVALID_SCORE )
+      "class_names", &viame::activity_type::class_names,
+      py::arg( "threshold" ) = viame::activity_type::INVALID_SCORE )
     .def_static(
       "all_class_names",
-      &kwiver::vital::activity_type::all_class_names )
-    .def( "__len__", &kwiver::vital::activity_type::size )
+      &viame::activity_type::all_class_names )
+    .def( "__len__", &viame::activity_type::size )
     .def(
-      "__iter__", [](kwiver::vital::activity_type& self){
+      "__iter__", [](viame::activity_type& self){
         return py::make_iterator( self.cbegin(), self.cend() );
       },
       py::keep_alive< 0, 1 >() )
@@ -74,7 +74,7 @@ PYBIND11_MODULE( activity_type, m )
         return info[ "retval" ].cast< std::string >();
       } )
     .def(
-      "__nice__", [](kwiver::vital::activity_type& self) -> std::string {
+      "__nice__", [](viame::activity_type& self) -> std::string {
         auto locals = py::dict( py::arg( "self" ) = self );
         py::exec( R"(
         retval = 'size={}'.format(len(self))

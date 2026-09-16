@@ -14,7 +14,7 @@ namespace viame
 {
 
 class VIAME_VIDEO_IO_EXPORT add_timestamp_from_filename
-  : public kwiver::vital::algo::image_io
+  : public viame::algo::image_io
 {
 public:
   PLUGGABLE_VARIABLES()
@@ -26,29 +26,29 @@ public:
 
   ~add_timestamp_from_filename() override = default;
 
-  bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
 private:
   void initialize() override;
 
   void set_configuration_internal(
-    kwiver::vital::config_block_sptr config ) override;
+    viame::config_block_sptr config ) override;
 
-  kwiver::vital::config_block_sptr get_configuration() const override;
+  viame::config_block_sptr get_configuration() const override;
 
-  kwiver::vital::algo::image_io_sptr image_reader;
+  viame::algo::image_io_sptr image_reader;
 
-  kwiver::vital::image_container_sptr load_(
+  viame::image_container_sptr load_(
     std::string const& filename ) const override;
 
   void save_( std::string const& filename,
-    kwiver::vital::image_container_sptr data ) const override;
+    viame::image_container_sptr data ) const override;
 
-  kwiver::vital::metadata_sptr load_metadata_(
+  viame::metadata_sptr load_metadata_(
     std::string const& filename ) const override;
 
-  kwiver::vital::metadata_sptr fixup_metadata(
-    std::string const& filename, kwiver::vital::metadata_sptr md ) const;
+  viame::metadata_sptr fixup_metadata(
+    std::string const& filename, viame::metadata_sptr md ) const;
 };
 
 } // end namespace viame

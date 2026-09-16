@@ -160,7 +160,7 @@ class TestVitalMetadataItemSubclasses(unittest.TestCase):
         self.check_instance(inst1, PropInfo("Is Key Frame", tag, True), type_info1)
         self.check_instance(inst2, PropInfo("Is Key Frame", tag, False), type_info2)
 
-        # FRAME_CENTER - kwiver::vital::geo_point
+        # FRAME_CENTER - viame::geo_point
         tag = mt.tags.VITAL_META_FRAME_CENTER
         inst1 = MetadataItem(tag, GeoPoint())
         inst2 = MetadataItem(tag, self.g_point)
@@ -169,15 +169,15 @@ class TestVitalMetadataItemSubclasses(unittest.TestCase):
             # is different on windows versus the result on linux after
             # demangling. This is expected.
             type_info1 = TypeInfo(
-                "class kwiver::vital::geo_point", as_string=str(GeoPoint())
+                "class viame::geo_point", as_string=str(GeoPoint())
             )
             type_info2 = TypeInfo(
-                "class kwiver::vital::geo_point", as_string=str(self.g_point)
+                "class viame::geo_point", as_string=str(self.g_point)
             )
         else:
-            type_info1 = TypeInfo("kwiver::vital::geo_point", as_string=str(GeoPoint()))
+            type_info1 = TypeInfo("viame::geo_point", as_string=str(GeoPoint()))
             type_info2 = TypeInfo(
-                "kwiver::vital::geo_point", as_string=str(self.g_point)
+                "viame::geo_point", as_string=str(self.g_point)
             )
         self.check_instance(
             inst1,
@@ -190,7 +190,7 @@ class TestVitalMetadataItemSubclasses(unittest.TestCase):
             type_info2,
         )
 
-        # CORNER_POINTS - kwiver::vital::geo_polygon
+        # CORNER_POINTS - viame::geo_polygon
         tag = mt.tags.VITAL_META_CORNER_POINTS
         inst1 = MetadataItem(tag, GeoPolygon())
         inst2 = MetadataItem(tag, self.g_poly)
@@ -199,17 +199,17 @@ class TestVitalMetadataItemSubclasses(unittest.TestCase):
             # is different on windows versus the result on linux after
             # demangling. This is expected.
             type_info1 = TypeInfo(
-                "class kwiver::vital::geo_polygon", as_string=str(GeoPolygon())
+                "class viame::geo_polygon", as_string=str(GeoPolygon())
             )
             type_info2 = TypeInfo(
-                "class kwiver::vital::geo_polygon", as_string=str(self.g_poly)
+                "class viame::geo_polygon", as_string=str(self.g_poly)
             )
         else:
             type_info1 = TypeInfo(
-                "kwiver::vital::geo_polygon", as_string=str(GeoPolygon())
+                "viame::geo_polygon", as_string=str(GeoPolygon())
             )
             type_info2 = TypeInfo(
-                "kwiver::vital::geo_polygon", as_string=str(self.g_poly)
+                "viame::geo_polygon", as_string=str(self.g_poly)
             )
         self.check_instance(
             inst1, PropInfo("Corner Points (lon/lat)", tag, GeoPolygon()), type_info1

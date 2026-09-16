@@ -21,7 +21,7 @@ Simple C++ Detector Plugin Example
 **********************************
 
 A new detector plugin can be added by creating a class that implements the
-kwiver::vital::algo::image_object_detector interface. This interface
+viame::algo::image_object_detector interface. This interface
 is defined in an abstract base class in file
 viame/algorithm_framework/algo/image_object_detector.h.
 Similar interfaces exist for several other types of functions.
@@ -63,9 +63,9 @@ the following code:
 
 ::
 
-    // input image is kwiver::vital::image_container_sptr image_data
+    // input image is viame::image_container_sptr image_data
     // CV format image is extracted using the following line
-    cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+    cv::Mat cv_image = viame::ocv::image_container::vital_to_ocv( image_data->get_image() );
 
 Now that you have the image in a compatible format, it can be passed
 to the detector. Detectors usually return a set of bounding boxes,
@@ -75,7 +75,7 @@ be converted to a detected_object_set using the following pseudo-code.
 ::
 
     // Allocate a detected object set that we will fill with new detections
-    auto detected_objects = std::make_shared<kwiver::vital::detected_object_set>();
+    auto detected_objects = std::make_shared<viame::detected_object_set>();
 
     FOREACH bounding-box returned from detector
 
@@ -83,11 +83,11 @@ be converted to a detected_object_set using the following pseudo-code.
         // coordinates in the following order: left, top, right, bottom.
         // If the detector does not return exactly these values, they are
         // easy to calculate
-        kwiver::vital::bounding_box_d bbox( left, top, right, bot);
+        viame::bounding_box_d bbox( left, top, right, bot);
 
         // Create a new detected object type structure. This is used to hold the
         // classification labels and associated probabilities or scores.
-        auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+        auto dot = std::make_shared< viame::detected_object_type >();
 
         FOREACH pair of classification label and score
             // Add the class name and probability to the detected object type
@@ -96,7 +96,7 @@ be converted to a detected_object_set using the following pseudo-code.
 
         // Now that we have processed one detected object (as defined by a bounding box)
         // it has to be added to the detected_object_set
-        detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ));
+        detected_objects->add( std::make_shared< viame::detected_object >( bbox, 1.0, dot ));
     END_FOREACH
 
     // When all detections have been processed, the detected object set for this input

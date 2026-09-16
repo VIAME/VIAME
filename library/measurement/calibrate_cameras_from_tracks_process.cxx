@@ -31,7 +31,7 @@
 #include <viame/file_io/read_object_track_set_viame_csv.h>
 #include <viame/file_io/camera_io.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 
 namespace viame {
@@ -329,8 +329,8 @@ calibrate_cameras_from_tracks_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -384,12 +384,12 @@ calibrate_cameras_from_tracks_process
     while( !d->m_tracks_left_complete )
     {
       auto port_info = peek_at_port_using_trait( tracks_left );
-      if( port_info.datum->type() == sprokit::datum::complete )
+      if( port_info.datum->type() == viame::pipeline::datum::complete )
       {
         grab_edge_datum_using_trait( tracks_left );
         d->m_tracks_left_complete = true;
       }
-      else if( port_info.datum->type() == sprokit::datum::data )
+      else if( port_info.datum->type() == viame::pipeline::datum::data )
       {
         d->m_tracks_left = grab_from_port_using_trait( tracks_left );
       }
@@ -403,12 +403,12 @@ calibrate_cameras_from_tracks_process
     while( !d->m_tracks_right_complete )
     {
       auto port_info = peek_at_port_using_trait( tracks_right );
-      if( port_info.datum->type() == sprokit::datum::complete )
+      if( port_info.datum->type() == viame::pipeline::datum::complete )
       {
         grab_edge_datum_using_trait( tracks_right );
         d->m_tracks_right_complete = true;
       }
-      else if( port_info.datum->type() == sprokit::datum::data )
+      else if( port_info.datum->type() == viame::pipeline::datum::data )
       {
         d->m_tracks_right = grab_from_port_using_trait( tracks_right );
       }
@@ -422,13 +422,13 @@ calibrate_cameras_from_tracks_process
     while( !d->m_image_complete )
     {
       auto port_info = peek_at_port_using_trait( image_width );
-      if( port_info.datum->type() == sprokit::datum::complete )
+      if( port_info.datum->type() == viame::pipeline::datum::complete )
       {
         grab_edge_datum_using_trait( image_width );
         grab_edge_datum_using_trait( image_height );
         d->m_image_complete = true;
       }
-      else if( port_info.datum->type() == sprokit::datum::data )
+      else if( port_info.datum->type() == viame::pipeline::datum::data )
       {
         d->m_image_width = grab_from_port_using_trait( image_width );
         d->m_image_height = grab_from_port_using_trait( image_height );

@@ -15,7 +15,7 @@
  * \brief Declaration of the data dependent process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class data_dependent_process
@@ -46,7 +46,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  data_dependent_process(kwiver::vital::config_block_sptr const& config);
+  data_dependent_process(viame::config_block_sptr const& config);
   /**
    * \brief Destructor.
    */

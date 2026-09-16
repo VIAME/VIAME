@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/write_object_track_set.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class write_object_track_set_base = kwiver::vital::algo::write_object_track_set >
+template< class write_object_track_set_base = viame::algo::write_object_track_set >
 class write_object_track_set_trampoline
     : public algorithm_trampoline< write_object_track_set_base >
 {
@@ -26,7 +26,7 @@ class write_object_track_set_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::write_object_track_set,
+      viame::algo::write_object_track_set,
       open,
       filename
       );
@@ -37,7 +37,7 @@ class write_object_track_set_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::write_object_track_set,
+      viame::algo::write_object_track_set,
       use_stream,
       strm
       );
@@ -48,23 +48,23 @@ class write_object_track_set_trampoline
   {
     PYBIND11_OVERLOAD(
       void,
-      kwiver::vital::algo::write_object_track_set,
+      viame::algo::write_object_track_set,
       close,
       
       );
   }
 
   void
-  write_set(::kwiver::vital::object_track_set_sptr const & set, ::kwiver::vital::timestamp const & ts, ::std::string const & frame_identifier) override
+  write_set(::viame::object_track_set_sptr const & set, ::viame::timestamp const & ts, ::std::string const & frame_identifier) override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::write_object_track_set,
+      viame::algo::write_object_track_set,
       write_set,
       set, ts, frame_identifier
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

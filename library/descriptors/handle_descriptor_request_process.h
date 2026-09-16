@@ -11,7 +11,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // -----------------------------------------------------------------------------
@@ -31,14 +31,14 @@ namespace kwiver
  * \oport{stream_id}
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT handle_descriptor_request_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "handle_descriptor_request",
                "Handle a new descriptor request, producing desired "
                "descriptors on the input." )
 
-  handle_descriptor_request_process( vital::config_block_sptr const& config );
+  handle_descriptor_request_process( viame::config_block_sptr const& config );
   virtual ~handle_descriptor_request_process();
 
 protected:
@@ -53,5 +53,5 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class handle_descriptor_request_process
 
-} // end namespace
+} // namespace viame
 #endif /* _KWIVER_HANDLE_DESCRIPTOR_REQUEST_PROCESS_H_ */

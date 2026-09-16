@@ -49,7 +49,7 @@ public:
   read_detected_object_set_fishnet* m_parent;
   bool m_first;
 
-  typedef std::map< std::string, kwiver::vital::detected_object_set_sptr > map_type;
+  typedef std::map< std::string, viame::detected_object_set_sptr > map_type;
 
   // Map of detected objects indexed by frame name. Each set
   // contains all detections for a single frame.
@@ -69,7 +69,7 @@ read_detected_object_set_fishnet
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_fishnet
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -78,7 +78,7 @@ read_detected_object_set_fishnet
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_fishnet
-::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+::read_set( viame::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -99,7 +99,7 @@ read_detected_object_set_fishnet
     if( d->m_detection_by_str.find( name_no_ext ) == d->m_detection_by_str.end() )
     {
       // return empty set
-      set = std::make_shared< kwiver::vital::detected_object_set>();
+      set = std::make_shared< viame::detected_object_set>();
     }
     else
     {
@@ -138,7 +138,7 @@ read_detected_object_set_fishnet::priv
 ::read_all()
 {
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+  viame::data_stream_reader stream_reader( m_parent->stream() );
 
   // Read detections
   m_detection_by_str.clear();
@@ -146,7 +146,7 @@ read_detected_object_set_fishnet::priv
   while( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, ",", false );
+    viame::tokenize( line, col, ",", false );
 
     if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
     {
@@ -158,7 +158,7 @@ read_detected_object_set_fishnet::priv
       std::stringstream str;
       str << "This is not a fishnet file; found " << col.size()
           << " columns in\n\"" << line << "\"";
-      throw kwiver::vital::invalid_data( str.str() );
+      throw viame::invalid_data( str.str() );
     }
 
     /*
@@ -177,23 +177,23 @@ read_detected_object_set_fishnet::priv
     {
       // create a new detection set entry
       m_detection_by_str[ str_id ] =
-        std::make_shared<kwiver::vital::detected_object_set>();
+        std::make_shared<viame::detected_object_set>();
     }
 
-    kwiver::vital::bounding_box_d bbox(
+    viame::bounding_box_d bbox(
       atof( col[ COL_MIN_X ].c_str() ),
       atof( col[ COL_MIN_Y ].c_str() ),
       atof( col[ COL_MAX_X ].c_str() ),
       atof( col[ COL_MAX_Y ].c_str() ) );
 
     // Create detection
-    kwiver::vital::detected_object_type_sptr dot =
-      std::make_shared< kwiver::vital::detected_object_type >();
+    viame::detected_object_type_sptr dot =
+      std::make_shared< viame::detected_object_type >();
 
     dot->set_score( col[ COL_LABEL ], 1.0 );
 
-    kwiver::vital::detected_object_sptr dob =
-      std::make_shared< kwiver::vital::detected_object>( bbox, 1.0, dot );
+    viame::detected_object_sptr dob =
+      std::make_shared< viame::detected_object>( bbox, 1.0, dot );
 
     // Add detection to set for the frame
     m_detection_by_str[ str_id ]->add( dob );

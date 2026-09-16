@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header file for \link kwiver::vital::feature_track_set
+/// \brief Header file for \link viame::feature_track_set
 /// feature_track_set
 ///        \endlink
 
@@ -24,9 +24,7 @@
 #include <memory>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class feature_track_set_frame_data;
 using feature_track_set_frame_data_sptr =
@@ -231,15 +229,15 @@ using feature_track_set_sptr = std::shared_ptr< feature_track_set >;
 ///
 /// \par Example:
 /// \code
-/// namespace kv = kwiver::vital;
-/// namespace r = kwiver::vital::range;
+/// namespace kv = viame;
+/// namespace r = viame::range;
 ///
 /// kv::track_sptr ft = get_the_feature_track();
 /// for ( auto s : ft | kv::as_feature_track )
 ///   std::cout << s->inlier << std::endl;
 /// \endcode
 ///
-/// \sa kwiver::vital::range::transform_view
+/// \sa viame::range::transform_view
 #ifndef KWIVER_PYBIND11_WRAPPING
 // xxx(python-wrapping-issues) causes issues during wrapping
 static constexpr auto as_feature_track =
@@ -289,8 +287,6 @@ public:
   std::vector< state_data > m_changes;
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_FEATURE_TRACK_SET_H_

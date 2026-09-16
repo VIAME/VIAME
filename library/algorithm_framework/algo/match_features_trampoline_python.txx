@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/match_features.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class match_features_base = kwiver::vital::algo::match_features >
+template< class match_features_base = viame::algo::match_features >
 class match_features_trampoline
     : public algorithm_trampoline< match_features_base >
 {
@@ -21,17 +21,17 @@ class match_features_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::match_set_sptr
-  match(::kwiver::vital::feature_set_sptr feat1, ::kwiver::vital::descriptor_set_sptr desc1, ::kwiver::vital::feature_set_sptr feat2, ::kwiver::vital::descriptor_set_sptr desc2) const override
+  viame::match_set_sptr
+  match(::viame::feature_set_sptr feat1, ::viame::descriptor_set_sptr desc1, ::viame::feature_set_sptr feat2, ::viame::descriptor_set_sptr desc2) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::match_set_sptr,
-      kwiver::vital::algo::match_features,
+      viame::match_set_sptr,
+      viame::algo::match_features,
       match,
       feat1, desc1, feat2, desc2
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

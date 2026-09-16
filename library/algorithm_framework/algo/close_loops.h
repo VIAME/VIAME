@@ -14,12 +14,10 @@
 #include <ostream>
 
 /// \file
-/// \brief Header defining abstract \link kwiver::vital::algo::close_loops
+/// \brief Header defining abstract \link viame::algo::close_loops
 ///        close_loops \endlink algorithm
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -29,7 +27,7 @@ namespace algo {
 /// in attempt to make either short or long term closures. Similarly to
 /// track_features, this class is designed to be called in an online fashion.
 class VITAL_ALGO_EXPORT close_loops
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   /// Return the name of this algorithm.
@@ -43,21 +41,19 @@ public:
   /// \param mask Optional mask image where positive values indicate
   ///                  regions to consider in the input image.
   /// \returns an updated set of feature tracks after the stitching operation
-  virtual kwiver::vital::feature_track_set_sptr
+  virtual viame::feature_track_set_sptr
   stitch(
-    kwiver::vital::frame_id_t frame_number,
-    kwiver::vital::feature_track_set_sptr input,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::image_container_sptr mask =
-    kwiver::vital::image_container_sptr() ) const = 0;
+    viame::frame_id_t frame_number,
+    viame::feature_track_set_sptr input,
+    viame::image_container_sptr image,
+    viame::image_container_sptr mask =
+    viame::image_container_sptr() ) const = 0;
 };
 
 typedef std::shared_ptr< close_loops > close_loops_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_CLOSE_LOOPS_H_

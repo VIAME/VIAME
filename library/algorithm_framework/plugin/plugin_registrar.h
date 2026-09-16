@@ -15,13 +15,9 @@
 // ----------------------------------------------------------------------------
 // Support for adding factories to the registry
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class registry;
-
-} // end namespace vital
 
 /// Class to assist in registering tools.
 class plugin_registrar
@@ -34,7 +30,7 @@ public:
   /// \param vpl Reference to the registry
   /// \param name Name of this loadable module.
   plugin_registrar(
-    vital::registry& vpl,
+    viame::registry& vpl,
     const std::string& name )
     : mod_name( name ),
       mod_organization( KWIVER_DEFAULT_PLUGIN_ORGANIZATION ),
@@ -66,7 +62,7 @@ public:
   organization() const { return this->mod_organization; }
 
   /// Return reference to the registry.
-  kwiver::vital::registry&
+  viame::registry&
   registry()
   {
     return this->m_registry;
@@ -76,9 +72,9 @@ private:
   const std::string mod_name;
   const std::string mod_organization;
 
-  kwiver::vital::registry& m_registry;
+  viame::registry& m_registry;
 };
 
-} // end namespace
+} // namespace viame
 
 #endif // PLUGIN_REGISTRY_PLUGIN_REGISTRAR_H

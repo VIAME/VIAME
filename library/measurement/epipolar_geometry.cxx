@@ -8,21 +8,19 @@
 #include "epipolar_geometry.h"
 #include <viame/measurement/triangulate.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace mvg {
 
 /// Test corresponding points against a fundamental matrix and mark inliers
 std::vector< bool >
 mark_fm_inliers(
-  vital::fundamental_matrix const& fm,
-  std::vector< vital::vector_2d > const& pts1,
-  std::vector< vital::vector_2d > const& pts2,
+  viame::fundamental_matrix const& fm,
+  std::vector< viame::vector_2d > const& pts1,
+  std::vector< viame::vector_2d > const& pts2,
   double inlier_scale )
 {
-  using namespace kwiver::vital;
+  using namespace viame;
 
   matrix_3x3d F = fm.matrix();
   matrix_3x3d Ft = F.transpose();
@@ -46,13 +44,13 @@ mark_fm_inliers(
 }
 
 /// Compute a valid left camera from an essential matrix
-kwiver::vital::simple_camera_perspective
+viame::simple_camera_perspective
 extract_valid_left_camera(
-  const kwiver::vital::essential_matrix_d& e,
-  const kwiver::vital::vector_2d& left_pt,
-  const kwiver::vital::vector_2d& right_pt )
+  const viame::essential_matrix_d& e,
+  const viame::vector_2d& left_pt,
+  const viame::vector_2d& right_pt )
 {
-  using namespace kwiver::vital;
+  using namespace viame;
 
   /// construct an identity right camera
   const vector_3d t = e.translation();
@@ -62,11 +60,11 @@ extract_valid_left_camera(
   pts.push_back( right_pt );
   pts.push_back( left_pt );
 
-  std::vector< vital::simple_camera_perspective > cams( 2 );
-  const vital::simple_camera_perspective& left_camera = cams[ 1 ];
+  std::vector< viame::simple_camera_perspective > cams( 2 );
+  const viame::simple_camera_perspective& left_camera = cams[ 1 ];
 
   // option 1
-  cams[ 1 ] = vital::simple_camera_perspective( R.inverse() * -t, R );
+  cams[ 1 ] = viame::simple_camera_perspective( R.inverse() * -t, R );
 
   vector_3d pt3 = triangulate_inhomog( cams, pts );
   if( pt3.z() > 0.0 && left_camera.depth( pt3 ) > 0.0 )
@@ -75,7 +73,7 @@ extract_valid_left_camera(
   }
 
   // option 2, with negated translation
-  cams[ 1 ] = vital::simple_camera_perspective( R.inverse() * t, R );
+  cams[ 1 ] = viame::simple_camera_perspective( R.inverse() * t, R );
   pt3 = triangulate_inhomog( cams, pts );
   if( pt3.z() > 0.0 && left_camera.depth( pt3 ) > 0.0 )
   {
@@ -84,7 +82,7 @@ extract_valid_left_camera(
 
   // option 3, with the twisted pair rotation
   R = e.twisted_rotation();
-  cams[ 1 ] = vital::simple_camera_perspective( R.inverse() * -t, R );
+  cams[ 1 ] = viame::simple_camera_perspective( R.inverse() * -t, R );
   pt3 = triangulate_inhomog( cams, pts );
   if( pt3.z() > 0.0 && left_camera.depth( pt3 ) > 0.0 )
   {
@@ -92,23 +90,23 @@ extract_valid_left_camera(
   }
 
   // option 4, with negated translation
-  cams[ 1 ] = vital::simple_camera_perspective( R.inverse() * t, R );
+  cams[ 1 ] = viame::simple_camera_perspective( R.inverse() * t, R );
   pt3 = triangulate_inhomog( cams, pts );
   if( pt3.z() > 0.0 && left_camera.depth( pt3 ) > 0.0 )
   {
     return left_camera;
   }
   // should never get here
-  return vital::simple_camera_perspective();
+  return viame::simple_camera_perspective();
 }
 
 // Compute the fundamental matrix from a pair of cameras
-kwiver::vital::fundamental_matrix_sptr
+viame::fundamental_matrix_sptr
 fundamental_matrix_from_cameras(
-  kwiver::vital::camera_perspective const& right_cam,
-  kwiver::vital::camera_perspective const& left_cam )
+  viame::camera_perspective const& right_cam,
+  viame::camera_perspective const& left_cam )
 {
-  using namespace kwiver::vital;
+  using namespace viame;
 
   essential_matrix_sptr em = essential_matrix_from_cameras(
     right_cam,
@@ -119,12 +117,12 @@ fundamental_matrix_from_cameras(
 }
 
 // Compute the essential matrix from a pair of cameras
-kwiver::vital::essential_matrix_sptr
+viame::essential_matrix_sptr
 essential_matrix_from_cameras(
-  kwiver::vital::camera_perspective const& right_cam,
-  kwiver::vital::camera_perspective const& left_cam )
+  viame::camera_perspective const& right_cam,
+  viame::camera_perspective const& left_cam )
 {
-  using namespace kwiver::vital;
+  using namespace viame;
 
   rotation_d R1 = right_cam.rotation();
   rotation_d R2 = left_cam.rotation();
@@ -136,13 +134,13 @@ essential_matrix_from_cameras(
 }
 
 /// Convert an essential matrix to a fundamental matrix
-kwiver::vital::fundamental_matrix_sptr
+viame::fundamental_matrix_sptr
 essential_matrix_to_fundamental(
-  kwiver::vital::essential_matrix const& E,
-  kwiver::vital::camera_intrinsics const& right_cal,
-  kwiver::vital::camera_intrinsics const& left_cal )
+  viame::essential_matrix const& E,
+  viame::camera_intrinsics const& right_cal,
+  viame::camera_intrinsics const& left_cal )
 {
-  using namespace kwiver::vital;
+  using namespace viame;
 
   matrix_3x3d Kr_inv = right_cal.as_matrix().inverse();
   matrix_3x3d Kl_invt = left_cal.as_matrix().transpose().inverse();
@@ -151,8 +149,6 @@ essential_matrix_to_fundamental(
     Kr_inv );
 }
 
-} // end namespace mvg
+} // namespace mvg
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

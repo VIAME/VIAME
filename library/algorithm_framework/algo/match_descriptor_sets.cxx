@@ -11,9 +11,7 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -23,10 +21,10 @@ match_descriptor_sets
   attach_logger( "algo.match_descriptor_sets" );
 }
 
-std::vector< vital::frame_id_t >
+std::vector< viame::frame_id_t >
 match_descriptor_sets
 ::query_and_append(
-  const vital::descriptor_set_sptr desc,
+  const viame::descriptor_set_sptr desc,
   frame_id_t frame )
 {
   auto putative_matching_frames = this->query( desc );
@@ -36,6 +34,4 @@ match_descriptor_sets
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

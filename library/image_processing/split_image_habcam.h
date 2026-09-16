@@ -17,7 +17,7 @@ namespace viame {
 
 /// A class for splitting an image in class horizontally, only when needed.
 class VIAME_IMAGE_PROCESSING_EXPORT split_image_habcam
-  : public kwiver::vital::algo::split_image
+  : public viame::algo::split_image
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -29,14 +29,14 @@ public:
       "If the width is this time as many heights, it is a stereo pair.", 2.0 )
   )
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const
+  virtual bool check_configuration( viame::config_block_sptr config ) const
   {
     return true;
   }
 
   /// Split image
-  virtual std::vector< kwiver::vital::image_container_sptr >
-  split( kwiver::vital::image_container_sptr img ) const;
+  virtual std::vector< viame::image_container_sptr >
+  split( viame::image_container_sptr img ) const;
 };
 
 } // end namespace viame

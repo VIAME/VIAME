@@ -35,8 +35,8 @@
 #include <map>
 
 /// \brief Converts a string to a known color space if possible.
-kwiver::vital::color_space
-kwiver::vital
+viame::color_space
+viame
 ::string_to_color_space( const std::string& str )
 {
   std::string lowercase_str = str;
@@ -52,81 +52,81 @@ kwiver::vital
   // but that would incur a tiny amount of extra run-time memory.
   if( lowercase_str.size() < 3 )
   {
-    return kwiver::vital::INVALID_CS;
+    return viame::INVALID_CS;
   }
 
   if( lowercase_str[ 0 ] < 'k' )
   {
     if( lowercase_str == "bgr" )
     {
-      return kwiver::vital::BGR;
+      return viame::BGR;
     }
     if( lowercase_str == "cmyk" )
     {
-      return kwiver::vital::CMYK;
+      return viame::CMYK;
     }
     if( lowercase_str == "hls" )
     {
-      return kwiver::vital::HLS;
+      return viame::HLS;
     }
     if( lowercase_str == "hsl" )
     {
-      return kwiver::vital::HSL;
+      return viame::HSL;
     }
     if( lowercase_str == "hsv" )
     {
-      return kwiver::vital::HSV;
+      return viame::HSV;
     }
   }
   else
   {
     if( lowercase_str == "lab" )
     {
-      return kwiver::vital::Lab;
+      return viame::Lab;
     }
     if( lowercase_str == "luv" )
     {
-      return kwiver::vital::Luv;
+      return viame::Luv;
     }
     if( lowercase_str == "rgb" )
     {
-      return kwiver::vital::RGB;
+      return viame::RGB;
     }
     if( lowercase_str == "xyz" )
     {
-      return kwiver::vital::XYZ;
+      return viame::XYZ;
     }
     if( lowercase_str == "ycrcb" )
     {
-      return kwiver::vital::YCrCb;
+      return viame::YCrCb;
     }
     if( lowercase_str == "ycbcr" )
     {
-      return kwiver::vital::YCbCr;
+      return viame::YCbCr;
     }
   }
 
-  return kwiver::vital::INVALID_CS;
+  return viame::INVALID_CS;
 }
 
 /// \brief Converts a known color space to a string
 std::string
-kwiver::vital
-::color_space_to_string( const kwiver::vital::color_space cs )
+viame
+::color_space_to_string( const viame::color_space cs )
 {
-  const static std::map< kwiver::vital::color_space,
-    std::string > mapping = { { kwiver::vital::INVALID_CS, "INVALID" },
-    { kwiver::vital::BGR, "BGR" },
-    { kwiver::vital::CMYK, "CMYK" },
-    { kwiver::vital::HLS, "HLS" },
-    { kwiver::vital::HSL, "HSL" },
-    { kwiver::vital::HSV, "HSV" },
-    { kwiver::vital::Lab, "Lab" },
-    { kwiver::vital::Luv, "Luv" },
-    { kwiver::vital::RGB, "RGB" },
-    { kwiver::vital::XYZ, "XYZ" },
-    { kwiver::vital::YCrCb, "YCrCb" },
-    { kwiver::vital::YCbCr, "YCbCr" } };
+  const static std::map< viame::color_space,
+    std::string > mapping = { { viame::INVALID_CS, "INVALID" },
+    { viame::BGR, "BGR" },
+    { viame::CMYK, "CMYK" },
+    { viame::HLS, "HLS" },
+    { viame::HSL, "HSL" },
+    { viame::HSV, "HSV" },
+    { viame::Lab, "Lab" },
+    { viame::Luv, "Luv" },
+    { viame::RGB, "RGB" },
+    { viame::XYZ, "XYZ" },
+    { viame::YCrCb, "YCrCb" },
+    { viame::YCbCr, "YCbCr" } };
 
   return mapping.at( cs );
 }

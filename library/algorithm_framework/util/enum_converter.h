@@ -12,9 +12,7 @@
 #include <utility>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Convert enum to string or string to value.
@@ -196,9 +194,7 @@ private:
   table_t m_table;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 /// Shorthand method of creating enum converter classes.
 ///
@@ -209,7 +205,7 @@ private:
 /// @param T Enum type
 /// @param ... list of initialization pairs in the form { "name", value }, ...
 #define ENUM_CONVERTER( CN, T, ... )           \
-struct CN : kwiver::vital::enum_converter< T > \
+struct CN : viame::enum_converter< T > \
 {                                              \
   CN()                                         \
     : enum_converter( {                        \

@@ -19,12 +19,12 @@
 #include <cstdlib>
 #include <iostream>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace tools {
 
 static const auto scheduler_block =
-  kwiver::vital::config_block_key_t( "_scheduler" );
+  viame::config_block_key_t( "_scheduler" );
 
 // ----------------------------------------------------------------------------
 pipeline_runner
@@ -83,11 +83,11 @@ pipeline_runner
   }
 
   // Load all known modules
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
   vpm.load_all_plugins();
 
-  sprokit::pipeline_builder builder;
+  viame::pipeline::pipeline_builder builder;
 
   // Add user-provided paths
   if( cmd_args.count( "include" ) > 0 )
@@ -97,8 +97,8 @@ pipeline_runner
   }
 
   // Add standard search locations
-  const std::string prefix = kwiver::vital::get_executable_path() + "/..";
-  builder.add_search_path( kwiver::vital::kwiver_config_file_paths( prefix ) );
+  const std::string prefix = viame::get_executable_path() + "/..";
+  builder.add_search_path( viame::kwiver_config_file_paths( prefix ) );
 
   if( cmd_args.count( "pipe-file" ) == 0 )
   {
@@ -109,7 +109,7 @@ pipeline_runner
   }
 
   // Load the pipeline file.
-  kwiver::vital::path_t const pipe_file(
+  viame::path_t const pipe_file(
     cmd_args[ "pipe-file" ].as< std::string >() );
   builder.load_pipeline( pipe_file );
 
@@ -138,17 +138,17 @@ pipeline_runner
   }
 
   // Get handle to pipeline
-  sprokit::pipeline_t const pipe = builder.pipeline();
+  viame::pipeline::pipeline_t const pipe = builder.pipeline();
 
   // get handle to config block
-  kwiver::vital::config_block_sptr const conf = builder.config();
+  viame::config_block_sptr const conf = builder.config();
 
   // nice to dump config at this point
   if( cmd_args[ "dump-pipe" ].as< bool >() )
   {
     std::cout << "\nPipeline contents:\n";
 
-    sprokit::pipe_display pd( std::cout );
+    viame::pipeline::pipe_display pd( std::cout );
     pd.print_loc();
     pd.display_pipe_blocks( builder.pipeline_blocks() );
 
@@ -167,7 +167,7 @@ pipeline_runner
   //
   // Check for scheduler specification in config block
   //
-  auto scheduler_type = sprokit::scheduler_factory::default_type;
+  auto scheduler_type = viame::pipeline::scheduler_factory::default_type;
 
   // Check if scheduler type was on the command line.
   if( cmd_args.count( "scheduler" ) > 0 )
@@ -177,19 +177,19 @@ pipeline_runner
   else
   {
     scheduler_type = conf->get_value(
-        scheduler_block + kwiver::vital::config_block::block_sep()
+        scheduler_block + viame::config_block::block_sep()
         + "type",  // key string
-        sprokit::scheduler_factory::default_type ); // default value
+        viame::pipeline::scheduler_factory::default_type ); // default value
   }
 
   // Get scheduler sub block based on selected scheduler type
-  kwiver::vital::config_block_sptr const scheduler_config =
+  viame::config_block_sptr const scheduler_config =
     conf->subblock( scheduler_block +
-                    kwiver::vital::config_block::block_sep() +
+                    viame::config_block::block_sep() +
                     scheduler_type );
 
   auto scheduler =
-    sprokit::create_scheduler( scheduler_type, pipe, scheduler_config );
+    viame::pipeline::create_scheduler( scheduler_type, pipe, scheduler_config );
 
   if( !scheduler )
   {
@@ -206,4 +206,4 @@ pipeline_runner
 
 } // namespace tools
 
-} // namespace sprokit
+} // namespace viame::pipeline

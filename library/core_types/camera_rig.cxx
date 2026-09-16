@@ -3,14 +3,12 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation for \link kwiver::vital::camera_rig_stereo
+/// \brief Implementation for \link viame::camera_rig_stereo
 /// camera_rig_stereo \endlink
 
 #include "camera_rig.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 camera_rig_stereo
@@ -25,6 +23,4 @@ camera_rig_stereo
 ::~camera_rig_stereo()
 {}
 
-} // vital
-
-} // kwiver
+} // namespace viame

@@ -10,8 +10,8 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
-typedef kwiver::vital::camera_rpc crpc;
+namespace kv = viame;
+typedef viame::camera_rpc crpc;
 
 // Helpers to call pure virtual functions from base reference.
 // We'll use these to test that these camera methods can be overriden in C++

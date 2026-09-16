@@ -16,7 +16,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // -------------------------------------------------------------------------------
@@ -30,13 +30,13 @@ namespace kwiver
  * \oport{track descriptor_set}
  */
 class VIAME_PROCESSES_FILE_IO_EXPORT read_object_track_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "read_object_track",
                "Reads object track sets from an input file." )
 
-  read_object_track_process( kwiver::vital::config_block_sptr const& config );
+  read_object_track_process( viame::config_block_sptr const& config );
   virtual ~read_object_track_process();
 
 protected:
@@ -52,6 +52,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class read_object_track_process
 
-} // end namespace
+} // namespace viame
 
 #endif // _KWIVER_READ_OBJECT_TRACK_PROCESS_H

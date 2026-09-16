@@ -13,9 +13,7 @@
 
 #include <cfloat>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -31,7 +29,7 @@ assert_valid( local_tangent_space const& space )
 
 // ----------------------------------------------------------------------------
 matrix_3x3d
-axes_at_point( vital::geo_point const& point )
+axes_at_point( viame::geo_point const& point )
 {
   matrix_3x3d axes;
 
@@ -128,13 +126,13 @@ local_tangent_space
     case SRID::lat_lon_WGS84:
       rotation =
         rotation *
-        vital::rotation_d{ axes_at_point( global_point ) } *
-      vital::rotation_d{ matrix_3x3d{ m_axes.transpose() } };
+        viame::rotation_d{ axes_at_point( global_point ) } *
+      viame::rotation_d{ matrix_3x3d{ m_axes.transpose() } };
       break;
     case SRID::ECEF_WGS84:
       rotation =
         rotation *
-        vital::rotation_d{ matrix_3x3d{ m_axes.transpose() } };
+        viame::rotation_d{ matrix_3x3d{ m_axes.transpose() } };
       break;
     default:
       throw std::runtime_error( "Unsupported CRS" );
@@ -168,14 +166,14 @@ local_tangent_space
     case SRID::lat_lon_WGS84:
       rotation =
         rotation *
-        vital::rotation_d{ m_axes } *
-      vital::rotation_d{ matrix_3x3d{
+        viame::rotation_d{ m_axes } *
+      viame::rotation_d{ matrix_3x3d{
                            axes_at_point( global_point ).transpose() } };
       break;
     case SRID::ECEF_WGS84:
       rotation =
         rotation *
-        vital::rotation_d{ m_axes };
+        viame::rotation_d{ m_axes };
       break;
     default:
       throw std::runtime_error( "Unsupported CRS" );
@@ -234,6 +232,4 @@ write_local_tangent_space_to_file(
   }
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

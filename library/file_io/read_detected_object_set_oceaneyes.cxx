@@ -60,7 +60,7 @@ public:
   read_detected_object_set_oceaneyes* m_parent;
   bool m_first;
 
-  typedef std::map< std::string, kwiver::vital::detected_object_set_sptr > map_type;
+  typedef std::map< std::string, viame::detected_object_set_sptr > map_type;
 
   // Map of detected objects indexed by file name. Each set contains all detections
   // for a single frame (unsorted).
@@ -89,7 +89,7 @@ read_detected_object_set_oceaneyes
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_oceaneyes
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -98,7 +98,7 @@ read_detected_object_set_oceaneyes
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_oceaneyes
-::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+::read_set( viame::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -119,7 +119,7 @@ read_detected_object_set_oceaneyes
     if( d->m_detection_by_str.find( name_no_ext ) == d->m_detection_by_str.end() )
     {
       // return empty set
-      set = std::make_shared< kwiver::vital::detected_object_set>();
+      set = std::make_shared< viame::detected_object_set>();
     }
     else
     {
@@ -158,7 +158,7 @@ read_detected_object_set_oceaneyes::priv
 ::read_all()
 {
   std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+  viame::data_stream_reader stream_reader( m_parent->stream() );
 
   // Read detections
   m_detection_by_str.clear();
@@ -169,7 +169,7 @@ read_detected_object_set_oceaneyes::priv
   while( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, ",", false );
+    viame::tokenize( line, col, ",", false );
 
     if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
     {
@@ -208,7 +208,7 @@ read_detected_object_set_oceaneyes::priv
       std::stringstream str;
       str << "This is not a oceaneyes file; found " << col.size()
           << " columns in\n\"" << line << "\"";
-      throw kwiver::vital::invalid_data( str.str() );
+      throw viame::invalid_data( str.str() );
     }
 
     // Get frame ID and remove extension to make filetype agnostic
@@ -220,7 +220,7 @@ read_detected_object_set_oceaneyes::priv
     {
       // create a new detection set entry
       m_detection_by_str[ str_id ] =
-        std::make_shared<kwiver::vital::detected_object_set>();
+        std::make_shared<viame::detected_object_set>();
     }
 
     if( COL_SPECIES_ID > 0 && col[ COL_SPECIES_ID ] == m_parent->c_no_fish_string )
@@ -261,15 +261,15 @@ read_detected_object_set_oceaneyes::priv
       height = width / m_parent->c_max_aspect_ratio;
     }
 
-    kwiver::vital::bounding_box_d bbox(
+    viame::bounding_box_d bbox(
       c_x - width / 2.0,
       c_y - height / 2.0,
       c_x + width / 2.0,
       c_y + height / 2.0 );
 
     // Create detection
-    kwiver::vital::detected_object_type_sptr dot =
-      std::make_shared< kwiver::vital::detected_object_type >();
+    viame::detected_object_type_sptr dot =
+      std::make_shared< viame::detected_object_type >();
 
     std::string species_label = col[ COL_SPECIES_ID ];
 
@@ -290,16 +290,16 @@ read_detected_object_set_oceaneyes::priv
 
     dot->set_score( species_label, species_conf );
 
-    kwiver::vital::detected_object_sptr dob =
-      std::make_shared< kwiver::vital::detected_object>(
+    viame::detected_object_sptr dob =
+      std::make_shared< viame::detected_object>(
         bbox, species_conf, dot );
 
     if( is_valid_head_tail )
     {
       dob->add_keypoint( "head",
-        kwiver::vital::point_2d( x1, y1 ) );
+        viame::point_2d( x1, y1 ) );
       dob->add_keypoint( "tail",
-        kwiver::vital::point_2d( x2, y2 ) );
+        viame::point_2d( x2, y2 ) );
     }
 
     // Add detection to set for the frame

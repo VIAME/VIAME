@@ -14,7 +14,7 @@
 #include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/test_interface/say.h>
 
-namespace kwiver::vital {
+namespace viame {
 
 class external_say : public say
 {
@@ -39,14 +39,14 @@ public:
   {}
 };
 
-} // namespace kwiver::vital
+} // namespace viame
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 __attribute__( ( visibility( "default" ) ) )
 void
-viame_register_plugin( kwiver::vital::registry& loader )
+viame_register_plugin( viame::registry& loader )
 {
   loader.add_factory< kv::say, kv::external_say >( "external" );
 }

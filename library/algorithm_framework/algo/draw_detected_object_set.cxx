@@ -4,9 +4,7 @@
 
 #include <viame/algorithm_framework/algo/draw_detected_object_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -18,6 +16,4 @@ draw_detected_object_set
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -7,7 +7,7 @@
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 PYBIND11_MODULE( homography_f2w, m )
 {

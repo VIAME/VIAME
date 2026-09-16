@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "optimize_cameras_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void optimize_cameras(py::module& m)
@@ -19,15 +19,15 @@ void optimize_cameras(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::optimize_cameras,
-               std::shared_ptr<kwiver::vital::algo::optimize_cameras>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::optimize_cameras,
+               std::shared_ptr<viame::algo::optimize_cameras>,
+               viame::algorithm,
                optimize_cameras_trampoline<> > instance(m,  "OptimizeCameras");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::optimize_cameras::interface_name)
-    .def("optimize", (void (kwiver::vital::algo::optimize_cameras::*)(::kwiver::vital::camera_map_sptr &, ::kwiver::vital::feature_track_set_sptr, ::kwiver::vital::landmark_map_sptr, ::kwiver::vital::sfm_constraints_sptr) const) &kwiver::vital::algo::optimize_cameras::optimize, py::doc(R"( Optimize camera parameters given sets of landmarks and feature tracks
+    .def_static("interface_name", &viame::algo::optimize_cameras::interface_name)
+    .def("optimize", (void (viame::algo::optimize_cameras::*)(::viame::camera_map_sptr &, ::viame::feature_track_set_sptr, ::viame::landmark_map_sptr, ::viame::sfm_constraints_sptr) const) &viame::algo::optimize_cameras::optimize, py::doc(R"( Optimize camera parameters given sets of landmarks and feature tracks
 
  We only optimize cameras that have associating tracks and landmarks in
  the given maps.  The default implementation collects the corresponding
@@ -41,7 +41,7 @@ void optimize_cameras(py::module& m)
  \param[in]     landmarks The landmarks the cameras are viewing.
  \param[in]     metadata  The optional metadata to constrain the
                           optimization.)"), py::arg("cameras"), py::arg("tracks"), py::arg("landmarks"), py::arg("constraints"))
-    .def("optimize", (void (kwiver::vital::algo::optimize_cameras::*)(::kwiver::vital::camera_perspective_sptr &, ::std::vector<std::shared_ptr<kwiver::vital::feature> > const &, ::std::vector<std::shared_ptr<kwiver::vital::landmark> > const &, ::kwiver::vital::sfm_constraints_sptr) const) &kwiver::vital::algo::optimize_cameras::optimize, py::doc(R"( Optimize a single camera given corresponding features and landmarks
+    .def("optimize", (void (viame::algo::optimize_cameras::*)(::viame::camera_perspective_sptr &, ::std::vector<std::shared_ptr<viame::feature> > const &, ::std::vector<std::shared_ptr<viame::landmark> > const &, ::viame::sfm_constraints_sptr) const) &viame::algo::optimize_cameras::optimize, py::doc(R"( Optimize a single camera given corresponding features and landmarks
 
  This function assumes that 2D features viewed by this camera have
  already been put into correspondence with 3D landmarks by aligning
@@ -55,7 +55,7 @@ void optimize_cameras(py::module& m)
  \param[in]     metadata  The optional metadata to constrain the
                           optimization.)"), py::arg("camera"), py::arg("features"), py::arg("landmarks"), py::arg("constraints"))
     ;
-  register_algorithm< kwiver::vital::algo::optimize_cameras > (instance);
+  register_algorithm< viame::algo::optimize_cameras > (instance);
 }
 
 }

@@ -11,9 +11,7 @@
 #include <ostream>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// @brief Generates formatted versions of a config block.
 ///
@@ -48,8 +46,6 @@ private:
   config_block_sptr m_config;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_CONFIG_FORMATTER_H

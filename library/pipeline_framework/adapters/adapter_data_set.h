@@ -21,8 +21,8 @@
 #include <map>
 #include <string>
 
-namespace kwiver {
-namespace adapter{
+namespace viame {
+namespace adapter {
 
 // -----------------------------------------------------------------
 /**
@@ -46,7 +46,7 @@ namespace adapter{
 class KWIVER_ADAPTER_EXPORT adapter_data_set
 {
 public:
-  typedef std::map< sprokit::process::port_t, sprokit::datum_t > datum_map_t;
+  typedef std::map< viame::pipeline::process::port_t, viame::pipeline::datum_t > datum_map_t;
 
   /**
    * @brief Type of data set.
@@ -114,7 +114,7 @@ public:
    * @param port Name of the port where data is sent.
    * @param datum Sprokit datum object to be pushed to port.
    */
-  void add_datum( sprokit::process::port_t const& port, sprokit::datum_t const& datum );
+  void add_datum( viame::pipeline::process::port_t const& port, viame::pipeline::datum_t const& datum );
 
   /**
    * @brief Add typed value to data set.
@@ -127,7 +127,7 @@ public:
    * @param val Value to be wrapped in datum for port.
    */
   template <typename T>
-  void add_value( ::sprokit::process::port_t const& port, T const& val );
+  void add_value( ::viame::pipeline::process::port_t const& port, T const& val );
 
   /**
    * @brief Query if data set is empty.
@@ -178,7 +178,7 @@ public:
    * @return Iterator pointing at desired entry or end() iterator if
    * element not found.
    */
-  datum_map_t::const_iterator find( sprokit::process::port_t const& port ) const;
+  datum_map_t::const_iterator find( viame::pipeline::process::port_t const& port ) const;
 
   /**
    * @brief Get data value for specific port.
@@ -191,11 +191,11 @@ public:
    *
    * @throws std::runtime_error if the specified port name is not in this set.
    *
-   * @throws sprokit::bad_datum_cast_exception if the requested data type does
+   * @throws viame::pipeline::bad_datum_cast_exception if the requested data type does
    *         not match the actual type of the data from the port.
    */
   template<typename T>
-  T value( ::sprokit::process::port_t const& port );
+  T value( ::viame::pipeline::process::port_t const& port );
 
 
   /**
@@ -208,11 +208,11 @@ public:
    * @return Data value corresponding to the port, or \p value_if_missing if
    *         no such element is found.
    *
-   * @throws sprokit::bad_datum_cast_exception if the requested data type does
+   * @throws viame::pipeline::bad_datum_cast_exception if the requested data type does
    *         not match the actual type of the data from the port.
    */
   template< typename T >
-  T value_or( ::sprokit::process::port_t const& port,
+  T value_or( ::viame::pipeline::process::port_t const& port,
               T const& value_if_missing = {} );
 
   /**
@@ -222,7 +222,7 @@ public:
    */
   template< typename T >
   [[ deprecated( "use value() instead" ) ]]
-  T get_port_data( ::sprokit::process::port_t const& port )
+  T get_port_data( ::viame::pipeline::process::port_t const& port )
   { return this->value< T >( port ); }
 
   /**
@@ -245,6 +245,6 @@ private:
 
 }; // end class adapter_datum
 
-} } // end namespace
+} } // namespace viame
 
 #endif // ADAPTER_DATA_SET

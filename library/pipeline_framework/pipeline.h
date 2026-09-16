@@ -15,10 +15,10 @@
 /**
  * \file pipeline.h
  *
- * \brief Header for \link sprokit::pipeline pipelines\endlink.
+ * \brief Header for \link viame::pipeline::pipeline pipelines\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class pipeline pipeline.h <sprokit/pipeline/pipeline.h>
@@ -28,7 +28,7 @@ namespace sprokit {
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT pipeline
-  : private kwiver::vital::noncopyable
+  : private viame::noncopyable
 {
   public:
     /**
@@ -44,7 +44,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      *
      * \param config Contains configuration for the pipeline.
      */
-    pipeline(kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config());
+    pipeline(viame::config_block_sptr const& config = viame::config_block::empty_config());
     /**
      * \brief Destructor.
      */
@@ -235,7 +235,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * same time; any synchronization is best handled at the cluster level if
      * needed.
      */
-    void reconfigure(kwiver::vital::config_block_sptr const& conf) const;
+    void reconfigure(viame::config_block_sptr const& conf) const;
 
     /**
      * \brief Get a list of processes in the pipeline.

@@ -6,9 +6,7 @@
 
 #include <filesystem>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace logger_ns {
 
@@ -60,6 +58,4 @@ location_info
 
 } // namespace logger_ns
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

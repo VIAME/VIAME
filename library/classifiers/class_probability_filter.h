@@ -14,9 +14,7 @@
 #include <set>
 #include <utility>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -36,7 +34,7 @@ namespace core {
 ///    from step 2 is attached.
 
 class VIAME_CLASSIFIERS_EXPORT class_probability_filter
-  : public vital::algo::detected_object_filter
+  : public viame::algo::detected_object_filter
 {
 public:
   PLUGGABLE_IMPL(
@@ -72,16 +70,14 @@ public:
 
   virtual ~class_probability_filter() = default;
 
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual vital::detected_object_set_sptr filter(
-    const vital::detected_object_set_sptr input_set ) const;
+  virtual viame::detected_object_set_sptr filter(
+    const viame::detected_object_set_sptr input_set ) const;
 };
 
 } // namespace core
 
-} // namespace arrows
-
-}   // End namespace
+} // namespace viame
 
 #endif

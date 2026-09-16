@@ -26,9 +26,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -111,7 +109,7 @@ namespace algo {
 /// the name (or abbreviation) of the concrete algorithm followed by
 /// the abbreviation of the capability.
 class VITAL_ALGO_EXPORT video_input
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   // Common capabilities
@@ -240,8 +238,8 @@ public:
   /// \throws video_input_timeout_exception when the timeout expires.
   /// \throws video_stream_exception when there is an error in the video stream.
   virtual bool seek_frame(
-    kwiver::vital::timestamp::frame_t frame_number,
-    kwiver::vital::time_usec_t timeout = 0 ) = 0;
+    viame::timestamp::frame_t frame_number,
+    viame::time_usec_t timeout = 0 ) = 0;
 
   /// Seek to the given timestamp in the video stream.
   ///
@@ -277,7 +275,7 @@ public:
   /// calling next_frame() will return the same time stamp.
   ///
   /// \return The time stamp of the current frame.
-  virtual kwiver::vital::timestamp frame_timestamp() const = 0;
+  virtual viame::timestamp frame_timestamp() const = 0;
 
   /// \brief Get current frame from video stream.
   ///
@@ -291,7 +289,7 @@ public:
   /// \return Pointer to image container.
   ///
   /// \throws video_stream_exception when there is an error in the video stream.
-  virtual kwiver::vital::image_container_sptr frame_image() = 0;
+  virtual viame::image_container_sptr frame_image() = 0;
 
   /// Return implementation-defined data for efficiently copying this frame's
   /// image.
@@ -344,7 +342,7 @@ public:
   /// @return Vector of metadata pointers.
   ///
   /// \throws video_stream_exception when there is an error in the video stream.
-  virtual kwiver::vital::metadata_vector frame_metadata() = 0;
+  virtual viame::metadata_vector frame_metadata() = 0;
 
   /// Return implementation-defined data for efficiently copying this frame's
   /// metadata.
@@ -382,7 +380,7 @@ public:
   /// string.
   ///
   /// \return Current filename.
-  virtual kwiver::vital::path_t filename() const;
+  virtual viame::path_t filename() const;
 
   /// Extract implementation-specific video encoding settings.
   ///
@@ -415,8 +413,6 @@ typedef std::shared_ptr< video_input > video_input_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_VIDEO_INPUT_H_

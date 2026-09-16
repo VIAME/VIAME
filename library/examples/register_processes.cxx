@@ -16,11 +16,11 @@
 extern "C"   //++ This needs to have 'C' linkage so the loader can find it.
 VIAME_PROCESSES_EXAMPLES_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
   // The process registrar does all the hard work of registering the
   // process with the registry.
-  sprokit::process_registrar reg( vpm, "template_process" );
+  viame::pipeline::process_registrar reg( vpm, "template_process" );
 
   // Check to see if module is already loaded. If so, then don't do again.
   if ( reg.is_module_loaded() )

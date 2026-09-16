@@ -11,7 +11,7 @@ namespace viame {
 // -----------------------------------------------------------------------------
 bool
 @template@_detector
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   //++ check for conditions that would prevent the detector from running
   //++ correctly, not necessarily limited to configuration problems
@@ -26,11 +26,11 @@ bool
 
 
 // -----------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 @template@_detector
-::detect( kwiver::vital::image_container_sptr image_data ) const
+::detect( viame::image_container_sptr image_data ) const
 {
-  auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
+  auto detected_set = std::make_shared< viame::detected_object_set >();
 
   //++ insert detector code here
   LOG_INFO( logger(), "Text: " << get_text() );

@@ -7,9 +7,7 @@
 
 #include "video.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 video_exception
@@ -66,6 +64,4 @@ video_runtime_exception
 ::~video_runtime_exception() noexcept
 {}
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

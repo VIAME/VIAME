@@ -12,7 +12,7 @@
 #include <sstream>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 using vector_t = kv::simple_camera_intrinsics::vector_t;
 

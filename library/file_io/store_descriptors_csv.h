@@ -51,8 +51,8 @@ public:
   bool get_descriptor( const std::string& uid,
                        std::vector< double >& values );
   bool get_descriptor_by_track_frame(
-    kwiver::vital::track_id_t track_id,
-    kwiver::vital::frame_id_t frame_id,
+    viame::track_id_t track_id,
+    viame::frame_id_t frame_id,
     std::vector< double >& values );
 
   // Additional CSV-specific configuration

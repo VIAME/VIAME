@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header defining abstract \link kwiver::vital::algo::track_features
+/// \brief Header defining abstract \link viame::algo::track_features
 /// feature
 ///        tracking \endlink algorithm
 
@@ -14,15 +14,13 @@
 #include <viame/core_types/feature_track_set.h>
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for tracking feature points
 class VITAL_ALGO_EXPORT track_features
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   track_features();
@@ -54,8 +52,6 @@ typedef std::shared_ptr< track_features > track_features_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_TRACK_FEATURES_H_

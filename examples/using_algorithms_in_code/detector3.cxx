@@ -11,8 +11,8 @@
 
 #include <string>
 
-namespace kv = kwiver::vital;
-namespace kva = kwiver::vital::algo;
+namespace kv = viame;
+namespace kva = viame::algo;
 
 int main( int argc, char* argv[] )
 {

@@ -82,7 +82,7 @@ find( std::string const& name )
 /// survives the unsigned recording: the recorder adds 32768 and the reader
 /// takes it back off.
 template < typename T >
-kwiver::vital::image_of< T >
+viame::image_of< T >
 read( std::string const& object, std::string const& prefix, double bias = 0.0 )
 {
   auto const width =
@@ -96,7 +96,7 @@ read( std::string const& object, std::string const& prefix, double bias = 0.0 )
 
   EXPECT_EQ( width * height * planes, data.size() ) << prefix;
 
-  kwiver::vital::image_of< T > out( width, height, planes );
+  viame::image_of< T > out( width, height, planes );
 
   size_t at = 0;
   for( size_t j = 0; j < height; ++j )
@@ -114,7 +114,7 @@ read( std::string const& object, std::string const& prefix, double bias = 0.0 )
 }
 
 /// The input of the case called \p name.
-inline kwiver::vital::image_of< uint8_t >
+inline viame::image_of< uint8_t >
 input( std::string const& name )
 {
   return read< uint8_t >( find( name ), "input" );
@@ -141,7 +141,7 @@ expected_height( std::string const& name )
 /// \p bias is the recorder's offset for a signed result, as in `read`.
 template < typename T >
 void
-compare( std::string const& name, kwiver::vital::image_of< T > const& actual,
+compare( std::string const& name, viame::image_of< T > const& actual,
          double bias )
 {
   auto const object = find( name );
@@ -212,7 +212,7 @@ compare( std::string const& name, kwiver::vital::image_of< T > const& actual,
 template < typename T >
 void
 expect_matches( std::string const& name,
-                kwiver::vital::image_of< T > const& actual )
+                viame::image_of< T > const& actual )
 {
   compare( name, actual, 0.0 );
 }
@@ -221,7 +221,7 @@ expect_matches( std::string const& name,
 template < typename T >
 void
 expect_matches_signed( std::string const& name,
-                       kwiver::vital::image_of< T > const& actual )
+                       viame::image_of< T > const& actual )
 {
   compare( name, actual, 32768.0 );
 }

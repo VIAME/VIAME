@@ -23,9 +23,7 @@
 
 #include <cmath>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 template < typename T >
@@ -274,8 +272,6 @@ typedef quaternion_< double > quaternion_d;
 typedef quaternion_< float >  quaternion_f;
 /// \endcond
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

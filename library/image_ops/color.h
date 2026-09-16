@@ -11,9 +11,9 @@
 /// OpenCV produced: the fixed-point coefficients, the rounding, the 0..255
 /// hue scaling and the L*a*b* offsets are all its.
 ///
-/// The `image_ops` convention applies: `kwiver::vital::image_of< T >` in and
+/// The `image_ops` convention applies: `viame::image_of< T >` in and
 /// out, planes rather than interleaved channels, no OpenCV type anywhere.
-/// Channel order is RGB -- what `vital::image` carries and what a decoded
+/// Channel order is RGB -- what `viame::image` carries and what a decoded
 /// file gives -- so where OpenCV names a conversion BGR2X the same operation
 /// is `rgb_to_x` here, and `swap_rb` is what turns one into the other.
 
@@ -63,7 +63,7 @@ gray_of( int red, int green, int blue )
 /// Whether \p image has at least \p wanted planes, and complain if not.
 template < typename T >
 void
-require_planes( kwiver::vital::image_of< T > const& image, size_t wanted,
+require_planes( viame::image_of< T > const& image, size_t wanted,
                 char const* what )
 {
   if( image.depth() < wanted )
@@ -101,12 +101,12 @@ wrapped_half( double hue )
 ///
 /// @param image RGB, three planes or more; any extra are ignored
 template < typename T >
-kwiver::vital::image_of< T >
-rgb_to_gray( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+rgb_to_gray( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 3, "rgb_to_gray" );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 1 );
+  viame::image_of< T > out( image.width(), image.height(), 1 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -135,12 +135,12 @@ rgb_to_gray( kwiver::vital::image_of< T > const& image )
 // ----------------------------------------------------------------------------
 /// One plane to three, by copying it into each.
 template < typename T >
-kwiver::vital::image_of< T >
-gray_to_rgb( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+gray_to_rgb( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 1, "gray_to_rgb" );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+  viame::image_of< T > out( image.width(), image.height(), 3 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -162,12 +162,12 @@ gray_to_rgb( kwiver::vital::image_of< T > const& image )
 /// A fourth plane, where there is one, is left where it is: that is alpha,
 /// and `cv::cvtColor`'s BGRA2RGBA does the same.
 template < typename T >
-kwiver::vital::image_of< T >
-swap_rb( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+swap_rb( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 3, "swap_rb" );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(),
+  viame::image_of< T > out( image.width(), image.height(),
                                     image.depth() );
 
   for( size_t j = 0; j < image.height(); ++j )
@@ -199,15 +199,15 @@ swap_rb( kwiver::vital::image_of< T > const& image )
 /// For a floating point pixel type the ranges are the conventional ones:
 /// hue 0..360, saturation and value 0..1, which is also what OpenCV does.
 template < typename T >
-kwiver::vital::image_of< T >
-rgb_to_hsv( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+rgb_to_hsv( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 3, "rgb_to_hsv" );
 
   constexpr bool integral = std::is_integral< T >::value;
   auto const top = static_cast< double >( pixel_max< T >() );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+  viame::image_of< T > out( image.width(), image.height(), 3 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -278,15 +278,15 @@ rgb_to_hsv( kwiver::vital::image_of< T > const& image )
 /// hue, **lightness**, saturation -- not the HSV order with two of them
 /// exchanged, which is the mistake this is easiest to make.
 template < typename T >
-kwiver::vital::image_of< T >
-rgb_to_hls( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+rgb_to_hls( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 3, "rgb_to_hls" );
 
   constexpr bool integral = std::is_integral< T >::value;
   auto const top = static_cast< double >( pixel_max< T >() );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+  viame::image_of< T > out( image.width(), image.height(), 3 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -358,15 +358,15 @@ rgb_to_hls( kwiver::vital::image_of< T > const& image )
 // ----------------------------------------------------------------------------
 /// HLS back to RGB, undoing `rgb_to_hls` in the same scaling.
 template < typename T >
-kwiver::vital::image_of< T >
-hls_to_rgb( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+hls_to_rgb( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 3, "hls_to_rgb" );
 
   constexpr bool integral = std::is_integral< T >::value;
   auto const top = static_cast< double >( pixel_max< T >() );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+  viame::image_of< T > out( image.width(), image.height(), 3 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -427,15 +427,15 @@ hls_to_rgb( kwiver::vital::image_of< T > const& image )
 // ----------------------------------------------------------------------------
 /// HSV back to RGB, undoing `rgb_to_hsv` in the same scaling.
 template < typename T >
-kwiver::vital::image_of< T >
-hsv_to_rgb( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+hsv_to_rgb( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 3, "hsv_to_rgb" );
 
   constexpr bool integral = std::is_integral< T >::value;
   auto const top = static_cast< double >( pixel_max< T >() );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+  viame::image_of< T > out( image.width(), image.height(), 3 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -553,15 +553,15 @@ constexpr double white_z = 1.088754;
 /// A floating point pixel type gets the real ranges: L 0..100, a and b
 /// roughly -128..127, again as OpenCV does.
 template < typename T >
-kwiver::vital::image_of< T >
-rgb_to_lab( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+rgb_to_lab( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 3, "rgb_to_lab" );
 
   constexpr bool integral = std::is_integral< T >::value;
   auto const top = static_cast< double >( pixel_max< T >() );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+  viame::image_of< T > out( image.width(), image.height(), 3 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -608,15 +608,15 @@ rgb_to_lab( kwiver::vital::image_of< T > const& image )
 // ----------------------------------------------------------------------------
 /// L*a*b* back to RGB, undoing `rgb_to_lab` in the same scaling.
 template < typename T >
-kwiver::vital::image_of< T >
-lab_to_rgb( kwiver::vital::image_of< T > const& image )
+viame::image_of< T >
+lab_to_rgb( viame::image_of< T > const& image )
 {
   detail::require_planes( image, 3, "lab_to_rgb" );
 
   constexpr bool integral = std::is_integral< T >::value;
   auto const top = static_cast< double >( pixel_max< T >() );
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+  viame::image_of< T > out( image.width(), image.height(), 3 );
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -725,7 +725,7 @@ bayer_colour( bayer_pattern pattern, size_t i, size_t j )
 /// which shows as a coloured fringe on the border. OpenCV reflects too.
 template < typename T >
 T
-reflected( kwiver::vital::image_of< T > const& image, long i, long j,
+reflected( viame::image_of< T > const& image, long i, long j,
            size_t plane = 0 )
 {
   auto const width = static_cast< long >( image.width() );
@@ -757,15 +757,15 @@ reflected( kwiver::vital::image_of< T > const& image, long i, long j,
 /// @param image the mosaic, one plane
 /// @param pattern which colour the top-left two by two holds
 template < typename T >
-kwiver::vital::image_of< T >
-demosaic( kwiver::vital::image_of< T > const& image, bayer_pattern pattern )
+viame::image_of< T >
+demosaic( viame::image_of< T > const& image, bayer_pattern pattern )
 {
   if( image.depth() != 1 )
   {
     throw std::invalid_argument( "demosaic needs a single plane mosaic" );
   }
 
-  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+  viame::image_of< T > out( image.width(), image.height(), 3 );
 
   auto const mean_of = []( std::initializer_list< double > values )
   {

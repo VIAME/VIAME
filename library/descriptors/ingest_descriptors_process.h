@@ -37,10 +37,10 @@ namespace core
  * - Pass-through of inputs to outputs for pipeline chaining
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT ingest_descriptors_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
-  using config_block_sptr = kwiver::vital::config_block_sptr;
+  using config_block_sptr = viame::config_block_sptr;
 
   // -- CONSTRUCTORS --
   ingest_descriptors_process( config_block_sptr const& config );

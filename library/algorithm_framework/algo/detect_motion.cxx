@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/detect_motion.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ detect_motion
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

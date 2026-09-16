@@ -17,7 +17,7 @@ namespace viame {
 
 /// A class for splitting an image in class horizontally.
 class VIAME_IMAGE_PROCESSING_EXPORT split_image_horizontally
-  : public kwiver::vital::algo::split_image
+  : public viame::algo::split_image
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -26,11 +26,11 @@ public:
 
   virtual ~split_image_horizontally() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const { return true; }
+  virtual bool check_configuration( viame::config_block_sptr config ) const { return true; }
 
   /// Split image
-  virtual std::vector< kwiver::vital::image_container_sptr >
-  split( kwiver::vital::image_container_sptr img ) const;
+  virtual std::vector< viame::image_container_sptr >
+  split( viame::image_container_sptr img ) const;
 };
 
 } // end namespace viame

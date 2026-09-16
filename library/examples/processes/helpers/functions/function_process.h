@@ -37,10 +37,10 @@
  */
 #define DECLARE_FUNCTION_PROCESS(name)               \
 class SPROKIT_NO_EXPORT CLASS_NAME(name)               \
-  : public sprokit::process                            \
+  : public viame::pipeline::process                            \
 {                                                    \
   public:                                            \
-    CLASS_NAME(name)(kwiver::vital::config_block_sptr const& config); \
+    CLASS_NAME(name)(viame::config_block_sptr const& config); \
     CLASS_DTOR(name)();                              \
   protected:                                         \
     void _configure();                               \

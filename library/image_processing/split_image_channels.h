@@ -12,9 +12,7 @@
 
 #include <viame/algorithm_framework/algo/split_image.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
@@ -24,7 +22,7 @@ namespace ocv {
 /// emits one single-channel image per channel of the input, which is what a
 /// pipeline stacking intensity/hue/motion planes consumes.
 class VIAME_IMAGE_PROCESSING_EXPORT split_image_channels
-  : public vital::algo::split_image
+  : public viame::algo::split_image
 {
 public:
   // Registered as "ocv_channels" in register_algorithms.cxx
@@ -37,20 +35,18 @@ public:
 
   bool
   check_configuration(
-    [[maybe_unused]] kwiver::vital::config_block_sptr config ) const override
+    [[maybe_unused]] viame::config_block_sptr config ) const override
   {
     return true;
   }
 
   /// Split image into its channel planes
-  std::vector< kwiver::vital::image_container_sptr >
-  split( kwiver::vital::image_container_sptr img ) const override;
+  std::vector< viame::image_container_sptr >
+  split( viame::image_container_sptr img ) const override;
 };
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

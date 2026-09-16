@@ -16,11 +16,11 @@
 
 #include "adapter_base.h"
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 class KWIVER_ADAPTER_EXPORT input_adapter_process
-  : public sprokit::process,
+  : public viame::pipeline::process,
     public adapter::adapter_base
 {
 public:
@@ -30,7 +30,7 @@ public:
                "Ports are dynamically created as needed based on connections specified in the pipeline file." )
 
   // -- CONSTRUCTORS --
-  input_adapter_process( kwiver::vital::config_block_sptr const& config );
+  input_adapter_process( viame::config_block_sptr const& config );
   virtual ~input_adapter_process();
 
   // Process interface
@@ -49,10 +49,10 @@ public:
 private:
 
   // This is used to intercept connections and make ports JIT
-  void output_port_undefined( sprokit::process::port_t const& port) override;
+  void output_port_undefined( viame::pipeline::process::port_t const& port) override;
 
 }; // end class input_adapter_process
 
-} // end namespace
+} // namespace viame
 
 #endif /* PROCESS_INPUT_ADAPTER_PROCESS_H */

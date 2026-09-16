@@ -40,7 +40,7 @@ write_detected_object_set_viame_csv
 // --------------------------------------------------------------------------------
 bool
 write_detected_object_set_viame_csv
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -49,7 +49,7 @@ write_detected_object_set_viame_csv
 // --------------------------------------------------------------------------------
 void
 write_detected_object_set_viame_csv
-::write_set( const kwiver::vital::detected_object_set_sptr set,
+::write_set( const viame::detected_object_set_sptr set,
            std::string const& image_name )
 {
   if( c_mask_to_poly_tol >= 0 && c_mask_to_poly_points >= 0 )
@@ -118,7 +118,7 @@ write_detected_object_set_viame_csv
 
   for( auto det = set->cbegin(); det != ie; ++det )
   {
-    const kwiver::vital::bounding_box_d bbox( (*det)->bounding_box() );
+    const viame::bounding_box_d bbox( (*det)->bounding_box() );
 
     const unsigned det_id = m_detection_id++;
 

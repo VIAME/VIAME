@@ -10,15 +10,13 @@
 
 #include <viame/core_types/iterator.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// @brief Mixin set interface for VITAL.
 ///
 /// Vital sets are intended to be loosely similar to std::set in concept.
 /// Vital sets are ordered containers of a single type that:
-///   - are iterable (\see vital::iterable)
+///   - are iterable (\see viame::iterable)
 ///   - indexable (see the set::at methods)
 ///   - can report its size.
 ///
@@ -67,8 +65,6 @@ public:
   ///@}
 };
 
-} // end namespace: vital
-
-} // end namespace: kwiver
+} // namespace viame
 
 #endif // KWIVER_VITAL_SET_H_

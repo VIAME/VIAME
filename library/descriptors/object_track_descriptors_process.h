@@ -34,10 +34,10 @@ namespace core
  * The input file format is CSV: track_id,frame_id,val1,val2,...,valN
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT object_track_descriptors_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
-  using config_block_sptr = kwiver::vital::config_block_sptr;
+  using config_block_sptr = viame::config_block_sptr;
 
   // -- CONSTRUCTORS --
   object_track_descriptors_process( config_block_sptr const& config );

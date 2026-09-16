@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-namespace kwiver {
+namespace viame {
 
 namespace tools {
 
@@ -18,9 +18,9 @@ void kwiver_applet_binding( py::module& m );
 
 } // namespace tools
 
-} // namespace kwiver
+} // namespace viame
 
 PYBIND11_MODULE( _applets, m )
 {
-  kwiver::tools::python::kwiver_applet_binding( m );
+  viame::tools::python::kwiver_applet_binding( m );
 }

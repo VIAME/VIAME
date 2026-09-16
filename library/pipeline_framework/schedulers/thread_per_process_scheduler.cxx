@@ -27,7 +27,7 @@
  * \brief Implementation of the thread-per-process scheduler.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class thread_per_process_scheduler::priv
@@ -37,7 +37,7 @@ class thread_per_process_scheduler::priv
     ~priv();
 
     void run_process(process_t const& process,
-                     kwiver::vital::logger_handle_t logger);
+                     viame::logger_handle_t logger);
 
     std::vector<std::thread> process_threads;
     std::atomic<bool> m_stop_requested{false};
@@ -94,11 +94,11 @@ class thread_per_process_scheduler::priv
 // ------------------------------------------------------------------
 thread_per_process_scheduler
 ::thread_per_process_scheduler(pipeline_t const& pipe,
-                               kwiver::vital::config_block_sptr const& config)
+                               viame::config_block_sptr const& config)
   : scheduler(pipe, config)
   , d(new priv)
 {
-  m_logger = kwiver::vital::get_logger( "scheduler.thread_per_process" );
+  m_logger = viame::get_logger( "scheduler.thread_per_process" );
 
   pipeline_t const p = pipeline();
 
@@ -237,7 +237,7 @@ thread_per_process_scheduler::priv
 {
 }
 
-static kwiver::vital::config_block_sptr monitor_edge_config();
+static viame::config_block_sptr monitor_edge_config();
 
 // ------------------------------------------------------------------
 /*
@@ -246,10 +246,10 @@ static kwiver::vital::config_block_sptr monitor_edge_config();
  */
 void
 thread_per_process_scheduler::priv
-::run_process(process_t const& process, kwiver::vital::logger_handle_t logger)
+::run_process(process_t const& process, viame::logger_handle_t logger)
 {
   // Create the monitor edge. This is only needed for this type of scheduler.
-  kwiver::vital::config_block_sptr const edge_conf = monitor_edge_config();
+  viame::config_block_sptr const edge_conf = monitor_edge_config();
 
   name_thread(process->name());
   edge_t monitor_edge = std::make_shared<edge>(edge_conf);
@@ -342,10 +342,10 @@ thread_per_process_scheduler::priv
  * One possibility for supplying this config would be to have it be
  * part of the scheduler config.
  */
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 monitor_edge_config()
 {
-  kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
+  viame::config_block_sptr conf = viame::config_block::empty_config();
 
   // Empty config will create a default edge.
 

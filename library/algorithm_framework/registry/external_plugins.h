@@ -24,15 +24,11 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class registry;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 namespace viame {
 
@@ -48,7 +44,7 @@ extern char const* const old_plugin_path_variable;
 
 /// The entry point an out-of-tree plugin has to export.
 ///
-/// `extern "C" void viame_register_plugin( kwiver::vital::registry& )`.
+/// `extern "C" void viame_register_plugin( viame::registry& )`.
 VIAME_REGISTRY_EXPORT
 extern char const* const plugin_entry_point;
 
@@ -63,7 +59,7 @@ extern char const* const plugin_entry_point;
 /// @return The libraries whose registration function was called.
 VIAME_REGISTRY_EXPORT
 std::vector< std::string > register_external_plugins(
-  kwiver::vital::registry& loader );
+  viame::registry& loader );
 
 } // namespace viame
 

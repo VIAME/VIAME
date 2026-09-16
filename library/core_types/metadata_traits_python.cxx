@@ -7,7 +7,7 @@
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
-using namespace kwiver::vital;
+using namespace viame;
 
 PYBIND11_MODULE( metadata_traits, m )
 {

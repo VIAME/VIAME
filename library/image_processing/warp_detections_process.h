@@ -32,11 +32,11 @@ namespace core
  * transform and re-boxed axis-aligned.
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT warp_detections_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  warp_detections_process( kwiver::vital::config_block_sptr const& config );
+  warp_detections_process( viame::config_block_sptr const& config );
   virtual ~warp_detections_process();
 
 protected:

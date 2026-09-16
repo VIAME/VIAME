@@ -1198,7 +1198,7 @@ find_claude_binary( const std::string& cmd_override )
     return does_file_exist( cmd ) ? cmd : "";
   }
 
-  return kwiver::vital::find_program( cmd );
+  return viame::find_program( cmd );
 }
 
 // ---------------------------------------------------------------------------

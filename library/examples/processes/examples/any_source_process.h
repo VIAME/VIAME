@@ -15,7 +15,7 @@
  * \brief Declaration of the any source process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class any_source_process
@@ -45,7 +45,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  any_source_process(kwiver::vital::config_block_sptr const &config);
+  any_source_process(viame::config_block_sptr const &config);
   /**
    * \brief Destructor.
    */
@@ -62,6 +62,6 @@ private:
   std::unique_ptr<priv> d;
 };
 
-} // namespace sprokit
+} // namespace viame::pipeline
 
 #endif // SPROKIT_PROCESSES_EXAMPLES_ANY_SOURCE_PROCESS_H

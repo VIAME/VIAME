@@ -19,10 +19,10 @@
 /**
  * \file edge.h
  *
- * \brief Header for \link sprokit::edge edges\endlink.
+ * \brief Header for \link viame::pipeline::edge edges\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class edge_datum_t <sprokit/pipeline/edge.h>
@@ -88,7 +88,7 @@ typedef std::vector< edge_t > edges_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT edge
-  : private kwiver::vital::noncopyable
+  : private viame::noncopyable
 {
 public:
   /**
@@ -102,7 +102,7 @@ public:
    *
    * \param config Contains configuration for the edge.
    */
-  edge( kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config() );
+  edge( viame::config_block_sptr const& config = viame::config_block::empty_config() );
 
   /**
    * \brief Destructor.
@@ -315,13 +315,13 @@ public:
   void set_downstream_process( process_t process );
 
   /// Configuration that indicates the edge implies an execution dependency between upstream and downstream.
-  static kwiver::vital::config_block_key_t const config_dependency;
+  static viame::config_block_key_t const config_dependency;
 
   /// Configuration for the maximum capacity of an edge.
-  static kwiver::vital::config_block_key_t const config_capacity;
+  static viame::config_block_key_t const config_capacity;
 
   /// Configuration for edge blocking behaviour
-  static kwiver::vital::config_block_key_t const config_blocking;
+  static viame::config_block_key_t const config_blocking;
 
 private:
   class SPROKIT_PIPELINE_NO_EXPORT priv;

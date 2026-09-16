@@ -27,9 +27,9 @@
 //+ TODO this process is obsoleted by the image_list_reader
 // implementation of the video_input algorithm
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( image_list_file, std::string, "",
@@ -58,14 +58,14 @@ public:
 
   // Configuration values
   std::string m_config_image_list_filename;
-  kwiver::vital::time_usec_t m_config_frame_time;
+  viame::time_usec_t m_config_frame_time;
   std::vector< std::string > m_config_path;
 
   // process local data
-  std::vector < kwiver::vital::path_t > m_files;
-  std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
-  kwiver::vital::frame_id_t m_frame_number;
-  kwiver::vital::time_usec_t m_frame_time;
+  std::vector < viame::path_t > m_files;
+  std::vector < viame::path_t >::const_iterator m_current_file;
+  viame::frame_id_t m_frame_number;
+  viame::time_usec_t m_frame_time;
 
   // processing classes
   algo::image_io_sptr m_image_reader;
@@ -75,7 +75,7 @@ public:
 // ================================================================
 
 frame_list_process
-::frame_list_process( kwiver::vital::config_block_sptr const& config )
+::frame_list_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new frame_list_process::priv )
 {
@@ -99,15 +99,15 @@ void frame_list_process
   d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
 
   std::string path = config_value_using_trait( path );
-  kwiver::vital::tokenize( path, d->m_config_path, ":", kwiver::vital::TokenizeTrimEmpty );
+  viame::tokenize( path, d->m_config_path, ":", viame::TokenizeTrimEmpty );
   d->m_config_path.push_back( "." ); // add current directory
 
-  kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  viame::config_block_sptr algo_config = get_config(); // config for process
 
   set_nested_algo_configuration_using_trait( image_reader, algo_config, d->m_image_reader);
   if ( ! d->m_image_reader )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
              "Unable to create image_reader." );
   }
 
@@ -116,7 +116,7 @@ void frame_list_process
   // instantiate image reader and converter based on config type
   if ( ! check_nested_algo_configuration_using_trait( image_reader, algo_config, d->m_image_reader ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -133,22 +133,22 @@ void frame_list_process
   {
     std::stringstream msg;
     msg <<  "Could not open image list \"" << d->m_config_image_list_filename << "\"";
-    VITAL_THROW( sprokit::invalid_configuration_exception, this->name(), msg.str() );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, this->name(), msg.str() );
   }
 
-  kwiver::vital::data_stream_reader stream_reader( ifs );
+  viame::data_stream_reader stream_reader( ifs );
 
   // verify and get file names in a list
   for ( std::string line; stream_reader.getline( line ); /* null */ )
   {
     std::string resolved_file = line;
-    if ( ! kwiver::vital::file_exists( line ) )
+    if ( ! viame::file_exists( line ) )
     {
       // Resolve against specified path
-      resolved_file = kwiver::vital::find_file( line, d->m_config_path );
+      resolved_file = viame::find_file( line, d->m_config_path );
       if ( resolved_file.empty() )
       {
-        VITAL_THROW( kwiver::vital::file_not_found_exception, line, "could not locate file in path" );
+        VITAL_THROW( viame::file_not_found_exception, line, "could not locate file in path" );
       }
     }
 
@@ -178,7 +178,7 @@ void frame_list_process
     // we are going to pass it downstream using the sptr.
     auto img_c = d->m_image_reader->load( a_file );
 
-    kwiver::vital::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
+    viame::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
 
     // update timestamp
     ++d->m_frame_number;
@@ -196,7 +196,7 @@ void frame_list_process
 
     // indicate done
     mark_process_as_complete();
-    const sprokit::datum_t dat= sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat= viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( image, dat );
@@ -209,8 +209,8 @@ void frame_list_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t shared;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t shared;
   shared.insert( flag_output_shared );
 
   declare_output_port_using_trait( timestamp, optional );
@@ -241,4 +241,4 @@ frame_list_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

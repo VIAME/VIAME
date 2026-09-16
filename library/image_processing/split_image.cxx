@@ -6,7 +6,7 @@
 /// \brief Split an image in half, left and right
 ///
 /// Was `cv::Mat`'s region-of-interest and a clone; since P7-T04 it is
-/// `image_ops::crop`, which does the same thing on a `vital::image` and
+/// `image_ops::crop`, which does the same thing on a `viame::image` and
 /// leaves nothing for the OpenCV bridge to convert.
 
 #include "split_image.h"
@@ -16,13 +16,11 @@
 
 #include <viame/core_types/image_container.h>
 
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace io = viame::image_ops;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
@@ -32,11 +30,11 @@ split_image
 {}
 
 /// Split image
-std::vector< kwiver::vital::image_container_sptr >
+std::vector< viame::image_container_sptr >
 split_image
-::split( kwiver::vital::image_container_sptr image ) const
+::split( viame::image_container_sptr image ) const
 {
-  std::vector< kwiver::vital::image_container_sptr > output;
+  std::vector< viame::image_container_sptr > output;
 
   if( !image )
   {
@@ -53,21 +51,19 @@ split_image
   {
     auto const cropped = io::dispatch_pixel_type(
       source,
-      [ & ]( auto const& typed ) -> vital::image
+      [ & ]( auto const& typed ) -> viame::image
       {
-        return vital::image(
+        return viame::image(
           io::crop( typed, piece * half, 0, half, source.height() ) );
       } );
 
     output.push_back(
-      std::make_shared< vital::simple_image_container >( cropped ) );
+      std::make_shared< viame::simple_image_container >( cropped ) );
   }
 
   return output;
 }
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

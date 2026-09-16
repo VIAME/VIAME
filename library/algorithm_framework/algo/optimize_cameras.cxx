@@ -3,16 +3,14 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Instantiation of \link kwiver::vital::algo::algorithm_def
+/// \brief Instantiation of \link viame::algo::algorithm_def
 ///        algorithm_def<T> \endlink for \link
-///        kwiver::vital::algo::optimize_cameras optimize_cameras
+///        viame::algo::optimize_cameras optimize_cameras
 ///        \endlink
 
 #include <viame/algorithm_framework/algo/optimize_cameras.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -99,6 +97,4 @@ optimize_cameras
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -10,9 +10,7 @@
 #include <viame/algorithm_framework/exceptions/math.h>
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Construct an identity homography for the given frame
 f2f_homography
@@ -28,7 +26,7 @@ f2f_homography
   homography_sptr const& h,
   frame_id_t const from_id,
   frame_id_t const to_id )
-  : h_( std::static_pointer_cast< vital::homography >( h->clone() ) ),
+  : h_( std::static_pointer_cast< viame::homography >( h->clone() ) ),
     from_id_( from_id ),
     to_id_( to_id )
 {}
@@ -36,7 +34,7 @@ f2f_homography
 /// Copy constructor
 f2f_homography
 ::f2f_homography( f2f_homography const& h )
-  : h_( std::static_pointer_cast< vital::homography >( h.h_->clone() ) ),
+  : h_( std::static_pointer_cast< viame::homography >( h.h_->clone() ) ),
     from_id_( h.from_id_ ),
     to_id_( h.to_id_ )
 {}
@@ -98,6 +96,4 @@ operator<<( std::ostream& s, f2f_homography const& h )
   return s;
 }
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame

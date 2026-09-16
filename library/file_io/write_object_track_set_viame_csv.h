@@ -23,7 +23,7 @@
 namespace viame {
 
 class VIAME_FILE_IO_EXPORT write_object_track_set_viame_csv
-  : public kwiver::vital::algo::write_object_track_set
+  : public viame::algo::write_object_track_set
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -98,10 +98,10 @@ public:
 
   virtual ~write_object_track_set_viame_csv() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::object_track_set_sptr& set,
-                          const kwiver::vital::timestamp& ts,
+  virtual void write_set( const viame::object_track_set_sptr& set,
+                          const viame::timestamp& ts,
                           const std::string& file_id );
 
   virtual void close();
@@ -110,21 +110,21 @@ private:
   void initialize() override;
 
   void set_configuration_internal(
-    kwiver::vital::config_block_sptr config ) override;
+    viame::config_block_sptr config ) override;
 
-  std::string format_image_id( const kwiver::vital::object_track_state* ts );
+  std::string format_image_id( const viame::object_track_state* ts );
   void write_header_info( std::ostream& stream );
   void write_detection_info( std::ostream& stream,
-                             const kwiver::vital::detected_object_sptr& det );
+                             const viame::detected_object_sptr& det );
   void write_tot( std::ostream& stream,
-                  kwiver::vital::track_id_t trk_id,
-                  const kwiver::vital::detected_object_type_sptr& dot );
+                  viame::track_id_t trk_id,
+                  const viame::detected_object_type_sptr& dot );
 
-  kwiver::vital::logger_handle_t m_logger;
+  viame::logger_handle_t m_logger;
   bool m_first;
-  std::map< unsigned, kwiver::vital::track_sptr > m_tracks;
+  std::map< unsigned, viame::track_sptr > m_tracks;
   std::map< unsigned, std::string > m_frame_uids;
-  std::set< kwiver::vital::track_id_t > m_tot_written;
+  std::set< viame::track_id_t > m_tot_written;
   std::time_t m_start_time;
 };
 

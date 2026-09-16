@@ -14,16 +14,14 @@
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for algorithms which draw tracks on top of
 /// images in various ways, for analyzing results.
 class VITAL_ALGO_EXPORT draw_detected_object_set
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   /// Return the name of this algorithm.
@@ -39,10 +37,10 @@ public:
   /// @param image Boxes are drawn in this image
   ///
   /// @return Image with boxes and other annotations added.
-  virtual kwiver::vital::image_container_sptr
+  virtual viame::image_container_sptr
   draw(
-    kwiver::vital::detected_object_set_sptr detected_set,
-    kwiver::vital::image_container_sptr image ) = 0;
+    viame::detected_object_set_sptr detected_set,
+    viame::image_container_sptr image ) = 0;
 };
 
 /// A smart pointer to a draw_tracks instance.
@@ -51,8 +49,6 @@ typedef std::shared_ptr< draw_detected_object_set >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_DRAW_DETECTED_OBJECT_SET_H

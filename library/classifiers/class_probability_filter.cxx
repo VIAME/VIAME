@@ -13,13 +13,11 @@
 /// add '-all-' as a meta-class name that specifies all classes and
 /// remove the keep_all_classes option.
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
-using namespace kwiver::vital;
+using namespace viame;
 
 // ----------------------------------------------------------------------------
 // Function to create the set of keep_classes each time it is called
@@ -44,9 +42,9 @@ keep_classes_set( std::string list_of_classes )
 // ----------------------------------------------------------------------------
 bool
 class_probability_filter
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
-  kwiver::vital::config_difference cd( this->get_configuration(), config );
+  viame::config_difference cd( this->get_configuration(), config );
   const auto key_list = cd.extra_keys();
 
   if( !key_list.empty() )
@@ -55,25 +53,25 @@ class_probability_filter
       logger(),
       "Additional parameters found in config block that are not required or "
       "desired: "
-        << kwiver::vital::join( key_list, ", " ) );
+        << viame::join( key_list, ", " ) );
   }
 
   return true;
 }
 
 // ----------------------------------------------------------------------------
-vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 class_probability_filter
-::filter( const vital::detected_object_set_sptr input_set ) const
+::filter( const viame::detected_object_set_sptr input_set ) const
 {
-  auto ret_set = std::make_shared< vital::detected_object_set >();
+  auto ret_set = std::make_shared< viame::detected_object_set >();
 
   // loop over all detections
   auto ie = input_set->cend();
   for( auto det = input_set->cbegin(); det != ie; ++det )
   {
     bool det_selected( false );
-    auto out_dot = std::make_shared< vital::detected_object_type >();
+    auto out_dot = std::make_shared< viame::detected_object_type >();
 
     // Make sure that there is an associated DOT
     auto input_dot = ( *det )->type();
@@ -123,6 +121,4 @@ class_probability_filter
 
 } // namespace core
 
-} // namespace arrows
-
-}         // end namespace
+} // namespace viame

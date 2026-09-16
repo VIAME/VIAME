@@ -9,9 +9,7 @@
 
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace python {
 
@@ -19,8 +17,6 @@ void serialize_track_state( py::module& m );
 
 } // namespace python
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

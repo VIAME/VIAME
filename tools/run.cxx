@@ -38,7 +38,7 @@ namespace tools {
 namespace {
 
 using applet_factory =
-  kwiver::vital::implementation_factory_by_name< kwiver::tools::kwiver_applet >;
+  viame::implementation_factory_by_name< viame::tools::kwiver_applet >;
 
 // ----------------------------------------------------------------------------
 bool
@@ -174,10 +174,10 @@ int
 run_pipeline( std::vector< std::string > args )
 {
   applet_factory app_fact;
-  kwiver::tools::kwiver_applet_sptr applet(
-    app_fact.create( "runner", kwiver::vital::config_block::empty_config() ) );
+  viame::tools::kwiver_applet_sptr applet(
+    app_fact.create( "runner", viame::config_block::empty_config() ) );
 
-  kwiver::tools::applet_context context;
+  viame::tools::applet_context context;
   context.m_applet_name = "runner";
   context.m_argv = args;
   // Same help wrapping as the tool runner gives every applet
@@ -490,7 +490,7 @@ run_applet
   }
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
-  kwiver::tools::applet_context context;
+  viame::tools::applet_context context;
   context.m_applet_name = applet_name();
   context.m_argv = args;
 

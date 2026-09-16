@@ -26,7 +26,7 @@
 
 #include <cmath>
 
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace {
 
@@ -180,7 +180,7 @@ TEST ( triangulate, a_projected_point_triangulates_back_to_itself )
     auto const in_left = rig.left.project( point );
     auto const in_right = rig.right.project( point );
 
-    auto const found = kwiver::arrows::mvg::triangulate_fast_two_view(
+    auto const found = viame::mvg::triangulate_fast_two_view(
       rig.left, rig.right,
       vector_< 2, double >( in_left[ 0 ], in_left[ 1 ] ),
       vector_< 2, double >( in_right[ 0 ], in_right[ 1 ] ) );
@@ -208,14 +208,14 @@ TEST ( triangulate, a_known_segment_measures_its_own_length )
   vector_3d const head( -350.0, -120.0, 2100.0 );
   vector_3d const tail( -50.0, 80.0, 2180.0 );
 
-  auto const found_head = kwiver::arrows::mvg::triangulate_fast_two_view(
+  auto const found_head = viame::mvg::triangulate_fast_two_view(
     rig.left, rig.right,
     vector_< 2, double >( rig.left.project( head )[ 0 ],
                           rig.left.project( head )[ 1 ] ),
     vector_< 2, double >( rig.right.project( head )[ 0 ],
                           rig.right.project( head )[ 1 ] ) );
 
-  auto const found_tail = kwiver::arrows::mvg::triangulate_fast_two_view(
+  auto const found_tail = viame::mvg::triangulate_fast_two_view(
     rig.left, rig.right,
     vector_< 2, double >( rig.left.project( tail )[ 0 ],
                           rig.left.project( tail )[ 1 ] ),

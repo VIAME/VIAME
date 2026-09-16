@@ -17,15 +17,13 @@
 #include <viame/core_types/timestamp.h>
 #include <viame/core_types/track_descriptor_set.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for computing track descriptors
 class VITAL_ALGO_EXPORT compute_track_descriptors
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   compute_track_descriptors();
@@ -37,11 +35,11 @@ public:
   /// \param tracks the tracks to extract descriptors around
   ///
   /// \returns a set of track descriptors
-  virtual kwiver::vital::track_descriptor_set_sptr
+  virtual viame::track_descriptor_set_sptr
   compute(
-    kwiver::vital::timestamp ts,
-    kwiver::vital::image_container_sptr image_data,
-    kwiver::vital::object_track_set_sptr tracks ) = 0;
+    viame::timestamp ts,
+    viame::image_container_sptr image_data,
+    viame::object_track_set_sptr tracks ) = 0;
 
   /// Flush any remaining in-progress descriptors
   ///
@@ -50,7 +48,7 @@ public:
   /// still need to be output.
   ///
   /// \returns a set of track descriptors
-  virtual kwiver::vital::track_descriptor_set_sptr flush() = 0;
+  virtual viame::track_descriptor_set_sptr flush() = 0;
 };
 
 /// Shared pointer for base compute_track_descriptors algorithm definition
@@ -60,8 +58,6 @@ typedef std::shared_ptr< compute_track_descriptors >
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_

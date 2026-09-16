@@ -11,9 +11,7 @@
 #include <cstdlib>
 #include <viame/core_types/image.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Transform a given image in place given a unary function
 ///
@@ -22,12 +20,12 @@ namespace vital {
 ///
 /// Example:
 /// \code
-/// static kwiver::vital::image::byte invert_mask_pixel(
-/// kwiver::vital::image::byte const &b )
+/// static viame::image::byte invert_mask_pixel(
+/// viame::image::byte const &b )
 /// { return !b; }
 ///
-/// kwiver::vital::image   mask_img( mask->get_image() );
-/// kwiver::vital::transform_image( mask_img, invert_mask_pixel );
+/// viame::image   mask_img( mask->get_image() );
+/// viame::transform_image( mask_img, invert_mask_pixel );
 ///
 /// // or as a functor
 /// class multiply_by {
@@ -37,14 +35,14 @@ namespace vital {
 /// public:
 ///  multiply_by(int x) : factor(x) { }
 ///
-///  kwiver::vital::image::byte   operator () (kwiver::vital::image::byte const&
+///  viame::image::byte   operator () (viame::image::byte const&
 /// other) const
 ///  {
 ///      return factor * other;
 ///  }
 /// };
 ///
-/// kwiver::vital::transform_image( mask_img, multiply_by( 5 ) );
+/// viame::transform_image( mask_img, multiply_by( 5 ) );
 ///
 /// \endcode
 ///
@@ -197,7 +195,7 @@ if( img_in.pixel_traits() == image_pixel_traits_of< in_T >() ) \
 
   VITAL_THROW(
     image_type_mismatch_exception,
-    "kwiver::vital::cast_image() cannot cast unknown type" );
+    "viame::cast_image() cannot cast unknown type" );
 }
 
 /// Call a unary function on every pixel in a const image
@@ -207,10 +205,10 @@ if( img_in.pixel_traits() == image_pixel_traits_of< in_T >() ) \
 ///
 /// Example:
 /// \code
-/// kwiver::vital::image_of<uint_8>my_image( img->get_image() );
+/// viame::image_of<uint_8>my_image( img->get_image() );
 /// uint8_t max_v = 0;
 /// // using a lambda function to get the maximum pixel value
-/// kwiver::vital::foreach_pixel( my_image, [&max_v](uint8_t p)
+/// viame::foreach_pixel( my_image, [&max_v](uint8_t p)
 /// {
 /// max_v = std::max(max_v, p)
 /// });
@@ -262,8 +260,6 @@ foreach_pixel( image_of< T > const& img, OP op )
   }
 }
 
-} // namespace vital
-
-}     // end namespace vital
+} // namespace viame
 
 #endif // VITAL_TRANSFORM_IMAGE_H_

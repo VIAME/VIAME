@@ -17,9 +17,9 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( reader );
 create_config_trait( file_name, std::string, "",
@@ -47,7 +47,7 @@ public:
 // ===============================================================================
 
 read_object_track_process
-::read_object_track_process( kwiver::vital::config_block_sptr const& config )
+::read_object_track_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new read_object_track_process::priv )
 {
@@ -69,18 +69,18 @@ void read_object_track_process
 
   if( d->m_file_name.empty() )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
       "Required file name not specified." );
   }
 
   // Get algo config entries
-  kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  viame::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
   if( ! check_nested_algo_configuration_using_trait(
           reader, algo_config, d->m_reader ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Configuration check failed." );
   }
 
@@ -92,7 +92,7 @@ void read_object_track_process
 
   if( ! d->m_reader )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Unable to create reader." );
   }
 }
@@ -111,13 +111,13 @@ void read_object_track_process
   bool end_process = false;
 
   std::string file_name;
-  kwiver::vital::object_track_set_sptr set;
+  viame::object_track_set_sptr set;
 
   if( has_input_port_edge_using_trait( image_file_name ) )
   {
     auto port_info = peek_at_port_using_trait( image_file_name );
 
-    if( port_info.datum->type() == sprokit::datum::complete )
+    if( port_info.datum->type() == viame::pipeline::datum::complete )
     {
       end_process = true;
     }
@@ -146,14 +146,14 @@ void read_object_track_process
     LOG_DEBUG( logger(), "End of input reached, process terminating" );
     mark_process_as_complete();
 
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
     push_datum_to_port_using_trait( object_track_set, dat );
   }
   else
   {
     if( !set )
     {
-      set = std::make_shared< kwiver::vital::object_track_set >();
+      set = std::make_shared< viame::object_track_set >();
     }
     push_to_port_using_trait( object_track_set, set );
   }
@@ -164,7 +164,7 @@ void read_object_track_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
   declare_input_port_using_trait( image_file_name, optional );
   declare_output_port_using_trait( object_track_set, optional );
@@ -189,4 +189,4 @@ read_object_track_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

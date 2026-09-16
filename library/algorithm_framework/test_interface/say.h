@@ -7,7 +7,7 @@
 
 #include <viame/algorithm_framework/plugin/pluggable.h>
 
-namespace kwiver::vital {
+namespace viame {
 
 class say : public pluggable
 {
@@ -25,6 +25,6 @@ public:
 
 typedef std::shared_ptr< say > say_sptr;
 
-} // namespace kwiver::vital
+} // namespace viame
 
 #endif // VITAL_TEST_INTERFACE_INTERFACE_H

@@ -4,7 +4,7 @@
 
 /// \file
 ///
-/// Header for \link kwiver::vital::track track \endlink objects.
+/// Header for \link viame::track track \endlink objects.
 
 #ifndef VITAL_TRACK_H_
 #define VITAL_TRACK_H_
@@ -19,9 +19,7 @@
 #include <set>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 class track;
 class track_state;
@@ -341,7 +339,7 @@ public:
   ///
   /// @throws attribute_set_exception if no attribute set exists or if the
   ///         named attribute is not in the set.
-  /// @throws kwiver::vital::bad_any_cast if actual type does not match
+  /// @throws viame::bad_any_cast if actual type does not match
   ///         requested type.
   template < typename T >
   T
@@ -373,8 +371,6 @@ protected:
   mutable std::mutex attrs_mutex_; ///< mutex for thread-safe attribute access
 };
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_TRACK_H_

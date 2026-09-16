@@ -11,7 +11,7 @@
 
 #include <type_traits>
 
-namespace kwiver::vital::streamable {
+namespace viame::streamable {
 
 template < typename T, typename = void >
 struct is_streamable : std::false_type {};
@@ -20,6 +20,6 @@ template < typename T >
 struct is_streamable< T,
   std::void_t< decltype( std::declval< std::ostream& >() << std::declval< const T& >() ) > >: std::true_type {};
 
-} // namespace kwiver::vital::streamable
+} // namespace viame::streamable
 
 #endif

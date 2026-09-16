@@ -7,9 +7,7 @@
 
 #include "query_result.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 query_result
@@ -106,7 +104,7 @@ query_result
 }
 
 // ----------------------------------------------------------------------------
-vital::geo_point
+viame::geo_point
 query_result
 ::location() const
 {
@@ -116,13 +114,13 @@ query_result
 // ----------------------------------------------------------------------------
 void
 query_result
-::set_location( vital::geo_point l )
+::set_location( viame::geo_point l )
 {
   m_location = l;
 }
 
 // ----------------------------------------------------------------------------
-vital::object_track_set_sptr
+viame::object_track_set_sptr
 query_result
 ::tracks() const
 {
@@ -132,13 +130,13 @@ query_result
 // ----------------------------------------------------------------------------
 void
 query_result
-::set_tracks( vital::object_track_set_sptr t )
+::set_tracks( viame::object_track_set_sptr t )
 {
   m_tracks = t;
 }
 
 // ----------------------------------------------------------------------------
-vital::track_descriptor_set_sptr
+viame::track_descriptor_set_sptr
 query_result
 ::descriptors() const
 {
@@ -148,7 +146,7 @@ query_result
 // ----------------------------------------------------------------------------
 void
 query_result
-::set_descriptors( vital::track_descriptor_set_sptr d )
+::set_descriptors( viame::track_descriptor_set_sptr d )
 {
   m_descriptors = d;
 }
@@ -169,6 +167,4 @@ query_result
   m_image_data = i;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

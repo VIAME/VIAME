@@ -9,9 +9,7 @@
 #include <viame/core_types/rotation.h>
 #include <viame/core_types/vital_types_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Local coordinate system tangent to the earth.
@@ -88,8 +86,6 @@ void
 write_local_tangent_space_to_file(
   local_tangent_space const& local_space, std::string const& filepath );
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

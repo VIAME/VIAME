@@ -12,9 +12,7 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -31,11 +29,11 @@ transform_2d_io
 ::load( std::string const& filename ) const
 {
   // Make sure that the given file path exists and is a file.
-  if( !kwiver::vital::file_exists( filename ) )
+  if( !viame::file_exists( filename ) )
   {
     VITAL_THROW( path_not_exists, filename );
   }
-  else if( kwiver::vital::file_is_directory( filename ) )
+  else if( viame::file_is_directory( filename ) )
   {
     VITAL_THROW( path_not_a_file, filename );
   }
@@ -50,14 +48,14 @@ transform_2d_io
 {
   // Make sure that the given file path's containing directory exists and is
   // actually a directory.
-  std::string containing_dir = kwiver::vital::filename_path(
-    kwiver::vital::collapse_full_path( filename ) );
+  std::string containing_dir = viame::filename_path(
+    viame::collapse_full_path( filename ) );
 
-  if( !kwiver::vital::file_exists( containing_dir ) )
+  if( !viame::file_exists( containing_dir ) )
   {
     VITAL_THROW( path_not_exists, containing_dir );
   }
-  else if( !kwiver::vital::file_is_directory( containing_dir ) )
+  else if( !viame::file_is_directory( containing_dir ) )
   {
     VITAL_THROW( path_not_a_directory, containing_dir );
   }
@@ -67,6 +65,4 @@ transform_2d_io
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

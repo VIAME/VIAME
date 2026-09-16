@@ -51,8 +51,9 @@ def defined_symbols(path):
         name = parts[1].strip()
 
         # VIAME's own code only. A library legitimately re-exports third
-        # party symbols it static-links, and that is not this bug.
-        if name.startswith("viame::") or name.startswith("kwiver::"):
+        # party symbols it static-links, and that is not this bug. Phase 11
+        # renamed the namespace, so `viame::` is all there is.
+        if name.startswith("viame::"):
             found.add(name)
 
     return found

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief File IO functions for a \ref kwiver::vital::mesh
+/// \brief File IO functions for a \ref viame::mesh
 ///
 /// Functions provide IO in multiple formats including OBJ, PLY, KML
 
@@ -15,9 +15,7 @@
 
 #include <viame/core_types/mesh.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Read a mesh from a file, determine type from extension
 VITAL_EXPORT
@@ -95,8 +93,6 @@ void write_vrml( std::ostream& os, const mesh& mesh );
 VITAL_EXPORT
 void write_vrml( const std::string& filename, const mesh& mesh );
 
-} // end namespace vital
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif // VITAL_MESH_IO_H_

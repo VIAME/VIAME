@@ -37,7 +37,7 @@
 #include <vector>
 
 namespace fs = std::filesystem;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace {
 

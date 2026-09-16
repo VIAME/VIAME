@@ -21,7 +21,7 @@ namespace image_ops {
 /// grid inside the image so it does not come up.
 template < typename T >
 double
-bilinear_sample( kwiver::vital::image_of< T > const& image,
+bilinear_sample( viame::image_of< T > const& image,
                  double x, double y, size_t plane )
 {
   auto const width = static_cast< int >( image.width() );
@@ -69,11 +69,11 @@ bilinear_sample( kwiver::vital::image_of< T > const& image,
 /// The result is truncated into the pixel type, not rounded, which is also
 /// what `vil_resample_bilin` does.
 template < typename T >
-kwiver::vital::image_of< T >
-resize_bilinear( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+resize_bilinear( viame::image_of< T > const& image,
                  size_t width, size_t height )
 {
-  kwiver::vital::image_of< T > result( width, height, image.depth() );
+  viame::image_of< T > result( width, height, image.depth() );
 
   if( width == 0 || height == 0 ||
       image.width() == 0 || image.height() == 0 )
@@ -108,14 +108,14 @@ resize_bilinear( kwiver::vital::image_of< T > const& image,
 // ----------------------------------------------------------------------------
 /// The \p width by \p height rectangle at (\p left, \p top), as a new image.
 template < typename T >
-kwiver::vital::image_of< T >
-crop( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+crop( viame::image_of< T > const& image,
       size_t left, size_t top, size_t width, size_t height )
 {
   width = std::min( width, image.width() - std::min( left, image.width() ) );
   height = std::min( height, image.height() - std::min( top, image.height() ) );
 
-  kwiver::vital::image_of< T > result( width, height, image.depth() );
+  viame::image_of< T > result( width, height, image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
   {
@@ -137,11 +137,11 @@ crop( kwiver::vital::image_of< T > const& image,
 /// Where the image is larger it is cropped instead, so the result is always
 /// exactly the size asked for.
 template < typename T >
-kwiver::vital::image_of< T >
-pad_or_crop( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+pad_or_crop( viame::image_of< T > const& image,
              size_t width, size_t height )
 {
-  kwiver::vital::image_of< T > result( width, height, image.depth() );
+  viame::image_of< T > result( width, height, image.depth() );
 
   auto const copy_width = std::min( width, image.width() );
   auto const copy_height = std::min( height, image.height() );

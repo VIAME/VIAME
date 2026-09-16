@@ -24,9 +24,9 @@
 #include <fstream>
 #include <sstream>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver
+namespace viame
 {
 
 // (config-key, value-type, default-value, description )
@@ -62,7 +62,7 @@ public:
   std::string m_file_prefix;
 
   // Number for current image.
-  kwiver::vital::frame_id_t m_frame_number;
+  viame::frame_id_t m_frame_number;
 
   // Optional pipeline input parameter
   std::string m_filename_override;
@@ -78,7 +78,7 @@ public:
 // ================================================================
 
 image_writer_process
-::image_writer_process( kwiver::vital::config_block_sptr const& config )
+::image_writer_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new image_writer_process::priv )
 {
@@ -102,7 +102,7 @@ void image_writer_process
   d->m_file_prefix = config_value_using_trait( file_name_prefix );
 
   // Get algo config entries
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     image_writer,
@@ -110,7 +110,7 @@ void image_writer_process
     d->m_image_writer);
   if ( !d->m_image_writer )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Unable to create image_writer." );
   }
 
@@ -119,7 +119,7 @@ void image_writer_process
          image_writer,
          algo_config, d->m_image_writer ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Configuration check failed." );
   }
 
@@ -138,7 +138,7 @@ void image_writer_process
 
   if( parsed_string.size() % 2 == 1 )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    throw viame::pipeline::invalid_configuration_exception( name(),
       "Length of replace string vector must be even." );
   }
 
@@ -155,7 +155,7 @@ void image_writer_process
 {
   if( has_input_port_edge_using_trait( timestamp ) )
   {
-    kwiver::vital::timestamp frame_time;
+    viame::timestamp frame_time;
     frame_time = grab_from_port_using_trait( timestamp );
 
     if( frame_time.has_valid_frame() )
@@ -174,7 +174,7 @@ void image_writer_process
     ++d->m_frame_number;
   }
 
-  vital::image_container_sptr input = grab_from_port_using_trait( image );
+  viame::image_container_sptr input = grab_from_port_using_trait( image );
 
   std::string a_file;
 
@@ -190,7 +190,7 @@ void image_writer_process
 
   if( a_file.empty() )
   {
-    a_file = kwiver::vital::string_format( d->m_file_template, d->m_frame_number );
+    a_file = viame::string_format( d->m_file_template, d->m_frame_number );
   }
 
   for( unsigned i = 0; i < d->m_find_strings.size(); ++i )
@@ -228,8 +228,8 @@ void image_writer_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   declare_input_port_using_trait( image, required );
@@ -272,4 +272,4 @@ image_writer_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

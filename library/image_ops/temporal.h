@@ -74,12 +74,12 @@ public:
   {
     m_frame_count = 0;
     m_window.clear();
-    m_average = kwiver::vital::image_of< double >();
+    m_average = viame::image_of< double >();
   }
 
   /// Add \p input to the average and return the average after it.
-  kwiver::vital::image_of< T >
-  process( kwiver::vital::image_of< T > const& input )
+  viame::image_of< T >
+  process( viame::image_of< T > const& input )
   {
     if( resolution_changed( input ) )
     {
@@ -102,9 +102,9 @@ public:
   /// before the update and its distance from the average after, which is
   /// zero on the first frame of a given size. Averaging it over time
   /// approximates a per pixel variance.
-  kwiver::vital::image_of< T >
-  process( kwiver::vital::image_of< T > const& input,
-           kwiver::vital::image_of< double >& variance )
+  viame::image_of< T >
+  process( viame::image_of< T > const& input,
+           viame::image_of< double >& variance )
   {
     auto const first = m_average.width() != input.width() ||
                        m_average.height() != input.height() ||
@@ -112,7 +112,7 @@ public:
 
     if( first )
     {
-      variance = kwiver::vital::image_of< double >(
+      variance = viame::image_of< double >(
         input.width(), input.height(), input.depth() );
       fill( variance, 0.0 );
       return process( input );
@@ -122,7 +122,7 @@ public:
     auto const average = process( input );
     auto const after = absolute_difference( input, average );
 
-    variance = kwiver::vital::image_of< double >(
+    variance = viame::image_of< double >(
       input.width(), input.height(), input.depth() );
 
     for( size_t plane = 0; plane < input.depth(); ++plane )
@@ -145,7 +145,7 @@ public:
 
 private:
   bool
-  resolution_changed( kwiver::vital::image_of< T > const& input ) const
+  resolution_changed( viame::image_of< T > const& input ) const
   {
     return input.width() != m_average.width() ||
            input.height() != m_average.height() ||
@@ -153,7 +153,7 @@ private:
   }
 
   static void
-  fill( kwiver::vital::image_of< double >& image, double value )
+  fill( viame::image_of< double >& image, double value )
   {
     for( size_t plane = 0; plane < image.depth(); ++plane )
     {
@@ -169,11 +169,11 @@ private:
 
   /// |a - b| in double, for any mix of frame and accumulator types.
   template < typename A, typename B >
-  static kwiver::vital::image_of< double >
-  absolute_difference( kwiver::vital::image_of< A > const& a,
-                       kwiver::vital::image_of< B > const& b )
+  static viame::image_of< double >
+  absolute_difference( viame::image_of< A > const& a,
+                       viame::image_of< B > const& b )
   {
-    kwiver::vital::image_of< double > result( a.width(), a.height(),
+    viame::image_of< double > result( a.width(), a.height(),
                                               a.depth() );
 
     for( size_t plane = 0; plane < a.depth(); ++plane )
@@ -194,9 +194,9 @@ private:
   }
 
   void
-  seed( kwiver::vital::image_of< T > const& input )
+  seed( viame::image_of< T > const& input )
   {
-    m_average = kwiver::vital::image_of< double >(
+    m_average = viame::image_of< double >(
       input.width(), input.height(), input.depth() );
 
     for( size_t plane = 0; plane < input.depth(); ++plane )
@@ -214,7 +214,7 @@ private:
 
   /// m_average = m_average * old_weight + input * new_weight
   void
-  blend( kwiver::vital::image_of< T > const& input,
+  blend( viame::image_of< T > const& input,
          double old_weight, double new_weight )
   {
     for( size_t plane = 0; plane < input.depth(); ++plane )
@@ -232,7 +232,7 @@ private:
   }
 
   void
-  update_cumulative( kwiver::vital::image_of< T > const& input )
+  update_cumulative( viame::image_of< T > const& input )
   {
     if( m_frame_count == 0 )
     {
@@ -248,7 +248,7 @@ private:
   }
 
   void
-  update_exponential( kwiver::vital::image_of< T > const& input )
+  update_exponential( viame::image_of< T > const& input )
   {
     if( m_frame_count == 0 )
     {
@@ -263,7 +263,7 @@ private:
   }
 
   void
-  update_window( kwiver::vital::image_of< T > const& input )
+  update_window( viame::image_of< T > const& input )
   {
     auto const buffered = m_window.size();
 
@@ -297,7 +297,7 @@ private:
       }
     }
 
-    kwiver::vital::image_of< T > copy;
+    viame::image_of< T > copy;
     copy.copy_from( input );
     m_window.push_back( copy );
 
@@ -307,10 +307,10 @@ private:
     }
   }
 
-  kwiver::vital::image_of< T >
-  convert_average( kwiver::vital::image_of< T > const& like ) const
+  viame::image_of< T >
+  convert_average( viame::image_of< T > const& like ) const
   {
-    kwiver::vital::image_of< T > result( like.width(), like.height(),
+    viame::image_of< T > result( like.width(), like.height(),
                                          like.depth() );
 
     // Rounding only makes a difference going from the double accumulator to
@@ -340,8 +340,8 @@ private:
   bool m_round;
 
   size_t m_frame_count = 0;
-  kwiver::vital::image_of< double > m_average;
-  std::deque< kwiver::vital::image_of< T > > m_window;
+  viame::image_of< double > m_average;
+  std::deque< viame::image_of< T > > m_window;
 };
 
 } // namespace image_ops

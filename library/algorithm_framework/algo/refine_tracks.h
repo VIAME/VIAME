@@ -13,9 +13,7 @@
 #include <viame/core_types/object_track_set.h>
 #include <viame/core_types/timestamp.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -35,7 +33,7 @@ namespace algo {
 /// - Removing tracks that no longer match query criteria
 ///
 class VITAL_ALGO_EXPORT refine_tracks
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   refine_tracks();
@@ -74,8 +72,6 @@ typedef std::shared_ptr< refine_tracks > refine_tracks_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_REFINE_TRACKS_H_

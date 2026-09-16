@@ -117,7 +117,7 @@ public:
   std::string m_current_filename;
 
   // The underlying reader we delegate to
-  kwiver::vital::algo::detected_object_set_input_sptr m_reader;
+  viame::algo::detected_object_set_input_sptr m_reader;
 
 };
 
@@ -140,7 +140,7 @@ read_detected_object_set_auto::priv
 
   // Check general extensions
   std::string ext = to_lower(
-    kwiver::vital::filename_last_extension( filename ) );
+    viame::filename_last_extension( filename ) );
 
   if( ext == ".csv" )
   {
@@ -229,7 +229,7 @@ read_detected_object_set_auto
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_auto
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -257,17 +257,17 @@ read_detected_object_set_auto
   {
     // COCO reader is implemented in Python
     // Try to create via algorithm factory
-    if( kwiver::vital::has_algorithm_impl_name<
-          kwiver::vital::algo::detected_object_set_input >( "coco" ) )
+    if( viame::has_algorithm_impl_name<
+          viame::algo::detected_object_set_input >( "coco" ) )
     {
-      d->m_reader = kwiver::vital::create_algorithm<
-        kwiver::vital::algo::detected_object_set_input >( "coco" );
+      d->m_reader = viame::create_algorithm<
+        viame::algo::detected_object_set_input >( "coco" );
     }
 
     // If still no reader, throw error
     if( !d->m_reader )
     {
-      VITAL_THROW( kwiver::vital::algorithm_configuration_exception,
+      VITAL_THROW( viame::algorithm_configuration_exception,
                    "detected_object_set_input", "coco",
                    "COCO reader not available. Make sure Python support is enabled." );
     }
@@ -286,7 +286,7 @@ read_detected_object_set_auto
   }
   else
   {
-    VITAL_THROW( kwiver::vital::invalid_data,
+    VITAL_THROW( viame::invalid_data,
                  "Unknown format detected: " + d->m_detected_format );
   }
 
@@ -314,7 +314,7 @@ read_detected_object_set_auto
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_auto
-::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+::read_set( viame::detected_object_set_sptr& set, std::string& image_name )
 {
   if( !d->m_reader )
   {

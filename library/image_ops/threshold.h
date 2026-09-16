@@ -21,10 +21,10 @@ namespace image_ops {
 /// Inclusive, matching `vil_threshold_above`: a pixel exactly equal to the
 /// threshold is kept.
 template < typename T >
-kwiver::vital::image_of< bool >
-threshold_above( kwiver::vital::image_of< T > const& image, T value )
+viame::image_of< bool >
+threshold_above( viame::image_of< T > const& image, T value )
 {
-  kwiver::vital::image_of< bool > result( image.width(), image.height(),
+  viame::image_of< bool > result( image.width(), image.height(),
                                           image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -49,8 +49,8 @@ threshold_above( kwiver::vital::image_of< T > const& image, T value )
 ///                       twentieth.
 /// \param sampling_points How many samples the percentile is taken from.
 template < typename T >
-kwiver::vital::image_of< bool >
-threshold_percentile( kwiver::vital::image_of< T > const& image,
+viame::image_of< bool >
+threshold_percentile( viame::image_of< T > const& image,
                       double fraction,
                       size_t sampling_points = 1000 )
 {

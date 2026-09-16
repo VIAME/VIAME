@@ -12,7 +12,7 @@
  * \brief Runtime version checks.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 version::version_t const version::major = KWIVER_VERSION_MAJOR;

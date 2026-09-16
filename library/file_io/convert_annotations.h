@@ -96,7 +96,7 @@ VIAME_FILE_IO_EXPORT bool convert_annotation_file(
   std::string const& output_path,
   annotation_conversion_options const& options,
   annotation_conversion_summary& summary,
-  kwiver::vital::logger_handle_t logger );
+  viame::logger_handle_t logger );
 
 } // end namespace viame
 

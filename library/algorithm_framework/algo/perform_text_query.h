@@ -16,9 +16,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -45,7 +43,7 @@ namespace algo {
 ///    - Can maintain state across frames
 ///
 class VITAL_ALGO_EXPORT perform_text_query
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   perform_text_query();
@@ -90,8 +88,6 @@ typedef std::shared_ptr< perform_text_query > perform_text_query_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_PERFORM_TEXT_QUERY_H_

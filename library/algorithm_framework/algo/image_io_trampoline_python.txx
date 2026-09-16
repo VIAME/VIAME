@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/image_io.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class image_io_base = kwiver::vital::algo::image_io >
+template< class image_io_base = viame::algo::image_io >
 class image_io_trampoline
     : public algorithm_trampoline< image_io_base >
 {
@@ -21,34 +21,34 @@ class image_io_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::image_container_sptr
+  viame::image_container_sptr
   load_(::std::string const & filename) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::image_container_sptr,
-      kwiver::vital::algo::image_io,
+      viame::image_container_sptr,
+      viame::algo::image_io,
       load_,
       filename
       );
   }
 
   void
-  save_(::std::string const & filename, ::kwiver::vital::image_container_sptr data) const override
+  save_(::std::string const & filename, ::viame::image_container_sptr data) const override
   {
     PYBIND11_OVERLOAD_PURE(
       void,
-      kwiver::vital::algo::image_io,
+      viame::algo::image_io,
       save_,
       filename, data
       );
   }
 
-  kwiver::vital::metadata_sptr
+  viame::metadata_sptr
   load_metadata_(::std::string const & filename) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::metadata_sptr,
-      kwiver::vital::algo::image_io,
+      viame::metadata_sptr,
+      viame::algo::image_io,
       load_metadata_,
       filename
       );
@@ -59,12 +59,12 @@ class image_io_trampoline
   {
     PYBIND11_OVERLOAD_PURE(
       bool,
-      kwiver::vital::algo::image_io,
+      viame::algo::image_io,
       skip_path_validation_,
       
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

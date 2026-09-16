@@ -10,9 +10,7 @@
 
 #include <viame/algorithm_framework/exceptions/base.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic plugin exception
@@ -80,8 +78,6 @@ public:
   virtual ~plugin_already_exists() noexcept;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_CORE_EXCEPTION_PLUGIN_H

@@ -27,11 +27,11 @@ namespace core
  * @brief Filter object tracks
  */
 class VIAME_PROCESSES_VIDEO_IO_EXPORT read_habcam_metadata_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  read_habcam_metadata_process( kwiver::vital::config_block_sptr const& config );
+  read_habcam_metadata_process( viame::config_block_sptr const& config );
   virtual ~read_habcam_metadata_process();
 
 protected:

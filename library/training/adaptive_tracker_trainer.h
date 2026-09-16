@@ -40,7 +40,7 @@ namespace viame {
  * - Running advanced trackers (SRNN) for complex multi-object scenarios
  */
 class VIAME_TRAINING_EXPORT adaptive_tracker_trainer
-  : public kwiver::vital::algo::train_tracker
+  : public viame::algo::train_tracker
 {
 public:
 #define VIAME_CORE_ATT_PARAMS \
@@ -106,28 +106,28 @@ public:
 
   virtual ~adaptive_tracker_trainer() = default;
 
-  virtual kwiver::vital::config_block_sptr get_configuration() const override;
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  virtual viame::config_block_sptr get_configuration() const override;
+  virtual bool check_configuration( viame::config_block_sptr config ) const override;
 
   virtual void
-  add_data_from_disk( kwiver::vital::category_hierarchy_sptr object_labels,
+  add_data_from_disk( viame::category_hierarchy_sptr object_labels,
     std::vector< std::string > train_image_names,
-    std::vector< kwiver::vital::object_track_set_sptr > train_groundtruth,
+    std::vector< viame::object_track_set_sptr > train_groundtruth,
     std::vector< std::string > test_image_names,
-    std::vector< kwiver::vital::object_track_set_sptr > test_groundtruth ) override;
+    std::vector< viame::object_track_set_sptr > test_groundtruth ) override;
 
   virtual void
-  add_data_from_memory( kwiver::vital::category_hierarchy_sptr object_labels,
-    std::vector< kwiver::vital::image_container_sptr > train_images,
-    std::vector< kwiver::vital::object_track_set_sptr > train_groundtruth,
-    std::vector< kwiver::vital::image_container_sptr > test_images,
-    std::vector< kwiver::vital::object_track_set_sptr > test_groundtruth ) override;
+  add_data_from_memory( viame::category_hierarchy_sptr object_labels,
+    std::vector< viame::image_container_sptr > train_images,
+    std::vector< viame::object_track_set_sptr > train_groundtruth,
+    std::vector< viame::image_container_sptr > test_images,
+    std::vector< viame::object_track_set_sptr > test_groundtruth ) override;
 
   virtual std::map<std::string, std::string> update_model() override;
 
 private:
   void initialize() override;
-  void set_configuration_internal( kwiver::vital::config_block_sptr config ) override;
+  void set_configuration_internal( viame::config_block_sptr config ) override;
 
   class priv;
   KWIVER_UNIQUE_PTR( priv, d );

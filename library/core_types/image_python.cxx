@@ -10,9 +10,7 @@
 
 #include <cstdint>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -23,7 +21,7 @@ first_pixel_address( std::shared_ptr< image_t >& self )
 }
 
 pixel_traits::pixel_type
-kwiver::vital::python::image
+viame::python::image
 ::pixel_type( std::shared_ptr< image_t >& self )
 {
   auto traits = self->pixel_traits();
@@ -31,7 +29,7 @@ kwiver::vital::python::image
 }
 
 std::string
-kwiver::vital::python::image
+viame::python::image
 ::pixel_type_name( std::shared_ptr< image_t >& self )
 {
   auto traits = self->pixel_traits();
@@ -62,7 +60,7 @@ kwiver::vital::python::image
 }
 
 size_t
-kwiver::vital::python::image
+viame::python::image
 ::pixel_num_bytes( std::shared_ptr< image_t >& self )
 {
   auto traits = self->pixel_traits();
@@ -70,7 +68,7 @@ kwiver::vital::python::image
 }
 
 py::object
-kwiver::vital::python::image
+viame::python::image
 ::get_pixel2(
   std::shared_ptr< image_t >& img,
   size_t i, size_t j )
@@ -102,7 +100,7 @@ return py::cast( img->at< TYPE >( i, j ) );
 }
 
 py::object
-kwiver::vital::python::image
+viame::python::image
 ::get_pixel3(
   std::shared_ptr< image_t >& img,
   size_t i, size_t j, size_t k )
@@ -136,7 +134,7 @@ return py::cast( img->at< TYPE >( i, j, k ) );
 // __getitem__ has 2 or 3 dimensions, each calling a different function
 // so the index has to be passed in as a vector
 py::object
-kwiver::vital::python::image
+viame::python::image
 ::get_pixel(
   std::shared_ptr< image_t >& img,
   std::vector< size_t > idx )
@@ -153,14 +151,14 @@ kwiver::vital::python::image
 }
 
 void*
-kwiver::vital::python::image
+viame::python::image
 ::first_pixel( std::shared_ptr< image_t >& img )
 {
   return img->first_pixel();
 }
 
 image_t
-kwiver::vital::python::image
+viame::python::image
 ::new_image(
   size_t width, size_t height, size_t depth,
   bool interleave, pixel_traits::pixel_type& type,
@@ -171,7 +169,7 @@ kwiver::vital::python::image
 }
 
 image_t
-kwiver::vital::python::image
+viame::python::image
 ::new_image_from_data(
   char* first_pixel,
   size_t width, size_t height, size_t depth,
@@ -196,7 +194,7 @@ kwiver::vital::python::image
  *     https://docs.python.org/3/library/struct.html
  */
 const char*
-kwiver::vital::python::image
+viame::python::image
 ::get_trait_format_descriptor(
   const pixel_traits& traits )
 {
@@ -267,7 +265,7 @@ kwiver::vital::python::image
 }
 
 py::buffer_info
-kwiver::vital::python::image
+viame::python::image
 ::get_buffer_info( image_t& img )
 {
   const pixel_traits traits = img.pixel_traits();
@@ -298,7 +296,7 @@ kwiver::vital::python::image
 }
 
 py::object
-kwiver::vital::python::image
+viame::python::image
 ::asarray( image_t img )
 {
   const pixel_traits traits = img.pixel_traits();
@@ -315,11 +313,11 @@ kwiver::vital::python::image
       {
         case 1:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::BOOL,
                                             1 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::BOOL, 1 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -341,11 +339,11 @@ kwiver::vital::python::image
       {
         case 1:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::UNSIGNED,
                                             1 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::UNSIGNED, 1 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -357,11 +355,11 @@ kwiver::vital::python::image
         }
         case 2:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::UNSIGNED,
                                             2 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::UNSIGNED, 2 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -373,11 +371,11 @@ kwiver::vital::python::image
         }
         case 4:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::UNSIGNED,
                                             4 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::UNSIGNED, 4 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -389,11 +387,11 @@ kwiver::vital::python::image
         }
         case 8:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::UNSIGNED,
                                             8 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::UNSIGNED, 8 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -415,11 +413,11 @@ kwiver::vital::python::image
       {
         case 1:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::SIGNED,
                                             1 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::SIGNED, 1 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -431,11 +429,11 @@ kwiver::vital::python::image
         }
         case 2:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::SIGNED,
                                             2 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::SIGNED, 2 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -447,11 +445,11 @@ kwiver::vital::python::image
         }
         case 4:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::SIGNED,
                                             4 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::SIGNED, 4 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -463,11 +461,11 @@ kwiver::vital::python::image
         }
         case 8:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::SIGNED,
                                             8 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::SIGNED, 8 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -489,11 +487,11 @@ kwiver::vital::python::image
       {
         case 2:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::FLOAT,
                                             2 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::FLOAT, 2 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -505,11 +503,11 @@ kwiver::vital::python::image
         }
         case 4:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::FLOAT,
                                             4 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::FLOAT, 4 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -521,11 +519,11 @@ kwiver::vital::python::image
         }
         case 8:
         {
-          auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+          auto first_pixel = static_cast< viame::image_pixel_from_traits
                                           < pixel_traits::pixel_type::FLOAT,
                                             8 >::type* >
                              ( img.first_pixel() );
-          auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+          auto arr = py::array_t< viame::image_pixel_from_traits
             < pixel_traits::pixel_type::FLOAT, 8 >::type >(
             { img.height(), img.width(), img.depth() },
             { img.h_step() * num_bytes,
@@ -550,7 +548,7 @@ kwiver::vital::python::image
   }
 }
 
-void kwiver::vital::python::image
+void viame::python::image
 ::image( py::module& m )
 {
   py::class_< image_t, std::shared_ptr< image_t > > img( m, "Image",
@@ -569,7 +567,7 @@ void kwiver::vital::python::image
 
   img.doc() =
     R"(
-      Python bindings for kwiver::vital::image
+      Python bindings for viame::image
 
       Example:
           >>> from kwiver.vital.types import Image
@@ -598,7 +596,7 @@ void kwiver::vital::python::image
       pixel_traits::pixel_type::FLOAT ).export_values();
 
   img.def(
-    py::init( &kwiver::vital::python::image::new_image ),
+    py::init( &viame::python::image::new_image ),
     py::arg( "width" ) = 0, py::arg( "height" ) = 0, py::arg( "depth" ) = 1,
     py::arg( "interleave" ) = false,
     py::arg_v(
@@ -611,7 +609,7 @@ void kwiver::vital::python::image
   // as ImageContainer(VitalPIL.from_pil(pil_img)) fails with a TypeError
   // without it.
   .def(
-    py::init( &kwiver::vital::python::image::new_image_from_data ),
+    py::init( &viame::python::image::new_image_from_data ),
     py::arg( "first_pixel" ), py::arg( "width" ), py::arg( "height" ),
     py::arg( "depth" ),
     py::arg( "w_step" ), py::arg( "h_step" ), py::arg( "d_step" ),
@@ -620,7 +618,7 @@ void kwiver::vital::python::image
   // create initializer from typed numpy arrays
 #define init_from_numpy( T )                                              \
 .def(                                                                     \
-    py::init( &kwiver::vital::python::image::new_image_from_numpy< T > ), \
+    py::init( &viame::python::image::new_image_from_numpy< T > ), \
     py::arg( "array" ),                                                   \
     py::doc( "Create (copy) a vital image from a 2D or 3D numpy array" ) )
   init_from_numpy( uint8_t )
@@ -648,23 +646,21 @@ void kwiver::vital::python::image
     .def( "h_step", &image_t::h_step )
     .def( "d_step", &image_t::d_step )
     .def( "first_pixel_address", &first_pixel_address )
-    .def( "pixel_type", &kwiver::vital::python::image::pixel_type )
-    .def( "pixel_type_name", &kwiver::vital::python::image::pixel_type_name )
-    .def( "pixel_num_bytes", &kwiver::vital::python::image::pixel_num_bytes )
-    .def( "__getitem__", &kwiver::vital::python::image::get_pixel )
-    .def_buffer( &kwiver::vital::python::image::get_buffer_info )
+    .def( "pixel_type", &viame::python::image::pixel_type )
+    .def( "pixel_type_name", &viame::python::image::pixel_type_name )
+    .def( "pixel_num_bytes", &viame::python::image::pixel_num_bytes )
+    .def( "__getitem__", &viame::python::image::get_pixel )
+    .def_buffer( &viame::python::image::get_buffer_info )
     .def(
       "asarray", [](image_t& p_img){
         // It may be possible to write this method to share memory between
         // vital and numpy using the py::capsule class. For references see:
         // https://stackoverflow.com/questions/44659924/ret-nparrays-pybind11
-        py::object np_arr = kwiver::vital::python::image::asarray( p_img );
+        py::object np_arr = viame::python::image::asarray( p_img );
         return np_arr;
       }, py::doc( "Copy the image into a numpy array'" ) );
 }
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -25,76 +25,76 @@
 
 using namespace pybind11;
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
-static object pipe_block_config( ::sprokit::pipe_block const& block );
+static object pipe_block_config( ::viame::pipeline::pipe_block const& block );
 static void pipe_block_config_set(
-  ::sprokit::pipe_block& block,
-  ::sprokit::config_pipe_block const& config );
-static object pipe_block_process( ::sprokit::pipe_block const& block );
+  ::viame::pipeline::pipe_block& block,
+  ::viame::pipeline::config_pipe_block const& config );
+static object pipe_block_process( ::viame::pipeline::pipe_block const& block );
 static void pipe_block_process_set(
-  ::sprokit::pipe_block& block,
-  ::sprokit::process_pipe_block const& process );
-static object pipe_block_connect( ::sprokit::pipe_block const& block );
+  ::viame::pipeline::pipe_block& block,
+  ::viame::pipeline::process_pipe_block const& process );
+static object pipe_block_connect( ::viame::pipeline::pipe_block const& block );
 static void pipe_block_connect_set(
-  ::sprokit::pipe_block& block,
-  ::sprokit::connect_pipe_block const& connect );
-static ::sprokit::pipe_blocks load_pipe_file( std::string const& path );
-static ::sprokit::pipe_blocks load_pipe( object const& stream );
+  ::viame::pipeline::pipe_block& block,
+  ::viame::pipeline::connect_pipe_block const& connect );
+static ::viame::pipeline::pipe_blocks load_pipe_file( std::string const& path );
+static ::viame::pipeline::pipe_blocks load_pipe( object const& stream );
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
-using namespace kwiver::sprokit::python;
+using namespace viame::pipeline::python;
 PYBIND11_MODULE( load, m )
 {
-  bind_vector< sprokit::config_flags_t >(
+  bind_vector< viame::pipeline::config_flags_t >(
     m, "ConfigFlags",
     "A collection of flags on a configuration setting." )
   ;
-  class_< sprokit::config_value_t >(
+  class_< viame::pipeline::config_value_t >(
     m, "ConfigValue",
     "A complete configuration setting." )
     .def( init<>() )
-    .def_readwrite( "key", &sprokit::config_value_t::key_path )
-    .def_readwrite( "flags", &sprokit::config_value_t::flags )
-    .def_readwrite( "value", &sprokit::config_value_t::value )
+    .def_readwrite( "key", &viame::pipeline::config_value_t::key_path )
+    .def_readwrite( "flags", &viame::pipeline::config_value_t::flags )
+    .def_readwrite( "value", &viame::pipeline::config_value_t::value )
   ;
-  bind_vector< sprokit::config_values_t >(
+  bind_vector< viame::pipeline::config_values_t >(
     m, "ConfigValues",
     "A collection of configuration settings." )
   ;
-  class_< sprokit::config_pipe_block >(
+  class_< viame::pipeline::config_pipe_block >(
     m, "ConfigBlock",
     "A block of configuration settings." )
     .def( init<>() )
-    .def_readwrite( "key", &sprokit::config_pipe_block::key )
-    .def_readwrite( "values", &sprokit::config_pipe_block::values )
+    .def_readwrite( "key", &viame::pipeline::config_pipe_block::key )
+    .def_readwrite( "values", &viame::pipeline::config_pipe_block::values )
   ;
-  class_< sprokit::process_pipe_block >(
+  class_< viame::pipeline::process_pipe_block >(
     m, "ProcessBlock",
     "A block which declares a process." )
     .def( init<>() )
-    .def_readwrite( "name", &sprokit::process_pipe_block::name )
-    .def_readwrite( "type", &sprokit::process_pipe_block::type )
+    .def_readwrite( "name", &viame::pipeline::process_pipe_block::name )
+    .def_readwrite( "type", &viame::pipeline::process_pipe_block::type )
     .def_readwrite(
       "config_values",
-      &sprokit::process_pipe_block::config_values )
+      &viame::pipeline::process_pipe_block::config_values )
   ;
-  class_< sprokit::connect_pipe_block >(
+  class_< viame::pipeline::connect_pipe_block >(
     m, "ConnectBlock",
     "A block which connects two ports together." )
     .def( init<>() )
-    .def_readwrite( "from_", &sprokit::connect_pipe_block::from )
-    .def_readwrite( "to", &sprokit::connect_pipe_block::to )
+    .def_readwrite( "from_", &viame::pipeline::connect_pipe_block::from )
+    .def_readwrite( "to", &viame::pipeline::connect_pipe_block::to )
   ;
-  class_< sprokit::pipe_block >(
+  class_< viame::pipeline::pipe_block >(
     m, "PipeBlock",
     "A block in a pipeline declaration file." )
     .def( init<>() )
@@ -102,12 +102,12 @@ PYBIND11_MODULE( load, m )
     .def_property( "process", &pipe_block_process, &pipe_block_process_set )
     .def_property( "connect", &pipe_block_connect, &pipe_block_connect_set )
   ;
-  class_< sprokit::pipe_blocks >(
+  class_< viame::pipeline::pipe_blocks >(
     m, "PipeBlocks",
     "A collection of pipeline blocks." )
     .def( init<>() )
   /// \todo Need operator == on pipe_block.
-  // .def(vector_indexing_suite<sprokit::pipe_blocks>())
+  // .def(vector_indexing_suite<viame::pipeline::pipe_blocks>())
   ;
   class_< wrap_port_addr >(
     m, "PortAddr",
@@ -135,9 +135,9 @@ PYBIND11_MODULE( load, m )
     "Load pipe blocks from a stream." );
 }
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
@@ -156,14 +156,14 @@ public:
 
   block_t const block_type;
 
-  object operator()( ::sprokit::config_pipe_block const& config_block ) const;
-  object operator()( ::sprokit::process_pipe_block const& process_block ) const;
-  object operator()( ::sprokit::connect_pipe_block const& connect_block ) const;
+  object operator()( ::viame::pipeline::config_pipe_block const& config_block ) const;
+  object operator()( ::viame::pipeline::process_pipe_block const& process_block ) const;
+  object operator()( ::viame::pipeline::connect_pipe_block const& connect_block ) const;
 };
 
 // ----------------------------------------------------------------------------
 object
-pipe_block_config( ::sprokit::pipe_block const& block )
+pipe_block_config( ::viame::pipeline::pipe_block const& block )
 {
   return std::visit(
     pipe_block_visitor( pipe_block_visitor::BLOCK_CONFIG ),
@@ -173,15 +173,15 @@ pipe_block_config( ::sprokit::pipe_block const& block )
 // ----------------------------------------------------------------------------
 void
 pipe_block_config_set(
-  ::sprokit::pipe_block& block,
-  ::sprokit::config_pipe_block const& config )
+  ::viame::pipeline::pipe_block& block,
+  ::viame::pipeline::config_pipe_block const& config )
 {
   block = config;
 }
 
 // ----------------------------------------------------------------------------
 object
-pipe_block_process( ::sprokit::pipe_block const& block )
+pipe_block_process( ::viame::pipeline::pipe_block const& block )
 {
   return std::visit(
     pipe_block_visitor( pipe_block_visitor::BLOCK_PROCESS ),
@@ -191,15 +191,15 @@ pipe_block_process( ::sprokit::pipe_block const& block )
 // ----------------------------------------------------------------------------
 void
 pipe_block_process_set(
-  ::sprokit::pipe_block& block,
-  ::sprokit::process_pipe_block const& process )
+  ::viame::pipeline::pipe_block& block,
+  ::viame::pipeline::process_pipe_block const& process )
 {
   block = process;
 }
 
 // ----------------------------------------------------------------------------
 object
-pipe_block_connect( ::sprokit::pipe_block const& block )
+pipe_block_connect( ::viame::pipeline::pipe_block const& block )
 {
   return std::visit(
     pipe_block_visitor( pipe_block_visitor::BLOCK_CONNECT ),
@@ -209,27 +209,27 @@ pipe_block_connect( ::sprokit::pipe_block const& block )
 // ----------------------------------------------------------------------------
 void
 pipe_block_connect_set(
-  ::sprokit::pipe_block& block,
-  ::sprokit::connect_pipe_block const& connect )
+  ::viame::pipeline::pipe_block& block,
+  ::viame::pipeline::connect_pipe_block const& connect )
 {
   block = connect;
 }
 
 // ----------------------------------------------------------------------------
-::sprokit::pipe_blocks
+::viame::pipeline::pipe_blocks
 load_pipe_file( std::string const& path )
 {
-  ::sprokit::pipeline_builder builder;
+  ::viame::pipeline::pipeline_builder builder;
   builder.load_pipeline( path );
   return builder.pipeline_blocks();
 }
 
 // ----------------------------------------------------------------------------
-::sprokit::pipe_blocks
+::viame::pipeline::pipe_blocks
 load_pipe( object const& stream )
 {
-  ::sprokit::python::pyistream istr( stream );
-  ::sprokit::pipeline_builder builder;
+  ::viame::pipeline::python::pyistream istr( stream );
+  ::viame::pipeline::pipeline_builder builder;
   builder.load_pipeline( istr );
   return builder.pipeline_blocks();
 }
@@ -248,7 +248,7 @@ pipe_block_visitor
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
-::operator()( ::sprokit::config_pipe_block const& config_block ) const
+::operator()( ::viame::pipeline::config_pipe_block const& config_block ) const
 {
   pybind11::gil_scoped_acquire acquire;
   ( void ) acquire;
@@ -266,7 +266,7 @@ pipe_block_visitor
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
-::operator()( ::sprokit::process_pipe_block const& process_block ) const
+::operator()( ::viame::pipeline::process_pipe_block const& process_block ) const
 {
   pybind11::gil_scoped_acquire acquire;
   ( void ) acquire;
@@ -284,7 +284,7 @@ pipe_block_visitor
 // ----------------------------------------------------------------------------
 object
 pipe_block_visitor
-::operator()( ::sprokit::connect_pipe_block const& connect_block ) const
+::operator()( ::viame::pipeline::connect_pipe_block const& connect_block ) const
 {
   pybind11::gil_scoped_acquire acquire;
   ( void ) acquire;
@@ -301,6 +301,6 @@ pipe_block_visitor
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame

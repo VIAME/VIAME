@@ -62,7 +62,7 @@ public:
 };
 
 vertex_ai_trainer::vertex_ai_trainer(
-  kwiver::vital::config_block_sptr const& config )
+  viame::config_block_sptr const& config )
   : process( config ),
     d( new priv )
 {
@@ -98,7 +98,7 @@ void vertex_ai_trainer::_configure()
 
   if( !d->client.authenticate() )
   {
-    throw sprokit::invalid_configuration_exception(
+    throw viame::pipeline::invalid_configuration_exception(
       name(), "Failed to authenticate with GCP" );
   }
 }
@@ -172,7 +172,7 @@ void vertex_ai_trainer::_step()
 
 void vertex_ai_trainer::make_ports()
 {
-  sprokit::process::port_flags_t optional_;
+  viame::pipeline::process::port_flags_t optional_;
 
   declare_input_port(
     "input_gcs_dir", "kwiver:string", optional_,

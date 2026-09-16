@@ -24,9 +24,9 @@
 #include <cstdio>
 #include <string>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( video_filename, std::string, "",
@@ -60,23 +60,23 @@ public:
   std::string                            m_video_filename;
   bool                                   m_exit_on_invalid;
 
-  kwiver::vital::algo::video_output_sptr m_video_writer;
-  kwiver::vital::algorithm_capabilities  m_video_traits;
+  viame::algo::video_output_sptr m_video_writer;
+  viame::algorithm_capabilities  m_video_traits;
   double                                 m_maximum_length;
   bool                                   m_append_timestamp;
 
   double                                 m_frame_rate;
   bool                                   m_is_first_frame;
   double                                 m_clip_start_time;
-  kwiver::vital::image_container_sptr    m_last_frame;
-  kwiver::vital::metadata_vector         m_last_metadata;
+  viame::image_container_sptr    m_last_frame;
+  viame::metadata_vector         m_last_metadata;
 
 }; // end priv class
 
 
 // =============================================================================
 video_output_process
-::video_output_process( kwiver::vital::config_block_sptr const& config )
+::video_output_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new video_output_process::priv )
 {
@@ -125,11 +125,11 @@ void video_output_process
     }
   }
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   if( !check_nested_algo_configuration_using_trait( video_writer, algo_config, d->m_video_writer ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Configuration check failed." );
   }
 
@@ -138,7 +138,7 @@ void video_output_process
 
   if( !d->m_video_writer )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Unable to create video_writer." );
   }
 }
@@ -162,14 +162,14 @@ void video_output_process
 {
   bool reset = false;
 
-  vital::image_container_sptr frame = grab_from_port_using_trait( image );
-  vital::timestamp ts = grab_from_port_using_trait( timestamp );
+  viame::image_container_sptr frame = grab_from_port_using_trait( image );
+  viame::timestamp ts = grab_from_port_using_trait( timestamp );
 
   if( !frame )
   {
     if( d->m_exit_on_invalid )
     {
-      VITAL_THROW( vital::image_exception, "Invalid image received" );
+      VITAL_THROW( viame::image_exception, "Invalid image received" );
     }
     else
     {
@@ -205,9 +205,9 @@ void video_output_process
     // and this is the only place that knows them: the geometry from the
     // frame in hand, the rate from the port. simple_video_settings carries
     // exactly those three, so this does not depend on any one arrow.
-    vital::simple_video_settings default_settings(
+    viame::simple_video_settings default_settings(
       frame->width(), frame->height(), d->m_frame_rate );
-    vital::video_settings const* settings = &default_settings;
+    viame::video_settings const* settings = &default_settings;
     std::string filename = d->m_video_filename;
 
     if( reset && d->m_append_timestamp )
@@ -272,11 +272,11 @@ void video_output_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
   // We are outputting a shared ref to the output image, therefore we
   // should mark it as shared.
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   declare_input_port_using_trait( image, required );
@@ -314,4 +314,4 @@ video_output_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

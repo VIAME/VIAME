@@ -8,9 +8,7 @@
 
 #include <iostream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 config_block_formatter
@@ -24,14 +22,14 @@ void
 config_block_formatter
 ::print( std::ostream& str )
 {
-  kwiver::vital::config_block_keys_t all_keys = m_config->available_values();
+  viame::config_block_keys_t all_keys = m_config->available_values();
 
-  for( kwiver::vital::config_block_key_t key : all_keys )
+  for( viame::config_block_key_t key : all_keys )
   {
     std::string ro;
 
     auto const val =
-      m_config->get_value< kwiver::vital::config_block_value_t >( key );
+      m_config->get_value< viame::config_block_value_t >( key );
 
     if( m_config->is_read_only( key ) )
     {
@@ -52,6 +50,4 @@ config_block_formatter
   }
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/util/get_paths.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Code originally from https://github.com/gpakosz/whereami.git
 // and used unmodified
@@ -62,6 +60,4 @@ get_module_path()
   return path;
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

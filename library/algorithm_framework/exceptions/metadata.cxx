@@ -7,9 +7,7 @@
 
 #include "metadata.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 metadata_exception
 ::metadata_exception( std::string const& str )
@@ -37,6 +35,4 @@ metadata_type_overflow
 ::~metadata_type_overflow() noexcept
 {}
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

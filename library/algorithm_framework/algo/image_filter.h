@@ -12,9 +12,7 @@
 #include <viame/core_types/image_container.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -24,7 +22,7 @@ namespace algo {
 /// image modification, such as image enhancement. The resultant image
 /// must be the same size as the input image.
 class VITAL_ALGO_EXPORT image_filter
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   /// Return the name of this algorithm.
@@ -38,8 +36,8 @@ public:
   ///
   /// \param image_data Image to filter.
   /// \returns a filtered version of the input image
-  virtual kwiver::vital::image_container_sptr filter(
-    kwiver::vital::image_container_sptr image_data ) = 0;
+  virtual viame::image_container_sptr filter(
+    viame::image_container_sptr image_data ) = 0;
 };
 
 /// type definition for shared pointer to a image_filter algorithm
@@ -47,8 +45,6 @@ typedef std::shared_ptr< image_filter > image_filter_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_IMAGE_FILTER_H

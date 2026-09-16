@@ -10,9 +10,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /**
  * \class not_a_dag_exception directed_graph.h <vital/util/directed_graph.h>
@@ -231,8 +229,6 @@ topological_sort(
   }
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_UTIL_DIRECTED_GRAPH_H

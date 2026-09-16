@@ -11,7 +11,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // ----------------------------------------------------------------
@@ -29,13 +29,13 @@ namespace kwiver
  *
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT split_image_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "split_image",
                "Split a image into multiple smaller images." )
 
-  split_image_process( kwiver::vital::config_block_sptr const& config );
+  split_image_process( viame::config_block_sptr const& config );
   virtual ~split_image_process();
 
 protected:
@@ -50,6 +50,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class split_image_process
 
-} // end namespace
+} // namespace viame
 
 #endif

@@ -10,9 +10,7 @@
 #include <memory>
 #include <viame/core_types/noncopyable.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// \brief Config file parser.
@@ -32,16 +30,16 @@ namespace vital {
 ///
 /// Example code:
 /// \code
-/// std::auto< kwiver::vital::config_parser> input_config( new
-/// kwiver::vital::config_parser() );
+/// std::auto< viame::config_parser> input_config( new
+/// viame::config_parser() );
 /// input_config->add_search_path( "../config" );
 /// input_config->parse_config( filename );
 /// // Optionally, additional files can be parsed into the same config block.
-/// kwiver::vital::config_block_sptr blk = input_config->get_config();
+/// viame::config_block_sptr blk = input_config->get_config();
 /// \endcode
 ///
 class VITAL_CONFIG_EXPORT config_parser
-  : private kwiver::vital::noncopyable
+  : private viame::noncopyable
 {
 public:
   /// \brief Create object
@@ -95,7 +93,7 @@ public:
   /// block can be the combined contents of several files.
   ///
   /// \return Pointer to config block
-  kwiver::vital::config_block_sptr get_config() const;
+  viame::config_block_sptr get_config() const;
 
 protected:
   // method to add token classes
@@ -107,8 +105,6 @@ private:
   const std::unique_ptr< priv > m_priv;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_CONFIG_PARSER_H

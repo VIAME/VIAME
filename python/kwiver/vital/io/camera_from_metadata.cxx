@@ -8,7 +8,7 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 PYBIND11_MODULE( camera_from_metadata, m )
 {

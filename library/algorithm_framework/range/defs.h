@@ -8,9 +8,7 @@
 #include <iterator>
 #include <tuple>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace range {
 
@@ -214,9 +212,7 @@ protected:
 
 } // namespace range
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #ifdef DOXYGEN
 
@@ -233,7 +229,7 @@ template < typename Range, typename Adapter >
 auto
 operator|(
   Range&& range,
-  kwiver::vital::range::range_adapter_t< Adapter >( * )() )
+  viame::range::range_adapter_t< Adapter >( * )() )
 -> decltype( Adapter::adapt( std::forward< Range >( range ) ) )
 {
   return Adapter::adapt( std::forward< Range >( range ) );
@@ -244,7 +240,7 @@ template < typename Range, typename Adapter >
 auto
 operator|(
   Range&& range,
-  kwiver::vital::range::range_adapter_t< Adapter > )
+  viame::range::range_adapter_t< Adapter > )
 -> decltype( Adapter::adapt( std::forward< Range >( range ) ) )
 {
   return Adapter::adapt( std::forward< Range >( range ) );

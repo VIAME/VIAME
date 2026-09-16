@@ -38,7 +38,7 @@ namespace viame
 namespace core
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Forward declaration
 struct stereo_feature_correspondence;

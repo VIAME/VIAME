@@ -13,13 +13,13 @@
 
 #include <iterator>
 
-namespace kwiver {
+namespace viame {
 namespace adapter {
 
 //----------------------------------------------------------------
 adapter_base
 ::adapter_base()
-  : m_interface_queue( new kwiver::vital::bounded_buffer< kwiver::adapter::adapter_data_set_t > (2) )
+  : m_interface_queue( new viame::bounded_buffer< viame::adapter::adapter_data_set_t > (2) )
 {
 }
 
@@ -29,7 +29,7 @@ adapter_base
 }
 
 // ------------------------------------------------------------------
-kwiver::adapter::interface_ref_t
+viame::adapter::interface_ref_t
 adapter_base
 ::get_interface_queue()
 {
@@ -37,11 +37,11 @@ adapter_base
 }
 
 // ------------------------------------------------------------------
-sprokit::process::ports_t
+viame::pipeline::process::ports_t
 adapter_base
 ::port_list() const
 {
-  sprokit::process::ports_t ports;
+  viame::pipeline::process::ports_t ports;
 
   // return a copy of our port names
   std::copy( m_active_ports.begin(), m_active_ports.end(), std::back_inserter( ports ) );
@@ -49,4 +49,4 @@ adapter_base
   return ports;
 }
 
-} } // end namespace kwiver
+} } // namespace viame

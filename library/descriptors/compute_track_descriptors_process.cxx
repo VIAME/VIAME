@@ -18,9 +18,9 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
-namespace algo = vital::algo;
+namespace algo = viame::algo;
 
 create_algorithm_name_config_trait( computer );
 
@@ -53,14 +53,14 @@ public:
 
   algo::compute_track_descriptors_sptr m_computer;
 
-  void add_custom_uids( vital::track_descriptor_set_sptr& output,
+  void add_custom_uids( viame::track_descriptor_set_sptr& output,
                         const std::string& frame_id_stamp );
 };
 
 // =============================================================================
 
 compute_track_descriptors_process
-::compute_track_descriptors_process( vital::config_block_sptr const& config )
+::compute_track_descriptors_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new compute_track_descriptors_process::priv )
 {
@@ -82,7 +82,7 @@ void compute_track_descriptors_process
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     computer,
@@ -91,7 +91,7 @@ void compute_track_descriptors_process
 
   if( !d->m_computer )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Unable to create compute_track_descriptors" );
   }
 
@@ -104,7 +104,7 @@ void compute_track_descriptors_process
   if( !check_nested_algo_configuration_using_trait(
         computer, algo_config, d->m_computer ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Configuration check failed." );
   }
 
@@ -121,7 +121,7 @@ compute_track_descriptors_process
   // Peek at next input to see if we're at end of video
   auto p_info = peek_at_port_using_trait( image );
 
-  if( p_info.datum->type() == sprokit::datum::complete )
+  if( p_info.datum->type() == viame::pipeline::datum::complete )
   {
     grab_edge_datum_using_trait( image );
     mark_process_as_complete();
@@ -129,7 +129,7 @@ compute_track_descriptors_process
     // Push last outputs
     if( d->flush_on_last )
     {
-      vital::track_descriptor_set_sptr output;
+      viame::track_descriptor_set_sptr output;
       output = d->m_computer->flush();
       if( output )
       {
@@ -138,7 +138,7 @@ compute_track_descriptors_process
       }
     }
 
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( track_descriptor_set, dat );
     push_datum_to_port_using_trait( string_vector, dat );
@@ -148,10 +148,10 @@ compute_track_descriptors_process
   }
 
   // Retrieve inputs from ports
-  vital::image_container_sptr image;
-  vital::timestamp ts;
-  vital::object_track_set_sptr tracks;
-  vital::detected_object_set_sptr detections;
+  viame::image_container_sptr image;
+  viame::timestamp ts;
+  viame::object_track_set_sptr tracks;
+  viame::detected_object_set_sptr detections;
 
   image = grab_from_port_using_trait( image );
 
@@ -176,12 +176,12 @@ compute_track_descriptors_process
 
   if( detections && tracks )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
       name(), "Cannot connect both detections and tracks to process" );
   }
 
   // Process optional input track set - this is the standard use case
-  vital::track_descriptor_set_sptr output;
+  viame::track_descriptor_set_sptr output;
   {
     scoped_step_instrumentation();
 
@@ -196,23 +196,23 @@ compute_track_descriptors_process
     //  in order to compute the descriptors.
     if( detections )
     {
-      std::vector< vital::track_sptr > det_tracks;
+      std::vector< viame::track_sptr > det_tracks;
 
       for( unsigned i = 0; i < detections->size(); ++i )
       {
-        vital::track_sptr new_track( vital::track::create() );
+        viame::track_sptr new_track( viame::track::create() );
         new_track->set_id( i + d->detection_offset );
 
-        vital::track_state_sptr first_track_state(
-          new vital::object_track_state( ts, detections->at(i) ) );
+        viame::track_state_sptr first_track_state(
+          new viame::object_track_state( ts, detections->at(i) ) );
 
         new_track->append( first_track_state );
 
         det_tracks.push_back( new_track );
       }
 
-      vital::object_track_set_sptr det_track_set(
-        new vital::object_track_set( det_tracks ) );
+      viame::object_track_set_sptr det_track_set(
+        new viame::object_track_set( det_tracks ) );
 
       output = d->m_computer->compute( ts, image, det_track_set );
 
@@ -227,7 +227,7 @@ compute_track_descriptors_process
         }
 
         // Inject computed descriptors
-        for( vital::track_descriptor_sptr desc : *output )
+        for( viame::track_descriptor_sptr desc : *output )
         {
           auto ids = desc->get_track_ids();
 
@@ -261,8 +261,8 @@ void compute_track_descriptors_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
 
   required.insert( flag_required );
 
@@ -292,13 +292,13 @@ void compute_track_descriptors_process
 
 // -----------------------------------------------------------------------------
 void compute_track_descriptors_process
-::push_outputs( vital::track_descriptor_set_sptr& output )
+::push_outputs( viame::track_descriptor_set_sptr& output )
 {
   push_to_port_using_trait( track_descriptor_set, output );
 
   if( process::count_output_port_edges( "string_vector" ) > 0 )
   {
-    vital::string_vector_sptr uids( new vital::string_vector() );
+    viame::string_vector_sptr uids( new viame::string_vector() );
 
     for( auto desc : *output )
     {
@@ -310,15 +310,15 @@ void compute_track_descriptors_process
 
   if( process::count_output_port_edges( "descriptor_set" ) > 0 )
   {
-    std::vector< vital::descriptor_sptr > raw_descs;
+    std::vector< viame::descriptor_sptr > raw_descs;
 
     for( auto desc : *output )
     {
       raw_descs.push_back( desc->get_descriptor() );
     }
 
-    vital::descriptor_set_sptr dset(
-      new vital::simple_descriptor_set( raw_descs ) );
+    viame::descriptor_set_sptr dset(
+      new viame::simple_descriptor_set( raw_descs ) );
 
     push_to_port_using_trait( descriptor_set, dset );
   }
@@ -341,24 +341,24 @@ compute_track_descriptors_process::priv
 }
 
 void compute_track_descriptors_process::priv
-::add_custom_uids( vital::track_descriptor_set_sptr& output,
+::add_custom_uids( viame::track_descriptor_set_sptr& output,
                    const std::string& frame_id_stamp )
 {
   if( add_custom_uid )
   {
     unsigned counter = 1;
 
-    for( vital::track_descriptor_sptr desc : *output )
+    for( viame::track_descriptor_sptr desc : *output )
     {
       std::string new_uid = uid_basename +
         "_frame_" + frame_id_stamp +
         "_item_" + std::to_string( counter );
 
-      desc->set_uid( vital::uid( new_uid ) );
+      desc->set_uid( viame::uid( new_uid ) );
 
       counter++;
     }
   }
 }
 
-} // end namespace
+} // namespace viame

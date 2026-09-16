@@ -31,11 +31,11 @@ namespace core
  * searches in the indexed database.
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT create_database_query_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  create_database_query_process( kwiver::vital::config_block_sptr const& config );
+  create_database_query_process( viame::config_block_sptr const& config );
   virtual ~create_database_query_process();
 
 protected:

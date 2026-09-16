@@ -9,9 +9,7 @@
 
 #include <viame/algorithm_framework/util/vital_util_export.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// What `$SYSENV{...}` resolves to in a config or pipeline file.
@@ -38,8 +36,6 @@ public:
     std::string& result ) const;
 }; // end class token_type_sysenv
 
-} // end namespace
-
-} // end namespace
+} // namespace viame
 
 #endif // _TOKEN_TYPE_SYSENV_H_

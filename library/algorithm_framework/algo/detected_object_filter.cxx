@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/detected_object_filter.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ detected_object_filter
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

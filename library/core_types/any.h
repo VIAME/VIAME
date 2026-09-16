@@ -7,16 +7,12 @@
 
 #include <any>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 using std::any;
 using std::any_cast;
 using std::bad_any_cast;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

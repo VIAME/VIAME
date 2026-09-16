@@ -16,9 +16,7 @@
 
 #include <memory>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Forward declarations of abstract transform class
 class transform_2d;
@@ -56,8 +54,6 @@ protected:
   virtual transform_2d_sptr inverse_() const = 0;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

@@ -13,11 +13,11 @@
 
 #include <memory>
 
-namespace kwiver {
+namespace viame {
 
 // -------------------------------------------------------------------------------
 class VIAME_PROCESSES_OBJECT_TRACKERS_EXPORT unwrap_detections_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO(
@@ -25,7 +25,7 @@ public:
     "Unwrap object detections from object tracks." )
 
   // -- CONSTRUCTORS --
-  unwrap_detections_process( kwiver::vital::config_block_sptr const& config );
+  unwrap_detections_process( viame::config_block_sptr const& config );
   virtual ~unwrap_detections_process();
 
 protected:
@@ -41,6 +41,6 @@ private:
   const std::unique_ptr< priv > d;
 }; // end class unwrap_detections_process
 
-} // end namespace
+} // namespace viame
 
 #endif /* _KWIVER_UNWRAP_DETECTIONS_PROCESS_H */

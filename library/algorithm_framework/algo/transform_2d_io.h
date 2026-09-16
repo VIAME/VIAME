@@ -4,7 +4,7 @@
 
 /// \file
 /// \brief Interface for transform_2d_io
-///        \link kwiver::vital::algo::algorithm_def algorithm definition
+///        \link viame::algo::algorithm_def algorithm definition
 ///        \endlink.
 
 #ifndef VITAL_ALGO_TRANSFORM_2D_IO_H_
@@ -17,9 +17,7 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/transform_2d.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -28,7 +26,7 @@ namespace algo {
 /// This class represents an abstract interface for reading and writing
 /// transforms.
 class VITAL_ALGO_EXPORT transform_2d_io
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   transform_2d_io();
@@ -36,30 +34,30 @@ public:
 
   /// Load transform from the file
   ///
-  /// \throws kwiver::vital::path_not_exists
+  /// \throws viame::path_not_exists
   ///   Thrown when the given path does not exist.
   ///
-  /// \throws kwiver::vital::path_not_a_file
+  /// \throws viame::path_not_a_file
   ///   Thrown when the given path does not point to a file (i.e. it points to a
   ///   directory).
   ///
   /// \param filename the path to the file to load
   /// \returns a transform instance referring to the loaded transform
-  kwiver::vital::transform_2d_sptr load( std::string const& filename ) const;
+  viame::transform_2d_sptr load( std::string const& filename ) const;
 
   /// Save transform to a file
   ///
   /// Transform file format is based on the algorithm instance.
   ///
-  /// \throws kwiver::vital::path_not_exists
+  /// \throws viame::path_not_exists
   ///   Thrown when the expected containing directory of the given path does not
   ///   exist.
   ///
-  /// \throws kwiver::vital::path_not_a_directory
+  /// \throws viame::path_not_a_directory
   ///   Thrown when the expected containing directory of the given path is not
   ///   actually a directory.
   ///
-  /// \throws kwiver::vital::invalid_data
+  /// \throws viame::invalid_data
   ///   Thrown when the algorithm does not recognize the concrete type of the
   ///   transformation instance.
   ///
@@ -67,7 +65,7 @@ public:
   /// \param data the transform instance referring to the transform to write
   void save(
     std::string const& filename,
-    kwiver::vital::transform_2d_sptr data ) const;
+    viame::transform_2d_sptr data ) const;
 
 private:
   /// Implementation specific load functionality.
@@ -77,7 +75,7 @@ private:
   ///
   /// \param filename the path to the file the load
   /// \returns a transform instance referring to the loaded transform
-  virtual kwiver::vital::transform_2d_sptr load_(
+  virtual viame::transform_2d_sptr load_(
     std::string const& filename ) const = 0;
 
   /// Implementation specific save functionality.
@@ -89,7 +87,7 @@ private:
   /// \param data the transform instance referring to the transform to write
   virtual void save_(
     std::string const& filename,
-    kwiver::vital::transform_2d_sptr data ) const = 0;
+    viame::transform_2d_sptr data ) const = 0;
 };
 
 /// Shared pointer type for generic transform_2d_io definition type.
@@ -97,8 +95,6 @@ using transform_2d_io_sptr = std::shared_ptr< transform_2d_io >;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

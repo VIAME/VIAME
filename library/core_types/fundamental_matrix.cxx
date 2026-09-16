@@ -12,9 +12,7 @@
 #include <cmath>
 
 #include <viame/algorithm_framework/exceptions/math.h>
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Construct from a provided matrix
 template < typename T >
@@ -124,6 +122,4 @@ INSTANTIATE_FUNDAMENTAL_MATRIX( double );
 #undef INSTANTIATE_FUNDAMENTAL_MATRIX
 /// \endcond
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame

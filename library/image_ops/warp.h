@@ -62,7 +62,7 @@ enum class interpolation
 /// `borderMode` for exactly that reason.
 template < typename T >
 double
-sample_bilinear( kwiver::vital::image_of< T > const& image, double x,
+sample_bilinear( viame::image_of< T > const& image, double x,
                  double y, size_t plane, border_mode mode,
                  double constant = 0.0 )
 {
@@ -98,7 +98,7 @@ sample_bilinear( kwiver::vital::image_of< T > const& image, double x,
 /// so that neither can quietly become the other.
 template < typename T >
 double
-sample_nearest( kwiver::vital::image_of< T > const& image, double x, double y,
+sample_nearest( viame::image_of< T > const& image, double x, double y,
                 size_t plane, border_mode mode, double constant = 0.0 )
 {
   return sample_with_border( image, std::lround( x ), std::lround( y ), plane,
@@ -218,8 +218,8 @@ byte_linear_axis( size_t dst_size, size_t src_size, double scale,
 /// through the shifts `VResizeLinear`'s 8-bit specialisation uses -- which
 /// are **not** the generic fixed-point cast, and that is where the count
 /// comes from.
-inline kwiver::vital::image_of< uint8_t >
-resize_byte_linear( kwiver::vital::image_of< uint8_t > const& image,
+inline viame::image_of< uint8_t >
+resize_byte_linear( viame::image_of< uint8_t > const& image,
                     size_t width, size_t height,
                     double scale_x, double scale_y )
 {
@@ -266,7 +266,7 @@ resize_byte_linear( kwiver::vital::image_of< uint8_t > const& image,
     }
   }
 
-  kwiver::vital::image_of< uint8_t > out( width, height, depth );
+  viame::image_of< uint8_t > out( width, height, depth );
 
   auto const clamp_row =
     [ src_height ]( long row ) -> size_t
@@ -309,8 +309,8 @@ resize_byte_linear( kwiver::vital::image_of< uint8_t > const& image,
 } // namespace detail
 
 template < typename T >
-kwiver::vital::image_of< T >
-resize( kwiver::vital::image_of< T > const& image, size_t width,
+viame::image_of< T >
+resize( viame::image_of< T > const& image, size_t width,
         size_t height, interpolation how = interpolation::BILINEAR,
         border_mode mode = border_mode::REPLICATE )
 {
@@ -350,7 +350,7 @@ resize( kwiver::vital::image_of< T > const& image, size_t width,
   auto const scale_y =
     static_cast< double >( image.height() ) / static_cast< double >( height );
 
-  kwiver::vital::image_of< T > out( width, height, image.depth() );
+  viame::image_of< T > out( width, height, image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
   {
@@ -450,8 +450,8 @@ resize( kwiver::vital::image_of< T > const& image, size_t width,
 /// @param scale_x the horizontal scale, output over input
 /// @param scale_y the vertical scale
 template < typename T >
-kwiver::vital::image_of< T >
-resize_by_scale( kwiver::vital::image_of< T > const& image,
+viame::image_of< T >
+resize_by_scale( viame::image_of< T > const& image,
                  double scale_x, double scale_y,
                  interpolation how = interpolation::BILINEAR,
                  border_mode mode = border_mode::REPLICATE )
@@ -495,9 +495,9 @@ resize_by_scale( kwiver::vital::image_of< T > const& image,
 /// @param width the output width, the source's when zero
 /// @param height the output height, the source's when zero
 template < typename T >
-kwiver::vital::image_of< T >
-warp_perspective_inverse( kwiver::vital::image_of< T > const& image,
-                          kwiver::vital::matrix_3x3d const& inverse,
+viame::image_of< T >
+warp_perspective_inverse( viame::image_of< T > const& image,
+                          viame::matrix_3x3d const& inverse,
                           size_t width, size_t height,
                           interpolation how = interpolation::BILINEAR,
                           border_mode mode = border_mode::CONSTANT,
@@ -509,7 +509,7 @@ warp_perspective_inverse( kwiver::vital::image_of< T > const& image,
       "warp_perspective_inverse: the target has no area" );
   }
 
-  kwiver::vital::image_of< T > out( width, height, image.depth() );
+  viame::image_of< T > out( width, height, image.depth() );
 
   for( size_t j = 0; j < height; ++j )
   {
@@ -552,9 +552,9 @@ warp_perspective_inverse( kwiver::vital::image_of< T > const& image,
 
 /// `warp_perspective_inverse` with the forward matrix, inverted here.
 template < typename T >
-kwiver::vital::image_of< T >
-warp_perspective( kwiver::vital::image_of< T > const& image,
-                  kwiver::vital::matrix_3x3d const& transform,
+viame::image_of< T >
+warp_perspective( viame::image_of< T > const& image,
+                  viame::matrix_3x3d const& transform,
                   size_t width = 0, size_t height = 0,
                   interpolation how = interpolation::BILINEAR,
                   border_mode mode = border_mode::CONSTANT,
@@ -579,15 +579,15 @@ warp_perspective( kwiver::vital::image_of< T > const& image,
 /// The same operation as the perspective warp with a bottom row of
 /// (0, 0, 1), and written as one so that the two cannot drift apart.
 template < typename T >
-kwiver::vital::image_of< T >
-warp_affine( kwiver::vital::image_of< T > const& image,
-             kwiver::vital::matrix_< 2, 3, double > const& transform,
+viame::image_of< T >
+warp_affine( viame::image_of< T > const& image,
+             viame::matrix_< 2, 3, double > const& transform,
              size_t width = 0, size_t height = 0,
              interpolation how = interpolation::BILINEAR,
              border_mode mode = border_mode::CONSTANT,
              double constant = 0.0 )
 {
-  kwiver::vital::matrix_3x3d full;
+  viame::matrix_3x3d full;
 
   for( unsigned r = 0; r < 2; ++r )
   {
@@ -610,7 +610,7 @@ warp_affine( kwiver::vital::image_of< T > const& image,
 /// A rotation of \p degrees counter-clockwise about (\p centre_x,
 /// \p centre_y), scaled by \p scale, as a two by three that maps source to
 /// destination.
-inline kwiver::vital::matrix_< 2, 3, double >
+inline viame::matrix_< 2, 3, double >
 rotation_matrix_2d( double centre_x, double centre_y, double degrees,
                     double scale = 1.0 )
 {
@@ -618,7 +618,7 @@ rotation_matrix_2d( double centre_x, double centre_y, double degrees,
   auto const alpha = std::cos( radians ) * scale;
   auto const beta = std::sin( radians ) * scale;
 
-  kwiver::vital::matrix_< 2, 3, double > out;
+  viame::matrix_< 2, 3, double > out;
 
   out( 0, 0 ) = alpha;
   out( 0, 1 ) = beta;
@@ -638,10 +638,10 @@ rotation_matrix_2d( double centre_x, double centre_y, double degrees,
 /// This is what a rectification uses: the calibration step produces the two
 /// maps once and every frame is sampled through them.
 template < typename T, typename M >
-kwiver::vital::image_of< T >
-remap( kwiver::vital::image_of< T > const& image,
-       kwiver::vital::image_of< M > const& map_x,
-       kwiver::vital::image_of< M > const& map_y,
+viame::image_of< T >
+remap( viame::image_of< T > const& image,
+       viame::image_of< M > const& map_x,
+       viame::image_of< M > const& map_y,
        interpolation how = interpolation::BILINEAR,
        border_mode mode = border_mode::CONSTANT, double constant = 0.0 )
 {
@@ -655,7 +655,7 @@ remap( kwiver::vital::image_of< T > const& image,
     throw std::invalid_argument( "remap: a map has one plane" );
   }
 
-  kwiver::vital::image_of< T > out( map_x.width(), map_x.height(),
+  viame::image_of< T > out( map_x.width(), map_x.height(),
                                     image.depth() );
 
   for( size_t j = 0; j < map_x.height(); ++j )

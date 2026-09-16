@@ -12,7 +12,7 @@
  * \brief Implementation of the feedback process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class feedback_process::priv
@@ -33,7 +33,7 @@ process::port_t const feedback_process::priv::port_output = port_t("output");
 process::port_type_t const feedback_process::priv::type_custom_feedback = port_type_t("__feedback");
 
 feedback_process
-::feedback_process(kwiver::vital::config_block_sptr const& config)
+::feedback_process(viame::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

@@ -8,9 +8,7 @@
 #include "algorithm.h"
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 algorithm_exception
 ::algorithm_exception(
@@ -66,6 +64,4 @@ invalid_name_exception
 ::~invalid_name_exception() noexcept
 {}
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

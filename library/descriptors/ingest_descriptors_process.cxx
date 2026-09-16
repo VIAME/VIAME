@@ -142,10 +142,10 @@ ingest_descriptors_process
 ::_step()
 {
   // Grab input values from ports
-  kwiver::vital::descriptor_set_sptr vital_descriptor_set =
+  viame::descriptor_set_sptr vital_descriptor_set =
     grab_from_port_using_trait( descriptor_set );
 
-  kwiver::vital::string_vector_sptr string_tuple =
+  viame::string_vector_sptr string_tuple =
     grab_from_port_using_trait( string_vector );
 
   // Validate input sizes match
@@ -159,7 +159,7 @@ ingest_descriptors_process
   }
 
   // Convert descriptors to buffer entries
-  std::vector< kwiver::vital::descriptor_sptr > descriptors =
+  std::vector< viame::descriptor_sptr > descriptors =
     vital_descriptor_set->descriptors();
 
   for( size_t i = 0; i < descriptors.size(); ++i )
@@ -242,9 +242,9 @@ void
 ingest_descriptors_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- inputs --

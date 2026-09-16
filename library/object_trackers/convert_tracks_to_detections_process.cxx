@@ -14,7 +14,7 @@
 #include <viame/pipeline_framework/process_exception.h>
 #include <viame/pipeline_framework/type_traits.h>
 
-namespace kwiver {
+namespace viame {
 
 create_config_trait(
   frame_ids_only, bool, "false",
@@ -35,7 +35,7 @@ public:
 // =============================================================================
 
 convert_tracks_to_detections_process
-::convert_tracks_to_detections_process( vital::config_block_sptr const& config )
+::convert_tracks_to_detections_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new convert_tracks_to_detections_process::priv )
 {
@@ -57,7 +57,7 @@ convert_tracks_to_detections_process
   scoped_configure_instrumentation();
 
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   d->frame_ids_only = config_value_using_trait( frame_ids_only );
 
@@ -73,23 +73,23 @@ convert_tracks_to_detections_process
   auto ts_port_info = peek_at_port_using_trait( timestamp );
   auto trk_port_info = peek_at_port_using_trait( object_track_set );
 
-  if( ts_port_info.datum->type() == sprokit::datum::complete ||
-      trk_port_info.datum->type() == sprokit::datum::complete )
+  if( ts_port_info.datum->type() == viame::pipeline::datum::complete ||
+      trk_port_info.datum->type() == viame::pipeline::datum::complete )
   {
     grab_edge_datum_using_trait( timestamp );
     grab_edge_datum_using_trait( object_track_set );
     mark_process_as_complete();
 
 
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
     push_datum_to_port_using_trait( detected_object_set, dat );
     return;
   }
 
 
   // Retrieve inputs from ports
-  vital::timestamp ts = grab_from_port_using_trait( timestamp );
-  vital::object_track_set_sptr tracks =
+  viame::timestamp ts = grab_from_port_using_trait( timestamp );
+  viame::object_track_set_sptr tracks =
     grab_from_port_using_trait( object_track_set );
 
   // Output frame ID
@@ -97,7 +97,7 @@ convert_tracks_to_detections_process
 
 
   // Split track set into detections
-  std::vector< vital::detected_object_sptr > output;
+  std::vector< viame::detected_object_sptr > output;
 
   if( tracks )
   {
@@ -105,8 +105,8 @@ convert_tracks_to_detections_process
     {
       if( trk_ptr && !trk_ptr->empty() )
       {
-        kwiver::vital::object_track_state* state =
-          dynamic_cast< kwiver::vital::object_track_state* >( trk_ptr->back().
+        viame::object_track_state* state =
+          dynamic_cast< viame::object_track_state* >( trk_ptr->back().
                                                               get() );
 
         if( state &&
@@ -122,7 +122,7 @@ convert_tracks_to_detections_process
   // Output results
   push_to_port_using_trait(
     detected_object_set,
-    std::make_shared< vital::detected_object_set >( output ) );
+    std::make_shared< viame::detected_object_set >( output ) );
 
   process::_step();
 }
@@ -133,8 +133,8 @@ convert_tracks_to_detections_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
 
   required.insert( flag_required );
 
@@ -154,4 +154,4 @@ convert_tracks_to_detections_process
   declare_config_using_trait( frame_ids_only );
 }
 
-} // end namespace
+} // namespace viame

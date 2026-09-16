@@ -9,10 +9,10 @@
 /**
  * \file process_registry_exception.cxx
  *
- * \brief Implementation of exceptions used within the \link sprokit::process_registry process registry\endlink.
+ * \brief Implementation of exceptions used within the \link viame::pipeline::process_registry process registry\endlink.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 process_registry_exception

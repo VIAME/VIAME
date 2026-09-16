@@ -34,7 +34,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 #ifdef WIN32
   const std::string div = "\\";
@@ -113,13 +113,13 @@ windowed_trainer
   {
     // Delete and reset folder contents, unless reusing a prior chip cache
     if( !c_reuse_cache &&
-        kwiver::vital::file_exists( c_train_directory ) &&
-        kwiver::vital::file_is_directory( c_train_directory ) )
+        viame::file_exists( c_train_directory ) &&
+        viame::file_is_directory( c_train_directory ) )
     {
-      kwiver::vital::remove_directory( c_train_directory );
+      viame::remove_directory( c_train_directory );
 
 #ifndef WIN32
-      if( kwiver::vital::file_exists( c_train_directory ) )
+      if( viame::file_exists( c_train_directory ) )
       {
         LOG_ERROR( m_logger, "Unable to delete pre-existing training dir" );
         return;
@@ -127,12 +127,12 @@ windowed_trainer
 #endif
     }
 
-    kwiver::vital::make_directory( c_train_directory );
+    viame::make_directory( c_train_directory );
 
     if( !m_chip_subdirectory.empty() )
     {
       std::string folder = c_train_directory + div + m_chip_subdirectory;
-      kwiver::vital::make_directory( folder );
+      viame::make_directory( folder );
     }
   }
 
@@ -925,7 +925,7 @@ std::string
 windowed_trainer
 ::frame_tag_for( unsigned fid, const std::string& image_fn )
 {
-  std::string base = kwiver::vital::filename_name( image_fn );
+  std::string base = viame::filename_name( image_fn );
 
   for( auto& c : base )
   {
@@ -961,7 +961,7 @@ windowed_trainer
 {
   const std::string mpath = manifest_path( frame_tag );
 
-  if( !kwiver::vital::file_exists( mpath ) )
+  if( !viame::file_exists( mpath ) )
   {
     return false;
   }
@@ -1004,7 +1004,7 @@ windowed_trainer
       ls >> fn >> ndet;
 
       // Invalidate cache if a referenced file is gone
-      if( !kwiver::vital::file_exists( fn ) )
+      if( !viame::file_exists( fn ) )
       {
         return false;
       }

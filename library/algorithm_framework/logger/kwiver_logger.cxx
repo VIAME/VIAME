@@ -18,9 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -419,6 +417,4 @@ get_logger( std::string const& name )
   return registry::instance().get( name );
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

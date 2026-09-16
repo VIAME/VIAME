@@ -41,10 +41,10 @@ public:
   std::string m_filename;
 
   // All tracks loaded from the file
-  std::vector< kwiver::vital::track_sptr > m_all_tracks;
+  std::vector< viame::track_sptr > m_all_tracks;
 
   // Tracks indexed by frame for streaming mode
-  std::map< int, std::vector< kwiver::vital::track_sptr > > m_tracks_by_frame;
+  std::map< int, std::vector< viame::track_sptr > > m_tracks_by_frame;
 
   int m_current_frame;
   int m_max_frame;
@@ -71,7 +71,7 @@ read_object_track_set_dive
 // -----------------------------------------------------------------------------------
 bool
 read_object_track_set_dive
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   return true;
 }
@@ -82,7 +82,7 @@ void
 read_object_track_set_dive
 ::open( std::string const& filename )
 {
-  kwiver::vital::algo::read_object_track_set::open( filename );
+  viame::algo::read_object_track_set::open( filename );
 
   d->m_first = true;
   d->m_filename = filename;
@@ -96,7 +96,7 @@ read_object_track_set_dive
 // -----------------------------------------------------------------------------------
 bool
 read_object_track_set_dive
-::read_set( kwiver::vital::object_track_set_sptr& set )
+::read_set( viame::object_track_set_sptr& set )
 {
   if( d->m_first )
   {
@@ -109,11 +109,11 @@ read_object_track_set_dive
     // Return all tracks in one set
     if( d->m_all_tracks.empty() )
     {
-      set = std::make_shared< kwiver::vital::object_track_set >();
+      set = std::make_shared< viame::object_track_set >();
       return false;
     }
 
-    set = std::make_shared< kwiver::vital::object_track_set >( d->m_all_tracks );
+    set = std::make_shared< viame::object_track_set >( d->m_all_tracks );
     d->m_all_tracks.clear();
     return true;
   }
@@ -122,18 +122,18 @@ read_object_track_set_dive
     // Streaming mode - return tracks for current frame
     if( d->m_current_frame > d->m_max_frame )
     {
-      set = std::make_shared< kwiver::vital::object_track_set >();
+      set = std::make_shared< viame::object_track_set >();
       return false;
     }
 
     auto itr = d->m_tracks_by_frame.find( d->m_current_frame );
     if( itr != d->m_tracks_by_frame.end() )
     {
-      set = std::make_shared< kwiver::vital::object_track_set >( itr->second );
+      set = std::make_shared< viame::object_track_set >( itr->second );
     }
     else
     {
-      set = std::make_shared< kwiver::vital::object_track_set >();
+      set = std::make_shared< viame::object_track_set >();
     }
 
     ++d->m_current_frame;
@@ -170,7 +170,7 @@ read_object_track_set_dive::priv
       dive_track const& dtrack = track_pair.second;
 
       // Create a new kwiver track
-      auto track = kwiver::vital::track::create();
+      auto track = viame::track::create();
       track->set_id( dtrack.id );
       // DIVE keeps attributes on the track as well as on individual
       // features.  Preserve them so a DIVE round trip does not discard the
@@ -199,8 +199,8 @@ read_object_track_set_dive::priv
         }
 
         // Create track state with frame number and detection
-        kwiver::vital::time_usec_t frame_time = frame;
-        auto state = std::make_shared< kwiver::vital::object_track_state >(
+        viame::time_usec_t frame_time = frame;
+        auto state = std::make_shared< viame::object_track_state >(
           frame, frame_time, det );
 
         track->append( state );

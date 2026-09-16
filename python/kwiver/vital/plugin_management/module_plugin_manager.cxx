@@ -10,7 +10,7 @@
 #include <viame/algorithm_framework/test_interface/say.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // ----------------------------------------------------------------------------
 PYBIND11_MODULE( _plugin_management, m )

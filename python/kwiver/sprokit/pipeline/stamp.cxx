@@ -9,11 +9,11 @@
 /**
  * \file stamp.cxx
  *
- * \brief Python bindings for \link sprokit::stamp\endlink.
+ * \brief Python bindings for \link viame::pipeline::stamp\endlink.
  */
 
 using namespace pybind11;
-using namespace kwiver::sprokit::python;
+using namespace viame::pipeline::python;
 PYBIND11_MODULE( stamp, m )
 {
   m.def(

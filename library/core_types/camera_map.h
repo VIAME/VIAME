@@ -17,9 +17,7 @@
 #include <memory>
 #include <set>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// An abstract mapping between frame IDs and cameras
 class camera_map
@@ -234,8 +232,6 @@ protected:
   frame_to_T_sptr_map data_;
 };
 
-} // namespace vital
-
-}  // end namespace vital
+} // namespace viame
 
 #endif // VITAL_CAMERA_MAP_H_

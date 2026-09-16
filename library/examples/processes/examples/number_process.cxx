@@ -18,7 +18,7 @@
  * \brief Implementation of the number process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class number_process::priv
@@ -34,33 +34,33 @@ class number_process::priv
 
     number_t current;
 
-    static kwiver::vital::config_block_key_t const config_start;
-    static kwiver::vital::config_block_key_t const config_end;
-    static kwiver::vital::config_block_value_t const default_start;
-    static kwiver::vital::config_block_value_t const default_end;
+    static viame::config_block_key_t const config_start;
+    static viame::config_block_key_t const config_end;
+    static viame::config_block_value_t const default_start;
+    static viame::config_block_value_t const default_end;
     static port_t const port_output;
 };
 
-kwiver::vital::config_block_key_t const number_process::priv::config_start = kwiver::vital::config_block_key_t("start");
-kwiver::vital::config_block_key_t const number_process::priv::config_end = kwiver::vital::config_block_key_t("end");
-kwiver::vital::config_block_value_t const number_process::priv::default_start = kwiver::vital::config_block_value_t("0");
-kwiver::vital::config_block_value_t const number_process::priv::default_end = kwiver::vital::config_block_value_t("100");
+viame::config_block_key_t const number_process::priv::config_start = viame::config_block_key_t("start");
+viame::config_block_key_t const number_process::priv::config_end = viame::config_block_key_t("end");
+viame::config_block_value_t const number_process::priv::default_start = viame::config_block_value_t("0");
+viame::config_block_value_t const number_process::priv::default_end = viame::config_block_value_t("100");
 process::port_t const number_process::priv::port_output = port_t("number");
 
 number_process
-::number_process(kwiver::vital::config_block_sptr const& config)
+::number_process(viame::config_block_sptr const& config)
   : process(config)
   , d()
 {
   declare_configuration_key(
     priv::config_start,
     priv::default_start,
-    kwiver::vital::config_block_description_t("The value to start counting at."));
+    viame::config_block_description_t("The value to start counting at."));
 
   declare_configuration_key(
     priv::config_end,
     priv::default_end,
-    kwiver::vital::config_block_description_t("The value to stop counting at."));
+    viame::config_block_description_t("The value to stop counting at."));
 
   port_flags_t required;
 

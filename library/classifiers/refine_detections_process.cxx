@@ -11,7 +11,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( refiner );
 
@@ -23,14 +23,14 @@ public:
   priv();
   ~priv();
 
-   vital::frame_id_t m_current_idx;
-   vital::algo::refine_detections_sptr m_refiner;
+   viame::frame_id_t m_current_idx;
+   viame::algo::refine_detections_sptr m_refiner;
 
 }; // end priv class
 
 // ==================================================================
 refine_detections_process::
-refine_detections_process( kwiver::vital::config_block_sptr const& config )
+refine_detections_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new refine_detections_process::priv )
 {
@@ -50,13 +50,13 @@ _configure()
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
   if ( ! check_nested_algo_configuration_using_trait(
          refiner, algo_config, d->m_refiner ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   set_nested_algo_configuration_using_trait(
@@ -66,7 +66,7 @@ _configure()
 
   if ( ! d->m_refiner )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create refiner" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create refiner" );
   }
 }
 
@@ -77,7 +77,7 @@ _finalize()
 {
   mark_process_as_complete();
 
-  const sprokit::datum_t dat = sprokit::datum::complete_datum();
+  const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
   push_datum_to_port_using_trait( detected_object_set, dat );
   push_datum_to_port_using_trait( object_track_set, dat );
@@ -88,11 +88,11 @@ void
 refine_detections_process::
 _step()
 {
-  vital::image_container_sptr image;
-  vital::timestamp timestamp;
-  vital::detected_object_set_sptr dets;
-  vital::object_track_set_sptr tracks;
-  vital::frame_id_t cur_frame_id = 0;
+  viame::image_container_sptr image;
+  viame::timestamp timestamp;
+  viame::detected_object_set_sptr dets;
+  viame::object_track_set_sptr tracks;
+  viame::frame_id_t cur_frame_id = 0;
 
   // Every input is optional: an nms or add_fixed refiner works on the
   // detections alone, and a track refiner takes the track set instead. Peek
@@ -104,7 +104,7 @@ _step()
   {
     auto port_check = peek_at_port_using_trait( detected_object_set );
 
-    if( port_check.datum->type() == sprokit::datum::complete )
+    if( port_check.datum->type() == viame::pipeline::datum::complete )
     {
       this->_finalize();
       return;
@@ -117,7 +117,7 @@ _step()
   {
     auto port_check = peek_at_port_using_trait( object_track_set );
 
-    if( port_check.datum->type() == sprokit::datum::complete )
+    if( port_check.datum->type() == viame::pipeline::datum::complete )
     {
       this->_finalize();
       return;
@@ -145,7 +145,7 @@ _step()
     cur_frame_id = d->m_current_idx;
   }
 
-  vital::detected_object_set_sptr output_dets;
+  viame::detected_object_set_sptr output_dets;
 
   {
     scoped_step_instrumentation();
@@ -159,14 +159,14 @@ _step()
     {
       // Refine the detections belonging to this frame, then write them back
       // into the states they came from so the track set stays intact.
-      auto frame_dets = std::make_shared< kwiver::vital::detected_object_set >();
+      auto frame_dets = std::make_shared< viame::detected_object_set >();
 
       for( auto& trk : tracks->tracks() )
       {
         for( auto& state : *trk )
         {
           auto obj_state =
-            std::static_pointer_cast< kwiver::vital::object_track_state >( state );
+            std::static_pointer_cast< viame::object_track_state >( state );
 
           if( state->frame() == cur_frame_id )
           {
@@ -189,7 +189,7 @@ _step()
         for( auto& state : *trk )
         {
           auto obj_state =
-            std::static_pointer_cast< kwiver::vital::object_track_state >( state );
+            std::static_pointer_cast< viame::object_track_state >( state );
 
           if( state->frame() == cur_frame_id )
           {
@@ -211,7 +211,7 @@ void
 refine_detections_process::
 make_ports()
 {
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
   // Nothing is required: which inputs are connected depends on whether the
   // refiner works on detections, on tracks, and on whether it needs the image.
@@ -246,4 +246,4 @@ refine_detections_process::priv
 {
 }
 
-} // end namespace kwiver
+} // namespace viame

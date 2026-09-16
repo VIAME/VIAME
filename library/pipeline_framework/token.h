@@ -18,7 +18,7 @@
 #include <string>
 #include <memory>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
 * These are all the token type codes
@@ -86,21 +86,21 @@ public:
 
   int token_type() const { return m_token_type; }
   int token_value() const;
-  const kwiver::vital::source_location& get_location() const { return m_srcLocation; }
+  const viame::source_location& get_location() const { return m_srcLocation; }
 
   virtual std::ostream& format( std::ostream& str ) const;
   static const char* token_name( int tk );
 
   // -- MANIPULATORS --
   void text( const std::string& str ) { m_text = str; }
-  void set_location( const kwiver::vital::source_location& s ) { m_srcLocation = s; }
+  void set_location( const viame::source_location& s ) { m_srcLocation = s; }
 
 private:
   int m_token_type;           // token type code
   std::string m_text;         // String associated with token
 
   // where token was discovered
-  kwiver::vital::source_location m_srcLocation;
+  viame::source_location m_srcLocation;
 
   // SourceLineRef m_defLine;  // line where discovered
 };
@@ -111,6 +111,6 @@ operator<<( std::ostream& str, const token& obj )
 
 typedef std::shared_ptr< token > token_sptr;
 
-} // end namespace
+} // namespace viame::pipeline
 
 #endif /* SPROKIT_PIPELINE_TOKEN_H */

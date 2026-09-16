@@ -18,9 +18,7 @@
 #include <viame/algorithm_framework/algo/match_features.h>
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -48,7 +46,7 @@ namespace core {
 ///  the additional weak matches using the constraint that the location
 ///  in the image is now known approximately.
 class VIAME_IMAGE_PROCESSING_EXPORT match_features_homography
-  : public vital::algo::match_features
+  : public viame::algo::match_features
 {
 public:
   PLUGGABLE_IMPL(
@@ -75,19 +73,19 @@ public:
       0.0 ),
     PARAM(
       homography_estimator,
-      vital::algo::estimate_homography_sptr,
+      viame::algo::estimate_homography_sptr,
       "homography_estimator" ),
     PARAM(
       feature_matcher1,
-      vital::algo::match_features_sptr,
+      viame::algo::match_features_sptr,
       "feature_matcher1" ),
     PARAM(
       feature_matcher2,
-      vital::algo::match_features_sptr,
+      viame::algo::match_features_sptr,
       "feature_matcher2" ),
     PARAM(
       filter_features,
-      vital::algo::filter_features_sptr,
+      viame::algo::filter_features_sptr,
       "filter_features" )
   )
 
@@ -95,7 +93,7 @@ public:
   virtual ~match_features_homography();
 
   /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   /// Match one set of features and corresponding descriptors to another
   ///
@@ -104,10 +102,10 @@ public:
   /// \param [in] feat2 the second set of features to match
   /// \param [in] desc2 the descriptors corresponding to \a feat2
   /// \returns a set of matching indices from \a feat1 to \a feat2
-  virtual vital::match_set_sptr
+  virtual viame::match_set_sptr
   match(
-    vital::feature_set_sptr feat1, vital::descriptor_set_sptr desc1,
-    vital::feature_set_sptr feat2, vital::descriptor_set_sptr desc2 ) const;
+    viame::feature_set_sptr feat1, viame::descriptor_set_sptr desc1,
+    viame::feature_set_sptr feat2, viame::descriptor_set_sptr desc2 ) const;
 
 private:
   void initialize() override;
@@ -116,10 +114,8 @@ private:
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace algo
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

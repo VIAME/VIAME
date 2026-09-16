@@ -19,20 +19,16 @@
 #include <memory>
 #include <map>
 
-namespace kwiver {
-namespace vital {
-
+namespace viame {
 template <class T> class bounded_buffer;
 
-}
-
-namespace adapter{
+namespace adapter {
 
 class adapter_data_set;
 typedef std::shared_ptr< adapter_data_set > adapter_data_set_t;
-typedef std::shared_ptr< kwiver::vital::bounded_buffer< kwiver::adapter::adapter_data_set_t > > interface_ref_t;
-typedef std::map< sprokit::process::port_t, sprokit::process::port_info_t > ports_info_t;
+typedef std::shared_ptr< viame::bounded_buffer< viame::adapter::adapter_data_set_t > > interface_ref_t;
+typedef std::map< viame::pipeline::process::port_t, viame::pipeline::process::port_info_t > ports_info_t;
 
-} } // end namespace
+} } // namespace viame
 
 #endif // KWIVER_ADAPTER_ADAPTER_TYPES_H

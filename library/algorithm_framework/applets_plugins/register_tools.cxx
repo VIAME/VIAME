@@ -12,10 +12,10 @@
 extern "C"
 CONFIG_EXPLORER_EXPORT
 void
-register_factories( kwiver::vital::registry& vpl )
+register_factories( viame::registry& vpl )
 {
-  using namespace kwiver::tools;
-  using kvpf = ::kwiver::vital::plugin_factory;
+  using namespace viame::tools;
+  using kvpf = ::viame::plugin_factory;
 
   auto fact =
     vpl.add_factory< kwiver_applet, config_explorer >( "explore-config" );

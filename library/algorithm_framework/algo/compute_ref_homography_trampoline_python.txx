@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/compute_ref_homography.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class compute_ref_homography_base = kwiver::vital::algo::compute_ref_homography >
+template< class compute_ref_homography_base = viame::algo::compute_ref_homography >
 class compute_ref_homography_trampoline
     : public algorithm_trampoline< compute_ref_homography_base >
 {
@@ -21,17 +21,17 @@ class compute_ref_homography_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::f2f_homography_sptr
-  estimate(::kwiver::vital::frame_id_t frame_number, ::kwiver::vital::feature_track_set_sptr tracks) const override
+  viame::f2f_homography_sptr
+  estimate(::viame::frame_id_t frame_number, ::viame::feature_track_set_sptr tracks) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::f2f_homography_sptr,
-      kwiver::vital::algo::compute_ref_homography,
+      viame::f2f_homography_sptr,
+      viame::algo::compute_ref_homography,
       estimate,
       frame_number, tracks
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

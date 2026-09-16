@@ -19,9 +19,7 @@
 #include <memory>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 class VITAL_TYPES_EXPORT attribute_set_exception
@@ -53,9 +51,9 @@ class VITAL_TYPES_EXPORT attribute_set
 {
 public:
 #ifdef VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
-  typedef std::unique_ptr< kwiver::vital::any > item_ptr;
+  typedef std::unique_ptr< viame::any > item_ptr;
 #else
-  typedef std::shared_ptr< kwiver::vital::any > item_ptr;
+  typedef std::shared_ptr< viame::any > item_ptr;
 #endif
   typedef std::map< std::string, item_ptr > attribute_map_t;
   typedef attribute_map_t::const_iterator const_iterator_t;
@@ -78,7 +76,7 @@ public:
   ///
   /// @param name Name of the attribute
   /// @param val Value of the attribute
-  void add( const std::string& name, const kwiver::vital::any& val );
+  void add( const std::string& name, const viame::any& val );
 
   /// @brief Add typed attribute to set.
   ///
@@ -90,7 +88,7 @@ public:
   void
   add( const std::string& name, const T& val )
   {
-    add( name, kwiver::vital::any( val ) );
+    add( name, viame::any( val ) );
   }
 
   /// @brief Does the attribute exist in the set.
@@ -157,7 +155,7 @@ public:
   ///
   /// @return Raw data for named attribute.
   /// @throws attribute_set_exception if named attribute is not in the set.
-  kwiver::vital::any data( const std::string& name ) const;
+  viame::any data( const std::string& name ) const;
 
   /// @brief Get typed value from attribute set.
   ///
@@ -166,13 +164,13 @@ public:
   /// @param name Name of attribute.
   ///
   /// @return Value of attribute.
-  /// @throws kwiver::vital::bad_any_cast if actual type does not match
+  /// @throws viame::bad_any_cast if actual type does not match
   /// requested type.
   template < typename T >
   T
   get( const std::string& name ) const
   {
-    return kwiver::vital::any_cast< T >( data( name ) );
+    return viame::any_cast< T >( data( name ) );
   }
 
   /// @brief Is the attribute of expected type.
@@ -207,8 +205,6 @@ private:
   attribute_map_t m_attr_map;
 }; // end class attribute_set
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_ATTRIBUTE_SET_H

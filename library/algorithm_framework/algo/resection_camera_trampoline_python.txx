@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/resection_camera.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class resection_camera_base = kwiver::vital::algo::resection_camera >
+template< class resection_camera_base = viame::algo::resection_camera >
 class resection_camera_trampoline
     : public algorithm_trampoline< resection_camera_base >
 {
@@ -21,39 +21,39 @@ class resection_camera_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::camera_perspective_sptr
-  resection(::std::vector<kwiver::vital::vector_<2, double> > const & image_points, ::std::vector<kwiver::vital::vector_<3, double> > const & world_points, ::kwiver::vital::camera_intrinsics_sptr initial_calibration, ::std::vector<bool> * inliers) const override
+  viame::camera_perspective_sptr
+  resection(::std::vector<viame::vector_<2, double> > const & image_points, ::std::vector<viame::vector_<3, double> > const & world_points, ::viame::camera_intrinsics_sptr initial_calibration, ::std::vector<bool> * inliers) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::camera_perspective_sptr,
-      kwiver::vital::algo::resection_camera,
+      viame::camera_perspective_sptr,
+      viame::algo::resection_camera,
       resection,
       image_points, world_points, initial_calibration, inliers
       );
   }
 
-  kwiver::vital::camera_perspective_sptr
-  resection(::kwiver::vital::frame_id_t frame_id, ::kwiver::vital::landmark_map_sptr landmarks, ::kwiver::vital::feature_track_set_sptr tracks, ::size_t width, ::size_t height, ::std::unordered_set<long> * inliers) const override
+  viame::camera_perspective_sptr
+  resection(::viame::frame_id_t frame_id, ::viame::landmark_map_sptr landmarks, ::viame::feature_track_set_sptr tracks, ::size_t width, ::size_t height, ::std::unordered_set<long> * inliers) const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::camera_perspective_sptr,
-      kwiver::vital::algo::resection_camera,
+      viame::camera_perspective_sptr,
+      viame::algo::resection_camera,
       resection,
       frame_id, landmarks, tracks, width, height, inliers
       );
   }
 
-  kwiver::vital::camera_perspective_sptr
-  resection(::kwiver::vital::frame_id_t frame_id, ::kwiver::vital::landmark_map_sptr landmarks, ::kwiver::vital::feature_track_set_sptr tracks, ::kwiver::vital::camera_intrinsics_sptr initial_calibration, ::std::unordered_set<long> * inliers) const override
+  viame::camera_perspective_sptr
+  resection(::viame::frame_id_t frame_id, ::viame::landmark_map_sptr landmarks, ::viame::feature_track_set_sptr tracks, ::viame::camera_intrinsics_sptr initial_calibration, ::std::unordered_set<long> * inliers) const override
   {
     PYBIND11_OVERLOAD(
-      kwiver::vital::camera_perspective_sptr,
-      kwiver::vital::algo::resection_camera,
+      viame::camera_perspective_sptr,
+      viame::algo::resection_camera,
       resection,
       frame_id, landmarks, tracks, initial_calibration, inliers
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header for \link kwiver::vital::landmark landmark \endlink objects
+/// \brief Header for \link viame::landmark landmark \endlink objects
 
 #ifndef VITAL_LANDMARK_H_
 #define VITAL_LANDMARK_H_
@@ -18,9 +18,7 @@
 #include "covariance.h"
 #include "vector.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// forward declaration of landmark class
 class landmark;
@@ -221,8 +219,6 @@ VITAL_TYPES_EXPORT std::istream& operator>>(
   std::istream& s,
   landmark_< T >& m );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_LANDMARK_H_

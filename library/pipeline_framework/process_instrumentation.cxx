@@ -12,7 +12,7 @@
 #include <viame/algorithm_framework/vital_config.h>
 #include <viame/pipeline_framework/process.h>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 process_instrumentation::
 process_instrumentation()
@@ -21,21 +21,21 @@ process_instrumentation()
 
 void
 process_instrumentation::
-set_process( sprokit::process const& proc )
+set_process( viame::pipeline::process const& proc )
 {
   m_process = &proc;
 }
 
 void
 process_instrumentation::
-configure( [[maybe_unused]] kwiver::vital::config_block_sptr const config )
+configure( [[maybe_unused]] viame::config_block_sptr const config )
 { }
 
-kwiver::vital::config_block_sptr
+viame::config_block_sptr
 process_instrumentation::
 get_configuration() const
 {
-  auto conf = kwiver::vital::config_block::empty_config();
+  auto conf = viame::config_block::empty_config();
   return conf;
 }
 
@@ -46,4 +46,4 @@ process_name() const
   return m_process->name ();
 }
 
-} // end namespace sprokit
+} // namespace viame::pipeline

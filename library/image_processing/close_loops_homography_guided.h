@@ -24,7 +24,7 @@ namespace viame {
 /// estimate potential match locations in the past, followed up by additional
 /// filtering.
 class VIAME_IMAGE_PROCESSING_EXPORT close_loops_homography_guided
-  : public kwiver::vital::algo::close_loops
+  : public viame::algo::close_loops
 {
 public:
   PLUGGABLE_IMPL_NAMED(
@@ -57,7 +57,7 @@ public:
 
   /// Check that the algorithm's currently configuration is valid
   ///
-  /// This checks solely within the provided \c kwiver::vital::config_block and not
+  /// This checks solely within the provided \c viame::config_block and not
   /// against
   /// the current state of the instance. This isn't static for inheritence
   /// reasons.
@@ -65,7 +65,7 @@ public:
   /// \param config  The config block to check configuration of.
   ///
   /// \returns true if the configuration check passed and false if it didn't.
-  bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
+  bool check_configuration( viame::config_block_sptr config ) const override;
 
   /// Perform loop closure operation.
   ///
@@ -75,12 +75,12 @@ public:
   /// \param mask Optional mask image where positive values indicate
   ///                  regions to consider in the input image.
   /// \returns an updated set of feature tracks after the stitching operation
-  virtual kwiver::vital::feature_track_set_sptr
+  virtual viame::feature_track_set_sptr
   stitch(
-    kwiver::vital::frame_id_t frame_number,
-    kwiver::vital::feature_track_set_sptr input,
-    kwiver::vital::image_container_sptr image,
-    kwiver::vital::image_container_sptr mask = kwiver::vital::image_container_sptr() ) const;
+    viame::frame_id_t frame_number,
+    viame::feature_track_set_sptr input,
+    viame::image_container_sptr image,
+    viame::image_container_sptr mask = viame::image_container_sptr() ) const;
 
 private:
   void initialize() override;

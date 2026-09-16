@@ -7,9 +7,7 @@
 
 #include "serialize.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 serialization_exception
 ::serialization_exception( std::string const& str )
@@ -21,6 +19,4 @@ serialization_exception
 ::~serialization_exception() noexcept
 {}
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame

@@ -24,7 +24,7 @@
 #include <cmath>
 
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -203,8 +203,8 @@ refine_measurements_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -276,11 +276,11 @@ refine_measurements_process
 
   auto port_info = peek_at_port_using_trait( detected_object_set );
 
-  if( port_info.datum->type() == sprokit::datum::complete )
+  if( port_info.datum->type() == viame::pipeline::datum::complete )
   {
     mark_process_as_complete();
 
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( detected_object_set, dat );
     push_datum_to_port_using_trait( object_track_set, dat );
@@ -464,10 +464,10 @@ refine_measurements_process
 
     for( auto md : metadata )
     {
-      CHECK_FIELD( yaw, kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
-      CHECK_FIELD( pitch, kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
-      CHECK_FIELD( roll, kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
-      CHECK_FIELD( alt, kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( yaw, viame::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( pitch, viame::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( roll, viame::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( alt, viame::VITAL_META_DENSITY_ALTITUDE );
     }
 
     if( !has_metadata )

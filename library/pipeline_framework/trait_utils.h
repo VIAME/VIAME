@@ -50,14 +50,14 @@
  */
 #define create_named_config_trait(NAME, KEY, TYPE, DEF, DESCR)          \
   namespace  { struct NAME ## _config_trait {                           \
-  static const kwiver::vital::config_block_key_t      key;              \
-  static const kwiver::vital::config_block_value_t    def;              \
-  static const kwiver::vital::config_block_description_t description;   \
+  static const viame::config_block_key_t      key;              \
+  static const viame::config_block_value_t    def;              \
+  static const viame::config_block_description_t description;   \
   typedef TYPE type;                                                    \
 };                                                                      \
-kwiver::vital::config_block_key_t const NAME ## _config_trait::key = kwiver::vital::config_block_key_t( KEY ); \
-kwiver::vital::config_block_value_t const NAME ## _config_trait::def = kwiver::vital::config_block_value_t( DEF ); \
-kwiver::vital::config_block_description_t const  NAME ## _config_trait::description = kwiver::vital::config_block_description_t( DESCR ); }
+viame::config_block_key_t const NAME ## _config_trait::key = viame::config_block_key_t( KEY ); \
+viame::config_block_value_t const NAME ## _config_trait::def = viame::config_block_value_t( DEF ); \
+viame::config_block_description_t const  NAME ## _config_trait::description = viame::config_block_description_t( DESCR ); }
 
 //@{
 /**
@@ -130,15 +130,15 @@ declare_configuration_key( KEY ## _config_trait::key,                   \
 #define get_value_using_trait( KEY, ... ) get_value<KEY ## _config_trait::type>( KEY, __VA_ARG__ )
 
 /// Algorithm interface using traits
-/// These macros use the free functions in kwiver::vital namespace
+/// These macros use the free functions in viame namespace
 #define check_nested_algo_configuration_using_trait(KEY, CONFIG, ALGO) \
-  kwiver::vital::check_nested_algo_configuration< typename std::remove_reference< decltype( *ALGO ) >::type >( KEY ## _config_trait::key, CONFIG )
+  viame::check_nested_algo_configuration< typename std::remove_reference< decltype( *ALGO ) >::type >( KEY ## _config_trait::key, CONFIG )
 
 #define set_nested_algo_configuration_using_trait(KEY, CONFIG, ALGO)     \
-  kwiver::vital::set_nested_algo_configuration( KEY ## _config_trait::key, CONFIG, ALGO )
+  viame::set_nested_algo_configuration( KEY ## _config_trait::key, CONFIG, ALGO )
 
 #define get_nested_algo_configuration_using_trait(KEY, CONFIG, ALGO)     \
-  kwiver::vital::get_nested_algo_configuration( KEY ## _config_trait::key, CONFIG, ALGO )
+  viame::get_nested_algo_configuration( KEY ## _config_trait::key, CONFIG, ALGO )
 
 /**
  * \brief Create type trait.
@@ -175,7 +175,7 @@ declare_configuration_key( KEY ## _config_trait::key,                   \
  *
  * Examples of defining type traits
  \code
- create_type_trait( image, "kwiver:image_container", kwiver::vital::image_container_sptr ); // polymorphic type must pass by reference
+ create_type_trait( image, "kwiver:image_container", viame::image_container_sptr ); // polymorphic type must pass by reference
  \endcode
  *
  * This type trait name is used when defining port traits ( \ref create_port_trait() ).
@@ -186,10 +186,10 @@ declare_configuration_key( KEY ## _config_trait::key,                   \
  */
 #define create_type_trait(TN, CTN, TYPE)                                \
 namespace { struct TN ## _type_trait {                                  \
-  static const sprokit::process::type_t name;                           \
+  static const viame::pipeline::process::type_t name;                           \
   typedef TYPE type;                                                    \
 };                                                                      \
-sprokit::process::type_t const TN ## _type_trait::name = sprokit::process::type_t( CTN ); }
+viame::pipeline::process::type_t const TN ## _type_trait::name = viame::pipeline::process::type_t( CTN ); }
 
 /**
  * \brief Create named port trait.
@@ -221,14 +221,14 @@ sprokit::process::type_t const TN ## _type_trait::name = sprokit::process::type_
  */
 #define create_port_trait(PN, TN, DESCRIP)                              \
   namespace { struct PN ## _port_trait {                                \
-  static const sprokit::process::type_t             type_name;          \
-  static const sprokit::process::port_t             port_name;          \
-  static const sprokit::process::port_description_t description;        \
+  static const viame::pipeline::process::type_t             type_name;          \
+  static const viame::pipeline::process::port_t             port_name;          \
+  static const viame::pipeline::process::port_description_t description;        \
   typedef TN ## _type_trait::type type;                                 \
 };                                                                      \
-sprokit::process::type_t const PN ## _port_trait::type_name = sprokit::process::type_t( TN ## _type_trait::name ); \
-sprokit::process::port_t const PN ## _port_trait::port_name = sprokit::process::port_t( # PN ); \
-sprokit::process::port_description_t const PN ## _port_trait::description = sprokit::process::port_description_t( DESCRIP ); }
+viame::pipeline::process::type_t const PN ## _port_trait::type_name = viame::pipeline::process::type_t( TN ## _type_trait::name ); \
+viame::pipeline::process::port_t const PN ## _port_trait::port_name = viame::pipeline::process::port_t( # PN ); \
+viame::pipeline::process::port_description_t const PN ## _port_trait::description = viame::pipeline::process::port_description_t( DESCRIP ); }
 
 #ifdef VITAL_VARIADAC_MACRO
 
@@ -256,7 +256,7 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
  * framework based on the specified port trait.
  *
  \code
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   declare_input_port_using_trait( timestamp, required );
@@ -264,7 +264,7 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
  \endcode
  *
  * \param PN Port trait name as defined by create_port_trait()
- * \param FLAG Port flags as defined by sprokit::process::port_flags_t
+ * \param FLAG Port flags as defined by viame::pipeline::process::port_flags_t
  * \param DESCRIP Optional port description
  */
 #define declare_input_port_using_trait(...) \
@@ -277,14 +277,14 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
  * framework based on the specified port trait.
  *
  \code
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
   declare_output_port_using_trait( src_to_ref_homography, optional );
   declare_output_port_using_trait( src_to_ref_homography, optional, "description" );
  \endcode
  *
  * \param PN Port trait name as defined by create_port_trait()
- * \param FLAG Port flags as defined by sprokit::process::port_flags_t
+ * \param FLAG Port flags as defined by viame::pipeline::process::port_flags_t
  * \param DESCRIP Optional port description
  */
 #define declare_output_port_using_trait(...) \
@@ -318,11 +318,11 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
  * option set when created.
  *
  \code
- create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
- kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
+ create_type_trait( timestamp, "kwiver:timestamp", viame::timestamp );
+ viame::timestamp frame_time = grab_input_using_trait( timestamp );
  \endcode
  *
- * \sa sprokit::process::grab_input_as()
+ * \sa viame::pipeline::process::grab_input_as()
  *
  * \param PN Port trait name.
  *
@@ -339,13 +339,13 @@ grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  * block until a datum is available.
  *
  \code
- create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
- kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
+ create_type_trait( timestamp, "kwiver:timestamp", viame::timestamp );
+ viame::timestamp frame_time = grab_from_port_using_trait( timestamp );
  \endcode
  *
  * Optional ports can be handled using #try_grab_from_port_using_trait.
  *
- * \sa sprokit::process::grab_from_port_as()
+ * \sa viame::pipeline::process::grab_from_port_as()
  *
  * \param PN Port trait name.
  *
@@ -361,7 +361,7 @@ grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  * port trait with \b no handling for static ports, iff that port is connected.
  * This call will block until a datum is available.
  *
- * \sa grab_from_port_using_trait, sprokit::process::grab_from_port_as()
+ * \sa grab_from_port_using_trait, viame::pipeline::process::grab_from_port_as()
  *
  * \param PN Port trait name.
  *
@@ -377,7 +377,7 @@ grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  *
  * Grab a datum packet from port specified by the port trait.
  * The datum packet contains the port data and other metadata.
- * See \ref sprokit::datum for details.
+ * See \ref viame::pipeline::datum for details.
  *
  * \param PN Port trait name.
  *
@@ -391,7 +391,7 @@ grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  *
  * Grab a edge datum packet from port specified by the port trait.
  * The edge datum packet contains the raw data and metadata.  See
- * \ref sprokit::edge_datum_t for details.
+ * \ref viame::pipeline::edge_datum_t for details.
  *
  * \param PN Port trait name.
  *
@@ -491,7 +491,7 @@ push_to_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name, VAL )
  *
  * Push port datum structure to port specified in port trait.
  *
- * See \ref sprokit::datum for details.
+ * See \ref viame::pipeline::datum for details.
  *
  * \param PN Port trait name.
  * \param VAL Port datum value to send to port.

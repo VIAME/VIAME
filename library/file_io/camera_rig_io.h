@@ -26,8 +26,8 @@ namespace viame {
 ///
 /// \param cam_files a list of camera names
 /// \return a new camera rig
-kwiver::vital::camera_rig_sptr
-VIAME_FILE_IO_EXPORT read_camera_rig( kwiver::vital::path_list_t const& cam_files );
+viame::camera_rig_sptr
+VIAME_FILE_IO_EXPORT read_camera_rig( viame::path_list_t const& cam_files );
 
 /// Load a stereo rig from a file or directory.
 ///
@@ -44,8 +44,8 @@ VIAME_FILE_IO_EXPORT read_camera_rig( kwiver::vital::path_list_t const& cam_file
 ///
 /// \param FN input file name or directory path
 /// \return a new stereo rig
-kwiver::vital::camera_rig_stereo_sptr
-VIAME_FILE_IO_EXPORT read_stereo_rig( kwiver::vital::path_t const& FN );
+viame::camera_rig_stereo_sptr
+VIAME_FILE_IO_EXPORT read_stereo_rig( viame::path_t const& FN );
 
 /// Load a stereo rig from a JSON file.
 ///
@@ -55,8 +55,8 @@ VIAME_FILE_IO_EXPORT read_stereo_rig( kwiver::vital::path_t const& FN );
 ///
 /// \param FN path to the JSON file
 /// \return a new stereo rig
-kwiver::vital::camera_rig_stereo_sptr
-VIAME_FILE_IO_EXPORT read_stereo_rig_json( kwiver::vital::path_t const& FN );
+viame::camera_rig_stereo_sptr
+VIAME_FILE_IO_EXPORT read_stereo_rig_json( viame::path_t const& FN );
 
 /// Load a stereo rig from an OpenCV YAML file.
 ///
@@ -65,8 +65,8 @@ VIAME_FILE_IO_EXPORT read_stereo_rig_json( kwiver::vital::path_t const& FN );
 ///
 /// \param FN path to the YAML file
 /// \return a new stereo rig
-kwiver::vital::camera_rig_stereo_sptr
-VIAME_FILE_IO_EXPORT read_stereo_rig_yaml( kwiver::vital::path_t const& FN );
+viame::camera_rig_stereo_sptr
+VIAME_FILE_IO_EXPORT read_stereo_rig_yaml( viame::path_t const& FN );
 
 /// Load a stereo rig from an OpenCV calibration directory.
 ///
@@ -75,8 +75,8 @@ VIAME_FILE_IO_EXPORT read_stereo_rig_yaml( kwiver::vital::path_t const& FN );
 ///
 /// \param dir_path path to the calibration directory
 /// \return a new stereo rig
-kwiver::vital::camera_rig_stereo_sptr
-VIAME_FILE_IO_EXPORT read_stereo_rig_from_ocv_dir( kwiver::vital::path_t const& dir_path );
+viame::camera_rig_stereo_sptr
+VIAME_FILE_IO_EXPORT read_stereo_rig_from_ocv_dir( viame::path_t const& dir_path );
 
 /// Load a stereo rig from a MATLAB .mat calibration file (Bouguet toolbox
 /// format with fields om, T, fc_left/right, cc_left/right, kc_left/right,
@@ -85,8 +85,8 @@ VIAME_FILE_IO_EXPORT read_stereo_rig_from_ocv_dir( kwiver::vital::path_t const& 
 ///
 /// \param FN path to the .mat file
 /// \return a new stereo rig
-kwiver::vital::camera_rig_stereo_sptr
-VIAME_FILE_IO_EXPORT read_stereo_rig_mat( kwiver::vital::path_t const& FN );
+viame::camera_rig_stereo_sptr
+VIAME_FILE_IO_EXPORT read_stereo_rig_mat( viame::path_t const& FN );
 
 #ifdef VIAME_ENABLE_ZLIB
 /// Load a stereo rig from a NumPy NPZ file.
@@ -96,8 +96,8 @@ VIAME_FILE_IO_EXPORT read_stereo_rig_mat( kwiver::vital::path_t const& FN );
 ///
 /// \param FN path to the NPZ file
 /// \return a new stereo rig
-kwiver::vital::camera_rig_stereo_sptr
-VIAME_FILE_IO_EXPORT read_stereo_rig_npz( kwiver::vital::path_t const& FN );
+viame::camera_rig_stereo_sptr
+VIAME_FILE_IO_EXPORT read_stereo_rig_npz( viame::path_t const& FN );
 #endif
 
 /// Save a camera rig to KRtd file(s)
@@ -109,7 +109,7 @@ VIAME_FILE_IO_EXPORT read_stereo_rig_npz( kwiver::vital::path_t const& FN );
 ///
 /// \param rig camera rig
 void
-VIAME_FILE_IO_EXPORT write_camera_rig( kwiver::vital::camera_rig_sptr rig );
+VIAME_FILE_IO_EXPORT write_camera_rig( viame::camera_rig_sptr rig );
 
 /// Save a stereo rig to a file.
 ///
@@ -123,7 +123,7 @@ VIAME_FILE_IO_EXPORT write_camera_rig( kwiver::vital::camera_rig_sptr rig );
 /// \param rig stereo rig
 /// \param FN output file name
 void
-VIAME_FILE_IO_EXPORT write_stereo_rig( kwiver::vital::camera_rig_stereo_sptr rig,
+VIAME_FILE_IO_EXPORT write_stereo_rig( viame::camera_rig_stereo_sptr rig,
                                      std::string const& FN );
 
 } // namespace viame

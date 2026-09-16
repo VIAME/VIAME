@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver::vital {
+namespace viame {
 
 // A helper to detect when a type is a std::shared_ptr
 namespace detail {
@@ -80,6 +80,6 @@ get_config_helper(
   return config->get_value< ValueType >( key, default_value );
 }
 
-} // namespace kwiver::vital
+} // namespace viame
 
 #endif

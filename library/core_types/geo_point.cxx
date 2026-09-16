@@ -12,9 +12,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 using geo_3d_point_t = geo_point::geo_3d_point_t;
 
@@ -109,7 +107,7 @@ geo_point
 
 // ----------------------------------------------------------------------------
 std::ostream&
-operator<<( std::ostream& str, vital::geo_point const& obj )
+operator<<( std::ostream& str, viame::geo_point const& obj )
 {
   if( obj.is_empty() )
   {
@@ -147,6 +145,4 @@ operator!=( geo_point const& lhs, geo_point const& rhs )
   return !( lhs == rhs );
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/perform_text_query.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ perform_text_query
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

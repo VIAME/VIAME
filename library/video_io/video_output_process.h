@@ -8,7 +8,7 @@
 #include <viame/pipeline_framework/process.h>
 #include "viame_processes_video_io_export.h"
 
-namespace kwiver
+namespace viame
 {
 
 // -----------------------------------------------------------------------------
@@ -23,14 +23,14 @@ namespace kwiver
  * \iport{metadata}
  */
 class VIAME_PROCESSES_VIDEO_IO_NO_EXPORT video_output_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "video_output",
                "Writes video file based on sequential images with optional "
                "metadata per frame." )
 
-  video_output_process( kwiver::vital::config_block_sptr const& config );
+  video_output_process( viame::config_block_sptr const& config );
   virtual ~video_output_process();
 
 protected:
@@ -47,6 +47,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class video_output_process
 
-}  // end namespace
+} // namespace viame
 
 #endif /* _KWIVER_VIDEO_OUTPUT_PROCESS_H */

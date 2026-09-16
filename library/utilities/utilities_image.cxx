@@ -11,7 +11,7 @@ namespace viame {
 // -------------------------------------------------------------------------------------------------
 bool
 is_non_8bit_image(
-  const kwiver::vital::image_container_sptr& image,
+  const viame::image_container_sptr& image,
   std::string& bit_depth_desc )
 {
   if( !image )
@@ -21,7 +21,7 @@ is_non_8bit_image(
 
   auto pixel_traits = image->get_image().pixel_traits();
 
-  if( pixel_traits.type == kwiver::vital::image_pixel_traits::UNSIGNED )
+  if( pixel_traits.type == viame::image_pixel_traits::UNSIGNED )
   {
     if( pixel_traits.num_bytes == 2 )
     {
@@ -36,12 +36,12 @@ is_non_8bit_image(
     // 8-bit unsigned is the standard case
     return false;
   }
-  else if( pixel_traits.type == kwiver::vital::image_pixel_traits::SIGNED )
+  else if( pixel_traits.type == viame::image_pixel_traits::SIGNED )
   {
     bit_depth_desc = std::to_string( pixel_traits.num_bytes * 8 ) + "-bit signed";
     return true;
   }
-  else if( pixel_traits.type == kwiver::vital::image_pixel_traits::FLOAT )
+  else if( pixel_traits.type == viame::image_pixel_traits::FLOAT )
   {
     bit_depth_desc = std::to_string( pixel_traits.num_bytes * 8 ) + "-bit float";
     return true;
@@ -54,7 +54,7 @@ is_non_8bit_image(
 // -------------------------------------------------------------------------------------------------
 std::string
 get_image_bit_depth_description(
-  const kwiver::vital::image_container_sptr& image )
+  const viame::image_container_sptr& image )
 {
   if( !image )
   {
@@ -65,15 +65,15 @@ get_image_bit_depth_description(
 
   std::string bits = std::to_string( pixel_traits.num_bytes * 8 );
 
-  if( pixel_traits.type == kwiver::vital::image_pixel_traits::UNSIGNED )
+  if( pixel_traits.type == viame::image_pixel_traits::UNSIGNED )
   {
     return bits + "-bit unsigned";
   }
-  else if( pixel_traits.type == kwiver::vital::image_pixel_traits::SIGNED )
+  else if( pixel_traits.type == viame::image_pixel_traits::SIGNED )
   {
     return bits + "-bit signed";
   }
-  else if( pixel_traits.type == kwiver::vital::image_pixel_traits::FLOAT )
+  else if( pixel_traits.type == viame::image_pixel_traits::FLOAT )
   {
     return bits + "-bit float";
   }

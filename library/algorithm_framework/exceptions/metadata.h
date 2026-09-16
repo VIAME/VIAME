@@ -13,9 +13,7 @@
 
 #include <viame/algorithm_framework/exceptions/base.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic metadata exception
@@ -51,8 +49,6 @@ public:
   virtual ~metadata_type_overflow() noexcept;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

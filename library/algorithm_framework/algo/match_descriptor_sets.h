@@ -4,7 +4,7 @@
 
 /// \file
 /// \brief Interface for match_descriptor_sets \link
-/// kwiver::vital::algo::algorithm_def
+/// viame::algo::algorithm_def
 ///   algorithm definition \endlink.
 
 #ifndef VITAL_ALGO_MATCH_DESCRIPTOR_SETS_H_
@@ -18,9 +18,7 @@
 #include <viame/core_types/descriptor_set.h>
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -29,7 +27,7 @@ namespace algo {
 /// A common use for this algorithm is bag of visual words matching on sets of
 /// descriptor extracted around features detected in images.
 class VITAL_ALGO_EXPORT match_descriptor_sets
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   match_descriptor_sets();
@@ -45,8 +43,8 @@ public:
   virtual
   void
   append_to_index(
-    const vital::descriptor_set_sptr desc,
-    vital::frame_id_t frame ) = 0;
+    const viame::descriptor_set_sptr desc,
+    viame::frame_id_t frame ) = 0;
 
   /// Query the inverted file system for similar sets of descriptors.
   ///
@@ -56,8 +54,8 @@ public:
   /// \param[in] desc  set of descriptors to match
   /// \returns vector of possibly matching frames found by the query
   virtual
-  std::vector< vital::frame_id_t >
-  query( const vital::descriptor_set_sptr desc ) = 0;
+  std::vector< viame::frame_id_t >
+  query( const viame::descriptor_set_sptr desc ) = 0;
 
   /// Query the inverted file system and append the descriptors.
   ///
@@ -70,9 +68,9 @@ public:
   /// \param[in] frame  frame number indexing the descriptors
   /// \returns vector of possibly matching frames found by the query
   virtual
-  std::vector< vital::frame_id_t >
+  std::vector< viame::frame_id_t >
   query_and_append(
-    const vital::descriptor_set_sptr desc,
+    const viame::descriptor_set_sptr desc,
     frame_id_t frame );
 };
 
@@ -81,8 +79,6 @@ typedef std::shared_ptr< match_descriptor_sets > match_descriptor_sets_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_MATCH_DESCRIPTOR_SETS_H_

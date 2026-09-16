@@ -10,8 +10,8 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
-typedef kwiver::vital::detected_object_set det_obj_set;
+namespace kv = viame;
+typedef viame::detected_object_set det_obj_set;
 // Helpers to call pure virtual functions from base reference.
 // We'll use these to test that these camera methods can be overriden in C++
 PYBIND11_MODULE( det_obj_set_helpers, m )

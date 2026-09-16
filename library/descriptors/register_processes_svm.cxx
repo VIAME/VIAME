@@ -19,22 +19,22 @@
 extern "C"
 VIAME_PROCESSES_DESCRIPTORS_SVM_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
   static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_descriptors_svm" );
+    viame::plugin_manager::module_t( "viame_processes_descriptors_svm" );
 
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
-  kwiver::vital::plugin_factory* fact = new sprokit::cpp_process_factory(
+  viame::plugin_factory* fact = new viame::pipeline::cpp_process_factory(
     typeid( viame::svm::process_query_process ).name(),
-    sprokit::process::interface_name(),
-    sprokit::create_new_process< viame::svm::process_query_process > );
+    viame::pipeline::process::interface_name(),
+    viame::pipeline::create_new_process< viame::svm::process_query_process > );
   fact->add_attribute( kvpf::PLUGIN_NAME, "process_query" )
     .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kvpf::PLUGIN_DESCRIPTION,
@@ -42,5 +42,5 @@ register_factories( kwiver::vital::registry& vpm )
     .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  viame::pipeline::mark_process_module_as_loaded( vpm, module_name );
 }

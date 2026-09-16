@@ -34,10 +34,10 @@ namespace core
  * The input file format is CSV: uid,val1,val2,...,valN (one descriptor per line)
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT fetch_descriptors_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
-  using config_block_sptr = kwiver::vital::config_block_sptr;
+  using config_block_sptr = viame::config_block_sptr;
 
   // -- CONSTRUCTORS --
   fetch_descriptors_process( config_block_sptr const& config );

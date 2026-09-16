@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Function to generate \ref kwiver::vital::camera_rpc from metadata
+/// \brief Function to generate \ref viame::camera_rpc from metadata
 
 #include "camera_from_metadata.h"
 
@@ -12,9 +12,7 @@
 #include <viame/core_types/metadata_traits.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// Extract scale or offset metadata to a vector
 vector_d
@@ -214,7 +212,7 @@ initialize_cameras_with_metadata(
         auto gloc = mdi.get< geo_point >();
 
         // set the origin to the ground
-        auto const crs = vital::SRID::lat_lon_WGS84;
+        auto const crs = viame::SRID::lat_lon_WGS84;
         auto loc = gloc.location( crs );
         loc[ 2 ] = 0.0;
         gloc.set_location( loc, crs );
@@ -368,6 +366,4 @@ update_metadata_from_camera(
   md.add< VITAL_META_SENSOR_ORIENTATION >( orientation );
 }
 
-} // namespace vital
-
-}   // end of namespace
+} // namespace viame

@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "associate_detections_to_tracks_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void associate_detections_to_tracks(py::module& m)
@@ -19,15 +19,15 @@ void associate_detections_to_tracks(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::associate_detections_to_tracks,
-               std::shared_ptr<kwiver::vital::algo::associate_detections_to_tracks>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::associate_detections_to_tracks,
+               std::shared_ptr<viame::algo::associate_detections_to_tracks>,
+               viame::algorithm,
                associate_detections_to_tracks_trampoline<> > instance(m,  "AssociateDetectionsToTracks");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::associate_detections_to_tracks::interface_name)
-    .def("associate", &kwiver::vital::algo::associate_detections_to_tracks::associate, py::doc(R"( Use cost matrices to assign detections to existing tracks
+    .def_static("interface_name", &viame::algo::associate_detections_to_tracks::interface_name)
+    .def("associate", &viame::algo::associate_detections_to_tracks::associate, py::doc(R"( Use cost matrices to assign detections to existing tracks
 
  \param ts frame ID
  \param image contains the input image for the current frame
@@ -38,7 +38,7 @@ void associate_detections_to_tracks(py::module& m)
  \param unused output detection set for any detections not associated
  \returns whether or not any tracks were updated)"), py::arg("ts"), py::arg("image"), py::arg("tracks"), py::arg("detections"), py::arg("matrix"), py::arg("output"), py::arg("unused"))
     ;
-  register_algorithm< kwiver::vital::algo::associate_detections_to_tracks > (instance);
+  register_algorithm< viame::algo::associate_detections_to_tracks > (instance);
 }
 
 }

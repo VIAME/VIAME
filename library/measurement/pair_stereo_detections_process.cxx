@@ -44,7 +44,7 @@
 #include "measurement_utilities.h"
 #include <viame/file_io/camera_rig_io.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -331,8 +331,8 @@ void
 pair_stereo_detections_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -586,36 +586,36 @@ pair_stereo_detections_process
   // Check for end-of-stream on any connected input port
   {
     auto ts_peek = peek_at_port_using_trait( timestamp );
-    bool is_complete = ( ts_peek.datum->type() == sprokit::datum::complete );
+    bool is_complete = ( ts_peek.datum->type() == viame::pipeline::datum::complete );
 
     if( !is_complete && has_input_port_edge_using_trait( object_track_set1 ) )
     {
       auto peek = peek_at_port_using_trait( object_track_set1 );
-      is_complete = ( peek.datum->type() == sprokit::datum::complete );
+      is_complete = ( peek.datum->type() == viame::pipeline::datum::complete );
     }
 
     if( !is_complete && has_input_port_edge_using_trait( object_track_set2 ) )
     {
       auto peek = peek_at_port_using_trait( object_track_set2 );
-      is_complete = ( peek.datum->type() == sprokit::datum::complete );
+      is_complete = ( peek.datum->type() == viame::pipeline::datum::complete );
     }
 
     if( !is_complete && has_input_port_edge_using_trait( detected_object_set1 ) )
     {
       auto peek = peek_at_port_using_trait( detected_object_set1 );
-      is_complete = ( peek.datum->type() == sprokit::datum::complete );
+      is_complete = ( peek.datum->type() == viame::pipeline::datum::complete );
     }
 
     if( !is_complete && has_input_port_edge_using_trait( detected_object_set2 ) )
     {
       auto peek = peek_at_port_using_trait( detected_object_set2 );
-      is_complete = ( peek.datum->type() == sprokit::datum::complete );
+      is_complete = ( peek.datum->type() == viame::pipeline::datum::complete );
     }
 
     if( is_complete )
     {
       mark_process_as_complete();
-      auto cd = sprokit::datum::complete_datum();
+      auto cd = viame::pipeline::datum::complete_datum();
       push_datum_to_port_using_trait( object_track_set1, cd );
       push_datum_to_port_using_trait( object_track_set2, cd );
       return;
@@ -828,7 +828,7 @@ pair_stereo_detections_process
 
     // Check if input stream is complete
     auto port_info = peek_at_port_using_trait( timestamp );
-    bool is_input_complete = port_info.datum->type() == sprokit::datum::complete;
+    bool is_input_complete = port_info.datum->type() == viame::pipeline::datum::complete;
 
     if( is_input_complete )
     {
@@ -846,7 +846,7 @@ pair_stereo_detections_process
                 << output_trks2.size() << " right accumulated tracks" );
 
       // Send complete datum and mark process as complete
-      auto complete_dat = sprokit::datum::complete_datum();
+      auto complete_dat = viame::pipeline::datum::complete_datum();
       push_datum_to_port_using_trait( object_track_set1, complete_dat );
       push_datum_to_port_using_trait( object_track_set2, complete_dat );
       mark_process_as_complete();
@@ -854,7 +854,7 @@ pair_stereo_detections_process
     else
     {
       // Push empty datum while accumulating
-      auto empty_dat = sprokit::datum::empty_datum();
+      auto empty_dat = viame::pipeline::datum::empty_datum();
       push_datum_to_port_using_trait( object_track_set1, empty_dat );
       push_datum_to_port_using_trait( object_track_set2, empty_dat );
     }

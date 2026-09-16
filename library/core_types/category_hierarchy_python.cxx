@@ -11,7 +11,7 @@
 #include <string>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 using label_t = kv::category_hierarchy::label_t;
 using label_id_t = kv::category_hierarchy::label_id_t;

@@ -28,7 +28,7 @@
 #include <string>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 namespace mp = viame::measurement;
 
 using viame::testing::golden_json;

@@ -16,10 +16,10 @@
 /**
  * \file datum.h
  *
- * \brief Header for a piece of \link sprokit::datum data\endlink in the pipeline.
+ * \brief Header for a piece of \link viame::pipeline::datum data\endlink in the pipeline.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class datum datum.h <sprokit/pipeline/datum.h>
@@ -55,14 +55,14 @@ class SPROKIT_PIPELINE_EXPORT datum
     /**
      * \brief Create a datum with the #data type.
      *
-     * This method is for bindings to be able to create kwiver::vital::any objects
+     * This method is for bindings to be able to create viame::any objects
      * manually.
      *
      * \param dat The data to pass through the edge.
      *
      * \returns A new datum containing a result.
      */
-    static datum_t new_datum(kwiver::vital::any const& dat);
+    static datum_t new_datum(viame::any const& dat);
 
     /**
      * \brief Create a datum with the #data type.
@@ -138,7 +138,7 @@ class SPROKIT_PIPELINE_EXPORT datum
      * \brief Compare two data for equality.
      *
      * \note This returns false for two data packets which point to the same
-     * internal data since \c kwiver::vital::any does not give access to it without
+     * internal data since \c viame::any does not give access to it without
      * knowing the type.
      *
      * \param dat The datum to compare to.
@@ -159,11 +159,11 @@ class SPROKIT_PIPELINE_EXPORT datum
   private:
     SPROKIT_PIPELINE_NO_EXPORT datum(type_t ty);
     SPROKIT_PIPELINE_NO_EXPORT datum(error_t const& err);
-    SPROKIT_PIPELINE_NO_EXPORT datum(kwiver::vital::any const& dat);
+    SPROKIT_PIPELINE_NO_EXPORT datum(viame::any const& dat);
 
     type_t const m_type;
     error_t const m_error;
-    kwiver::vital::any const m_datum;
+    viame::any const m_datum;
 };
 
 // ----------------------------------------------------------------------------
@@ -232,7 +232,7 @@ template <typename T>
 datum_t
 datum::new_datum(T const& dat)
 {
-  return new_datum(kwiver::vital::any(dat));
+  return new_datum(viame::any(dat));
 }
 
 // ----------------------------------------------------------------------------
@@ -242,9 +242,9 @@ datum::get_datum() const
 {
   try
   {
-    return kwiver::vital::any_cast<T>(m_datum);
+    return viame::any_cast<T>(m_datum);
   }
-  catch (kwiver::vital::bad_any_cast const& e)
+  catch (viame::bad_any_cast const& e)
   {
     std::string const req_type_name = typeid(T).name();
     std::string const type_name = m_datum.type().name();
@@ -257,7 +257,7 @@ datum::get_datum() const
 // ----------------------------------------------------------------------------
 template <>
 inline
-kwiver::vital::any
+viame::any
 datum::get_datum() const
 {
   return m_datum;

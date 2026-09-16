@@ -8,9 +8,7 @@
 #include "io.h"
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 io_exception
@@ -135,6 +133,4 @@ file_write_exception
 ::~file_write_exception() noexcept
 {}
 
-} // namespace vital
-
-}     // end vital namespace
+} // namespace viame

@@ -26,9 +26,7 @@
 #include <cmath>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// The thin singular value decomposition of an m by n matrix, m >= n.
@@ -317,8 +315,6 @@ std::vector< T > solve_least_squares( dynamic_matrix< T > const& a,
   return out;
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

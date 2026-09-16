@@ -10,9 +10,7 @@
 
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 enum
 {
@@ -80,8 +78,6 @@ tokenize(
   }
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif // VITAL_TOKENIZE_H

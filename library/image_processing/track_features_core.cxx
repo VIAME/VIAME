@@ -31,11 +31,9 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-using namespace kwiver::vital;
+using namespace viame;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -53,31 +51,31 @@ public:
   config_path_t features_dir() { return parent.c_features_dir; }
 
   // processing classes
-  vital::algo::detect_features_sptr
+  viame::algo::detect_features_sptr
   feature_detector()
   {
     return parent.c_feature_detector;
   }
 
-  vital::algo::extract_descriptors_sptr
+  viame::algo::extract_descriptors_sptr
   descriptor_extractor()
   {
     return parent.c_descriptor_extractor;
   }
 
-  vital::algo::feature_descriptor_io_sptr
+  viame::algo::feature_descriptor_io_sptr
   feature_io()
   {
     return parent.c_feature_io;
   }
 
-  vital::algo::match_features_sptr
+  viame::algo::match_features_sptr
   feature_matcher()
   {
     return parent.c_feature_matcher;
   }
 
-  vital::algo::close_loops_sptr loop_closer() { return parent.c_loop_closer; }
+  viame::algo::close_loops_sptr loop_closer() { return parent.c_loop_closer; }
 };
 
 // ----------------------------------------------------------------------------
@@ -96,7 +94,7 @@ track_features_core
 
 bool
 track_features_core
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   bool config_valid = true;
   // this algorithm is optional
@@ -113,7 +111,7 @@ track_features_core
       config->get_value< std::string >( "features_dir" ) != "" )
   {
     config_path_t fp = config->get_value< config_path_t >( "features_dir" );
-    if( kwiver::vital::file_exists( fp ) && !kwiver::vital::file_is_directory( fp ) )
+    if( viame::file_exists( fp ) && !viame::file_is_directory( fp ) )
     {
       LOG_ERROR(
         logger(), "Given features directory is a file "
@@ -161,7 +159,7 @@ track_features_core
   {
     // Something did not initialize
     VITAL_THROW(
-      vital::algorithm_configuration_exception, this->interface_name(),
+      viame::algorithm_configuration_exception, this->interface_name(),
       this->plugin_name(),
       "not all sub-algorithms have been initialized" );
   }
@@ -208,7 +206,7 @@ track_features_core
     metadata_sptr md = image_data->get_metadata();
     std::string basename = basename_from_metadata( md, frame_number );
     path_t kwfd_file = d_->features_dir() + "/" + basename + ".kwfd";
-    if( kwiver::vital::file_exists( kwfd_file ) )
+    if( viame::file_exists( kwfd_file ) )
     {
       feature_set_sptr feat;
       descriptor_set_sptr desc;
@@ -279,10 +277,10 @@ track_features_core
     path_t kwfd_file = d_->features_dir() + "/" + basename + ".kwfd";
 
     // make the enclosing directory if it does not already exist
-    const kwiver::vital::path_t fd_dir = kwiver::vital::filename_path( kwfd_file );
-    if( !kwiver::vital::file_is_directory( fd_dir ) )
+    const viame::path_t fd_dir = viame::filename_path( kwfd_file );
+    if( !viame::file_is_directory( fd_dir ) )
     {
-      if( !kwiver::vital::make_directory( fd_dir ) )
+      if( !viame::make_directory( fd_dir ) )
       {
         LOG_ERROR( logger(), "Unable to create directory: " << fd_dir );
       }
@@ -305,13 +303,13 @@ track_features_core
 
     feat_itr fit = vf.begin();
     desc_itr dit = curr_desc->cbegin();
-    std::vector< vital::track_sptr > new_tracks;
+    std::vector< viame::track_sptr > new_tracks;
     for(; fit != vf.end() && dit != curr_desc->cend(); ++fit, ++dit )
     {
       auto fts = std::make_shared< feature_track_state >( frame_number );
       fts->feature = *fit;
       fts->descriptor = *dit;
-      new_tracks.push_back( vital::track::create() );
+      new_tracks.push_back( viame::track::create() );
       new_tracks.back()->append( fts );
       new_tracks.back()->set_id( next_track_id++ );
     }
@@ -342,8 +340,8 @@ track_features_core
     next_track_id = ( *prev_tracks->all_track_ids().crbegin() ) + 1;
   }
 
-  const vital::frame_id_t last_frame = prev_tracks->last_frame();
-  vital::frame_id_t prev_frame = last_frame;
+  const viame::frame_id_t last_frame = prev_tracks->last_frame();
+  viame::frame_id_t prev_frame = last_frame;
 
   feature_track_set_sptr active_set;
   // if processing out of order, see if there are tracks on the previous frame
@@ -450,7 +448,7 @@ track_features_core
       fts->feature = vf[ i ];
       fts->descriptor = curr_desc->at( i );
 
-      auto t = vital::track::create();
+      auto t = viame::track::create();
       t->append( fts );
       t->set_id( next_track_id++ );
       updated_track_set->insert( t );
@@ -469,8 +467,6 @@ track_features_core
   return updated_track_set;
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

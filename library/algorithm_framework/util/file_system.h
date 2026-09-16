@@ -24,9 +24,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Asking about a path ---------------------------------------------------------
 
@@ -177,8 +175,6 @@ VITAL_UTIL_EXPORT char const* get_env( std::string const& name );
 VITAL_UTIL_EXPORT void environment_path(
   std::string const& name, std::vector< std::string >& directories );
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // KWIVER_VITAL_UTIL_FILE_SYSTEM_H

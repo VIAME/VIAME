@@ -32,12 +32,12 @@ constexpr size_t percentile_sampling_points = 100000000;
 // ----------------------------------------------------------------------------
 /// Convert \p input to \p Out, then apply the output shaping.
 template < typename Out, typename In >
-kwiver::vital::image
-convert_to( kwiver::vital::image_of< In > const& input,
+viame::image
+convert_to( viame::image_of< In > const& input,
             double scale_factor, double percentile_norm,
             bool force_three_channel )
 {
-  kwiver::vital::image_of< Out > output;
+  viame::image_of< Out > output;
 
   if( percentile_norm >= 0.0 )
   {
@@ -78,8 +78,8 @@ public:
   /// Only one of the two happens: asking for a single channel wins, which is
   /// what arrows/vxl does and what the pipelines that set both expect.
   template < typename T >
-  kwiver::vital::image_of< T >
-  apply_transforms( kwiver::vital::image_of< T > const& input )
+  viame::image_of< T >
+  apply_transforms( viame::image_of< T > const& input )
   {
     if( m_parent.get_single_channel() && input.depth() != 1 )
     {
@@ -99,8 +99,8 @@ public:
 
   /// Dispatch on the configured output format.
   template < typename In >
-  kwiver::vital::image
-  convert( kwiver::vital::image_of< In > const& input )
+  viame::image
+  convert( viame::image_of< In > const& input )
   {
     auto const& format = m_parent.get_format();
     auto const scale_factor = m_parent.get_scale_factor();

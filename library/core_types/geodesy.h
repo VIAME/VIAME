@@ -15,9 +15,7 @@
 #include <map>
 #include <string>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Well known coordinate reference systems.
@@ -133,8 +131,6 @@ VITAL_TYPES_EXPORT utm_ups_zone_t utm_ups_zone( vector_2d const& lon_lat );
 VITAL_TYPES_EXPORT utm_ups_zone_t utm_ups_zone( vector_3d const& lon_lat_alt );
 //@}
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #endif

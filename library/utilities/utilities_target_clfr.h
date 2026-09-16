@@ -28,7 +28,7 @@ namespace viame
 namespace core
 {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /**
  * Compute averaged classification scores from a list of detections.

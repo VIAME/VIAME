@@ -7,9 +7,7 @@
 
 #include "uid.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 uid
@@ -71,6 +69,4 @@ uid::operator<( const uid& other ) const
   return this->m_uid < other.m_uid;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

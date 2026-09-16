@@ -110,7 +110,7 @@ border_index( long at, long extent, border_mode mode )
 /// The pixel at (\p i, \p j) of \p plane, with the border rule applied.
 template < typename T >
 double
-sample_with_border( kwiver::vital::image_of< T > const& image, long i, long j,
+sample_with_border( viame::image_of< T > const& image, long i, long j,
                     size_t plane, border_mode mode, double constant = 0.0 )
 {
   auto const x = detail::border_index(
@@ -172,8 +172,8 @@ struct kernel
 /// @param mode what to read past the edge
 /// @param constant the value for `CONSTANT`
 template < typename Out, typename T >
-kwiver::vital::image_of< Out >
-filter_2d( kwiver::vital::image_of< T > const& image, kernel const& k,
+viame::image_of< Out >
+filter_2d( viame::image_of< T > const& image, kernel const& k,
            border_mode mode = border_mode::REFLECT_101,
            double constant = 0.0 )
 {
@@ -186,7 +186,7 @@ filter_2d( kwiver::vital::image_of< T > const& image, kernel const& k,
   auto const anchor_i = static_cast< long >( k.width / 2 );
   auto const anchor_j = static_cast< long >( k.height / 2 );
 
-  kwiver::vital::image_of< Out > out( image.width(), image.height(),
+  viame::image_of< Out > out( image.width(), image.height(),
                                       image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -226,8 +226,8 @@ filter_2d( kwiver::vital::image_of< T > const& image, kernel const& k,
 
 /// `filter_2d` keeping the input's pixel type.
 template < typename T >
-kwiver::vital::image_of< T >
-filter_2d( kwiver::vital::image_of< T > const& image, kernel const& k,
+viame::image_of< T >
+filter_2d( viame::image_of< T > const& image, kernel const& k,
            border_mode mode = border_mode::REFLECT_101,
            double constant = 0.0 )
 {
@@ -328,8 +328,8 @@ gaussian_kernel_1d( size_t size, double sigma = 0.0 )
 /// @param size the kernel width and height, odd
 /// @param sigma the standard deviation, derived from the size when not given
 template < typename T >
-kwiver::vital::image_of< T >
-gaussian_blur( kwiver::vital::image_of< T > const& image, size_t size,
+viame::image_of< T >
+gaussian_blur( viame::image_of< T > const& image, size_t size,
                double sigma = 0.0,
                border_mode mode = border_mode::REFLECT_101 )
 {
@@ -340,8 +340,8 @@ gaussian_blur( kwiver::vital::image_of< T > const& image, size_t size,
 // ----------------------------------------------------------------------------
 /// A box blur, which is `cv::blur`: the mean of a \p size by \p size window.
 template < typename T >
-kwiver::vital::image_of< T >
-box_blur( kwiver::vital::image_of< T > const& image, size_t size,
+viame::image_of< T >
+box_blur( viame::image_of< T > const& image, size_t size,
           border_mode mode = border_mode::REFLECT_101 )
 {
   if( size == 0 )
@@ -433,8 +433,8 @@ sobel_kernel_1d( int order, size_t size )
 /// @param dy the order of the derivative down
 /// @param size 1, 3, 5 or 7
 template < typename Out, typename T >
-kwiver::vital::image_of< Out >
-sobel( kwiver::vital::image_of< T > const& image, int dx, int dy,
+viame::image_of< Out >
+sobel( viame::image_of< T > const& image, int dx, int dy,
        size_t size = 3, border_mode mode = border_mode::REFLECT_101 )
 {
   // OpenCV builds the size-1 case as a 1 by 3 or 3 by 1, so the smoothing
@@ -469,9 +469,9 @@ sobel( kwiver::vital::image_of< T > const& image, int dx, int dy,
 /// `cv::addWeighted`, which the enhancer's sharpening uses: an image plus a
 /// weighted difference from its own blur.
 template < typename T >
-kwiver::vital::image_of< T >
-add_weighted( kwiver::vital::image_of< T > const& first, double alpha,
-              kwiver::vital::image_of< T > const& second, double beta,
+viame::image_of< T >
+add_weighted( viame::image_of< T > const& first, double alpha,
+              viame::image_of< T > const& second, double beta,
               double gamma = 0.0 )
 {
   if( first.width() != second.width() || first.height() != second.height() ||
@@ -481,7 +481,7 @@ add_weighted( kwiver::vital::image_of< T > const& first, double alpha,
       "add_weighted: the two images have different shapes" );
   }
 
-  kwiver::vital::image_of< T > out( first.width(), first.height(),
+  viame::image_of< T > out( first.width(), first.height(),
                                     first.depth() );
 
   for( size_t plane = 0; plane < first.depth(); ++plane )

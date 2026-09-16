@@ -8,9 +8,7 @@
 #ifndef KWIVER_VITAL_METADATA_TAGS_H_
 #define KWIVER_VITAL_METADATA_TAGS_H_
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 enum vital_metadata_tag
@@ -122,8 +120,6 @@ template < vital_metadata_tag Tag > struct metadata_tag_static_traits;
 template < vital_metadata_tag Tag >
 using type_of_tag = typename metadata_tag_static_traits< Tag >::type;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

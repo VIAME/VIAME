@@ -20,7 +20,7 @@
  * \brief Types for the AST of a pipeline declaration.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /// The type for a token in the AST.
 typedef std::string token_t;
@@ -53,17 +53,17 @@ typedef token_t config_provider_t;
 struct config_value_t
 {
   /// The configuration path. Each element in the vector is a portion of the key.
-  kwiver::vital::config_block_keys_t key_path;
+  viame::config_block_keys_t key_path;
 
   // Attributes that are associated with this config key
   // An empty list indicates no flags or attributes.
   config_flags_t flags;
 
   /// The value of the configuration.
-  kwiver::vital::config_block_value_t value;
+  viame::config_block_value_t value;
 
   /// Source location of definition
-  kwiver::vital::source_location loc;
+  viame::source_location loc;
 };
 
 /// The type for a collection of configuration values.
@@ -84,13 +84,13 @@ struct config_pipe_block
    * the "config" keyword. These need to be kept separate so that this
    * internal representation can be used to recreate a valid pipe file.
    */
-  kwiver::vital::config_block_keys_t key; // Name of the config block (after "config" keyword)
+  viame::config_block_keys_t key; // Name of the config block (after "config" keyword)
 
   /// The values for the configuration block.
   config_values_t values; // vector of key/value pairs
 
   /// Source location of "config" keyword
-  kwiver::vital::source_location loc;
+  viame::source_location loc;
 };
 
 // ------------------------------------------------------------------
@@ -115,7 +115,7 @@ struct process_pipe_block
   config_values_t config_values;
 
   /// Source location of "process" keyword
-  kwiver::vital::source_location loc;
+  viame::source_location loc;
 };
 
 // ------------------------------------------------------------------
@@ -133,7 +133,7 @@ struct connect_pipe_block
   process::port_addr_t to;
 
   /// Source location of definition
-  kwiver::vital::source_location loc;
+  viame::source_location loc;
 
 };
 

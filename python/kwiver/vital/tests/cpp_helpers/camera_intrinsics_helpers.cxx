@@ -9,7 +9,7 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // Helpers to call pure virtual functions from base reference.
 // We'll use these to test that these methods can be overriden in C++

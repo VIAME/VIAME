@@ -14,9 +14,7 @@
 #ifndef VIAME_CORE_TYPES_MATH_MATRIX_DETAIL_H_
 #define VIAME_CORE_TYPES_MATH_MATRIX_DETAIL_H_
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace math_detail {
 
@@ -161,8 +159,6 @@ matrix_< R, C, T > matrix_< R, C, T >::inverse() const
   return math_detail::inverse_square( *this );
 }
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

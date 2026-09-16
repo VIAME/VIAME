@@ -12,7 +12,7 @@
  * \brief Implementation of the mutate process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class mutate_process::priv
@@ -27,7 +27,7 @@ class mutate_process::priv
 process::port_t const mutate_process::priv::port_input = port_t("mutate");
 
 mutate_process
-::mutate_process(kwiver::vital::config_block_sptr const& config)
+::mutate_process(viame::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

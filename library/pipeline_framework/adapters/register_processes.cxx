@@ -18,9 +18,9 @@
 extern "C"
 KWIVER_PROCESSES_ADAPTER_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
-  using namespace sprokit;
+  using namespace viame::pipeline;
 
   process_registrar reg( vpm, "kwiver_processes_adapters" );
 
@@ -29,8 +29,8 @@ register_factories( kwiver::vital::registry& vpm )
     return;
   }
 
-  reg.register_process< kwiver::input_adapter_process >( process_registrar::no_test );
-  reg.register_process< kwiver::output_adapter_process >( process_registrar::no_test );
+  reg.register_process< viame::input_adapter_process >( process_registrar::no_test );
+  reg.register_process< viame::output_adapter_process >( process_registrar::no_test );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   reg.mark_module_as_loaded();

@@ -35,7 +35,7 @@
 #include <set>
 #include <cmath>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -372,8 +372,8 @@ seagis_measurement_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -705,7 +705,7 @@ seagis_measurement_process
       for( auto& state : *trk )
       {
         auto obj_state =
-          std::static_pointer_cast< kwiver::vital::object_track_state >( state );
+          std::static_pointer_cast< viame::object_track_state >( state );
 
         if( state->frame() == cur_frame_id )
         {

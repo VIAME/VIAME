@@ -12,9 +12,7 @@
 #include <string>
 #include <viame/core_types/vital_types.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// VITAL Generic math exception
 class VITAL_EXCEPTIONS_EXPORT math_exception
@@ -65,8 +63,6 @@ public:
   std::string m_reason;
 };
 
-} // namespace vital
-
-}   // end vital namespace
+} // namespace viame
 
 #endif // VITAL_CORE_EXCEPTIONS_MATH_H

@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <sstream>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -33,7 +33,7 @@ namespace kwiver {
 
 // ------------------------------------------------------------------
 input_adapter_process
-::input_adapter_process( kwiver::vital::config_block_sptr const& config )
+::input_adapter_process( viame::config_block_sptr const& config )
   : process( config )
 {
 }
@@ -43,11 +43,11 @@ input_adapter_process
 { }
 
 // ------------------------------------------------------------------
-kwiver::adapter::ports_info_t
+viame::adapter::ports_info_t
 input_adapter_process
 ::get_ports()
 {
-  kwiver::adapter::ports_info_t p_info;
+  viame::adapter::ports_info_t p_info;
 
   // formulate list of current input ports
   auto ports = this->output_ports();
@@ -62,7 +62,7 @@ input_adapter_process
 // ------------------------------------------------------------------
 void
 input_adapter_process
-::output_port_undefined( sprokit::process::port_t const& port )
+::output_port_undefined( viame::pipeline::process::port_t const& port )
 {
   // If we have not created the port, then make a new one.
   if ( m_active_ports.count( port ) == 0 )
@@ -94,7 +94,7 @@ input_adapter_process
 {
   LOG_TRACE( logger(), "Processing data set" );
   auto data_set = this->get_interface_queue()->Receive(); // blocking call
-  std::set< sprokit::process::port_t > unused_ports = m_active_ports; // copy set of active ports
+  std::set< viame::pipeline::process::port_t > unused_ports = m_active_ports; // copy set of active ports
 
   // Handle end of input as last data supplied.
   if (data_set->is_end_of_data() )
@@ -103,7 +103,7 @@ input_adapter_process
 
     // indicate done
     mark_process_as_complete();
-    const auto dat( sprokit::datum::complete_datum() );
+    const auto dat( viame::pipeline::datum::complete_datum() );
 
     for( auto p : m_active_ports )
     {
@@ -152,4 +152,4 @@ input_adapter_process
   return;
 }
 
-} // end namespace
+} // namespace viame

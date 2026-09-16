@@ -6,7 +6,7 @@
 /// \brief Split an image into one image per plane
 ///
 /// Was `cv::split`; since P7-T04 it copies the planes out directly, which on
-/// a `vital::image` is what `cv::split` was doing anyway once the bridge had
+/// a `viame::image` is what `cv::split` was doing anyway once the bridge had
 /// interleaved them on the way in and the way out again.
 
 #include "split_image_channels.h"
@@ -15,13 +15,11 @@
 
 #include <viame/core_types/image_container.h>
 
-using namespace kwiver::vital;
+using namespace viame;
 
 namespace io = viame::image_ops;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace ocv {
 
@@ -31,11 +29,11 @@ split_image_channels
 {}
 
 /// Split image into its channel planes
-std::vector< kwiver::vital::image_container_sptr >
+std::vector< viame::image_container_sptr >
 split_image_channels
-::split( kwiver::vital::image_container_sptr image ) const
+::split( viame::image_container_sptr image ) const
 {
-  std::vector< kwiver::vital::image_container_sptr > output;
+  std::vector< viame::image_container_sptr > output;
 
   if( !image )
   {
@@ -48,11 +46,11 @@ split_image_channels
   {
     auto const single = io::dispatch_pixel_type(
       source,
-      [ & ]( auto const& typed ) -> vital::image
+      [ & ]( auto const& typed ) -> viame::image
       {
         using pixel_t = io::pixel_type_t< decltype( typed ) >;
 
-        vital::image_of< pixel_t > out( typed.width(), typed.height(), 1 );
+        viame::image_of< pixel_t > out( typed.width(), typed.height(), 1 );
 
         for( size_t j = 0; j < typed.height(); ++j )
         {
@@ -62,18 +60,16 @@ split_image_channels
           }
         }
 
-        return vital::image( out );
+        return viame::image( out );
       } );
 
     output.push_back(
-      std::make_shared< vital::simple_image_container >( single ) );
+      std::make_shared< viame::simple_image_container >( single ) );
   }
 
   return output;
 }
 
-} // end namespace ocv
+} // namespace ocv
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

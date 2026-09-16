@@ -9,7 +9,7 @@
 #include <memory>
 #include <utility>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
 namespace py = pybind11;
 
@@ -27,10 +27,10 @@ extract_descriptors_extras( py::module& m )
   // against.
   py::object cls = m.attr( "ExtractDescriptors" );
   cls.attr( "extract" ) = py::cpp_function(
-    []( kwiver::vital::algo::extract_descriptors const& self,
-        kwiver::vital::image_container_sptr image_data,
-        kwiver::vital::feature_set_sptr features,
-        kwiver::vital::image_container_sptr image_mask )
+    []( viame::algo::extract_descriptors const& self,
+        viame::image_container_sptr image_data,
+        viame::feature_set_sptr features,
+        viame::image_container_sptr image_mask )
     {
       auto descriptors = self.extract( image_data, features, image_mask );
       // features may have been replaced, so return it alongside
@@ -46,4 +46,4 @@ extract_descriptors_extras( py::module& m )
     py::arg( "image_mask" ) = py::none() );
 }
 
-} // namespace kwiver::vital::python
+} // namespace viame::python

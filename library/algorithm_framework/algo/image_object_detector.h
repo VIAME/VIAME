@@ -14,9 +14,7 @@
 
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -25,7 +23,7 @@ namespace algo {
 /// @brief Image object detector base class/
 ///
 class VITAL_ALGO_EXPORT image_object_detector
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   image_object_detector();
@@ -67,8 +65,6 @@ typedef std::shared_ptr< image_object_detector > image_object_detector_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_IMAGE_OBJECT_DETECTOR_H_

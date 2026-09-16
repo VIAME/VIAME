@@ -13,9 +13,7 @@
 #include <stdexcept>
 #include <variant>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace {
 
@@ -27,10 +25,10 @@ enum class polygon_combine_mode
 };
 
 // ----------------------------------------------------------------------------
-std::vector< vital::vector_2d >
+std::vector< viame::vector_2d >
 convex_combine(
-  std::vector< vital::vector_2d > const& a_in,
-  std::vector< vital::vector_2d > const& b_in,
+  std::vector< viame::vector_2d > const& a_in,
+  std::vector< viame::vector_2d > const& b_in,
   polygon_combine_mode combine_mode )
 {
   // Determine maximum scalar value among all points
@@ -49,8 +47,8 @@ convex_combine(
   // to probably be rounding error, relative to the overall scale of the inputs
   constexpr auto epsilon = 1.0e-15;
   auto const points_equal =
-    [ max_value, epsilon ]( vital::vector_2d const& p0,
-                            vital::vector_2d const& p1 ){
+    [ max_value, epsilon ]( viame::vector_2d const& p0,
+                            viame::vector_2d const& p1 ){
       return
         std::abs( p1[ 0 ] - p0[ 0 ] ) <= max_value * epsilon &&
         std::abs( p1[ 1 ] - p0[ 1 ] ) <= max_value * epsilon;
@@ -60,14 +58,14 @@ convex_combine(
   // between the points on either side. This avoids various edge cases and does
   // not change the geometry of the polygon
   auto const remove_duplicates =
-    [ points_equal, epsilon ]( std::vector< vital::vector_2d > const& points ){
+    [ points_equal, epsilon ]( std::vector< viame::vector_2d > const& points ){
       if( points.size() < 2 )
       {
         return points;
       }
 
       // Remove identical points
-      std::vector< vital::vector_2d > pass1;
+      std::vector< viame::vector_2d > pass1;
       for( size_t i = 0; i < points.size(); ++i )
       {
         auto const& p0 = points[ ( i + points.size() - 1 ) % points.size() ];
@@ -84,7 +82,7 @@ convex_combine(
       }
 
       // Remove the middle point when three consecutive points are colinear
-      std::vector< vital::vector_2d > pass2;
+      std::vector< viame::vector_2d > pass2;
       for( size_t i = 0; i < pass1.size(); ++i )
       {
         auto const& p0 = pass1[ ( i + pass1.size() - 1 ) % pass1.size() ];
@@ -109,7 +107,7 @@ convex_combine(
   // Struct to hold pre-calculated information about an edge
   struct edge_info
   {
-    edge_info( std::vector< vital::vector_2d > const& polygon, size_t index )
+    edge_info( std::vector< viame::vector_2d > const& polygon, size_t index )
     {
       p0 = polygon[ index ];
       p1 = polygon[ ( index + 1 ) % polygon.size() ];
@@ -123,19 +121,19 @@ convex_combine(
     }
 
     // First point
-    vital::vector_2d p0;
+    viame::vector_2d p0;
     // Second point
-    vital::vector_2d p1;
+    viame::vector_2d p1;
     // Vector from first to second point
-    vital::vector_2d v;
+    viame::vector_2d v;
     // Normalized direction of the edge, from first to second point
-    vital::vector_2d v_norm;
+    viame::vector_2d v_norm;
     // Shortest vector from (0, 0) to the infinite line that contains the edge.
     // Necessarily perpendicular to the edge.
-    vital::vector_2d perp;
+    viame::vector_2d perp;
     // Normalized direction of the edge, rotated counter-clockwize 90 degrees.
     // Points "left", or "in" for a counter-clockwise polygon.
-    vital::vector_2d perp_norm;
+    viame::vector_2d perp_norm;
     // Scalar such that p0 == v_norm * t0 + perp
     double t0;
     // Scalar such that p1 == v_norm * t1 + perp
@@ -164,8 +162,8 @@ convex_combine(
     [ epsilon, &points_equal ](edge_info const& lhs, edge_info const& rhs) ->
     std::variant<
       std::monostate,
-      vital::vector_2d,
-      std::pair< vital::vector_2d, vital::vector_2d > > {
+      viame::vector_2d,
+      std::pair< viame::vector_2d, viame::vector_2d > > {
       // https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Given_two_points_on_each_line_segment
       auto const denominator1 =
         ( lhs.p0[ 0 ] - lhs.p1[ 0 ] ) *
@@ -303,7 +301,7 @@ convex_combine(
   auto const is_outside =
     [ epsilon ](edge_info const& lhs, edge_info const& rhs) -> bool {
       // Direction from lhs to rhs
-      vital::vector_2d v = rhs.p1 - lhs.p1;
+      viame::vector_2d v = rhs.p1 - lhs.p1;
       if( v.isZero() )
       {
         v = rhs.p0 - lhs.p0;
@@ -357,7 +355,7 @@ convex_combine(
   // Now that we've defined utility functions, set up initial state and start
   // the main loop
 
-  std::vector< vital::vector_2d > result;
+  std::vector< viame::vector_2d > result;
   size_t a_index = 0;
   size_t b_index = 0;
   size_t a_first = 0;
@@ -457,7 +455,7 @@ convex_combine(
         increment_outside();
       }
     }
-    else if( auto const p = std::get_if< vital::vector_2d >( &intersection ) )
+    else if( auto const p = std::get_if< viame::vector_2d >( &intersection ) )
     {
       // Single-point intersection
 
@@ -605,7 +603,7 @@ convex_combine(
       // Colinear intersection with edges facing opposite ways
 
       auto const& [ p0, p1 ] =
-        std::get< std::pair< vital::vector_2d, vital::vector_2d > >(
+        std::get< std::pair< viame::vector_2d, viame::vector_2d > >(
           intersection );
       if( combine_mode == polygon_combine_mode::INTERSECTION )
       {
@@ -696,7 +694,7 @@ polygon
 // ----------------------------------------------------------------------------
 void
 polygon
-::push_back( const kwiver::vital::polygon::point_t& pt )
+::push_back( const viame::polygon::point_t& pt )
 {
   m_polygon.push_back( pt );
 }
@@ -750,13 +748,13 @@ polygon
 // ----------------------------------------------------------------------------
 bool
 polygon
-::contains( const kwiver::vital::polygon::point_t& pt )
+::contains( const viame::polygon::point_t& pt )
 {
   return contains( pt[ 0 ], pt[ 1 ] );
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::polygon::point_t
+viame::polygon::point_t
 polygon
 ::at( size_t idx ) const
 {
@@ -773,7 +771,7 @@ polygon
 }
 
 // ----------------------------------------------------------------------------
-std::vector< kwiver::vital::polygon::point_t >
+std::vector< viame::polygon::point_t >
 polygon
 ::get_vertices() const
 {
@@ -857,6 +855,4 @@ operator!=( polygon const& lhs, polygon const& rhs )
   return !( lhs == rhs );
 }
 
-} // namespace vital
-
-}      // end namespace
+} // namespace viame

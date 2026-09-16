@@ -13,11 +13,9 @@
 #include <viame/core_types/homography.h>
 #include <viame/core_types/match_set.h>
 
-using namespace kwiver::vital;
+using namespace viame;
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -40,22 +38,22 @@ public:
   { return parent.c_min_required_inlier_percent; }
 
   // processing classes
-  vital::algo::estimate_homography_sptr c_h_estimator()
+  viame::algo::estimate_homography_sptr c_h_estimator()
   { return parent.c_homography_estimator; }
 
-  vital::algo::match_features_sptr
+  viame::algo::match_features_sptr
   c_matcher1()
   {
     return parent.c_feature_matcher1;
   }
 
-  vital::algo::match_features_sptr
+  viame::algo::match_features_sptr
   c_matcher2()
   {
     return parent.c_feature_matcher2;
   }
 
-  vital::algo::filter_features_sptr c_feature_filter()
+  viame::algo::filter_features_sptr c_feature_filter()
   { return parent.c_filter_features; }
 };
 
@@ -76,13 +74,13 @@ match_features_homography
 // ----------------------------------------------------------------------------
 bool
 match_features_homography
-::check_configuration( vital::config_block_sptr config ) const
+::check_configuration( viame::config_block_sptr config ) const
 {
   bool config_valid = true;
   // this algorithm is optional
   if( config->has_value( "filter_features" ) &&
       config->get_value< std::string >( "filter_features" ) != "" &&
-      !check_nested_algo_configuration< vital::algo::filter_features >(
+      !check_nested_algo_configuration< viame::algo::filter_features >(
         "filter_features", config ) )
   {
     config_valid = false;
@@ -90,16 +88,16 @@ match_features_homography
   // this algorithm is optional
   if( config->has_value( "feature_matcher2" ) &&
       config->get_value< std::string >( "feature_matcher2" ) != "" &&
-      !check_nested_algo_configuration< vital::algo::match_features >(
+      !check_nested_algo_configuration< viame::algo::match_features >(
         "feature_matcher2", config ) )
   {
     config_valid = false;
   }
   return (
-    check_nested_algo_configuration< vital::algo::estimate_homography >(
+    check_nested_algo_configuration< viame::algo::estimate_homography >(
       "homography_estimator", config )
     &&
-    check_nested_algo_configuration< vital::algo::match_features >(
+    check_nested_algo_configuration< viame::algo::match_features >(
       "feature_matcher1", config )
     &&
     config_valid
@@ -218,8 +216,8 @@ match_features_homography
   if( !d_->c_matcher2() )
   {
     // return the subset of inlier matches
-    std::vector< vital::match > m = init_matches->matches();
-    std::vector< vital::match > inlier_m;
+    std::vector< viame::match > m = init_matches->matches();
+    std::vector< viame::match > inlier_m;
     for( size_t i = 0; i < inliers.size(); ++i )
     {
       if( inliers[ i ] )
@@ -251,8 +249,6 @@ match_features_homography
   return d_->c_matcher2()->match( warped_feat1_set, desc1, feat2, desc2 );
 }
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame

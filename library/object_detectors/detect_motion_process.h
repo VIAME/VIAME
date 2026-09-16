@@ -9,7 +9,7 @@
 #include <viame/pipeline_framework/process.h>
 #include <viame/algorithm_framework/config/config_block.h>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 /**
@@ -17,13 +17,13 @@ namespace kwiver {
  *
  */
 class VIAME_PROCESSES_OBJECT_DETECTORS_EXPORT detect_motion_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "detect_motion",
                "Detect motion in a sequence of images" )
 
-  detect_motion_process( kwiver::vital::config_block_sptr const& config );
+  detect_motion_process( viame::config_block_sptr const& config );
   virtual ~detect_motion_process();
 
 protected:
@@ -38,6 +38,6 @@ private:
   const std::unique_ptr<priv> d;
 };
 
-} // end namespace
+} // namespace viame
 
 #endif /* SPROKIT_PROCESSES_DETECT_MOTION_PROCESS_H */

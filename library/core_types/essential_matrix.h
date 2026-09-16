@@ -21,9 +21,7 @@
 #include <memory>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Forward declarations of abstract essential matrix class
 class essential_matrix;
@@ -171,8 +169,6 @@ VITAL_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   essential_matrix_< T > const& e );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_TYPES_ESSENTIAL_MATRIX_H_

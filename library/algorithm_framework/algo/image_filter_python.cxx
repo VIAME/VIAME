@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "image_filter_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void image_filter(py::module& m)
@@ -19,15 +19,15 @@ void image_filter(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::image_filter,
-               std::shared_ptr<kwiver::vital::algo::image_filter>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::image_filter,
+               std::shared_ptr<viame::algo::image_filter>,
+               viame::algorithm,
                image_filter_trampoline<> > instance(m,  "ImageFilter");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::image_filter::interface_name)
-    .def("filter", &kwiver::vital::algo::image_filter::filter, py::doc(R"( Filter a  input image and return resulting image
+    .def_static("interface_name", &viame::algo::image_filter::interface_name)
+    .def("filter", &viame::algo::image_filter::filter, py::doc(R"( Filter a  input image and return resulting image
 
  This method implements the filtering operation. The method does
  not modify the image in place. The resulting image must be a
@@ -36,7 +36,7 @@ void image_filter(py::module& m)
  \param image_data Image to filter.
  \returns a filtered version of the input image)"), py::arg("image_data"))
     ;
-  register_algorithm< kwiver::vital::algo::image_filter > (instance);
+  register_algorithm< viame::algo::image_filter > (instance);
 }
 
 }

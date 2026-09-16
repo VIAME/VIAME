@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // =============================================================================
 // Reusable helpers that mirror the process internals, to test the core logic

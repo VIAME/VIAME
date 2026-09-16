@@ -27,8 +27,8 @@ namespace viame
 ///
 VIAME_IMAGE_OPS_EXPORT
 void convert_polys_to_mask( const std::vector< std::string >& polygons,
-                            const kwiver::vital::bounding_box_d& bbox,
-                            kwiver::vital::image_of< uint8_t >& output );
+                            const viame::bounding_box_d& bbox,
+                            viame::image_of< uint8_t >& output );
 
 
 } // end namespace viame

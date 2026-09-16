@@ -27,11 +27,11 @@ namespace core
  * @brief Detect shot breaks and create tracks for each shot
  */
 class VIAME_PROCESSES_VIDEO_IO_EXPORT detect_shot_breaks_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   // -- CONSTRUCTORS --
-  detect_shot_breaks_process( kwiver::vital::config_block_sptr const& config );
+  detect_shot_breaks_process( viame::config_block_sptr const& config );
   virtual ~detect_shot_breaks_process();
 
 protected:

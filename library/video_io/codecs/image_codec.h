@@ -49,19 +49,19 @@ bool can_read( std::string const& filename, std::string& reason );
 /// @param[out] reason why it cannot be written, when it cannot
 VIAME_VIDEO_IO_EXPORT
 bool can_write( std::string const& filename,
-                kwiver::vital::image const& image, std::string& reason );
+                viame::image const& image, std::string& reason );
 
 /// @brief Read an image.
 ///
 /// The result is 8 or 16 bit to match the file, with one, three or four
 /// planes. Channel order is the file's own -- RGB, not BGR: OpenCV's reader
-/// handed back BGR and the bridge swapped it on the way into `vital::image`,
+/// handed back BGR and the bridge swapped it on the way into `viame::image`,
 /// so what a caller saw was always RGB and still is.
 ///
 /// @param filename the file to read
 /// @throws std::runtime_error if the format is one `can_read` declines
 VIAME_VIDEO_IO_EXPORT
-kwiver::vital::image read( std::string const& filename );
+viame::image read( std::string const& filename );
 
 /// @brief Write an image, choosing the encoder by extension.
 ///
@@ -75,7 +75,7 @@ kwiver::vital::image read( std::string const& filename );
 /// @param image the image to write
 /// @throws std::runtime_error if the extension is one `can_write` declines
 VIAME_VIDEO_IO_EXPORT
-void write( std::string const& filename, kwiver::vital::image const& image );
+void write( std::string const& filename, viame::image const& image );
 
 } // end namespace codecs
 

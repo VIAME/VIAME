@@ -10,7 +10,7 @@
 
 #include <memory>
 
-namespace kwiver
+namespace viame
 {
 
 // ----------------------------------------------------------------
@@ -28,13 +28,13 @@ namespace kwiver
  *
  */
 class VIAME_PROCESSES_IMAGE_PROCESSING_EXPORT stabilize_image_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "stabilize_image",
                "Generate current-to-reference image homographies." )
 
-  stabilize_image_process( kwiver::vital::config_block_sptr const& config );
+  stabilize_image_process( viame::config_block_sptr const& config );
   virtual ~stabilize_image_process();
 
 protected:
@@ -49,6 +49,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class stabilize_image_process
 
-} // end namespace
+} // namespace viame
 
 #endif /* _KWIVER_STABILIZE_IMAGE_PROCESS_H_ */

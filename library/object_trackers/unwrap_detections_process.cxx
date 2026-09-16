@@ -12,7 +12,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 // Private implementation class
@@ -23,13 +23,13 @@ public:
   ~priv();
 
 
-  vital::frame_id_t m_current_idx;
+  viame::frame_id_t m_current_idx;
 };
 
 // ===============================================================================
 
 unwrap_detections_process
-::unwrap_detections_process( kwiver::vital::config_block_sptr const& config )
+::unwrap_detections_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new unwrap_detections_process::priv )
 {
@@ -54,7 +54,7 @@ unwrap_detections_process
 {
   auto object_tracks = grab_from_port_using_trait( object_track_set );
   auto detected_objects =
-    std::make_shared< kwiver::vital::detected_object_set >();
+    std::make_shared< viame::detected_object_set >();
 
   if( object_tracks )
   {
@@ -63,7 +63,7 @@ unwrap_detections_process
       for( auto& state : *trk )
       {
         auto obj_state =
-          std::static_pointer_cast< kwiver::vital::object_track_state >(
+          std::static_pointer_cast< viame::object_track_state >(
             state );
 
         if( state->frame() == d->m_current_idx )
@@ -85,7 +85,7 @@ unwrap_detections_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
 
   required.insert( flag_required );
 
@@ -112,4 +112,4 @@ unwrap_detections_process::priv
 ::~priv()
 {}
 
-} // end namespace
+} // namespace viame

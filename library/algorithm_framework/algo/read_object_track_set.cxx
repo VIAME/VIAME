@@ -14,9 +14,7 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -52,12 +50,12 @@ read_object_track_set
   m_stream = nullptr;
 
   // Make sure that the given file path exists and is a file.
-  if( !kwiver::vital::file_exists( filename ) )
+  if( !viame::file_exists( filename ) )
   {
     VITAL_THROW( path_not_exists, filename );
   }
 
-  if( kwiver::vital::file_is_directory( filename ) )
+  if( viame::file_is_directory( filename ) )
   {
     VITAL_THROW( path_not_a_file, filename );
   }
@@ -131,6 +129,4 @@ read_object_track_set
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

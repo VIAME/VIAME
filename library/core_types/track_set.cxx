@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::track_set track_set \endlink
+/// \brief Implementation of \link viame::track_set track_set \endlink
 ///        member functions
 
 #include "track_set.h"
@@ -11,9 +11,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 void
 track_set
@@ -563,6 +561,4 @@ simple_track_set_implementation
   return new_tsi;
 }
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

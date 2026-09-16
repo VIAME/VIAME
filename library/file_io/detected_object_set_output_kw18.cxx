@@ -18,9 +18,7 @@
 #include <atomic>
 #endif
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -73,9 +71,9 @@ public:
   {
     auto const& field1_ids = parent.c_tot_field1_ids;
     std::vector< std::string > result;
-    kwiver::vital::tokenize(
+    viame::tokenize(
       field1_ids, result, ",;",
-      kwiver::vital::TokenizeTrimEmpty  );
+      viame::TokenizeTrimEmpty  );
 
     return result;
   }
@@ -85,9 +83,9 @@ public:
   {
     auto const& field2_ids = parent.c_tot_field2_ids;
     std::vector< std::string > result;
-    kwiver::vital::tokenize(
+    viame::tokenize(
       field2_ids, result, ",;",
-      kwiver::vital::TokenizeTrimEmpty  );
+      viame::TokenizeTrimEmpty  );
 
     return result;
   }
@@ -114,7 +112,7 @@ detected_object_set_output_kw18::
 // ----------------------------------------------------------------------------
 bool
 detected_object_set_output_kw18
-::check_configuration( [[maybe_unused]] vital::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] viame::config_block_sptr config ) const
 {
   if( d->c_write_tot() && d->c_tot_field1_ids().empty() )
   {
@@ -133,7 +131,7 @@ detected_object_set_output_kw18
 void
 detected_object_set_output_kw18
 ::write_set(
-  const kwiver::vital::detected_object_set_sptr set,
+  const viame::detected_object_set_sptr set,
   [[maybe_unused]] std::string const& image_name )
 {
   if( d->m_first )
@@ -196,7 +194,7 @@ detected_object_set_output_kw18
   auto ie = set->cend();
   for( auto det = set->cbegin(); det != ie; ++det )
   {
-    const kwiver::vital::bounding_box_d bbox( ( *det )->bounding_box() );
+    const viame::bounding_box_d bbox( ( *det )->bounding_box() );
     double ilx = ( bbox.min_x() + bbox.max_x() ) / 2.0;
     double ily = ( bbox.min_y() + bbox.max_y() ) / 2.0;
 
@@ -227,7 +225,7 @@ detected_object_set_output_kw18
     // optionally write tot to corresponding file
     if( d->c_write_tot() )
     {
-      vital::detected_object_type_sptr clf = ( *det )->type();
+      viame::detected_object_type_sptr clf = ( *det )->type();
 
       double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
@@ -260,6 +258,4 @@ detected_object_set_output_kw18
 
 } // namespace core
 
-} // namespace arrows
-
-}     // end namespace
+} // namespace viame

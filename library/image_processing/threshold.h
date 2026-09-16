@@ -12,7 +12,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// @brief Turn an image into a binary mask of the pixels above a value.
 ///

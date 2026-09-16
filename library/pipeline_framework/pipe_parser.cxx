@@ -15,7 +15,7 @@
 
 #include <sstream>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace {
 
@@ -45,7 +45,7 @@ namespace {
 struct block_context_t
 {
   std::string m_block_name;     // block name taken from 'block' keyword. "a:b:c"
-  kwiver::vital::source_location m_location; // location where block started
+  viame::source_location m_location; // location where block started
 
   std::vector< std::string > m_previous_context;  // previous block context/name. e.g. as "a:b:c"
 };
@@ -56,14 +56,14 @@ struct block_context_t
 pipe_parser
 ::pipe_parser()
   : m_compatibility_mode( COMPATIBILITY_ALLOW )
-  , m_logger( kwiver::vital::get_logger( "sprokit.pipe_parser" ) )
+  , m_logger( viame::get_logger( "sprokit.pipe_parser" ) )
 {
 }
 
 // ------------------------------------------------------------------
 void
 pipe_parser
-::add_search_path( kwiver::vital::config_path_t const& file_path )
+::add_search_path( viame::config_path_t const& file_path )
 {
   m_lexer.add_search_path( file_path );
 }
@@ -71,7 +71,7 @@ pipe_parser
 // ------------------------------------------------------------------
 void
 pipe_parser
-::add_search_path( kwiver::vital::config_path_list_t const& file_path )
+::add_search_path( viame::config_path_list_t const& file_path )
 {
   m_lexer.add_search_path( file_path );
 }
@@ -100,7 +100,7 @@ pipe_parser
  *                 | <process-connection>
  *
  */
-sprokit::pipe_blocks
+viame::pipeline::pipe_blocks
 pipe_parser
 ::parse_pipeline( std::istream& input, const std::string& name )
 {
@@ -260,7 +260,7 @@ pipe_parser
      }
   } // end while
 
-  PARSER_TRACE( "Accept config block header - " << kwiver::vital::join(cpb.key, ":") );
+  PARSER_TRACE( "Accept config block header - " << viame::join(cpb.key, ":") );
 
   m_lexer.absorb_eol( true );
 
@@ -285,7 +285,7 @@ pipe_parser
  */
 void
 pipe_parser
-::old_config( sprokit::config_value_t& val )
+::old_config( viame::pipeline::config_value_t& val )
 {
   // Note that the leading ':' has been absorbed
 
@@ -326,7 +326,7 @@ pipe_parser
 
   m_lexer.absorb_whitespace( true );
 
-  PARSER_TRACE( "Accepted old style config: \"" << kwiver::vital::join( val.key_path, ":" ) << "\""
+  PARSER_TRACE( "Accepted old style config: \"" << viame::join( val.key_path, ":" ) << "\""
                 << " = " << "\"" << val.value << "\"" );
 }
 
@@ -347,7 +347,7 @@ pipe_parser
  */
 void
 pipe_parser
-::new_config( sprokit::config_value_t& val )
+::new_config( viame::pipeline::config_value_t& val )
 {
   token_sptr t;
 
@@ -392,7 +392,7 @@ pipe_parser
     PARSE_ERROR( t, "Expecting assignment operator but found \"" << t->text() << "\"" );
   }
 
-    PARSER_TRACE( "Accepted new style config: \"" << kwiver::vital::join( val.key_path, ":" ) << "\""
+    PARSER_TRACE( "Accepted new style config: \"" << viame::join( val.key_path, ":" ) << "\""
                 << " = " << "\"" << val.value << "\"" );
 }
 
@@ -417,7 +417,7 @@ pipe_parser
  */
 void
 pipe_parser
-::parse_attrs( sprokit::config_value_t& val )
+::parse_attrs( viame::pipeline::config_value_t& val )
 {
   auto t = m_lexer.get_token();
 
@@ -630,7 +630,7 @@ pipe_parser
       block_ctxt.m_location = m_lexer.current_location();
       block_ctxt.m_previous_context = current_context;
 
-      kwiver::vital::tokenize( block_name, current_context, ":", kwiver::vital::TokenizeTrimEmpty );
+      viame::tokenize( block_name, current_context, ":", viame::TokenizeTrimEmpty );
 
       block_stack.push_back( block_ctxt );
       continue;
@@ -774,4 +774,4 @@ pipe_parser
   return true;
 }
 
-} // end namespace
+} // namespace viame::pipeline

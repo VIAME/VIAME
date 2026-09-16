@@ -3,9 +3,9 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Header file for \link kwiver::vital::object_track_set
+/// \brief Header file for \link viame::object_track_set
 /// object_track_set
-///        \endlink and a concrete \link kwiver::vital::simple_object_track_set
+///        \endlink and a concrete \link viame::simple_object_track_set
 ///        simple_object_track_set \endlink
 
 #ifndef VITAL_OBJECT_TRACK_SET_H_
@@ -25,9 +25,7 @@
 #include <memory>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// A derived track_state for object tracks
@@ -188,22 +186,20 @@ typedef std::shared_ptr< object_track_set > object_track_set_sptr;
 ///
 /// \par Example:
 /// \code
-/// namespace kv = kwiver::vital;
-/// namespace r = kwiver::vital::range;
+/// namespace kv = viame;
+/// namespace r = viame::range;
 ///
 /// kv::track_sptr ot = get_the_object_track();
 /// for ( auto s : ot | kv::as_object_track )
 ///   std::cout << s->time() << std::endl;
 /// \endcode
 ///
-/// \sa kwiver::vital::range::transform_view
+/// \sa viame::range::transform_view
 #ifndef KWIVER_PYBIND11_WRAPPING
 // xxx(python-wrapping-issues) causes issues during wrapping
 static constexpr auto as_object_track = object_track_state::downcast_transform;
 #endif
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_OBJECT_TRACK_SET_H_

@@ -9,10 +9,10 @@
 #include <viame/core_types/landmark_map.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 typedef kv::simple_landmark_map s_landmark_map;
 typedef std::map< kv::landmark_id_t, kv::landmark_sptr > map_landmark_t;
-using namespace kwiver::vital;
+using namespace viame;
 
 PYBIND11_MODULE( landmark_map, m )
 {

@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /**
  * Mixin class for making a class non-copyable.
@@ -24,8 +22,6 @@ protected:
   noncopyable& operator=( const noncopyable& ) = delete;
 };
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_NONCOPYABLE_H

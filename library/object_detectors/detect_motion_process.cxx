@@ -10,7 +10,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( algo );
 
@@ -22,14 +22,14 @@ public:
   priv();
   ~priv();
 
-  vital::algo::detect_motion_sptr m_algo;
-  kwiver::vital::wall_timer m_timer;
+  viame::algo::detect_motion_sptr m_algo;
+  viame::wall_timer m_timer;
 
 }; // end priv class
 
 // ==================================================================
 detect_motion_process::
-detect_motion_process( kwiver::vital::config_block_sptr const& config )
+detect_motion_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new detect_motion_process::priv )
 {
@@ -49,19 +49,19 @@ _configure()
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
   if ( ! check_nested_algo_configuration_using_trait( algo, algo_config, d->m_algo ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   set_nested_algo_configuration_using_trait( algo, algo_config, d->m_algo );
 
   if ( ! d->m_algo )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
                  "Unable to create motion detector algorithm" );
   }
 }
@@ -74,9 +74,9 @@ _step()
   d->m_timer.start();
 
   auto input = grab_from_port_using_trait( image );
-  kwiver::vital::image_container_sptr result;
+  viame::image_container_sptr result;
 
-  kwiver::vital::timestamp ts;
+  viame::timestamp ts;
   if (has_input_port_edge_using_trait( timestamp ) )
   {
     ts = grab_from_port_using_trait( timestamp );
@@ -106,8 +106,8 @@ detect_motion_process::
 make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -139,4 +139,4 @@ detect_motion_process::priv
 {
 }
 
-} // end namespace kwiver
+} // namespace viame

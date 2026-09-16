@@ -42,10 +42,10 @@ namespace svm
  * This process runs once and trains all category models, then completes.
  */
 class VIAME_PROCESSES_CLASSIFIERS_SVM_NO_EXPORT train_svm_models_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
-  using config_block_sptr = kwiver::vital::config_block_sptr;
+  using config_block_sptr = viame::config_block_sptr;
 
   // -- CONSTRUCTORS --
   train_svm_models_process( config_block_sptr const& config );

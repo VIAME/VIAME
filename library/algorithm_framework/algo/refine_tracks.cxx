@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/refine_tracks.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -21,6 +19,4 @@ refine_tracks
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

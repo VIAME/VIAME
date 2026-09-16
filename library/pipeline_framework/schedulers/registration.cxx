@@ -17,16 +17,16 @@
 extern "C"
 SCHEDULERS_EXPORT
 void
-register_factories( kwiver::vital::registry& vpm )
+register_factories( viame::registry& vpm )
 {
-  sprokit::scheduler_registrar reg( vpm, "schedulers" );
+  viame::pipeline::scheduler_registrar reg( vpm, "schedulers" );
 
   if ( reg.is_module_loaded() )
   {
     return;
   }
 
-  reg.register_scheduler< sprokit::thread_per_process_scheduler >(
+  reg.register_scheduler< viame::pipeline::thread_per_process_scheduler >(
     "thread_per_process",
     "Run each process in its own thread" );
 

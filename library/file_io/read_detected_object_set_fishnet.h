@@ -20,7 +20,7 @@
 namespace viame {
 
 class VIAME_FILE_IO_EXPORT read_detected_object_set_fishnet
-  : public kwiver::vital::algo::detected_object_set_input
+  : public viame::algo::detected_object_set_input
 {
 public:
   // NOTE: Keep description in sync with write_detected_object_set_fishnet
@@ -35,9 +35,9 @@ public:
 
   virtual ~read_detected_object_set_fishnet();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual bool read_set( kwiver::vital::detected_object_set_sptr& set,
+  virtual bool read_set( viame::detected_object_set_sptr& set,
                          std::string& image_name );
 
 private:

@@ -27,7 +27,7 @@ bounding_box( py::module& m, const char* typestr )
    *
    *
    */
-  typedef kwiver::vital::bounding_box< T > bbox;
+  typedef viame::bounding_box< T > bbox;
 
   char pyclass_name[ 20 ];
   strcpy( pyclass_name, "BoundingBox" );
@@ -48,10 +48,10 @@ bounding_box( py::module& m, const char* typestr )
 
     )" )
     .def(
-    py::init< kwiver::vital::vector_< 2, T >, kwiver::vital::vector_< 2, T > >(),
+    py::init< viame::vector_< 2, T >, viame::vector_< 2, T > >(),
     py::arg( "upper_left" ), py::arg( "lower_right" ) )
     .def(
-      py::init< kwiver::vital::vector_< 2, T >, T, T >(), py::arg( "upper_left" ),
+      py::init< viame::vector_< 2, T >, T, T >(), py::arg( "upper_left" ),
       py::arg( "width" ), py::arg( "height" ) )
     .def(
       py::init< T, T, T, T >(),

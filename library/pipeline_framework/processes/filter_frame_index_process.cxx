@@ -18,7 +18,7 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame
 {
@@ -92,8 +92,8 @@ filter_frame_index_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
 
   required.insert( flag_required );
 
@@ -133,7 +133,7 @@ filter_frame_index_process
   
   if ( d->m_min_frame_count > d->m_max_frame_count )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Invalid min/max frame index limits" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Invalid min/max frame index limits" );
   }
 }
 
@@ -167,7 +167,7 @@ filter_frame_index_process
     }
     else
     {
-      push_to_port_using_trait( image, kwiver::vital::image_container_sptr() );
+      push_to_port_using_trait( image, viame::image_container_sptr() );
     }
     
   }

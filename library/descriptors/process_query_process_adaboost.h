@@ -39,10 +39,10 @@ namespace viame
  * - Serializable AdaBoost model support
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT process_query_process_adaboost
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
-  using config_block_sptr = kwiver::vital::config_block_sptr;
+  using config_block_sptr = viame::config_block_sptr;
 
   // -- CONSTRUCTORS --
   process_query_process_adaboost( config_block_sptr const& config );

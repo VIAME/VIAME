@@ -8,11 +8,11 @@ namespace viame
 {
 
 // -----------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
+viame::detected_object_set_sptr
 empty_detector
-::detect( kwiver::vital::image_container_sptr image_data ) const
+::detect( viame::image_container_sptr image_data ) const
 {
-  return std::make_shared< kwiver::vital::detected_object_set >();
+  return std::make_shared< viame::detected_object_set >();
 }
 
 } // end namespace

@@ -19,7 +19,7 @@ namespace viame
 {
 
 class VIAME_FILE_IO_EXPORT write_detected_object_set_viame_csv
-  : public kwiver::vital::algo::detected_object_set_output
+  : public viame::algo::detected_object_set_output
 {
 public:
   // NOTE: Keep description in sync with read_detected_object_set_viame_csv
@@ -72,9 +72,9 @@ public:
 
   virtual ~write_detected_object_set_viame_csv() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::detected_object_set_sptr set,
+  virtual void write_set( const viame::detected_object_set_sptr set,
                           std::string const& image_name );
 
 private:

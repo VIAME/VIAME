@@ -14,20 +14,16 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 typedef std::vector< track_descriptor_sptr > track_descriptor_set;
 typedef std::shared_ptr< track_descriptor_set > track_descriptor_set_sptr;
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 #ifdef KWIVER_PYBIND11_INCLUDE
 #include <pybind11/pybind11.h>
-PYBIND11_MAKE_OPAQUE( kwiver::vital::track_descriptor_set_sptr )
+PYBIND11_MAKE_OPAQUE( viame::track_descriptor_set_sptr )
 #endif
 
 #endif

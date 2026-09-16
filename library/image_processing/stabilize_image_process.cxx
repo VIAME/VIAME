@@ -18,9 +18,9 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( track_features );
 create_algorithm_name_config_trait( homography_generator );
@@ -42,14 +42,14 @@ public:
   algo::track_features_sptr         m_feature_tracker;
   algo::compute_ref_homography_sptr m_compute_homog;
 
-  vital::feature_track_set_sptr m_tracks; // last set of tracks
+  viame::feature_track_set_sptr m_tracks; // last set of tracks
 
 }; // end priv class
 
 // ================================================================
 
 stabilize_image_process
-::stabilize_image_process( kwiver::vital::config_block_sptr const& config )
+::stabilize_image_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new stabilize_image_process::priv )
 {
@@ -68,13 +68,13 @@ void stabilize_image_process
 {
   scoped_configure_instrumentation();
 
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     track_features, algo_config, d->m_feature_tracker );
   if ( ! d->m_feature_tracker )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create \"track_features\"" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create \"track_features\"" );
   }
   get_nested_algo_configuration_using_trait(
     track_features, algo_config, d->m_feature_tracker );
@@ -84,7 +84,7 @@ void stabilize_image_process
     homography_generator, algo_config, d->m_compute_homog );
   if ( ! d->m_compute_homog )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create \"compute_ref_homography\"" );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Unable to create \"compute_ref_homography\"" );
   }
   get_nested_algo_configuration_using_trait(
     homography_generator, algo_config, d->m_compute_homog );
@@ -93,7 +93,7 @@ void stabilize_image_process
   if ( ! check_nested_algo_configuration_using_trait( track_features, algo_config, d->m_feature_tracker ) ||
        ! check_nested_algo_configuration_using_trait( homography_generator, algo_config, d->m_compute_homog ) )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -102,13 +102,13 @@ void
 stabilize_image_process
 ::_step()
 {
-  kwiver::vital::f2f_homography_sptr src_to_ref_homography;
+  viame::f2f_homography_sptr src_to_ref_homography;
 
   // timestamp
-  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
+  viame::timestamp frame_time = grab_from_port_using_trait( timestamp );
 
   // image
-  kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
+  viame::image_container_sptr img = grab_from_port_using_trait( image );
 
   {
     scoped_step_instrumentation();
@@ -134,8 +134,8 @@ void stabilize_image_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
 
   // -- input --
@@ -164,4 +164,4 @@ stabilize_image_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

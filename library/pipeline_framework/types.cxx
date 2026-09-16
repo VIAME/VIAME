@@ -10,11 +10,11 @@
  * \brief Implementation of base type logic.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 pipeline_exception
 ::pipeline_exception() noexcept
-: kwiver::vital::vital_exception()
+: viame::vital_exception()
 {
 }
 

@@ -7,9 +7,7 @@
 
 #include "iqr_feedback.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 iqr_feedback
@@ -17,7 +15,7 @@ iqr_feedback
 {}
 
 // ----------------------------------------------------------------------------
-vital::uid
+viame::uid
 iqr_feedback
 ::query_id() const
 {
@@ -27,7 +25,7 @@ iqr_feedback
 // ----------------------------------------------------------------------------
 void
 iqr_feedback
-::set_query_id( vital::uid const& id )
+::set_query_id( viame::uid const& id )
 {
   m_query_id = id;
 }
@@ -64,6 +62,4 @@ iqr_feedback
   m_negative_ids = ids;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

@@ -35,9 +35,9 @@ namespace detail {
 
 // ----------------------------------------------------------------------------
 template < unsigned N, typename T >
-struct type_caster< kwiver::vital::vector_< N, T > >
+struct type_caster< viame::vector_< N, T > >
 {
-  using type = kwiver::vital::vector_< N, T >;
+  using type = viame::vector_< N, T >;
   using array_type = array_t< T, array::forcecast | array::c_style >;
 
   PYBIND11_TYPE_CASTER( type, const_name( "numpy.ndarray" ) );
@@ -85,9 +85,9 @@ struct type_caster< kwiver::vital::vector_< N, T > >
 
 // ----------------------------------------------------------------------------
 template < unsigned R, unsigned C, typename T >
-struct type_caster< kwiver::vital::matrix_< R, C, T > >
+struct type_caster< viame::matrix_< R, C, T > >
 {
-  using type = kwiver::vital::matrix_< R, C, T >;
+  using type = viame::matrix_< R, C, T >;
   using array_type = array_t< T, array::forcecast | array::c_style >;
 
   PYBIND11_TYPE_CASTER( type, const_name( "numpy.ndarray" ) );
@@ -126,9 +126,9 @@ struct type_caster< kwiver::vital::matrix_< R, C, T > >
 
 // ----------------------------------------------------------------------------
 template < typename T >
-struct type_caster< kwiver::vital::dynamic_vector< T > >
+struct type_caster< viame::dynamic_vector< T > >
 {
-  using type = kwiver::vital::dynamic_vector< T >;
+  using type = viame::dynamic_vector< T >;
   using array_type = array_t< T, array::forcecast | array::c_style >;
 
   PYBIND11_TYPE_CASTER( type, const_name( "numpy.ndarray" ) );
@@ -177,9 +177,9 @@ struct type_caster< kwiver::vital::dynamic_vector< T > >
 
 // ----------------------------------------------------------------------------
 template < typename T >
-struct type_caster< kwiver::vital::dynamic_matrix< T > >
+struct type_caster< viame::dynamic_matrix< T > >
 {
-  using type = kwiver::vital::dynamic_matrix< T >;
+  using type = viame::dynamic_matrix< T >;
   using array_type = array_t< T, array::forcecast | array::c_style >;
 
   PYBIND11_TYPE_CASTER( type, const_name( "numpy.ndarray" ) );

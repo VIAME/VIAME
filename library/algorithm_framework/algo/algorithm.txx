@@ -14,7 +14,7 @@
 
 #include <type_traits>
 
-namespace kwiver::vital {
+namespace viame {
 
 /// \brief Create algorithm from interface type and implementation name.
 ///
@@ -29,8 +29,8 @@ create_algorithm( std::string const& implementation_name )
   auto fact =
     implementation_factory_by_name< INTERFACE >();
   auto cb_empty = config_block::empty_config();
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
 
   vpm.load_all_plugins();
 
@@ -52,8 +52,8 @@ bool
 has_algorithm_impl_name( std::string const& implementation_name )
 {
   // Get list of factories for the algo_name
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
 
   auto impl_names = vpm.impl_names< INTERFACE >();
 
@@ -69,8 +69,8 @@ std::vector< std::string >
 registered_names()
 {
   // Get list of factories for the algo_name
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
 
   auto impl_names = vpm.impl_names< INTERFACE >();
 
@@ -104,7 +104,7 @@ set_nested_algo_configuration(
   config_block_sptr config,
   std::shared_ptr< INTERFACE >&    nested_algo )
 {
-  static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger(
+  static viame::logger_handle_t logger = viame::get_logger(
     "vital.algorithm" );
   const std::string type_key = name + config_block::block_sep() + "type";
 
@@ -156,10 +156,10 @@ set_nested_algo_configuration(
 ///
 /// Adds a configurable algorithm implementation switch for this algorithm.
 /// If the variable pointed to by \c nested_algo is a defined sptr to an
-/// implementation, its \link kwiver::vital::config_block configuration
+/// implementation, its \link viame::config_block configuration
 /// \endlink
 /// parameters are merged with the given
-/// \link kwiver::vital::config_block config_block \endlink.
+/// \link viame::config_block config_block \endlink.
 ///
 /// \tparam          INTERFACE   interface that the nested_algo implements.
 /// \param[in]       name        An identifying name for the nested algorithm
@@ -179,15 +179,15 @@ get_nested_algo_configuration(
                                       "Must be one of the following options:";
 
   // Get list of factories for the algo_name
-  kwiver::vital::plugin_manager& vpm =
-    kwiver::vital::plugin_manager::instance();
+  viame::plugin_manager& vpm =
+    viame::plugin_manager::instance();
   auto fact_list = vpm.get_factories< INTERFACE >();
 
-  for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
+  for( viame::plugin_factory_handle_t a_fact : fact_list )
   {
     std::string reg_name;
     if( !a_fact->get_attribute(
-      kwiver::vital::plugin_factory::PLUGIN_NAME,
+      viame::plugin_factory::PLUGIN_NAME,
       reg_name ) )
     {
       continue;
@@ -197,7 +197,7 @@ get_nested_algo_configuration(
 
     std::string tmp_d;
     if( a_fact->get_attribute(
-      kwiver::vital::plugin_factory::
+      viame::plugin_factory::
       PLUGIN_DESCRIPTION, tmp_d ) )
     {
       type_comment += " :: " + tmp_d;
@@ -245,7 +245,7 @@ check_nested_algo_configuration(
   std::string const& name,
   config_block_sptr config )
 {
-  static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger(
+  static viame::logger_handle_t logger = viame::get_logger(
     "vital.algorithm" );
   const std::string type_key = name + config_block::block_sep() + "type";
 
@@ -267,18 +267,18 @@ check_nested_algo_configuration(
       " could not be found.";
 
     // Get list of factories for the algo_name
-    kwiver::vital::plugin_manager& vpm =
-      kwiver::vital::plugin_manager::instance();
+    viame::plugin_manager& vpm =
+      viame::plugin_manager::instance();
     auto fact_list = vpm.get_factories< INTERFACE >();
     bool first { true };
 
     // Find the one that provides the impl_name
-    for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
+    for( viame::plugin_factory_handle_t a_fact : fact_list )
     {
       // Collect a list of all available implementations for this algorithm
       std::string reg_name;
       if( a_fact->get_attribute(
-        kwiver::vital::plugin_factory::PLUGIN_NAME,
+        viame::plugin_factory::PLUGIN_NAME,
         reg_name ) )
       {
         if( first )
@@ -316,7 +316,7 @@ check_nested_algo_configuration(
       return false;
     }
   }
-  catch( const kwiver::vital::plugin_factory_not_found& e )
+  catch( const viame::plugin_factory_not_found& e )
   {
     LOG_WARN( logger, e.what() );
   }
@@ -332,7 +332,7 @@ check_nested_algo_configuration(
 template < typename ValueType,
   typename std::enable_if_t< detail::is_shared_ptr< ValueType >::value,
     bool > = true,
-  typename std::enable_if_t< std::is_base_of_v< kwiver::vital::algorithm,
+  typename std::enable_if_t< std::is_base_of_v< viame::algorithm,
     typename ValueType::element_type >, bool > = true >
 void
 set_config_helper(
@@ -341,7 +341,7 @@ set_config_helper(
   [[maybe_unused]] config_block_description_t const& description  =
   config_block_description_t() )
 {
-  kwiver::vital::get_nested_algo_configuration< typename ValueType::element_type >( key, config, value );
+  viame::get_nested_algo_configuration< typename ValueType::element_type >( key, config, value );
   // We only set a value to assign a description to the key.
   // The value will never be read from the config itself,
   // as this type has a custom specialized accessor
@@ -354,13 +354,13 @@ set_config_helper(
 template < typename ValueType,
   typename std::enable_if_t< detail::is_shared_ptr< ValueType >::value,
     bool > = true,
-  typename std::enable_if_t< std::is_base_of_v< kwiver::vital::algorithm,
+  typename std::enable_if_t< std::is_base_of_v< viame::algorithm,
     typename ValueType::element_type >, bool > = true >
 ValueType
 get_config_helper( config_block_sptr config, config_block_key_t const& key )
 {
   ValueType algo;
-  kwiver::vital::set_nested_algo_configuration< typename ValueType::element_type >( key, config, algo );
+  viame::set_nested_algo_configuration< typename ValueType::element_type >( key, config, algo );
   return algo;
 }
 
@@ -378,7 +378,7 @@ template < typename ValueType,
   // is it a vector< share_ptr > ?
   typename std::enable_if_t< detail::is_shared_ptr< typename ValueType::value_type >::value, bool > = true,
   // is it a vector< share_ptr< algorithm> > ?
-  typename std::enable_if_t< std::is_base_of_v< kwiver::vital::algorithm,
+  typename std::enable_if_t< std::is_base_of_v< viame::algorithm,
     typename ValueType::value_type::element_type >, bool > = true >
 void
 set_config_helper(
@@ -395,7 +395,7 @@ set_config_helper(
                   };
   for( auto const& vs : value )
   {
-    kwiver::vital::get_nested_algo_configuration< AlgoType >(
+    viame::get_nested_algo_configuration< AlgoType >(
       key_name( n ),
       config, vs );
     n++;
@@ -417,7 +417,7 @@ template < typename ValueType,
   typename std::enable_if_t< detail::is_shared_ptr< typename ValueType::value_type >::value,
     bool > = true,
   // is it a vector< share_ptr< algorithm> > ?
-  typename std::enable_if_t< std::is_base_of_v< kwiver::vital::algorithm,
+  typename std::enable_if_t< std::is_base_of_v< viame::algorithm,
     typename ValueType::value_type::element_type >, bool > = true >
 ValueType
 get_config_helper( config_block_sptr config, config_block_key_t const& key )
@@ -432,12 +432,12 @@ get_config_helper( config_block_sptr config, config_block_key_t const& key )
 
   size_t n = 1;
   // get algorithm subblock
-  vital::config_block_sptr item_config = config->subblock( key_name( n ) );
+  viame::config_block_sptr item_config = config->subblock( key_name( n ) );
 
   while( !item_config->available_values().empty() )
   {
     std::shared_ptr< AlgoType > algo;
-    kwiver::vital::set_nested_algo_configuration< AlgoType >(
+    viame::set_nested_algo_configuration< AlgoType >(
       key_name( n ),
       config, algo );
     algos.push_back( algo );
@@ -447,6 +447,6 @@ get_config_helper( config_block_sptr config, config_block_key_t const& key )
   return algos;
 }
 
-} // namespace kwiver::vital
+} // namespace viame
 
 #endif

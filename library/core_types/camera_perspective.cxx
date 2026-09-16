@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::camera_perspective
+/// \brief Implementation of \link viame::camera_perspective
 /// camera_perspective \endlink class
 #include <viame/algorithm_framework/io/eigen_io.h>
 #include <viame/core_types/camera_perspective.h>
@@ -11,13 +11,11 @@
 
 #include <iomanip>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 camera_perspective
 ::camera_perspective()
-  : m_logger( kwiver::vital::get_logger( "vital.camera_perspective" ) )
+  : m_logger( viame::get_logger( "vital.camera_perspective" ) )
 {}
 
 /// Convert to a 3x4 homogeneous projection matrix
@@ -176,6 +174,4 @@ operator>>( std::istream& s, simple_camera_perspective& k )
   return s;
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

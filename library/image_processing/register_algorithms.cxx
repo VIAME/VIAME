@@ -57,7 +57,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 extern "C"
 VIAME_IMAGE_PROCESSING_PLUGIN_EXPORT
@@ -150,49 +150,49 @@ register_factories( kv::registry& vpm )
   // detectors are not image_ops primitives, so they stay cv2's.
 
   VIAME_REGISTER_IMPORTED( kv::algo::draw_detected_object_set,
-                           kwiver::arrows::ocv::draw_detected_object_set,
+                           viame::ocv::draw_detected_object_set,
                            "ocv", "Draw detected object sets on an image with OpenCV" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::refine_detections,
-                           kwiver::arrows::ocv::refine_detections_write_to_disk,
+                           viame::ocv::refine_detections_write_to_disk,
                            "ocv_write", "Write detection chips to disk with OpenCV" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::split_image,
-                           kwiver::arrows::ocv::split_image,
+                           viame::ocv::split_image,
                            "ocv", "Split an image in half with OpenCV" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::split_image,
-                           kwiver::arrows::ocv::split_image_channels,
+                           viame::ocv::split_image_channels,
                            "ocv_channels", "Split an image into its channels with OpenCV" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::merge_images,
-                           kwiver::arrows::ocv::merge_images,
+                           viame::ocv::merge_images,
                            "ocv", "Merge two images with OpenCV" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::compute_ref_homography,
-                           kwiver::arrows::core::compute_ref_homography_core,
+                           viame::core::compute_ref_homography_core,
                            "core", "Compute a homography to a reference frame" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::track_features,
-                           kwiver::arrows::core::track_features_core,
+                           viame::core::track_features_core,
                            "core", "Track features by detecting, describing and matching them" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::match_features,
-                           kwiver::arrows::core::match_features_homography,
+                           viame::core::match_features_homography,
                            "homography_guided",
                            "Match features and filter the matches by a homography" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::detect_features,
-                           kwiver::arrows::core::detect_features_filtered,
+                           viame::core::detect_features_filtered,
                            "filtered", "Detect features and filter them" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::filter_features,
-                           kwiver::arrows::core::filter_features_nonmax,
+                           viame::core::filter_features_nonmax,
                            "nonmax", "Filter features by non-maximum suppression" )
 
 
   VIAME_REGISTER_IMPORTED( kv::algo::close_loops,
-                           kwiver::arrows::core::close_loops_bad_frames_only,
+                           viame::core::close_loops_bad_frames_only,
                            "bad_frames_only", "Close loops over runs of bad frames" )
 
   // Registered under `multi_method` with the appearance-indexed closer, as
@@ -200,7 +200,7 @@ register_factories( kv::registry& vpm )
   // close_loops_multi_method was never registered by anything and did not
   // come across.
   VIAME_REGISTER_IMPORTED( kv::algo::close_loops,
-                           kwiver::arrows::core::close_loops_appearance_indexed,
+                           viame::core::close_loops_appearance_indexed,
                            "multi_method", "Close loops by an appearance index" )
 
 #undef VIAME_REGISTER_IMPORTED

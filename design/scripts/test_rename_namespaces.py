@@ -287,6 +287,140 @@ class thing;
 } // namespace viame
 """,
     ),
+    (
+        "a bare mention of kwiver or sprokit is not a namespace",
+        """// This file is part of KWIVER, and is distributed under the
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
+
+namespace sprokit {
+
+// sprokit's edges, described in prose, and a target named sprokit_pipeline
+sprokit::edge_t e;
+
+} // namespace sprokit
+""",
+        """// This file is part of KWIVER, and is distributed under the
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
+
+namespace viame::pipeline {
+
+// sprokit's edges, described in prose, and a target named sprokit_pipeline
+viame::pipeline::edge_t e;
+
+} // namespace viame::pipeline
+""",
+    ),
+    (
+        # detected_object_filter_process.h and most of library/examples: the
+        # brace goes on the line below.
+        "the brace on the next line, and the pair collapses",
+        """namespace kwiver
+{
+
+namespace vital
+{
+
+class image;
+
+}
+
+}
+""",
+        """namespace viame
+{
+
+class image;
+
+}
+""",
+    ),
+    (
+        # kwiver_applet.h: written inside `namespace kwiver`, where `vital::`
+        # meant `kwiver::vital::`. Neither namespace is left afterwards.
+        "a sibling namespace named relatively",
+        """namespace kwiver {
+namespace tools {
+
+class applet : public vital::pluggable
+{
+  vital::config_block_sptr conf;
+  arrows::ocv::image_container im;
+};
+
+} // namespace tools
+} // namespace kwiver
+""",
+        """namespace viame {
+namespace tools {
+
+class applet : public viame::pluggable
+{
+  viame::config_block_sptr conf;
+  viame::ocv::image_container im;
+};
+
+} // namespace tools
+} // namespace viame
+""",
+    ),
+    (
+        "using namespace directives follow the rename",
+        """#include <viame/pipeline_framework/process.h>
+
+void reg()
+{
+  using namespace sprokit;
+  using namespace kwiver;
+}
+""",
+        """#include <viame/pipeline_framework/process.h>
+
+void reg()
+{
+  using namespace viame::pipeline;
+  using namespace viame;
+}
+""",
+    ),
+    (
+        # The trampolines and the adapters write the name from the root.
+        "a leading :: is part of the name and is kept",
+        """namespace viame {
+
+void associate(::kwiver::vital::timestamp ts,
+               ::sprokit::process::port_t const& port,
+               kwiver::vital::image_container_sptr im);
+
+} // namespace viame
+""",
+        """namespace viame {
+
+void associate(::viame::timestamp ts,
+               ::viame::pipeline::process::port_t const& port,
+               viame::image_container_sptr im);
+
+} // namespace viame
+""",
+    ),
+    (
+        "sprokit with the brace on the next line",
+        """namespace sprokit
+{
+
+class process;
+sprokit::process_t make();
+
+} // end namespace sprokit
+""",
+        """namespace viame::pipeline
+{
+
+class process;
+viame::pipeline::process_t make();
+
+} // namespace viame::pipeline
+""",
+    ),
 ]
 
 RESIDUE = (

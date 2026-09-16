@@ -10,9 +10,9 @@
 #include "algorithm_trampoline_python.txx"
 #include <viame/algorithm_framework/algo/initialize_object_tracks.h>
 
-namespace kwiver::vital::python {
+namespace viame::python {
 
-template< class initialize_object_tracks_base = kwiver::vital::algo::initialize_object_tracks >
+template< class initialize_object_tracks_base = viame::algo::initialize_object_tracks >
 class initialize_object_tracks_trampoline
     : public algorithm_trampoline< initialize_object_tracks_base >
 {
@@ -21,17 +21,17 @@ class initialize_object_tracks_trampoline
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-  kwiver::vital::object_track_set_sptr
-  initialize(::kwiver::vital::timestamp ts, ::kwiver::vital::image_container_sptr image, ::kwiver::vital::detected_object_set_sptr detections) const override
+  viame::object_track_set_sptr
+  initialize(::viame::timestamp ts, ::viame::image_container_sptr image, ::viame::detected_object_set_sptr detections) const override
   {
     PYBIND11_OVERLOAD_PURE(
-      kwiver::vital::object_track_set_sptr,
-      kwiver::vital::algo::initialize_object_tracks,
+      viame::object_track_set_sptr,
+      viame::algo::initialize_object_tracks,
       initialize,
       ts, image, detections
       );
   }
 }; // class
-} // namespace
+} // namespace viame::python
 #undef KWIVER_PYBIND11_INCLUDE
 #endif

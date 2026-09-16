@@ -12,7 +12,7 @@
  * \brief Implementation of the constant number process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 class any_source_process::priv
@@ -27,7 +27,7 @@ class any_source_process::priv
 process::port_t const any_source_process::priv::port_output = port_t("data");
 
 any_source_process
-::any_source_process(kwiver::vital::config_block_sptr const& config)
+::any_source_process(viame::config_block_sptr const& config)
   : process(config)
   , d(new priv)
 {

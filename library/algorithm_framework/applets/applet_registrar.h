@@ -8,7 +8,7 @@
 #include <viame/algorithm_framework/applets/kwiver_applet.h>
 #include <viame/algorithm_framework/plugin/plugin_registrar.h>
 
-namespace kwiver {
+namespace viame {
 
 /// Registrar class for applets
 ///
@@ -21,7 +21,7 @@ class applet_registrar
 {
 public:
   applet_registrar(
-    kwiver::vital::registry& vpl,
+    viame::registry& vpl,
     const std::string& mod_name )
     : plugin_registrar( vpl, mod_name )
   {}
@@ -37,13 +37,13 @@ public:
   ///
   /// @return the registry reference is returned.
   template < typename tool_t >
-  kwiver::vital::plugin_factory_handle_t
+  viame::plugin_factory_handle_t
   register_tool()
   {
-    using kvpf = kwiver::vital::plugin_factory;
+    using kvpf = viame::plugin_factory;
 
-    kwiver::vital::plugin_factory* fact =
-      new kwiver::vital::applet_plugin_factory< tool_t >();
+    viame::plugin_factory* fact =
+      new viame::applet_plugin_factory< tool_t >();
 
     fact->add_attribute( kvpf::PLUGIN_NAME,      tool_t::_plugin_name )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,  tool_t::_plugin_description )
@@ -56,6 +56,6 @@ public:
   }
 };
 
-} // end namespace
+} // namespace viame
 
 #endif // KWIVER_TOOLS_KWIVER_APPLET_REGISTER_H

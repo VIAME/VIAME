@@ -4,9 +4,7 @@
 
 #include "detected_object_set_util.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 void
@@ -22,7 +20,7 @@ scale_detections(
   for( auto detection : *dos )
   {
     auto bbox = detection->bounding_box();
-    bbox = kwiver::vital::scale( bbox, scale_factor );
+    bbox = viame::scale( bbox, scale_factor );
     detection->set_bounding_box( bbox );
   }
 }
@@ -41,13 +39,11 @@ shift_detections(
   for( auto detection : *dos )
   {
     auto bbox = detection->bounding_box();
-    bbox = kwiver::vital::translate(
+    bbox = viame::translate(
       bbox,
       bounding_box_d::vector_type( col_shift, row_shift ) );
     detection->set_bounding_box( bbox );
   }
 }
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame

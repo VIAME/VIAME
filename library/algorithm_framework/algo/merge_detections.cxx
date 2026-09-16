@@ -4,9 +4,7 @@
 
 #include "merge_detections.h"
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -18,6 +16,4 @@ merge_detections
 
 } // namespace algo
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame

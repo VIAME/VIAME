@@ -8,7 +8,7 @@
 #include <memory>
 #include <viame/algorithm_framework/plugin/vital_vpm_export.h>
 
-namespace kwiver::vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 // Pluggable base-class
@@ -130,6 +130,6 @@ CREATE_HAS_CHECK( get_default_config );
 // Clean up our macro.
 #undef CREATE_HAS_CHECK
 
-} // namespace kwiver::vital
+} // namespace viame
 
 #endif // KWIVER_VITAL_PLUGGABLE_H_

@@ -15,7 +15,7 @@
  * \brief Declaration of the shared process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -46,7 +46,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  shared_process(kwiver::vital::config_block_sptr const& config);
+  shared_process(viame::config_block_sptr const& config);
 
   /**
    * \brief Destructor.

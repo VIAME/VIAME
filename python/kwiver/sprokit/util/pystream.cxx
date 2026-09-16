@@ -11,7 +11,7 @@
 
 #include <cstddef>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 namespace python {
 
@@ -156,4 +156,4 @@ pyostream
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace viame::pipeline

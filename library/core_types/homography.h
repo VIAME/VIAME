@@ -13,9 +13,7 @@
 
 #include <iostream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // Forward declarations of abstract homography class
 class homography;
@@ -189,8 +187,6 @@ VITAL_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   homography_< T > const& h );
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame
 
 #endif // VITAL_HOMOGRAPHY_H_

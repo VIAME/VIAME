@@ -11,7 +11,7 @@
 #include "algorithm_python.txx"
 #include "refine_tracks_trampoline_python.txx"
 
-namespace kwiver::vital::python {
+namespace viame::python {
 namespace py = pybind11;
 
 void refine_tracks(py::module& m)
@@ -19,15 +19,15 @@ void refine_tracks(py::module& m)
   py::module::import("kwiver.vital.config");
   py::module::import("kwiver.vital.types");
 
-    py::class_<kwiver::vital::algo::refine_tracks,
-               std::shared_ptr<kwiver::vital::algo::refine_tracks>,
-               kwiver::vital::algorithm,
+    py::class_<viame::algo::refine_tracks,
+               std::shared_ptr<viame::algo::refine_tracks>,
+               viame::algorithm,
                refine_tracks_trampoline<> > instance(m,  "RefineTracks");
     
     instance
     .def(py::init<>())
-    .def_static("interface_name", &kwiver::vital::algo::refine_tracks::interface_name)
-    .def("refine", &kwiver::vital::algo::refine_tracks::refine, py::doc(R"( Refine all object tracks for the current frame.
+    .def_static("interface_name", &viame::algo::refine_tracks::interface_name)
+    .def("refine", &viame::algo::refine_tracks::refine, py::doc(R"( Refine all object tracks for the current frame.
 
  This method analyzes the supplied image and tracks, returning
  a refined set of tracks for the current frame.
@@ -37,7 +37,7 @@ void refine_tracks(py::module& m)
  \param tracks Object tracks to refine (containing states for current
  frame)
  \returns Refined object track set)"), py::arg("ts"), py::arg("image_data"), py::arg("tracks"))
-    .def("finalize", &kwiver::vital::algo::refine_tracks::finalize, py::doc(R"( Finalize the refiner after all frames have been processed.
+    .def("finalize", &viame::algo::refine_tracks::finalize, py::doc(R"( Finalize the refiner after all frames have been processed.
 
  Called when the pipeline signals completion.  Implementations may
  override this to run deferred processing (e.g. video propagation
@@ -46,7 +46,7 @@ void refine_tracks(py::module& m)
  \returns Final refined object track set, or nullptr if no final
           output is needed.)"))
     ;
-  register_algorithm< kwiver::vital::algo::refine_tracks > (instance);
+  register_algorithm< viame::algo::refine_tracks > (instance);
 }
 
 }

@@ -13,7 +13,7 @@
 namespace viame {
 
 class VIAME_OBJECT_DETECTORS_DARKNET_EXPORT darknet_detector :
-  public kwiver::vital::algo::image_object_detector
+  public viame::algo::image_object_detector
 {
 public:
 #define VIAME_DARKNET_DD_PARAMS \
@@ -83,14 +83,14 @@ public:
 
   virtual ~darknet_detector();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const;
+  virtual viame::detected_object_set_sptr detect(
+    viame::image_container_sptr image_data ) const;
 
 private:
   void initialize() override;
-  void set_configuration_internal( kwiver::vital::config_block_sptr config ) override;
+  void set_configuration_internal( viame::config_block_sptr config ) override;
 
   class priv;
   KWIVER_UNIQUE_PTR( priv, d );

@@ -15,7 +15,7 @@
  * \brief Declaration of the mutate process.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /**
  * \class mutate_process
@@ -45,7 +45,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  mutate_process(kwiver::vital::config_block_sptr const& config);
+  mutate_process(viame::config_block_sptr const& config);
 
   /**
    * \brief Destructor.

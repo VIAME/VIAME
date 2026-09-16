@@ -11,7 +11,7 @@
 #include <memory>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 class transform_2d_trampoline
   : public kv::transform_2d

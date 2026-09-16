@@ -15,9 +15,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Category Hierarchy.
@@ -208,8 +206,6 @@ private:
 // typedef for a category_hierarchy shared pointer
 typedef std::shared_ptr< category_hierarchy > category_hierarchy_sptr;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

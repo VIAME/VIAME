@@ -53,7 +53,7 @@ public:
 // =============================================================================
 
 write_homography_list_process
-::write_homography_list_process( kwiver::vital::config_block_sptr const& config )
+::write_homography_list_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new write_homography_list_process::priv() )
 {
@@ -102,7 +102,7 @@ write_homography_list_process
   std::string source_file_name;
   std::string dest_file_name;
 
-  kwiver::vital::homography_sptr homog;
+  viame::homography_sptr homog;
 
   source_file_name = grab_from_port_using_trait( source_file_name );
   dest_file_name = grab_from_port_using_trait( dest_file_name );
@@ -136,7 +136,7 @@ write_homography_list_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
 
   required.insert( flag_required );
 

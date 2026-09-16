@@ -8,26 +8,22 @@
 #include <pybind11/pybind11.h>
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace python {
 
 namespace py = pybind11;
 
 std::string
-serialize_image_using_json( kwiver::vital::simple_image_container img );
+serialize_image_using_json( viame::simple_image_container img );
 
-kwiver::vital::simple_image_container
+viame::simple_image_container
 deserialize_image_using_json( const std::string& message );
 
 void serialize_image( py::module& m );
 
 } // namespace python
 
-} // namespace arrows
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

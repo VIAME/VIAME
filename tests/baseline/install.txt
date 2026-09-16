@@ -793,7 +793,6 @@ include/viame/algorithm_framework/exceptions/video.h
 include/viame/algorithm_framework/exceptions/vital_exceptions_export.h
 include/viame/algorithm_framework/io
 include/viame/algorithm_framework/io/camera_from_metadata.h
-include/viame/algorithm_framework/io/camera_io.h
 include/viame/algorithm_framework/io/eigen_io.h
 include/viame/algorithm_framework/io/mesh_io.h
 include/viame/algorithm_framework/io/metadata_io.h
@@ -865,6 +864,7 @@ include/viame/classifiers/train_detector_svm.h
 include/viame/classifiers/viame_classifiers_export.h
 include/viame/classifiers/viame_classifiers_svm_export.h
 include/viame/classifiers/windowed_refiner.h
+include/viame/compat/kwiver.h
 include/viame/core_types
 include/viame/core_types/activity.h
 include/viame/core_types/activity_type.h

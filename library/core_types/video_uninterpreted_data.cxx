@@ -7,15 +7,11 @@
 
 #include <viame/core_types/video_uninterpreted_data.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 video_uninterpreted_data
 ::~video_uninterpreted_data()
 {}
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

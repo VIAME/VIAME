@@ -9,9 +9,7 @@
 
 #include <viame/algorithm_framework/range/iota.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -50,7 +48,7 @@ resection_camera
   frame_id_t frame_id,
   landmark_map_sptr landmarks,
   feature_track_set_sptr tracks,
-  kwiver::vital::camera_intrinsics_sptr cal,
+  viame::camera_intrinsics_sptr cal,
   std::unordered_set< landmark_id_t >* inliers ) const
 {
   auto world_points = std::vector< vector_3d >{};
@@ -92,6 +90,4 @@ resection_camera
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

@@ -59,7 +59,7 @@ plane_value( colour const& paint, size_t plane )
 /// Set one pixel, if it is inside the image.
 template < typename T >
 void
-draw_point( kwiver::vital::image_of< T >& image, long i, long j,
+draw_point( viame::image_of< T >& image, long i, long j,
             colour const& paint )
 {
   if( i < 0 || j < 0 || i >= static_cast< long >( image.width() ) ||
@@ -84,7 +84,7 @@ draw_point( kwiver::vital::image_of< T >& image, long i, long j,
 /// three pixels an overlay uses.
 template < typename T >
 void
-draw_line( kwiver::vital::image_of< T >& image, long i0, long j0, long i1,
+draw_line( viame::image_of< T >& image, long i0, long j0, long i1,
            long j1, colour const& paint, long thickness = 1 )
 {
   thickness = std::max( 1L, thickness );
@@ -148,7 +148,7 @@ draw_line( kwiver::vital::image_of< T >& image, long i0, long j0, long i1,
 /// last column drawn.
 template < typename T >
 void
-draw_rect( kwiver::vital::image_of< T >& image, rect const& bounds,
+draw_rect( viame::image_of< T >& image, rect const& bounds,
            colour const& paint, long thickness = 1 )
 {
   if( bounds.empty() )
@@ -190,7 +190,7 @@ draw_rect( kwiver::vital::image_of< T >& image, rect const& bounds,
 /// of the two hundred pixels of a radius nine ring differ between the two.
 template < typename T >
 void
-draw_circle( kwiver::vital::image_of< T >& image, long centre_i,
+draw_circle( viame::image_of< T >& image, long centre_i,
              long centre_j, long radius, colour const& paint,
              long thickness = 1 )
 {
@@ -291,7 +291,7 @@ draw_circle( kwiver::vital::image_of< T >& image, long centre_i,
 /// `fillPoly` would be wrong in a way that looks right.
 template < typename T >
 void
-fill_polygon( kwiver::vital::image_of< T >& image,
+fill_polygon( viame::image_of< T >& image,
               std::vector< point > const& points, colour const& paint )
 {
   if( points.size() < 3 )
@@ -396,7 +396,7 @@ text_size( std::string const& text, long scale = 1 )
 /// overlay needs.
 template < typename T >
 void
-draw_text( kwiver::vital::image_of< T >& image, std::string const& text,
+draw_text( viame::image_of< T >& image, std::string const& text,
            long i, long j, colour const& paint, long scale = 1 )
 {
   scale = std::max( 1L, scale );

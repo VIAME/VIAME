@@ -7,9 +7,7 @@
 
 #include <viame/algorithm_framework/algo/video_output.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -65,7 +63,7 @@ video_output
 }
 
 // ----------------------------------------------------------------------------
-vital::video_settings_sptr
+viame::video_settings_sptr
 video_output
 ::implementation_settings() const
 {
@@ -92,8 +90,6 @@ video_output
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 /// \endcond

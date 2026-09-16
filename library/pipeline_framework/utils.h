@@ -16,7 +16,7 @@
 #include <string>
 #include <typeinfo>
 
-namespace sprokit {
+namespace viame::pipeline {
 
 /// The type for the name of a thread.
 typedef std::string thread_name_t;
@@ -37,6 +37,6 @@ typedef std::string thread_name_t;
  */
 SPROKIT_PIPELINE_EXPORT bool name_thread(thread_name_t const& name);
 
-} // end namespace
+} // namespace viame::pipeline
 
 #endif // SPROKIT_PIPELINE_UTILS_H

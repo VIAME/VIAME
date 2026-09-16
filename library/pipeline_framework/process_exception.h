@@ -16,10 +16,10 @@
 /**
  * \file process_exception.h
  *
- * \brief Header for exceptions used within \link sprokit::process processes\endlink.
+ * \brief Header for exceptions used within \link viame::pipeline::process processes\endlink.
  */
 
-namespace sprokit {
+namespace viame::pipeline {
 
 // ----------------------------------------------------------------------------
 /**
@@ -191,7 +191,7 @@ class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
      * \param name The name of the process.
      * \param key The configuration key with \c NULL information.
      */
-    null_conf_info_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) noexcept;
+    null_conf_info_exception(process::name_t const& name, viame::config_block_key_t const& key) noexcept;
     /**
      * \brief Destructor.
      */
@@ -200,7 +200,7 @@ class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
     /// The name of the \ref process.
     process::name_t const m_name;
     /// The configuration key.
-    kwiver::vital::config_block_key_t const m_key;
+    viame::config_block_key_t const m_key;
 };
 
 // ----------------------------------------------------------------------------
@@ -621,7 +621,7 @@ class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
      * \param name The name of the process.
      * \param key The key requested.
      */
-    unknown_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) noexcept;
+    unknown_configuration_value_exception(process::name_t const& name, viame::config_block_key_t const& key) noexcept;
     /**
      * \brief Destructor.
      */
@@ -630,7 +630,7 @@ class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
     /// The name of the \ref process which was connected to.
     process::name_t const m_name;
     /// The name of the key which was given.
-    kwiver::vital::config_block_key_t const m_key;
+    viame::config_block_key_t const m_key;
 };
 
 // ----------------------------------------------------------------------------
@@ -653,7 +653,7 @@ class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
      * \param value The value given.
      * \param desc A description of the configuration value.
      */
-    invalid_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& value, kwiver::vital::config_block_description_t const& desc) noexcept;
+    invalid_configuration_value_exception(process::name_t const& name, viame::config_block_key_t const& key, viame::config_block_value_t const& value, viame::config_block_description_t const& desc) noexcept;
     /**
      * \brief Destructor.
      */
@@ -662,11 +662,11 @@ class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
     /// The name of the \ref process which was connected to.
     process::name_t const m_name;
     /// The name of the key which was given.
-    kwiver::vital::config_block_key_t const m_key;
+    viame::config_block_key_t const m_key;
     /// The invalid value.
-    kwiver::vital::config_block_value_t const m_value;
+    viame::config_block_value_t const m_value;
     /// A description of the key.
-    kwiver::vital::config_block_description_t const m_desc;
+    viame::config_block_description_t const m_desc;
 };
 
 // ----------------------------------------------------------------------------

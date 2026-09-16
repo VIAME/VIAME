@@ -15,7 +15,7 @@
  * \brief Declaration of the orphan process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -39,7 +39,7 @@ public:
    * \param config The configuration for the process.
    */
 
-  orphan_process(kwiver::vital::config_block_sptr const& config);
+  orphan_process(viame::config_block_sptr const& config);
   /**
    * \brief Destructor.
    */

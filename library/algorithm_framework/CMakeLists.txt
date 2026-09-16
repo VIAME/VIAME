@@ -40,7 +40,6 @@ set( vital_framework_headers
   overload.h
 
   io/camera_from_metadata.h
-  io/camera_io.h
   io/eigen_io.h
   io/mesh_io.h
   io/metadata_io.h
@@ -50,7 +49,6 @@ set( vital_sources
   algorithm_capabilities.cxx
 
   io/camera_from_metadata.cxx
-  io/camera_io.cxx
   io/mesh_io.cxx
   io/metadata_io.cxx
 )

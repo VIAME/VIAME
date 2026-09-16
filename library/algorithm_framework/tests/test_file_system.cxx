@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 // ----------------------------------------------------------------------------
 TEST ( file_system, filename_path_drops_a_trailing_separator_first )
@@ -306,7 +306,7 @@ main( int argc, char** argv )
 
   // Somewhere of its own to make and remove directories in, so that a failed
   // run leaves its mess in the build tree rather than wherever ctest started.
-  kwiver::vital::make_directory( VIAME_FS_TEST_DIR );
+  viame::make_directory( VIAME_FS_TEST_DIR );
 
   if( chdir( VIAME_FS_TEST_DIR ) != 0 )
   {

@@ -111,7 +111,7 @@ def mask_rect(box):
 
 
 def scale_about_center(box, factor):
-    """`kwiver::vital::scale_about_center`, which both use for their crops."""
+    """`viame::scale_about_center`, which both use for their crops."""
     from kwiver.vital.types import BoundingBoxD
 
     centre_x = (box.min_x() + box.max_x()) / 2.0

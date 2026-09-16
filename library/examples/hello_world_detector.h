@@ -47,7 +47,7 @@ namespace viame {
  * @see hello_world_filter for an image filter example
  */
 class VIAME_EXAMPLES_EXPORT hello_world_detector :
-  public kwiver::vital::algo::image_object_detector
+  public viame::algo::image_object_detector
 {
 public:
 #define VIAME_EXAMPLES_HWD_PARAMS \
@@ -68,10 +68,10 @@ public:
 
   virtual ~hello_world_detector();
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
-  virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const;
+  virtual viame::detected_object_set_sptr detect(
+    viame::image_container_sptr image_data ) const;
 };
 
 } // end namespace viame

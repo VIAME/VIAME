@@ -16,9 +16,7 @@
 
 namespace py = pybind11;
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace python {
 
@@ -28,28 +26,26 @@ namespace python {
 void
 load_known_modules()
 {
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
+  viame::plugin_manager::instance().load_all_plugins();
 }
 
 bool
 is_module_loaded( std::string module_name )
 {
-  return kwiver::vital::plugin_manager::instance().is_module_loaded(
+  return viame::plugin_manager::instance().is_module_loaded(
     module_name );
 }
 
 } // namespace python
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 PYBIND11_MODULE( modules, m )
 {
   m.def(
-    "load_known_modules", &kwiver::vital::python::load_known_modules,
+    "load_known_modules", &viame::python::load_known_modules,
     "Loads modules to populate the process and scheduler registries." );
   m.def(
-    "is_module_loaded", &kwiver::vital::python::is_module_loaded,
+    "is_module_loaded", &viame::python::is_module_loaded,
     "Check if a module has been loaded" );
 }

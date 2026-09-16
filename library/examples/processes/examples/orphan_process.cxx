@@ -10,11 +10,11 @@
  * \brief Implementation of the orphan process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 orphan_process
-::orphan_process(kwiver::vital::config_block_sptr const& config)
+::orphan_process(viame::config_block_sptr const& config)
   : process(config)
 {
 }

@@ -67,7 +67,7 @@
 #include <sstream>
 #include <utility>
 
-namespace kwiver::vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// @brief Vital plugin manager.
@@ -76,7 +76,7 @@ namespace kwiver::vital {
 ///
 /// Behaves as a decorator for registry
 class VITAL_VPM_EXPORT plugin_manager
-  : private kwiver::vital::noncopyable
+  : private viame::noncopyable
 {
 public:
   typedef std::string module_t; // module name type
@@ -363,17 +363,17 @@ public:
   /// @return Address of the factory object for the templated type with
   /// the specified attribute value.
   ///
-  /// @throws kwiver::vital::plugin_factory_not_found
+  /// @throws viame::plugin_factory_not_found
   plugin_factory_handle_t
   find_factory( const std::string& value )
   {
     // Get singleton plugin manager
-    kwiver::vital::plugin_manager& pm =
-      kwiver::vital::plugin_manager::instance();
+    viame::plugin_manager& pm =
+      viame::plugin_manager::instance();
 
     auto fact_list = pm.get_factories< I >();
     // Scan fact_list for factory to instantiate from.
-    for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
+    for( viame::plugin_factory_handle_t a_fact : fact_list )
     {
       std::string attr_val;
       if( a_fact->get_attribute( m_attr, attr_val ) && ( attr_val == value ) )
@@ -388,7 +388,7 @@ public:
         << "\" for interface type \"" << get_interface_name< I >()
         << "\"";
 
-    VITAL_THROW( kwiver::vital::plugin_factory_not_found, str.str() );
+    VITAL_THROW( viame::plugin_factory_not_found, str.str() );
   }
 
   /// @brief Create object based on attribute value.
@@ -403,7 +403,7 @@ public:
   ///
   /// @return Pointer to new object of type I.
   ///
-  /// @throws kwiver::vital::plugin_factory_not_found
+  /// @throws viame::plugin_factory_not_found
   std::shared_ptr< I >
   create( const std::string& value, config_block_sptr const cb )
   {
@@ -425,8 +425,8 @@ private:
 /// Example usage:
 /// \code
 /// // create name for factory to create specific interface object.
-/// typedef kwiver::vital::implementation_factory_by_name<
-/// sprokit::process_instrumentation > instrumentation_factory;
+/// typedef viame::implementation_factory_by_name<
+/// viame::pipeline::process_instrumentation > instrumentation_factory;
 ///
 /// // instantiate factory class when needed.
 /// instrumentation_factory ifact;
@@ -440,10 +440,10 @@ class implementation_factory_by_name
 {
 public:
   implementation_factory_by_name()
-    : implementation_factory< T >( kwiver::vital::plugin_factory::PLUGIN_NAME )
+    : implementation_factory< T >( viame::plugin_factory::PLUGIN_NAME )
   {}
 };
 
-} // end namespace
+} // namespace viame
 
 #endif // KWIVER_VITAL_PLUGIN_MANAGER_H

@@ -9,9 +9,7 @@
 
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -22,13 +20,13 @@ track_objects
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::object_track_set_sptr
+viame::object_track_set_sptr
 track_objects
 ::track(
-  kwiver::vital::timestamp ts,
-  kwiver::vital::image_container_sptr image,
-  kwiver::vital::detected_object_set_sptr detections,
-  [[maybe_unused]] kwiver::vital::f2f_homography_sptr src_to_ref ) const
+  viame::timestamp ts,
+  viame::image_container_sptr image,
+  viame::detected_object_set_sptr detections,
+  [[maybe_unused]] viame::f2f_homography_sptr src_to_ref ) const
 {
   // Default implementation ignores homography and calls base track method.
   // Implementations that support homography should override this.
@@ -36,13 +34,13 @@ track_objects
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::object_track_set_sptr
+viame::object_track_set_sptr
 track_objects
 ::track(
-  kwiver::vital::timestamp ts,
-  kwiver::vital::image_container_sptr image,
-  kwiver::vital::detected_object_set_sptr detections,
-  [[maybe_unused]] kwiver::vital::object_track_set_sptr existing_tracks ) const
+  viame::timestamp ts,
+  viame::image_container_sptr image,
+  viame::detected_object_set_sptr detections,
+  [[maybe_unused]] viame::object_track_set_sptr existing_tracks ) const
 {
   // Default implementation ignores existing tracks and calls base track method.
   // Implementations that support track continuation should override this.
@@ -50,27 +48,27 @@ track_objects
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::object_track_set_sptr
+viame::object_track_set_sptr
 track_objects
 ::initialize(
-  [[maybe_unused]] kwiver::vital::timestamp ts,
-  [[maybe_unused]] kwiver::vital::image_container_sptr image,
-  [[maybe_unused]] kwiver::vital::detected_object_set_sptr seed_detections )
+  [[maybe_unused]] viame::timestamp ts,
+  [[maybe_unused]] viame::image_container_sptr image,
+  [[maybe_unused]] viame::detected_object_set_sptr seed_detections )
 const
 {
   // Default implementation does nothing.
   // Not all trackers initialize from seeds, most do internal initialization.
-  return std::make_shared< kwiver::vital::object_track_set >();
+  return std::make_shared< viame::object_track_set >();
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::object_track_set_sptr
+viame::object_track_set_sptr
 track_objects
 ::finalize() const
 {
   // Default implementation returns empty track set.
   // Implementations should override to return accumulated tracks.
-  return std::make_shared< kwiver::vital::object_track_set >();
+  return std::make_shared< viame::object_track_set >();
 }
 
 // ----------------------------------------------------------------------------
@@ -84,6 +82,4 @@ track_objects
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

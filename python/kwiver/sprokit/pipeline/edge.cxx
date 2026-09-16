@@ -13,37 +13,37 @@
 /**
  * \file edge.cxx
  *
- * \brief Python bindings for \link sprokit::edge\endlink.
+ * \brief Python bindings for \link viame::pipeline::edge\endlink.
  */
 
 using namespace pybind11;
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
-static void push_datum( ::sprokit::edge& self, wrap_edge_datum const& datum );
-static wrap_edge_datum get_datum( ::sprokit::edge& self );
+static void push_datum( ::viame::pipeline::edge& self, wrap_edge_datum const& datum );
+static wrap_edge_datum get_datum( ::viame::pipeline::edge& self );
 static wrap_edge_datum peek_datum(
-  ::sprokit::edge& self,
+  ::viame::pipeline::edge& self,
   pybind11::size_t const& idx );
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame
 
-using namespace kwiver::sprokit::python;
+using namespace viame::pipeline::python;
 PYBIND11_MODULE( edge, m )
 {
   class_< wrap_edge_datum >( m, "EdgeDatum" )
     .def( init<>() )
-    .def( init< sprokit::datum, wrap_stamp >() )
-    .def_readwrite( "datum", &sprokit::edge_datum_t::datum )
-    .def_readwrite( "stamp", &sprokit::edge_datum_t::stamp )
+    .def( init< viame::pipeline::datum, wrap_stamp >() )
+    .def_readwrite( "datum", &viame::pipeline::edge_datum_t::datum )
+    .def_readwrite( "stamp", &viame::pipeline::edge_datum_t::stamp )
     .def_property(
       "datum", &wrap_edge_datum::get_datum,
       &wrap_edge_datum::set_datum )
@@ -55,27 +55,27 @@ PYBIND11_MODULE( edge, m )
     m, "EdgeData",
     "A collection of data packets that may be passed through an edge." );
 
-  class_< sprokit::edges_t >(
+  class_< viame::pipeline::edges_t >(
     m, "Edges",
     "A collection of edges." )
     .def( pybind11::init<>() );
 
-  class_< sprokit::edge, sprokit::edge_t >(
+  class_< viame::pipeline::edge, viame::pipeline::edge_t >(
     m, "Edge",
     "A communication channel between processes." )
     .def( init<>() )
-    .def( init< kwiver::vital::config_block_sptr >() )
+    .def( init< viame::config_block_sptr >() )
     .def(
-      "makes_dependency", &sprokit::edge::makes_dependency,
+      "makes_dependency", &viame::pipeline::edge::makes_dependency,
       "Returns True if the edge implies a dependency from downstream on upstream." )
     .def(
-      "has_data", &sprokit::edge::has_data,
+      "has_data", &viame::pipeline::edge::has_data,
       "Returns True if the edge contains data, False otherwise." )
     .def(
-      "full_of_data", &sprokit::edge::full_of_data,
+      "full_of_data", &viame::pipeline::edge::full_of_data,
       "Returns True if the edge cannot hold anymore data, False otherwise." )
     .def(
-      "datum_count", &sprokit::edge::datum_count,
+      "datum_count", &viame::pipeline::edge::datum_count,
       "Returns the number of data packets within the edge." )
     .def(
       "push_datum", &push_datum,
@@ -89,60 +89,60 @@ PYBIND11_MODULE( edge, m )
       ( arg( "index" ) = 0 ),
       "Returns the next datum packet from the edge." )
     .def(
-      "pop_datum", &sprokit::edge::pop_datum,
+      "pop_datum", &viame::pipeline::edge::pop_datum,
       "Remove the next datum packet from the edge." )
     .def(
-      "set_upstream_process", &sprokit::edge::set_upstream_process,
+      "set_upstream_process", &viame::pipeline::edge::set_upstream_process,
       ( arg( "process" ) ),
       "Set the process which is feeding data into the edge." )
     .def(
-      "set_downstream_process", &sprokit::edge::set_downstream_process,
+      "set_downstream_process", &viame::pipeline::edge::set_downstream_process,
       ( arg( "process" ) ),
       "Set the process which is reading data from the edge." )
     .def(
       "mark_downstream_as_complete",
-      &sprokit::edge::mark_downstream_as_complete,
+      &viame::pipeline::edge::mark_downstream_as_complete,
       "Indicate that the downstream process is complete." )
     .def(
-      "is_downstream_complete", &sprokit::edge::is_downstream_complete,
+      "is_downstream_complete", &viame::pipeline::edge::is_downstream_complete,
       "Returns True if the downstream process is complete, False otherwise." )
     .def_readonly_static(
       "config_dependency",
-      &sprokit::edge::config_dependency )
-    .def_readonly_static( "config_capacity", &sprokit::edge::config_capacity )
+      &viame::pipeline::edge::config_dependency )
+    .def_readonly_static( "config_capacity", &viame::pipeline::edge::config_capacity )
   ;
 }
 
-namespace kwiver {
+namespace viame {
 
-namespace sprokit {
+namespace pipeline {
 
 namespace python {
 
 void
-push_datum( ::sprokit::edge& self, wrap_edge_datum const& datum )
+push_datum( ::viame::pipeline::edge& self, wrap_edge_datum const& datum )
 {
-  self.push_datum( ( ::sprokit::edge_datum_t ) datum );
+  self.push_datum( ( ::viame::pipeline::edge_datum_t ) datum );
 }
 
 wrap_edge_datum
-get_datum( ::sprokit::edge& self )
+get_datum( ::viame::pipeline::edge& self )
 {
-  ::sprokit::edge_datum_t datum = self.get_datum();
+  ::viame::pipeline::edge_datum_t datum = self.get_datum();
   wrap_edge_datum datum_p( *( datum.datum ), wrap_stamp( datum.stamp ) );
   return datum_p;
 }
 
 wrap_edge_datum
-peek_datum( ::sprokit::edge& self, pybind11::size_t const& idx )
+peek_datum( ::viame::pipeline::edge& self, pybind11::size_t const& idx )
 {
-  ::sprokit::edge_datum_t datum = self.peek_datum( idx );
+  ::viame::pipeline::edge_datum_t datum = self.peek_datum( idx );
   wrap_edge_datum datum_p( *( datum.datum ), wrap_stamp( datum.stamp ) );
   return datum_p;
 }
 
 } // namespace python
 
-} // namespace sprokit
+} // namespace pipeline
 
-} // namespace kwiver
+} // namespace viame

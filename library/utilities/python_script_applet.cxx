@@ -25,7 +25,7 @@
 extern char** environ;
 #endif
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 namespace viame {
 
@@ -56,7 +56,7 @@ find_script( const std::string& name )
   {
     const std::string path = join_path( dir, name );
 
-    if( kwiver::vital::file_is_regular( path ) )
+    if( viame::file_is_regular( path ) )
     {
       return path;
     }

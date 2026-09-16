@@ -12,7 +12,7 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 typedef std::map< kv::frame_id_t,
   std::shared_ptr< kv::camera_perspective > > frame_to_cp_sptr_map;

@@ -24,10 +24,10 @@ namespace viame {
 /// describes itself.
 template < typename interface_t, typename algorithm_t >
 void
-register_algorithm( kwiver::vital::registry& vpm,
+register_algorithm( viame::registry& vpm,
                     std::string const& module_name )
 {
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
   auto fact = vpm.add_factory< interface_t, algorithm_t >(
     algorithm_t::plugin_name() );
@@ -49,11 +49,11 @@ register_algorithm( kwiver::vital::registry& vpm,
 /// where the golden recordings of both were byte-identical.
 template < typename interface_t, typename algorithm_t >
 void
-register_alias( kwiver::vital::registry& vpm,
+register_alias( viame::registry& vpm,
                 std::string const& module_name,
                 std::string const& alias )
 {
-  using kvpf = kwiver::vital::plugin_factory;
+  using kvpf = viame::plugin_factory;
 
   auto fact = vpm.add_factory< interface_t, algorithm_t >( alias );
   fact->add_attribute( kvpf::PLUGIN_NAME, alias )

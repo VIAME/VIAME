@@ -4,9 +4,7 @@
 
 #include <viame/algorithm_framework/algo/initialize_object_tracks.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
@@ -18,6 +16,4 @@ initialize_object_tracks
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame

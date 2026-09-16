@@ -17,7 +17,7 @@
  * \brief Declaration of the number process.
  */
 
-namespace sprokit
+namespace viame::pipeline
 {
 
 /**
@@ -54,7 +54,7 @@ public:
    *
    * \param config The configuration for the process.
    */
-  number_process(kwiver::vital::config_block_sptr const &config);
+  number_process(viame::config_block_sptr const &config);
   /**
    * \brief Destructor.
    */
@@ -76,6 +76,6 @@ private:
   std::unique_ptr<priv> d;
 };
 
-} // namespace sprokit
+} // namespace viame::pipeline
 
 #endif // SPROKIT_PROCESSES_EXAMPLES_NUMBER_PROCESS_H

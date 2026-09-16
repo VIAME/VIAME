@@ -1,7 +1,7 @@
 {
   "aliases": {},
   "algorithms": {
-    "N6kwiver27embedded_pipeline_extensionE": {
+    "N5viame27embedded_pipeline_extensionE": {
       "test": {
         "description": "Embedded Pipeline Extension used for testing",
         "config": {}
@@ -633,17 +633,17 @@
     "compute_stereo_depth_map": {
       "fast_foundation_stereo": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "fast_foundation_stereo_onnx": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "foundation_stereo": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "ocv_stereo_disparity": {
@@ -1247,7 +1247,7 @@
       },
       "coco": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "csv": {
@@ -1401,7 +1401,7 @@
     "detected_object_set_output": {
       "coco": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "csv": {
@@ -2042,7 +2042,7 @@
       },
       "equalize_via_percentiles_npy": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "hello_world_filter": {
@@ -2221,7 +2221,7 @@
       },
       "ocv_optical_flow": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "ocv_random_hue_shift": {
@@ -2861,27 +2861,27 @@
       },
       "huggingface_zeroshot_detector": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "mit_yolo": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "mmdet": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "netharn": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "netharn_classifier": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "ocv_detect_calibration_targets": {
@@ -3012,22 +3012,22 @@
       },
       "onnx": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "onnx_classifier": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "rf_detr": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "ultralytics": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "windowed": {
@@ -3368,22 +3368,22 @@
     "merge_detections": {
       "coverage_reinforce": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "merge": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "nms_fusion": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "simple": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "suppress_in_regions": {
@@ -3537,7 +3537,7 @@
     "perform_text_query": {
       "sam3": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       }
     },
@@ -3559,7 +3559,7 @@
       },
       "coco": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "db": {
@@ -3701,7 +3701,7 @@
       },
       "netharn": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "nms": {
@@ -3867,17 +3867,17 @@
       },
       "onnx": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "sam2": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "sam3": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "svm_refiner": {
@@ -3935,12 +3935,12 @@
       },
       "sam2": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "sam3": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       }
     },
@@ -3958,12 +3958,12 @@
     "say": {
       "PythonImpl": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "PythonTheyImpl": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "cpp": {
@@ -3978,17 +3978,17 @@
     "segment_via_points": {
       "ocv_watershed": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "sam2": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "sam3": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       }
     },
@@ -4154,42 +4154,42 @@
     "track_objects": {
       "botsort": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "bytetrack": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "deepsort": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "motr": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "ocsort": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "sam3_tracker": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "siammask": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "srnn": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       }
     },
@@ -4358,22 +4358,22 @@
       },
       "frame_diff": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "mit_yolo": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "mmdet": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "netharn": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "ocv_windowed": {
@@ -4507,12 +4507,12 @@
       },
       "rf_detr": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "sam3": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "svm": {
@@ -4642,7 +4642,7 @@
       },
       "ultralytics": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "windowed": {
@@ -4783,47 +4783,47 @@
       },
       "botsort": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "bytetrack": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "deepsort": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "motr": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "ocsort": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "sam3": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "siammask": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "siamrpn": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "srnn": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       }
     },
@@ -5240,7 +5240,7 @@
     "write_object_track_set": {
       "coco": {
         "description": "",
-        "error": "return_value_policy = copy, but type kwiver::vital::config_block is non-copyable!",
+        "error": "return_value_policy = copy, but type viame::config_block is non-copyable!",
         "config": {}
       },
       "db": {

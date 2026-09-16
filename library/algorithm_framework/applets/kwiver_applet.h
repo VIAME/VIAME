@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-namespace kwiver {
+namespace viame {
 
 namespace tools {
 
@@ -30,13 +30,13 @@ class applet_context;
 ///
 /// This class represents the abstract base class for all loadable
 /// applets.
-class VITAL_APPLETS_EXPORT kwiver_applet : public vital::pluggable
+class VITAL_APPLETS_EXPORT kwiver_applet : public viame::pluggable
 {
 public:
   kwiver_applet();
   PLUGGABLE_INTERFACE( kwiver_applet );
 
-  void initialize( kwiver::tools::applet_context* ctxt );
+  void initialize( viame::tools::applet_context* ctxt );
 
   /// @brief Main part of the applet.
   ///
@@ -52,7 +52,7 @@ public:
   /// directory and on the KWIVER config search path relative to the kwiver
   /// executable location.
   static
-  kwiver::vital::config_block_sptr
+  viame::config_block_sptr
   find_configuration( std::string const& file_name );
 
   /// @brief Add command line options to parser.
@@ -116,9 +116,9 @@ public:
   /// \param config  The \c config_block instance containing the configuration
   ///                parameters for this applet
   virtual void set_configuration(
-    [[maybe_unused]] vital::config_block_sptr cb ) {}
+    [[maybe_unused]] viame::config_block_sptr cb ) {}
 
-  /// Get this applet's \link kwiver::vital::config_block configuration
+  /// Get this applet's \link viame::config_block configuration
   /// block \endlink
   ///
   /// This method returns the required configuration for the
@@ -130,7 +130,7 @@ public:
   ///
   /// \returns \c config_block containing the configuration for this applet
   ///          and any nested components.
-  virtual vital::config_block_sptr get_configuration() const;
+  virtual viame::config_block_sptr get_configuration() const;
 
 protected:
   /// @brief Get applet name
@@ -172,18 +172,16 @@ protected:
   // after the member variable have been set this fuction should be overidden
   // to hold that logic.
   virtual void set_configuration_internal(
-    [[maybe_unused]] vital::config_block_sptr cb ) {}
+    [[maybe_unused]] viame::config_block_sptr cb ) {}
 
 private:
   /// Context provided by the applet runner.
-  kwiver::tools::applet_context* m_context { nullptr };
+  viame::tools::applet_context* m_context { nullptr };
 };
 
 typedef std::shared_ptr< kwiver_applet > kwiver_applet_sptr;
 
 } // namespace tools
-
-namespace vital {
 
 /// Simple factory for applets that use zero-argument construction
 ///
@@ -196,11 +194,11 @@ class applet_plugin_factory
 {
 public:
   static_assert(
-    std::is_base_of< kwiver::tools::kwiver_applet, APPLET >::value,
+    std::is_base_of< viame::tools::kwiver_applet, APPLET >::value,
     "The given applet type must derive from kwiver_applet." );
 
   explicit applet_plugin_factory()
-    : plugin_factory( typeid( kwiver::tools::kwiver_applet ).name() )
+    : plugin_factory( typeid( viame::tools::kwiver_applet ).name() )
   {
     this->add_attribute( INTERFACE_TYPE, "kwiver_applet" )
       .add_attribute( CONCRETE_TYPE, typeid( APPLET ).name() );
@@ -221,15 +219,13 @@ public:
   ~applet_plugin_factory() override = default;
 };
 
-} // namespace vital
-
-}   // end namespace
+} // namespace viame
 
 // ----------------------------------------------------------------------------
 // Support for adding factories
 
 #define ADD_APPLET( applet_T ) \
 add_factory(                   \
-  new kwiver::vital::applet_plugin_factory< applet_T >() )
+  new viame::applet_plugin_factory< applet_T >() )
 
 #endif // KWIVER_TOOLS_KWIVER_APPLET_H

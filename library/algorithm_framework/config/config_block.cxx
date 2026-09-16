@@ -4,7 +4,7 @@
 
 /// \file
 ///
-/// \brief Implementation of \link kwiver::vital::config_block configuration
+/// \brief Implementation of \link viame::config_block configuration
 /// \endlink object
 
 #include "config_block.h"
@@ -18,9 +18,7 @@
 #include <locale>
 #include <sstream>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 /// private helper method for determining key path prefixes
 static bool does_not_begin_with(
@@ -428,7 +426,7 @@ void
 config_block
 ::set_location(
   config_block_key_t const& key,
-  const kwiver::vital::source_location& sl )
+  const viame::source_location& sl )
 {
   m_def_store[ key ] = sl;
 }
@@ -471,7 +469,7 @@ bool
 config_block
 ::get_location(
   config_block_key_t const& key,
-  kwiver::vital::source_location& loc ) const
+  viame::source_location& loc ) const
 {
   if( m_parent )
   {
@@ -643,6 +641,4 @@ strip_block_name(
   return key.substr( subblock.size() + config_block::block_sep().size() );
 }
 
-} // namespace vital
-
-}     // end namespace
+} // namespace viame

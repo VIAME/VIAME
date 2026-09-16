@@ -17,7 +17,7 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace kv = viame;
 
 /// A class for drawing various information about feature tracks
 class VIAME_CLASSIFIERS_SVM_EXPORT refine_detections_svm

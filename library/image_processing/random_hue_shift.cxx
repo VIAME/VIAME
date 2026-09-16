@@ -71,15 +71,15 @@ to_byte( double value )
 bool
 random_hue_shift
 ::check_configuration(
-  [[maybe_unused]] kwiver::vital::config_block_sptr config ) const
+  [[maybe_unused]] viame::config_block_sptr config ) const
 {
   return true;
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::image_container_sptr
+viame::image_container_sptr
 random_hue_shift
-::filter( kwiver::vital::image_container_sptr image_data )
+::filter( viame::image_container_sptr image_data )
 {
   if( draw() >= c_trigger_percent )
   {
@@ -88,7 +88,7 @@ random_hue_shift
 
   // Eight bit only, as before: the C++ read every pixel through
   // `cv::Vec3b`, so anything else was already reading the wrong bytes.
-  auto const source = kwiver::vital::image_of< uint8_t >(
+  auto const source = viame::image_of< uint8_t >(
     image_data->get_image() );
 
   auto hsv = io::rgb_to_hsv( source );
@@ -162,8 +162,8 @@ random_hue_shift
     }
   }
 
-  return std::make_shared< kwiver::vital::simple_image_container >(
-    kwiver::vital::image( out ) );
+  return std::make_shared< viame::simple_image_container >(
+    viame::image( out ) );
 }
 
 } // end namespace

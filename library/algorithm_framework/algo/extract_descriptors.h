@@ -15,15 +15,13 @@
 #include <viame/core_types/feature_set.h>
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 namespace algo {
 
 /// An abstract base class for extracting feature descriptors
 class VITAL_ALGO_EXPORT extract_descriptors
-  : public kwiver::vital::algorithm
+  : public viame::algorithm
 {
 public:
   extract_descriptors();
@@ -43,12 +41,12 @@ public:
   ///       set of descriptors detected.  If the feature_set needs to change,
   ///       a new feature_set is created and returned by reference.
 
-  virtual kwiver::vital::descriptor_set_sptr
+  virtual viame::descriptor_set_sptr
   extract(
-    kwiver::vital::image_container_sptr image_data,
-    kwiver::vital::feature_set_sptr& features,
-    kwiver::vital::image_container_sptr image_mask =
-    kwiver::vital::image_container_sptr() ) const = 0;
+    viame::image_container_sptr image_data,
+    viame::feature_set_sptr& features,
+    viame::image_container_sptr image_mask =
+    viame::image_container_sptr() ) const = 0;
 };
 
 /// Shared pointer for base extract_descriptors algorithm definition class
@@ -56,8 +54,6 @@ typedef std::shared_ptr< extract_descriptors > extract_descriptors_sptr;
 
 } // namespace algo
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif // VITAL_ALGO_EXTRACT_DESCRIPTORS_H_

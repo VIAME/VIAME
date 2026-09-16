@@ -11,9 +11,9 @@
 #include <viame/algorithm_framework/util/string.h>
 #include <viame/core_types/vital_types.h>
 
-namespace algo = kwiver::vital::algo;
+namespace algo = viame::algo;
 
-namespace kwiver {
+namespace viame {
 
 create_algorithm_name_config_trait( merge_images );
 
@@ -32,7 +32,7 @@ public:
 // ================================================================
 
 merge_images_process
-::merge_images_process( kwiver::vital::config_block_sptr const& config )
+::merge_images_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new merge_images_process::priv )
 {
@@ -49,7 +49,7 @@ merge_images_process
 void merge_images_process
 ::_configure()
 {
-  kwiver::vital::config_block_sptr algo_config = get_config();
+  viame::config_block_sptr algo_config = get_config();
 
   set_nested_algo_configuration_using_trait(
     merge_images,
@@ -58,7 +58,7 @@ void merge_images_process
 
   if( !d->m_images_merger )
   {
-    VITAL_THROW( sprokit::invalid_configuration_exception,
+    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
                  name(), "Unable to create \"merge_images\"" );
   }
 
@@ -71,7 +71,7 @@ void merge_images_process
   if( !check_nested_algo_configuration_using_trait(
         merge_images, algo_config, d->m_images_merger ) )
   {
-    VITAL_THROW(  sprokit::invalid_configuration_exception,
+    VITAL_THROW(  viame::pipeline::invalid_configuration_exception,
                   name(), "Configuration check failed." );
   }
 }
@@ -81,16 +81,16 @@ void
 merge_images_process
 ::_step()
 {
-  std::vector<kwiver::vital::image_container_sptr> image_list;
+  std::vector<viame::image_container_sptr> image_list;
 
   for ( auto const& port_name : d->p_port_list )
   {
-    kwiver::vital::image_container_sptr image_sptr =
-        grab_from_port_as<kwiver::vital::image_container_sptr>( port_name );
+    viame::image_container_sptr image_sptr =
+        grab_from_port_as<viame::image_container_sptr>( port_name );
     image_list.push_back(image_sptr);
   }
 
-  kwiver::vital::image_container_sptr output;
+  viame::image_container_sptr output;
 
   // Get feature tracks
   output = d->m_images_merger->merge( image_list[0], image_list[1]);
@@ -104,7 +104,7 @@ void merge_images_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t required;
+  viame::pipeline::process::port_flags_t required;
   required.insert( flag_required );
   required.insert( flag_output_shared );
 
@@ -137,7 +137,7 @@ merge_images_process
   LOG_TRACE( logger(), "Processing input port info: \"" << port_name << "\"" );
 
   // Just create an input port to read detections from
-  if (! kwiver::vital::starts_with( port_name, "_" ) )
+  if (! viame::starts_with( port_name, "_" ) )
   {
     if ( d->p_port_list.size() >= 2)
     {
@@ -175,4 +175,4 @@ merge_images_process::priv
 {
 }
 
-} // end namespace
+} // namespace viame

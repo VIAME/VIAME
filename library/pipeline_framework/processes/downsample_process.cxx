@@ -10,10 +10,10 @@
 #include <viame/algorithm_framework/util/string.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-namespace kwiver
+namespace viame
 {
 
-using sprokit::process;
+using viame::pipeline::process;
 
 create_config_trait( target_frame_rate, double, "-1.0", "Target frame rate" );
 create_config_trait( burst_frame_count, unsigned, "0", "Burst frame count" );
@@ -43,11 +43,11 @@ public:
   explicit priv( downsample_process* p );
   ~priv();
 
-  bool skip_frame( vital::timestamp const& ts, double frame_rate );
+  bool skip_frame( viame::timestamp const& ts, double frame_rate );
 
   downsample_process* parent;
 
-  typedef vital::timestamp::frame_t frame_t;
+  typedef viame::timestamp::frame_t frame_t;
 
   double target_frame_rate_;
   unsigned burst_frame_count_;
@@ -81,7 +81,7 @@ public:
 
   // Adjust track IDs if timestamps get renumbered from the input to
   // the output if the input datum is an object track set
-  sprokit::datum_t adjust_track_ids( const sprokit::datum_t& input );
+  viame::pipeline::datum_t adjust_track_ids( const viame::pipeline::datum_t& input );
 
 private:
   // Compute the frame number corresponding to time_seconds assuming a
@@ -106,11 +106,11 @@ process::port_t const downsample_process::priv::port_outputs[5] = {
 };
 
 downsample_process
-::downsample_process( vital::config_block_sptr const& config )
+::downsample_process( viame::config_block_sptr const& config )
   : process( config ),
     d( new downsample_process::priv( this ) )
 {
-  attach_logger( vital::get_logger( name() ) );
+  attach_logger( viame::get_logger( name() ) );
 
   set_data_checking_level( check_sync );
 
@@ -137,11 +137,11 @@ void downsample_process
 
   if( !start_time_str.empty() )
   {
-    d->start_time_ = vital::time_str_to_seconds( start_time_str );
+    d->start_time_ = viame::time_str_to_seconds( start_time_str );
   }
   if( !duration_str.empty() )
   {
-    d->duration_ = vital::time_str_to_seconds( duration_str );
+    d->duration_ = viame::time_str_to_seconds( duration_str );
   }
   if( d->duration_ > 0.0 && d->start_time_ < 0.0 )
   {
@@ -174,14 +174,14 @@ void downsample_process
   bool is_finished = false;
   bool send_frame = true;
 
-  kwiver::vital::timestamp orig_ts, ts;
+  viame::timestamp orig_ts, ts;
   double frame_rate = -1.0;
 
   if( has_input_port_edge_using_trait( timestamp ) )
   {
     auto port_info = peek_at_port_using_trait( timestamp );
 
-    if( port_info.datum->type() == sprokit::datum::complete )
+    if( port_info.datum->type() == viame::pipeline::datum::complete )
     {
       grab_edge_datum_using_trait( timestamp );
       is_finished = true;
@@ -197,7 +197,7 @@ void downsample_process
   {
     auto port_info = peek_at_port_using_trait( frame_rate );
 
-    if( port_info.datum->type() == sprokit::datum::complete )
+    if( port_info.datum->type() == viame::pipeline::datum::complete )
     {
       grab_edge_datum_using_trait( frame_rate );
       is_finished = true;
@@ -215,7 +215,7 @@ void downsample_process
     // instead hands encoders a negative rate they cannot open with.
     push_to_port_using_trait( frame_rate,
       d->target_frame_rate_ > 0.0 ? d->target_frame_rate_ : frame_rate );
-    push_datum_to_port_using_trait( frame_rate, sprokit::datum::complete_datum() );
+    push_datum_to_port_using_trait( frame_rate, viame::pipeline::datum::complete_datum() );
   }
 
   if( d->target_frame_rate_ > 0.0 )
@@ -249,7 +249,7 @@ void downsample_process
         try
         {
           if( peek_at_datum_on_port( d->port_inputs[i] )->get_datum<
-            kwiver::vital::detected_object_set_sptr >()->empty() )
+            viame::detected_object_set_sptr >()->empty() )
           {
             send_frame = false;
             break;
@@ -331,9 +331,9 @@ void downsample_process
   {
     if( has_input_port_edge( d->port_inputs[i] ) )
     {
-      sprokit::datum_t datum = grab_datum_from_port( d->port_inputs[i] );
+      viame::pipeline::datum_t datum = grab_datum_from_port( d->port_inputs[i] );
 
-      if( datum->type() == sprokit::datum::complete )
+      if( datum->type() == viame::pipeline::datum::complete )
       {
         is_finished = true;
       }
@@ -351,7 +351,7 @@ void downsample_process
 
   if( is_finished )
   {
-    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( original_timestamp, dat );
@@ -371,7 +371,7 @@ void downsample_process
 void downsample_process
 ::make_ports()
 {
-  sprokit::process::port_flags_t optional;
+  viame::pipeline::process::port_flags_t optional;
 
   declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( frame_rate, optional );
@@ -419,21 +419,21 @@ int downsample_process::priv
   return static_cast< int >( std::floor( time_seconds * target_frame_rate_ + 1e-10 ) );
 }
 
-sprokit::datum_t downsample_process::priv
-::adjust_track_ids( const sprokit::datum_t& input )
+viame::pipeline::datum_t downsample_process::priv
+::adjust_track_ids( const viame::pipeline::datum_t& input )
 {
   try
   {
-    vital::object_track_set_sptr input_set =
-      input->get_datum< vital::object_track_set_sptr >();
+    viame::object_track_set_sptr input_set =
+      input->get_datum< viame::object_track_set_sptr >();
 
     if( !input_set || this->frame_id_map_.empty() )
     {
       return input;
     }
 
-    vital::object_track_set_sptr adj_set =
-      std::dynamic_pointer_cast< vital::object_track_set >( input_set->clone() );
+    viame::object_track_set_sptr adj_set =
+      std::dynamic_pointer_cast< viame::object_track_set >( input_set->clone() );
 
     if( !adj_set )
     {
@@ -462,7 +462,7 @@ sprokit::datum_t downsample_process::priv
       }
     }
 
-    return sprokit::datum::new_datum( adj_set );
+    return viame::pipeline::datum::new_datum( adj_set );
   }
   catch( ... )
   {
@@ -473,7 +473,7 @@ sprokit::datum_t downsample_process::priv
 }
 
 bool downsample_process::priv
-::skip_frame( vital::timestamp const& ts,
+::skip_frame( viame::timestamp const& ts,
               double frame_rate )
 {
   ds_frame_time_ = ts.has_valid_time() ?

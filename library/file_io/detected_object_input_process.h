@@ -14,11 +14,11 @@
 
 #include <memory>
 
-namespace kwiver {
+namespace viame {
 
 // ----------------------------------------------------------------
 class VIAME_PROCESSES_FILE_IO_EXPORT detected_object_input_process
-  : public sprokit::process
+  : public viame::pipeline::process
 {
 public:
   PLUGIN_INFO( "detected_object_input",
@@ -26,7 +26,7 @@ public:
                "Detections read from the input file are grouped into sets for each "
                "image and individually returned." )
 
-  detected_object_input_process( kwiver::vital::config_block_sptr const& config );
+  detected_object_input_process( viame::config_block_sptr const& config );
   virtual ~detected_object_input_process();
 
 protected:
@@ -42,6 +42,6 @@ private:
   const std::unique_ptr<priv> d;
 }; // end class detected_object_input_process
 
-} // end namespace
+} // namespace viame
 
 #endif // _KWIVER_DETECTED_OBJECT_INPUT_PROCESS_H

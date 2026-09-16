@@ -19,9 +19,7 @@
 #include <viame/core_types/homography.h>
 #include <viame/core_types/image_container.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace core {
 
@@ -38,7 +36,7 @@ namespace core {
 /// successive non-regressing frames. This is ideal for when it is desired to
 /// compute reference frames on all frames in a sequence.
 class VIAME_IMAGE_PROCESSING_EXPORT compute_ref_homography_core
-  : public vital::algo::compute_ref_homography
+  : public viame::algo::compute_ref_homography
 {
 public:
   PLUGGABLE_IMPL(
@@ -83,7 +81,7 @@ public:
       "(assuming frames were sequentially iterated over with this algorithm).",
       true ),
     PARAM(
-      estimator, vital::algo::estimate_homography_sptr,
+      estimator, viame::algo::estimate_homography_sptr,
       "Homography estimator"
     )
   )
@@ -100,7 +98,7 @@ public:
   /// \param config  The config block to check configuration of.
   ///
   /// \returns true if the configuration check passed and false if it didn't.
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool check_configuration( viame::config_block_sptr config ) const;
 
   /// Estimate the transformation which maps some frame to a reference frame
   ///
@@ -110,10 +108,10 @@ public:
   /// \param frame_number frame identifier for the current frame
   /// \param tracks the set of all tracked features from the image
   /// \return estimated homography
-  virtual vital::f2f_homography_sptr
+  virtual viame::f2f_homography_sptr
   estimate(
-    vital::frame_id_t frame_number,
-    vital::feature_track_set_sptr tracks ) const;
+    viame::frame_id_t frame_number,
+    viame::feature_track_set_sptr tracks ) const;
 
 private:
   void initialize() override;
@@ -122,10 +120,8 @@ private:
   KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
-} // end namespace core
+} // namespace core
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif

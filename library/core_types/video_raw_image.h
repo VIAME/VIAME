@@ -12,9 +12,7 @@
 
 #include <memory>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Base class for holding a single frame of unprocessed image data.
@@ -26,8 +24,6 @@ struct VITAL_TYPES_EXPORT video_raw_image
 using video_raw_image_sptr = std::shared_ptr< video_raw_image >;
 using video_raw_image_uptr = std::unique_ptr< video_raw_image >;
 
-} // namespace vital
-
-} // namespace kwiver
+} // namespace viame
 
 #endif

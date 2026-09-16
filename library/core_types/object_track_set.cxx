@@ -3,16 +3,14 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of \link kwiver::vital::track_set track_set \endlink
+/// \brief Implementation of \link viame::track_set track_set \endlink
 ///        member functions
 
 #include "object_track_set.h"
 
 #include <limits>
 
-namespace kwiver {
-
-namespace vital {
+namespace viame {
 
 typedef std::unique_ptr< track_set_implementation > tsi_uptr;
 
@@ -58,6 +56,4 @@ object_track_state
   }
 }
 
-} // namespace vital
-
-}   // end namespace vital
+} // namespace viame

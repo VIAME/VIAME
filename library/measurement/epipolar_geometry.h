@@ -16,9 +16,7 @@
 #include <viame/core_types/essential_matrix.h>
 #include <viame/core_types/fundamental_matrix.h>
 
-namespace kwiver {
-
-namespace arrows {
+namespace viame {
 
 namespace mvg {
 
@@ -33,9 +31,9 @@ namespace mvg {
 VIAME_MEASUREMENT_EXPORT
 std::vector< bool >
 mark_fm_inliers(
-  vital::fundamental_matrix const& fm,
-  std::vector< vital::vector_2d > const& pts1,
-  std::vector< vital::vector_2d > const& pts2,
+  viame::fundamental_matrix const& fm,
+  std::vector< viame::vector_2d > const& pts1,
+  std::vector< viame::vector_2d > const& pts2,
   double inlier_scale = 1.0 );
 
 /// Compute a valid left camera from an essential matrix
@@ -53,38 +51,36 @@ mark_fm_inliers(
 /// \returns     a camera containing the rotation and unit translation of the
 ///                left camera assuming the right camera is the identity
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::simple_camera_perspective
+viame::simple_camera_perspective
 extract_valid_left_camera(
-  const kwiver::vital::essential_matrix_d& e,
-  const kwiver::vital::vector_2d& left_pt,
-  const kwiver::vital::vector_2d& right_pt );
+  const viame::essential_matrix_d& e,
+  const viame::vector_2d& left_pt,
+  const viame::vector_2d& right_pt );
 
 /// Compute the fundamental matrix from a pair of cameras
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::fundamental_matrix_sptr
+viame::fundamental_matrix_sptr
 fundamental_matrix_from_cameras(
-  kwiver::vital::camera_perspective const& right_cam,
-  kwiver::vital::camera_perspective const& left_cam );
+  viame::camera_perspective const& right_cam,
+  viame::camera_perspective const& left_cam );
 
 /// Compute the essential matrix from a pair of cameras
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::essential_matrix_sptr
+viame::essential_matrix_sptr
 essential_matrix_from_cameras(
-  kwiver::vital::camera_perspective const& right_cam,
-  kwiver::vital::camera_perspective const& left_cam );
+  viame::camera_perspective const& right_cam,
+  viame::camera_perspective const& left_cam );
 
 /// Convert an essential matrix to a fundamental matrix
 VIAME_MEASUREMENT_EXPORT
-kwiver::vital::fundamental_matrix_sptr
+viame::fundamental_matrix_sptr
 essential_matrix_to_fundamental(
-  kwiver::vital::essential_matrix const& E,
-  kwiver::vital::camera_intrinsics const& right_cal,
-  kwiver::vital::camera_intrinsics const& left_cal );
+  viame::essential_matrix const& E,
+  viame::camera_intrinsics const& right_cal,
+  viame::camera_intrinsics const& left_cal );
 
-} // end namespace mvg
+} // namespace mvg
 
-} // end namespace arrows
-
-} // end namespace kwiver
+} // namespace viame
 
 #endif
