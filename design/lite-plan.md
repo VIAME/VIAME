@@ -121,6 +121,10 @@ P10 can start after P5 if needed.
 7. TIFF scope: baseline + LZW + PackBits, 8/16-bit, strips; anything else
    (tiles, JPEG-in-TIFF, BigTIFF) falls back to the python `pil` image_io.
 8. Phase 11 rename: do it, and whether the `kwiver` shim is permanent.
+   **Decided 2026-09-15: do it, and the shim lasts one release.** The
+   `kwiver` python package, the `kwiver::vital` namespace and the
+   `kwiver::` CMake target names are kept for the release phase 11 lands
+   in and removed in the next one.
 9. Hosting for the python wheel index.
 10. Out-of-tree C++ plugins: keep a minimal `VIAME_PLUGIN_PATH` dlopen hook,
     or drop dynamic loading entirely and make python the only extension

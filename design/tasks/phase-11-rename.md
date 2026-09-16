@@ -1,6 +1,8 @@
 # Phase 11 (optional): rename to viame
 
-Requires open decision 8 = yes.
+Open decision 8 is answered: yes, and the `kwiver` shim lasts one release
+-- the compat header, the `kwiver` python package and the `kwiver::` CMake
+target names ship in the release phase 11 lands in and go in the next.
 
 The rename is what unblocks dissolving `python/`. The bindings cannot sit
 beside the C++ they bind while the package is still called `kwiver` and the
