@@ -1095,11 +1095,51 @@ def ensure_fork_start_method():
 # =============================================================================
 
 
-def kwimage_to_kwiver_detections(detections):
+def _add_kwimage_keypoints(detected_object, points, vis_thresh):
+    """
+    Attach a kwimage.Points to a kwiver DetectedObject as named keypoints.
+
+    kwimage keeps xy/visible/class_idxs in Points.data and the name list in
+    Points.meta['classes'], so no keypoint_names config is needed here.
+    Slots below vis_thresh are skipped, matching supervision_to_kwiver_detections.
+    """
+    from kwiver.vital.types import Point2d
+
+    data = getattr(points, "data", None) or {}
+
+    # data['xy'] is a kwimage.Coords wrapper; the .xy property is the raw array
+    xy = data.get("xy")
+    if xy is None:
+        xy = getattr(points, "xy", None)
+    xy = getattr(xy, "data", xy)
+    if xy is None:
+        return
+
+    visible = data.get("visible")
+    class_idxs = data.get("class_idxs")
+    names = (getattr(points, "meta", None) or {}).get("classes")
+
+    for k in range(len(xy)):
+        if visible is not None and float(visible[k]) < vis_thresh:
+            continue
+
+        name = None
+        if names is not None:
+            idx = int(class_idxs[k]) if class_idxs is not None else k
+            if 0 <= idx < len(names):
+                name = names[idx]
+
+        pt = Point2d()
+        pt.value = [float(xy[k][0]), float(xy[k][1])]
+        detected_object.add_keypoint(str(name) if name is not None else "kp{}".format(k), pt)
+
+
+def kwimage_to_kwiver_detections(detections, keypoint_vis_thresh=0.5):
     """
     Convert kwimage.Detections to kwiver DetectedObjectSet.
 
-    Handles bounding boxes, scores, class indices, and optional segmentation masks.
+    Handles bounding boxes, scores, class indices, optional segmentation masks
+    and optional keypoints (detections.data['keypoints'], a kwimage.PointsList).
 
     Args:
         detections (kwimage.Detections): Detections from kwimage
@@ -1121,6 +1161,10 @@ def kwimage_to_kwiver_detections(detections):
     if "segmentations" in detections.data:
         segmentations = detections.data["segmentations"]
 
+    keypoints = None
+    if "keypoints" in detections.data:
+        keypoints = detections.data["keypoints"]
+
     try:
         boxes = detections.boxes.to_ltrb()
     except Exception:
@@ -1132,9 +1176,13 @@ def kwimage_to_kwiver_detections(detections):
     if not segmentations:
         segmentations = (None,) * len(boxes)
 
+    if keypoints is None:
+        keypoints = (None,) * len(boxes)
+
     detected_objects = DetectedObjectSet()
 
-    for tlbr, score, cidx, seg in zip(boxes.data, scores, class_idxs, segmentations):
+    for tlbr, score, cidx, seg, kps in zip(boxes.data, scores, class_idxs,
+                                           segmentations, keypoints):
         class_name = detections.classes[cidx]
 
         bbox_int = np.round(tlbr).astype(np.int32)
@@ -1146,6 +1194,9 @@ def kwimage_to_kwiver_detections(detections):
         if seg:
             mask = seg.to_relative_mask().numpy().data
             detected_object.mask = ImageContainer(Image(mask))
+
+        if kps is not None:
+            _add_kwimage_keypoints(detected_object, kps, keypoint_vis_thresh)
 
         detected_objects.add(detected_object)
 
