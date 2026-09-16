@@ -16,5 +16,9 @@ set(VIAME_BUILD_LIMIT_NINJA ON CACHE BOOL "Disable Ninja for PyTorch")
 # Needed for the CRITICAL test gate in build_server_docker_web.sh
 set(VIAME_ENABLE_TESTS ON CACHE BOOL "Build VIAME tests")
 
+# TensorRT lean runtime (~110 MB) for the prebuilt engines model add-ons ship
+set(VIAME_ENABLE_TENSORRT ON CACHE BOOL "Enable TensorRT plugins")
+set(VIAME_TENSORRT_RUNTIME_ONLY ON CACHE BOOL "Install only the TensorRT lean runtime")
+
 # Typically disabled in Docker builds
 set(VIAME_ENABLE_DIVE OFF CACHE BOOL "Enable DIVE")
