@@ -1095,6 +1095,44 @@ def ensure_fork_start_method():
 # =============================================================================
 
 
+def _kwimage_seg_to_relative_mask(seg, tlbr):
+    """
+    Bounding-box-relative mask array for a kwimage segmentation, or None.
+
+    Segmentation wrappers never carry to_relative_mask, so unwrap first. A
+    Polygon payload converts directly; a Mask is cropped to the box, which is
+    lossless and cheaper than a polygon round trip.
+    """
+    # Try the object itself before unwrapping: Segmentation.data is the payload,
+    # but Polygon.data is an internal dict carrying neither method.
+    payloads = [seg]
+    inner = getattr(seg, "data", None)
+    if inner is not None and inner is not seg:
+        payloads.append(inner)
+
+    to_c_mask = None
+    for payload in payloads:
+        to_rel = getattr(payload, "to_relative_mask", None)
+        if callable(to_rel):
+            return to_rel().numpy().data
+        candidate = getattr(payload, "to_c_mask", None)
+        if to_c_mask is None and callable(candidate):
+            to_c_mask = candidate
+
+    if to_c_mask is None:
+        return None
+
+    mask = np.asarray(to_c_mask().data)
+    height, width = mask.shape[:2]
+
+    # Clamp to the image and keep the crop non-empty.
+    x1 = min(max(int(np.floor(tlbr[0])), 0), max(width - 1, 0))
+    y1 = min(max(int(np.floor(tlbr[1])), 0), max(height - 1, 0))
+    x2 = min(max(int(np.ceil(tlbr[2])) + 1, x1 + 1), width)
+    y2 = min(max(int(np.ceil(tlbr[3])) + 1, y1 + 1), height)
+    return np.ascontiguousarray(mask[y1:y2, x1:x2])
+
+
 def _add_kwimage_keypoints(detected_object, points, vis_thresh):
     """
     Attach a kwimage.Points to a kwiver DetectedObject as named keypoints.
@@ -1191,9 +1229,10 @@ def kwimage_to_kwiver_detections(detections, keypoint_vis_thresh=0.5):
         detected_object_type = DetectedObjectType(class_name, score)
         detected_object = DetectedObject(bounding_box, score, detected_object_type)
 
-        if seg:
-            mask = seg.to_relative_mask().numpy().data
-            detected_object.mask = ImageContainer(Image(mask))
+        if seg is not None:
+            mask = _kwimage_seg_to_relative_mask(seg, tlbr)
+            if mask is not None:
+                detected_object.mask = ImageContainer(Image(mask))
 
         if kps is not None:
             _add_kwimage_keypoints(detected_object, kps, keypoint_vis_thresh)
