@@ -38,7 +38,7 @@ namespace viame {
 /// viame::config_block_sptr blk = input_config->get_config();
 /// \endcode
 ///
-class VITAL_CONFIG_EXPORT config_parser
+class VIAME_CONFIG_EXPORT config_parser
   : private viame::noncopyable
 {
 public:

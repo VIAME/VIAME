@@ -6,7 +6,7 @@
 #define KWIVER_CONFIG_FORMATTER_H
 
 #include <viame/algorithm_framework/config/config_block.h>
-#include <viame/algorithm_framework/config/vital_config_export.h>
+#include <viame/algorithm_framework/config/viame_config_export.h>
 
 #include <ostream>
 #include <string>
@@ -28,7 +28,7 @@ namespace viame {
 /// TODO: This likely should be an "algorithm" and not be located in the config
 ///       module since there is no inbuilt use of this -- It seems to only be
 ///       used in down-stream libraries/tools.
-class VITAL_CONFIG_EXPORT config_block_formatter
+class VIAME_CONFIG_EXPORT config_block_formatter
 {
 public:
   config_block_formatter( const config_block_sptr config );

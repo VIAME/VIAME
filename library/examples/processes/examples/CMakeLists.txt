@@ -50,6 +50,6 @@ viame_add_plugin(processes_examples
   KIND        PROCESSES
   SOURCES        ${examples_srcs}
                  ${examples_private_headers}
-  PRIVATE        sprokit_pipeline
-                 vital_vpm
+  PRIVATE        viame_pipeline_framework
+                 viame_plugin
   )

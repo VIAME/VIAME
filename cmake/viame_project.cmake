@@ -266,6 +266,15 @@ configure_file(
 get_property( viame_facade_names GLOBAL PROPERTY viame_folded_libraries )
 list( APPEND viame_facade_names viame_registry_linked )
 
+# The names an out-of-tree plugin links today, which P11-T01 renamed the
+# targets out from under. Decision 8 keeps them for one release, so the
+# installed config defines both: `viame::<new>` from the list above, and
+# these under `kwiver::`.
+set( viame_shim_names
+  vital vital_types vital_config vital_logger vital_exceptions
+  vital_util vital_vpm vital_algo vital_applets
+  sprokit_pipeline sprokit_pipeline_util kwiver_adapter )
+
 configure_file(
   "${VIAME_SOURCE_DIR}/cmake/viame-config-targets-install.cmake.in"
   "${VIAME_BINARY_DIR}/viame-config-targets-install.cmake.gen"

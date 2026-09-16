@@ -5,11 +5,11 @@
 #ifndef KWIVER_VITAL_REGISTRY_H_
 #define KWIVER_VITAL_REGISTRY_H_
 
-#include <viame/algorithm_framework/plugin/vital_vpm_export.h>
+#include <viame/algorithm_framework/plugin/viame_plugin_export.h>
 
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/plugin/plugin_factory.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <map>
 #include <memory>
@@ -46,7 +46,7 @@ class registry_impl;
  * this class. One of the two has to be underneath the other, and it is this
  * one.
  */
-class VITAL_VPM_EXPORT registry
+class VIAME_PLUGIN_EXPORT registry
 {
 public:
   registry();

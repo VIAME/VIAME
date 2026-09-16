@@ -12,7 +12,7 @@
 #include <viame/algorithm_framework/util/file_system.h>
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/core_types/matrix.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <image_ops/morphology.h>
 #include <image_ops/pixel.h>

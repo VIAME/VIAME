@@ -3,7 +3,7 @@ set(__testable_modnames
   test_serialize_json
   )
 
-# All python filenames_we in the vital.tests module
+# All python filenames_we in the viame_algorithm_framework.tests module
 set(__all_modnames
   __init__
   serialize_json_utils

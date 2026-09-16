@@ -14,7 +14,7 @@
 #ifndef KWIVER_VITAL_UTIL_REGEX_H
 #define KWIVER_VITAL_UTIL_REGEX_H
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <memory>
 #include <string>
@@ -27,7 +27,7 @@ namespace viame {
 /// Search with `find`, then read the groups with `match`. The object holds
 /// the result, which is why it is not const: two searches with one object
 /// is two answers, and only the last one is readable.
-class VITAL_UTIL_EXPORT regex
+class VIAME_UTIL_EXPORT regex
 {
 public:
   /// @brief Compile a pattern.

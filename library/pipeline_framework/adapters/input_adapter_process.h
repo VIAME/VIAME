@@ -10,7 +10,7 @@
 #ifndef PROCESS_INPUT_ADAPTER_PROCESS_H
 #define PROCESS_INPUT_ADAPTER_PROCESS_H
 
-#include <viame/pipeline_framework/adapters/kwiver_adapter_export.h>
+#include <viame/pipeline_framework/adapters/viame_adapter_export.h>
 
 #include <viame/pipeline_framework/process.h>
 
@@ -19,7 +19,7 @@
 namespace viame {
 
 // ----------------------------------------------------------------
-class KWIVER_ADAPTER_EXPORT input_adapter_process
+class VIAME_ADAPTER_EXPORT input_adapter_process
   : public viame::pipeline::process,
     public adapter::adapter_base
 {

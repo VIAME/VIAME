@@ -9,7 +9,7 @@
 #define VITAL_WRITE_TRACK_DESCRIPTOR_SET_H
 
 #include <viame/algorithm_framework/algo/algorithm.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/track_descriptor_set.h>
 
@@ -31,7 +31,7 @@ namespace algo {
 /// with enough information to recreate a unique image identifier,
 /// usually the file name, and an associated wet of track descriptors.
 ///
-class VITAL_ALGO_EXPORT write_track_descriptor_set
+class VIAME_ALGO_EXPORT write_track_descriptor_set
   : public viame::algorithm
 {
 public:

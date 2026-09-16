@@ -8,8 +8,8 @@
 #ifndef VITAL_EXCEPTIONS_BASE_H
 #define VITAL_EXCEPTIONS_BASE_H
 
-#include <viame/algorithm_framework/exceptions/vital_exceptions_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/exceptions/viame_exceptions_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <exception>
 #include <string>
@@ -17,10 +17,10 @@
 namespace viame {
 
 // ----------------------------------------------------------------------------
-/// The base class for all vital exceptions
+/// The base class for all viame_algorithm_framework exceptions
 ///
 /// \ingroup exceptions
-class VITAL_EXCEPTIONS_EXPORT vital_exception
+class VIAME_EXCEPTIONS_EXPORT vital_exception
   : public std::exception
 {
 public:
@@ -70,7 +70,7 @@ private:
 /// Exception for incorrect input values
 ///
 /// \ingroup exceptions
-class VITAL_EXCEPTIONS_EXPORT invalid_value
+class VIAME_EXCEPTIONS_EXPORT invalid_value
   : public vital_exception
 {
 public:

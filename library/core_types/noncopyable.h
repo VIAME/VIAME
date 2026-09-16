@@ -5,7 +5,7 @@
 #ifndef VITAL_NONCOPYABLE_H
 #define VITAL_NONCOPYABLE_H
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 

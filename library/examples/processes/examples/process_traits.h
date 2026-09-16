@@ -5,7 +5,7 @@
 #ifndef SPROKIT_EXAMPLE_PROCESS_TRAITS_H
 #define SPROKIT_EXAMPLE_PROCESS_TRAITS_H
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 create_type_trait( integer, "kwiver:test:integer", int32_t );
 

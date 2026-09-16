@@ -5,7 +5,7 @@
 #ifndef VITAL_UTIL_STREAM_DATA_READER_H
 #define VITAL_UTIL_STREAM_DATA_READER_H
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <viame/algorithm_framework/util/string_editor.h>
 
@@ -53,7 +53,7 @@ class string_editor;
 ///
 /// }
 /// \endcode
-class VITAL_UTIL_EXPORT data_stream_reader
+class VIAME_UTIL_EXPORT data_stream_reader
 {
 public:
   /// @brief Create new reader on input stream.

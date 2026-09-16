@@ -9,7 +9,7 @@
 #ifndef KWIVER_CONFIG_BLOCK_H_
 #define KWIVER_CONFIG_BLOCK_H_
 
-#include <viame/algorithm_framework/config/vital_config_export.h>
+#include <viame/algorithm_framework/config/viame_config_export.h>
 #include <viame/core_types/noncopyable.h>
 #include <viame/algorithm_framework/util/source_location.h>
 #include <viame/algorithm_framework/util/streamable.h>
@@ -77,7 +77,7 @@ R config_block_get_value_cast_default( config_block_value_t const& value );
 /// \sa config_block_get_value_cast()
 /// \sa config_block_set_value_cast()
 
-class VITAL_CONFIG_EXPORT config_block
+class VIAME_CONFIG_EXPORT config_block
   : public std::enable_shared_from_this< config_block >,
     private viame::noncopyable
 {
@@ -411,7 +411,7 @@ public:
 
 private:
   /// Internal constructor
-  VITAL_CONFIG_NO_EXPORT config_block(
+  VIAME_CONFIG_NO_EXPORT config_block(
     config_block_key_t const& name,
     config_block_sptr parent );
 
@@ -430,7 +430,7 @@ private:
   /// \param key key to get the associated value to.
   /// \returns key's value or an empty config_block_value_t if the key is not
   /// found.
-  VITAL_CONFIG_NO_EXPORT config_block_value_t i_get_value(
+  VIAME_CONFIG_NO_EXPORT config_block_value_t i_get_value(
     config_block_key_t const& key ) const;
 
   /// private key/value setter
@@ -593,7 +593,7 @@ config_block_get_value_cast( config_block_value_t const& value )
 /// \param value The value to convert.
 /// \returns The value of \p value in the requested type.
 template <>
-VITAL_CONFIG_EXPORT
+VIAME_CONFIG_EXPORT
 bool config_block_get_value_cast( config_block_value_t const& value );
 
 // ----------------------------------------------------------------------------
@@ -605,7 +605,7 @@ bool config_block_get_value_cast( config_block_value_t const& value );
 ///
 /// @return Resulting string
 template <>
-VITAL_CONFIG_EXPORT
+VIAME_CONFIG_EXPORT
 std::string config_block_get_value_cast( config_block_value_t const& value );
 
 // ------------------------------------------------------------------
@@ -614,12 +614,12 @@ std::string config_block_get_value_cast( config_block_value_t const& value );
 //       and size
 // template<typename Tp, size_t Nm>
 template <>
-VITAL_CONFIG_EXPORT
+VIAME_CONFIG_EXPORT
 std::array< double,
   3 > config_block_get_value_cast( config_block_value_t const& value );
 
 template <>
-VITAL_CONFIG_EXPORT
+VIAME_CONFIG_EXPORT
 std::array< unsigned,
   2 > config_block_get_value_cast( config_block_value_t const& value );
 

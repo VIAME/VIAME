@@ -7,7 +7,7 @@
  * \brief Implementation of colour space conversion filter
  *
  * `cv::cvtColor` until P7-T04b; `image_ops::color` since. The bridge was
- * asked for an `RGB_COLOR` mat both ways, so the vital image's planes went
+ * asked for an `RGB_COLOR` mat both ways, so the viame_algorithm_framework image's planes went
  * into `cvtColor` and came back out untouched -- which is why an `input` of
  * `bgr` means "these planes hold BGR" rather than anything the bridge did.
  *

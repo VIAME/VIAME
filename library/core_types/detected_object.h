@@ -8,8 +8,8 @@
 #ifndef VITAL_DETECTED_OBJECT_H_
 #define VITAL_DETECTED_OBJECT_H_
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/attribute_set.h>
 
@@ -44,7 +44,7 @@ using detected_object_scptr = std::shared_ptr< detected_object const >;
 /// There is one object of this type for each detected object. These
 /// objects are defined by a bounding box in the image space. Each
 /// object has an optional classification object attached.
-class VITAL_TYPES_EXPORT detected_object
+class VIAME_CORE_TYPES_EXPORT detected_object
 {
 public:
   using vector_t = std::vector< detected_object_sptr >;

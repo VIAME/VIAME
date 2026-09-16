@@ -9,7 +9,7 @@
 
 #include "write_homography_list_process.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/homography.h>
 
 #include <viame/pipeline_framework/type_traits.h>

@@ -8,7 +8,7 @@
 #include "homography_f2f.h"
 
 #include <viame/algorithm_framework/exceptions/math.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace viame {
 

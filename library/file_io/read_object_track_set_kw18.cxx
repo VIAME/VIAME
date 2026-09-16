@@ -9,7 +9,7 @@
 
 #include <viame/algorithm_framework/util/data_stream_reader.h>
 #include <viame/algorithm_framework/util/tokenize.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 

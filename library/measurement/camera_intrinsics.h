@@ -12,7 +12,7 @@
 #include "viame_measurement_export.h"
 
 #include <vector>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/camera_intrinsics.h>
 
@@ -25,7 +25,7 @@ VIAME_MEASUREMENT_EXPORT
 std::vector< double >
 get_ocv_dist_coeffs( viame::camera_intrinsics_sptr intrinsics );
 
-/// return OpenCV formatted distortion coefficients based on vital distortion
+/// return OpenCV formatted distortion coefficients based on viame_algorithm_framework distortion
 /// coefficients
 VIAME_MEASUREMENT_EXPORT
 std::vector< double >

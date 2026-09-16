@@ -14,7 +14,7 @@ namespace viame {
 
 camera_rpc
 ::camera_rpc()
-  : m_logger( viame::get_logger( "vital.camera_rpc" ) )
+  : m_logger( viame::get_logger( "viame_algorithm_framework.camera_rpc" ) )
 {}
 
 /// Project a 3D point into a 2D image point

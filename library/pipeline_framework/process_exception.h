@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_EXCEPTION_H
 #define SPROKIT_PIPELINE_PROCESS_EXCEPTION_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 #include "process.h"
@@ -29,7 +29,7 @@ namespace viame::pipeline {
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT process_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT process_exception
   : public pipeline_exception
 {
   public:
@@ -51,7 +51,7 @@ class SPROKIT_PIPELINE_EXPORT process_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_process_config_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_process_config_exception
   : public process_exception
 {
   public:
@@ -73,7 +73,7 @@ class SPROKIT_PIPELINE_EXPORT null_process_config_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT already_initialized_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT already_initialized_exception
   : public process_exception
 {
   public:
@@ -100,7 +100,7 @@ class SPROKIT_PIPELINE_EXPORT already_initialized_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT unconfigured_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT unconfigured_exception
   : public process_exception
 {
   public:
@@ -127,7 +127,7 @@ class SPROKIT_PIPELINE_EXPORT unconfigured_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT reconfigured_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT reconfigured_exception
   : public process_exception
 {
   public:
@@ -154,7 +154,7 @@ class SPROKIT_PIPELINE_EXPORT reconfigured_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT reinitialization_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT reinitialization_exception
   : public process_exception
 {
   public:
@@ -181,7 +181,7 @@ class SPROKIT_PIPELINE_EXPORT reinitialization_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_conf_info_exception
   : public process_exception
 {
   public:
@@ -211,7 +211,7 @@ class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_port_info_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_port_info_exception
   : public process_exception
 {
   public:
@@ -242,7 +242,7 @@ class SPROKIT_PIPELINE_EXPORT null_port_info_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_input_port_info_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_input_port_info_exception
   : public null_port_info_exception
 {
   public:
@@ -267,7 +267,7 @@ class SPROKIT_PIPELINE_EXPORT null_input_port_info_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_output_port_info_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_output_port_info_exception
   : public null_port_info_exception
 {
   public:
@@ -292,7 +292,7 @@ class SPROKIT_PIPELINE_EXPORT null_output_port_info_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT flag_mismatch_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT flag_mismatch_exception
   : public process_exception
 {
   public:
@@ -325,7 +325,7 @@ class SPROKIT_PIPELINE_EXPORT flag_mismatch_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT set_type_on_initialized_process_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT set_type_on_initialized_process_exception
   : public process_exception
 {
   public:
@@ -359,7 +359,7 @@ class SPROKIT_PIPELINE_EXPORT set_type_on_initialized_process_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT uninitialized_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT uninitialized_exception
   : public process_exception
 {
   public:
@@ -386,7 +386,7 @@ class SPROKIT_PIPELINE_EXPORT uninitialized_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT port_connection_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT port_connection_exception
   : public process_exception
 {
   public:
@@ -416,7 +416,7 @@ class SPROKIT_PIPELINE_EXPORT port_connection_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT connect_to_initialized_process_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT connect_to_initialized_process_exception
   : public port_connection_exception
 {
   public:
@@ -441,7 +441,7 @@ class SPROKIT_PIPELINE_EXPORT connect_to_initialized_process_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT no_such_port_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT no_such_port_exception
   : public port_connection_exception
 {
   public:
@@ -477,7 +477,7 @@ class SPROKIT_PIPELINE_EXPORT no_such_port_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_edge_port_connection_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_edge_port_connection_exception
   : public port_connection_exception
 {
   public:
@@ -503,7 +503,7 @@ class SPROKIT_PIPELINE_EXPORT null_edge_port_connection_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT static_type_reset_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT static_type_reset_exception
   : public port_connection_exception
 {
   public:
@@ -535,7 +535,7 @@ class SPROKIT_PIPELINE_EXPORT static_type_reset_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT port_reconnect_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT port_reconnect_exception
   : public port_connection_exception
 {
   public:
@@ -560,7 +560,7 @@ class SPROKIT_PIPELINE_EXPORT port_reconnect_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT missing_connection_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT missing_connection_exception
   : public port_connection_exception
 {
   public:
@@ -589,7 +589,7 @@ class SPROKIT_PIPELINE_EXPORT missing_connection_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT process_configuration_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT process_configuration_exception
   : public process_exception
 {
   public:
@@ -611,7 +611,7 @@ class SPROKIT_PIPELINE_EXPORT process_configuration_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT unknown_configuration_value_exception
   : public process_configuration_exception
 {
   public:
@@ -641,7 +641,7 @@ class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT invalid_configuration_value_exception
   : public process_configuration_exception
 {
   public:
@@ -677,7 +677,7 @@ class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT invalid_configuration_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT invalid_configuration_exception
   : public process_configuration_exception
 {
   public:

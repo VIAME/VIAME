@@ -13,8 +13,8 @@
 #include "track_descriptor_set.h"
 #include "uid.h"
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 #include <stdexcept>
@@ -40,7 +40,7 @@ enum class query_filter
 /// This structure is used to initialize a query, for communication with
 /// either a GUI or other entity. It contains many optional fields which only
 /// need be filled based on the application and query type.
-class VITAL_TYPES_EXPORT database_query
+class VIAME_CORE_TYPES_EXPORT database_query
 {
 public:
   enum query_type

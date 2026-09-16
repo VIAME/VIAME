@@ -11,7 +11,7 @@
 #include "viame_file_io_export.h"
 
 #include <viame/core_types/camera_rig.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <vector>
 

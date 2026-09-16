@@ -5,7 +5,7 @@
 #ifndef KWIVER_LOGGER_LOCATION_INFO_H_
 #define KWIVER_LOGGER_LOCATION_INFO_H_
 
-#include <viame/algorithm_framework/logger/vital_logger_export.h>
+#include <viame/algorithm_framework/logger/viame_logger_export.h>
 
 #include <string>
 
@@ -19,7 +19,7 @@ namespace logger_ns {
 /// Captured by the `KWIVER_LOGGER_SITE` macro below, which the `LOG_*`
 /// macros pass to the logger. The three pointers are to string literals the
 /// preprocessor produced, so this stays copyable and costs nothing to pass.
-class VITAL_LOGGER_EXPORT location_info
+class VIAME_LOGGER_EXPORT location_info
 {
 public:
   /// A location that is not known.

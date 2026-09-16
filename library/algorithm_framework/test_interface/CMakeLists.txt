@@ -4,7 +4,7 @@
 viame_add_plugin(
   say_cpp
   SOURCES plugin.cxx
-  PRIVATE vital
+  PRIVATE viame_algorithm_framework
   KIND        OTHERS
 )
 

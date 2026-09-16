@@ -10,7 +10,7 @@
 #ifndef SPROKIT_PROCESS_INSTRUMENTATION_H
 #define SPROKIT_PROCESS_INSTRUMENTATION_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 
@@ -28,7 +28,7 @@ class process; // incomplete type
  * It defines the interface processes can use to access an
  * instrumentation package using the strategy pattern.
  */
-class SPROKIT_PIPELINE_EXPORT process_instrumentation
+class VIAME_PIPELINE_FRAMEWORK_EXPORT process_instrumentation
 {
 public:
   /// Interface name for plugin factory

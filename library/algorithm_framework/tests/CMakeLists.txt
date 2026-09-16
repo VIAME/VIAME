@@ -38,7 +38,7 @@ add_dependencies( test-viame-external_plugins viame_test_external_plugin )
 target_compile_definitions( test-viame-external_plugins PRIVATE
   "VIAME_TEST_EXTERNAL_PLUGIN=\"$<TARGET_FILE:viame_test_external_plugin>\""
   # A real shared library that is not a plugin: libviame itself, which
-  # exports no `viame_register_plugin`. It was `vital_config` until that was
+  # exports no `viame_register_plugin`. It was `viame_config` until that was
   # folded into it.
   "VIAME_TEST_NOT_A_PLUGIN=\"$<TARGET_FILE:viame_library>\"" )
 

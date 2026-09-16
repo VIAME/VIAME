@@ -12,5 +12,5 @@ viame_add_python_library(
   "${THIS_MODULE}"
   SOURCES module_interface.cxx
   PRIVATE pybind11::pybind11
-          vital
+          viame_algorithm_framework
 )

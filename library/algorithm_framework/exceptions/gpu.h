@@ -16,7 +16,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic GPU exception
-class VITAL_EXCEPTIONS_EXPORT gpu_exception
+class VIAME_EXCEPTIONS_EXPORT gpu_exception
   : public vital_exception
 {
 public:
@@ -30,7 +30,7 @@ public:
 // ----------------------------------------------------------------------------
 /// Video runtime error.
 //  This exception is thrown when the GPU is unable to allocate memory
-class VITAL_EXCEPTIONS_EXPORT gpu_memory_exception
+class VIAME_EXCEPTIONS_EXPORT gpu_memory_exception
   : public gpu_exception
 {
 public:

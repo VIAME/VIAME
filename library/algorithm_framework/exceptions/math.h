@@ -10,12 +10,12 @@
 
 #include "base.h"
 #include <string>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace viame {
 
 /// VITAL Generic math exception
-class VITAL_EXCEPTIONS_EXPORT math_exception
+class VIAME_EXCEPTIONS_EXPORT math_exception
   : public vital_exception
 {
 public:
@@ -27,7 +27,7 @@ public:
 
 /// Exception for when an instance of a conceptually invertible object is
 /// non-invertible
-class VITAL_EXCEPTIONS_EXPORT non_invertible
+class VIAME_EXCEPTIONS_EXPORT non_invertible
   : public math_exception
 {
 public:
@@ -38,7 +38,7 @@ public:
 };
 
 /// Exception for when some point maps to infinity
-class VITAL_EXCEPTIONS_EXPORT point_maps_to_infinity
+class VIAME_EXCEPTIONS_EXPORT point_maps_to_infinity
   : public math_exception
 {
 public:
@@ -49,7 +49,7 @@ public:
 };
 
 /// We cannot perfom some operation on a matrix
-class VITAL_EXCEPTIONS_EXPORT invalid_matrix_operation
+class VIAME_EXCEPTIONS_EXPORT invalid_matrix_operation
   : public math_exception
 {
 public:

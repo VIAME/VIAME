@@ -84,21 +84,21 @@ if (KWIVER_ENABLE_FFMPEG AND
   list(APPEND __testable_modnames burnout_smoke_test)
 endif()
 
-# All python filenames_we in the vital.tests module
+# All python filenames_we in the viame_algorithm_framework.tests module
 set(__all_modnames
   __init__
   py_helpers
   ${__testable_modnames}
   )
 
-# Add files to the vital.tests python module
+# Add files to the viame_algorithm_framework.tests python module
 foreach (modname IN LISTS __all_modnames)
   viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/${modname}.py
     vital/tests
     ${modname})
 endforeach()
 
-# Add python vital.tests to CTest if python test runner is available
+# Add python viame_algorithm_framework.tests to CTest if python test runner is available
 if (KWIVER_ENABLE_PYTHON_TESTS)
   if (WIN32)
     set(WIN_TEST_CONFIG_TYPE "$<CONFIG>")

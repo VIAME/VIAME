@@ -9,7 +9,7 @@
  * `cv::warpPerspective` until P7-T04b; `image_ops::warp_perspective` since.
  * The bridge was asked for a `BGR_COLOR` mat on the way in and the result
  * was wrapped as one on the way out, so the two swaps cancelled and the warp
- * always ran on the vital image's own plane order.
+ * always ran on the viame_algorithm_framework image's own plane order.
  *
  * The two paths are the C++'s. With an alpha mask the warped image and the
  * destination are blended in float by the warped mask; without one, a

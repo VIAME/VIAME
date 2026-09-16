@@ -8,7 +8,7 @@
 #ifndef VITAL_COVARIANCE_H_
 #define VITAL_COVARIANCE_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <cassert>
 #include <cstring>

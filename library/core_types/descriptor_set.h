@@ -11,7 +11,7 @@
 #include "descriptor.h"
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/core_types/set.h>
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 namespace viame {
 
@@ -21,7 +21,7 @@ namespace viame {
 /// for returning a vector of descriptors.  There is a simple derived class
 /// that stores the data as a vector of descriptors and returns it.  Other
 /// derived classes can store the data in other formats and convert on demand.
-class VITAL_TYPES_EXPORT descriptor_set
+class VIAME_CORE_TYPES_EXPORT descriptor_set
   : public set< descriptor_sptr >
 {
 public:
@@ -49,7 +49,7 @@ typedef std::shared_ptr< descriptor_set > descriptor_set_sptr;
 
 // ----------------------------------------------------------------------------
 /// A concrete descriptor set that simply wraps a vector of descriptors.
-class VITAL_TYPES_EXPORT simple_descriptor_set
+class VIAME_CORE_TYPES_EXPORT simple_descriptor_set
   : public descriptor_set
 {
 public:

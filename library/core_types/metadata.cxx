@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief This file contains the implementation for vital metadata.
+/// \brief This file contains the implementation for viame_algorithm_framework metadata.
 
 #include "metadata.h"
 

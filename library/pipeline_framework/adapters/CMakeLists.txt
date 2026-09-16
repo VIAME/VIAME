@@ -25,38 +25,38 @@ set( public_headers
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-viame_add_library( kwiver_adapter
+viame_add_library( viame_adapter
   ${lib_sources}
   ${public_headers}
   )
 
-target_link_libraries( kwiver_adapter
-  PUBLIC           vital
-                   vital_vpm
-                   vital_logger
-  PRIVATE          sprokit_pipeline
-                   sprokit_pipeline_util
+target_link_libraries( viame_adapter
+  PUBLIC           viame_algorithm_framework
+                   viame_plugin
+                   viame_logger
+  PRIVATE          viame_pipeline_framework
+                   viame_pipeline_util
   )
 
-add_library( kwiver::kwiver_adapter ALIAS kwiver_adapter )
+add_library( kwiver::kwiver_adapter ALIAS viame_adapter )
 
-viame_add_plugin( kwiver_processes_adapter
+viame_add_plugin( viame_processes_adapter
   KIND        PROCESSES
   SOURCES         register_processes.cxx
-  PRIVATE         kwiver_adapter sprokit_pipeline
-                  vital_config
+  PRIVATE         viame_adapter viame_pipeline_framework
+                  viame_config
 )
 
-viame_add_plugin( kwiver_epx_test
+viame_add_plugin( viame_epx_test
   KIND        PROCESSES
   SOURCES         epx_test.h
                   epx_test.cxx
-                  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_epx_test_export.h
-  PUBLIC          sprokit_pipeline
-  PRIVATE         kwiver_adapter
-                  vital_config
+                  ${CMAKE_CURRENT_BINARY_DIR}/viame_epx_test_export.h
+  PUBLIC          viame_pipeline_framework
+  PRIVATE         viame_adapter
+                  viame_config
 )
 
-viame_lite_generated( kwiver_adapter_export.h pipeline_framework/adapters )
-viame_lite_generated( kwiver_epx_test_export.h pipeline_framework/adapters )
-viame_lite_generated( kwiver_processes_adapter_export.h pipeline_framework/adapters )
+viame_lite_generated( viame_adapter_export.h pipeline_framework/adapters )
+viame_lite_generated( viame_epx_test_export.h pipeline_framework/adapters )
+viame_lite_generated( viame_processes_adapter_export.h pipeline_framework/adapters )

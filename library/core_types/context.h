@@ -8,7 +8,7 @@
 #ifndef VITAL_CONTEXT_H_
 #define VITAL_CONTEXT_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <memory>
 #include <mutex>
@@ -31,7 +31,7 @@ template < typename... Args > class signal;
 /// \warning
 /// Destroying a context from within a connected slot is a logic error and will
 /// likely cause the program to deadlock or exhibit undefined behavior.
-class VITAL_TYPES_EXPORT context
+class VIAME_CORE_TYPES_EXPORT context
 {
 public:
   context();

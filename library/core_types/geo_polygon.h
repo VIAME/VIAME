@@ -10,8 +10,8 @@
 
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/core_types/polygon.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <unordered_map>
 
@@ -25,7 +25,7 @@ namespace viame {
 /// may be directly accessed, or the polygon in a specific CRS may be requested.
 /// Requests for a specific CRS are cached, so that CRS conversion does not need
 /// to be performed every time.
-class VITAL_TYPES_EXPORT geo_polygon
+class VIAME_CORE_TYPES_EXPORT geo_polygon
 {
 public:
   typedef viame::polygon geo_raw_polygon_t;
@@ -74,20 +74,20 @@ protected:
   mutable std::unordered_map< int, geo_raw_polygon_t > m_poly;
 };
 
-template <> VITAL_TYPES_EXPORT geo_polygon config_block_get_value_cast(
+template <> VIAME_CORE_TYPES_EXPORT geo_polygon config_block_get_value_cast(
   config_block_value_t const& value );
 
-template <> VITAL_TYPES_EXPORT config_block_value_t config_block_set_value_cast(
+template <> VIAME_CORE_TYPES_EXPORT config_block_value_t config_block_set_value_cast(
   geo_polygon const& value );
 
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream& str,
   geo_polygon const& obj );
 
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 bool operator==( geo_polygon const& lhs, geo_polygon const& rhs );
 
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 bool operator!=( geo_polygon const& lhs, geo_polygon const& rhs );
 
 } // namespace viame

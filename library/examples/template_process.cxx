@@ -15,7 +15,7 @@
 
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/core_types/timestamp.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 #include <viame/core_types/image.h>
 #include <viame/core_types/image_container.h>
 

@@ -10,7 +10,7 @@
 #ifndef ARROWS_PROCESSES_EMBEDDED_PIPELINE_H
 #define ARROWS_PROCESSES_EMBEDDED_PIPELINE_H
 
-#include <viame/pipeline_framework/adapters/kwiver_adapter_export.h>
+#include <viame/pipeline_framework/adapters/viame_adapter_export.h>
 
 #include "adapter_data_set.h"
 
@@ -112,7 +112,7 @@ namespace viame {
   }
 \endcode
  */
-class KWIVER_ADAPTER_EXPORT embedded_pipeline
+class VIAME_ADAPTER_EXPORT embedded_pipeline
 {
 public:
   /**

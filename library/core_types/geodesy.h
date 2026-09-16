@@ -9,8 +9,8 @@
 #define KWIVER_VITAL_GEODESY_H_
 
 #include "vector.h"
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <map>
 #include <string>
@@ -67,13 +67,13 @@ protected:
 };
 
 /// Get the functor used for performing geodetic conversions. \see geo_conv
-VITAL_TYPES_EXPORT geo_conversion* get_geo_conv();
+VIAME_CORE_TYPES_EXPORT geo_conversion* get_geo_conv();
 
 /// Set the functor used for performing geodetic conversions. \see geo_conv
-VITAL_TYPES_EXPORT void set_geo_conv( geo_conversion* );
+VIAME_CORE_TYPES_EXPORT void set_geo_conv( geo_conversion* );
 
 /// Get the description of a geodetic CRS.
-VITAL_TYPES_EXPORT geo_crs_description_t geo_crs_description( int crs );
+VIAME_CORE_TYPES_EXPORT geo_crs_description_t geo_crs_description( int crs );
 
 //@{
 /// \brief Convert geo-coordinate.
@@ -90,10 +90,10 @@ VITAL_TYPES_EXPORT geo_crs_description_t geo_crs_description( int crs );
 /// \throws std::runtime_error
 ///   Thrown if the conversion fails or if no conversion function has been
 ///   registered.
-VITAL_TYPES_EXPORT vector_2d geo_conv(
+VIAME_CORE_TYPES_EXPORT vector_2d geo_conv(
   vector_2d const& point, int from,
   int to );
-VITAL_TYPES_EXPORT vector_3d geo_conv(
+VIAME_CORE_TYPES_EXPORT vector_3d geo_conv(
   vector_3d const& point, int from,
   int to );
 //@}
@@ -126,9 +126,9 @@ struct utm_ups_zone_t
 /// \throws std::range_error
 ///   Thrown if the latitude (northing) value is outside of the range
 ///   <code>[-90, 90]</code>.
-VITAL_TYPES_EXPORT utm_ups_zone_t utm_ups_zone( double lon, double lat );
-VITAL_TYPES_EXPORT utm_ups_zone_t utm_ups_zone( vector_2d const& lon_lat );
-VITAL_TYPES_EXPORT utm_ups_zone_t utm_ups_zone( vector_3d const& lon_lat_alt );
+VIAME_CORE_TYPES_EXPORT utm_ups_zone_t utm_ups_zone( double lon, double lat );
+VIAME_CORE_TYPES_EXPORT utm_ups_zone_t utm_ups_zone( vector_2d const& lon_lat );
+VIAME_CORE_TYPES_EXPORT utm_ups_zone_t utm_ups_zone( vector_3d const& lon_lat_alt );
 //@}
 
 } // namespace viame

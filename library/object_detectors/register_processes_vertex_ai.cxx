@@ -2,7 +2,7 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
 #include <viame/pipeline_framework/process_factory.h>

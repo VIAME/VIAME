@@ -253,8 +253,8 @@ PYBIND11_MODULE( detected_object, m )
   /*
    *
    *  Developer:
-   *     python -c "import vital.types; help(vital.types.DetectedObject)"
-   *     python -m xdoctest vital.types DetectedObject --xdoc-dynamic
+   *     python -c "import viame_algorithm_framework.types; help(viame_algorithm_framework.types.DetectedObject)"
+   *     python -m xdoctest viame_algorithm_framework.types DetectedObject --xdoc-dynamic
    *
    */
 

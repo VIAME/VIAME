@@ -13,7 +13,7 @@
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/core_types/noncopyable.h>
 #include <viame/core_types/set.h>
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 namespace viame {
 
@@ -33,7 +33,7 @@ public:
 
 protected:
   image_container_set()
-    : m_logger( viame::get_logger( "vital.image_container_set" ) )
+    : m_logger( viame::get_logger( "viame_algorithm_framework.image_container_set" ) )
   {}
 
   viame::logger_handle_t m_logger;

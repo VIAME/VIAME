@@ -11,13 +11,13 @@ set(__helper_modnames
   type_check
   )
 
-# Add files to the vital.tests.cpp_helpers python module
+# Add files to the viame_algorithm_framework.tests.cpp_helpers python module
 foreach (modname IN LISTS __helper_modnames)
   viame_add_python_library(
     ${modname}
     "${THIS_MODULE}"
     SOURCES ${modname}.cxx
-    PRIVATE vital
+    PRIVATE viame_algorithm_framework
     )
 
 endforeach()

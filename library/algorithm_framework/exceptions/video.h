@@ -16,7 +16,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic video exception
-class VITAL_EXCEPTIONS_EXPORT video_exception
+class VIAME_EXCEPTIONS_EXPORT video_exception
   : public vital_exception
 {
 public:
@@ -31,7 +31,7 @@ public:
 /// Timeout getting next video frame.
 //  This exception is thrown when the video_input::next_frame() method
 //  timeout expires.
-class VITAL_EXCEPTIONS_EXPORT video_input_timeout_exception
+class VIAME_EXCEPTIONS_EXPORT video_input_timeout_exception
   : public video_exception
 {
 public:
@@ -46,7 +46,7 @@ public:
 /// Video stream error.
 //  This exception is thrown when there is exceptional condition while
 //  streaming video.
-class VITAL_EXCEPTIONS_EXPORT video_stream_exception
+class VIAME_EXCEPTIONS_EXPORT video_stream_exception
   : public video_exception
 {
 public:
@@ -61,7 +61,7 @@ public:
 /// Video config error.
 //  This exception is thrown when there is exceptional condition is
 //  found in the configuration.
-class VITAL_EXCEPTIONS_EXPORT video_config_exception
+class VIAME_EXCEPTIONS_EXPORT video_config_exception
   : public video_exception
 {
 public:
@@ -76,7 +76,7 @@ public:
 /// Video runtime error.
 //  This exception is thrown when there is exceptional condition while
 //  processing the a video.
-class VITAL_EXCEPTIONS_EXPORT video_runtime_exception
+class VIAME_EXCEPTIONS_EXPORT video_runtime_exception
   : public video_exception
 {
 public:

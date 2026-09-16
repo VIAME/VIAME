@@ -8,5 +8,5 @@ viame_add_python_library(
   _plugin_management
   "${THIS_MODULE}"
   SOURCES module_plugin_manager.cxx
-  PRIVATE vital
+  PRIVATE viame_algorithm_framework
 )

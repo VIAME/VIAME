@@ -10,7 +10,7 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/image_container.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <vector>
 
@@ -25,7 +25,7 @@ namespace algo {
 /// another set of detections. The output set may be different from the
 /// input set. It all depends on the actual implementation. In any
 /// case, the input detection set shall be unmodified.
-class VITAL_ALGO_EXPORT detected_object_filter
+class VIAME_ALGO_EXPORT detected_object_filter
   : public viame::algorithm
 {
 public:

@@ -10,7 +10,7 @@
 #ifndef KWIVER_VITAL_TYPE_TRAITS_H
 #define KWIVER_VITAL_TYPE_TRAITS_H
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/core_types/activity.h>
 #include <viame/core_types/camera_perspective.h>

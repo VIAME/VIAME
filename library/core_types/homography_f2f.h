@@ -12,7 +12,7 @@
 
 namespace viame {
 
-class VITAL_TYPES_EXPORT f2f_homography
+class VIAME_CORE_TYPES_EXPORT f2f_homography
 {
 public:
   /// Construct an identity homography for the given frame
@@ -95,7 +95,7 @@ protected:
 typedef std::shared_ptr< f2f_homography > f2f_homography_sptr;
 
 /// \p f2f_homography output stream operator
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   f2f_homography const& h );
 

@@ -42,7 +42,7 @@ namespace algo {
 ///    - Processes frames with temporal context
 ///    - Can maintain state across frames
 ///
-class VITAL_ALGO_EXPORT perform_text_query
+class VIAME_ALGO_EXPORT perform_text_query
   : public viame::algorithm
 {
 public:

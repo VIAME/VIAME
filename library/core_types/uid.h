@@ -3,13 +3,13 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Interface to vital global uid
+/// \brief Interface to viame_algorithm_framework global uid
 
 #ifndef KWIVER_VITAL_TYPES_UID_H
 #define KWIVER_VITAL_TYPES_UID_H
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <cstdint>
 #include <string>
@@ -21,7 +21,7 @@ namespace viame {
 ///
 /// This class represents a global UID. The content and other
 /// attributes are dependent on the method used to create the ID.
-class VITAL_TYPES_EXPORT uid
+class VIAME_CORE_TYPES_EXPORT uid
 {
 public:
   //@{

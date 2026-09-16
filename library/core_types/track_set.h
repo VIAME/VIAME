@@ -12,9 +12,9 @@
 
 #include "track.h"
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <map>
 #include <memory>
@@ -38,7 +38,7 @@ typedef std::map< frame_id_t,
 
 // ----------------------------------------------------------------------------
 /// Empty base class for data associated a frame in the track_set
-class VITAL_TYPES_EXPORT track_set_frame_data
+class VIAME_CORE_TYPES_EXPORT track_set_frame_data
 {
 public:
   // Dynamic copy constructor
@@ -50,7 +50,7 @@ protected:
 
 // ----------------------------------------------------------------------------
 /// Abstract interface for a collection of tracks
-class VITAL_TYPES_EXPORT track_set_interface
+class VIAME_CORE_TYPES_EXPORT track_set_interface
 {
 public:
   /// Destructor
@@ -338,7 +338,7 @@ typedef std::shared_ptr< track_set_implementation >
 typedef std::unique_ptr< track_set_implementation >
   track_set_implementation_uptr;
 
-class VITAL_TYPES_EXPORT track_set_implementation
+class VIAME_CORE_TYPES_EXPORT track_set_implementation
   : public track_set_interface
 {
 public:
@@ -426,7 +426,7 @@ public:
 /// with
 /// any of the derived track_set types like feature_track_set and
 /// object_track_set.
-class VITAL_TYPES_EXPORT track_set
+class VIAME_CORE_TYPES_EXPORT track_set
   : public track_set_interface
 {
 public:

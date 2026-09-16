@@ -8,8 +8,8 @@
 #ifndef KWIVER_GET_PATHS_H
 #define KWIVER_GET_PATHS_H
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 
@@ -21,12 +21,12 @@ namespace viame {
 /// file. The returned string does not include the file name.
 ///
 /// @return Directory name.
-std::string VITAL_UTIL_EXPORT get_executable_path();
+std::string VIAME_UTIL_EXPORT get_executable_path();
 
 /// @brief Get path to the current module.
 ///
 /// @return Directory name.
-std::string VITAL_UTIL_EXPORT get_module_path();
+std::string VIAME_UTIL_EXPORT get_module_path();
 
 } // namespace viame
 

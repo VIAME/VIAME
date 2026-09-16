@@ -1,8 +1,8 @@
 ###
 # Build vital/util library
 #
-# A hard requirement for the vital_util library is that it not depend
-# on vital library.
+# A hard requirement for the viame_util library is that it not depend
+# on viame_algorithm_framework library.
 #
 
 # ==================================================================
@@ -62,23 +62,23 @@ set( sources
 
 # install generated header
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_util_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_util_export.h
   SUBDIR   viame/algorithm_framework/util
   NOPATH
   )
 
-viame_add_library( vital_util
+viame_add_library( viame_util
   ${public_headers}
   ${private_headers}
   ${sources}
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_util_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_util_export.h
   )
 
-target_link_libraries( vital_util
+target_link_libraries( viame_util
   PRIVATE
-                  vital_logger
+                  viame_logger
   )
 
 
 # Republished under the prefix the imported sources use.
-viame_lite_generated( vital_util_export.h algorithm_framework/util )
+viame_lite_generated( viame_util_export.h algorithm_framework/util )

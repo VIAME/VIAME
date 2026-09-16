@@ -7,7 +7,7 @@
 
 #include <viame/core_types/geo_point.h>
 #include <viame/core_types/rotation.h>
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 namespace viame {
 
@@ -26,7 +26,7 @@ namespace viame {
 ///
 /// These guarantees only hold if the ``local_tangent_space`` has been
 /// initialized with a non-empty origin point.
-struct VITAL_TYPES_EXPORT local_tangent_space
+struct VIAME_CORE_TYPES_EXPORT local_tangent_space
 {
 public:
   local_tangent_space();
@@ -76,12 +76,12 @@ private:
 };
 
 // ----------------------------------------------------------------------------
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 local_tangent_space
 read_local_tangent_space_from_file( std::string const& filepath );
 
 // ----------------------------------------------------------------------------
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 void
 write_local_tangent_space_to_file(
   local_tangent_space const& local_space, std::string const& filepath );

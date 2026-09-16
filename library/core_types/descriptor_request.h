@@ -14,8 +14,8 @@
 #include "track_descriptor.h"
 #include "uid.h"
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 #include <string>
@@ -27,7 +27,7 @@ namespace viame {
 ///
 /// This is used by some arbitrary GUI or other input to request and return
 /// computed descriptors on some region of arbitrary input imagery.
-class VITAL_TYPES_EXPORT descriptor_request
+class VIAME_CORE_TYPES_EXPORT descriptor_request
 {
 public:
   descriptor_request();

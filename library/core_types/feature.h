@@ -13,8 +13,8 @@
 #include "vector.h"
 
 #include <viame/algorithm_framework/io/eigen_io.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <iostream>
 #include <memory>
@@ -92,7 +92,7 @@ public:
 ///
 /// \param s output stream
 /// \param f feature to stream
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   feature const& f );
 
@@ -101,7 +101,7 @@ VITAL_TYPES_EXPORT std::ostream& operator<<(
 ///
 /// Templated over real number type (double or float).
 template < typename T >
-class VITAL_TYPES_EXPORT feature_
+class VIAME_CORE_TYPES_EXPORT feature_
   : public feature
 {
 public:
@@ -223,13 +223,13 @@ typedef feature_< float > feature_f;
 
 /// output stream operator for a feature
 template < typename T >
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   feature_< T > const& f );
 
 /// input stream operator for a feature
 template < typename T >
-VITAL_TYPES_EXPORT std::istream& operator>>(
+VIAME_CORE_TYPES_EXPORT std::istream& operator>>(
   std::istream& s,
   feature_< T >& f );
 

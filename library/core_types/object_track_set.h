@@ -16,9 +16,9 @@
 #include <viame/core_types/timestamp.h>
 #include <viame/core_types/track_set.h>
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/algorithm_framework/range/transform.h>
 
@@ -29,7 +29,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// A derived track_state for object tracks
-class VITAL_TYPES_EXPORT object_track_state : public track_state
+class VIAME_CORE_TYPES_EXPORT object_track_state : public track_state
 {
 public:
   object_track_state() = default;
@@ -155,7 +155,7 @@ private:
 
 // ----------------------------------------------------------------------------
 /// A collection of object tracks
-class VITAL_TYPES_EXPORT object_track_set : public track_set
+class VIAME_CORE_TYPES_EXPORT object_track_set : public track_set
 {
 public:
   /// Default Constructor

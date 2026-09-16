@@ -6,7 +6,7 @@
 #include <pybind11/stl.h>
 #include <viame/core_types/activity.h>
 #include <viame/core_types/activity_type.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace py = pybind11;
 namespace kv = viame;

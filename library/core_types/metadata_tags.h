@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief This file contains the enumerated vital metadata tags.
+/// \brief This file contains the enumerated viame_algorithm_framework metadata tags.
 
 #ifndef KWIVER_VITAL_METADATA_TAGS_H_
 #define KWIVER_VITAL_METADATA_TAGS_H_

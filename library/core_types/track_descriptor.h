@@ -5,8 +5,8 @@
 #ifndef VITAL_TRACK_DESCRIPTOR_
 #define VITAL_TRACK_DESCRIPTOR_
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/bounding_box.h>
 #include <viame/core_types/descriptor.h>
@@ -38,7 +38,7 @@ typedef std::shared_ptr< track_descriptor > track_descriptor_sptr;
 /// for classification for higher level recognition tasks.
 ///
 /// Note that object of this class are created using factory methods.
-class VITAL_TYPES_EXPORT track_descriptor
+class VIAME_CORE_TYPES_EXPORT track_descriptor
 {
 public:
 
@@ -49,7 +49,7 @@ public:
   //  should be created for every frame which the descriptor covers (see
   //  track_descriptor documentation). Only quanities which get used
   //  downstream need be filled.
-  class VITAL_TYPES_EXPORT history_entry
+  class VIAME_CORE_TYPES_EXPORT history_entry
   {
   public:
     // -- TYPES --

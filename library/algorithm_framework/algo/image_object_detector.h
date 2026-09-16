@@ -22,7 +22,7 @@ namespace algo {
 
 /// @brief Image object detector base class/
 ///
-class VITAL_ALGO_EXPORT image_object_detector
+class VIAME_ALGO_EXPORT image_object_detector
   : public viame::algorithm
 {
 public:

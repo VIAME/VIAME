@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of vital global uid
+/// \brief Implementation of viame_algorithm_framework global uid
 
 #include "uid.h"
 

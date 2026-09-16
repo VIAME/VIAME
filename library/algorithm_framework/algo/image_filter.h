@@ -10,7 +10,7 @@
 
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/image_container.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 
@@ -21,7 +21,7 @@ namespace algo {
 /// This interface supports arrows/algorithms that do a pixel by pixel
 /// image modification, such as image enhancement. The resultant image
 /// must be the same size as the input image.
-class VITAL_ALGO_EXPORT image_filter
+class VIAME_ALGO_EXPORT image_filter
   : public viame::algorithm
 {
 public:

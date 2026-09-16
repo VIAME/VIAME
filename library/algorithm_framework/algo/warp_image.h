@@ -16,7 +16,7 @@ namespace algo {
 
 // ----------------------------------------------------------------------------
 /// An abstract base class for warping an image onto another image.
-class VITAL_ALGO_EXPORT warp_image
+class VIAME_ALGO_EXPORT warp_image
   : public algorithm
 {
 public:

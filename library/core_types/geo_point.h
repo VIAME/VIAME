@@ -9,8 +9,8 @@
 #define KWIVER_VITAL_GEO_POINT_H_
 
 #include <viame/core_types/vector.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <unordered_map>
 
@@ -35,7 +35,7 @@ namespace viame {
 ///
 /// \see https://en.wikipedia.org/wiki/Spatial_reference_system,
 ///      http://www.epsg.org/, https://epsg-registry.org/
-class VITAL_TYPES_EXPORT geo_point
+class VIAME_CORE_TYPES_EXPORT geo_point
 {
 public:
   using geo_3d_point_t = viame::vector_3d;
@@ -89,14 +89,14 @@ protected:
   mutable std::unordered_map< int, geo_3d_point_t > m_loc;
 };
 
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream& str,
   geo_point const& obj );
 
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 bool operator==( geo_point const& lhs, geo_point const& rhs );
 
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 bool operator!=( geo_point const& lhs, geo_point const& rhs );
 
 } // namespace viame

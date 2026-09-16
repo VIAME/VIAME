@@ -5,14 +5,14 @@
 #ifndef PROCESS_ADAPTERS_EMBEDDED_PIPELINE_EXTENSION_H_
 #define PROCESS_ADAPTERS_EMBEDDED_PIPELINE_EXTENSION_H_
 
-#include <viame/pipeline_framework/adapters/kwiver_adapter_export.h>
+#include <viame/pipeline_framework/adapters/viame_adapter_export.h>
 
 #include <viame/pipeline_framework/pipeline.h>
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/plugin/plugin_info.h>
 #include <viame/algorithm_framework/plugin/plugin_registrar.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 
@@ -23,7 +23,7 @@ namespace viame {
  * @brief Base class for embedded pipeline extension
  *
  */
-class KWIVER_ADAPTER_EXPORT embedded_pipeline_extension
+class VIAME_ADAPTER_EXPORT embedded_pipeline_extension
 {
 public:
   /// Interface name for plugin factory
@@ -121,7 +121,7 @@ using embedded_pipeline_extension_sptr = std::shared_ptr< embedded_pipeline_exte
 
 // ============================================================================
 /// Factory class for embedded pipeline extensions
-class KWIVER_ADAPTER_EXPORT epx_factory
+class VIAME_ADAPTER_EXPORT epx_factory
   : public viame::plugin_factory
 {
 public:

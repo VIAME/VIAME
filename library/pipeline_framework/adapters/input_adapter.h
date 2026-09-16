@@ -10,7 +10,7 @@
 #ifndef KWIVER_INPUT_ADAPTER_H
 #define KWIVER_INPUT_ADAPTER_H
 
-#include <viame/pipeline_framework/adapters/kwiver_adapter_export.h>
+#include <viame/pipeline_framework/adapters/viame_adapter_export.h>
 
 #include "adapter_types.h"
 #include "adapter_data_set.h"
@@ -28,7 +28,7 @@ class input_adapter_process;
  * input_adapter_process in a pipeline and provides an API to
  * communicate with that process which is running in another thread.
  */
-class KWIVER_ADAPTER_EXPORT input_adapter
+class VIAME_ADAPTER_EXPORT input_adapter
 {
 public:
   input_adapter();

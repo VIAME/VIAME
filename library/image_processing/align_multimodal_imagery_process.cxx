@@ -9,7 +9,7 @@
 
 #include "align_multimodal_imagery_process.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/core_types/timestamp_config.h>
 #include <viame/core_types/image_container.h>

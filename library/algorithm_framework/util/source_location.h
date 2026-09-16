@@ -8,7 +8,7 @@
 #ifndef KWIVER_VITAL_UTIL_SOURCE_LOCATION_H
 #define KWIVER_VITAL_UTIL_SOURCE_LOCATION_H
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <memory>
 #include <ostream>
@@ -27,7 +27,7 @@ namespace viame {
 ///
 /// There are some cases where this class is used but not set. Use the
 /// valid() method to determine it there is a real location specified.
-class VITAL_UTIL_EXPORT source_location
+class VIAME_UTIL_EXPORT source_location
 {
 public:
   source_location();

@@ -15,7 +15,7 @@
 namespace viame {
 
 // ----------------------------------------------------------------------------
-class VITAL_EXCEPTIONS_EXPORT serialization_exception
+class VIAME_EXCEPTIONS_EXPORT serialization_exception
   : public vital_exception
 {
 public:

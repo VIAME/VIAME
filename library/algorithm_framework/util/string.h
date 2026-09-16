@@ -5,7 +5,7 @@
 #ifndef KWIVER_VITAL_UTIL_STRING_FORMAT_H
 #define KWIVER_VITAL_UTIL_STRING_FORMAT_H
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <set>
 #include <stdarg.h>  // For va_start, etc.
@@ -22,7 +22,7 @@ namespace viame {
 /// @param fmt_str Formatting string using embedded printf format specifiers.
 ///
 /// @return Formatted string.
-VITAL_UTIL_EXPORT std::string
+VIAME_UTIL_EXPORT std::string
 string_format( const std::string fmt_str, ... );
 
 /// @brief Does string start with pattern
@@ -70,17 +70,17 @@ ends_with( const std::string& input, const std::string& pattern )
 ///
 /// ASCII only, and locale-independent -- which is what the callers want,
 /// since they are comparing file extensions and configuration keywords.
-VITAL_UTIL_EXPORT std::string upper_case( const std::string& input );
+VIAME_UTIL_EXPORT std::string upper_case( const std::string& input );
 
 /// @brief A copy with every letter lower case.
-VITAL_UTIL_EXPORT std::string lower_case( const std::string& input );
+VIAME_UTIL_EXPORT std::string lower_case( const std::string& input );
 
-VITAL_UTIL_EXPORT std::string
+VIAME_UTIL_EXPORT std::string
 join(
   const std::vector< std::string >& elements,
   const std::string& str_separator );
 
-VITAL_UTIL_EXPORT std::string
+VIAME_UTIL_EXPORT std::string
 join(
   const std::set< std::string >& elements,
   const std::string& str_separator );
@@ -93,7 +93,7 @@ join(
 /// the forwards order.
 ///
 /// @param[in,out] items Vector of strings to modify inplace
-VITAL_UTIL_EXPORT void
+VIAME_UTIL_EXPORT void
 erase_duplicates( std::vector< std::string >& items );
 
 /// @brief Removes whitespace from left side of string.
@@ -134,7 +134,7 @@ string_trim( std::string& s )
 ///
 /// @param[in] str Input string to convert
 /// @return Total second count of representation
-VITAL_UTIL_EXPORT double
+VIAME_UTIL_EXPORT double
 time_str_to_seconds( const std::string& str );
 
 } // namespace viame

@@ -8,8 +8,8 @@
 #ifndef KWIVER_VITAL_ATTRIBUTE_SET_H
 #define KWIVER_VITAL_ATTRIBUTE_SET_H
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/any.h>
 #include <viame/algorithm_framework/exceptions/base.h>
@@ -22,7 +22,7 @@
 namespace viame {
 
 // ----------------------------------------------------------------------------
-class VITAL_TYPES_EXPORT attribute_set_exception
+class VIAME_CORE_TYPES_EXPORT attribute_set_exception
   : public vital_exception
 {
 public:
@@ -46,7 +46,7 @@ typedef std::shared_ptr< attribute_set > attribute_set_sptr;
 /// core data. This associated data is not used in the main algorithm
 /// but must be available at the output so the artifact created can be
 /// associated with the specific input.
-class VITAL_TYPES_EXPORT attribute_set
+class VIAME_CORE_TYPES_EXPORT attribute_set
   : private noncopyable
 {
 public:

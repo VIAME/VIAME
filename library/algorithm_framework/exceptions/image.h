@@ -16,7 +16,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic image exception
-class VITAL_EXCEPTIONS_EXPORT image_exception
+class VIAME_EXCEPTIONS_EXPORT image_exception
   : public vital_exception
 {
 public:
@@ -38,7 +38,7 @@ protected:
 /// Exception for image type mismatch
 ///
 /// For when image type equality must be asserted.
-class VITAL_EXCEPTIONS_EXPORT image_type_mismatch_exception
+class VIAME_EXCEPTIONS_EXPORT image_type_mismatch_exception
   : public image_exception
 {
 public:
@@ -55,7 +55,7 @@ public:
 /// Exception for image sizing mismatch
 ///
 /// For when image shape/size equality must be asserted.
-class VITAL_EXCEPTIONS_EXPORT image_size_mismatch_exception
+class VIAME_EXCEPTIONS_EXPORT image_size_mismatch_exception
   : public image_exception
 {
 public:

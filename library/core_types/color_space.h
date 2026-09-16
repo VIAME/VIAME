@@ -37,7 +37,7 @@
 #ifndef VITAL_COLOR_SPACE_H_
 #define VITAL_COLOR_SPACE_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <string>
 
@@ -60,10 +60,10 @@ enum color_space
 };
 
 /// \brief Converts a string to a known color space if possible.
-VITAL_TYPES_EXPORT color_space string_to_color_space( const std::string& str );
+VIAME_CORE_TYPES_EXPORT color_space string_to_color_space( const std::string& str );
 
 /// \brief Converts a string to a known color space if possible.
-VITAL_TYPES_EXPORT std::string color_space_to_string( const color_space cs );
+VIAME_CORE_TYPES_EXPORT std::string color_space_to_string( const color_space cs );
 
 } // namespace viame
 

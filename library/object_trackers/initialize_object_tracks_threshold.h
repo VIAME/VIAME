@@ -6,7 +6,7 @@
 #define KWIVER_ARROWS_INITIALIZE_OBJECT_TRACKS_THRESHOLD_H_
 
 #include "viame_object_trackers_export.h"
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>

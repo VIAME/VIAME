@@ -8,7 +8,7 @@
 #ifndef VITAL_VIDEO_RAW_IMAGE_H_
 #define VITAL_VIDEO_RAW_IMAGE_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <memory>
 
@@ -16,7 +16,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Base class for holding a single frame of unprocessed image data.
-struct VITAL_TYPES_EXPORT video_raw_image
+struct VIAME_CORE_TYPES_EXPORT video_raw_image
 {
   virtual ~video_raw_image();
 };

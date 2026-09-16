@@ -8,8 +8,8 @@
 #ifndef KWIVER_VITAL_TIMER_H
 #define KWIVER_VITAL_TIMER_H
 
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/algorithm_framework/vital_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/algorithm_framework/viame_algorithm_framework_export.h>
 
 #include <iostream>
 #include <string>

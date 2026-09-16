@@ -11,9 +11,9 @@
 #ifndef SPROKIT_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
 #define SPROKIT_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
 
-#include<viame/pipeline_framework/sprokit_pipeline_util_export.h>
+#include<viame/pipeline_framework/viame_pipeline_util_export.h>
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/pipeline_framework/types.h>
 
@@ -29,7 +29,7 @@ namespace viame::pipeline {
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT load_pipe_exception
+class VIAME_PIPELINE_UTIL_EXPORT load_pipe_exception
   : public pipeline_exception
 {
   public:
@@ -51,7 +51,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT load_pipe_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT file_no_exist_exception
+class VIAME_PIPELINE_UTIL_EXPORT file_no_exist_exception
   : public load_pipe_exception
 {
   public:
@@ -71,7 +71,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT file_no_exist_exception
 };
 
 // ------------------------------------------------------------------
-class SPROKIT_PIPELINE_UTIL_EXPORT parsing_exception
+class VIAME_PIPELINE_UTIL_EXPORT parsing_exception
   : public load_pipe_exception
 {
 public:

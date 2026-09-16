@@ -10,7 +10,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_PIPE_PARSER_H
 #define SPROKIT_PIPELINE_UTIL_PIPE_PARSER_H
 
-#include<viame/pipeline_framework/sprokit_pipeline_util_export.h>
+#include<viame/pipeline_framework/viame_pipeline_util_export.h>
 
 #include "pipe_declaration_types.h"
 #include "token.h"
@@ -18,8 +18,8 @@
 
 #include <viame/pipeline_framework/types.h>
 
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
 namespace viame::pipeline {
@@ -29,7 +29,7 @@ namespace viame::pipeline {
  * \brief Pipe file parser.
  *
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser final
+class VIAME_PIPELINE_UTIL_EXPORT pipe_parser final
 {
 public:
   // -- CONSTRUCTORS --

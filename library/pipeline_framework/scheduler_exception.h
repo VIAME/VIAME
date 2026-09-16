@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_SCHEDULER_EXCEPTION_H
 #define SPROKIT_PIPELINE_SCHEDULER_EXCEPTION_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include "types.h"
 
@@ -27,7 +27,7 @@ namespace viame::pipeline
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT scheduler_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT scheduler_exception
   : public pipeline_exception
 {
   public:
@@ -48,7 +48,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT incompatible_pipeline_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT incompatible_pipeline_exception
   : public scheduler_exception
 {
   public:
@@ -72,7 +72,7 @@ class SPROKIT_PIPELINE_EXPORT incompatible_pipeline_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_scheduler_config_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_scheduler_config_exception
   : public scheduler_exception
 {
   public:
@@ -93,7 +93,7 @@ class SPROKIT_PIPELINE_EXPORT null_scheduler_config_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_scheduler_pipeline_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_scheduler_pipeline_exception
   : public scheduler_exception
 {
   public:
@@ -114,7 +114,7 @@ class SPROKIT_PIPELINE_EXPORT null_scheduler_pipeline_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT restart_scheduler_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT restart_scheduler_exception
   : public scheduler_exception
 {
   public:
@@ -135,7 +135,7 @@ class SPROKIT_PIPELINE_EXPORT restart_scheduler_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT wait_before_start_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT wait_before_start_exception
   : public scheduler_exception
 {
   public:
@@ -156,7 +156,7 @@ class SPROKIT_PIPELINE_EXPORT wait_before_start_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pause_before_start_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pause_before_start_exception
   : public scheduler_exception
 {
   public:
@@ -177,7 +177,7 @@ class SPROKIT_PIPELINE_EXPORT pause_before_start_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT repause_scheduler_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT repause_scheduler_exception
   : public scheduler_exception
 {
   public:
@@ -198,7 +198,7 @@ class SPROKIT_PIPELINE_EXPORT repause_scheduler_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT resume_before_start_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT resume_before_start_exception
   : public scheduler_exception
 {
   public:
@@ -219,7 +219,7 @@ class SPROKIT_PIPELINE_EXPORT resume_before_start_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT resume_unpaused_scheduler_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT resume_unpaused_scheduler_exception
   : public scheduler_exception
 {
   public:
@@ -240,7 +240,7 @@ class SPROKIT_PIPELINE_EXPORT resume_unpaused_scheduler_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT stop_before_start_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT stop_before_start_exception
   : public scheduler_exception
 {
   public:

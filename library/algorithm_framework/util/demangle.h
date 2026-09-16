@@ -5,15 +5,15 @@
 #ifndef KWIVER_VITAL_DEMANGLE_H
 #define KWIVER_VITAL_DEMANGLE_H
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <string>
 #include <typeinfo>
 
 namespace viame {
 
-VITAL_UTIL_EXPORT std::string demangle( char const* name );
-VITAL_UTIL_EXPORT std::string demangle( std::string const& name );
+VIAME_UTIL_EXPORT std::string demangle( char const* name );
+VIAME_UTIL_EXPORT std::string demangle( std::string const& name );
 
 /// @brief Demangle type name from a specific type.
 ///

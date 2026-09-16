@@ -10,7 +10,7 @@
 #ifndef VITAL_ALGO_TRANSFORM_2D_IO_H_
 #define VITAL_ALGO_TRANSFORM_2D_IO_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 
@@ -25,7 +25,7 @@ namespace algo {
 ///
 /// This class represents an abstract interface for reading and writing
 /// transforms.
-class VITAL_ALGO_EXPORT transform_2d_io
+class VIAME_ALGO_EXPORT transform_2d_io
   : public viame::algorithm
 {
 public:

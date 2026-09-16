@@ -14,7 +14,7 @@ set( vital_logger_public_headers
 )
 
 set( vital_logger_private_headers
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_logger_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_logger_export.h
   )
 
 set( vital_logger_sources
@@ -23,16 +23,16 @@ set( vital_logger_sources
 )
 
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_logger_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_logger_export.h
   NOPATH
   SUBDIR      viame/algorithm_framework/logger
   )
 
-viame_add_library( vital_logger
+viame_add_library( viame_logger
   ${vital_logger_public_headers}
   ${vital_logger_private_headers}
   ${vital_logger_sources}
   )
 
 # Republished under the prefix the imported sources use.
-viame_lite_generated( vital_logger_export.h algorithm_framework/logger )
+viame_lite_generated( viame_logger_export.h algorithm_framework/logger )

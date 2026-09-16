@@ -230,7 +230,7 @@ operator<<( std::ostream& s, essential_matrix const& e )
 /// \cond DoxygenSuppress
 #define INSTANTIATE_ESSENTIAL_MATRIX( T )             \
 template class essential_matrix_< T >;                \
-template VITAL_TYPES_EXPORT std::ostream& operator<<( \
+template VIAME_CORE_TYPES_EXPORT std::ostream& operator<<( \
   std::ostream&,                                      \
   essential_matrix_< T > const& )
 

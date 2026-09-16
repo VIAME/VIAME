@@ -8,9 +8,9 @@
 #ifndef VITAL_TYPES_ESSENTIAL_MATRIX_H_
 #define VITAL_TYPES_ESSENTIAL_MATRIX_H_
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/core_types/matrix.h>
 #include <viame/core_types/rotation.h>
@@ -33,7 +33,7 @@ typedef std::shared_ptr< essential_matrix > essential_matrix_sptr;
 // ----------------------------------------------------------------------------
 
 /// Abstract base essential matrix representation class
-class VITAL_TYPES_EXPORT essential_matrix
+class VIAME_CORE_TYPES_EXPORT essential_matrix
 {
 public:
   /// Destructor
@@ -68,7 +68,7 @@ public:
 
 /// Representation of a templated Eigen-based essential matrix
 template < typename T >
-class VITAL_TYPES_EXPORT essential_matrix_
+class VIAME_CORE_TYPES_EXPORT essential_matrix_
   : public essential_matrix
 {
 public:
@@ -159,13 +159,13 @@ typedef essential_matrix_< float > essential_matrix_f;
 // ----------------------------------------------------------------------------
 
 /// Output stream operator for \p essential_matrix base-class
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   essential_matrix const& e );
 
 /// essential_matrix_<T> output stream operator
 template < typename T >
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   essential_matrix_< T > const& e );
 

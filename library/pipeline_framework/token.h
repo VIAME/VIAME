@@ -10,7 +10,7 @@
 #ifndef SPROKIT_PIPELINE_TOKEN_H
 #define SPROKIT_PIPELINE_TOKEN_H
 
-#include<viame/pipeline_framework/sprokit_pipeline_util_export.h>
+#include<viame/pipeline_framework/viame_pipeline_util_export.h>
 
 #include <viame/algorithm_framework/util/source_location.h>
 
@@ -72,7 +72,7 @@ enum token_type_t {
  * This class represents a lexical token.
  */
 
-class SPROKIT_PIPELINE_UTIL_EXPORT token
+class VIAME_PIPELINE_UTIL_EXPORT token
 {
 public:
   // -- CONSTRUCTORS --

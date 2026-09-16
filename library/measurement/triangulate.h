@@ -9,7 +9,7 @@
 #define KWIVER_ARROWS_MVG_TRIANGULATE_H_
 
 #include "viame_measurement_export.h"
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/camera_perspective.h>
 #include <viame/core_types/camera_rpc.h>

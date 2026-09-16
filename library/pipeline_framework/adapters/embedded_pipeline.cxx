@@ -14,7 +14,7 @@
 #include <viame/algorithm_framework/config/config_block_io.h>
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/pipeline_framework/pipeline_builder.h>
 #include <viame/pipeline_framework/pipeline.h>

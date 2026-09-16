@@ -15,7 +15,7 @@
 
 #include "viame_measurement_export.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/detected_object_type.h>
 #include <viame/core_types/detected_object.h>
 #include <viame/core_types/object_track_set.h>

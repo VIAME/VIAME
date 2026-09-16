@@ -13,8 +13,8 @@
 #define VITAL_METADATA_IO_H_
 
 #include <viame/core_types/metadata.h>
-#include <viame/algorithm_framework/vital_export.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/algorithm_framework/viame_algorithm_framework_export.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace viame {
 
@@ -32,13 +32,13 @@ namespace viame {
 /// If no source file name is provided, the base name is "frame" with the frame
 /// number appended.
 std::string
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 basename_from_metadata(
   metadata_sptr md,
   frame_id_t frame );
 
 std::string
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 basename_from_metadata(
   viame::metadata_vector const& mds,
   frame_id_t frame );
@@ -53,7 +53,7 @@ basename_from_metadata(
 /// \param file_path   The path to the file to read in.
 /// \return A new camera object representing the contents of the read-in file.
 metadata_sptr
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 read_pos_file( path_t const& file_path );
 
 /// Output the given metadata object to the specified file path
@@ -69,7 +69,7 @@ read_pos_file( path_t const& file_path );
 /// \param metadata  The \c metadata object to output.
 /// \param file_path The path to output the file to.
 void
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 write_pos_file(
   metadata const& md,
   path_t const& file_path );

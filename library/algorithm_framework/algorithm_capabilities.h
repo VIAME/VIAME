@@ -5,7 +5,7 @@
 #ifndef VITAL_ALGORITHM_CAPABILITIES_H
 #define VITAL_ALGORITHM_CAPABILITIES_H
 
-#include <viame/algorithm_framework/vital_export.h>
+#include <viame/algorithm_framework/viame_algorithm_framework_export.h>
 
 #include <memory>
 #include <string>
@@ -23,7 +23,7 @@ namespace viame {
 /// implementation and determine the capabilities, features and
 /// limitations.
 ///
-class VITAL_EXPORT algorithm_capabilities
+class VIAME_ALGORITHM_FRAMEWORK_EXPORT algorithm_capabilities
 {
 public:
   typedef std::string capability_name_t;

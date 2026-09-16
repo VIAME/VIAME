@@ -240,7 +240,7 @@ PYBIND11_MODULE( adapter_data_set, m )
     .def( "_add_int", &ka::adapter_data_set::add_value< int > )
     .def( "_add_float", &ka::adapter_data_set::add_value< float > )
     .def( "_add_string", &ka::adapter_data_set::add_value< std::string > )
-    // Next shared ptrs to kwiver vital types
+    // Next shared ptrs to kwiver viame_algorithm_framework types
     .def(
       "_add_image_container",
       &ka::adapter_data_set::add_value< std::shared_ptr< viame::
@@ -286,7 +286,7 @@ PYBIND11_MODULE( adapter_data_set, m )
       &ka::adapter_data_set::add_value< std::shared_ptr< std::vector< unsigned
         char > > >,
       py::arg( "port" ), py::arg( "val" ).none( false ) )
-    // Next kwiver vital types
+    // Next kwiver viame_algorithm_framework types
     .def(
       "_add_bounding_box",
       &ka::adapter_data_set::add_value< viame::bounding_box_d > )
@@ -310,7 +310,7 @@ PYBIND11_MODULE( adapter_data_set, m )
     .def(
       "_get_port_data_string",
       &ka::adapter_data_set::get_port_data< std::string > )
-    // Next shared ptrs to kwiver vital types
+    // Next shared ptrs to kwiver viame_algorithm_framework types
     .def(
       "_get_port_data_image_container",
       &ka::adapter_data_set::get_port_data< std::shared_ptr< viame::
@@ -347,7 +347,7 @@ PYBIND11_MODULE( adapter_data_set, m )
       "_get_port_data_uchar_vector",
       &ka::adapter_data_set::get_port_data< std::shared_ptr< std::vector<
         unsigned char > > > )
-    // Next kwiver vital types
+    // Next kwiver viame_algorithm_framework types
     .def(
       "_get_port_data_bounding_box",
       &ka::adapter_data_set::get_port_data< viame::bounding_box_d > )

@@ -8,7 +8,7 @@
 #ifndef VITAL_ALGO_VIDEO_OUTPUT_H_
 #define VITAL_ALGO_VIDEO_OUTPUT_H_
 
-#include <viame/algorithm_framework/algo/vital_algo_export.h>
+#include <viame/algorithm_framework/algo/viame_algo_export.h>
 
 #include <viame/algorithm_framework/algo/algorithm.h>
 
@@ -23,7 +23,7 @@
 #include <viame/core_types/video_settings.h>
 #include <viame/core_types/video_uninterpreted_data.h>
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 #include <vector>
@@ -36,7 +36,7 @@ namespace algo {
 ///
 /// This class represents an abstract interface for writing videos. Once the
 /// video is opened, frames may be added in order.
-class VITAL_ALGO_EXPORT video_output
+class VIAME_ALGO_EXPORT video_output
   : public viame::algorithm
 {
 public:

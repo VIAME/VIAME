@@ -44,7 +44,7 @@ public:
 // ----------------------------------------------------------------------------
 registry
 ::registry()
-  : m_logger( viame::get_logger( "vital.registry" ) ),
+  : m_logger( viame::get_logger( "viame_algorithm_framework.registry" ) ),
     m_impl( new registry_impl() )
 {}
 

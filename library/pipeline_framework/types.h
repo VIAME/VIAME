@@ -11,9 +11,9 @@
 #ifndef SPROKIT_PIPELINE_TYPES_H
 #define SPROKIT_PIPELINE_TYPES_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 #include <viame/algorithm_framework/exceptions/base.h>
 #include <memory>
 
@@ -61,7 +61,7 @@ typedef std::shared_ptr<stamp const> stamp_t;
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pipeline_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline_exception
   : public viame::vital_exception
 {
   public:

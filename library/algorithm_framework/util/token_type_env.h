@@ -6,14 +6,14 @@
 #define _TOKEN_TYPE_ENV_H_
 
 #include "token_type.h"
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Virtual base class for token types.
 ///
-class VITAL_UTIL_EXPORT token_type_env
+class VIAME_UTIL_EXPORT token_type_env
   : public token_type
 {
 public:

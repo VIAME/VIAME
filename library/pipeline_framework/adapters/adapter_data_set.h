@@ -11,9 +11,9 @@
 #define PROCESS_ADAPTER_DATA_SET_H
 
 #include "adapter_types.h"
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
-#include <viame/pipeline_framework/adapters/kwiver_adapter_export.h>
+#include <viame/pipeline_framework/adapters/viame_adapter_export.h>
 
 #include <viame/pipeline_framework/process.h>
 #include <viame/pipeline_framework/datum.h>
@@ -43,7 +43,7 @@ namespace adapter {
  * process. Each element in the set is labeled with the port name as
  * specified in the pipeline configuration file.
  */
-class KWIVER_ADAPTER_EXPORT adapter_data_set
+class VIAME_ADAPTER_EXPORT adapter_data_set
 {
 public:
   typedef std::map< viame::pipeline::process::port_t, viame::pipeline::datum_t > datum_map_t;
@@ -236,7 +236,7 @@ public:
   size_t size() const;
 
 protected:
-  KWIVER_ADAPTER_NO_EXPORT adapter_data_set( data_set_type type ); // private CTOR - use factory method
+  VIAME_ADAPTER_NO_EXPORT adapter_data_set( data_set_type type ); // private CTOR - use factory method
 
 private:
   const data_set_type m_set_type;

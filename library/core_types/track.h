@@ -10,9 +10,9 @@
 #define VITAL_TRACK_H_
 
 #include <viame/core_types/attribute_set.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <memory>
 #include <mutex>
@@ -29,7 +29,7 @@ using track_state_sptr = std::shared_ptr< track_state >;
 constexpr track_id_t invalid_track_id = -1;
 
 // ----------------------------------------------------------------------------
-class VITAL_TYPES_EXPORT track_ref : public std::weak_ptr< track >
+class VIAME_CORE_TYPES_EXPORT track_ref : public std::weak_ptr< track >
 {
 public:
   track_ref() = default;
@@ -49,7 +49,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Empty base class for data associated with a track state.
-class VITAL_TYPES_EXPORT track_state
+class VIAME_CORE_TYPES_EXPORT track_state
 {
 public:
   friend class track;
@@ -95,7 +95,7 @@ private:
 
 // ----------------------------------------------------------------------------
 /// Empty base class for data associated with a whole track.
-class VITAL_TYPES_EXPORT track_data
+class VIAME_CORE_TYPES_EXPORT track_data
 {
 protected:
   virtual ~track_data() = default;
@@ -120,7 +120,7 @@ typedef std::shared_ptr< track_data > track_data_sptr;
 ///   redirect to A. The merge function tries to merge C into B, but B is now
 ///   invalid. However, B redirects to A, so the function tries to merge C
 ///   into A instead.
-class VITAL_TYPES_EXPORT track_data_redirect : public track_data
+class VIAME_CORE_TYPES_EXPORT track_data_redirect : public track_data
 {
 public:
   track_data_redirect( track_sptr t, track_data_sptr d )
@@ -144,7 +144,7 @@ public:
 /// identifiers are in monotonically increasing order but need not be
 /// sequential. The same track structure can be used to represent feature
 /// tracks for image registration or moving object tracks.
-class VITAL_TYPES_EXPORT track : public std::enable_shared_from_this< track >
+class VIAME_CORE_TYPES_EXPORT track : public std::enable_shared_from_this< track >
 {
 public:
   /// Convenience type for the \c const iterator of the track state vector.

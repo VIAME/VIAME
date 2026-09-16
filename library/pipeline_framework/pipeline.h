@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_PIPELINE_H
 #define SPROKIT_PIPELINE_PIPELINE_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include "process.h"
 #include "types.h"
@@ -27,7 +27,7 @@ namespace viame::pipeline {
  *
  * \ingroup base_classes
  */
-class SPROKIT_PIPELINE_EXPORT pipeline
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline
   : private viame::noncopyable
 {
   public:
@@ -438,10 +438,10 @@ class SPROKIT_PIPELINE_EXPORT pipeline
 
   private:
     friend class scheduler;
-    SPROKIT_PIPELINE_NO_EXPORT void start();
-    SPROKIT_PIPELINE_NO_EXPORT void stop();
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT void start();
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT void stop();
 
-    class SPROKIT_PIPELINE_NO_EXPORT priv;
+    class VIAME_PIPELINE_FRAMEWORK_NO_EXPORT priv;
     std::unique_ptr<priv> d;
 };
 

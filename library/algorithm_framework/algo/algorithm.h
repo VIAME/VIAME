@@ -11,9 +11,9 @@
 #ifndef VITAL_ALGO_ALGORITHM_H_
 #define VITAL_ALGO_ALGORITHM_H_
 
-#include <viame/algorithm_framework/algo/vital_algo_export.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/algorithm_framework/vital_export.h>
+#include <viame/algorithm_framework/algo/viame_algo_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/algorithm_framework/viame_algorithm_framework_export.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/logger/logger.h>
@@ -40,7 +40,7 @@ typedef std::shared_ptr< algorithm > algorithm_sptr;
 ///
 /// This class is an abstract base class for all algorithm
 /// implementations.
-class VITAL_ALGO_EXPORT algorithm :  public viame::pluggable
+class VIAME_ALGO_EXPORT algorithm :  public viame::pluggable
 {
 public:
   algorithm();

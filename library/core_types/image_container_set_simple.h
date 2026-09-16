@@ -13,7 +13,7 @@
 namespace viame {
 
 /// A concrete image container set that simply wraps a vector of images.
-class VITAL_TYPES_EXPORT simple_image_container_set
+class VIAME_CORE_TYPES_EXPORT simple_image_container_set
   : public image_container_set
 {
 public:

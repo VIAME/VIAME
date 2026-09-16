@@ -11,14 +11,14 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/feature_set.h>
 #include <viame/core_types/image_container.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 
 namespace algo {
 
 /// An abstract base class for detecting feature points
-class VITAL_ALGO_EXPORT detect_features
+class VIAME_ALGO_EXPORT detect_features
   : public viame::algorithm
 {
 public:

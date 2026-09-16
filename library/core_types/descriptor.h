@@ -9,9 +9,9 @@
 #define VITAL_DESCRIPTOR_H_
 
 #include <viame/algorithm_framework/exceptions.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <iostream>
 #include <limits>
@@ -282,17 +282,17 @@ protected:
 };
 
 /// return the hamming_distance between two descriptors
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 int hamming_distance( viame::descriptor_sptr d1, viame::descriptor_sptr d2 );
 
 // ----------------------------------------------------------------------------
 /// output stream operator for a feature
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   const descriptor& d );
 
 /// input stream operator for a feature
-VITAL_TYPES_EXPORT std::istream& operator>>( std::istream& s, descriptor& d );
+VIAME_CORE_TYPES_EXPORT std::istream& operator>>( std::istream& s, descriptor& d );
 
 } // namespace viame
 

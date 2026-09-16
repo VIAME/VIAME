@@ -7,7 +7,7 @@ viame_add_python_library(
   "${THIS_MODULE}"
   SOURCES metadata_io.cxx
   PRIVATE pybind11::pybind11
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -15,5 +15,5 @@ viame_add_python_library(
   "${THIS_MODULE}"
   SOURCES camera_from_metadata.cxx
   PRIVATE pybind11::pybind11
-          vital
+          viame_algorithm_framework
 )

@@ -11,8 +11,8 @@
 #include <viame/core_types/attribute_set.h>
 #include <viame/core_types/noncopyable.h>
 #include <viame/core_types/set.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/detected_object.h>
 
@@ -37,7 +37,7 @@ using detected_object_set_scptr = std::shared_ptr< detected_object_set const >;
 ///   Typical usage for a set is for a single detector thread to create a set.
 ///   It is possible to have an application where two threads are accessing the
 ///   same set concurrently.
-class VITAL_TYPES_EXPORT detected_object_set
+class VIAME_CORE_TYPES_EXPORT detected_object_set
   : public set< detected_object_sptr >,
     private noncopyable
 {
@@ -153,7 +153,7 @@ public:
   /// \param scale Scale factor to be applied.
   ///
   /// \deprecated
-  VITAL_TYPES_DEPRECATED
+  VIAME_CORE_TYPES_DEPRECATED
   void scale( double scale_factor );
 
   /// Shift all detection locations by some translation offset.
@@ -170,7 +170,7 @@ public:
   /// \param row_shift Row (a.k.a. y, j, height) translation value.
   ///
   /// \deprecated
-  VITAL_TYPES_DEPRECATED
+  VIAME_CORE_TYPES_DEPRECATED
   void shift( double col_shift, double row_shift );
 
   /// Filter detections in this set using a predicate function.

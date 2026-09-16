@@ -5,9 +5,9 @@ viame_add_python_library(adapter_data_set
   SOURCES adapter_data_set.cxx)
 
 viame_target_link_libraries(python-sprokit.adapters-adapter_data_set
-  PRIVATE             kwiver_adapter
-                      sprokit_pipeline
-                      vital_python_util)
+  PRIVATE             viame_adapter
+                      viame_pipeline_framework
+                      viame_python_util)
 
 
 viame_add_python_library(embedded_pipeline
@@ -15,9 +15,9 @@ viame_add_python_library(embedded_pipeline
   SOURCES embedded_pipeline.cxx)
 
 viame_target_link_libraries(python-sprokit.adapters-embedded_pipeline
-  PRIVATE             kwiver_adapter
-                      sprokit_pipeline_util
-                      vital_python_util)
+  PRIVATE             viame_adapter
+                      viame_pipeline_util
+                      viame_python_util)
 
 viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   sprokit/adapters

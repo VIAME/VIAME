@@ -5,7 +5,7 @@
 #ifndef SPROKIT_EMBEDDED_PIPELINE_EPX_TEST_H
 #define SPROKIT_EMBEDDED_PIPELINE_EPX_TEST_H
 
-#include "viame/pipeline_framework/adapters/kwiver_epx_test_export.h"
+#include "viame/pipeline_framework/adapters/viame_epx_test_export.h"
 
 #include "embedded_pipeline_extension.h"
 
@@ -16,7 +16,7 @@ namespace viame {
  * @brief
  *
  */
-class KWIVER_EPX_TEST_NO_EXPORT epx_test
+class VIAME_EPX_TEST_NO_EXPORT epx_test
   : public embedded_pipeline_extension
 {
 public:

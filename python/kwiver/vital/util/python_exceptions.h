@@ -6,7 +6,7 @@
 #define VITAL_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
 
 #include <pybind11/pybind11.h>
-#include <python/kwiver/vital/util/vital_python_util_export.h>
+#include <python/kwiver/vital/util/viame_python_util_export.h>
 
 namespace viame {
 
@@ -14,7 +14,7 @@ namespace python {
 
 /// \todo More useful output?
 
-void VITAL_PYTHON_UTIL_EXPORT python_print_exception();
+void VIAME_PYTHON_UTIL_EXPORT python_print_exception();
 
 #define VITAL_PYTHON_HANDLE_EXCEPTION( call )                     \
 try                                                               \

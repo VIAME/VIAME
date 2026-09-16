@@ -8,7 +8,7 @@
 #ifndef VITAL_ALGO_ESTIMATE_HOMOGRAPHY_H_
 #define VITAL_ALGO_ESTIMATE_HOMOGRAPHY_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <vector>
 
@@ -23,7 +23,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for estimating a homography from matching 2D points
-class VITAL_ALGO_EXPORT estimate_homography
+class VIAME_ALGO_EXPORT estimate_homography
   : public viame::algorithm
 {
 public:

@@ -8,8 +8,8 @@
 #include "image_io.h"
 
 #include <viame/algorithm_framework/exceptions/io.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
 

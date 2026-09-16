@@ -22,7 +22,7 @@ namespace algo {
 
 /// @brief Case class for refining detected object sets.
 ///
-class VITAL_ALGO_EXPORT refine_detections
+class VIAME_ALGO_EXPORT refine_detections
   : public viame::algorithm
 {
 public:

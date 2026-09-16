@@ -8,7 +8,7 @@
 #ifndef VITAL_ALGO_ESTIMATE_FUNDAMENTAL_MATRIX_H_
 #define VITAL_ALGO_ESTIMATE_FUNDAMENTAL_MATRIX_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 #include <vector>
@@ -24,7 +24,7 @@ namespace algo {
 
 /// An abstract base class for estimating a fundamental matrix from matching 2D
 /// points
-class VITAL_ALGO_EXPORT estimate_fundamental_matrix
+class VIAME_ALGO_EXPORT estimate_fundamental_matrix
   : public viame::algorithm
 {
 public:

@@ -1,7 +1,7 @@
 # In-house image kernels
 #
 # Templated over the pixel type and header-only apart from two helpers, so a
-# consumer mostly includes what it needs and takes vital::image with it.
+# consumer mostly includes what it needs and takes viame_algorithm_framework::image with it.
 # Nothing here may include OpenCV or VXL.
 #
 # The two compiled helpers came from the `core` plugin in P2-T04.

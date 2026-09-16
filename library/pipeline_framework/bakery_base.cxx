@@ -15,7 +15,7 @@
 #include <viame/algorithm_framework/util/string.h>
 #include <viame/algorithm_framework/util/token_type_env.h>
 #include <viame/algorithm_framework/util/token_type_sysenv.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
 

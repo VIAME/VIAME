@@ -9,7 +9,7 @@
 
 #include "split_tracks_to_feature_landmarks_process.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/object_track_set.h>
 #include <viame/core_types/feature_track_set.h>

@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_STAMP_H
 #define SPROKIT_PIPELINE_STAMP_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include <viame/core_types/noncopyable.h>
 
@@ -29,7 +29,7 @@ namespace viame::pipeline
  *
  * \ingroup base_classes
  */
-class SPROKIT_PIPELINE_EXPORT stamp
+class VIAME_PIPELINE_FRAMEWORK_EXPORT stamp
   : private viame::noncopyable
 {
   public:
@@ -108,7 +108,7 @@ class SPROKIT_PIPELINE_EXPORT stamp
   private:
     typedef uint64_t index_t;
 
-    SPROKIT_PIPELINE_NO_EXPORT stamp(increment_t increment, index_t index);
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT stamp(increment_t increment, index_t index);
 
     increment_t const m_increment;
     index_t const m_index;

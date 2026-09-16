@@ -5,7 +5,7 @@
 #ifndef VITAL_ALGO_FILTER_FEATURES_H_
 #define VITAL_ALGO_FILTER_FEATURES_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 #include <utility>
@@ -24,7 +24,7 @@ namespace viame {
 namespace algo {
 
 /// \brief Abstract base class for feature set filter algorithms.
-class VITAL_ALGO_EXPORT filter_features
+class VIAME_ALGO_EXPORT filter_features
   : public viame::algorithm
 {
 public:

@@ -108,25 +108,25 @@ set( sources
 
 # install export header
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_algo_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_algo_export.h
   SUBDIR   viame/algorithm_framework/algo
   NOPATH
   )
 
-viame_add_library( vital_algo SHARED
+viame_add_library( viame_algo SHARED
   ${public_headers}
   ${sources}
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_algo_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_algo_export.h
   )
 
-target_link_libraries( vital_algo
+target_link_libraries( viame_algo
   PRIVATE
-                  vital_util
-  PUBLIC          vital
-                  vital_config
-                  vital_logger
-                  vital_types
-                  vital_vpm
+                  viame_util
+  PUBLIC          viame_algorithm_framework
+                  viame_config
+                  viame_logger
+                  viame_core_types
+                  viame_plugin
   )
 
 # Needs to be updated for new API
@@ -136,12 +136,12 @@ target_link_libraries( vital_algo
 #viame_add_plugin( algo_explorer_plugin
 #  SUBDIR   ${kwiver_plugin_plugin_explorer_subdir}
 #  SOURCES  algo_explorer_plugin.cxx
-#  PRIVATE  vital
-#           vital_vpm
-#           vital_config
-#           vital_algo
+#  PRIVATE  viame_algorithm_framework
+#           viame_plugin
+#           viame_config
+#           viame_algo
 #           explorer_plugin )
 #endif()
 
 # Republished under the prefix the imported sources use.
-viame_lite_generated( vital_algo_export.h algorithm_framework/algo )
+viame_lite_generated( viame_algo_export.h algorithm_framework/algo )

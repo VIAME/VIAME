@@ -7,7 +7,7 @@
 
 #include "token_type.h"
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 namespace viame {
 
@@ -23,7 +23,7 @@ namespace viame {
 /// three checks it needed ran in the constructor. P8-T05 asks the operating
 /// system directly, at the moment the question is asked, so there is nothing
 /// to hold and nothing to run up front.
-class VITAL_UTIL_EXPORT token_type_sysenv
+class VIAME_UTIL_EXPORT token_type_sysenv
   : public token_type
 {
 public:

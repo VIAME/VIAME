@@ -11,7 +11,7 @@
 #ifndef VITAL_CAMERA_PERSPECTIVE_H_
 #define VITAL_CAMERA_PERSPECTIVE_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <iostream>
 #include <memory>
@@ -24,7 +24,7 @@
 #include <viame/core_types/rotation.h>
 #include <viame/core_types/similarity.h>
 #include <viame/core_types/vector.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 
@@ -39,7 +39,7 @@ typedef std::shared_ptr< camera_perspective > camera_perspective_sptr;
 /// The base class of camera_perspectives is abstract and provides a
 /// double precision interface.  The templated derived class
 /// can store values in either single or double precision.
-class VITAL_TYPES_EXPORT camera_perspective : public camera
+class VIAME_CORE_TYPES_EXPORT camera_perspective : public camera
 {
 public:
   /// Destructor
@@ -102,7 +102,7 @@ protected:
 };
 
 /// output stream operator for a base class camera_perspective
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& s,
   const camera_perspective& c );
 
@@ -115,7 +115,7 @@ typedef std::shared_ptr< simple_camera_perspective >
 /// A representation of a camera
 ///
 /// Contains camera location, orientation, and intrinsics
-class VITAL_TYPES_EXPORT simple_camera_perspective
+class VIAME_CORE_TYPES_EXPORT simple_camera_perspective
   : public camera_perspective
 {
 public:
@@ -288,7 +288,7 @@ protected:
 ///
 /// \param s input stream
 /// \param c camera_perspective to stream into
-VITAL_TYPES_EXPORT std::istream& operator>>(
+VIAME_CORE_TYPES_EXPORT std::istream& operator>>(
   std::istream& s,
   simple_camera_perspective& c );
 

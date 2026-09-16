@@ -7,7 +7,7 @@
 
 #include "write_object_track_set_kw18.h"
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <time.h>
 

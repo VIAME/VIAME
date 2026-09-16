@@ -17,7 +17,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic metadata exception
-class VITAL_EXCEPTIONS_EXPORT metadata_exception
+class VIAME_EXCEPTIONS_EXPORT metadata_exception
   : public vital_exception
 {
 public:
@@ -29,7 +29,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Data buffer is too small to complete read or write operation.
-class VITAL_EXCEPTIONS_EXPORT metadata_buffer_overflow
+class VIAME_EXCEPTIONS_EXPORT metadata_buffer_overflow
   : public metadata_exception
 {
 public:
@@ -40,7 +40,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Size of value is greater than data type or format allows.
-class VITAL_EXCEPTIONS_EXPORT metadata_type_overflow
+class VIAME_EXCEPTIONS_EXPORT metadata_type_overflow
   : public metadata_exception
 {
 public:

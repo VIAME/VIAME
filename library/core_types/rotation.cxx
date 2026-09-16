@@ -276,24 +276,24 @@ camera_to_sensor( rotation_< T > const& r )
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_ROTATION( T )                                \
-template class VITAL_TYPES_EXPORT rotation_< T >;                \
-template VITAL_TYPES_EXPORT std::ostream&                        \
+template class VIAME_CORE_TYPES_EXPORT rotation_< T >;                \
+template VIAME_CORE_TYPES_EXPORT std::ostream&                        \
 operator<<( std::ostream& s, const rotation_< T >& r );          \
-template VITAL_TYPES_EXPORT std::istream&                        \
+template VIAME_CORE_TYPES_EXPORT std::istream&                        \
 operator>>( std::istream& s, rotation_< T >& r );                \
-template VITAL_TYPES_EXPORT rotation_< T > interpolate_rotation( \
+template VIAME_CORE_TYPES_EXPORT rotation_< T > interpolate_rotation( \
   rotation_< T > const& A, rotation_< T > const& B, T f );       \
-template VITAL_TYPES_EXPORT void                                 \
+template VIAME_CORE_TYPES_EXPORT void                                 \
 interpolated_rotations(                                          \
   rotation_< T > const& A, rotation_< T > const& B,              \
   size_t n, std::vector< rotation_< T > >& interp_rots );        \
-template VITAL_TYPES_EXPORT rotation_< T > ned_to_enu(           \
+template VIAME_CORE_TYPES_EXPORT rotation_< T > ned_to_enu(           \
   rotation_< T > const& r );                                     \
-template VITAL_TYPES_EXPORT rotation_< T > enu_to_ned(           \
+template VIAME_CORE_TYPES_EXPORT rotation_< T > enu_to_ned(           \
   rotation_< T > const& r );                                     \
-template VITAL_TYPES_EXPORT rotation_< T > sensor_to_camera(     \
+template VIAME_CORE_TYPES_EXPORT rotation_< T > sensor_to_camera(     \
   rotation_< T > const& r );                                     \
-template VITAL_TYPES_EXPORT rotation_< T > camera_to_sensor(     \
+template VIAME_CORE_TYPES_EXPORT rotation_< T > camera_to_sensor(     \
   rotation_< T > const& r );
 
 INSTANTIATE_ROTATION( double );

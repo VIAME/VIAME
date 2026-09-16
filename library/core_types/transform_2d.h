@@ -8,9 +8,9 @@
 #ifndef VITAL_TRANSFORM_2D_H_
 #define VITAL_TRANSFORM_2D_H_
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/core_types/vector.h>
 
@@ -25,7 +25,7 @@ typedef std::shared_ptr< transform_2d > transform_2d_sptr;
 
 // ----------------------------------------------------------------------------
 /// Abstract base transformation representation class
-class VITAL_TYPES_EXPORT transform_2d
+class VIAME_CORE_TYPES_EXPORT transform_2d
 {
 public:
   /// Destructor

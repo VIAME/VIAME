@@ -8,7 +8,7 @@
 # libraries. Kwiver cut the same code into ten libraries to keep the graph
 # acyclic and this keeps that cut; which of them are worth having is phase 8's
 # question.
-project( vital )
+project( viame_algorithm_framework )
 set(CMAKE_FOLDER "Vital")
 
 # ==============================================================================
@@ -22,7 +22,7 @@ set(CMAKE_FOLDER "Vital")
 # These headers are installed
 #
 set( vital_core_types_headers
-  ${CMAKE_CURRENT_SOURCE_DIR}/../core_types/vital_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/../core_types/viame_core_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/../core_types/any.h
   ${CMAKE_CURRENT_SOURCE_DIR}/../core_types/attribute_set.h
   ${CMAKE_CURRENT_SOURCE_DIR}/../core_types/bitflags.h
@@ -74,35 +74,35 @@ install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
 ###
 # configure our compiler options
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/vital_config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/vital_config.h" )
+  "${CMAKE_CURRENT_SOURCE_DIR}/viame_compiler_config.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/viame_compiler_config.h" )
 
-viame_add_library( vital
+viame_add_library( viame_algorithm_framework
   ${vital_core_types_headers}
   ${vital_framework_headers}
   ${vital_sources}
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_algorithm_framework_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_compiler_config.h
   )
 
-viame_lite_generated( vital_export.h  algorithm_framework )
-viame_lite_generated( vital_config.h  algorithm_framework )
+viame_lite_generated( viame_algorithm_framework_export.h  algorithm_framework )
+viame_lite_generated( viame_compiler_config.h  algorithm_framework )
 # version.h is republished from the top-level CMakeLists: `kwiver_configure_file`
 # writes it with the `viame_configure` target at build time, so there is
 # nothing here to copy at configure time.
 
 # Make sure the configuration targets flush before building this library.
-add_dependencies (vital viame_configure)
+add_dependencies (viame_algorithm_framework viame_configure)
 
-target_link_libraries( vital
+target_link_libraries( viame_algorithm_framework
   PRIVATE
-  PUBLIC          vital_config
-                  vital_exceptions
-                  vital_logger
-                  vital_util
-                  vital_types
-                  vital_vpm
-                  vital_applets
+  PUBLIC          viame_config
+                  viame_exceptions
+                  viame_logger
+                  viame_util
+                  viame_core_types
+                  viame_plugin
+                  viame_applets
   )
 
 ###
@@ -120,42 +120,57 @@ option(KWIVER_USE_CONFIGURATION_SUBDIRECTORY
 
 ###
 # Subdirectory entries
-# -- Creates library "vital_exceptions"
+# -- Creates library "viame_exceptions"
 add_subdirectory( exceptions )
 add_subdirectory( algo )
-# -- Creates library "vital_util"
+# -- Creates library "viame_util"
 add_subdirectory( util )
 add_subdirectory( range )
-# -- Creates library "vital_config"
-# Requires: vital_logger, vital_util (vital_types)
+# -- Creates library "viame_config"
+# Requires: viame_logger, viame_util (viame_core_types)
 add_subdirectory( config )
-# -- Creates library "vital_logger"
-# Requires: vital_util
+# -- Creates library "viame_logger"
+# Requires: viame_util
 add_subdirectory( logger )
-# -- Creates library "vital_types"
-# Requires: vital_config
+# -- Creates library "viame_core_types"
+# Requires: viame_config
 add_subdirectory( "${CMAKE_CURRENT_SOURCE_DIR}/../core_types" core_types )
-# -- Creates library "vital_vpm"
-# Requires: vital_exceptions, vital_logger, vital_util
-# Uses common headers: vital_types.h
+# -- Creates library "viame_plugin"
+# Requires: viame_exceptions, viame_logger, viame_util
+# Uses common headers: viame_core_types.h
 add_subdirectory( plugin )
-# -- Created library "vital_applets"
+# -- Created library "viame_applets"
 add_subdirectory( applets )
 
 # ==============================================================================
 # The imported vital's include roots, on the targets rather than on the
 # directory, so that they reach anything that links these -- kwiver's own
 # arrows and sprokit, and VIAME, which consumes them through the export set.
-foreach( _viame_lite_target
-    vital vital_types vital_config vital_logger vital_exceptions
-    vital_util vital_vpm vital_algo vital_applets )
+# `<old name>:<target>`. P11-T01 renamed the targets after their libraries;
+# the `kwiver::` spellings are what everything outside VIAME links, and
+# decision 8 keeps them for one release, so they are written out rather than
+# built from the target name.
+foreach( _viame_lite_pair
+    vital:viame_algorithm_framework
+    vital_types:viame_core_types
+    vital_config:viame_config
+    vital_logger:viame_logger
+    vital_exceptions:viame_exceptions
+    vital_util:viame_util
+    vital_vpm:viame_plugin
+    vital_algo:viame_algo
+    vital_applets:viame_applets )
+
+  string( REPLACE ":" ";" _viame_lite_pair "${_viame_lite_pair}" )
+  list( GET _viame_lite_pair 0 _viame_lite_old )
+  list( GET _viame_lite_pair 1 _viame_lite_target )
 
   if( TARGET ${_viame_lite_target} )
     # The namespaced name VIAME's CMakeLists use. It came from kwiver's
     # installed config package until P1-T05 and from an alias file until
     # P5-T05 emptied that of everything but this loop.
-    if( NOT TARGET kwiver::${_viame_lite_target} )
-      add_library( kwiver::${_viame_lite_target} ALIAS ${_viame_lite_target} )
+    if( NOT TARGET kwiver::${_viame_lite_old} )
+      add_library( kwiver::${_viame_lite_old} ALIAS ${_viame_lite_target} )
     endif()
 
     target_include_directories( ${_viame_lite_target} PUBLIC
@@ -172,7 +187,7 @@ endforeach()
 # Built-in plugin modules
 #
 # This is specifically after the Vital library definition as some of these
-# require the vital library for parts and utility.
+# require the viame_algorithm_framework library for parts and utility.
 # And, you know, the plugin management stuff (except for the logger, which works
 # independently from the main plugin management so that it can have logging
 # itself).

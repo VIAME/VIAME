@@ -170,19 +170,19 @@ T adapter_data_set::value_or( ::viame::pipeline::process::port_t const& port,
 
 // ----------------------------------------------------------------------------
 #define INSTANTIATE_ADS_ADD_VALUE( T ) \
-  template KWIVER_ADAPTER_EXPORT \
+  template VIAME_ADAPTER_EXPORT \
   void \
   adapter_data_set \
   ::add_value( ::viame::pipeline::process::port_t const& port, T const& val );
 
 #define INSTANTIATE_ADS_VALUE( T ) \
-  template KWIVER_ADAPTER_EXPORT \
+  template VIAME_ADAPTER_EXPORT \
   T \
   adapter_data_set \
   ::value( ::viame::pipeline::process::port_t const& port );
 
 #define INSTANTIATE_ADS_VALUE_OR( T ) \
-  template KWIVER_ADAPTER_EXPORT \
+  template VIAME_ADAPTER_EXPORT \
   T \
   adapter_data_set \
   ::value_or( ::viame::pipeline::process::port_t const& port, \

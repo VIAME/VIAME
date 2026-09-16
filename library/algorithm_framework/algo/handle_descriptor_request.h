@@ -5,7 +5,7 @@
 #ifndef VITAL_ALGO_FORMULATE_QUERY_H_
 #define VITAL_ALGO_FORMULATE_QUERY_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 #include <string>
@@ -20,7 +20,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for formulating descriptors for queries
-class VITAL_ALGO_EXPORT handle_descriptor_request
+class VIAME_ALGO_EXPORT handle_descriptor_request
   : public viame::algorithm
 {
 public:

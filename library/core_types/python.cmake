@@ -54,7 +54,7 @@ viame_add_python_library(
           ${vital_python_sources}
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -63,7 +63,7 @@ viame_add_python_library(
   SOURCES activity_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -72,7 +72,7 @@ viame_add_python_library(
   SOURCES activity_type_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -81,7 +81,7 @@ viame_add_python_library(
   SOURCES bounding_box_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -90,7 +90,7 @@ viame_add_python_library(
   SOURCES camera_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -99,7 +99,7 @@ viame_add_python_library(
   SOURCES camera_intrinsics_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -108,7 +108,7 @@ viame_add_python_library(
   SOURCES camera_map_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -117,7 +117,7 @@ viame_add_python_library(
   SOURCES camera_perspective_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -126,7 +126,7 @@ viame_add_python_library(
   SOURCES camera_perspective_map_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-           vital
+           viame_algorithm_framework
   )
 
 viame_add_python_library(
@@ -135,7 +135,7 @@ viame_add_python_library(
   SOURCES camera_rpc_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -144,7 +144,7 @@ viame_add_python_library(
   SOURCES category_hierarchy_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -153,7 +153,7 @@ viame_add_python_library(
   SOURCES color_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -162,7 +162,7 @@ viame_add_python_library(
   SOURCES covariance_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -171,7 +171,7 @@ viame_add_python_library(
   SOURCES database_query_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -180,7 +180,7 @@ viame_add_python_library(
   SOURCES descriptor_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -189,7 +189,7 @@ viame_add_python_library(
   SOURCES descriptor_request_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -198,7 +198,7 @@ viame_add_python_library(
   SOURCES descriptor_set_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -207,7 +207,7 @@ viame_add_python_library(
   SOURCES detected_object_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -216,7 +216,7 @@ viame_add_python_library(
   SOURCES detected_object_set_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -225,7 +225,7 @@ viame_add_python_library(
   SOURCES detected_object_type_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -234,7 +234,7 @@ viame_add_python_library(
   SOURCES essential_matrix_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -243,7 +243,7 @@ viame_add_python_library(
   SOURCES feature_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -252,7 +252,7 @@ viame_add_python_library(
   SOURCES feature_set_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -261,7 +261,7 @@ viame_add_python_library(
   SOURCES feature_track_set_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -270,7 +270,7 @@ viame_add_python_library(
   SOURCES fundamental_matrix_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 # Dropped with phase 5's import: the C++ types behind these did not come
@@ -283,7 +283,7 @@ viame_add_python_library(
   SOURCES geodesy_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 
@@ -294,7 +294,7 @@ viame_add_python_library(
   SOURCES geo_point_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -303,7 +303,7 @@ viame_add_python_library(
   SOURCES geo_polygon_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -312,7 +312,7 @@ viame_add_python_library(
   SOURCES homography_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -321,7 +321,7 @@ viame_add_python_library(
   SOURCES homography_f2f_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 
@@ -331,7 +331,7 @@ viame_add_python_library(
   SOURCES iqr_feedback_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -340,7 +340,7 @@ viame_add_python_library(
   SOURCES landmark_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital)
+          viame_algorithm_framework)
 
 viame_add_python_library(
   landmark_map
@@ -348,7 +348,7 @@ viame_add_python_library(
   SOURCES landmark_map_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -357,7 +357,7 @@ viame_add_python_library(
   SOURCES local_tangent_space_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -366,7 +366,7 @@ viame_add_python_library(
   SOURCES match_set_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 
@@ -376,7 +376,7 @@ viame_add_python_library(
   SOURCES metadata_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -385,7 +385,7 @@ viame_add_python_library(
   SOURCES metadata_map_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -394,7 +394,7 @@ viame_add_python_library(
   SOURCES metadata_tags_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -403,7 +403,7 @@ viame_add_python_library(
   SOURCES metadata_traits_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -412,7 +412,7 @@ viame_add_python_library(
   SOURCES point_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -421,7 +421,7 @@ viame_add_python_library(
   SOURCES polygon_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -430,7 +430,7 @@ viame_add_python_library(
   SOURCES query_result_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -439,7 +439,7 @@ viame_add_python_library(
   SOURCES rotation_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -448,7 +448,7 @@ viame_add_python_library(
   SOURCES similarity_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -457,7 +457,7 @@ viame_add_python_library(
   SOURCES sfm_constraints_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -466,7 +466,7 @@ viame_add_python_library(
   SOURCES timestamp_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -475,7 +475,7 @@ viame_add_python_library(
   SOURCES track_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -484,7 +484,7 @@ viame_add_python_library(
   SOURCES track_descriptor_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -493,7 +493,7 @@ viame_add_python_library(
   SOURCES track_interval_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -502,7 +502,7 @@ viame_add_python_library(
   SOURCES track_set_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -511,7 +511,7 @@ viame_add_python_library(
   SOURCES transform_2d_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -520,7 +520,7 @@ viame_add_python_library(
   SOURCES uid_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -529,7 +529,7 @@ viame_add_python_library(
   SOURCES object_track_set_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -538,7 +538,7 @@ viame_add_python_library(
   SOURCES video_raw_image_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -547,7 +547,7 @@ viame_add_python_library(
   SOURCES video_raw_metadata_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 viame_add_python_library(
@@ -556,7 +556,7 @@ viame_add_python_library(
   SOURCES video_settings_python.cxx
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
+          viame_algorithm_framework
 )
 
 #if(NOT SKBUILD)

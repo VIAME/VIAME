@@ -8,7 +8,7 @@
 #ifndef VITAL_VIDEO_SETTINGS_H_
 #define VITAL_VIDEO_SETTINGS_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <memory>
 
@@ -18,7 +18,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Base class for holding information about how to encode a video.
-class VITAL_TYPES_EXPORT video_settings
+class VIAME_CORE_TYPES_EXPORT video_settings
 {
 public:
   virtual ~video_settings();
@@ -36,7 +36,7 @@ public:
 using video_settings_sptr = std::shared_ptr< video_settings >;
 
 // ----------------------------------------------------------------------------
-class VITAL_TYPES_EXPORT simple_video_settings : public video_settings
+class VIAME_CORE_TYPES_EXPORT simple_video_settings : public video_settings
 {
 public:
   simple_video_settings(

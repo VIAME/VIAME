@@ -6,7 +6,7 @@
 #define VITAL_STRING_EDITOR_H
 
 #include <viame/algorithm_framework/util/string.h>
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <memory>
 #include <string>
@@ -20,7 +20,7 @@ namespace viame {
 /// This class is the abstract interface for a string edit operation.
 /// A string is presented to the process() method which can return a
 /// modified string or absorb the string.
-class VITAL_UTIL_EXPORT string_edit_operation
+class VIAME_UTIL_EXPORT string_edit_operation
 {
 public:
   string_edit_operation() {}
@@ -45,7 +45,7 @@ public:
 /// This class represents a generic set of string editing operations
 /// applied in a fixed order. An instance of this class is configured
 /// by adding one or more string_edit_operation objects.
-class VITAL_UTIL_EXPORT string_editor
+class VIAME_UTIL_EXPORT string_editor
 {
 public:
   // -- CONSTRUCTORS --

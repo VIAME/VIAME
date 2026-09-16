@@ -25,7 +25,7 @@ PYBIND11_MODULE( _config, m )
 
   m.doc() =
     R"pbdoc(
-    Config module for vital
+    Config module for viame_algorithm_framework
     -----------------------
 
     .. currentmodule:: config
@@ -164,8 +164,8 @@ PYBIND11_MODULE( _config, m )
       "merge_config", &kv::config_block::merge_config,
       py::arg( "config" ),
       R"pbdoc(Merge another configuration block into the current one.
-                :param config: An object of :class:`vital.config.Config`
-                :return: An object of :class:`vital.config.Config` containing the merged configuration
+                :param config: An object of :class:`viame_algorithm_framework.config.Config`
+                :return: An object of :class:`viame_algorithm_framework.config.Config` containing the merged configuration
                )pbdoc" )
     .def(
       "available_values", &kv::config_block::available_values,

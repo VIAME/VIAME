@@ -10,7 +10,7 @@
 #ifndef VITAL_ALGO_IMAGE_IO_H_
 #define VITAL_ALGO_IMAGE_IO_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 
@@ -34,7 +34,7 @@ namespace algo {
 ///     supplies a timestamp. If a timestamp is supplied, it is made
 ///     available in the metadata for the image. If the timestamp
 ///     is not supplied, then the metadata will not have the timestamp set.
-class VITAL_ALGO_EXPORT image_io
+class VIAME_ALGO_EXPORT image_io
   : public viame::algorithm
 {
 public:

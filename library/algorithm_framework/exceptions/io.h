@@ -10,13 +10,13 @@
 
 #include "base.h"
 #include <string>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace viame {
 
 // ----------------------------------------------------------------------------
 /// VITAL Generic IO exception
-class VITAL_EXCEPTIONS_EXPORT io_exception
+class VIAME_EXCEPTIONS_EXPORT io_exception
   : public vital_exception
 {
 public:
@@ -28,7 +28,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a given path doesn't point to anything on the filesystem
-class VITAL_EXCEPTIONS_EXPORT path_not_exists
+class VIAME_EXCEPTIONS_EXPORT path_not_exists
   : public io_exception
 {
 public:
@@ -42,7 +42,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a given path doesn't point to a file.
-class VITAL_EXCEPTIONS_EXPORT path_not_a_file
+class VIAME_EXCEPTIONS_EXPORT path_not_a_file
   : public io_exception
 {
 public:
@@ -56,7 +56,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a given path doesn't point to a directory.
-class VITAL_EXCEPTIONS_EXPORT path_not_a_directory
+class VIAME_EXCEPTIONS_EXPORT path_not_a_directory
   : public io_exception
 {
 public:
@@ -70,7 +70,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for an encounter with an invalid file by some metric.
-class VITAL_EXCEPTIONS_EXPORT invalid_file
+class VIAME_EXCEPTIONS_EXPORT invalid_file
   : public io_exception
 {
 public:
@@ -84,7 +84,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for an encounter with invalid data by some metric
-class VITAL_EXCEPTIONS_EXPORT invalid_data
+class VIAME_EXCEPTIONS_EXPORT invalid_data
   : public io_exception
 {
 public:
@@ -96,7 +96,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a file could not be found
-class VITAL_EXCEPTIONS_EXPORT file_not_found_exception
+class VIAME_EXCEPTIONS_EXPORT file_not_found_exception
   : public io_exception
 {
 public:
@@ -113,7 +113,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a file could not be read for whatever reason.
-class VITAL_EXCEPTIONS_EXPORT file_not_read_exception
+class VIAME_EXCEPTIONS_EXPORT file_not_read_exception
   : public io_exception
 {
 public:
@@ -130,7 +130,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a file was not able to be written
-class VITAL_EXCEPTIONS_EXPORT file_write_exception
+class VIAME_EXCEPTIONS_EXPORT file_write_exception
   : public io_exception
 {
 public:

@@ -52,7 +52,7 @@
 #ifndef KWIVER_VITAL_PLUGIN_MANAGER_H
 #define KWIVER_VITAL_PLUGIN_MANAGER_H
 
-#include <viame/algorithm_framework/plugin/vital_vpm_export.h>
+#include <viame/algorithm_framework/plugin/viame_plugin_export.h>
 
 #include <viame/core_types/bitflags.h>
 #include <viame/algorithm_framework/exceptions/plugin.h>
@@ -75,7 +75,7 @@ namespace viame {
 /// This class is the main plugin manager for all kwiver components.
 ///
 /// Behaves as a decorator for registry
-class VITAL_VPM_EXPORT plugin_manager
+class VIAME_PLUGIN_EXPORT plugin_manager
   : private viame::noncopyable
 {
 public:

@@ -8,9 +8,9 @@
 #ifndef KWIVER_CONFIG_EXCEPTIONS_CONFIG_H
 #define KWIVER_CONFIG_EXCEPTIONS_CONFIG_H
 
-#include <viame/algorithm_framework/config/vital_config_export.h>
+#include <viame/algorithm_framework/config/viame_config_export.h>
 #include <viame/algorithm_framework/exceptions/base.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include "config_block_types.h"
 
@@ -22,7 +22,7 @@ namespace viame {
 /// \brief The base class for all exceptions thrown from \ref
 /// viame::config_block
 /// \ingroup exceptions
-class VITAL_CONFIG_EXPORT config_block_exception
+class VIAME_CONFIG_EXPORT config_block_exception
   : public vital_exception
 {
 public:
@@ -35,7 +35,7 @@ public:
 // ----------------------------------------------------------------------------
 /// \brief The inner exception thrown when casting fails.
 /// \ingroup exceptions
-class VITAL_CONFIG_EXPORT bad_config_block_cast
+class VIAME_CONFIG_EXPORT bad_config_block_cast
   : public config_block_exception
 {
 public:
@@ -49,7 +49,7 @@ public:
 // ----------------------------------------------------------------------------
 /// \brief Thrown when a value cannot be converted to the requested type.
 /// \ingroup exceptions
-class VITAL_CONFIG_EXPORT bad_config_block_cast_exception
+class VIAME_CONFIG_EXPORT bad_config_block_cast_exception
   : public config_block_exception
 {
 public:
@@ -80,7 +80,7 @@ public:
 // ----------------------------------------------------------------------------
 /// \brief Thrown when a value is requested for a value which does not exist.
 /// \ingroup exceptions
-class VITAL_CONFIG_EXPORT no_such_configuration_value_exception
+class VIAME_CONFIG_EXPORT no_such_configuration_value_exception
   : public config_block_exception
 {
 public:
@@ -98,7 +98,7 @@ public:
 // ----------------------------------------------------------------------------
 /// \brief Thrown when a value is set but is marked as read-only.
 /// \ingroup exceptions
-class VITAL_CONFIG_EXPORT set_on_read_only_value_exception
+class VIAME_CONFIG_EXPORT set_on_read_only_value_exception
   : public config_block_exception
 {
 public:
@@ -125,7 +125,7 @@ public:
 // ----------------------------------------------------------------------------
 /// \brief Thrown when a value is unset but is marked as read-only.
 /// \ingroup exceptions
-class VITAL_CONFIG_EXPORT unset_on_read_only_value_exception
+class VIAME_CONFIG_EXPORT unset_on_read_only_value_exception
   : public config_block_exception
 {
 public:
@@ -149,7 +149,7 @@ public:
 /// \brief The inner exception thrown when casting fails.
 ///
 /// \ingroup exceptions
-class VITAL_CONFIG_EXPORT bad_configuration_cast
+class VIAME_CONFIG_EXPORT bad_configuration_cast
   : public config_block_exception
 {
 public:
@@ -165,7 +165,7 @@ public:
 /// Thrown when a value cannot be converted to the requested type.
 ///
 /// \ingroup exceptions
-class VITAL_CONFIG_EXPORT bad_configuration_cast_exception
+class VIAME_CONFIG_EXPORT bad_configuration_cast_exception
   : public config_block_exception
 {
 public:
@@ -195,7 +195,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Base config_io exception class
-class VITAL_CONFIG_EXPORT config_block_io_exception
+class VIAME_CONFIG_EXPORT config_block_io_exception
   : public config_block_exception
 {
 public:
@@ -217,7 +217,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a file could not be found
-class VITAL_CONFIG_EXPORT config_file_not_found_exception
+class VIAME_CONFIG_EXPORT config_file_not_found_exception
   : public config_block_io_exception
 {
 public:
@@ -234,7 +234,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a file could not be read for whatever reason.
-class VITAL_CONFIG_EXPORT config_file_not_read_exception
+class VIAME_CONFIG_EXPORT config_file_not_read_exception
   : public config_block_io_exception
 {
 public:
@@ -251,7 +251,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a file could not be parsed after being read in
-class VITAL_CONFIG_EXPORT config_file_not_parsed_exception
+class VIAME_CONFIG_EXPORT config_file_not_parsed_exception
   : public config_block_io_exception
 {
 public:
@@ -268,7 +268,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Exception for when a file was not able to be written
-class VITAL_CONFIG_EXPORT config_file_write_exception
+class VIAME_CONFIG_EXPORT config_file_write_exception
   : public config_block_io_exception
 {
 public:

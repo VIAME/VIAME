@@ -1,4 +1,4 @@
-project(vital_python_util)
+project(viame_python_util)
 
 set(python_util_srcs
   python_exceptions.cxx)
@@ -7,11 +7,11 @@ set(python_util_headers
   python_exceptions.h
   python.h)
 
-viame_add_library(vital_python_util
+viame_add_library(viame_python_util
   ${python_util_srcs}
   ${python_util_headers})
 
-target_link_libraries(vital_python_util
+target_link_libraries(viame_python_util
   PRIVATE $<BUILD_INTERFACE:pybind11::embed> $<BUILD_INTERFACE:pybind11::module>
   )
 
@@ -21,7 +21,7 @@ viame_install_headers(
 )
 
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_python_util_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_python_util_export.h
   SUBDIR python/vital/util
   NOPATH
 )

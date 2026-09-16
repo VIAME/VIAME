@@ -40,7 +40,7 @@ viame_add_python_library( json
 
 target_link_libraries( python-arrows.serialize.json-json
   PRIVATE ${Python_LIBRARIES} pybind11::pybind11
-         vital
+         viame_algorithm_framework
          kwiver_serialize_json
 )
 

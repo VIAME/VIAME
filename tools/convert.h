@@ -14,7 +14,7 @@ namespace tools {
 
 /// Convert annotation files between formats, or camera calibration files
 ///
-/// Annotation conversions go straight through the registered vital readers
+/// Annotation conversions go straight through the registered viame_algorithm_framework readers
 /// and writers, one file or a whole folder at a time, using imagery found
 /// next to the annotations when it is there. Anything that is not an
 /// annotation file (stereo calibrations, ITK transforms) is handed to the

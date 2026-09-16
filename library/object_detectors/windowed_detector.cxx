@@ -53,7 +53,7 @@ windowed_detector
   }
 
   // `RGB_COLOR` both ways, so the bridge never swapped a channel: the mat
-  // was the vital image and is now the vital image.
+  // was the viame_algorithm_framework image and is now the viame_algorithm_framework image.
   auto const cv_image = image_data->get_image();
 
   if( cv_image.height() == 0 || cv_image.width() == 0 )

@@ -36,7 +36,7 @@
  * \param name The base name of the class.
  */
 #define DECLARE_FUNCTION_PROCESS(name)               \
-class SPROKIT_NO_EXPORT CLASS_NAME(name)               \
+class VIAME_PIPELINE_FRAMEWORK_NO_EXPORT CLASS_NAME(name)               \
   : public viame::pipeline::process                            \
 {                                                    \
   public:                                            \

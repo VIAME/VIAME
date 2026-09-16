@@ -9,7 +9,7 @@
 #include <viame/algorithm_framework/algo/merge_images.h>
 #include <viame/core_types/image_container.h>
 #include <viame/algorithm_framework/util/string.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace algo = viame::algo;
 

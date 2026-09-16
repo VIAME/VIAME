@@ -22,7 +22,7 @@ viame_add_python_library( _applets
   ${python_applets_headers}
   ${python_applets_sources}
   PRIVATE pybind11::pybind11
-          vital_applets
-          vital_config
-          vital
+          viame_applets
+          viame_config
+          viame_algorithm_framework
   )

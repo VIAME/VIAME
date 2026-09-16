@@ -18,9 +18,9 @@ if (KWIVER_ENABLE_TOOLS)
   viame_add_plugin( modules_python
     KIND        OTHERS
     SOURCES          ${modules_python_srcs}
-    PRIVATE          vital_python_util
-                     vital_logger
-                     vital_vpm
+    PRIVATE          viame_python_util
+                     viame_logger
+                     viame_plugin
                      ${libraries_to_link}
                    )
 endif()
@@ -42,5 +42,5 @@ viame_add_python_library(modules
                           SOURCES modules.cxx)
 
 viame_target_link_libraries(python-vital.modules-modules
-    PRIVATE   vital_python_util
-              vital_vpm)
+    PRIVATE   viame_python_util
+              viame_plugin)

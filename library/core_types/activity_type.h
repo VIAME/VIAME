@@ -10,13 +10,13 @@
 
 #include <viame/core_types/class_map.h>
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 namespace viame {
 
 struct activity_type_tag {};
 
-extern template class VITAL_TYPES_EXPORT class_map< activity_type_tag >;
+extern template class VIAME_CORE_TYPES_EXPORT class_map< activity_type_tag >;
 
 using activity_type = class_map< activity_type_tag >;
 

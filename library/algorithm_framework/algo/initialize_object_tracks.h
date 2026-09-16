@@ -9,7 +9,7 @@
 #define VITAL_ALGO_INITIALIZE_OBJECT_TRACKS_MATRIX_H_
 
 #include <viame/algorithm_framework/algo/algorithm.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/image_container.h>
@@ -21,7 +21,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for computing association cost matrices for tracking
-class VITAL_ALGO_EXPORT initialize_object_tracks
+class VIAME_ALGO_EXPORT initialize_object_tracks
   : public viame::algorithm
 {
 public:

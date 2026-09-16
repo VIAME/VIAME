@@ -20,7 +20,7 @@ template < typename T >
 similarity_< T >
 
 ::similarity_( const matrix_< 4, 4, T >& M )
-  : m_logger( viame::get_logger( "vital.similarity" ) )
+  : m_logger( viame::get_logger( "viame_algorithm_framework.similarity" ) )
 {
   if( ( M( 3, 0 ) != T( 0 ) ) ||
       ( M( 3, 1 ) != T( 0 ) ) ||
@@ -113,10 +113,10 @@ operator>>( std::istream& s, similarity_< T >& t )
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_SIMILARITY( T )                       \
-template class VITAL_TYPES_EXPORT similarity_< T >;       \
-template VITAL_TYPES_EXPORT std::ostream&                 \
+template class VIAME_CORE_TYPES_EXPORT similarity_< T >;       \
+template VIAME_CORE_TYPES_EXPORT std::ostream&                 \
 operator<<( std::ostream& s, const similarity_< T >& t ); \
-template VITAL_TYPES_EXPORT std::istream&                 \
+template VIAME_CORE_TYPES_EXPORT std::istream&                 \
 operator>>( std::istream& s, similarity_< T >& t )
 
 INSTANTIATE_SIMILARITY( double );

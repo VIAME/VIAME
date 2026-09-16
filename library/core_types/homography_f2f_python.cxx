@@ -7,7 +7,7 @@
 #include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 #include <viame/core_types/homography.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <sstream>
 #include <stdexcept>
 

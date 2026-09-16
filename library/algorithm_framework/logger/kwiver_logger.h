@@ -6,7 +6,7 @@
 #define KWIVER_KWIVER_LOGGER_H_
 
 #include "location_info.h"
-#include <viame/algorithm_framework/logger/vital_logger_export.h>
+#include <viame/algorithm_framework/logger/viame_logger_export.h>
 
 #include <functional>
 #include <memory>
@@ -33,7 +33,7 @@ namespace viame {
 /// implementations that existed were behind build options that have never
 /// been on, VIAME ships one logger, and the indirection was costing a
 /// `dlopen` at static-initialisation time on every process start.
-class VITAL_LOGGER_EXPORT kwiver_logger
+class VIAME_LOGGER_EXPORT kwiver_logger
   : public std::enable_shared_from_this< kwiver_logger >,
     private viame::noncopyable
 {

@@ -15,7 +15,7 @@ namespace viame {
 // --------------------------------------------------------------------------
 descriptor_set
 ::descriptor_set()
-  : m_logger( viame::get_logger( "vital.descriptor_set" ) )
+  : m_logger( viame::get_logger( "viame_algorithm_framework.descriptor_set" ) )
 {}
 
 descriptor_set

@@ -57,7 +57,7 @@ viame_add_python_library(
           ${_algo_python_headers}
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
-          vital
-          vital_config
-          vital_algo
+          viame_algorithm_framework
+          viame_config
+          viame_algo
 )

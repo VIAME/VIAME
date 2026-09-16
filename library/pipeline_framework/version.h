@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_VERSION_H
 #define SPROKIT_PIPELINE_VERSION_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include <cstdint>
 #include <string>
@@ -24,7 +24,7 @@ namespace viame::pipeline
  *
  * \brief Runtime version information.
  */
-class SPROKIT_PIPELINE_EXPORT version
+class VIAME_PIPELINE_FRAMEWORK_EXPORT version
 {
   public:
     /// The type of version components.

@@ -144,7 +144,7 @@ Key Concepts Demonstrated
 
 Build Requirements
 ------------------
-C++ algorithms need only the vital libraries. Python processes need
+C++ algorithms need only the viame_algorithm_framework libraries. Python processes need
 VIAME_ENABLE_PYTHON=ON.
 
 

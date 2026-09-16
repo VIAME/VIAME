@@ -200,7 +200,7 @@ slurp( std::string const& filename, size_t limit = 0 )
 constexpr size_t PROBE_BYTES = 64 * 1024;
 
 // ----------------------------------------------------------------------------
-/// stb's interleaved buffer into vital's planar image.
+/// stb's interleaved buffer into viame_algorithm_framework's planar image.
 template < typename T >
 kv::image
 interleaved_to_image( T const* source, int width, int height, int channels )
@@ -225,7 +225,7 @@ interleaved_to_image( T const* source, int width, int height, int channels )
 }
 
 // ----------------------------------------------------------------------------
-/// vital's planar image into an interleaved buffer.
+/// viame_algorithm_framework's planar image into an interleaved buffer.
 template < typename T >
 std::vector< T >
 image_to_interleaved( kv::image const& image )

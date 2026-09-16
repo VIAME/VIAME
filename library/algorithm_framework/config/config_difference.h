@@ -8,9 +8,9 @@
 #define CONFIG_CONFIG_DIFFERENCE_H
 
 #include <viame/algorithm_framework/config/config_block.h>
-#include <viame/algorithm_framework/config/vital_config_export.h>
+#include <viame/algorithm_framework/config/viame_config_export.h>
 #include <viame/algorithm_framework/logger/kwiver_logger.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace viame {
 
@@ -59,7 +59,7 @@ namespace viame {
 /// }
 /// \endcode
 ///
-class VITAL_CONFIG_EXPORT config_difference
+class VIAME_CONFIG_EXPORT config_difference
 {
 public:
   config_difference(

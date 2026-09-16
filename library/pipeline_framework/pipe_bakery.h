@@ -5,13 +5,13 @@
 #ifndef SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_H
 #define SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_H
 
-#include<viame/pipeline_framework/sprokit_pipeline_util_export.h>
+#include<viame/pipeline_framework/viame_pipeline_util_export.h>
 
 #include "path.h"
 #include "pipe_declaration_types.h"
 
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/pipeline_framework/types.h>
 
 #include <iosfwd>
@@ -32,7 +32,7 @@ namespace viame::pipeline
  *
  * \returns A pipeline baked from \p blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& blocks);
+VIAME_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& blocks);
 
 /**
  * \brief Extract a configuration from a collection of blocks.
@@ -41,7 +41,7 @@ SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& bloc
  *
  * \returns A configuration extracted from \p blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT viame::config_block_sptr
+VIAME_PIPELINE_UTIL_EXPORT viame::config_block_sptr
   extract_configuration(pipe_blocks const& blocks);
 
 }

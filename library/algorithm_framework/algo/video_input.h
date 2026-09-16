@@ -8,8 +8,8 @@
 #ifndef VITAL_ALGO_VIDEO_INPUT_H_
 #define VITAL_ALGO_VIDEO_INPUT_H_
 
-#include <viame/algorithm_framework/algo/vital_algo_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/algo/viame_algo_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/algorithm_framework/algorithm_capabilities.h>
 
@@ -108,7 +108,7 @@ namespace algo {
 /// non-standard video sources. These capabilities should be namespaced using
 /// the name (or abbreviation) of the concrete algorithm followed by
 /// the abbreviation of the capability.
-class VITAL_ALGO_EXPORT video_input
+class VIAME_ALGO_EXPORT video_input
   : public viame::algorithm
 {
 public:

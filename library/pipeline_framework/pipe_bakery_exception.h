@@ -11,7 +11,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 #define SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 
-#include<viame/pipeline_framework/sprokit_pipeline_util_export.h>
+#include<viame/pipeline_framework/viame_pipeline_util_export.h>
 
 #include "pipe_declaration_types.h"
 
@@ -34,7 +34,7 @@ namespace viame::pipeline {
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT pipe_bakery_exception
+class VIAME_PIPELINE_UTIL_EXPORT pipe_bakery_exception
   : public pipeline_exception
 {
   public:
@@ -56,7 +56,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT pipe_bakery_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
+class VIAME_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
   : public pipe_bakery_exception
 {
   public:
@@ -87,7 +87,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
+class VIAME_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
   : public pipe_bakery_exception
 {
   public:
@@ -111,7 +111,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
 };
 
 // ------------------------------------------------------------------
-class SPROKIT_PIPELINE_UTIL_EXPORT relativepath_exception
+class VIAME_PIPELINE_UTIL_EXPORT relativepath_exception
   : public pipe_bakery_exception
 {
 public:
@@ -129,7 +129,7 @@ public:
 };
 
 // ------------------------------------------------------------------
-class SPROKIT_PIPELINE_UTIL_EXPORT provider_error_exception
+class VIAME_PIPELINE_UTIL_EXPORT provider_error_exception
   : public pipe_bakery_exception
 {
 public:

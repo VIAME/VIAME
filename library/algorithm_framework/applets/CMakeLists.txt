@@ -14,26 +14,26 @@ set(source_files
 ###
 # tools applet support library
 
-viame_add_library( vital_applets
+viame_add_library( viame_applets
   ${public_headers}
   ${source_files}
 )
 
-target_link_libraries( vital_applets
-  PUBLIC      vital_util
-              vital_config
-              vital_logger
-              vital_vpm  # uses pluggable
+target_link_libraries( viame_applets
+  PUBLIC      viame_util
+              viame_config
+              viame_logger
+              viame_plugin  # uses pluggable
   )
 
 ###
 # Install header files
 
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_applets_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_applets_export.h
   NOPATH
   SUBDIR      viame/algorithm_framework/applets
   )
 
 # Republished under the prefix the imported sources use.
-viame_lite_generated( vital_applets_export.h algorithm_framework/applets )
+viame_lite_generated( viame_applets_export.h algorithm_framework/applets )

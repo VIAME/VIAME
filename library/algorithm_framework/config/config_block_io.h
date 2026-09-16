@@ -12,7 +12,7 @@
 #define KWIVER_CONFIG_BLOCK_IO_H_
 
 #include "config_block.h"
-#include <viame/algorithm_framework/config/vital_config_export.h>
+#include <viame/algorithm_framework/config/viame_config_export.h>
 
 #include <ostream>
 
@@ -46,7 +46,7 @@ namespace viame {
 ///
 /// \return A \c config_block object representing the contents of the read-in
 ///   file.
-config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
+config_block_sptr VIAME_CONFIG_EXPORT read_config_file(
   config_path_t const&      file_path,
   config_path_list_t const& search_paths = config_path_list_t(),
   bool use_system_paths = true );
@@ -149,7 +149,7 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
 /// \return
 ///   A \c config_block object representing the contents of the read-in file.
 config_block_sptr
-VITAL_CONFIG_EXPORT read_config_file(
+VIAME_CONFIG_EXPORT read_config_file(
   std::string const& file_name,
   std::string const& application_name,
   std::string const& application_version,
@@ -166,7 +166,7 @@ VITAL_CONFIG_EXPORT read_config_file(
 /// If \p find_all is \c true, the return is the list of all existing config
 /// files of the specified \p file_name in all search paths. Otherwise, the
 /// search process stops after the first file is found.
-std::vector< config_path_t > VITAL_CONFIG_EXPORT find_config_file(
+std::vector< config_path_t > VIAME_CONFIG_EXPORT find_config_file(
   std::string const& file_name,
   std::string const& application_name = {},
   std::string const& application_version = {},
@@ -190,7 +190,7 @@ std::vector< config_path_t > VITAL_CONFIG_EXPORT find_config_file(
 ///
 /// \param config    The \c config_block object to output.
 /// \param file_path The path to output the file to.
-void VITAL_CONFIG_EXPORT write_config_file(
+void VIAME_CONFIG_EXPORT write_config_file(
   config_block_sptr const&  config,
   config_path_t const&      file_path );
 
@@ -208,7 +208,7 @@ void VITAL_CONFIG_EXPORT write_config_file(
 ///
 /// \param config    The \c config_block object to output.
 /// \param str       The output stream.
-void VITAL_CONFIG_EXPORT write_config(
+void VIAME_CONFIG_EXPORT write_config(
   config_block_sptr const& config,
   std::ostream&            str );
 
@@ -234,7 +234,7 @@ void VITAL_CONFIG_EXPORT write_config(
 ///
 /// \return
 ///   List of additional application configuration search paths.
-config_path_list_t VITAL_CONFIG_EXPORT
+config_path_list_t VIAME_CONFIG_EXPORT
 application_config_file_paths(
   std::string const& application_name,
   std::string const& application_version,
@@ -264,7 +264,7 @@ application_config_file_paths(
 ///
 /// \note This is the only function that will not guess the install prefix if
 ///       an empty prefix is specified.
-config_path_list_t VITAL_CONFIG_EXPORT
+config_path_list_t VIAME_CONFIG_EXPORT
 application_config_file_paths(
   std::string const& application_name,
   std::string const& application_version,
@@ -285,7 +285,7 @@ application_config_file_paths(
 ///
 /// \return
 ///   List of KWIVER configuration search paths.
-config_path_list_t VITAL_CONFIG_EXPORT
+config_path_list_t VIAME_CONFIG_EXPORT
 kwiver_config_file_paths( config_path_t const& install_prefix );
 
 } // namespace viame

@@ -12,8 +12,8 @@
 #include <viame/core_types/object_track_set.h>
 #include <viame/core_types/timestamp.h>
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace viame {
 
@@ -21,7 +21,7 @@ namespace viame {
 /// @brief Activity class.
 ///
 /// This class represents an activity.
-class VITAL_TYPES_EXPORT activity
+class VIAME_CORE_TYPES_EXPORT activity
 {
 public:
   /// @brief Create an empty activity

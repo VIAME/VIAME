@@ -12,8 +12,8 @@
 #include <viame/core_types/geo_polygon.h>
 #include <viame/core_types/metadata_tags.h>
 #include <viame/core_types/rotation.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <typeinfo>
 
@@ -127,7 +127,7 @@ TAG_TYPE( VITAL_META_NITF_IMAGE_COMMENTS, string_t );
 #undef TAG_TYPE
 
 // ----------------------------------------------------------------------------
-class VITAL_TYPES_EXPORT metadata_tag_traits
+class VIAME_CORE_TYPES_EXPORT metadata_tag_traits
 {
 public:
   metadata_tag_traits(
@@ -162,17 +162,17 @@ private:
 };
 
 // ----------------------------------------------------------------------------
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 metadata_tag_traits const&
 tag_traits_by_tag( vital_metadata_tag tag );
 
 // ----------------------------------------------------------------------------
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 metadata_tag_traits const&
 tag_traits_by_name( std::string const& name );
 
 // ----------------------------------------------------------------------------
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 metadata_tag_traits const&
 tag_traits_by_enum_name( std::string const& name );
 

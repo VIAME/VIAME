@@ -26,9 +26,9 @@ viame_private_header_group( ${private_headers} )
 viame_add_plugin( schedulers
   SOURCES         ${source}
                   ${private_headers}
-  PRIVATE         sprokit_pipeline
-                  vital_config
-                  vital_vpm
+  PRIVATE         viame_pipeline_framework
+                  viame_config
+                  viame_plugin
                   ${CMAKE_THREAD_LIBS_INIT}
   KIND        PROCESSES
   )

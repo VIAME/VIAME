@@ -14,8 +14,8 @@
 #include "track_descriptor.h"
 #include "uid.h"
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 #include <string>
@@ -24,7 +24,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// A representation of iterative query refinement feedback.
-class VITAL_TYPES_EXPORT iqr_feedback
+class VIAME_CORE_TYPES_EXPORT iqr_feedback
 {
 public:
   iqr_feedback();

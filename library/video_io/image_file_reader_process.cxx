@@ -9,7 +9,7 @@
 
 #include "image_file_reader_process.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/timestamp.h>
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/image.h>

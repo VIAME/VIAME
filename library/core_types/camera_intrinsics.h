@@ -9,7 +9,7 @@
 #ifndef VITAL_CAMERA_INTRINSICS_H_
 #define VITAL_CAMERA_INTRINSICS_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <iostream>
 #include <memory>
@@ -17,7 +17,7 @@
 
 #include <viame/core_types/matrix.h>
 #include <viame/core_types/vector.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 
@@ -28,7 +28,7 @@ typedef std::shared_ptr< camera_intrinsics > camera_intrinsics_sptr;
 
 // ----------------------------------------------------------------------------
 /// An abstract representation of camera intrinsics
-class VITAL_TYPES_EXPORT camera_intrinsics
+class VIAME_CORE_TYPES_EXPORT camera_intrinsics
 {
 public:
   /// Destructor
@@ -108,11 +108,11 @@ public:
 };
 
 /// output stream operator for a base class camera_intrinsics
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 std::ostream& operator<<( std::ostream& s, const camera_intrinsics& c );
 
 /// A representation of camera intrinsic parameters
-class VITAL_TYPES_EXPORT simple_camera_intrinsics
+class VIAME_CORE_TYPES_EXPORT simple_camera_intrinsics
   : public camera_intrinsics
 {
 public:
@@ -324,7 +324,7 @@ protected:
 ///
 /// \param s input stream
 /// \param k simple_camera_intrinsics to stream into
-VITAL_TYPES_EXPORT std::istream&
+VIAME_CORE_TYPES_EXPORT std::istream&
 operator>>( std::istream& s, simple_camera_intrinsics& k );
 
 } // namespace viame

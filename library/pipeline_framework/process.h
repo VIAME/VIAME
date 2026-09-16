@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_H
 #define SPROKIT_PIPELINE_PROCESS_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include "edge.h"
 #include "datum.h"
@@ -67,7 +67,7 @@ typedef std::vector<process_t> processes_t;
  *
  * \ingroup base_classes
  */
-class SPROKIT_PIPELINE_EXPORT process
+class VIAME_PIPELINE_FRAMEWORK_EXPORT process
 {
   public:
     /// The type for the type of a process.
@@ -132,7 +132,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \brief Information about a port.
      */
-    class SPROKIT_PIPELINE_EXPORT port_info
+    class VIAME_PIPELINE_FRAMEWORK_EXPORT port_info
     {
       public:
         /**
@@ -165,7 +165,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \brief Information about a configuration parameter.
      */
-    class SPROKIT_PIPELINE_EXPORT conf_info
+    class VIAME_PIPELINE_FRAMEWORK_EXPORT conf_info
     {
       public:
         /**
@@ -200,7 +200,7 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      *
      */
-    class SPROKIT_PIPELINE_EXPORT data_info
+    class VIAME_PIPELINE_FRAMEWORK_EXPORT data_info
     {
       public:
         /**
@@ -1352,7 +1352,7 @@ SCOPED_INSTRUMENTATION(reconfigure);
 #define scoped_reconfigure_instrumentation() scoped_reconfigure_instrumentation_( this )
 ///@}
 
-    class SPROKIT_PIPELINE_NO_EXPORT priv;
+    class VIAME_PIPELINE_FRAMEWORK_NO_EXPORT priv;
     std::shared_ptr<priv> d;
 
   private:
@@ -1362,12 +1362,12 @@ SCOPED_INSTRUMENTATION(reconfigure);
     static viame::config_block_key_t const static_input_prefix;
 
     friend class pipeline;
-    SPROKIT_PIPELINE_NO_EXPORT void reconfigure(viame::config_block_sptr const& conf);
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT void reconfigure(viame::config_block_sptr const& conf);
 
-    SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(viame::config_block_sptr const& conf);
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT void reconfigure_with_provides(viame::config_block_sptr const& conf);
 
     friend class process_factory;
-    SPROKIT_PIPELINE_NO_EXPORT void add_property ( const property_t& prop );
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT void add_property ( const property_t& prop );
 };
 
 // ----------------------------------------------------------------------------

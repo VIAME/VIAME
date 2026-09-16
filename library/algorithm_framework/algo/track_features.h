@@ -19,7 +19,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for tracking feature points
-class VITAL_ALGO_EXPORT track_features
+class VIAME_ALGO_EXPORT track_features
   : public viame::algorithm
 {
 public:

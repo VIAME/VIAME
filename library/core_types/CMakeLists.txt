@@ -96,29 +96,29 @@ endforeach()
   
 
 viame_install_headers(  # generated export header file
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_types_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_core_types_export.h
   SUBDIR viame/core_types
   NOPATH
 )
 viame_add_library(
-  vital_types SHARED
+  viame_core_types SHARED
   ${vital_types_public_headers}
   ${vital_types_sources}
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_types_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_core_types_export.h
   )
 
 # Depend on file configuration
-add_dependencies( vital_types viame_configure )
+add_dependencies( viame_core_types viame_configure )
 
-target_link_libraries( vital_types
+target_link_libraries( viame_core_types
   PRIVATE
-            vital_logger
-            vital_util
-  PUBLIC    vital_config
+            viame_logger
+            viame_util
+  PUBLIC    viame_config
   )
 
 # Republished under the prefix the imported sources use.
-viame_lite_generated( vital_types_export.h core_types )
+viame_lite_generated( viame_core_types_export.h core_types )
 
 ###
 # Python bindings

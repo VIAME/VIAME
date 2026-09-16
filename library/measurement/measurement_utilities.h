@@ -594,7 +594,7 @@ public:
   // Feature-based matching functions
   // -------------------------------------------------------------------------
 
-  /// Find corresponding point using vital feature detection/matching
+  /// Find corresponding point using viame_algorithm_framework feature detection/matching
   /// Returns true if match found, false otherwise
   /// Updates left_point to the actual feature location if a match is found
   /// If cameras are provided and disparity-aware search is enabled, uses depth

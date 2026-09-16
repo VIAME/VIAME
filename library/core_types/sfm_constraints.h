@@ -7,8 +7,8 @@
 /// to be
 ///       used in SfM.
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/local_tangent_space.h>
 #include <viame/core_types/metadata_map.h>
@@ -19,7 +19,7 @@
 
 namespace viame {
 
-class VITAL_TYPES_EXPORT sfm_constraints
+class VIAME_CORE_TYPES_EXPORT sfm_constraints
 {
 public:
   sfm_constraints();

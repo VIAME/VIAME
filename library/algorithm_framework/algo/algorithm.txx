@@ -105,7 +105,7 @@ set_nested_algo_configuration(
   std::shared_ptr< INTERFACE >&    nested_algo )
 {
   static viame::logger_handle_t logger = viame::get_logger(
-    "vital.algorithm" );
+    "viame_algorithm_framework.algorithm" );
   const std::string type_key = name + config_block::block_sep() + "type";
 
   const std::string type_name = demangle( typeid( INTERFACE ).name() );
@@ -246,7 +246,7 @@ check_nested_algo_configuration(
   config_block_sptr config )
 {
   static viame::logger_handle_t logger = viame::get_logger(
-    "vital.algorithm" );
+    "viame_algorithm_framework.algorithm" );
   const std::string type_key = name + config_block::block_sep() + "type";
 
   if( !config->has_value( type_key ) )

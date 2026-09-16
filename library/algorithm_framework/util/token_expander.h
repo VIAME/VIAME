@@ -6,7 +6,7 @@
 #define _TOKEN_EXPANDER_H_
 
 #include <viame/algorithm_framework/logger/logger.h>
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <map>
 #include <memory>
@@ -61,7 +61,7 @@ class token_type;
 /// }
 /// };
 /// @endcode
-class VITAL_UTIL_EXPORT token_expander
+class VIAME_UTIL_EXPORT token_expander
 {
 public:
   token_expander();

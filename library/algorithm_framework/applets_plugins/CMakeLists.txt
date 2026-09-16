@@ -8,7 +8,7 @@ viame_add_plugin(
   SOURCES register_tools.cxx
           config_explorer.h
           config_explorer.cxx
-  PRIVATE vital
+  PRIVATE viame_algorithm_framework
 )
 
 target_include_directories( config_explorer PRIVATE

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief This file contains the interface for vital metadata.
+/// \brief This file contains the interface for viame_algorithm_framework metadata.
 
 #ifndef KWIVER_VITAL_METADATA_H_
 #define KWIVER_VITAL_METADATA_H_
@@ -16,7 +16,7 @@
 #include <viame/core_types/metadata_traits.h>
 #include <viame/core_types/rotation.h>
 #include <viame/core_types/timestamp.h>
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 #include <viame/algorithm_framework/util/visit.h>
 
 #include <iostream>
@@ -98,14 +98,14 @@ convert_data( [[maybe_unused]] vital_metadata_tag tag, T const& data )
 
 // ----------------------------------------------------------------------------
 template <>
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 metadata_value
 convert_data< any >( vital_metadata_tag tag, any const& data );
 
 } // namespace metadata_detail
 
 // ----------------------------------------------------------------------------
-class VITAL_TYPES_EXPORT metadata_item
+class VIAME_CORE_TYPES_EXPORT metadata_item
 {
 public:
   /// \throws logic_error If \p data's type does not match \p tag.
@@ -227,7 +227,7 @@ private:
 /// These data types are directly supported by the metadata_item
 /// API. There are some exceptions to this guideline however. Generally
 /// useful compound data items, such as lat/lon coordinates and image
-/// corner points, are represented using standard vital data types to
+/// corner points, are represented using standard viame_algorithm_framework data types to
 /// make dealing with the data items easier. For example, if you want
 /// corner points, they can be retrieved with one call rather than
 /// doing eight calls and storing the values in some structure.
@@ -242,7 +242,7 @@ private:
 /// directly about its type and the data will have to be retrieved from
 /// the \c any object carefully.
 ///
-class VITAL_TYPES_EXPORT metadata
+class VIAME_CORE_TYPES_EXPORT metadata
 {
 public:
 // The design for this collection requires that the elements in the
@@ -459,7 +459,7 @@ private:
 using metadata_sptr = std::shared_ptr< metadata >;
 using metadata_vector = std::vector< metadata_sptr >;
 
-VITAL_TYPES_EXPORT std::ostream& print_metadata(
+VIAME_CORE_TYPES_EXPORT std::ostream& print_metadata(
   std::ostream& str,
   metadata const& metadata );
 

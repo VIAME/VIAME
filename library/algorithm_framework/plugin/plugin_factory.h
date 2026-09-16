@@ -13,7 +13,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include <viame/algorithm_framework/plugin/vital_vpm_export.h>
+#include <viame/algorithm_framework/plugin/viame_plugin_export.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/exceptions/plugin.h>
@@ -67,7 +67,7 @@ get_concrete_name()
  * factories hard-overwrite the "creation" function (`from_config` here) with
  * different parameterizations.
  */
-class VITAL_VPM_EXPORT plugin_factory
+class VIAME_PLUGIN_EXPORT plugin_factory
   : public std::enable_shared_from_this< plugin_factory >,
     private viame::noncopyable
 {

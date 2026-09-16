@@ -9,7 +9,7 @@
 #define VITAL_ALGO_TRACK_OBJECTS_H_
 
 #include <viame/algorithm_framework/algo/algorithm.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/homography_f2f.h>
@@ -38,7 +38,7 @@ namespace algo {
 /// All tracker implementations should provide the track() method for
 /// frame-by-frame processing. Optional methods support initialization,
 /// finalization, and state management.
-class VITAL_ALGO_EXPORT track_objects
+class VIAME_ALGO_EXPORT track_objects
   : public viame::algorithm
 {
 public:

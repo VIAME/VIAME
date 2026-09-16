@@ -11,7 +11,7 @@
 #include <iostream>
 #include <vector>
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <viame/core_types/math/quaternion.h>
 
@@ -24,7 +24,7 @@ namespace viame {
 ///
 /// Internally, rotation is stored in quaternion form
 template < typename T >
-class VITAL_TYPES_EXPORT rotation_
+class VIAME_CORE_TYPES_EXPORT rotation_
 {
 public:
   /// Default Constructor
@@ -170,13 +170,13 @@ typedef rotation_< float > rotation_f;
 
 /// output stream operator for a rotation
 template < typename T >
-VITAL_TYPES_EXPORT std::ostream&  operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream&  operator<<(
   std::ostream& s,
   const rotation_< T >& r );
 
 /// input stream operator for a rotation
 template < typename T >
-VITAL_TYPES_EXPORT std::istream&  operator>>(
+VIAME_CORE_TYPES_EXPORT std::istream&  operator>>(
   std::istream& s,
   rotation_< T >& r );
 
@@ -192,7 +192,7 @@ VITAL_TYPES_EXPORT std::istream&  operator>>(
 /// \returns A rotation in between A and B to a degree proportional to the given
 ///          fraction.
 template < typename T >
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 rotation_< T >
 interpolate_rotation( rotation_< T > const& A, rotation_< T > const& B, T f );
 
@@ -210,7 +210,7 @@ interpolate_rotation( rotation_< T > const& A, rotation_< T > const& B, T f );
 /// \returns A vector of \c n evenly interpolated rotations in order between A
 ///          and B.
 template < typename T >
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 void interpolated_rotations(
   rotation_< T > const& A, rotation_< T > const& B,
   size_t n, std::vector< rotation_< T > >& interp_rots );
@@ -230,7 +230,7 @@ void interpolated_rotations(
 /// \returns A copy of \c r with the x axis pointing north, y axis pointing
 ///          east, and z axis pointing down.
 template < typename T >
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 rotation_< T >
 enu_to_ned( rotation_< T > const& r );
 
@@ -249,7 +249,7 @@ enu_to_ned( rotation_< T > const& r );
 /// \returns A copy of \c r with the x axis pointing east, y axis pointing
 ///          north, and z axis pointing up.
 template < typename T >
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 rotation_< T >
 ned_to_enu( rotation_< T > const& r );
 
@@ -262,7 +262,7 @@ ned_to_enu( rotation_< T > const& r );
 /// aligns the X axis with "right" as viewed in an image, the Y axis with
 /// "down", and the Z axis with "forward".
 template < typename T >
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 rotation_< T >
 sensor_to_camera( rotation_< T > const& r );
 
@@ -270,7 +270,7 @@ sensor_to_camera( rotation_< T > const& r );
 ///
 /// Inverse of sensor_to_camera().
 template < typename T >
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 rotation_< T >
 camera_to_sensor( rotation_< T > const& r );
 

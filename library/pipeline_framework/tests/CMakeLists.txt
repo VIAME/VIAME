@@ -15,8 +15,8 @@ include( viame-test-setup )
 viame_discover_gtests( viame pipe_parser
   LIBRARIES kwiver::vital
             kwiver::vital_config
-            sprokit_pipeline
-            sprokit_pipeline_util
+            viame_pipeline_framework
+            viame_pipeline_util
             GTest::gtest )
 
 ###
@@ -32,8 +32,8 @@ viame_discover_gtests( viame scheduler
             kwiver::vital_config
             kwiver::vital_vpm
             viame::registry
-            sprokit_pipeline
-            sprokit_pipeline_util
+            viame_pipeline_framework
+            viame_pipeline_util
             GTest::gtest )
 
 ###
@@ -47,6 +47,6 @@ viame_discover_gtests( viame process_alias
             kwiver::vital_config
             kwiver::vital_vpm
             viame::registry
-            sprokit_pipeline
-            sprokit_pipeline_util
+            viame_pipeline_framework
+            viame_pipeline_util
             GTest::gtest )

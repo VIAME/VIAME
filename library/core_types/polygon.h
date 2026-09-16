@@ -9,8 +9,8 @@
 #define VITAL_TYPES_POLYGON_H
 
 #include <viame/core_types/vector.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <initializer_list>
 #include <memory>
@@ -34,7 +34,7 @@ namespace viame {
 /// This class behaviour is considered the specification for all
 /// derived classes.
 
-class VITAL_TYPES_EXPORT polygon
+class VIAME_CORE_TYPES_EXPORT polygon
 {
 public:
   typedef viame::vector_2d point_t;
@@ -164,10 +164,10 @@ private:
 typedef std::shared_ptr< polygon > polygon_sptr;
 typedef std::vector< polygon_sptr >  polygon_sptr_list;
 
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 bool operator==( polygon const& lhs, polygon const& rhs );
 
-VITAL_TYPES_EXPORT
+VIAME_CORE_TYPES_EXPORT
 bool operator!=( polygon const& lhs, polygon const& rhs );
 
 } // namespace viame

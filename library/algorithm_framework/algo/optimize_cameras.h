@@ -10,7 +10,7 @@
 #ifndef VITAL_ALGO_OPTIMIZE_CAMERAS_H_
 #define VITAL_ALGO_OPTIMIZE_CAMERAS_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/camera_map.h>
@@ -24,7 +24,7 @@ namespace viame {
 namespace algo {
 
 /// Abstract algorithm definition base for optimizing cameras
-class VITAL_ALGO_EXPORT optimize_cameras
+class VIAME_ALGO_EXPORT optimize_cameras
   : public viame::algorithm
 {
 public:

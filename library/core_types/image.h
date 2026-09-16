@@ -11,8 +11,8 @@
 #include <viame/core_types/color.h>
 
 #include <viame/algorithm_framework/exceptions/image.h>
-#include <viame/core_types/vital_types_export.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <limits>
 #include <memory>
@@ -23,7 +23,7 @@
 namespace viame {
 
 /// A struct containing traits of the data type stored at each pixel
-struct VITAL_TYPES_EXPORT image_pixel_traits
+struct VIAME_CORE_TYPES_EXPORT image_pixel_traits
 {
   /// enumeration of the different type of pixel data
   enum pixel_type
@@ -59,12 +59,12 @@ struct VITAL_TYPES_EXPORT image_pixel_traits
 };
 
 /// Output stream operator for image_pixel_traits::pixel_type
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& os,
   image_pixel_traits::pixel_type pt );
 
 /// Output stream operator for image_pixel_traits
-VITAL_TYPES_EXPORT std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT std::ostream& operator<<(
   std::ostream& os,
   image_pixel_traits const& pt );
 
@@ -114,7 +114,7 @@ struct image_pixel_traits_helper< true, false, true >
 template < typename T >
 struct image_pixel_traits_of : public image_pixel_traits
 {
-  VITAL_TYPES_EXPORT
+  VIAME_CORE_TYPES_EXPORT
   const static image_pixel_traits::pixel_type static_type =
     image_pixel_traits_helper< std::numeric_limits< T >::is_specialized,
       std::numeric_limits< T >::is_integer,
@@ -127,7 +127,7 @@ struct image_pixel_traits_of : public image_pixel_traits
 template <>
 struct image_pixel_traits_of< bool >: public image_pixel_traits
 {
-  VITAL_TYPES_EXPORT
+  VIAME_CORE_TYPES_EXPORT
   const static image_pixel_traits::pixel_type static_type =
     image_pixel_traits::BOOL;
   image_pixel_traits_of()
@@ -144,7 +144,7 @@ struct image_pixel_from_traits
 
 #define image_pixel_from_traits_macro( T )                        \
 template <>                                                       \
-struct VITAL_TYPES_EXPORT                                         \
+struct VIAME_CORE_TYPES_EXPORT                                         \
 image_pixel_from_traits< image_pixel_traits_of< T >::static_type, \
   sizeof( T ) > { typedef T type; }
 
@@ -174,7 +174,7 @@ image_pixel_from_traits_macro( bool );
 ///
 /// Derived image memory classes can proved access to image memory
 /// stored in other forms, such as on the GPU or in 3rd party data structures.
-class VITAL_TYPES_EXPORT image_memory
+class VIAME_CORE_TYPES_EXPORT image_memory
 {
 public:
   /// Default Constructor
@@ -252,7 +252,7 @@ typedef std::shared_ptr< image_memory > image_memory_sptr;
 /// veiw into some existing memory.  In this case the image does not own the
 /// memory and image::memory() will return nullptr.  The user must ensure that
 /// the memory exists for the lifetime of the image.
-class VITAL_TYPES_EXPORT image
+class VIAME_CORE_TYPES_EXPORT image
 {
 public:
   /// Default Constructor
@@ -787,7 +787,7 @@ public:
 /// only that the images have the same dimensions and pixel values.
 /// \param img1 first image to compare
 /// \param img2 second image to compare
-VITAL_TYPES_EXPORT bool equal_content( const image& img1, const image& img2 );
+VIAME_CORE_TYPES_EXPORT bool equal_content( const image& img1, const image& img2 );
 
 } // namespace viame
 

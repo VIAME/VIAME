@@ -12,7 +12,7 @@
 #include <viame/core_types/category_hierarchy.h>
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/image_container.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <map>
 #include <string>
@@ -22,7 +22,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for training object detectors
-class VITAL_ALGO_EXPORT train_detector
+class VIAME_ALGO_EXPORT train_detector
   : public viame::algorithm
 {
 public:

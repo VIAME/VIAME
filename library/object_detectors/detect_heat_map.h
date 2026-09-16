@@ -14,7 +14,7 @@
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/core_types/timestamp.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include "viame_object_detectors_export.h"
 

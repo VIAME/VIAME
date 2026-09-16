@@ -10,13 +10,13 @@
 #ifndef VITAL_ALGO_MATCH_DESCRIPTOR_SETS_H_
 #define VITAL_ALGO_MATCH_DESCRIPTOR_SETS_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/descriptor_set.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace viame {
 
@@ -26,7 +26,7 @@ namespace algo {
 ///
 /// A common use for this algorithm is bag of visual words matching on sets of
 /// descriptor extracted around features detected in images.
-class VITAL_ALGO_EXPORT match_descriptor_sets
+class VIAME_ALGO_EXPORT match_descriptor_sets
   : public viame::algorithm
 {
 public:

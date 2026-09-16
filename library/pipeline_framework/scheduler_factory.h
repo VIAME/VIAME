@@ -10,7 +10,7 @@
 #ifndef SPROKIT_PIPELINE_SCHEDULER_FACTORY_H
 #define SPROKIT_PIPELINE_SCHEDULER_FACTORY_H
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/plugin/plugin_registrar.h>
@@ -57,7 +57,7 @@ create_new_scheduler( pipeline_t const& pipe,
  *
  * \tparam C Concrete scheduler class type.
  */
-class SPROKIT_PIPELINE_EXPORT scheduler_factory
+class VIAME_PIPELINE_FRAMEWORK_EXPORT scheduler_factory
 : public viame::plugin_factory
 {
 public:
@@ -84,7 +84,7 @@ public:
   // Sprokit schedulers use their own configuration mechanism, so these are stubs
   viame::pluggable_sptr from_config( [[maybe_unused]] viame::config_block_sptr const cb ) const override
   {
-    // Sprokit schedulers are not pluggable in the same way as vital algorithms
+    // Sprokit schedulers are not pluggable in the same way as viame_algorithm_framework algorithms
     return nullptr;
   }
 
@@ -95,7 +95,7 @@ public:
 };
 
 // ----------------------------------------------------------------------------
-class SPROKIT_PIPELINE_EXPORT cpp_scheduler_factory
+class VIAME_PIPELINE_FRAMEWORK_EXPORT cpp_scheduler_factory
 : public scheduler_factory
 {
 public:
@@ -135,7 +135,7 @@ private:
  *
  * \returns A new scheduler of type \p type.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
 viame::pipeline::scheduler_t
 create_scheduler( const viame::pipeline::scheduler::type_t&      name,
                   const viame::pipeline::pipeline_t&             pipe,
@@ -147,7 +147,7 @@ create_scheduler( const viame::pipeline::scheduler::type_t&      name,
  * \param vpl The loader object that is managing the list of loadable modules.
  * \param module The scheduler to mark as loaded.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
 void mark_scheduler_module_as_loaded( viame::registry& vpl,
                                       module_t const& module );
 
@@ -159,7 +159,7 @@ void mark_scheduler_module_as_loaded( viame::registry& vpl,
  *
  * \returns True if the scheduler has already been loaded, false otherwise.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
 bool is_scheduler_module_loaded( viame::registry& vpl,
                                  module_t const& module );
 

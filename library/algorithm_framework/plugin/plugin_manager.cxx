@@ -51,7 +51,7 @@ class plugin_manager::priv
 public:
   priv()
     : m_registry( new registry() ),
-      m_logger( viame::get_logger( "vital.plugin_manager" ) )
+      m_logger( viame::get_logger( "viame_algorithm_framework.plugin_manager" ) )
   {}
 
   plugin_types m_loaded; // bitmask of kinds registered

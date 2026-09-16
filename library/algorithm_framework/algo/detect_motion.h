@@ -11,14 +11,14 @@
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/timestamp.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 
 namespace algo {
 
 /// \brief Abstract base class for motion detection algorithms.
-class VITAL_ALGO_EXPORT detect_motion
+class VIAME_ALGO_EXPORT detect_motion
   : public viame::algorithm
 {
 public:

@@ -32,7 +32,7 @@ namespace algo {
 /// - Optionally clicks on background (background point, label=0)
 /// - Algorithm returns detected objects with segmentation masks
 ///
-class VITAL_ALGO_EXPORT segment_via_points
+class VIAME_ALGO_EXPORT segment_via_points
   : public viame::algorithm
 {
 public:

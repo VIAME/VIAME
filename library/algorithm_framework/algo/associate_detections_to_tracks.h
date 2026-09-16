@@ -9,7 +9,7 @@
 #define VITAL_ALGO_ASSOCIATE_DETECTIONS_TO_TRACKS_H_
 
 #include <viame/algorithm_framework/algo/algorithm.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/image_container.h>
@@ -22,7 +22,7 @@ namespace algo {
 
 /// An abstract base class for using cost matrices to assign detections to
 /// tracks
-class VITAL_ALGO_EXPORT associate_detections_to_tracks
+class VIAME_ALGO_EXPORT associate_detections_to_tracks
   : public viame::algorithm
 {
 public:

@@ -5,9 +5,9 @@
 #ifndef SPROKIT_TOOLS_PIPELINE_BUILDER_H
 #define SPROKIT_TOOLS_PIPELINE_BUILDER_H
 
-#include<viame/pipeline_framework/sprokit_pipeline_util_export.h>
+#include<viame/pipeline_framework/viame_pipeline_util_export.h>
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/noncopyable.h>
 #include <viame/algorithm_framework/config/config_block_types.h>
 
@@ -32,7 +32,7 @@ namespace viame::pipeline {
  * After the pipeline builder is configured as desired, it can build
  * the pipeline which is ready to process.
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT pipeline_builder
+class VIAME_PIPELINE_UTIL_EXPORT pipeline_builder
   : viame::noncopyable
 {
 public:

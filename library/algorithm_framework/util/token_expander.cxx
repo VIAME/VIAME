@@ -15,7 +15,7 @@ namespace viame {
 ///
 token_expander
 ::token_expander()
-  : m_logger( viame::get_logger( "vital.token_expander" ) )
+  : m_logger( viame::get_logger( "viame_algorithm_framework.token_expander" ) )
 {}
 
 token_expander::

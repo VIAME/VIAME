@@ -28,7 +28,17 @@ if( NOT TARGET kwiver::viame )
     INTERFACE_COMPILE_FEATURES    cxx_std_17
     )
 
+  # What the libraries are called now.
   foreach( _viame_name @viame_facade_names@ )
+    add_library( viame::${_viame_name} INTERFACE IMPORTED )
+    set_target_properties( viame::${_viame_name} PROPERTIES
+      INTERFACE_LINK_LIBRARIES kwiver::viame
+      )
+  endforeach()
+
+  # And what they were called before phase 11, for one release: a plugin that
+  # links `kwiver::vital_algo` still does (open decision 8).
+  foreach( _viame_name @viame_shim_names@ )
     add_library( kwiver::${_viame_name} INTERFACE IMPORTED )
     set_target_properties( kwiver::${_viame_name} PROPERTIES
       INTERFACE_LINK_LIBRARIES kwiver::viame

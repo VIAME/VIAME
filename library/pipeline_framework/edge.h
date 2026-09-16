@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_EDGE_H
 #define SPROKIT_PIPELINE_EDGE_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/core_types/noncopyable.h>
@@ -29,7 +29,7 @@ namespace viame::pipeline {
  *
  * \brief The packet of data that actually exists within edges.
  */
-class SPROKIT_PIPELINE_EXPORT edge_datum_t
+class VIAME_PIPELINE_FRAMEWORK_EXPORT edge_datum_t
 {
 public:
   /**
@@ -87,7 +87,7 @@ typedef std::vector< edge_t > edges_t;
  *
  * \ingroup base_classes
  */
-class SPROKIT_PIPELINE_EXPORT edge
+class VIAME_PIPELINE_FRAMEWORK_EXPORT edge
   : private viame::noncopyable
 {
 public:
@@ -324,7 +324,7 @@ public:
   static viame::config_block_key_t const config_blocking;
 
 private:
-  class SPROKIT_PIPELINE_NO_EXPORT priv;
+  class VIAME_PIPELINE_FRAMEWORK_NO_EXPORT priv;
   std::unique_ptr< priv > d;
 };
 

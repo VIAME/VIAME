@@ -8,7 +8,7 @@
 #ifndef VITAL_CAMERA_FROM_METADATA_H_
 #define VITAL_CAMERA_FROM_METADATA_H_
 
-#include <viame/algorithm_framework/vital_export.h>
+#include <viame/algorithm_framework/viame_algorithm_framework_export.h>
 
 #include <viame/core_types/camera_intrinsics.h>
 #include <viame/core_types/camera_perspective.h>
@@ -22,7 +22,7 @@ namespace viame {
 ///
 /// \param s The string to be converted.
 /// \return The converted vector.
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 vector_d
 string_to_vector( std::string const& s );
 
@@ -30,7 +30,7 @@ string_to_vector( std::string const& s );
 ///
 /// \param file_path   The path to the file to read in.
 /// \return A new camera object representing the contents of the read-in file.
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 camera_sptr
 camera_from_metadata( metadata_sptr const& md );
 
@@ -40,7 +40,7 @@ camera_from_metadata( metadata_sptr const& md );
 /// \param [in]  image_width   The width of the image
 /// \param [in]  image_height  The height of the image
 /// \returns nullptr if insufficient data to construct intrinsics
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 camera_intrinsics_sptr
 intrinsics_from_metadata(
   metadata const& md,
@@ -64,7 +64,7 @@ intrinsics_from_metadata(
 ///   The \c local_space object is updated only if it is not already valid.
 ///   If updated, the computed local origin is determined from the mean camera
 ///   position at zero altitude.
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 std::map< frame_id_t, camera_sptr >
 initialize_cameras_with_metadata(
   std::map< frame_id_t, metadata_sptr > const& md_map,
@@ -82,7 +82,7 @@ initialize_cameras_with_metadata(
 ///   A rotation offset to apply to metadata rotation data.
 ///
 /// \return \c true if metadata is sufficient to update the camera.
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 bool
 update_camera_from_metadata(
   metadata const& md,
@@ -98,7 +98,7 @@ update_camera_from_metadata(
 /// \param [in,out] md_map
 ///   A mapping from frame_number of metadata objects to update. If no
 ///   metadata object is found for a frame, a new one is created.
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 void
 update_metadata_from_cameras(
   std::map< frame_id_t, camera_sptr > const& cam_map,
@@ -111,7 +111,7 @@ update_metadata_from_cameras(
 /// \param [in] local_space
 ///  The local cartesian coordinate system used for the camera.
 /// \param [in,out] md The metadata object to update in place.
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 void
 update_metadata_from_camera(
   simple_camera_perspective const& cam,

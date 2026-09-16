@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/timestamp.h>
 #include <viame/core_types/timestamp_config.h>
 #include <viame/core_types/detected_object_set.h>
@@ -217,7 +217,7 @@ measure_objects_process::priv
   const kv::vector_2d& pt2,
   kv::vector_3f& world_pt )
 {
-  // Convert to vital format
+  // Convert to viame_algorithm_framework format
   kv::vector_< 2, float > left_pt( static_cast< float >( pt1.x() ), static_cast< float >( pt1.y() ) );
   kv::vector_< 2, float > right_pt( static_cast< float >( pt2.x() ), static_cast< float >( pt2.y() ) );
 

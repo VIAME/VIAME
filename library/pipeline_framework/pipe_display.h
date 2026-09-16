@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
 #define SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
 
-#include<viame/pipeline_framework/sprokit_pipeline_util_export.h>
+#include<viame/pipeline_framework/viame_pipeline_util_export.h>
 
 #include <viame/pipeline_framework/types.h>
 #include <viame/pipeline_framework/pipeline_builder.h>
@@ -23,7 +23,7 @@ namespace viame::pipeline {
  *
  * Derived classes can implement other output formats.
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT pipe_display
+class VIAME_PIPELINE_UTIL_EXPORT pipe_display
 {
 public:
   // -- CONSTRUCTORS --

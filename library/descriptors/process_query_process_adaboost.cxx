@@ -15,7 +15,7 @@
 #include "process_query_process_adaboost.h"
 #include "iqr_session_adaboost.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/descriptor.h>
 #include <viame/core_types/descriptor_set.h>
 #include <viame/algorithm_framework/logger/logger.h>

@@ -11,7 +11,7 @@
 #include "ocv_pair_stereo_tracks.h"
 #include "ocv_pair_stereo_detections.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/timestamp.h>
 #include <viame/core_types/timestamp_config.h>

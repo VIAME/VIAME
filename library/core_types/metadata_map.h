@@ -12,8 +12,8 @@
 
 #include <viame/core_types/geo_point.h>
 #include <viame/core_types/metadata_traits.h>
-#include <viame/algorithm_framework/vital_config.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <map>
 #include <memory>

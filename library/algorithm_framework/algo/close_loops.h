@@ -5,7 +5,7 @@
 #ifndef VITAL_ALGO_CLOSE_LOOPS_H_
 #define VITAL_ALGO_CLOSE_LOOPS_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/feature_track_set.h>
@@ -26,7 +26,7 @@ namespace algo {
 /// Different algorithms can perform loop closure in a variety of ways, either
 /// in attempt to make either short or long term closures. Similarly to
 /// track_features, this class is designed to be called in an online fashion.
-class VITAL_ALGO_EXPORT close_loops
+class VIAME_ALGO_EXPORT close_loops
   : public viame::algorithm
 {
 public:

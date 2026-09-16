@@ -8,7 +8,7 @@
 #ifndef VITAL_CATEGORY_HIERARCHY_H_
 #define VITAL_CATEGORY_HIERARCHY_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <map>
 #include <memory>
@@ -24,7 +24,7 @@ namespace viame {
 /// of arbitrary types of categories. Each category can have any number of
 /// optional 'parent' and 'child' categories (for example an 'atlantic sea
 /// scallop' is a type of broader 'scallop' category).
-class VITAL_TYPES_EXPORT category_hierarchy
+class VIAME_CORE_TYPES_EXPORT category_hierarchy
 {
 public:
   using label_t = std::string;

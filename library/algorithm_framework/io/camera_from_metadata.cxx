@@ -10,7 +10,7 @@
 #include <viame/core_types/math_constants.h>
 #include <viame/core_types/geodesy.h>
 #include <viame/core_types/metadata_traits.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 
@@ -77,7 +77,7 @@ tags_to_matrix(
 
 /// Convert space separated strings to Eigen vector
 vector_d
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 string_to_vector( std::string const& s )
 {
   std::vector< std::string > tokens;
@@ -99,7 +99,7 @@ string_to_vector( std::string const& s )
 
 /// Produce RPC camera from metadata
 camera_sptr
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 camera_from_metadata( metadata_sptr const& md )
 {
   vector_3d world_scale, world_offset;
@@ -142,7 +142,7 @@ camera_from_metadata( metadata_sptr const& md )
 }
 
 /// Use metadata to construct intrinsics
-VITAL_EXPORT
+VIAME_ALGORITHM_FRAMEWORK_EXPORT
 camera_intrinsics_sptr
 intrinsics_from_metadata(
   metadata const& md,

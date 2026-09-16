@@ -14,7 +14,7 @@ namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Generic plugin exception
-class VITAL_EXCEPTIONS_EXPORT plugin_exception
+class VIAME_EXCEPTIONS_EXPORT plugin_exception
   : public vital_exception
 {
 public:
@@ -27,7 +27,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Requested factory not found.
-class VITAL_EXCEPTIONS_EXPORT plugin_factory_not_found
+class VIAME_EXCEPTIONS_EXPORT plugin_factory_not_found
   : public plugin_exception
 {
 public:
@@ -40,7 +40,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Unable to create desired type.
-class VITAL_EXCEPTIONS_EXPORT plugin_factory_type_creation_error
+class VIAME_EXCEPTIONS_EXPORT plugin_factory_type_creation_error
   : public plugin_exception
 {
 public:
@@ -54,7 +54,7 @@ public:
 // ----------------------------------------------------------------------------
 /// Unable to register a plugin factory due to it missing one or more required
 /// attributes.
-class VITAL_EXCEPTIONS_EXPORT plugin_factory_missing_required_attrs
+class VIAME_EXCEPTIONS_EXPORT plugin_factory_missing_required_attrs
   : public plugin_exception
 {
 public:
@@ -67,7 +67,7 @@ public:
 
 // ----------------------------------------------------------------------------
 /// Plugin already registered
-class VITAL_EXCEPTIONS_EXPORT plugin_already_exists
+class VIAME_EXCEPTIONS_EXPORT plugin_already_exists
   : public plugin_exception
 {
 public:

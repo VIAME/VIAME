@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_EDGE_EXCEPTION_H
 #define SPROKIT_PIPELINE_EDGE_EXCEPTION_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include "process.h"
 #include "types.h"
@@ -28,7 +28,7 @@ namespace viame::pipeline
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT edge_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT edge_exception
   : public pipeline_exception
 {
   public:
@@ -49,7 +49,7 @@ class SPROKIT_PIPELINE_EXPORT edge_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_edge_config_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_edge_config_exception
   : public edge_exception
 {
   public:
@@ -70,7 +70,7 @@ class SPROKIT_PIPELINE_EXPORT null_edge_config_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT datum_requested_after_complete
+class VIAME_PIPELINE_FRAMEWORK_EXPORT datum_requested_after_complete
   : public edge_exception
 {
   public:
@@ -91,7 +91,7 @@ class SPROKIT_PIPELINE_EXPORT datum_requested_after_complete
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT edge_interrupted
+class VIAME_PIPELINE_FRAMEWORK_EXPORT edge_interrupted
   : public edge_exception
 {
   public:
@@ -112,7 +112,7 @@ class SPROKIT_PIPELINE_EXPORT edge_interrupted
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT edge_connection_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT edge_connection_exception
   : public edge_exception
 {
   public:
@@ -133,7 +133,7 @@ class SPROKIT_PIPELINE_EXPORT edge_connection_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_process_connection_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_process_connection_exception
   : public edge_connection_exception
 {
   public:
@@ -154,7 +154,7 @@ class SPROKIT_PIPELINE_EXPORT null_process_connection_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT duplicate_edge_connection_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT duplicate_edge_connection_exception
   : public edge_connection_exception
 {
   public:
@@ -184,7 +184,7 @@ class SPROKIT_PIPELINE_EXPORT duplicate_edge_connection_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT input_already_connected_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT input_already_connected_exception
   : public duplicate_edge_connection_exception
 {
   public:
@@ -208,7 +208,7 @@ class SPROKIT_PIPELINE_EXPORT input_already_connected_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT output_already_connected_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT output_already_connected_exception
   : public duplicate_edge_connection_exception
 {
   public:

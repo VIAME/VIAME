@@ -17,15 +17,15 @@ set( headers
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-viame_add_plugin( sprokit_applets
+viame_add_plugin( viame_applets_plugin
   KIND        APPLETS
   SOURCES      ${sources} ${headers}
-  PRIVATE      vital
-               vital_vpm
-               vital_logger
-               vital_applets
-               sprokit_pipeline
-               sprokit_pipeline_util
+  PRIVATE      viame_algorithm_framework
+               viame_plugin
+               viame_logger
+               viame_applets
+               viame_pipeline_framework
+               viame_pipeline_util
 )
 
-viame_lite_generated( sprokit_applets_export.h pipeline_framework/applets )
+viame_lite_generated( viame_applets_plugin_export.h pipeline_framework/applets )

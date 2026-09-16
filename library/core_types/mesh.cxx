@@ -944,7 +944,7 @@ mesh
     }
     case TEX_COORD_ON_CORNER:
     {
-      logger_handle_t logger( get_logger( "vital.mesh" ) );
+      logger_handle_t logger( get_logger( "viame_algorithm_framework.mesh" ) );
       LOG_ERROR(
         logger, "mesh::label_ccw_tex_faces_valid()"
                 " not implemented for TEX_COORD_ON_CORNER" );

@@ -3,7 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Base include file for all vital exceptions
+/// \brief Base include file for all viame_algorithm_framework exceptions
 ///
 /// All exception types for viame::core are included through this file.
 

@@ -10,7 +10,7 @@
 
 #include "landmark.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <map>
 #include <memory>

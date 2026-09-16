@@ -9,7 +9,7 @@ viame_add_python_library(
   _pluggable
   "${THIS_MODULE}"
   SOURCES module_pluggable.cxx
-  PRIVATE vital
+  PRIVATE viame_algorithm_framework
 )
 ################################################################################
 # Plugin library
@@ -29,6 +29,6 @@ viame_add_plugin(
   plugins_from_python
   SOURCES   register.cxx
   PRIVATE   ${libraries_to_link}
-            vital
+            viame_algorithm_framework
   KIND        OTHERS
 )

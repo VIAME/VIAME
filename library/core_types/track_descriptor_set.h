@@ -5,8 +5,8 @@
 #ifndef VITAL_TRACK_DESCRIPTOR_SET_
 #define VITAL_TRACK_DESCRIPTOR_SET_
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/track_descriptor.h>
 

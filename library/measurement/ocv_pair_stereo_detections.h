@@ -6,7 +6,7 @@
 #include <viame/core_types/image.h>
 #include <viame/core_types/matrix.h>
 #include <viame/core_types/vector.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/measurement/projection.h>
 

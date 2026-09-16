@@ -32,7 +32,7 @@ using pixel_type_t =
 /// A `viame::image` carries its pixel type as traits rather than in the C++
 /// type, so anything that works pixel by pixel has to recover the type
 /// first. \p functor is a generic lambda taking `image_of< T > const&`; every
-/// pixel type vital can hold is instantiated for it.
+/// pixel type viame_algorithm_framework can hold is instantiated for it.
 ///
 /// \throws std::runtime_error if the image holds a type not listed here.
 template < typename Functor >

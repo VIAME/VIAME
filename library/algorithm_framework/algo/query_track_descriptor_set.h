@@ -10,7 +10,7 @@
 #define VITAL_QUERY_TRACK_DESCRIPTOR_SET_H_
 
 #include <viame/algorithm_framework/algo/algorithm.h>
-#include <viame/algorithm_framework/vital_export.h>
+#include <viame/algorithm_framework/viame_algorithm_framework_export.h>
 
 #include <viame/core_types/track.h>
 #include <viame/core_types/track_descriptor.h>
@@ -21,7 +21,7 @@ namespace algo {
 
 // ------------------------------------------------------------------
 /// Abstract interface for a collection of track descriptors that can be queried
-class VITAL_ALGO_EXPORT query_track_descriptor_set
+class VIAME_ALGO_EXPORT query_track_descriptor_set
   : public viame::algorithm
 {
 public:

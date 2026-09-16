@@ -78,8 +78,8 @@ namespace viame {
 /// @param name Logger name
 ///
 /// @return Handle (pointer) to logger object.
-logger_handle_t VITAL_LOGGER_EXPORT get_logger( const char* const name );
-logger_handle_t VITAL_LOGGER_EXPORT get_logger( std::string const& name );
+logger_handle_t VIAME_LOGGER_EXPORT get_logger( const char* const name );
+logger_handle_t VIAME_LOGGER_EXPORT get_logger( std::string const& name );
 //@}
 
 /// Logs a message with the ERROR level.

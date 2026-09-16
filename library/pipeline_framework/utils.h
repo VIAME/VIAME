@@ -11,7 +11,7 @@
 #ifndef SPROKIT_PIPELINE_UTILS_H
 #define SPROKIT_PIPELINE_UTILS_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include <string>
 #include <typeinfo>
@@ -35,7 +35,7 @@ typedef std::string thread_name_t;
  *
  * \returns True if the name was successfully set, false otherwise.
  */
-SPROKIT_PIPELINE_EXPORT bool name_thread(thread_name_t const& name);
+VIAME_PIPELINE_FRAMEWORK_EXPORT bool name_thread(thread_name_t const& name);
 
 } // namespace viame::pipeline
 

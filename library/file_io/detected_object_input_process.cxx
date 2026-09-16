@@ -9,7 +9,7 @@
 
 #include "detected_object_input_process.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/algorithm_framework/algo/detected_object_set_input.h>
 

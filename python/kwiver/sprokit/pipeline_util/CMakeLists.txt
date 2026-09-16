@@ -8,13 +8,13 @@ viame_add_python_library(bake
 
 viame_target_link_libraries(python-sprokit.pipeline_util-bake
   LINK_PRIVATE
-    sprokit_pipeline
-    sprokit_pipeline_util
-    sprokit_python_util
-    vital_python_util
+    viame_pipeline_framework
+    viame_pipeline_util
+    viame_pipeline_python_util
+    viame_python_util
     ${Boost_IOSTREAMS_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
-    vital_vpm
+    viame_plugin
   )
 
 viame_add_python_library(load
@@ -22,11 +22,11 @@ viame_add_python_library(load
   SOURCES load.cxx)
 viame_target_link_libraries(python-sprokit.pipeline_util-load
   LINK_PRIVATE
-    sprokit_pipeline
-    sprokit_pipeline_util
-    sprokit_python_util
-    vital_python_util
-    vital_util
+    viame_pipeline_framework
+    viame_pipeline_util
+    viame_pipeline_python_util
+    viame_python_util
+    viame_util
     ${Boost_IOSTREAMS_LIBRARY})
 
 viame_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py

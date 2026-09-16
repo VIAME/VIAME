@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 
@@ -16,7 +16,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for converting base image type
-class VITAL_ALGO_EXPORT merge_images
+class VIAME_ALGO_EXPORT merge_images
   : public viame::algorithm
 {
 public:

@@ -9,8 +9,8 @@
 #include <ostream>
 #include <stdint.h>
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/core_types/viame_core_types.h>
 
 namespace viame {
 
@@ -32,7 +32,7 @@ namespace viame {
 /// value.  If both do not have time but both have frame numbers, they
 /// are ordered by frame number. If the timestamps do not have some way
 /// of being compared, all relational operators return false.
-class VITAL_TYPES_EXPORT timestamp
+class VIAME_CORE_TYPES_EXPORT timestamp
 {
 public:
   typedef viame::frame_id_t frame_t;

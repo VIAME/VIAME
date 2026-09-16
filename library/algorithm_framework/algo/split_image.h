@@ -5,7 +5,7 @@
 #ifndef VITAL_ALGO_SPLIT_IMAGE_H_
 #define VITAL_ALGO_SPLIT_IMAGE_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 
@@ -17,7 +17,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for converting base image type
-class VITAL_ALGO_EXPORT split_image
+class VIAME_ALGO_EXPORT split_image
   : public viame::algorithm
 {
 public:

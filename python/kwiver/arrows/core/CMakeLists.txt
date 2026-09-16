@@ -17,7 +17,7 @@ viame_add_python_library( core
 
 target_link_libraries( python-arrows.core-core
   PRIVATE ${Python_LIBRARIES} pybind11::pybind11
-         vital
+         viame_algorithm_framework
          kwiver_algo_core
 )
 

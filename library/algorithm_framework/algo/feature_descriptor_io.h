@@ -10,7 +10,7 @@
 #ifndef VITAL_ALGO_FEATURE_DESCRIPTOR_IO_H_
 #define VITAL_ALGO_FEATURE_DESCRIPTOR_IO_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 
@@ -26,7 +26,7 @@ namespace algo {
 ///
 /// This class represents an abstract interface for reading and writing
 /// feature and descriptor sets
-class VITAL_ALGO_EXPORT feature_descriptor_io
+class VIAME_ALGO_EXPORT feature_descriptor_io
   : public viame::algorithm
 {
 public:

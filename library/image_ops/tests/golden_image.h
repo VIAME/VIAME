@@ -73,7 +73,7 @@ find( std::string const& name )
 }
 
 // ----------------------------------------------------------------------------
-/// One recorded image, as vital lays it out.
+/// One recorded image, as viame_algorithm_framework lays it out.
 ///
 /// The recording is (row, column, plane) because that is numpy's order;
 /// `image_of` is indexed (column, row, plane), so the walk transposes.

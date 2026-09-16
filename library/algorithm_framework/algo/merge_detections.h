@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <string>
 #include <vector>
@@ -17,7 +17,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for merging detection sets
-class VITAL_ALGO_EXPORT merge_detections
+class VIAME_ALGO_EXPORT merge_detections
   : public viame::algorithm
 {
 public:

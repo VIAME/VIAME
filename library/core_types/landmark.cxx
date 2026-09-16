@@ -107,10 +107,10 @@ operator>>( std::istream& s, landmark_< T >& m )
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_LANDMARK( T )                       \
-template class VITAL_TYPES_EXPORT landmark_< T >;       \
-template VITAL_TYPES_EXPORT std::ostream&               \
+template class VIAME_CORE_TYPES_EXPORT landmark_< T >;       \
+template VIAME_CORE_TYPES_EXPORT std::ostream&               \
 operator<<( std::ostream& s, landmark_< T > const& f ); \
-template VITAL_TYPES_EXPORT std::istream&               \
+template VIAME_CORE_TYPES_EXPORT std::istream&               \
 operator>>( std::istream& s, landmark_< T >& f )
 
 INSTANTIATE_LANDMARK( double );

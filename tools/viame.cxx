@@ -41,7 +41,7 @@
 #include <viame/algorithm_framework/exceptions/base.h>
 #include <viame/algorithm_framework/plugin/plugin_factory.h>
 #include <viame/algorithm_framework/plugin/plugin_manager_internal.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <algorithm>
 #include <cstdlib>

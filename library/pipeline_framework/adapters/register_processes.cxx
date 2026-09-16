@@ -2,7 +2,7 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#include <viame/pipeline_framework/adapters/kwiver_processes_adapter_export.h>
+#include <viame/pipeline_framework/adapters/viame_processes_adapter_export.h>
 #include <viame/pipeline_framework/process_factory.h>
 
 #include <viame/algorithm_framework/plugin/registry.h>
@@ -16,7 +16,7 @@
  *
  */
 extern "C"
-KWIVER_PROCESSES_ADAPTER_EXPORT
+VIAME_PROCESSES_ADAPTER_EXPORT
 void
 register_factories( viame::registry& vpm )
 {

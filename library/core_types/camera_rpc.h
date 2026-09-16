@@ -9,7 +9,7 @@
 #ifndef VITAL_CAMERA_RPC_H_
 #define VITAL_CAMERA_RPC_H_
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 #include <iostream>
 #include <memory>
@@ -18,7 +18,7 @@
 #include <viame/core_types/camera.h>
 #include <viame/core_types/matrix.h>
 #include <viame/core_types/vector.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 namespace viame {
 
@@ -36,7 +36,7 @@ typedef std::shared_ptr< camera_rpc > camera_rpc_sptr;
 /// The base class of camera_rpcs is abstract and provides a
 /// double precision interface.  The templated derived class
 /// can store values in either single or double precision.
-class VITAL_TYPES_EXPORT camera_rpc : public camera
+class VIAME_CORE_TYPES_EXPORT camera_rpc : public camera
 {
 public:
   /// Destructor
@@ -89,7 +89,7 @@ protected:
 /// A representation of a camera
 ///
 /// Contains camera rpc coefficients, offsets, and scales
-class VITAL_TYPES_EXPORT simple_camera_rpc
+class VIAME_CORE_TYPES_EXPORT simple_camera_rpc
   : public camera_rpc
 {
 public:

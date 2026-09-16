@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PYTHON_UTIL_PYSTREAM_H
 #define SPROKIT_PYTHON_UTIL_PYSTREAM_H
 
-#include <python/kwiver/sprokit/util/sprokit_python_util_export.h>
+#include <python/kwiver/sprokit/util/viame_pipeline_python_util_export.h>
 
 #include <pybind11/pybind11.h>
 
@@ -20,7 +20,7 @@ namespace python {
 
 // ----------------------------------------------------------------------------
 /// Stream buffer for reading from a Python file-like object
-class SPROKIT_PYTHON_UTIL_EXPORT pyistreambuf
+class VIAME_PIPELINE_PYTHON_UTIL_EXPORT pyistreambuf
   : public std::streambuf
 {
 public:
@@ -36,7 +36,7 @@ private:
 };
 
 /// Input stream wrapping a Python file-like object
-class SPROKIT_PYTHON_UTIL_EXPORT pyistream
+class VIAME_PIPELINE_PYTHON_UTIL_EXPORT pyistream
   : public std::istream
 {
 public:
@@ -49,7 +49,7 @@ private:
 
 // ----------------------------------------------------------------------------
 /// Stream buffer for writing to a Python file-like object
-class SPROKIT_PYTHON_UTIL_EXPORT pyostreambuf
+class VIAME_PIPELINE_PYTHON_UTIL_EXPORT pyostreambuf
   : public std::streambuf
 {
 public:
@@ -68,7 +68,7 @@ private:
 };
 
 /// Output stream wrapping a Python file-like object
-class SPROKIT_PYTHON_UTIL_EXPORT pyostream
+class VIAME_PIPELINE_PYTHON_UTIL_EXPORT pyostream
   : public std::ostream
 {
 public:

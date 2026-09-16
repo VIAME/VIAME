@@ -9,7 +9,7 @@
 
 #include "seagis_measurement_process.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/core_types/timestamp.h>
 #include <viame/core_types/timestamp_config.h>
 #include <viame/core_types/object_track_set.h>

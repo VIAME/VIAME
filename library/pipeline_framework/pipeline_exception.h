@@ -5,8 +5,8 @@
 #ifndef SPROKIT_PIPELINE_PIPELINE_EXCEPTION_H
 #define SPROKIT_PIPELINE_PIPELINE_EXCEPTION_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include "process.h"
 #include "types.h"
@@ -27,7 +27,7 @@ namespace viame::pipeline
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pipeline_addition_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline_addition_exception
   : public pipeline_exception
 {
   public:
@@ -48,7 +48,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline_addition_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_pipeline_config_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_pipeline_config_exception
   : public pipeline_exception
 {
   public:
@@ -69,7 +69,7 @@ class SPROKIT_PIPELINE_EXPORT null_pipeline_config_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT add_after_setup_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT add_after_setup_exception
   : public pipeline_addition_exception
 {
   public:
@@ -95,7 +95,7 @@ class SPROKIT_PIPELINE_EXPORT add_after_setup_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_process_addition_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_process_addition_exception
   : public pipeline_addition_exception
 {
   public:
@@ -116,7 +116,7 @@ class SPROKIT_PIPELINE_EXPORT null_process_addition_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT duplicate_process_name_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT duplicate_process_name_exception
   : public pipeline_addition_exception
 {
   public:
@@ -142,7 +142,7 @@ class SPROKIT_PIPELINE_EXPORT duplicate_process_name_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pipeline_removal_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline_removal_exception
   : public pipeline_exception
 {
   public:
@@ -163,7 +163,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline_removal_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT remove_after_setup_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT remove_after_setup_exception
   : public pipeline_removal_exception
 {
   public:
@@ -189,7 +189,7 @@ class SPROKIT_PIPELINE_EXPORT remove_after_setup_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT reconfigure_before_setup_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT reconfigure_before_setup_exception
   : public pipeline_exception
 {
   public:
@@ -210,7 +210,7 @@ class SPROKIT_PIPELINE_EXPORT reconfigure_before_setup_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pipeline_connection_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline_connection_exception
   : public pipeline_exception
 {
   public:
@@ -231,7 +231,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline_connection_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT connection_after_setup_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT connection_after_setup_exception
   : public pipeline_connection_exception
 {
   public:
@@ -269,7 +269,7 @@ class SPROKIT_PIPELINE_EXPORT connection_after_setup_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT disconnection_after_setup_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT disconnection_after_setup_exception
   : public pipeline_connection_exception
 {
   public:
@@ -307,7 +307,7 @@ class SPROKIT_PIPELINE_EXPORT disconnection_after_setup_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT no_such_process_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT no_such_process_exception
   : public pipeline_connection_exception
 {
   public:
@@ -333,7 +333,7 @@ class SPROKIT_PIPELINE_EXPORT no_such_process_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT connection_dependent_type_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT connection_dependent_type_exception
   : public pipeline_connection_exception
 {
   public:
@@ -379,7 +379,7 @@ class SPROKIT_PIPELINE_EXPORT connection_dependent_type_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT connection_dependent_type_cascade_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT connection_dependent_type_cascade_exception
   : public pipeline_connection_exception
 {
   public:
@@ -437,7 +437,7 @@ class SPROKIT_PIPELINE_EXPORT connection_dependent_type_cascade_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT connection_type_mismatch_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT connection_type_mismatch_exception
   : public pipeline_connection_exception
 {
   public:
@@ -483,7 +483,7 @@ class SPROKIT_PIPELINE_EXPORT connection_type_mismatch_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT connection_flag_mismatch_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT connection_flag_mismatch_exception
   : public pipeline_connection_exception
 {
   public:
@@ -521,7 +521,7 @@ class SPROKIT_PIPELINE_EXPORT connection_flag_mismatch_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pipeline_setup_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline_setup_exception
   : public pipeline_exception
 {
   public:
@@ -542,7 +542,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline_setup_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pipeline_duplicate_setup_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline_duplicate_setup_exception
   : public pipeline_setup_exception
 {
   public:
@@ -563,7 +563,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline_duplicate_setup_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT no_processes_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT no_processes_exception
   : public pipeline_setup_exception
 {
   public:
@@ -584,7 +584,7 @@ class SPROKIT_PIPELINE_EXPORT no_processes_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT orphaned_processes_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT orphaned_processes_exception
   : public pipeline_setup_exception
 {
   public:
@@ -605,7 +605,7 @@ class SPROKIT_PIPELINE_EXPORT orphaned_processes_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT not_a_dag_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT not_a_dag_exception
   : public pipeline_setup_exception
 {
   public:
@@ -626,7 +626,7 @@ class SPROKIT_PIPELINE_EXPORT not_a_dag_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT untyped_data_dependent_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT untyped_data_dependent_exception
   : public pipeline_setup_exception
 {
   public:
@@ -655,7 +655,7 @@ class SPROKIT_PIPELINE_EXPORT untyped_data_dependent_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT untyped_connection_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT untyped_connection_exception
   : public pipeline_setup_exception
 {
   public:
@@ -676,7 +676,7 @@ class SPROKIT_PIPELINE_EXPORT untyped_connection_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT reset_running_pipeline_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT reset_running_pipeline_exception
   : public pipeline_exception
 {
   public:
@@ -697,7 +697,7 @@ class SPROKIT_PIPELINE_EXPORT reset_running_pipeline_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pipeline_not_setup_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline_not_setup_exception
   : public pipeline_exception
 {
   public:
@@ -718,7 +718,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline_not_setup_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT pipeline_not_ready_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT pipeline_not_ready_exception
   : public pipeline_exception
 {
   public:

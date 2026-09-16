@@ -5,7 +5,7 @@
 #ifndef VITAL_UTIL_WRAP_TEXT_BLOCK_H
 #define VITAL_UTIL_WRAP_TEXT_BLOCK_H
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <string>
 
@@ -15,7 +15,7 @@ namespace viame {
 /// @brief Format long text into wrapped text block.
 ///
 /// This class formats a long text string into a more compact text block.
-class VITAL_UTIL_EXPORT wrap_text_block
+class VIAME_UTIL_EXPORT wrap_text_block
 {
 public:
   wrap_text_block();

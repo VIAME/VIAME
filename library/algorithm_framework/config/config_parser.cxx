@@ -78,7 +78,7 @@ public:
       m_parse_error( false ),
       m_symtab( new viame::token_type_symtab( "LOCAL" ) ),
       m_config_block( viame::config_block::empty_config() ),
-      m_logger( viame::get_logger( "vital.config_parser" ) )
+      m_logger( viame::get_logger( "viame_algorithm_framework.config_parser" ) )
   {
     m_token_expander.add_token_type( new viame::token_type_env() );
     m_token_expander.add_token_type( new viame::token_type_sysenv() );

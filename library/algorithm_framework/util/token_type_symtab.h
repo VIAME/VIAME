@@ -7,7 +7,7 @@
 
 #include "token_type.h"
 
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 #include <map>
 
@@ -25,7 +25,7 @@ namespace viame {
 /// For example, if you want to force a specific value into a file that
 /// was initially expanded over the environment, a symtab can be
 /// created that will do that.
-class VITAL_UTIL_EXPORT token_type_symtab
+class VIAME_UTIL_EXPORT token_type_symtab
   : public token_type
 {
 public:

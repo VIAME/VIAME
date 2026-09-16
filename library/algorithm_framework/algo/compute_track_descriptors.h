@@ -8,7 +8,7 @@
 #ifndef VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
 #define VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/algorithm_framework/algo/algorithm.h>
 
@@ -22,7 +22,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for computing track descriptors
-class VITAL_ALGO_EXPORT compute_track_descriptors
+class VIAME_ALGO_EXPORT compute_track_descriptors
   : public viame::algorithm
 {
 public:

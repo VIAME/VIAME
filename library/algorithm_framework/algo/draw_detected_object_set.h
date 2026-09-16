@@ -8,7 +8,7 @@
 #ifndef VITAL_ALGO_DRAW_DETECTED_OBJECT_SET_H
 #define VITAL_ALGO_DRAW_DETECTED_OBJECT_SET_H
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/algorithm_framework/algo/algorithm.h>
 #include <viame/core_types/detected_object_set.h>
@@ -20,7 +20,7 @@ namespace algo {
 
 /// An abstract base class for algorithms which draw tracks on top of
 /// images in various ways, for analyzing results.
-class VITAL_ALGO_EXPORT draw_detected_object_set
+class VIAME_ALGO_EXPORT draw_detected_object_set
   : public viame::algorithm
 {
 public:

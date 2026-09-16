@@ -23,7 +23,7 @@ namespace algo {
 
 /// An abstract base class to resection a camera using 3D feature and point
 /// projection pairs.
-class VITAL_ALGO_EXPORT resection_camera
+class VIAME_ALGO_EXPORT resection_camera
   : public viame::algorithm
 {
 public:

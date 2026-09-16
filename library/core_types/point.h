@@ -13,15 +13,15 @@
 #include <viame/core_types/covariance.h>
 #include <viame/core_types/vector.h>
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 
 namespace viame {
 
 template < unsigned N, typename T >
-class VITAL_TYPES_EXPORT point
+class VIAME_CORE_TYPES_EXPORT point
 {
 public:
   using vector_type = vector_< N, T >;
@@ -88,25 +88,25 @@ using point_3f = point< 3, float >;
 using point_4d = point< 4, double >;
 using point_4f = point< 4, float >;
 
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream&,
   point_2i const& );
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream&,
   point_2d const& );
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream&,
   point_2f const& );
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream&,
   point_3d const& );
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream&,
   point_3f const& );
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream&,
   point_4d const& );
-VITAL_TYPES_EXPORT::std::ostream& operator<<(
+VIAME_CORE_TYPES_EXPORT::std::ostream& operator<<(
   ::std::ostream&,
   point_4f const& );
 

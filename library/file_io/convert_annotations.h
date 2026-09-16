@@ -4,7 +4,7 @@
 
 /**
  * \file
- * \brief Annotation file conversion through the registered vital readers
+ * \brief Annotation file conversion through the registered viame_algorithm_framework readers
  *        and writers, without a pipeline.
  */
 

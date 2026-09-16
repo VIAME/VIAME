@@ -35,30 +35,30 @@ set( vital_config_sources
 
 
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_config_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_config_export.h
   SUBDIR     viame/algorithm_framework/config
   NOPATH
 )
 
-viame_add_library( vital_config
+viame_add_library( viame_config
   ${vital_config_public_headers}
   ${vital_config_private_headers}
   ${vital_config_sources}
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_config_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_config_export.h
   )
 
-add_dependencies (vital_config viame_configure)
+add_dependencies (viame_config viame_configure)
 
-target_link_libraries( vital_config
-  PUBLIC               vital_exceptions
+target_link_libraries( viame_config
+  PUBLIC               viame_exceptions
   PRIVATE
-                       vital_logger
-                       vital_util
-                       vital_vpm  # uses pluggable
+                       viame_logger
+                       viame_util
+                       viame_plugin  # uses pluggable
   )
 
 ###
 # Add tests if enbled
 
 # Republished under the prefix the imported sources use.
-viame_lite_generated( vital_config_export.h algorithm_framework/config )
+viame_lite_generated( viame_config_export.h algorithm_framework/config )

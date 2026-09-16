@@ -6,7 +6,7 @@
 #define KWIVER_VITAL_PLUGGABLE_H_
 
 #include <memory>
-#include <viame/algorithm_framework/plugin/vital_vpm_export.h>
+#include <viame/algorithm_framework/plugin/viame_plugin_export.h>
 
 namespace viame {
 
@@ -28,7 +28,7 @@ typedef std::shared_ptr< pluggable > pluggable_sptr;
  *          not live in the config module if that is feasible (e.g. they're
  *          algorithms in a way).
  */
-class VITAL_VPM_EXPORT pluggable
+class VIAME_PLUGIN_EXPORT pluggable
 {
 public:
   /// Expected static functions:

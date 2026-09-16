@@ -10,7 +10,7 @@
 
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/algorithm_framework/util/demangle.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <map>
 #include <stdexcept>

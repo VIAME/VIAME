@@ -20,7 +20,7 @@ set(vital_vpm_headers_public
 
 set(vital_vpm_headers_private
     #  plugin_manager_internal.h
-    ${CMAKE_CURRENT_BINARY_DIR}/vital_vpm_export.h
+    ${CMAKE_CURRENT_BINARY_DIR}/viame_plugin_export.h
     )
 
 set(vital_vpm_sources
@@ -32,7 +32,7 @@ set(vital_vpm_sources
 # This has to be built shared due to the use of the singleton pattern holding
 # the central manager instance.
 
-viame_add_library(vital_vpm SHARED
+viame_add_library(viame_plugin SHARED
   ${vital_vpm_headers_public}
   ${vital_vpm_headers_private}
   ${vital_vpm_sources}
@@ -40,19 +40,19 @@ viame_add_library(vital_vpm SHARED
 
 
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_vpm_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_plugin_export.h
   SUBDIR      viame/algorithm_framework/plugin
   NOPATH
   )
 
-target_link_libraries(vital_vpm
-  PUBLIC              vital_util
-  PRIVATE             vital_logger
-                      vital_exceptions
+target_link_libraries(viame_plugin
+  PUBLIC              viame_util
+  PRIVATE             viame_logger
+                      viame_exceptions
   )
 
 ###
 # Add tests if enbled
 
 # Republished under the prefix the imported sources use.
-viame_lite_generated( vital_vpm_export.h algorithm_framework/plugin )
+viame_lite_generated( viame_plugin_export.h algorithm_framework/plugin )

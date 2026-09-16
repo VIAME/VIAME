@@ -9,7 +9,7 @@
 
 #include "write_track_descriptor_process.h"
 
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/algorithm_framework/algo/write_track_descriptor_set.h>
 

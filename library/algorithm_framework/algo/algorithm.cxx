@@ -15,7 +15,7 @@ namespace viame {
 // ----------------------------------------------------------------------------
 algorithm
 ::algorithm()
-  : m_logger( viame::get_logger( "vital.algorithm" ) )
+  : m_logger( viame::get_logger( "viame_algorithm_framework.algorithm" ) )
 {}
 
 // ----------------------------------------------------------------------------

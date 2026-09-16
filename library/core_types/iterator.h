@@ -16,7 +16,7 @@
 namespace viame {
 
 // ----------------------------------------------------------------------------
-/// Internal base class for vital iterator types, fulfilling the input-iterator
+/// Internal base class for viame_algorithm_framework iterator types, fulfilling the input-iterator
 /// concept.
 ///
 /// \tparam T Value type being iterated over. This should not be const.

@@ -11,7 +11,7 @@
 #ifndef SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
 #define SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include "pipeline_exception.h"
 #include "scheduler.h"
@@ -26,7 +26,7 @@ namespace viame::pipeline {
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT scheduler_registry_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT scheduler_registry_exception
   : public pipeline_exception
 {
 public:
@@ -47,7 +47,7 @@ public:
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_scheduler_ctor_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_scheduler_ctor_exception
   : public scheduler_registry_exception
 {
 public:
@@ -73,7 +73,7 @@ public:
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_scheduler_registry_config_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_scheduler_registry_config_exception
   : public scheduler_registry_exception
 {
 public:
@@ -94,7 +94,7 @@ public:
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT null_scheduler_registry_pipeline_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT null_scheduler_registry_pipeline_exception
   : public scheduler_registry_exception
 {
 public:
@@ -115,7 +115,7 @@ public:
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT no_such_scheduler_type_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT no_such_scheduler_type_exception
   : public scheduler_registry_exception
 {
 public:
@@ -141,7 +141,7 @@ public:
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT scheduler_type_already_exists_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT scheduler_type_already_exists_exception
   : public scheduler_registry_exception
 {
 public:

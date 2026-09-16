@@ -1,7 +1,7 @@
 # The pipeline framework
 #
 # Sprokit, imported from kwiver in P5-T03 and built from here since P5-T05.
-# `sprokit_pipeline` and `sprokit_pipeline_util` are two libraries out of one
+# `viame_pipeline_framework` and `viame_pipeline_util` are two libraries out of one
 # directory: kwiver kept them in `pipeline/` and `pipeline_util/`, the import
 # flattened the two into this one because no file name is shared, and which
 # cuts are worth keeping is phase 8's question.
@@ -87,30 +87,30 @@ set_source_files_properties( edge.cxx
   COMPILE_DEFINITIONS "SPROKIT_DEFAULT_EDGE_CAPACITY=${SPROKIT_DEFAULT_EDGE_CAPACITY}"
   )
 
-viame_add_library( sprokit_pipeline
+viame_add_library( viame_pipeline_framework
   ${pipeline_srcs}
   ${pipeline_headers}
   ${VITAL_VERSION_H}
   )
 
-add_dependencies( sprokit_pipeline configure-version.h configure-viame_version.h )
+add_dependencies( viame_pipeline_framework configure-version.h configure-viame_version.h )
 
-target_link_libraries( sprokit_pipeline
-  PUBLIC              vital_config
-                      vital_logger
+target_link_libraries( viame_pipeline_framework
+  PUBLIC              viame_config
+                      viame_logger
   PRIVATE             ${CMAKE_DL_LIBS}
                       ${CMAKE_THREAD_LIBS_INIT}
-                      vital_vpm
+                      viame_plugin
   )
 
 # Its macOS `-undefined dynamic_lookup` link flag is set on `viame_library`
 # in `library/algorithm_framework/registry`: an OBJECT library is not linked.
 
-viame_lite_generated( sprokit_pipeline_export.h pipeline_framework )
+viame_lite_generated( viame_pipeline_framework_export.h pipeline_framework )
 
 # The namespaced name VIAME's CMakeLists use, as cmake/kwiver_aliases.cmake
 # gives the targets `packages/kwiver` still builds.
-add_library( kwiver::sprokit_pipeline ALIAS sprokit_pipeline )
+add_library( kwiver::sprokit_pipeline ALIAS viame_pipeline_framework )
 
 ###
 # The .pipe parser and bakery
@@ -142,22 +142,22 @@ set( pipeline_util_headers
   token.h
   )
 
-viame_add_library( sprokit_pipeline_util
+viame_add_library( viame_pipeline_util
   ${pipeline_util_srcs}
   ${pipeline_util_headers}
   )
 
-target_link_libraries( sprokit_pipeline_util
-  PUBLIC      sprokit_pipeline
-  PRIVATE     vital_config
-              vital_util
-              vital_exceptions
+target_link_libraries( viame_pipeline_util
+  PUBLIC      viame_pipeline_framework
+  PRIVATE     viame_config
+              viame_util
+              viame_exceptions
               ${CMAKE_THREAD_LIBS_INIT}
  )
 
-viame_lite_generated( sprokit_pipeline_util_export.h pipeline_framework )
+viame_lite_generated( viame_pipeline_util_export.h pipeline_framework )
 
-add_library( kwiver::sprokit_pipeline_util ALIAS sprokit_pipeline_util )
+add_library( kwiver::sprokit_pipeline_util ALIAS viame_pipeline_util )
 
 ###
 # The headers install as a tree, as core_types and algorithm_framework do:

@@ -6,14 +6,14 @@
 #define _TOKEN_TYPE_H_
 
 #include <string>
-#include <viame/algorithm_framework/util/vital_util_export.h>
+#include <viame/algorithm_framework/util/viame_util_export.h>
 
 namespace viame {
 
 // ----------------------------------------------------------------------------
 /// Abstract base class for token types.
 ///
-class VITAL_UTIL_EXPORT token_type
+class VIAME_UTIL_EXPORT token_type
 {
 public:
   virtual ~token_type();

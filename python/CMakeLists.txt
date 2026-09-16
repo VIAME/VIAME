@@ -50,7 +50,7 @@ if(NOT SKBUILD)
 
 endif()
 
-# The `kwiver` python package: the bindings for the imported vital and
+# The `kwiver` python package: the bindings for the imported viame_algorithm_framework and
 # sprokit. It keeps the package name until phase 11 renames it, and the
 # binding sources keep their package tree because they cannot sit beside the
 # C++ they bind while they do -- see design/lite-findings.md 1.13.

@@ -5,7 +5,7 @@
 #ifndef SPROKIT_PIPELINE_DATUM_H
 #define SPROKIT_PIPELINE_DATUM_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
 #include "types.h"
 
@@ -28,7 +28,7 @@ namespace viame::pipeline {
  *
  * \ingroup base_classes
  */
-class SPROKIT_PIPELINE_EXPORT datum
+class VIAME_PIPELINE_FRAMEWORK_EXPORT datum
 {
   public:
     /// Information about an error that occurred within a process.
@@ -157,9 +157,9 @@ class SPROKIT_PIPELINE_EXPORT datum
     bool operator != (datum const& dat) const;
 
   private:
-    SPROKIT_PIPELINE_NO_EXPORT datum(type_t ty);
-    SPROKIT_PIPELINE_NO_EXPORT datum(error_t const& err);
-    SPROKIT_PIPELINE_NO_EXPORT datum(viame::any const& dat);
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT datum(type_t ty);
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT datum(error_t const& err);
+    VIAME_PIPELINE_FRAMEWORK_NO_EXPORT datum(viame::any const& dat);
 
     type_t const m_type;
     error_t const m_error;
@@ -174,7 +174,7 @@ class SPROKIT_PIPELINE_EXPORT datum
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT datum_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT datum_exception
   : public pipeline_exception
 {
   public:
@@ -196,7 +196,7 @@ class SPROKIT_PIPELINE_EXPORT datum_exception
  *
  * \ingroup exceptions
  */
-class SPROKIT_PIPELINE_EXPORT bad_datum_cast_exception
+class VIAME_PIPELINE_FRAMEWORK_EXPORT bad_datum_cast_exception
   : public datum_exception
 {
   public:

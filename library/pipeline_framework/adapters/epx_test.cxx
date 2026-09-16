@@ -7,7 +7,7 @@
 #include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/config/config_block_formatter.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <sstream>
 #include <iostream>
@@ -72,12 +72,12 @@ viame::config_block_sptr epx_test::get_configuration() const
  *
  */
 extern "C"
-KWIVER_EPX_TEST_EXPORT
+VIAME_EPX_TEST_EXPORT
 void
 register_factories( viame::registry& vpm )
 
 {
-  viame::embedded_pipeline_extension_registrar reg( vpm, "kwiver_epx_test" );
+  viame::embedded_pipeline_extension_registrar reg( vpm, "viame_epx_test" );
   using namespace viame;
 
   if ( reg.is_module_loaded() )

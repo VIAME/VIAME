@@ -1,4 +1,4 @@
-project(sprokit_python_util)
+project(viame_pipeline_python_util)
 
 set(python_util_srcs
     ${python_util_srcs}
@@ -8,7 +8,7 @@ set(python_util_headers
     ${python_util_headers}
     pystream.h)
 
-viame_add_library(sprokit_python_util
+viame_add_library(viame_pipeline_python_util
   ${python_util_srcs}
   ${python_util_headers})
 
@@ -18,10 +18,10 @@ viame_add_library(sprokit_python_util
 # so the Boost entries linked nothing and the pybind11 one was putting the
 # reference superbuild's whole `include/` prefix on this target's command
 # line, which is how a vendored header gets shadowed by the copy it replaced.
-target_link_libraries(sprokit_python_util
+target_link_libraries(viame_pipeline_python_util
   LINK_PUBLIC     ${Python_LIBRARIES}
   LINK_PRIVATE    pybind11::pybind11
-                  vital_python_util)
+                  viame_python_util)
 
 viame_install_headers(
     SUBDIR     sprokit/python/util
@@ -30,7 +30,7 @@ viame_install_headers(
 
   # install export header
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/sprokit_python_util_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_pipeline_python_util_export.h
   SUBDIR   sprokit/python/util
   NOPATH
   )

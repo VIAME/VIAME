@@ -8,7 +8,7 @@
 #include "feature_descriptor_io.h"
 
 #include <viame/algorithm_framework/exceptions/io.h>
-#include <viame/core_types/vital_types.h>
+#include <viame/core_types/viame_core_types.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
 

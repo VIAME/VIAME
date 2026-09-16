@@ -32,7 +32,7 @@ namespace algo {
 /// - Adding new objects that don't overlap with existing tracks
 /// - Removing tracks that no longer match query criteria
 ///
-class VITAL_ALGO_EXPORT refine_tracks
+class VIAME_ALGO_EXPORT refine_tracks
   : public viame::algorithm
 {
 public:

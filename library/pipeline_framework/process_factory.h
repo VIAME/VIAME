@@ -10,9 +10,9 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_FACTORY_H
 #define SPROKIT_PIPELINE_PROCESS_FACTORY_H
 
-#include <viame/pipeline_framework/sprokit_pipeline_export.h>
+#include <viame/pipeline_framework/viame_pipeline_framework_export.h>
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/plugin/plugin_registrar.h>
@@ -62,7 +62,7 @@ create_new_process(viame::config_block_sptr const& conf)
  *
  * \tparam C Concrete process class type.
  */
-class SPROKIT_PIPELINE_EXPORT process_factory
+class VIAME_PIPELINE_FRAMEWORK_EXPORT process_factory
 : public viame::plugin_factory
 {
 public:
@@ -88,7 +88,7 @@ public:
   // Sprokit processes use their own configuration mechanism, so these are stubs
   viame::pluggable_sptr from_config( [[maybe_unused]] viame::config_block_sptr const cb ) const override
   {
-    // Sprokit processes are not pluggable in the same way as vital algorithms
+    // Sprokit processes are not pluggable in the same way as viame_algorithm_framework algorithms
     return nullptr;
   }
 
@@ -104,7 +104,7 @@ public:
  *
  * This class represents the factory for a CPP process.
  */
-class SPROKIT_PIPELINE_EXPORT cpp_process_factory
+class VIAME_PIPELINE_FRAMEWORK_EXPORT cpp_process_factory
 : public process_factory
 {
 public:
@@ -152,14 +152,14 @@ private:
  * \param alias The old type name.
  * \param target The type it now resolves to.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
 void add_process_alias( viame::pipeline::process::type_t const& alias,
                         viame::pipeline::process::type_t const& target );
 
 /**
  * \brief Every process type alias, old name to new.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
 std::map< viame::pipeline::process::type_t, viame::pipeline::process::type_t >
 process_aliases();
 
@@ -174,7 +174,7 @@ process_aliases();
  *
  * \returns A new process of type \p type.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
 viame::pipeline::process_t create_process(const viame::pipeline::process::type_t&        type,
                                   const viame::pipeline::process::name_t&        name,
                                   const viame::config_block_sptr config = viame::config_block::empty_config() );
@@ -185,7 +185,7 @@ viame::pipeline::process_t create_process(const viame::pipeline::process::type_t
  * \param vpl The loader object that is managing the list of loadable modules.
  * \param module The process to mark as loaded.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
   void mark_process_module_as_loaded( viame::registry& vpl,
                                       const module_t& module );
 
@@ -197,7 +197,7 @@ SPROKIT_PIPELINE_EXPORT
  *
  * \returns True if the process has already been loaded, false otherwise.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
   bool is_process_module_loaded( viame::registry& vpl,
                                  module_t const& module );
 
@@ -206,7 +206,7 @@ SPROKIT_PIPELINE_EXPORT
  *
  * \return List of all process implementation factories.
  */
-SPROKIT_PIPELINE_EXPORT
+VIAME_PIPELINE_FRAMEWORK_EXPORT
 viame::plugin_factory_vector_t const& get_process_list();
 
 //

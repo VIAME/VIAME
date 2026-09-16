@@ -5,7 +5,7 @@
 #ifndef KWIVER_TOOLS_KWIVER_APPLET_H
 #define KWIVER_TOOLS_KWIVER_APPLET_H
 
-#include <viame/algorithm_framework/applets/vital_applets_export.h>
+#include <viame/algorithm_framework/applets/viame_applets_export.h>
 
 #include <cxxopts.hpp>
 #include <viame/algorithm_framework/config/config_block.h>
@@ -30,7 +30,7 @@ class applet_context;
 ///
 /// This class represents the abstract base class for all loadable
 /// applets.
-class VITAL_APPLETS_EXPORT kwiver_applet : public viame::pluggable
+class VIAME_APPLETS_EXPORT kwiver_applet : public viame::pluggable
 {
 public:
   kwiver_applet();

@@ -8,7 +8,7 @@
 #ifndef VITAL_ALGO_COMPUTE_REF_HOMOGRAPHY_H_
 #define VITAL_ALGO_COMPUTE_REF_HOMOGRAPHY_H_
 
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <vector>
 
@@ -28,7 +28,7 @@ namespace algo {
 /// class is designed to generate different types of homographies from input
 /// feature tracks, which can transform each image back to the same coordinate
 /// space derived from some initial refrerence image.
-class VITAL_ALGO_EXPORT compute_ref_homography
+class VIAME_ALGO_EXPORT compute_ref_homography
   : public viame::algorithm
 {
 public:

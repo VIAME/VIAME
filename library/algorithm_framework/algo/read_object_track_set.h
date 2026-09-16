@@ -9,7 +9,7 @@
 #define VITAL_READ_OBJECT_TRACK_SET_H
 
 #include <viame/algorithm_framework/algo/algorithm.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/core_types/object_track_set.h>
 
@@ -30,7 +30,7 @@ namespace algo {
 /// information to recreate a unique image identifier, usually the frame number,
 /// and an associated set of object tracks. Alternatively, tracks can be read in
 /// batch mode.
-class VITAL_ALGO_EXPORT read_object_track_set
+class VIAME_ALGO_EXPORT read_object_track_set
   : public viame::algorithm
 {
 public:

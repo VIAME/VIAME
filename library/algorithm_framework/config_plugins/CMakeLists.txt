@@ -4,10 +4,10 @@
 
 viame_add_plugin( format_config
                    SOURCES          format_config_block_plugin.cxx
-                   PRIVATE          vital_config
-                                    vital_vpm
-                                    vital_util
-                                    vital_exceptions
+                   PRIVATE          viame_config
+                                    viame_plugin
+                                    viame_util
+                                    viame_exceptions
                    KIND        OTHERS
                    )
 

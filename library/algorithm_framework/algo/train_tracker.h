@@ -12,7 +12,7 @@
 #include <viame/core_types/category_hierarchy.h>
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/object_track_set.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <map>
 #include <string>
@@ -22,7 +22,7 @@ namespace viame {
 namespace algo {
 
 /// An abstract base class for training object trackers
-class VITAL_ALGO_EXPORT train_tracker
+class VIAME_ALGO_EXPORT train_tracker
   : public viame::algorithm
 {
 public:

@@ -9,7 +9,7 @@
 #define KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_KW18_H
 
 #include "viame_file_io_export.h"
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <viame/algorithm_framework/algo/write_object_track_set.h>
 

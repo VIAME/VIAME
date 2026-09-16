@@ -10,13 +10,13 @@
 
 #include <viame/core_types/class_map.h>
 
-#include <viame/core_types/vital_types_export.h>
+#include <viame/core_types/viame_core_types_export.h>
 
 namespace viame {
 
 struct detected_object_type_tag {};
 
-extern template class VITAL_TYPES_EXPORT class_map< detected_object_type_tag >;
+extern template class VIAME_CORE_TYPES_EXPORT class_map< detected_object_type_tag >;
 
 using detected_object_type = class_map< detected_object_type_tag >;
 

@@ -704,7 +704,7 @@ decode_strips( reader const& file, layout const& shape )
   return pixels;
 }
 
-/// Interleaved file bytes into vital's planar image.
+/// Interleaved file bytes into viame_algorithm_framework's planar image.
 template < typename T >
 kv::image
 to_image( std::vector< uint8_t > const& bytes, layout const& shape,
@@ -837,7 +837,7 @@ append_entry( std::vector< uint8_t >& out, uint16_t tag, uint16_t type,
   }
 }
 
-/// vital's planar image into interleaved file bytes.
+/// viame_algorithm_framework's planar image into interleaved file bytes.
 template < typename T >
 std::vector< uint8_t >
 from_image( kv::image const& image )

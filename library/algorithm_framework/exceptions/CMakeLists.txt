@@ -34,17 +34,17 @@ set( sources
 # install export header
 
 viame_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_exceptions_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_exceptions_export.h
   SUBDIR   viame/algorithm_framework/exceptions
   NOPATH
   )
 
 
-viame_add_library( vital_exceptions
+viame_add_library( viame_exceptions
   ${public_headers}
   ${sources}
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_exceptions_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_exceptions_export.h
   )
 
 # Republished under the prefix the imported sources use.
-viame_lite_generated( vital_exceptions_export.h algorithm_framework/exceptions )
+viame_lite_generated( viame_exceptions_export.h algorithm_framework/exceptions )

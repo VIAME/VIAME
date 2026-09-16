@@ -8,7 +8,7 @@
 #include <viame/algorithm_framework/util/token_type.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
-#include <viame/algorithm_framework/config/vital_config_export.h>
+#include <viame/algorithm_framework/config/viame_config_export.h>
 
 namespace viame {
 
@@ -32,7 +32,7 @@ namespace viame {
 /// m_token_expander.add_token_type( new viame::token_type_config( block
 /// ) );
 /// \endcode
-class VITAL_CONFIG_EXPORT token_type_config
+class VIAME_CONFIG_EXPORT token_type_config
   : public token_type
 {
 public:

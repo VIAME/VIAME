@@ -2,7 +2,7 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#include "viame/pipeline_framework/applets/sprokit_applets_export.h"
+#include "viame/pipeline_framework/applets/viame_applets_plugin_export.h"
 
 #include <viame/algorithm_framework/plugin/registry.h>
 #include <viame/algorithm_framework/applets/applet_registrar.h>
@@ -11,7 +11,7 @@
 
 // ============================================================================
 extern "C"
-SPROKIT_APPLETS_EXPORT
+VIAME_APPLETS_PLUGIN_EXPORT
 void
 register_factories( viame::registry& vpm )
 {

@@ -9,8 +9,8 @@
 #ifndef VITAL_POINTCLOUD_H_
 #define VITAL_POINTCLOUD_H_
 
-#include <viame/core_types/vital_types_export.h>
-#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/viame_core_types_export.h>
+#include <viame/algorithm_framework/viame_compiler_config.h>
 
 #include <memory>
 #include <vector>
@@ -58,7 +58,7 @@ public:
 
 /// A representation of a point cloud
 template < typename T >
-class VITAL_TYPES_EXPORT pointcloud_ :
+class VIAME_CORE_TYPES_EXPORT pointcloud_ :
 
   public pointcloud
 {
