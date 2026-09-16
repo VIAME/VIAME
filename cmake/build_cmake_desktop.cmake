@@ -18,6 +18,7 @@ set(VIAME_ENABLE_DIVE ON CACHE BOOL "Enable DIVE")
 
 # Additional features for desktop
 set(VIAME_ENABLE_PYTORCH-LEARN ON CACHE BOOL "Enable learning/training")
+set(VIAME_ENABLE_PYTORCH-SLEAP ON CACHE BOOL "Enable SLEAP-NN keypoints")
 set(VIAME_ENABLE_POSTGRESQL ON CACHE BOOL "Enable PostgreSQL")
 
 # TensorRT lean runtime (~110 MB) for the prebuilt engines model add-ons ship;

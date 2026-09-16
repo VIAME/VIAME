@@ -27,6 +27,7 @@ cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_docker.cmake \
   -C ../cmake/build_cmake_web.cmake \
+  -DVIAME_ENABLE_PYTORCH-SLEAP:BOOL=ON \
   -DCUDA_ARCHITECTURES:STRING="7.0 7.5 8.0 8.6 8.9 9.0 10.0 12.0"
 
 # Download OCV aux files from local server copy
@@ -42,8 +43,8 @@ run_build build_log.txt true
 # prebuilt tarball is a cp310 binary build (mmcv_depr/_ext.cpython-310-*.so
 # under lib/python3.10), which this image's Python 3.12 can neither import nor
 # even see on its path since the ubuntu24.04 base switch, so it was only
-# shipping dead weight. The cu11 and ifremer web images still run Python 3.10
-# and keep it.
+# shipping dead weight. The ifremer web image still runs Python 3.10 and keeps
+# it.
 
 # Fix libsvm symlink issue
 fix_libsvm_symlink install
