@@ -247,7 +247,7 @@ covered (the third, the depth-map matcher, is not):
    [`stereo_measure_current_annots_template.pipe`](../../configs/pipelines/stereo_measure_current_annots_template.pipe)):
    epipolar candidate generation + NCC template matching.
 2. **Method 2 — DINO + NCC** (`epipolar_descriptor_type=dino` in
-   [`add-ons/dino/stereo_measure_current_annots_ncc_dino.pipe`](../../configs/add-ons/dino/stereo_measure_current_annots_ncc_dino.pipe)):
+   [`add-ons/dino3/stereo_measure_current_annots_ncc_dino.pipe`](../../configs/add-ons/dino3/stereo_measure_current_annots_ncc_dino.pipe)):
    the same epipolar matching, but DINOv2 dense features first pick the top-K
    semantically similar candidates and NCC refines among them. The DINOv2 ViT is
    baked into the graph.
