@@ -38,7 +38,8 @@ Protocol:
     }
 
     Commands:
-    - "enable": Load the algorithm and enable the service (requires calibration)
+    - "enable": Load the algorithm and enable the service (requires calibration);
+      an optional "config" path selects the stereo config to load
     - "disable": Unload the algorithm and disable the service
     - "set_frame": Start computing disparity for stereo pair (proactive)
     - "cancel": Cancel current disparity computation
@@ -92,6 +93,7 @@ class EpipolarTemplateMatcher:
         epipolar_num_samples=5000,
         dino_model_name="dinov2_vitb14",
         dino_top_k=0,
+        dino_weights_path="",
     ):
         self._template_size = template_size
         self._threshold = template_matching_threshold
@@ -110,6 +112,7 @@ class EpipolarTemplateMatcher:
         # DINO top-K + NCC two-stage matching
         self._dino_model_name = dino_model_name
         self._dino_top_k = dino_top_k
+        self._dino_weights_path = dino_weights_path
         self._dino_matcher = None
         self._dino_available = False
         self._dino_images_set = False
@@ -121,19 +124,22 @@ class EpipolarTemplateMatcher:
         print(f"[EpipolarMatcher] {msg}", file=sys.stderr, flush=True)
 
     def _init_dino(self):
-        """Try to import and initialize the DINO matcher module."""
+        # A config that asks for DINO must not silently degrade to plain NCC.
+        if self._dino_weights_path and not os.path.isfile(self._dino_weights_path):
+            raise RuntimeError(
+                f"DINO weights not found: {self._dino_weights_path} "
+                "(is the DINO add-on installed?)")
         try:
             from viame.pytorch import dino_matcher
             self._dino_matcher = dino_matcher
             dino_matcher.init_matcher(
-                model_name=self._dino_model_name, device="cuda", threshold=0.0)
-            self._dino_available = True
-            self._log(f"DINO matcher initialized: model={self._dino_model_name}, "
-                      f"top_k={self._dino_top_k}")
+                model_name=self._dino_model_name, device="cuda", threshold=0.0,
+                weights_path=self._dino_weights_path)
         except Exception as e:
-            self._log(f"DINO matcher not available ({e}), using NCC only")
-            self._dino_available = False
-            self._dino_top_k = 0
+            raise RuntimeError(f"DINO matcher failed to initialize: {e}") from e
+        self._dino_available = True
+        self._log(f"DINO matcher initialized: model={self._dino_model_name}, "
+                  f"top_k={self._dino_top_k}")
 
     def set_images(self, left_bgr, right_bgr):
         """Set BGR images for DINO feature extraction (call when frame changes)."""
@@ -1648,7 +1654,10 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
 
     # Read config file using vital's built-in loader (supports includes)
     config_dir = os.path.dirname(os.path.abspath(config_path))
-    cfg = vital_config.read_config_file(config_path, [config_dir])
+    # Newer bindings type search_paths as an opaque ConfigKeys vector.
+    search_paths = getattr(vital_config, "ConfigKeys", list)()
+    search_paths.append(config_dir)
+    cfg = vital_config.read_config_file(config_path, search_paths)
 
     # Check for epipolar template matching mode
     epipolar_matcher = None
@@ -1671,6 +1680,8 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
                 dino_model_name=cfg.get_value("dino_model_name")
                     if cfg.has_value("dino_model_name") else "dinov2_vitb14",
                 dino_top_k=_cfg_int("dino_top_k", 0),
+                dino_weights_path=cfg.get_value("dino_weights_path")
+                    if cfg.has_value("dino_weights_path") else "",
             )
 
     # Check for dense disparity algorithm

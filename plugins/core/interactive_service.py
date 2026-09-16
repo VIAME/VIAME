@@ -32,6 +32,7 @@ Usage:
 """
 
 import argparse
+import gc
 import json
 import logging
 import os
@@ -102,6 +103,7 @@ class InteractiveService:
         # Lazily constructed sub-services (their models load lazily in turn).
         self._seg_service: Optional[InteractiveSegmentationService] = None
         self._stereo_service: Optional[InteractiveStereoService] = None
+        self._stereo_loaded_config: Optional[str] = None
 
         self._build_lock = threading.Lock()  # guards lazy construction
         self._send_lock = threading.Lock()   # serializes stdout writes
@@ -153,17 +155,28 @@ class InteractiveService:
                 self._log("Segmentation backend ready")
         return self._seg_service
 
-    def _ensure_stereo(self) -> InteractiveStereoService:
-        if self._stereo_service is not None:
+    def _ensure_stereo(self, config: Optional[str] = None) -> InteractiveStereoService:
+        """Return the stereo backend, building it on first use. A ``config``
+        different from the loaded one replaces the backend (the desktop client
+        switches matching methods this way without restarting the process)."""
+        if config and not os.path.isfile(config):
+            raise ValueError(f"Stereo config not found: {config}")
+        if self._stereo_service is not None and (
+                not config or config == self._stereo_loaded_config):
             return self._stereo_service
         with self._build_lock:
+            if self._stereo_service is not None and config != self._stereo_loaded_config:
+                self._log(f"Replacing stereo backend with {config}")
+                self._shutdown_backends()
+                self._stereo_service = None
+                gc.collect()
             if self._stereo_service is None:
-                config = self._stereo_config or find_stereo_config()
+                config = config or self._stereo_config or find_stereo_config()
                 if not config:
                     raise ValueError(
                         "No stereo config available "
                         "(interactive_stereo_default.conf); is VIAME_INSTALL set?")
-                self._log("Loading stereo backend...")
+                self._log(f"Loading stereo backend from {config}...")
                 with suppress_stdout():
                     stereo_algo, matcher, svc_cfg = load_algorithm_from_config(
                         config, self._plugin_paths)
@@ -178,6 +191,7 @@ class InteractiveService:
                     send_response=self._send,
                     **svc_cfg,
                 )
+                self._stereo_loaded_config = config
                 self._log(
                     "Stereo backend ready "
                     f"({'epipolar' if matcher is not None else 'dense'} mode)")
@@ -197,7 +211,8 @@ class InteractiveService:
             # query (keeps single-camera sessions from ever loading stereo).
             if self._stereo_service is None and command in STEREO_IDLE_COMMANDS:
                 return self._stereo_idle_response(command)
-            return self._ensure_stereo().handle_request(request)
+            config = request.get("config") if command == "enable" else None
+            return self._ensure_stereo(config).handle_request(request)
 
         # Build + warm up the segmentation models. Sent when the user enters
         # point-segmentation mode, so SAM loads on mode entry (not on the first
