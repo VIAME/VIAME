@@ -38,14 +38,14 @@ class SiamMaskTracker(SiamRPNTracker):
     def _mask_post_processing(self, mask):
         target_mask = (mask > cfg.TRACK.MASK_THRESHOLD)
         target_mask = target_mask.astype(np.uint8)
-        if cv2.__version__[0] == '4':
-            contours, _ = cv2.findContours(target_mask,
-                                           cv2.RETR_EXTERNAL,
-                                           cv2.CHAIN_APPROX_NONE)
-        else:
-            _, contours, _ = cv2.findContours(target_mask,
-                                              cv2.RETR_EXTERNAL,
-                                              cv2.CHAIN_APPROX_NONE)
+        # OpenCV 2/3 returned (image, contours, hierarchy); 4 and 5 return
+        # (contours, hierarchy). `[-2]` is the contours in either, and does
+        # not need a version test -- `cv2.__version__[0] == '4'` was False on
+        # 5.x and sent it down the three-value path, which throws.
+        found = cv2.findContours(target_mask,
+                                 cv2.RETR_EXTERNAL,
+                                 cv2.CHAIN_APPROX_NONE)
+        contours = found[-2]
         cnt_area = [cv2.contourArea(cnt) for cnt in contours]
         if len(contours) != 0 and np.max(cnt_area) > 100:
             contour = contours[np.argmax(cnt_area)]
