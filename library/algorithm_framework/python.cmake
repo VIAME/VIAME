@@ -75,7 +75,7 @@ set( THIS_MODULE util )
 viame_add_python_module(
   ${CMAKE_CURRENT_LIST_DIR}/util/util_init.py "${THIS_MODULE}" __init__ )
 # `pil` was `VitalPIL`; the functions in it kept their names.
-foreach( _viame_util_module IN ITEMS pil find_python_library entrypoint )
+foreach( _viame_util_module IN ITEMS pil find_python_library entrypoint env )
   viame_add_python_module(
     ${CMAKE_CURRENT_LIST_DIR}/util/${_viame_util_module}.py
     "${THIS_MODULE}" ${_viame_util_module} )

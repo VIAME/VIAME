@@ -131,3 +131,23 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 120
   )
 endif()
+
+###
+# The renamed environment variables
+#
+# P11-T03 gave each of them the name VIAME uses now and kept the one it used
+# before, read with a one-time warning. `viame.util.env.get_renamed` is the
+# python half; `viame::get_env_renamed` is the C++ half and is covered by
+# `test_file_system.cxx`. Both follow one rule, and this holds it: the new
+# name wins, an empty new name is still a value, and the old name says so
+# once rather than on every read.
+##
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
+    NAME    "unit:algorithm_framework:env_renamed"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_env_renamed.py"
+    LABELS  UNIT
+    TIMEOUT 120
+    SOURCE_SETUP
+  )
+endif()

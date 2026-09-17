@@ -28,7 +28,11 @@ namespace viame::pipeline {
 namespace {
 
 static std::string const default_include_dirs = std::string( DEFAULT_PIPE_INCLUDE_PATHS );
-static std::string const sprokit_include_envvar = std::string( "SPROKIT_PIPE_INCLUDE_PATH" );
+static std::string const include_envvar =
+  std::string( "VIAME_PIPE_INCLUDE_PATH" );
+// The name before phase 11, still read with a one-time warning.
+static std::string const old_include_envvar =
+  std::string( "SPROKIT_PIPE_INCLUDE_PATH" );
 static std::string const split_str = "=";
 static std::string const path_separator( 1, PATH_SEPARATOR_CHAR );
 
@@ -197,7 +201,8 @@ pipeline_builder
 {
   // Add path from the environment
   viame::path_list_t path_list;
-  viame::environment_path( sprokit_include_envvar, path_list );
+  viame::environment_path_renamed(
+    include_envvar, old_include_envvar, path_list );
 
   // Add the default search path
   ::viame::tokenize( default_include_dirs, path_list, path_separator,

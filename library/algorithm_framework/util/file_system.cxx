@@ -19,10 +19,14 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
+#include <viame/algorithm_framework/logger/logger.h>
+
 #include <unistd.h>
 
 #include <algorithm>
 #include <cstdlib>
+#include <mutex>
+#include <set>
 #include <filesystem>
 #include <system_error>
 
@@ -522,6 +526,76 @@ char const*
 get_env( std::string const& name )
 {
   return std::getenv( name.c_str() );
+}
+
+// ----------------------------------------------------------------------------
+namespace {
+
+/// Whether this is the first time this process has been asked about `name`.
+bool
+first_use_of( std::string const& name )
+{
+  static std::mutex mutex;
+  static std::set< std::string > seen;
+
+  std::lock_guard< std::mutex > const guard( mutex );
+  return seen.insert( name ).second;
+}
+
+// ----------------------------------------------------------------------------
+void
+warn_about_old_name( std::string const& name, std::string const& old_name )
+{
+  if( !first_use_of( old_name ) )
+  {
+    return;
+  }
+
+  LOG_WARN(
+    get_logger( "viame.environment" ),
+    old_name << " is set. It is the name VIAME used before phase 11, is "
+                "still read, and will stop being read in a later release; "
+                "set " << name << " instead." );
+}
+
+} // namespace
+
+// ----------------------------------------------------------------------------
+char const*
+get_env_renamed( std::string const& name, std::string const& old_name )
+{
+  if( char const* const value = std::getenv( name.c_str() ) )
+  {
+    return value;
+  }
+
+  char const* const old_value = std::getenv( old_name.c_str() );
+
+  if( old_value )
+  {
+    warn_about_old_name( name, old_name );
+  }
+
+  return old_value;
+}
+
+// ----------------------------------------------------------------------------
+void
+environment_path_renamed(
+  std::string const& name, std::string const& old_name,
+  std::vector< std::string >& directories )
+{
+  if( std::getenv( name.c_str() ) )
+  {
+    environment_path( name, directories );
+    return;
+  }
+
+  if( std::getenv( old_name.c_str() ) )
+  {
+    warn_about_old_name( name, old_name );
+    environment_path( old_name, directories );
+  }
 }
 
 } // namespace viame

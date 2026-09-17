@@ -68,7 +68,9 @@ OS_ENV_PATH_SEP = os.pathsep
 
 # String name of the namespace from which we query for entry-points.
 PLUGIN_NAMESPACE = "viame.python_plugins"
-PLUGIN_ENV_VAR = "KWIVER_PYTHON_PLUGIN_PATH"
+PLUGIN_ENV_VAR = "VIAME_PYTHON_PLUGIN_PATH"
+# The name before phase 11, still read with a one-time warning.
+OLD_PLUGIN_ENV_VAR = "KWIVER_PYTHON_PLUGIN_PATH"
 
 # Type variable for some subtype of the Pluggable abstract class.
 P = TypeVar("P", bound=Pluggable)
@@ -166,7 +168,8 @@ def import_via_entrypoint_extensions(entrypoint_ns: str) -> Set[ModuleType]:
     return mod_set
 
 
-def import_via_env_var(env_var: str) -> Set[ModuleType]:
+def import_via_env_var(env_var: str,
+                       old_env_var: str = None) -> Set[ModuleType]:
     """
     Discover, import and return python-importable modules specified in the
     given environment variable.
@@ -199,7 +202,12 @@ def import_via_env_var(env_var: str) -> Set[ModuleType]:
         environment variable's contents.
     """
     mod_set: Set[ModuleType] = set()
-    env_var_paths = os.environ.get(env_var, "").split(OS_ENV_PATH_SEP)
+    if old_env_var:
+        from viame.util.env import get_renamed
+        raw = get_renamed(env_var, old_env_var, "")
+    else:
+        raw = os.environ.get(env_var, "")
+    env_var_paths = raw.split(OS_ENV_PATH_SEP)
     llevel = 1
     # If no value, and empty string splits into `[""]`.
     if env_var_paths == [""]:
@@ -277,7 +285,7 @@ def _get_concrete_pluggable_types() -> List[Type[Pluggable]]:
     The results of this will be used for plugin registration
     """
     import_via_entrypoint_extensions(PLUGIN_NAMESPACE)
-    import_via_env_var(PLUGIN_ENV_VAR)
+    import_via_env_var(PLUGIN_ENV_VAR, OLD_PLUGIN_ENV_VAR)
     p_type_set = traverse_subclasses(Pluggable)
     concrete_types = [p_t for p_t in p_type_set if (is_concrete_pluggable(p_t))]
 

@@ -10,19 +10,23 @@ import logging
 
 def _configure_logging():
     """
-    Configures python logging to using KWIVER / SPROKIT environment variables
+    Configures python logging from VIAME's environment variables.
 
     SeeAlso:
-        kwiver/vital/logger: logic for the vital logger
+        `library/algorithm_framework/logger`, for the C++ logger, which reads
+        the same level.
     """
+    from viame.util.env import get_renamed
     # Use the C++ logging level by default, but allow python to be different.
     # `VIAME_LOG_LEVEL` first, then the old name, as the C++ logger reads them.
     cxx_level = (os.environ.get("VIAME_LOG_LEVEL") or
                  os.environ.get("KWIVER_DEFAULT_LOG_LEVEL") or "DEBUG")
 
     # C++ logging supports trace as it's lowest level but python doesn't
-    if "KWIVER_PYTHON_DEFAULT_LOG_LEVEL" in os.environ:
-        py_level = os.environ.get("KWIVER_PYTHON_DEFAULT_LOG_LEVEL")
+    py_env_level = get_renamed("VIAME_PYTHON_LOG_LEVEL",
+                               "KWIVER_PYTHON_DEFAULT_LOG_LEVEL")
+    if py_env_level:
+        py_level = py_env_level
     elif cxx_level.upper() == "TRACE":
         py_level = "DEBUG"
     else:
@@ -30,7 +34,8 @@ def _configure_logging():
 
     # Option to colorize the python logs (must pip install coloredlogs)
     truthy_values = {"true", "on", "yes", "1"}
-    use_color_env = os.environ.get("KWIVER_PYTHON_COLOREDLOGS", "false")
+    use_color_env = get_renamed("VIAME_PYTHON_COLOREDLOGS",
+                                "KWIVER_PYTHON_COLOREDLOGS", "false")
 
     # Default options
     use_color = use_color_env.strip().lower() in truthy_values

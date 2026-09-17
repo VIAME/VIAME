@@ -1731,6 +1731,7 @@ lib/python3.10/site-packages/viame/types/video_raw_metadata.so
 lib/python3.10/site-packages/viame/types/video_settings.so
 lib/python3.10/site-packages/viame/util/__init__.py
 lib/python3.10/site-packages/viame/util/entrypoint.py
+lib/python3.10/site-packages/viame/util/env.py
 lib/python3.10/site-packages/viame/util/find_python_library.py
 lib/python3.10/site-packages/viame/util/pil.py
 lib/python3.10/site-packages/viame/utilities/__init__.py

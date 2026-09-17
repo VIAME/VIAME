@@ -175,6 +175,29 @@ VIAME_UTIL_EXPORT char const* get_env( std::string const& name );
 VIAME_UTIL_EXPORT void environment_path(
   std::string const& name, std::vector< std::string >& directories );
 
+/// @brief Read an environment variable that has been renamed.
+///
+/// `name` is what VIAME calls it now; `old_name` is what it was called
+/// before phase 11. The old name is still read, because an environment
+/// written for an older VIAME sets it and would otherwise change behaviour
+/// with nothing said. Reading it is reported once per process, at warning
+/// level: failing on it would break every such environment, and ignoring it
+/// silently turns "my setting does nothing" into a puzzle with no way in.
+///
+/// @return The value of `name`, else of `old_name`, else nullptr.
+VIAME_UTIL_EXPORT char const* get_env_renamed(
+  std::string const& name, std::string const& old_name );
+
+/// @brief Append the directories named by a renamed PATH-style variable.
+///
+/// `environment_path`, reading `name` and falling back to `old_name` as
+/// `get_env_renamed` does. Only one of the two is read: a set new name means
+/// the old one is not consulted at all, so an environment that sets both
+/// gets the new one rather than their concatenation.
+VIAME_UTIL_EXPORT void environment_path_renamed(
+  std::string const& name, std::string const& old_name,
+  std::vector< std::string >& directories );
+
 } // namespace viame
 
 #endif // KWIVER_VITAL_UTIL_FILE_SYSTEM_H

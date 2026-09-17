@@ -2161,3 +2161,28 @@ and `tests/baseline/README.md` did not match them: it documented
 `install_manifest.py <install> --record`, which omits the required
 `--prefix` and passes the install directory where the log belongs. It is
 corrected.
+
+### 2.24 The logger is the one variable its own helper cannot serve
+
+P11-T03 gave each renamed environment variable the same rule: read the name
+VIAME uses now, fall back to the one it used before, and say so once.
+`viame::get_env_renamed` and `viame::environment_path_renamed` are that rule
+in C++, and they can warn through the ordinary logger because `viame_util`
+links `viame_logger`.
+
+The pair the logger itself reads cannot use them. `kwiver_logger.cxx`
+resolves `VIAME_LOG_LEVEL` and `KWIVER_DEFAULT_LOG_LEVEL` while the logger is
+being built, and `viame_logger` cannot link `viame_util` -- that is the
+dependency the other way round, and closing it would be a cycle. Warning from
+inside level resolution would also mean logging before the sinks it is
+configuring exist.
+
+So that one pair stays silent, which costs little: the setup scripts fold the
+old name into the new one (`VIAME_LOG_LEVEL=${VIAME_LOG_LEVEL:-${KWIVER_DEFAULT_LOG_LEVEL:-info}}`)
+before anything reads either, so a sourced environment never reaches the
+fallback at all. The python side has no such constraint and does warn.
+
+An empty new name is a value rather than an absence, in both languages.
+`VIAME_PIPE_INCLUDE_PATH=` is how a caller says "no extra directories", and
+falling through to the old name there would search the directories it was
+being asked not to.

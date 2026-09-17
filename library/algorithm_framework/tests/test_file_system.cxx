@@ -289,6 +289,85 @@ TEST ( file_system, the_environment_says_whether_it_had_the_name )
 }
 
 // ----------------------------------------------------------------------------
+// P11-T03 renamed the environment variables. The old names are still read,
+// because an environment written for an older VIAME sets them, and reading
+// one says so -- once, because the plugin search path is read on every
+// discovery pass and saying it every time would bury it.
+TEST ( file_system, a_renamed_variable_prefers_the_name_it_has_now )
+{
+  setenv( "VIAME_FS_NEW", "new value", 1 );
+  setenv( "VIAME_FS_OLD", "old value", 1 );
+
+  EXPECT_STREQ( "new value", kv::get_env_renamed( "VIAME_FS_NEW", "VIAME_FS_OLD" ) );
+
+  unsetenv( "VIAME_FS_NEW" );
+  unsetenv( "VIAME_FS_OLD" );
+}
+
+// ----------------------------------------------------------------------------
+TEST ( file_system, a_renamed_variable_still_reads_the_old_name )
+{
+  unsetenv( "VIAME_FS_NEW2" );
+  setenv( "VIAME_FS_OLD2", "old value", 1 );
+
+  ::testing::internal::CaptureStderr();
+  auto const* const first = kv::get_env_renamed( "VIAME_FS_NEW2", "VIAME_FS_OLD2" );
+  auto const said = ::testing::internal::GetCapturedStderr();
+
+  ::testing::internal::CaptureStderr();
+  auto const* const second = kv::get_env_renamed( "VIAME_FS_NEW2", "VIAME_FS_OLD2" );
+  auto const again = ::testing::internal::GetCapturedStderr();
+
+  ASSERT_NE( nullptr, first );
+  EXPECT_STREQ( "old value", first );
+  EXPECT_STREQ( "old value", second );
+
+  EXPECT_NE( std::string::npos, said.find( "VIAME_FS_OLD2" ) ) << said;
+  EXPECT_NE( std::string::npos, said.find( "VIAME_FS_NEW2" ) ) << said;
+  EXPECT_EQ( std::string::npos, again.find( "VIAME_FS_OLD2" ) ) << again;
+
+  unsetenv( "VIAME_FS_OLD2" );
+}
+
+// ----------------------------------------------------------------------------
+TEST ( file_system, neither_name_set_is_nothing_and_says_nothing )
+{
+  unsetenv( "VIAME_FS_NEW3" );
+  unsetenv( "VIAME_FS_OLD3" );
+
+  ::testing::internal::CaptureStderr();
+  EXPECT_EQ( nullptr, kv::get_env_renamed( "VIAME_FS_NEW3", "VIAME_FS_OLD3" ) );
+  EXPECT_EQ( "", ::testing::internal::GetCapturedStderr() );
+}
+
+// ----------------------------------------------------------------------------
+// One of the two is read, not both: an environment that sets each would
+// otherwise search the concatenation of them.
+TEST ( file_system, a_renamed_path_reads_one_variable_not_both )
+{
+  setenv( "VIAME_FS_PATH_NEW", "/new/one", 1 );
+  setenv( "VIAME_FS_PATH_OLD", "/old/one", 1 );
+
+  std::vector< std::string > directories;
+  kv::environment_path_renamed(
+    "VIAME_FS_PATH_NEW", "VIAME_FS_PATH_OLD", directories );
+
+  ASSERT_EQ( 1u, directories.size() );
+  EXPECT_EQ( "/new/one", directories.front() );
+
+  unsetenv( "VIAME_FS_PATH_NEW" );
+
+  directories.clear();
+  kv::environment_path_renamed(
+    "VIAME_FS_PATH_NEW", "VIAME_FS_PATH_OLD", directories );
+
+  ASSERT_EQ( 1u, directories.size() );
+  EXPECT_EQ( "/old/one", directories.front() );
+
+  unsetenv( "VIAME_FS_PATH_OLD" );
+}
+
+// ----------------------------------------------------------------------------
 TEST ( file_system, the_working_directory_is_absolute )
 {
   auto const cwd = kv::current_working_directory();

@@ -434,7 +434,9 @@ def find_viame_runner():
     Search for the viame pipeline runner executable
     """
     # First check if viame runner is specified as an environment variable
-    runner_fpath = os.environ.get('SPROKIT_PIPELINE_RUNNER', None)
+    from viame.util.env import get_renamed
+    runner_fpath = get_renamed('VIAME_PIPELINE_RUNNER',
+                               'SPROKIT_PIPELINE_RUNNER')
     if runner_fpath is not None:
         return runner_fpath
 

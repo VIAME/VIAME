@@ -131,7 +131,16 @@ def default_pipeline_dirs():
     install = os.environ.get('VIAME_INSTALL')
     if install:
         dirs.append(Path(install) / 'configs' / 'pipelines')
-    env = os.environ.get('SPROKIT_PIPE_INCLUDE_PATH', '')
+    # Inline rather than through `viame.util.env`: this script is
+    # installed into `configs/` and run on its own, and it imports
+    # nothing from VIAME.
+    env = os.environ.get('VIAME_PIPE_INCLUDE_PATH')
+    if env is None:
+        env = os.environ.get('SPROKIT_PIPE_INCLUDE_PATH', '')
+        if env:
+            print('SPROKIT_PIPE_INCLUDE_PATH is the name VIAME used '
+                  'before phase 11; set VIAME_PIPE_INCLUDE_PATH '
+                  'instead.', file=sys.stderr)
     dirs = [Path(p) for p in env.split(os.pathsep) if p] + dirs
     return [d for d in dirs if d.is_dir()]
 

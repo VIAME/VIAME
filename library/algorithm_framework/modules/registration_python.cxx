@@ -137,7 +137,8 @@ bool
 is_suppressed()
 {
   const char* python_suppress =
-    viame::get_env( "SPROKIT_NO_PYTHON_MODULES" );
+    viame::get_env_renamed( "VIAME_NO_PYTHON_MODULES",
+                            "SPROKIT_NO_PYTHON_MODULES" );
   bool suppress_python_modules = false;
 
   if( python_suppress )
