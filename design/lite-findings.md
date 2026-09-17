@@ -2219,3 +2219,83 @@ It is not phase 11's doing. The whole failing call chain is inside
 `site-packages`, VIAME's own code is not on it, and the renames touch
 neither kwimage nor OpenCV. It is recorded here because the smoke is the
 only thing in the tree that runs training far enough to see it.
+
+**The OpenCV 5 half is fixed, by carrying upstream's own fix.** kwimage `ebaba74`, "Fix OpenCV 5
+drawing and vector compatibility", adds `_cv2_put_text_compat`: try the
+native call, and on a `cv2.error` naming `img.depth() == CV_8U` for a
+non-uint8 image, rasterise a binary uint8 text mask and assign the colour
+through it, preserving dtype, NaNs, masked arrays and inplace behaviour.
+That commit is on `main` and unreleased -- the newest tag and the newest
+release on PyPI are both 0.11.6, which the lock pins -- so it is carried in
+`packaging/patches/apply.py` until 0.12.0 ships rather than submitted again
+as a PR.
+
+Two things about writing that patch are worth keeping, because both were got
+wrong first and neither was caught by any test:
+
+* **Where the helper goes.** Expressed as one substitution on the call line,
+  the `def` lands *inside* `draw_text_on_image` and truncates it: the
+  function returns `None` and loses its `return_info` branch. Tier 1 passed
+  449 of 449 with it broken, because nothing in the suite draws text. It is
+  two substitutions -- one to place the helper at module scope, one to change
+  the call.
+* **Anchors must not survive their own substitution.** `apply_one` reports a
+  patch as already applied only when the old text is *absent*, so an insert
+  anchored on `def _text_sizes(` -- which the replacement still ends with --
+  re-inserts the helper on every build. The file grew 53 lines a run. The
+  replacement now reflows that signature so the anchor is gone afterwards,
+  and three consecutive runs leave the file byte-identical.
+
+Training now survives drawing: across a second smoke run the
+`img.depth() == CV_8U` assertion went from 54 occurrences to 0, `cv2.error`
+to 0, and the 53 caught `draw_batch` warnings to 0, with the patch verified
+in place sixteen minutes before the run started. It also got further -- 18
+epochs finished rather than 16, loss 0.0765 rather than 0.0876, a model
+deployed either way.
+
+**It still does not finish, because a second defect was behind the first.**
+Evaluation now gets past drawing and dies in kwcoco instead:
+
+    harn.on_complete() -> evaluator.evaluate() -> coco_eval._init()
+      kwcoco/coco_evaluator.py:389  pred_coco = pred_extra['coco_dset']
+    KeyError: 'coco_dset'
+
+`_coerce_dets` returns `(gid_to_dets, extra)` and the line above it does the
+same for the truth set successfully, so the predictions come back without
+that key. kwcoco 0.9.0, netharn's vendored `detect_eval`, and nothing of
+VIAME's on the path. Run 1 never reached this code at all -- it mentions
+`coco_evaluator` zero times against run 2's three -- so this is a defect the
+OpenCV crash was **masking**, not one anything here introduced. It is 2.26.
+
+VIAME's own OpenCV 5 break was separate and smaller: `siammask_tracker.py`
+tested `cv2.__version__[0] == '4'`, which is False on 5.x, and took the
+OpenCV 2/3 three-value `findContours` path, which throws. It is `found[-2]`
+now, the idiom `utilities_coco.py` already used, on both `main` and `lite`.
+The 33 other `[:, 0, :]` indexings of OpenCV returns were checked against
+cv2 5.0.0 and are all still correct: `findContours`, `undistortPoints` and
+`convertPointsToHomogeneous` return the same `(N, 1, 2)` shapes they did.
+
+
+### 2.26 kwcoco's evaluator wants a key the prediction loader does not set
+
+Uncovered by fixing 2.25: with OpenCV 5 no longer killing the trainer's
+drawing, evaluation runs on and fails in kwcoco instead.
+
+    kwcoco/coco_evaluator.py:389  pred_coco = pred_extra['coco_dset']
+    KeyError: 'coco_dset'
+
+`CocoEvaluator._coerce_dets` returns `(gid_to_dets, extra)`, and line 388
+reads `true_extra['coco_dset']` for the truth set without complaint, so it is
+the prediction side specifically that comes back without the key. Pinned:
+`kwcoco==0.9.0`, against netharn's vendored `detect_eval`, which VIAME ships
+in `library/object_detectors/netharn/`. Nothing of VIAME's own is on the call
+path.
+
+Not investigated further here: it is a different package and a different
+defect from the OpenCV work, and the netharn trainer produces and deploys a
+model before it happens -- what fails is the evaluation report afterwards.
+
+Like 2.25, the suite cannot see it. `viame_examples:train_netharn_cfrnn_from_viame_csv`
+asserts that training *starts* (`TRAINING_TIMEOUT = 120`,
+`timeout_is_success=True`), and evaluation is eighteen epochs and several
+minutes past that.
