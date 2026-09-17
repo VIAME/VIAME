@@ -95,3 +95,4 @@
 [submodule "packages/pytorch-libs/sleap-nn"]
 	path = packages/pytorch-libs/sleap-nn
 	url = https://github.com/talmolab/sleap-nn.git
+	ignore = dirty
