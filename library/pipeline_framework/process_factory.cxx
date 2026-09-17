@@ -120,7 +120,7 @@ create_process( const viame::pipeline::process::type_t&         type,
   }
   catch ( viame::plugin_factory_not_found& e )
   {
-    auto logger = viame::get_logger( "sprokit.process_factory" );
+    auto logger = viame::get_logger( "viame.process_factory" );
 
     // A type nothing registers may be one that was renamed. The alias is
     // tried once, and only after the real name has failed, so a live type
@@ -175,7 +175,7 @@ create_process( const viame::pipeline::process::type_t&         type,
   }
   catch ( const std::exception &e )
   {
-    auto logger = viame::get_logger( "sprokit.process_factory" );
+    auto logger = viame::get_logger( "viame.process_factory" );
     LOG_ERROR( logger, "Exception from creating process: " << e.what() );
     throw;
   }

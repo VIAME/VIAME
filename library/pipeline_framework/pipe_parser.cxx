@@ -56,7 +56,7 @@ struct block_context_t
 pipe_parser
 ::pipe_parser()
   : m_compatibility_mode( COMPATIBILITY_ALLOW )
-  , m_logger( viame::get_logger( "sprokit.pipe_parser" ) )
+  , m_logger( viame::get_logger( "viame.pipe_parser" ) )
 {
 }
 

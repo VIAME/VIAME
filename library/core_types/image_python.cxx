@@ -556,10 +556,10 @@ void viame::python::image
 
   /*
    *  CommandLine:
-   *    python -c "from viame_algorithm_framework.types import Image; help(Image)"
+   *    python -c "from viame.types import Image; help(Image)"
    *
    # this may work in a future version of xdoctest
-   #    python -m xdoctest viame_algorithm_framework.types Image --xdoc-dynamic
+   #    python -m xdoctest viame.types Image --xdoc-dynamic
    #
    # See:
    # http://pybind11.readthedocs.io/en/stable/advanced/pycpp/numpy.html#buffer-protocol
@@ -620,7 +620,7 @@ void viame::python::image
 .def(                                                                     \
     py::init( &viame::python::image::new_image_from_numpy< T > ), \
     py::arg( "array" ),                                                   \
-    py::doc( "Create (copy) a viame_algorithm_framework image from a 2D or 3D numpy array" ) )
+    py::doc( "Create (copy) a VIAME image from a 2D or 3D numpy array" ) )
   init_from_numpy( uint8_t )
   init_from_numpy( int8_t )
   init_from_numpy( uint16_t )
@@ -654,7 +654,7 @@ void viame::python::image
     .def(
       "asarray", [](image_t& p_img){
         // It may be possible to write this method to share memory between
-        // viame_algorithm_framework and numpy using the py::capsule class. For references see:
+        // VIAME and numpy using the py::capsule class. For references see:
         // https://stackoverflow.com/questions/44659924/ret-nparrays-pybind11
         py::object np_arr = viame::python::image::asarray( p_img );
         return np_arr;

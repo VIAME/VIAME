@@ -33,7 +33,7 @@ public:
 
 protected:
   image_container_set()
-    : m_logger( viame::get_logger( "viame_algorithm_framework.image_container_set" ) )
+    : m_logger( viame::get_logger( "viame.image_container_set" ) )
   {}
 
   viame::logger_handle_t m_logger;

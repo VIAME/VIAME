@@ -74,7 +74,7 @@ bakery_base
   , m_connections()
   , m_symtab( new viame::token_type_symtab("LOCAL") )
   , m_ref_config( viame::config_block::empty_config() )
-  , m_logger( viame::get_logger( "sprokit.bakery_base" ) )
+  , m_logger( viame::get_logger( "viame.bakery_base" ) )
 {
   m_token_expander = std::make_shared < expander_bakery >(m_logger);
   m_token_expander->add_token_type( new viame::token_type_env() );

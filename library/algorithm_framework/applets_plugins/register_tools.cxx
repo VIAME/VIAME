@@ -21,7 +21,7 @@ register_factories( viame::registry& vpl )
     vpl.add_factory< kwiver_applet, config_explorer >( "explore-config" );
   fact->add_attribute(
     kvpf::PLUGIN_DESCRIPTION,
-    "Kwiver viame_algorithm_framework applets" )
+    "Configuration file explorer" )
     .add_attribute( kvpf::PLUGIN_MODULE_NAME, "vital_tool_group" )
     .add_attribute( kvpf::ALGORITHM_CATEGORY, kvpf::APPLET_CATEGORY );
 }

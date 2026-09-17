@@ -50,7 +50,7 @@ check_and_initialize_python_interpretor()
     PyConfig_Clear( &config );
     if( PyStatus_Exception( status ) )
     {
-      auto logger = viame::get_logger( "viame_algorithm_framework.python_modules" );
+      auto logger = viame::get_logger( "viame.python_modules" );
       LOG_WARN(
         logger,
         "Unable to initialize an embedded Python interpreter; "
@@ -91,7 +91,7 @@ check_and_initialize_python_interpretor()
 bool
 load_python_library_from_env()
 {
-  auto logger = viame::get_logger( "viame_algorithm_framework.python_modules" );
+  auto logger = viame::get_logger( "viame.python_modules" );
   bool python_library_found = false;
 
 #ifdef VITAL_LOAD_PYLIB_SYM
@@ -152,7 +152,7 @@ load_python_library_from_env()
 bool
 load_python_library_from_interpretor( const std::string python_library_path )
 {
-  auto logger = viame::get_logger( "viame_algorithm_framework.python_modules" );
+  auto logger = viame::get_logger( "viame.python_modules" );
   LOG_DEBUG(
     logger,
     "Loading symbols from PYTHON_LIBRARY=" << python_library_path.c_str() );
@@ -179,7 +179,7 @@ load_python_library_from_interpretor( const std::string python_library_path )
 std::string
 find_python_library()
 {
-  auto logger = viame::get_logger( "viame_algorithm_framework.python_modules" );
+  auto logger = viame::get_logger( "viame.python_modules" );
   // Handle the case where the import fail
   try
   {

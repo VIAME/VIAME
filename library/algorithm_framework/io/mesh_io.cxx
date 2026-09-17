@@ -295,7 +295,7 @@ read_obj( const std::string& filename )
 mesh_sptr
 read_obj( std::istream& is )
 {
-  logger_handle_t logger( get_logger( "viame_algorithm_framework.mesh_io.read_obj" ) );
+  logger_handle_t logger( get_logger( "viame.mesh_io.read_obj" ) );
   std::unique_ptr< mesh_vertex_array< 3 > > verts( new mesh_vertex_array< 3 > );
   std::unique_ptr< mesh_face_array > faces( new mesh_face_array );
   std::vector< vector_3d > normals;
@@ -604,7 +604,7 @@ write_kml_collada( std::ostream& os, const mesh& mesh )
   // get mesh faces as triangles
   if( mesh.faces().regularity() != 3 )
   {
-    logger_handle_t logger( get_logger( "viame_algorithm_framework.mesh_io.write_kml_collada" ) );
+    logger_handle_t logger( get_logger( "viame.mesh_io.write_kml_collada" ) );
     LOG_ERROR(logger, "ERROR! only triangle meshes are supported." );
     return;
   }
@@ -773,7 +773,7 @@ write_vrml( const std::string& filename, const mesh& mesh )
 void
 write_vrml( std::ostream& os, const mesh& mesh )
 {
-  logger_handle_t logger( get_logger( "viame_algorithm_framework.mesh_io.write_vrml" ) );
+  logger_handle_t logger( get_logger( "viame.mesh_io.write_vrml" ) );
   // get mesh faces as triangles
   if( mesh.faces().regularity() != 3 )
   {

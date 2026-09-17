@@ -69,7 +69,7 @@ class embedded_pipeline::priv
 public:
   // -- CONSTRUCTORS --
   priv()
-    : m_logger( viame::get_logger( "sprokit.embedded_pipeline" ))
+    : m_logger( viame::get_logger( "viame.embedded_pipeline" ))
   { }
 
   ~priv()

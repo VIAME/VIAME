@@ -396,7 +396,7 @@ edge::priv
   , cond_have_space()
   , mutex()
   , complete_mutex()
-  , m_logger( viame::get_logger( "sprokit.edge" ))
+  , m_logger( viame::get_logger( "viame.edge" ))
 {
 }
 

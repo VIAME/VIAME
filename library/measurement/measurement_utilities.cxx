@@ -586,7 +586,7 @@ map_keypoints_to_camera_settings
     "'template_matching' (rectifies images and searches along epipolar lines), "
     "'epipolar_template_matching' (matching along epipolar line on unrectified images, "
     "descriptor type controlled by epipolar_descriptor_type), "
-    "'feature_descriptor' (uses viame_algorithm_framework feature detection/descriptor/matching), "
+    "'feature_descriptor' (uses VIAME feature detection/descriptor/matching), "
     "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering). "
     "Example: 'input_pairs_only,compute_disparity,depth_projection'" );
 

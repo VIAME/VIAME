@@ -20,7 +20,7 @@ template < typename T >
 similarity_< T >
 
 ::similarity_( const matrix_< 4, 4, T >& M )
-  : m_logger( viame::get_logger( "viame_algorithm_framework.similarity" ) )
+  : m_logger( viame::get_logger( "viame.similarity" ) )
 {
   if( ( M( 3, 0 ) != T( 0 ) ) ||
       ( M( 3, 1 ) != T( 0 ) ) ||

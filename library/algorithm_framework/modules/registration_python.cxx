@@ -23,7 +23,7 @@
  * This library's registration function looks like any other -- the static
  * registry calls it with the rest -- but what it registers is python: it
  * activates the interpreter and has it call
- * viame_algorithm_framework.modules.module_loader.load_python_modules().
+ * viame.modules.module_loader.load_python_modules().
  * Setting the environment variable VITAL_NO_PYTHON_MODULES suppresses it.
  */
 
@@ -39,7 +39,7 @@ static bool is_suppressed();
  *
  * This is a standard registration entry point in shape, but what it
  * registers is python: it activates the interpreter and has it call
- * viame_algorithm_framework.modules.module_loader.load_python_modules().
+ * viame.modules.module_loader.load_python_modules().
  * Setting the environment variable VITAL_NO_PYTHON_MODULES suppresses it.
  */
 
@@ -57,7 +57,7 @@ MODULES_PYTHON_EXPORT
 void
 register_factories( viame::registry& vpm )
 {
-  auto logger = viame::get_logger( "viame_algorithm_framework.python_modules" );
+  auto logger = viame::get_logger( "viame.python_modules" );
   try
   {
     register_factories_impl( vpm );

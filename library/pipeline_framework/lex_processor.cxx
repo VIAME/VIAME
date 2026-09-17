@@ -187,7 +187,7 @@ public:
  */
 lex_processor
 ::lex_processor()
-  : m_logger( viame::get_logger( "sprokit.pipe_processor" ) )
+  : m_logger( viame::get_logger( "viame.pipe_processor" ) )
   , m_priv( new lex_processor::priv )
 { }
 

@@ -41,7 +41,7 @@ static std::string const path_separator( 1, PATH_SEPARATOR_CHAR );
 // ==================================================================
 pipeline_builder
 ::pipeline_builder()
-  : m_logger( viame::get_logger( "sprokit.pipeline_builder" ) )
+  : m_logger( viame::get_logger( "viame.pipeline_builder" ) )
   , m_blocks()
 {
   // extract search paths from env and default

@@ -15,7 +15,7 @@ namespace viame {
 
 camera_perspective
 ::camera_perspective()
-  : m_logger( viame::get_logger( "viame_algorithm_framework.camera_perspective" ) )
+  : m_logger( viame::get_logger( "viame.camera_perspective" ) )
 {}
 
 /// Convert to a 3x4 homogeneous projection matrix

@@ -1789,7 +1789,7 @@ process::priv
   , is_complete(false)
   , check_input_level(check_valid)
   , stamp_for_inputs()
-  , m_logger( viame::get_logger( "sprokit.process" ))
+  , m_logger( viame::get_logger( "viame.process" ))
 {
 }
 

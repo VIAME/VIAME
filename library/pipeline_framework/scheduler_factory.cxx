@@ -70,7 +70,7 @@ viame::pipeline::scheduler_t create_scheduler( const viame::pipeline::scheduler:
   }
   catch ( viame::plugin_factory_not_found& e )
   {
-    auto logger = viame::get_logger( "sprokit.scheduler_factory" );
+    auto logger = viame::get_logger( "viame.scheduler_factory" );
     LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
 
     VITAL_THROW( no_such_scheduler_type_exception, name );

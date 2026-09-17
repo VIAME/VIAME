@@ -984,7 +984,7 @@ pipeline::priv
   , setup_in_progress(false)
   , setup_successful(false)
   , running(false)
-  , m_logger( viame::get_logger( "sprokit.pipeline" ) )
+  , m_logger( viame::get_logger( "viame.pipeline" ) )
 {
   if ( IS_DEBUG_ENABLED( m_logger ) )
   {
