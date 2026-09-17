@@ -1117,9 +1117,9 @@ class InteractiveStereoService:
             matched = [matcher.match_point(source, target, p) for p in points]
             h, w = target.shape[:2]
             hs, ws = source.shape[:2]
-            valid = [p is not None and np.isfinite(p).all() and
-                     0 <= p[0] < w and 0 <= p[1] < h and
-                     0 <= original[0] < ws and 0 <= original[1] < hs
+            valid = [bool(p is not None and np.isfinite(p).all() and
+                          0 <= p[0] < w and 0 <= p[1] < h and
+                          0 <= original[0] < ws and 0 <= original[1] < hs)
                      for original, p in zip(points, matched)]
         else:
             if self._current_disparity is None:
