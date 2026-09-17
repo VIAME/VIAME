@@ -2186,3 +2186,36 @@ An empty new name is a value rather than an absence, in both languages.
 `VIAME_PIPE_INCLUDE_PATH=` is how a caller says "no extra directories", and
 falling through to the old name there would search the directories it was
 being asked not to.
+
+### 2.25 OpenCV 5 broke the trainer's evaluation, and the suite cannot see it
+
+The DIVE smoke's training leg trains successfully and then dies in the
+evaluation that follows it. Sixteen epochs, loss falling 2.037 to 0.082, a
+model deployed to
+`deep_training/fit/runs/netharn/mhcsjpnz/deploy_netharn_mhcsjpnz_012_BRVPJJ.zip`
+-- and then:
+
+    cv2.error: OpenCV(5.0.0) .../imgproc/src/drawing_text.cpp:1430:
+    (-215:Assertion failed) img.depth() == CV_8U in function 'putText'
+
+through `detect_eval` -> `detect_predict` ->
+`kwimage/structs/detections.py:draw_on` -> `boxes.py:draw_on` ->
+`im_draw.py:draw_text_on_image`. The lock carries
+`opencv-contrib-python-headless==5.0.0.93` and `kwimage==0.11.6`: OpenCV 5
+tightened `putText` to require an 8-bit image and kwimage hands it a float
+one. The same defect appears 53 times during training as a caught
+`In draw_batch ex = error(...)` warning, which is why it is survivable there
+and fatal in eval, where nothing catches it.
+
+**The test suite cannot catch this.**
+`viame_examples:train_netharn_cfrnn_from_viame_csv` is a CRITICAL test and it
+passes, but `TRAINING_TIMEOUT = 120` with `timeout_is_success=True`: what it
+asserts is that training *starts*. Sixteen epochs took about seven minutes
+here, so the run the test makes never reaches the evaluation step at all. A
+build whose trainer trains and then cannot evaluate is indistinguishable,
+from the suite's point of view, from a working one.
+
+It is not phase 11's doing. The whole failing call chain is inside
+`site-packages`, VIAME's own code is not on it, and the renames touch
+neither kwimage nor OpenCV. It is recorded here because the smoke is the
+only thing in the tree that runs training far enough to see it.
