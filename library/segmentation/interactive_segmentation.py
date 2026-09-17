@@ -155,19 +155,19 @@ class InteractiveSegmentationService:
         if self._image_io_algo is not None:
             return self._image_io_algo.load(image_path)
 
-        # Fallback to VitalPIL conversion
-        from kwiver.vital.types import ImageContainer
-        from kwiver.vital.util import VitalPIL
+        # Fallback to pil conversion
+        from viame.types import ImageContainer
+        from viame.util import pil
         from PIL import Image as PILImage
 
         pil_img = PILImage.open(image_path).convert("RGB")
-        vital_img = VitalPIL.from_pil(pil_img)
+        vital_img = pil.from_pil(pil_img)
         return ImageContainer(vital_img)
 
     def _load_video_frame(self, video_path: str, frame_time: float):
         """Extract a single frame from a video at the given time (seconds)."""
-        from kwiver.vital.algo import VideoInput
-        from kwiver.vital.types import Timestamp
+        from viame.algo import VideoInput
+        from viame.types import Timestamp
 
         # Cache the video reader for repeated access to the same video. Build
         # the reader locally and only commit it to self AFTER a successful
@@ -351,7 +351,7 @@ class InteractiveSegmentationService:
 
     def handle_predict(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle a predict command using SegmentViaPoints algorithm."""
-        from kwiver.vital.types import Point2d
+        from viame.types import Point2d
 
         image_path = request.get("image_path")
         points = request.get("points", [])
@@ -405,7 +405,7 @@ class InteractiveSegmentationService:
         if self._text_query_algo is None:
             raise ValueError("Text query not configured")
 
-        from kwiver.vital.types import Timestamp
+        from viame.types import Timestamp
 
         image_path = request.get("image_path")
         text = request.get("text", "")
@@ -786,9 +786,9 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
     Returns:
         Tuple of (segment_via_points_algo, perform_text_query_algo, image_io_algo, service_config)
     """
-    from kwiver.vital.algo import SegmentViaPoints, PerformTextQuery, ImageIO
-    import kwiver.vital.config as vital_config
-    from kwiver.vital.modules import modules as vital_modules
+    from viame.algo import SegmentViaPoints, PerformTextQuery, ImageIO
+    import viame.config as vital_config
+    from viame.modules import modules as vital_modules
 
     # Load plugin modules
     vital_modules.load_known_modules()

@@ -25,8 +25,8 @@ Two read modes are supported (configured via ``batch_load``):
 
 import json
 
-from kwiver.vital.algo import ReadObjectTrackSet
-import kwiver.vital.types as vt
+from viame.algo import ReadObjectTrackSet
+import viame.types as vt
 
 from viame.file_io.utilities_coco import annotation_to_detection, timestamp_to_seconds
 

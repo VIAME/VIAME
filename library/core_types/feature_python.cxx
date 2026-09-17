@@ -69,7 +69,7 @@ declare_feature( py::module& m, std::string const& typestr )
 using namespace viame::python;
 PYBIND11_MODULE( feature, m )
 {
-  py::module::import( "kwiver.vital.types.color" );
+  py::module::import( "viame.types.color" );
 
   py::class_< kv::feature, std::shared_ptr< kv::feature > >( m, "Feature" )
     .def(

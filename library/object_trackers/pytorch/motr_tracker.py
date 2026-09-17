@@ -41,8 +41,8 @@ import numpy as np
 import scipy.optimize
 import scriptconfig as scfg
 
-from kwiver.vital.algo import TrackObjects
-from kwiver.vital.types import ObjectTrackSet
+from viame.algo import TrackObjects
+from viame.types import ObjectTrackSet
 
 from viame.object_trackers.pytorch.botsort_tracker import (
     to_DetectedObject_list,

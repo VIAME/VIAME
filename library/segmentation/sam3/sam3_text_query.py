@@ -17,7 +17,7 @@ import sys
 import numpy as np
 import scriptconfig as scfg
 
-from kwiver.vital.algo import PerformTextQuery
+from viame.algo import PerformTextQuery
 
 from viame.object_detectors.base import vital_config_update, register_vital_algorithm, report_cuda_errors
 from viame.segmentation.sam3.sam3_utilities import (
@@ -287,15 +287,15 @@ class SAM3TextQuery(PerformTextQuery):
         Returns:
             Vector of ObjectTrackSet, one per input image
         """
-        from kwiver.vital.types import (
+        from viame.types import (
             ObjectTrackSet, ObjectTrackState, Track,
             DetectedObject, DetectedObjectType,
         )
         try:
-            from kwiver.vital.types import BoundingBoxD
+            from viame.types import BoundingBoxD
         except ImportError:
-            from kwiver.vital.types import BoundingBox as BoundingBoxD
-        from kwiver.vital.types.types import ImageContainer, Image
+            from viame.types import BoundingBox as BoundingBoxD
+        from viame.types.types import ImageContainer, Image
 
         self._ensure_model()
 
@@ -340,15 +340,15 @@ class SAM3TextQuery(PerformTextQuery):
 
     def _create_tracks_from_detections(self, detections, frame_id, next_track_id):
         """Create new tracks from detection results."""
-        from kwiver.vital.types import (
+        from viame.types import (
             ObjectTrackSet, ObjectTrackState, Track,
             DetectedObject, DetectedObjectType,
         )
         try:
-            from kwiver.vital.types import BoundingBoxD
+            from viame.types import BoundingBoxD
         except ImportError:
-            from kwiver.vital.types import BoundingBox as BoundingBoxD
-        from kwiver.vital.types.types import ImageContainer, Image
+            from viame.types import BoundingBox as BoundingBoxD
+        from viame.types.types import ImageContainer, Image
 
         tracks = []
 
@@ -393,15 +393,15 @@ class SAM3TextQuery(PerformTextQuery):
 
     def _associate_with_tracks(self, detections, existing_tracks, frame_id, next_track_id):
         """Associate detections with existing tracks using IoU matching."""
-        from kwiver.vital.types import (
+        from viame.types import (
             ObjectTrackSet, ObjectTrackState, Track,
             DetectedObject, DetectedObjectType,
         )
         try:
-            from kwiver.vital.types import BoundingBoxD
+            from viame.types import BoundingBoxD
         except ImportError:
-            from kwiver.vital.types import BoundingBox as BoundingBoxD
-        from kwiver.vital.types.types import ImageContainer, Image
+            from viame.types import BoundingBox as BoundingBoxD
+        from viame.types.types import ImageContainer, Image
 
         iou_threshold = float(self._config.iou_threshold)
         tracks = list(existing_tracks.tracks())

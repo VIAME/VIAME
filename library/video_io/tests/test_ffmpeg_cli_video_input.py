@@ -29,12 +29,12 @@ import pipeline_runner                # noqa: E402
 
 @pytest.fixture(scope="module", autouse=True)
 def modules():
-    from kwiver.vital.modules import load_known_modules
+    from viame.modules import load_known_modules
     load_known_modules()
 
 
 def reader(impl="ffmpeg_cli", **config):
-    from kwiver.vital.algo import VideoInput
+    from viame.algo import VideoInput
 
     algo = VideoInput.create(impl)
 
@@ -167,8 +167,8 @@ BLOCK_AV = textwrap.dedent("""
 
     sys.meta_path.insert(0, NoAV())
 
-    from kwiver.vital.modules import load_known_modules
-    from kwiver.vital.algo import VideoInput
+    from viame.modules import load_known_modules
+    from viame.algo import VideoInput
     import numpy as np
 
     load_known_modules()

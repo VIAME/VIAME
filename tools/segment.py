@@ -1594,7 +1594,7 @@ def cmd_reseg(args):
 # one exactly. The algorithm itself only labels head/tail geometrically (larger
 # x = head), so on top of it we orient head/tail per track by direction of
 # travel: the head is the endpoint on the leading side of the box's motion.
-# Needs the VIAME environment sourced (kwiver.vital), as reseg does.
+# Needs the VIAME environment sourced (viame), as reseg does.
 # -----------------------------------------------------------------------------
 
 def make_keypoint_algo(method='hull_extremes', clip_to_mask=True):
@@ -1603,10 +1603,10 @@ def make_keypoint_algo(method='hull_extremes', clip_to_mask=True):
     (hull_extremes method, clip_to_mask) rather than the algorithm's bare
     default."""
     try:
-        from kwiver.vital.algo import RefineDetections
-        from kwiver.vital.modules import modules
+        from viame.algo import RefineDetections
+        from viame.modules import modules
     except ImportError:
-        sys.exit('Cannot import kwiver.vital; source setup_viame.sh so the '
+        sys.exit('Cannot import viame; source setup_viame.sh so the '
                  'VIAME plugins are on the path, then re-run.')
     # A bare Python process has not scanned the plugin path the way a running
     # pipeline has, so the algorithm factories are not registered yet.
@@ -1631,7 +1631,7 @@ def polygons_to_head_tail(polys, algo):
     """
     import cv2
     import numpy as np
-    from kwiver.vital.types import (
+    from viame.types import (
         DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
 
     contours = []

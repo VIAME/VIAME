@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void transform_2d_io(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::transform_2d_io,
                std::shared_ptr<viame::algo::transform_2d_io>,

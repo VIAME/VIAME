@@ -10,8 +10,8 @@ by name wherever that interface is configured, for example
 `__init__.py` declares it, so nothing is imported until it is used.
 """
 
-from kwiver.vital.algo import ImageFilter
-from kwiver.vital.types import Image, ImageContainer
+from viame.algo import ImageFilter
+from viame.types import Image, ImageContainer
 
 
 class ExampleFilter( ImageFilter ):

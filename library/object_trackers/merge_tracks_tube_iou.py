@@ -28,9 +28,9 @@ import ast
 
 import numpy as np
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-from kwiver.vital.types import (
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+from viame.types import (
     BoundingBoxD, DetectedObject, DetectedObjectType,
     ObjectTrackSet, ObjectTrackState, Track,
 )
@@ -299,12 +299,12 @@ def fused_to_ObjectTrackSet( fused_tracks ):
         tracks.append( track )
     return ObjectTrackSet( tracks )
 
-class MergeTracksTubeIoU( KwiverProcess ):
+class MergeTracksTubeIoU( ViameProcess ):
     """Sprokit process fusing multiple object track set streams into one
     using tube-IoU track association.
     """
     def __init__( self, config ):
-        KwiverProcess.__init__( self, config )
+        ViameProcess.__init__( self, config )
 
         add_declare_config( self, 'n_input', '2',
           'Number of input track sets' )
@@ -365,7 +365,7 @@ class MergeTracksTubeIoU( KwiverProcess ):
         self._base_step()
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.python.MergeTracksTubeIoU'
     if process_factory.is_process_module_loaded( module_name ):
         return

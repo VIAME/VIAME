@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void split_image(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::split_image,
                std::shared_ptr<viame::algo::split_image>,

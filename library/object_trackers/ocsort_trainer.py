@@ -31,7 +31,7 @@ import numpy as np
 
 from viame.object_trackers.training_data import detector_statistics
 
-from kwiver.vital.algo import TrainTracker
+from viame.algo import TrainTracker
 
 
 # Competitors scored against a single link when measuring how well the

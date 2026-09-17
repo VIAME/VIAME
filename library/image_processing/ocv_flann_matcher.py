@@ -20,8 +20,8 @@ import logging
 
 import numpy as np
 
-from kwiver.vital.algo import MatchFeatures
-from kwiver.vital.types import MatchSet
+from viame.algo import MatchFeatures
+from viame.types import MatchSet
 
 from viame.image_processing.ocv_feature_types import (matches_to_set,
                                                       set_to_descriptors)

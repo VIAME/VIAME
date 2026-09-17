@@ -14,9 +14,9 @@ The trainer produces a Re-ID model and configuration file with
 optimized parameters for the target domain.
 """
 
-from kwiver.vital.algo import TrainTracker
+from viame.algo import TrainTracker
 
-from kwiver.vital.types import (
+from viame.types import (
     CategoryHierarchy,
     ObjectTrackSet, ObjectTrackState,
     BoundingBoxD, DetectedObjectType

@@ -13,9 +13,9 @@ import logging
 import numpy as np
 import scipy.optimize
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+from viame.types import ObjectTrackSet, ObjectTrackState, Track
 
 logger = logging.getLogger(__name__)
 
@@ -347,9 +347,9 @@ def add_declare_config(process, name_key, default, description):
     process.add_config_trait(name_key, name_key, default, description)
     process.declare_config_using_trait(name_key)
 
-class SimpleHomogTracker(KwiverProcess):
+class SimpleHomogTracker(ViameProcess):
     def __init__(self, config):
-        KwiverProcess.__init__(self, config)
+        ViameProcess.__init__(self, config)
 
         add_declare_config(self, "min_iou", str(DEFAULT_MIN_IOU),
                            "Minimum IOU to associate a detection to a track")
@@ -377,7 +377,7 @@ class SimpleHomogTracker(KwiverProcess):
         self._base_step()
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.python.SimpleHomogTracker'
     if process_factory.is_process_module_loaded(module_name):
         return

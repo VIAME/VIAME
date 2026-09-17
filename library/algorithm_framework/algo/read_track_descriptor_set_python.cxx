@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void read_track_descriptor_set(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::read_track_descriptor_set,
                std::shared_ptr<viame::algo::read_track_descriptor_set>,

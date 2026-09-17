@@ -9,7 +9,7 @@ import os
 import sys
 import subprocess
 
-from kwiver.vital.algo import TrainDetector
+from viame.algo import TrainDetector
 
 import scriptconfig as scfg
 import ubelt as ub

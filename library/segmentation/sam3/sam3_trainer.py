@@ -35,9 +35,9 @@ from pathlib import Path
 
 import numpy as np
 
-from kwiver.vital.algo import TrainDetector, TrainTracker
+from viame.algo import TrainDetector, TrainTracker
 
-from kwiver.vital.types import (
+from viame.types import (
     BoundingBoxD,
     DetectedObject,
     DetectedObjectSet,

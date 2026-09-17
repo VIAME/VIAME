@@ -4,10 +4,10 @@
 
 import itertools
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-import kwiver.vital.algo as kva
-import kwiver.vital.types as kvt
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+import viame.algo as kva
+import viame.types as kvt
 
 # XXX These items should be defined somewhere else
 from viame.object_trackers.simple_homog_tracker import add_declare_config, Transformer
@@ -22,15 +22,15 @@ def stabilize_many_images(
     images captured by a multi-camera system.  Arguments:
     - compute_features_and_descriptors should be a
       FeatureAndDescriptorComputer or similar callable
-    - match_features should be kwiver.vital.algo.MatchFeatures.match
+    - match_features should be viame.algo.MatchFeatures.match
       (bound) or a similar callable
     - estimate_single_homography should be
-      kwiver.vital.algo.EstimateHomography.estimate (bound) or a
+      viame.algo.EstimateHomography.estimate (bound) or a
       similar callable
     - compute_ref_homography should be
-      kwiver.vital.algo.ComputeRefHomography.estimate (bound) or a
+      viame.algo.ComputeRefHomography.estimate (bound) or a
       similar callable
-    - close_loops should be kwiver.vital.algo.CloseLoops.stitch
+    - close_loops should be viame.algo.CloseLoops.stitch
       (bound) or a similar callable if supplied
 
     The .step call expects one argument:
@@ -150,12 +150,12 @@ def estimate_homography(
 ):
     """Create a Transformer that estimates homographies using features and
     descriptors.  Arguments:
-    - match_features should be kwiver.vital.algo.MatchFeatures.match
+    - match_features should be viame.algo.MatchFeatures.match
       (bound) or a similar callable
     - compute_ref_homography should be
-      kwiver.vital.algo.ComputeRefHomography.estimate (bound) or a
+      viame.algo.ComputeRefHomography.estimate (bound) or a
       similar callable
-    - close_loops should be kwiver.vital.algo.CloseLoops.stitch
+    - close_loops should be viame.algo.CloseLoops.stitch
       (bound) or a similar callable if supplied
 
     The .step call expects two arguments:
@@ -223,8 +223,8 @@ class SingleHomographyEstimator:
     __slots__ = '_match_features', '_estimate_homography'
     def __init__(self, match_features, estimate_homography):
         """Initialize an instance from callables with signatures comparable to
-        the (bound) methods kwiver.vital.algo.MatchFeatures.match and
-        kwiver.vital.algo.EstimateHomography.estimate, respectively.
+        the (bound) methods viame.algo.MatchFeatures.match and
+        viame.algo.EstimateHomography.estimate, respectively.
 
         """
         self._match_features = match_features
@@ -389,7 +389,7 @@ def add_declare_output_port(process, name, type, flag, desc):
     process.add_port_trait(name, type, desc)
     process.declare_output_port_using_trait(name, flag)
 
-class ManyImageStabilizer(KwiverProcess):
+class ManyImageStabilizer(ViameProcess):
     # Required algos.  There's also an optional
     # loop_closer=kva.CloseLoops that's handled specially.
     _REQUIRED_ALGOS = dict(
@@ -401,7 +401,7 @@ class ManyImageStabilizer(KwiverProcess):
     )
 
     def __init__(self, config):
-        KwiverProcess.__init__(self, config)
+        ViameProcess.__init__(self, config)
 
         add_declare_config(self, 'n_input', '2', 'Number of inputs')
         for k, v in self._REQUIRED_ALGOS.items():
@@ -451,7 +451,7 @@ class ManyImageStabilizer(KwiverProcess):
         self._base_step()
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.python.ManyImageStabilizer'
     if process_factory.is_process_module_loaded(module_name):
         return

@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void compute_stereo_depth_map(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::compute_stereo_depth_map,
                std::shared_ptr<viame::algo::compute_stereo_depth_map>,

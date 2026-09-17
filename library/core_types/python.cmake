@@ -1,5 +1,5 @@
 ###
-# `kwiver.vital.types`
+# `viame.types`
 #
 # The bindings live beside the C++ they bind since P8-T01, rather than in
 # `python/kwiver/vital/types`, which is what the copy from kwiver left. Each
@@ -9,30 +9,23 @@
 #
 # **The module path is unchanged.** `viame_add_python_library` takes it as an
 # argument rather than deriving it from the source location, so
-# `kwiver.vital.types.bounding_box` is still `kwiver.vital.types.bounding_box`
+# `viame.types.bounding_box` is still `viame.types.bounding_box`
 # and the four files in the tree that import a submodule by name keep working.
 # `library/core_types/tests/test_python_types.py` holds that surface to what
 # it was: 106 classes and 965 members, recorded before this moved.
 ##
 
-# Two settings that `python/CMakeLists.txt` made and this directory does not
-# inherit, because both are directory scoped and the move changed the
-# directory. Neither failure is obvious from its symptom.
+# `${PYTHON_LIBRARIES}` goes on every module below, because VIAME links with
+# `-Wl,--no-undefined` and an extension module leaves the interpreter's
+# symbols to be resolved at import. In `python/` the flag was stripped from
+# the directory's link flags instead; linking libpython is what
+# `library/file_io` already does for `_opencv_yaml`, and it does not weaken
+# the check for the C++ in this directory the way stripping the flag would.
 #
-#   `kwiver_python_package` decides the top package these install into. It
-#   defaults to the project name, so without this every module landed in
-#   `site-packages/viame/vital/types` and nothing could import
-#   `kwiver.vital.types` at all.
-#
-#   `${PYTHON_LIBRARIES}` on every module, because VIAME links with
-#   `-Wl,--no-undefined` and an extension module leaves the interpreter's
-#   symbols to be resolved at import. In `python/` the flag was stripped from
-#   the directory's link flags instead; linking libpython is what
-#   `library/file_io` already does for `_opencv_yaml`, and it does not weaken
-#   the check for the C++ in this directory the way stripping the flag would.
-set( kwiver_python_package "kwiver" )
-
-set( THIS_MODULE vital/types )
+# The package these install into used to be set here, to `kwiver`. Nothing
+# sets it now: P11-T02 made the whole tree one package, derived from the
+# project name.
+set( THIS_MODULE types )
 
 viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/types_init.py "${THIS_MODULE}" __init__ )
 

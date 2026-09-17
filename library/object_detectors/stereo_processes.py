@@ -16,7 +16,7 @@ SeeAlso
 
 import numpy as np
 
-from kwiver.vital.types import (
+from viame.types import (
     BoundingBoxD,
     DetectedObject,
     DetectedObjectSet,
@@ -28,9 +28,9 @@ from kwiver.vital.types import (
     Track,
 )
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.pipeline import datum  # NOQA
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+from viame.pipeline import datum  # NOQA
 
 import ubelt as ub
 import os
@@ -38,9 +38,9 @@ import itertools as it
 
 from . import stereo_algos as ctalgo
 
-from kwiver.vital import vital_logging
+from viame import log
 
-logger = vital_logging.getLogger(__name__)
+logger = log.getLogger(__name__)
 print = logger.info
 
 
@@ -85,7 +85,7 @@ def tmp_smart_cast_config(self):
 
 @tmp_sprokit_register_process(name='gmm_motion_detector',
                               doc='preliminatry fish detection')
-class GMMDetectFishProcess(KwiverProcess):
+class GMMDetectFishProcess(ViameProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
     does postprocessing and then sends the extracted chip to the output port.
@@ -95,7 +95,7 @@ class GMMDetectFishProcess(KwiverProcess):
     def __init__(self, conf):
         print('conf = {!r}'.format(conf))
         logger.debug(' ----- init ' + self.__class__.__name__)
-        KwiverProcess.__init__(self, conf)
+        ViameProcess.__init__(self, conf)
 
         opencv_setup_config(self, ctalgo.GMMForegroundObjectDetector.default_params())
 
@@ -127,18 +127,18 @@ class GMMDetectFishProcess(KwiverProcess):
 
         Example:
             >>> from viame.processes.opencv.processes import *
-            >>> from kwiver.vital.types import ImageContainer
-            >>> import kwiver.sprokit.pipeline.config
+            >>> from viame.types import ImageContainer
+            >>> import viame.pipeline.config
             >>> # construct dummy process instance
-            >>> conf = kwiver.sprokit.pipeline.config.empty_config()
+            >>> conf = viame.pipeline.config.empty_config()
             >>> self = GMMDetectFishProcess(conf)
             >>> self._configure()
             >>> # construct test data
-            >>> from vital.util import VitalPIL
+            >>> from vital.util import pil
             >>> from PIL import Image as PILImage
             >>> pil_img = PILImage.open(ub.grabdata('https://i.imgur.com/Jno2da3.png'))
             >>> pil_img = PILImage.fromarray(np.zeros((512, 512, 3), dtype=np.uint8))
-            >>> img_container = ImageContainer(VitalPIL.from_pil(pil_img))
+            >>> img_container = ImageContainer(pil.from_pil(pil_img))
             >>> # Initialize the background detector by sending 10 black frames
             >>> for i in range(10):
             >>>     empty_set = self._dowork(img_container)
@@ -181,7 +181,7 @@ class GMMDetectFishProcess(KwiverProcess):
 
 def __sprokit_register__():
 
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
 
     module_name = 'python_' + __name__
 

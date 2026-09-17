@@ -189,7 +189,7 @@ def _length_counts(states):
 
 
 def _container(array):
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.types import Image, ImageContainer
     return ImageContainer(Image(np.ascontiguousarray(array)))
 
 
@@ -201,7 +201,7 @@ def detect_and_extract(impl, config, array):
     of the same name, which is free to recognise its own kind and read what
     `vital::feature` cannot carry.
     """
-    from kwiver.vital.algo import DetectFeatures, ExtractDescriptors
+    from viame.algo import DetectFeatures, ExtractDescriptors
 
     detector = DetectFeatures.create(impl)
     if detector is None:
@@ -230,7 +230,7 @@ def detect_and_extract(impl, config, array):
 
 def _feature_pair(impl, config, arrays):
     """Detect and extract on each of two images, keeping the vital objects."""
-    from kwiver.vital.algo import DetectFeatures, ExtractDescriptors
+    from viame.algo import DetectFeatures, ExtractDescriptors
 
     detector = DetectFeatures.create(impl)
     extractor = ExtractDescriptors.create(impl)
@@ -249,7 +249,7 @@ def _feature_pair(impl, config, arrays):
 
 def match(impl, config, feature_impl, feature_config, arrays):
     """Match the descriptors of two images, as index pairs."""
-    from kwiver.vital.algo import MatchFeatures
+    from viame.algo import MatchFeatures
 
     matcher = MatchFeatures.create(impl)
     if matcher is None:
@@ -275,7 +275,7 @@ def track(impl, config, arrays):
     what a tracker is for, and it is also where a mis-paired descriptor
     shows up -- a feature matched to the wrong one lands in the wrong track.
     """
-    from kwiver.vital.algo import TrackFeatures
+    from viame.algo import TrackFeatures
 
     tracker = TrackFeatures.create(impl)
     if tracker is None:
@@ -398,7 +398,7 @@ def _estimate(algorithm, points1, points2, inlier_scale):
 
 def estimate_homography(impl, config, inlier_scale):
     """The homography and inlier flags for the synthetic correspondences."""
-    from kwiver.vital.algo import EstimateHomography
+    from viame.algo import EstimateHomography
 
     algorithm = EstimateHomography.create(impl)
     if algorithm is None:
@@ -413,7 +413,7 @@ def estimate_homography(impl, config, inlier_scale):
 
 def estimate_fundamental(impl, config, inlier_scale):
     """The fundamental matrix and inlier flags, likewise."""
-    from kwiver.vital.algo import EstimateFundamentalMatrix
+    from viame.algo import EstimateFundamentalMatrix
 
     algorithm = EstimateFundamentalMatrix.create(impl)
     if algorithm is None:

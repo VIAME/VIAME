@@ -1,8 +1,8 @@
 # This file is part of VIAME, and is distributed under an OSI-approved
 # BSD 3-Clause License. See the root LICENSE file for details.
 """Add trainable SLEAP-NN keypoints to existing detections."""
-from kwiver.vital.algo import RefineDetections
-from kwiver.vital.types import DetectedObjectSet, Point2d
+from viame.algo import RefineDetections
+from viame.types import DetectedObjectSet, Point2d
 import numpy as np
 
 from viame.classifiers.sleap.sleap_common import (

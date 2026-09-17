@@ -16,7 +16,7 @@ using namespace viame;
 
 PYBIND11_MODULE( landmark_map, m )
 {
-  py::module::import( "kwiver.vital.types.landmark" );
+  py::module::import( "viame.types.landmark" );
 
   py::bind_map< map_landmark_t >( m, "LandmarkDict" );
 

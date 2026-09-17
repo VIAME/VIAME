@@ -2,13 +2,13 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import (
+from viame.algo import (
     DetectedObjectSetOutput,
     ImageObjectDetector,
     TrainDetector
 )
 
-from kwiver.vital.types import (
+from viame.types import (
     Image, ImageContainer,
     BoundingBoxD, CategoryHierarchy,
     DetectedObjectSet, DetectedObject, DetectedObjectType
@@ -316,7 +316,7 @@ class NetHarnTrainer( TrainDetector ):
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
 
-        from kwiver.vital.modules import load_known_modules
+        from viame.modules import load_known_modules
         load_known_modules()
 
         if not self._no_format:
@@ -473,7 +473,7 @@ class NetHarnTrainer( TrainDetector ):
         # Build a single background detector. When device is not None, every
         # "*device" config key is set to it, pinning the instance to that GPU.
         if self._detector_config_file:
-            from kwiver.vital.config import read_config_file
+            from viame.config import read_config_file
             det_cfg = read_config_file( self._detector_config_file )
             if device is not None:
                 for key in det_cfg.available_values():

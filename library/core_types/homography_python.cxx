@@ -56,7 +56,7 @@ declare_homogaphy( py::module& m, std::string const& typestr )
 using namespace viame::python;
 PYBIND11_MODULE( homography, m )
 {
-  py::module::import( "kwiver.vital.types.transform_2d" );
+  py::module::import( "viame.types.transform_2d" );
   py::class_< kv::homography,
     kv::transform_2d,
     std::shared_ptr< kv::homography > >( m, "BaseHomography" );

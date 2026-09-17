@@ -12,11 +12,11 @@ import numpy as np
 
 from collections import namedtuple
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 
-from kwiver.vital.types import Image
-from kwiver.vital.types import ImageContainer
-from kwiver.vital.types import (
+from viame.types import Image
+from viame.types import ImageContainer
+from viame.types import (
     BoundingBoxD,
     DetectedObject,
     DetectedObjectSet,

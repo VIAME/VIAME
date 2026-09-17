@@ -359,7 +359,7 @@ class StereoCamera(ub.NiceRepr, DictProxy):
 
     def to_vital(camera):
         """
-        Convert to a kwiver.vital.types.CameraIntrinsics object
+        Convert to a viame.types.CameraIntrinsics object
 
         Ignore:
             camera = camera1
@@ -371,7 +371,7 @@ class StereoCamera(ub.NiceRepr, DictProxy):
             pp = intrin['cc']
             skew = intrin['alpha_c']
 
-            from kwiver.vital import types
+            from viame import types
             types.CameraIntrinsics()
         """
         intrin = camera._decompose_intrinsics()
@@ -382,7 +382,7 @@ class StereoCamera(ub.NiceRepr, DictProxy):
         focal_length = fc[0]
         aspect_ratio = fc[0] / fc[1]
 
-        from kwiver.vital.types import CameraIntrinsics
+        from viame.types import CameraIntrinsics
         vital_cam = CameraIntrinsics(
             focal_length=focal_length, principal_point=pp,
             aspect_ratio=aspect_ratio, skew=skew, dist_coeffs=dist_coeffs)

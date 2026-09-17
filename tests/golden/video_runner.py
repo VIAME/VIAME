@@ -56,13 +56,13 @@ def run_isolated(impl, config, path, action="read"):
 
 
 def load_modules():
-    import kwiver.vital.modules as modules
+    import viame.modules as modules
 
     modules.load_known_modules()
 
 
 def is_registered(impl, interface="video_input"):
-    import kwiver.vital.algo as algo
+    import viame.algo as algo
 
     interfaces = {
         "video_input": algo.VideoInput,
@@ -78,7 +78,7 @@ def decode_only(impl, config, path):
     No numpy conversion and no hashing: those cost more than the decode on a
     small frame and would make a throughput figure meaningless.
     """
-    from kwiver.vital.algo import VideoInput
+    from viame.algo import VideoInput
 
     algorithm = VideoInput.create(impl)
 
@@ -129,7 +129,7 @@ def seek_probe(impl, config, path):
     Returns [(target, landed_on, next_frame)], or None if the
     implementation is not registered in this build.
     """
-    from kwiver.vital.algo import VideoInput
+    from viame.algo import VideoInput
 
     if not is_registered(impl):
         return None
@@ -165,7 +165,7 @@ def seek_probe(impl, config, path):
 
 def read(impl, config, path=None):
     """Open the clip and return one record per frame it yields."""
-    from kwiver.vital.algo import VideoInput
+    from viame.algo import VideoInput
 
     algorithm = VideoInput.create(impl)
 

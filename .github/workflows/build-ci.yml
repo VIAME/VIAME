@@ -162,7 +162,7 @@ jobs:
       - name: Resolve every lock
         run: |
           python -m pip install --upgrade pip
-          for lock in python/requirements/py${{ matrix.python }}/*.lock; do
+          for lock in packaging/requirements/py${{ matrix.python }}/*.lock; do
             echo "--- $lock"
             python -m pip install --no-deps --dry-run -r "$lock"
           done
@@ -173,9 +173,9 @@ jobs:
       - name: Check the exclusions held
         run: |
           for pkg in opencv-python opencv-python-headless triton wandb decord; do
-            if grep -qE "^${pkg}==" python/requirements/py*/*.lock; then
+            if grep -qE "^${pkg}==" packaging/requirements/py*/*.lock; then
               echo "ERROR: ${pkg} is pinned in a lock file; it is on the"
-              echo "exclusion list in python/requirements/README.md"
+              echo "exclusion list in packaging/requirements/README.md"
               exit 1
             fi
           done

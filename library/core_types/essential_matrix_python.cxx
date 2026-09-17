@@ -73,7 +73,7 @@ declare_essential_matrix(
 
 PYBIND11_MODULE( essential_matrix, m )
 {
-  py::module::import( "kwiver.vital.types.rotation" );
+  py::module::import( "viame.types.rotation" );
 
   py::class_< kv::essential_matrix,
     std::shared_ptr< kv::essential_matrix > >( m, "BaseEssentialMatrix" );

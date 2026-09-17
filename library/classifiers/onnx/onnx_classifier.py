@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 
 
 def _vital_config_update(cfg, cfg_in):
@@ -91,7 +91,7 @@ class OnnxClassifier(ImageObjectDetector):
 
     # -- inference --
     def detect(self, image_data):
-        from kwiver.vital.types import (BoundingBoxD, DetectedObject,
+        from viame.types import (BoundingBoxD, DetectedObject,
                                         DetectedObjectSet, DetectedObjectType)
         if self._predictor is None:
             raise RuntimeError("OnnxClassifier: set_configuration first")
@@ -112,7 +112,7 @@ class OnnxClassifier(ImageObjectDetector):
 
     @classmethod
     def demo_image(cls):
-        from kwiver.vital.types import Image, ImageContainer
+        from viame.types import Image, ImageContainer
         return ImageContainer(Image(np.zeros((64, 64, 3), dtype=np.uint8)))
 
 

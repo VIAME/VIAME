@@ -27,12 +27,12 @@ from viame.object_detectors.base import init_cudnn, report_cuda_errors
 from timeit import default_timer as timer
 from PIL import Image as pilImage
 
-from kwiver.vital.algo import TrackObjects
-from kwiver.vital.types import Image
-from kwiver.vital.types import DetectedObject, DetectedObjectSet
-from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
-from kwiver.vital.types import new_descriptor
-from kwiver.vital.util.VitalPIL import get_pil_image
+from viame.algo import TrackObjects
+from viame.types import Image
+from viame.types import DetectedObject, DetectedObjectSet
+from viame.types import ObjectTrackState, Track, ObjectTrackSet
+from viame.types import new_descriptor
+from viame.util.pil import get_pil_image
 
 from viame.object_detectors.base import Grid, gpu_list_desc, parse_gpu_list
 

@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void perform_text_query(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::perform_text_query,
                std::shared_ptr<viame::algo::perform_text_query>,

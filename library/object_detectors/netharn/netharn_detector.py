@@ -4,7 +4,7 @@
 
 import logging
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 
 logger = logging.getLogger(__name__)
 
@@ -74,15 +74,15 @@ class NetharnDetector(ImageObjectDetector):
             ImageContainer: an image of a scallop
         """
         from PIL import Image as PILImage
-        from kwiver.vital.util import VitalPIL
-        from kwiver.vital.types import ImageContainer
+        from viame.util import pil
+        from viame.types import ImageContainer
         import ubelt as ub
         url = 'https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download'
         image_fpath = ub.grabdata(
             url, fname='scallop.jpg', appname='viame',
             hash_prefix='3bd290526c76453bec7', hasher='sha512')
         pil_img = PILImage.open(image_fpath)
-        image_data = ImageContainer(VitalPIL.from_pil(pil_img))
+        image_data = ImageContainer(pil.from_pil(pil_img))
         return image_data
 
     def get_configuration(self):

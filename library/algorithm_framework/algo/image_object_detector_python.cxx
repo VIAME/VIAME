@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void image_object_detector(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::image_object_detector,
                std::shared_ptr<viame::algo::image_object_detector>,

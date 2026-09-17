@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void merge_detections(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::merge_detections,
                std::shared_ptr<viame::algo::merge_detections>,

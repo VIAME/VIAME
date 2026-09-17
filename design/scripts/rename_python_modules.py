@@ -90,6 +90,9 @@ MODULES = (
 TOKENS = (
     ( "KwiverProcess", "ViameProcess" ),
     ( "vital_logging", "log" ),
+    # `viame.util.VitalPIL` is a public module whose *name* carries the old
+    # one; the functions in it (`from_pil`, `get_pil_image`) do not change.
+    ( "VitalPIL", "pil" ),
 )
 
 # `from kwiver import X` and `import kwiver`: the top level package by
@@ -142,7 +145,12 @@ def rewrite( text ):
         changes += n
 
     for old, new in TOKENS:
-        pattern = re.compile( r"(?<![\w.])" + re.escape( old ) + r"\b" )
+        # No `.` in the lookbehind, unlike the table above. A token rule has
+        # to fire inside a dotted path too: `viame.util.VitalPIL` is the form
+        # eight files used, and excluding a leading dot rewrote only the
+        # `from viame.util import VitalPIL` spelling -- leaving the other
+        # eight to fail at import, which is how this was found.
+        pattern = re.compile( r"(?<!\w)" + re.escape( old ) + r"\b" )
         text, n = pattern.subn( new, text )
         changes += n
 

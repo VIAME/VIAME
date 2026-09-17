@@ -11,8 +11,8 @@ import warp_cases
 
 def run(impl, variant, source, destination, mask):
     """One warp; returns the resulting image as an array."""
-    from kwiver.vital.algo import WarpImage
-    from kwiver.vital.types import HomographyD, Image, ImageContainer
+    from viame.algo import WarpImage
+    from viame.types import HomographyD, Image, ImageContainer
 
     algorithm = WarpImage.create(impl)
 

@@ -30,7 +30,7 @@ import numpy as np
 import scriptconfig as scfg
 import ubelt as ub
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 
 from viame.object_detectors.base import (
     report_cuda_errors,
@@ -139,15 +139,15 @@ class Detectron2Detector(ImageObjectDetector):
             ImageContainer: an image of sea lions
         """
         from PIL import Image as PILImage
-        from kwiver.vital.util import VitalPIL
-        from kwiver.vital.types import ImageContainer
+        from viame.util import pil
+        from viame.types import ImageContainer
 
         url = 'https://data.kitware.com/api/v1/file/6011a5ae2fa25629b919fe6c/download'
         image_fpath = ub.grabdata(
             url, fname='sealion2010.jpg', appname='viame',
             hash_prefix='f016550faa2c96ef4fdca', hasher='sha512')
         pil_img = PILImage.open(image_fpath)
-        image_data = ImageContainer(VitalPIL.from_pil(pil_img))
+        image_data = ImageContainer(pil.from_pil(pil_img))
         return image_data
 
     def get_configuration(self):
@@ -155,7 +155,7 @@ class Detectron2Detector(ImageObjectDetector):
         Get the algorithm configuration.
 
         Returns:
-            kwiver.vital.config.config.Config: Configuration object
+            viame.config.config.Config: Configuration object
         """
         cfg = super(ImageObjectDetector, self).get_configuration()
         for key, value in self._config.items():
@@ -356,10 +356,10 @@ class Detectron2Detector(ImageObjectDetector):
         Perform object detection on an image.
 
         Args:
-            image_data (kwiver.vital.types.ImageContainer): Input image
+            image_data (viame.types.ImageContainer): Input image
 
         Returns:
-            kwiver.vital.types.DetectedObjectSet: Detected objects
+            viame.types.DetectedObjectSet: Detected objects
         """
         import kwimage
         import torch

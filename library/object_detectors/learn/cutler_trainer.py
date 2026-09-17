@@ -20,8 +20,8 @@ from collections import namedtuple
 from PIL import Image
 from viame.utilities.compat import strtobool
 from pathlib import Path
-from kwiver.vital.algo import DetectedObjectSetOutput, TrainDetector
-from kwiver.vital.types import (
+from viame.algo import DetectedObjectSetOutput, TrainDetector
+from viame.types import (
     BoundingBoxD,
     CategoryHierarchy,
     DetectedObject,

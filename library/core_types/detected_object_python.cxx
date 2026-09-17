@@ -247,8 +247,8 @@ using namespace viame;
 
 PYBIND11_MODULE( detected_object, m )
 {
-  py::module::import( "kwiver.vital.types.geo_point" );
-  py::module::import( "kwiver.vital.types.point" );
+  py::module::import( "viame.types.geo_point" );
+  py::module::import( "viame.types.point" );
 
   /*
    *
@@ -264,9 +264,9 @@ PYBIND11_MODULE( detected_object, m )
     Represents a detected object within an image
 
     Example:
-        >>> from kwiver.vital.types import *
+        >>> from viame.types import *
         >>> from PIL import Image as PILImage
-        >>> from kwiver.vital.util import VitalPIL
+        >>> from viame.util import pil
         >>> import numpy as np
         >>> bbox = BoundingBox(0, 10, 100, 50)
         >>> # Construct an object without a mask
@@ -274,7 +274,7 @@ PYBIND11_MODULE( detected_object, m )
         >>> assert dobj1.mask is None
         >>> # Construct an object with a mask
         >>> pil_img = PILImage.fromarray(np.zeros((10, 10), dtype=np.uint8))
-        >>> vital_img = VitalPIL.from_pil(pil_img)
+        >>> vital_img = pil.from_pil(pil_img)
         >>> mask = ImageContainer(vital_img)
         >>> self = DetectedObject(bbox, 1.0, mask=mask)
         >>> assert self.mask is mask

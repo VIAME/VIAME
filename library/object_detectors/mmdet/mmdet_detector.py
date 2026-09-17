@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 from viame.utilities.compat import strtobool
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 
-from kwiver.vital.types import (
+from viame.types import (
     BoundingBoxD,
     DetectedObject,
     DetectedObjectSet,

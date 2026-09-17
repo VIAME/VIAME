@@ -2,25 +2,25 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
 
-from kwiver.vital.types import Image
-from kwiver.vital.types import ImageContainer
+from viame.types import Image
+from viame.types import ImageContainer
 
 from PIL import Image as pil_image
-from kwiver.vital.util.VitalPIL import get_pil_image, from_pil
+from viame.util.pil import get_pil_image, from_pil
 
 import cv2
 import numpy as np
 
-class filter_based_on_ref_process( KwiverProcess ):
+class filter_based_on_ref_process( ViameProcess ):
     """
     This process blanks out images which don't have detections on them.
     """
     # -------------------------------------------------------------------------
     def __init__( self, conf ):
-        KwiverProcess.__init__( self, conf )
+        ViameProcess.__init__( self, conf )
 
         # set up configs
         self.add_config_trait( "reference_image", "reference_image",

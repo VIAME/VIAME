@@ -80,11 +80,11 @@ def modules(monkeypatch):
         module = ModuleType(name)
         module.__path__ = [str(path)]
         monkeypatch.setitem(sys.modules, name, module)
-    for name in ['kwiver', 'kwiver.vital', 'kwiver.vital.algo', 'kwiver.vital.types', 'viame.object_detectors.base']:
+    for name in ['kwiver', 'viame', 'viame.algo', 'viame.types', 'viame.object_detectors.base']:
         monkeypatch.setitem(sys.modules, name, ModuleType(name))
-    algo = sys.modules['kwiver.vital.algo']
+    algo = sys.modules['viame.algo']
     algo.TrainDetector = algo.RefineDetections = Algorithm
-    types = sys.modules['kwiver.vital.types']
+    types = sys.modules['viame.types']
     types.DetectedObjectSet, types.Point2d = DetectionSet, Point
     sys.modules['viame.object_detectors.base'].register_vital_algorithm = lambda *args: None
     modules = {'sleap_common': 'viame.classifiers.sleap.sleap_common',

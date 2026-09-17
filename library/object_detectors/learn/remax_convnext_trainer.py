@@ -11,7 +11,7 @@ import sys
 from collections import namedtuple
 
 from viame.utilities.compat import strtobool
-from kwiver.vital.algo import TrainDetector
+from viame.algo import TrainDetector
 
 
 from viame.object_detectors.base import report_cuda_errors

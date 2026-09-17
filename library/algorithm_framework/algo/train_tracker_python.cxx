@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void train_tracker(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::train_tracker,
                std::shared_ptr<viame::algo::train_tracker>,

@@ -2,13 +2,13 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import RefineDetections, RefineTracks
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObjectType
-from kwiver.vital.util import VitalPIL
-from kwiver.vital.types import ImageContainer
-from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import BoundingBoxD, ObjectTrackState, Track, ObjectTrackSet
+from viame.algo import RefineDetections, RefineTracks
+from viame.types import DetectedObjectSet
+from viame.types import DetectedObjectType
+from viame.util import pil
+from viame.types import ImageContainer
+from viame.types import DetectedObject
+from viame.types import BoundingBoxD, ObjectTrackState, Track, ObjectTrackSet
 
 from PIL import Image as PILImage
 
@@ -788,7 +788,7 @@ def kwimage_boxes_to_vital(boxes):
             The vital bbox objects
 
     Example:
-        >>> # xdoctest: +REQUIRES(module:kwiver.vital)
+        >>> # xdoctest: +REQUIRES(module:viame)
         >>> boxes = kwimage.Boxes.random(10)
         >>> kwimage_boxes_to_vital(boxes.scale(100).astype(np.int8))
         >>> kwimage_boxes_to_vital(boxes.scale(100).astype(np.int32))
@@ -798,10 +798,10 @@ def kwimage_boxes_to_vital(boxes):
         >>> kwimage_boxes_to_vital(boxes.scale(100).astype(float))
         >>> kwimage_boxes_to_vital(boxes.scale(100).astype(int))
     """
-    from kwiver.vital.types import BoundingBoxI
+    from viame.types import BoundingBoxI
 
-    # from kwiver.vital.types import BoundingBoxF
-    from kwiver.vital.types import BoundingBoxD
+    # from viame.types import BoundingBoxF
+    from viame.types import BoundingBoxD
 
     # Determine which bbox type is needed
     if boxes.data.dtype.kind == "f":
@@ -836,7 +836,7 @@ def kwimage_detections_to_vital(kwimage_dets):
         DetectedObjectSet: converted detections
 
     Example:
-        >>> # xdoctest: +REQUIRES(module:kwiver.vital)
+        >>> # xdoctest: +REQUIRES(module:viame)
         >>> # Test with everything
         >>> dets = kwimage.Detections.random(10, segmentations=True).scale(64)
         >>> vital_dets = kwimage_detections_to_vital(dets)
@@ -958,13 +958,13 @@ def vital_detections_to_kwimage(vital_dets):
     Convert vital detection objects into kwimage
 
     Args:
-        detections (List[kwiver.vital.types.DetectedObject] | DetectedObjectSet)
+        detections (List[viame.types.DetectedObject] | DetectedObjectSet)
 
     Returns:
         kwimage.Detections
 
     Example:
-        >>> # xdoctest: +REQUIRES(module:kwiver.vital)
+        >>> # xdoctest: +REQUIRES(module:viame)
         >>> kwimage_dets = kwimage.Detections.random(10, segmentations=True).scale(256)
         >>> vital_dets = kwimage_detections_to_vital(kwimage_dets)
         >>> # Do some round trips
@@ -1045,10 +1045,10 @@ def vital_image_container_from_ndarray(ndarray_img):
         ndarray_img (np.ndarray): input image as an ndarray
 
     Returns:
-        kwiver.vital.types.ImageContainer
+        viame.types.ImageContainer
     """
     pil_img = PILImage.fromarray(ndarray_img)
-    vital_img = ImageContainer(VitalPIL.from_pil(pil_img))
+    vital_img = ImageContainer(pil.from_pil(pil_img))
     return vital_img
 
 

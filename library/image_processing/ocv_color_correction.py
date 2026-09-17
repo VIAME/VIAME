@@ -35,8 +35,8 @@ import logging
 
 import numpy as np
 
-from kwiver.vital.algo import ImageFilter
-from kwiver.vital.types import Image, ImageContainer
+from viame.algo import ImageFilter
+from viame.types import Image, ImageContainer
 
 logger = logging.getLogger(__name__)
 

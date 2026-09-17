@@ -15,7 +15,7 @@ target_compile_definitions( test-viame-math PRIVATE
   "VIAME_GOLDEN_MATH_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/math\"" )
 
 if( VIAME_ENABLE_PYTHON )
-  # The python API `kwiver.vital.types` presents, which P8-T01 rewrites: what
+  # The python API `viame.types` presents, which P8-T01 rewrites: what
   # it exposes, held against `tests/golden/python_types.json`, and what it
   # does. See the test file's own note for why it needs both halves.
   add_test(

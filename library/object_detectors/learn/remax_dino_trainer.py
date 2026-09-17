@@ -13,7 +13,7 @@ import yaml
 
 from collections import namedtuple
 
-from kwiver.vital.algo import TrainDetector
+from viame.algo import TrainDetector
 
 
 

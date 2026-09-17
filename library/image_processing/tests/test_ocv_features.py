@@ -28,7 +28,7 @@ FRAME = os.path.join(GOLDEN, "inputs", "frame_00.png")
 
 @pytest.fixture(scope="module", autouse=True)
 def modules():
-    from kwiver.vital.modules import load_known_modules
+    from viame.modules import load_known_modules
     load_known_modules()
 
 
@@ -40,7 +40,7 @@ def recorded_config(interface, name):
 
 
 def create(interface, name):
-    import kwiver.vital.algo as algo
+    import viame.algo as algo
 
     algorithm = getattr(algo, interface).create(name)
     assert algorithm is not None, \
@@ -49,7 +49,7 @@ def create(interface, name):
 
 
 def configured(interface, name, **values):
-    from kwiver.vital.config import empty_config
+    from viame.config import empty_config
 
     algorithm = create(interface, name)
     cfg = empty_config()
@@ -64,7 +64,7 @@ def frame():
     sys.path.insert(0, GOLDEN)
     import imageio_utils
 
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.types import Image, ImageContainer
     array = imageio_utils.load(FRAME)
     return ImageContainer(Image(np.ascontiguousarray(array)))
 
@@ -181,7 +181,7 @@ def test_the_extractor_reads_the_octave_the_detector_found():
     feature set must differ from ones extracted after the octave has been
     thrown away, or the carrying is not happening.
     """
-    from kwiver.vital.types import SimpleFeatureSet
+    from viame.types import SimpleFeatureSet
 
     image = frame()
     detector = configured("DetectFeatures", "ocv_SIFT", n_features=20)
@@ -261,7 +261,7 @@ def test_too_few_points_is_refused_rather_than_asserted():
 
 
 def test_the_matcher_refuses_an_empty_side():
-    from kwiver.vital.types import DescriptorSet, SimpleFeatureSet
+    from viame.types import DescriptorSet, SimpleFeatureSet
 
     matcher = create("MatchFeatures", "ocv_flann_based")
     empty = DescriptorSet([])
@@ -271,7 +271,7 @@ def test_the_matcher_refuses_an_empty_side():
 
 
 def test_the_matcher_rejects_a_zero_cross_check_k():
-    from kwiver.vital.config import empty_config
+    from viame.config import empty_config
 
     matcher = create("MatchFeatures", "ocv_flann_based")
     cfg = matcher.get_configuration()

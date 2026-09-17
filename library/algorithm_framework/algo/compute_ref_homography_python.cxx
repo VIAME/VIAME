@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void compute_ref_homography(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::compute_ref_homography,
                std::shared_ptr<viame::algo::compute_ref_homography>,

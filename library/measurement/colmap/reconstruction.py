@@ -296,9 +296,9 @@ def generate_prior_coverage(rec, output_csv, class_name):
         output_csv:  Path for the output CSV file.
         class_name:  Class label to attach to every detection (e.g. 'suppressed').
     """
-    from kwiver.vital.modules import load_known_modules
-    from kwiver.vital.algo import DetectedObjectSetOutput
-    from kwiver.vital.types import (
+    from viame.modules import load_known_modules
+    from viame.algo import DetectedObjectSetOutput
+    from viame.types import (
         DetectedObject, DetectedObjectSet, DetectedObjectType, BoundingBoxD,
     )
 

@@ -2,7 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""`kwiver.vital.util.find_python_library`, which the python module loader
+"""`viame.util.find_python_library`, which the python module loader
 uses to preload libpython when `PYTHON_LIBRARY` is not set.
 
 `setup_viame.sh` stopped setting it in P10-T01, and on Debian and Ubuntu the
@@ -24,7 +24,8 @@ import pytest
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 SOURCE = os.environ.get(
     "VIAME_FIND_PYTHON_LIBRARY_SOURCE",
-    os.path.join(ROOT, "python", "kwiver", "vital", "util", "find_python_library.py"))
+    os.path.join(ROOT, "library", "algorithm_framework", "util",
+                 "find_python_library.py"))
 
 # The finder builds its fallback candidate names from the running
 # interpreter's version, so a faked library has to carry that version.

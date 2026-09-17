@@ -26,8 +26,8 @@ import logging
 
 import numpy as np
 
-from kwiver.vital.algo import RefineDetections
-from kwiver.vital.types import DetectedObjectSet, Image, ImageContainer
+from viame.algo import RefineDetections
+from viame.types import DetectedObjectSet, Image, ImageContainer
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ def mask_rect(box):
 
 def scale_about_center(box, factor):
     """`viame::scale_about_center`, which both use for their crops."""
-    from kwiver.vital.types import BoundingBoxD
+    from viame.types import BoundingBoxD
 
     centre_x = (box.min_x() + box.max_x()) / 2.0
     centre_y = (box.min_y() + box.max_y()) / 2.0

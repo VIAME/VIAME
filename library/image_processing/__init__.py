@@ -13,7 +13,7 @@ normalisation modules that came from `viame.core` in P2-T05.
 # What this package provides, without importing any of it.
 #
 # Each entry is ( interface, name, description, "module:Class" ).
-# `kwiver.vital.plugins.discovery` turns each into a stand-in that imports
+# `viame.plugins.discovery` turns each into a stand-in that imports
 # its module the first time something asks for an instance.
 #
 # This replaced a `__vital_algorithm_register__` that imported every

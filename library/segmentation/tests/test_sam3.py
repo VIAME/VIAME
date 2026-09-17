@@ -359,12 +359,12 @@ class TestSAM3Utilities:
     def test_image_to_rgb_numpy(self):
         """Test image container to numpy conversion."""
         from viame.segmentation.sam3.sam3_utilities import image_to_rgb_numpy
-        from kwiver.vital.types import ImageContainer
-        from kwiver.vital.util import VitalPIL
+        from viame.types import ImageContainer
+        from viame.util import pil
 
         # Create a test image
         pil_img = Image.new('RGB', (100, 100), color=(255, 0, 0))
-        vital_img = ImageContainer(VitalPIL.from_pil(pil_img))
+        vital_img = ImageContainer(pil.from_pil(pil_img))
 
         np_img = image_to_rgb_numpy(vital_img)
         assert np_img.shape == (100, 100, 3)
@@ -935,11 +935,11 @@ class TestSAM3PointClickSegmentation:
         test_code = f'''
 import json
 import numpy as np
-from kwiver.vital.algo import SegmentViaPoints
-from kwiver.vital.config import config as vital_config
-from kwiver.vital.modules import modules as vital_modules
-from kwiver.vital.types import Point2d
-from kwiver.vital.types.types import ImageContainer, Image
+from viame.algo import SegmentViaPoints
+from viame.config import config as vital_config
+from viame.modules import modules as vital_modules
+from viame.types import Point2d
+from viame.types.types import ImageContainer, Image
 from PIL import Image as PILImage
 
 # Load modules
@@ -1007,7 +1007,7 @@ class TestSAM3AlgorithmRegistration:
     def test_sam3_refiner_registration(self):
         """Test that SAM3 refiners are registered as KWIVER algorithms."""
         try:
-            from kwiver.vital.algo import algorithm_factory
+            from viame.algo import algorithm_factory
 
             # Import to trigger registration
             from viame.segmentation.sam3 import sam3_refiner
@@ -1028,7 +1028,7 @@ class TestSAM3AlgorithmRegistration:
     def test_sam3_segmenter_registration(self):
         """Test that SAM3Segmenter is registered as SegmentViaPoints algorithm."""
         try:
-            from kwiver.vital.algo import SegmentViaPoints, algorithm_factory
+            from viame.algo import SegmentViaPoints, algorithm_factory
 
             # Import to trigger registration
             from viame.segmentation.sam3 import sam3_segmenter
@@ -1046,7 +1046,7 @@ class TestSAM3AlgorithmRegistration:
     def test_sam3_text_query_registration(self):
         """Test that SAM3TextQuery is registered as PerformTextQuery algorithm."""
         try:
-            from kwiver.vital.algo import PerformTextQuery, algorithm_factory
+            from viame.algo import PerformTextQuery, algorithm_factory
 
             # Import to trigger registration
             from viame.segmentation.sam3 import sam3_text_query
@@ -1064,7 +1064,7 @@ class TestSAM3AlgorithmRegistration:
     def test_sam2_segmenter_registration(self):
         """Test that SAM2Segmenter is registered as SegmentViaPoints algorithm."""
         try:
-            from kwiver.vital.algo import SegmentViaPoints
+            from viame.algo import SegmentViaPoints
 
             # Import to trigger registration
             from viame.segmentation.sam2 import sam2_segmenter

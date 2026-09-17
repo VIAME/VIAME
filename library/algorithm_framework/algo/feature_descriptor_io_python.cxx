@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void feature_descriptor_io(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::feature_descriptor_io,
                std::shared_ptr<viame::algo::feature_descriptor_io>,

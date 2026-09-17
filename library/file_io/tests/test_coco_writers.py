@@ -114,7 +114,7 @@ def test_build_image_list_fills_required_fields():
 # ----------------------------------------------------------------------
 
 try:
-    from kwiver.vital import types as vital_types
+    from viame import types as vital_types
 except ImportError:  # the geometry tests above still run without the bindings
     vital_types = None
 

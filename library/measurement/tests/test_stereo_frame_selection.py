@@ -24,8 +24,8 @@ def selection():
 
 def track(identifier, states):
     """A feature track: `states` is a list of `(frame, x, y)`."""
-    from kwiver.vital.types import FeatureD, FeatureTrackState, Track
-    from kwiver.vital.types.descriptor import new_descriptor
+    from viame.types import FeatureD, FeatureTrackState, Track
+    from viame.types.descriptor import new_descriptor
 
     out = Track(identifier)
     descriptor = new_descriptor(1, "d")
@@ -38,13 +38,13 @@ def track(identifier, states):
 
 
 def track_set(tracks):
-    from kwiver.vital.types import FeatureTrackSet
+    from viame.types import FeatureTrackSet
     return FeatureTrackSet(tracks)
 
 
 def landmark_map(points):
     """`{id: (x, y, z)}` as a landmark map."""
-    from kwiver.vital.types import LandmarkD, SimpleLandmarkMap
+    from viame.types import LandmarkD, SimpleLandmarkMap
 
     return SimpleLandmarkMap({
         identifier: LandmarkD(np.array([float(v) for v in point]))

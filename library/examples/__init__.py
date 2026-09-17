@@ -7,7 +7,7 @@ Python process registration package for the VIAME examples.
 
 This is the documented form for a package that ships python processes: it
 names them, and names the module and class each one lives in, without
-importing anything. `kwiver.vital.plugins.discovery` registers each with a
+importing anything. `viame.plugins.discovery` registers each with a
 constructor that imports the module the first time a pipeline asks for one.
 
 To add your own process:

@@ -26,8 +26,8 @@ import time
 
 import numpy as np
 
-from kwiver.vital.algo import VideoInput
-from kwiver.vital.types import Image, ImageContainer, Timestamp
+from viame.algo import VideoInput
+from viame.types import Image, ImageContainer, Timestamp
 
 logger = logging.getLogger(__name__)
 

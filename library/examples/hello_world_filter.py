@@ -2,12 +2,12 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
 
-from kwiver.vital.types import ImageContainer
+from viame.types import ImageContainer
 
-class hello_world_filter( KwiverProcess ):
+class hello_world_filter( ViameProcess ):
     """
     Example image filter process demonstrating Python plugin development.
 
@@ -52,7 +52,7 @@ class hello_world_filter( KwiverProcess ):
         Args:
             conf: Process configuration object from the pipeline system
         """
-        KwiverProcess.__init__( self, conf )
+        ViameProcess.__init__( self, conf )
 
         # Declare configuration parameters
         # add_config_trait(key, trait_name, default_value, description)
@@ -127,7 +127,7 @@ def __sprokit_register__():
     Registration therefore has to live in the module that defines the process,
     not in the package __init__.
     """
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
 
     module_name = 'python_' + __name__
 

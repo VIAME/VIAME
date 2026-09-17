@@ -15,7 +15,7 @@ column the VIAME CSV writer emits. Unlike the other tables, ``track_id`` keeps
 the pipeline's native track numbering rather than being renumbered from 1.
 """
 
-from kwiver.vital.algo import WriteObjectTrackSet
+from viame.algo import WriteObjectTrackSet
 
 from viame.file_io.utilities_coco import (
     VIDEO_ID,

@@ -21,11 +21,11 @@ import scriptconfig as scfg
 
 from timeit import default_timer as timer
 
-from kwiver.vital.algo import TrackObjects
-from kwiver.vital.types import Image, ImageContainer
-from kwiver.vital.types import BoundingBoxD
-from kwiver.vital.types import DetectedObject, DetectedObjectSet
-from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
+from viame.algo import TrackObjects
+from viame.types import Image, ImageContainer
+from viame.types import BoundingBoxD
+from viame.types import DetectedObject, DetectedObjectSet
+from viame.types import ObjectTrackState, Track, ObjectTrackSet
 
 from viame.object_trackers.siammask.siammask.core.config import cfg
 from viame.object_trackers.siammask.siammask.models.model_builder import ModelBuilder

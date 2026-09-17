@@ -13,7 +13,7 @@ namespace kv = viame;
 
 PYBIND11_MODULE( activity, m )
 {
-  py::module::import( "kwiver.vital.types.timestamp" );
+  py::module::import( "viame.types.timestamp" );
 
   py::class_< kv::activity,
     std::shared_ptr< kv::activity > >( m, "Activity" )

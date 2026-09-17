@@ -21,18 +21,18 @@ Algorithm per step:
 
 import numpy as np
 
-from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.vital.types import (
+from viame.pipeline import process
+from viame.processes.base import ViameProcess
+from viame.types import (
     ObjectTrackSet, ObjectTrackState, Track, Timestamp
 )
 
 
-class PairStereoTracks(KwiverProcess):
+class PairStereoTracks(ViameProcess):
 
     # --------------------------------------------------------------------------
     def __init__(self, conf):
-        KwiverProcess.__init__(self, conf)
+        ViameProcess.__init__(self, conf)
 
         # Config traits
         self.add_config_trait("distance_threshold", "distance_threshold", '0.3',
@@ -219,7 +219,7 @@ class PairStereoTracks(KwiverProcess):
 
 # ==============================================================================
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
 
     module_name = 'python:kwiver.pytorch.pair_stereo_tracks'
 

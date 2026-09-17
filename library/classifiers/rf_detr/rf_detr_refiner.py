@@ -2,8 +2,8 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import RefineDetections
-from kwiver.vital.types import DetectedObjectSet, Image, ImageContainer, Point2d
+from viame.algo import RefineDetections
+from viame.types import DetectedObjectSet, Image, ImageContainer, Point2d
 
 import numpy as np
 import scriptconfig as scfg

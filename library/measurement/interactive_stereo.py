@@ -527,7 +527,7 @@ class InteractiveStereoService:
         if self._is_video_file(image_path) and frame_time is not None:
             return self._load_video_frame(image_path, frame_time)
 
-        from kwiver.vital.types import ImageContainer, Image
+        from viame.types import ImageContainer, Image
         from viame.segmentation.segmentation_utils import load_image
 
         imdata = load_image(image_path)
@@ -535,8 +535,8 @@ class InteractiveStereoService:
 
     def _load_video_frame(self, video_path: str, frame_time: float):
         """Extract a single frame from a video at the given time (seconds)."""
-        from kwiver.vital.algo import VideoInput
-        from kwiver.vital.types import Timestamp
+        from viame.algo import VideoInput
+        from viame.types import Timestamp
 
         # Cache video readers keyed by path (may have left + right videos)
         if not hasattr(self, '_video_readers'):
@@ -1056,7 +1056,7 @@ class InteractiveStereoService:
 
     def _right_reference_disparity(self):
         """Cache one reverse map per stereo frame; caller holds _compute_lock."""
-        from kwiver.vital.types import Image, ImageContainer
+        from viame.types import Image, ImageContainer
         key = (self._current_left_path, self._current_right_path,
                getattr(self, '_current_frame_time', None))
         if getattr(self, '_right_reference_key', None) == key:
@@ -1337,7 +1337,7 @@ class InteractiveStereoService:
                 raise ValueError("measure_curve requires disparity output, not depth")
             reverse = None
             if request.get('options', {}).get('mode', 'left') == 'bidirectional':
-                from kwiver.vital.types import Image, ImageContainer
+                from viame.types import Image, ImageContainer
                 frame_time = getattr(self, '_current_frame_time', None)
                 left = self._load_image(self._current_left_path, frame_time).image().asarray()
                 right = self._load_image(self._current_right_path, frame_time).image().asarray()
@@ -1383,7 +1383,7 @@ class InteractiveStereoService:
         clip_to_mask) rather than the algorithm's bare default, so that
         interactively-placed head/tail keypoints agree with the batch ones."""
         if self._keypoint_algo is None:
-            from kwiver.vital.algo import RefineDetections
+            from viame.algo import RefineDetections
             algo = RefineDetections.create("add_keypoints_from_mask")
             cfg = algo.get_configuration()
             cfg.set_value("method", "hull_extremes")
@@ -1398,7 +1398,7 @@ class InteractiveStereoService:
         Rasterizes the polygon to a mask, runs the vital algorithm, and returns
         (head_xy, tail_xy) in image coordinates, or None on failure.
         """
-        from kwiver.vital.types import (
+        from viame.types import (
             DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
 
         pts = np.asarray(polygon, dtype=np.float64)
@@ -1635,8 +1635,8 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
     Returns:
         Tuple of (compute_stereo_depth_map_algo, epipolar_matcher, service_config)
     """
-    import kwiver.vital.config as vital_config
-    from kwiver.vital.modules import modules as vital_modules
+    import viame.config as vital_config
+    from viame.modules import modules as vital_modules
 
     # Load plugin modules
     vital_modules.load_known_modules()
@@ -1676,7 +1676,7 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
     # Check for dense disparity algorithm
     stereo_algo = None
     if cfg.has_value("compute_stereo_depth_map:type"):
-        from kwiver.vital.algo import ComputeStereoDepthMap
+        from viame.algo import ComputeStereoDepthMap
         impl_name = cfg.get_value("compute_stereo_depth_map:type")
         stereo_algo = ComputeStereoDepthMap.create(impl_name)
         stereo_algo.set_configuration(cfg.subblock("compute_stereo_depth_map:" + impl_name))

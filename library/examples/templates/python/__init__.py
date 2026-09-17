@@ -4,7 +4,7 @@
 
 """@template_dir@: what this package provides, without importing any of it.
 
-`kwiver.vital.plugins.discovery` reads these lists and registers a stand-in
+`viame.plugins.discovery` reads these lists and registers a stand-in
 for each entry that imports its module the first time a pipeline asks for an
 instance, so a detector that imports torch costs nothing at startup.
 

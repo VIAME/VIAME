@@ -5,25 +5,25 @@
 from PIL import Image as pil_image
 from random import randint
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
 
-from kwiver.vital.types import Image
-from kwiver.vital.types import ImageContainer
-from kwiver.vital.types import DetectedObject, DetectedObjectSet
-from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
+from viame.types import Image
+from viame.types import ImageContainer
+from viame.types import DetectedObject, DetectedObjectSet
+from viame.types import ObjectTrackState, Track, ObjectTrackSet
 
-from kwiver.vital.util.VitalPIL import get_pil_image, from_pil
+from viame.util.pil import get_pil_image, from_pil
 
 import numpy as np
 
-class blank_out_frames( KwiverProcess ):
+class blank_out_frames( ViameProcess ):
     """
     This process blanks out images which don't have detections on them.
     """
     # -------------------------------------------------------------------------
     def __init__( self, conf ):
-        KwiverProcess.__init__( self, conf )
+        ViameProcess.__init__( self, conf )
 
         # set up required flags
         optional = process.PortFlags()
@@ -59,13 +59,13 @@ class blank_out_frames( KwiverProcess ):
 
         self._base_step()
 
-class percentile_norm_npy_16_to_8bit( KwiverProcess ):
+class percentile_norm_npy_16_to_8bit( ViameProcess ):
     """
     Percentile normalization on 16-bit input image, output to 8-bit numpy edition
     """
     # -------------------------------------------------------------------------
     def __init__( self, conf ):
-        KwiverProcess.__init__( self, conf )
+        ViameProcess.__init__( self, conf )
 
         # set up required flags
         optional = process.PortFlags()

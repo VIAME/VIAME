@@ -5,22 +5,22 @@
 import sys
 import threading
 
-from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.vital.types import DetectedObject, DetectedObjectSet
-from kwiver.vital.types import new_descriptor
+from viame.pipeline import process
+from viame.processes.base import ViameProcess
+from viame.types import DetectedObject, DetectedObjectSet
+from viame.types import new_descriptor
 
 from timeit import default_timer as timer
 
-from kwiver.vital.util.VitalPIL import get_pil_image
+from viame.util.pil import get_pil_image
 
 from viame.object_detectors.base import Grid, gpu_list_desc, parse_gpu_list, report_cuda_errors
 
-class ResNetDescriptors(KwiverProcess):
+class ResNetDescriptors(ViameProcess):
 
     # --------------------------------------------------------------------------
     def __init__(self, conf):
-        KwiverProcess.__init__(self, conf)
+        ViameProcess.__init__(self, conf)
 
         # GPU list
         self.add_config_trait("gpu_list", "gpu_list", 'all',
@@ -160,7 +160,7 @@ class ResNetDescriptors(KwiverProcess):
 
 # ==============================================================================
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
 
     module_name = 'python:kwiver.pytorch.pytorch_descriptors'
 

@@ -123,7 +123,7 @@ viame_lite_generated( viame_core_types_export.h core_types )
 ###
 # Python bindings
 #
-# `kwiver.vital.types`, moved here from `python/kwiver/vital/types` by
+# `viame.types`, moved here from `python/kwiver/vital/types` by
 # P8-T01 so the bindings sit beside the C++ they bind. Kept in its own file
 # because it is 56 module definitions and would bury everything above it.
 ##

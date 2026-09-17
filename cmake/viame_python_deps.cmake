@@ -8,7 +8,7 @@
 # of the same VIAME commit a month apart did not get the same environment,
 # and the difference was invisible -- there was no file to diff.
 #
-# `python/requirements/*.in` says what VIAME needs and why; `py3.X/*.lock` is the
+# `packaging/requirements/*.in` says what VIAME needs and why; `py3.X/*.lock` is the
 # pinned resolution `pip-compile` produced from it, committed. This installs
 # the lock, `--no-deps`, so pip resolves nothing at build time.
 ##
@@ -24,7 +24,7 @@ mark_as_advanced( VIAME_PYTHON_INDEX_URL )
 
 # Three packages cannot be used as published and are edited in place after
 # they are installed -- `torch.load`'s `weights_only` default and ubelt's
-# removal of `ensure_unicode`. `python/patches/apply.py` carries what
+# removal of `ensure_unicode`. `packaging/patches/apply.py` carries what
 # `custom_install_viame.cmake` did, and unlike it says so when a patch stops
 # matching rather than doing nothing. P9 removes the step: the patched
 # packages become wheels the wheel CI builds.
@@ -52,18 +52,18 @@ endif()
 # directory, and one with none is an error rather than an install with
 # packages silently missing.
 set( _viame_req_dir
-  "${VIAME_SOURCE_DIR}/python/requirements/py${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" )
+  "${VIAME_SOURCE_DIR}/packaging/requirements/py${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" )
 
 if( VIAME_INSTALL_PYTHON_DEPS AND NOT IS_DIRECTORY "${_viame_req_dir}" )
   file( GLOB _viame_lock_dirs LIST_DIRECTORIES true RELATIVE
-    "${VIAME_SOURCE_DIR}/python/requirements"
-    "${VIAME_SOURCE_DIR}/python/requirements/py3.*" )
+    "${VIAME_SOURCE_DIR}/packaging/requirements"
+    "${VIAME_SOURCE_DIR}/packaging/requirements/py3.*" )
   list( FILTER _viame_lock_dirs INCLUDE REGEX "^py3\\.[0-9]+$" )
   string( REPLACE ";" ", " _viame_lock_versions "${_viame_lock_dirs}" )
   message( FATAL_ERROR
     "There are no python dependency locks for python ${Python_VERSION_MAJOR}."
     "${Python_VERSION_MINOR} (${Python_EXECUTABLE}); there are for "
-    "${_viame_lock_versions}. Compile a set as python/requirements/README.md "
+    "${_viame_lock_versions}. Compile a set as packaging/requirements/README.md "
     "says, use one of those pythons, or set VIAME_INSTALL_PYTHON_DEPS=OFF and "
     "provide the environment yourself." )
 endif()
@@ -133,12 +133,12 @@ add_custom_command(
           "${Python_EXECUTABLE}" -m pip install --user --no-deps
             --no-warn-script-location ${_viame_pip_args}
   COMMAND "${Python_EXECUTABLE}"
-          "${VIAME_SOURCE_DIR}/python/patches/apply.py"
+          "${VIAME_SOURCE_DIR}/packaging/patches/apply.py"
           --site-packages
             "${VIAME_BUILD_INSTALL_PREFIX}/${python_site_packages}"
   COMMAND "${CMAKE_COMMAND}" -E touch "${_viame_deps_stamp}"
   DEPENDS ${_viame_locks}
-          "${VIAME_SOURCE_DIR}/python/patches/apply.py"
+          "${VIAME_SOURCE_DIR}/packaging/patches/apply.py"
   COMMENT "Installing VIAME's python dependencies from the lock files"
   VERBATIM
   )

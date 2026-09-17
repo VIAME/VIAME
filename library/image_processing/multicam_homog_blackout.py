@@ -17,9 +17,9 @@ colmap_registration or many_image_stabilizer) in, image<i> out.
 
 import numpy as np
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-from kwiver.vital.types import Image, ImageContainer
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+from viame.types import Image, ImageContainer
 
 from viame.object_trackers.multicam_homog_tracker import MultiHomographyF2F
 from viame.classifiers.multicam_homog_det_suppressor import (
@@ -47,9 +47,9 @@ def blackout_image(img, polys):
     return out
 
 
-class MulticamHomogBlackout(KwiverProcess):
+class MulticamHomogBlackout(ViameProcess):
     def __init__(self, config):
-        KwiverProcess.__init__(self, config)
+        ViameProcess.__init__(self, config)
 
         add_declare_config(self, 'n_input', '2', 'Number of inputs')
         add_declare_config(self, 'enabled', 'true', (
@@ -119,7 +119,7 @@ class MulticamHomogBlackout(KwiverProcess):
 
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.python.MulticamHomogBlackout'
     if process_factory.is_process_module_loaded(module_name):
         return

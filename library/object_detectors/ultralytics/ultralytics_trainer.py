@@ -2,7 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import TrainDetector
+from viame.algo import TrainDetector
 
 import os
 

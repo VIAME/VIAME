@@ -12,7 +12,7 @@ kwcoco dict-list format with an auto-generated keypoint_categories table.
 Arbitrary per-annotation attributes round-trip from DetectedObject notes.
 """
 
-from kwiver.vital.algo import DetectedObjectSetOutput
+from viame.algo import DetectedObjectSetOutput
 
 from viame.file_io.utilities_coco import (
     VIDEO_ID,

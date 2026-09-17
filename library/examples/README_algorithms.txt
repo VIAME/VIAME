@@ -121,7 +121,7 @@ Key Concepts Demonstrated
 -------------------------
 1. Interfaces:
    - C++ algorithms derive from the kwiver::vital::algo interfaces
-   - Python processes derive from KwiverProcess
+   - Python processes derive from ViameProcess
 
 2. Configuration:
    - Parameters declared once, with defaults and descriptions

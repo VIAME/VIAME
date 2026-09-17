@@ -5,7 +5,7 @@
 """Registration helper for python algorithm implementations.
 
 KWIVER's pluggable system discovers python implementations by walking the
-subclasses of ``Pluggable`` (see ``kwiver.vital.plugins.discovery``).  A class
+subclasses of ``Pluggable`` (see ``viame.plugins.discovery``).  A class
 is only picked up if it looks concrete -- that is, if it exposes
 ``interface_name``, ``from_config`` and ``get_default_config`` -- and it
 registers under ``plugin_name()`` if that is defined, otherwise under its

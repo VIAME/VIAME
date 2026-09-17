@@ -33,7 +33,7 @@ import logging
 
 import numpy as np
 
-from kwiver.vital.algo import VideoOutput
+from viame.algo import VideoOutput
 
 logger = logging.getLogger(__name__)
 

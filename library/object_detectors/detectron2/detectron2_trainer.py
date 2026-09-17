@@ -37,7 +37,7 @@ import json
 import scriptconfig as scfg
 import ubelt as ub
 
-from kwiver.vital.algo import (
+from viame.algo import (
     DetectedObjectSetOutput,
     ImageObjectDetector,
     TrainDetector
@@ -276,7 +276,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
             self._validation_file = self._tmp_validation_file
 
         # Load KWIVER modules for writers
-        from kwiver.vital.modules import load_known_modules
+        from viame.modules import load_known_modules
         load_known_modules()
 
         # Set up COCO format writers

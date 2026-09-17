@@ -22,15 +22,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
 
-from kwiver.vital.types import Image
-from kwiver.vital.types import ImageContainer
-from kwiver.vital.types import F2FHomography
+from viame.types import Image
+from viame.types import ImageContainer
+from viame.types import F2FHomography
 
 from PIL import Image as pil_image
-from kwiver.vital.util.VitalPIL import get_pil_image, from_pil
+from viame.util.pil import get_pil_image, from_pil
 
 import cv2
 import csv
@@ -179,13 +179,13 @@ def normalize_thermal( thermal_image, percent=0.01 ):
 
     return thermal_norm.astype( np.uint8 )
 
-class register_frames_process( KwiverProcess ):
+class register_frames_process( ViameProcess ):
     """
     This process blanks out images which don't have detections on them.
     """
     # -------------------------------------------------------------------------
     def __init__( self, conf ):
-        KwiverProcess.__init__( self, conf )
+        ViameProcess.__init__( self, conf )
 
         # set up configs
         self.add_config_trait( "good_match_percent", "good_match_percent",

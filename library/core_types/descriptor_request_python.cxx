@@ -14,8 +14,8 @@ namespace kv = viame;
 
 PYBIND11_MODULE( descriptor_request, m )
 {
-  py::module::import( "kwiver.vital.types.timestamp" );
-  py::module::import( "kwiver.vital.types.uid" );
+  py::module::import( "viame.types.timestamp" );
+  py::module::import( "viame.types.uid" );
 
   py::class_< viame::descriptor_request,
     std::shared_ptr< viame::descriptor_request > >(

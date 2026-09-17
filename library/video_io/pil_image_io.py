@@ -32,8 +32,8 @@ import os
 
 import numpy as np
 
-from kwiver.vital.algo import ImageIO
-from kwiver.vital.types import Image, ImageContainer, Metadata
+from viame.algo import ImageIO
+from viame.types import Image, ImageContainer, Metadata
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +169,7 @@ class PILImageIO(ImageIO):
 
     # ------------------------------------------------------------------
     def load_metadata_(self, filename):
-        from kwiver.vital.types import metadata_tags as tags
+        from viame.types import metadata_tags as tags
 
         metadata = Metadata()
         metadata.add(tags.tag_traits_by_tag(

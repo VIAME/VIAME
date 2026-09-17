@@ -23,8 +23,8 @@ import logging
 
 import numpy as np
 
-from kwiver.vital.algo import EstimateFundamentalMatrix, EstimateHomography
-from kwiver.vital.types import FundamentalMatrixD, HomographyD
+from viame.algo import EstimateFundamentalMatrix, EstimateHomography
+from viame.types import FundamentalMatrixD, HomographyD
 
 logger = logging.getLogger(__name__)
 

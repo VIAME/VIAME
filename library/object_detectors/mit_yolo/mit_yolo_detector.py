@@ -2,7 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 import scriptconfig as scfg
 import ubelt as ub
 import torch
@@ -124,13 +124,13 @@ class MITYoloDetector(ImageObjectDetector):
             ImageContainer: an image to test on
         """
         from PIL import Image as PILImage
-        from kwiver.vital.util import VitalPIL
-        from kwiver.vital.types import ImageContainer
+        from viame.util import pil
+        from viame.types import ImageContainer
         import kwimage
 
         image_fpath = kwimage.grab_test_image_fpath()
         pil_img = PILImage.open(image_fpath)
-        image_data = ImageContainer(VitalPIL.from_pil(pil_img))
+        image_data = ImageContainer(pil.from_pil(pil_img))
         return image_data
 
     def get_configuration(self):

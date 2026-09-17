@@ -41,9 +41,9 @@ import sys
 
 import numpy as np
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-import kwiver.vital.types as kvt
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+import viame.types as kvt
 
 _IDENTITY = np.eye(3, dtype=np.float64)
 
@@ -79,7 +79,7 @@ def _f2f(matrix, from_id, to_id):
         matrix, dtype=np.float64)), int(from_id), int(to_id))
 
 
-class ColmapRegistration(KwiverProcess):
+class ColmapRegistration(ViameProcess):
     """Multi-camera registration node backed by prior_coverage_opencv."""
 
     # to_id of every emitted homography: a single shared reference frame, so
@@ -88,7 +88,7 @@ class ColmapRegistration(KwiverProcess):
     _REF_ID = 0
 
     def __init__(self, config):
-        KwiverProcess.__init__(self, config)
+        ViameProcess.__init__(self, config)
 
         _add_declare_config(self, 'n_input', '2', 'Number of camera inputs')
         _add_declare_config(
@@ -554,7 +554,7 @@ class ColmapRegistration(KwiverProcess):
 
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.colmap.ColmapRegistration'
     if process_factory.is_process_module_loaded(module_name):
         return

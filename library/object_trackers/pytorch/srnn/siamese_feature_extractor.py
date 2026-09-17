@@ -9,7 +9,7 @@ from torchvision import transforms
 
 from PIL import Image as pilImage
 
-from kwiver.vital.types import BoundingBoxD
+from viame.types import BoundingBoxD
 from .models import Siamese
 from viame.object_detectors.base import get_gpu_device, init_cudnn
 

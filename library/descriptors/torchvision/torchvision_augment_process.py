@@ -11,16 +11,16 @@ import threading
 
 from PIL import Image as pilImage
 
-from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.pipeline import datum
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.vital.types import Image
-from kwiver.vital.types import DetectedObject, DetectedObjectSet
-from kwiver.vital.types import new_descriptor, DescriptorSet
+from viame.pipeline import process
+from viame.pipeline import datum
+from viame.processes.base import ViameProcess
+from viame.types import Image
+from viame.types import DetectedObject, DetectedObjectSet
+from viame.types import new_descriptor, DescriptorSet
 
 from timeit import default_timer as timer
 
-from kwiver.vital.util.VitalPIL import get_pil_image
+from viame.util.pil import get_pil_image
 
 from viame.object_detectors.base import Grid, gpu_list_desc, parse_gpu_list
 
@@ -39,11 +39,11 @@ def to_vital(raw_data):
         vital_descriptors.append(new_desc)
     return DescriptorSet(vital_descriptors)
 
-class DataAugmentation(KwiverProcess):
+class DataAugmentation(ViameProcess):
 
     # -------------------------------------------------------------------------------------
     def __init__(self, conf):
-        KwiverProcess.__init__(self, conf)
+        ViameProcess.__init__(self, conf)
 
         # GPU list
         #----------------------------------------------------------------------------------
@@ -265,7 +265,7 @@ class DataAugmentation(KwiverProcess):
 
 # ==================================================================================
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
 
     module_name = 'python:kwiver.pytorch.torchvision_augment_process'
 

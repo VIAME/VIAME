@@ -1,7 +1,7 @@
 import scriptconfig as scfg
 import numpy as np
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 from viame.object_detectors.base import (
     kwimage_to_kwiver_detections,
     vital_config_update,
@@ -68,13 +68,13 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
             ImageContainer: an image to test on
         """
         from PIL import Image as PILImage
-        from kwiver.vital.util import VitalPIL
-        from kwiver.vital.types import ImageContainer
+        from viame.util import pil
+        from viame.types import ImageContainer
         import kwimage
 
         image_fpath = kwimage.grab_test_image_fpath()
         pil_img = PILImage.open(image_fpath)
-        image_data = ImageContainer(VitalPIL.from_pil(pil_img))
+        image_data = ImageContainer(pil.from_pil(pil_img))
         return image_data
 
     def get_configuration(self):

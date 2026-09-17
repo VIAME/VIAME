@@ -12,9 +12,9 @@ import logging
 
 import numpy as np
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+from viame.types import ObjectTrackSet, ObjectTrackState, Track
 
 # XXX Not ideal places to be importing things from
 from .simple_homog_tracker import (
@@ -345,9 +345,9 @@ def multitrack(min_iou=None):
         multitracks = bt.step(track_ids, create_track_multiboxes(do_lists, ind), ts)
         output = to_ObjectTrackSet_list(multitracks, len(cams))
 
-class MulticamHomogTracker(KwiverProcess):
+class MulticamHomogTracker(ViameProcess):
     def __init__(self, config):
-        KwiverProcess.__init__(self, config)
+        ViameProcess.__init__(self, config)
 
         add_declare_config(self, "min_iou", str(DEFAULT_MIN_IOU),
                            "Minimum IOU to associate a detection to a track")
@@ -386,7 +386,7 @@ class MulticamHomogTracker(KwiverProcess):
         self._base_step()
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.python.MulticamHomogTracker'
     if process_factory.is_process_module_loaded(module_name):
         return

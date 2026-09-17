@@ -2,9 +2,9 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import TrainTracker
+from viame.algo import TrainTracker
 
-from kwiver.vital.types import (
+from viame.types import (
     CategoryHierarchy,
     ObjectTrackSet, ObjectTrackState,
     BoundingBoxD, DetectedObjectType

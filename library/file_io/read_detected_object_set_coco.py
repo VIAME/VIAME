@@ -16,8 +16,8 @@ from __future__ import print_function
 
 import json
 
-from kwiver.vital.algo import DetectedObjectSetInput
-import kwiver.vital.types as vt
+from viame.algo import DetectedObjectSetInput
+import viame.types as vt
 
 from viame.file_io.utilities_coco import annotation_to_detection
 

@@ -48,7 +48,7 @@ import os
 
 import numpy as np
 
-from kwiver.vital.algo import TrainDetector
+from viame.algo import TrainDetector
 
 
 def _to_grey(image):

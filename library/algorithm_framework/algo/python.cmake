@@ -1,5 +1,5 @@
 ###
-# `kwiver.vital.algo`
+# `viame.algo`
 #
 # The bindings live beside the interfaces they bind since P8-T02, rather than
 # in `python/kwiver/vital/algo`, and they are **source** now rather than
@@ -32,11 +32,11 @@
 # `include()`d from the directory above, and an include does not change the
 # current source directory. The difference is a configure error naming a file
 # one directory too high.
-set( THIS_MODULE vital/algo )
+set( THIS_MODULE algo )
 
-# As in `library/core_types/python.cmake`: the package these install into,
-# and libpython, neither of which this directory inherits from `python/`
-set( kwiver_python_package "kwiver" )
+# As in `library/core_types/python.cmake`: libpython on every module, which
+# this directory does not inherit now that `python/` is gone. The package
+# they install into is derived from the project name since P11-T02.
 
 viame_add_python_module(
   ${CMAKE_CURRENT_LIST_DIR}/algo_init.py

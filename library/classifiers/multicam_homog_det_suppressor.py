@@ -7,9 +7,9 @@ import os
 
 import numpy as np
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-from kwiver.vital.types import (
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+from viame.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
 )
 
@@ -523,9 +523,9 @@ def suppress(suppression_poly_class=None, *, past_frames,
             for keep, dos, pd in zip(keep_its, do_lists, poly_dets)
         ]
 
-class MulticamHomogDetSuppressor(KwiverProcess):
+class MulticamHomogDetSuppressor(ViameProcess):
     def __init__(self, config):
-        KwiverProcess.__init__(self, config)
+        ViameProcess.__init__(self, config)
 
         add_declare_config(self, 'n_input', '2', 'Number of inputs')
         add_declare_config(self, 'suppression_poly_class', '',
@@ -673,7 +673,7 @@ class MulticamHomogDetSuppressor(KwiverProcess):
         self._base_step()
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.python.MulticamHomogDetSuppressor'
     if process_factory.is_process_module_loaded(module_name):
         return

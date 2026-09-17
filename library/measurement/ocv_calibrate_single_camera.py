@@ -36,8 +36,8 @@ import os
 
 import numpy as np
 
-from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from viame.pipeline import process
+from viame.processes.base import ViameProcess
 
 logger = logging.getLogger(__name__)
 
@@ -301,11 +301,11 @@ def write_calibration(intrinsics, distortion, rms, output_directory,
     logger.debug("Wrote JSON calibration to: %s", path)
 
 
-class CalibrateSingleCamera(KwiverProcess):
+class CalibrateSingleCamera(ViameProcess):
     """`ocv_calibrate_single_camera`: one camera, from a corner track set."""
 
     def __init__(self, conf):
-        KwiverProcess.__init__(self, conf)
+        ViameProcess.__init__(self, conf)
 
         for name, default, description in (
                 ("output_directory", "./",
@@ -370,7 +370,7 @@ class CalibrateSingleCamera(KwiverProcess):
 
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
 
     module_name = "python:viame.measurement"
 

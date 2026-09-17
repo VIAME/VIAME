@@ -31,12 +31,12 @@ PIXEL_TOLERANCE = 3
 
 @pytest.fixture(scope="module", autouse=True)
 def modules():
-    from kwiver.vital.modules import load_known_modules
+    from viame.modules import load_known_modules
     load_known_modules()
 
 
 def writer(**config):
-    from kwiver.vital.algo import VideoOutput
+    from viame.algo import VideoOutput
 
     algo = VideoOutput.create("pyav")
 
@@ -64,8 +64,8 @@ def source_frames():
 
 
 def write(path, frames, settings=True, **config):
-    from kwiver.vital.types import Image, ImageContainer, Timestamp
-    from kwiver.vital.types.video_settings import VideoSettings
+    from viame.types import Image, ImageContainer, Timestamp
+    from viame.types.video_settings import VideoSettings
 
     algo = writer(**config)
     algo.open(path,
@@ -83,7 +83,7 @@ def write(path, frames, settings=True, **config):
 
 
 def read(path):
-    from kwiver.vital.algo import VideoInput
+    from viame.algo import VideoInput
 
     algo = VideoInput.create("pyav")
     algo.open(path)

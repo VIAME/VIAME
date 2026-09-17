@@ -20,9 +20,9 @@ import os
 
 import numpy as np
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.sprokit.pipeline import process
-from kwiver.vital.types import Image, ImageContainer
+from viame.processes.base import ViameProcess
+from viame.pipeline import process
+from viame.types import Image, ImageContainer
 
 from viame.object_trackers.simple_homog_tracker import add_declare_config, wrap_F2FHomography
 from .stabilize_many_images import (
@@ -88,9 +88,9 @@ def compute_mosaic(arrays, homogs, max_dimension=20000):
     return mosaic
 
 
-class MulticamHomogMosaic(KwiverProcess):
+class MulticamHomogMosaic(ViameProcess):
     def __init__(self, config):
-        KwiverProcess.__init__(self, config)
+        ViameProcess.__init__(self, config)
 
         add_declare_config(self, 'n_input', '2', 'Number of inputs')
         add_declare_config(self, 'max_dimension', '20000', (
@@ -154,7 +154,7 @@ class MulticamHomogMosaic(KwiverProcess):
 
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.python.MulticamHomogMosaic'
     if process_factory.is_process_module_loaded(module_name):
         return

@@ -421,10 +421,10 @@ collect_process_details( std::string const& type, registered_entry& entry )
 // ----------------------------------------------------------------------------
 /// The python packages that contributed plugins, in sorted order.
 ///
-/// Set by `kwiver.vital.modules.module_loader` once it has loaded them. It
+/// Set by `viame.modules.module_loader` once it has loaded them. It
 /// used to be the shell variable that named the packages to import, which
 /// listed two that did not exist and would have gone on listing them.
-/// `kwiver.vital.plugins.discovery` holds the list now.
+/// `viame.plugins.discovery` holds the list now.
 std::vector< std::string >
 python_modules()
 {
@@ -502,7 +502,7 @@ registry_dump_applet
   // is asked, which is what the compatibility baseline needs and what an
   // everyday `registry-dump` should not pay for -- importing all of them
   // costs about three seconds, most of it torch. See
-  // `kwiver.vital.plugins.discovery`.
+  // `viame.plugins.discovery`.
   if( cmd_args[ "introspect" ].as< bool >() )
   {
 #ifdef _WIN32

@@ -46,10 +46,10 @@ database_query_set_descriptors(
 
 PYBIND11_MODULE( database_query, m )
 {
-  py::module::import( "kwiver.vital.types.geo_polygon" );
-  py::module::import( "kwiver.vital.types.timestamp" );
-  py::module::import( "kwiver.vital.types.track_descriptor" );
-  py::module::import( "kwiver.vital.types.uid" );
+  py::module::import( "viame.types.geo_polygon" );
+  py::module::import( "viame.types.timestamp" );
+  py::module::import( "viame.types.track_descriptor" );
+  py::module::import( "viame.types.uid" );
 
   py::enum_< kv::query_filter >( m, "query_filter" )
     .value( "IGNORE_FILTER", kv::query_filter::IGNORE_FILTER )

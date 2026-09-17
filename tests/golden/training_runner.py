@@ -18,7 +18,7 @@ import training_cases
 
 
 def _truth(name):
-    from kwiver.vital.types import (BoundingBoxD, DetectedObject,
+    from viame.types import (BoundingBoxD, DetectedObject,
                                     DetectedObjectSet, DetectedObjectType)
 
     width, height = training_cases.SIZES[name]
@@ -86,7 +86,7 @@ def _parse_manifests(train_dir, chip_dir):
 
 def run(impl, config, image_paths, work_dir):
     """Chip the scene with `impl`, returning the result as named arrays."""
-    from kwiver.vital.algo import TrainDetector
+    from viame.algo import TrainDetector
 
     import runner
 

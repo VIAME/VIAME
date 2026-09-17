@@ -14,7 +14,7 @@ namespace kv = viame;
 
 PYBIND11_MODULE( track_descriptor, m )
 {
-  py::module::import( "kwiver.vital.types.uid" );
+  py::module::import( "viame.types.uid" );
 
   // First the history_entry class nested in track_descriptor
   py::class_< kv::track_descriptor::history_entry,

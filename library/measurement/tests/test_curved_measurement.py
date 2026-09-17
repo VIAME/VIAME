@@ -149,11 +149,11 @@ def test_service_routing_and_stale_frame(monkeypatch):
     class Container:
         def __init__(self, a): self.a = a
         def image(self): return self.a
-    kwtypes = types.ModuleType('kwiver.vital.types')
+    kwtypes = types.ModuleType('viame.types')
     kwtypes.Image, kwtypes.ImageContainer = Image, Container
     monkeypatch.setitem(sys.modules, 'kwiver', types.ModuleType('kwiver'))
-    monkeypatch.setitem(sys.modules, 'kwiver.vital', types.ModuleType('kwiver.vital'))
-    monkeypatch.setitem(sys.modules, 'kwiver.vital.types', kwtypes)
+    monkeypatch.setitem(sys.modules, 'viame', types.ModuleType('viame'))
+    monkeypatch.setitem(sys.modules, 'viame.types', kwtypes)
     left_image = np.tile(np.arange(200, dtype=np.uint8), (200, 1))
     right_image = left_image + 1
     service._load_image = lambda path, time: Container(Image(left_image if path == 'left.png' else right_image))

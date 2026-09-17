@@ -27,7 +27,7 @@ from pathlib import Path
 
 import numpy as np
 
-from kwiver.vital.algo import TrainTracker
+from viame.algo import TrainTracker
 
 from viame.object_detectors.base import report_cuda_errors
 

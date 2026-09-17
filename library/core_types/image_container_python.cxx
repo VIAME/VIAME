@@ -34,11 +34,11 @@ void viame::python::image_container
   /*
    *
    *  Developer:
-   *     python -c "import kwiver.vital.types;
-   * help(kwiver.vital.types.ImageContainer)"
-   *     python -m xdoctest kwiver.vital.types ImageContainer
+   *     python -c "import viame.types;
+   * help(viame.types.ImageContainer)"
+   *     python -m xdoctest viame.types ImageContainer
    * --xdoc-force-dynamic
-   *     python -m xdoctest kwiver.vital.types ImageContainer.asarray
+   *     python -m xdoctest viame.types ImageContainer.asarray
    * --xdoc-force-dynamic  # fix xdoctest to execute this
    *
    */
@@ -106,24 +106,24 @@ void viame::python::image_container
     R"(
     Example:
         >>> # Example using PIL utility
-        >>> from kwiver.vital.types import ImageContainer
+        >>> from viame.types import ImageContainer
         >>> from PIL import Image as PILImage
-        >>> from kwiver.vital.util import VitalPIL
+        >>> from viame.util import pil
         >>> import numpy as np
         >>> np_img = (np.random.rand(10, 20, 3) * 255).astype(np.uint8)
         >>> pil_img = PILImage.fromarray(np_img)
-        >>> vital_img = VitalPIL.from_pil(pil_img)
+        >>> vital_img = pil.from_pil(pil_img)
         >>> self = ImageContainer(vital_img)
         >>> print(str(self))
         <ImageContainer(whd=20x10x3)>
         >>> vital_img2 = self.image()
-        >>> pil_img2 = VitalPIL.get_pil_image(vital_img2)
+        >>> pil_img2 = pil.get_pil_image(vital_img2)
         >>> np_img2 = np.asarray(pil_img2)
         >>> assert np.all(np_img2 == np_img)
 
     Example:
         >>> # Example using numpy conversion methdos
-        >>> from kwiver.vital.types import ImageContainer
+        >>> from viame.types import ImageContainer
         >>> import numpy as np
         >>> np_img = (np.random.rand(10, 20, 3) * 255).astype(np.uint8)
         >>> self = ImageContainer.fromarray(np_img)

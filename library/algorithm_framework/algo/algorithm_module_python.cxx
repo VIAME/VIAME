@@ -2,7 +2,7 @@
 // BSD 3-Clause License. See either the root top-level LICENSE file or
 // https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.
 
-// The `kwiver.vital.algo` module: one loader call per bound interface.
+// The `viame.algo` module: one loader call per bound interface.
 //
 // CMake wrote this with `file( GENERATE )` from a list of class names until
 // P8-T02 deleted the castxml generator that produced the bindings. It is

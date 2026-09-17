@@ -58,7 +58,7 @@ THIRD_PARTY = [
 # `viame.object_detectors.base` until P2-T05 -- and it is where the RF-DETR and
 # netharn entry points reach for their device and config handling.
 VIAME = [
-    "kwiver.vital.algo",
+    "viame.algo",
     "viame.measurement.onnx",
     "viame.object_trackers.pytorch",
     "viame.object_detectors.base",

@@ -2,18 +2,18 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from viame.processes.base import ViameProcess
 from pathlib import Path
 
 
-class OnnxConverter(KwiverProcess):
+class OnnxConverter(ViameProcess):
     """
     This process convert a yolo-darknet/crcnn-mmdet model to onnx in the
     config step.
     """
     # ----------------------------------------------
     def __init__(self, conf):
-        KwiverProcess.__init__(self, conf)
+        ViameProcess.__init__(self, conf)
 
         self.declare_configuration_key("model_path", "", "Path to the trained model (yolo-mit or darknet backend)")
         self.declare_configuration_key("onnx_model_prefix", "", "Output onnx model path prefix")
@@ -81,7 +81,7 @@ class OnnxConverter(KwiverProcess):
 
 # ==================================================================
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
 
     module_name = "python:viame.training.export.convert_to_onnx_process"
 

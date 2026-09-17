@@ -22,8 +22,8 @@ its cast.
 
 import numpy as np
 
-from kwiver.vital.types import DescriptorSet, FeatureF, FeatureSet, MatchSet
-from kwiver.vital.types.descriptor import new_descriptor
+from viame.types import DescriptorSet, FeatureF, FeatureSet, MatchSet
+from viame.types.descriptor import new_descriptor
 
 
 class OCVFeatureSet(FeatureSet):

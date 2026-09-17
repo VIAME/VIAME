@@ -16,7 +16,7 @@ namespace python {
 void
 algorithm( py::module& m )
 {
-  py::module::import( "kwiver.vital.config" );
+  py::module::import( "viame.config" );
 
   // import the module containing the binding of the pluggable class so we can
   // use it as a parent here.
@@ -24,7 +24,7 @@ algorithm( py::module& m )
   // plugin discovery process
   // registers only class that are a subclass of Pluggable (i.e.
   // viame::pluggable).
-  py::object const mod_pluggable = py::module::import( "kwiver.vital.plugins" );
+  py::object const mod_pluggable = py::module::import( "viame.plugins" );
 
   py::class_< viame::algorithm,
     std::shared_ptr< viame::algorithm >,

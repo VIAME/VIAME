@@ -36,7 +36,7 @@ def _ensure_plugins():
     global _plugins_loaded
     if _plugins_loaded:
         return
-    from kwiver.vital import modules as vital_modules
+    from viame import modules as vital_modules
     vital_modules.load_known_modules()
     _plugins_loaded = True
 
@@ -53,7 +53,7 @@ def _skip_if_no_image():
 
 def _load_image():
     """Load test image via KWIVER."""
-    from kwiver.vital.algo import ImageIO
+    from viame.algo import ImageIO
     reader = ImageIO.create("vxl")
     reader.set_configuration(reader.get_configuration())
     return reader.load(TEST_IMAGE)
@@ -74,9 +74,9 @@ class TestSAM3Segmenter:
 
     def test_segment_with_point(self):
         """A single positive point should produce a valid mask polygon."""
-        from kwiver.vital.algo import SegmentViaPoints
-        from kwiver.vital.types import Point2d
-        from kwiver.vital.config import config as vital_config
+        from viame.algo import SegmentViaPoints
+        from viame.types import Point2d
+        from viame.config import config as vital_config
 
         cfg = vital_config.read_config_file(SAM3_SEGMENTER_CONF)
 
@@ -125,8 +125,8 @@ class TestSAM3TextQuery:
 
     def test_text_query_fish(self):
         """Text query 'fish' should find detections in the fish image."""
-        from kwiver.vital.algo import PerformTextQuery
-        from kwiver.vital.config import config as vital_config
+        from viame.algo import PerformTextQuery
+        from viame.config import config as vital_config
 
         cfg = vital_config.read_config_file(SAM3_TEXT_QUERY_CONF)
 

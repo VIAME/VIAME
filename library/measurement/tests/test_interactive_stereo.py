@@ -93,7 +93,7 @@ class MockStereoAlgorithm:
         disparity = np.full((height, width), self.disparity_value * 256, dtype=np.uint16)
 
         # Return as ImageContainer
-        from kwiver.vital.types import ImageContainer, Image
+        from viame.types import ImageContainer, Image
         return ImageContainer(Image(disparity))
 
 

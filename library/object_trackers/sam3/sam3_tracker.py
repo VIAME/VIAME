@@ -18,8 +18,8 @@ The tracker supports:
 import scriptconfig as scfg
 import numpy as np
 
-from kwiver.vital.algo import TrackObjects
-from kwiver.vital.types import (
+from viame.algo import TrackObjects
+from viame.types import (
     BoundingBoxD,
     DetectedObject,
     DetectedObjectSet,

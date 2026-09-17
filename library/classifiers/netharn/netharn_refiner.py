@@ -2,10 +2,10 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import RefineDetections
+from viame.algo import RefineDetections
 
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObjectType
+from viame.types import DetectedObjectSet
+from viame.types import DetectedObjectType
 
 from viame.utilities.compat import strtobool
 

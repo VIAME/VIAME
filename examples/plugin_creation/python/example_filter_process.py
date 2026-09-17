@@ -8,15 +8,15 @@ It gets an image as input, prints a configured message, and sends the image
 on. The package's `__init__.py` declares it as `example_filter_process`.
 """
 
-from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
-from kwiver.vital.types import ImageContainer
+from viame.pipeline import process
+from viame.processes.base import ViameProcess
+from viame.types import ImageContainer
 
 
-class ExampleFilterProcess( KwiverProcess ):
+class ExampleFilterProcess( ViameProcess ):
 
     def __init__( self, conf ):
-        KwiverProcess.__init__( self, conf )
+        ViameProcess.__init__( self, conf )
 
         # ( config name, config type, default value, description )
         self.add_config_trait( "text", "text", "Hello World",

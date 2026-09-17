@@ -570,7 +570,7 @@ void viame::python::image
       Python bindings for viame::image
 
       Example:
-          >>> from kwiver.vital.types import Image
+          >>> from viame.types import Image
           >>> import numpy as np
           >>> np_img = np.arange(3 * 4, dtype=np.uint8).reshape(3, 4, 1)
           >>> vital_img = Image(np_img)
@@ -605,8 +605,8 @@ void viame::python::image
     py::arg( "bytes" ) = 1 )
 
   // Raw-buffer constructor: a bytes object plus explicit geometry and strides.
-  // VitalPIL.from_pil() builds every image this way, so python code as common
-  // as ImageContainer(VitalPIL.from_pil(pil_img)) fails with a TypeError
+  // pil.from_pil() builds every image this way, so python code as common
+  // as ImageContainer(pil.from_pil(pil_img)) fails with a TypeError
   // without it.
   .def(
     py::init( &viame::python::image::new_image_from_data ),

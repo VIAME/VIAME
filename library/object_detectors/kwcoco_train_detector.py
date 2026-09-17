@@ -14,13 +14,13 @@ from PIL import Image
 import scriptconfig as scfg
 from viame.utilities.compat import strtobool
 
-# from kwiver.vital.types import Image
-from kwiver.vital.types import ImageContainer
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObjectType
-from kwiver.vital.types import BoundingBoxD
+# from viame.types import Image
+from viame.types import ImageContainer
+from viame.types import DetectedObjectSet
+from viame.types import DetectedObjectType
+from viame.types import BoundingBoxD
 
-from kwiver.vital.algo import TrainDetector
+from viame.algo import TrainDetector
 from viame.object_detectors.base import safe_crop
 
 

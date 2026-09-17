@@ -34,8 +34,8 @@ score per circle, so there is nothing else to put there.
 
 import logging
 
-from kwiver.vital.algo import ImageObjectDetector
-from kwiver.vital.types import (BoundingBoxD, DetectedObject,
+from viame.algo import ImageObjectDetector
+from viame.types import (BoundingBoxD, DetectedObject,
                                 DetectedObjectSet, DetectedObjectType)
 
 logger = logging.getLogger(__name__)

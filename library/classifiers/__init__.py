@@ -14,7 +14,7 @@ registered.
 # What this package provides, without importing any of it.
 #
 # Each entry is ( interface, name, description, "module:Class" ).
-# `kwiver.vital.plugins.discovery` turns each into a stand-in that imports
+# `viame.plugins.discovery` turns each into a stand-in that imports
 # its module the first time something asks for an instance.
 __vital_algorithm_declarations__ = [
     ( "merge_detections", "coverage_reinforce",

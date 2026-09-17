@@ -250,8 +250,8 @@ class QuerySession:
                  pipeline_file: str, avoid_ports: List[int],
                  backend: str = BACKEND_FILES):
         # Import lazily so --help etc. work without a full VIAME environment.
-        from kwiver.sprokit.adapters import adapter_data_set, embedded_pipeline
-        from kwiver.vital import types as kvt
+        from viame.adapters import adapter_data_set, embedded_pipeline
+        from viame import types as kvt
 
         self._ads = adapter_data_set
         self._kvt = kvt
@@ -650,7 +650,7 @@ class QueryService:
                 "output_path": output_path}
 
     def _model_from_b64(self, model_b64: str) -> Any:
-        from kwiver.sprokit.adapters import adapter_data_set
+        from viame.adapters import adapter_data_set
         return adapter_data_set.VectorUChar(
             list(base64.b64decode(model_b64.encode("ascii"))))
 

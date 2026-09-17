@@ -23,7 +23,7 @@ declare_point( py::module& m, std::string const& typestr )
   using vector_type = kv::vector_< N, T >;
   using covariance_type = kv::covariance_< N, float >;
 
-  py::module::import( "kwiver.vital.types.covariance" );
+  py::module::import( "viame.types.covariance" );
 
   const std::string pyclass_name = std::string( "Point" ) + typestr;
 
@@ -60,7 +60,7 @@ declare_point2( py::module& m, std::string const& typestr )
   using vector_type = viame::vector_< 2, T >;
   using covariance_type = kv::covariance_< 2, float >;
 
-  py::module::import( "kwiver.vital.types.covariance" );
+  py::module::import( "viame.types.covariance" );
 
   const std::string pyclass_name = std::string( "Point" ) + typestr;
 

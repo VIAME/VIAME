@@ -2,14 +2,14 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import MergeDetections
+from viame.algo import MergeDetections
 
-from kwiver.vital.types import BoundingBoxD
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import DetectedObjectType
-from kwiver.vital.types import Image
-from kwiver.vital.types import ImageContainer
+from viame.types import BoundingBoxD
+from viame.types import DetectedObjectSet
+from viame.types import DetectedObject
+from viame.types import DetectedObjectType
+from viame.types import Image
+from viame.types import ImageContainer
 
 import numpy as np
 

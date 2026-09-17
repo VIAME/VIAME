@@ -99,7 +99,7 @@ def image_to_rgb_numpy(image_container):
     Convert a KWIVER image container to RGB numpy array.
 
     Args:
-        image_container: kwiver.vital.types.ImageContainer
+        image_container: viame.types.ImageContainer
 
     Returns:
         numpy array in RGB format, uint8
@@ -217,9 +217,9 @@ def box_from_mask(mask):
         mask: Binary mask as numpy array
 
     Returns:
-        kwiver.vital.types.BoundingBoxD or None if mask is empty
+        viame.types.BoundingBoxD or None if mask is empty
     """
-    from kwiver.vital.types import BoundingBoxD
+    from viame.types import BoundingBoxD
 
     rows = np.any(mask, axis=1)
     cols = np.any(mask, axis=0)
@@ -602,11 +602,11 @@ def vital_config_update(cfg, cfg_in):
     doesn't support dictionary input.
 
     Args:
-        cfg (kwiver.vital.config.config.Config): Config object to update
-        cfg_in (dict | kwiver.vital.config.config.Config): New values
+        cfg (viame.config.config.Config): Config object to update
+        cfg_in (dict | viame.config.config.Config): New values
 
     Returns:
-        kwiver.vital.config.config.Config: The updated config object
+        viame.config.config.Config: The updated config object
 
     Raises:
         KeyError: If cfg_in contains a key not present in cfg
@@ -1127,17 +1127,17 @@ def kwimage_to_kwiver_detections(detections):
         detections (kwimage.Detections): Detections from kwimage
 
     Returns:
-        kwiver.vital.types.DetectedObjectSet: Converted detection set
+        viame.types.DetectedObjectSet: Converted detection set
     """
     try:
-        from kwiver.vital.types import BoundingBoxD
+        from viame.types import BoundingBoxD
     except ImportError:
-        from kwiver.vital.types import BoundingBox as BoundingBoxD
+        from viame.types import BoundingBox as BoundingBoxD
 
-    from kwiver.vital.types import DetectedObjectSet
-    from kwiver.vital.types import DetectedObject
-    from kwiver.vital.types import DetectedObjectType
-    from kwiver.vital.types.types import ImageContainer, Image
+    from viame.types import DetectedObjectSet
+    from viame.types import DetectedObject
+    from viame.types import DetectedObjectType
+    from viame.types.types import ImageContainer, Image
 
     segmentations = None
     if "segmentations" in detections.data:
@@ -1179,7 +1179,7 @@ def kwiver_to_kwimage_detections(detected_objects):
     Convert kwiver DetectedObjectSet to kwimage.Detections.
 
     Args:
-        detected_objects (kwiver.vital.types.DetectedObjectSet): KWIVER detections
+        detected_objects (viame.types.DetectedObjectSet): KWIVER detections
 
     Returns:
         kwimage.Detections: Converted detections
@@ -1237,20 +1237,20 @@ def supervision_to_kwiver_detections(detections, class_names,
         class_names: List of class names indexed by class_id
 
     Returns:
-        kwiver.vital.types.DetectedObjectSet: Converted detection set
+        viame.types.DetectedObjectSet: Converted detection set
     """
     import numpy as np
 
     try:
-        from kwiver.vital.types import BoundingBoxD
+        from viame.types import BoundingBoxD
     except ImportError:
-        from kwiver.vital.types import BoundingBox as BoundingBoxD
+        from viame.types import BoundingBox as BoundingBoxD
 
-    from kwiver.vital.types import DetectedObjectSet
-    from kwiver.vital.types import DetectedObject
-    from kwiver.vital.types import DetectedObjectType
-    from kwiver.vital.types import Image
-    from kwiver.vital.types import ImageContainer
+    from viame.types import DetectedObjectSet
+    from viame.types import DetectedObject
+    from viame.types import DetectedObjectType
+    from viame.types import Image
+    from viame.types import ImageContainer
 
     output = DetectedObjectSet()
 
@@ -1265,7 +1265,7 @@ def supervision_to_kwiver_detections(detections, class_names,
             except AttributeError:
                 kps_all = None
         if kps_all is not None:
-            from kwiver.vital.types import Point2d
+            from viame.types import Point2d
 
     for i in range(len(detections.xyxy)):
         box = detections.xyxy[i]
@@ -1320,7 +1320,7 @@ def vital_to_kwimage_box(vital_bbox):
     Convert a vital BoundingBox to a kwimage Box.
 
     Args:
-        vital_bbox (kwiver.vital.types.BoundingBox): Vital bounding box
+        vital_bbox (viame.types.BoundingBox): Vital bounding box
 
     Returns:
         kwimage.Box: Converted bounding box
@@ -1378,9 +1378,9 @@ class BaseImageObjectDetector:
         Get the algorithm configuration.
 
         Returns:
-            kwiver.vital.config.config.Config: Configuration object
+            viame.config.config.Config: Configuration object
         """
-        from kwiver.vital.algo import ImageObjectDetector
+        from viame.algo import ImageObjectDetector
 
         cfg = super(ImageObjectDetector, self).get_configuration()
         for key, value in self._config.items():
@@ -1477,9 +1477,9 @@ class BaseTrainDetector:
         Get the algorithm configuration.
 
         Returns:
-            kwiver.vital.config.config.Config: Configuration object
+            viame.config.config.Config: Configuration object
         """
-        from kwiver.vital.algo import TrainDetector
+        from viame.algo import TrainDetector
 
         cfg = super(TrainDetector, self).get_configuration()
         for key, value in self._config.items():

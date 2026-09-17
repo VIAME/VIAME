@@ -211,8 +211,13 @@ set( VIAME_FOLD_LIBRARIES ON )
 
 add_subdirectory( library )
 
+# The python entry point metadata, which `python/CMakeLists.txt` used to
+# write before P11-T02b dissolved that directory.
 if( VIAME_ENABLE_PYTHON )
-  add_subdirectory( python )
+  add_subdirectory( packaging )
+endif()
+
+if( VIAME_ENABLE_PYTHON )
 endif()
 
 add_subdirectory( examples )

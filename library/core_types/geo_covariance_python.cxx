@@ -16,7 +16,7 @@ namespace kv = viame;
 PYBIND11_MODULE( geo_covariance, m )
 {
   // This is needed to subclass geo_point
-  py::module::import( "kwiver.vital.types.geo_point" );
+  py::module::import( "viame.types.geo_point" );
 
   py::class_< viame::geo_covariance,
     std::shared_ptr< viame::geo_covariance >,

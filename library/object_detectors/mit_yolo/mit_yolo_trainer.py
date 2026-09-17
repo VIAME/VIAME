@@ -2,7 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import (
+from viame.algo import (
     DetectedObjectSetOutput,
     ImageObjectDetector,
     TrainDetector,
@@ -128,7 +128,7 @@ class MITYoloTrainer(KWCocoTrainDetector):
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
 
-        from kwiver.vital.modules import load_known_modules
+        from viame.modules import load_known_modules
 
         load_known_modules()
 

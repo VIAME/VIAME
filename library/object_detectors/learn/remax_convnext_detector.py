@@ -7,8 +7,8 @@ import json
 
 import cv2
 from viame.utilities.compat import strtobool
-from kwiver.vital.algo import ImageObjectDetector
-from kwiver.vital.types import (
+from viame.algo import ImageObjectDetector
+from viame.types import (
     BoundingBoxD,
     DetectedObject,
     DetectedObjectSet,

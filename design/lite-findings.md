@@ -2047,3 +2047,117 @@ build in its own way:
   depend on the mangling; this interface does not use it. Anything outside
   VIAME that looked up that key by string has to change, which is a thing
   the migration guide should say.
+
+### 2.17 The python package root was one variable, not 152 call sites
+
+`viame_add_python_module( path modpath module )` installs to
+`${package}/${modpath}`, and `package` comes from `_viame_python_package`,
+which reads `viame_python_package` if set and otherwise lowercases the
+project name. Renaming `kwiver.*` to `viame.*` therefore did not touch the
+152 call sites at all: three `set( kwiver_python_package "kwiver" )` lines
+were deleted -- in `python/CMakeLists.txt` and the two `python.cmake` files
+that had already moved beside their C++ -- and every module followed the
+project name into `viame`. What the call sites did need was their `modpath`
+shortened (`vital/types` to `types`), and that is an argument, not a root.
+
+The hook is kept although nothing sets it. What it guards against is real: a
+second copy of one extension module in an interpreter is a pybind11
+duplicate-registration abort, not a warning.
+
+### 2.18 A binding that moves beside its C++ collides with it by name
+
+P11-T02b moved the bindings out of `python/kwiver/**` into the library
+directories. Fifteen of them could not keep their names: `datum.cxx`,
+`edge.cxx`, `pipeline.cxx`, `process.cxx`, `process_factory.cxx`,
+`scheduler.cxx`, `scheduler_factory.cxx`, `stamp.cxx`, `utils.cxx` and
+`version.cxx` are all names `library/pipeline_framework` already used for
+the C++ they bind, as are `adapter_data_set.cxx` and
+`embedded_pipeline.cxx` in `adapters/`, `camera_from_metadata.cxx` and
+`metadata_io.cxx` in `io/`, and `kwiver_applet.cxx` in `applets/`. Each
+took the `_python` suffix that `library/core_types` and
+`library/algorithm_framework/algo` had already established for exactly this
+reason.
+
+`python_wrappers.cxx` is the opposite case and is named by no target: seven
+bindings `#include` it rather than link it, so listing it would compile it a
+second time as a translation unit of its own.
+
+### 2.19 A stale install prefix makes a compatibility shim untestable
+
+`make install` only ever adds. The prefix therefore still held the previous
+generation of the python package -- 531 files under `site-packages/kwiver`,
+88 of them `.so` -- after a build that installs two files there.
+
+That is not merely untidy. The whole point of the `kwiver` shim is that
+`import kwiver.vital.types` resolves to `viame.types` through an alias
+finder; with the old tree present it resolves to a real leftover `.so`
+instead, and the test passes while proving nothing. Worse, the leftover and
+the new module are two copies of one pybind11 module in one interpreter.
+The shim was only meaningful once the prefix was purged, and it is what
+`kwiver.vital.types is viame.types` being `True` now actually measures.
+
+The same residue reaches the baselines. `install.txt` is immune by
+construction -- it is built from what the install step says it placed -- but
+`pipes.json` walks the prefix, and the copy in the tree lists 28 pipelines
+that no build installs and that three earlier commits deleted from the
+source (`ebff6e158`, `42e3f2ec5`, `bab80119e`). It was recorded on a dirty
+prefix.
+
+### 2.20 A token rename has to fire inside a dotted path too
+
+The module table and the identifier table in
+`design/scripts/rename_python_modules.py` shared a lookbehind. `(?<![\w.])`
+is right for the dotted table, where it stops a longer name that was already
+rewritten from being rewritten again. On the identifier table it meant a
+name preceded by a dot was skipped: `from viame.util import VitalPIL` was
+rewritten and `from viame.util.VitalPIL import get_pil_image` was not.
+
+Eight files were left importing a module that no longer existed. It did not
+fail at build time -- nothing imports a python module during a build -- and
+surfaced as 65 `ERROR` lines in the registry dump, two algorithms that could
+no longer be introspected, and 48 pipeline regressions, all of them one
+`ModuleNotFoundError`. The identifier table now uses `(?<!\w)`.
+
+### 2.21 `.py` beside `.h` means `__pycache__` beside `.h`
+
+Three libraries install their headers as a tree
+(`install( DIRECTORY ... FILES_MATCHING PATTERN "*.h" )`). That was safe
+while python lived in `python/`. It is not once `library/algorithm_framework/util`
+holds `pil.py`, `entrypoint.py` and `find_python_library.py`: importing one
+writes a `__pycache__` into the **source** tree, and `FILES_MATCHING` still
+creates the directory at the destination even though it matches no file in
+it. `baseline:install` caught it as a single new path,
+`include/viame/algorithm_framework/util/__pycache__`. All three rules now
+exclude it, next to the `tests` exclusion that is there for the same reason.
+
+### 2.22 The python entry points were declared by a side channel
+
+`python/CMakeLists.txt` had an `install_egg_info` target that ran
+`setup.py egg_info` and installed the result. That `.egg-info` was the only
+declaration of VIAME's entry point groups anywhere, so deleting the
+directory with the rest of `python/` took `viame.python_plugins` with it:
+`PythonImpl` and `PythonTheyImpl` stopped registering, and the only in-tree
+exercise of entry point discovery went quiet. Nothing failed to build, and
+`compare_registry.py` reported it as two algorithms simply gone.
+
+The step is restored as `packaging/CMakeLists.txt`. `setup.py` needed the
+layout it describes corrected first -- it still named `python/kwiver` as the
+package root -- and `packages` is now empty on purpose: CMake installs the
+package, setuptools does not, and naming a package setuptools cannot find
+fails the whole step after writing every other piece of metadata.
+
+### 2.23 A baseline tool run by hand is not the test
+
+Three of the regressions chased during P11-T02 were the invocation, not the
+tree. `viame registry-dump` without `--introspect` cannot read the defaults
+of a lazily declared python algorithm, so 25 entries reported as "can no
+longer be introspected" that `baseline:registry` reads perfectly well.
+`viame pipe-check --all` walks `$VIAME_INSTALL` from its working directory,
+so running it from the wrong one reported 28 pipelines as gone while the
+ctest entry passed in 12 seconds.
+
+The commands the tests actually run are in `tests/baseline/CMakeLists.txt`,
+and `tests/baseline/README.md` did not match them: it documented
+`install_manifest.py <install> --record`, which omits the required
+`--prefix` and passes the install directory where the log belongs. It is
+corrected.

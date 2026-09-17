@@ -15,9 +15,9 @@ This trainer wraps the existing SRNN training pipeline which consists of:
 The existing training scripts in srnn/ folder are orchestrated by this trainer.
 """
 
-from kwiver.vital.algo import TrainTracker
+from viame.algo import TrainTracker
 
-from kwiver.vital.types import (
+from viame.types import (
     CategoryHierarchy,
     ObjectTrackSet, ObjectTrackState,
     BoundingBoxD, DetectedObjectType

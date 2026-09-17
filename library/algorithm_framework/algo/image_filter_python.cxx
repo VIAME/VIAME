@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void image_filter(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::image_filter,
                std::shared_ptr<viame::algo::image_filter>,

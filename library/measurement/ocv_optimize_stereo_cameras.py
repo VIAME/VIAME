@@ -36,8 +36,8 @@ import os
 
 import numpy as np
 
-from kwiver.vital.algo import OptimizeCameras
-from kwiver.vital.types import (CameraMap, RotationD, SimpleCameraIntrinsics,
+from viame.algo import OptimizeCameras
+from viame.types import (CameraMap, RotationD, SimpleCameraIntrinsics,
                                 SimpleCameraPerspective, SimpleLandmarkMap,
                                 FeatureTrackSet)
 
@@ -487,7 +487,7 @@ class OptimizeStereoCameras(OptimizeCameras):
 
 def _renumber(track, identifier):
     """A copy of `track` under a new id, states and all."""
-    from kwiver.vital.types import Track
+    from viame.types import Track
 
     renumbered = Track(identifier)
 

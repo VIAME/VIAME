@@ -28,12 +28,12 @@ REGISTRY = os.path.abspath(
 
 @pytest.fixture(scope="module", autouse=True)
 def modules():
-    from kwiver.vital.modules import load_known_modules
+    from viame.modules import load_known_modules
     load_known_modules()
 
 
 def detector():
-    from kwiver.vital.algo import ImageObjectDetector
+    from viame.algo import ImageObjectDetector
     algo = ImageObjectDetector.create("hough_circle")
     assert algo is not None, "image_object_detector 'hough_circle' is not registered"
     return algo
@@ -59,7 +59,7 @@ def test_the_name_keeps_its_config():
 
 def test_configuration_round_trips():
     """A value set is a value read back, in the spelling it was given."""
-    from kwiver.vital.config import empty_config
+    from viame.config import empty_config
 
     algo = detector()
     cfg = empty_config()
@@ -93,12 +93,12 @@ def circle_image(width=64, height=64, centre=(32, 32), radius=12, depth=3):
 
 
 def container(array):
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.types import Image, ImageContainer
     return ImageContainer(Image(array))
 
 
 def configured(**values):
-    from kwiver.vital.config import empty_config
+    from viame.config import empty_config
 
     algo = detector()
     cfg = empty_config()

@@ -12,7 +12,7 @@ import numpy as np
 
 def load_modules():
     """Load every plugin, including the python-registered ones."""
-    import kwiver.vital.modules as modules
+    import viame.modules as modules
 
     modules.load_known_modules()
 
@@ -20,59 +20,59 @@ def load_modules():
 def is_registered(kind, impl):
     """Whether this build has \p impl registered for that kind of case."""
     if kind == "image_filter":
-        from kwiver.vital.algo import ImageFilter
+        from viame.algo import ImageFilter
         return impl in ImageFilter.registered_names()
 
     if kind in ("image_io", "decode", "round_trip"):
-        from kwiver.vital.algo import ImageIO
+        from viame.algo import ImageIO
         return impl in ImageIO.registered_names()
 
     if kind == "split_image":
-        from kwiver.vital.algo import SplitImage
+        from viame.algo import SplitImage
         return impl in SplitImage.registered_names()
 
     if kind == "detect_motion":
-        from kwiver.vital.algo import DetectMotion
+        from viame.algo import DetectMotion
         return impl in DetectMotion.registered_names()
 
     if kind == "detect":
-        from kwiver.vital.algo import ImageObjectDetector
+        from viame.algo import ImageObjectDetector
         return impl in ImageObjectDetector.registered_names()
 
     if kind == "disparity":
-        from kwiver.vital.algo import ComputeStereoDepthMap
+        from viame.algo import ComputeStereoDepthMap
         return impl in ComputeStereoDepthMap.registered_names()
 
     if kind == "warp":
-        from kwiver.vital.algo import WarpImage
+        from viame.algo import WarpImage
         return impl in WarpImage.registered_names()
 
     if kind == "refine":
-        from kwiver.vital.algo import RefineDetections
+        from viame.algo import RefineDetections
         return impl in RefineDetections.registered_names()
 
     if kind == "features":
-        from kwiver.vital.algo import DetectFeatures
+        from viame.algo import DetectFeatures
         return impl in DetectFeatures.registered_names()
 
     if kind == "matches":
-        from kwiver.vital.algo import MatchFeatures
+        from viame.algo import MatchFeatures
         return impl in MatchFeatures.registered_names()
 
     if kind == "tracks":
-        from kwiver.vital.algo import TrackFeatures
+        from viame.algo import TrackFeatures
         return impl in TrackFeatures.registered_names()
 
     if kind == "homography":
-        from kwiver.vital.algo import EstimateHomography
+        from viame.algo import EstimateHomography
         return impl in EstimateHomography.registered_names()
 
     if kind == "fundamental":
-        from kwiver.vital.algo import EstimateFundamentalMatrix
+        from viame.algo import EstimateFundamentalMatrix
         return impl in EstimateFundamentalMatrix.registered_names()
 
     if kind == "train_chips":
-        from kwiver.vital.algo import TrainDetector
+        from viame.algo import TrainDetector
         return impl in TrainDetector.registered_names()
 
     return True
@@ -122,7 +122,7 @@ def _configure(algorithm, config):
 
 
 def make_image_filter(impl, config):
-    from kwiver.vital.algo import ImageFilter
+    from viame.algo import ImageFilter
 
     algorithm = ImageFilter.create(impl)
 
@@ -138,7 +138,7 @@ def run_image_filter(impl, config, arrays):
 
     Order matters: the temporal filters carry state from frame to frame.
     """
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.types import Image, ImageContainer
 
     algorithm = make_image_filter(impl, config)
     outputs = []
@@ -152,8 +152,8 @@ def run_image_filter(impl, config, arrays):
 
 def run_split_image(impl, config, arrays):
     """Split each array, returning the pieces of every input in order."""
-    from kwiver.vital.algo import SplitImage
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.algo import SplitImage
+    from viame.types import Image, ImageContainer
 
     algorithm = SplitImage.create(impl)
 
@@ -177,8 +177,8 @@ def run_detect_motion(impl, config, arrays):
 
     Order matters: three-frame differencing carries the previous frames.
     """
-    from kwiver.vital.algo import DetectMotion
-    from kwiver.vital.types import Image, ImageContainer, Timestamp
+    from viame.algo import DetectMotion
+    from viame.types import Image, ImageContainer, Timestamp
 
     algorithm = DetectMotion.create(impl)
 
@@ -238,8 +238,8 @@ def describe_detections(detections):
 
 def run_image_object_detector(impl, config, arrays):
     """Detect on each array, returning one list of detections per input."""
-    from kwiver.vital.algo import ImageObjectDetector
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.algo import ImageObjectDetector
+    from viame.types import Image, ImageContainer
 
     algorithm = ImageObjectDetector.create(impl)
 
@@ -257,8 +257,8 @@ def run_image_object_detector(impl, config, arrays):
 
 def run_stereo_depth_map(impl, config, left, right):
     """One depth map from a stereo pair."""
-    from kwiver.vital.algo import ComputeStereoDepthMap
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.algo import ComputeStereoDepthMap
+    from viame.types import Image, ImageContainer
 
     algorithm = ComputeStereoDepthMap.create(impl)
 
@@ -282,8 +282,8 @@ def run_image_io_save_load(impl, config, arrays, extension, work_dir):
     writer and the reader still agree with each other, which is what catches
     a writer that changes channel order or bit depth on the way out.
     """
-    from kwiver.vital.algo import ImageIO
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.algo import ImageIO
+    from viame.types import Image, ImageContainer
 
     algorithm = ImageIO.create(impl)
 
@@ -305,7 +305,7 @@ def run_image_io_save_load(impl, config, arrays, extension, work_dir):
 
 def run_image_io_load(impl, config, paths):
     """Read each path with the named image_io, returning the decoded arrays."""
-    from kwiver.vital.algo import ImageIO
+    from viame.algo import ImageIO
 
     algorithm = ImageIO.create(impl)
 

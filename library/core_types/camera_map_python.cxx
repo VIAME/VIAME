@@ -12,7 +12,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE( camera_map, m )
 {
-  py::module::import( "kwiver.vital.types.camera_perspective" );
+  py::module::import( "viame.types.camera_perspective" );
 
   py::class_< viame::simple_camera_map,
     std::shared_ptr< viame::simple_camera_map > >( m, "CameraMap" )

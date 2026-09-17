@@ -19,9 +19,9 @@ The estimated parameters include:
 - track_buffer: Number of frames to keep lost tracks
 """
 
-from kwiver.vital.algo import TrainTracker
+from viame.algo import TrainTracker
 
-from kwiver.vital.types import (
+from viame.types import (
     CategoryHierarchy,
     ObjectTrackSet, ObjectTrackState,
     BoundingBoxD, DetectedObjectType

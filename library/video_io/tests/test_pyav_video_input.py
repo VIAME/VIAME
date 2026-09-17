@@ -21,12 +21,12 @@ MANIFEST = os.path.join(GOLDEN, "video", "manifest.json")
 
 @pytest.fixture(scope="module", autouse=True)
 def modules():
-    from kwiver.vital.modules import load_known_modules
+    from viame.modules import load_known_modules
     load_known_modules()
 
 
 def reader():
-    from kwiver.vital.algo import VideoInput
+    from viame.algo import VideoInput
     return VideoInput.create("pyav")
 
 
@@ -101,7 +101,7 @@ def recorded_config(interface, name):
 
 @pytest.mark.parametrize("name", INHERITED)
 def test_inherited_names_keep_their_config(name):
-    from kwiver.vital.algo import VideoInput
+    from viame.algo import VideoInput
 
     algo = VideoInput.create(name)
     assert algo is not None, "{} is not registered".format(name)
@@ -118,7 +118,7 @@ def test_inherited_names_keep_their_config(name):
 
 
 def test_the_writer_name_keeps_its_config():
-    from kwiver.vital.algo import VideoOutput
+    from viame.algo import VideoOutput
 
     algo = VideoOutput.create("ffmpeg")
     assert algo is not None, "video_output 'ffmpeg' is not registered"

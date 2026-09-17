@@ -58,15 +58,19 @@ endmacro()
 #+
 # The python package a module belongs to.
 #
-# `CMAKE_PROJECT_NAME` is the top-level project, which is VIAME. Kwiver's own
-# bindings set `kwiver_python_package` in their directory scope so that they
-# stay in the `kwiver` package rather than following the top-level name into
-# `viame`. Two copies of one extension module in an interpreter is a pybind11
-# duplicate-registration abort, not a warning, which is how that was found.
+# `CMAKE_PROJECT_NAME` is the top-level project, which is VIAME, so every
+# module in the tree installs into `viame`.
+#
+# Until P11-T02 the imported bindings set `viame_python_package` in their own
+# directory scope to stay in a second package, `kwiver`. Nothing sets it now
+# -- there is one package again -- but the hook is kept, because what it
+# guards against is real: two copies of one extension module in an
+# interpreter is a pybind11 duplicate-registration abort, not a warning,
+# which is how the need for it was found.
 #-
 macro( _viame_python_package result )
-  if( kwiver_python_package )
-    set( ${result} "${kwiver_python_package}" )
+  if( viame_python_package )
+    set( ${result} "${viame_python_package}" )
   else()
     string( TOLOWER "${CMAKE_PROJECT_NAME}" ${result} )
   endif()
@@ -78,7 +82,7 @@ endmacro()
 #   viame_add_python_module( path modpath module )
 #
 #   path    the source file
-#   modpath the package path below the top package, e.g. `vital/algo`
+#   modpath the package path below the top package, e.g. `algo`
 #   module  the importable name, e.g. `image_object_detector`
 #-
 function( viame_add_python_module path modpath module )
@@ -186,7 +190,7 @@ function( viame_add_python_library name modpath )
   #     <prefix>/lib/<python>/site-packages/<package>/<modpath>
   #
   # so the climb is three, plus the package, plus however deep `modpath` goes
-  # -- `vital` is one level, `sprokit/pipeline` is two. Counted from the
+  # -- `algo` is one level, `pipeline/util` is two. Counted from the
   # relative layout rather than by subtracting two absolute paths, because
   # the install prefix and `kwiver_python_install_path` are separate cache
   # variables that only happen to agree.

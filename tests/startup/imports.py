@@ -96,7 +96,7 @@ def main():
     if failures:
         print("\n".join(failures), file=sys.stderr)
         print("\nA package is importing its implementations instead of "
-              "declaring them; see kwiver.vital.plugins.discovery.",
+              "declaring them; see viame.plugins.discovery.",
               file=sys.stderr)
         return 1
 

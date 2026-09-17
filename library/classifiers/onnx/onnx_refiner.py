@@ -17,7 +17,7 @@ import math
 
 import numpy as np
 
-from kwiver.vital.algo import RefineDetections
+from viame.algo import RefineDetections
 
 
 def _vital_config_update(cfg, cfg_in):
@@ -153,7 +153,7 @@ class OnnxRefiner(RefineDetections):
     # -- inference --
     def refine(self, image_data, detections):
         import cv2
-        from kwiver.vital.types import DetectedObjectSet, DetectedObjectType
+        from viame.types import DetectedObjectSet, DetectedObjectType
 
         if len(detections) == 0:
             return detections

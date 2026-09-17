@@ -15,9 +15,9 @@ The Re-ID network learns to produce similar embeddings for the same
 object across different frames and dissimilar embeddings for different objects.
 """
 
-from kwiver.vital.algo import TrainTracker
+from viame.algo import TrainTracker
 
-from kwiver.vital.types import (
+from viame.types import (
     CategoryHierarchy,
     ObjectTrackSet, ObjectTrackState,
     BoundingBoxD, DetectedObjectType

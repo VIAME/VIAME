@@ -2,7 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 
 import scriptconfig as scfg
 import ubelt as ub
@@ -152,13 +152,13 @@ class LitDetDetector(ImageObjectDetector):
         import numpy as np
 
         try:
-            from kwiver.vital.types import BoundingBoxD
+            from viame.types import BoundingBoxD
         except ImportError:
-            from kwiver.vital.types import BoundingBox as BoundingBoxD
+            from viame.types import BoundingBox as BoundingBoxD
 
-        from kwiver.vital.types import DetectedObjectSet
-        from kwiver.vital.types import DetectedObject
-        from kwiver.vital.types import DetectedObjectType
+        from viame.types import DetectedObjectSet
+        from viame.types import DetectedObject
+        from viame.types import DetectedObjectType
 
         threshold = float(self._kwiver_config['threshold'])
 

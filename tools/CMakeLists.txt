@@ -183,3 +183,29 @@ if( VIAME_ENABLE_PYTHON )
   endif()
 endif()
 
+
+###
+# The `viame.tools` python package
+#
+# `dump_klv` was `kwiver.tools.dump_klv` and lived in `python/kwiver/tools`
+# until P11-T02b brought it beside the C++ tools it belongs with.
+##
+if( VIAME_ENABLE_PYTHON )
+  viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/tools_init.py
+    tools
+    __init__ )
+  viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/dump_klv.py
+    tools
+    dump_klv )
+
+  # `dump_klv` is also a script, and the tests below run it as one.
+  configure_file(
+    dump_klv.py
+    ${KWIVER_BINARY_DIR}/bin/dump_klv.py
+    COPYONLY
+    )
+
+  if( KWIVER_ENABLE_PYTHON_TESTS )
+    add_subdirectory( tests )
+  endif()
+endif()

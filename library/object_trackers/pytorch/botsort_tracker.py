@@ -27,8 +27,8 @@ import scipy.optimize
 import scipy.linalg
 import scriptconfig as scfg
 
-from kwiver.vital.algo import TrackObjects
-from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
+from viame.algo import TrackObjects
+from viame.types import ObjectTrackSet, ObjectTrackState, Track
 from viame.object_detectors.base import report_cuda_errors
 from viame.object_trackers.common.kalman import KalmanFilter
 from viame.object_trackers.common.track_state import TrackState

@@ -403,7 +403,7 @@ def annotation_to_detection(ann, categories, image_dims=None,
     kp_id_names : dict, optional
         Document keypoint-category IDs mapped to names for KWCOCO named points.
     """
-    import kwiver.vital.types as vt
+    import viame.types as vt
 
     x, y, w, h = ann['bbox']
     score = ann.get('score', 1.0)
@@ -501,7 +501,7 @@ def _apply_keypoints(det, kps, kp_cat_names=None, kp_id_names=None):
     Absent (visibility zero) slots must not create vertices at the origin.
     The writers already retain all named keypoints and subpixel coordinates.
     """
-    import kwiver.vital.types as vt
+    import viame.types as vt
 
     if isinstance(kps, list):
         if not kps:

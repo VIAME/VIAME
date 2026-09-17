@@ -2,12 +2,12 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 
-from kwiver.vital.types import BoundingBoxD
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import DetectedObjectType
+from viame.types import BoundingBoxD
+from viame.types import DetectedObjectSet
+from viame.types import DetectedObject
+from viame.types import DetectedObjectType
 
 import numpy as np  # NOQA
 import ubelt as ub
@@ -91,8 +91,8 @@ class NetharnClassifier(ImageObjectDetector):
             ImageContainer: an image of a scallop
         """
         from PIL import Image as PILImage
-        from kwiver.vital.util import VitalPIL
-        from kwiver.vital.types import ImageContainer
+        from viame.util import pil
+        from viame.types import ImageContainer
 
         url = "https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download"
         image_fpath = ub.grabdata(
@@ -103,7 +103,7 @@ class NetharnClassifier(ImageObjectDetector):
             hasher="sha512",
         )
         pil_img = PILImage.open(image_fpath)
-        image_data = ImageContainer(VitalPIL.from_pil(pil_img))
+        image_data = ImageContainer(pil.from_pil(pil_img))
         return image_data
 
     def get_configuration(self):
@@ -214,7 +214,7 @@ class NetharnClassifier(ImageObjectDetector):
             h (int): height of image
 
         Returns:
-            kwiver.vital.types.DetectedObjectSet
+            viame.types.DetectedObjectSet
         """
         detected_objects = DetectedObjectSet()
 

@@ -17,7 +17,7 @@ import sys
 import numpy as np
 import scriptconfig as scfg
 
-from kwiver.vital.algo import SegmentViaPoints
+from viame.algo import SegmentViaPoints
 
 from viame.object_detectors.base import vital_config_update, register_vital_algorithm, report_cuda_errors
 from viame.segmentation.sam3.sam3_utilities import (
@@ -131,12 +131,12 @@ class SAM3Segmenter(SegmentViaPoints):
         """
         import torch
 
-        from kwiver.vital.types import DetectedObjectSet, DetectedObject, DetectedObjectType
+        from viame.types import DetectedObjectSet, DetectedObject, DetectedObjectType
         try:
-            from kwiver.vital.types import BoundingBoxD
+            from viame.types import BoundingBoxD
         except ImportError:
-            from kwiver.vital.types import BoundingBox as BoundingBoxD
-        from kwiver.vital.types.types import ImageContainer, Image
+            from viame.types import BoundingBox as BoundingBoxD
+        from viame.types.types import ImageContainer, Image
 
         self._ensure_model()
 

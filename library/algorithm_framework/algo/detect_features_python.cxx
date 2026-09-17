@@ -16,8 +16,8 @@ namespace py = pybind11;
 
 void detect_features(py::module& m)
 {
-  py::module::import("kwiver.vital.config");
-  py::module::import("kwiver.vital.types");
+  py::module::import("viame.config");
+  py::module::import("viame.types");
 
     py::class_<viame::algo::detect_features,
                std::shared_ptr<viame::algo::detect_features>,

@@ -63,13 +63,23 @@ install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../core_types/"
   PATTERN "CMakeLists.txt" EXCLUDE
   # the unit tests beside the code since P2-T09; FILES_MATCHING would still
   # create the empty directory
-  PATTERN "tests" EXCLUDE )
+  PATTERN "tests" EXCLUDE
+  # `.py` sits beside `.h` since P11-T02b, so importing one of them
+  # leaves a `__pycache__` in the source tree that this would sweep
+  # into `include/` -- and `FILES_MATCHING` still creates the empty
+  # directory, as the note above says.
+  PATTERN "__pycache__" EXCLUDE )
 
 install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   DESTINATION "include/viame/algorithm_framework"
   FILES_MATCHING PATTERN "*.h" PATTERN "*.txx"
   PATTERN "CMakeLists.txt" EXCLUDE
-  PATTERN "tests" EXCLUDE )
+  PATTERN "tests" EXCLUDE
+  # `.py` sits beside `.h` since P11-T02b, so importing one of them
+  # leaves a `__pycache__` in the source tree that this would sweep
+  # into `include/` -- and `FILES_MATCHING` still creates the empty
+  # directory, as the note above says.
+  PATTERN "__pycache__" EXCLUDE )
 
 ###
 # configure our compiler options
@@ -206,11 +216,17 @@ add_subdirectory( test_interface )
 ###
 # Python bindings for the algorithm interfaces
 #
-# `kwiver.vital.algo`, moved here from `python/kwiver/vital/algo` by P8-T02
+# `viame.algo`, moved here from `python/kwiver/vital/algo` by P8-T02
 # along with the deletion of the castxml generator that used to write them.
 ##
 if( VIAME_ENABLE_PYTHON )
   include( "${CMAKE_CURRENT_SOURCE_DIR}/algo/python.cmake" )
+
+  # The rest of what `python/kwiver/vital` held, moved here by P11-T02b:
+  # the root of the package, `viame.config`, `viame.io`, `viame.util`,
+  # `viame.modules`, `viame.plugins`, `viame.plugin_management`,
+  # `viame.applets`, `viame.exceptions` and `viame.test_interface`.
+  include( "${CMAKE_CURRENT_SOURCE_DIR}/python.cmake" )
 endif()
 
 ###

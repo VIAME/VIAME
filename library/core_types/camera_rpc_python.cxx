@@ -46,7 +46,7 @@ public:
 
 PYBIND11_MODULE( camera_rpc, m )
 {
-  py::module::import( "kwiver.vital.types.camera" );
+  py::module::import( "viame.types.camera" );
 
   py::class_< kv::camera_rpc,
     std::shared_ptr< kv::camera_rpc >,

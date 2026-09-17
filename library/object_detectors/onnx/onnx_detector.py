@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from kwiver.vital.algo import ImageObjectDetector
+from viame.algo import ImageObjectDetector
 
 
 def _vital_config_update(cfg, cfg_in):
@@ -61,10 +61,10 @@ def _to_kwiver_detections(dets, predictor):
     """[{label, bbox_xyxy, score}] -> DetectedObjectSet (integer xyxy box,
     single top-class DetectedObjectType per detection)."""
     try:
-        from kwiver.vital.types import BoundingBoxD
+        from viame.types import BoundingBoxD
     except ImportError:
-        from kwiver.vital.types import BoundingBox as BoundingBoxD
-    from kwiver.vital.types import (DetectedObjectSet, DetectedObject,
+        from viame.types import BoundingBox as BoundingBoxD
+    from viame.types import (DetectedObjectSet, DetectedObject,
                                     DetectedObjectType)
 
     out = DetectedObjectSet()
@@ -79,7 +79,7 @@ def _to_kwiver_detections(dets, predictor):
         # detector's supervision_to_kwiver_detections).
         mask = d.get("mask")
         if mask is not None:
-            from kwiver.vital.types import ImageContainer, Image
+            from viame.types import ImageContainer, Image
             h, w = mask.shape[:2]
             x1 = min(max(int(d["bbox_xyxy"][0]), 0), max(w - 1, 0))
             y1 = min(max(int(d["bbox_xyxy"][1]), 0), max(h - 1, 0))
@@ -149,7 +149,7 @@ class OnnxDetector(ImageObjectDetector):
 
     @classmethod
     def demo_image(cls):
-        from kwiver.vital.types import Image, ImageContainer
+        from viame.types import Image, ImageContainer
         return ImageContainer(Image(np.zeros((64, 64, 3), dtype=np.uint8)))
 
 

@@ -52,7 +52,7 @@ public:
 using namespace viame::python;
 PYBIND11_MODULE( feature_track_set, m )
 {
-  py::module::import( "kwiver.vital.types.track" );
+  py::module::import( "viame.types.track" );
 
   py::class_< feat_track_state, viame::track_state,
     std::shared_ptr< feat_track_state > >( m, "FeatureTrackState" )
@@ -81,7 +81,7 @@ PYBIND11_MODULE( feature_track_set, m )
     .def_readwrite( "inlier", &feat_track_state::inlier )
   ;
 
-  py::module::import( "kwiver.vital.types.track_set" );
+  py::module::import( "viame.types.track_set" );
 
   py::class_< feat_track_set, viame::track_set,
     viame::python::feature_track_set_trampoline,

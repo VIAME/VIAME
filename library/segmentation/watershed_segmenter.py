@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 import scriptconfig as scfg
 
-from kwiver.vital.algo import SegmentViaPoints
+from viame.algo import SegmentViaPoints
 
 
 class WatershedSegmenterConfig(scfg.DataConfig):
@@ -113,17 +113,17 @@ class WatershedSegmenter(SegmentViaPoints):
         Returns:
             DetectedObjectSet containing segmented objects with masks
         """
-        from kwiver.vital.types import (
+        from viame.types import (
             DetectedObjectSet,
             DetectedObject,
             DetectedObjectType,
         )
 
         try:
-            from kwiver.vital.types import BoundingBoxD
+            from viame.types import BoundingBoxD
         except ImportError:
-            from kwiver.vital.types import BoundingBox as BoundingBoxD
-        from kwiver.vital.types.types import ImageContainer, Image
+            from viame.types import BoundingBox as BoundingBoxD
+        from viame.types.types import ImageContainer, Image
 
         # Convert image to numpy array
         img_array = image.image().asarray()

@@ -144,8 +144,8 @@ def _run_tracker( implementation, params, detections, frame_rate ):
 
     Returns frame id -> list of ( x1, y1, x2, y2, confidence, track id ).
     """
-    from kwiver.vital.algo import TrackObjects
-    from kwiver.vital.types import (
+    from viame.algo import TrackObjects
+    from viame.types import (
         BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
         Timestamp,
     )

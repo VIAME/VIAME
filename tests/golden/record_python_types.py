@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record the python API `kwiver.vital.types` and `kwiver.vital.algo` present.
+"""Record the python API `viame.types` and `viame.algo` present.
 
 P8-T01 moves the type bindings out of `python/kwiver/vital/types` and into
 `library/core_types`; P8-T02 does the same for the algorithm bindings and
@@ -88,8 +88,8 @@ def describe_module(module):
 
 
 def record():
-    import kwiver.vital.types as types
-    import kwiver.vital.algo as algo
+    import viame.types as types
+    import viame.algo as algo
 
     classes, values = describe_module(types)
     algo_classes, algo_values = describe_module(algo)
@@ -97,7 +97,7 @@ def record():
     return {
         "recorded": datetime.datetime.now(datetime.timezone.utc)
                             .strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "note": "What kwiver.vital.types exported before P8-T01 rewrote the "
+        "note": "What viame.types exported before P8-T01 rewrote the "
                 "bindings. Names and members only; behaviour is in "
                 "library/core_types/tests/test_python_types.py.",
         "python": "{}.{}".format(*sys.version_info[:2]),

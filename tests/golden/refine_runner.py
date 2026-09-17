@@ -14,7 +14,7 @@ import runner
 
 def build_detections():
     """The input set, from `refine_cases.DETECTIONS`."""
-    from kwiver.vital.types import (BoundingBoxD, DetectedObject,
+    from viame.types import (BoundingBoxD, DetectedObject,
                                     DetectedObjectSet, DetectedObjectType,
                                     Image, ImageContainer)
 
@@ -120,8 +120,8 @@ def _keypoint_id(name):
 
 def run(impl, config, array):
     """Refine the fixture's detections, returning them as named arrays."""
-    from kwiver.vital.algo import RefineDetections
-    from kwiver.vital.types import Image, ImageContainer
+    from viame.algo import RefineDetections
+    from viame.types import Image, ImageContainer
 
     algorithm = RefineDetections.create(impl)
 

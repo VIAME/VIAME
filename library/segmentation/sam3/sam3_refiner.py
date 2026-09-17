@@ -26,12 +26,12 @@ import tempfile
 import scriptconfig as scfg
 import numpy as np
 
-from kwiver.vital.algo import RefineTracks, RefineDetections
-from kwiver.vital.types import (
+from viame.algo import RefineTracks, RefineDetections
+from viame.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
     ObjectTrackState, Track, ObjectTrackSet, ImageContainer
 )
-from kwiver.vital.util import VitalPIL
+from viame.util import pil
 from PIL import Image as PILImage
 
 from viame.segmentation.sam3.sam3_utilities import (
@@ -480,7 +480,7 @@ def _set_mask_on_detection(det, mask, bbox):
     if cropped.size == 0:
         return
     pil_img = PILImage.fromarray(cropped)
-    vital_img = ImageContainer(VitalPIL.from_pil(pil_img))
+    vital_img = ImageContainer(pil.from_pil(pil_img))
     det.mask = vital_img
 
 

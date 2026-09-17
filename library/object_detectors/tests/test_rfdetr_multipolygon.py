@@ -14,10 +14,10 @@ import pytest
 import ubelt as ub
 from PIL import Image
 
-pytest.importorskip('kwiver.vital.types')
-from kwiver.vital import types as kt
-from kwiver.vital.algo import DetectedObjectSetInput, DetectedObjectSetOutput, TrainDetector
-from kwiver.vital.plugin_management import plugin_manager_instance
+pytest.importorskip('viame.types')
+from viame import types as kt
+from viame.algo import DetectedObjectSetInput, DetectedObjectSetOutput, TrainDetector
+from viame.plugin_management import plugin_manager_instance
 
 ROOT = Path(__file__).resolve().parents[3]
 POLYGONS = [[110., 10., 130., 10., 130., 30., 110., 30.],

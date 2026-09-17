@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 import numpy as np
-from kwiver.vital.algo import TrainDetector
+from viame.algo import TrainDetector
 
 from viame.classifiers.sleap.sleap_common import (
     as_rgb, crop_detection, detection_points, parse_keypoint_names,

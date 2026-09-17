@@ -18,12 +18,12 @@ bounding_box( py::module& m, const char* typestr )
    *
    *
    *  Developer:
-   *   python -c "from kwiver.vital.types import types"
-   *   python -c "import kwiver.vital.types;
-   * help(kwiver.vital.types.BoundingBox)"
-   *   python -c "import kwiver.vital.types;
-   * help(kwiver.vital.types.BoundingBox)"
-   *   python -m xdoctest kwiver.vital.types BoundingBox --xdoc-dynamic
+   *   python -c "from viame.types import types"
+   *   python -c "import viame.types;
+   * help(viame.types.BoundingBox)"
+   *   python -c "import viame.types;
+   * help(viame.types.BoundingBox)"
+   *   python -m xdoctest viame.types BoundingBox --xdoc-dynamic
    *
    *
    */
@@ -39,7 +39,7 @@ bounding_box( py::module& m, const char* typestr )
     Coordinate aligned bounding box.
 
     Example:
-        >>> from kwiver.vital.types import *
+        >>> from viame.types import *
         >>> bbox = BoundingBox(0, 10, 100, 50)
         >>> print(str(bbox))
         <BoundingBox(0.0, 10.0, 100.0, 50.0)>

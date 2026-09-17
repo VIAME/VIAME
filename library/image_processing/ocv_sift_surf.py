@@ -33,7 +33,7 @@ run. See `design/lite-findings.md`.
 
 import logging
 
-from kwiver.vital.algo import DetectFeatures, ExtractDescriptors
+from viame.algo import DetectFeatures, ExtractDescriptors
 
 from viame.image_processing.ocv_feature_types import (OCVFeatureSet,
                                                       descriptors_to_set,

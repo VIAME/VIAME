@@ -24,8 +24,8 @@ import numpy as np
 
 import scriptconfig as scfg
 
-from kwiver.vital.algo import ComputeStereoDepthMap
-from kwiver.vital.types import Image, ImageContainer
+from viame.algo import ComputeStereoDepthMap
+from viame.types import Image, ImageContainer
 
 from viame.utilities.utils import str2bool
 

@@ -170,12 +170,28 @@ install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   PATTERN "*.txx"
   PATTERN "CMakeLists.txt" EXCLUDE
   # the unit tests beside the code since P2-T09
-  PATTERN "tests" EXCLUDE )
+  PATTERN "tests" EXCLUDE
+  # `.py` sits beside `.h` since P11-T02b, so importing one of them
+  # leaves a `__pycache__` in the source tree that this would sweep
+  # into `include/` -- and `FILES_MATCHING` still creates the empty
+  # directory, as the note above says.
+  PATTERN "__pycache__" EXCLUDE )
 
 add_subdirectory( applets )
 add_subdirectory( schedulers )
 add_subdirectory( adapters )
 add_subdirectory( processes )
+
+###
+# Python bindings
+#
+# `viame.pipeline` and the packages around it, moved here from
+# `python/kwiver/sprokit` by P11-T02b. In its own file because it is twenty
+# module definitions and a library.
+##
+if( VIAME_ENABLE_PYTHON )
+  include( "${CMAKE_CURRENT_SOURCE_DIR}/python.cmake" )
+endif()
 
 ###
 # Tests

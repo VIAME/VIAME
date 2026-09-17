@@ -125,7 +125,7 @@ add_library( viame::registry ALIAS viame_registry_linked )
 ###
 # The python extensions that load plugins
 #
-# `kwiver.vital.modules` and `kwiver.vital.plugin_management` both call
+# `viame.modules` and `viame.plugin_management` both call
 # `load_all_plugins`, so both need the registry -- but they are built in
 # `python/`, which has to come before this directory because the python
 # plugin module registers into it. So the link is made from here, where both

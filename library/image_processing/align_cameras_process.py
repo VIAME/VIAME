@@ -46,9 +46,9 @@ import time
 
 import numpy as np
 
-from kwiver.sprokit.pipeline import datum
-from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from viame.pipeline import datum
+from viame.pipeline import process
+from viame.processes.base import ViameProcess
 
 from viame.object_trackers.simple_homog_tracker import add_declare_config
 from .stabilize_many_images import add_declare_input_port
@@ -91,11 +91,11 @@ def _prefilter_scores(gray):
     }
 
 
-class AlignCamerasProcess(KwiverProcess):
+class AlignCamerasProcess(ViameProcess):
     """Pooled multi-frame camera-pair registration (MINIMA-LoFTR)."""
 
     def __init__(self, config):
-        KwiverProcess.__init__(self, config)
+        ViameProcess.__init__(self, config)
 
         add_declare_config(self, 'n_input', '2', 'Number of camera inputs')
         add_declare_config(
@@ -547,7 +547,7 @@ class AlignCamerasProcess(KwiverProcess):
 
 
 def __sprokit_register__():
-    from kwiver.sprokit.pipeline import process_factory
+    from viame.pipeline import process_factory
     module_name = 'python:viame.python.AlignCamerasProcess'
     if process_factory.is_process_module_loaded(module_name):
         return

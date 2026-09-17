@@ -33,8 +33,8 @@ import math
 
 import numpy as np
 
-from kwiver.vital.algo import ImageObjectDetector
-from kwiver.vital.types import (BoundingBoxD, DetectedObject,
+from viame.algo import ImageObjectDetector
+from viame.types import (BoundingBoxD, DetectedObject,
                                 DetectedObjectSet, DetectedObjectType)
 
 logger = logging.getLogger(__name__)

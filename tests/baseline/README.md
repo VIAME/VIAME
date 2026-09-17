@@ -15,8 +15,9 @@ Run against an install whose behaviour you want to become the new baseline:
 source <install>/setup_viame.sh
 viame registry-dump --json --output tests/baseline/registry.json
 viame pipe-check   --all --json --output tests/baseline/pipes.json
-python3 tests/baseline/install_manifest.py <install> \
-        --record tests/baseline/install.txt
+cmake --install <build> > install.log
+python3 tests/baseline/install_manifest.py install.log \
+        --prefix <install> --record tests/baseline/install.txt
 ```
 
 Both dumps are deterministic; running either twice gives identical bytes.
