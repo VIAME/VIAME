@@ -50,6 +50,19 @@ word of the pipeline file name. Automatic multi-target trackers appear under the
 are available in the pipelines dropdown.
 
 
+.. dive-crosslink
+
+Running Trackers in DIVE
+------------------------
+
+Tracking pipelines are listed in `DIVE pipelines and training`_. Trackers that link
+detections run an upstream detector first, so track quality depends on the detector
+chosen there. Use the `DIVE annotation quickstart`_ to correct track breaks and merges.
+
+.. _DIVE pipelines and training: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html
+.. _DIVE annotation quickstart: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html
+
+
 *******************************
 Automatic Multi-Target Trackers
 *******************************

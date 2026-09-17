@@ -41,6 +41,22 @@ VIAME detectors fall into three broad categories:
 #. **Motion / heuristic detectors** -- detect objects via motion, shape, or other cues (no training)
 
 
+.. dive-crosslink
+
+Running Detectors in DIVE
+-------------------------
+
+Detection pipelines are grouped in the DIVE menus by the first word of the pipeline file
+name, and the canned detectors available on web and desktop are listed in `DIVE pipelines
+and training`_. Detector output lands as editable annotations; see the `DIVE annotation
+quickstart`_ for correcting it and `DIVE scoring`_ for comparing a detector against
+ground truth.
+
+.. _DIVE pipelines and training: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html
+.. _DIVE annotation quickstart: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html
+.. _DIVE scoring: https://viame.readthedocs.io/en/latest/sections/dive/Scoring.html
+
+
 **********************
 Deep Learning Detectors
 **********************

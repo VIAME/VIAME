@@ -18,7 +18,7 @@ import shlex
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 # -- General configuration ------------------------------------------------
 
@@ -39,7 +39,16 @@ extensions = [
     'sphinx.ext.graphviz',
     'sphinx_rtd_dark_mode',
     'breathe',
+    'myst_parser',
 ]
+
+# Vendored DIVE manual; regenerated here so local 'make html' matches the RTD
+# build, which runs the same script as a pre_build job.
+import dive_docs
+dive_docs.generate()
+
+myst_enable_extensions = ['colon_fence', 'html_image', 'deflist']
+myst_heading_anchors = 4
 
 # Breathe support - need to make directory name more flexible
 breathe_projects = { "viame": "./_build/xml" }
@@ -55,9 +64,7 @@ breathe_default_project = "viame"
 templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'

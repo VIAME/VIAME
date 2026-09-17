@@ -9,6 +9,18 @@ Installation Methods
 
 There are several ways to install VIAME depending on your platform and use case.
 
+.. dive-crosslink
+
+DIVE Install Notes
+==================
+
+`DIVE desktop version`_ covers the standalone desktop annotator, and `DIVE web version`_
+covers account setup for viame.kitware.com.
+
+.. _DIVE desktop version: https://viame.readthedocs.io/en/latest/sections/dive/Dive-Desktop.html
+.. _DIVE web version: https://viame.readthedocs.io/en/latest/sections/dive/Web-Version.html
+
+
 .zip files (Windows) or .tar.gz files (Linux) -- Desktop or RDP/VNC
 =====================================================================
 
@@ -193,4 +205,4 @@ VIAME Web
 For web-based installations, refer to the `VIAME Web / DIVE documentation`_ and the
 Docker setup instructions on the main GitHub page.
 
-.. _VIAME Web / DIVE documentation: https://kitware.github.io/dive
+.. _VIAME Web / DIVE documentation: https://viame.readthedocs.io/en/latest/sections/dive/index.html

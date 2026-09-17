@@ -94,6 +94,19 @@ scoring panel plots these to pick an operating point; the aggregate curve
 never feeds the written DIVE filter.
 
 
+.. dive-crosslink
+
+Scoring from DIVE
+-----------------
+
+`DIVE scoring`_ compares computed annotations against ground truth from within the
+interface. On web, keep truth and model output in separate `DIVE annotation sets`_ (for
+example ``groundTruth`` versus ``default``) and score them from the Scoring tab.
+
+.. _DIVE scoring: https://viame.readthedocs.io/en/latest/sections/dive/Scoring.html
+.. _DIVE annotation sets: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-Sets.html
+
+
 ---------------------------
 PRC and Confusion Matrices
 ---------------------------

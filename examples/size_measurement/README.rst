@@ -7,6 +7,18 @@ Size Measurement Examples
    :width: 70%
    :align: center
 
+.. dive-crosslink
+
+Measuring in DIVE
+=================
+
+`DIVE multicamera and stereo data`_ covers loading stereo pairs, and the `DIVE annotation
+quickstart`_ covers drawing the head/tail lines that carry length.
+
+.. _DIVE multicamera and stereo data: https://viame.readthedocs.io/en/latest/sections/dive/Multicamera-data.html
+.. _DIVE annotation quickstart: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html
+
+
 Running the Demo
 ================
 

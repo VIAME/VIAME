@@ -10,6 +10,19 @@ more specialized use cases.
 
 .. _registration and mosaicing: https://github.com/VIAME/VIAME/blob/master/examples/registration_and_mosaicing
 
+.. dive-crosslink
+
+Registration Pipelines in DIVE
+------------------------------
+
+Some registration pipelines expect a per-dataset metadata file such as a flight log,
+declared in the pipe header. See `DIVE frame metadata`_ and `DIVE pipeline import and
+export`_ for attaching that sidecar at import time.
+
+.. _DIVE frame metadata: https://viame.readthedocs.io/en/latest/sections/dive/Frame-Metadata.html
+.. _DIVE pipeline import and export: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Import-Export.html
+
+
 *****************
 Mosaic generation
 *****************

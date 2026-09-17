@@ -48,3 +48,15 @@ file in training_data/seq1. The "labels.txt" file allows the user to selectively
 train models for certain sub-categories or super-categories of object by specifying
 only the categories of interest to train a model for, and any synonyms for the
 same category on the same line.
+
+.. dive-crosslink
+
+Full-Frame Classification in DIVE
+---------------------------------
+
+DIVE trains full-frame classifiers from the same annotations; see `DIVE pipelines and
+training`_. The ``empty frame lbls`` utility pipeline adds a whole-frame box every N
+frames so that frame-level labels can be applied to it.
+
+.. _DIVE pipelines and training: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html
+

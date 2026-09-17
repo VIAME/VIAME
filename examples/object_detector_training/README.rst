@@ -29,6 +29,18 @@ directory. The trained model can then be run using ``run_trained_model`` scripts
 loaded in DIVE.
 
 
+.. dive-crosslink
+
+Training Detectors from DIVE
+----------------------------
+
+DIVE runs these same training configurations from its training menu on both web and
+desktop. See `DIVE pipelines and training`_ for the available configurations, the
+optional ``labels.txt`` behavior, and the option to train on annotated frames only.
+
+.. _DIVE pipelines and training: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html
+
+
 ***************************
 Training Data Format
 ***************************
