@@ -384,3 +384,26 @@ cent is taken against, so that gate is 58 fps.
 | Install size after P1 lock files + blacklist | | P1-T08 | |
 | Install size at end of P10 | | P10-T05 | |
 | final core_types / algorithm_framework / pipeline_framework lines | 35,972 / 31,838 / 22,063 = 89,873, against 137,764 for the whole of `library/` | P8-T09 | 2026-09-13 |
+
+## Add-on pipeline verification
+
+The add-on pipelines are covered statically and not dynamically. `pipes.json`
+records every add-on pipe's resolution, and `ctest -L PIPELINES` discovers them
+from the install tree, but the seven GFIT cases it generates are all `DISABLED`:
+`tests/pipelines/cases.py` names no GFIT stem, so `discover()` returns
+`Case(skip="no test case defined")`. The models are installed and byte-identical
+to the reference `main` build, so nothing but a missing fixture stops them.
+
+GFIT was run by hand on both branches to close the gap (finding 2.27). Eleven of
+thirteen pipes are runnable; the two `seagis` variants lack `SC6_*.CamCAL` on
+both branches. Detections match IoU-for-IoU with a median box delta of 0.32 px,
+both unmatched detections sit on the 0.10 detector threshold, and the tracker and
+linker outputs match exactly. The residual difference is the pinned python set --
+opencv 5.0.0.93 against 4.9.0.80, timm, transformers, pillow, torchvision -- not
+VIAME code: the `rf_detr` wrapper is identical bar import renames, and forcing
+the same image reader on both branches leaves the difference unchanged.
+
+What is still missing is a fixture. Until `cases.py` carries GFIT (and the other
+nineteen add-on directories) with an expected-output check, add-on regressions
+are invisible to `ctest`. That is a test-coverage gap, not a port defect, and it
+belongs with P9/P10 packaging work rather than with any closed phase.

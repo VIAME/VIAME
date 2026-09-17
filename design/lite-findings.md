@@ -2299,3 +2299,85 @@ Like 2.25, the suite cannot see it. `viame_examples:train_netharn_cfrnn_from_via
 asserts that training *starts* (`TRAINING_TIMEOUT = 120`,
 `timeout_is_success=True`), and evaluation is eighteen epochs and several
 minutes past that.
+
+### 2.27 GFIT runs on lite, and what moved is the dependency set, not the port
+
+The add-on pipelines had never been run on `lite`. They are not covered by
+`GOLDEN` (fixture-based, no add-on pipeline in it) and their seven `ctest`
+cases under `PIPELINES` are all `DISABLED` -- not for want of models, which are
+installed and byte-identical to `main`, but because `tests/pipelines/cases.py`
+names no GFIT stem, so `discover()` falls through to
+`Case(skip="no test case defined")`. `pipes.json` covers them statically: every
+process resolves (`rf_detr`, `ocv_windowed`, `netharn`, `nms`). Nothing ran them.
+
+Eleven of the thirteen GFIT pipes are runnable. The two `seagis` variants are
+blocked on both branches alike by `SC6_camera3_2024.CamCAL` and
+`SC6_satelliteA_2024.CamCAL`, absent from the pack; they are the only two pipes
+in the install that mention `CamCAL`. The `viame` stereo pair runs to
+completion on both branches and resolves 0 tracks on both, and the `_sing`
+variants exit 255 on both -- `viame.measurement.dino` on lite,
+`viame.pytorch.dino_matcher` on main, the same missing module under lite's new
+name. None of that is a lite regression.
+
+Four mono pipelines were run on each branch, each in its own working directory
+-- one directory per run, because a detector and a tracker both declare
+`detector_writer` and sharing a directory silently overwrites the first
+result (2.23's lesson, applied). All eight exited 0.
+
+**The control first.** `detector_gfit_groups_v3` run twice on lite is
+bit-identical, so the pipeline is deterministic and a difference against `main`
+is signal rather than GPU noise. That control is what makes the rest meaningful,
+and it has to be run before, not after, the numbers are quoted.
+
+**Row-positional diffing said all 88 rows changed. It was wrong.** Two frames
+hold a different count (9 vs 10, 10 vs 9), and one extra detection shifts every
+later row against the wrong partner: positional diffing reported a 1336 px box
+delta and 41 of 88 species mismatches, both artefacts of mis-pairing. Matched by
+IoU instead:
+
+| | |
+|---|---|
+| matched pairs | 87 |
+| lite-only / main-only | 1 / 1 |
+| median box delta | 0.32 px |
+| 90th percentile | 2.47 px |
+| worst box delta | 49.03 px, one detection, one frame |
+| max confidence delta | 0.0389 |
+| top-1 species differs | 6 of 87 (groups), 4 of 87 (species) |
+
+The two unmatched detections sit at 0.1016 and 0.1214 against the detector's
+`:threshold 0.10` -- threshold crossings, not appearances and disappearances.
+Every species flip is a near-tie (0.294/0.301, 0.667/0.664, 0.202/0.205). Both
+trackers' `track_output` match with **0** unmatched and **0** species
+differences, and `utility_link_detections_gfit_v3` on shared groundtruth input
+is byte-identical. Quoting the 49 px maximum alone would misrepresent a
+distribution whose median is a third of a pixel.
+
+**Two candidate causes were tested and refuted.** The image reader: `lite(core)`
+and `lite(vxl)` are bit-identical, and forcing `vxl` on both branches leaves the
+difference exactly unchanged, so the P3 reader swap contributes nothing. The
+detector wrapper: the installed `rf_detr_detector.py` is 415 lines on both sides
+and differs in 4 lines, all import renames, with **0** residual lines once module
+paths are normalised.
+
+What is left is the dependency set: opencv **5.0.0.93** contrib-headless against
+**4.9.0.80**, timm 1.0.29 against 1.0.24, transformers 5.17.0 against 5.16.1,
+pillow 12.3.0 against 12.1.0, torchvision `0.27.0+cu126` against
+`0.27.0+78839c2`. torch, numpy and rfdetr are identical. Only the opencv move is
+a decision on the record; the rest is resolution drift -- `base.in` leaves timm
+unpinned and carries the same `transformers>=5.16.0,<5.18.0` range that
+`add_project_python_deps.cmake:199` carries on `main`, so the two builds resolved
+the same constraints on different days.
+
+**Why it matters:** "the add-on pipelines produce the same output" is now a
+measured claim rather than an assumption, and the measurement says the port did
+not move them. It also says the remaining difference will not close by fixing
+VIAME code, because the difference is not in VIAME code.
+
+**How to apply:** run the control before quoting a delta; match detections by
+IoU before calling a row difference a regression; and read a distribution, not
+its maximum. The install also gained a `core` image reader that `main` cannot
+provide -- forcing `image_reader:type=core` on `main` fails outright, its
+registered impls being `add_timestamp_from_filename`, `write_disparity_maps`,
+`ocv`, `ffmpeg`, `vxl`, `tiled_multifile` -- so `core` is not a name that can be
+used to compare the two branches.
