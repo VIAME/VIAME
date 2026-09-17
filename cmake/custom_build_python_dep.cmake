@@ -31,9 +31,8 @@ cmake_minimum_required( VERSION 3.16 )
 function( get_source_hash SOURCE_DIR OUT_HASH )
   # Scope both git queries to the source dir itself (-- .) so a subdir of a
   # larger repo (e.g. plugins/pytorch/mdnet inside viame) doesn't report the
-  # whole viame repo's HEAD / dirty state. Without this, any uncommitted
-  # change anywhere in viame stamps the hash with "-dirty" and forces a
-  # rebuild on every make.
+  # whole viame repo's HEAD / diff. Without this, any uncommitted change
+  # anywhere in viame alters the hash and forces a rebuild.
   execute_process(
     COMMAND git -C "${SOURCE_DIR}" log -1 --format=%H HEAD -- .
     OUTPUT_VARIABLE GIT_HASH
@@ -43,12 +42,16 @@ function( get_source_hash SOURCE_DIR OUT_HASH )
   )
 
   if( GIT_RESULT EQUAL 0 AND GIT_HASH )
+    # Patched submodules are permanently dirty, so the diff content is hashed
+    # rather than flagged: a stable patch skips, an edited one rebuilds
     execute_process(
-      COMMAND git -C "${SOURCE_DIR}" diff --quiet HEAD -- .
-      RESULT_VARIABLE DIFF_RESULT
+      COMMAND git -C "${SOURCE_DIR}" diff HEAD -- .
+      OUTPUT_VARIABLE GIT_DIFF
+      ERROR_QUIET
     )
-    if( NOT DIFF_RESULT EQUAL 0 )
-      set( GIT_HASH "${GIT_HASH}-dirty" )
+    if( GIT_DIFF )
+      string( MD5 DIFF_HASH "${GIT_DIFF}" )
+      set( GIT_HASH "${GIT_HASH}-${DIFF_HASH}" )
     endif()
     set( ${OUT_HASH} "${GIT_HASH}" PARENT_SCOPE )
     return()
@@ -117,18 +120,8 @@ if( EXISTS "${HASH_FILE}" )
 endif()
 
 # Compare hashes
-# Always rebuild if source is dirty (has uncommitted changes) since the dirty hash
-# doesn't capture the actual content of local modifications
-string( FIND "${CURRENT_HASH}" "-dirty" DIRTY_POS )
-if( DIRTY_POS GREATER -1 )
-  message( STATUS "${LIB_NAME}: Source is dirty, forcing rebuild" )
-  set( FORCE_REBUILD TRUE )
-else()
-  set( FORCE_REBUILD FALSE )
-endif()
-
 set( SHOULD_BUILD FALSE )
-if( NOT FORCE_REBUILD AND CURRENT_HASH STREQUAL STORED_HASH )
+if( CURRENT_HASH STREQUAL STORED_HASH )
   message( STATUS "${LIB_NAME}: Source unchanged (${CURRENT_HASH}), skipping build" )
 else()
   set( SHOULD_BUILD TRUE )
