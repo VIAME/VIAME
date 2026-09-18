@@ -55,7 +55,7 @@ target_link_libraries( viame_video_io
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       viame_image_ops
+                       viame_image_kernels
   )
 
 set_target_properties( viame_video_io PROPERTIES

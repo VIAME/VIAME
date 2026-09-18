@@ -101,7 +101,7 @@ target_link_libraries( viame_image_processing
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       viame_image_ops
+                       viame_image_kernels
                        # codecs/, for the detection chips ocv_write saves
                        viame_image_io
   )

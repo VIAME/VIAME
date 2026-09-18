@@ -6,9 +6,9 @@
 
 #include "codecs/image_codec.h"
 
-#include <image_ops/convert.h>
-#include <image_ops/dispatch.h>
-#include <image_ops/stretch.h>
+#include <image_kernels/convert.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/stretch.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
@@ -29,7 +29,7 @@ namespace viame {
 
 namespace {
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 // ----------------------------------------------------------------------------
 /// Which image_io handles the formats `codecs/` does not.

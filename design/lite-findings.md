@@ -350,7 +350,7 @@ an artefact of the port:
 * A minimum-area rectangle over a symmetric shape is achieved at **several
   orientations**, and which one comes back is a tie-break rather than a
   result. `cv::rotatingCalipers` keeps the **last** edge achieving the
-  minimum (`area <= minarea`), and `image_ops::min_area_rect` kept the first
+  minimum (`area <= minarea`), and `image_kernels::min_area_rect` kept the first
   until P7-T04b. On the golden's elliptical mask both give 462 exactly and
   they differ by 90 degrees, which moved `add_keypoints_from_mask`'s head
   and tail six pixels -- and those keypoints are what the stereo measurement
@@ -412,7 +412,7 @@ an artefact of the port:
   so -0.98 degrees becomes 0; `RGB2HLS` wraps first and halves after, so the
   same pixel becomes 180 -- outside the range the hue is documented to have.
   One pixel of the 6144 in `rgb8.png` lands there, which is enough to make a
-  golden fail and not enough to make anyone suspect it. `image_ops` does
+  golden fail and not enough to make anyone suspect it. `image_kernels` does
   each one the way its own conversion does.
 
 * **`ocv_debayer` swaps red and blue.** OpenCV's Bayer constants name the
@@ -606,10 +606,10 @@ an artefact of the port:
     `adaptive_latch`, which the golden runner records the way it records
     everything -- one algorithm, then the inputs in order -- so the recording
     carries the latch rather than describing it.
-* **`image_ops::resize` had OpenCV's sample grid but not its arithmetic**,
+* **`image_kernels::resize` had OpenCV's sample grid but not its arithmetic**,
   and for an 8-bit image those are different answers. OpenCV resizes bytes in
   fixed point -- eleven-bit coefficients, and a vertical pass whose 8-bit
-  specialisation shifts twice rather than casting once -- where `image_ops`
+  specialisation shifts twice rather than casting once -- where `image_kernels`
   interpolated in double and rounded. On natural imagery about **an eighth of
   the pixels** come out one count apart, which is why the recording carried a
   tolerance of one rather than zero.
@@ -644,7 +644,7 @@ an artefact of the port:
   been on the wrong grid. Found by the darknet recording: seventeen of its
   twenty-four cases reproduced the moment the port compiled, and the seven
   that did not were `maintain_ar` and the three options that reach it.
-  `image_ops::resize_by_scale` is the one that takes a scale now, and all
+  `image_kernels::resize_by_scale` is the one that takes a scale now, and all
   twenty-four reproduce exactly -- every box and every confidence, through a
   neural network.
 * **The IQR AdaBoost ranking has two values, so it does not rank.**
@@ -827,7 +827,7 @@ target tree has no home for them, because in the finished tree there are none
 of deleting them.
 
 They could not stay in kwiver (P5-T05 removes the submodule), and they could
-not go in `image_ops`, which is the code that replaces OpenCV and so must not
+not go in `image_kernels`, which is the code that replaces OpenCV and so must not
 link it. So they are their own directory, `library/opencv_bridge`, whose
 CMakeLists says in its first paragraph that phase 7 deletes it. The layout
 document has a row for it now, marked transitional.
@@ -869,7 +869,7 @@ were true before it and invisible until then:
   It leaves the interpreter's symbols undefined and resolves them at import.
   VIAME sets that flag and kwiver did not, so the bindings only stopped
   linking when they moved out of kwiver's directory scope.
-* **An export set is all-or-nothing.** `viame_image_ops` is an INTERFACE
+* **An export set is all-or-nothing.** `viame_image_kernels` is an INTERFACE
   library that half a dozen others link. That was fine while nothing exported
   them; the moment VIAME installed a config package of its own, every target
   in it had to be exportable too.
@@ -2381,3 +2381,39 @@ provide -- forcing `image_reader:type=core` on `main` fails outright, its
 registered impls being `add_timestamp_from_filename`, `write_disparity_maps`,
 `ocv`, `ffmpeg`, `vxl`, `tiled_multifile` -- so `core` is not a name that can be
 used to compare the two branches.
+
+### 2.28 A rename is two passes, and the second one is the names
+
+Renaming `image_ops` to `image_kernels` rewrote 118 files and still broke the
+configure, because a substitution over file *contents* does not touch file
+*names*. `git mv library/image_ops library/image_kernels` moved the directory
+and kept every basename inside it, so `test_image_ops.cxx` survived -- while
+the same sed had already rewritten `viame_discover_gtests( viame image_ops )`
+to `image_kernels`, and that macro derives its source from its argument:
+`set( _SOURCES test_${NAME}.cxx )`. The result was
+
+    Cannot find source file: test_image_kernels.cxx
+
+for a file nothing had ever been asked to create. One `find . -name
+'*image_ops*'` would have named it in advance, and it found exactly one.
+
+The second miss was the file types. The substitution ran over an `--include`
+list -- `*.cxx *.h *.txx *.py *.cmake CMakeLists.txt *.json *.md` -- chosen
+by thinking about where code lives, and `design/lite-file-map.tsv` is none of
+those. It still pointed at `library/image_ops/` while
+`lite-library-layout.md`, rewritten by the same sed, pointed at
+`image_kernels`, and `check_file_map.py` exists to compare exactly those two.
+The check that catches this is `grep -rI` with no `--include` at all, over
+the whole tree minus `.git`, `packages/` and `library/tpl/`: it found the
+`.tsv` and confirmed no `.sh`, `.yml`, `Dockerfile` or `.in` was involved.
+
+Both are the same shape. A rename has a contents pass and a names pass, and
+an exclusion list written from intuition is not an inventory.
+
+A third, smaller trap cost a wrong conclusion rather than a broken build.
+`pgrep -x verify_rename.sh` reported nothing while the script was running:
+Linux truncates `comm` to 15 characters and the name is 16, so the match can
+never succeed. `verify_split.sh` is exactly 15 and had matched fine an hour
+earlier, which is what made the negative look meaningful. `pgrep -f` found
+all three pids. Finding 2.23 was the same lesson pointed at a baseline tool:
+the measurement was wrong, not the thing measured.

@@ -5,7 +5,7 @@
 """SIFT and SURF feature detection and description, on cv2.
 
 `library/image_processing/feature_detect_extract_{SIFT,SURF}.cxx` in python,
-per `lite-removals.md` section 2.4. SIFT and SURF are not `image_ops`
+per `lite-removals.md` section 2.4. SIFT and SURF are not `image_kernels`
 primitives -- each is a scale-space pyramid, an extremum search, an
 orientation assignment and a gradient histogram, and both are held to a
 recording of what OpenCV produced -- so the algorithm stays OpenCV's and only

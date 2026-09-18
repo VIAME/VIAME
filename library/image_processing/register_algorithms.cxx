@@ -147,7 +147,7 @@ register_factories( kv::registry& vpm )
   // `estimate_fundamental_matrix:ocv` and `estimate_homography:ocv` are
   // `ocv_estimators.py` since P7-T04, and `ocv_flann_based`, `ocv_SIFT` and
   // `ocv_SURF` are python beside them: RANSAC, FLANN and the two scale-space
-  // detectors are not image_ops primitives, so they stay cv2's.
+  // detectors are not image_kernels primitives, so they stay cv2's.
 
   VIAME_REGISTER_IMPORTED( kv::algo::draw_detected_object_set,
                            viame::ocv::draw_detected_object_set,

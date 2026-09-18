@@ -38,7 +38,7 @@ viame_add_plugin( viame_processes_examples
                    kwiver::vital_config
                    kwiver::vital_util
                    kwiver::vital_exceptions
-                   viame_image_ops
+                   viame_image_kernels
   )
 
 target_include_directories( viame_processes_examples PRIVATE

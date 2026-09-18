@@ -14,8 +14,8 @@
 #include <viame/core_types/matrix.h>
 #include <viame/algorithm_framework/viame_compiler_config.h>
 
-#include <image_ops/morphology.h>
-#include <image_ops/pixel.h>
+#include <image_kernels/morphology.h>
+#include <image_kernels/pixel.h>
 
 #include <viame/core_types/image_container.h>
 #include <viame/image_io/codecs/image_codec.h>
@@ -30,7 +30,7 @@ namespace ocv {
 
 using namespace viame;
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 namespace kv = viame;
 
 namespace {

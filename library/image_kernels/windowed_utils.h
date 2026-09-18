@@ -1,0 +1,335 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
+#ifndef VIAME_IMAGE_KERNELS_WINDOWED_UTILS_H
+#define VIAME_IMAGE_KERNELS_WINDOWED_UTILS_H
+
+#include "viame_image_kernels_export.h"
+
+#include <map>
+
+#include <viame/core_types/image_container.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/util/enum_converter.h>
+
+namespace viame {
+
+namespace kv = viame;
+
+// =============================================================================
+// Rescale option enum - shared between core and opencv versions
+// =============================================================================
+enum rescale_option {
+  DISABLED = 0,
+  MAINTAIN_AR,
+  SCALE,
+  CHIP,
+  CHIP_AND_ORIGINAL,
+  ORIGINAL_AND_RESIZED,
+  ADAPTIVE
+};
+
+ENUM_CONVERTER( rescale_option_converter, rescale_option,
+    { "disabled",             DISABLED },
+    { "maintain_ar",          MAINTAIN_AR },
+    { "scale",                SCALE },
+    { "chip",                 CHIP },
+    { "chip_and_original",    CHIP_AND_ORIGINAL },
+    { "original_and_resized", ORIGINAL_AND_RESIZED },
+    { "adaptive",             ADAPTIVE }
+  )
+
+// =============================================================================
+// Simple rectangle struct to replace cv::Rect
+// =============================================================================
+struct VIAME_IMAGE_KERNELS_EXPORT image_rect
+{
+  int x, y, width, height;
+
+  image_rect() : x( 0 ), y( 0 ), width( 0 ), height( 0 ) {}
+  image_rect( int x_, int y_, int w_, int h_ )
+    : x( x_ ), y( y_ ), width( w_ ), height( h_ ) {}
+};
+
+/// Whether (\p px, \p py) lies in \p rect
+///
+/// `cv::Rect::contains`: the top and left edges are inside and the bottom and
+/// right edges are not.
+inline bool
+contains( const image_rect& rect, int px, int py )
+{
+  return rect.x <= px && px < rect.x + rect.width &&
+         rect.y <= py && py < rect.y + rect.height;
+}
+
+// =============================================================================
+// Window settings configuration
+// =============================================================================
+struct VIAME_IMAGE_KERNELS_EXPORT window_settings
+{
+  window_settings();
+  ~window_settings() {}
+
+  /// Get full configuration (for detector/refiner)
+  kv::config_block_sptr config() const;
+  void set_config( kv::config_block_sptr cfg );
+
+  /// Get chip-only configuration (for trainer - excludes detector-specific settings)
+  /// This includes: mode, scale, chip_width, chip_height, chip_step_width,
+  /// chip_step_height, chip_adaptive_thresh, original_to_chip_size, black_pad
+  kv::config_block_sptr chip_config() const;
+  void set_chip_config( kv::config_block_sptr cfg );
+
+  rescale_option mode;
+  double scale;
+  int chip_width;
+  int chip_height;
+  int chip_step_width;
+  int chip_step_height;
+  int chip_edge_filter;
+  double chip_edge_max_prob;
+  int chip_adaptive_thresh;
+  int batch_size;
+  int min_detection_dim;
+  int min_refine_dimension;
+  bool original_to_chip_size;
+  bool black_pad;
+};
+
+// =============================================================================
+// Region properties for windowed processing
+// =============================================================================
+struct VIAME_IMAGE_KERNELS_EXPORT windowed_region_prop
+{
+  explicit windowed_region_prop( image_rect r, double s1 );
+
+  explicit windowed_region_prop( image_rect r, int ef, bool rb,
+    bool bb, double s1, int sx, int sy, double s2 );
+
+  image_rect original_roi;
+  int edge_filter;
+  bool right_border;
+  bool bottom_border;
+  double scale1;
+  int shiftx, shifty;
+  double scale2;
+};
+
+// =============================================================================
+// Image resizing functions using bilinear interpolation
+// =============================================================================
+
+/// Resize an image using bilinear interpolation
+///
+/// \param src Source image
+/// \param dst_width Destination width
+/// \param dst_height Destination height
+/// \returns Resized image
+VIAME_IMAGE_KERNELS_EXPORT
+kv::image
+resize_image_by_scale(
+  const kv::image& src,
+  double scale );
+
+/// Resize to an exact size
+VIAME_IMAGE_KERNELS_EXPORT
+kv::image
+resize_image_bilinear(
+  const kv::image& src,
+  size_t dst_width,
+  size_t dst_height );
+
+/// Scale image maintaining aspect ratio
+///
+/// \param src Source image
+/// \param width Maximum width
+/// \param height Maximum height
+/// \param pad If true, pad the result to exactly width x height
+/// \param scale_out Output parameter for the scale factor applied
+/// \returns Scaled image
+VIAME_IMAGE_KERNELS_EXPORT
+kv::image
+scale_image_maintaining_ar(
+  const kv::image& src,
+  int width,
+  int height,
+  bool pad,
+  double& scale_out );
+
+/// Format image according to rescale option
+///
+/// \param src Source image
+/// \param option Rescale option
+/// \param scale_factor Scale factor for SCALE/CHIP modes
+/// \param width Target width
+/// \param height Target height
+/// \param pad Whether to pad the result
+/// \param scale_out Output parameter for the scale factor applied
+/// \returns Formatted image
+VIAME_IMAGE_KERNELS_EXPORT
+kv::image
+format_image(
+  const kv::image& src,
+  rescale_option option,
+  double scale_factor,
+  int width,
+  int height,
+  bool pad,
+  double& scale_out );
+
+// =============================================================================
+// Detection manipulation functions
+// =============================================================================
+
+/// Rescale detections from chip coordinates to original image coordinates
+VIAME_IMAGE_KERNELS_EXPORT
+kv::detected_object_set_sptr
+rescale_detections(
+  const kv::detected_object_set_sptr detections,
+  const windowed_region_prop& region_info,
+  double chip_edge_max_prob );
+
+/// Prepare image regions for windowed processing
+VIAME_IMAGE_KERNELS_EXPORT
+void
+prepare_image_regions(
+  const kv::image& image,
+  const window_settings& settings,
+  std::vector< kv::image >& regions_to_process,
+  std::vector< windowed_region_prop >& region_properties );
+
+/// Scale detections by region properties (inverse transform)
+VIAME_IMAGE_KERNELS_EXPORT
+void scale_detections(
+  kv::detected_object_set_sptr& detections,
+  const windowed_region_prop& region_info );
+
+/// Scale detections to fit within a region
+VIAME_IMAGE_KERNELS_EXPORT
+kv::detected_object_set_sptr
+scale_detections_to_region(
+  const kv::detected_object_set_sptr detections,
+  const windowed_region_prop& region_info );
+
+/// Scale detections to region with mapping to original detections
+VIAME_IMAGE_KERNELS_EXPORT
+void
+scale_detections_to_region_with_mapping(
+  const kv::detected_object_set_sptr detections,
+  const windowed_region_prop& region_info,
+  std::vector< kv::detected_object_sptr >& original_detections,
+  std::vector< kv::detected_object_sptr >& scaled_detections );
+
+/// Choose, for each detection, the index of the region it should be refined
+/// in so its bounding box is FULLY CONTAINED (avoiding tile-boundary clipping
+/// of the resulting mask).  Among regions (in `region_properties`) whose
+/// original_roi fully contains the box, the smallest-area one is preferred,
+/// tie-broken by the most-centered (largest minimum margin to the roi edges);
+/// this favors the tightest containing chip over the full-image region.  When
+/// no region fully contains the box, the region with the largest overlap area
+/// is used as a fallback (current first-overlap behavior is thereby improved
+/// without ever dropping a detection).  Detections map to exactly one region,
+/// so per-detection refinement counts are preserved.
+VIAME_IMAGE_KERNELS_EXPORT
+std::map< kv::detected_object_sptr, size_t >
+compute_preferred_regions(
+  const kv::detected_object_set_sptr detections,
+  const std::vector< windowed_region_prop >& region_properties );
+
+/// Separate detections that touch image boundaries from interior detections
+VIAME_IMAGE_KERNELS_EXPORT
+void
+separate_boundary_detections(
+  const kv::detected_object_set_sptr detections,
+  int region_width,
+  int region_height,
+  kv::detected_object_set_sptr& boundary_detections,
+  kv::detected_object_set_sptr& interior_detections );
+
+// =============================================================================
+// Image cropping utility
+// =============================================================================
+
+/// Crop a region from an image
+///
+/// Returns a view into the source image (shallow copy). This is efficient
+/// when the crop will be immediately resized, as the resize operation
+/// creates its own deep copy. If you need a standalone copy, resize to
+/// the same dimensions or copy manually.
+///
+/// \param src Source image
+/// \param roi Region of interest to crop
+/// \returns Cropped image view (shares memory with source)
+/// The \p rect region of \p image, as a new image
+///
+/// `cv::Mat`'s region-of-interest operator, which the windowed trainer and
+/// `detect_in_subregions` chipped with. Unlike `crop_image` below -- and
+/// unlike OpenCV's -- this **copies**, which is what a caller that hands the
+/// chip to a detector and then keeps it wants. Came from
+/// the `opencv` plugin's `windowed_utils` in P2-T05.
+VIAME_IMAGE_KERNELS_EXPORT
+kv::image
+crop_region(
+  const kv::image& image,
+  const image_rect& rect );
+
+VIAME_IMAGE_KERNELS_EXPORT
+kv::image
+crop_image(
+  const kv::image& src,
+  const image_rect& roi );
+
+// =============================================================================
+// Tile-boundary detection merge utilities
+// =============================================================================
+
+/// Entry pairing a detection with the tile ROI it was produced from.
+struct VIAME_IMAGE_KERNELS_EXPORT det_tile_entry
+{
+  kv::detected_object_sptr det;
+  image_rect tile_roi;
+};
+
+/// Compute the overlap strip between two tile ROIs.
+/// Returns true if the tiles overlap, writing the strip to ox,oy,ow,oh.
+VIAME_IMAGE_KERNELS_EXPORT
+bool
+tile_overlap_strip(
+  const image_rect& a, const image_rect& b,
+  int& ox, int& oy, int& ow, int& oh );
+
+/// Render a detection's mask into a binary image covering an arbitrary
+/// strip in full-image coordinates.  Returns the number of nonzero pixels.
+/// If the detection has no mask the full bounding box is used.
+/// \param det  Detection with optional mask (relative to its bbox)
+/// \param ox,oy,ow,oh  Strip region in image coordinates
+/// \param[out] out  Output binary image (ow x oh, single channel)
+VIAME_IMAGE_KERNELS_EXPORT
+int
+render_mask_in_strip(
+  kv::detected_object_sptr det,
+  int ox, int oy, int ow, int oh,
+  kv::image& out );
+
+/// Merge det_b's mask into det_a producing a union mask and bounding box.
+VIAME_IMAGE_KERNELS_EXPORT
+void
+merge_mask_into(
+  kv::detected_object_sptr det_a,
+  kv::detected_object_sptr det_b,
+  int img_width, int img_height );
+
+/// Merge detections from overlapping tiles whose masks overlap by at
+/// least ``threshold`` in BOTH directions within the shared tile-overlap
+/// strip.  Returns a new detection set with merged duplicates removed.
+VIAME_IMAGE_KERNELS_EXPORT
+kv::detected_object_set_sptr
+merge_tile_boundary_detections(
+  std::vector< det_tile_entry >& entries,
+  double threshold,
+  int img_width, int img_height );
+
+} // end namespace viame
+
+#endif /* VIAME_IMAGE_KERNELS_WINDOWED_UTILS_H */

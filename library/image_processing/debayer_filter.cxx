@@ -6,7 +6,7 @@
  * \file
  * \brief Implementation of debayer filter
  *
- * `cv::cvtColor`'s Bayer conversions until P7-T04b; `image_ops::demosaic`
+ * `cv::cvtColor`'s Bayer conversions until P7-T04b; `image_kernels::demosaic`
  * since. The pattern letters mean what they say here -- see the note on
  * `bayer_pattern`, which is where OpenCV's reversed spelling is written
  * down.
@@ -14,17 +14,17 @@
 
 #include "debayer_filter.h"
 
-#include <image_ops/color.h>
-#include <image_ops/dispatch.h>
-#include <image_ops/histogram.h>
-#include <image_ops/pixel.h>
+#include <image_kernels/color.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/histogram.h>
+#include <image_kernels/pixel.h>
 
 #include <viame/core_types/image_container.h>
 
 #include <stdexcept>
 #include <type_traits>
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame {
 

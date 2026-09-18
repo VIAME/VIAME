@@ -6,7 +6,7 @@
 
 the `opencv` plugin's `enhance_images.cxx` in python. Thirteen shipped pipelines
 select `ocv_enhancer`, which makes it the most-used OpenCV filter in the
-tree, and the reason it is python rather than `image_ops` is one step of it:
+tree, and the reason it is python rather than `image_kernels` is one step of it:
 `cv::fastNlMeansDenoisingColored`. Non-local means is not an imgproc
 primitive -- it is a few hundred lines of patch comparison with its own
 lookup tables -- and reproducing it would be a large piece of work to keep a

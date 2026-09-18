@@ -79,7 +79,7 @@ target_link_libraries( viame_measurement
                        # classification averaging over a stereo pair
                        viame_utilities
                        # the chipping the pairing crops through
-                       viame_image_ops
+                       viame_image_kernels
                        # the debug images the pairing can write
                        viame_image_io
   )

@@ -14,9 +14,9 @@
 #include <viame/core_types/vector.h>
 #include <viame/core_types/viame_core_types.h>
 
-#include <image_ops/channels.h>
-#include <image_ops/draw.h>
-#include <image_ops/filter.h>
+#include <image_kernels/channels.h>
+#include <image_kernels/draw.h>
+#include <image_kernels/filter.h>
 
 #include <viame/core_types/image_container.h>
 #include <viame/algorithm_framework/util/regex.h>
@@ -33,7 +33,7 @@ static const int MULTI_LABEL_OFFSET( 15 );
 
 typedef  viame::vector_< 3, unsigned int > ColorVector;
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 namespace kv = viame;
 
 // ----------------------------------------------------------------------------

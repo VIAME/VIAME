@@ -12,7 +12,7 @@
 #include "read_detected_object_set_viame_csv.h"
 #include <viame/image_io/filename_to_timestamp.h>
 #include "convert_notes_to_attributes.h"
-#include <viame/image_ops/convert_polygons_to_mask.h>
+#include <viame/image_kernels/convert_polygons_to_mask.h>
 
 #include <viame/algorithm_framework/util/tokenize.h>
 #include <viame/algorithm_framework/util/data_stream_reader.h>

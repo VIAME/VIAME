@@ -23,7 +23,7 @@ viame/
                           API + pythread scheduler
     utilities/            file/path/glob/temp-dir helpers, string utils, manipulate_pipelines,
                           python_script_applet, compat.py
-    image_ops/            pixel-type-generic kernels on core_types::image: convert, channel,
+    image_kernels/            pixel-type-generic kernels on core_types::image: convert, channel,
                           resample, warp, color (+demosaic), filter, binary/morphology, contours,
                           hist (+CLAHE), match (template NCC), draw (+bitmap font)
     video_io/             codecs/ (stb, tiff), image_io impls, image_list video_input, python
@@ -90,7 +90,7 @@ tests/           unit + golden tests for this library
 Dependency DAG (edges point at what may be linked):
 
 ```
-core_types <- algorithm_framework <- pipeline_framework <- utilities <- image_ops
+core_types <- algorithm_framework <- pipeline_framework <- utilities <- image_kernels
   <- {video_io, file_io} <- image_processing
   <- {object_detectors, object_trackers, classifiers, segmentation, descriptors, measurement}
   <- training <- evaluation
@@ -101,13 +101,13 @@ sideways. Three of `plugins/core`'s helpers were moved down in P2-T04 for
 exactly that reason, against where §3 first put them: the viame_csv and dive
 readers and writers need `convert_polygons_to_mask` and
 `utilities_segmentation`, which are polygon-and-mask geometry and belong in
-`image_ops`, and they need `utilities_target_clfr` alongside stereo track
+`image_kernels`, and they need `utilities_target_clfr` alongside stereo track
 pairing and `refine_tracks_average_tot`, which makes `utilities` its lowest
 common home. `utilities_target_clfr` touches no image, only
 `detected_object_type`. `windowed_utils` went the same way for the same
 reason once P2-T05 merged the two chippers: the detector is
 `object_detectors`, the refiner is `classifiers` and the trainer is
-`training`, three siblings, and it needs nothing above `image_ops`.
+`training`, three siblings, and it needs nothing above `image_kernels`.
 
 A trainer lives beside the inference routine it trains. P2-T07 first moved
 `plugins/pytorch`'s trainers into `training` as §3 said, and then regrouped
@@ -155,7 +155,7 @@ trainers and vendored SRNN and SiamMask trees are their only users, and
 | `video_io/` | `add_timestamp_from_filename`, `filename_to_timestamp`, `write_disparity_maps`, `read_habcam_metadata_process`, `detect_shot_breaks` (+ process) |
 | `file_io/` | `read_detected_object_set_{auto,cvat,dive,fishnet,habcam,oceaneyes,viame_csv,yolo}`, `read_object_track_set_{auto,dive,viame_csv}`, `write_detected_object_set_viame_csv`, `write_object_track_set_viame_csv`, `read_transform_homography_json`, `auto_detect_transform`, `convert_notes_to_attributes`, `camera_io`, `camera_rig_io`, `store_descriptors_csv`, `write_homography_list_process`; python `read/write_*_coco.py`, `utilities_coco.py` |
 | `image_processing/` | `equalize_via_percentiles` (cxx + py), `optical_flow.py`, `stabilize_many_images.py`, `multicam_homog_mosaic.py`, `multicam_homog_blackout.py`, `align_multimodal_imagery_process`, `warp_image_process`, `warp_detections_process`, `alignment_core.py`, `align_cameras_process.py`, `accumulate_image_statistics_process`, `stack_frames_process`, `utility_processes.py` |
-| `image_ops/` | `convert_polygons_to_mask`, `utilities_segmentation` (RDP + `mask_to_contours`), `windowed_utils` |
+| `image_kernels/` | `convert_polygons_to_mask`, `utilities_segmentation` (RDP + `mask_to_contours`), `windowed_utils` |
 | `object_detectors/` | `empty_detector`, `full_frame_detector`, `frame_diff_trainer.py` |
 | `object_trackers/` | `bytetrack_tracker.py`, `ocsort_tracker.py`, `simple_homog_tracker.py`, `multicam_homog_tracker.py`, `track_conductor_process`, `accumulate_object_tracks_process`, `filter_object_tracks_process`, `resample_object_tracks_process`, `split_tracks_to_feature_landmarks_process`, `merge_tracks_tube_iou.py`, `bytetrack_trainer.py`, `ocsort_trainer.py`, `tracker_param_search.py`, `training_data.py` |
 | `classifiers/` | `convert_head_tail_points`, `refine_detections_add_fixed`, `refine_detections_nms`, `refine_tracks_average_tot`, `merge_detections_suppress_in_regions`, `merge_detections_{nms_fusion,coverage_reinforce,simple}.py`, `detection_fusion_core.py`, `multicam_homog_det_suppressor.py` |
@@ -165,7 +165,7 @@ trainers and vendored SRNN and SiamMask trees are their only users, and
 | `training/` | `adaptive_detector_trainer`, `adaptive_tracker_trainer`, `windowed_trainer`, `utilities_training` |
 | `evaluation/` | `evaluate_models` |
 | `pipeline_framework/processes` | `image_to_image_set_process`, `filter_frame_process`, `filter_frame_index_process` |
-| deleted | `windowed_detector`, `windowed_refiner` -- P2-T05 kept the `plugins/opencv` copies, which are now the only implementation, registered as `windowed` with `ocv_windowed` an alias; golden recordings of both copies were byte-identical. `windowed_trainer` -- P2-T07 kept the `plugins/opencv` copy the same way, for its parameter list, moved onto the `image_ops` helpers; twelve golden recordings of both copies were identical once `original_to_chip_size` was given, and its default is opencv's |
+| deleted | `windowed_detector`, `windowed_refiner` -- P2-T05 kept the `plugins/opencv` copies, which are now the only implementation, registered as `windowed` with `ocv_windowed` an alias; golden recordings of both copies were byte-identical. `windowed_trainer` -- P2-T07 kept the `plugins/opencv` copy the same way, for its parameter list, moved onto the `image_kernels` helpers; twelve golden recordings of both copies were identical once `original_to_chip_size` was given, and its default is opencv's |
 
 ### `plugins/opencv`
 
@@ -203,7 +203,7 @@ trainers and vendored SRNN and SiamMask trees are their only users, and
 | `darknet` | `object_detectors/` (`darknet_detector`, `darknet_custom_resize`, `darknet_trainer`); gated on `VIAME_ENABLE_DARKNET` |
 | `svm` | `classifiers/` (`refine_detections_svm`, `train_detector_svm`, `train_svm_models_process`), `descriptors/` (`iqr_session_svm.h`, `process_query_process`) |
 | `cppdb` | `file_io/database/` (`*_db` algos), `descriptors/` (`*_db_process`, merged with CSV variants) |
-| `vxl` | replaced in P3 (`image_processing/` on `image_ops`); `format_images_srm_process` -> `descriptors/` |
+| `vxl` | replaced in P3 (`image_processing/` on `image_kernels`); `format_images_srm_process` -> `descriptors/` |
 | `colmap` | `measurement/python` (`reconstruction`, `prior_coverage_sfm`), `image_processing/python` (`colmap_registration`) |
 | `seagis` | `measurement/` (`seagis_measurement_process`, mock lib under `measurement/tests/`) |
 | `vertex-ai` | `object_detectors/` (`vertex_ai_detector`, `vertex_ai_trainer`), `utilities/` (`vertex_ai_client`), python handlers -> `tools/vertex_ai/`; option declared |

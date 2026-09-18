@@ -19,11 +19,11 @@
 #include <viame/core_types/image.h>
 #include <viame/core_types/image_container.h>
 
-//++ `image_ops` is VIAME's own image processing: colour conversion, filters,
+//++ `image_kernels` is VIAME's own image processing: colour conversion, filters,
 //++ morphology, geometry, drawing. It is header only and templated on the
 //++ pixel type. Include what you use; `pixel.h` here is only for the
 //++ saturating cast, and a process that does real work will want more.
-#include <image_ops/pixel.h>
+#include <image_kernels/pixel.h>
 
 //++ You can put all of your processes in the same namespace
 namespace group_ns {
@@ -79,7 +79,7 @@ public:
 
   //++ Your work goes here. `viame::image_of< T >` indexes as
   //++ `image( column, row, plane )` and its planes are separate, which is
-  //++ what every VIAME process and every `image_ops` function expects.
+  //++ what every VIAME process and every `image_kernels` function expects.
   viame::image_of< uint8_t >
   process_image( viame::image_of< uint8_t > const& img )
   {
@@ -160,7 +160,7 @@ template_process
     //++ `image_of< T >` is a view of the container's image at a known pixel
     //++ type; constructing it from an image of a different type throws, so a
     //++ process that must take whatever arrives uses
-    //++ `image_ops::dispatch_pixel_type` instead.
+    //++ `image_kernels::dispatch_pixel_type` instead.
     viame::image_of< uint8_t > const in_image( img->get_image() );
 
     //++ Here is where the process does its work.

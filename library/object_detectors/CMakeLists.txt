@@ -5,14 +5,14 @@
 # kwiver's, and phase 8 is where that changes.
 #
 # P7-T04 took OpenCV out: the two detectors that stayed C++ run on
-# `image_ops` and `hough_circle` is `hough_circle_detector.py`, so this
+# `image_kernels` and `hough_circle` is `hough_circle_detector.py`, so this
 # directory links neither OpenCV nor the bridge.
 #
 # The empty and full-frame detectors came from the `core` plugin in P2-T05,
 # and `windowed_detector` is the merge of the two chippers that were in
 # the `core` plugin and the `opencv` plugin: one implementation, registered as
 # `windowed` with `ocv_windowed` an alias. `windowed_utils` went down to
-# `image_ops`, where the refiner and the trainer can reach it too. The
+# `image_kernels`, where the refiner and the trainer can reach it too. The
 # pytorch detectors and the shared `base` helpers came from the `pytorch` plugin
 # in P2-T05, the detectors as one python subpackage per option.
 
@@ -62,7 +62,7 @@ target_link_libraries( viame_object_detectors
                        kwiver::vital_exceptions
                        kwiver::vital_logger
                        kwiver::vital_util
-                       viame_image_ops
+                       viame_image_kernels
                        # codecs/, for the debug frames the motion detector
                        # saves when a debug_dir is configured
                        viame_image_io
@@ -121,7 +121,7 @@ if( VIAME_ENABLE_DARKNET )
                          kwiver::vital_logger
                          viame_object_detectors
     PRIVATE              $<BUILD_INTERFACE:viame::darknet>
-                         viame_image_ops
+                         viame_image_kernels
     )
 
   set_target_properties( viame_object_detectors_darknet PROPERTIES
@@ -163,7 +163,7 @@ viame_add_plugin( viame_processes_object_detectors
                    kwiver::vital_exceptions
                    kwiver::vital_algo
                    # `detect_in_subregions` chips the regions it is given
-                   viame_image_ops
+                   viame_image_kernels
                    viame_object_detectors
   )
 
@@ -199,7 +199,7 @@ endif()
 ##
 if( VIAME_ENABLE_PYTHON )
   # Everything in the directory: `hough_circle_detector`, which was C++
-  # until P7-T04 -- the Hough gradient transform is not an image_ops
+  # until P7-T04 -- the Hough gradient transform is not an image_kernels
   # primitive, so it stays cv2's -- and the GMM motion detector
   # (`stereo_algos`, `stereo_processes`) from the `opencv` plugin in P2-T05.
   viame_add_python_package( object_detectors

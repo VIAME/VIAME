@@ -13,11 +13,11 @@
 #include <viame/core_types/detected_object_type.h>
 #include <viame/algorithm_framework/util/wall_timer.h>
 
-#include <image_ops/contours.h>
-#include <image_ops/filter.h>
-#include <image_ops/histogram.h>
-#include <image_ops/pixel.h>
-#include <image_ops/warp.h>
+#include <image_kernels/contours.h>
+#include <image_kernels/filter.h>
+#include <image_kernels/histogram.h>
+#include <image_kernels/pixel.h>
+#include <image_kernels/warp.h>
 
 #include <viame/core_types/image_container.h>
 
@@ -26,7 +26,7 @@ namespace viame {
 
 namespace ocv {
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 namespace kv = viame;
 
 using namespace viame;

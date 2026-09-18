@@ -6,7 +6,7 @@
  * \file
  * \brief Implementation of image warping onto another image
  *
- * `cv::warpPerspective` until P7-T04b; `image_ops::warp_perspective` since.
+ * `cv::warpPerspective` until P7-T04b; `image_kernels::warp_perspective` since.
  * The bridge was asked for a `BGR_COLOR` mat on the way in and the result
  * was wrapped as one on the way out, so the two swaps cancelled and the warp
  * always ran on the viame_algorithm_framework image's own plane order.
@@ -21,16 +21,16 @@
 
 #include "warp_image_ocv.h"
 
-#include <image_ops/dispatch.h>
-#include <image_ops/pixel.h>
-#include <image_ops/warp.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/pixel.h>
+#include <image_kernels/warp.h>
 
 #include <viame/core_types/image_container.h>
 
 #include <algorithm>
 #include <cmath>
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame {
 

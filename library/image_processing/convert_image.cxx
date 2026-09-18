@@ -4,9 +4,9 @@
 
 #include "convert_image.h"
 
-#include <image_ops/channels.h>
-#include <image_ops/convert.h>
-#include <image_ops/dispatch.h>
+#include <image_kernels/channels.h>
+#include <image_kernels/convert.h>
+#include <image_kernels/dispatch.h>
 
 #include <viame/core_types/image_container.h>
 
@@ -18,7 +18,7 @@ namespace viame {
 
 namespace {
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 // ----------------------------------------------------------------------------
 /// Number of samples the percentile stretch takes.

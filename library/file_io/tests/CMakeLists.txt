@@ -40,7 +40,7 @@ endif()
 # but where they are.
 set( moved_core_test_libraries
   viame_utilities
-  viame_image_ops
+  viame_image_kernels
   viame_file_io
   viame_training
   viame_evaluation

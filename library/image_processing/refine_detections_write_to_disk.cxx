@@ -6,7 +6,7 @@
 /// \brief Write a chip per detection to disk, for debugging
 ///
 /// Was `cv::imwrite` on a `cv::Mat` region of interest; since P7-T04 it is
-/// `image_ops::crop` and `codecs::write`, so the extension in the pattern
+/// `image_kernels::crop` and `codecs::write`, so the extension in the pattern
 /// still chooses the format and nothing goes through OpenCV.
 
 #include "refine_detections_write_to_disk.h"
@@ -24,14 +24,14 @@
 
 #include <viame/algorithm_framework/util/file_system.h>
 
-#include <image_ops/dispatch.h>
-#include <image_ops/resample.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/resample.h>
 
 #include <viame/image_io/codecs/image_codec.h>
 
 using namespace viame;
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame {
 

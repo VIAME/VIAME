@@ -12,10 +12,10 @@
 // The chipping, the aspect-preserving fit and the crop, all of which this
 // shared with `ocv_windowed` and none of which was ever OpenCV's arithmetic.
 // `darknet_custom_resize` was a second copy of the first two and is gone.
-#include <viame/image_ops/windowed_utils.h>
+#include <viame/image_kernels/windowed_utils.h>
 
-#include <image_ops/color.h>
-#include <image_ops/warp.h>
+#include <image_kernels/color.h>
+#include <image_kernels/warp.h>
 
 #include <viame/algorithm_framework/util/file_system.h>
 
@@ -38,7 +38,7 @@ namespace kv = viame;
 /// The `image_t` darknet's own `cv::Mat` overload would have built.
 ///
 /// `Detector::detect( cv::Mat )` is three steps and this is the same three:
-/// resize to the network's input with `cv::resize`, which `image_ops::resize`
+/// resize to the network's input with `cv::resize`, which `image_kernels::resize`
 /// reproduces to the count for an 8-bit image; convert to **BGR**, which is
 /// `RGB2BGR` for three channels, `GRAY2BGR` for one and `RGBA2BGR` for four,
 /// so in a planar image it is the planes in reverse; and transpose into
@@ -63,7 +63,7 @@ public:
     auto const fitted =
       ( bytes.width() == width && bytes.height() == height )
         ? bytes
-        : image_ops::resize( bytes, width, height );
+        : image_kernels::resize( bytes, width, height );
 
     auto const depth = fitted.depth();
 
@@ -347,7 +347,7 @@ darknet_detector
   // configuration key is still there and still means this.
   if( d->m_gs_to_rgb && resized_image.depth() == 1 )
   {
-    resized_image = viame::image( image_ops::gray_to_rgb(
+    resized_image = viame::image( image_kernels::gray_to_rgb(
       viame::image_of< uint8_t >( resized_image ) ) );
   }
 
@@ -421,7 +421,7 @@ darknet_detector
 
       if( d->m_gs_to_rgb && scaled_original.depth() == 1 )
       {
-        scaled_original = viame::image( image_ops::gray_to_rgb(
+        scaled_original = viame::image( image_kernels::gray_to_rgb(
           viame::image_of< uint8_t >( scaled_original ) ) );
       }
 

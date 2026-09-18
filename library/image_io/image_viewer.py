@@ -6,7 +6,7 @@
 
 `library/image_io/image_viewer_process.cxx` in python. It is the one
 process in the tree that opens a GUI: `cv::imshow` is highgui, which
-`image_ops` has no counterpart for and should not grow one. So this is the
+`image_kernels` has no counterpart for and should not grow one. So this is the
 same trick as the calibration and disparity ports -- the algorithm stays
 OpenCV's and only the language changes -- and it is what takes the last
 OpenCV out of `library/image_io`.

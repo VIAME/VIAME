@@ -1,7 +1,7 @@
 # Phase 3: drop VXL
 
 Goal: every `vxl_*` name resolves to an in-house implementation on
-`library/image_ops`; VXL is not built. References: lite-removals.md §1.
+`library/image_kernels`; VXL is not built. References: lite-removals.md §1.
 Note: P1 built with `VIAME_ENABLE_VXL=OFF` and a `pending.json`. For golden
 recording, P3-T01 needs one VXL-enabled build of `main` (or `lite` with
 `VIAME_ENABLE_VXL=ON` and VXL installed on the reference machine).
@@ -14,13 +14,13 @@ Do:
 Done when:
 - `tests/golden/vxl/` committed; `tests/golden/README.md` documents how to re-record.
 
-### P3-T02 `image_ops` v1 kernels
+### P3-T02 `image_kernels` v1 kernels
 Depends: P2-T10
 Do:
-- `library/image_ops/`: header-templated over `vital::image_of<T>`; functions listed in lite-removals.md §1 (convert dtype with scaling rules identical to `vil_convert_stretch_range`/cast semantics, channel select/merge, scale/offset, percentile computation with histogram, temporal average accumulator (window, cumulative, exponential), box blur, gaussian blur, erode/dilate rect+ellipse, threshold abs/percentile, colour histogram + commonality map, grey-world/percentile white balance).
-- Unit tests in `library/image_ops/tests/` against hand-computed values; no golden yet.
+- `library/image_kernels/`: header-templated over `vital::image_of<T>`; functions listed in lite-removals.md §1 (convert dtype with scaling rules identical to `vil_convert_stretch_range`/cast semantics, channel select/merge, scale/offset, percentile computation with histogram, temporal average accumulator (window, cumulative, exponential), box blur, gaussian blur, erode/dilate rect+ellipse, threshold abs/percentile, colour histogram + commonality map, grey-world/percentile white balance).
+- Unit tests in `library/image_kernels/tests/` against hand-computed values; no golden yet.
 Done when:
-- `ctest -R image_ops` passes; no OpenCV or VXL include in `library/image_ops`.
+- `ctest -R image_kernels` passes; no OpenCV or VXL include in `library/image_kernels`.
 
 ### P3-T03 `convert_image` (alias `vxl_convert_image`)
 Depends: P3-T01, P3-T02
@@ -40,7 +40,7 @@ Done when:
 ### P3-T05 `white_balance`, `vxl_enhancer`, `format_images_srm`
 Depends: P3-T04
 Do:
-- `perform_white_balancing` (templated header) rewritten on `image_ops`; `vxl_enhancer` registered as alias of `ocv_enhancer` (P7 makes that in-house); `format_images_srm_process` rewritten on `image_ops`.
+- `perform_white_balancing` (templated header) rewritten on `image_kernels`; `vxl_enhancer` registered as alias of `ocv_enhancer` (P7 makes that in-house); `format_images_srm_process` rewritten on `image_kernels`.
 Done when:
 - Golden passes for the srm and white-balance pipelines; names leave `pending.json`.
 
@@ -145,7 +145,7 @@ Do:
 - Its only VXL use is `arrows/vxl/compute_homography_overlap` (~260 lines): the
   fraction of an ni x nj frame still covered after a 3x3 homography, via vgl
   convex hull, polygon intersection and area. Reimplement as plain C++ in
-  `image_ops`: Sutherland-Hodgman clip of the warped quad against the frame
+  `image_kernels`: Sutherland-Hodgman clip of the warped quad against the frame
   rectangle, shoelace area, ratio. `vnl_double_3x3` becomes a plain 3x3.
 - Golden: record `overlap()` over a spread of homographies (identity, pure
   translation partly off frame, rotation, scale up and down, a degenerate

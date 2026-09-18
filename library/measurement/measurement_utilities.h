@@ -32,7 +32,7 @@
 #include <viame/core_types/matrix.h>
 #include <viame/measurement/projection.h>
 
-#include <viame/image_ops/windowed_utils.h>
+#include <viame/image_kernels/windowed_utils.h>
 
 #include <string>
 #include <vector>
@@ -572,7 +572,7 @@ public:
   /// `cv::Mat` until P7-T06, `viame::image` since; the images are RGB where
   /// they used to be BGR, because the bridge swapped on the way in and back
   /// on the way out and nothing in between depended on the order except the
-  /// greyscale conversion, which `image_ops` spells `rgb_to_gray`.
+  /// greyscale conversion, which `image_kernels` spells `rgb_to_gray`.
   struct stereo_image_data
   {
     kv::image_of< uint8_t > left_rectified;

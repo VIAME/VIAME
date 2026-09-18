@@ -21,13 +21,13 @@ Do:
 Done when:
 - Golden passes; `image_writer` pipelines produce readable files.
 
-### P7-T03 `image_ops` v2
+### P7-T03 `image_kernels` v2
 Depends: P7-T01
 Do:
 - Add the functions in lite-removals.md §2.3 table: colour conversions (RGB/BGR/GRAY/Lab/HSV, Bayer demosaic bilinear + VNG-lite), resize (nearest/bilinear/area), warp affine/perspective/remap with border modes, filter2D/Sobel/gaussian, binary morphology with structuring elements, connected components + contour tracing, contour area/convex hull/min-area-rect/bounding rect, histogram/normalize/minmax/CLAHE, split/merge/concat, template matching NCC, drawing (rect/line/circle/filled poly/text with embedded bitmap font).
 - Unit tests vs hand values; golden vs OpenCV on fixtures with per-function tolerances (resize bilinear <= 1, CLAHE <= 2, demosaic <= 3, warps <= 1 away from borders).
 Done when:
-- Tests pass; `library/image_ops` has no OpenCV include.
+- Tests pass; `library/image_kernels` has no OpenCV include.
 
 ### P7-T04 Port `image_processing` and `object_detectors` C++
 Depends: P7-T02, P7-T03
@@ -48,7 +48,7 @@ Done when:
 ### P7-T06 Port `measurement` to python where calib3d is needed
 Depends: P7-T05
 Do:
-- Python implementations registered under the existing names: `calibrate_stereo_cameras`, `ocv_optimize_stereo_cameras`, `ocv_stereo_disparity` (SGBM via cv2), `filter_stereo_feature_tracks`, `ocv_calibrate_single_camera` process, `measure_using_stereo`/`compute_measurements` keep C++ but use `core_types/math` projection + `image_ops` template matching; `pair_stereo_*` C++ loses cv2 rectification by consuming precomputed rectification maps produced by the python calibration step (stored in the rig file). Delete `arrows/ocv/camera_intrinsics.h` uses.
+- Python implementations registered under the existing names: `calibrate_stereo_cameras`, `ocv_optimize_stereo_cameras`, `ocv_stereo_disparity` (SGBM via cv2), `filter_stereo_feature_tracks`, `ocv_calibrate_single_camera` process, `measure_using_stereo`/`compute_measurements` keep C++ but use `core_types/math` projection + `image_kernels` template matching; `pair_stereo_*` C++ loses cv2 rectification by consuming precomputed rectification maps produced by the python calibration step (stored in the rig file). Delete `arrows/ocv/camera_intrinsics.h` uses.
 - Golden: `measurement_*` pipelines.
 Done when:
 - `git grep opencv2/ -- library/measurement` empty; GOLDEN passes.
@@ -56,14 +56,14 @@ Done when:
 ### P7-T07 Port `classifiers`, `segmentation`, `descriptors`, `training`, `evaluation`
 Depends: P7-T04
 Do:
-- `add_keypoints_from_mask` (contours from `image_ops`), `refine_detections_grabcut` -> python, `refine_detections_watershed` -> alias of python `ocv_watershed`, `classify_fish_hierarchical_svm` / `adaboost` / `gabor` / `hog` / `kmedians` per open decision 6 (python or `removed.json`), `windowed_refiner`/`windowed_trainer` chipping, `train_detector_svm` image handling, `plot_metrics` -> python matplotlib called from `viame score`, `evaluate_models` if it touches OpenCV, `image_viewer` process -> python or removed.
+- `add_keypoints_from_mask` (contours from `image_kernels`), `refine_detections_grabcut` -> python, `refine_detections_watershed` -> alias of python `ocv_watershed`, `classify_fish_hierarchical_svm` / `adaboost` / `gabor` / `hog` / `kmedians` per open decision 6 (python or `removed.json`), `windowed_refiner`/`windowed_trainer` chipping, `train_detector_svm` image handling, `plot_metrics` -> python matplotlib called from `viame score`, `evaluate_models` if it touches OpenCV, `image_viewer` process -> python or removed.
 Done when:
 - `git grep opencv2/ -- library` returns nothing outside `object_detectors/darknet*` (handled next); GOLDEN passes.
 
 ### P7-T08 Darknet without OpenCV
 Depends: P7-T07
 Do:
-- `third_party/darknet` built with `ENABLE_OPENCV=OFF`; `darknet_detector` feeds `image_ops`-resized buffers; `darknet_trainer` unchanged (shells to the binary). If the fork's `-DOPENCV` paths are required for training image loading, add stb-based loading to the fork on branch `viame/lite`.
+- `third_party/darknet` built with `ENABLE_OPENCV=OFF`; `darknet_detector` feeds `image_kernels`-resized buffers; `darknet_trainer` unchanged (shells to the binary). If the fork's `-DOPENCV` paths are required for training image loading, add stb-based loading to the fork on branch `viame/lite`.
 Done when:
 - `detector_darknet*` goldens pass.
 

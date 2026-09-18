@@ -13,7 +13,7 @@
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 #include <viame/core_types/bounding_box.h>
 
-#include <viame/image_ops/windowed_utils.h>
+#include <viame/image_kernels/windowed_utils.h>
 
 #include <map>
 #include <mutex>
@@ -31,7 +31,7 @@ namespace viame {
  * in helper signatures and in one default: this is opencv's parameter list,
  * the one shipped configs name, so `original_to_chip_size` defaults to false
  * as it did for them, and core's `windowed` -- which no config selected --
- * takes that default too. The chipping goes through `image_ops`; twelve
+ * takes that default too. The chipping goes through `image_kernels`; twelve
  * golden recordings of both copies were identical with the flag given.
  *
  * `update_model` still writes its settings under `ocv_windowed`: the

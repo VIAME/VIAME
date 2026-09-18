@@ -52,7 +52,7 @@ TOLERANCES = {
     "__default__": (0.0, 0.0),
     # `ocv_convert_color` since P7-T04b. OpenCV's colour conversions work in
     # fixed point for an 8 bit image -- a hue through a reciprocal table, an
-    # L*a*b* through a cube-root table -- where `image_ops` works in double,
+    # L*a*b* through a cube-root table -- where `image_kernels` works in double,
     # so the two round apart on the last count. Measured over the eight
     # recorded pairs: never more than 1 count, and 0.33 mean at worst
     # (hsv_to_rgb, where the inverse of a quantised hue lands between two
@@ -70,8 +70,8 @@ TOLERANCES = {
 TOLERANCES_BY_KIND = {
     # `cv::warpPerspective` interpolates in fixed point at INTER_BITS 5,
     # quantising the sample position to a thirty-second of a pixel, where
-    # `image_ops` interpolates in double. P7-T03 measured both against the
-    # exact bilinear answer and found `image_ops` the more accurate of the
+    # `image_kernels` interpolates in double. P7-T03 measured both against the
+    # exact bilinear answer and found `image_kernels` the more accurate of the
     # two -- 0.254 mean error against OpenCV's 0.366 -- so the tolerance is
     # here rather than in a reproduction of the quantisation. Measured over
     # the eight recorded warps: 4 at worst, 0.21 mean, and the four cases
@@ -393,7 +393,7 @@ def check_refusals(item, case, impl):
 
 # How far a recorded detection score may move. The geometry is integer
 # valued and has to be exact; a score is a float sum, and OpenCV accumulates
-# a box filter in float where `image_ops` accumulates in double, so the two
+# a box filter in float where `image_kernels` accumulates in double, so the two
 # agree to about seven digits rather than to the bit. Relative, because the
 # scores here range from a fraction to seventy.
 SCORE_TOLERANCE = 1e-6

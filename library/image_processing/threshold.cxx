@@ -4,8 +4,8 @@
 
 #include "threshold.h"
 
-#include <image_ops/dispatch.h>
-#include <image_ops/threshold.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/threshold.h>
 
 #include <viame/core_types/image_container.h>
 
@@ -15,7 +15,7 @@ namespace viame {
 
 namespace {
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 } // namespace
 

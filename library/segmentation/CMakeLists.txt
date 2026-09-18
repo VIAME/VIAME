@@ -8,7 +8,7 @@
 # named for a dependency it no longer had.
 #
 # The polygon-and-mask geometry the readers and writers share went to
-# `image_ops` in P2-T04, one level down, because `file_io`'s CSV readers
+# `image_kernels` in P2-T04, one level down, because `file_io`'s CSV readers
 # need it too. The SAM family came from the `pytorch` plugin in P2-T05, as
 # `sam2/` and `sam3/` subpackages gated on their options.
 ##
@@ -50,7 +50,7 @@ target_link_libraries( viame_segmentation
                        kwiver::vital_util
                        # contour tracing and the morphology the mask
                        # measurement runs
-                       viame_image_ops
+                       viame_image_kernels
   )
 
 set_target_properties( viame_segmentation PROPERTIES

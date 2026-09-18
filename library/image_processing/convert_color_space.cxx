@@ -6,7 +6,7 @@
  * \file
  * \brief Implementation of colour space conversion filter
  *
- * `cv::cvtColor` until P7-T04b; `image_ops::color` since. The bridge was
+ * `cv::cvtColor` until P7-T04b; `image_kernels::color` since. The bridge was
  * asked for an `RGB_COLOR` mat both ways, so the viame_algorithm_framework image's planes went
  * into `cvtColor` and came back out untouched -- which is why an `input` of
  * `bgr` means "these planes hold BGR" rather than anything the bridge did.
@@ -22,8 +22,8 @@
 
 #include "convert_color_space.h"
 
-#include <image_ops/color.h>
-#include <image_ops/dispatch.h>
+#include <image_kernels/color.h>
+#include <image_kernels/dispatch.h>
 
 #include <viame/algorithm_framework/exceptions/algorithm.h>
 #include <viame/core_types/color_space.h>
@@ -31,7 +31,7 @@
 
 #include <string>
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame {
 

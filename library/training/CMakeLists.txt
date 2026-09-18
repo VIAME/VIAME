@@ -62,7 +62,7 @@ target_link_libraries( viame_training
                        viame_utilities
                        # the chipping, which the windowed trainer shares with
                        # the windowed detector and refiner
-                       viame_image_ops
+                       viame_image_kernels
   )
 
 # The supervisor watches the training process from a thread of its own.

@@ -4,7 +4,7 @@
 
 #include "detect_in_subregions_process.h"
 
-#include <viame/image_ops/windowed_utils.h>
+#include <viame/image_kernels/windowed_utils.h>
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>

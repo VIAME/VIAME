@@ -8,7 +8,7 @@
 
 #include "convert_notes_to_attributes.h"
 #include <viame/utilities/utilities_target_clfr.h>
-#include <viame/image_ops/utilities_segmentation.h>
+#include <viame/image_kernels/utilities_segmentation.h>
 
 #include <viame/algorithm_framework/util/tokenize.h>
 
@@ -60,7 +60,7 @@ write_detected_object_set_viame_csv
   }
 
   // The "must have OpenCV enabled" refusal that stood here is gone with the
-  // OpenCV: `mask_to_contours` is `image_ops` now and is always available.
+  // OpenCV: `mask_to_contours` is `image_kernels` now and is always available.
 
   if( m_first )
   {

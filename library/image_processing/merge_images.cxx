@@ -12,7 +12,7 @@
 
 #include "merge_images.h"
 
-#include <image_ops/dispatch.h>
+#include <image_kernels/dispatch.h>
 
 #include <viame/core_types/image_container.h>
 
@@ -20,7 +20,7 @@
 
 using namespace viame;
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame {
 

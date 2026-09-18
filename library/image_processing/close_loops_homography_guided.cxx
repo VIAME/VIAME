@@ -19,7 +19,7 @@
 #include <viame/algorithm_framework/algo/match_features.h>
 #include <viame/algorithm_framework/viame_compiler_config.h>
 
-#include <image_ops/homography_overlap.h>
+#include <image_kernels/homography_overlap.h>
 
 using namespace viame;
 
@@ -182,7 +182,7 @@ close_loops_homography_guided
 
   if( d->buffer.empty() ||
       !convert( d->buffer.back().src_to_ref, homog, tmp ) ||
-      viame::image_ops::homography_overlap(
+      viame::image_kernels::homography_overlap(
         tmp.data(), width,
         height ) < d->c_checkpoint_percent_overlap() )
   {
@@ -208,7 +208,7 @@ close_loops_homography_guided
 
     if( transform_valid )
     {
-      po = viame::image_ops::homography_overlap(
+      po = viame::image_kernels::homography_overlap(
         tmp.data(), width, height );
     }
 

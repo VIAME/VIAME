@@ -109,7 +109,7 @@ target_link_libraries( viame_file_io
                        viame_utilities
                        # The polygon-and-mask geometry the viame_csv and dive
                        # readers and writers run
-                       viame_image_ops
+                       viame_image_kernels
                        # `read_detected_object_set_habcam` takes the frame
                        # time out of the file name
                        viame_image_io

@@ -62,7 +62,7 @@ target_link_libraries( viame_classifiers
                        # classification scores over a track
                        viame_utilities
                        # `windowed_refiner`'s chipping
-                       viame_image_ops
+                       viame_image_kernels
   )
 
 set_target_properties( viame_classifiers PROPERTIES

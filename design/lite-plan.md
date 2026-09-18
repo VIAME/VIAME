@@ -11,7 +11,7 @@
    single-header or two-file sources (`lite-dependencies.md` §4) plus the
    Python interpreter.
 3. Source organised by function under `library/`: `core_types`,
-   `algorithm_framework`, `pipeline_framework`, `image_ops`, `video_io`,
+   `algorithm_framework`, `pipeline_framework`, `image_kernels`, `video_io`,
    `file_io`, `image_processing`, `object_detectors`, `object_trackers`,
    `classifiers`, `segmentation`, `descriptors`, `measurement`, `training`,
    `evaluation`, `utilities`, `examples`. No directory named after a
@@ -48,7 +48,7 @@ and §3.4 and should be re-estimated.
 |---|---|---|
 | Order of removals | VXL, FFmpeg, (import kwiver subset), Eigen, OpenCV, kwiver remnants | VXL is required first. FFmpeg is next-easiest: 2 used registrations, replaced by python. Eigen and OpenCV both need the kwiver code in-tree first; Eigen is a mechanical swap behind a small math library, OpenCV needs kernels plus python ports. Kwiver infrastructure last because everything sits on it. Eigen and OpenCV phases are independent and may be swapped |
 | Each removal is sub-stepped | Replacement lands and is golden-tested while the old dependency is still built; the dependency is switched off in the final task of the phase | Every task keeps the build green; a phase can pause mid-way |
-| Image kernels | In-house `library/image_ops` (resize, warp, colour, demosaic, filters, morphology, histogram/CLAHE, drawing, simple contours) on `core_types::image` | Needed for the VXL replacements anyway; also removes most of OpenCV's imgproc use. Bounded scope (~5k lines), golden-tested |
+| Image kernels | In-house `library/image_kernels` (resize, warp, colour, demosaic, filters, morphology, histogram/CLAHE, drawing, simple contours) on `core_types::image` | Needed for the VXL replacements anyway; also removes most of OpenCV's imgproc use. Bounded scope (~5k lines), golden-tested |
 | Codecs | Vendored `stb_image`/`stb_image_write` (png, jpg, bmp) + baseline TIFF reader (8/16-bit, uncompressed/LZW/PackBits) in `video_io/codecs` | Removes OpenCV imgcodecs; 16-bit TIFF is required by HabCam / 16-bit pipelines |
 | Video | Python `video_input`/`video_output` on PyAV (aliases `ffmpeg`, `vidl_ffmpeg`), `image_list` stays C++ | No decoder in C++; most pipelines already run under the python scheduler |
 | Linear algebra | `core_types/math`: fixed-size vector/matrix, quaternion rotation, 3x3/4x4 inverse, small-matrix Jacobi SVD/eigen, Cholesky. Heavier numerics (bundle adjust, camera optimisation, calibration) move to python numpy/scipy | Keeps C++ math small and testable; the heavy solvers are called rarely and are already partially python |
@@ -70,11 +70,11 @@ build and the full verification set green.
 | P0 | `phase-00-baseline.md` | Branch, `registry-dump` and `pipe-check` applets, JSON baselines, compare scripts, CRITICAL list | S |
 | P1 | `phase-01-single-build.md` | Superbuild gone; kwiver via `add_subdirectory`; OpenCV/FFmpeg/Eigen still found; fletch gone; `third_party/` for eigen (temporary), tinyxml, libsvm, pybind11, cppdb; python lock files | M |
 | P2 | `phase-02-library-layout.md` | `plugins/` -> `library/<functional>/`; CMake helpers; single `register.cxx` per library; python packages per library; kwiver still a submodule | L (mechanical) |
-| P3 | `phase-03-drop-vxl.md` | `library/image_ops` v1; OpenCV-free replacements for every `vxl_*` impl under alias names; `KWIVER_ENABLE_VXL=OFF`; VXL out of the build | M |
+| P3 | `phase-03-drop-vxl.md` | `library/image_kernels` v1; OpenCV-free replacements for every `vxl_*` impl under alias names; `KWIVER_ENABLE_VXL=OFF`; VXL out of the build | M |
 | P4 | `phase-04-drop-ffmpeg.md` | Python `video_input`/`video_output` on PyAV with the same config keys; `KWIVER_ENABLE_FFMPEG=OFF`; FFmpeg out of the build | M |
 | P5 | `phase-05-import-kwiver.md` | Used kwiver subset copied into `library/core_types`, `algorithm_framework`, `pipeline_framework`, and functional dirs; submodule removed; unused arrows/processes/tests not copied | L (mechanical) |
 | P6 | `phase-06-drop-eigen.md` | `core_types/math`; all types and consumers ported; heavy numerics to python; Eigen out of `third_party` | L |
-| P7 | `phase-07-drop-opencv.md` | Codecs; `image_ops` v2; drawing; calibration YAML parser; calib3d/ml/features ports to python; `find_package(OpenCV)` removed | XL |
+| P7 | `phase-07-drop-opencv.md` | Codecs; `image_kernels` v2; drawing; calibration YAML parser; calib3d/ml/features ports to python; `find_package(OpenCV)` removed | XL |
 | P8 | `phase-08-replace-kwiver-infra.md` | kwiversys -> std; cereal -> rapidjson helper; static registry replaces the plugin loader (single `libviame`, lazy python factories, startup benchmark); own logger; hand-written pybind11 bindings (castxml gone); sprokit trimmed to `pipeline_framework`; kwiver CMake macros gone | L |
 | P9 | `phase-09-python-packaging.md` | Wheel CI, index, lock files final; vendored python moved out; patched wheels replace install-time patching | M |
 | P10 | `phase-10-install-platforms.md` | Install layout, setup script, presets, Windows/macOS/docker, packaging, CI | M |

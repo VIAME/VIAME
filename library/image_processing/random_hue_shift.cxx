@@ -6,7 +6,7 @@
  * \file
  * \brief Implementation of random hue shift filter
  *
- * `cv::cvtColor` until P7-T04b; `image_ops::color` since. Four things are
+ * `cv::cvtColor` until P7-T04b; `image_kernels::color` since. Four things are
  * reproduced rather than tidied, because this is a training augmentation and
  * a model was trained on what it produced:
  *
@@ -28,15 +28,15 @@
 
 #include "random_hue_shift.h"
 
-#include <image_ops/color.h>
-#include <image_ops/dispatch.h>
+#include <image_kernels/color.h>
+#include <image_kernels/dispatch.h>
 
 #include <viame/core_types/image_container.h>
 
 #include <algorithm>
 #include <cstdlib>
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame {
 

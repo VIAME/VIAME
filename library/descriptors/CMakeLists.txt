@@ -166,7 +166,7 @@ viame_add_plugin( viame_processes_descriptors
                    kwiver::vital_util
                    kwiver::vital_exceptions
                    kwiver::vital_algo
-                   viame_image_ops
+                   viame_image_kernels
                    viame_descriptors
                    # `process_query_adaboost` ranks through the IQR session
                    viame_iqr

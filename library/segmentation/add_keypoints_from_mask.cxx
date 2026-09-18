@@ -4,7 +4,7 @@
 
 /**
  * \file
- * \brief Keypoints from a detection's mask, on image_ops
+ * \brief Keypoints from a detection's mask, on image_kernels
  *
  * Five ways of finding the two ends of a shape: the edge midpoints of the
  * mask's oriented box, the extremes along its principal axis, the two
@@ -26,8 +26,8 @@
 
 #include "add_keypoints_from_mask.h"
 
-#include <image_ops/contours.h>
-#include <image_ops/morphology.h>
+#include <image_kernels/contours.h>
+#include <image_kernels/morphology.h>
 
 #include <viame/core_types/image.h>
 
@@ -36,7 +36,7 @@
 #include <limits>
 
 namespace kv = viame;
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame
 {

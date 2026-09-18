@@ -7,7 +7,7 @@
 the `opencv` plugin's `detect_calibration_targets.cxx` and the four detection
 helpers it uses from `calibrate_stereo_cameras`, in python, per
 `lite-removals.md` section 2.4. `findChessboardCorners`, `cornerSubPix` and
-`SimpleBlobDetector` are calib3d and features2d rather than `image_ops`
+`SimpleBlobDetector` are calib3d and features2d rather than `image_kernels`
 primitives, so the algorithm stays OpenCV's.
 
 Three things here are reproduced rather than corrected, because

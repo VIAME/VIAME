@@ -7,19 +7,19 @@
  * \brief Implementation of habcam split image horizontally algorithm
  *
  * Was a `cv::Mat` region of interest and a clone; since P7-T04b it is
- * `image_ops::crop`. The image passes straight through when it is not wide
+ * `image_kernels::crop`. The image passes straight through when it is not wide
  * enough to be a side-by-side pair, which is what makes this habcam's
  * rather than the plain horizontal split.
  */
 
 #include "split_image_habcam.h"
 
-#include <image_ops/dispatch.h>
-#include <image_ops/resample.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/resample.h>
 
 #include <viame/core_types/image_container.h>
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace kv = viame;
 

@@ -19,7 +19,7 @@ namespace kv = viame;
 /// The motion pipelines run two of these at different window sizes and
 /// difference them. Config keys, defaults and per-pixel results match the
 /// `vxl_average` implementation it replaces, including its windowed mode
-/// not being a sliding mean; see `image_ops/temporal.h`.
+/// not being a sliding mean; see `image_kernels/temporal.h`.
 class VIAME_IMAGE_PROCESSING_EXPORT average_frames
   : public kv::algo::image_filter
 {

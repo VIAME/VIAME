@@ -6,7 +6,7 @@
  * \file
  * \brief Algorithm and utility functions for adding keypoints to detections from masks
  *
- * OpenCV until P7-T04b; `image_ops` since. The utilities are still here
+ * OpenCV until P7-T04b; `image_kernels` since. The utilities are still here
  * rather than in python because `measure_objects_process` calls
  * `compute_keypoints` and `is_valid_keypoint_method` directly, and one
  * implementation reached from both is better than two that have to agree.

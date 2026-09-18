@@ -1,0 +1,337 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
+#ifndef VIAME_IMAGE_KERNELS_MORPHOLOGY_H
+#define VIAME_IMAGE_KERNELS_MORPHOLOGY_H
+
+#include <viame/core_types/image.h>
+
+#include <algorithm>
+
+#include <cstddef>
+#include <utility>
+#include <vector>
+
+namespace viame {
+namespace image_kernels {
+
+/// Offsets, in (i, j), of the pixels a morphological operation looks at.
+typedef std::vector< std::pair< int, int > > structuring_element;
+
+// ----------------------------------------------------------------------------
+/// Every offset strictly inside a circle of \p radius.
+///
+/// The comparison is strict, which is why a radius of exactly 1 gives a single
+/// pixel and 2 gives a 3x3 square rather than a plus: at radius 2 the offset
+/// (2, 0) is at distance 4, not less than 4, and drops out. VXL's
+/// `vil_structuring_element::set_to_disk` does the same, and the pipelines are
+/// set up around the sizes it produces.
+inline structuring_element
+disk_element( double radius )
+{
+  structuring_element element;
+
+  auto const limit = static_cast< int >( radius );
+  auto const squared = radius * radius;
+
+  for( int j = -limit; j <= limit; ++j )
+  {
+    for( int i = -limit; i <= limit; ++i )
+    {
+      if( static_cast< double >( i * i + j * j ) < squared )
+      {
+        element.emplace_back( i, j );
+      }
+    }
+  }
+
+  return element;
+}
+
+// ----------------------------------------------------------------------------
+/// A horizontal run from -\p radius to \p radius.
+inline structuring_element
+line_i_element( double radius )
+{
+  structuring_element element;
+  auto const limit = static_cast< int >( radius );
+
+  for( int i = -limit; i <= limit; ++i )
+  {
+    element.emplace_back( i, 0 );
+  }
+
+  return element;
+}
+
+// ----------------------------------------------------------------------------
+/// A vertical run from -\p radius to \p radius.
+inline structuring_element
+line_j_element( double radius )
+{
+  structuring_element element;
+  auto const limit = static_cast< int >( radius );
+
+  for( int j = -limit; j <= limit; ++j )
+  {
+    element.emplace_back( 0, j );
+  }
+
+  return element;
+}
+
+// ----------------------------------------------------------------------------
+/// Every offset in a \p width by \p height rectangle, centred.
+///
+/// `cv::getStructuringElement( cv::MORPH_RECT, ... )` with the default
+/// anchor, which is the shape the jittered frame differencing uses.
+inline structuring_element
+rect_element( int width, int height )
+{
+  structuring_element element;
+
+  auto const half_i = width / 2;
+  auto const half_j = height / 2;
+
+  for( int j = -half_j; j < height - half_j; ++j )
+  {
+    for( int i = -half_i; i < width - half_i; ++i )
+    {
+      element.emplace_back( i, j );
+    }
+  }
+
+  return element;
+}
+
+// ----------------------------------------------------------------------------
+/// The plus-shaped offset set `cv::MORPH_CROSS` gives, at \p width by
+/// \p height.
+///
+/// The row and the column through the anchor, which for a 3 by 3 is the
+/// five-pixel plus the morphological skeleton thins with.
+inline structuring_element
+cross_element( int width, int height )
+{
+  structuring_element element;
+
+  auto const half_i = width / 2;
+  auto const half_j = height / 2;
+
+  for( int j = -half_j; j < height - half_j; ++j )
+  {
+    element.emplace_back( 0, j );
+  }
+
+  for( int i = -half_i; i < width - half_i; ++i )
+  {
+    if( i != 0 )
+    {
+      element.emplace_back( i, 0 );
+    }
+  }
+
+  return element;
+}
+
+// ----------------------------------------------------------------------------
+/// The smallest or largest value under \p element, per pixel and per plane.
+///
+/// Greyscale erosion and dilation, which is what `cv::erode` and `cv::dilate`
+/// compute on anything that is not a binary mask. The binary `erode` and
+/// `dilate` below are the same operation on `bool`, and are kept separate
+/// because they are what the VXL recordings are held to.
+///
+/// The element is clipped to the image rather than reading a border value,
+/// which is what OpenCV's default border does: its `borderValue` is the
+/// extreme of the type, so an out-of-image neighbour can never be the
+/// minimum of a dilation or the maximum of an erosion.
+template < typename T, typename Combine >
+viame::image_of< T >
+grey_morphology( viame::image_of< T > const& image,
+                 structuring_element const& element, Combine combine )
+{
+  viame::image_of< T > out( image.width(), image.height(),
+                                    image.depth() );
+
+  auto const width = static_cast< long >( image.width() );
+  auto const height = static_cast< long >( image.height() );
+
+  for( size_t plane = 0; plane < image.depth(); ++plane )
+  {
+    for( long j = 0; j < height; ++j )
+    {
+      for( long i = 0; i < width; ++i )
+      {
+        auto best = image( static_cast< size_t >( i ),
+                           static_cast< size_t >( j ), plane );
+
+        for( auto const& offset : element )
+        {
+          auto const x = i + offset.first;
+          auto const y = j + offset.second;
+
+          if( x < 0 || y < 0 || x >= width || y >= height )
+          {
+            continue;
+          }
+
+          best = combine( best, image( static_cast< size_t >( x ),
+                                       static_cast< size_t >( y ), plane ) );
+        }
+
+        out( static_cast< size_t >( i ), static_cast< size_t >( j ), plane ) =
+          best;
+      }
+    }
+  }
+
+  return out;
+}
+
+/// The smallest value under \p element, which is `cv::erode`.
+template < typename T >
+viame::image_of< T >
+grey_erode( viame::image_of< T > const& image,
+            structuring_element const& element )
+{
+  return grey_morphology( image, element,
+                          []( T a, T b ) { return std::min( a, b ); } );
+}
+
+/// The largest value under \p element, which is `cv::dilate`.
+template < typename T >
+viame::image_of< T >
+grey_dilate( viame::image_of< T > const& image,
+             structuring_element const& element )
+{
+  return grey_morphology( image, element,
+                          []( T a, T b ) { return std::max( a, b ); } );
+}
+
+namespace detail {
+
+// ----------------------------------------------------------------------------
+/// Apply \p element at every pixel, combining with `and` (erode) or `or`.
+///
+/// Offsets that fall outside the image are skipped rather than treated as
+/// set or unset, so the element is effectively clipped to the border. That
+/// means eroding an all-true image leaves it all true, which is what VXL
+/// does and what the pipelines that erode near a frame edge expect.
+inline viame::image_of< bool >
+apply( viame::image_of< bool > const& image,
+       structuring_element const& element,
+       bool erode )
+{
+  auto const width = static_cast< int >( image.width() );
+  auto const height = static_cast< int >( image.height() );
+
+  viame::image_of< bool > result( image.width(), image.height(),
+                                          image.depth() );
+
+  for( size_t plane = 0; plane < image.depth(); ++plane )
+  {
+    for( int j = 0; j < height; ++j )
+    {
+      for( int i = 0; i < width; ++i )
+      {
+        bool value = erode;
+
+        for( auto const& offset : element )
+        {
+          auto const si = i + offset.first;
+          auto const sj = j + offset.second;
+
+          if( si < 0 || si >= width || sj < 0 || sj >= height )
+          {
+            continue;
+          }
+
+          bool const sample = image( si, sj, plane );
+
+          if( erode )
+          {
+            if( !sample ) { value = false; break; }
+          }
+          else if( sample )
+          {
+            value = true;
+            break;
+          }
+        }
+
+        result( i, j, plane ) = value;
+      }
+    }
+  }
+
+  return result;
+}
+
+} // namespace detail
+
+// ----------------------------------------------------------------------------
+inline viame::image_of< bool >
+erode( viame::image_of< bool > const& image,
+       structuring_element const& element )
+{
+  return detail::apply( image, element, true );
+}
+
+// ----------------------------------------------------------------------------
+inline viame::image_of< bool >
+dilate( viame::image_of< bool > const& image,
+        structuring_element const& element )
+{
+  return detail::apply( image, element, false );
+}
+
+// ----------------------------------------------------------------------------
+/// Erode then dilate: removes specks smaller than the element.
+inline viame::image_of< bool >
+opening( viame::image_of< bool > const& image,
+         structuring_element const& element )
+{
+  return dilate( erode( image, element ), element );
+}
+
+// ----------------------------------------------------------------------------
+/// Dilate then erode: fills holes smaller than the element.
+inline viame::image_of< bool >
+closing( viame::image_of< bool > const& image,
+         structuring_element const& element )
+{
+  return erode( dilate( image, element ), element );
+}
+
+// ----------------------------------------------------------------------------
+/// Collapse every plane into one with `or` (union) or `and` (intersection).
+inline viame::image_of< bool >
+combine_planes( viame::image_of< bool > const& image, bool use_union )
+{
+  viame::image_of< bool > result( image.width(), image.height(), 1 );
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      bool value = image( i, j, 0 );
+
+      for( size_t plane = 1; plane < image.depth(); ++plane )
+      {
+        value = use_union ? ( value || image( i, j, plane ) )
+                          : ( value && image( i, j, plane ) );
+      }
+
+      result( i, j, 0 ) = value;
+    }
+  }
+
+  return result;
+}
+
+} // namespace image_kernels
+} // namespace viame
+
+#endif // VIAME_IMAGE_KERNELS_MORPHOLOGY_H

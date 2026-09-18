@@ -4,8 +4,8 @@
 
 #include "morphology.h"
 
-#include <image_ops/dispatch.h>
-#include <image_ops/morphology.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/morphology.h>
 
 #include <viame/core_types/image_container.h>
 
@@ -15,7 +15,7 @@ namespace viame {
 
 namespace {
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 // ----------------------------------------------------------------------------
 io::structuring_element

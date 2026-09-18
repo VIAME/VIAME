@@ -7,19 +7,19 @@
  * \brief Implementation of split image horizontally algorithm
  *
  * Was a `cv::Mat` region of interest and a clone; since P7-T04b it is
- * `image_ops::crop`, which does the same thing on a `viame::image`. The
+ * `image_kernels::crop`, which does the same thing on a `viame::image`. The
  * bridge was asked for an `RGB_COLOR` mat both ways, so it never swapped a
  * channel and there was nothing here for it to do but copy.
  */
 
 #include "split_image_horizontally.h"
 
-#include <image_ops/dispatch.h>
-#include <image_ops/resample.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/resample.h>
 
 #include <viame/core_types/image_container.h>
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame {
 

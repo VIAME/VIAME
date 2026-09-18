@@ -22,12 +22,12 @@
 
 #include <viame/measurement/projection.h>
 
-#include <image_ops/color.h>
-#include <image_ops/draw.h>
-#include <image_ops/layout.h>
-#include <image_ops/match.h>
-#include <image_ops/resample.h>
-#include <image_ops/warp.h>
+#include <image_kernels/color.h>
+#include <image_kernels/draw.h>
+#include <image_kernels/layout.h>
+#include <image_kernels/match.h>
+#include <image_kernels/resample.h>
+#include <image_kernels/warp.h>
 
 #include <viame/image_io/codecs/image_codec.h>
 
@@ -114,7 +114,7 @@ namespace
 
 static auto logger = viame::get_logger( "viame.core.measurement_utilities" );
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 /// The greyscale of a colour image.
 ///
@@ -2474,7 +2474,7 @@ map_keypoints_to_camera
           std::string label = descriptor_label + " " + kp.label + " - " + status +
             " (" + std::to_string( kp.epi_pts.size() ) + " samples)";
 
-          // The bitmap font of `image_ops`, not Hershey's, so the glyphs
+          // The bitmap font of `image_kernels`, not Hershey's, so the glyphs
           // differ; this is a debug overlay nothing is held to.
           io::draw_text( canvas, label, 10, 24, cyan, 2 );
 

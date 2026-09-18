@@ -6,7 +6,7 @@
 
 the `opencv` plugin's `compute_stereo_disparity.cxx` in python, per
 `lite-removals.md` section 2.4: block matching, semi-global block matching,
-the WLS filter and `stereoRectify` are calib3d and ximgproc, not `image_ops`
+the WLS filter and `stereoRectify` are calib3d and ximgproc, not `image_kernels`
 primitives, so the algorithm stays OpenCV's and only the language changes.
 
 The registered name, the sixteen config keys and their defaults are the C++

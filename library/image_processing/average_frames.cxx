@@ -4,8 +4,8 @@
 
 #include "average_frames.h"
 
-#include <image_ops/dispatch.h>
-#include <image_ops/temporal.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/temporal.h>
 
 #include <viame/core_types/image_container.h>
 
@@ -18,7 +18,7 @@ namespace viame {
 
 namespace {
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 // ----------------------------------------------------------------------------
 io::average_mode

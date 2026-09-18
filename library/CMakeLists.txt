@@ -21,10 +21,10 @@ add_subdirectory( pipeline_framework )
 
 # File, path and image helpers that no dependency owns and everything above
 # here uses. `core_types <- algorithm_framework <- pipeline_framework <-
-# utilities <- image_ops`, which is the order in lite-library-layout.md.
+# utilities <- image_kernels`, which is the order in lite-library-layout.md.
 add_subdirectory( utilities )
 
-add_subdirectory( image_ops )
+add_subdirectory( image_kernels )
 add_subdirectory( classifiers )
 add_subdirectory( segmentation )
 add_subdirectory( image_processing )

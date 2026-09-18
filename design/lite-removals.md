@@ -11,15 +11,15 @@ Only the following registrations are referenced by pipelines:
 
 | Name (pipelines) | Kind | Replacement | New name / alias |
 |---|---|---|---|
-| `vxl_convert_image` (158) | image_filter | `image_ops`: format conversion (byte/uint16/float), channel select/merge, scale factor, percentile normalisation, force 1 or 3 channels | `convert_image`, alias `vxl_convert_image` |
+| `vxl_convert_image` (158) | image_filter | `image_kernels`: format conversion (byte/uint16/float), channel select/merge, scale factor, percentile normalisation, force 1 or 3 channels | `convert_image`, alias `vxl_convert_image` |
 | `vxl` image_io (139) | image_io | Until P7: alias to `ocv` image_io. After P7: `core` codecs impl | alias `vxl` |
-| `vxl_average` (35) | image_filter | `image_ops`: window / cumulative / exponential temporal averaging, float accumulator, output cast | `average_frames`, alias `vxl_average` |
-| `vxl_color_commonality` (5) | image_filter | `image_ops`: colour histogram commonality map, configurable bins/smoothing | `color_commonality`, alias `vxl_color_commonality` |
-| `vxl_morphology` (2) | image_filter | `image_ops`: erode/dilate/open/close, rectangular and elliptical elements | `morphology`, alias `vxl_morphology` |
-| `vxl_threshold` (1) | image_filter | `image_ops`: absolute / percentile threshold | `threshold`, alias `vxl_threshold` |
+| `vxl_average` (35) | image_filter | `image_kernels`: window / cumulative / exponential temporal averaging, float accumulator, output cast | `average_frames`, alias `vxl_average` |
+| `vxl_color_commonality` (5) | image_filter | `image_kernels`: colour histogram commonality map, configurable bins/smoothing | `color_commonality`, alias `vxl_color_commonality` |
+| `vxl_morphology` (2) | image_filter | `image_kernels`: erode/dilate/open/close, rectangular and elliptical elements | `morphology`, alias `vxl_morphology` |
+| `vxl_threshold` (1) | image_filter | `image_kernels`: absolute / percentile threshold | `threshold`, alias `vxl_threshold` |
 | `vxl_enhancer` | image_filter | Same as `ocv_enhancer` (P7 makes that in-house too) | alias of `ocv_enhancer` |
-| `vxl_white_balancing` | image_filter | `image_ops`: grey-world / percentile white balance | `white_balance`, alias `vxl_white_balancing` |
-| `format_images_srm` | process | Rewritten on `image_ops` | same name |
+| `vxl_white_balancing` | image_filter | `image_kernels`: grey-world / percentile white balance | `white_balance`, alias `vxl_white_balancing` |
+| `format_images_srm` | process | Rewritten on `image_kernels` | same name |
 | `kw_archive_writer` (6) | process | Open decision 3 | removed.json or same name |
 | `vxl` bundle_adjust / estimate_* / triangulate_landmarks | not in any pipeline | not replaced | removed.json |
 
@@ -29,7 +29,7 @@ that uses a `vxl_*` filter runs on `pipelines_test_data` and compares output
 images (max abs diff, mean abs diff thresholds per filter, recorded in the
 test).
 
-`image_ops` v1 scope (C++, on `vital::image`, templated over pixel type):
+`image_kernels` v1 scope (C++, on `vital::image`, templated over pixel type):
 type conversion, channel ops, per-pixel scale/offset, percentiles,
 temporal averaging, box/gaussian blur, erode/dilate, colour histogram,
 threshold, white balance. Golden data recorded from the VXL build before
@@ -56,9 +56,9 @@ with aliases `ocv`, `vxl`. Anything the codecs do not handle falls back to
 image_io `pil` (python). Golden: byte-identical decode against OpenCV for
 png/bmp/tiff; jpg within decoder tolerance.
 
-### 2.3 imgproc primitives -> `image_ops` v2
+### 2.3 imgproc primitives -> `image_kernels` v2
 
-| OpenCV calls | `image_ops` function | Used by |
+| OpenCV calls | `image_kernels` function | Used by |
 |---|---|---|
 | `cvtColor` (BGR/RGB/GRAY/Lab/HSV, Bayer) | `color::convert`, `color::demosaic` | debayer, enhancer, colour correction, hue shift, convert_color |
 | `resize` (linear/area/nearest) | `resample::resize` | windowed detector/refiner/trainer chipping, darknet resize, descriptors |

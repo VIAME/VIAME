@@ -9,9 +9,9 @@ Legend: **vendor** = source copied into `third_party/` and built here;
 | Package | Version today | Used by | Disposition |
 |---|---|---|---|
 | Eigen | 3.3.9 | vital types, sprokit type traits, mvg, 9 plugin files | **temp** vendored header in P1, **drop** in P6 (`core_types/math`) |
-| OpenCV (+contrib ximgproc) | 4.9.0 | arrows/ocv, plugins/opencv, darknet, svm, core | **temp** `find_package` P1..P6, **drop** in P7 (`image_ops`, codecs, python ports); `opencv-python-headless` stays **pip** |
+| OpenCV (+contrib ximgproc) | 4.9.0 | arrows/ocv, plugins/opencv, darknet, svm, core | **temp** `find_package` P1..P6, **drop** in P7 (`image_kernels`, codecs, python ports); `opencv-python-headless` stays **pip** |
 | FFmpeg + x264/x265 | 5.1.2 | arrows/ffmpeg | **temp** `find_package` P1..P3, **drop** in P4 (PyAV); `av` wheel **pip** |
-| VXL | git | arrows/vxl, plugins/vxl | **drop** in P3 (`image_ops` v1 + aliases) |
+| VXL | git | arrows/vxl, plugins/vxl | **drop** in P3 (`image_kernels` v1 + aliases) |
 | TinyXML1 | 2.6.2 | CVAT reader | **vendored**, 4 files, `third_party/tinyxml`. Whether P8 replaces it with a subset reader of our own is still open; vendoring did not decide that |
 | pybind11 | 2.13.6 | python bindings | **vendored**, `third_party/pybind11`: 28 of the 36 headers, the transitive closure of what VIAME includes. Permanent |
 | libsvm | 3.10 (+HISTOGRAM and NMI kernels) | svm, IQR | **vendored**, 2 files, `third_party/libsvm`. Permanent, and it has to be vendored rather than found: the extra kernels are VIAME's and a system libsvm would refuse every shipped model |

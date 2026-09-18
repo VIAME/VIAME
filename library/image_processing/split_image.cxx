@@ -6,19 +6,19 @@
 /// \brief Split an image in half, left and right
 ///
 /// Was `cv::Mat`'s region-of-interest and a clone; since P7-T04 it is
-/// `image_ops::crop`, which does the same thing on a `viame::image` and
+/// `image_kernels::crop`, which does the same thing on a `viame::image` and
 /// leaves nothing for the OpenCV bridge to convert.
 
 #include "split_image.h"
 
-#include <image_ops/dispatch.h>
-#include <image_ops/resample.h>
+#include <image_kernels/dispatch.h>
+#include <image_kernels/resample.h>
 
 #include <viame/core_types/image_container.h>
 
 using namespace viame;
 
-namespace io = viame::image_ops;
+namespace io = viame::image_kernels;
 
 namespace viame {
 

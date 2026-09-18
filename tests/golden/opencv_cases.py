@@ -1,6 +1,6 @@
 """What the OpenCV golden recording covers.
 
-Phase 7 replaces every implementation here with `image_ops` code registered
+Phase 7 replaces every implementation here with `image_kernels` code registered
 under the same name, so what has to be pinned is what each one currently
 computes. The config variants are the ones the installed pipelines actually
 ask for -- read out of every `.pipe` and `.conf` under the install -- plus

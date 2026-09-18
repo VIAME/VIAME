@@ -5,9 +5,9 @@
 """Circle detection by the Hough gradient transform, on cv2.
 
 This was `library/object_detectors/hough_circle_detector.cxx`, and P7-T04
-moves it here rather than reimplementing it in `image_ops`, per
+moves it here rather than reimplementing it in `image_kernels`, per
 `lite-removals.md` section 2.6. `cv::HoughCircles` is not an imgproc
-primitive of the kind `image_ops` carries: it is Canny plus a Sobel-gradient
+primitive of the kind `image_kernels` carries: it is Canny plus a Sobel-gradient
 accumulator plus a radius vote plus a non-maximum suppression over centres,
 with tie-breaking rules that decide which of several nearby circles survives.
 Reproducing it in C++ would be several hundred lines whose only justification

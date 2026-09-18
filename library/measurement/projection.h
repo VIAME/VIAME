@@ -174,7 +174,7 @@ stereo_rectify(
 /// `cv::initUndistortRectifyMap` into a pair of `CV_32FC1`.
 ///
 /// Each entry is where in the source image an output pixel comes from, so
-/// `image_ops::remap` turns them into a rectified frame.
+/// `image_kernels::remap` turns them into a rectified frame.
 VIAME_MEASUREMENT_EXPORT
 void
 rectification_maps(

@@ -1,0 +1,74 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
+#ifndef VIAME_IMAGE_KERNELS_DISPATCH_H
+#define VIAME_IMAGE_KERNELS_DISPATCH_H
+
+#include <viame/core_types/image.h>
+
+#include <cstdint>
+#include <sstream>
+#include <stdexcept>
+#include <type_traits>
+
+namespace viame {
+namespace image_kernels {
+
+// ----------------------------------------------------------------------------
+/// The pixel type of an `image_of`, so a generic lambda can name it.
+template < typename Image > struct pixel_type_of;
+
+template < typename T >
+struct pixel_type_of< viame::image_of< T > > { using type = T; };
+
+template < typename Image >
+using pixel_type_t =
+  typename pixel_type_of< std::decay_t< Image > >::type;
+
+// ----------------------------------------------------------------------------
+/// Call \p functor with the image typed as whatever it actually holds.
+///
+/// A `viame::image` carries its pixel type as traits rather than in the C++
+/// type, so anything that works pixel by pixel has to recover the type
+/// first. \p functor is a generic lambda taking `image_of< T > const&`; every
+/// pixel type viame_algorithm_framework can hold is instantiated for it.
+///
+/// \throws std::runtime_error if the image holds a type not listed here.
+template < typename Functor >
+auto
+dispatch_pixel_type( viame::image const& image, Functor&& functor )
+  -> decltype( functor( viame::image_of< uint8_t >() ) )
+{
+  auto const& traits = image.pixel_traits();
+
+#define VIAME_DISPATCH_CASE( KIND, BYTES, PIXEL )                     \
+  if( traits.type == viame::image_pixel_traits::KIND &&       \
+      traits.num_bytes == BYTES )                                     \
+  {                                                                   \
+    return functor( viame::image_of< PIXEL >( image ) );      \
+  }
+
+  VIAME_DISPATCH_CASE( BOOL, sizeof( bool ), bool )
+  VIAME_DISPATCH_CASE( UNSIGNED, 1, uint8_t )
+  VIAME_DISPATCH_CASE( UNSIGNED, 2, uint16_t )
+  VIAME_DISPATCH_CASE( UNSIGNED, 4, uint32_t )
+  VIAME_DISPATCH_CASE( UNSIGNED, 8, uint64_t )
+  VIAME_DISPATCH_CASE( SIGNED, 1, int8_t )
+  VIAME_DISPATCH_CASE( SIGNED, 2, int16_t )
+  VIAME_DISPATCH_CASE( SIGNED, 4, int32_t )
+  VIAME_DISPATCH_CASE( SIGNED, 8, int64_t )
+  VIAME_DISPATCH_CASE( FLOAT, 4, float )
+  VIAME_DISPATCH_CASE( FLOAT, 8, double )
+
+#undef VIAME_DISPATCH_CASE
+
+  std::ostringstream message;
+  message << "unsupported pixel type " << traits;
+  throw std::runtime_error( message.str() );
+}
+
+} // namespace image_kernels
+} // namespace viame
+
+#endif // VIAME_IMAGE_KERNELS_DISPATCH_H
