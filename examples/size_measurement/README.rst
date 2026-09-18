@@ -572,7 +572,7 @@ in offline ``left`` mode.
 Batch pipeline
 ~~~~~~~~~~~~~~
 
-``stereo_measure_current_annots_curved.pipe`` (fast-fdn-stereo add-on) measures
+``stereo_measure_current_annots_curved_generic.pipe`` (fast-fdn-stereo add-on) measures
 every annotated centerline in a stereo dataset with the
 ``compute_curved_measurements`` process. Each left vertex is transferred to the
 right camera through Fast-Foundation-Stereo disparity on the rectified grid; in
