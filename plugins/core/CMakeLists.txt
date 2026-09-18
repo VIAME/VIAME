@@ -511,6 +511,11 @@ if( VIAME_ENABLE_PYTHON )
     curved_measurement )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/measure_curved_process.py
+    core
+    measure_curved_process )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
     core
     interactive_stereo )

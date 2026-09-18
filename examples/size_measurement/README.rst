@@ -569,6 +569,23 @@ right disparity map must be converted first. All paths are resolved against the
 working directory. Independent right disparity also enables round-trip checking
 in offline ``left`` mode.
 
+Batch pipeline
+~~~~~~~~~~~~~~
+
+``stereo_measure_current_annots_curved.pipe`` (fast-fdn-stereo add-on) measures
+every annotated centerline in a stereo dataset with the
+``compute_curved_measurements`` process. Each left vertex is transferred to the
+right camera through Fast-Foundation-Stereo disparity on the rectified grid; in
+the default ``bidirectional`` mode a second inference on the swapped, flipped
+pair yields an independent right-reference disparity, every vertex must round
+trip within ``consistency_px``, and the two curve lengths must agree. Right
+detections lacking a centerline receive the transferred vertices (and are
+created when missing); an annotated right centerline constrains the transfer
+and is kept as drawn unless ``right_keypoint_policy`` is ``refine_all``.
+Measured detections carry ``length``, ``curved_length``, ``straight_length`` and
+``curvature_ratio`` attributes, and the per-track aggregate is written as
+``avg_length``. Frames whose transfer fails any check keep no length.
+
 Editable DIVE centerlines
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

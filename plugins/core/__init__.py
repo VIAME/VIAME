@@ -75,6 +75,12 @@ def __sprokit_register__():
     except ImportError:
         pass
 
+    try:
+        from viame.core import measure_curved_process
+        measure_curved_process.__sprokit_register__()
+    except ImportError:
+        pass
+
     process_factory.mark_process_module_as_loaded( module_name )
 
 
