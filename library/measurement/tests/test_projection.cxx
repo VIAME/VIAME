@@ -220,9 +220,14 @@ TEST ( projection, stereo_rectify_matches_opencv )
     auto const width = static_cast< size_t >( golden_json::number( c, "width" ) );
     auto const height = static_cast< size_t >( golden_json::number( c, "height" ) );
 
+    // Each rig is recorded at several framings; `alpha` is the one this case
+    // was recorded at, and 0 is the framing that shipped before the setting
+    // existed.
+    auto const alpha = golden_json::number( c, "alpha" );
+
     auto const got = mp::stereo_rectify(
       k_left, d_left, k_right, d_right, width, height, rotation,
-      kv::vector_3d( t[ 0 ], t[ 1 ], t[ 2 ] ) );
+      kv::vector_3d( t[ 0 ], t[ 1 ], t[ 2 ] ), alpha );
 
     auto const r1 = golden_json::numbers( c, "r1" );
     auto const r2 = golden_json::numbers( c, "r2" );

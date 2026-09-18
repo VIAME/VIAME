@@ -970,7 +970,6 @@ TEST_F( measurement_utilities_test, segment_disparity_formats_and_reversed_endpo
   }
 }
 
-#ifdef VIAME_ENABLE_OPENCV
 TEST_F( measurement_utilities_test, segment_refinement_uses_rectification_and_triangulation )
 {
   map_keypoints_to_camera_settings settings;
@@ -978,7 +977,7 @@ TEST_F( measurement_utilities_test, segment_refinement_uses_rectification_and_tr
   settings.refine_keypoints_disparity_window = 0;
   settings.disparity_segment_max_error = 0.01;
   utilities->configure( settings );
-  utilities->compute_rectification_maps( *left_cam, *right_cam, cv::Size( 1280, 720 ) );
+  utilities->compute_rectification_maps( *left_cam, *right_cam, 1280, 720 );
   kv::image_of< float > disparity( 1280, 720 );
   for( unsigned y = 0; y < 720; ++y )
   {
@@ -999,4 +998,3 @@ TEST_F( measurement_utilities_test, segment_refinement_uses_rectification_and_tr
   EXPECT_NEAR( measured.length, ( tail3d - head3d ).norm(), 1e-6 );
   EXPECT_NEAR( measured.rms, 0, 1e-6 );
 }
-#endif

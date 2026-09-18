@@ -33,6 +33,15 @@ def intrinsics(fx, fy, cx, cy, skew=0.0):
     return np.array([[fx, skew, cx], [0.0, fy, cy], [0.0, 0.0, 1.0]])
 
 
+# The framings recorded. 0 is what VIAME shipped before `rectification_alpha`
+# existed and must stay byte-identical; 0.5 and 1.0 exercise the interpolation
+# between the inscribed and bounding rectangles. -1 is OpenCV's "default
+# scaling", which is no rescaling at all rather than alpha 0, and is what
+# `interactive_stereo.py` ships as its dense grid default -- recorded because
+# leaving it out is how the clamp that broke it got through.
+ALPHAS = (0.0, -1.0, 0.5, 1.0)
+
+
 def rigs():
     yield {
         "name": "golden_scene",
@@ -138,42 +147,49 @@ def main():
                 "expected": numbers(undistorted),
             })
 
-        r1, r2, p1, p2, q, _, _ = cv2.stereoRectify(
-            rig["k_left"], rig["d_left"], rig["k_right"], rig["d_right"],
-            size, rig["rotation"], rig["translation"],
-            flags=cv2.CALIB_ZERO_DISPARITY, alpha=0)
+        for alpha in ALPHAS:
+            r1, r2, p1, p2, q, _, _ = cv2.stereoRectify(
+                np.asarray(rig["k_left"], dtype=np.float64).reshape(3, 3),
+                np.asarray(rig["d_left"], dtype=np.float64).reshape(1, -1),
+                np.asarray(rig["k_right"], dtype=np.float64).reshape(3, 3),
+                np.asarray(rig["d_right"], dtype=np.float64).reshape(1, -1),
+                size,
+                np.asarray(rig["rotation"], dtype=np.float64).reshape(3, 3),
+                np.asarray(rig["translation"], dtype=np.float64).reshape(3, 1),
+                flags=cv2.CALIB_ZERO_DISPARITY, alpha=alpha)
 
-        entry = {
-            "rig": rig["name"],
-            "width": rig["width"], "height": rig["height"],
-            "k_left": numbers(rig["k_left"]),
-            "d_left": numbers(rig["d_left"]),
-            "k_right": numbers(rig["k_right"]),
-            "d_right": numbers(rig["d_right"]),
-            "rotation": numbers(rig["rotation"]),
-            "translation": numbers(rig["translation"]),
-            "r1": numbers(r1), "r2": numbers(r2),
-            "p1": numbers(p1), "p2": numbers(p2), "q": numbers(q),
-        }
+            entry = {
+                "rig": rig["name"],
+                "alpha": alpha,
+                "width": rig["width"], "height": rig["height"],
+                "k_left": numbers(rig["k_left"]),
+                "d_left": numbers(rig["d_left"]),
+                "k_right": numbers(rig["k_right"]),
+                "d_right": numbers(rig["d_right"]),
+                "rotation": numbers(rig["rotation"]),
+                "translation": numbers(rig["translation"]),
+                "r1": numbers(r1), "r2": numbers(r2),
+                "p1": numbers(p1), "p2": numbers(p2), "q": numbers(q),
+            }
 
-        for side, k, d, r, p in (("left", rig["k_left"], rig["d_left"], r1, p1),
-                                 ("right", rig["k_right"], rig["d_right"],
-                                  r2, p2)):
-            map_x, map_y = cv2.initUndistortRectifyMap(
-                k, d, r, p, size, cv2.CV_32FC1)
+            for side, k, d, r, p in (
+                    ("left", rig["k_left"], rig["d_left"], r1, p1),
+                    ("right", rig["k_right"], rig["d_right"], r2, p2)):
+                map_x, map_y = cv2.initUndistortRectifyMap(
+                    k, d, r, p, size, cv2.CV_32FC1)
 
-            # Flat, four numbers per sample: x, y, and where they come
-            # from. `tests/golden/golden_json.h` reads flat arrays only.
-            samples = []
-            for x, y in MAP_SAMPLES:
-                if x >= rig["width"] or y >= rig["height"]:
-                    continue
-                samples += [float(x), float(y), float(map_x[y, x]),
-                            float(map_y[y, x])]
+                # Flat, four numbers per sample: x, y, and where they come
+                # from. `tests/golden/golden_json.h` reads flat arrays only.
+                samples = []
+                for x, y in MAP_SAMPLES:
+                    if x >= rig["width"] or y >= rig["height"]:
+                        continue
+                    samples += [float(x), float(y), float(map_x[y, x]),
+                                float(map_y[y, x])]
 
-            entry["map_" + side] = samples
+                entry["map_" + side] = samples
 
-        out["rectification"].append(entry)
+            out["rectification"].append(entry)
 
     json.dump(out, sys.stdout, indent=1)
     sys.stdout.write("\n")

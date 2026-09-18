@@ -549,3 +549,52 @@ passing, and UNIT rising 440 -> 450 as upstream's ten new tests run --
 `viame:disparity_segment.*` (seven cases), three new
 `measurement_utilities_test` cases and `unit:measurement:curved_measurement`,
 none of them disabled.
+
+## Feature compatibility with the merged stereo work
+
+The merge brought upstream's stereo work in, but three parts of it did not
+actually function in `lite`. All three now do, and `library/` contains **no
+`#ifdef VIAME_ENABLE_OPENCV` at all** any more.
+
+**`rectification_alpha` is honoured.** `stereo_rectify` takes `double alpha`
+(defaulted to 0, so the two callers that do not pass it are unchanged).
+`lite` already computed the bounding rectangles and discarded them -- they are
+the alpha=1 term -- so this was an interpolation, not new geometry. Measured
+against cv2 5.0.0 rather than recalled: the rectified focal is exactly linear
+in alpha (agreeing to 1e-13 at 0.25, 0.5 and 0.75), the principal points do
+not move with it, and a **negative** alpha is OpenCV's "default scaling",
+meaning no rescaling at all rather than alpha 0. That last case is the one
+that matters: `interactive_stereo.py` ships `rectification_alpha: -1.0` as its
+dense-grid default, so clamping it to 0 would have silently rezoomed every
+interactive rig. The golden set now records alpha in
+`{-1.0, 0.0, 0.5, 1.0}` over four rigs, and the alpha=0 cases are kept
+**byte-identical** to what shipped rather than re-recorded.
+
+**Segment refinement runs.** `refine_right_segment_with_disparity` was wrapped
+in `#ifdef VIAME_ENABLE_OPENCV` and so returned `false` unconditionally here,
+disabling upstream's head-tail refinement outright. Everything it calls is
+OpenCV-free -- `rectify_point`, `unrectify_point` and
+`find_corresponding_segment_external_disparity` -- so the guard simply went.
+Its test was guarded too, and has been ported (`cv::Size( 1280, 720 )` to
+`1280, 720`, the one OpenCV-arity line in it); it asserts the function
+succeeds and that the refined segment triangulates to the right length.
+
+**`DenseStereoGrid` exists.** The pybind class upstream added for the
+interactive service was inside the same guard, so `lite` never registered it,
+and `DenseStereoRectifier.prepare()` calls
+`_cpp_measurement.DenseStereoGrid(...)` with no fallback -- dense (non-epipolar)
+interactive stereo would have raised `AttributeError` on the first frame. The
+class needed three `cv::` uses ported: the `cv::Size` argument, the `cv::Mat`
+view over the pybind buffer, and `rectify_image`'s return, now an
+`image_of< uint8_t >` copied by index rather than `memcpy`'d, since an
+`image_of` carries its own strides. It is live, with all six methods.
+
+Also fixed in passing: `tests/golden/projection/record_from_opencv.py` could
+not run under cv2 5.0.0 at all -- it passed a flat `(3,)` translation where
+OpenCV 5 requires a column vector, failing with
+`(-215) a_size.width == len in gemm`. The committed `opencv.json` was recorded
+under OpenCV 4, and nobody had hit this because the recorder only runs by hand.
+
+Verified: build clean, Tier 1 **460/460** -- 459 before, plus the test the
+guard removal put back into service -- install manifest unchanged at 1756
+paths, and `registry.json` and `pipes.json` untouched.

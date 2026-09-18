@@ -460,7 +460,8 @@ stereo_rectify( kv::matrix_3x3d const& left_intrinsics,
                 distortion_t const& right_distortion,
                 size_t width, size_t height,
                 kv::matrix_3x3d const& rotation,
-                kv::vector_3d const& translation )
+                kv::vector_3d const& translation,
+                double alpha )
 {
   auto const nx = static_cast< double >( width );
   auto const ny = static_cast< double >( height );
@@ -573,8 +574,21 @@ stereo_rectify( kv::matrix_3x3d const& left_intrinsics,
   out.right_projection = build( 1 );
   out.right_projection( idx, 3 ) = t[ idx ] * focal;
 
-  // `alpha = 0`: scale until the rectified image is entirely valid, which is
-  // the inscribed rectangle rather than the bounding one.
+  // `alpha` chooses the framing, as `cv::stereoRectify` does. At 0 the
+  // rectified image is entirely valid -- the inscribed rectangle -- and at 1
+  // it keeps every source pixel, the bounding one. Each gives a scale and the
+  // result is linear between them: measured against cv2 5.0.0 the rectified
+  // focal matches `s0 * ( 1 - alpha ) + s1 * alpha` to 1e-13 at 0.25, 0.5 and
+  // 0.75, and the principal points do not move with alpha, so only the focal
+  // does.
+  //
+  // A **negative** alpha is OpenCV's "default scaling", which is no rescaling
+  // at all rather than alpha 0: at -1 and -0.5 cv2 leaves the focal at the
+  // pre-scale value exactly. That is the case that matters in practice --
+  // `interactive_stereo.py` ships `rectification_alpha: -1.0` as its dense
+  // grid default -- so clamping it to 0 silently rezooms every such rig.
+  // Above 1 it saturates.
+
   double inner1[ 4 ], outer1[ 4 ], inner2[ 4 ], outer2[ 4 ];
 
   rectangles( left_intrinsics, left_distortion, out.left_rotation,
@@ -587,19 +601,42 @@ stereo_rectify( kv::matrix_3x3d const& left_intrinsics,
   double const cx2_0 = centre_x[ 1 ];
   double const cy2_0 = centre_y[ 1 ];
 
-  double scale = std::max(
-    std::max( std::max( cx1_0 / ( cx1_0 - inner1[ 0 ] ),
-                        cy1_0 / ( cy1_0 - inner1[ 1 ] ) ),
-              ( nx - 1 - cx1_0 ) / ( inner1[ 0 ] + inner1[ 2 ] - cx1_0 ) ),
-    ( ny - 1 - cy1_0 ) / ( inner1[ 1 ] + inner1[ 3 ] - cy1_0 ) );
+  // The inscribed rectangle: the largest scale that still fills the frame,
+  // hence `max` over the four edges and over both cameras.
+  auto const inner_scale =
+    [ & ]( double const rect[ 4 ], double cx, double cy )
+    {
+      return std::max(
+        std::max( std::max( cx / ( cx - rect[ 0 ] ),
+                            cy / ( cy - rect[ 1 ] ) ),
+                  ( nx - 1 - cx ) / ( rect[ 0 ] + rect[ 2 ] - cx ) ),
+        ( ny - 1 - cy ) / ( rect[ 1 ] + rect[ 3 ] - cy ) );
+    };
 
-  scale = std::max(
-    std::max(
-      std::max( std::max( cx2_0 / ( cx2_0 - inner2[ 0 ] ),
-                          cy2_0 / ( cy2_0 - inner2[ 1 ] ) ),
-                ( nx - 1 - cx2_0 ) / ( inner2[ 0 ] + inner2[ 2 ] - cx2_0 ) ),
-      ( ny - 1 - cy2_0 ) / ( inner2[ 1 ] + inner2[ 3 ] - cy2_0 ) ),
-    scale );
+  // The bounding rectangle: the largest scale that still shows every source
+  // pixel, hence `min` -- the tightest of the four edges is the binding one.
+  auto const outer_scale =
+    [ & ]( double const rect[ 4 ], double cx, double cy )
+    {
+      return std::min(
+        std::min( std::min( cx / ( cx - rect[ 0 ] ),
+                            cy / ( cy - rect[ 1 ] ) ),
+                  ( nx - 1 - cx ) / ( rect[ 0 ] + rect[ 2 ] - cx ) ),
+        ( ny - 1 - cy ) / ( rect[ 1 ] + rect[ 3 ] - cy ) );
+    };
+
+  double const scale_inner = std::max( inner_scale( inner1, cx1_0, cy1_0 ),
+                                       inner_scale( inner2, cx2_0, cy2_0 ) );
+  double const scale_outer = std::min( outer_scale( outer1, cx1_0, cy1_0 ),
+                                       outer_scale( outer2, cx2_0, cy2_0 ) );
+
+  double scale = 1.0;
+
+  if( alpha >= 0.0 )
+  {
+    alpha = std::min( 1.0, alpha );
+    scale = scale_inner * ( 1.0 - alpha ) + scale_outer * alpha;
+  }
 
   focal *= scale;
 

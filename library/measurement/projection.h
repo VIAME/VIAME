@@ -149,7 +149,7 @@ struct VIAME_MEASUREMENT_EXPORT rectification
 };
 
 // ----------------------------------------------------------------------------
-/// `cv::stereoRectify` with `CALIB_ZERO_DISPARITY` and `alpha = 0`.
+/// `cv::stereoRectify` with `CALIB_ZERO_DISPARITY`.
 ///
 /// Those are the only settings VIAME asks for, and both are load-bearing:
 /// zero disparity puts the two principal points at the same place, so a
@@ -167,7 +167,8 @@ stereo_rectify(
   distortion_t const& right_distortion,
   size_t width, size_t height,
   viame::matrix_3x3d const& rotation,
-  viame::vector_3d const& translation );
+  viame::vector_3d const& translation,
+  double alpha = 0.0 );
 
 // ----------------------------------------------------------------------------
 /// The two sampling maps a rectification needs, which is

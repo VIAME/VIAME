@@ -2477,3 +2477,55 @@ strings, and ten new tests running by name -- seven `viame:disparity_segment.*`
 cases among them, none disabled -- is what says upstream's work actually
 arrived. Finding 2.27's GFIT tests existed too, and every one of them was
 `(Disabled)`.
+
+### 2.30 An out-of-range value can be a meaning, and a skipped test is not a passing one
+
+Porting `rectification_alpha` looked like a one-line interpolation, and the
+interpolation was right. What was wrong was the guard around it:
+
+    alpha = std::min( 1.0, std::max( 0.0, alpha ) );
+
+Clamping looks defensive. It is, for the top of the range -- cv2 gives the
+same answer at 2.0 as at 1.0. At the bottom it is destructive, because a
+negative alpha is not a small alpha: OpenCV reads it as "default scaling" and
+skips the rescaling step entirely. Measured on cv2 5.0.0, alpha -1 and -0.5
+both leave the rectified focal at the pre-scale value **exactly** -- 605.0 for
+a rig whose focal pair is 600 and 610, 1099.510502 for 1101.74 and 1097.28 --
+while alpha 0 gives 2322.09 for the same rig. Clamping -1 to 0 is not a
+rounding error, it is the opposite end of the range.
+
+It mattered because -1 is not exotic. `interactive_stereo.py` ships
+`rectification_alpha: -1.0` in its dense-grid defaults, so the clamp would
+have rezoomed the rectification of every interactive stereo session, quietly,
+with no error anywhere.
+
+**The golden test I wrote for the feature did not catch it.** I recorded alpha
+in `{0.0, 0.5, 1.0}` -- the range I had reasoned about -- and all three passed.
+What caught it was upstream's `test_dense_stereo_grid.py`, whose fixture
+happens to use `rectification_alpha: -1.0`, and which had been **skipping**
+itself in `lite` for the whole of its existence:
+
+    if not hasattr(measurement, 'DenseStereoGrid'):
+        pytest.skip('built without OpenCV', allow_module_level=True)
+
+Unguarding the class put that test into service for the first time, and it
+failed on its first run. A test that skips is not a test that passes, and the
+ctest line looks identical either way.
+
+That is three times in one session. GFIT's seven pipeline tests were
+`(Disabled)` for want of a fixture (2.27). `test_dense_stereo_grid.py` skipped
+on a missing class. And
+`segment_refinement_uses_rectification_and_triangulation` was inside
+`#ifdef VIAME_ENABLE_OPENCV`, so it never compiled -- which is why an
+`ASSERT_TRUE` on a function that returned `false` unconditionally had never
+once failed. Each of the three was hiding something real.
+
+Two habits follow. Measure a foreign API's semantics instead of recalling
+them: the linearity, the invariant principal point and the negative-alpha rule
+were all established by running cv2 and reading the numbers, and the check
+that the alpha=-1 focal equals the mean of the input focal pair -- for all
+four rigs, both baseline orientations -- confirmed the port before it was
+built. And when enabling an implementation, check whether its test is guarded
+too: here the implementation and its test were behind the same `#ifdef`, so
+removing one without the other would have produced a feature that works and a
+suite that still says nothing about it.

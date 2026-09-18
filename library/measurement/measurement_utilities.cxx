@@ -3100,7 +3100,6 @@ map_keypoints_to_camera
   const kv::simple_camera_perspective& right_cam,
   kv::vector_2d& right_head, kv::vector_2d& right_tail ) const
 {
-#ifdef VIAME_ENABLE_OPENCV
   if( !m_rectification_computed ) { return false; }
   kv::vector_2d head_rect, tail_rect;
   if( !find_corresponding_segment_external_disparity(
@@ -3115,11 +3114,6 @@ map_keypoints_to_camera
   right_head = head;
   right_tail = tail;
   return true;
-#else
-  (void)disparity_map; (void)left_head; (void)left_tail;
-  (void)right_cam; (void)right_head; (void)right_tail;
-  return false;
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -3242,12 +3236,9 @@ map_keypoints_to_camera
   kv::vector_3d t_relative = R_right * ( left_cam.center() - right_cam.center() );
 
   // Compute rectification transforms
-  // `rectification_alpha` is accepted and stored but not honoured here:
-  // `stereo_rectify` fixes alpha at 0, which its documentation calls
-  // load-bearing. Threading it through is a change to projection.{h,cxx},
-  // not to this merge.
   auto const rectified = viame::measurement::stereo_rectify(
-    m_K1, m_D1, m_K2, m_D2, width, height, R_relative, t_relative );
+    m_K1, m_D1, m_K2, m_D2, width, height, R_relative, t_relative,
+    m_rectification_alpha );
 
   m_R1 = rectified.left_rotation;
   m_R2 = rectified.right_rotation;
@@ -4579,8 +4570,6 @@ load_stereo_calibration( std::string const& path )
 // ----------------------------------------------------------------------------
 namespace {
 
-#ifdef VIAME_ENABLE_OPENCV
-
 // The rectified disparity grid of a stereo rig, as map_keypoints_to_camera
 // builds it for the measurement pipelines, for the interactive service.
 class dense_stereo_grid
@@ -4606,7 +4595,8 @@ public:
     settings.set_configuration( config );
     m_window = settings.refine_keypoints_disparity_window;
     m_utilities.configure( settings );
-    m_utilities.compute_rectification_maps( left(), right(), cv::Size( width, height ) );
+    m_utilities.compute_rectification_maps(
+      left(), right(), static_cast< size_t >( width ), static_cast< size_t >( height ) );
   }
 
   py::array rectify_image( py::array_t< uint8_t, py::array::c_style > image, bool is_right ) const
@@ -4617,16 +4607,39 @@ public:
       throw std::invalid_argument( "image must be HxW or HxWxC uint8" );
     }
     int const channels = buffer.ndim == 3 ? static_cast< int >( buffer.shape[2] ) : 1;
-    cv::Mat const source( static_cast< int >( buffer.shape[0] ), static_cast< int >( buffer.shape[1] ),
-                          CV_8UC( channels ), buffer.ptr );
-    cv::Mat const rectified = m_utilities.rectify_image( source, is_right );
-    std::vector< ssize_t > shape{ rectified.rows, rectified.cols };
+    // A view over the numpy memory, as wrap_disparity does; the caller keeps
+    // the array alive for the duration of the call.
+    kv::image_of< uint8_t > const source(
+      static_cast< uint8_t const* >( buffer.ptr ),
+      static_cast< size_t >( buffer.shape[1] ),
+      static_cast< size_t >( buffer.shape[0] ),
+      static_cast< size_t >( channels ),
+      channels, buffer.shape[1] * channels, 1 );
+
+    auto const rectified = m_utilities.rectify_image( source, is_right );
+
+    std::vector< ssize_t > shape{ static_cast< ssize_t >( rectified.height() ),
+                                  static_cast< ssize_t >( rectified.width() ) };
     if( buffer.ndim == 3 )
     {
-      shape.push_back( channels );
+      shape.push_back( static_cast< ssize_t >( rectified.depth() ) );
     }
     py::array_t< uint8_t > out( shape );
-    std::memcpy( out.mutable_data(), rectified.data, rectified.total() * rectified.elemSize() );
+
+    // Copied by index rather than memcpy'd: `remap` returns a fresh packed
+    // image today, but an image_of carries its own strides and a view would
+    // not be contiguous.
+    uint8_t* dst = out.mutable_data();
+    for( size_t j = 0; j < rectified.height(); ++j )
+    {
+      for( size_t i = 0; i < rectified.width(); ++i )
+      {
+        for( size_t d = 0; d < rectified.depth(); ++d )
+        {
+          *dst++ = rectified( i, j, d );
+        }
+      }
+    }
     return out;
   }
 
@@ -4747,8 +4760,6 @@ private:
   int m_window;
 };
 
-#endif // VIAME_ENABLE_OPENCV
-
 } // namespace
 
 PYBIND11_MODULE( _measurement, m )
@@ -4791,7 +4802,6 @@ PYBIND11_MODULE( _measurement, m )
     "coefficients ([k1,k2,p1,p2,k3,...]), rotation (right relative to left) "
     "and translation." );
 
-#ifdef VIAME_ENABLE_OPENCV
   py::class_< dense_stereo_grid >( m, "DenseStereoGrid",
     "Rectified disparity grid of a stereo rig, built exactly as the "
     "measurement pipelines build it (map_keypoints_to_camera). options are "
@@ -4812,7 +4822,6 @@ PYBIND11_MODULE( _measurement, m )
     .def( "fit_segment", &dense_stereo_grid::fit_segment,
           py::arg( "disparity" ), py::arg( "left_head" ), py::arg( "left_tail" ) )
     .def( "intrinsics", &dense_stereo_grid::intrinsics );
-#endif
 }
 
 #endif // VIAME_MEASUREMENT_PYTHON_BINDINGS
