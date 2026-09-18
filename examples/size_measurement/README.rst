@@ -586,6 +586,18 @@ Measured detections carry ``length``, ``curved_length``, ``straight_length`` and
 ``curvature_ratio`` attributes, and the per-track aggregate is written as
 ``avg_length``. Frames whose transfer fails any check keep no length.
 
+A detection without drawn spine vertices gets its centerline from its mask
+(polygon): the skeleton path between head and tail, smoothed and resampled to
+``centerline_vertices`` points, is written back as ``head``, ``spine_NNN``,
+``tail`` keypoints on the left camera and transferred to the right, so DIVE
+shows the curve on both. Head and tail come from the annotation when present
+and from the mask's hull extremes otherwise. Stray mask fragments and holes
+are removed first. Boxes with neither mask nor endpoints stay unmeasured by
+this pipe; ``stereo_measure_current_annots_curved_fish.pipe`` (default-fish
+add-on, also needs fast-fdn-stereo) runs the RF-DETR segmentation and keypoint
+heads inside the measurer first, so boxes alone are enough there.
+``centerline_source`` restricts the choice to ``keypoints`` or ``mask``.
+
 Editable DIVE centerlines
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

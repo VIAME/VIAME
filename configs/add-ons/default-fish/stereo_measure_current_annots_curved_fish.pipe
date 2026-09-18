@@ -1,15 +1,13 @@
 # =============================================================================
-# Title: Curved measurement from annotations pipeline
+# Title: Curved fish measurement from boxes pipeline
 #
-# Description: Measures curved fish lengths using Fast-Foundation-Stereo dense
-# disparity. A detection with drawn spine keypoints is measured as drawn; one
-# with a mask (polygon) and head/tail gets its centerline from the mask
-# skeleton, written back as spine keypoints. Every vertex is transferred to
-# the right camera and, in bidirectional mode, back again through an
-# independent right-reference disparity before the lengths of both curves
-# must agree. Boxes without masks or head/tail are left unmeasured; see the
-# default-fish curved_fish variant to add both automatically.
-# Uses model: fast_foundation_stereo_l.onnx.
+# Description: Measures curved fish lengths from annotations on either camera
+# that may be boxes only. The RF-DETR segmentation and keypoint heads add a
+# mask and head/tail to each left box that lacks them, the centerline follows
+# the mask skeleton between head and tail and is written back as spine
+# keypoints, then every vertex is transferred through Fast-Foundation-Stereo
+# disparity and back. Needs the fast-fdn-stereo add-on. Uses models:
+# fish_rf_detr_seg_kp_1728.pth and fast_foundation_stereo_l.onnx.
 # Outputs to computed_tracks1.csv and computed_tracks2.csv.
 #
 # Requires Calibration: True
@@ -40,20 +38,33 @@ process measurer
   block stereo_disparity:fast_foundation_stereo_onnx
     relativepath model_path                    = models/fast_foundation_stereo_l.onnx
     relativepath config_path                   = models/fast_foundation_stereo_l.yaml
-    # 'auto' picks from the model extension, or force onnxruntime / tensorrt
     backend                                    = auto
     device                                     = auto
     output_mode                                = disparity
-    # Invalid where the point falls outside the right image
     remove_invisible                           = true
+  endblock
+
+  # Masks and head/tail for left boxes that do not already carry them.
+  refiner:type                                 = rf_detr
+
+  block refiner:rf_detr
+    :model_size                                large
+    :device                                    auto
+    relativepath weight =                      models/fish_rf_detr_seg_kp_1728.pth
+    :num_channels                              3
+    :segmentation                              true
+    :resolution                                960x1728
+    :add_masks                                 true
+    :add_keypoints                             true
+    :overwrite_existing                        false
+    :keypoint_vis_thresh                       0.5      # DIVE_PARAM["Keypoint Visibility Threshold", range_float, 0, 1, 0.05]
+    :keypoints_in_box                          true
   endblock
 
   :centerline_source                           auto     # DIVE_PARAM["Centerline Source (auto, keypoints, mask)", string]
   :centerline_vertices                         8        # DIVE_PARAM["Centerline Vertices", range_int, 4, 64]
   :centerline_smoothing                        2.0      # DIVE_PARAM["Skeleton Smoothing (px)", range_float, 0, 20, 0.5]
 
-  # bidirectional runs a second inference on the swapped, flipped pair so the
-  # right-reference disparity is independent of the forward one.
   :mode                                        bidirectional  # DIVE_PARAM["Transfer Mode (left, bidirectional)", string]
   :samples                                     32       # DIVE_PARAM["Centerline Samples", range_int, 4, 512]
   :smoothing                                   0.5      # DIVE_PARAM["Centerline Smoothing (px)", range_float, 0, 10, 0.1]
@@ -62,8 +73,6 @@ process measurer
   :max_length_disagreement                     0.1      # DIVE_PARAM["Max Left/Right Length Disagreement", range_float, 0.01, 1, 0.01]
   :max_depth_ratio                             2.0      # DIVE_PARAM["Max Depth Ratio Along Curve", range_float, 1, 10, 0.1]
 
-  # An annotated right centerline constrains the transfer and is kept as drawn;
-  # right detections without one receive the transferred vertices.
   :right_keypoint_policy                       keep_existing  # DIVE_PARAM["Existing Right Centerlines (keep_existing, refine_all)", string]
   :update_right_keypoints                      true     # DIVE_PARAM["Write Right Centerlines", bool]
   :create_synthetic_detections                 true     # DIVE_PARAM["Create Missing Right Detections", bool]
@@ -72,10 +81,6 @@ process measurer
   :length_aggregation_method                   median
   :record_stereo_method                        true
 
-  # The rectified frame keeps every source pixel (alpha -1): a rig whose
-  # baseline has a vertical component would otherwise be cropped to a sliver.
-  # Vertices sit on the silhouette, where disparity blends into the background,
-  # so sampling favours the nearer surface.
   :rectification_alpha                         -1.0
   :refine_keypoints_disparity_window           3        # DIVE_PARAM["Disparity Sample Radius", range_int, 0, 50]
   :refine_keypoints_disparity_percentile       0.9      # DIVE_PARAM["Disparity Percentile", range_float, 0, 1, 0.05]

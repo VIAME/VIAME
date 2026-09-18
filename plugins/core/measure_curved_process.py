@@ -6,6 +6,12 @@ Left centerline vertices are transferred to the right camera through a dense
 disparity backend on the rectified grid and, in bidirectional mode, checked on
 the way back through an independent right-reference disparity. The length is
 the sum of 3D segment lengths along the resampled centerline.
+
+A detection without spine vertices gets its centerline from the fish mask: the
+skeleton path between head and tail (hull extremes when those are missing),
+written back as head, spine_NNN, tail keypoints. An optional nested
+refine_detections algorithm supplies masks and endpoints to boxes that lack
+them.
 """
 import numpy as np
 
@@ -67,6 +73,76 @@ def transfer_vertices(vertices, forward, reverse, grid, consistency_px):
     matched = matched.copy()
     matched[~ok] = np.nan
     return matched
+
+
+def detection_mask(det, shape):
+    """Full-image boolean mask from the detection's mask crop (anchored at the
+    floored box origin, as refiners write it) or from its polygons."""
+    h, w = shape
+    out = np.zeros((h, w), dtype=bool)
+    mask = det.mask
+    if mask is not None:
+        crop = np.asarray(mask.asarray())
+        if crop.ndim == 3:
+            crop = crop[:, :, 0]
+        box = det.bounding_box
+        x0, y0 = int(np.floor(box.min_x())), int(np.floor(box.min_y()))
+        ch, cw = crop.shape
+        xs, ys = slice(max(x0, 0), min(x0 + cw, w)), slice(max(y0, 0), min(y0 + ch, h))
+        if xs.stop > xs.start and ys.stop > ys.start:
+            out[ys, xs] = crop[ys.start - y0:ys.stop - y0, xs.start - x0:xs.stop - x0] > 0
+    else:
+        import cv2
+        polygons = [np.asarray(p, dtype=float).reshape(-1, 2) for p in det.get_flattened_polygons()]
+        polygons = [np.rint(p).astype(np.int32) for p in polygons if len(p) >= 3]
+        if not polygons:
+            return None
+        raster = np.zeros((h, w), dtype=np.uint8)
+        cv2.fillPoly(raster, polygons, 1)
+        out = raster > 0
+    return out if out.any() else None
+
+
+def hull_endpoints(mask):
+    """Head and tail of a mask via add_keypoints_from_mask (hull extremes), as
+    the keypoint pipelines derive them; None when it cannot decide."""
+    from kwiver.vital.types import BoundingBoxD, DetectedObject, DetectedObjectSet, Image, ImageContainer
+    from viame.core.segmentation_utils import polygon_keypoint_algo
+    ys, xs = np.nonzero(mask)
+    x0, y0, x1, y1 = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
+    crop = np.ascontiguousarray(mask[y0:y1, x0:x1].astype(np.uint8) * 255)
+    det = DetectedObject(BoundingBoxD(float(x0), float(y0), float(x1), float(y1)), 1.0, None,
+                         ImageContainer(Image(crop)))
+    dummy = ImageContainer(Image(np.zeros((y1 - y0, x1 - x0, 3), dtype=np.uint8)))
+    refined = list(polygon_keypoint_algo().refine(dummy, DetectedObjectSet([det])))
+    if not refined:
+        return None
+    points = centerline_from_keypoints(refined[0].keypoints)
+    return None if points is None else points[[0, -1]]
+
+
+def clean_mask(mask):
+    """Largest connected component with holes filled: model masks carry stray
+    blobs and pinholes that would otherwise break the skeleton path."""
+    from scipy import ndimage
+    labels, count = ndimage.label(mask)
+    if count > 1:
+        sizes = ndimage.sum(mask, labels, range(1, count + 1))
+        mask = labels == (int(np.argmax(sizes)) + 1)
+    return ndimage.binary_fill_holes(mask)
+
+
+def mask_polyline(mask, endpoints, count, smoothing):
+    """Head-to-tail path along the mask skeleton, smoothed to `count` vertices."""
+    from viame.core.curved_measurement import mask_centerline, resample_curve
+    endpoints = np.asarray(endpoints, dtype=float).reshape(2, 2)
+    mask = clean_mask(np.asarray(mask, dtype=bool))
+    ys, xs = np.nonzero(mask)
+    margin = 2
+    x0, y0 = max(int(xs.min()) - margin, 0), max(int(ys.min()) - margin, 0)
+    x1, y1 = int(xs.max()) + margin + 1, int(ys.max()) + margin + 1
+    local = mask_centerline(mask[y0:y1, x0:x1], endpoints - [x0, y0]) + [x0, y0]
+    return resample_curve(local, count, smoothing)
 
 
 class CurvedStereoMeasurer:
@@ -201,6 +277,10 @@ CONFIG = (
     ('length_aggregation_method', 'median', 'none, average, average_iqr or median per track'),
     ('length_iqr_factor', '1.5', 'Outlier factor for average_iqr'),
     ('record_stereo_method', 'true', 'Add a :stereo_method= note to measured detections'),
+    ('centerline_source', 'auto', 'auto: drawn spine vertices, else the mask skeleton, else the '
+     'head/tail segment. keypoints: only annotated keypoints. mask: only mask skeletons.'),
+    ('centerline_vertices', '8', 'Vertices written for a mask-derived centerline (head to tail)'),
+    ('centerline_smoothing', '2.0', 'Spline tolerance in pixels when smoothing a mask skeleton'),
     ('rectification_alpha', '-1.0', 'OpenCV stereoRectify alpha; -1 keeps every source pixel'),
     ('refine_keypoints_disparity_window', '3', 'Neighbourhood radius sampled at each vertex'),
     ('refine_keypoints_disparity_percentile', '0.9', 'Percentile of the neighbourhood '
@@ -211,7 +291,9 @@ CONFIG = (
 class MeasureCurvedObjects(KwiverProcess):
     """Ports mirror compute_measurements: image1/2 and object_track_set1/2 in,
     object_track_set1/2 out. The stereo_disparity nested algorithm supplies
-    left-reference pixel disparity on rectified input."""
+    left-reference pixel disparity on rectified input; an optional refiner
+    nested algorithm (refine_detections) adds masks and head/tail to left
+    detections that lack them before the centerline is derived."""
 
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
@@ -241,6 +323,12 @@ class MeasureCurvedObjects(KwiverProcess):
             raise RuntimeError('stereo_disparity:type must name a dense disparity algorithm')
         if not ComputeStereoDepthMap.check_nested_algo_configuration('stereo_disparity', cfg):
             raise RuntimeError('Invalid stereo_disparity configuration')
+        self._refiner = None
+        if cfg.has_value('refiner:type') and cfg.get_value('refiner:type'):
+            from kwiver.vital.algo import RefineDetections
+            self._refiner = RefineDetections.set_nested_algo_configuration('refiner', cfg)
+            if self._refiner is None:
+                raise RuntimeError('refiner:type names an unknown refine_detections algorithm')
         calibration = self.config_value('calibration_file')
         if not calibration:
             raise RuntimeError('calibration_file is required')
@@ -268,6 +356,13 @@ class MeasureCurvedObjects(KwiverProcess):
         self._aggregation = method
         self._iqr_factor = float(self.config_value('length_iqr_factor'))
         self._record_method = _bool(self.config_value('record_stereo_method'))
+        self._source = self.config_value('centerline_source')
+        if self._source not in ('auto', 'keypoints', 'mask'):
+            raise RuntimeError('centerline_source must be auto, keypoints or mask')
+        self._vertices = int(self.config_value('centerline_vertices'))
+        self._smoothing = float(self.config_value('centerline_smoothing'))
+        if self._vertices < 4 or self._smoothing < 0:
+            raise RuntimeError('centerline_vertices must be >= 4 and centerline_smoothing >= 0')
         self._tracks = ({}, {})
         self._lengths = {}
         self._finalized = False
@@ -288,9 +383,9 @@ class MeasureCurvedObjects(KwiverProcess):
         frame = timestamp.get_frame() if timestamp.has_valid_frame() else -1
 
         states = [self._states_at(s, frame) for s in sets]
-        if frame >= 0 and any(self._needs_measurement(st) for st in states[0].values()):
+        if frame >= 0 and any(self._could_measure(st.detection()) for st in states[0].values()):
             self._measurer.set_frame(*[im.image().asarray() for im in images])
-            self._measure_frame(frame, states)
+            self._measure_frame(frame, states, images[0])
         for camera, frame_states in enumerate(states):
             for tid, state in frame_states.items():
                 self._append(camera, tid, state.frame_id, state.time_usec, state.detection())
@@ -318,18 +413,73 @@ class MeasureCurvedObjects(KwiverProcess):
         return states
 
     @staticmethod
-    def _needs_measurement(state):
-        return centerline_from_keypoints(state.detection().keypoints) is not None
+    def _has_shape(det):
+        return det.mask is not None or bool(det.get_flattened_polygons())
 
-    def _measure_frame(self, frame, states):
+    def _could_measure(self, det):
+        if self._refiner is not None:
+            return True
+        if self._source != 'mask' and centerline_from_keypoints(det.keypoints) is not None:
+            return True
+        return self._source != 'keypoints' and self._has_shape(det)
+
+    def _wants_refinement(self, det):
+        curve = centerline_from_keypoints(det.keypoints)
+        if curve is not None and len(curve) > 2:
+            return False
+        return curve is None or not self._has_shape(det)
+
+    def _refine(self, frame, left_states, image):
+        """Run the nested refiner over the left detections still missing a mask
+        or endpoints; a refiner that returns new objects replaces the states."""
+        from kwiver.vital.types import DetectedObjectSet, ObjectTrackState
+        todo = [(tid, st) for tid, st in left_states.items() if self._wants_refinement(st.detection())]
+        if not todo:
+            return
+        try:
+            refined = list(self._refiner.refine(
+                image, DetectedObjectSet([st.detection() for _, st in todo])))
+        except Exception as error:
+            self._log('frame %d: refiner failed: %s' % (frame, error))
+            return
+        if len(refined) != len(todo):
+            return
+        for (tid, state), det in zip(todo, refined):
+            if det is not state.detection():
+                left_states[tid] = ObjectTrackState(state.frame_id, state.time_usec, det)
+
+    def _left_centerline(self, det, shape):
+        """Vertices to measure, deriving and writing them from the mask when
+        the detection has no drawn spine. None when nothing usable exists."""
+        curve = centerline_from_keypoints(det.keypoints)
+        if curve is not None and (len(curve) > 2 or self._source == 'keypoints'):
+            return curve
+        if self._source != 'keypoints':
+            mask = detection_mask(det, shape)
+            if mask is not None:
+                try:
+                    endpoints = curve if curve is not None else hull_endpoints(mask)
+                    if endpoints is not None:
+                        path = mask_polyline(mask, endpoints, self._vertices, self._smoothing)
+                        _set_centerline(det, path)
+                        det.add_note(':centerline_source=mask')
+                        return path
+                except (ValueError, ImportError) as error:
+                    self._log('mask centerline failed: %s' % error)
+        return None if self._source == 'mask' else curve
+
+    def _measure_frame(self, frame, states, left_image):
         from kwiver.vital.types import (
             BoundingBoxD, DetectedObject, ObjectTrackState)
         left_states, right_states = states
+        if self._refiner is not None:
+            self._refine(frame, left_states, left_image)
+        shape = left_image.image().asarray().shape[:2]
         method = ('curved_' + ('bidirectional' if self._measurer.bidirectional else 'left')
                   if self._record_method else '')
         for tid, state in left_states.items():
             left_det = state.detection()
-            left_curve = centerline_from_keypoints(left_det.keypoints)
+            left_curve = self._left_centerline(left_det, shape)
             if left_curve is None:
                 continue
             right_state = right_states.get(tid)

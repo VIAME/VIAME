@@ -128,3 +128,49 @@ def test_inconsistent_reverse_disparity_withholds_length(module):
     measurer.set_frame(np.zeros((200, 200, 3), np.uint8), np.zeros((200, 200, 3), np.uint8))
     result, mapped = measurer.measure([[80, 80], [140, 80]])
     assert not result['success'] and mapped is None
+
+
+class FakeBox:
+    def __init__(self, x0, y0, x1, y1): self.b = (x0, y0, x1, y1)
+    def min_x(self): return self.b[0]
+    def min_y(self): return self.b[1]
+    def max_x(self): return self.b[2]
+    def max_y(self): return self.b[3]
+
+
+class FakeDet:
+    def __init__(self, box, mask=None, polygons=()):
+        self.bounding_box, self.polygons = box, list(polygons)
+        self.mask = None if mask is None else Mock(asarray=lambda: mask)
+    def get_flattened_polygons(self): return self.polygons
+
+
+def test_detection_mask_from_crop_and_polygons(module):
+    crop = np.zeros((4, 6), np.uint8); crop[1:3, 2:5] = 1
+    full = module.detection_mask(FakeDet(FakeBox(10.4, 20.6, 16, 24), crop), (30, 40))
+    assert full.sum() == 6 and full[21:23, 12:15].all()
+    poly = module.detection_mask(FakeDet(FakeBox(0, 0, 1, 1), polygons=[[5, 5, 15, 5, 15, 9, 5, 9]]), (20, 20))
+    assert poly[7, 10] and not poly[12, 10]
+    assert module.detection_mask(FakeDet(FakeBox(0, 0, 1, 1)), (20, 20)) is None
+
+
+def test_mask_polyline_follows_the_skeleton_between_endpoints(module):
+    pytest.importorskip('skimage')
+    mask = np.zeros((60, 120), bool)
+    mask[25:35, 10:110] = True
+    path = module.mask_polyline(mask, [[12, 30], [108, 30]], 8, 2.0)
+    assert path.shape == (8, 2)
+    np.testing.assert_allclose(path[0], [12, 30]); np.testing.assert_allclose(path[-1], [108, 30])
+    assert np.all(np.diff(path[:, 0]) > 0) and np.abs(path[:, 1] - 30).max() < 2
+
+
+def test_mask_polyline_ignores_stray_blobs_and_holes(module):
+    pytest.importorskip('skimage')
+    mask = np.zeros((60, 120), bool)
+    mask[25:35, 10:110] = True
+    mask[29:31, 50:52] = False
+    mask[10:13, 112:118] = True
+    path = module.mask_polyline(mask, [[115, 11], [12, 30]], 6, 2.0)
+    np.testing.assert_allclose(path[0], [115, 11]); np.testing.assert_allclose(path[-1], [12, 30])
+    # The off-mask head pulls the first interior vertex up; the rest ride the bar.
+    assert 11 < path[1, 1] < 30 and np.abs(path[2:-1, 1] - 30).max() < 2
