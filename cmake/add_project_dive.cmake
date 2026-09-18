@@ -137,63 +137,6 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     file( WRITE "${DIVE_BUILD_MODE_FILE}" "SOURCE" )
   endif()
 
-  # Detect if DIVE submodule hash has changed and clean old build if so
-  set( DIVE_HASH_FILE "${VIAME_BUILD_PREFIX}/src/dive-hash.txt" )
-  set( DIVE_CURRENT_HASH "" )
-
-  if( EXISTS "${VIAME_PACKAGES_DIR}/dive/.git" )
-    # Add safe.directory to avoid "dubious ownership" errors in Docker/CI
-    execute_process(
-      COMMAND git config --global --add safe.directory "${VIAME_PACKAGES_DIR}/dive"
-      WORKING_DIRECTORY "${VIAME_PACKAGES_DIR}/dive"
-      ERROR_QUIET
-    )
-    execute_process(
-      COMMAND git rev-parse HEAD
-      WORKING_DIRECTORY "${VIAME_PACKAGES_DIR}/dive"
-      OUTPUT_VARIABLE DIVE_CURRENT_HASH
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      RESULT_VARIABLE DIVE_HASH_RESULT
-    )
-  endif()
-
-  if( DIVE_CURRENT_HASH )
-    set( DIVE_PREVIOUS_HASH "" )
-    if( EXISTS "${DIVE_HASH_FILE}" )
-      file( READ "${DIVE_HASH_FILE}" DIVE_PREVIOUS_HASH )
-      string( STRIP "${DIVE_PREVIOUS_HASH}" DIVE_PREVIOUS_HASH )
-    endif()
-
-    if( NOT "${DIVE_CURRENT_HASH}" STREQUAL "${DIVE_PREVIOUS_HASH}" )
-      message( STATUS "DIVE hash changed from ${DIVE_PREVIOUS_HASH} to ${DIVE_CURRENT_HASH}" )
-      message( STATUS "Cleaning previous DIVE build and install directories..." )
-
-      # Clean the electron build output
-      if( EXISTS "${DIVE_CLIENT_DIR}/dist_electron" )
-        file( REMOVE_RECURSE "${DIVE_CLIENT_DIR}/dist_electron" )
-      endif()
-
-      # Clean node_modules to force fresh install
-      if( EXISTS "${DIVE_CLIENT_DIR}/node_modules" )
-        file( REMOVE_RECURSE "${DIVE_CLIENT_DIR}/node_modules" )
-      endif()
-
-      # Clean the install directory
-      if( EXISTS "${VIAME_DIVE_INSTALL_DIR}" )
-        file( REMOVE_RECURSE "${VIAME_DIVE_INSTALL_DIR}" )
-      endif()
-
-      # Clean ExternalProject stamps to force rebuild
-      file( GLOB DIVE_STAMP_FILES "${VIAME_BUILD_PREFIX}/src/dive-stamp/*" )
-      if( DIVE_STAMP_FILES )
-        file( REMOVE ${DIVE_STAMP_FILES} )
-      endif()
-
-      # Write new hash
-      file( WRITE "${DIVE_HASH_FILE}" "${DIVE_CURRENT_HASH}" )
-    endif()
-  endif()
-
   if( WIN32 )
     set( DIVE_ELECTRON_OUTPUT_DIR ${DIVE_CLIENT_DIR}/dist_electron/win-unpacked )
   else()
@@ -243,6 +186,7 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   # skipped.
   set( DIVE_BUILD_INNER_CMD ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} run build:electron:dir )
   string( REPLACE ";" "----" DIVE_BUILD_INNER_CMD_STR "${DIVE_BUILD_INNER_CMD}" )
+  string( REPLACE ";" "----" DIVE_INSTALL_CMD_STR "${DIVE_INSTALL_CMD}" )
 
   ExternalProject_Add( dive
     PREFIX ${VIAME_BUILD_PREFIX}
@@ -250,13 +194,19 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     BUILD_IN_SOURCE 1
     USES_TERMINAL_BUILD 1
     CONFIGURE_COMMAND ${DIVE_INSTALL_CMD}
+    # The script rebuilds and reinstalls only when client sources changed, so
+    # a plain `make dive` picks up edits without paying for a build otherwise.
+    BUILD_ALWAYS 1
     BUILD_COMMAND ${CMAKE_COMMAND}
       -DDIVE_BUILD_CMD:STRING=${DIVE_BUILD_INNER_CMD_STR}
+      -DDIVE_NPM_INSTALL_CMD:STRING=${DIVE_INSTALL_CMD_STR}
       -DDIVE_ARTIFACT:PATH=${DIVE_BUILD_ARTIFACT}
+      -DDIVE_SOURCE_DIR:PATH=${DIVE_CLIENT_DIR}
+      -DDIVE_OUTPUT_DIR:PATH=${DIVE_ELECTRON_OUTPUT_DIR}
+      -DDIVE_INSTALL_DIR:PATH=${VIAME_DIVE_INSTALL_DIR}
+      -DDIVE_STAMP:PATH=${VIAME_BUILD_PREFIX}/src/dive-stamp/dive-sources
       -P ${CMAKE_CURRENT_LIST_DIR}/custom_build_dive.cmake
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${DIVE_ELECTRON_OUTPUT_DIR}
-      ${VIAME_DIVE_INSTALL_DIR}
+    INSTALL_COMMAND ""
     INSTALL_DIR ${VIAME_DIVE_INSTALL_DIR}
   )
 
