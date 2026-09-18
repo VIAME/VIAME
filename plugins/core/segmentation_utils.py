@@ -656,3 +656,86 @@ def polygon_to_keypoints(polygon) -> Optional[Tuple[List[float], List[float]]]:
         return None
     head, tail = kps['head'].value, kps['tail'].value
     return ([float(head[0]), float(head[1])], [float(tail[0]), float(tail[1])])
+
+
+def polyline_length(line) -> float:
+    pts = np.asarray(line, dtype=np.float64)
+    if pts.ndim != 2 or pts.shape[0] < 2:
+        return 0.0
+    return float(np.linalg.norm(np.diff(pts, axis=0), axis=1).sum())
+
+
+def mask_to_line_scale(bounds, line) -> Optional[float]:
+    """A mask's bounds diagonal relative to the length of the head/tail line
+    it was prompted from; the line spans the object, so this sits near 1."""
+    length = polyline_length(line)
+    if length <= 0 or bounds is None:
+        return None
+    return float(np.hypot(bounds[2] - bounds[0], bounds[3] - bounds[1])) / length
+
+
+def mask_oversized_for_line(bounds, line, max_ratio: float = 1.75) -> bool:
+    """True when the model latched onto something far larger than the line."""
+    scale = mask_to_line_scale(bounds, line)
+    return scale is not None and scale > max_ratio
+
+
+def mask_undersized_for_line(bounds, line, min_ratio: float = 0.5) -> bool:
+    scale = mask_to_line_scale(bounds, line)
+    return scale is not None and scale < min_ratio
+
+
+def line_background_points(
+    line, image_size: Tuple[int, int],
+    end_ratio: float = 0.35, side_ratio: float = 0.6,
+) -> List[List[float]]:
+    """Background prompts ringing a head/tail line: past each end and off to
+    both sides, far enough out to clear a deep-bodied object."""
+    pts = np.asarray(line, dtype=np.float64)
+    length = polyline_length(pts)
+    chord = pts[-1] - pts[0]
+    norm = float(np.linalg.norm(chord))
+    if length <= 0 or norm <= 0:
+        return []
+    axis = chord / norm
+    normal = np.array([-axis[1], axis[0]])
+    ring = [pts[0] - axis * end_ratio * length, pts[-1] + axis * end_ratio * length]
+    for fraction in (0.25, 0.5, 0.75):
+        base = pts[0] + chord * fraction
+        ring.append(base + normal * side_ratio * length)
+        ring.append(base - normal * side_ratio * length)
+    width, height = image_size
+    return [
+        [float(p[0]), float(p[1])] for p in ring
+        if 0 <= p[0] < width and 0 <= p[1] < height
+    ]
+
+
+def clip_mask_to_line(
+    mask: np.ndarray, offset: Tuple[float, float], line,
+    half_width_ratio: float = 0.3,
+) -> Optional[Tuple[np.ndarray, Tuple[int, int]]]:
+    """Keep only the part of a cropped mask (top-left at offset, image
+    coordinates) within half_width_ratio * line length of the line. Returns
+    the largest surviving piece, re-cropped, with its new offset, or None
+    when nothing is left."""
+    import cv2
+
+    length = polyline_length(line)
+    if length <= 0 or mask.size == 0:
+        return None
+    binary = (mask[:, :, 0] if mask.ndim == 3 else mask) > 0
+    local = np.round(np.asarray(line, dtype=np.float64) - np.asarray(offset)).astype(np.int32)
+    region = np.zeros(binary.shape, dtype=np.uint8)
+    thickness = max(1, int(round(2 * half_width_ratio * length)))
+    cv2.polylines(region, [local.reshape(-1, 1, 2)], False, 1, thickness=thickness)
+    clipped = (binary & (region > 0)).astype(np.uint8)
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(clipped, connectivity=8)
+    if count < 2:
+        return None
+    # The band can cut a sprawling mask into scraps; only the largest is the object.
+    clipped = labels == 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    ys, xs = np.where(clipped)
+    x0, y0, x1, y1 = xs.min(), ys.min(), xs.max(), ys.max()
+    new_offset = (int(round(offset[0])) + int(x0), int(round(offset[1])) + int(y0))
+    return clipped[y0:y1 + 1, x0:x1 + 1].astype(np.uint8), new_offset

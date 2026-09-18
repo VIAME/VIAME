@@ -357,6 +357,7 @@ class InteractiveSegmentationService:
         points = request.get("points", [])
         point_labels = request.get("point_labels", [])
         frame_time = request.get("frame_time")
+        line = request.get("line")
 
         if not image_path:
             raise ValueError("image_path is required")
@@ -383,6 +384,9 @@ class InteractiveSegmentationService:
                 vital_points,
                 vital_labels
             )
+            if line and len(line) >= 2:
+                detected_objects = self._fit_to_line(
+                    detected_objects, line, vital_points, vital_labels)
 
             # Convert results
             results = self._detections_to_response(detected_objects)
@@ -399,6 +403,65 @@ class InteractiveSegmentationService:
                 "bounds": None,
                 "score": 0.0,
             }
+
+    def _fit_to_line(self, detected_objects, line, vital_points, vital_labels):
+        """Keep a mask prompted from a head/tail line in scale with that line:
+        when it comes out far larger, retry with background prompts ringing
+        the line, then clip whatever remains to a band around the line."""
+        from kwiver.vital.types import (
+            Point2d, DetectedObject, DetectedObjectSet, BoundingBoxD,
+            ImageContainer, Image)
+        from viame.core.segmentation_utils import (
+            mask_oversized_for_line, mask_undersized_for_line,
+            line_background_points, clip_mask_to_line)
+
+        def first(objects):
+            return next(iter(objects), None) if objects is not None else None
+
+        def oversized(det):
+            box = det.bounding_box
+            return mask_oversized_for_line(
+                [box.min_x(), box.min_y(), box.max_x(), box.max_y()], line)
+
+        det = first(detected_objects)
+        if det is None or not oversized(det):
+            return detected_objects
+
+        image = self._current_image_container
+        background = line_background_points(line, (image.width(), image.height()))
+        if background:
+            self._log("Mask out of scale with its line; retrying with background prompts")
+            retried = self._segment_algo.segment(
+                image,
+                list(vital_points) + [Point2d(x, y) for x, y in background],
+                list(vital_labels) + [0] * len(background))
+            retry = first(retried)
+            if retry is not None:
+                if not oversized(retry):
+                    return retried
+                det = retry
+
+        self._log("Mask still out of scale with its line; clipping to the line")
+        result = DetectedObjectSet()
+        if det.mask is None:
+            return result
+        box = det.bounding_box
+        clipped = clip_mask_to_line(
+            det.mask.image().asarray(), (box.min_x(), box.min_y()), line)
+        if clipped is None:
+            return result
+        mask, (x0, y0) = clipped
+        bounds = [x0, y0, x0 + mask.shape[1] - 1, y0 + mask.shape[0] - 1]
+        if mask_undersized_for_line(bounds, line):
+            # Only a scrap of the mask lay along the line: report no mask so
+            # the caller keeps its own line-derived box.
+            return result
+        bbox = BoundingBoxD(*bounds)
+        fitted = (DetectedObject(bbox, det.confidence, det.type)
+                  if det.type is not None else DetectedObject(bbox, det.confidence))
+        fitted.mask = ImageContainer(Image(np.ascontiguousarray(mask)))
+        result.add(fitted)
+        return result
 
     def handle_polygon_keypoints(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Head/tail keypoints for a polygon, derived the way the keypoint
