@@ -41,6 +41,11 @@ class RFDETRRefinerConfig(scfg.DataConfig):
         'false, frames where every detection is already complete skip the model.'))
     keypoint_vis_thresh = scfg.Value(0.5, help=(
         'Minimum keypoint visibility (sigmoid) to attach a keypoint'))
+    keypoints_in_box = scfg.Value(True, help=(
+        'Express each keypoint relative to the box the model predicts for its '
+        'query and map it into the input box, then clamp it to the box. The '
+        'head is trained against the model\'s own box, so a keypoint can '
+        'otherwise land outside the box it was asked about.'))
     apply_query_delta = scfg.Value(False, help=(
         'Apply the learned per-slot reference-point delta on top of the input '
         'boxes. The model applies it to first-stage proposals; input boxes are '
@@ -88,6 +93,7 @@ class RFDETRRefiner(RefineDetections):
         self._add_keypoints = parse_bool(self._kwiver_config['add_keypoints'])
         self._overwrite = parse_bool(self._kwiver_config['overwrite_existing'])
         self._vis_thresh = float(self._kwiver_config['keypoint_vis_thresh'])
+        self._keypoints_in_box = parse_bool(self._kwiver_config['keypoints_in_box'])
         self._apply_delta = parse_bool(self._kwiver_config['apply_query_delta'])
         self._fill = parse_bool(self._kwiver_config['fill_with_proposals'])
 
@@ -300,13 +306,36 @@ class RFDETRRefiner(RefineDetections):
 
             if self._add_keypoints:
                 kp = net._compute_keypoints(hs, references)[-1][0, :n]
-                xy = kp[..., :2] * torch.tensor([img_w, img_h], device=device, dtype=kp.dtype)
+                xy = kp[..., :2]
+                if self._keypoints_in_box:
+                    xy = self._keypoints_into_input_box(
+                        net, hs[-1][0, :n], references[-1][0, :n], xy, ref_in[start:start + n])
+                xy = xy * torch.tensor([img_w, img_h], device=device, dtype=kp.dtype)
                 vis = kp[..., 2:3].sigmoid()
                 all_kps.append(torch.cat([xy, vis], -1).cpu().numpy())
 
         masks_out = np.concatenate(all_masks, 0) if all_masks else None
         kps_out = np.concatenate(all_kps, 0) if all_kps else None
         return masks_out, kps_out
+
+    @staticmethod
+    def _keypoints_into_input_box(net, hs, ref, kp_xy, box_in):
+        """Keypoints in the frame of the model's predicted box, carried into
+        the input box (all normalized cxcywh / xy). Clamped to the input box."""
+        import torch
+        delta = net.bbox_embed(hs)
+        if net.bbox_reparam:
+            pred_cxcy = delta[..., :2] * ref[..., 2:] + ref[..., :2]
+            pred_wh = delta[..., 2:].exp() * ref[..., 2:]
+        else:
+            pred = (delta + ref).sigmoid()
+            pred_cxcy, pred_wh = pred[..., :2], pred[..., 2:]
+        pred_wh = pred_wh.clamp_min(1e-6)
+        rel = (kp_xy - pred_cxcy.unsqueeze(-2)) / pred_wh.unsqueeze(-2)
+        xy = box_in[..., :2].unsqueeze(-2) + rel * box_in[..., 2:].unsqueeze(-2)
+        lo = (box_in[..., :2] - box_in[..., 2:] / 2).unsqueeze(-2)
+        hi = (box_in[..., :2] + box_in[..., 2:] / 2).unsqueeze(-2)
+        return torch.max(torch.min(xy, hi), lo)
 
     @staticmethod
     def _native_proposals(tr, memory, mask_flatten, spatial_shapes_hw, gen_proposals):

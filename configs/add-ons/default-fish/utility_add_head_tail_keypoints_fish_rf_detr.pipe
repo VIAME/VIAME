@@ -49,6 +49,7 @@ process add_head_tail
     :add_keypoints                             true
     :overwrite_existing                        false
     :keypoint_vis_thresh                       0.5
+    :keypoints_in_box                          true
   endblock
 
 process detector_writer
