@@ -43,6 +43,5 @@ config measurer
     :use_wls_filter                            true
     # compute_measurements supplies rectified images and expects pixel disparity.
     :compute_depth                             false
-    :output_rectified                          true
     :output_format                             float32
   endblock
