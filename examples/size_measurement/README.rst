@@ -572,7 +572,7 @@ in offline ``left`` mode.
 Batch pipeline
 ~~~~~~~~~~~~~~
 
-``stereo_measure_current_annots_curved_generic.pipe`` (fast-fdn-stereo add-on) measures
+``stereo_measure_current_annots_spline_generic.pipe`` (fast-fdn-stereo add-on) measures
 every annotated centerline in a stereo dataset with the
 ``compute_curved_measurements`` process. Each left vertex is transferred to the
 right camera through Fast-Foundation-Stereo disparity on the rectified grid; in
@@ -593,7 +593,7 @@ A detection without drawn spine vertices gets its centerline from its mask
 shows the curve on both. Head and tail come from the annotation when present
 and from the mask's hull extremes otherwise. Stray mask fragments and holes
 are removed first. Boxes with neither mask nor endpoints stay unmeasured by
-this pipe; ``stereo_measure_current_annots_curved_fish.pipe`` (default-fish
+this pipe; ``stereo_measure_current_annots_spline_fish.pipe`` (default-fish
 add-on, also needs fast-fdn-stereo) runs the RF-DETR segmentation and keypoint
 heads inside the measurer first, so boxes alone are enough there.
 ``centerline_source`` restricts the choice to ``keypoints`` or ``mask``.
