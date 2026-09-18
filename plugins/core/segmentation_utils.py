@@ -666,15 +666,15 @@ def polyline_length(line) -> float:
 
 
 def mask_to_line_scale(bounds, line) -> Optional[float]:
-    """A mask's bounds diagonal relative to the length of the head/tail line
+    """A mask's longer box side relative to the length of the head/tail line
     it was prompted from; the line spans the object, so this sits near 1."""
     length = polyline_length(line)
     if length <= 0 or bounds is None:
         return None
-    return float(np.hypot(bounds[2] - bounds[0], bounds[3] - bounds[1])) / length
+    return float(max(bounds[2] - bounds[0], bounds[3] - bounds[1])) / length
 
 
-def mask_oversized_for_line(bounds, line, max_ratio: float = 1.75) -> bool:
+def mask_oversized_for_line(bounds, line, max_ratio: float = 2.5) -> bool:
     """True when the model latched onto something far larger than the line."""
     scale = mask_to_line_scale(bounds, line)
     return scale is not None and scale > max_ratio

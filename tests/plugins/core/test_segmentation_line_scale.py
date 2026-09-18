@@ -12,8 +12,10 @@ spec.loader.exec_module(utils)
 LINE = [[100, 100], [200, 100]]
 
 
-def test_oversized_compares_the_bounds_diagonal_to_the_line():
+def test_oversized_compares_the_longer_box_side_to_the_line():
     assert not utils.mask_oversized_for_line([95, 80, 205, 120], LINE)
+    assert not utils.mask_oversized_for_line([0, 0, 240, 240], LINE)
+    assert utils.mask_oversized_for_line([0, 0, 100, 260], LINE)
     assert utils.mask_oversized_for_line([0, 0, 400, 300], LINE)
     assert not utils.mask_oversized_for_line([0, 0, 400, 300], [[5, 5]])
     assert utils.mask_undersized_for_line([324, 591, 328, 594], [[300, 600], [340, 600]])
