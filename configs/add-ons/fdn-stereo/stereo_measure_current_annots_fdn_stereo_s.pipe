@@ -45,9 +45,25 @@ process measurer
 
   # Snap right keypoints to disparity-implied matches of their left
   # counterparts; falls back to the tracker keypoint where disparity is
-  # invalid.
+  # invalid. The rectified frame keeps every source pixel (alpha -1): a rig
+  # whose baseline has a vertical component would otherwise be cropped to a
+  # sliver. Keypoints sit on the animal's silhouette, where disparity blends
+  # into the background, so sampling favours the nearer surface and the
+  # endpoints come from a robust fit of disparity along the whole segment.
   :refine_keypoints_with_disparity             true
-  :refine_keypoints_disparity_window           7
+  # Pair left/right tracks per frame so refinement sees them; ids alone
+  # never pair (independent trackers reuse ids by coincidence).
+  :detection_pairing_method                    epipolar_iou,keypoint_projection
+  :detection_pairing_threshold                 25.0
+  :accumulate_track_pairings                   true
+  :rectification_alpha                         -1.0
+  :refine_keypoints_disparity_window           3        # DIVE_PARAM["Disparity Sample Radius", range_int, 0, 50]
+  :refine_keypoints_disparity_percentile       0.9      # DIVE_PARAM["Disparity Percentile", range_float, 0, 1, 0.05]
+  :refine_disparity_segment                    true     # DIVE_PARAM["Robust Segment Fit", bool]
+  :disparity_keypoint_policy                   keep_existing  # DIVE_PARAM["Existing Right Keypoints (keep_existing, refine_unless_user, refine_all)", string]
+  :disparity_segment_samples                   11       # DIVE_PARAM["Segment Samples", range_int, 3, 101]
+  :disparity_segment_max_outliers              3        # DIVE_PARAM["Max Invalid or Outlier Samples", range_int, 0, 49]
+  :disparity_segment_max_error                 10.0     # DIVE_PARAM["Max Disparity Residual (px)", range_float, 0.1, 15, 0.1]
 
   # Feature detector configuration (for feature-based methods if needed)
   # Options: ocv_BRISK, ocv_FAST, ocv_GFTT, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
