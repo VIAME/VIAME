@@ -742,6 +742,9 @@ public:
   /// Rectify an image using precomputed maps
   cv::Mat rectify_image( const cv::Mat& image, bool is_right_camera ) const;
 
+  /// 3x4 projection of a rectified camera (empty before rectification)
+  cv::Mat rectified_projection( bool is_right_camera ) const;
+
   /// Find corresponding point in right image using template matching
   /// Returns true if match found, false otherwise
   /// If disparity_map is provided and use_disparity_hint is enabled,

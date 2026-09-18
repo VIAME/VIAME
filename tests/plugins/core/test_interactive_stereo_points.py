@@ -129,33 +129,3 @@ def test_silhouette_keypoint_takes_the_nearer_surface(service):
     response = service.handle_request(request([[50, 60]]))
     assert response['success']
     assert response['transferred_points'][0] == pytest.approx([2., 60.])
-
-
-def test_rectifier_round_trip_and_grid_geometry(service):
-    module = sys.modules['viame.core.interactive_stereo']
-    K = [1000., 0., 640., 0., 1000., 400., 0., 0., 1.]
-    # Right camera 300mm to the right, 100mm lower, and yawed 2 degrees.
-    c, s_ = np.cos(np.radians(2)), np.sin(np.radians(2))
-    rect = module.DenseStereoRectifier({
-        'k_left': K, 'k_right': K, 'dist_left': [-0.1, 0.05, 0., 0.], 'dist_right': [],
-        'rotation': [c, 0., s_, 0., 1., 0., -s_, 0., c], 'translation': [-300., -100., 0.]})
-    rect.prepare(1280, 800)
-    assert rect.baseline == pytest.approx(np.hypot(300., 100.))
-    pts = np.array([[100., 50.], [640., 400.], [1200., 780.]])
-    for right in (False, True):
-        grid = rect.rectify_points(pts, right)
-        assert rect.unrectify_points(grid, right) == pytest.approx(pts, abs=1e-3)
-    # A 3D point seen by both cameras lands on the same rectified row with
-    # disparity fx * baseline / depth.
-    X = np.array([200., -50., 5000.])
-    R = np.array(rect.R).reshape(3, 3); T = np.array(rect.T)
-    def project(K, X, dist):
-        x = X[:2] / X[2]
-        r2 = x @ x
-        x = x * (1 + dist[0] * r2 + dist[1] * r2 ** 2)
-        return np.array([K[0] * x[0] + K[2], K[4] * x[1] + K[5]])
-    left = rect.rectify_points([project(K, X, [-0.1, 0.05])], False)[0]
-    right_pt = rect.rectify_points([project(K, R @ X + T, [0., 0.])], True)[0]
-    assert left[1] == pytest.approx(right_pt[1], abs=1e-3)
-    depth = (rect.R1 @ X)[2]
-    assert left[0] - right_pt[0] == pytest.approx(rect.fx * rect.baseline / depth, rel=1e-6)

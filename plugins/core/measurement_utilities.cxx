@@ -3317,6 +3317,18 @@ map_keypoints_to_camera
 // -----------------------------------------------------------------------------
 cv::Mat
 map_keypoints_to_camera
+::rectified_projection( bool is_right_camera ) const
+{
+  if( !m_rectification_computed )
+  {
+    return cv::Mat();
+  }
+  return ( is_right_camera ? m_P2 : m_P1 ).clone();
+}
+
+// -----------------------------------------------------------------------------
+cv::Mat
+map_keypoints_to_camera
 ::rectify_image( const cv::Mat& image, bool is_right_camera ) const
 {
   if( !m_rectification_computed )
@@ -4287,7 +4299,10 @@ get_valid_methods()
 #include <vital/types/rotation.h>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <cstring>
 #include <pybind11/stl.h>
+#include <vital/types/image_container.h>
 
 #include <stdexcept>
 
@@ -4485,6 +4500,182 @@ load_stereo_calibration( std::string const& path )
 } // namespace <anonymous>
 
 // ----------------------------------------------------------------------------
+namespace {
+
+#ifdef VIAME_ENABLE_OPENCV
+
+// The rectified disparity grid of a stereo rig, as map_keypoints_to_camera
+// builds it for the measurement pipelines, for the interactive service.
+class dense_stereo_grid
+{
+public:
+  dense_stereo_grid( std::string const& calibration_path, int width, int height,
+                     py::dict const& options )
+  {
+    m_rig = viame::read_stereo_rig( calibration_path );
+    if( !m_rig )
+    {
+      throw std::runtime_error( "Could not read stereo calibration from: " + calibration_path );
+    }
+    viame::core::map_keypoints_to_camera_settings settings;
+    auto config = settings.get_configuration();
+    for( auto const& item : options )
+    {
+      config->set_value( py::str( item.first ).cast< std::string >(),
+                         py::str( item.second ).cast< std::string >() );
+    }
+    // Segment mode is also what makes the sampler address 16/32-bit
+    // disparity pixels correctly; the legacy byte stride is kept only for
+    // pipelines that predate it.
+    config->set_value( "refine_disparity_segment", true );
+    settings.set_configuration( config );
+    m_window = settings.refine_keypoints_disparity_window;
+    m_utilities.configure( settings );
+    m_utilities.compute_rectification_maps( left(), right(), cv::Size( width, height ) );
+  }
+
+  py::array rectify_image( py::array_t< uint8_t, py::array::c_style > image, bool is_right ) const
+  {
+    auto const buffer = image.request();
+    if( buffer.ndim < 2 || buffer.ndim > 3 )
+    {
+      throw std::invalid_argument( "image must be HxW or HxWxC uint8" );
+    }
+    int const channels = buffer.ndim == 3 ? static_cast< int >( buffer.shape[2] ) : 1;
+    cv::Mat const source( static_cast< int >( buffer.shape[0] ), static_cast< int >( buffer.shape[1] ),
+                          CV_8UC( channels ), buffer.ptr );
+    cv::Mat const rectified = m_utilities.rectify_image( source, is_right );
+    std::vector< ssize_t > shape{ rectified.rows, rectified.cols };
+    if( buffer.ndim == 3 )
+    {
+      shape.push_back( channels );
+    }
+    py::array_t< uint8_t > out( shape );
+    std::memcpy( out.mutable_data(), rectified.data, rectified.total() * rectified.elemSize() );
+    return out;
+  }
+
+  py::array_t< double > rectify_points( py::array_t< double > points, bool is_right ) const
+  {
+    return map_points( points, [&]( kv::vector_2d const& p )
+      { return m_utilities.rectify_point( p, is_right ); } );
+  }
+
+  py::array_t< double > unrectify_points( py::array_t< double > points, bool is_right ) const
+  {
+    return map_points( points, [&]( kv::vector_2d const& p )
+      { return m_utilities.unrectify_point( p, is_right, is_right ? right() : left() ); } );
+  }
+
+  /// Right-grid correspondences of left-grid points from a float32 disparity
+  /// grid; a point with no valid neighbourhood is returned as NaN.
+  py::array_t< double > match_grid_points(
+    py::array_t< float, py::array::c_style | py::array::forcecast > disparity,
+    py::array_t< double > left_grid_points ) const
+  {
+    auto const container = wrap_disparity( disparity );
+    return map_points( left_grid_points, [&]( kv::vector_2d const& p )
+      {
+        kv::vector_2d out;
+        if( m_utilities.find_corresponding_point_external_disparity( container, p, out, m_window ) )
+        {
+          return out;
+        }
+        double const nan = std::numeric_limits< double >::quiet_NaN();
+        return kv::vector_2d( nan, nan );
+      } );
+  }
+
+  /// Right endpoints (original coordinates) of a left segment by fitting the
+  /// disparity profile between them; None when the fit is rejected.
+  py::object fit_segment(
+    py::array_t< float, py::array::c_style | py::array::forcecast > disparity,
+    std::vector< double > const& left_head, std::vector< double > const& left_tail ) const
+  {
+    auto const container = wrap_disparity( disparity );
+    kv::vector_2d right_head, right_tail;
+    if( !m_utilities.refine_right_segment_with_disparity(
+          container, kv::vector_2d( left_head.at( 0 ), left_head.at( 1 ) ),
+          kv::vector_2d( left_tail.at( 0 ), left_tail.at( 1 ) ), right(),
+          right_head, right_tail ) )
+    {
+      return py::none();
+    }
+    return py::make_tuple(
+      std::vector< double >{ right_head.x(), right_head.y() },
+      std::vector< double >{ right_tail.x(), right_tail.y() } );
+  }
+
+  /// Intrinsics of the rectified pair: fx, fy, cx_left, cx_right, cy, baseline.
+  py::dict intrinsics() const
+  {
+    cv::Mat const P1 = m_utilities.rectified_projection( false );
+    cv::Mat const P2 = m_utilities.rectified_projection( true );
+    py::dict out;
+    out[ "fx" ] = P1.at< double >( 0, 0 );
+    out[ "fy" ] = P1.at< double >( 1, 1 );
+    out[ "cx_left" ] = P1.at< double >( 0, 2 );
+    out[ "cx_right" ] = P2.at< double >( 0, 2 );
+    out[ "cy" ] = P1.at< double >( 1, 2 );
+    out[ "baseline" ] = -P2.at< double >( 0, 3 ) / P2.at< double >( 0, 0 );
+    return out;
+  }
+
+private:
+  kv::simple_camera_perspective& left() const
+  {
+    return dynamic_cast< kv::simple_camera_perspective& >( *m_rig->camera( "left" ) );
+  }
+
+  kv::simple_camera_perspective& right() const
+  {
+    return dynamic_cast< kv::simple_camera_perspective& >( *m_rig->camera( "right" ) );
+  }
+
+  template < typename F >
+  static py::array_t< double > map_points( py::array_t< double > const& points, F const& fn )
+  {
+    auto const buffer = points.request();
+    if( buffer.ndim != 2 || buffer.shape[1] != 2 )
+    {
+      throw std::invalid_argument( "points must be Nx2" );
+    }
+    py::array_t< double > out( { buffer.shape[0], static_cast< ssize_t >( 2 ) } );
+    auto in = points.unchecked< 2 >();
+    auto result = out.mutable_unchecked< 2 >();
+    for( ssize_t i = 0; i < buffer.shape[0]; ++i )
+    {
+      kv::vector_2d const mapped = fn( kv::vector_2d( in( i, 0 ), in( i, 1 ) ) );
+      result( i, 0 ) = mapped.x();
+      result( i, 1 ) = mapped.y();
+    }
+    return out;
+  }
+
+  static kv::image_container_sptr wrap_disparity( py::array_t< float > const& disparity )
+  {
+    auto const buffer = disparity.request();
+    if( buffer.ndim != 2 )
+    {
+      throw std::invalid_argument( "disparity must be an HxW float32 array" );
+    }
+    // A view over the numpy memory; the caller keeps the array alive.
+    kv::image_of< float > const image(
+      static_cast< float const* >( buffer.ptr ),
+      static_cast< size_t >( buffer.shape[1] ), static_cast< size_t >( buffer.shape[0] ), 1,
+      1, buffer.shape[1], 1 );
+    return std::make_shared< kv::simple_image_container >( image );
+  }
+
+  kv::camera_rig_sptr m_rig;
+  viame::core::map_keypoints_to_camera m_utilities;
+  int m_window;
+};
+
+#endif // VIAME_ENABLE_OPENCV
+
+} // namespace
+
 PYBIND11_MODULE( _measurement, m )
 {
   m.doc() =
@@ -4524,6 +4715,29 @@ PYBIND11_MODULE( _measurement, m )
     "row-major k_left, k_right, the radial-tangential dist_left/dist_right "
     "coefficients ([k1,k2,p1,p2,k3,...]), rotation (right relative to left) "
     "and translation." );
+
+#ifdef VIAME_ENABLE_OPENCV
+  py::class_< dense_stereo_grid >( m, "DenseStereoGrid",
+    "Rectified disparity grid of a stereo rig, built exactly as the "
+    "measurement pipelines build it (map_keypoints_to_camera). options are "
+    "compute_measurements config keys such as rectification_alpha, "
+    "refine_keypoints_disparity_window/percentile and the disparity_segment_* "
+    "fit parameters." )
+    .def( py::init< std::string const&, int, int, py::dict const& >(),
+          py::arg( "calibration_path" ), py::arg( "width" ), py::arg( "height" ),
+          py::arg( "options" ) = py::dict() )
+    .def( "rectify_image", &dense_stereo_grid::rectify_image,
+          py::arg( "image" ), py::arg( "is_right" ) )
+    .def( "rectify_points", &dense_stereo_grid::rectify_points,
+          py::arg( "points" ), py::arg( "is_right" ) )
+    .def( "unrectify_points", &dense_stereo_grid::unrectify_points,
+          py::arg( "points" ), py::arg( "is_right" ) )
+    .def( "match_grid_points", &dense_stereo_grid::match_grid_points,
+          py::arg( "disparity" ), py::arg( "left_grid_points" ) )
+    .def( "fit_segment", &dense_stereo_grid::fit_segment,
+          py::arg( "disparity" ), py::arg( "left_head" ), py::arg( "left_tail" ) )
+    .def( "intrinsics", &dense_stereo_grid::intrinsics );
+#endif
 }
 
 #endif // VIAME_MEASUREMENT_PYTHON_BINDINGS

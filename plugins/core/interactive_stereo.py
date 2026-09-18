@@ -336,102 +336,78 @@ class EpipolarTemplateMatcher:
                 [float(right_p2[0]), float(right_p2[1])]))
 
 
+# compute_measurements keys the dense grid honours, with the service defaults.
+# alpha=0 crops to the region valid in both images, which collapses to a
+# sliver when the baseline has a large vertical component. Keypoints sit on
+# the object's silhouette, where the network blends the object with what lies
+# behind it; a high percentile of the neighbourhood keeps the nearer surface.
+DENSE_GRID_DEFAULTS = {
+    "rectification_alpha": "-1.0",
+    "refine_keypoints_disparity_window": "3",
+    "refine_keypoints_disparity_percentile": "0.9",
+    "refine_keypoints_disparity_min_valid_fraction": "0.0",
+    "refine_keypoints_disparity_use_circle": "false",
+    "refine_disparity_segment": "true",
+    "disparity_segment_samples": "11",
+    "disparity_segment_max_outliers": "3",
+    "disparity_segment_max_error": "10.0",
+}
+
+
 class DenseStereoRectifier:
-    """Maps between the original stereo images and the rectified grid a dense
-    disparity backend works on. Mirrors map_keypoints_to_camera in
-    measurement_utilities.cxx so interactive results match the batch pipeline."""
+    """The rectified grid a dense disparity backend works on, built by the same
+    C++ (map_keypoints_to_camera) the measurement pipelines use, so
+    interactive results match batch results. Sized lazily from the first
+    frame."""
 
-    def __init__(self, cal: Dict[str, Any]):
-        def dist(values):
-            d = np.zeros(5, dtype=np.float64)
-            values = np.asarray(values or [], dtype=np.float64).flatten()[:5]
-            d[:len(values)] = values
-            return d
-        self.K1 = np.asarray(cal['k_left'], dtype=np.float64).reshape(3, 3)
-        self.K2 = np.asarray(cal['k_right'], dtype=np.float64).reshape(3, 3)
-        self.D1 = dist(cal.get('dist_left'))
-        self.D2 = dist(cal.get('dist_right'))
-        self.R = np.asarray(cal['rotation'], dtype=np.float64).reshape(3, 3)
-        self.T = np.asarray(cal['translation'], dtype=np.float64).flatten()
+    def __init__(self, calibration_path: str, options: Optional[Dict[str, str]] = None):
+        self._path = calibration_path
+        self._options = dict(DENSE_GRID_DEFAULTS, **(options or {}))
+        self._grid = None
         self._size = None
-        self.R1 = self.R2 = self.P1 = self.P2 = None
-        self._maps = {}
-
-    @classmethod
-    def from_file(cls, path: str) -> "DenseStereoRectifier":
-        return cls(_cpp_measurement.load_stereo_calibration(path))
 
     def prepare(self, width: int, height: int) -> None:
         if self._size == (width, height):
             return
-        # alpha=0 keeps only the region valid in both images, which collapses
-        # to a sliver when the baseline has a large vertical component.
-        self.R1, self.R2, self.P1, self.P2, _, _, _ = cv2.stereoRectify(
-            self.K1, self.D1, self.K2, self.D2, (width, height), self.R, self.T,
-            flags=cv2.CALIB_ZERO_DISPARITY, alpha=-1)
-        self._maps = {
-            False: cv2.initUndistortRectifyMap(
-                self.K1, self.D1, self.R1, self.P1, (width, height), cv2.CV_32FC1),
-            True: cv2.initUndistortRectifyMap(
-                self.K2, self.D2, self.R2, self.P2, (width, height), cv2.CV_32FC1),
-        }
+        self._grid = _cpp_measurement.DenseStereoGrid(self._path, width, height, self._options)
         self._size = (width, height)
 
     @property
     def ready(self) -> bool:
-        return self._size is not None
+        return self._grid is not None
 
     @property
-    def fx(self) -> float:
-        return float(self.P1[0, 0])
+    def segment_fit(self) -> bool:
+        return self._options["refine_disparity_segment"].strip().lower() in ("true", "1", "yes", "on")
 
-    @property
-    def fy(self) -> float:
-        return float(self.P1[1, 1])
-
-    @property
-    def cx(self) -> float:
-        return float(self.P1[0, 2])
-
-    @property
-    def cy(self) -> float:
-        return float(self.P1[1, 2])
-
-    @property
-    def baseline(self) -> float:
-        return float(-self.P2[0, 3] / self.P2[0, 0])
-
-    def _params(self, right: bool):
-        if right:
-            return self.K2, self.D2, self.R2, self.P2
-        return self.K1, self.D1, self.R1, self.P1
+    def intrinsics(self) -> Dict[str, float]:
+        return self._grid.intrinsics()
 
     def rectify_image(self, image: np.ndarray, right: bool) -> np.ndarray:
-        map_x, map_y = self._maps[right]
-        return cv2.remap(np.ascontiguousarray(image), map_x, map_y, cv2.INTER_LINEAR)
+        return self._grid.rectify_image(np.ascontiguousarray(image, dtype=np.uint8), right)
 
     def rectify_points(self, points, right: bool) -> np.ndarray:
-        pts = np.asarray(points, dtype=np.float64).reshape(-1, 1, 2)
-        if len(pts) == 0:
-            return np.zeros((0, 2))
-        K, D, R, P = self._params(right)
-        return cv2.undistortPoints(pts, K, D, R=R, P=P).reshape(-1, 2)
+        pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+        return self._grid.rectify_points(pts, right) if len(pts) else pts
 
     def unrectify_points(self, points, right: bool) -> np.ndarray:
         pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
-        if len(pts) == 0:
-            return np.zeros((0, 2))
-        K, D, R, P = self._params(right)
-        normalized = np.column_stack([
-            (pts[:, 0] - P[0, 2]) / P[0, 0],
-            (pts[:, 1] - P[1, 2]) / P[1, 1],
-            np.ones(len(pts))])
-        original = normalized @ R  # R.T applied to each row
-        original = original[:, :2] / original[:, 2:3]
-        rays = np.column_stack([original, np.ones(len(pts))]).reshape(-1, 1, 3)
-        zero = np.zeros(3)
-        projected, _ = cv2.projectPoints(rays, zero, zero, K, D)
-        return projected.reshape(-1, 2)
+        return self._grid.unrectify_points(pts, right) if len(pts) else pts
+
+    def match_grid_points(self, disparity: np.ndarray, grid_points) -> np.ndarray:
+        """Right-grid matches of left-grid points; NaN where none is valid."""
+        pts = np.asarray(grid_points, dtype=np.float64).reshape(-1, 2)
+        if not len(pts):
+            return pts
+        return self._grid.match_grid_points(np.ascontiguousarray(disparity, dtype=np.float32), pts)
+
+    def fit_segment(self, disparity: np.ndarray, left_head, left_tail):
+        """Right endpoints (original coordinates) from the disparity profile
+        along the segment, or None when the fit is rejected."""
+        return self._grid.fit_segment(
+            np.ascontiguousarray(disparity, dtype=np.float32),
+            [float(left_head[0]), float(left_head[1])],
+            [float(left_tail[0]), float(left_tail[1])])
 
 
 class InteractiveStereoService:
@@ -445,6 +421,7 @@ class InteractiveStereoService:
     def __init__(
         self,
         compute_stereo_depth_map_algo=None,
+        dense_grid_options: Optional[Dict[str, str]] = None,
         epipolar_matcher: Optional[EpipolarTemplateMatcher] = None,
         scale: float = 1.0,
         segmentation_generate_line: bool = False,
@@ -471,6 +448,7 @@ class InteractiveStereoService:
                 segmentation_point_sampling is enabled.
         """
         self._stereo_algo = compute_stereo_depth_map_algo
+        self._dense_grid_options = dense_grid_options or {}
         self._epipolar_matcher = epipolar_matcher
         self._use_epipolar = epipolar_matcher is not None
         self._scale = scale
@@ -634,23 +612,33 @@ class InteractiveStereoService:
                 out[i] = float(np.percentile(valid, self._DISPARITY_PERCENTILE))
         return out
 
+    def _match_grid(self, grid_points, disparity=None, right_to_left: bool = False):
+        """Grid matches on the other camera and their disparities (0 where
+        the neighbourhood holds no valid value)."""
+        disparity = self._current_disparity if disparity is None else disparity
+        grid = np.asarray(grid_points, dtype=np.float64).reshape(-1, 2)
+        if self._rectifier is not None and self._rectifier.ready:
+            matched = self._rectifier.match_grid_points(disparity, grid)
+            disp = np.where(np.isfinite(matched[:, 0]), grid[:, 0] - matched[:, 0], 0.0)
+        else:
+            disp = self._grid_disparity(grid, disparity)
+        sign = 1.0 if right_to_left else -1.0
+        return grid + np.column_stack([sign * disp, np.zeros_like(disp)]), disp
+
     def _dense_transfer(self, points, right_to_left: bool = False):
         """Corresponding points on the other camera via the disparity grid.
         Returns (matched original coordinates, disparities)."""
         grid = self._to_grid(points, right=right_to_left)
-        if right_to_left:
-            disp = self._grid_disparity(grid, self._right_reference_disparity())
-            grid = grid + np.column_stack([disp, np.zeros_like(disp)])
-        else:
-            disp = self._grid_disparity(grid)
-            grid = grid - np.column_stack([disp, np.zeros_like(disp)])
-        return self._from_grid(grid, right=not right_to_left), disp
+        disparity = self._right_reference_disparity() if right_to_left else None
+        matched, disp = self._match_grid(grid, disparity, right_to_left)
+        return self._from_grid(matched, right=not right_to_left), disp
 
     def _grid_calibration(self):
         """(fx, fy, cx_left, cx_right, cy, baseline) of the disparity grid."""
         rect = self._rectifier
         if rect is not None and rect.ready:
-            return (rect.fx, rect.fy, rect.cx, float(rect.P2[0, 2]), rect.cy, rect.baseline)
+            i = rect.intrinsics()
+            return (i["fx"], i["fy"], i["cx_left"], i["cx_right"], i["cy"], i["baseline"])
         if self._focal_length <= 0 or self._baseline <= 0:
             return None
         fx = float(self._focal_length)
@@ -776,10 +764,11 @@ class InteractiveStereoService:
         if self._rectifier is not None:
             from kwiver.vital.types import Image, ImageContainer
             self._rectifier.prepare(*left_size)
-            self._focal_length = self._rectifier.fx
-            self._principal_x = self._rectifier.cx
-            self._principal_y = self._rectifier.cy
-            self._baseline = self._rectifier.baseline
+            intrinsics = self._rectifier.intrinsics()
+            self._focal_length = intrinsics["fx"]
+            self._principal_x = intrinsics["cx_left"]
+            self._principal_y = intrinsics["cy"]
+            self._baseline = intrinsics["baseline"]
             left_container = ImageContainer(Image(
                 self._rectifier.rectify_image(left_img.asarray(), False)))
             right_container = ImageContainer(Image(
@@ -905,7 +894,7 @@ class InteractiveStereoService:
         if calibration:
             self._load_calibration(calibration)
         if calibration_file and not self._use_epipolar:
-            self._rectifier = DenseStereoRectifier.from_file(calibration_file)
+            self._rectifier = DenseStereoRectifier(calibration_file, self._dense_grid_options)
             self._calibration = self._calibration or {"file": calibration_file}
             self._log(f"Dense stereo will rectify with {calibration_file}")
 
@@ -1137,6 +1126,15 @@ class InteractiveStereoService:
                 return result
 
             matched, disp = self._dense_transfer([p1, p2])
+            if self._rectifier is not None and self._rectifier.ready and self._rectifier.segment_fit:
+                # Fit the disparity profile along the body rather than trusting
+                # two edge pixels; fall back to the per-point matches.
+                fitted = self._rectifier.fit_segment(self._current_disparity, p1, p2)
+                if fitted is not None:
+                    matched = np.asarray(fitted, dtype=float)
+                    grid_left = self._to_grid([p1, p2])
+                    grid_right = self._to_grid(matched, right=True)
+                    disp = grid_left[:, 0] - grid_right[:, 0]
             disp1, disp2 = float(disp[0]), float(disp[1])
             transferred_line = matched.tolist()
 
@@ -1287,9 +1285,7 @@ class InteractiveStereoService:
                 raise ValueError('Disparity not ready')
             disparity = self._current_disparity if side == 'left' else self._right_reference_disparity()
             grid = self._to_grid(points, right=(side == 'right'))
-            d = self._grid_disparity(grid, disparity)
-            matched_grid = grid.copy()
-            matched_grid[:, 0] += d if side == 'right' else -d
+            matched_grid, d = self._match_grid(grid, disparity, side == 'right')
             h, w = disparity.shape
             inside = lambda g: (g[:, 0] >= 0) & (g[:, 0] < w) & (g[:, 1] >= 0) & (g[:, 1] < h)
             valid = (np.isfinite(d) & (d > 0) & inside(grid) & inside(matched_grid)).tolist()
@@ -1455,9 +1451,7 @@ class InteractiveStereoService:
                 if disparity is None:
                     raise ValueError("Disparity not ready for curved measurement")
                 grid = self._to_grid(left)
-                disp = self._grid_disparity(grid, disparity)
-                matched_grid = grid.copy()
-                matched_grid[:, 0] -= disp
+                matched_grid, disp = self._match_grid(grid, disparity)
                 h, w = disparity.shape
                 if (not np.isfinite(disp).all() or (disp <= 0).any() or
                         (matched_grid[:, 0] < 0).any() or (matched_grid[:, 0] >= w).any() or
@@ -1857,8 +1851,12 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
         return str(cfg.get_value(key)).strip().lower() in ("true", "1", "yes", "on")
 
     # Extract service configuration
+    dense_grid_options = {
+        key: str(cfg.get_value(key)) for key in DENSE_GRID_DEFAULTS if cfg.has_value(key)
+    }
     service_config = {
         "scale": float(cfg.get_value("service:scale")) if cfg.has_value("service:scale") else 1.0,
+        "dense_grid_options": dense_grid_options,
         "segmentation_generate_line": _cfg_bool("segmentation_generate_line", False),
         "segmentation_point_sampling": _cfg_bool("segmentation_point_sampling", False),
         "segmentation_point_samples": int(cfg.get_value("segmentation_point_samples"))
