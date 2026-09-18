@@ -392,6 +392,10 @@ public:
   ///   feature_matching    → (unused)
   double detection_pairing_threshold;
 
+  /// Depth at which 'calibration' and 'epipolar_iou' project a left box
+  /// into the right image; <= 0 places it by the epipolar geometry instead
+  double detection_pairing_default_depth;
+
   /// If true, only pair detections whose top class labels match
   bool detection_pairing_require_class_match;
 

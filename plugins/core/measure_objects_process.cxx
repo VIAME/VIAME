@@ -630,7 +630,7 @@ measure_objects_process
       detection_pairing_params dp;
       dp.method = method;
       dp.threshold = d->m_settings.detection_pairing_threshold;
-      dp.default_depth = 0.0;
+      dp.default_depth = d->m_settings.detection_pairing_default_depth;
       dp.require_class_match = d->m_settings.detection_pairing_require_class_match;
       dp.use_optimal_assignment = d->m_settings.detection_pairing_use_optimal_assignment;
 
