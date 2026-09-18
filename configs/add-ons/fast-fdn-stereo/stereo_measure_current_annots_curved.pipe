@@ -7,9 +7,12 @@
 # skeleton, written back as spine keypoints. Every vertex is transferred to
 # the right camera and, in bidirectional mode, back again through an
 # independent right-reference disparity before the lengths of both curves
-# must agree. Boxes without masks or head/tail are left unmeasured; see the
-# default-fish curved_fish variant to add both automatically.
-# Uses model: fast_foundation_stereo_l.onnx.
+# must agree. A box without a mask or head/tail is segmented by the first
+# installed of SAM2, the default-fish RF-DETR segmentation model, SAM3 and
+# OpenCV watershed, with head and tail taken from the mask extremes unless the
+# segmenter supplies them.
+# Uses model: fast_foundation_stereo_l.onnx (plus sam2_hbp.pt or
+# fish_rf_detr_seg_kp_1728.pth when installed).
 # Outputs to computed_tracks1.csv and computed_tracks2.csv.
 #
 # Requires Calibration: True
@@ -46,6 +49,41 @@ process measurer
     output_mode                                = disparity
     # Invalid where the point falls outside the right image
     remove_invisible                           = true
+  endblock
+
+  # Boxes still without a mask get one from the first of these that is
+  # installed: relativepath entries of an absent add-on disqualify a candidate.
+  :mask_refiners                               sam2,rf_detr,sam3,ocv_watershed  # DIVE_PARAM["Mask Fallbacks (sam2, rf_detr, sam3, ocv_watershed)", string]
+
+  block mask_refiner:sam2
+    :cfg                                       configs/sam2.1/sam2.1_hiera_b+.yaml
+    relativepath checkpoint =                  models/sam2_hbp.pt
+    :overwrite_existing                        false
+  endblock
+
+  block mask_refiner:rf_detr
+    :model_size                                large
+    :device                                    auto
+    relativepath weight =                      models/fish_rf_detr_seg_kp_1728.pth
+    :num_channels                              3
+    :segmentation                              true
+    :resolution                                960x1728
+    :add_masks                                 true
+    :add_keypoints                             true
+    :overwrite_existing                        false
+    :keypoint_vis_thresh                       0.5
+    :keypoints_in_box                          true
+  endblock
+
+  block mask_refiner:sam3
+    relativepath sam_model_id =                models/sam3.1_weights.pt
+    relativepath model_config =                models/sam3.1_config.json
+    :output_type                               polygon
+    :polygon_simplification                    0.01
+  endblock
+
+  block mask_refiner:ocv_watershed
+    :seed_scale_factor                         0.2
   endblock
 
   :centerline_source                           auto     # DIVE_PARAM["Centerline Source (auto, keypoints, mask)", string]

@@ -217,6 +217,86 @@ def _bool(value):
     return str(value).strip().lower() in ('true', '1', 'yes', 'on')
 
 
+def _block_files(cfg, prefix):
+    """(configured, missing): whether any key sits under the block, and the
+    absolute paths in it that do not exist (relativepath model entries of an
+    add-on that is not installed)."""
+    import os
+    configured, missing = False, []
+    for key in cfg.available_values():
+        if not key.startswith(prefix):
+            continue
+        configured = True
+        value = str(cfg.get_value(key))
+        if os.path.isabs(value) and not os.path.exists(value):
+            missing.append(value)
+    return configured, missing
+
+
+def _first_available_refiner(cfg, block, candidates, log):
+    """First refine_detections candidate whose model files exist and that
+    configures without error; (name, algorithm) or (None, None)."""
+    from kwiver.vital.algo import RefineDetections
+    for name in candidates:
+        configured, missing = _block_files(cfg, '%s:%s:' % (block, name))
+        if not configured:
+            log('%s skipped: no %s:%s block' % (name, block, name))
+            continue
+        if missing:
+            log('%s unavailable: missing %s' % (name, ', '.join(missing)))
+            continue
+        cfg.set_value(block + ':type', name)
+        try:
+            algo = RefineDetections.set_nested_algo_configuration(block, cfg)
+        except Exception as error:
+            log('%s failed to load: %s' % (name, error))
+            continue
+        if algo is None:
+            log('%s is not a registered refine_detections algorithm' % name)
+            continue
+        return name, algo
+    return None, None
+
+
+def _three_channel(image):
+    """Byte RGB copy of a frame for segmenters that reject gray or alpha input."""
+    from kwiver.vital.types import Image, ImageContainer
+    data = image.image().asarray()
+    if data.dtype != np.uint8:
+        data = np.clip(data, 0, 255).astype(np.uint8)
+    if data.ndim == 2:
+        data = np.repeat(data[:, :, None], 3, axis=2)
+    elif data.shape[2] == 1:
+        data = np.repeat(data, 3, axis=2)
+    elif data.shape[2] == 4:
+        data = data[:, :, :3]
+    return ImageContainer(Image(np.ascontiguousarray(data)))
+
+
+def _match_refined(inputs, refined):
+    """Refined detection for each input, paired by identity then by box: some
+    refiners clone, others drop detections they could not segment."""
+    matched = [None] * len(inputs)
+    unused = list(refined)
+    for i, det in enumerate(inputs):
+        for j, out in enumerate(unused):
+            if out is det:
+                matched[i] = unused.pop(j)
+                break
+    for i, det in enumerate(inputs):
+        if matched[i] is not None:
+            continue
+        box = det.bounding_box
+        for j, out in enumerate(unused):
+            other = out.bounding_box
+            if all(abs(a - b) < 1e-3 for a, b in (
+                    (box.min_x(), other.min_x()), (box.min_y(), other.min_y()),
+                    (box.max_x(), other.max_x()), (box.max_y(), other.max_y()))):
+                matched[i] = unused.pop(j)
+                break
+    return matched
+
+
 def _bbox_from_points(points, scale):
     x0, y0 = points.min(axis=0)
     x1, y1 = points.max(axis=0)
@@ -277,6 +357,9 @@ CONFIG = (
     ('length_aggregation_method', 'median', 'none, average, average_iqr or median per track'),
     ('length_iqr_factor', '1.5', 'Outlier factor for average_iqr'),
     ('record_stereo_method', 'true', 'Add a :stereo_method= note to measured detections'),
+    ('mask_refiners', '', 'Ordered refine_detections candidates (e.g. sam2,rf_detr,sam3,'
+     'ocv_watershed) that add a mask to left boxes still lacking one; the first whose '
+     'model files exist and that loads is used. Configured under mask_refiner:<name>.'),
     ('centerline_source', 'auto', 'auto: drawn spine vertices, else the mask skeleton, else the '
      'head/tail segment. keypoints: only annotated keypoints. mask: only mask skeletons.'),
     ('centerline_vertices', '8', 'Vertices written for a mask-derived centerline (head to tail)'),
@@ -293,7 +376,8 @@ class MeasureCurvedObjects(KwiverProcess):
     object_track_set1/2 out. The stereo_disparity nested algorithm supplies
     left-reference pixel disparity on rectified input; an optional refiner
     nested algorithm (refine_detections) adds masks and head/tail to left
-    detections that lack them before the centerline is derived."""
+    detections that lack them before the centerline is derived; the first
+    available of mask_refiners then covers boxes still without a shape."""
 
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
@@ -329,6 +413,13 @@ class MeasureCurvedObjects(KwiverProcess):
             self._refiner = RefineDetections.set_nested_algo_configuration('refiner', cfg)
             if self._refiner is None:
                 raise RuntimeError('refiner:type names an unknown refine_detections algorithm')
+        candidates = [c.strip() for c in self.config_value('mask_refiners').split(',') if c.strip()]
+        self._mask_refiner_name, self._mask_refiner = _first_available_refiner(
+            cfg, 'mask_refiner', candidates, self._log)
+        if candidates and self._mask_refiner is None:
+            self._log('no mask refiner available; boxes without a shape are not measured')
+        elif self._mask_refiner is not None:
+            self._log('mask refiner: ' + self._mask_refiner_name)
         calibration = self.config_value('calibration_file')
         if not calibration:
             raise RuntimeError('calibration_file is required')
@@ -417,7 +508,7 @@ class MeasureCurvedObjects(KwiverProcess):
         return det.mask is not None or bool(det.get_flattened_polygons())
 
     def _could_measure(self, det):
-        if self._refiner is not None:
+        if self._refiner is not None or self._mask_refiner is not None:
             return True
         if self._source != 'mask' and centerline_from_keypoints(det.keypoints) is not None:
             return True
@@ -430,23 +521,34 @@ class MeasureCurvedObjects(KwiverProcess):
         return curve is None or not self._has_shape(det)
 
     def _refine(self, frame, left_states, image):
-        """Run the nested refiner over the left detections still missing a mask
-        or endpoints; a refiner that returns new objects replaces the states."""
+        """Nested refiner over the left detections still missing a mask or
+        endpoints, then the mask refiner over those still without a shape."""
         from kwiver.vital.types import DetectedObjectSet, ObjectTrackState
-        todo = [(tid, st) for tid, st in left_states.items() if self._wants_refinement(st.detection())]
-        if not todo:
-            return
-        try:
-            refined = list(self._refiner.refine(
-                image, DetectedObjectSet([st.detection() for _, st in todo])))
-        except Exception as error:
-            self._log('frame %d: refiner failed: %s' % (frame, error))
-            return
-        if len(refined) != len(todo):
-            return
-        for (tid, state), det in zip(todo, refined):
-            if det is not state.detection():
-                left_states[tid] = ObjectTrackState(state.frame_id, state.time_usec, det)
+
+        def run(refiner, label, wanted):
+            todo = [(tid, st) for tid, st in left_states.items() if wanted(st.detection())]
+            if not todo:
+                return
+            try:
+                refined = list(refiner.refine(
+                    image, DetectedObjectSet([st.detection() for _, st in todo])))
+            except Exception as error:
+                self._log('frame %d: %s failed: %s' % (frame, label, error))
+                return
+            for (tid, state), det in zip(todo, _match_refined([st.detection() for _, st in todo],
+                                                              refined)):
+                if det is not None and det is not state.detection():
+                    left_states[tid] = ObjectTrackState(state.frame_id, state.time_usec, det)
+
+        if self._refiner is not None:
+            run(self._refiner, 'refiner', self._wants_refinement)
+        if self._mask_refiner is not None:
+            image = _three_channel(image)
+            run(self._mask_refiner, self._mask_refiner_name, self._wants_mask)
+
+    def _wants_mask(self, det):
+        curve = centerline_from_keypoints(det.keypoints)
+        return (curve is None or len(curve) <= 2) and not self._has_shape(det)
 
     def _left_centerline(self, det, shape):
         """Vertices to measure, deriving and writing them from the mask when
@@ -472,7 +574,7 @@ class MeasureCurvedObjects(KwiverProcess):
         from kwiver.vital.types import (
             BoundingBoxD, DetectedObject, ObjectTrackState)
         left_states, right_states = states
-        if self._refiner is not None:
+        if self._refiner is not None or self._mask_refiner is not None:
             self._refine(frame, left_states, left_image)
         shape = left_image.image().asarray().shape[:2]
         method = ('curved_' + ('bidirectional' if self._measurer.bidirectional else 'left')
