@@ -789,22 +789,30 @@ measure_objects_process
     bool head_refined = false, tail_refined = false;
     kv::vector_2d refined_head = right_head;
     kv::vector_2d refined_tail = right_tail;
-    if( d->m_settings.refine_disparity_segment )
+    const std::string& policy = d->m_settings.disparity_keypoint_policy;
+    auto user_line = []( const kv::detected_object_sptr& det )
     {
-      if( !d->m_utilities.refine_right_segment_with_disparity(
+      const auto& notes = det->notes();
+      return std::find( notes.begin(), notes.end(), ":stereo_user_line=true" ) != notes.end();
+    };
+    const bool may_refine = refine_disparity &&
+      ( policy == "refine_all" ||
+        ( policy == "refine_unless_user" && !user_line( det1 ) && !user_line( det2 ) ) );
+    bool segment_rejected = false;
+    if( may_refine && d->m_settings.refine_disparity_segment )
+    {
+      if( d->m_utilities.refine_right_segment_with_disparity(
             refine_disparity, left_head, left_tail, right_cam,
             refined_head, refined_tail ) )
       {
-        if( d->m_settings.record_stereo_method )
-        {
-          det1->add_note( ":stereo_method=disparity_segment_rejected" );
-          det2->add_note( ":stereo_method=disparity_segment_rejected" );
-        }
-        continue;
+        head_refined = tail_refined = true;
       }
-      head_refined = tail_refined = true;
+      else
+      {
+        segment_rejected = true;
+      }
     }
-    else if( refine_disparity )
+    else if( may_refine )
     {
       const int win = d->m_settings.refine_keypoints_disparity_window;
       refined_head = d->m_utilities.refine_right_point_with_disparity(
@@ -886,7 +894,9 @@ measure_objects_process
       left_cam, right_cam, left_head, right_head, left_tail, right_tail );
 
     const std::string method_tag =
-      d->m_settings.refine_disparity_segment ? "input_kps_disparity_segment" :
+      segment_rejected ? "input_kps_disparity_segment_rejected" :
+      ( head_refined && tail_refined && d->m_settings.refine_disparity_segment )
+                                       ? "input_kps_disparity_segment" :
       ( head_refined && tail_refined ) ? "input_kps_disparity_refined" :
       ( head_refined || tail_refined ) ? "input_kps_partial_disparity_refined"
                                        : "input_kps_used";

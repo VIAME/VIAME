@@ -348,6 +348,9 @@ public:
   /// Applies to already-paired keypoints and the compute_disparity method.
   /// A failed fit skips measurement instead of falling back to input points.
   bool refine_disparity_segment;
+
+  /// keep_existing | refine_unless_user | refine_all (see configuration)
+  std::string disparity_keypoint_policy;
   int disparity_segment_samples;
   int disparity_segment_max_outliers;
   double disparity_segment_max_error;

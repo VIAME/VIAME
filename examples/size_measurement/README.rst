@@ -413,11 +413,18 @@ samples, with a maximum disparity residual of 1 pixel. These are controlled by
 ``disparity_segment_max_error`` on the measurer. The neighborhood radius for
 each sample is ``refine_keypoints_disparity_window`` (default 7 pixels).
 The fit requires at least three inliers, a strict majority of the requested
-samples, and support spanning at least half the segment. Insufficient support
-skips that measurement; existing valid track measurements remain available
-for aggregation. The model assumes a straight 3D head-tail segment and fits
-in disparity space to account for perspective when its endpoints have
-different depths.
+samples, and support spanning at least half the segment. The model assumes a
+straight 3D head-tail segment and fits in disparity space to account for
+perspective when its endpoints have different depths.
+
+Whether refinement touches a track that already has right head-tail keypoints
+is set by ``disparity_keypoint_policy`` (shared with per-point refinement):
+``keep_existing`` (default) measures from the given keypoints and only
+generates right keypoints for tracks lacking them; ``refine_unless_user``
+replaces tracker keypoints but keeps hand-placed lines (``stereo_user_line``);
+``refine_all`` replaces them regardless. A rejected refinement always falls
+back to the existing keypoints. The same policy, sampling and fit keys apply
+to the Foundation Stereo add-on pipelines.
 
 
 .. _Calibration File Format:

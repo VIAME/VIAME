@@ -442,6 +442,7 @@ map_keypoints_to_camera_settings
   , record_stereo_method( true )
   , refine_keypoints_with_disparity( false )
   , refine_disparity_segment( false )
+  , disparity_keypoint_policy( "keep_existing" )
   , disparity_segment_samples( 11 )
   , disparity_segment_max_outliers( 3 )
   , disparity_segment_max_error( 1.0 )
@@ -657,6 +658,14 @@ map_keypoints_to_camera_settings
     "rectification. Applies to paired tracks and compute_disparity matching. "
     "Insufficient support skips measurement, without falling back to input "
     "keypoints. Disabled by default." );
+  config->set_value( "disparity_keypoint_policy", disparity_keypoint_policy,
+    "What disparity refinement does with a track that already has right "
+    "head/tail keypoints: 'keep_existing' measures from them as given and "
+    "only generates right keypoints for tracks lacking them; "
+    "'refine_unless_user' replaces tracker keypoints with the disparity-"
+    "implied match but keeps hand-placed lines (stereo_user_line); "
+    "'refine_all' replaces them regardless. A rejected refinement always "
+    "falls back to the existing keypoints." );
   config->set_value( "disparity_segment_samples", disparity_segment_samples,
     "Number of uniformly spaced segment samples (3 to 101)." );
   config->set_value( "disparity_segment_max_outliers", disparity_segment_max_outliers,
@@ -806,6 +815,7 @@ map_keypoints_to_camera_settings
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
   refine_keypoints_with_disparity = config->get_value< bool >( "refine_keypoints_with_disparity", refine_keypoints_with_disparity );
   refine_disparity_segment = config->get_value< bool >( "refine_disparity_segment", refine_disparity_segment );
+  disparity_keypoint_policy = config->get_value< std::string >( "disparity_keypoint_policy", disparity_keypoint_policy );
   disparity_segment_samples = config->get_value< int >( "disparity_segment_samples", disparity_segment_samples );
   disparity_segment_max_outliers = config->get_value< int >( "disparity_segment_max_outliers", disparity_segment_max_outliers );
   disparity_segment_max_error = config->get_value< double >( "disparity_segment_max_error", disparity_segment_max_error );
@@ -1169,6 +1179,14 @@ void
 map_keypoints_to_camera
 ::configure( const map_keypoints_to_camera_settings& settings )
 {
+  if( settings.disparity_keypoint_policy != "keep_existing" &&
+      settings.disparity_keypoint_policy != "refine_unless_user" &&
+      settings.disparity_keypoint_policy != "refine_all" )
+  {
+    throw std::invalid_argument( "Invalid disparity_keypoint_policy '" +
+      settings.disparity_keypoint_policy +
+      "': expected keep_existing, refine_unless_user or refine_all" );
+  }
   if( settings.refine_disparity_segment &&
       ( settings.disparity_segment_samples < 3 ||
         settings.disparity_segment_samples > 101 ||
@@ -4117,11 +4135,9 @@ map_keypoints_to_camera
     return false;
   }
 
-  // Preserve legacy endpoint-sampling behavior for existing pipelines.
-  // Segment refinement opts into correct pixel-to-byte stride conversion.
+  // Image steps count pixels, not bytes.
   const char* img_data = reinterpret_cast<const char*>( img.first_pixel() );
-  const ptrdiff_t stride_bytes = m_refine_disparity_segment ?
-    static_cast< ptrdiff_t >( img.pixel_traits().num_bytes ) : 1;
+  const ptrdiff_t stride_bytes = static_cast< ptrdiff_t >( img.pixel_traits().num_bytes );
 
   // Helper lambda: read disparity at (px, py), returns <= 0 if invalid
   auto read_disparity = [&]( int px, int py ) -> double
@@ -4524,9 +4540,7 @@ public:
       config->set_value( py::str( item.first ).cast< std::string >(),
                          py::str( item.second ).cast< std::string >() );
     }
-    // Segment mode is also what makes the sampler address 16/32-bit
-    // disparity pixels correctly; the legacy byte stride is kept only for
-    // pipelines that predate it.
+    // fit_segment needs the segment settings validated and applied.
     config->set_value( "refine_disparity_segment", true );
     settings.set_configuration( config );
     m_window = settings.refine_keypoints_disparity_window;

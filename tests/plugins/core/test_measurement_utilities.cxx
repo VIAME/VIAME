@@ -899,11 +899,17 @@ TEST_F( measurement_utilities_test, segment_configuration_is_opt_in_and_validate
   EXPECT_THROW( utilities->configure( settings ), std::invalid_argument );
   settings.disparity_segment_max_outliers = 3;
   EXPECT_NO_THROW( utilities->configure( settings ) );
+  EXPECT_EQ( settings.disparity_keypoint_policy, "keep_existing" );
+  settings.disparity_keypoint_policy = "always";
+  EXPECT_THROW( utilities->configure( settings ), std::invalid_argument );
+  settings.disparity_keypoint_policy = "refine_unless_user";
+  EXPECT_NO_THROW( utilities->configure( settings ) );
 }
 
-TEST_F( measurement_utilities_test, segment_sampling_preserves_legacy_defaults )
+TEST_F( measurement_utilities_test, endpoint_sampling_addresses_pixels_in_every_mode )
 {
-  // Existing Foundation Stereo pipelines enable endpoint refinement only.
+  // Image steps count pixels; a 4-byte disparity map must not be read with
+  // byte arithmetic whether or not segment refinement is enabled.
   map_keypoints_to_camera_settings settings;
   settings.refine_keypoints_with_disparity = true;
   utilities->configure( settings );
@@ -919,8 +925,7 @@ TEST_F( measurement_utilities_test, segment_sampling_preserves_legacy_defaults )
   kv::vector_2d right;
   ASSERT_TRUE( utilities->find_corresponding_point_external_disparity(
     map, kv::vector_2d( 100, 1 ), right, 0 ) );
-  // Preserve the pre-existing byte-stride interpretation outside segment mode.
-  EXPECT_DOUBLE_EQ( right.x(), 6.25 );
+  EXPECT_DOUBLE_EQ( right.x(), 0.0 );
 
   settings.refine_disparity_segment = true;
   utilities->configure( settings );
