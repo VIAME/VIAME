@@ -5,6 +5,10 @@
 #include <gtest/gtest.h>
 
 #include "measurement_utilities.h"
+#include "disparity_segment.h"
+#include <vital/types/image.h>
+#include <vital/types/image_container.h>
+#include <limits>
 
 #include <vital/types/camera_intrinsics.h>
 #include <vital/types/rotation.h>
@@ -782,3 +786,212 @@ TEST( measurement_utilities_static, aggregate_lengths_ignores_invalid_and_empty 
   EXPECT_LT( aggregate_lengths( {}, "average" ), 0.0 );
   EXPECT_LT( aggregate_lengths( { -1.0, 0.0 }, "average" ), 0.0 );
 }
+
+// =============================================================================
+// Robust disparity segment measurement
+// =============================================================================
+namespace {
+std::vector< std::pair< double, double > > segment_samples()
+{
+  std::vector< std::pair< double, double > > samples;
+  for( int i = 0; i < 11; ++i )
+  {
+    const double f = i / 10.0;
+    samples.emplace_back( f, 100.0 - 50.0 * f );
+  }
+  return samples;
+}
+}
+
+TEST( disparity_segment, perspective_correct_endpoints )
+{
+  double head = -1, tail = -1;
+  ASSERT_TRUE( fit_disparity_segment( segment_samples(), 11, 3, 0.1, head, tail ) );
+  EXPECT_NEAR( head, 100.0, 1e-10 );
+  EXPECT_NEAR( tail, 50.0, 1e-10 );
+  // f=1000px, baseline=100mm: endpoints (0,0,1000), (400,0,2000).
+  const kv::vector_3d h( 0, 0, 100000 / head );
+  const kv::vector_3d t( 20000 / tail, 0, 100000 / tail );
+  EXPECT_NEAR( ( t - h ).norm(), std::sqrt( 400.0 * 400 + 1000.0 * 1000 ), 1e-8 );
+}
+
+TEST( disparity_segment, rejects_outliers_and_counts_missing_samples )
+{
+  auto samples = segment_samples();
+  samples[0].second = 500; // foreground contamination
+  samples[5].second = 2;   // background contamination
+  samples.pop_back();     // invalid disparity at the tail
+  double head = -1, tail = -1;
+  ASSERT_TRUE( fit_disparity_segment( samples, 11, 3, 0.1, head, tail ) );
+  EXPECT_NEAR( head, 100, 1e-10 );
+  EXPECT_NEAR( tail, 50, 1e-10 );
+  EXPECT_FALSE( fit_disparity_segment( samples, 11, 2, 0.1, head, tail ) );
+}
+
+TEST( disparity_segment, invalid_data_preserves_outputs )
+{
+  auto samples = segment_samples();
+  for( int i = 0; i < 4; ++i )
+  {
+    samples[i].second = std::numeric_limits< double >::quiet_NaN();
+  }
+  double head = 42, tail = 43;
+  EXPECT_FALSE( fit_disparity_segment( samples, 11, 3, 1, head, tail ) );
+  EXPECT_EQ( head, 42 );
+  EXPECT_EQ( tail, 43 );
+  EXPECT_FALSE( fit_disparity_segment( {}, 11, 3, 1, head, tail ) );
+}
+
+TEST( disparity_segment, validates_configuration )
+{
+  double head = -1, tail = -1;
+  EXPECT_FALSE( fit_disparity_segment( segment_samples(), 2, 0, 1, head, tail ) );
+  EXPECT_FALSE( fit_disparity_segment( segment_samples(), 102, 0, 1, head, tail ) );
+  EXPECT_FALSE( fit_disparity_segment( segment_samples(), 11, 6, 1, head, tail ) );
+  EXPECT_FALSE( fit_disparity_segment( segment_samples(), 11, -1, 1, head, tail ) );
+  EXPECT_FALSE( fit_disparity_segment( segment_samples(), 11, 3, 0, head, tail ) );
+  EXPECT_FALSE( fit_disparity_segment( segment_samples(), 11, 3,
+    std::numeric_limits< double >::infinity(), head, tail ) );
+}
+
+TEST( disparity_segment, rejects_excessive_extrapolation_and_duplicates )
+{
+  auto samples = segment_samples();
+  for( auto& sample : samples ) { sample.first *= 0.4; }
+  double head = -1, tail = -1;
+  EXPECT_FALSE( fit_disparity_segment( samples, 11, 3, 1, head, tail ) );
+  samples = segment_samples();
+  samples[5].first = samples[4].first;
+  EXPECT_FALSE( fit_disparity_segment( samples, 11, 3, 1, head, tail ) );
+}
+
+TEST( disparity_segment, noisy_inliers_are_refit )
+{
+  auto samples = segment_samples();
+  for( size_t i = 0; i < samples.size(); ++i )
+  {
+    samples[i].second += i % 2 ? 0.1 : -0.1;
+  }
+  double head = -1, tail = -1;
+  ASSERT_TRUE( fit_disparity_segment( samples, 11, 3, 0.3, head, tail ) );
+  EXPECT_NEAR( head, 100, 0.1 );
+  EXPECT_NEAR( tail, 50, 0.1 );
+}
+
+TEST( disparity_segment, rejects_nonpositive_fitted_endpoints )
+{
+  auto samples = segment_samples();
+  samples.erase( samples.begin(), samples.begin() + 2 );
+  for( auto& sample : samples ) { sample.second = 100 * sample.first - 10; }
+  double head = -1, tail = -1;
+  EXPECT_FALSE( fit_disparity_segment( samples, 11, 3, 0.1, head, tail ) );
+}
+
+TEST_F( measurement_utilities_test, segment_configuration_is_opt_in_and_validated )
+{
+  map_keypoints_to_camera_settings settings;
+  EXPECT_FALSE( settings.refine_disparity_segment );
+  settings.refine_disparity_segment = true;
+  settings.disparity_segment_samples = 2;
+  EXPECT_THROW( utilities->configure( settings ), std::invalid_argument );
+  settings.disparity_segment_samples = 11;
+  settings.disparity_segment_max_outliers = 6;
+  EXPECT_THROW( utilities->configure( settings ), std::invalid_argument );
+  settings.disparity_segment_max_outliers = 3;
+  EXPECT_NO_THROW( utilities->configure( settings ) );
+}
+
+TEST_F( measurement_utilities_test, segment_sampling_preserves_legacy_defaults )
+{
+  // Existing Foundation Stereo pipelines enable endpoint refinement only.
+  map_keypoints_to_camera_settings settings;
+  settings.refine_keypoints_with_disparity = true;
+  utilities->configure( settings );
+  kv::image_of< float > disparity( 400, 3 );
+  for( unsigned y = 0; y < 3; ++y )
+  {
+    for( unsigned x = 0; x < 400; ++x )
+    {
+      disparity( x, y ) = 125.0 - 0.25 * x;
+    }
+  }
+  auto map = std::make_shared< kv::simple_image_container >( disparity );
+  kv::vector_2d right;
+  ASSERT_TRUE( utilities->find_corresponding_point_external_disparity(
+    map, kv::vector_2d( 100, 1 ), right, 0 ) );
+  // Preserve the pre-existing byte-stride interpretation outside segment mode.
+  EXPECT_DOUBLE_EQ( right.x(), 6.25 );
+
+  settings.refine_disparity_segment = true;
+  utilities->configure( settings );
+  ASSERT_TRUE( utilities->find_corresponding_point_external_disparity(
+    map, kv::vector_2d( 100, 1 ), right, 0 ) );
+  EXPECT_DOUBLE_EQ( right.x(), 0.0 );
+}
+
+TEST_F( measurement_utilities_test, segment_disparity_formats_and_reversed_endpoints )
+{
+  map_keypoints_to_camera_settings settings;
+  settings.refine_disparity_segment = true;
+  settings.refine_keypoints_disparity_window = 0;
+  utilities->configure( settings );
+  kv::image_of< float > floats( 400, 3 );
+  kv::image_of< int16_t > raw( 400, 3 );
+  kv::image_of< uint16_t > scaled( 400, 3 );
+  for( unsigned y = 0; y < 3; ++y )
+  {
+    for( unsigned x = 0; x < 400; ++x )
+    {
+      const double d = 125.0 - 0.25 * x;
+      floats( x, y ) = d;
+      raw( x, y ) = d * 16;
+      scaled( x, y ) = d * 256;
+    }
+  }
+  for( const auto& image : std::vector< kv::image >{ floats, raw, scaled } )
+  {
+    auto map = std::make_shared< kv::simple_image_container >( image );
+    kv::vector_2d head, tail;
+    ASSERT_TRUE( utilities->find_corresponding_segment_external_disparity(
+      map, kv::vector_2d( 100, 1 ), kv::vector_2d( 300, 1 ), head, tail ) );
+    EXPECT_NEAR( head.x(), 0, 1e-9 );
+    EXPECT_NEAR( tail.x(), 250, 1e-9 );
+    ASSERT_TRUE( utilities->find_corresponding_segment_external_disparity(
+      map, kv::vector_2d( 300, 1 ), kv::vector_2d( 100, 1 ), tail, head ) );
+    EXPECT_NEAR( head.x(), 0, 1e-9 );
+    EXPECT_NEAR( tail.x(), 250, 1e-9 );
+    EXPECT_FALSE( utilities->find_corresponding_segment_external_disparity(
+      map, kv::vector_2d( 100, 1 ), kv::vector_2d( 100, 1 ), head, tail ) );
+  }
+}
+
+#ifdef VIAME_ENABLE_OPENCV
+TEST_F( measurement_utilities_test, segment_refinement_uses_rectification_and_triangulation )
+{
+  map_keypoints_to_camera_settings settings;
+  settings.refine_disparity_segment = true;
+  settings.refine_keypoints_disparity_window = 0;
+  settings.disparity_segment_max_error = 0.01;
+  utilities->configure( settings );
+  utilities->compute_rectification_maps( *left_cam, *right_cam, cv::Size( 1280, 720 ) );
+  kv::image_of< float > disparity( 1280, 720 );
+  for( unsigned y = 0; y < 720; ++y )
+  {
+    for( unsigned x = 0; x < 1280; ++x )
+    {
+      disparity( x, y ) = 100 - 0.25 * ( static_cast< double >( x ) - 640 );
+    }
+  }
+  const kv::vector_3d head3d( 0, 0, 1 ), tail3d( 0.4, 0, 2 );
+  const auto head = left_cam->project( head3d );
+  const auto tail = left_cam->project( tail3d );
+  kv::vector_2d rh, rt;
+  ASSERT_TRUE( utilities->refine_right_segment_with_disparity(
+    std::make_shared< kv::simple_image_container >( disparity ),
+    head, tail, *right_cam, rh, rt ) );
+  const auto measured = compute_stereo_measurement(
+    *left_cam, *right_cam, head, rh, tail, rt );
+  EXPECT_NEAR( measured.length, ( tail3d - head3d ).norm(), 1e-6 );
+  EXPECT_NEAR( measured.rms, 0, 1e-6 );
+}
+#endif

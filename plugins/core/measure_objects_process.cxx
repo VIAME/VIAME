@@ -77,6 +77,15 @@ create_config_trait( max_bbox_area_ratio, double, "-1.0",
   "fish in one camera and a large fish or school in the other). Set to "
   "<= 0 to disable. Typical value: 3.0." );
 
+create_config_trait( create_synthetic_detections, bool, "true",
+  "If true, creates synthetic right bounding boxes for left-only detections. "
+  "If false, left-only tracks are skipped and not measured." );
+
+create_config_trait( update_right_keypoints, bool, "true",
+  "If true, right camera keypoints are overwritten with the disparity-refined "
+  "coordinates. If false, the refined coordinates are only used internally to "
+  "compute the 3D length, but the original output keypoints are left untouched." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -102,6 +111,8 @@ public:
   double m_max_stereo_rms;
   double m_max_bbox_y_center_offset;
   double m_max_bbox_area_ratio;
+  bool m_create_synthetic_detections;
+  bool m_update_right_keypoints;
 
   // Measurement settings (contains all algo parameters and algorithm pointers)
   map_keypoints_to_camera_settings m_settings;
@@ -139,6 +150,8 @@ measure_objects_process::priv
   , m_max_stereo_rms( -1.0 )
   , m_max_bbox_y_center_offset( -1.0 )
   , m_max_bbox_area_ratio( -1.0 )
+  , m_create_synthetic_detections( true )
+  , m_update_right_keypoints( true )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -205,6 +218,8 @@ measure_objects_process
   declare_config_using_trait( max_stereo_rms );
   declare_config_using_trait( max_bbox_y_center_offset );
   declare_config_using_trait( max_bbox_area_ratio );
+  declare_config_using_trait( create_synthetic_detections );
+  declare_config_using_trait( update_right_keypoints );
 
   // Merge in map_keypoints_to_camera_settings configuration
   kv::config_block_sptr settings_config = d->m_settings.get_configuration();
@@ -238,6 +253,8 @@ measure_objects_process
   d->m_max_stereo_rms = config_value_using_trait( max_stereo_rms );
   d->m_max_bbox_y_center_offset = config_value_using_trait( max_bbox_y_center_offset );
   d->m_max_bbox_area_ratio = config_value_using_trait( max_bbox_area_ratio );
+  d->m_create_synthetic_detections = config_value_using_trait( create_synthetic_detections );
+  d->m_update_right_keypoints = config_value_using_trait( update_right_keypoints );
 
   if( d->m_calibration_file.empty() )
   {
@@ -271,6 +288,17 @@ measure_objects_process
   d->m_matching_methods = d->m_settings.get_matching_methods();
 
   LOG_INFO( logger(), "Matching methods (in order): " + d->m_settings.matching_methods );
+
+  if( d->m_settings.refine_disparity_segment )
+  {
+#ifndef VIAME_ENABLE_OPENCV
+    throw std::runtime_error( "Segment disparity refinement requires OpenCV rectification" );
+#endif
+    if( !d->m_settings.stereo_depth_map_algorithm )
+    {
+      throw std::runtime_error( "Segment disparity refinement requires stereo_disparity:type" );
+    }
+  }
 
   // Configure utilities from settings
   d->m_utilities.configure( d->m_settings );
@@ -451,6 +479,7 @@ measure_objects_process
                                   d->m_frame_counter );
 
   d->m_frame_counter++;
+  ts.set_frame( cur_frame_id );
 
   // Invalidate per-frame caches (rectified images, computed disparity,
   // feature matches) so any disparity map computed below is fresh for this
@@ -725,7 +754,8 @@ measure_objects_process
   // algorithm is configured we can snap each right keypoint to the
   // disparity-implied match of its left counterpart for L/R consistency.
   kv::image_container_sptr refine_disparity;
-  if( d->m_settings.refine_keypoints_with_disparity &&
+  if( ( d->m_settings.refine_keypoints_with_disparity ||
+        d->m_settings.refine_disparity_segment ) &&
       d->m_settings.stereo_depth_map_algorithm &&
       !fully_matched_ids.empty() &&
       input_images.size() >= 2 &&
@@ -759,7 +789,22 @@ measure_objects_process
     bool head_refined = false, tail_refined = false;
     kv::vector_2d refined_head = right_head;
     kv::vector_2d refined_tail = right_tail;
-    if( refine_disparity )
+    if( d->m_settings.refine_disparity_segment )
+    {
+      if( !d->m_utilities.refine_right_segment_with_disparity(
+            refine_disparity, left_head, left_tail, right_cam,
+            refined_head, refined_tail ) )
+      {
+        if( d->m_settings.record_stereo_method )
+        {
+          det1->add_note( ":stereo_method=disparity_segment_rejected" );
+          det2->add_note( ":stereo_method=disparity_segment_rejected" );
+        }
+        continue;
+      }
+      head_refined = tail_refined = true;
+    }
+    else if( refine_disparity )
     {
       const int win = d->m_settings.refine_keypoints_disparity_window;
       refined_head = d->m_utilities.refine_right_point_with_disparity(
@@ -825,20 +870,23 @@ measure_objects_process
     if( head_refined )
     {
       right_head = refined_head;
-      det2->add_keypoint( "head",
-        kv::point_2d( right_head.x(), right_head.y() ) );
+      if( d->m_update_right_keypoints ) {
+        det2->add_keypoint( "head", kv::point_2d( right_head.x(), right_head.y() ) );
+      }
     }
     if( tail_refined )
     {
       right_tail = refined_tail;
-      det2->add_keypoint( "tail",
-        kv::point_2d( right_tail.x(), right_tail.y() ) );
+      if( d->m_update_right_keypoints ) {
+        det2->add_keypoint( "tail", kv::point_2d( right_tail.x(), right_tail.y() ) );
+      }
     }
 
     const auto measurement = viame::core::compute_stereo_measurement(
       left_cam, right_cam, left_head, right_head, left_tail, right_tail );
 
     const std::string method_tag =
+      d->m_settings.refine_disparity_segment ? "input_kps_disparity_segment" :
       ( head_refined && tail_refined ) ? "input_kps_disparity_refined" :
       ( head_refined || tail_refined ) ? "input_kps_partial_disparity_refined"
                                        : "input_kps_used";
@@ -905,6 +953,11 @@ measure_objects_process
 
       bool is_left_only = ( dets[1].find( id ) == dets[1].end() );
 
+      if( is_left_only && !d->m_create_synthetic_detections )
+      {
+        continue;
+      }
+
       kv::vector_2d left_head( kp1.at("head")[0], kp1.at("head")[1] );
       kv::vector_2d left_tail( kp1.at("tail")[0], kp1.at("tail")[1] );
 
@@ -948,7 +1001,8 @@ measure_objects_process
       // object should have similar depths (ratio close to 1.0).
       double max_depth_ratio = d->m_settings.depth_consistency_max_ratio;
 
-      if( max_depth_ratio > 0 && result.head_found && result.tail_found )
+      if( max_depth_ratio > 0 && result.head_found && result.tail_found &&
+          result.method_used != "compute_disparity_segment" )
       {
         auto head_3d = viame::core::triangulate_point(
           left_cam, right_cam, result.left_head, result.right_head );
@@ -1116,10 +1170,13 @@ measure_objects_process
       {
         auto& det2 = dets[1][id];
 
-        if( result.head_found )
-          det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
-        if( result.tail_found )
-          det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
+        if( d->m_update_right_keypoints )
+        {
+          if( result.head_found )
+            det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
+          if( result.tail_found )
+            det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
+        }
 
         if( d->m_settings.record_stereo_method )
         {

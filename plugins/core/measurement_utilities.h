@@ -344,6 +344,14 @@ public:
   /// compute_disparity is in matching_methods).
   bool refine_keypoints_with_disparity;
 
+  /// Opt-in robust disparity fit along the entire rectified head-tail segment.
+  /// Applies to already-paired keypoints and the compute_disparity method.
+  /// A failed fit skips measurement instead of falling back to input points.
+  bool refine_disparity_segment;
+  int disparity_segment_samples;
+  int disparity_segment_max_outliers;
+  double disparity_segment_max_error;
+
   /// Half-width (in pixels) of the neighborhood used when sampling the
   /// disparity map for keypoint refinement. The median of valid disparity
   /// values in a (2*w+1)x(2*w+1) window is used. Set to 0 for a
@@ -410,6 +418,16 @@ public:
   /// robustness with NCC's sub-pixel precision. Set to 0 to use DINO-only
   /// matching without NCC refinement.
   int dino_top_k;
+
+  /// Alpha rectification factor
+  double rectification_alpha;
+
+  /// Percentile used to select disparity value in given area
+  double refine_keypoints_disparity_percentile;
+  double refine_keypoints_disparity_min_valid_fraction;
+
+  /// Use a circle instead of a square to extract disparity
+  bool refine_keypoints_disparity_use_circle;
 
   // -------------------------------------------------------------------------
   // Algorithm pointers (configured via nested algo configuration)
@@ -673,6 +691,21 @@ public:
     int search_window = 7,
     bool* refined = nullptr ) const;
 
+  /// Fit the head-tail disparity profile and unrectify the fitted right
+  /// endpoints. Requires rectification maps; outputs are unchanged on failure.
+  bool refine_right_segment_with_disparity(
+    const kv::image_container_sptr& disparity_map,
+    const kv::vector_2d& left_head, const kv::vector_2d& left_tail,
+    const kv::simple_camera_perspective& right_cam,
+    kv::vector_2d& right_head, kv::vector_2d& right_tail ) const;
+
+  /// Fit a rectified segment using the same disparity formats and median
+  /// neighborhood sampler as single-keypoint refinement. No OpenCV required.
+  bool find_corresponding_segment_external_disparity(
+    const kv::image_container_sptr& disparity_map,
+    const kv::vector_2d& left_head, const kv::vector_2d& left_tail,
+    kv::vector_2d& right_head, kv::vector_2d& right_tail ) const;
+
   /// Get the cached rectified left image (if available)
   /// This returns the rectified left image from the last stereo processing call
   kv::image_container_sptr get_cached_rectified_left() const;
@@ -790,6 +823,11 @@ public:
 
 private:
   // Configuration
+  bool m_refine_disparity_segment;
+  int m_disparity_segment_samples;
+  int m_disparity_segment_max_outliers;
+  double m_disparity_segment_max_error;
+  int m_disparity_segment_window;
   double m_default_depth;
   int m_template_size;
   int m_search_range;
@@ -824,6 +862,11 @@ private:
   std::string m_dino_weights_path;
   int m_dino_top_k;
   double m_dino_crop_max_area_ratio;
+
+  double m_rectification_alpha;
+  double m_disparity_percentile;
+  double m_disparity_min_valid_fraction;
+  bool m_disparity_use_circle;
 
   // Feature algorithms
   kv::algo::detect_features_sptr m_feature_detector;
