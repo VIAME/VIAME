@@ -461,8 +461,6 @@ class InteractiveStereoService:
         self._seg_generate_line = bool(segmentation_generate_line)
         self._seg_point_sampling = bool(segmentation_point_sampling)
         self._seg_point_samples = max(1, int(segmentation_point_samples))
-        # Lazily-created add_keypoints_from_mask vital algorithm (polygon -> head/tail)
-        self._keypoint_algo = None
 
         self._enabled = False
 
@@ -1539,56 +1537,11 @@ class InteractiveStereoService:
 
         return {"success": True, "avg_length": float(avg)}
 
-    def _get_keypoint_algo(self):
-        """Lazily create the add_keypoints_from_mask vital algorithm, configured
-        to match the measurement / keypoint pipelines (hull_extremes method,
-        clip_to_mask) rather than the algorithm's bare default, so that
-        interactively-placed head/tail keypoints agree with the batch ones."""
-        if self._keypoint_algo is None:
-            from kwiver.vital.algo import RefineDetections
-            algo = RefineDetections.create("add_keypoints_from_mask")
-            cfg = algo.get_configuration()
-            cfg.set_value("method", "hull_extremes")
-            cfg.set_value("clip_to_mask", "true")
-            algo.set_configuration(cfg)
-            self._keypoint_algo = algo
-        return self._keypoint_algo
-
-    def _polygon_to_keypoints(self, polygon):
-        """Derive head/tail keypoints for a polygon via add_keypoints_from_mask.
-
-        Rasterizes the polygon to a mask, runs the vital algorithm, and returns
-        (head_xy, tail_xy) in image coordinates, or None on failure.
-        """
-        from kwiver.vital.types import (
-            DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
-
-        pts = np.asarray(polygon, dtype=np.float64)
-        if pts.ndim != 2 or pts.shape[0] < 3:
-            return None
-        x0, y0 = np.floor(pts.min(axis=0)).astype(int)
-        x1, y1 = np.ceil(pts.max(axis=0)).astype(int)
-        w, h = int(x1 - x0), int(y1 - y0)
-        if w <= 0 or h <= 0:
-            return None
-
-        mask = np.zeros((h, w), dtype=np.uint8)
-        cv2.fillPoly(mask, [(pts - [x0, y0]).astype(np.int32)], 255)
-        det = DetectedObject(
-            BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
-            1.0, None, ImageContainer(Image(mask)))
-        dummy = ImageContainer(Image(np.zeros((h, w, 3), dtype=np.uint8)))
-
-        refined = self._get_keypoint_algo().refine(dummy, DetectedObjectSet([det]))
-        dets = list(refined)
-        if not dets:
-            return None
-        kps = dets[0].keypoints
-        if 'head' not in kps or 'tail' not in kps:
-            return None
-        head = kps['head'].value
-        tail = kps['tail'].value
-        return ([float(head[0]), float(head[1])], [float(tail[0]), float(tail[1])])
+    @staticmethod
+    def _polygon_to_keypoints(polygon):
+        """Head/tail keypoints for a polygon, shared with the segmentation service."""
+        from viame.core.segmentation_utils import polygon_to_keypoints
+        return polygon_to_keypoints(polygon)
 
     def _warp_one_point(self, p):
         """Warp a single point from the source to the other camera using whichever

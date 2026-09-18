@@ -400,6 +400,21 @@ class InteractiveSegmentationService:
                 "score": 0.0,
             }
 
+    def handle_polygon_keypoints(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Head/tail keypoints for a polygon, derived the way the keypoint
+        pipelines derive them from a mask (add_keypoints_from_mask)."""
+        from viame.core.segmentation_utils import polygon_to_keypoints
+
+        polygon = request.get("polygon")
+        if not polygon or len(polygon) < 3:
+            raise ValueError("polygon with at least three points is required")
+        with suppress_stdout():
+            keypoints = polygon_to_keypoints(polygon)
+        if keypoints is None:
+            return {"success": False, "error": "Could not derive head/tail from the polygon"}
+        head, tail = keypoints
+        return {"success": True, "head": head, "tail": tail}
+
     def handle_text_query(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle a text_query command using PerformTextQuery algorithm."""
         if self._text_query_algo is None:
@@ -705,6 +720,7 @@ class InteractiveSegmentationService:
             "set_image": self.handle_set_image,
             "clear_image": self.handle_clear_image,
             "stereo_segment": self.handle_stereo_segment,
+            "polygon_keypoints": self.handle_polygon_keypoints,
         }
 
         # Add text_query handler if algorithm is configured

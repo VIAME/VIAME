@@ -604,3 +604,55 @@ def shapely_to_mask(
         origin_convention=origin_convention,
     )
     return kw_mask.data
+
+
+_KEYPOINT_ALGO = None
+
+
+def polygon_keypoint_algo():
+    """The add_keypoints_from_mask vital algorithm, configured as the
+    measurement and keypoint pipelines configure it (hull_extremes,
+    clip_to_mask), so interactively derived head/tail agree with batch."""
+    global _KEYPOINT_ALGO
+    if _KEYPOINT_ALGO is None:
+        from kwiver.vital.algo import RefineDetections
+        algo = RefineDetections.create("add_keypoints_from_mask")
+        cfg = algo.get_configuration()
+        cfg.set_value("method", "hull_extremes")
+        cfg.set_value("clip_to_mask", "true")
+        algo.set_configuration(cfg)
+        _KEYPOINT_ALGO = algo
+    return _KEYPOINT_ALGO
+
+
+def polygon_to_keypoints(polygon) -> Optional[Tuple[List[float], List[float]]]:
+    """Head/tail keypoints of a polygon (image coordinates) via
+    add_keypoints_from_mask, or None when it cannot be derived."""
+    import cv2
+    from kwiver.vital.types import (
+        DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
+
+    pts = np.asarray(polygon, dtype=np.float64)
+    if pts.ndim != 2 or pts.shape[0] < 3:
+        return None
+    x0, y0 = np.floor(pts.min(axis=0)).astype(int)
+    x1, y1 = np.ceil(pts.max(axis=0)).astype(int)
+    w, h = int(x1 - x0), int(y1 - y0)
+    if w <= 0 or h <= 0:
+        return None
+
+    mask = np.zeros((h, w), dtype=np.uint8)
+    cv2.fillPoly(mask, [(pts - [x0, y0]).astype(np.int32)], 255)
+    det = DetectedObject(
+        BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
+        1.0, None, ImageContainer(Image(mask)))
+    dummy = ImageContainer(Image(np.zeros((h, w, 3), dtype=np.uint8)))
+
+    dets = list(polygon_keypoint_algo().refine(dummy, DetectedObjectSet([det])))
+    if not dets:
+        return None
+    kps = dets[0].keypoints
+    if 'head' not in kps or 'tail' not in kps:
+        return None
+    head, tail = kps['head'].value, kps['tail'].value
+    return ([float(head[0]), float(head[1])], [float(tail[0]), float(tail[1])])
