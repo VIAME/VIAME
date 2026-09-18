@@ -912,6 +912,24 @@ update_git_submodules() {
   cd "$source_dir"
   git config --global --add safe.directory "$source_dir" 2>/dev/null || true
   git submodule update --init --recursive
+
+  # Marking the superproject safe is not enough. Several submodules are built
+  # by invoking their own setup.py, and those introspect their git checkout for
+  # a version -- torchvision runs git describe. When the tree arrives by
+  # "docker cp" it keeps the host user's numeric uid while the build runs as
+  # root, so every nested repo is dubious to git and only /viame has an
+  # exception:
+  #
+  #   fatal: detected dubious ownership in repository at
+  #     '/viame/packages/pytorch-libs/torchvision'
+  #   git introspection failed
+  #   error: metadata-generation-failed
+  #
+  # which is reported as "torchvision: Python build failed with exit code 1"
+  # five hours into a desktop build, long after the submodule checkout above
+  # has succeeded. Add an exception for each submodule as well.
+  git submodule foreach --recursive --quiet \
+    'git config --global --add safe.directory "$PWD"' 2>/dev/null || true
 }
 
 # Create and enter build directory

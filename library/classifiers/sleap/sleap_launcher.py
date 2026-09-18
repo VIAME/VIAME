@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 
 from viame.classifiers.sleap.sleap_common import MODEL_FORMAT, SleapPredictor, load_artifact, parse_keypoint_names
+from viame.object_detectors.base import spawn_safe_worker_count
 
 
 def make_labels(records, names):
@@ -51,7 +52,9 @@ def make_training_config(options, train_path, val_path, output_dir):
                 part_names=names, sigma=options['sigma'], output_stride=options['output_stride'])}},
         ),
         trainer_config=get_trainer_config(
-            batch_size=options['batch_size'], num_workers=options['num_workers'],
+            batch_size=options['batch_size'],
+            num_workers=spawn_safe_worker_count(
+                options['num_workers'], reason_prefix='[SLEAP] '),
             trainer_num_devices=1, trainer_device_indices=indices,
             trainer_accelerator='cpu' if device == 'cpu' else 'gpu',
             max_epochs=options['max_epochs'], seed=options['seed'],

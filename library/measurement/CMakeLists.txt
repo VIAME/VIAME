@@ -16,6 +16,7 @@
 
 set( plugin_headers
   camera_intrinsics.h
+  disparity_segment.h
   epipolar_geometry.h
   measurement_utilities.h
   ocv_pair_stereo_detections.h
@@ -28,6 +29,7 @@ set( plugin_headers
 
 set( plugin_sources
   camera_intrinsics.cxx
+  disparity_segment.cxx
   epipolar_geometry.cxx
   measurement_utilities.cxx
   ocv_pair_stereo_detections.cxx

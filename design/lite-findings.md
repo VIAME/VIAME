@@ -2417,3 +2417,63 @@ never succeed. `verify_split.sh` is exactly 15 and had matched fine an hour
 earlier, which is what made the negative look meaningful. `pgrep -f` found
 all three pids. Finding 2.23 was the same lesson pointed at a baseline tool:
 the measurement was wrong, not the thing measured.
+
+### 2.29 What a merge into a restructured tree gets wrong, and where it hides it
+
+Merging 67 upstream commits into `lite` broke the build three times, and not
+once where the conflicts were. The 18 conflicted files were the easy part:
+almost all were rename collisions, upstream editing a file under its old
+`plugins/` identity against `lite`'s renamed module paths, and they announce
+themselves. The failures came from the parts git handled silently.
+
+**Rename detection places new files by similarity, and similarity is not
+meaning.** Upstream added `disparity_segment.{cxx,h}` to `plugins/core`. Git
+decided they most resembled `library/file_io/` and put them there -- stereo
+disparity-segment fitting, in the CSV and KW18 reader library. Nothing
+conflicts, nothing warns; the file simply lands in the wrong library and
+compiles there quite happily if its dependencies happen to be satisfied. What
+named the right home was reading what the code does and who calls it:
+`fit_disparity_segment` is called from `measure_objects_process.cxx` and
+`interactive_stereo.py`, both `library/measurement/`.
+
+**A file moved between libraries carries its export identity with it.**
+`disparity_segment.h` included `viame_core_export.h` and used
+`VIAME_CORE_EXPORT`, because upstream it belonged to the `viame_core` target.
+Moved into `library/measurement/` it must use `viame_measurement_export.h` and
+`VIAME_MEASUREMENT_EXPORT`, and the include guard moves too. The namespace,
+though, does **not**: `measurement_utilities.cxx` is itself inside
+`namespace viame { namespace core {` and calls `fit_disparity_segment`
+unqualified, so renaming the namespace to match the directory would have
+broken it. Export identity follows the target; namespace follows the callers.
+They are different questions and the directory answers neither.
+
+**A clean merge is not a safe merge.** Three `vital/` -> `viame/` include
+blocks were fixed by hand because they conflicted. A fourth,
+`#include <vital/types/image_container.h>` in upstream's new pybind block,
+merged with no conflict at all -- upstream added it in a region `lite` had
+not touched -- and broke the build after the first two fixes were in. Two
+`from kwiver.vital.types import ...` lines came in the same way. The lesson is
+to sweep for the whole class once, tree-wide, rather than discover it one
+build at a time: `#include <vital/`, `<sprokit/`, `from kwiver.`, and the
+renamed `viame.core.` / `viame.pytorch.` paths. Three of those five sweeps
+found something; the compat shims under `library/compat/` and
+`library/utilities/compat/` legitimately name the old paths and must be
+excluded, not fixed.
+
+**Upstream moving a helper can leave two of it.** `vital_config_update` moved
+upstream from `plugins/pytorch/utilities.py` to `plugins/core/utils.py`. The
+re-export merged cleanly into `library/object_detectors/base.py` while the
+conflict resolution kept `lite`'s own definition below it -- an import
+shadowed by a definition eleven lines of docstring longer, plus a third copy
+arriving in `library/utilities/utils.py`. Diffing the bodies properly showed
+the code identical and only the docstrings different; a first, cruder
+extraction had reported them as differing, which would have argued for keeping
+both. The keeper is the one lowest in the DAG.
+
+**The verification that mattered was not the build.** A green build says the
+merge compiles, not that it delivered anything. `nm -DC libviame.so` showing
+`viame::core::fit_disparity_segment`, the four new config keys present as
+strings, and ten new tests running by name -- seven `viame:disparity_segment.*`
+cases among them, none disabled -- is what says upstream's work actually
+arrived. Finding 2.27's GFIT tests existed too, and every one of them was
+`(Disabled)`.

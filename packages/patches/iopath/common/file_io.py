@@ -2,6 +2,7 @@
 
 import base64
 import concurrent.futures
+import contextlib
 import errno
 import logging
 import os
@@ -66,6 +67,12 @@ def get_cache_dir(cache_dir: Optional[str] = None) -> str:
     return cache_dir
 
 
+@contextlib.contextmanager
+def _no_lock():
+    """Stand-in for portalocker.Lock that acquires nothing."""
+    yield
+
+
 def file_lock(path: str):  # type: ignore
     """
     A file lock. Once entered, it is guaranteed that no one else holds the
@@ -95,8 +102,14 @@ def file_lock(path: str):  # type: ignore
         # the lock. If failed to create the directory, the next line will raise
         # exceptions.
         pass
-    return True
-    #return portalocker.Lock(path + ".lock", timeout=3600)  # type: ignore
+    # Upstream returns portalocker.Lock here. portalocker is not used on
+    # Windows in this build, but the return value is still entered by every
+    # caller as `with file_lock(path):`, so it has to be a context manager.
+    # Returning a plain value made every cached download raise TypeError.
+    # Without a real lock, two processes downloading to the same cache path
+    # concurrently can still race; VIAME populates the cache from a single
+    # trainer process.
+    return _no_lock()
 
 
 # pyre-fixme[24]: Generic type `os.PathLike` expects 1 type parameter.

@@ -77,6 +77,17 @@ This provides a convenient way to apply enhancement, debayering, format conversi
 and other filtering operations without needing to use the command line.
 
 
+.. dive-crosslink
+
+Enhancement Controls in DIVE
+============================
+
+`DIVE image enhancements`_ documents the brightness, contrast, saturation and sharpness
+controls, and the percentile stretch used for high bit-depth imagery.
+
+.. _DIVE image enhancements: https://viame.readthedocs.io/en/latest/sections/dive/UI-Image-Enhancements.html
+
+
 ************************************
 Image Enhancement Algorithms
 ************************************

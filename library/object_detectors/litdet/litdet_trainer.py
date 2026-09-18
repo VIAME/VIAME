@@ -759,8 +759,9 @@ class LitDetTrainer(KWCocoTrainDetector):
                     final_ckpt = checkpoint_candidates[-1]
 
                 if final_ckpt is None:
-                    print("[LitDetTrainer] No checkpoint found, training may have failed")
-                    return output
+                    raise RuntimeError(
+                        "LitDet training produced no checkpoint. The trainer "
+                        "output above carries the reason.")
             else:
                 print("[LitDetTrainer] No checkpoint directory found")
                 return output

@@ -80,6 +80,7 @@ configs/pipelines/models/.gitignore
 configs/pipelines/models/cfd_rf_detr_m_1024.pth
 configs/pipelines/models/cfd_yolov12x.pt
 configs/pipelines/models/cfrnn_seed.pth
+configs/pipelines/models/default_fish_keypoint_refiner.pt
 configs/pipelines/models/fish_deim_v2_1024.zip
 configs/pipelines/models/fish_rf_detr_seg_kp_1728.pth
 configs/pipelines/models/fish_rf_detr_variance_1728.pth
@@ -141,6 +142,7 @@ configs/pipelines/stereo_compute_rectified_disparity.pipe
 configs/pipelines/stereo_detect_and_measure_gmm_motion.pipe
 configs/pipelines/stereo_detect_calibration_target.pipe
 configs/pipelines/stereo_measure_current_annots_default.pipe
+configs/pipelines/stereo_measure_current_annots_sgbm.pipe
 configs/pipelines/stereo_measure_current_annots_template.pipe
 configs/pipelines/templates
 configs/pipelines/templates/detector_16bit.pipe
@@ -1073,6 +1075,7 @@ include/viame/image_processing/track_set_impl.h
 include/viame/image_processing/viame_image_processing_export.h
 include/viame/image_processing/warp_image_ocv.h
 include/viame/measurement/camera_intrinsics.h
+include/viame/measurement/disparity_segment.h
 include/viame/measurement/epipolar_geometry.h
 include/viame/measurement/measurement_utilities.h
 include/viame/measurement/ocv_pair_stereo_detections.h
@@ -1313,6 +1316,7 @@ lib/python3.10/site-packages/viame/measurement/onnx/__init__.py
 lib/python3.10/site-packages/viame/measurement/onnx/calibration_io.py
 lib/python3.10/site-packages/viame/measurement/onnx/epipolar_dino_matcher.py
 lib/python3.10/site-packages/viame/measurement/onnx/epipolar_matcher.py
+lib/python3.10/site-packages/viame/measurement/onnx/export_fast_foundation_stereo_web.py
 lib/python3.10/site-packages/viame/measurement/onnx/export_stereo_mapping.py
 lib/python3.10/site-packages/viame/measurement/onnx/fast_foundation_stereo.py
 lib/python3.10/site-packages/viame/measurement/onnx/geometry_numpy.py

@@ -31,8 +31,23 @@ The interface can be launched via double clicking the "launch_dive_interface" sc
 or at the top level of the installation. Alternatively a smaller version of DIVE can be installed independently
 of VIAME, which contains no algorithms or AI-assisted annotation.
 
-.. _dedicated user manual: https://kitware.github.io/dive/
+.. _dedicated user manual: https://viame.readthedocs.io/en/latest/sections/dive/index.html
 .. _tutorial videos: https://www.youtube.com/channel/viame
+
+.. dive-crosslink
+
+DIVE Documentation in This Manual
+=================================
+
+The DIVE manual is mirrored into this documentation: see the `DIVE interface
+introduction`_, the `DIVE navigation and editing bar`_, the `DIVE annotation
+quickstart`_, and the `DIVE keyboard shortcuts`_.
+
+.. _DIVE interface introduction: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-User-Interface-Overview.html
+.. _DIVE navigation and editing bar: https://viame.readthedocs.io/en/latest/sections/dive/UI-Navigation-Editing-Bar.html
+.. _DIVE annotation quickstart: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html
+.. _DIVE keyboard shortcuts: https://viame.readthedocs.io/en/latest/sections/dive/Mouse-Keyboard-Shortcuts.html
+
 
 Interactive Segmentation in DIVE
 ================================

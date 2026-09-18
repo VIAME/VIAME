@@ -1,0 +1,34 @@
+# =============================================================================
+# Title: Common Fast Foundation Stereo Configuration
+#
+# Description: Shared configuration for the Fast-Foundation-Stereo ONNX model.
+# Used for disparity estimation in stereo pipelines and interactive stereo
+# annotation in DIVE. The export is a single .onnx file with a sidecar .yaml
+# fixing its input resolution and refinement iterations, so scale is handled by
+# the export rather than at run time.
+#
+# This file can be included in other pipelines or read directly by Python
+# services for consistent model configuration.
+# =============================================================================
+
+config fast_foundation_stereo
+
+  # Single-file ONNX export (or .engine when running TensorRT)
+  :relativepath:model_path                     models/fast_foundation_stereo_l.onnx
+
+  # Sidecar yaml describing the export (image_size, valid_iters, vit_size)
+  :relativepath:config_path                    models/fast_foundation_stereo_l.yaml
+
+  # 'auto' picks from the model extension, or force 'onnxruntime' / 'tensorrt'
+  :backend                                     auto
+
+  # 'auto', 'cuda', 'cuda:N', or 'cpu' (onnxruntime backend only)
+  :device                                      auto
+
+  # 'disparity' (scaled *256, uint16) or 'depth' (mm, needs calibration_file)
+  :output_mode                                 disparity
+
+  # Set disparity invalid where the point falls outside the right image
+  :remove_invisible                            true
+
+# -- end of file --

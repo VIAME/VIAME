@@ -52,6 +52,7 @@ from viame.object_detectors.base import (
     resolve_device_str,
     parse_bool,
     register_vital_algorithm,
+    spawn_safe_worker_count,
     TrainingInterruptHandler,
 )
 
@@ -487,7 +488,8 @@ class Detectron2Trainer(KWCocoTrainDetector):
         cfg.TEST.EVAL_PERIOD = int(self._eval_period)
 
         # Data loader
-        cfg.DATALOADER.NUM_WORKERS = int(self._num_workers)
+        cfg.DATALOADER.NUM_WORKERS = spawn_safe_worker_count(
+            self._num_workers, reason_prefix="[Detectron2Trainer] ")
 
         # Backbone freezing
         freeze_at = int(self._freeze_backbone_at)
@@ -690,8 +692,9 @@ class Detectron2Trainer(KWCocoTrainDetector):
         output_model_path = ub.Path(self._train_directory) / output_model_name
 
         if not output_model_path.exists():
-            print("\n[Detectron2Trainer] No model found, training may have failed\n")
-            return output
+            raise RuntimeError(
+                "Detectron2 training produced no model at {}. The trainer "
+                "output above carries the reason.".format(output_model_path))
 
         algo = "detectron2"
 

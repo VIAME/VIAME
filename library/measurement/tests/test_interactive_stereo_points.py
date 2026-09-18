@@ -81,9 +81,11 @@ def test_invalid_locations_are_not_clamped(service, point):
 
 
 def test_zero_disparity_does_not_become_annotation(service):
-    service._current_disparity[60, 50] = 0
+    # A lone invalid pixel is bridged by its neighbourhood; a hole is not.
+    service._current_disparity[56:65, 46:55] = 0
     response = service.handle_request(request([[50, 60]]))
     assert not response['success']
+    assert response['transferred_points'] == [None]
 
 
 def test_stale_frame_rejected(service):
@@ -117,3 +119,13 @@ def test_epipolar_reverse_inverts_camera_model_without_mutating_forward(service)
     assert result['transferred_points'] == [[57, 60]]
     np.testing.assert_equal(service._epipolar_matcher._T, [-1, 0, 0])
     assert service._epipolar_matcher._dino_available
+
+
+def test_silhouette_keypoint_takes_the_nearer_surface(service):
+    # Fish (disparity 48) against background (20): the keypoint pixel blends both.
+    service._current_disparity[:] = 20.
+    service._current_disparity[55:66, 30:51] = 48.
+    service._current_disparity[60, 50] = 28.
+    response = service.handle_request(request([[50, 60]]))
+    assert response['success']
+    assert response['transferred_points'][0] == pytest.approx([2., 60.])

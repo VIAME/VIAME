@@ -38,7 +38,8 @@ Protocol:
     }
 
     Commands:
-    - "enable": Load the algorithm and enable the service (requires calibration)
+    - "enable": Load the algorithm and enable the service (requires calibration);
+      an optional "config" path selects the stereo config to load
     - "disable": Unload the algorithm and disable the service
     - "set_frame": Start computing disparity for stereo pair (proactive)
     - "cancel": Cancel current disparity computation
@@ -92,6 +93,7 @@ class EpipolarTemplateMatcher:
         epipolar_num_samples=5000,
         dino_model_name="dinov2_vitb14",
         dino_top_k=0,
+        dino_weights_path="",
     ):
         self._template_size = template_size
         self._threshold = template_matching_threshold
@@ -110,6 +112,7 @@ class EpipolarTemplateMatcher:
         # DINO top-K + NCC two-stage matching
         self._dino_model_name = dino_model_name
         self._dino_top_k = dino_top_k
+        self._dino_weights_path = dino_weights_path
         self._dino_matcher = None
         self._dino_available = False
         self._dino_images_set = False
@@ -121,19 +124,22 @@ class EpipolarTemplateMatcher:
         print(f"[EpipolarMatcher] {msg}", file=sys.stderr, flush=True)
 
     def _init_dino(self):
-        """Try to import and initialize the DINO matcher module."""
+        # A config that asks for DINO must not silently degrade to plain NCC.
+        if self._dino_weights_path and not os.path.isfile(self._dino_weights_path):
+            raise RuntimeError(
+                f"DINO weights not found: {self._dino_weights_path} "
+                "(is the DINO add-on installed?)")
         try:
             from viame.measurement.dino import dino_matcher
             self._dino_matcher = dino_matcher
             dino_matcher.init_matcher(
-                model_name=self._dino_model_name, device="cuda", threshold=0.0)
-            self._dino_available = True
-            self._log(f"DINO matcher initialized: model={self._dino_model_name}, "
-                      f"top_k={self._dino_top_k}")
+                model_name=self._dino_model_name, device="cuda", threshold=0.0,
+                weights_path=self._dino_weights_path)
         except Exception as e:
-            self._log(f"DINO matcher not available ({e}), using NCC only")
-            self._dino_available = False
-            self._dino_top_k = 0
+            raise RuntimeError(f"DINO matcher failed to initialize: {e}") from e
+        self._dino_available = True
+        self._log(f"DINO matcher initialized: model={self._dino_model_name}, "
+                  f"top_k={self._dino_top_k}")
 
     def set_images(self, left_bgr, right_bgr):
         """Set BGR images for DINO feature extraction (call when frame changes)."""
@@ -330,6 +336,80 @@ class EpipolarTemplateMatcher:
                 [float(right_p2[0]), float(right_p2[1])]))
 
 
+# compute_measurements keys the dense grid honours, with the service defaults.
+# alpha=0 crops to the region valid in both images, which collapses to a
+# sliver when the baseline has a large vertical component. Keypoints sit on
+# the object's silhouette, where the network blends the object with what lies
+# behind it; a high percentile of the neighbourhood keeps the nearer surface.
+DENSE_GRID_DEFAULTS = {
+    "rectification_alpha": "-1.0",
+    "refine_keypoints_disparity_window": "3",
+    "refine_keypoints_disparity_percentile": "0.9",
+    "refine_keypoints_disparity_min_valid_fraction": "0.0",
+    "refine_keypoints_disparity_use_circle": "false",
+    "refine_disparity_segment": "true",
+    "disparity_segment_samples": "11",
+    "disparity_segment_max_outliers": "3",
+    "disparity_segment_max_error": "10.0",
+}
+
+
+class DenseStereoRectifier:
+    """The rectified grid a dense disparity backend works on, built by the same
+    C++ (map_keypoints_to_camera) the measurement pipelines use, so
+    interactive results match batch results. Sized lazily from the first
+    frame."""
+
+    def __init__(self, calibration_path: str, options: Optional[Dict[str, str]] = None):
+        self._path = calibration_path
+        self._options = dict(DENSE_GRID_DEFAULTS, **(options or {}))
+        self._grid = None
+        self._size = None
+
+    def prepare(self, width: int, height: int) -> None:
+        if self._size == (width, height):
+            return
+        self._grid = _cpp_measurement.DenseStereoGrid(self._path, width, height, self._options)
+        self._size = (width, height)
+
+    @property
+    def ready(self) -> bool:
+        return self._grid is not None
+
+    @property
+    def segment_fit(self) -> bool:
+        return self._options["refine_disparity_segment"].strip().lower() in ("true", "1", "yes", "on")
+
+    def intrinsics(self) -> Dict[str, float]:
+        return self._grid.intrinsics()
+
+    def rectify_image(self, image: np.ndarray, right: bool) -> np.ndarray:
+        return self._grid.rectify_image(np.ascontiguousarray(image, dtype=np.uint8), right)
+
+    def rectify_points(self, points, right: bool) -> np.ndarray:
+        pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+        return self._grid.rectify_points(pts, right) if len(pts) else pts
+
+    def unrectify_points(self, points, right: bool) -> np.ndarray:
+        pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+        return self._grid.unrectify_points(pts, right) if len(pts) else pts
+
+    def match_grid_points(self, disparity: np.ndarray, grid_points) -> np.ndarray:
+        """Right-grid matches of left-grid points; NaN where none is valid."""
+        pts = np.asarray(grid_points, dtype=np.float64).reshape(-1, 2)
+        if not len(pts):
+            return pts
+        return self._grid.match_grid_points(np.ascontiguousarray(disparity, dtype=np.float32), pts)
+
+    def fit_segment(self, disparity: np.ndarray, left_head, left_tail):
+        """Right endpoints (original coordinates) from the disparity profile
+        along the segment, or None when the fit is rejected."""
+        return self._grid.fit_segment(
+            np.ascontiguousarray(disparity, dtype=np.float32),
+            [float(left_head[0]), float(left_head[1])],
+            [float(left_tail[0]), float(left_tail[1])])
+
+
 class InteractiveStereoService:
     """
     Interactive Stereo Service using KWIVER vital algorithms.
@@ -341,6 +421,7 @@ class InteractiveStereoService:
     def __init__(
         self,
         compute_stereo_depth_map_algo=None,
+        dense_grid_options: Optional[Dict[str, str]] = None,
         epipolar_matcher: Optional[EpipolarTemplateMatcher] = None,
         scale: float = 1.0,
         segmentation_generate_line: bool = False,
@@ -367,6 +448,7 @@ class InteractiveStereoService:
                 segmentation_point_sampling is enabled.
         """
         self._stereo_algo = compute_stereo_depth_map_algo
+        self._dense_grid_options = dense_grid_options or {}
         self._epipolar_matcher = epipolar_matcher
         self._use_epipolar = epipolar_matcher is not None
         self._scale = scale
@@ -395,6 +477,9 @@ class InteractiveStereoService:
         self._current_left_path: Optional[str] = None
         self._current_right_path: Optional[str] = None
         self._current_disparity: Optional[np.ndarray] = None
+        self._current_frame_time = None
+        # Dense backends see rectified images; None keeps the raw grid.
+        self._rectifier: Optional[DenseStereoRectifier] = None
         self._disparity_ready = False
 
         # Images for epipolar template matching mode
@@ -433,9 +518,10 @@ class InteractiveStereoService:
             "error": error,
         })
 
-    def _add_to_cache(self, left_path: str, right_path: str, disparity: np.ndarray) -> None:
+    def _add_to_cache(self, left_path: str, right_path: str, disparity: np.ndarray,
+                      frame_time=None) -> None:
         """Add a disparity map to the cache with LRU eviction."""
-        cache_key = (left_path, right_path)
+        cache_key = (left_path, right_path, frame_time)
 
         # If already in cache, move to end of order list
         if cache_key in self._disparity_cache:
@@ -455,9 +541,10 @@ class InteractiveStereoService:
         self._cache_order.append(cache_key)
         self._log(f"Added disparity to cache. Cache size: {len(self._cache_order)}")
 
-    def _get_from_cache(self, left_path: str, right_path: str) -> Optional[np.ndarray]:
+    def _get_from_cache(self, left_path: str, right_path: str,
+                        frame_time=None) -> Optional[np.ndarray]:
         """Get a disparity map from the cache if available."""
-        cache_key = (left_path, right_path)
+        cache_key = (left_path, right_path, frame_time)
         disparity = self._disparity_cache.get(cache_key)
         if disparity is not None:
             # Move to end of order list (most recently used)
@@ -487,34 +574,105 @@ class InteractiveStereoService:
         self._log(f"Loaded calibration: focal_length={self._focal_length}, "
                   f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})")
 
-    def _dense_measurement(self, p1, disp1, p2, disp2):
+    # ------------------------------------------------ dense grid mapping
+    def _to_grid(self, points, right: bool = False) -> np.ndarray:
+        """Original image coordinates -> the disparity grid (rectified when
+        a calibration file is loaded, otherwise the raw image)."""
+        pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+        if self._rectifier is not None and self._rectifier.ready:
+            return self._rectifier.rectify_points(pts, right)
+        return pts
+
+    def _from_grid(self, points, right: bool = True) -> np.ndarray:
+        pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+        if self._rectifier is not None and self._rectifier.ready:
+            return self._rectifier.unrectify_points(pts, right)
+        return pts
+
+    # Keypoints sit on the object's silhouette, where the network blends the
+    # object with what lies behind it. The object is the nearer surface, so a
+    # high percentile of the neighbourhood recovers its disparity.
+    _DISPARITY_WINDOW = 3
+    _DISPARITY_PERCENTILE = 90
+
+    def _grid_disparity(self, grid_points, disparity=None) -> np.ndarray:
+        """Disparity at grid coordinates (clamped to the grid); 0 where the
+        neighbourhood holds no valid value."""
+        disparity = self._current_disparity if disparity is None else disparity
+        h, w = disparity.shape[:2]
+        pts = np.asarray(grid_points, dtype=np.float64).reshape(-1, 2)
+        xs = np.clip(np.rint(pts[:, 0]), 0, w - 1).astype(int)
+        ys = np.clip(np.rint(pts[:, 1]), 0, h - 1).astype(int)
+        out = np.zeros(len(pts))
+        r = self._DISPARITY_WINDOW
+        for i, (x, y) in enumerate(zip(xs, ys)):
+            window = disparity[max(0, y - r):y + r + 1, max(0, x - r):x + r + 1]
+            valid = window[np.isfinite(window) & (window > 0)]
+            if valid.size:
+                out[i] = float(np.percentile(valid, self._DISPARITY_PERCENTILE))
+        return out
+
+    def _match_grid(self, grid_points, disparity=None, right_to_left: bool = False):
+        """Grid matches on the other camera and their disparities (0 where
+        the neighbourhood holds no valid value)."""
+        disparity = self._current_disparity if disparity is None else disparity
+        grid = np.asarray(grid_points, dtype=np.float64).reshape(-1, 2)
+        if self._rectifier is not None and self._rectifier.ready:
+            matched = self._rectifier.match_grid_points(disparity, grid)
+            disp = np.where(np.isfinite(matched[:, 0]), grid[:, 0] - matched[:, 0], 0.0)
+        else:
+            disp = self._grid_disparity(grid, disparity)
+        sign = 1.0 if right_to_left else -1.0
+        return grid + np.column_stack([sign * disp, np.zeros_like(disp)]), disp
+
+    def _dense_transfer(self, points, right_to_left: bool = False):
+        """Corresponding points on the other camera via the disparity grid.
+        Returns (matched original coordinates, disparities)."""
+        grid = self._to_grid(points, right=right_to_left)
+        disparity = self._right_reference_disparity() if right_to_left else None
+        matched, disp = self._match_grid(grid, disparity, right_to_left)
+        return self._from_grid(matched, right=not right_to_left), disp
+
+    def _grid_calibration(self):
+        """(fx, fy, cx_left, cx_right, cy, baseline) of the disparity grid."""
+        rect = self._rectifier
+        if rect is not None and rect.ready:
+            i = rect.intrinsics()
+            return (i["fx"], i["fy"], i["cx_left"], i["cx_right"], i["cy"], i["baseline"])
+        if self._focal_length <= 0 or self._baseline <= 0:
+            return None
+        fx = float(self._focal_length)
+        return (fx, fx, float(self._principal_x), float(self._principal_x),
+                float(self._principal_y), float(self._baseline))
+
+    def _dense_measurement(self, lp1, rp1, lp2, rp2):
         """Full stereo measurement (dense mode) via the C++ implementation.
 
-        Dense mode only has scalar calibration (focal length, baseline,
-        principal point), so an idealized rectified calibration is constructed
-        (fy == fx, R == I, T == [-baseline, 0, 0]) and the right endpoints are
-        corresponded by disparity. The measurement is then computed by the same
-        viame::core::compute_stereo_measurement used in epipolar mode.
+        The endpoints (original image coordinates, corresponded on both
+        cameras) are moved onto the rectified grid, where the rig is an
+        idealized pair (R == I, T == [-baseline, 0, 0]) with the intrinsics of
+        the rectifying projections. Without a calibration file the raw image is
+        the grid and the scalar calibration stands in.
         """
-        if (disp1 <= 0 or disp2 <= 0
-                or self._focal_length <= 0 or self._baseline <= 0):
+        cal = self._grid_calibration()
+        if cal is None:
             return None
-
-        fx = float(self._focal_length)
-        cx = float(self._principal_x)
-        cy = float(self._principal_y)
+        fx, fy, cx_l, cx_r, cy, baseline = cal
+        left = self._to_grid([lp1, lp2], right=False)
+        right = self._to_grid([rp1, rp2], right=True)
+        if (left[:, 0] - right[:, 0] <= 0).any():
+            return None
         # Flat row-major lists (see compute_measurement for why lists, not numpy)
-        k = [fx, 0.0, cx, 0.0, fx, cy, 0.0, 0.0, 1.0]
+        k_left = [fx, 0.0, cx_l, 0.0, fy, cy, 0.0, 0.0, 1.0]
+        k_right = [fx, 0.0, cx_r, 0.0, fy, cy, 0.0, 0.0, 1.0]
         rotation = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-        translation = [-float(self._baseline), 0.0, 0.0]
+        translation = [-baseline, 0.0, 0.0]
 
         return dict(
             _cpp_measurement.compute_stereo_measurement_from_calibration(
-                k, k, rotation, translation,
-                [float(p1[0]), float(p1[1])],
-                [float(p1[0] - disp1), float(p1[1])],
-                [float(p2[0]), float(p2[1])],
-                [float(p2[0] - disp2), float(p2[1])]))
+                k_left, k_right, rotation, translation,
+                left[0].tolist(), right[0].tolist(),
+                left[1].tolist(), right[1].tolist()))
 
     _VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.mpg', '.mpeg', '.m4v'}
 
@@ -603,6 +761,19 @@ class InteractiveStereoService:
         if self._cancel_event.is_set():
             return None
 
+        if self._rectifier is not None:
+            from viame.types import Image, ImageContainer
+            self._rectifier.prepare(*left_size)
+            intrinsics = self._rectifier.intrinsics()
+            self._focal_length = intrinsics["fx"]
+            self._principal_x = intrinsics["cx_left"]
+            self._principal_y = intrinsics["cy"]
+            self._baseline = intrinsics["baseline"]
+            left_container = ImageContainer(Image(
+                self._rectifier.rectify_image(left_img.asarray(), False)))
+            right_container = ImageContainer(Image(
+                self._rectifier.rectify_image(right_img.asarray(), True)))
+
         # Call the algorithm's compute method
         result_container = self._stereo_algo.compute(left_container, right_container)
 
@@ -652,11 +823,12 @@ class InteractiveStereoService:
                 if disparity is not None and not self._cancel_event.is_set():
                     with self._compute_lock:
                         # Add to cache for future use
-                        self._add_to_cache(left_path, right_path, disparity)
+                        self._add_to_cache(left_path, right_path, disparity, frame_time)
 
                         # Only update if this is still the current frame
                         if (self._current_left_path == left_path and
-                                self._current_right_path == right_path):
+                                self._current_right_path == right_path and
+                                self._current_frame_time == frame_time):
                             self._current_disparity = disparity
                             self._disparity_ready = True
                             self._disparity_event.set()
@@ -721,6 +893,10 @@ class InteractiveStereoService:
         calibration = request.get("calibration")
         if calibration:
             self._load_calibration(calibration)
+        if calibration_file and not self._use_epipolar:
+            self._rectifier = DenseStereoRectifier(calibration_file, self._dense_grid_options)
+            self._calibration = self._calibration or {"file": calibration_file}
+            self._log(f"Dense stereo will rectify with {calibration_file}")
 
         self._enabled = True
         self._start_background_worker()
@@ -778,7 +954,7 @@ class InteractiveStereoService:
         left_path = request.get("left_image_path")
         right_path = request.get("right_image_path")
         request_id = request.get("id")
-        self._current_frame_time = request.get("frame_time")
+        frame_time = request.get("frame_time")
 
         if not left_path or not right_path:
             raise ValueError("left_image_path and right_image_path are required")
@@ -788,10 +964,11 @@ class InteractiveStereoService:
         if not os.path.exists(right_path):
             raise ValueError(f"Right image not found: {right_path}")
 
-        # Check if already computing this frame
+        # Check if already computing this frame (video frames share a path)
         with self._compute_lock:
             if (self._current_left_path == left_path and
-                    self._current_right_path == right_path):
+                    self._current_right_path == right_path and
+                    self._current_frame_time == frame_time):
                 if self._disparity_ready:
                     return {
                         "success": True,
@@ -805,6 +982,7 @@ class InteractiveStereoService:
                         "disparity_ready": False,
                     }
 
+            self._current_frame_time = frame_time
             if self._use_epipolar:
                 # Epipolar mode: update state, will load images below
                 self._cancel_computation()
@@ -812,7 +990,7 @@ class InteractiveStereoService:
                 self._current_right_path = right_path
             else:
                 # Dense mode: check if we have this disparity cached
-                cached_disparity = self._get_from_cache(left_path, right_path)
+                cached_disparity = self._get_from_cache(left_path, right_path, frame_time)
                 if cached_disparity is not None:
                     self._log(f"Using cached disparity for: {left_path}")
                     self._current_left_path = left_path
@@ -947,26 +1125,18 @@ class InteractiveStereoService:
 
                 return result
 
-            H, W = self._current_disparity.shape[:2]
-
-            def clamp_point(p):
-                x = max(0, min(W - 1, int(round(p[0]))))
-                y = max(0, min(H - 1, int(round(p[1]))))
-                return x, y
-
-            x1, y1 = clamp_point(p1)
-            x2, y2 = clamp_point(p2)
-
-            disp1 = float(self._current_disparity[y1, x1])
-            disp2 = float(self._current_disparity[y2, x2])
-
-            x1_right = p1[0] - disp1
-            x2_right = p2[0] - disp2
-
-            transferred_line = [
-                [float(x1_right), float(p1[1])],
-                [float(x2_right), float(p2[1])],
-            ]
+            matched, disp = self._dense_transfer([p1, p2])
+            if self._rectifier is not None and self._rectifier.ready and self._rectifier.segment_fit:
+                # Fit the disparity profile along the body rather than trusting
+                # two edge pixels; fall back to the per-point matches.
+                fitted = self._rectifier.fit_segment(self._current_disparity, p1, p2)
+                if fitted is not None:
+                    matched = np.asarray(fitted, dtype=float)
+                    grid_left = self._to_grid([p1, p2])
+                    grid_right = self._to_grid(matched, right=True)
+                    disp = grid_left[:, 0] - grid_right[:, 0]
+            disp1, disp2 = float(disp[0]), float(disp[1])
+            transferred_line = matched.tolist()
 
             depth_info = None
             measurement = None
@@ -981,7 +1151,7 @@ class InteractiveStereoService:
                 }
                 # Triangulate via the rectified pinhole model for the full
                 # stereo measurement (length, 3D midpoint, range).
-                measurement = self._dense_measurement(p1, disp1, p2, disp2)
+                measurement = self._dense_measurement(p1, matched[0], p2, matched[1])
 
             result = {
                 "success": True,
@@ -1033,26 +1203,23 @@ class InteractiveStereoService:
                     "num_matched": num_matched,
                 }
 
-            H, W = self._current_disparity.shape[:2]
-            transferred_points = []
-            disparity_values = []
-
-            for p in points:
-                x = max(0, min(W - 1, int(round(p[0]))))
-                y = max(0, min(H - 1, int(round(p[1]))))
-
-                disp = float(self._current_disparity[y, x])
-                x_right = p[0] - disp
-
-                transferred_points.append([float(x_right), float(p[1])])
-                disparity_values.append(disp)
-
+            matched, disp = self._dense_transfer(points)
             return {
                 "success": True,
-                "transferred_points": transferred_points,
+                "transferred_points": matched.tolist(),
                 "original_points": points,
-                "disparity_values": disparity_values,
+                "disparity_values": disp.tolist(),
             }
+
+    def _grid_images(self, left_path, right_path, frame_time):
+        """The stereo pair as the dense backend sees it (rectified if possible)."""
+        left = self._load_image(left_path, frame_time).image().asarray()
+        right = self._load_image(right_path, frame_time).image().asarray()
+        if self._rectifier is not None:
+            self._rectifier.prepare(left.shape[1], left.shape[0])
+            left = self._rectifier.rectify_image(left, False)
+            right = self._rectifier.rectify_image(right, True)
+        return left, right
 
     def _right_reference_disparity(self):
         """Cache one reverse map per stereo frame; caller holds _compute_lock."""
@@ -1064,8 +1231,7 @@ class InteractiveStereoService:
         config = self._stereo_algo.get_configuration()
         if config.has_value('output_mode') and config.get_value('output_mode') != 'disparity':
             raise ValueError('Point transfer requires disparity output')
-        left = self._load_image(key[0], key[2]).image().asarray()
-        right = self._load_image(key[1], key[2]).image().asarray()
+        left, right = self._grid_images(key[0], key[1], key[2])
         result = self._stereo_algo.compute(
             ImageContainer(Image(np.ascontiguousarray(right[:, ::-1]))),
             ImageContainer(Image(np.ascontiguousarray(left[:, ::-1]))))
@@ -1084,7 +1250,6 @@ class InteractiveStereoService:
     def _transfer_points_checked(self, request):
         """Direction-aware point transfer. Invalid matches never become annotations."""
         import copy
-        from viame.measurement.curved_measurement import sample_map
         points = np.asarray(request['points'], dtype=float)
         side = request.get('source_camera', 'left')
         if side not in ('left', 'right'):
@@ -1111,20 +1276,20 @@ class InteractiveStereoService:
             matched = [matcher.match_point(source, target, p) for p in points]
             h, w = target.shape[:2]
             hs, ws = source.shape[:2]
-            valid = [p is not None and np.isfinite(p).all() and
-                     0 <= p[0] < w and 0 <= p[1] < h and
-                     0 <= original[0] < ws and 0 <= original[1] < hs
+            valid = [bool(p is not None and np.isfinite(p).all() and
+                          0 <= p[0] < w and 0 <= p[1] < h and
+                          0 <= original[0] < ws and 0 <= original[1] < hs)
                      for original, p in zip(points, matched)]
         else:
             if self._current_disparity is None:
                 raise ValueError('Disparity not ready')
             disparity = self._current_disparity if side == 'left' else self._right_reference_disparity()
-            d = sample_map(np.where(np.isfinite(disparity) & (disparity > 0), disparity, np.nan), points)
-            matched = points.copy()
-            matched[:, 0] += d if side == 'right' else -d
+            grid = self._to_grid(points, right=(side == 'right'))
+            matched_grid, d = self._match_grid(grid, disparity, side == 'right')
             h, w = disparity.shape
-            valid = (np.isfinite(d) & (d > 0) & (matched[:, 0] >= 0) &
-                     (matched[:, 0] < w) & (matched[:, 1] >= 0) & (matched[:, 1] < h)).tolist()
+            inside = lambda g: (g[:, 0] >= 0) & (g[:, 0] < w) & (g[:, 1] >= 0) & (g[:, 1] < h)
+            valid = (np.isfinite(d) & (d > 0) & inside(grid) & inside(matched_grid)).tolist()
+            matched = self._from_grid(np.nan_to_num(matched_grid), right=(side == 'left'))
         values = [float((p[0] - q[0]) if side == 'left' else (q[0] - p[0])) if ok else 0.0
                   for p, q, ok in zip(points, matched, valid)]
         return dict(success=all(valid), original_points=points.tolist(),
@@ -1251,9 +1416,7 @@ class InteractiveStereoService:
             measurement = self._epipolar_matcher.compute_measurement(
                 lp1, rp1, lp2, rp2)
         else:
-            # Dense mode: derive disparity from the supplied correspondences
-            measurement = self._dense_measurement(
-                lp1, lp1[0] - rp1[0], lp2, lp2[0] - rp2[0])
+            measurement = self._dense_measurement(lp1, rp1, lp2, rp2)
 
         if measurement is None:
             return {
@@ -1270,7 +1433,7 @@ class InteractiveStereoService:
 
     def _measure_edited_centerline(self, left_line, right_line):
         """Re-match edited centerlines; vertex indices are not stereo matches."""
-        from viame.measurement.curved_measurement import resample_polyline, sample_map
+        from viame.measurement.curved_measurement import resample_polyline
         from scipy.spatial import cKDTree
         left = resample_polyline(left_line, 32)
         right = resample_polyline(right_line, 512)
@@ -1287,21 +1450,20 @@ class InteractiveStereoService:
                 disparity = self._current_disparity
                 if disparity is None:
                     raise ValueError("Disparity not ready for curved measurement")
-                disp = sample_map(np.where(disparity > 0, disparity, np.nan), left)
-                matched = left.copy()
-                matched[:, 0] -= disp
+                grid = self._to_grid(left)
+                matched_grid, disp = self._match_grid(grid, disparity)
                 h, w = disparity.shape
                 if (not np.isfinite(disp).all() or (disp <= 0).any() or
-                        (matched[:, 0] < 0).any() or (matched[:, 0] >= w).any() or
-                        (matched[:, 1] < 0).any() or (matched[:, 1] >= h).any()):
+                        (matched_grid[:, 0] < 0).any() or (matched_grid[:, 0] >= w).any() or
+                        (matched_grid[:, 1] < 0).any() or (matched_grid[:, 1] >= h).any()):
                     return {"success": False, "error": "Invalid centerline disparity"}
+                matched = self._from_grid(matched_grid)
             if not np.isfinite(matched).all() or (cKDTree(right).query(matched)[0] > 5).any():
                 return {"success": False, "error": "Matched points disagree with the edited right curve"}
             def segment(i, j):
                 if self._use_epipolar:
                     return self._epipolar_matcher.compute_measurement(left[i], matched[i], left[j], matched[j])
-                return self._dense_measurement(left[i], left[i, 0] - matched[i, 0],
-                                               left[j], left[j, 0] - matched[j, 0])
+                return self._dense_measurement(left[i], matched[i], left[j], matched[j])
             pieces = [segment(i, i + 1) for i in range(len(left) - 1)]
             chord = segment(0, -1)
         if (chord is None or chord['length'] <= 0 or
@@ -1339,8 +1501,8 @@ class InteractiveStereoService:
             if request.get('options', {}).get('mode', 'left') == 'bidirectional':
                 from viame.types import Image, ImageContainer
                 frame_time = getattr(self, '_current_frame_time', None)
-                left = self._load_image(self._current_left_path, frame_time).image().asarray()
-                right = self._load_image(self._current_right_path, frame_time).image().asarray()
+                left, right = self._grid_images(
+                    self._current_left_path, self._current_right_path, frame_time)
                 result = self._stereo_algo.compute(
                     ImageContainer(Image(np.ascontiguousarray(right[:, ::-1]))),
                     ImageContainer(Image(np.ascontiguousarray(left[:, ::-1]))))
@@ -1440,11 +1602,8 @@ class InteractiveStereoService:
                 self._left_gray, self._right_gray, p)
             return [float(matched[0]), float(matched[1])] if matched is not None else None
         if self._current_disparity is not None:
-            h, w = self._current_disparity.shape[:2]
-            x = max(0, min(w - 1, int(round(p[0]))))
-            y = max(0, min(h - 1, int(round(p[1]))))
-            disp = float(self._current_disparity[y, x])
-            return [float(p[0]) - disp, float(p[1])]
+            matched, _ = self._dense_transfer([p])
+            return matched[0].tolist()
         return None
 
     @staticmethod
@@ -1648,7 +1807,10 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
 
     # Read config file using vital's built-in loader (supports includes)
     config_dir = os.path.dirname(os.path.abspath(config_path))
-    cfg = vital_config.read_config_file(config_path, [config_dir])
+    # Newer bindings type search_paths as an opaque ConfigKeys vector.
+    search_paths = getattr(vital_config, "ConfigKeys", list)()
+    search_paths.append(config_dir)
+    cfg = vital_config.read_config_file(config_path, search_paths)
 
     # Check for epipolar template matching mode
     epipolar_matcher = None
@@ -1671,6 +1833,8 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
                 dino_model_name=cfg.get_value("dino_model_name")
                     if cfg.has_value("dino_model_name") else "dinov2_vitb14",
                 dino_top_k=_cfg_int("dino_top_k", 0),
+                dino_weights_path=cfg.get_value("dino_weights_path")
+                    if cfg.has_value("dino_weights_path") else "",
             )
 
     # Check for dense disparity algorithm
@@ -1687,8 +1851,12 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
         return str(cfg.get_value(key)).strip().lower() in ("true", "1", "yes", "on")
 
     # Extract service configuration
+    dense_grid_options = {
+        key: str(cfg.get_value(key)) for key in DENSE_GRID_DEFAULTS if cfg.has_value(key)
+    }
     service_config = {
         "scale": float(cfg.get_value("service:scale")) if cfg.has_value("service:scale") else 1.0,
+        "dense_grid_options": dense_grid_options,
         "segmentation_generate_line": _cfg_bool("segmentation_generate_line", False),
         "segmentation_point_sampling": _cfg_bool("segmentation_point_sampling", False),
         "segmentation_point_samples": int(cfg.get_value("segmentation_point_samples"))

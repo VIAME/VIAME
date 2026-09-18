@@ -3,7 +3,7 @@
 #
 # Description: Current incumbent is a modified version of "Tracking the
 # Untrackable" implemented in pytorch, trained on assorted fish data. Uses
-# model: rnn_ml_aim.pt.
+# model: srnn_rnn_v.pt.
 # =============================================================================
 
 process tracker
@@ -22,11 +22,11 @@ block track_objects:srnn
   :track_search_threshold                      2
   :gpu_list                                    0
 
-  relativepath siamese_model_path =            models/siamese_model.pt
+  relativepath siamese_model_path =            models/srnn_siamese.pt
   :siamese_batch_size                          64
 
-  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
-  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
+  relativepath targetRNN_AIM_model_path =      models/srnn_rnn_f.pt
+  relativepath targetRNN_AIM_V_model_path =    models/srnn_rnn_v.pt
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
 endblock

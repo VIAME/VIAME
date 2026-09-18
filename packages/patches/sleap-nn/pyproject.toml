@@ -1,0 +1,318 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sleap-nn"
+authors = [
+    { name = "Divya Seshadri Murali", email = "dimurali@salk.edu" },
+    { name = "Elizabeth Berrigan", email = "eberrigan@salk.edu" },
+    { name = "Vincent Tu", email = "vitu@ucsd.edu" },
+    { name = "Liezl Maree", email = "lmaree@salk.edu" },
+    { name = "David Samy", email = "davidasamy@gmail.com" },
+    { name = "Talmo Pereira", email = "talmo@salk.edu" },
+]
+description = "Neural network backend for training and inference for animal pose estimation."
+requires-python = ">=3.10,<3.14"
+keywords = [
+    "sleap",
+    "pose estimation",
+    "deep learning",
+    "neural networks",
+    "computer vision",
+    "animal behavior",
+]
+license = { text = "BSD-3-Clause" }
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    # Instance segmentation (SegmentationMask / Labels.get_masks) requires the
+    # sleap-io 0.8.0 annotation architecture. Audited through 0.9.2 (re-ID,
+    # Category, Event annotations; the two breaking changes there —
+    # Identity.color removed, .category str->Category — don't touch any API
+    # sleap-nn uses). Fenced below 0.10.0 so a future minor bump is an
+    # explicit, audited upgrade.
+    "sleap-io>=0.9.2,<0.10.0",
+    "numpy",
+    "torch",
+    "torchvision>=0.20.0",
+    "lightning",
+    "skia-python>=87.0,<=138.0",  # pinned for Python 3.13 compatibility (see sleap-io#355)
+    "jsonpickle",
+    "scipy",
+    "attrs",
+    "omegaconf",
+    "wandb",
+    "matplotlib",
+    "seaborn",
+    "rich",
+    "textual>=0.40.0",
+    "loguru",
+    "psutil",
+    "opencv-python",
+    "scikit-image",  # morphological skeletonize for the clDice segmentation metric
+    "hydra-core",
+    "jupyter",
+    "jupyterlab",
+    "pyzmq",
+    "rich-click>=1.9.5",
+    "pykalman>=0.11.0",
+]
+dynamic = ["version", "readme"]
+
+[tool.setuptools]
+packages = ["sleap_nn"]
+
+[tool.setuptools.dynamic]
+version = { attr = "sleap_nn.__version__" }
+readme = { file = ["README.md"], content-type = "text/markdown" }
+
+[project.optional-dependencies]
+torch = ["torch", "torchvision>=0.20.0"]  # redundant (now default deps), kept for backwards compat
+# First-class extras (NOT aliases): each owns its own torch index source in
+# [tool.uv.sources] below. Defining them as `sleap-nn[torch-cuda130]` aliases
+# left the transitive nvidia-cudnn marker keyed on the `torch-cuda130` extra, so
+# `uv sync --extra gpu` pulled torch+cu130 without cuDNN (#632). Giving gpu/cpu
+# their own source entries makes uv attach the cuDNN markers to these extras.
+cpu = ["torch", "torchvision>=0.20.0"]
+gpu = ["torch", "torchvision>=0.20.0"]
+torch-cpu = ["torch", "torchvision>=0.20.0"]
+torch-cuda118 = ["torch", "torchvision>=0.20.0"]
+torch-cuda128 = ["torch", "torchvision>=0.20.0"]
+torch-cuda130 = ["torch", "torchvision>=0.20.0"]
+export = ["onnx>=1.15.0", "onnxruntime>=1.16.0", "onnxscript>=0.1.0"]
+export-gpu = [
+    "onnx>=1.15.0",
+    "onnxruntime-gpu>=1.16.0; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'win32' and platform_machine == 'AMD64')",
+    "onnxscript>=0.1.0",
+]
+tensorrt = [
+    "tensorrt>=10.13.0; sys_platform == 'linux' or sys_platform == 'win32'",
+    "torch-tensorrt>=2.5.0; sys_platform == 'linux' or sys_platform == 'win32'",
+]
+# SAM1 prompted-mask inference (`mask_backend="sam"`). Lazy: imported only inside
+# the SAM backend, so the default install never needs it. ViT-H is Apache-2.0 and
+# ungated; download a checkpoint (e.g. sam_vit_h_4b8939.pth) separately and pass
+# it via `sam_checkpoint=`. cv2 (CLAHE / overlay) comes from the base
+# `opencv-python` dependency, so no OpenCV is pinned here.
+sam = [
+    "segment-anything>=1.0",
+]
+# SAM3 prompted-mask inference (`mask_backend="sam3"`). Lazy: imported only inside
+# the SAM3 backend, so the default install never needs it. SAM3 lives in the gated
+# `facebook/sam3` HF repo (request access + `huggingface-cli login` / set HF_TOKEN)
+# and ships in `transformers>=5`. It typically wants torch cu130, which may NOT
+# co-install with the rest of sleap-nn — install it on its own or run the SAM3
+# image path out-of-process and assemble the `.slp` in the sleap-nn venv (the
+# two-venv handoff, PLAN §2.3 / DQ6). See docs/guides/sam-inference-segmentation.md.
+# cv2 (CLAHE / speckle cleanup) comes from the base `opencv-python` dependency.
+sam3 = [
+    "transformers>=5.0",
+]
+# External pretrained image backbones (`model_config.backbone_config.pretrained`).
+# Reuses HuggingFace `transformers` `AutoBackbone`/`*Backbone` encoders (ConvNeXtV2,
+# ResNet, Swinv2, DINOv2, ...) as sleap-nn backbones. Lazy: imported only when a
+# `pretrained` backbone is requested, so the default install never needs it. Native
+# HF backbones (ConvNeXt/Swin/ResNet/DINOv2) need `transformers` core only — no timm.
+# Gated foundation weights (DINOv3, SAM3) additionally require `HF_TOKEN` + accepted
+# terms. See docs/guides/pretrained-backbones.md.
+backbones = [
+    "transformers>=5.0",
+]
+
+[dependency-groups]
+# PEP 735: Dev-only dependencies (`dev` is installed automatically by `uv sync`)
+dev = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "pydocstyle",
+    "toml",
+    "twine",
+    "build",
+    "ipython",
+    "ruff",
+]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-jupyter",
+    "mike",
+    "mkdocstrings[python]",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
+    "mkdocs-section-index",
+    "mkdocs-redirects",
+]
+# GPU torch/torchvision routed through the cu130 index (see [tool.uv.sources]).
+# Listed in `default-groups` below so a bare `uv run` / `uv sync` installs the
+# CUDA build automatically on Linux/Windows x86-64 (macOS falls back to the
+# default MPS wheel). uv has `default-groups` but no `default-extras`, so a GROUP
+# — not the `gpu` extra — is what makes GPU the default. Opt out with
+# `--no-group gpu` (e.g. `uv sync --no-group gpu --extra torch-cpu`).
+gpu = ["torch", "torchvision>=0.20.0"]
+
+[project.scripts]
+sleap-nn = "sleap_nn.cli:cli"
+
+[project.urls]
+Homepage = "https://sleap.ai"
+Repository = "https://github.com/talmolab/sleap-nn"
+
+[tool.uv]
+# `uv run` / `uv sync` install these groups by default. `gpu` (defined above)
+# routes torch to the cu130 index, so the default dev workflow gets a CUDA build
+# without passing `--extra` — and `uv run` no longer resyncs back to a CPU wheel.
+# For CPU / a different CUDA, drop the group: `uv sync --no-group gpu --extra cpu`.
+default-groups = ["dev", "gpu"]
+# Only resolve for platforms we actually support (excludes win_arm64 which has incomplete pytorch wheels)
+environments = [
+    "sys_platform == 'darwin'",
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'win32' and platform_machine == 'AMD64'",
+]
+# Exclude torchvision builds that only have win_arm64 wheels
+constraint-dependencies = [
+    "torchvision!=0.24.1+d801a34",
+]
+conflicts = [
+    [
+        { extra = "cpu" },
+        { extra = "gpu" },
+        { extra = "torch-cpu" },
+        { extra = "torch-cuda118" },
+        { extra = "torch-cuda128" },
+        { extra = "torch-cuda130" },
+    ],
+    # The default `gpu` group pins torch to cu130, so it is mutually exclusive with
+    # the CPU and non-cu130 CUDA extras (same package, different index). The `gpu`
+    # and `torch-cuda130` extras share the cu130 index, so they may coexist with the
+    # group and are intentionally left out of this set.
+    [
+        { group = "gpu" },
+        { extra = "cpu" },
+        { extra = "torch-cpu" },
+        { extra = "torch-cuda118" },
+        { extra = "torch-cuda128" },
+    ],
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", extra = "torch-cpu" },
+    # `cpu`/`gpu` are first-class extras (see [project.optional-dependencies]).
+    # `cpu` is markerless like `torch-cpu` so macOS resolves the CPU/MPS wheel.
+    # `gpu` mirrors `torch-cuda130` exactly (keep the AMD64 alternative — dropping
+    # it regressed Windows to CPU-only torch in #479).
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu130", extra = "gpu", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+    # Default `gpu` GROUP (see [dependency-groups] / default-groups) — mirrors the
+    # `gpu` extra so a bare `uv run`/`uv sync` gets cu130 on Linux/Windows x86-64.
+    { index = "pytorch-cu130", group = "gpu", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+    { index = "pytorch-cu118", extra = "torch-cuda118", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+    { index = "pytorch-cu128", extra = "torch-cuda128", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+    { index = "pytorch-cu130", extra = "torch-cuda130", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+]
+torchvision = [
+    { index = "pytorch-cpu", extra = "torch-cpu" },
+    { index = "pytorch-cpu", extra = "cpu" },
+    { index = "pytorch-cu130", extra = "gpu", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+    { index = "pytorch-cu130", group = "gpu", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+    { index = "pytorch-cu118", extra = "torch-cuda118", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+    { index = "pytorch-cu128", extra = "torch-cuda128", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+    { index = "pytorch-cu130", extra = "torch-cuda130", marker = "(platform_machine == 'x86_64' or platform_machine == 'AMD64') and sys_platform != 'darwin'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
+
+# Static metadata for TensorRT packages to avoid running their stub setup.py
+# during cross-platform lockfile generation (stubs fail on macOS).
+# See: https://github.com/astral-sh/uv/issues/13942
+#
+# We provide metadata for both cu12 and cu13 variants since:
+#   - Older torch-tensorrt versions depend directly on tensorrt-cu12
+#   - Newer torch-tensorrt versions use the tensorrt metapackage which depends on cu13
+#
+# The tensorrt metapackage metadata assumes cu13 (for tensorrt >=10.13).
+
+[[tool.uv.dependency-metadata]]
+name = "tensorrt"
+requires-dist = ["tensorrt-cu13"]
+
+# CUDA 12 variant packages (for older torch-tensorrt direct dependencies)
+[[tool.uv.dependency-metadata]]
+name = "tensorrt-cu12"
+requires-dist = ["tensorrt-cu12-bindings", "tensorrt-cu12-libs"]
+
+[[tool.uv.dependency-metadata]]
+name = "tensorrt-cu12-bindings"
+
+[[tool.uv.dependency-metadata]]
+name = "tensorrt-cu12-libs"
+requires-dist = ["nvidia-cuda-runtime-cu12"]
+
+# CUDA 13 variant packages (for tensorrt >=10.13)
+[[tool.uv.dependency-metadata]]
+name = "tensorrt-cu13"
+requires-dist = ["tensorrt-cu13-bindings", "tensorrt-cu13-libs"]
+
+[[tool.uv.dependency-metadata]]
+name = "tensorrt-cu13-bindings"
+
+[[tool.uv.dependency-metadata]]
+name = "tensorrt-cu13-libs"
+requires-dist = ["nvidia-cuda-runtime-cu12"]
+
+# Common CUDA runtime dependency
+[[tool.uv.dependency-metadata]]
+name = "nvidia-cuda-runtime-cu12"
+
+[[tool.uv.dependency-metadata]]
+name = "nvidia-cuda-runtime"
+
+[tool.black]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "D", # pydocstyle
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.codespell]
+# Ref: https://github.com/codespell-project/codespell#using-a-config-file
+skip = '.git*,*.css'
+check-hidden = true
+# ignore-regex = ''
+# ignore-words-list = ''

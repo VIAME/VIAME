@@ -29,6 +29,17 @@ New formats can be integrated to the system by implementing a derived version of
 vital::detected_object_set_input or vital::read_object_track_set classes in C++ or
 python, which produce either detected_object_sets or object_track_sets, respectively.
 
+.. dive-crosslink
+
+Reading These Formats in DIVE
+-----------------------------
+
+`DIVE data formats`_ documents which of these formats DIVE imports and exports, including
+VIAME CSV and the DIVE JSON format described below.
+
+.. _DIVE data formats: https://viame.readthedocs.io/en/latest/sections/dive/DataFormats.html
+
+
 **************************
 VIAME CSV - Default Format
 **************************
@@ -172,7 +183,7 @@ geometry.
 
 The full format specification is available at:
 
-https://kitware.github.io/dive/DataFormats/
+https://viame.readthedocs.io/en/latest/sections/dive/DataFormats.html
 
 The DIVE JSON reader can be specified in config files using 'dive'.
 

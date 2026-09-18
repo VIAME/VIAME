@@ -22,7 +22,7 @@ containing one) to use TensorRT instead.
 """
 
 import os
-import json
+import sys
 import numpy as np
 
 import scriptconfig as scfg
@@ -30,24 +30,52 @@ import scriptconfig as scfg
 from viame.algo import ComputeStereoDepthMap
 from viame.types import Image, ImageContainer
 
-from viame.utilities.utils import str2bool
+from viame.utilities.utils import (
+    str2bool, image_container_to_uint8_hwc, read_stereo_calibration,
+)
 
-
-def vital_config_update(cfg, cfg_in):
-    """Update a vital Config from a dict or another Config."""
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError(f"cfg has no key={key}")
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
 
 
 _IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 _IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
+
+
+def _import_tensorrt():
+    """
+    The full ``tensorrt`` package (VIAME_ENABLE_TENSORRT) can build and
+    run engines; the lean runtime (VIAME_ENABLE_TENSORRT with VIAME_TENSORRT_RUNTIME_ONLY) can only run
+    prebuilt ones. Returns (module, can_build).
+    """
+    try:
+        import tensorrt as trt
+
+        return trt, True
+    except ImportError:
+        pass
+    try:
+        import tensorrt_lean_bindings as trt
+
+        return trt, False
+    except ImportError as exc:
+        raise RuntimeError(
+            "backend 'tensorrt' needs the tensorrt (VIAME_ENABLE_TENSORRT) or "
+            "tensorrt_lean (VIAME_ENABLE_TENSORRT with VIAME_TENSORRT_RUNTIME_ONLY) python package"
+        ) from exc
+
+
+def _tensorrt_available():
+    try:
+        _import_tensorrt()
+        return True
+    except RuntimeError:
+        return False
+
+
+def _shipped_engine_path(onnx_path):
+    """A prebuilt, hardware-compatible engine shipped next to the model."""
+    base = os.path.splitext(onnx_path)[0]
+    platform = "windows" if sys.platform.startswith("win") else "linux"
+    return f"{base}.{platform}.engine"
 
 
 class FastFoundationStereoOnnxConfig(scfg.DataConfig):
@@ -67,7 +95,11 @@ class FastFoundationStereoOnnxConfig(scfg.DataConfig):
         "next to the model file.",
     )
     backend = scfg.Value(
-        "auto", help="'auto' (pick from extension), 'onnxruntime', or 'tensorrt'."
+        "auto",
+        help="'auto' (TensorRT when an .engine is given or shipped beside the "
+        ".onnx and a TensorRT runtime is installed, else onnxruntime), "
+        "'onnxruntime', or 'tensorrt' (builds an engine on first use if none "
+        "is shipped; needs full TensorRT).",
     )
     device = scfg.Value(
         "auto",
@@ -87,6 +119,18 @@ class FastFoundationStereoOnnxConfig(scfg.DataConfig):
     )
     remove_invisible = scfg.Value(
         True, help="Set invalid disparity (negative x in right image) to " "infinity."
+    )
+    engine_cache_dir = scfg.Value(
+        "",
+        help="Where engines built from an .onnx are cached when backend is "
+        "'tensorrt'. Empty: next to the model. Engines are specific to the "
+        "GPU and TensorRT version, so they are keyed on both.",
+    )
+    trt_precision = scfg.Value(
+        "fp32",
+        help="'fp32' or 'fp16' for engines built from an .onnx. fp16 is not "
+        "faster on recent GPUs for this model and costs ~0.2 px mean / 1 px "
+        "p99 of disparity accuracy.",
     )
 
 
@@ -164,14 +208,25 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
                     "required for depth output"
                 )
 
-        # Pick backend
+        # Pick backend. 'auto' takes TensorRT when it costs nothing extra: an
+        # .engine path, or an engine shipped beside the .onnx plus a TensorRT
+        # runtime to run it. It never builds an engine (minutes) on its own.
         backend = self._config["backend"]
         if backend == "auto":
-            backend = "tensorrt" if model_path.endswith(".engine") else "onnxruntime"
+            if model_path.endswith(".engine"):
+                backend = "tensorrt"
+            elif os.path.exists(_shipped_engine_path(model_path)) and _tensorrt_available():
+                backend = "tensorrt"
+            else:
+                backend = "onnxruntime"
 
         if backend == "onnxruntime":
+            print(f"fast_foundation_stereo_onnx: onnxruntime, {model_path}", file=sys.stderr, flush=True)
             self._runner = self._build_ort_runner(model_path)
         elif backend == "tensorrt":
+            if not model_path.endswith(".engine"):
+                model_path = self._ensure_engine(model_path)
+            print(f"fast_foundation_stereo_onnx: TensorRT, {model_path}", file=sys.stderr, flush=True)
             self._runner = self._build_trt_runner(model_path)
         else:
             raise RuntimeError(f"Unknown backend: {backend}")
@@ -213,28 +268,28 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
         import onnxruntime as ort
 
         device = self._config["device"]
-        avail = ort.get_available_providers()
+        has_cuda = "CUDAExecutionProvider" in ort.get_available_providers()
+        if device.startswith("cuda") and not has_cuda:
+            raise RuntimeError(
+                f"device '{device}' requested but onnxruntime has no CUDA provider"
+            )
+        use_cuda = has_cuda and device != "cpu"
         providers = []
-        if device == "cpu":
-            providers.append("CPUExecutionProvider")
-        else:
-            if "CUDAExecutionProvider" in avail:
-                # device_id from 'cuda' or 'cuda:N'
-                device_id = 0
-                if ":" in device:
-                    try:
-                        device_id = int(device.split(":", 1)[1])
-                    except ValueError:
-                        device_id = 0
-                providers.append(
-                    (
-                        "CUDAExecutionProvider",
-                        {"device_id": device_id},
-                    )
-                )
-            providers.append("CPUExecutionProvider")
+        if use_cuda:
+            # device_id from 'cuda' or 'cuda:N'
+            device_id = 0
+            if ":" in device:
+                try:
+                    device_id = int(device.split(":", 1)[1])
+                except ValueError:
+                    device_id = 0
+            providers.append(("CUDAExecutionProvider", {"device_id": device_id}))
+        providers.append("CPUExecutionProvider")
 
         session = ort.InferenceSession(onnx_path, providers=providers)
+        # onnxruntime silently drops to CPU if the CUDA provider fails to start
+        if use_cuda and "CUDAExecutionProvider" not in session.get_providers():
+            raise RuntimeError("CUDA provider failed to initialize for this model")
 
         in_names = [inp.name for inp in session.get_inputs()]
         out_names = [out.name for out in session.get_outputs()]
@@ -271,9 +326,76 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
             self._output_disp_name,
         )
 
+    def _engine_cache_path(self, onnx_path):
+        """Engine file for this .onnx on this GPU and TensorRT version."""
+        import torch
+
+        trt, _ = _import_tensorrt()
+
+        cache_dir = self._config["engine_cache_dir"] or os.path.dirname(onnx_path)
+        gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"
+        gpu = "".join(c if c.isalnum() else "_" for c in gpu).strip("_")
+        base = os.path.splitext(os.path.basename(onnx_path))[0]
+        name = f"{base}.{gpu}.trt{trt.__version__}.{self._config['trt_precision']}.engine"
+        return os.path.join(cache_dir, name)
+
+    def _ensure_engine(self, onnx_path):
+        """
+        The engine to run for an .onnx, in order: one shipped next to it
+        (``<model>.<linux|windows>.engine``, built hardware/version compatible
+        so one file serves every Ampere-or-newer GPU), one this plugin built
+        and cached earlier, or a fresh build. Building takes several minutes
+        and needs the full TensorRT package; the lean runtime can only use
+        the first two.
+        """
+        shipped = _shipped_engine_path(onnx_path)
+        if os.path.exists(shipped):
+            return shipped
+        trt, can_build = _import_tensorrt()
+        engine_path = self._engine_cache_path(onnx_path)
+        if os.path.exists(engine_path):
+            return engine_path
+        if not can_build:
+            raise RuntimeError(
+                f"No TensorRT engine for {onnx_path}: expected {shipped} (or {engine_path}), "
+                "and the lean runtime cannot build one; install full TensorRT "
+                "(VIAME_ENABLE_TENSORRT) or use backend 'onnxruntime'"
+            )
+        precision = self._config["trt_precision"]
+        if precision not in ("fp32", "fp16"):
+            raise RuntimeError(f"trt_precision must be fp32 or fp16, got {precision}")
+        print(
+            f"Building TensorRT {precision} engine for {os.path.basename(onnx_path)} "
+            f"(one-time, several minutes): {engine_path}",
+            file=sys.stderr, flush=True,
+        )
+        logger = trt.Logger(trt.Logger.WARNING)
+        builder = trt.Builder(logger)
+        network = builder.create_network(0)
+        parser = trt.OnnxParser(network, logger)
+        with open(onnx_path, "rb") as f:
+            if not parser.parse(f.read()):
+                errors = [str(parser.get_error(i)) for i in range(parser.num_errors)]
+                raise RuntimeError(f"TensorRT could not parse {onnx_path}: {errors}")
+        config = builder.create_builder_config()
+        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 8 << 30)
+        if precision == "fp16":
+            config.set_flag(trt.BuilderFlag.FP16)
+        plan = builder.build_serialized_network(network, config)
+        if plan is None:
+            raise RuntimeError(f"TensorRT failed to build an engine for {onnx_path}")
+        os.makedirs(os.path.dirname(engine_path), exist_ok=True)
+        tmp_path = engine_path + ".part"
+        with open(tmp_path, "wb") as f:
+            f.write(plan)
+        os.replace(tmp_path, engine_path)
+        print(f"TensorRT engine ready: {engine_path}", file=sys.stderr, flush=True)
+        return engine_path
+
     def _build_trt_runner(self, engine_path):
         import torch
-        import tensorrt as trt
+
+        trt, _ = _import_tensorrt()
 
         logger = trt.Logger(trt.Logger.WARNING)
         with open(engine_path, "rb") as f:
@@ -354,34 +476,14 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
         return TrtRunner()
 
     def _load_calibration(self, cal_fpath):
-        with open(cal_fpath, "r") as f:
-            data = json.load(f)
-
-        self._focal_length = float(data.get("fx_left", 0.0))
-        self._principal_x = float(data.get("cx_left", 0.0))
-        self._principal_y = float(data.get("cy_left", 0.0))
-
-        T = data.get("T", [0.0, 0.0, 0.0])
-        if isinstance(T, list) and len(T) >= 3:
-            self._baseline = abs(T[0])
-            if self._baseline < 1e-6:
-                self._baseline = float(np.sqrt(T[0] ** 2 + T[1] ** 2 + T[2] ** 2))
-        else:
-            self._baseline = 0.0
-
-        print(
-            f"Loaded calibration: focal_length={self._focal_length}, "
-            f"baseline={self._baseline}, principal=({self._principal_x}, "
-            f"{self._principal_y})"
-        )
+        cal = read_stereo_calibration(cal_fpath)
+        self._focal_length = cal["focal_length"]
+        self._principal_x = cal["principal_x"]
+        self._principal_y = cal["principal_y"]
+        self._baseline = cal["baseline"]
 
     def _format_image(self, image_container):
-        img_npy = image_container.image().asarray().astype("uint8")
-        if len(img_npy.shape) == 2:
-            img_npy = np.stack((img_npy,) * 3, axis=-1)
-        elif img_npy.shape[2] == 1:
-            img_npy = np.concatenate([img_npy] * 3, axis=-1)
-        return img_npy
+        return image_container_to_uint8_hwc(image_container)
 
     def compute(self, left_image, right_image):
         import cv2

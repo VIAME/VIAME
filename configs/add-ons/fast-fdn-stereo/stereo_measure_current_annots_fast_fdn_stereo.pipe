@@ -1,0 +1,152 @@
+# =============================================================================
+# Title: Measurement from annotations pipeline
+#
+# Description: Measurement from annotations pipeline Uses model:
+# fast_foundation_stereo_l.onnx.
+# Outputs to computed_tracks2.csv.
+#
+# Requires Calibration: True
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    20
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ================================ DATA INPUTS ================================
+
+include common_stereo_input_with_tracks.pipe
+
+# ============================ MEASUREMENT PROCESS ============================
+
+process measurer
+  :: compute_measurements
+  :calibration_file                            ./calibration_matrices.npz
+  :matching_methods                            input_pairs_only,compute_disparity
+
+  # Stereo disparity algorithm configuration (for compute_disparity method)
+  # Uses the Fast-Foundation-Stereo ONNX export for disparity estimation
+  stereo_disparity:type                        = fast_foundation_stereo_onnx
+
+  block stereo_disparity:fast_foundation_stereo_onnx
+    relativepath model_path                    = models/fast_foundation_stereo_l.onnx
+    relativepath config_path                   = models/fast_foundation_stereo_l.yaml
+    # 'auto' picks from the model extension, or force onnxruntime / tensorrt
+    backend                                    = auto
+    device                                     = auto
+    output_mode                                = disparity
+    # Invalid where the point falls outside the right image
+    remove_invisible                           = true
+  endblock
+
+  # Snap right keypoints to disparity-implied matches of their left
+  # counterparts; falls back to the tracker keypoint where disparity is
+  # invalid. The rectified frame keeps every source pixel (alpha -1): a rig
+  # whose baseline has a vertical component would otherwise be cropped to a
+  # sliver. Keypoints sit on the animal's silhouette, where disparity blends
+  # into the background, so sampling favours the nearer surface and the
+  # endpoints come from a robust fit of disparity along the whole segment.
+  :refine_keypoints_with_disparity             true
+  # Pair left/right tracks per frame so refinement sees them; ids alone
+  # never pair (independent trackers reuse ids by coincidence).
+  :detection_pairing_method                    epipolar_iou,keypoint_projection
+  :detection_pairing_threshold                 25.0
+  :accumulate_track_pairings                   true
+  :rectification_alpha                         -1.0
+  :refine_keypoints_disparity_window           3        # DIVE_PARAM["Disparity Sample Radius", range_int, 0, 50]
+  :refine_keypoints_disparity_percentile       0.9      # DIVE_PARAM["Disparity Percentile", range_float, 0, 1, 0.05]
+  :refine_disparity_segment                    true     # DIVE_PARAM["Robust Segment Fit", bool]
+  :disparity_keypoint_policy                   keep_existing  # DIVE_PARAM["Existing Right Keypoints (keep_existing, refine_unless_user, refine_all)", string]
+  :disparity_segment_samples                   11       # DIVE_PARAM["Segment Samples", range_int, 3, 101]
+  :disparity_segment_max_outliers              3        # DIVE_PARAM["Max Invalid or Outlier Samples", range_int, 0, 49]
+  :disparity_segment_max_error                 10.0     # DIVE_PARAM["Max Disparity Residual (px)", range_float, 0.1, 15, 0.1]
+
+  # Feature detector configuration (for feature-based methods if needed)
+  # Options: ocv_BRISK, ocv_FAST, ocv_GFTT, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
+  feature_detector:type                        = ocv_ORB
+
+  block feature_detector:ocv_ORB
+    n_features                                 = 2000
+    scale_factor                               = 1.2
+    n_levels                                   = 8
+  endblock
+
+  # Descriptor extractor configuration
+  # Options: ocv_BRISK, ocv_BRIEF, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
+  descriptor_extractor:type                    = ocv_ORB
+
+  block descriptor_extractor:ocv_ORB
+    n_features                                 = 2000
+    scale_factor                               = 1.2
+    n_levels                                   = 8
+  endblock
+
+  # Feature matcher configuration
+  # Options: ocv_brute_force, ocv_flann_based
+  feature_matcher:type                         = ocv_brute_force
+
+  block feature_matcher:ocv_brute_force
+    cross_check                                = true
+  endblock
+
+  # Fundamental matrix estimator configuration (for ransac_feature method)
+  # Options: ocv, vxl
+  fundamental_matrix_estimator:type            = ocv
+
+  :length_aggregation_method                   median
+
+connect from track_reader1.object_track_set
+        to   measurer.object_track_set1
+connect from track_reader2.object_track_set
+        to   measurer.object_track_set2
+
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+
+# ============================== OUTPUT WRITERS ===============================
+
+process track_classifier1
+  :: refine_tracks
+  :refiner:type                                average_tot
+  :refiner:average_tot:tot_option              weighted_average
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+
+connect from measurer.object_track_set1
+        to   track_classifier1.object_track_set
+connect from track_classifier1.object_track_set
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+connect from downsampler.output_2
+        to   track_writer1.image_file_name
+
+process track_classifier2
+  :: refine_tracks
+  :refiner:type                                average_tot
+  :refiner:average_tot:tot_option              weighted_average
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+
+connect from measurer.object_track_set2
+        to   track_classifier2.object_track_set
+connect from track_classifier2.object_track_set
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+connect from downsampler.output_4
+        to   track_writer2.image_file_name
+
+# -- end of file --

@@ -33,6 +33,11 @@ warnings.filterwarnings("ignore", message="TripleDES has been moved")
 
 import numpy as np
 
+# Re-exported so existing plugin imports keep working. It is defined in
+# viame.utilities, which sits below this library, so plugins that do not depend
+# on object_detectors can share it.
+from viame.utilities.utils import vital_config_update  # noqa: F401
+
 # Lazy imports to avoid circular dependencies
 # kwiver imports are done inside functions
 
@@ -594,34 +599,6 @@ def find_python_interpreter():
 # =============================================================================
 
 
-def vital_config_update(cfg, cfg_in):
-    """
-    Update a vital Config object from a dictionary or another Config.
-
-    This is a utility to work around the fact that vital's merge_config
-    doesn't support dictionary input.
-
-    Args:
-        cfg (viame.config.config.Config): Config object to update
-        cfg_in (dict | viame.config.config.Config): New values
-
-    Returns:
-        viame.config.config.Config: The updated config object
-
-    Raises:
-        KeyError: If cfg_in contains a key not present in cfg
-    """
-    if isinstance(cfg_in, dict):
-        for key, value in cfg_in.items():
-            if cfg.has_value(key):
-                cfg.set_value(key, str(value))
-            else:
-                raise KeyError(f"cfg has no key={key}")
-    else:
-        cfg.merge_config(cfg_in)
-    return cfg
-
-
 def parse_bool(value):
     """
     Parse a value as boolean.
@@ -1117,11 +1094,89 @@ def ensure_fork_start_method():
 # =============================================================================
 
 
-def kwimage_to_kwiver_detections(detections):
+def _kwimage_seg_to_relative_mask(seg, tlbr):
+    """
+    Bounding-box-relative mask array for a kwimage segmentation, or None.
+
+    Segmentation wrappers never carry to_relative_mask, so unwrap first. A
+    Polygon payload converts directly; a Mask is cropped to the box, which is
+    lossless and cheaper than a polygon round trip.
+    """
+    # Try the object itself before unwrapping: Segmentation.data is the payload,
+    # but Polygon.data is an internal dict carrying neither method.
+    payloads = [seg]
+    inner = getattr(seg, "data", None)
+    if inner is not None and inner is not seg:
+        payloads.append(inner)
+
+    to_c_mask = None
+    for payload in payloads:
+        to_rel = getattr(payload, "to_relative_mask", None)
+        if callable(to_rel):
+            return to_rel().numpy().data
+        candidate = getattr(payload, "to_c_mask", None)
+        if to_c_mask is None and callable(candidate):
+            to_c_mask = candidate
+
+    if to_c_mask is None:
+        return None
+
+    mask = np.asarray(to_c_mask().data)
+    height, width = mask.shape[:2]
+
+    # Clamp to the image and keep the crop non-empty.
+    x1 = min(max(int(np.floor(tlbr[0])), 0), max(width - 1, 0))
+    y1 = min(max(int(np.floor(tlbr[1])), 0), max(height - 1, 0))
+    x2 = min(max(int(np.ceil(tlbr[2])) + 1, x1 + 1), width)
+    y2 = min(max(int(np.ceil(tlbr[3])) + 1, y1 + 1), height)
+    return np.ascontiguousarray(mask[y1:y2, x1:x2])
+
+
+def _add_kwimage_keypoints(detected_object, points, vis_thresh):
+    """
+    Attach a kwimage.Points to a kwiver DetectedObject as named keypoints.
+
+    kwimage keeps xy/visible/class_idxs in Points.data and the name list in
+    Points.meta['classes'], so no keypoint_names config is needed here.
+    Slots below vis_thresh are skipped, matching supervision_to_kwiver_detections.
+    """
+    from viame.types import Point2d
+
+    data = getattr(points, "data", None) or {}
+
+    # data['xy'] is a kwimage.Coords wrapper; the .xy property is the raw array
+    xy = data.get("xy")
+    if xy is None:
+        xy = getattr(points, "xy", None)
+    xy = getattr(xy, "data", xy)
+    if xy is None:
+        return
+
+    visible = data.get("visible")
+    class_idxs = data.get("class_idxs")
+    names = (getattr(points, "meta", None) or {}).get("classes")
+
+    for k in range(len(xy)):
+        if visible is not None and float(visible[k]) < vis_thresh:
+            continue
+
+        name = None
+        if names is not None:
+            idx = int(class_idxs[k]) if class_idxs is not None else k
+            if 0 <= idx < len(names):
+                name = names[idx]
+
+        pt = Point2d()
+        pt.value = [float(xy[k][0]), float(xy[k][1])]
+        detected_object.add_keypoint(str(name) if name is not None else "kp{}".format(k), pt)
+
+
+def kwimage_to_kwiver_detections(detections, keypoint_vis_thresh=0.5):
     """
     Convert kwimage.Detections to kwiver DetectedObjectSet.
 
-    Handles bounding boxes, scores, class indices, and optional segmentation masks.
+    Handles bounding boxes, scores, class indices, optional segmentation masks
+    and optional keypoints (detections.data['keypoints'], a kwimage.PointsList).
 
     Args:
         detections (kwimage.Detections): Detections from kwimage
@@ -1143,6 +1198,10 @@ def kwimage_to_kwiver_detections(detections):
     if "segmentations" in detections.data:
         segmentations = detections.data["segmentations"]
 
+    keypoints = None
+    if "keypoints" in detections.data:
+        keypoints = detections.data["keypoints"]
+
     try:
         boxes = detections.boxes.to_ltrb()
     except Exception:
@@ -1154,9 +1213,13 @@ def kwimage_to_kwiver_detections(detections):
     if not segmentations:
         segmentations = (None,) * len(boxes)
 
+    if keypoints is None:
+        keypoints = (None,) * len(boxes)
+
     detected_objects = DetectedObjectSet()
 
-    for tlbr, score, cidx, seg in zip(boxes.data, scores, class_idxs, segmentations):
+    for tlbr, score, cidx, seg, kps in zip(boxes.data, scores, class_idxs,
+                                           segmentations, keypoints):
         class_name = detections.classes[cidx]
 
         bbox_int = np.round(tlbr).astype(np.int32)
@@ -1165,9 +1228,13 @@ def kwimage_to_kwiver_detections(detections):
         detected_object_type = DetectedObjectType(class_name, score)
         detected_object = DetectedObject(bounding_box, score, detected_object_type)
 
-        if seg:
-            mask = seg.to_relative_mask().numpy().data
-            detected_object.mask = ImageContainer(Image(mask))
+        if seg is not None:
+            mask = _kwimage_seg_to_relative_mask(seg, tlbr)
+            if mask is not None:
+                detected_object.mask = ImageContainer(Image(mask))
+
+        if kps is not None:
+            _add_kwimage_keypoints(detected_object, kps, keypoint_vis_thresh)
 
         detected_objects.add(detected_object)
 

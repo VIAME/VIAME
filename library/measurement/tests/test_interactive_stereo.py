@@ -352,7 +352,7 @@ class TestDisparityCache:
 
         assert len(service._disparity_cache) == 1
         assert len(service._cache_order) == 1
-        assert ('/left1.png', '/right1.png') in service._disparity_cache
+        assert ('/left1.png', '/right1.png', None) in service._disparity_cache
 
     def test_get_from_cache(self, mock_stereo_algo):
         """Test retrieving disparity from cache."""
@@ -398,11 +398,11 @@ class TestDisparityCache:
 
         assert len(service._disparity_cache) == 3
         # First item should be evicted
-        assert ('/left0.png', '/right0.png') not in service._disparity_cache
+        assert ('/left0.png', '/right0.png', None) not in service._disparity_cache
         # Last 3 should remain
-        assert ('/left1.png', '/right1.png') in service._disparity_cache
-        assert ('/left2.png', '/right2.png') in service._disparity_cache
-        assert ('/left3.png', '/right3.png') in service._disparity_cache
+        assert ('/left1.png', '/right1.png', None) in service._disparity_cache
+        assert ('/left2.png', '/right2.png', None) in service._disparity_cache
+        assert ('/left3.png', '/right3.png', None) in service._disparity_cache
 
     def test_cache_lru_update(self, mock_stereo_algo):
         """Test LRU order is updated on cache hit."""
@@ -425,8 +425,8 @@ class TestDisparityCache:
         disparity = np.ones((480, 640), dtype=np.float32) * 99
         service._add_to_cache('/left99.png', '/right99.png', disparity)
 
-        assert ('/left0.png', '/right0.png') in service._disparity_cache
-        assert ('/left1.png', '/right1.png') not in service._disparity_cache
+        assert ('/left0.png', '/right0.png', None) in service._disparity_cache
+        assert ('/left1.png', '/right1.png', None) not in service._disparity_cache
 
 
 # =============================================================================

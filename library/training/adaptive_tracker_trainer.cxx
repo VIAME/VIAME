@@ -7,6 +7,7 @@
 #include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/algo/feature_descriptor_io.h>
 #include <viame/algorithm_framework/util/cpu_timer.h>
+#include <viame/algorithm_framework/exceptions.h>
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/object_track_set.h>
 
@@ -707,7 +708,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   {
     if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
+      LOG_INFO( m_logger, "Trainer " << tc.name << " failed: "
                  << m_stats.total_tracks << " tracks < required "
                  << tc.required_min_tracks );
     }
@@ -723,7 +724,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
       {
         if( verbose )
         {
-          LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
+          LOG_INFO( m_logger, "Trainer " << tc.name << " failed: "
                      << "track with length " << len << " < required "
                      << tc.required_min_track_length );
         }
@@ -738,7 +739,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   {
     if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
+      LOG_INFO( m_logger, "Trainer " << tc.name << " failed: "
                  << "mean track length " << m_stats.mean_track_length
                  << " < required " << tc.required_min_mean_track_length );
     }
@@ -751,7 +752,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   {
     if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
+      LOG_INFO( m_logger, "Trainer " << tc.name << " failed: "
                  << "fragmentation rate " << m_stats.fragmentation_rate
                  << " > max " << tc.required_max_fragmentation_rate );
     }
@@ -763,7 +764,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   {
     if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
+      LOG_INFO( m_logger, "Trainer " << tc.name << " failed: "
                  << "max velocity " << m_stats.max_velocity
                  << " > limit " << tc.required_max_velocity );
     }
@@ -776,7 +777,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   {
     if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
+      LOG_INFO( m_logger, "Trainer " << tc.name << " failed: "
                  << "max concurrent tracks " << m_stats.max_concurrent_tracks
                  << " > limit " << tc.required_max_concurrent_tracks );
     }
@@ -788,7 +789,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   {
     if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
+      LOG_INFO( m_logger, "Trainer " << tc.name << " failed: "
                  << "mean object area " << m_stats.mean_object_area
                  << " < required " << tc.required_min_object_area );
     }
@@ -1314,8 +1315,13 @@ adaptive_tracker_trainer
 
   if( selected.empty() )
   {
-    LOG_WARN( d->m_logger, "No tracker trainers qualified based on data statistics!" );
-    return combined_output;
+    VITAL_THROW( kv::invalid_data,
+      "no tracker trainer met its hard requirements for this data: " +
+      std::to_string( d->m_stats.total_tracks ) + " tracks, mean length " +
+      std::to_string( d->m_stats.mean_track_length ) + ", fragmentation rate " +
+      std::to_string( d->m_stats.fragmentation_rate ) + ". Each trainer's "
+      "unmet requirement is logged above. Returning an empty result here made "
+      "the run report success with no model." );
   }
 
   LOG_INFO( d->m_logger, "Running " << selected.size() << " tracker trainer(s)..." );
@@ -1366,6 +1372,13 @@ adaptive_tracker_trainer
     {
       LOG_ERROR( d->m_logger, "Tracker trainer " << tc.name << " failed: " << e.what() );
     }
+  }
+
+  if( combined_output.empty() )
+  {
+    VITAL_THROW( kv::invalid_data,
+      "every selected tracker trainer failed; see the errors above. No model "
+      "was produced." );
   }
 
   LOG_INFO( d->m_logger, "Adaptive tracker training complete." );

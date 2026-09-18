@@ -284,8 +284,9 @@ class MITYoloTrainer(KWCocoTrainDetector):
         checkpoint_dpath = yolo_train_dpath / "checkpoints"
         candiate_checkpoints = sorted(checkpoint_dpath.glob("*"))
         if len(candiate_checkpoints) == 0:
-            print("\nNo checkpoints found, model may have failed to train")
-            return {"type": "mit_yolo"}
+            raise RuntimeError(
+                "MIT-YOLO training produced no checkpoint. The trainer output "
+                "above carries the reason.")
 
         # Prefer best checkpoint, fall back to last checkpoint
         best_checkpoints = sorted(checkpoint_dpath.glob("best-*.ckpt"))

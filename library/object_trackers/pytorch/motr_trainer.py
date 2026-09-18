@@ -524,8 +524,9 @@ class MOTRTrainer(TrainTracker):
         best_model = checkpoint_dir / "best_model.pth"
 
         if not best_model.exists():
-            print("\n[MOTRTrainer] No best model found, " "training may have failed")
-            return output
+            raise RuntimeError(
+                "MOTR training produced no model at {}. The trainer output "
+                "above carries the reason.".format(best_model))
 
         algo = "motr"
 

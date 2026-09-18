@@ -222,7 +222,9 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | Flag                         | Description                                                                    |
 |------------------------------|--------------------------------------------------------------------------------|
 | VIAME_ENABLE_PYTORCH-*       | Builds a number of PyTorch plugins with different functions                    |
-| VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                   |
+| VIAME_ENABLE_ONNX            | Builds support for ONNX methods (detectors/stereo)                             |
+| VIAME_ENABLE_TENSORRT        | Builds support for TensorRT methods (detectors/stereo)                         |
+| VIAME_ENABLE_DARKNET         | Builds deprecated Darknet (YOLO) object detector plugin                        |
 
 </center>
 

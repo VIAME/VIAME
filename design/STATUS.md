@@ -483,3 +483,69 @@ Two things a content-only substitution does not catch, both hit here:
   would have put it at odds with `lite-library-layout.md` -- rewritten by the
   same sed -- and `check_file_map.py` compares the two. Checked before and
   after against a worktree at the previous commit: 0 disagreements either way.
+
+## Merging `viame/main` into `lite` after the restructuring
+
+`origin/main` `9fcbf556e` is merged in: 67 commits since the merge base
+`17c43764b`, touching 106 files, of which **68 sit at paths `lite` no longer
+has**. This is the first upstream merge since `plugins/` was dissolved, so the
+two earlier merges (`ae4ac58a5`, `408740494`) are no precedent -- both ran
+while `plugins/` still existed.
+
+A plain merge does not silently resurrect the deleted tree, but it does try:
+git reports the 68 as modify/delete rather than quietly re-adding them, and
+three did have to be dropped by hand (`plugins/core/CMakeLists.txt`,
+`plugins/pytorch/detectron2/predict.py`, `tests/plugins/core/CMakeLists.txt`).
+Seven more were the superbuild files P1 deleted -- `add_project_{pytorch,
+tensorrt,python_deps}`, `build_cmake_{cpu,desktop,docker}`,
+`build_server_docker_web` -- and the cu11 docker image P10 dropped. All stay
+deleted.
+
+**Rename detection carried most of the rest.** `viame_image_kernels`-era moves
+aside, upstream's edits to `plugins/core/utils.py`,
+`plugins/pytorch/netharn/detect_fit.py` and their siblings landed at their
+`library/` paths automatically, some cleanly and some as content conflicts.
+18 files conflicted, 25 hunks, and nearly every one was a rename collision
+rather than a disagreement: upstream editing a file under its old identity
+while `lite` had renamed the module path. The resolution was almost always
+`lite`'s paths carrying upstream's substance, never a side taken whole.
+
+What came in: the robust head-tail disparity segment work
+(`fit_disparity_segment`, `refine_right_segment_with_disparity`,
+`find_corresponding_segment_external_disparity`, the `disparity_segment_*`
+and `disparity_keypoint_policy` settings), the netharn/kwimage mask and
+keypoint fixes, the "fail when a trainer produces no model" work,
+`spawn_safe_worker_count` reaching the four trainers that use it, the
+`dino` -> `dino3` add-on rename, and the new `fast-fdn-stereo` add-on.
+
+**What did not come in, and why:**
+
+- `rectification_alpha` is parsed, stored and documented but **not honoured**.
+  `lite`'s `stereo_rectify` fixes alpha at 0 and its documentation calls that
+  load-bearing; threading the setting through is a change to
+  `projection.{h,cxx}` and belongs in its own task, not in a merge.
+- Upstream's `dense_stereo_grid` pybind binding lands **inert**. It is written
+  against `cv::Mat` inside `#ifdef VIAME_ENABLE_OPENCV`, and in `lite` that is
+  a CMake option only -- never a C++ compile definition -- so the block never
+  compiles. `rectified_projection` had to be ported to `kv::matrix_3x4d`
+  anyway, because its declaration sits outside the guard in a header that
+  includes no OpenCV.
+- The detectron2 Windows DataLoader fix has no target: `lite` has no
+  detectron2.
+- Six DIVE submodule bumps are taken as a pointer move only. `lite` had never
+  moved `packages/dive`, so following upstream is tracking, not editing DIVE.
+- `cmake/download_viame_onnx.csv` arrives unreferenced -- `git grep` finds no
+  reader for it on `main` either, so it is inert on both branches.
+
+`install.txt` is re-recorded: **0 gone, 4 new** -- the relocated
+`include/viame/measurement/disparity_segment.h`, upstream's new SGBM pipe, the
+ONNX export script and a SLEAP keypoint model. Nothing was removed from the
+install. `registry.json` and `pipes.json` are **not** re-recorded and both
+compare clean.
+
+Verified: build clean, Tier 1 **458/459** with only the manifest check
+failing before the re-record, `baseline:registry` and `baseline:pipes` both
+passing, and UNIT rising 440 -> 450 as upstream's ten new tests run --
+`viame:disparity_segment.*` (seven cases), three new
+`measurement_utilities_test` cases and `unit:measurement:curved_measurement`,
+none of them disabled.

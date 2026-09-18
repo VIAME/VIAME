@@ -19,7 +19,9 @@ import scriptconfig as scfg
 from viame.algo import ComputeStereoDepthMap
 from viame.types import Image, ImageContainer
 
-from viame.utilities.utils import str2bool
+from viame.utilities.utils import (
+    str2bool, image_container_to_uint8_hwc, read_stereo_calibration,
+)
 
 from viame.object_detectors.base import vital_config_update, report_cuda_errors
 
@@ -265,23 +267,7 @@ class FoundationStereo(ComputeStereoDepthMap):
         )
 
     def _format_image(self, image_container):
-        """Convert KWIVER ImageContainer to numpy array.
-
-        Args:
-            image_container: KWIVER ImageContainer
-
-        Returns:
-            numpy array in (H, W, C) format, RGB, uint8
-        """
-        img_npy = image_container.image().asarray().astype("uint8")
-
-        # Handle grayscale images
-        if len(img_npy.shape) == 2:
-            img_npy = np.stack((img_npy,) * 3, axis=-1)
-        elif img_npy.shape[2] == 1:
-            img_npy = np.concatenate([img_npy] * 3, axis=-1)
-
-        return img_npy
+        return image_container_to_uint8_hwc(image_container)
 
     @report_cuda_errors("FoundationStereo computation")
     def compute(self, left_image, right_image):

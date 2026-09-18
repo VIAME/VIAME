@@ -38,6 +38,17 @@ query against can either be full frame descriptors, around just object detection
 or, lastly, object tracks.
 
 
+.. dive-crosslink
+
+Searching from DIVE
+-------------------
+
+`DIVE query`_ covers running video and image search from the interface, along with
+managing the search index for individual sequences.
+
+.. _DIVE query: https://viame.readthedocs.io/en/latest/sections/dive/Query.html
+
+
 Initial Setup
 =============
 

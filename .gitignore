@@ -47,3 +47,7 @@ _ignore
 tests/pipelines/pipelines_test_data/
 # A developer's own presets
 CMakeUserPresets.json
+
+# Generated DIVE docs
+docs/manual/sections/dive/
+docs/manual/_dive_src/

@@ -1642,9 +1642,27 @@ class RFDETRTrainer(TrainDetector):
         if final_ckpt is None and checkpoint_candidates:
             final_ckpt = checkpoint_candidates[-1]
 
+        # Best-checkpoint selection needs enough validation signal to fire. A
+        # short run -- few optimizer steps, small val_subsample -- can finish
+        # without ever writing a checkpoint_best_*.pth, leaving only the
+        # last.ckpt that PyTorch-Lightning saves each epoch. That is still a
+        # trained model, so use it rather than returning nothing.
         if final_ckpt is None:
-            print("\n[RFDETRTrainer] No checkpoint found, training may have failed")
-            return output
+            last_ckpt = output_dir / "last.ckpt"
+            if last_ckpt.exists():
+                print("\n[RFDETRTrainer] No best checkpoint was selected; "
+                      "falling back to last.ckpt. Short runs may not produce "
+                      "enough validation signal to rank checkpoints.")
+                final_ckpt = last_ckpt
+
+        # Returning an empty output map here used to be silent: update_model()
+        # printed "Model training complete!" anyway and the tool exited 0 after
+        # writing a pipeline with no weights behind it.
+        if final_ckpt is None:
+            raise RuntimeError(
+                "RF-DETR training produced no checkpoint in {}. The trainer "
+                "output above carries the reason; no model was written.".format(
+                    output_dir))
 
         # Embed class metadata into the checkpoint so the detector knows
         # the trained categories and model architecture.
