@@ -112,7 +112,7 @@ def endpoints_on_mask(union, endpoints, span):
     h, w = union.shape
     for x, y in endpoints:
         px, py = int(round(x)), int(round(y))
-        if not (0 <= px < w and 0 <= py < h) or away[py, px] > max(3.0, 0.05 * span):
+        if not (0 <= px < w and 0 <= py < h) or away[py, px] > max(3.0, 0.15 * span):
             return False
     return True
 
@@ -124,19 +124,23 @@ def _inside(union, points):
     return union[y, x]
 
 
-def mask_polyline(mask, endpoints, count, smoothing, trusted=False):
+def mask_polyline(mask, endpoints, count, harmonics, trusted=False):
     """Head-to-tail centerline of a mask as `count` vertices.
 
-    Several polygons are bridged into one shape for the path, but only path
-    points inside the polygons shape the curve and every interior vertex lands
-    inside them. endpoints (head, tail; may be None) anchor the path as drawn
+    The ridge path between head and tail is reduced to a smooth midline of
+    `harmonics` sine terms pinned to both ends. Several polygons are bridged
+    into one shape for the path, but only path points inside the polygons
+    shape the curve and every interior vertex lands inside them. endpoints (head, tail; may be None) anchor the path as drawn
     when trusted. Model endpoints must sit on the mask, or the two disagree and
     nothing is written; ones spanning too little of it (a head placed
     mid-body) only orient ends computed from the mask itself."""
     from viame.core.curved_measurement import (
-        mask_centerline, mask_end_seeds, merge_components, resample_curve)
+        fit_midline, mask_centerline, mask_end_seeds, merge_components)
     mask = np.asarray(mask, dtype=bool)
     ys, xs = np.nonzero(mask)
+    if endpoints is not None:
+        endpoints = np.asarray(endpoints, dtype=float).reshape(2, 2)
+        xs, ys = np.r_[xs, endpoints[:, 0]], np.r_[ys, endpoints[:, 1]]
     margin = 2
     x0, y0 = max(int(xs.min()) - margin, 0), max(int(ys.min()) - margin, 0)
     x1, y1 = int(xs.max()) + margin + 1, int(ys.max()) + margin + 1
@@ -145,7 +149,7 @@ def mask_polyline(mask, endpoints, count, smoothing, trusted=False):
     seeds = mask_end_seeds(union)
     anchored = False
     if endpoints is not None:
-        endpoints = np.asarray(endpoints, dtype=float).reshape(2, 2) - origin
+        endpoints = endpoints - origin
         span = np.linalg.norm(seeds[0] - seeds[1])
         if not trusted and not endpoints_on_mask(union, endpoints, span):
             raise ValueError('model head/tail lie off the mask')
@@ -154,10 +158,10 @@ def mask_polyline(mask, endpoints, count, smoothing, trusted=False):
                              < np.linalg.norm(endpoints[0] - seeds[0])):
             seeds = seeds[::-1]
     path = mask_centerline(merged, endpoints if anchored else seeds, anchored)
-    keep = _inside(union, path)
-    keep[[0, -1]] = True
-    dense = resample_curve(path[keep], 512, smoothing)
-    curve = resample_curve(dense, count, 0)
+    dense = fit_midline(path, _inside(union, path), harmonics)
+    arc = np.r_[0, np.cumsum(np.linalg.norm(np.diff(dense, axis=0), axis=1))]
+    curve = np.column_stack([np.interp(np.linspace(0, arc[-1], count), arc, dense[:, i])
+                             for i in range(2)])
     inside = np.nonzero(_inside(union, dense))[0]
     for i in range(1, count - 1):
         nearest = np.argmin(np.linalg.norm(dense - curve[i], axis=1))
@@ -383,7 +387,8 @@ CONFIG = (
     ('centerline_source', 'auto', 'auto: drawn spine vertices, else the mask skeleton, else the '
      'head/tail segment. keypoints: only annotated keypoints. mask: only mask skeletons.'),
     ('centerline_vertices', '8', 'Vertices written for a mask-derived centerline (head to tail)'),
-    ('centerline_smoothing', '2.0', 'Spline tolerance in pixels when smoothing a mask skeleton'),
+    ('centerline_harmonics', '3', 'Sine terms of the smooth midline fitted through a mask '
+     'ridge between head and tail: 1 is a single arc, more follow S-bends'),
     ('rectification_alpha', '-1.0', 'OpenCV stereoRectify alpha; -1 keeps every source pixel'),
     ('refine_keypoints_disparity_window', '3', 'Neighbourhood radius sampled at each vertex'),
     ('refine_keypoints_disparity_percentile', '0.9', 'Percentile of the neighbourhood '
@@ -471,9 +476,9 @@ class MeasureCurvedObjects(KwiverProcess):
         if self._source not in ('auto', 'keypoints', 'mask'):
             raise RuntimeError('centerline_source must be auto, keypoints or mask')
         self._vertices = int(self.config_value('centerline_vertices'))
-        self._smoothing = float(self.config_value('centerline_smoothing'))
-        if self._vertices < 4 or self._smoothing < 0:
-            raise RuntimeError('centerline_vertices must be >= 4 and centerline_smoothing >= 0')
+        self._harmonics = int(self.config_value('centerline_harmonics'))
+        if self._vertices < 4 or self._harmonics < 1:
+            raise RuntimeError('centerline_vertices must be >= 4 and centerline_harmonics >= 1')
         self._tracks = ({}, {})
         self._lengths = {}
         self._finalized = False
@@ -581,7 +586,7 @@ class MeasureCurvedObjects(KwiverProcess):
             mask = detection_mask(det, shape)
             if mask is not None:
                 try:
-                    path = mask_polyline(mask, curve, self._vertices, self._smoothing, trusted)
+                    path = mask_polyline(mask, curve, self._vertices, self._harmonics, trusted)
                     _set_centerline(det, path)
                     det.add_note(':centerline_source=mask')
                     return path
@@ -589,6 +594,11 @@ class MeasureCurvedObjects(KwiverProcess):
                     self._log('mask centerline failed: %s' % error)
                     if not trusted:
                         return None
+        if curve is not None and not trusted:
+            box = det.bounding_box
+            if np.linalg.norm(curve[0] - curve[-1]) < 0.5 * max(box.width(), box.height()):
+                self._log('model head/tail span too little of the box; not measured')
+                return None
         return None if self._source == 'mask' else curve
 
     def _measure_frame(self, frame, states, left_image):

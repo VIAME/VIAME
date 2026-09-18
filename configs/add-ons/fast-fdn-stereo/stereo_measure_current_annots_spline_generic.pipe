@@ -88,7 +88,7 @@ process measurer
 
   :centerline_source                           auto     # DIVE_PARAM["Centerline Source (auto, keypoints, mask)", string]
   :centerline_vertices                         8        # DIVE_PARAM["Centerline Vertices", range_int, 4, 64]
-  :centerline_smoothing                        2.0      # DIVE_PARAM["Skeleton Smoothing (px)", range_float, 0, 20, 0.5]
+  :centerline_harmonics                        3        # DIVE_PARAM["Midline Flexibility (sine terms)", range_int, 1, 8]
 
   # bidirectional runs a second inference on the swapped, flipped pair so the
   # right-reference disparity is independent of the forward one.

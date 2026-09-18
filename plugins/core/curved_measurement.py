@@ -182,6 +182,33 @@ def mask_centerline(mask, endpoints, anchored=True):
     return np.vstack([endpoints[0], trunk, endpoints[1]])
 
 
+def fit_midline(path, keep=None, harmonics=3, count=512):
+    """Smooth curve pinned to the first and last path points: the straight
+    line between them plus a short sine series fitted to the body of the path.
+
+    A sine series vanishes at both ends, so head and tail are met exactly, and
+    its few terms cannot follow the swing a ridge path makes from a tail tip or
+    snout onto the ridge. The outer tenth of the path at each end and points
+    excluded by keep do not enter the fit."""
+    path = np.asarray(path, dtype=float)
+    arc = np.r_[0, np.cumsum(np.linalg.norm(np.diff(path, axis=0), axis=1))]
+    if len(path) < 2 or arc[-1] <= 0:
+        raise ValueError('Curve has zero length')
+    u = arc / arc[-1]
+    use = (u > 0.1) & (u < 0.9)
+    if keep is not None:
+        use &= np.asarray(keep, dtype=bool)
+    harmonics = min(harmonics, int(use.sum()) // 2)
+    k = np.arange(1, harmonics + 1)
+    line = lambda t: path[0] + np.outer(t, path[-1] - path[0])
+    dense = np.linspace(0, 1, count)
+    if harmonics < 1:
+        return line(dense)
+    coefficients = np.linalg.lstsq(np.sin(np.pi * np.outer(u[use], k)),
+                                   path[use] - line(u[use]), rcond=None)[0]
+    return line(dense) + np.sin(np.pi * np.outer(dense, k)) @ coefficients
+
+
 def sample_map(array, points):
     """Bilinear sampling; outside pixels and any invalid contributing value fail."""
     from scipy.ndimage import map_coordinates

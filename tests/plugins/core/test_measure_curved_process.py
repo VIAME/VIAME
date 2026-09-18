@@ -162,7 +162,7 @@ def bar():
 
 def test_mask_polyline_follows_the_ridge_between_trusted_endpoints(module):
     pytest.importorskip('skimage')
-    path = module.mask_polyline(bar(), [[12, 30], [108, 30]], 8, 2.0, True)
+    path = module.mask_polyline(bar(), [[12, 30], [108, 30]], 8, 4, True)
     assert path.shape == (8, 2)
     np.testing.assert_allclose(path[0], [12, 30]); np.testing.assert_allclose(path[-1], [108, 30])
     assert np.all(np.diff(path[:, 0]) > 0) and np.abs(path[:, 1] - 30).max() < 2
@@ -170,7 +170,7 @@ def test_mask_polyline_follows_the_ridge_between_trusted_endpoints(module):
 
 def test_mask_polyline_computes_ends_where_the_trunk_leaves_the_mask(module):
     pytest.importorskip('skimage')
-    path = module.mask_polyline(bar(), None, 8, 2.0)
+    path = module.mask_polyline(bar(), None, 8, 4)
     assert path[0, 0] > 107 and path[-1, 0] < 12
     assert np.abs(path[:, 1] - 29.5).max() < 2
 
@@ -180,14 +180,14 @@ def test_mask_polyline_bridges_polygons_but_keeps_vertices_inside(module):
     mask = bar()
     mask[:, 50:62] = False
     mask[5:8, 5:8] = True
-    path = module.mask_polyline(mask, None, 9, 2.0)
+    path = module.mask_polyline(mask, None, 9, 4)
     assert path[0, 0] > 107 and path[-1, 0] < 12
     assert mask[np.rint(path[1:-1, 1]).astype(int), np.rint(path[1:-1, 0]).astype(int)].all()
 
 
 def test_mask_polyline_model_endpoints(module):
     pytest.importorskip('skimage')
-    short = module.mask_polyline(bar(), [[40, 30], [70, 30]], 8, 2.0)
+    short = module.mask_polyline(bar(), [[40, 30], [70, 30]], 8, 4)
     assert short[0, 0] < 12 and short[-1, 0] > 107
     with pytest.raises(ValueError, match='off the mask'):
-        module.mask_polyline(bar(), [[108, 30], [12, 55]], 8, 2.0)
+        module.mask_polyline(bar(), [[108, 30], [12, 55]], 8, 4)
