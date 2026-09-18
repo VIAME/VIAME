@@ -6,7 +6,7 @@
 #define _KWIVER_IMAGE_FILE_READER_PROCESS_H_
 
 #include <viame/pipeline_framework/process.h>
-#include "viame_processes_video_io_export.h"
+#include "viame_processes_image_io_export.h"
 
 #include <memory>
 
@@ -33,7 +33,7 @@ namespace viame
  * \config{image_reader}  (string)
  *
  */
-class VIAME_PROCESSES_VIDEO_IO_NO_EXPORT image_file_reader_process
+class VIAME_PROCESSES_IMAGE_IO_NO_EXPORT image_file_reader_process
   : public viame::pipeline::process
 {
 public:

@@ -29,7 +29,7 @@
 #include <image_ops/resample.h>
 #include <image_ops/warp.h>
 
-#include <viame/video_io/codecs/image_codec.h>
+#include <viame/image_io/codecs/image_codec.h>
 
 #include <algorithm>
 #include <chrono>

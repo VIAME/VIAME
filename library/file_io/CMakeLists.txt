@@ -112,7 +112,7 @@ target_link_libraries( viame_file_io
                        viame_image_ops
                        # `read_detected_object_set_habcam` takes the frame
                        # time out of the file name
-                       viame_video_io
+                       viame_image_io
   )
 
 # TinyXML is `read_detected_object_set_cvat.cxx`'s and nothing else's, and

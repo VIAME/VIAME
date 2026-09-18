@@ -81,7 +81,7 @@ target_link_libraries( viame_measurement
                        # the chipping the pairing crops through
                        viame_image_ops
                        # the debug images the pairing can write
-                       viame_video_io
+                       viame_image_io
   )
 
 # The pairing's DINO feature matching calls the interpreter through the

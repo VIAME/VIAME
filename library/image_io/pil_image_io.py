@@ -4,7 +4,7 @@
 
 """Image reading and writing on Pillow, as the fallback the codecs need.
 
-`library/video_io/codecs` handles PNG, JPEG, BMP and baseline TIFF, which is
+`library/image_io/codecs` handles PNG, JPEG, BMP and baseline TIFF, which is
 every format VIAME's own pipelines read and write. What it deliberately does
 not handle is everything else: a tiled TIFF, a 32 bit float TIFF, a WebP or
 a GIF that arrives with somebody's survey data. Guessing at those in C++

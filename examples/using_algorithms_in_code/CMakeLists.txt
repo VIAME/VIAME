@@ -28,7 +28,7 @@ viame_target_link_libraries( detector1
              kwiver::vital_config
              kwiver::vital_logger
              kwiver::vital_util
-             viame_video_io
+             viame_image_io
              viame_object_detectors
   )
 
@@ -44,7 +44,7 @@ viame_target_link_libraries( detector3
              kwiver::vital_logger
              kwiver::vital_util
              kwiver::vital_vpm
-             viame_video_io
+             viame_image_io
              # It calls load_all_plugins, and since P8-T03 that means
              # linking what registers rather than finding it on a path
              viame::registry

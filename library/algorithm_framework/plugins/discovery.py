@@ -381,6 +381,7 @@ BUILTIN_PLUGIN_PACKAGES = (
     "viame.object_trackers.pytorch",
     "viame.object_trackers.sam3",
     "viame.object_trackers.siammask",
+    "viame.image_io",
     "viame.video_io",
     "viame.image_processing.colmap",
     "viame.examples",
@@ -581,7 +582,7 @@ def declared_pluggable_types() -> List[Type]:
 #
 #     __sprokit_process_declarations__ = [
 #         ( "image_viewer", "Display input image and delay",
-#           "viame.video_io.image_viewer:ImageViewer" ),
+#           "viame.image_io.image_viewer:ImageViewer" ),
 #     ]
 #
 # A process does not register through the subclass walk -- it calls

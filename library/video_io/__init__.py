@@ -16,9 +16,6 @@
 # implementation module at startup, which was the only way the classes came
 # to exist for the subclass walk that registers them. See P8-T10.
 __vital_algorithm_declarations__ = [
-    ( "image_io", "pil",
-      "Read and write images with Pillow, for the formats the in-house codecs decline",
-      "viame.video_io.pil_image_io:PILImageIO" ),
     ( "video_input", "ffmpeg",
       "Read a video with PyAV",
       "viame.video_io.pyav_video_input:FFmpegVideoInput" ),
@@ -37,17 +34,4 @@ __vital_algorithm_declarations__ = [
     ( "video_output", "pyav",
       "Write a video with PyAV",
       "viame.video_io.pyav_video_output:PyAVVideoOutput" ),
-]
-
-# ----------------------------------------------------------------------------
-# The processes this package provides, without importing any of them.
-#
-# Each entry is ( name, description, "module:Class" ). A process registers by
-# calling `process_factory.add_process( name, description, ctor )`, and the
-# ctor is only ever called -- so a function that imports and constructs is as
-# good as the class and costs nothing until a pipeline wants one. See P8-T10.
-__sprokit_process_declarations__ = [
-    ( "image_viewer",
-      "Display input image and delay",
-      "viame.video_io.image_viewer:ImageViewer" ),
 ]

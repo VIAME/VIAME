@@ -27,7 +27,7 @@
 #include <image_ops/dispatch.h>
 #include <image_ops/resample.h>
 
-#include <viame/video_io/codecs/image_codec.h>
+#include <viame/image_io/codecs/image_codec.h>
 
 using namespace viame;
 

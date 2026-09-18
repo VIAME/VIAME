@@ -1,0 +1,156 @@
+# In-house image reading and writing
+#
+# The image_io implementations VIAME registers, the codecs they decode
+# through, and the two processes that read and write a single image.
+# Nothing here may include VXL.
+#
+# Split out of `video_io`, which held both and said so in its own first line.
+# The dividing question is what the algorithm is about rather than what reads
+# it: `core_image_io` and the codecs decode one image, `filename_to_timestamp`
+# and `add_timestamp_from_filename` recover a time from an image's name, and
+# `write_disparity_maps` writes one. What stayed is about a sequence --
+# `video_input_image_list` registers as a `video_input` and answers to
+# `image_list`, so it belongs with the other video sources even though every
+# frame it yields comes through an `image_io` named here.
+
+set( plugin_headers
+  add_timestamp_from_filename.h
+  core_image_io.h
+  filename_to_timestamp.h
+  write_disparity_maps.h
+  )
+
+set( codec_headers
+  codecs/image_codec.h
+  codecs/tiff.h
+  )
+
+set( plugin_sources
+  add_timestamp_from_filename.cxx
+  core_image_io.cxx
+  filename_to_timestamp.cxx
+  write_disparity_maps.cxx
+  codecs/image_codec.cxx
+  codecs/tiff.cxx
+  )
+
+viame_install_headers(
+  SUBDIR     viame/image_io
+  ${plugin_headers}
+  )
+
+viame_install_headers(
+  SUBDIR     viame/image_io/codecs
+  NOPATH
+  ${codec_headers}
+  )
+
+viame_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_image_io_export.h
+  NOPATH   SUBDIR     viame/image_io
+  )
+
+viame_add_library( viame_image_io
+  ${plugin_headers}
+  ${codec_headers}
+  ${plugin_sources}
+  )
+
+target_include_directories( viame_image_io PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
+# The vendored stb headers, which only `codecs/image_codec.cxx` compiles.
+# SYSTEM: they are third-party code and warn under VIAME's flags.
+target_include_directories( viame_image_io SYSTEM PRIVATE
+  $<BUILD_INTERFACE:${VIAME_SOURCE_DIR}/library/tpl/stb>
+  )
+
+target_link_libraries( viame_image_io
+  PUBLIC               kwiver::vital
+                       kwiver::vital_algo
+                       kwiver::vital_config
+                       kwiver::vital_exceptions
+                       kwiver::vital_logger
+                       kwiver::vital_util
+                       viame_image_ops
+  )
+
+set_target_properties( viame_image_io PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
+  )
+
+viame_register_statically( viame_image_io
+  register_algorithms.cxx
+  )
+
+
+###
+# Processes
+#
+# The two that read and write a single image. `image_viewer` is the third and
+# is python: it is the one process that opens a GUI.
+##
+set( process_headers
+  image_file_reader_process.h
+  image_writer_process.h
+  )
+
+set( process_sources
+  register_processes.cxx
+  image_file_reader_process.cxx
+  image_writer_process.cxx
+  )
+
+viame_add_plugin( viame_processes_image_io
+  KIND        PROCESSES
+  SOURCES          ${process_sources}
+                   ${process_headers}
+  PRIVATE          kwiver::sprokit_pipeline
+                   kwiver::vital
+                   kwiver::vital_vpm
+                   kwiver::vital_logger
+                   kwiver::vital_config
+                   kwiver::vital_util
+                   kwiver::vital_exceptions
+                   kwiver::vital_algo
+                   viame_image_io
+  )
+
+target_include_directories( viame_processes_image_io PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  )
+
+###
+# Python implementations
+##
+if( VIAME_ENABLE_PYTHON )
+  viame_create_python_init( image_io )
+
+  viame_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    image_io
+    __init__ )
+
+  # `image_viewer`, a sprokit process rather than an algorithm, so it is
+  # registered through `__sprokit_register__`.
+  viame_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/image_viewer.py
+    image_io
+    image_viewer )
+
+  # The image_io the in-house codecs fall back to; see codecs/image_codec.h
+  viame_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/pil_image_io.py
+    image_io
+    pil_image_io )
+endif()
+
+###
+# Tests
+##
+if( VIAME_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()

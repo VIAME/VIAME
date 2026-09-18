@@ -17,10 +17,10 @@
 /// says so before `read` is called, so the caller can hand the file to the
 /// python `pil` image_io instead of failing.
 
-#ifndef VIAME_VIDEO_IO_CODECS_TIFF_H
-#define VIAME_VIDEO_IO_CODECS_TIFF_H
+#ifndef VIAME_IMAGE_IO_CODECS_TIFF_H
+#define VIAME_IMAGE_IO_CODECS_TIFF_H
 
-#include "viame_video_io_export.h"
+#include "viame_image_io_export.h"
 
 #include <viame/core_types/image.h>
 
@@ -35,7 +35,7 @@ namespace tiff {
 /// @brief Whether these bytes begin a TIFF file.
 ///
 /// The first four: "II" or "MM" for the byte order, then 42 in that order.
-VIAME_VIDEO_IO_EXPORT
+VIAME_IMAGE_IO_EXPORT
 bool is_tiff( void const* data, size_t size );
 
 /// @brief Why a TIFF cannot be read here, or empty if it can.
@@ -44,7 +44,7 @@ bool is_tiff( void const* data, size_t size );
 /// message names the feature, so a log line says which file wanted what.
 ///
 /// @param filename the file to inspect
-VIAME_VIDEO_IO_EXPORT
+VIAME_IMAGE_IO_EXPORT
 std::string unsupported_reason( std::string const& filename );
 
 /// @brief Read a baseline TIFF.
@@ -56,7 +56,7 @@ std::string unsupported_reason( std::string const& filename );
 /// @param filename the file to read
 /// @returns the image, 8 or 16 bit to match the file
 /// @throws std::runtime_error if the file is not one of those
-VIAME_VIDEO_IO_EXPORT
+VIAME_IMAGE_IO_EXPORT
 viame::image read( std::string const& filename );
 
 /// @brief Write an uncompressed, stripped TIFF.
@@ -69,7 +69,7 @@ viame::image read( std::string const& filename );
 /// @param filename the file to write
 /// @param image the image to write
 /// @throws std::runtime_error if the pixel type is not 8 or 16 bit
-VIAME_VIDEO_IO_EXPORT
+VIAME_IMAGE_IO_EXPORT
 void write( std::string const& filename, viame::image const& image );
 
 } // end namespace tiff

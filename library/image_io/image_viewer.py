@@ -4,12 +4,12 @@
 
 """Show each frame of a pipeline in a window, on cv2.
 
-`library/video_io/image_viewer_process.cxx` in python. It is the one
+`library/image_io/image_viewer_process.cxx` in python. It is the one
 process in the tree that opens a GUI: `cv::imshow` is highgui, which
 `image_ops` has no counterpart for and should not grow one. So this is the
 same trick as the calibration and disparity ports -- the algorithm stays
 OpenCV's and only the language changes -- and it is what takes the last
-OpenCV out of `library/video_io`.
+OpenCV out of `library/image_io`.
 
 The annotation reproduces the C++: a white border above and below sized to
 the text, the frame number at the top left, and the configured header and
@@ -128,7 +128,7 @@ class ImageViewer(ViameProcess):
 def __sprokit_register__():
     from viame.pipeline import process_factory
 
-    module_name = "python:viame.video_io"
+    module_name = "python:viame.image_io"
 
     if process_factory.is_process_module_loaded(module_name):
         return

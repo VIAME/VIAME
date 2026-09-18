@@ -7,10 +7,10 @@
  * \brief Disparity map visualization and writing algorithm
  */
 
-#ifndef VIAME_VIDEO_IO_WRITE_DISPARITY_MAPS_H
-#define VIAME_VIDEO_IO_WRITE_DISPARITY_MAPS_H
+#ifndef VIAME_IMAGE_IO_WRITE_DISPARITY_MAPS_H
+#define VIAME_IMAGE_IO_WRITE_DISPARITY_MAPS_H
 
-#include "viame_video_io_export.h"
+#include "viame_image_io_export.h"
 
 #include <viame/algorithm_framework/algo/image_io.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -33,7 +33,7 @@ namespace viame {
  * - Automatic or manual min/max range for normalization
  * - Invalid disparity handling
  */
-class VIAME_VIDEO_IO_EXPORT write_disparity_maps :
+class VIAME_IMAGE_IO_EXPORT write_disparity_maps :
   public viame::algo::image_io
 {
 public:
@@ -99,4 +99,4 @@ private:
 
 } // namespace viame
 
-#endif // VIAME_VIDEO_IO_WRITE_DISPARITY_MAPS_H
+#endif // VIAME_IMAGE_IO_WRITE_DISPARITY_MAPS_H

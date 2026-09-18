@@ -4,26 +4,22 @@
 
 /**
  * \file
- * \brief In-house video and image reader registration
+ * \brief In-house video reader registration
  *
- * The two image writers that came from the `core` plugin in P2-T04 --
- * `add_timestamp_from_filename` and the disparity-map writer -- register
- * through the template below rather than the macro, because they carry
- * `plugin_name()` and `plugin_description()` of their own.
+ * The image readers and writers that used to register here are `image_io`'s
+ * now. What is left is the image-list video source: it answers to
+ * `image_list` as a `video_input`, and reads each frame through whichever
+ * `image_io` its config names.
  */
 
 #include "viame_video_io_plugin_export.h"
 
-#include <viame/algorithm_framework/algo/image_io.h>
 #include <viame/algorithm_framework/algo/video_input.h>
 
 #include <viame/algorithm_framework/plugin/register_algorithm.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
-#include "add_timestamp_from_filename.h"
-#include "core_image_io.h"
 #include "video_input_image_list.h"
-#include "write_disparity_maps.h"
 
 namespace viame {
 
@@ -42,39 +38,11 @@ register_factories( kv::registry& vpm )
     return;
   }
 
-#define VIAME_REGISTER( interface, impl, name )                      \
-  {                                                                  \
-    auto fact = vpm.add_factory< interface, impl >( name );          \
-    fact->add_attribute( kvpf::PLUGIN_NAME, name )                   \
-      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )        \
-      .add_attribute( kvpf::PLUGIN_DESCRIPTION,                      \
-                      impl::plugin_description() );                  \
-  }
-
-  VIAME_REGISTER( kv::algo::image_io, core_image_io,
-                  core_image_io::plugin_name() )
-  // The name arrows/vxl used for its image reader, kept working now that it
-  // is gone. Aliasing it to the plain ocv reader, as lite-removals.md section
-  // 1 first suggested, would have dropped all five of its config keys
-  VIAME_REGISTER( kv::algo::image_io, core_image_io, "vxl" )
-  // And the name arrows/ocv used, since P7-T02: `core_image_io` decodes
-  // through `codecs/` now, and `tests/golden/codecs` says it reproduces what
-  // the OpenCV reader produced for all twenty containers -- exactly for
-  // every lossless one, within the decoder tolerance for JPEG
-  VIAME_REGISTER( kv::algo::image_io, core_image_io, "ocv" )
-
   // The video reader and writer, and the ffmpeg and vidl_ffmpeg names they
   // answer to, are python: see pyav_video_input.py and pyav_video_output.py
 
-#undef VIAME_REGISTER
-
-  register_algorithm< kv::algo::image_io,
-    add_timestamp_from_filename >( vpm, module_name );
-  register_algorithm< kv::algo::image_io,
-    write_disparity_maps >( vpm, module_name );
-
   // Imported from kwiver in P5-T04. Registers the way kwiver's arrows did,
-  // by class rather than through the macro above, because it is still in
+  // by class rather than through a macro, because it is still in
   // kwiver's namespace and carries no plugin_name().
   {
     auto fact = vpm.add_factory< kv::algo::video_input,

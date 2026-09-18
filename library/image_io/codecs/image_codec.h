@@ -11,10 +11,10 @@
 /// declined here rather than guessed at, so the caller can hand it to the
 /// python `pil` image_io. `design/lite-removals.md` 2.2 has the split.
 
-#ifndef VIAME_VIDEO_IO_CODECS_IMAGE_CODEC_H
-#define VIAME_VIDEO_IO_CODECS_IMAGE_CODEC_H
+#ifndef VIAME_IMAGE_IO_CODECS_IMAGE_CODEC_H
+#define VIAME_IMAGE_IO_CODECS_IMAGE_CODEC_H
 
-#include "viame_video_io_export.h"
+#include "viame_image_io_export.h"
 
 #include <viame/core_types/image.h>
 
@@ -33,7 +33,7 @@ namespace codecs {
 /// @param filename the file to inspect
 /// @param[out] reason why it cannot be read, when it cannot
 /// @returns true when `read` will handle it
-VIAME_VIDEO_IO_EXPORT
+VIAME_IMAGE_IO_EXPORT
 bool can_read( std::string const& filename, std::string& reason );
 
 /// @brief Whether this image can be written to this file here.
@@ -47,7 +47,7 @@ bool can_read( std::string const& filename, std::string& reason );
 /// @param filename the file that would be written
 /// @param image the image that would be written
 /// @param[out] reason why it cannot be written, when it cannot
-VIAME_VIDEO_IO_EXPORT
+VIAME_IMAGE_IO_EXPORT
 bool can_write( std::string const& filename,
                 viame::image const& image, std::string& reason );
 
@@ -60,7 +60,7 @@ bool can_write( std::string const& filename,
 ///
 /// @param filename the file to read
 /// @throws std::runtime_error if the format is one `can_read` declines
-VIAME_VIDEO_IO_EXPORT
+VIAME_IMAGE_IO_EXPORT
 viame::image read( std::string const& filename );
 
 /// @brief Write an image, choosing the encoder by extension.
@@ -74,7 +74,7 @@ viame::image read( std::string const& filename );
 /// @param filename the file to write
 /// @param image the image to write
 /// @throws std::runtime_error if the extension is one `can_write` declines
-VIAME_VIDEO_IO_EXPORT
+VIAME_IMAGE_IO_EXPORT
 void write( std::string const& filename, viame::image const& image );
 
 } // end namespace codecs

@@ -18,7 +18,7 @@
 #include <image_ops/pixel.h>
 
 #include <viame/core_types/image_container.h>
-#include <viame/video_io/codecs/image_codec.h>
+#include <viame/image_io/codecs/image_codec.h>
 
 #include <algorithm>
 #include <cmath>

@@ -407,3 +407,38 @@ What is still missing is a fixture. Until `cases.py` carries GFIT (and the other
 nineteen add-on directories) with an expected-output check, add-on regressions
 are invisible to `ctest`. That is a test-coverage gap, not a port defect, and it
 belongs with P9/P10 packaging work rather than with any closed phase.
+
+## `image_io` split out of `video_io`
+
+`video_io` held both, and its own first line said so: "In-house video and
+image reading". It is two capabilities. `image_io` is now its own library:
+`core_image_io` (registering `core`, and the `vxl` and `ocv` names it
+answers to), `add_timestamp_from_filename`, `write_disparity_maps`,
+`codecs/{image_codec,tiff}` with the vendored stb headers, the
+`image_writer` and `image_file_reader` processes, `pil_image_io.py` and
+`image_viewer.py`. `video_io` keeps what is about a sequence: the PyAV and
+ffmpeg readers and writer, `video_input`/`video_output`/`frame_list_input`,
+`detect_shot_breaks` and `read_habcam_metadata`.
+
+`video_input_image_list` is the boundary case and stays in `video_io`. It
+reads every frame through an `image_io`, but what it implements is a
+`video_input` registered as `image_list`, and a library is placed by what it
+implements. The DAG gains an edge and no cycle:
+`image_ops <- image_io <- video_io`.
+
+Five consumers linked `viame_video_io` and every one of them named an image
+reason in its own comment -- codecs for detection chips, codecs for debug
+frames, the frame time out of a file name, `core_image_io` in the examples.
+All five link `viame_image_io` now, and nothing outside `video_io` includes
+a `viame/video_io/` header any more.
+
+**No registered name changed**, which is what made this safe to do: the
+three image_io names, the `image_list` video reader, all seven processes and
+all seven python declarations are spelled exactly as before, only in a
+different library. `baseline:registry` and `baseline:pipes` both pass
+untouched, and `registry.json` and `pipes.json` are not re-recorded.
+
+`install.txt` **is** re-recorded: 8 gone, 10 new, every one an `image_io` or
+`video_io` path. The six `include/viame/video_io/*.h` headers and the two
+python modules moved, and the two additions are the new library's generated
+`viame_image_io_export.h` and the new package's `__init__.py`.

@@ -1,53 +1,36 @@
-# In-house video and image reading
+# In-house video reading and writing
 #
-# The image_io and video_input implementations VIAME registers. Decoding is
-# still delegated to a nested implementation; what lives here is the depth,
-# range and frame selection handling the pipelines and tooling rely on.
-# Nothing here may include VXL.
+# The video_input implementations VIAME registers, and the processes that
+# drive a stream. Decoding is still delegated to a nested implementation;
+# what lives here is the range and frame selection handling the pipelines
+# and tooling rely on. Nothing here may include VXL.
+#
+# The image side is `image_io`: one image decoded, named or written. What
+# stayed is about a sequence. `video_input_image_list` is the boundary case
+# and stays here, because it registers as a `video_input` under the name
+# `image_list` -- every frame it yields comes through an `image_io`, but the
+# thing it implements is a video source.
 
-# Imported from kwiver in P5-T04: arrows/core's image-list video reader and
-# arrows/ocv's image_io. The code is unchanged apart from its include paths
-# and its export macro, which is this library's now; the namespace is still
-# kwiver's, and phase 8 is where that changes.
+# Imported from kwiver in P5-T04: arrows/core's image-list video reader. The
+# code is unchanged apart from its include paths and its export macro, which
+# is this library's now; the namespace is still kwiver's, and phase 8 is
+# where that changes.
 #
-# `add_timestamp_from_filename`, `detect_shot_breaks`, `filename_to_timestamp`
-# and `write_disparity_maps` came from the `core` plugin in P2-T04: when a frame
-# was taken and where one shot ends are properties of the video, not of
-# whatever happened to read it.
+# `detect_shot_breaks` came from the `core` plugin in P2-T04: where one shot
+# ends is a property of the video, not of whatever happened to read it.
 set( plugin_headers
-  add_timestamp_from_filename.h
-  core_image_io.h
   detect_shot_breaks.h
-  filename_to_timestamp.h
   video_input_image_list.h
-  write_disparity_maps.h
-  )
-
-set( codec_headers
-  codecs/image_codec.h
-  codecs/tiff.h
   )
 
 set( plugin_sources
-  add_timestamp_from_filename.cxx
-  core_image_io.cxx
   detect_shot_breaks.cxx
-  filename_to_timestamp.cxx
   video_input_image_list.cxx
-  write_disparity_maps.cxx
-  codecs/image_codec.cxx
-  codecs/tiff.cxx
   )
 
 viame_install_headers(
   SUBDIR     viame/video_io
   ${plugin_headers}
-  )
-
-viame_install_headers(
-  SUBDIR     viame/video_io/codecs
-  NOPATH
-  ${codec_headers}
   )
 
 viame_install_headers(
@@ -57,19 +40,12 @@ viame_install_headers(
 
 viame_add_library( viame_video_io
   ${plugin_headers}
-  ${codec_headers}
   ${plugin_sources}
   )
 
 target_include_directories( viame_video_io PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  )
-
-# The vendored stb headers, which only `codecs/image_codec.cxx` compiles.
-# SYSTEM: they are third-party code and warn under VIAME's flags.
-target_include_directories( viame_video_io SYSTEM PRIVATE
-  $<BUILD_INTERFACE:${VIAME_SOURCE_DIR}/library/tpl/stb>
   )
 
 target_link_libraries( viame_video_io
@@ -94,16 +70,12 @@ viame_register_statically( viame_video_io
 ###
 # Processes
 #
-# Imported from sprokit/processes in P5-T04: the five video and image
-# processes from `core`. `image_viewer` came from `ocv` and is python now --
-# it is the one process that opens a GUI, which is highgui and has no
-# `image_ops` counterpart.
+# Imported from sprokit/processes in P5-T04: the video processes from
+# `core`. The two single-image processes went to `image_io`.
 ##
 set( process_headers
   detect_shot_breaks_process.h
   frame_list_process.h
-  image_file_reader_process.h
-  image_writer_process.h
   read_habcam_metadata_process.h
   video_input_process.h
   video_output_process.h
@@ -113,8 +85,6 @@ set( process_sources
   register_processes.cxx
   detect_shot_breaks_process.cxx
   frame_list_process.cxx
-  image_file_reader_process.cxx
-  image_writer_process.cxx
   read_habcam_metadata_process.cxx
   video_input_process.cxx
   video_output_process.cxx
@@ -151,13 +121,6 @@ if( VIAME_ENABLE_PYTHON )
     video_io
     __init__ )
 
-  # `image_viewer`, a sprokit process rather than an algorithm, so it is
-  # registered through `__sprokit_register__`.
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/image_viewer.py
-    video_io
-    image_viewer )
-
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_input.py
     video_io
@@ -172,12 +135,6 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_cli_video_input.py
     video_io
     ffmpeg_cli_video_input )
-
-  # The image_io the in-house codecs fall back to; see codecs/image_codec.h
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/pil_image_io.py
-    video_io
-    pil_image_io )
 endif()
 
 ###

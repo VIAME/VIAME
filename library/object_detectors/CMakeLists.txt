@@ -65,7 +65,7 @@ target_link_libraries( viame_object_detectors
                        viame_image_ops
                        # codecs/, for the debug frames the motion detector
                        # saves when a debug_dir is configured
-                       viame_video_io
+                       viame_image_io
   )
 
 

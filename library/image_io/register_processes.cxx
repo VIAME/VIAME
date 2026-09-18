@@ -4,37 +4,29 @@
 
 /**
  * \file
- * \brief Video process registration
+ * \brief Image process registration
  *
- * Imported from kwiver in P5-T04: the video processes from
- * `sprokit/processes/core`. The single-image processes are `image_io`'s.
- * The processes themselves are unchanged and are still in kwiver's
+ * The two processes that read and write a single image, imported from
+ * `sprokit/processes/core` in P5-T04 and split out of `video_io` with the
+ * rest of the image side. They are unchanged and still in kwiver's
  * namespace; what moved is where they are built and where they register.
- *
- * `detect_shot_breaks` and `read_habcam_metadata` joined them from
- * the `core` plugin in P2-T04. They are still in `viame::core` -- the
- * namespaces are normalised once at the end of phase 2, not capability by
- * capability.
  */
 
-#include "viame_processes_video_io_export.h"
+#include "viame_processes_image_io_export.h"
 
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/algorithm_framework/plugin/registry.h>
 
-#include "detect_shot_breaks_process.h"
-#include "frame_list_process.h"
-#include "read_habcam_metadata_process.h"
-#include "video_input_process.h"
-#include "video_output_process.h"
+#include "image_file_reader_process.h"
+#include "image_writer_process.h"
 
 extern "C"
-VIAME_PROCESSES_VIDEO_IO_EXPORT
+VIAME_PROCESSES_IMAGE_IO_EXPORT
 void
 register_factories( viame::registry& vpm )
 {
   static auto const module_name =
-    viame::plugin_manager::module_t( "viame_processes_video_io" );
+    viame::plugin_manager::module_t( "viame_processes_image_io" );
 
   if( viame::pipeline::is_process_module_loaded( vpm, module_name ) )
   {
@@ -61,27 +53,12 @@ register_factories( viame::registry& vpm )
   }
 
   VIAME_REGISTER_PROCESS(
-    viame::video_input_process, "video_input",
-    "Reads video files and produces sequential images with metadata per "
-    "frame." )
+    viame::image_writer_process, "image_writer",
+    "Write image to disk." )
 
   VIAME_REGISTER_PROCESS(
-    viame::video_output_process, "video_output",
-    "Writes video file based on sequential images with optional metadata "
-    "per frame." )
-
-  VIAME_REGISTER_PROCESS(
-    viame::frame_list_process, "frame_list_input",
-    "Reads a list of image file names and generates stream of "
-    "images and associated time stamps." )
-
-  VIAME_REGISTER_PROCESS(
-    viame::core::detect_shot_breaks_process, "detect_shot_breaks",
-    "Detect shot breaks and create tracks for each shot" )
-
-  VIAME_REGISTER_PROCESS(
-    viame::core::read_habcam_metadata_process, "read_habcam_metadata",
-    "Read HabCam metadata from input files" )
+    viame::image_file_reader_process, "image_file_reader",
+    "Reads an image file given the file name." )
 
 #undef VIAME_REGISTER_PROCESS
 

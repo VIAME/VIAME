@@ -1,7 +1,7 @@
 
 
 #include <viame/algorithm_framework/config/config_block_io.h>
-#include <viame/video_io/core_image_io.h>
+#include <viame/image_io/core_image_io.h>
 #include <viame/object_detectors/detect_heat_map.h>
 
 #include <string>
