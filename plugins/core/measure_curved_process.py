@@ -8,8 +8,11 @@ the way back through an independent right-reference disparity. The length is
 the sum of 3D segment lengths along the resampled centerline.
 
 A detection without spine vertices gets its centerline from the fish mask: the
-skeleton path between head and tail (hull extremes when those are missing),
-written back as head, spine_NNN, tail keypoints. An optional nested
+ridge path between head and tail, written back as head, spine_NNN, tail
+keypoints. A mask made of several polygons is bridged into one shape for the
+path while every vertex stays inside the polygons. Annotated head/tail anchor
+the path as drawn; model keypoints must be plausible for the mask, and
+otherwise each end is where the trunk's tangent leaves the mask. An optional nested
 refine_detections algorithm supplies masks and endpoints to boxes that lack
 them.
 """
@@ -103,46 +106,63 @@ def detection_mask(det, shape):
     return out if out.any() else None
 
 
-def hull_endpoints(mask):
-    """Head and tail of a mask via add_keypoints_from_mask (hull extremes), as
-    the keypoint pipelines derive them; None when it cannot decide."""
-    from kwiver.vital.types import BoundingBoxD, DetectedObject, DetectedObjectSet, Image, ImageContainer
-    from viame.core.segmentation_utils import polygon_keypoint_algo
-    ys, xs = np.nonzero(mask)
-    x0, y0, x1, y1 = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
-    crop = np.ascontiguousarray(mask[y0:y1, x0:x1].astype(np.uint8) * 255)
-    det = DetectedObject(BoundingBoxD(float(x0), float(y0), float(x1), float(y1)), 1.0, None,
-                         ImageContainer(Image(crop)))
-    dummy = ImageContainer(Image(np.zeros((y1 - y0, x1 - x0, 3), dtype=np.uint8)))
-    refined = list(polygon_keypoint_algo().refine(dummy, DetectedObjectSet([det])))
-    if not refined:
-        return None
-    points = centerline_from_keypoints(refined[0].keypoints)
-    return None if points is None else points[[0, -1]]
-
-
-def clean_mask(mask):
-    """Largest connected component with holes filled: model masks carry stray
-    blobs and pinholes that would otherwise break the skeleton path."""
+def endpoints_on_mask(union, endpoints, span):
     from scipy import ndimage
-    labels, count = ndimage.label(mask)
-    if count > 1:
-        sizes = ndimage.sum(mask, labels, range(1, count + 1))
-        mask = labels == (int(np.argmax(sizes)) + 1)
-    return ndimage.binary_fill_holes(mask)
+    away = ndimage.distance_transform_edt(~union)
+    h, w = union.shape
+    for x, y in endpoints:
+        px, py = int(round(x)), int(round(y))
+        if not (0 <= px < w and 0 <= py < h) or away[py, px] > max(3.0, 0.05 * span):
+            return False
+    return True
 
 
-def mask_polyline(mask, endpoints, count, smoothing):
-    """Head-to-tail path along the mask skeleton, smoothed to `count` vertices."""
-    from viame.core.curved_measurement import mask_centerline, resample_curve
-    endpoints = np.asarray(endpoints, dtype=float).reshape(2, 2)
-    mask = clean_mask(np.asarray(mask, dtype=bool))
+def _inside(union, points):
+    h, w = union.shape
+    x = np.clip(np.rint(points[:, 0]).astype(int), 0, w - 1)
+    y = np.clip(np.rint(points[:, 1]).astype(int), 0, h - 1)
+    return union[y, x]
+
+
+def mask_polyline(mask, endpoints, count, smoothing, trusted=False):
+    """Head-to-tail centerline of a mask as `count` vertices.
+
+    Several polygons are bridged into one shape for the path, but only path
+    points inside the polygons shape the curve and every interior vertex lands
+    inside them. endpoints (head, tail; may be None) anchor the path as drawn
+    when trusted. Model endpoints must sit on the mask, or the two disagree and
+    nothing is written; ones spanning too little of it (a head placed
+    mid-body) only orient ends computed from the mask itself."""
+    from viame.core.curved_measurement import (
+        mask_centerline, mask_end_seeds, merge_components, resample_curve)
+    mask = np.asarray(mask, dtype=bool)
     ys, xs = np.nonzero(mask)
     margin = 2
     x0, y0 = max(int(xs.min()) - margin, 0), max(int(ys.min()) - margin, 0)
     x1, y1 = int(xs.max()) + margin + 1, int(ys.max()) + margin + 1
-    local = mask_centerline(mask[y0:y1, x0:x1], endpoints - [x0, y0]) + [x0, y0]
-    return resample_curve(local, count, smoothing)
+    origin = np.array([x0, y0], dtype=float)
+    merged, union = merge_components(mask[y0:y1, x0:x1])
+    seeds = mask_end_seeds(union)
+    anchored = False
+    if endpoints is not None:
+        endpoints = np.asarray(endpoints, dtype=float).reshape(2, 2) - origin
+        span = np.linalg.norm(seeds[0] - seeds[1])
+        if not trusted and not endpoints_on_mask(union, endpoints, span):
+            raise ValueError('model head/tail lie off the mask')
+        anchored = trusted or np.linalg.norm(endpoints[0] - endpoints[1]) >= 0.6 * span
+        if not anchored and (np.linalg.norm(endpoints[0] - seeds[1])
+                             < np.linalg.norm(endpoints[0] - seeds[0])):
+            seeds = seeds[::-1]
+    path = mask_centerline(merged, endpoints if anchored else seeds, anchored)
+    keep = _inside(union, path)
+    keep[[0, -1]] = True
+    dense = resample_curve(path[keep], 512, smoothing)
+    curve = resample_curve(dense, count, 0)
+    inside = np.nonzero(_inside(union, dense))[0]
+    for i in range(1, count - 1):
+        nearest = np.argmin(np.linalg.norm(dense - curve[i], axis=1))
+        curve[i] = dense[inside[np.argmin(np.abs(inside - nearest))]]
+    return curve + origin
 
 
 class CurvedStereoMeasurer:
@@ -550,9 +570,10 @@ class MeasureCurvedObjects(KwiverProcess):
         curve = centerline_from_keypoints(det.keypoints)
         return (curve is None or len(curve) <= 2) and not self._has_shape(det)
 
-    def _left_centerline(self, det, shape):
+    def _left_centerline(self, det, shape, trusted):
         """Vertices to measure, deriving and writing them from the mask when
-        the detection has no drawn spine. None when nothing usable exists."""
+        the detection has no drawn spine. trusted: head/tail were annotated
+        rather than added by the refiner. None when nothing usable exists."""
         curve = centerline_from_keypoints(det.keypoints)
         if curve is not None and (len(curve) > 2 or self._source == 'keypoints'):
             return curve
@@ -560,20 +581,22 @@ class MeasureCurvedObjects(KwiverProcess):
             mask = detection_mask(det, shape)
             if mask is not None:
                 try:
-                    endpoints = curve if curve is not None else hull_endpoints(mask)
-                    if endpoints is not None:
-                        path = mask_polyline(mask, endpoints, self._vertices, self._smoothing)
-                        _set_centerline(det, path)
-                        det.add_note(':centerline_source=mask')
-                        return path
+                    path = mask_polyline(mask, curve, self._vertices, self._smoothing, trusted)
+                    _set_centerline(det, path)
+                    det.add_note(':centerline_source=mask')
+                    return path
                 except (ValueError, ImportError) as error:
                     self._log('mask centerline failed: %s' % error)
+                    if not trusted:
+                        return None
         return None if self._source == 'mask' else curve
 
     def _measure_frame(self, frame, states, left_image):
         from kwiver.vital.types import (
             BoundingBoxD, DetectedObject, ObjectTrackState)
         left_states, right_states = states
+        annotated = {tid for tid, st in left_states.items()
+                     if centerline_names(st.detection().keypoints) is not None}
         if self._refiner is not None or self._mask_refiner is not None:
             self._refine(frame, left_states, left_image)
         shape = left_image.image().asarray().shape[:2]
@@ -581,7 +604,7 @@ class MeasureCurvedObjects(KwiverProcess):
                   if self._record_method else '')
         for tid, state in left_states.items():
             left_det = state.detection()
-            left_curve = self._left_centerline(left_det, shape)
+            left_curve = self._left_centerline(left_det, shape, tid in annotated)
             if left_curve is None:
                 continue
             right_state = right_states.get(tid)

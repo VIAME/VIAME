@@ -90,9 +90,15 @@ def test_mask_path_ignores_fin_branch():
     curve = cm.mask_centerline(mask, [[20, 50], [130, 50]])
     assert np.max(np.abs(curve[:, 1] - 50)) < 8
     np.testing.assert_equal(curve[[0, -1]], [[20, 50], [130, 50]])
+    free = cm.mask_centerline(mask, [[30, 47], [120, 54]], anchored=False)
+    assert free[0, 0] < 22 and free[-1, 0] > 128
+    assert np.max(np.abs(free[:, 1] - 50)) < 3
     mask[:, 65:85] = False
     with pytest.raises(ValueError, match='connected'):
         cm.mask_centerline(mask, [[20, 50], [130, 50]])
+    merged, union = cm.merge_components(mask)
+    assert not union[50, 75] and merged[50, 75]
+    assert len(cm.mask_centerline(merged, [[20, 50], [130, 50]])) > 80
 
 
 def test_cli(tmp_path, monkeypatch):

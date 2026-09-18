@@ -53,37 +53,133 @@ def centerline_keypoints(points):
             for i, p in enumerate(points)}
 
 
-def mask_centerline(mask, endpoints):
-    """Shortest skeleton path anchored by explicit head and tail; fins are branches.
-
-    No hole filling or joining of disconnected components: ambiguous masks fail.
-    Requires scikit-image only when extracting a mask centerline.
-    """
-    from skimage.morphology import skeletonize
+def merge_components(mask, min_fraction=0.05):
+    """(merged, union) of a mask that came as several polygons. union keeps the
+    components holding at least min_fraction of the largest one's area; merged
+    fills the gap between the facing edges of nearest neighbours so one path
+    can cross them. Bridges exist for connectivity only and are absent from
+    union."""
+    import cv2
+    from scipy import ndimage
     from scipy.spatial import cKDTree
-    from scipy.sparse import coo_matrix
-    from scipy.sparse.csgraph import dijkstra
+    mask = np.asarray(mask, dtype=bool)
+    labels, count = ndimage.label(mask, structure=np.ones((3, 3)))
+    if count == 0:
+        raise ValueError('Mask is empty')
+    sizes = ndimage.sum(mask, labels, range(1, count + 1))
+    keep = [i + 1 for i in np.argsort(sizes)[::-1] if sizes[i] >= min_fraction * sizes.max()]
+    union = ndimage.binary_fill_holes(np.isin(labels, keep))
+    merged = union.copy()
+    if len(keep) == 1:
+        return merged, union
+    pixels = {i: np.column_stack(np.nonzero(labels == i))[:, ::-1] for i in keep}
+    joined, pending = [keep[0]], keep[1:]
+    raster = merged.astype(np.uint8)
+    while pending:
+        tree = cKDTree(np.vstack([pixels[i] for i in joined]))
+        gaps = {i: tree.query(pixels[i]) for i in pending}
+        i = min(pending, key=lambda k: gaps[k][0].min())
+        distance, index = gaps[i]
+        facing = distance <= 1.25 * distance.min() + 1
+        hull = cv2.convexHull(np.vstack([pixels[i][facing], tree.data[index[facing]]])
+                              .astype(np.int32))
+        cv2.fillConvexPoly(raster, hull, 1)
+        joined.append(i)
+        pending.remove(i)
+    return raster > 0, union
+
+
+def mask_end_seeds(mask):
+    """Rough head and tail of a mask: the pixels furthest out along its major
+    axis, head on the larger x as the keypoint pipelines order them."""
+    xy = np.column_stack(np.nonzero(np.asarray(mask, dtype=bool)))[:, ::-1].astype(float)
+    if len(xy) < 2:
+        raise ValueError('Mask is empty')
+    centered = xy - xy.mean(axis=0)
+    axis = np.linalg.svd(centered, full_matrices=False)[2][0]
+    along = centered @ axis
+    low, high = np.percentile(along, [1, 99])
+    ends = np.array([xy[along <= low].mean(axis=0), xy[along >= high].mean(axis=0)])
+    return ends if ends[0, 0] >= ends[1, 0] else ends[::-1]
+
+
+def _ridge_path(mask, distance, start, end):
+    from scipy.spatial import cKDTree
+    from skimage.graph import route_through_array
+    xy = np.column_stack(np.nonzero(mask))[:, ::-1]
+    a, b = xy[cKDTree(xy).query([start, end])[1]]
+    if (a == b).all():
+        raise ValueError('Head and tail do not define a connected mask path')
+    cost = np.where(mask, (distance.max() / np.maximum(distance, 0.5)) ** 2, -1.0)
+    try:
+        path, _ = route_through_array(cost, (a[1], a[0]), (b[1], b[0]),
+                                      fully_connected=True, geometric=True)
+    except ValueError:
+        raise ValueError('Head and tail do not define a connected mask path')
+    return np.asarray(path, dtype=float)[:, ::-1]
+
+
+def _trim(path, distance, anchor, limit):
+    """Leading path points drop while the local half width still reaches the
+    anchor: there the path is swinging from the mask edge onto the ridge."""
+    i = 0
+    while i < limit:
+        x, y = path[i].astype(int)
+        if np.linalg.norm(path[i] - anchor) >= 1.5 * distance[y, x]:
+            break
+        i += 1
+    return i
+
+
+def _exit_point(mask, trunk, distance):
+    """Where the tangent at the start of trunk leaves the mask."""
+    x, y = trunk[0].astype(int)
+    reach = max(3.0 * distance[y, x], 10.0)
+    arc = np.r_[0, np.cumsum(np.linalg.norm(np.diff(trunk, axis=0), axis=1))]
+    near = trunk[arc <= reach]
+    if len(near) < 2:
+        return trunk[0]
+    direction = near[0] - near[-1]
+    direction /= np.linalg.norm(direction)
+    h, w = mask.shape
+    point = trunk[0]
+    for step in np.arange(0.5, 4 * max(h, w), 0.5):
+        probe = trunk[0] + step * direction
+        px, py = int(round(probe[0])), int(round(probe[1]))
+        if not (0 <= px < w and 0 <= py < h) or not mask[py, px]:
+            break
+        point = probe
+    return point
+
+
+def mask_centerline(mask, endpoints, anchored=True):
+    """Head-to-tail path along the ridge of a mask's distance transform; fins
+    are side branches the minimal path never enters.
+
+    endpoints say where the path starts and stops. anchored keeps them as the
+    first and last points; otherwise they only seed the path and each end is
+    where the trunk's own tangent leaves the mask. The mask must be connected
+    between them: see merge_components for masks made of several polygons.
+    """
+    from scipy import ndimage
     mask = np.asarray(mask, dtype=bool)
     endpoints = np.asarray(endpoints, dtype=float)
     if mask.ndim != 2 or endpoints.shape != (2, 2) or not np.isfinite(endpoints).all():
         raise ValueError('mask must be 2D and endpoints must be head/tail [x,y]')
-    xy = np.column_stack(np.nonzero(skeletonize(mask)))[:, ::-1]
-    if len(xy) < 2:
-        raise ValueError('Mask has no usable skeleton')
-    tree = cKDTree(xy)
-    pairs = tree.query_pairs(1.5, output_type='ndarray')
-    weights = np.linalg.norm(xy[pairs[:, 0]] - xy[pairs[:, 1]], axis=1)
-    graph = coo_matrix((np.r_[weights, weights],
-                       (np.r_[pairs[:, 0], pairs[:, 1]], np.r_[pairs[:, 1], pairs[:, 0]])),
-                      shape=(len(xy), len(xy))).tocsr()
-    start, end = tree.query(endpoints)[1]
-    distance, previous = dijkstra(graph, indices=start, return_predecessors=True)
-    if start == end or not np.isfinite(distance[end]):
-        raise ValueError('Head and tail do not define a connected skeleton path')
-    path = [end]
-    while path[-1] != start:
-        path.append(previous[path[-1]])
-    return np.vstack([endpoints[0], xy[path[::-1]], endpoints[1]])
+    if mask.sum() < 2:
+        raise ValueError('Mask has no usable centerline')
+    distance = ndimage.distance_transform_edt(mask)
+    path = _ridge_path(mask, distance, endpoints[0], endpoints[1])
+    limit = len(path) // 4
+    head = _trim(path, distance, path[0], limit)
+    tail = _trim(path[::-1], distance, path[-1], limit)
+    trunk = path[head:len(path) - tail]
+    if len(trunk) < 2:
+        trunk = path
+    if not anchored:
+        endpoints = np.array([_exit_point(mask, trunk, distance),
+                              _exit_point(mask, trunk[::-1], distance)])
+    return np.vstack([endpoints[0], trunk, endpoints[1]])
 
 
 def sample_map(array, points):
