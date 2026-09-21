@@ -190,10 +190,12 @@ target_include_directories( viame_processes_file_io PRIVATE
 # it. See `tests/golden/calib_runner.py`.
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_create_python_init( file_io )
-
   # The COCO readers and writers, `utilities_coco` and the package's own
-  # declarations; `viame_add_python_package` globs the directory.
+  # declarations; `viame_add_python_package` globs the directory, and the
+  # `_viame_package_init` inside it leaves this package's real `__init__.py`
+  # alone. A bare `viame_create_python_init` beside it would defeat that
+  # guard -- it writes its stub at configure time and the real file's copy
+  # never runs. This directory got away with it; `image_io` did not.
   viame_add_python_package( file_io )
 
   # pybind11 is vendored in `library/tpl/pybind11`; the targets it used to

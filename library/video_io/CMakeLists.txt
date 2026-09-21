@@ -114,27 +114,14 @@ target_include_directories( viame_processes_video_io PRIVATE
 # Python implementations
 ##
 if( VIAME_ENABLE_PYTHON )
-  viame_create_python_init( video_io )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-    video_io
-    __init__ )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_input.py
-    video_io
-    pyav_video_input )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_output.py
-    video_io
-    pyav_video_output )
-
-  viame_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_cli_video_input.py
-    video_io
-    ffmpeg_cli_video_input )
+  # The pyav and ffmpeg-cli readers and writers, and the package's own
+  # declarations; `viame_add_python_package` globs the directory.
+  #
+  # Not `viame_create_python_init` beside it -- see the note in
+  # `library/image_io/CMakeLists.txt`. This directory had the same pairing
+  # and survived it only because the real `__init__.py` happened to be
+  # newer than the stub.
+  viame_add_python_package( video_io )
 endif()
 
 ###
