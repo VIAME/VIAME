@@ -466,13 +466,18 @@ class InteractiveSegmentationService:
     def handle_polygon_keypoints(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Head/tail keypoints for a polygon, derived the way the keypoint
         pipelines derive them from a mask (add_keypoints_from_mask)."""
-        from viame.core.segmentation_utils import polygon_to_keypoints
+        from viame.core.segmentation_utils import polygons_to_keypoints
 
-        polygon = request.get("polygon")
-        if not polygon or len(polygon) < 3:
-            raise ValueError("polygon with at least three points is required")
+        polygons = request.get("polygons")
+        if polygons is None:
+            polygon = request.get("polygon")
+            if not polygon or len(polygon) < 3:
+                raise ValueError("polygon with at least three points is required")
+            polygons = [{"exterior": polygon, "holes": []}]
+        if not polygons:
+            raise ValueError("at least one polygon is required")
         with suppress_stdout():
-            keypoints = polygon_to_keypoints(polygon)
+            keypoints = polygons_to_keypoints(polygons)
         if keypoints is None:
             return {"success": False, "error": "Could not derive head/tail from the polygon"}
         head, tail = keypoints
