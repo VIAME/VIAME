@@ -829,6 +829,22 @@ class InteractiveSegmentationService:
                 "seed_labels": seed_labels,
             }
 
+        if source_polygon:
+            def area(ring):
+                xy = np.asarray(ring, dtype=float)
+                return 0.5 * abs(float(np.dot(xy[:, 0], np.roll(xy[:, 1], -1))
+                                       - np.dot(xy[:, 1], np.roll(xy[:, 0], -1))))
+
+            reason = warper.size_mismatch(area(source_polygon), area(other_polygon))
+            if reason:
+                return {
+                    "success": False,
+                    "error": reason,
+                    "size_mismatch": True,
+                    "seed_points": seed_points,
+                    "seed_labels": seed_labels,
+                }
+
         result = {
             "success": True,
             "polygon": other_polygon,

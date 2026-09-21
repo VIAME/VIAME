@@ -427,6 +427,7 @@ class InteractiveStereoService:
         segmentation_generate_line: bool = False,
         segmentation_point_sampling: bool = False,
         segmentation_point_samples: int = 5,
+        max_transfer_size_ratio: float = 2.5,
         send_response=None,
     ):
         """
@@ -446,6 +447,9 @@ class InteractiveStereoService:
                 sampled inside the source polygon (noise reduction).
             segmentation_point_samples: number of points to sample when
                 segmentation_point_sampling is enabled.
+            max_transfer_size_ratio: a shape whose area on the other camera is
+                more than this many times larger or smaller than the original
+                is refused instead of mapped; 0 disables the check.
         """
         self._stereo_algo = compute_stereo_depth_map_algo
         self._dense_grid_options = dense_grid_options or {}
@@ -461,6 +465,7 @@ class InteractiveStereoService:
         self._seg_generate_line = bool(segmentation_generate_line)
         self._seg_point_sampling = bool(segmentation_point_sampling)
         self._seg_point_samples = max(1, int(segmentation_point_samples))
+        self._max_transfer_size_ratio = float(max_transfer_size_ratio)
 
         self._enabled = False
 
@@ -1162,7 +1167,42 @@ class InteractiveStereoService:
                 result["measurement"] = measurement
             return result
 
+    def size_mismatch(self, source_area: float, mapped_area: float) -> Optional[str]:
+        """Why a shape mapped to the other camera is refused for its size, or None."""
+        limit = self._max_transfer_size_ratio
+        if limit <= 0 or source_area <= 0 or mapped_area <= 0:
+            return None
+        ratio = mapped_area / source_area
+        if 1.0 / limit <= ratio <= limit:
+            return None
+        return (f"The shape found on the other camera is {ratio:.2g}x the area of the "
+                f"original (allowed: {1.0 / limit:.2g}x to {limit:.2g}x), so the stereo "
+                "match is likely wrong and it was not mapped")
+
+    @staticmethod
+    def _hull_area(points) -> float:
+        """Convex hull area of a point set, 0 when it is close to a line."""
+        import cv2
+        pts = np.asarray(points, dtype=np.float32)
+        if len(pts) < 3:
+            return 0.0
+        area = float(cv2.contourArea(cv2.convexHull(pts)))
+        extent = pts.max(axis=0) - pts.min(axis=0)
+        return area if area >= 0.03 * float(extent @ extent) else 0.0
+
     def _do_transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Point transfer that refuses a point set whose size changes too much."""
+        response = self._transfer_points(request)
+        mapped = response.get("transferred_points") or []
+        if response.get("success") and all(p is not None for p in mapped):
+            reason = self.size_mismatch(
+                self._hull_area(request["points"]), self._hull_area(mapped))
+            if reason:
+                self._log(reason)
+                return {"success": False, "error": reason, "size_mismatch": True}
+        return response
+
+    def _transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Execute points transfer with lock already held or disparity known ready."""
         with self._compute_lock:
             points = request.get("points")
@@ -1615,7 +1655,7 @@ class InteractiveStereoService:
             self._log("Point sampling found no matches; falling back to direct warp")
 
         # Direct warp of the supplied click points
-        response = self._do_transfer_points({"points": points})
+        response = self._transfer_points({"points": points})
         response["point_labels"] = labels
         # Dense mode always produces a disparity per point; treat each
         # returned point as a match unless the epipolar path reported otherwise.
@@ -1814,6 +1854,8 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
         "segmentation_point_sampling": _cfg_bool("segmentation_point_sampling", False),
         "segmentation_point_samples": int(cfg.get_value("segmentation_point_samples"))
             if cfg.has_value("segmentation_point_samples") else 5,
+        "max_transfer_size_ratio": float(cfg.get_value("max_transfer_size_ratio"))
+            if cfg.has_value("max_transfer_size_ratio") else 2.5,
     }
 
     return stereo_algo, epipolar_matcher, service_config
