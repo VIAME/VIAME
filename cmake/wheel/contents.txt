@@ -1,0 +1,60 @@
+# What goes into the viame wheel, on this branch.
+#
+#   include <glob relative to the install prefix> -> <destination in the wheel>
+#   exclude <glob relative to the install prefix>
+#
+# `**` crosses directory separators, `*` does not, and excludes are applied
+# after includes so a package can be taken whole and then thinned. `{data}`
+# expands to `<name>-<version>.data/data`, the scheme pip unpacks into the
+# environment prefix.
+#
+# **This file is the branch's half of the wheel.** `build_wheel.py` is shared
+# and knows nothing about either layout; what differs between `main` and
+# `lite` is meant to differ here. On `main` that is two python packages
+# (`viame` imports `kwiver`) and four families of shared library; on `lite`
+# it is one package and one `libviame.so`. Merging the branches should be a
+# conflict in this file, if anywhere, and not in the builder.
+#
+# There is no size target on `main` -- that is a `lite` concern -- so this
+# takes the packages whole rather than trying to work out a minimal set.
+
+# ----------------------------------------------------------------------------
+# The python packages
+#
+# `python3.*` rather than a pinned version: the builder is handed a prefix,
+# not a configure, and the interpreter it was built against is the one in the
+# path. The wheel's own tag records which that was.
+# ----------------------------------------------------------------------------
+include lib/python3.*/site-packages/viame/**   -> viame/
+include lib/python3.*/site-packages/kwiver/**  -> kwiver/
+
+# ----------------------------------------------------------------------------
+# The native libraries
+#
+# Into `{data}/lib/` rather than beside the extension modules, because the
+# modules' RUNPATH is `$ORIGIN/../../../../../lib`: from
+# `site-packages/<pkg>/<sub>/x.so` that is the environment prefix's `lib/`,
+# which is where pip unpacks `.data/data/lib/`. Nothing has to be patched.
+#
+# Four families, because that is what the extension modules resolve to --
+# 51 of them need `libvital_types`, and the rest of the graph hangs off it.
+# `.a` archives are excluded below: nothing in a wheel links against them.
+# ----------------------------------------------------------------------------
+include lib/libviame*.so*    -> {data}/lib/
+include lib/libkwiver*.so*   -> {data}/lib/
+include lib/libvital*.so*    -> {data}/lib/
+include lib/libsprokit*.so*  -> {data}/lib/
+
+# ----------------------------------------------------------------------------
+# What never ships
+#
+# `__pycache__` is the build tree's, compiled against a path the wheel will
+# not have. Tests and their data are not what `pip install viame` is for.
+# Static archives are link-time only.
+# ----------------------------------------------------------------------------
+exclude **/__pycache__/**
+exclude **/*.pyc
+exclude **/*.pyo
+exclude **/tests/**
+exclude **/test/**
+exclude **/*.a

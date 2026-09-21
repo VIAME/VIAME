@@ -1229,3 +1229,12 @@ else()
     install( SCRIPT ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake )
   endif()
 endif()
+
+###
+# Wheel packaging
+#
+# Last, because it packs the install prefix and therefore wants every
+# `install()` rule above it to have been declared. The target is not in
+# `all`: see cmake/wheel/wheel.cmake.
+##
+include( ${VIAME_CMAKE_DIR}/wheel/wheel.cmake )
