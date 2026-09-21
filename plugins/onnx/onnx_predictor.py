@@ -85,11 +85,18 @@ def _safe_extract_zip(zf: zipfile.ZipFile, dst) -> None:
 
 @contextmanager
 def _open_onnx_package(package) -> Iterator[tuple]:
-    """Yield (onnx_path, modelspec_dict) for a package dir, .onnx, or .zip.
+    """Yield (onnx_path, modelspec_dict, keepalive) for a dir, .onnx, or .zip.
 
     A package is either: a directory holding a ``*.onnx`` (+ optional
     ``*.modelspec.json`` sidecar), a bare ``*.onnx`` file (sidecar looked up
     next to it), or a ``.zip`` archive of a package dir.
+
+    keepalive is None, or the TemporaryDirectory an archive was unpacked into,
+    which the caller must hold for as long as it uses onnx_path. onnxruntime
+    reopens the model file whenever it rebuilds a session -- notably when it
+    falls back off CUDA -- so an extraction released at the end of this block
+    leaves it loading a path that no longer exists, reported as a missing
+    model rather than as whatever made it fall back.
     """
     package = Path(package).expanduser()
 
@@ -98,21 +105,25 @@ def _open_onnx_package(package) -> Iterator[tuple]:
         if not onnx_files:
             raise FileNotFoundError(f"no .onnx file found under {package}")
         onnx_fpath = onnx_files[0]
-        yield onnx_fpath, _load_spec(onnx_fpath)
+        yield onnx_fpath, _load_spec(onnx_fpath), None
         return
 
     if package.suffix == ".zip":
-        with tempfile.TemporaryDirectory() as tmp:
+        tmp = tempfile.TemporaryDirectory()
+        try:
             with zipfile.ZipFile(package) as zf:
-                _safe_extract_zip(zf, tmp)
-            onnx_files = sorted(Path(tmp).rglob("*.onnx"))
+                _safe_extract_zip(zf, tmp.name)
+            onnx_files = sorted(Path(tmp.name).rglob("*.onnx"))
             if not onnx_files:
                 raise FileNotFoundError(f"no .onnx file inside {package}")
-            yield onnx_files[0], _load_spec(onnx_files[0])
+        except BaseException:
+            tmp.cleanup()
+            raise
+        yield onnx_files[0], _load_spec(onnx_files[0]), tmp
         return
 
     # a bare .onnx path
-    yield package, _load_spec(package)
+    yield package, _load_spec(package), None
 
 
 def _load_spec(onnx_fpath: Path) -> dict:
@@ -139,7 +150,9 @@ class OnnxPredictor:
                  emit_masks=None):
         import onnxruntime as ort
 
-        with _open_onnx_package(package) as (onnx_fpath, spec):
+        with _open_onnx_package(package) as (onnx_fpath, spec, keepalive):
+            # Held for the predictor's lifetime; see _open_onnx_package.
+            self._package_keepalive = keepalive
             inp = spec.get("input", {})
             shape_hw = inp.get("shape_hw", [640, 640])
             self._eval_h = int(shape_hw[0])
