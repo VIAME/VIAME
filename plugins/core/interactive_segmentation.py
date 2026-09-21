@@ -387,6 +387,9 @@ class InteractiveSegmentationService:
             if line and len(line) >= 2:
                 detected_objects = self._fit_to_line(
                     detected_objects, line, vital_points, vital_labels)
+            else:
+                detected_objects = self._reconcile_with_prompts(
+                    detected_objects, vital_points, vital_labels)
 
             # Convert results
             results = self._detections_to_response(detected_objects)
@@ -403,6 +406,73 @@ class InteractiveSegmentationService:
                 "bounds": None,
                 "score": 0.0,
             }
+
+    def _full_mask(self, det, dims):
+        """A detection's cropped mask placed on a full-frame canvas."""
+        if det is None or det.mask is None:
+            return None
+        crop = det.mask.image().asarray()
+        if crop is None or crop.size == 0:
+            return None
+        if crop.ndim == 3:
+            crop = crop[:, :, 0]
+        box = det.bounding_box
+        x0, y0 = int(box.min_x()), int(box.min_y())
+        full = np.zeros(dims, dtype=bool)
+        h = min(crop.shape[0], dims[0] - y0)
+        w = min(crop.shape[1], dims[1] - x0)
+        if h > 0 and w > 0:
+            full[y0:y0 + h, x0:x0 + w] = crop[:h, :w] > 0
+        return full
+
+    def _detection_from_mask(self, mask, like):
+        """A detection set holding `mask`, scored and typed like `like`."""
+        from kwiver.vital.types import (
+            DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
+
+        result = DetectedObjectSet()
+        ys, xs = np.where(mask)
+        if len(xs) == 0:
+            return result
+        x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
+        bbox = BoundingBoxD(x0, y0, x1, y1)
+        det = (DetectedObject(bbox, like.confidence, like.type)
+               if like.type is not None else DetectedObject(bbox, like.confidence))
+        crop = np.ascontiguousarray(mask[y0:y1 + 1, x0:x1 + 1].astype(np.uint8))
+        det.mask = ImageContainer(Image(crop))
+        result.add(det)
+        return result
+
+    def _reconcile_with_prompts(self, detected_objects, vital_points, vital_labels):
+        """Every positive click ends up under the mask and no negative one
+        does, adding or re-predicting components as needed."""
+        from kwiver.vital.types import Point2d
+        from viame.core.segmentation_utils import reconcile_mask_with_prompts
+
+        det = next(iter(detected_objects), None) if detected_objects is not None else None
+        if det is None:
+            return detected_objects
+        image = self._current_image_container
+        dims = (image.height(), image.width())
+        base = self._full_mask(det, dims)
+        if base is None:
+            return detected_objects
+        prompts = [([p.value[0], p.value[1]], int(l)) for p, l in zip(vital_points, vital_labels)]
+        positives = [p for p, label in prompts if label == 1]
+        negatives = [p for p, label in prompts if label == 0]
+
+        def predict(pos, neg):
+            objs = self._segment_algo.segment(
+                image,
+                [Point2d(float(x), float(y)) for x, y in list(pos) + list(neg)],
+                [1] * len(pos) + [0] * len(neg))
+            return self._full_mask(next(iter(objs), None), dims)
+
+        mask, changed = reconcile_mask_with_prompts(base, positives, negatives, predict)
+        if not changed:
+            return detected_objects
+        self._log("Adjusted the mask to cover every positive prompt and exclude every negative one")
+        return self._detection_from_mask(mask, det)
 
     def _fit_to_line(self, detected_objects, line, vital_points, vital_labels):
         """Keep a mask prompted from a head/tail line in scale with that line:
