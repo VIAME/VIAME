@@ -635,24 +635,53 @@ def polygon_keypoint_algo():
     return _KEYPOINT_ALGO
 
 
-def polygon_to_keypoints(polygon) -> Optional[Tuple[List[float], List[float]]]:
-    """Head/tail keypoints of a polygon (image coordinates) via
-    add_keypoints_from_mask, or None when it cannot be derived."""
+def polygons_to_mask(polygons):
+    """Rasterize all components and holes of one fish in a shared image crop."""
     import cv2
-    from kwiver.vital.types import (
-        DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
 
-    pts = np.asarray(polygon, dtype=np.float64)
-    if pts.ndim != 2 or pts.shape[0] < 3:
+    components = []
+    for polygon in polygons:
+        rings = [np.asarray(ring, dtype=np.float64) for ring in
+                 [polygon["exterior"], *polygon.get("holes", [])]]
+        if any(ring.ndim != 2 or ring.shape[0] < 3 or ring.shape[1] != 2
+               or not np.isfinite(ring).all() for ring in rings):
+            raise ValueError("Polygon rings require at least three finite x/y points")
+        components.append(rings)
+    if not components:
         return None
+    pts = np.concatenate([rings[0] for rings in components])
     x0, y0 = np.floor(pts.min(axis=0)).astype(int)
     x1, y1 = np.ceil(pts.max(axis=0)).astype(int)
     w, h = int(x1 - x0), int(y1 - y0)
     if w <= 0 or h <= 0:
         return None
-
     mask = np.zeros((h, w), dtype=np.uint8)
-    cv2.fillPoly(mask, [(pts - [x0, y0]).astype(np.int32)], 255)
+    for rings in components:
+        component = np.zeros_like(mask)
+        shifted = [(ring - [x0, y0]).astype(np.int32) for ring in rings]
+        cv2.fillPoly(component, [shifted[0]], 255)
+        if len(shifted) > 1:
+            cv2.fillPoly(component, shifted[1:], 0)
+        # Union separately so a hole cannot erase another polygon's foreground.
+        np.maximum(mask, component, out=mask)
+    return mask, (int(x0), int(y0), int(x1), int(y1))
+
+
+def polygon_to_keypoints(polygon) -> Optional[Tuple[List[float], List[float]]]:
+    """Backward-compatible single-polygon head/tail extraction."""
+    return polygons_to_keypoints([{"exterior": polygon, "holes": []}])
+
+
+def polygons_to_keypoints(polygons) -> Optional[Tuple[List[float], List[float]]]:
+    """Derive one head/tail pair from all components of a fish's mask."""
+    from kwiver.vital.types import (
+        DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
+
+    rasterized = polygons_to_mask(polygons)
+    if rasterized is None:
+        return None
+    mask, (x0, y0, x1, y1) = rasterized
+    h, w = mask.shape
     det = DetectedObject(
         BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
         1.0, None, ImageContainer(Image(mask)))
