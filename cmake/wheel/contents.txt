@@ -1,0 +1,68 @@
+# What goes into the viame wheel, on this branch.
+#
+#   include <glob relative to the install prefix> -> <destination in the wheel>
+#   exclude <glob relative to the install prefix>
+#
+# `**` crosses directory separators, `*` does not, and excludes are applied
+# after includes so a package can be taken whole and then thinned. `{data}`
+# expands to `<name>-<version>.data/data`, the scheme pip unpacks into the
+# environment prefix.
+#
+# **This file is the branch's half of the wheel.** `build_wheel.py` is shared
+# with `main` and knows nothing about either layout; what differs between the
+# branches is meant to differ here. `main`'s copy of this file takes two
+# python packages -- `viame` imports `kwiver` there -- and four families of
+# shared library. This branch has neither: P11 made the tree one `viame`
+# package, and P10-T01 folded 105 libraries into a single `libviame.so`.
+#
+# Unlike `main`, this branch has a size target: the wheel is meant to be
+# 100 MB. That is why this file is a short list of what is wanted rather than
+# `lib/**`. The install prefix is an accumulation -- `make install` only ever
+# adds, so a prefix carries every build that was ever run into it, including
+# a February OpenCV and shared libraries whose sources were deleted months
+# ago. Selecting by name means the wheel holds what this branch builds, not
+# what its prefix happens to contain.
+
+# ----------------------------------------------------------------------------
+# The python package
+#
+# One package, `viame`, built beside the C++ it binds since P8-T01.
+# `python3.*` rather than a pinned version: the builder is handed a prefix,
+# not a configure, and the wheel's own tag records the interpreter.
+# ----------------------------------------------------------------------------
+include lib/python3.*/site-packages/viame/**  -> viame/
+
+# ----------------------------------------------------------------------------
+# The native library
+#
+# One file. Every extension module resolves to `libviame.so.1` and nothing
+# else in `lib/` -- the fold absorbed vital, sprokit and kwiver, and this
+# branch's plugin manager is `viame::`, not `kwiver::`. Checked rather than
+# assumed: the transitive `NEEDED` closure of `libviame.so` inside `lib/`
+# is `libviame.so` alone.
+#
+# Into `{data}/lib/` because the modules' RUNPATH is
+# `$ORIGIN/../../../../../lib`, which from `site-packages/viame/<sub>/x.so`
+# is the environment prefix's `lib/`, and that is where pip unpacks
+# `.data/data/lib/`. Nothing has to be patched.
+# ----------------------------------------------------------------------------
+include lib/libviame.so*  -> {data}/lib/
+
+# ----------------------------------------------------------------------------
+# What never ships
+#
+# `__pycache__` is the build tree's, compiled against a path the wheel will
+# not have. Tests and their data are not what `pip install viame` is for.
+# Static archives are link-time only.
+#
+# Not excluded here because they are not included above, and worth saying so:
+# `configs/` is 8.6 GB of downloaded models, `include/` is for out-of-tree
+# C++ plugin development, and `bin/` holds the tools. A code-only wheel is
+# the decision on record; models are fetched separately.
+# ----------------------------------------------------------------------------
+exclude **/__pycache__/**
+exclude **/*.pyc
+exclude **/*.pyo
+exclude **/tests/**
+exclude **/test/**
+exclude **/*.a
