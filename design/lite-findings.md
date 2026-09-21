@@ -2529,3 +2529,51 @@ built. And when enabling an implementation, check whether its test is guarded
 too: here the implementation and its test were behind the same `#ifdef`, so
 removing one without the other would have produced a feature that works and a
 suite that still says nothing about it.
+
+### 2.31 `pipe-check` says "resolved" for an implementation nothing registers
+
+`utility_register_frames` failed on this branch and ran on `main`. The cause
+was not a removed algorithm: it was a **rename to a name that never existed**.
+P3-T08's `rename_impls.py` rewrote `estimate_homography`'s `vxl` to `core` in
+the stabilizer and frame-registration configs, but this branch implements that
+interface once, as python, registered `ocv`. Nothing has ever answered to
+`core`. The rewrite was also partial -- six `core` against three surviving
+`vxl` across the seven configs, and neither name resolved -- so the three
+`common_sea_lion_stabilizer_*` files, byte-identical to `main`'s and still
+saying `vxl`, were broken here too.
+
+`compute_ref_homography:core` sits on the line directly below
+`homography_estimator:type` and *is* registered on both branches, which is
+almost certainly what made `vxl -> core` look right.
+
+**The baseline said this was fine.** `pipes.json` records
+
+    "homography_estimator:type": { "impl": "core", "resolved": true }
+
+for an implementation that does not exist. `pipe-check` reports what the
+config *names*, not what the registry *has*, for a nested algorithm type, so
+`baseline:pipes` passed throughout -- as did `baseline:registry`, which only
+compares the set of registered names and cannot know a config asks for one
+outside it. Every "registry and pipes compare clean" in this ledger is
+therefore a weaker statement than it reads for nested algo keys: it means no
+name that was there has gone, not that every name a pipeline asks for exists.
+Closing that needs `pipe-check` to resolve each `:type` value against the
+registry, which is a change to the applet, not to this branch's code.
+
+**What actually caught it** was running the pipelines and comparing outputs
+against `main` -- the thing 2.27 recommended and this ledger had not done at
+scale until now. The static baseline cannot catch a name that is asked for and
+never registered; only running it can.
+
+Fixed by aliasing rather than migrating, so one pipeline file runs on both
+branches: `vxl` and `core` now resolve here to the same
+`EstimateHomographyOCV` that `ocv` does, the way `core_image_io` answers to
+`core`, `vxl` and `ocv`. Safe because no shipped config sets an
+estimator-specific key -- the `inlier_scale` and threshold keys beside those
+lines belong to `compute_ref_homography:core`, a different algorithm.
+
+The eight pipelines still do not *run* here, for an unrelated and recorded
+reason: they ask for `ocv_SURF`, and every opencv-python wheel excludes the
+non-free modules. Substituting `ocv_SIFT` -- registered on both branches, and
+what the implementation's own error message recommends -- completes
+`utility_register_frames` here with nine homographies against `main`'s nine.

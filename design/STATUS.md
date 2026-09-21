@@ -598,3 +598,31 @@ under OpenCV 4, and nobody had hit this because the recorder only runs by hand.
 Verified: build clean, Tier 1 **460/460** -- 459 before, plus the test the
 guard removal put back into service -- install manifest unchanged at 1756
 paths, and `registry.json` and `pipes.json` untouched.
+
+## `estimate_homography` resolves again
+
+`utility_register_frames` failed here and ran on `main`. P3-T08 rewrote
+`estimate_homography`'s `vxl` to `core` in seven stabilizer and registration
+configs, against an implementation this branch never had: it implements that
+interface once, as python, registered `ocv`. The rewrite was partial too, so
+both names appeared and neither resolved.
+
+`vxl` and `core` are now aliases for `EstimateHomographyOCV`, following
+`core_image_io`'s registration under `core`, `vxl` and `ocv`. Aliased rather
+than migrated deliberately: `main` resolves `vxl` to arrows/vxl and this
+branch resolves it to the alias, so **the same pipeline file runs on both**.
+No shipped config sets an estimator-specific key, so nothing is stranded.
+
+`baseline:pipes` had recorded `{"impl": "core", "resolved": true}` for a name
+nothing registers -- `pipe-check` validates what a config names, not what the
+registry holds, for nested algorithm types. See finding 2.31; the ledger's
+"registry and pipes compare clean" is weaker than it reads for those keys.
+
+Still outstanding, and not a regression: eight pipelines ask for `ocv_SURF`,
+which no opencv-python wheel provides (finding at lite-findings.md 262 and
+1842). `ocv_SIFT` is registered on both branches and completes
+`utility_register_frames` here with nine homographies against `main`'s nine,
+but switching the configs changes `main`'s registration behaviour, so it is
+the user's call rather than a compatibility fix.
+
+Verified: BASELINE 9/9, UNIT 451, CORE 5, no failures.

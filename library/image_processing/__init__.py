@@ -32,6 +32,27 @@ __vital_algorithm_declarations__ = [
     ( "estimate_homography", "ocv",
       "Use OpenCV to estimate a homography from feature matches.",
       "viame.image_processing.ocv_estimators:EstimateHomographyOCV" ),
+    # The names the shipped stabilizer and frame-registration pipelines ask
+    # for. `vxl` is what arrows/vxl registered under and what `main` still
+    # selects; `core` is what P3-T08's rename_impls.py rewrote those lines to
+    # on this branch, against an implementation that was never registered --
+    # nothing here has ever answered to either name, so
+    # `utility_register_frames`, `common_image_stabilizer` and the three
+    # `common_sea_lion_stabilizer_*` configs all failed to configure.
+    #
+    # Aliased rather than migrated so one pipeline file runs on both branches:
+    # `main` resolves `vxl` to arrows/vxl, this branch resolves it here. Safe
+    # to alias because no shipped config sets an estimator-specific key -- the
+    # `inlier_scale` and threshold keys beside these lines belong to
+    # `compute_ref_homography:core`, which is a different algorithm and exists
+    # on both branches. Same reasoning as `core_image_io` answering to `core`,
+    # `vxl` and `ocv` in library/image_io/register_algorithms.cxx.
+    ( "estimate_homography", "vxl",
+      "Estimate a homography from feature matches (the arrows/vxl name).",
+      "viame.image_processing.ocv_estimators:EstimateHomographyOCV" ),
+    ( "estimate_homography", "core",
+      "Estimate a homography from feature matches (the arrows/core name).",
+      "viame.image_processing.ocv_estimators:EstimateHomographyOCV" ),
     ( "extract_descriptors", "ocv_SIFT",
       "OpenCV feature detection via the SIFT algorithm",
       "viame.image_processing.ocv_sift_surf:ExtractDescriptorsSIFT" ),
