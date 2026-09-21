@@ -38,6 +38,7 @@
 #include "random_hue_shift.h"
 #include "split_image_habcam.h"
 #include "split_image_horizontally.h"
+#include "surf_features.h"
 #include "threshold.h"
 #include "warp_image_ocv.h"
 
@@ -87,6 +88,16 @@ register_factories( kv::registry& vpm )
   VIAME_REGISTER_IMAGE_FILTER( convert_image )
   VIAME_REGISTER_IMAGE_FILTER( morphology )
   VIAME_REGISTER_IMAGE_FILTER( threshold )
+
+  // SURF, ported into this branch because no opencv-python wheel carries it:
+  // the algorithm is patented, so every wheel is built with
+  // OPENCV_ENABLE_NONFREE off and cv2 raises when a pipeline runs it. Seven
+  // shipped configs select `ocv_SURF`, and they are the configs `main` ships,
+  // so the name and its config keys are kept rather than the configs changed.
+  register_algorithm< kv::algo::detect_features,
+    detect_features_SURF >( vpm, module_name );
+  register_algorithm< kv::algo::extract_descriptors,
+    extract_descriptors_SURF >( vpm, module_name );
 
   // From the `core` plugin in P2-T05. An image_filter like the five above, so
   // the same macro takes it.

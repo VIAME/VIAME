@@ -626,3 +626,54 @@ but switching the configs changes `main`'s registration behaviour, so it is
 the user's call rather than a compatibility fix.
 
 Verified: BASELINE 9/9, UNIT 451, CORE 5, no failures.
+
+## SURF ported, so the shipped configs keep working
+
+`ocv_SURF` is patented, so every opencv-python wheel is built with
+`OPENCV_ENABLE_NONFREE` off: cv2 registers the name and raises `-213` when a
+pipeline runs it. Seven shipped configs select it --
+`utility_register_frames{,_2-cam,_3-cam}`, `common_image_stabilizer` (reached
+through `register_using_homographies` and `common_stabilized_iou_tracker`) and
+the three `common_sea_lion_stabilizer_*` -- and those configs are identical to
+`main`'s. `main` runs them only because fletch builds OpenCV from source with
+the flag on, which phase 1 removed.
+
+No PyPI wheel carries the non-free modules, under any of the obvious names, so
+the algorithm is ported into this branch instead:
+`library/image_processing/surf.{h,cxx}`, a port of OpenCV's
+`xfeatures2d/src/surf.cpp` with its copyright and licence recorded at the top.
+`cv::Mat` became flat buffers with an explicit step, `parallel_for_` became
+plain loops, and `cvRound`, `fastAtan2`, `getGaussianKernel`, `integral` and
+the `INTER_AREA` case of `resize` are reproduced because the results have to
+*match* OpenCV's rather than merely be correct -- `fastAtan2` is a polynomial
+with its own error, and the angle it returns is what the descriptor is
+sampled along.
+
+`surf_features.{h,cxx}` registers it as `ocv_SURF` for `detect_features` and
+`extract_descriptors`, with the keys, defaults and descriptions `registry.json`
+already records, including `n_octaves_layers` with the extra s. The python
+declarations are removed; `ocv_SIFT` stays python. `baseline:registry` passes
+unchanged.
+
+**Verified against OpenCV, not by eye.** `tests/golden/surf/` records what a
+non-free cv2 computes on two 512x512 tiles across five parameter sets, with
+the exact grayscale input saved beside it so the colour conversion is not a
+variable. Over ten cases the port finds the *same number* of keypoints in
+every one -- 9, 117, 924, 1346, 836 -- with positions within 1e-6 px, angles
+within 3e-5 degrees, responses within 1e-9 relative, and descriptor
+similarity at worst 0.9964 and typically 0.99999.
+
+`utility_register_frames` now runs on this branch with its config unmodified:
+exit 0, nine homographies, in 17.2 s against `main`'s 22.4 s for the same
+pipeline. The port is serial where OpenCV's is parallel, and is not the
+bottleneck here.
+
+**What still differs from `main`, and why it is not the port:** the
+homographies themselves. This branch is deterministic run to run (0.0
+difference), so it is not RANSAC; it is that `estimate_homography`'s `vxl` and
+`core` names are aliased here to `EstimateHomographyOCV` while `main`'s config
+selects arrows/vxl's estimator, which is a different algorithm. That
+substitution came in with the alias, not with SURF. Porting VXL's estimator
+would close it.
+
+`install.txt` gains the two headers and nothing else.

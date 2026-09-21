@@ -1069,6 +1069,8 @@ include/viame/image_processing/split_image.h
 include/viame/image_processing/split_image_channels.h
 include/viame/image_processing/split_image_habcam.h
 include/viame/image_processing/split_image_horizontally.h
+include/viame/image_processing/surf.h
+include/viame/image_processing/surf_features.h
 include/viame/image_processing/threshold.h
 include/viame/image_processing/track_features_core.h
 include/viame/image_processing/track_set_impl.h

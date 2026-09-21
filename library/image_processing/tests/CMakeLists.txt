@@ -16,3 +16,15 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
   )
 endif()
+
+# The SURF port against what OpenCV computes. The reference is recorded from a
+# cv2 built with the non-free modules, which this branch's wheel is not -- see
+# tests/golden/surf/record_from_opencv.py.
+viame_discover_gtests( viame surf
+  LIBRARIES viame_image_processing
+            viame_image_io
+            kwiver::vital
+            GTest::gtest )
+
+target_compile_definitions( test-viame-surf PRIVATE
+  "VIAME_GOLDEN_SURF_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/surf\"" )
