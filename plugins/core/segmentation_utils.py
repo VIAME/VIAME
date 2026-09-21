@@ -739,3 +739,98 @@ def clip_mask_to_line(
     x0, y0, x1, y1 = xs.min(), ys.min(), xs.max(), ys.max()
     new_offset = (int(round(offset[0])) + int(x0), int(round(offset[1])) + int(y0))
     return clipped[y0:y1 + 1, x0:x1 + 1].astype(np.uint8), new_offset
+
+
+def mask_components(mask: np.ndarray) -> Tuple[int, np.ndarray]:
+    """Connected components (8-connectivity) of a binary mask: (count, labels)."""
+    import cv2
+
+    count, labels = cv2.connectedComponents((mask > 0).astype(np.uint8), connectivity=8)
+    return count - 1, labels
+
+
+def point_in_mask(mask: np.ndarray, point) -> bool:
+    x, y = int(round(point[0])), int(round(point[1]))
+    return 0 <= y < mask.shape[0] and 0 <= x < mask.shape[1] and bool(mask[y, x])
+
+
+def component_at(mask: np.ndarray, point) -> Optional[np.ndarray]:
+    """The connected component of the mask holding the point, or None."""
+    if not point_in_mask(mask, point):
+        return None
+    _, labels = mask_components(mask)
+    return labels == labels[int(round(point[1])), int(round(point[0]))]
+
+
+def disk_mask(shape: Tuple[int, int], point, radius: float) -> np.ndarray:
+    ys, xs = np.ogrid[:shape[0], :shape[1]]
+    return (xs - point[0]) ** 2 + (ys - point[1]) ** 2 <= radius ** 2
+
+
+def reconcile_mask_with_prompts(
+    mask: np.ndarray,
+    positives: List,
+    negatives: List,
+    predict,
+    min_radius: int = 4,
+) -> Tuple[np.ndarray, bool]:
+    """
+    Make a mask agree with its prompts: every positive point ends up inside it
+    and no negative point does.
+
+    A positive point the mask missed gets the component holding it from a
+    prediction prompted by that point alone (plus the negatives); a negative
+    point inside the mask drops its component when no positive shares it, or
+    replaces the component with a re-prediction from that component's own
+    positives. When the model will not comply, a small disk is added or carved
+    so the guarantee still holds.
+
+    `predict(positives, negatives)` returns a full-frame binary mask or None.
+    Returns (mask, changed).
+    """
+    mask = np.asarray(mask) > 0
+    changed = False
+    radius = max(min_radius, int(round(0.01 * float(np.hypot(*mask.shape)))))
+
+    for point in positives:
+        if point_in_mask(mask, point):
+            continue
+        extra = predict([point], negatives)
+        region = component_at(extra, point) if extra is not None else None
+        if region is None:
+            region = disk_mask(mask.shape, point, radius)
+        mask = mask | region
+        changed = True
+
+    for point in negatives:
+        component = component_at(mask, point)
+        if component is None:
+            continue
+        changed = True
+        inside = [p for p in positives if point_in_mask(component, p)]
+        replacement = None
+        if inside:
+            again = predict(inside, negatives)
+            if again is not None and not point_in_mask(again, point):
+                keep = np.zeros_like(mask)
+                for p in inside:
+                    part = component_at(again, p)
+                    if part is not None:
+                        keep = keep | part
+                replacement = keep
+            else:
+                replacement = component & ~disk_mask(mask.shape, point, radius)
+        mask = mask & ~component
+        if replacement is not None:
+            mask = mask | replacement
+
+    for point in positives:
+        if point_in_mask(mask, point):
+            continue
+        patch = disk_mask(mask.shape, point, radius)
+        for negative in negatives:
+            patch = patch & ~disk_mask(mask.shape, negative, radius)
+        mask = mask | patch
+        changed = True
+
+    return mask, changed
