@@ -137,6 +137,65 @@ def test_wheel_is_a_valid_zip_with_a_record(tmp_path=None):
             assert "Root-Is-Purelib: false" in z.read("d-1.0.dist-info/WHEEL").decode()
 
 
+# ----------------------------------------------------------------------------
+# SONAME
+# ----------------------------------------------------------------------------
+
+def test_soname_is_read_from_a_real_library():
+    """A regression, and the reason `soname` exists at all.
+
+    `lite` installs `libviame.so.1.0.0` whose SONAME is `libviame.so.1`, and
+    the bridge between the two is a symlink the wheel cannot carry. Packing
+    the real file under its own name produced a wheel that built, installed,
+    and failed at import with
+
+        libviame.so.1: cannot open shared object file
+
+    Skipped rather than failed where no such library is at hand, so the suite
+    still runs on a checkout with no build.
+    """
+    import glob
+    candidates = (glob.glob("/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/lib/libviame.so.*")
+                  + glob.glob("/usr/lib/x86_64-linux-gnu/libz.so.*"))
+    real = [c for c in candidates if not Path(c).is_symlink()]
+    if not real:
+        print("      (skipped: no unversioned shared library to read)")
+        return
+    got = bw.soname(real[0])
+    assert got, f"no SONAME read from {real[0]}"
+    assert got.startswith("lib") and ".so" in got, f"implausible SONAME {got!r}"
+
+
+def test_soname_of_a_non_elf_is_none():
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        p = Path(tmp) / "not.so"
+        p.write_text("this is not an ELF file")
+        assert bw.soname(p) is None
+
+
+def test_library_is_packed_under_its_soname():
+    """A directory destination renames a shared library to its SONAME."""
+    import glob, tempfile
+    real = [c for c in glob.glob(
+        "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/lib/libviame.so.*")
+        if not Path(c).is_symlink()]
+    if not real:
+        print("      (skipped: no built libviame to pack)")
+        return
+    src = Path(real[0])
+    want = bw.soname(src)
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp) / "prefix" / "lib"
+        root.mkdir(parents=True)
+        (root / src.name).write_bytes(src.read_bytes())
+        cf = Path(tmp) / "contents.txt"
+        cf.write_text("include lib/libviame.so* -> {data}/lib/\n")
+        chosen = bw.select(root.parent, bw.read_contents(cf), "d-1.0.data/data")
+        assert f"d-1.0.data/data/lib/{want}" in chosen, \
+            f"packed as {list(chosen)}, wanted the SONAME {want}"
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0

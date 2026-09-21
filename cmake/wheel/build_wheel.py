@@ -28,6 +28,7 @@ import csv
 import hashlib
 import io
 import re
+import struct
 import sys
 import zipfile
 from pathlib import Path
@@ -181,8 +182,14 @@ def select(prefix, rules, data_dir):
             rule_dest = rule.dest.replace("{data}", data_dir)
             if rule_dest.endswith("/"):
                 # No `**` in the pattern means the glob names files in one
-                # directory, so the file's own name is the tail.
-                dest = rule_dest + (tail if tail is not None else src.name)
+                # directory, so the file's own name is the tail. A shared
+                # library goes under its SONAME, which is what its dependants
+                # ask the loader for; see `soname`.
+                if tail is None:
+                    so = soname(src) if ".so" in src.name else None
+                    dest = rule_dest + (so or src.name)
+                else:
+                    dest = rule_dest + tail
             else:
                 dest = rule_dest
             chosen[dest] = src
@@ -198,6 +205,87 @@ def select(prefix, rules, data_dir):
     if not chosen:
         raise SystemExit("the contents file selected no files")
     return chosen
+
+
+# ----------------------------------------------------------------------------
+# SONAME
+#
+# A shared library has to be packed under the name its dependants ask for,
+# which is its SONAME and not necessarily its filename. In an install prefix
+# the two are bridged by a symlink -- `libviame.so.1 -> libviame.so.1.0.0` --
+# and a wheel cannot rely on carrying symlinks, so the real file is packed
+# under the SONAME instead. Packing three copies under all three names would
+# also work and would cost 105 MB for one 52 MB library.
+#
+# `main` does not need this and `lite` does: there `libvital_types.so.2.4.1`
+# is its own SONAME, here `libviame.so.1.0.0`'s is `libviame.so.1`. The first
+# version of this script skipped symlinks and packed real files under their
+# own names, which is why the lite wheel built, installed, and failed at
+# import with `libviame.so.1: cannot open shared object file`.
+#
+# Read here rather than shelled out to `objdump` so that building a wheel
+# needs nothing but python.
+# ----------------------------------------------------------------------------
+
+def soname(path):
+    """The ELF SONAME of `path`, or None if it has none or is not an ELF."""
+    try:
+        with open(path, "rb") as f:
+            data = f.read()
+    except OSError:
+        return None
+    if len(data) < 64 or data[:4] != b"\x7fELF":
+        return None
+    if data[4] != 2:            # 64-bit only; VIAME ships no 32-bit library
+        return None
+    endian = "<" if data[5] == 1 else ">"
+    u16 = lambda o: struct.unpack_from(endian + "H", data, o)[0]
+    u64 = lambda o: struct.unpack_from(endian + "Q", data, o)[0]
+
+    e_phoff, e_phentsize, e_phnum = u64(0x20), u16(0x36), u16(0x38)
+    loads, dynamic = [], None
+    for i in range(e_phnum):
+        off = e_phoff + i * e_phentsize
+        if off + 56 > len(data):
+            return None
+        p_type = struct.unpack_from(endian + "I", data, off)[0]
+        p_offset, p_vaddr = u64(off + 0x08), u64(off + 0x10)
+        p_filesz = u64(off + 0x20)
+        if p_type == 1:                       # PT_LOAD
+            loads.append((p_vaddr, p_offset, p_filesz))
+        elif p_type == 2:                     # PT_DYNAMIC
+            dynamic = (p_offset, p_filesz)
+    if not dynamic:
+        return None
+
+    def to_offset(vaddr):
+        for v, o, sz in loads:
+            if v <= vaddr < v + sz:
+                return o + (vaddr - v)
+        return None
+
+    d_off, d_size = dynamic
+    strtab = name_off = None
+    for i in range(d_size // 16):
+        o = d_off + i * 16
+        if o + 16 > len(data):
+            break
+        tag, val = u64(o), u64(o + 8)
+        if tag == 0:                          # DT_NULL
+            break
+        if tag == 5:                          # DT_STRTAB
+            strtab = val
+        elif tag == 14:                       # DT_SONAME
+            name_off = val
+    if strtab is None or name_off is None:
+        return None
+    base = to_offset(strtab)
+    if base is None:
+        return None
+    end = data.find(b"\0", base + name_off)
+    if end < 0:
+        return None
+    return data[base + name_off:end].decode("ascii", "replace") or None
 
 
 # ----------------------------------------------------------------------------
