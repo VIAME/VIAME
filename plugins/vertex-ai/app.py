@@ -30,6 +30,7 @@ WORK_DIR = os.environ.get( "VIAME_WORK_DIR", "/workspace" )
 PIPELINE = os.environ.get( "VIAME_PIPELINE", "" )
 OUTPUT_TYPE = os.environ.get( "VIAME_OUTPUT_TYPE", "coco" )
 FRAME_RATE = os.environ.get( "VIAME_FRAME_RATE", "5" )
+CALIBRATION_FILE = os.environ.get( "VIAME_CALIBRATION_FILE", "" )
 TRAIN_CONFIG = os.environ.get( "VIAME_TRAIN_CONFIG", "" )
 
 # Initialize handlers
@@ -45,7 +46,8 @@ process_handler = ProcessHandler(
   default_pipeline=PIPELINE,
   model_storage_uri=AIP_STORAGE_URI,
   output_type=OUTPUT_TYPE,
-  frame_rate=FRAME_RATE
+  frame_rate=FRAME_RATE,
+  calibration_file=CALIBRATION_FILE
 )
 
 
@@ -72,6 +74,7 @@ def predict():
     ],
     "parameters": {
       "frame_rate": "5",
+      "calibration_file": "gs://bucket/calibration_matrices.npz",
       "output_format": "viame_csv"
     }
   }

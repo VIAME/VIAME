@@ -20,6 +20,8 @@ ENV VIAME_WORK_DIR=/workspace
 ENV VIAME_PIPELINE=pipelines/detector_gmm_motion.pipe
 ENV VIAME_OUTPUT_TYPE=coco
 ENV VIAME_FRAME_RATE=10
+# Optional local path or GCS URI for stereo pipelines
+ENV VIAME_CALIBRATION_FILE=""
 
 # Match the LD_LIBRARY_PATH from the official NVIDIA CUDA image so the "regular"
 # cuda libraries are found before the compat layer. Vertex/Cloud Run inject newer

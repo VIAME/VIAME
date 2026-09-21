@@ -71,13 +71,14 @@ class ProcessHandler:
 
   def __init__( self, viame_dir, work_dir, default_pipeline="",
                 model_storage_uri="", output_type="coco",
-                frame_rate="5" ):
+                frame_rate="5", calibration_file="" ):
     self.viame_dir = viame_dir
     self.work_dir = work_dir
     self.default_pipeline = default_pipeline
     self.model_storage_uri = model_storage_uri
     self.output_type = output_type
     self.frame_rate = frame_rate
+    self.calibration_file = calibration_file
     self.setup_script = os.path.join( viame_dir, "setup_viame.sh" )
     self.pipeline_dir = os.path.join( viame_dir, "configs" )
 
@@ -112,6 +113,7 @@ class ProcessHandler:
 
     Parameters (global):
       frame_rate  - target processing frame rate
+      calibration_file - local path or GCS URI to stereo calibration
     """
     with self._lock:
       self._status = "running"
@@ -141,6 +143,7 @@ class ProcessHandler:
     pipeline = instance.get( "pipeline", self.default_pipeline )
     settings = instance.get( "settings", {} )
     frame_rate = parameters.get( "frame_rate", self.frame_rate )
+    calibration_file = parameters.get( "calibration_file", self.calibration_file )
     output_type = self.output_type
     output_ext = WRITER_TYPE_EXTENSIONS.get( output_type, ".csv" )
 
@@ -218,6 +221,15 @@ class ProcessHandler:
 
     # Frame rate / downsampler
     cmd += [ "-s", "downsampler:target_frame_rate=" + str( frame_rate ) ]
+
+    # Stereo pipelines use these settings for measurement, pairing, and
+    # disparity. As with writer settings, unused process settings are ignored.
+    if calibration_file:
+      local_calibration = self._resolve_gcs_path( calibration_file )
+      for key in ( "measurer:calibration_file",
+                   "stereo_pairing:calibration_file",
+                   "depth_map:computer:ocv_stereo_disparity:calibration_file" ):
+        cmd += [ "-s", key + "=" + local_calibration ]
 
     # Output writers — one set per camera
     basename = os.path.splitext(
