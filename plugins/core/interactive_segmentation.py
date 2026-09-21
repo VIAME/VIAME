@@ -759,8 +759,9 @@ class InteractiveSegmentationService:
           3. optionally derives a head/tail line for each polygon and the
              stereo length measurement.
 
-        The source camera is treated as 'left' and the other as 'right' for the
-        warper, matching the existing point/line transfer convention.
+        The click may come from either camera. `source_camera` ('left' or
+        'right') says which; without it the source is matched against the
+        stereo pair the warper already has loaded, and taken as left otherwise.
 
         Request: {
             points, point_labels,            # the source-camera click
@@ -781,10 +782,17 @@ class InteractiveSegmentationService:
 
         warper = self._get_stereo_warper(request.get("calibration_file"))
 
-        # Make the current stereo pair active (source=left, other=right).
+        side = request.get("source_camera")
+        if side not in ("left", "right"):
+            swapped = (source_image is not None
+                       and source_image == warper._current_right_path
+                       and other_image == warper._current_left_path)
+            side = "right" if swapped else "left"
+        from_right = side == "right"
+
         set_resp = warper.handle_set_frame({
-            "left_image_path": source_image,
-            "right_image_path": other_image,
+            "left_image_path": other_image if from_right else source_image,
+            "right_image_path": source_image if from_right else other_image,
             "frame_time": frame_time,
         })
         if not set_resp.get("disparity_ready", False):
@@ -796,6 +804,7 @@ class InteractiveSegmentationService:
             "points": points,
             "labels": point_labels,
             "polygon": source_polygon,
+            "source_camera": side,
         })
         seed_points = warp.get("transferred_points") or []
         seed_labels = warp.get("point_labels") or [1] * len(seed_points)
@@ -857,13 +866,13 @@ class InteractiveSegmentationService:
         # 3. Optional head/tail lines + stereo measurement.
         if source_polygon and other_polygon:
             measure = warper.handle_measure_from_polygons({
-                "polygon_left": source_polygon,
-                "polygon_right": other_polygon,
+                "polygon_left": other_polygon if from_right else source_polygon,
+                "polygon_right": source_polygon if from_right else other_polygon,
             })
             if measure.get("generate_line"):
                 result["generate_line"] = True
-                result["line_source"] = measure.get("line_left")
-                result["line_other"] = measure.get("line_right")
+                result["line_source"] = measure.get("line_right" if from_right else "line_left")
+                result["line_other"] = measure.get("line_left" if from_right else "line_right")
                 if "measurement" in measure:
                     result["measurement"] = measure["measurement"]
 

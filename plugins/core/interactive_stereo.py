@@ -1624,7 +1624,8 @@ class InteractiveStereoService:
         coordinate-wise MEDIAN as a single positive seed point (noise reduction for
         bad point mappings). Otherwise warps the provided click points directly.
 
-        Request: { "points": [[x,y]..], "labels": [..], "polygon": [[x,y]..] }
+        Request: { "points": [[x,y]..], "labels": [..], "polygon": [[x,y]..],
+                   "source_camera": "left" (default) | "right" }
         """
         if not self._enabled:
             raise ValueError("Service not enabled. Call enable first.")
@@ -1632,14 +1633,21 @@ class InteractiveStereoService:
         points = request.get("points") or []
         labels = request.get("labels") or [1] * len(points)
         polygon = request.get("polygon")
+        from_right = request.get("source_camera", "left") == "right"
+
+        def warp(source_points):
+            """Valid matches only, as (index, [x, y]) pairs."""
+            if from_right:
+                response = self._transfer_points(
+                    {"points": source_points, "source_camera": "right"})
+                return [(i, q) for i, q in enumerate(response["transferred_points"]) if q is not None]
+            with self._compute_lock:
+                matched = [self._warp_one_point(p) for p in source_points]
+            return [(i, q) for i, q in enumerate(matched) if q is not None]
 
         if self._seg_point_sampling and polygon:
-            with self._compute_lock:
-                warped = []
-                for p in self._sample_points_in_polygon(polygon, self._seg_point_samples):
-                    matched = self._warp_one_point(p)
-                    if matched is not None:
-                        warped.append(matched)
+            samples = self._sample_points_in_polygon(polygon, self._seg_point_samples)
+            warped = [q for _, q in warp(samples)] if samples else []
             if warped:
                 median = np.median(np.asarray(warped), axis=0)
                 self._log(f"Segmentation point: median of {len(warped)} warped samples")
@@ -1651,6 +1659,15 @@ class InteractiveStereoService:
                     "num_matched": len(warped),
                 }
             self._log("Point sampling found no matches; falling back to direct warp")
+
+        if from_right:
+            matched = warp(points) if points else []
+            return {
+                "success": bool(matched),
+                "transferred_points": [q for _, q in matched],
+                "point_labels": [labels[i] for i, _ in matched],
+                "num_matched": len(matched),
+            }
 
         # Direct warp of the supplied click points
         response = self._transfer_points({"points": points})

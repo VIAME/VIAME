@@ -158,3 +158,23 @@ def test_size_check_can_be_disabled_and_ignores_lines(service):
 def test_size_ratio_limits_are_symmetric(service):
     assert service.size_mismatch(100, 249) is None and service.size_mismatch(249, 100) is None
     assert service.size_mismatch(100, 251) and service.size_mismatch(251, 100)
+
+
+def test_segmentation_seed_warps_in_the_direction_of_the_clicked_camera(service):
+    left = service.handle_transfer_segmentation_point({'points': [[50, 60]]})
+    assert left['transferred_points'] == [[40, 60]]
+    right = service.handle_transfer_segmentation_point({'points': [[40, 60]], 'source_camera': 'right'})
+    assert right['success'] and right['transferred_points'] == [[50, 60]] and right['num_matched'] == 1
+
+
+def test_sampled_segmentation_seed_from_the_right_camera(service):
+    service._seg_point_sampling = True
+    polygon = [[30, 50], [60, 50], [60, 80], [30, 80]]
+    seed = service.handle_transfer_segmentation_point(
+        {'points': [[40, 60]], 'polygon': polygon, 'source_camera': 'right'})['transferred_points'][0]
+    assert 40 <= seed[0] <= 70 and 50 <= seed[1] <= 80
+
+
+def test_unmatched_right_camera_seed_reports_no_match(service):
+    response = service.handle_transfer_segmentation_point({'points': [[195, 60]], 'source_camera': 'right'})
+    assert not response['success'] and response['num_matched'] == 0
