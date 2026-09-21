@@ -205,8 +205,13 @@ class InteractiveSegmentationService:
                   f"from {os.path.basename(video_path)}")
         return image
 
-    def _detections_to_response(self, detected_objects) -> List[Dict[str, Any]]:
-        """Convert DetectedObjectSet to response dictionaries."""
+    def _detections_to_response(self, detected_objects, keep_points=None) -> List[Dict[str, Any]]:
+        """Convert DetectedObjectSet to response dictionaries.
+
+        `polygon` is the single polygon the configured policies leave; the
+        `polygons` list always carries every component of the mask, and any
+        component holding one of `keep_points` (the positive prompts) survives
+        the small-component filter."""
         from viame.core.segmentation_utils import (
             mask_to_polygon,
             mask_to_polygons,
@@ -240,8 +245,10 @@ class InteractiveSegmentationService:
                     )
 
                     # Get multi-polygon data with holes
+                    offset_x, offset_y = bbox.min_x(), bbox.min_y()
                     raw_polygons, mp_bounds = mask_to_polygons(
-                        mask, self._hole_policy, self._multipolygon_policy
+                        mask, self._hole_policy, "allow",
+                        keep_points=[[x - offset_x, y - offset_y] for x, y in (keep_points or [])],
                     )
 
                     # Simplify polygon if needed
@@ -283,7 +290,6 @@ class InteractiveSegmentationService:
                                         )
 
                     # Offset polygon to original image coordinates (mask is cropped to bbox)
-                    offset_x, offset_y = bbox.min_x(), bbox.min_y()
                     if polygon:
                         polygon = [[x + offset_x, y + offset_y] for x, y in polygon]
 
@@ -392,7 +398,9 @@ class InteractiveSegmentationService:
                     detected_objects, vital_points, vital_labels)
 
             # Convert results
-            results = self._detections_to_response(detected_objects)
+            results = self._detections_to_response(
+                detected_objects,
+                keep_points=[[p.value[0], p.value[1]] for p, l in zip(vital_points, vital_labels) if int(l) == 1])
 
         if results:
             # Return the best result (first one)

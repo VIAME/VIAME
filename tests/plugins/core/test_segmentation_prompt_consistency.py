@@ -68,3 +68,13 @@ def test_negative_is_carved_out_when_the_re_prediction_still_covers_it():
         RIGHT, [[130, 50]], [[170, 50]], lambda p, n: RIGHT)
     assert changed and not utils.point_in_mask(mask, [170, 50]) and utils.point_in_mask(mask, [130, 50])
     assert mask.sum() > RIGHT.sum() - 200
+
+
+def test_small_component_survives_the_area_filter_when_it_holds_a_prompt():
+    mask = np.zeros((100, 100), dtype=np.uint8)
+    mask[10:90, 10:90] = 1
+    mask[2:5, 2:5] = 1
+    polygons, _ = utils.mask_to_polygons(mask)
+    assert len(polygons) == 1
+    polygons, _ = utils.mask_to_polygons(mask, keep_points=[[3, 3]])
+    assert len(polygons) == 2
