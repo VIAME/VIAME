@@ -89,6 +89,7 @@ class InteractiveSegmentationService:
         multipolygon_policy: str = "allow",
         max_polygon_points: int = 25,
         adaptive_simplify: bool = False,
+        max_polygon_points_limit: int = 100,
         plugin_paths: Optional[List[str]] = None,
         device: Optional[str] = None,
     ):
@@ -102,6 +103,8 @@ class InteractiveSegmentationService:
             hole_policy: How to handle holes in masks ('allow' or 'remove')
             multipolygon_policy: How to handle multiple polygons ('allow', 'convex_hull', 'largest')
             max_polygon_points: Maximum number of points in output polygons
+            max_polygon_points_limit: Ceiling the point budget grows to for
+                point-click masks too complex for max_polygon_points
             adaptive_simplify: Use adaptive polygon simplification
             plugin_paths: Extra plugin paths, forwarded to the embedded stereo
                 warper used by stereo_segment.
@@ -114,6 +117,10 @@ class InteractiveSegmentationService:
         self._multipolygon_policy = multipolygon_policy
         self._max_polygon_points = max_polygon_points
         self._adaptive_simplify = adaptive_simplify
+        self._max_polygon_points_limit = max(max_polygon_points, max_polygon_points_limit)
+        self._prompt_instances = None
+        self._prompt_instances_key = None
+        self._prompt_instances_like = None
         self._current_image_path: Optional[str] = None
         self._current_image_container = None
         # Embedded interactive-stereo warper for stereo_segment (lazy). Reuses
@@ -205,19 +212,23 @@ class InteractiveSegmentationService:
                   f"from {os.path.basename(video_path)}")
         return image
 
-    def _detections_to_response(self, detected_objects, keep_points=None) -> List[Dict[str, Any]]:
+    def _simplify_ring(self, ring, grow):
+        from viame.core.segmentation_utils import simplify_polygon_within_error
+
+        limit = self._max_polygon_points_limit if grow else self._max_polygon_points
+        return simplify_polygon_within_error(
+            ring, self._max_polygon_points, limit, adaptive=self._adaptive_simplify)
+
+    def _detections_to_response(self, detected_objects, keep_points=None, instances=False) -> List[Dict[str, Any]]:
         """Convert DetectedObjectSet to response dictionaries.
 
         `polygon` is the single polygon the configured policies leave; the
         `polygons` list always carries every component of the mask, and any
         component holding one of `keep_points` (the positive prompts) survives
-        the small-component filter."""
-        from viame.core.segmentation_utils import (
-            mask_to_polygon,
-            mask_to_polygons,
-            simplify_polygon_to_max_points,
-            adaptive_simplify_polygon,
-        )
+        the small-component filter. For a buffer of mask `instances` the
+        bounds span every polygon, and a ring too complex for
+        max_polygon_points takes up to max_polygon_points_limit."""
+        from viame.core.segmentation_utils import mask_to_polygon, mask_to_polygons
 
         results = []
 
@@ -251,43 +262,14 @@ class InteractiveSegmentationService:
                         keep_points=[[x - offset_x, y - offset_y] for x, y in (keep_points or [])],
                     )
 
-                    # Simplify polygon if needed
-                    if polygon and len(polygon) > self._max_polygon_points:
-                        original_points = len(polygon)
-                        if self._adaptive_simplify:
-                            polygon = adaptive_simplify_polygon(
-                                polygon, self._max_polygon_points, min_points=4
-                            )
-                        else:
-                            polygon = simplify_polygon_to_max_points(
-                                polygon, self._max_polygon_points
-                            )
-                        if len(polygon) != original_points:
-                            self._log(f"Simplified polygon: {original_points} -> {len(polygon)} points")
+                    if polygon:
+                        polygon = self._simplify_ring(polygon, instances)
 
-                    # Simplify each polygon in multi-polygon data
                     if raw_polygons:
                         for poly_data in raw_polygons:
-                            ext = poly_data["exterior"]
-                            if len(ext) > self._max_polygon_points:
-                                if self._adaptive_simplify:
-                                    poly_data["exterior"] = adaptive_simplify_polygon(
-                                        ext, self._max_polygon_points, min_points=4
-                                    )
-                                else:
-                                    poly_data["exterior"] = simplify_polygon_to_max_points(
-                                        ext, self._max_polygon_points
-                                    )
-                            for i, hole in enumerate(poly_data["holes"]):
-                                if len(hole) > self._max_polygon_points:
-                                    if self._adaptive_simplify:
-                                        poly_data["holes"][i] = adaptive_simplify_polygon(
-                                            hole, self._max_polygon_points, min_points=4
-                                        )
-                                    else:
-                                        poly_data["holes"][i] = simplify_polygon_to_max_points(
-                                            hole, self._max_polygon_points
-                                        )
+                            poly_data["exterior"] = self._simplify_ring(poly_data["exterior"], instances)
+                            poly_data["holes"] = [
+                                self._simplify_ring(hole, instances) for hole in poly_data["holes"]]
 
                     # Offset polygon to original image coordinates (mask is cropped to bbox)
                     if polygon:
@@ -307,6 +289,8 @@ class InteractiveSegmentationService:
                         polygons_data = raw_polygons
 
                     # Use polygon-derived bounds instead of detection bbox
+                    if instances and raw_polygons and mp_bounds != [0, 0, 0, 0]:
+                        poly_bounds = mp_bounds
                     if polygon and poly_bounds and poly_bounds != [0, 0, 0, 0]:
                         bounds = [
                             poly_bounds[0] + offset_x, poly_bounds[1] + offset_y,
@@ -382,25 +366,28 @@ class InteractiveSegmentationService:
         # Convert points to vital Point2d objects using x,y constructor
         vital_points = [Point2d(float(p[0]), float(p[1])) for p in points]
         vital_labels = [int(label) for label in point_labels]
+        positives = [[float(p[0]), float(p[1])] for p, l in zip(points, vital_labels) if l == 1]
+        instances = not (line and len(line) >= 2)
+
+        if not positives:
+            raise ValueError("Add a foreground point first; background points only trim existing masks")
 
         # Run segmentation (suppress stdout to prevent library warnings corrupting JSON)
         with suppress_stdout():
-            detected_objects = self._segment_algo.segment(
-                self._current_image_container,
-                vital_points,
-                vital_labels
-            )
-            if line and len(line) >= 2:
+            if instances:
+                detected_objects = self._segment_instances(cache_key, points, vital_labels)
+            else:
+                detected_objects = self._segment_algo.segment(
+                    self._current_image_container,
+                    vital_points,
+                    vital_labels
+                )
                 detected_objects = self._fit_to_line(
                     detected_objects, line, vital_points, vital_labels)
-            else:
-                detected_objects = self._reconcile_with_prompts(
-                    detected_objects, vital_points, vital_labels)
 
             # Convert results
             results = self._detections_to_response(
-                detected_objects,
-                keep_points=[[p.value[0], p.value[1]] for p, l in zip(vital_points, vital_labels) if int(l) == 1])
+                detected_objects, keep_points=positives, instances=instances)
 
         if results:
             # Return the best result (first one)
@@ -451,36 +438,45 @@ class InteractiveSegmentationService:
         result.add(det)
         return result
 
-    def _reconcile_with_prompts(self, detected_objects, vital_points, vital_labels):
-        """Every positive click ends up under the mask and no negative one
-        does, adding or re-predicting components as needed."""
-        from kwiver.vital.types import Point2d
-        from viame.core.segmentation_utils import reconcile_mask_with_prompts
+    def _segment_instances(self, cache_key, points, labels):
+        """Point clicks as a buffer of per-object mask instances (see
+        PromptInstances), returned as the one detection covering them all."""
+        from kwiver.vital.types import Point2d, DetectedObjectSet
+        from viame.core.segmentation_utils import PromptInstances
 
-        det = next(iter(detected_objects), None) if detected_objects is not None else None
-        if det is None:
-            return detected_objects
         image = self._current_image_container
         dims = (image.height(), image.width())
-        base = self._full_mask(det, dims)
-        if base is None:
-            return detected_objects
-        prompts = [([p.value[0], p.value[1]], int(l)) for p, l in zip(vital_points, vital_labels)]
-        positives = [p for p, label in prompts if label == 1]
-        negatives = [p for p, label in prompts if label == 0]
+        last = {}
 
         def predict(pos, neg):
             objs = self._segment_algo.segment(
                 image,
                 [Point2d(float(x), float(y)) for x, y in list(pos) + list(neg)],
                 [1] * len(pos) + [0] * len(neg))
-            return self._full_mask(next(iter(objs), None), dims)
+            det = next(iter(objs), None) if objs is not None else None
+            if det is not None:
+                last["det"] = det
+            return self._full_mask(det, dims)
 
-        mask, changed = reconcile_mask_with_prompts(base, positives, negatives, predict)
-        if not changed:
-            return detected_objects
-        self._log("Adjusted the mask to cover every positive prompt and exclude every negative one")
-        return self._detection_from_mask(mask, det)
+        if self._prompt_instances_key != cache_key or self._prompt_instances.shape != dims:
+            self._prompt_instances = PromptInstances(dims, None)
+            self._prompt_instances_key = cache_key
+            self._prompt_instances_like = None
+        buffer = self._prompt_instances
+        buffer.predict = predict
+        try:
+            buffer.sync(list(zip(points, labels)))
+        except Exception:
+            self._prompt_instances_key = None
+            raise
+        finally:
+            buffer.predict = None
+        self._log(f"Point prompts held as {len(buffer.instances)} mask instance(s)")
+        if "det" in last:
+            self._prompt_instances_like = last["det"]
+        if self._prompt_instances_like is None:
+            return DetectedObjectSet()
+        return self._detection_from_mask(buffer.mask(), self._prompt_instances_like)
 
     def _fit_to_line(self, detected_objects, line, vital_points, vital_labels):
         """Keep a mask prompted from a head/tail line in scale with that line:
@@ -1040,6 +1036,7 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
         "multipolygon_policy": cfg.get_value("service:multipolygon_policy") if cfg.has_value("service:multipolygon_policy") else "allow",
         "max_polygon_points": int(cfg.get_value("service:max_polygon_points")) if cfg.has_value("service:max_polygon_points") else 25,
         "adaptive_simplify": cfg.get_value("service:adaptive_simplify").lower() in ('true', '1', 'yes') if cfg.has_value("service:adaptive_simplify") else False,
+        "max_polygon_points_limit": int(cfg.get_value("service:max_polygon_points_limit")) if cfg.has_value("service:max_polygon_points_limit") else 100,
     }
 
     return segment_algo, text_query_algo, image_io_algo, service_config
@@ -1108,6 +1105,7 @@ segment_via_points:sam2:device = cuda
 service:hole_policy = allow
 service:multipolygon_policy = allow
 service:max_polygon_points = 25
+service:max_polygon_points_limit = 100
 service:adaptive_simplify = false
 """
     else:
@@ -1140,6 +1138,7 @@ perform_text_query:sam3:max_detections = 10
 service:hole_policy = allow
 service:multipolygon_policy = allow
 service:max_polygon_points = 25
+service:max_polygon_points_limit = 100
 service:adaptive_simplify = false
 """
 

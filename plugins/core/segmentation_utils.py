@@ -806,70 +806,152 @@ def disk_mask(shape: Tuple[int, int], point, radius: float) -> np.ndarray:
     return (xs - point[0]) ** 2 + (ys - point[1]) ** 2 <= radius ** 2
 
 
-def reconcile_mask_with_prompts(
-    mask: np.ndarray,
-    positives: List,
-    negatives: List,
-    predict,
-    min_radius: int = 4,
-) -> Tuple[np.ndarray, bool]:
+def simplify_polygon_within_error(
+    polygon: List[List[float]],
+    max_points: int = 25,
+    max_points_limit: int = 100,
+    max_error: float = 0.05,
+    adaptive: bool = False,
+) -> List[List[float]]:
     """
-    Make a mask agree with its prompts: every positive point ends up inside it
-    and no negative point does.
+    Simplify to max_points, doubling that budget (up to max_points_limit)
+    while the simplified ring's area differs from the original's by more than
+    max_error of the original area.
+    """
+    from shapely.geometry import Polygon as ShapelyPolygon
 
-    A positive point the mask missed gets the component holding it from a
-    prediction prompted by that point alone (plus the negatives); a negative
-    point inside the mask drops its component when no positive shares it, or
-    replaces the component with a re-prediction from that component's own
-    positives. When the model will not comply, a small disk is added or carved
-    so the guarantee still holds.
+    simplify = adaptive_simplify_polygon if adaptive else simplify_polygon_to_max_points
+    if len(polygon) <= max_points:
+        return polygon
+    try:
+        original = ShapelyPolygon(polygon).buffer(0)
+    except Exception:
+        return simplify(polygon, max_points)
+    budget = max_points
+    while True:
+        result = simplify(polygon, budget)
+        if budget >= max_points_limit or original.is_empty or original.area <= 0:
+            return result
+        try:
+            error = original.symmetric_difference(ShapelyPolygon(result).buffer(0)).area
+        except Exception:
+            return result
+        if error <= max_error * original.area:
+            return result
+        budget = min(max_points_limit, budget * 2)
+
+
+class PromptInstances:
+    """
+    Creation buffer for point-click segmentation: one mask instance per object,
+    built from prompts taken in click order.
+
+    A positive click inside an instance refines it. One outside every instance
+    joins the nearest instance whose joint prediction comes back as a single
+    region holding all of its clicks, and otherwise starts a new instance from
+    a prediction of its own, so every positive lies inside some instance and
+    the output is simply as many polygons as that takes. Negative clicks apply
+    to every instance; one the model still covers is carved out as a small disk.
 
     `predict(positives, negatives)` returns a full-frame binary mask or None.
-    Returns (mask, changed).
     """
-    mask = np.asarray(mask) > 0
-    changed = False
-    radius = max(min_radius, int(round(0.01 * float(np.hypot(*mask.shape)))))
 
-    for point in positives:
-        if point_in_mask(mask, point):
-            continue
-        extra = predict([point], negatives)
-        region = component_at(extra, point) if extra is not None else None
-        if region is None:
-            region = disk_mask(mask.shape, point, radius)
-        mask = mask | region
-        changed = True
+    def __init__(self, shape, predict, min_radius: int = 4, max_join_attempts: int = 3,
+                 max_join_growth: float = 1.5):
+        self.shape = tuple(shape)
+        self.predict = predict
+        self.radius = max(min_radius, int(round(0.01 * float(np.hypot(*self.shape)))))
+        self.max_join_attempts = max_join_attempts
+        self.max_join_growth = max_join_growth
+        self.instances: List[dict] = []
+        self.negatives: List = []
+        self.prompts: List = []
 
-    for point in negatives:
-        component = component_at(mask, point)
-        if component is None:
-            continue
-        changed = True
-        inside = [p for p in positives if point_in_mask(component, p)]
-        replacement = None
-        if inside:
-            again = predict(inside, negatives)
-            if again is not None and not point_in_mask(again, point):
-                keep = np.zeros_like(mask)
-                for p in inside:
-                    part = component_at(again, p)
-                    if part is not None:
-                        keep = keep | part
-                replacement = keep
+    def sync(self, prompts) -> None:
+        """Bring the buffer to `prompts` ([point, label] in click order),
+        replaying from scratch unless they extend what is already applied."""
+        prompts = [([float(p[0]), float(p[1])], int(label)) for p, label in prompts]
+        if prompts[:len(self.prompts)] != self.prompts:
+            self.instances, self.negatives, self.prompts = [], [], []
+        for point, label in prompts[len(self.prompts):]:
+            if label == 1:
+                self._add_positive(point)
             else:
-                replacement = component & ~disk_mask(mask.shape, point, radius)
-        mask = mask & ~component
-        if replacement is not None:
-            mask = mask | replacement
+                self._add_negative(point)
+            self.prompts.append((point, label))
 
-    for point in positives:
-        if point_in_mask(mask, point):
-            continue
-        patch = disk_mask(mask.shape, point, radius)
-        for negative in negatives:
-            patch = patch & ~disk_mask(mask.shape, negative, radius)
-        mask = mask | patch
-        changed = True
+    def mask(self) -> np.ndarray:
+        total = np.zeros(self.shape, dtype=bool)
+        for instance in self.instances:
+            total |= instance["mask"]
+        return total
 
-    return mask, changed
+    def _region(self, positives, connected: bool = False) -> Optional[np.ndarray]:
+        """The predicted components holding the positives; None when any is
+        missed, or (connected) when they do not share one component."""
+        predicted = self.predict(positives, self.negatives)
+        if predicted is None:
+            return None
+        predicted = np.asarray(predicted) > 0
+        _, labels = mask_components(predicted)
+        found = set()
+        for point in positives:
+            if not point_in_mask(predicted, point):
+                return None
+            found.add(labels[int(round(point[1])), int(round(point[0]))])
+        if connected and len(found) > 1:
+            return None
+        return np.isin(labels, list(found))
+
+    def _enforce(self, instance) -> None:
+        for negative in self.negatives:
+            if point_in_mask(instance["mask"], negative):
+                instance["mask"] = instance["mask"] & ~disk_mask(self.shape, negative, self.radius)
+
+    @staticmethod
+    def _box_area(mask) -> float:
+        ys, xs = np.where(mask)
+        if len(xs) == 0:
+            return 0.0
+        return float((xs.max() - xs.min() + 1) * (ys.max() - ys.min() + 1))
+
+    def _add_positive(self, point) -> None:
+        owner = next((i for i in self.instances if point_in_mask(i["mask"], point)), None)
+        if owner is not None:
+            refined = self._region(owner["positives"] + [point])
+            owner["positives"].append(point)
+            if refined is not None:
+                owner["mask"] = refined
+            self._enforce(owner)
+            return
+
+        alone = self._region([point])
+        if alone is None:
+            return
+
+        def distance(instance):
+            return min(np.hypot(p[0] - point[0], p[1] - point[1]) for p in instance["positives"])
+
+        for instance in sorted(self.instances, key=distance)[:self.max_join_attempts]:
+            joint = self._region(instance["positives"] + [point], connected=True)
+            if joint is None:
+                continue
+            # A joint mask far larger than its parts swallowed background.
+            if self._box_area(joint) > self.max_join_growth * self._box_area(instance["mask"] | alone):
+                continue
+            instance["positives"].append(point)
+            instance["mask"] = joint
+            self._enforce(instance)
+            return
+
+        instance = {"positives": [point], "mask": alone}
+        self._enforce(instance)
+        self.instances.append(instance)
+
+    def _add_negative(self, point) -> None:
+        self.negatives.append(point)
+        for instance in self.instances:
+            again = self._region(instance["positives"])
+            if again is not None:
+                instance["mask"] = again
+            self._enforce(instance)
