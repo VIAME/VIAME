@@ -1175,9 +1175,8 @@ class InteractiveStereoService:
         ratio = mapped_area / source_area
         if 1.0 / limit <= ratio <= limit:
             return None
-        return (f"The shape found on the other camera is {ratio:.2g}x the area of the "
-                f"original (allowed: {1.0 / limit:.2g}x to {limit:.2g}x), so the stereo "
-                "match is likely wrong and it was not mapped")
+        self._log(f"Mapped shape is {ratio:.2g}x the original area (limit {limit:.2g}x); not mapped")
+        return "Failed to map to the other camera"
 
     @staticmethod
     def _hull_area(points) -> float:
@@ -1198,7 +1197,6 @@ class InteractiveStereoService:
             reason = self.size_mismatch(
                 self._hull_area(request["points"]), self._hull_area(mapped))
             if reason:
-                self._log(reason)
                 return {"success": False, "error": reason, "size_mismatch": True}
         return response
 
