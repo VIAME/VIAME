@@ -129,3 +129,32 @@ def test_silhouette_keypoint_takes_the_nearer_surface(service):
     response = service.handle_request(request([[50, 60]]))
     assert response['success']
     assert response['transferred_points'][0] == pytest.approx([2., 60.])
+
+
+BOX = [[50, 50], [110, 50], [110, 90], [50, 90]]
+
+
+def test_shape_that_keeps_its_size_is_mapped(service):
+    response = service.handle_request(request(BOX))
+    assert response['success'] and response['transferred_points'][0] == [40, 50]
+
+
+def test_shape_that_changes_size_too_much_is_refused(service):
+    # Disparity jumps from 10 to 50 across the box, so it maps 3x narrower.
+    service._current_disparity[:, 100:] = 50.
+    response = service.handle_request(request(BOX))
+    assert not response['success'] and response['size_mismatch']
+    assert response['error'] == 'Failed to map to the other camera'
+
+
+def test_size_check_can_be_disabled_and_ignores_lines(service):
+    service._current_disparity[:, 100:] = 50.
+    line = [[50, 50], [80, 50], [110, 50]]
+    assert service.handle_request(request(line))['success']
+    service._max_transfer_size_ratio = 0
+    assert service.handle_request(request(BOX))['success']
+
+
+def test_size_ratio_limits_are_symmetric(service):
+    assert service.size_mismatch(100, 249) is None and service.size_mismatch(249, 100) is None
+    assert service.size_mismatch(100, 251) and service.size_mismatch(251, 100)
