@@ -474,6 +474,7 @@ def mask_to_polygons(
     hole_policy: str = "allow",
     multipolygon_policy: str = "allow",
     min_area_fraction: float = 0.01,
+    keep_points=None,
 ) -> Tuple[List[dict], List[float]]:
     """
     Convert binary mask to multiple polygon coordinates with hole support.
@@ -498,6 +499,8 @@ def mask_to_polygons(
             - "largest": Keep only the largest polygon by area
             - "convex_hull": Return the convex hull of all polygons
         min_area_fraction: Minimum polygon area as fraction of the largest polygon.
+        keep_points: [x, y] points (e.g. positive prompts) whose polygons are
+            kept however small they are.
             Polygons smaller than this are discarded as noise. (default: 0.01 = 1%)
 
     Returns:
@@ -530,11 +533,18 @@ def mask_to_polygons(
     if not shapely_polys:
         return [], [0, 0, 0, 0]
 
-    # Filter small polygons by area relative to the largest
+    # Filter small polygons by area relative to the largest, keeping any that
+    # hold a point the caller insists on.
     if len(shapely_polys) > 1 and min_area_fraction > 0:
+        from shapely.geometry import Point as ShapelyPoint
+
         max_area = max(p.area for p in shapely_polys)
         threshold = max_area * min_area_fraction
-        shapely_polys = [p for p in shapely_polys if p.area >= threshold]
+        anchors = [ShapelyPoint(x, y) for x, y in (keep_points or [])]
+        shapely_polys = [
+            p for p in shapely_polys
+            if p.area >= threshold or any(p.intersects(a) for a in anchors)
+        ]
 
     if not shapely_polys:
         return [], [0, 0, 0, 0]
