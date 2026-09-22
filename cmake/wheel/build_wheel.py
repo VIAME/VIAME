@@ -9,17 +9,21 @@ package beside `viame` and 65 separate shared libraries, `lite` installs one
 this script so that merging one into the other is a change to a list rather
 than a conflict in a builder.
 
-Native libraries are not relocated and nothing is patched. VIAME's extension
-modules already carry a `$ORIGIN`-relative RUNPATH --
+Native libraries are not relocated. VIAME's extension modules already carry a
+`$ORIGIN`-relative RUNPATH --
 
     $ORIGIN/../../../../../lib
 
 -- which, from `site-packages/<pkg>/<sub>/x.so`, resolves to the environment's
 `lib/`. A wheel can put a file exactly there through the `.data/data/` scheme,
 so the libraries go to `<name>-<version>.data/data/lib/` and the RUNPATH that
-worked in the install prefix keeps working in the installed wheel. This is why
-there is no `patchelf` dependency here; see `docs/wheels.md` for what that
-costs, and for the layouts where it does not hold.
+worked in the install prefix keeps working in the installed wheel. See
+`docs/wheels.md` for the layouts where that does not hold.
+
+What *is* patched is the CUDA search path: RUNPATH entries are appended so
+`libcudart` and friends come from the `nvidia/*` pip wheels torch installs
+rather than from a system `/usr/local/cuda`. That needs `patchelf`, and
+degrades to a note rather than a failure without it. See `add_cuda_rpath`.
 """
 
 import argparse
@@ -27,6 +31,7 @@ import base64
 import csv
 import hashlib
 import io
+import posixpath
 import re
 import shutil
 import struct
@@ -401,6 +406,99 @@ def strip_into(src, scratch, seen):
 
 
 # ----------------------------------------------------------------------------
+# CUDA from the pip wheels
+#
+# The extension modules and `libviame` link `libcudart`, `libcudnn`,
+# `libcublas`, `libcublasLt` and `libcurand`. Built against a system CUDA they
+# carry no path for them, so in a fresh environment the loader finds whatever
+# `/usr/local/cuda` happens to hold -- or nothing, and `import viame.types`
+# fails on a machine that has no system CUDA at all.
+#
+# torch already brings those libraries as wheels, under
+# `site-packages/nvidia/<component>/lib`, and that is the copy VIAME should
+# use: the same one torch itself loaded, rather than a second system copy of a
+# possibly different version in the same process.
+#
+# Nothing on those paths is discoverable by the loader by default, so each
+# packed binary gets `$ORIGIN`-relative RUNPATH entries pointing at them. The
+# relative path differs per file -- a module in `viame/types/` is two levels
+# below site-packages, one in `viame/pipeline/util/` is three, `libviame.so`
+# lands in `<env>/lib` and `bin/viame` in `<env>/bin` -- which is why this is
+# done here, where the destination inside the wheel is known, rather than at
+# link time where it is not.
+#
+# The existing entries are kept, not replaced: `$ORIGIN/../../../../../lib` is
+# what finds `libviame` itself.
+#
+# Requires `patchelf`; `pip install patchelf` provides it. Without it the
+# wheel still builds and says what was skipped, because a wheel that cannot be
+# produced is worse than one that needs a system CUDA.
+# ----------------------------------------------------------------------------
+
+# The component directories the linked SONAMEs live in.
+CUDA_WHEEL_DIRS = (
+    "nvidia/cuda_runtime/lib",   # libcudart
+    "nvidia/cudnn/lib",          # libcudnn and its engines
+    "nvidia/cublas/lib",         # libcublas, libcublasLt
+    "nvidia/curand/lib",         # libcurand
+    "nvidia/cuda_nvrtc/lib",     # libnvrtc, pulled in by cudnn's JIT path
+)
+
+
+def _env_relative(dest, dist, purelib):
+    """Where a wheel entry lands under the environment prefix."""
+    scripts = f"{dist}.data/scripts/"
+    data = f"{dist}.data/data/"
+    if dest.startswith(scripts):
+        return "bin/" + dest[len(scripts):]
+    if dest.startswith(data):
+        return dest[len(data):]
+    return f"{purelib}/{dest}"
+
+
+def cuda_rpath_entries(dest, dist, purelib):
+    """`$ORIGIN`-relative RUNPATH entries reaching the nvidia wheels."""
+    here = posixpath.dirname(_env_relative(dest, dist, purelib))
+    out = []
+    for component in CUDA_WHEEL_DIRS:
+        rel = posixpath.relpath(f"{purelib}/{component}", here or ".")
+        out.append(f"$ORIGIN/{rel}")
+    return out
+
+
+def add_cuda_rpath(path, dest, dist, purelib, state):
+    """Append the nvidia wheel directories to `path`'s RUNPATH, in place."""
+    if state["patchelf"] is None:
+        state["patchelf"] = shutil.which("patchelf") or False
+    if not state["patchelf"]:
+        state["skipped"] += 1
+        return False
+    try:
+        current = subprocess.run([state["patchelf"], "--print-rpath", str(path)],
+                                 capture_output=True, text=True)
+        if current.returncode != 0:
+            return False          # not a dynamic executable; nothing to do
+        existing = [e for e in current.stdout.strip().split(":") if e]
+        wanted = [e for e in cuda_rpath_entries(dest, dist, purelib)
+                  if e not in existing]
+        if not wanted:
+            return False
+        r = subprocess.run(
+            [state["patchelf"], "--set-rpath", ":".join(existing + wanted), str(path)],
+            capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"  note: patchelf failed on {dest}: {r.stderr.strip()[:120]}",
+                  file=sys.stderr)
+            return False
+    except OSError as e:
+        print(f"  note: patchelf unusable ({e})", file=sys.stderr)
+        state["patchelf"] = False
+        return False
+    state["patched"] += 1
+    return True
+
+
+# ----------------------------------------------------------------------------
 # Wheel metadata
 # ----------------------------------------------------------------------------
 
@@ -451,17 +549,32 @@ def build(args):
 
     requires = [r for r in (args.requires or []) if r]
     records = []
-    stripped = {}
+    staged = {}
     raw = packed = 0
     scratch = Path(tempfile.mkdtemp(prefix="viame-wheel-"))
+    cuda = {"patchelf": None, "patched": 0, "skipped": 0}
+    # Where a purelib entry lands under the environment prefix, which is what
+    # the `$ORIGIN`-relative CUDA paths are measured from. Derived from the
+    # wheel's own python tag, so it agrees with the interpreter the extension
+    # modules were built against by construction.
+    purelib = f"lib/python{args.python_tag[2]}.{args.python_tag[3:]}/site-packages"
 
     try:
         with zipfile.ZipFile(whl, "w", zipfile.ZIP_DEFLATED) as z:
             for dest in sorted(chosen):
                 src = chosen[dest]
                 raw += src.stat().st_size
-                if args.strip:
-                    src = strip_into(src, scratch, stripped)
+                # A scratch copy whenever the bytes are to be modified. The
+                # install prefix is never written to: people run from it.
+                if (args.strip or args.cuda_from_wheels) and (src, dest) not in staged:
+                    work = strip_into(src, scratch, {}) if args.strip else src
+                    if args.cuda_from_wheels:
+                        if work is src:          # stripping declined to copy
+                            work = scratch / f"{len(staged)}-{src.name}"
+                            shutil.copy2(src, work)
+                        add_cuda_rpath(work, dest, dist, purelib, cuda)
+                    staged[(src, dest)] = work
+                src = staged.get((src, dest), src)
                 packed += src.stat().st_size
                 z.write(src, dest)
                 digest, size = _hash(src)
@@ -504,6 +617,15 @@ def build(args):
     if args.strip and raw:
         print(f"  stripped {raw / 1048576:.1f} -> {packed / 1048576:.1f} MB "
               f"({100 * (raw - packed) / raw:.0f}% off before compression)")
+    if args.cuda_from_wheels:
+        if cuda["patched"]:
+            print(f"  CUDA from the pip wheels: RUNPATH added to "
+                  f"{cuda['patched']} binaries")
+        if cuda["skipped"]:
+            print(f"  note: patchelf not found, so {cuda['skipped']} binaries "
+                  f"keep whatever CUDA the loader finds -- `pip install "
+                  f"patchelf` to point them at the nvidia wheels",
+                  file=sys.stderr)
     return 0
 
 
@@ -532,6 +654,13 @@ def main(argv=None):
                    help="strip symbol tables from packed binaries; see `strip_into`")
     p.add_argument("--no-strip", dest="strip", action="store_false")
     p.set_defaults(strip=True)
+    p.add_argument("--cuda-from-wheels", action="store_true",
+                   help="add RUNPATH entries for the nvidia pip wheels, so "
+                        "CUDA comes from the copy torch installed rather than "
+                        "a system one; see `add_cuda_rpath`")
+    p.add_argument("--no-cuda-from-wheels", dest="cuda_from_wheels",
+                   action="store_false")
+    p.set_defaults(cuda_from_wheels=True)
     return build(p.parse_args(argv))
 
 

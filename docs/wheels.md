@@ -128,3 +128,50 @@ That is the arrangement the code-only decision implies, and it works: the GFIT
 groups pipeline run this way, with the code from a pip-installed wheel and the
 configs and models from an install, produced **detections identical to the
 same pipeline run entirely from that install**.
+
+## CUDA comes from the pip wheels
+
+The extension modules, `libviame` and the `viame`/`kwiver` tools all link
+`libcudart`, `libcudnn`, `libcublas`, `libcublasLt` and `libcurand`. Built
+against a system CUDA they carry no path for them, so a fresh environment
+found whatever `/usr/local/cuda` happened to hold -- and on a machine with no
+system CUDA, `import viame.types` failed outright.
+
+torch already installs those libraries as wheels, under
+`site-packages/nvidia/<component>/lib`, and that is the copy to use: the same
+one torch itself loaded, rather than a second system copy of a possibly
+different version in one process.
+
+Nothing on those paths is discoverable by the loader by default, so
+`build_wheel.py` appends `$ORIGIN`-relative RUNPATH entries pointing at them.
+The relative path differs per file, which is why this is done when packing
+rather than at link time -- only here is the destination known:
+
+| lands at | entry |
+|---|---|
+| `site-packages/viame/types/_types.so` | `$ORIGIN/../../nvidia/<c>/lib` |
+| `site-packages/viame/pipeline/util/load.so` | `$ORIGIN/../../../nvidia/<c>/lib` |
+| `<env>/lib/libviame.so.1` | `$ORIGIN/python3.X/site-packages/nvidia/<c>/lib` |
+| `<env>/bin/viame` | `$ORIGIN/../lib/python3.X/site-packages/nvidia/<c>/lib` |
+
+The `python3.X` is taken from the wheel's own python tag, so it agrees with
+the interpreter the modules were built against by construction.
+
+The existing entries are kept rather than replaced -- `$ORIGIN/../../../../..`
+`/lib` is what finds `libviame` itself -- and the new ones are appended, so a
+component whose wheel is *not* installed falls through to the system copy
+instead of failing. Measured on an environment with only
+`nvidia-cuda-runtime-cu12` and `nvidia-curand-cu12` present: `libcudart` and
+`libcurand` resolve inside the environment, `libcublas` and `libcudnn` fall
+back to `/usr/local/cuda`.
+
+Needs `patchelf`, which is on PyPI (`pip install patchelf`). Without it the
+wheel still builds and says which binaries were left alone, because a wheel
+that cannot be produced is worse than one that needs a system CUDA.
+
+**Not declared as a requirement.** The wheel does not list `torch` or the
+`nvidia-*` wheels in `Requires-Dist`. Declaring `torch` would impose a
+multi-gigabyte dependency on someone who only wants `import viame.types`, and
+declaring the `nvidia-*` wheels directly would pin a CUDA major version
+against torch's own choice of one. The RUNPATH is the mechanism; which CUDA
+arrives is torch's decision, which is the point.
