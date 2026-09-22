@@ -366,16 +366,9 @@ def soname(path):
 # ----------------------------------------------------------------------------
 # Stripping
 #
-# The symbol tables are 40% of what this branch installs -- 116 MB of
-# extension modules become 62 MB, and `libviame.so` 52 MB becomes 39 MB --
-# and there is no DWARF behind them to lose: `.debug_*` across the whole
-# install is 0.1 MB. So this costs nothing anyone was getting a debugger out
-# for, and it is the difference between a wheel that meets its size target
-# and one that does not.
-#
-# Stripped into a scratch copy rather than in place. The install prefix is
-# something people run from and debug against; a `make wheel` that quietly
-# stripped it would be a surprising thing for a packaging step to do.
+# Symbol tables are ~40% of what this installs and there is no DWARF behind
+# them. Stripped into a scratch copy, never in place: people run from the
+# install prefix.
 # ----------------------------------------------------------------------------
 
 def strip_into(src, scratch, seen):
@@ -420,41 +413,36 @@ def strip_into(src, scratch, seen):
 # ----------------------------------------------------------------------------
 # CUDA from the pip wheels
 #
-# The extension modules and `libviame` link `libcudart`, `libcudnn`,
-# `libcublas`, `libcublasLt` and `libcurand`. Built against a system CUDA they
-# carry no path for them, so in a fresh environment the loader finds whatever
-# `/usr/local/cuda` happens to hold -- or nothing, and `import viame.types`
-# fails on a machine that has no system CUDA at all.
+# The binaries link `libcudart` and friends with no path for them, so a fresh
+# environment finds whatever `/usr/local/cuda` holds, or nothing. torch ships
+# those libraries as wheels; RUNPATH entries here point at them.
 #
-# torch already brings those libraries as wheels, under
-# `site-packages/nvidia/<component>/lib`, and that is the copy VIAME should
-# use: the same one torch itself loaded, rather than a second system copy of a
-# possibly different version in the same process.
+# Done when packing rather than at link time because the relative path
+# differs per destination, and only the packer knows where a file lands.
+# Existing entries are kept so `libviame` still resolves, and a component
+# whose wheel is absent falls through to the system copy.
 #
-# Nothing on those paths is discoverable by the loader by default, so each
-# packed binary gets `$ORIGIN`-relative RUNPATH entries pointing at them. The
-# relative path differs per file -- a module in `viame/types/` is two levels
-# below site-packages, one in `viame/pipeline/util/` is three, `libviame.so`
-# lands in `<env>/lib` and `bin/viame` in `<env>/bin` -- which is why this is
-# done here, where the destination inside the wheel is known, rather than at
-# link time where it is not.
-#
-# The existing entries are kept, not replaced: `$ORIGIN/../../../../../lib` is
-# what finds `libviame` itself.
-#
-# Requires `patchelf`; `pip install patchelf` provides it. Without it the
-# wheel still builds and says what was skipped, because a wheel that cannot be
-# produced is worse than one that needs a system CUDA.
+# Requires `patchelf` (on PyPI); degrades to a note without it.
 # ----------------------------------------------------------------------------
 
-# The component directories the linked SONAMEs live in.
-CUDA_WHEEL_DIRS = (
-    "nvidia/cuda_runtime/lib",   # libcudart
-    "nvidia/cudnn/lib",          # libcudnn and its engines
-    "nvidia/cublas/lib",         # libcublas, libcublasLt
-    "nvidia/curand/lib",         # libcurand
-    "nvidia/cuda_nvrtc/lib",     # libnvrtc, pulled in by cudnn's JIT path
-)
+# Where the nvidia wheels put their libraries, which differs by CUDA major:
+# cu12 uses one directory per component, cu13 consolidated the core runtime
+# into `nvidia/cu13/lib` and dropped the suffix on those distributions.
+# Both sets are listed for either variant -- an entry that does not exist
+# costs nothing, and it keeps resolving when torch and VIAME disagree.
+CUDA_WHEEL_DIRS = {
+    12: (
+        "nvidia/cuda_runtime/lib",   # libcudart
+        "nvidia/cublas/lib",         # libcublas, libcublasLt
+        "nvidia/curand/lib",         # libcurand
+        "nvidia/cudnn/lib",          # libcudnn and its engines
+        "nvidia/cuda_nvrtc/lib",     # libnvrtc, via cudnn's JIT path
+    ),
+    13: (
+        "nvidia/cu13/lib",           # libcudart, libcublas, libcurand, nvrtc
+        "nvidia/cudnn/lib",          # still its own, still suffixed
+    ),
+}
 
 
 def _env_relative(dest, dist, purelib):
@@ -468,17 +456,20 @@ def _env_relative(dest, dist, purelib):
     return f"{purelib}/{dest}"
 
 
-def cuda_rpath_entries(dest, dist, purelib):
+def cuda_rpath_entries(dest, dist, purelib, major=None):
     """`$ORIGIN`-relative RUNPATH entries reaching the nvidia wheels."""
     here = posixpath.dirname(_env_relative(dest, dist, purelib))
-    out = []
-    for component in CUDA_WHEEL_DIRS:
-        rel = posixpath.relpath(f"{purelib}/{component}", here or ".")
-        out.append(f"$ORIGIN/{rel}")
-    return out
+    components = []
+    for dirs in ([CUDA_WHEEL_DIRS[major]] if major in CUDA_WHEEL_DIRS
+                 else CUDA_WHEEL_DIRS.values()):
+        for c in dirs:
+            if c not in components:
+                components.append(c)
+    return [f"$ORIGIN/{posixpath.relpath(f'{purelib}/{c}', here or '.')}"
+            for c in components]
 
 
-def add_cuda_rpath(path, dest, dist, purelib, state):
+def add_cuda_rpath(path, dest, dist, purelib, state, major=None):
     """Append the nvidia wheel directories to `path`'s RUNPATH, in place."""
     if state["patchelf"] is None:
         state["patchelf"] = shutil.which("patchelf") or False
@@ -491,7 +482,7 @@ def add_cuda_rpath(path, dest, dist, purelib, state):
         if current.returncode != 0:
             return False          # not a dynamic executable; nothing to do
         existing = [e for e in current.stdout.strip().split(":") if e]
-        wanted = [e for e in cuda_rpath_entries(dest, dist, purelib)
+        wanted = [e for e in cuda_rpath_entries(dest, dist, purelib, major)
                   if e not in existing]
         if not wanted:
             return False
@@ -549,7 +540,9 @@ def wheel_metadata(root_is_purelib, tag):
 
 def build(args):
     rules = [r for f in args.contents for r in read_contents(f)]
-    dist = f"{args.name}-{args.version}"
+    version = (f"{args.version}+{args.local_version}"
+               if args.local_version else args.version)
+    dist = f"{args.name}-{version}"
     manifest = read_manifest(args.manifest) if args.manifest else None
     chosen = select(args.prefix, rules, f"{dist}.data/data",
                     f"{dist}.data/scripts", manifest)
@@ -560,8 +553,8 @@ def build(args):
     whl = out / f"{dist}-{tag}.whl"
 
     requires = [r for r in (args.requires or []) if r]
-    if args.requires_from:
-        for line in Path(args.requires_from).read_text().splitlines():
+    for path in (args.requires_from or []):
+        for line in Path(path).read_text().splitlines():
             line = line.split("#", 1)[0].strip()
             if line:
                 requires.append(line)
@@ -591,7 +584,8 @@ def build(args):
                         if work is src:          # stripping declined to copy
                             work = scratch / f"{len(staged)}-{src.name}"
                             shutil.copy2(src, work)
-                        add_cuda_rpath(work, dest, dist, purelib, cuda)
+                        add_cuda_rpath(work, dest, dist, purelib, cuda,
+                                       args.cuda_major)
                     staged[(src, dest)] = work
                 src = staged.get((src, dest), src)
                 packed += src.stat().st_size
@@ -601,7 +595,7 @@ def build(args):
 
             info = f"{dist}.dist-info"
             extras = {
-                f"{info}/METADATA": metadata(args.name, args.version, args.summary,
+                f"{info}/METADATA": metadata(args.name, version, args.summary,
                                              requires, args.description,
                                              args.requires_python),
                 f"{info}/WHEEL": wheel_metadata(False, tag),
@@ -663,6 +657,11 @@ def main(argv=None):
     p.add_argument("--output-dir", required=True)
     p.add_argument("--name", default="viame")
     p.add_argument("--version", required=True)
+    p.add_argument("--local-version",
+                   help="a PEP 440 local segment, e.g. `cu12`, appended as "
+                        "`+cu12`. The default build carries none. Note PyPI "
+                        "refuses local versions, so a variant wheel needs an "
+                        "index of its own.")
     p.add_argument("--summary", default="VIAME: Video and Image Analytics for Marine Environments")
     p.add_argument("--description", default="See https://github.com/VIAME/VIAME")
     p.add_argument("--requires", action="append", help="a Requires-Dist entry; repeatable")
@@ -670,10 +669,11 @@ def main(argv=None):
                    help="the floor for Requires-Python. Not below the wheel's "
                         "own python tag: it is built for one interpreter, and "
                         "vendored sam2 needs 3.10 regardless.")
-    p.add_argument("--requires-from",
+    p.add_argument("--requires-from", action="append",
                    help="a file of Requires-Dist entries, one per line, `#` "
                         "comments ignored; kept as a file so the reasoning for "
-                        "each can live beside it")
+                        "each can live beside it. Repeatable, so a CUDA "
+                        "variant's list layers over the common one.")
     p.add_argument("--top-level", action="append", help="a top-level package name; repeatable")
     p.add_argument("--entry-points", help="an entry_points.txt to embed")
     p.add_argument("--license-file")
@@ -690,6 +690,10 @@ def main(argv=None):
                         "a system one; see `add_cuda_rpath`")
     p.add_argument("--no-cuda-from-wheels", dest="cuda_from_wheels",
                    action="store_false")
+    p.add_argument("--cuda-major", type=int, choices=sorted(CUDA_WHEEL_DIRS),
+                   help="the CUDA major this was built against, which decides "
+                        "which nvidia wheel layout the RUNPATH targets. Omit "
+                        "to target every known layout.")
     p.set_defaults(cuda_from_wheels=True)
     return build(p.parse_args(argv))
 

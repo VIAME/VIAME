@@ -4,40 +4,14 @@
 Run at build time from `packages/pytorch-libs/<fork>`, so the submodule stays
 a clean checkout and an upstream merge never conflicts with this rewrite.
 
-Used for `rfdetr` and `sam2`. Both are forks whose PyPI name resolves to
-different software, so the wheel can neither depend on the name nor ship its
-own code under it.
+Used for `rfdetr` and `sam2`, whose PyPI names resolve to different software.
 
-**Why vendor it at all.** `rfdetr` on PyPI is different software. VIAME builds
-a fork whose `resolution` takes a `(height, width)` tuple where the public
-1.10.1 takes an int, so a wheel that declared `rfdetr` as a requirement would
-resolve to something that fails at
-
-    1 validation error for RFDETRLargeConfig
-    resolution: Input should be a valid integer [input_value=(960, 1728)]
-
-Vendoring under `viame.rfdetr` means the wheel carries the fork it actually
-needs and claims no name it does not own.
-
-**Why rewrite the imports rather than alias.** The package has 267 absolute
-self-imports and no relative ones -- every module says `from rfdetr.x import
-y`. A `sys.modules["rfdetr"]` alias would make those work, and was the first
-plan, but it is wrong in the case that matters: a user who also has the real
-`rfdetr` installed would have the vendored code's internal imports resolve
-against *their* copy through the ordinary path finder, silently mixing two
-versions of a model implementation. Rewriting makes `viame.rfdetr` closed over
-itself, and leaves a user's `import rfdetr` meaning theirs.
-
-Apache 2.0, so redistribution is fine; `LICENSE` is copied beside the code.
-
-What does *not* need rewriting, checked rather than assumed:
-
-  * relative imports -- there are none.
-  * `_RemovedModuleFinder` in `__init__.py`, which keys on `__name__` rather
-    than a literal, so it follows the package to its new name by itself.
-  * `get_version()`, which looks up the *distribution* `rfdetr` and returns
-    `None` on `PackageNotFoundError`. Vendored there is no such distribution,
-    and `None` is what it already does.
+Imports are rewritten rather than aliased: with the real package installed,
+an alias would let the vendored code's own imports resolve against *that*
+copy through the path finder. A fork VIAME patches gets its patch overlay
+applied first. `.yaml` is rewritten too -- sam2 names modules in Hydra
+configs, and renaming without them gives a package that imports and then
+fails at model construction.
 """
 
 import argparse

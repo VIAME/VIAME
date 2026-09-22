@@ -38,6 +38,57 @@ endif()
 set( VIAME_WHEEL_OUTPUT_DIR "${CMAKE_BINARY_DIR}/wheel"
      CACHE PATH "Where `make wheel` writes the .whl" )
 
+# ---------------------------------------------------------------------------
+# The CUDA variant
+#
+# Read from the toolkit this build actually used, not chosen: which CUDA a
+# binary needs is a property of how it was compiled. It decides three things
+# -- the nvidia wheel layout the RUNPATH targets, which `requirements-cu*`
+# is layered on, and whether the wheel carries a local version.
+#
+# cu13 is the default variant and carries none, so it is the plain `viame`
+# wheel. cu12 is `viame+cu12`, for the Pascal and Volta hardware CUDA 13
+# dropped. Note PyPI refuses local versions, so the cu12 wheel needs an index
+# of its own.
+# ---------------------------------------------------------------------------
+if( VIAME_ENABLE_CUDA AND CMAKE_CUDA_COMPILER )
+  if( NOT DEFINED VIAME_WHEEL_CUDA_MAJOR )
+    # `CUDAToolkit_VERSION_MAJOR` is not set unless FindCUDAToolkit ran, so
+    # take it from the compiler path the cache already holds.
+    if( CUDAToolkit_VERSION_MAJOR )
+      set( VIAME_WHEEL_CUDA_MAJOR "${CUDAToolkit_VERSION_MAJOR}" )
+    else()
+      execute_process(
+        COMMAND "${CMAKE_CUDA_COMPILER}" --version
+        OUTPUT_VARIABLE _nvcc_version OUTPUT_STRIP_TRAILING_WHITESPACE )
+      string( REGEX MATCH "release ([0-9]+)\\." _m "${_nvcc_version}" )
+      set( VIAME_WHEEL_CUDA_MAJOR "${CMAKE_MATCH_1}" )
+    endif()
+  endif()
+endif()
+
+set( _wheel_variant_args )
+set( _wheel_variant_requires )
+if( VIAME_WHEEL_CUDA_MAJOR )
+  set( _variant_file
+       "${VIAME_WHEEL_DIR}/requirements-cu${VIAME_WHEEL_CUDA_MAJOR}.txt" )
+  if( NOT EXISTS "${_variant_file}" )
+    message( FATAL_ERROR
+      "The wheel has no requirements for CUDA ${VIAME_WHEEL_CUDA_MAJOR}.\n"
+      "  Add cmake/wheel/requirements-cu${VIAME_WHEEL_CUDA_MAJOR}.txt, and a "
+      "layout for it in CUDA_WHEEL_DIRS in build_wheel.py." )
+  endif()
+  list( APPEND _wheel_variant_args --cuda-major "${VIAME_WHEEL_CUDA_MAJOR}" )
+  list( APPEND _wheel_variant_requires --requires-from "${_variant_file}" )
+  # cu13 is the default and unmarked; anything else is a variant.
+  if( NOT VIAME_WHEEL_CUDA_MAJOR EQUAL 13 )
+    list( APPEND _wheel_variant_args
+          --local-version "cu${VIAME_WHEEL_CUDA_MAJOR}" )
+  endif()
+  message( STATUS
+    "  wheel: CUDA ${VIAME_WHEEL_CUDA_MAJOR} variant" )
+endif()
+
 # The interpreter the extension modules were built against decides the wheel's
 # tag, so ask the build's python rather than whatever is first on PATH.
 if( DEFINED PYTHON_EXECUTABLE )
@@ -71,6 +122,8 @@ add_custom_target( wheel
           --top-level  viame
           --top-level  kwiver
           --requires-from "${VIAME_WHEEL_DIR}/requirements.txt"
+          ${_wheel_variant_requires}
+          ${_wheel_variant_args}
           --license-file "${CMAKE_SOURCE_DIR}/LICENSE.txt"
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
   COMMENT "Packing ${CMAKE_INSTALL_PREFIX} into a wheel"

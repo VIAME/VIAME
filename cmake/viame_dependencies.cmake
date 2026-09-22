@@ -48,7 +48,23 @@ if( VIAME_ENABLE_CUDA )
     # darknet after stripping the dots. `CMAKE_CUDA_ARCHITECTURES` wants the
     # same list without them, so it is derived there rather than written out
     # twice; this is only the fallback for a build that sets neither.
-    set( CMAKE_CUDA_ARCHITECTURES "60;61;70;75;80;86;89;90" )
+    #
+    # **Version-guarded for the same reason the dotted list below is.** CUDA
+    # 13 removed Maxwell, Pascal and Volta. This value is what
+    # `enable_language( CUDA )` compiles its own test with, and that happens
+    # before the dotted list is computed, so it cannot borrow the guard from
+    # there. Left at the old list a CUDA 13 configure fails as
+    #
+    #     nvcc fatal : Unsupported gpu architecture 'compute_60'
+    #
+    # which reads as a broken toolkit rather than as an architecture VIAME
+    # asked for and CUDA no longer has. `CUDA_VERSION` is available here:
+    # `find_package( CUDA )` runs twenty lines above.
+    if( CUDA_VERSION VERSION_LESS "13.0" )
+      set( CMAKE_CUDA_ARCHITECTURES "60;61;70;75;80;86;89;90" )
+    else()
+      set( CMAKE_CUDA_ARCHITECTURES "75;80;86;89;90" )
+    endif()
   endif()
 
   if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND NOT CUDA_cublas_device_LIBRARY )

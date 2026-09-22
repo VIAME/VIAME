@@ -1,0 +1,21 @@
+# torch and the CUDA runtime for a CUDA 12 build, layered over
+# requirements.txt. This is the +cu12 variant, for the Pascal and Volta
+# hardware CUDA 13 dropped -- V100 in particular is still common.
+#
+# PyPI refuses local version identifiers, so this wheel needs an index of its
+# own; see open decision 9.
+
+# Upper bound because this is a cu12 build: torch 2.7.1-2.10.0 pull
+# nvidia-*-cu12, 2.11.0 onward pull cu13. A cu13 torch does not satisfy
+# binaries linked against libcudart.so.12, and the failure is silent -- the
+# loader finds a system CUDA instead, if there is one.
+torch>=2.3.1,<2.11
+torchvision>=0.18.1
+
+# The cu12 wheels keep a directory per component, which this wheel's RUNPATH
+# targets. torch installs these anyway under the bound above; declared so a
+# --no-deps torch still leaves the binaries able to resolve.
+nvidia-cuda-runtime-cu12
+nvidia-cublas-cu12
+nvidia-curand-cu12
+nvidia-cudnn-cu12
