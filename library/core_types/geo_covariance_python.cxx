@@ -9,6 +9,7 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -16,7 +17,7 @@ namespace kv = viame;
 PYBIND11_MODULE( geo_covariance, m )
 {
   // This is needed to subclass geo_point
-  py::module::import( "viame.types.geo_point" );
+  VIAME_PYTHON_REQUIRE( "viame.types.geo_point" );
 
   py::class_< viame::geo_covariance,
     std::shared_ptr< viame::geo_covariance >,

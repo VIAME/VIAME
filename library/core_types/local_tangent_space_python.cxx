@@ -8,11 +8,12 @@
 #include <pybind11/pybind11.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( local_tangent_space, m )
+VIAME_PYTHON_MODULE( local_tangent_space, m )
 {
   py::class_<
     kv::local_tangent_space,

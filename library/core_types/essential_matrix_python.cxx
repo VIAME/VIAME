@@ -8,6 +8,7 @@
 #include <pybind11/pybind11.h>
 
 #include <sstream>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -71,9 +72,9 @@ declare_essential_matrix(
   ;
 }
 
-PYBIND11_MODULE( essential_matrix, m )
+VIAME_PYTHON_MODULE( essential_matrix, m )
 {
-  py::module::import( "viame.types.rotation" );
+  VIAME_PYTHON_REQUIRE( "viame.types.rotation" );
 
   py::class_< kv::essential_matrix,
     std::shared_ptr< kv::essential_matrix > >( m, "BaseEssentialMatrix" );

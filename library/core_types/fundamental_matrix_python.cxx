@@ -9,6 +9,7 @@
 
 #include <cctype>
 #include <sstream>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -63,7 +64,7 @@ declare_fundamental_matrix(
   ;
 }
 
-PYBIND11_MODULE( fundamental_matrix, m )
+VIAME_PYTHON_MODULE( fundamental_matrix, m )
 {
   py::class_< kv::fundamental_matrix,
     std::shared_ptr< kv::fundamental_matrix > >( m, "BaseFundamentalMatrix" );

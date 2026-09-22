@@ -10,6 +10,7 @@
 #include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -27,7 +28,7 @@ class camera_perspective_map_trampoline
   virtual std::set< kv::frame_id_t > get_frame_ids() const;
 };
 
-PYBIND11_MODULE( camera_perspective_map, m )
+VIAME_PYTHON_MODULE( camera_perspective_map, m )
 {
   using cam_sptr_t = std::shared_ptr< kv::camera_perspective >;
 

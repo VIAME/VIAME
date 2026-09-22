@@ -5,6 +5,7 @@
 #include <viame/core_types/homography.h>
 #include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
@@ -54,9 +55,9 @@ declare_homogaphy( py::module& m, std::string const& typestr )
 } // namespace viame
 
 using namespace viame::python;
-PYBIND11_MODULE( homography, m )
+VIAME_PYTHON_MODULE( homography, m )
 {
-  py::module::import( "viame.types.transform_2d" );
+  VIAME_PYTHON_REQUIRE( "viame.types.transform_2d" );
   py::class_< kv::homography,
     kv::transform_2d,
     std::shared_ptr< kv::homography > >( m, "BaseHomography" );

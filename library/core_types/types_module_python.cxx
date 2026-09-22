@@ -11,11 +11,12 @@
 #include <pybind11/pybind11.h>
 #include "image_python.h"
 #include "image_container_python.h"
+#include "python_fold.h"
 
 namespace py = pybind11;
 using namespace viame::python;
 
-PYBIND11_MODULE( types, m )
+VIAME_PYTHON_MODULE( types, m )
 {
   image
   ::image( m );

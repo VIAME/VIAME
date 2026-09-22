@@ -7,12 +7,13 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE( camera_map, m )
+VIAME_PYTHON_MODULE( camera_map, m )
 {
-  py::module::import( "viame.types.camera_perspective" );
+  VIAME_PYTHON_REQUIRE( "viame.types.camera_perspective" );
 
   py::class_< viame::simple_camera_map,
     std::shared_ptr< viame::simple_camera_map > >( m, "CameraMap" )

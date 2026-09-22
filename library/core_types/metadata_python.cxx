@@ -16,6 +16,7 @@
 #include <fstream>
 #include <memory>
 #include <string>
+#include "python_fold.h"
 
 namespace py = pybind11;
 using namespace viame;
@@ -71,9 +72,9 @@ adder( metadata& self, py::object data, vital_metadata_tag tag )
 } // namespace <anonymous>
 
 // ----------------------------------------------------------------------------
-PYBIND11_MODULE( metadata, m )
+VIAME_PYTHON_MODULE( metadata, m )
 {
-  py::module::import( "viame.types.metadata_tags" );
+  VIAME_PYTHON_REQUIRE( "viame.types.metadata_tags" );
 
   py::class_< metadata_item,
     std::shared_ptr< metadata_item > >( m, "MetadataItem" )

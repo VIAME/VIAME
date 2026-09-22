@@ -5,10 +5,11 @@
 #include <viame/core_types/video_raw_image.h>
 
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE( video_raw_image, m )
+VIAME_PYTHON_MODULE( video_raw_image, m )
 {
   py::class_< viame::video_raw_image,
     viame::video_raw_image_sptr >( m, "VideoRawImage" )

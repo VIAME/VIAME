@@ -8,13 +8,14 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( track_descriptor, m )
+VIAME_PYTHON_MODULE( track_descriptor, m )
 {
-  py::module::import( "viame.types.uid" );
+  VIAME_PYTHON_REQUIRE( "viame.types.uid" );
 
   // First the history_entry class nested in track_descriptor
   py::class_< kv::track_descriptor::history_entry,

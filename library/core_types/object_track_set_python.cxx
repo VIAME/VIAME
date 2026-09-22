@@ -6,6 +6,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 typedef viame::object_track_state obj_track_state;
 typedef viame::object_track_set obj_track_set;
@@ -32,7 +33,7 @@ get_track( std::shared_ptr< obj_track_set >& self, uint64_t id )
 } // namespace viame
 
 using namespace viame::python;
-PYBIND11_MODULE( object_track_set, m )
+VIAME_PYTHON_MODULE( object_track_set, m )
 {
   py::class_< obj_track_state, viame::track_state,
     std::shared_ptr< obj_track_state > >( m, "ObjectTrackState" )

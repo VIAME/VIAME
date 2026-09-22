@@ -7,6 +7,7 @@
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
@@ -69,7 +70,7 @@ det_obj_set_trampoline
   );
 }
 
-PYBIND11_MODULE( detected_object_set, m )
+VIAME_PYTHON_MODULE( detected_object_set, m )
 {
   /*
    *

@@ -8,6 +8,7 @@
 #include <pybind11/pybind11.h>
 
 #include <memory>
+#include "python_fold.h"
 namespace py = pybind11;
 
 namespace viame {
@@ -68,7 +69,7 @@ declare_similarity(
 } // namespace viame
 
 using namespace viame::python;
-PYBIND11_MODULE( similarity, m )
+VIAME_PYTHON_MODULE( similarity, m )
 {
   declare_similarity< float >( m, "F", "f" );
   declare_similarity< double >( m, "D", "d" );

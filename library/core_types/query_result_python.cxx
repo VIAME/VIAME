@@ -8,6 +8,7 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -44,7 +45,7 @@ query_result_set_descriptors(
       new kv::track_descriptor_set( tdset ) ) );
 }
 
-PYBIND11_MODULE( query_result, m )
+VIAME_PYTHON_MODULE( query_result, m )
 {
   py::class_< viame::query_result,
     std::shared_ptr< viame::query_result > >( m, "QueryResult" )

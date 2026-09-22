@@ -5,10 +5,11 @@
 #include <viame/core_types/color.h>
 
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE( color, m )
+VIAME_PYTHON_MODULE( color, m )
 {
   py::class_< viame::rgb_color,
     std::shared_ptr< viame::rgb_color > >( m, "RGBColor" )

@@ -8,6 +8,7 @@
 #include <viame/algorithm_framework/util/demangle.h>
 
 #include <string>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -55,7 +56,7 @@ define_landmark( PyClass& pyclass )
   ;
 }
 
-PYBIND11_MODULE( landmark, m )
+VIAME_PYTHON_MODULE( landmark, m )
 {
   py::class_< kv::landmark, std::shared_ptr< kv::landmark > >( m, "Landmark" )
     .def( "loc",           &kv::landmark::loc )

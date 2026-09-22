@@ -8,11 +8,12 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( iqr_feedback, m )
+VIAME_PYTHON_MODULE( iqr_feedback, m )
 {
   py::class_< kv::iqr_feedback, std::shared_ptr< kv::iqr_feedback > >(
     m,

@@ -8,6 +8,7 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -21,7 +22,7 @@ public:
   std::vector< kv::feature_sptr > features() const override;
 };
 
-PYBIND11_MODULE( feature_set, m )
+VIAME_PYTHON_MODULE( feature_set, m )
 {
   py::class_< kv::feature_set,
     std::shared_ptr< kv::feature_set >,

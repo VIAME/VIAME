@@ -8,6 +8,7 @@
 #include <viame/core_types/descriptor_set.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
@@ -41,7 +42,7 @@ new_desc_set1( py::list py_list )
 } // namespace viame
 
 using namespace viame::python;
-PYBIND11_MODULE( descriptor_set, m )
+VIAME_PYTHON_MODULE( descriptor_set, m )
 {
   // The accessors live on the base class: a descriptor set that reaches
   // python from C++ -- the return of ExtractDescriptors.extract(), say -- is

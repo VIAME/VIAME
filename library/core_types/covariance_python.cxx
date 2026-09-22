@@ -6,6 +6,7 @@
 
 #include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -51,7 +52,7 @@ declare_covariance( py::module& m, std::string const& typestr )
   ;
 }
 
-PYBIND11_MODULE( covariance, m )
+VIAME_PYTHON_MODULE( covariance, m )
 {
   declare_covariance< 2, double >( m, "2d" );
   declare_covariance< 2, float  >( m, "2f" );

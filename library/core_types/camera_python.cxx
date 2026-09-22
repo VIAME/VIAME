@@ -8,6 +8,7 @@
 #include <pybind11/pybind11.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -33,7 +34,7 @@ class camera_trampoline
 } // namespace viame
 
 using namespace viame::python;
-PYBIND11_MODULE( camera, m )
+VIAME_PYTHON_MODULE( camera, m )
 {
   py::class_< kv::camera,
     std::shared_ptr< kv::camera >,

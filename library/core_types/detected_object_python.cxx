@@ -11,6 +11,7 @@
 #include <pybind11/stl.h>
 
 #include <stdexcept>
+#include "python_fold.h"
 
 typedef viame::detected_object det_obj;
 
@@ -245,10 +246,10 @@ det_obj_attribute_keys( detected_object const& self )
 
 using namespace viame;
 
-PYBIND11_MODULE( detected_object, m )
+VIAME_PYTHON_MODULE( detected_object, m )
 {
-  py::module::import( "viame.types.geo_point" );
-  py::module::import( "viame.types.point" );
+  VIAME_PYTHON_REQUIRE( "viame.types.geo_point" );
+  VIAME_PYTHON_REQUIRE( "viame.types.point" );
 
   /*
    *

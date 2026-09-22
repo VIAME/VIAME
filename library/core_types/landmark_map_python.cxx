@@ -7,6 +7,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 #include <viame/core_types/landmark_map.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -14,9 +15,9 @@ typedef kv::simple_landmark_map s_landmark_map;
 typedef std::map< kv::landmark_id_t, kv::landmark_sptr > map_landmark_t;
 using namespace viame;
 
-PYBIND11_MODULE( landmark_map, m )
+VIAME_PYTHON_MODULE( landmark_map, m )
 {
-  py::module::import( "viame.types.landmark" );
+  VIAME_PYTHON_REQUIRE( "viame.types.landmark" );
 
   py::bind_map< map_landmark_t >( m, "LandmarkDict" );
 

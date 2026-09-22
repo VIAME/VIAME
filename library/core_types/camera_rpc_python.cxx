@@ -8,6 +8,7 @@
 #include <pybind11/pybind11.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -44,9 +45,9 @@ public:
   using kv::camera_rpc::jacobian;
 };
 
-PYBIND11_MODULE( camera_rpc, m )
+VIAME_PYTHON_MODULE( camera_rpc, m )
 {
-  py::module::import( "viame.types.camera" );
+  VIAME_PYTHON_REQUIRE( "viame.types.camera" );
 
   py::class_< kv::camera_rpc,
     std::shared_ptr< kv::camera_rpc >,

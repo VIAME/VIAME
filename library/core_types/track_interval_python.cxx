@@ -7,11 +7,12 @@
 #include <pybind11/pybind11.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( track_interval, m )
+VIAME_PYTHON_MODULE( track_interval, m )
 {
   py::class_< kv::track_interval, std::shared_ptr< kv::track_interval > >(
     m,

@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <sstream>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -41,7 +42,7 @@ public:
   bool is_map_valid( const kv::vector_3d& norm_hpt ) const override;
 };
 
-PYBIND11_MODULE( camera_intrinsics, m )
+VIAME_PYTHON_MODULE( camera_intrinsics, m )
 {
   py::class_< kv::camera_intrinsics,
     std::shared_ptr< kv::camera_intrinsics >,

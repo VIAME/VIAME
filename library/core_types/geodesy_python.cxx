@@ -9,11 +9,12 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( geodesy, m )
+VIAME_PYTHON_MODULE( geodesy, m )
 {
   // Define a submodule for the SRID namespace,
   // which contains identifier codes for different spatial reference systems

@@ -7,6 +7,7 @@
 #include <memory>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -29,7 +30,7 @@ public:
   std::set< kv::frame_id_t > frames() const override;
 };
 
-PYBIND11_MODULE( metadata_map, m )
+VIAME_PYTHON_MODULE( metadata_map, m )
 {
   py::class_< kv::metadata_map,
     std::shared_ptr< kv::metadata_map >,

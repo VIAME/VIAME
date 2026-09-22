@@ -5,10 +5,11 @@
 #include <viame/core_types/video_raw_metadata.h>
 
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE( video_raw_metadata, m )
+VIAME_PYTHON_MODULE( video_raw_metadata, m )
 {
   py::class_< viame::video_raw_metadata,
     viame::video_raw_metadata_sptr >( m, "VideoRawMetadata" )

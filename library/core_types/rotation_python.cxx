@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <vector>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -119,7 +120,7 @@ declare_rotation(
 
 using namespace viame::python;
 
-PYBIND11_MODULE( rotation, m )
+VIAME_PYTHON_MODULE( rotation, m )
 {
   declare_rotation< float >( m, "F", "f" );
   declare_rotation< double >( m, "D", "d" );

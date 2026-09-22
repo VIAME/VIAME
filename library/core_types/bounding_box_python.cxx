@@ -7,6 +7,7 @@
 #include <viame/core_types/casters.h>
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
@@ -136,7 +137,7 @@ bounding_box( py::module& m, const char* typestr )
   ;
 }
 
-PYBIND11_MODULE( bounding_box, m )
+VIAME_PYTHON_MODULE( bounding_box, m )
 {
   bounding_box< double >( m, "D" );
   bounding_box< float >( m, "F" );

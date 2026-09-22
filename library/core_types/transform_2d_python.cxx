@@ -9,6 +9,7 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -31,7 +32,7 @@ public:
   using kv::transform_2d::inverse_;
 };
 
-PYBIND11_MODULE( transform_2d, m )
+VIAME_PYTHON_MODULE( transform_2d, m )
 {
   py::class_< kv::transform_2d, transform_2d_trampoline,
     std::shared_ptr< kv::transform_2d > >( m, "Transform2D" )

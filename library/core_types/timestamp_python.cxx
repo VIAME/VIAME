@@ -7,12 +7,13 @@
 #include <pybind11/embed.h>
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
 using ts = viame::timestamp;
 
-PYBIND11_MODULE( timestamp, m )
+VIAME_PYTHON_MODULE( timestamp, m )
 {
   py::class_< ts, std::shared_ptr< ts > >(
     m, "Timestamp",

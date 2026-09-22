@@ -9,11 +9,12 @@
 
 #include <memory>
 #include <sstream>
+#include "python_fold.h"
 
 namespace kv = viame;
 namespace py = pybind11;
 
-PYBIND11_MODULE( geo_point, m )
+VIAME_PYTHON_MODULE( geo_point, m )
 {
   py::class_< kv::geo_point, std::shared_ptr< kv::geo_point > >( m, "GeoPoint" )
     .def( py::init<>() )

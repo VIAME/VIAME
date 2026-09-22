@@ -6,11 +6,12 @@
 #include <viame/core_types/metadata_traits.h>
 
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( metadata_tags, m )
+VIAME_PYTHON_MODULE( metadata_tags, m )
 {
   auto tags_enum = py::enum_< kv::vital_metadata_tag >( m, "tags" );
   for( auto tag = kv::VITAL_META_UNKNOWN; tag < kv::VITAL_META_LAST_TAG;

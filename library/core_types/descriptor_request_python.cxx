@@ -8,14 +8,15 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( descriptor_request, m )
+VIAME_PYTHON_MODULE( descriptor_request, m )
 {
-  py::module::import( "viame.types.timestamp" );
-  py::module::import( "viame.types.uid" );
+  VIAME_PYTHON_REQUIRE( "viame.types.timestamp" );
+  VIAME_PYTHON_REQUIRE( "viame.types.uid" );
 
   py::class_< viame::descriptor_request,
     std::shared_ptr< viame::descriptor_request > >(

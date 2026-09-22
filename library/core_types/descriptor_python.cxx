@@ -5,6 +5,7 @@
 #include <pybind11/stl.h>
 
 #include <viame/core_types/descriptor.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
@@ -146,7 +147,7 @@ bind_descriptor( py::module& m, std::string&& typestr )
       py::arg( "index" ) );
 }
 
-PYBIND11_MODULE( descriptor, m )
+VIAME_PYTHON_MODULE( descriptor, m )
 {
   // we have to use a separate function to initialize Descriptors, because it
   // can return one of two separate types (DescriptorD or DescriptorF)

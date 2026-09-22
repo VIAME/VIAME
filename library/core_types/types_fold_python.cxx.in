@@ -1,0 +1,28 @@
+// This file is part of VIAME, and is distributed under an OSI-approved #
+// BSD 3-Clause License. See either the root top-level LICENSE file or  #
+// https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+//
+// GENERATED from types_fold_python.cxx.in by python.cmake -- do not edit.
+//
+// The one extension module behind `viame.types`. Each translation unit that
+// used to be its own module now registers into a submodule of the same name,
+// and `viame/types/<name>.py` re-exports it, so `viame.types.bounding_box`
+// still names what it always did.
+//
+// The order below is `types_init.py`'s import order, and it is load-bearing:
+// `detected_object` references `detected_object_type`, and `homography`
+// references `transform_2d`. As separate modules that order was enforced by
+// the sequence of imports; here every submodule registers during one import,
+// so the sequence is this file's.
+
+#include <pybind11/pybind11.h>
+
+@VIAME_TYPES_DECLS@
+
+PYBIND11_MODULE( _types, m )
+{
+  m.doc() = "viame.types, as one extension module. Import the submodules "
+            "through viame.types.<name> rather than from here.";
+
+@VIAME_TYPES_CALLS@
+}

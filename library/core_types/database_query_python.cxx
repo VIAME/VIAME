@@ -8,6 +8,7 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -44,12 +45,12 @@ database_query_set_descriptors(
       new kv::track_descriptor_set( tdset ) ) );
 }
 
-PYBIND11_MODULE( database_query, m )
+VIAME_PYTHON_MODULE( database_query, m )
 {
-  py::module::import( "viame.types.geo_polygon" );
-  py::module::import( "viame.types.timestamp" );
-  py::module::import( "viame.types.track_descriptor" );
-  py::module::import( "viame.types.uid" );
+  VIAME_PYTHON_REQUIRE( "viame.types.geo_polygon" );
+  VIAME_PYTHON_REQUIRE( "viame.types.timestamp" );
+  VIAME_PYTHON_REQUIRE( "viame.types.track_descriptor" );
+  VIAME_PYTHON_REQUIRE( "viame.types.uid" );
 
   py::enum_< kv::query_filter >( m, "query_filter" )
     .value( "IGNORE_FILTER", kv::query_filter::IGNORE_FILTER )

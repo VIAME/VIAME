@@ -7,6 +7,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
 #include <viame/core_types/match_set.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -14,7 +15,7 @@ typedef viame::match match_t;
 typedef viame::match_set match_set_t;
 typedef viame::simple_match_set s_match_set_t;
 
-PYBIND11_MODULE( match_set, m )
+VIAME_PYTHON_MODULE( match_set, m )
 {
   py::bind_vector< std::vector< match_t > >( m, "MatchVector" );
   py::class_< match_set_t, std::shared_ptr< match_set_t > >( m, "BaseMatchSet" )

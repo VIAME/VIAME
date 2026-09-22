@@ -5,11 +5,12 @@
 #include <viame/core_types/metadata_traits.h>
 
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 using namespace viame;
 
-PYBIND11_MODULE( metadata_traits, m )
+VIAME_PYTHON_MODULE( metadata_traits, m )
 {
   py::class_< metadata_tag_traits,
     std::shared_ptr< metadata_tag_traits > >( m, "MetadataTagTraits" )

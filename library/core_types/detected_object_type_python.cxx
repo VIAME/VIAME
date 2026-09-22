@@ -6,11 +6,12 @@
 
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( detected_object_type, m )
+VIAME_PYTHON_MODULE( detected_object_type, m )
 {
   py::class_< viame::detected_object_type,
     std::shared_ptr< viame::detected_object_type > >(

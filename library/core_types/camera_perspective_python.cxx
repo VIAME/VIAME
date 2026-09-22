@@ -10,6 +10,7 @@
 #include <pybind11/pybind11.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -39,11 +40,11 @@ public:
   virtual double depth( const kv::vector_3d& pt ) const override;
 };
 
-PYBIND11_MODULE( camera_perspective, m )
+VIAME_PYTHON_MODULE( camera_perspective, m )
 {
-  py::module::import( "viame.types.camera" );
-  py::module::import( "viame.types.covariance" );
-  py::module::import( "viame.types.rotation" );
+  VIAME_PYTHON_REQUIRE( "viame.types.camera" );
+  VIAME_PYTHON_REQUIRE( "viame.types.covariance" );
+  VIAME_PYTHON_REQUIRE( "viame.types.rotation" );
   py::class_< kv::camera_perspective,
     std::shared_ptr< kv::camera_perspective >,
     kv::camera,

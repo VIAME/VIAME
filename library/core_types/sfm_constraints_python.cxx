@@ -9,11 +9,12 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( sfm_constraints, m )
+VIAME_PYTHON_MODULE( sfm_constraints, m )
 {
   py::class_< kv::sfm_constraints,
     std::shared_ptr< kv::sfm_constraints > >( m, "SFMConstraints" )

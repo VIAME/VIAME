@@ -7,13 +7,14 @@
 #include <viame/core_types/activity.h>
 #include <viame/core_types/activity_type.h>
 #include <viame/core_types/viame_core_types.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( activity, m )
+VIAME_PYTHON_MODULE( activity, m )
 {
-  py::module::import( "viame.types.timestamp" );
+  VIAME_PYTHON_REQUIRE( "viame.types.timestamp" );
 
   py::class_< kv::activity,
     std::shared_ptr< kv::activity > >( m, "Activity" )

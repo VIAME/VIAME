@@ -8,6 +8,7 @@
 #include <pybind11/pybind11.h>
 
 #include <sstream>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -23,7 +24,7 @@ declare_point( py::module& m, std::string const& typestr )
   using vector_type = kv::vector_< N, T >;
   using covariance_type = kv::covariance_< N, float >;
 
-  py::module::import( "viame.types.covariance" );
+  VIAME_PYTHON_REQUIRE( "viame.types.covariance" );
 
   const std::string pyclass_name = std::string( "Point" ) + typestr;
 
@@ -60,7 +61,7 @@ declare_point2( py::module& m, std::string const& typestr )
   using vector_type = viame::vector_< 2, T >;
   using covariance_type = kv::covariance_< 2, float >;
 
-  py::module::import( "viame.types.covariance" );
+  VIAME_PYTHON_REQUIRE( "viame.types.covariance" );
 
   const std::string pyclass_name = std::string( "Point" ) + typestr;
 
@@ -90,7 +91,7 @@ declare_point2( py::module& m, std::string const& typestr )
     } );
 }
 
-PYBIND11_MODULE( point, m )
+VIAME_PYTHON_MODULE( point, m )
 {
   // Use specialized 2D bindings with x,y constructor
   declare_point2< int >( m, "2i" );

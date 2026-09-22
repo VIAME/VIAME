@@ -8,6 +8,7 @@
 #include <pybind11/pybind11.h>
 
 #include <sstream>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -67,9 +68,9 @@ declare_feature( py::module& m, std::string const& typestr )
 } // namespace viame
 
 using namespace viame::python;
-PYBIND11_MODULE( feature, m )
+VIAME_PYTHON_MODULE( feature, m )
 {
-  py::module::import( "viame.types.color" );
+  VIAME_PYTHON_REQUIRE( "viame.types.color" );
 
   py::class_< kv::feature, std::shared_ptr< kv::feature > >( m, "Feature" )
     .def(

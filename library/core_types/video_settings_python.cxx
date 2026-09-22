@@ -6,12 +6,13 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 using namespace viame;
 
 // ----------------------------------------------------------------------------
-PYBIND11_MODULE( video_settings, m )
+VIAME_PYTHON_MODULE( video_settings, m )
 {
   py::class_< video_settings, video_settings_sptr >( m, "BaseVideoSettings" )
     .def( "width", &video_settings::width )

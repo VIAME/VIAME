@@ -9,11 +9,12 @@
 #include <pybind11/stl.h>
 
 #include <memory>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( polygon, m )
+VIAME_PYTHON_MODULE( polygon, m )
 {
   py::class_< kv::polygon, std::shared_ptr< kv::polygon > >( m, "Polygon" )
     .def( py::init<>() )

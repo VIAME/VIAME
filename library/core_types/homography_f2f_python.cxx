@@ -10,6 +10,7 @@
 #include <viame/core_types/viame_core_types.h>
 #include <sstream>
 #include <stdexcept>
+#include "python_fold.h"
 
 namespace kv = viame;
 namespace py = pybind11;
@@ -18,7 +19,7 @@ using f2f_homography = kv::f2f_homography;
 using float_mat_t = viame::matrix_< 3, 3, float >;
 using double_mat_t = viame::matrix_< 3, 3, double >;
 
-PYBIND11_MODULE( homography_f2f, m )
+VIAME_PYTHON_MODULE( homography_f2f, m )
 {
   py::class_< f2f_homography, std::shared_ptr< f2f_homography > >(
     m,

@@ -6,6 +6,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
@@ -29,7 +30,7 @@ get_track( std::shared_ptr< viame::track_set >& self, uint64_t id )
 } // namespace viame
 
 using namespace viame::python;
-PYBIND11_MODULE( track_set, m )
+VIAME_PYTHON_MODULE( track_set, m )
 {
   py::class_< viame::track_set,
     std::shared_ptr< viame::track_set > >( m, "TrackSet" )

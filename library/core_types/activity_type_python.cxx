@@ -6,10 +6,11 @@
 
 #include <pybind11/embed.h>
 #include <pybind11/stl.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE( activity_type, m )
+VIAME_PYTHON_MODULE( activity_type, m )
 {
   py::class_< viame::activity_type,
     std::shared_ptr< viame::activity_type > >( m, "ActivityType" )

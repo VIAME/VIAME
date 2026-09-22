@@ -10,13 +10,14 @@
 
 #include <memory>
 #include <sstream>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
 
-PYBIND11_MODULE( geo_polygon, m )
+VIAME_PYTHON_MODULE( geo_polygon, m )
 {
-  py::module::import( "viame.types.polygon" );
+  VIAME_PYTHON_REQUIRE( "viame.types.polygon" );
 
   py::class_< kv::geo_polygon, std::shared_ptr< kv::geo_polygon > >(
     m,

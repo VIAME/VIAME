@@ -29,588 +29,129 @@ set( THIS_MODULE types )
 
 viame_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/types_init.py "${THIS_MODULE}" __init__ )
 
+# ----------------------------------------------------------------------------
+# One extension module, not fifty-six
+#
+# Each of these was its own `.so`, and fifty-six of them cost 68.6 MB because
+# every module carries its own copy of the same instantiated pybind11 and STL
+# templates. Linked together the code is 16.6 MB, 8.3 MB stripped: 83% of the
+# exported symbols were duplicates. Measured with the linker on the existing
+# object files before the change was written, not estimated.
+#
+# `viame.types.<name>` is unchanged. Each name is a submodule of `_types` and
+# a one-line `viame/types/<name>.py` re-exports it, so the import path, the
+# `from viame.types.X import *` lines in `types_init.py`, and the four files
+# in the tree that import a submodule by name all keep working.
+# `tests/test_python_types.py` holds the surface to 106 classes and 965
+# members and is what says whether that is true.
+#
+# The order comes from `types_init.py` rather than a list kept here, because
+# it is load-bearing -- `detected_object` references `detected_object_type`,
+# `homography` references `transform_2d` -- and two lists that must agree
+# eventually do not.
+# ----------------------------------------------------------------------------
+
 set( vital_python_headers
      image_python.h
      image_container_python.h
   )
 
-set( vital_python_sources
+# The module list, and the order they register in, both come from the sources
+# -- `VIAME_PYTHON_MODULE` names each module and `VIAME_PYTHON_REQUIRE` names
+# what it needs -- so a binding that grows a dependency is ordered correctly
+# by saying so where it already had to. `types_init.py`'s order will not do:
+# seventeen of these dependencies are back edges in it. See
+# `generate_types_fold.py`.
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}"
+          "${CMAKE_CURRENT_SOURCE_DIR}/generate_types_fold.py"
+          --source-dir "${CMAKE_CURRENT_SOURCE_DIR}"
+          --output     "${CMAKE_CURRENT_BINARY_DIR}/types_fold_python.cxx"
+  RESULT_VARIABLE viame_types_fold_result
+  OUTPUT_VARIABLE viame_types_fold_output
+  ERROR_VARIABLE  viame_types_fold_error
+  )
+if( NOT viame_types_fold_result EQUAL 0 )
+  message( FATAL_ERROR
+    "generate_types_fold.py failed (${viame_types_fold_result}):\n"
+    "${viame_types_fold_output}${viame_types_fold_error}" )
+endif()
+message( STATUS "${viame_types_fold_output}" )
+
+# Re-run it when a binding is added, removed, or changes its dependencies.
+# Configure-time generation is otherwise invisible to the build.
+file( GLOB viame_types_binding_sources
+      CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*_python.cxx" )
+set_property( DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+              ${viame_types_binding_sources}
+              "${CMAKE_CURRENT_SOURCE_DIR}/generate_types_fold.py" )
+
+# The submodules the generator emitted, which is also the source list: one
+# `<name>_python.cxx` each, `types` being `types_module_python.cxx`. Read back
+# from the generated file rather than globbing `*_python.cxx`, because five of
+# those are dead -- `geo_MGRS`, `geo_covariance`, `homography_f2w`, `mesh` and
+# `descriptor_class` have had no object in the build for as long as the build
+# has existed, and two of them no longer compile at all. A glob would have
+# quietly started building them.
+file( STRINGS "${CMAKE_CURRENT_BINARY_DIR}/types_fold_python.cxx"
+      viame_types_submodule_lines
+      REGEX "def_submodule\\( \"[A-Za-z_0-9]+\" \\)" )
+
+set( viame_types_modules )
+foreach( line IN LISTS viame_types_submodule_lines )
+  string( REGEX REPLACE ".*def_submodule\\( \"([A-Za-z_0-9]+)\" \\).*" "\\1"
+          name "${line}" )
+  list( APPEND viame_types_modules "${name}" )
+endforeach()
+
+list( LENGTH viame_types_modules viame_types_count )
+if( viame_types_count LESS 50 )
+  message( FATAL_ERROR
+    "core_types: read ${viame_types_count} submodules from the generated "
+    "fold, expected at least 50" )
+endif()
+
+# `image` and `image_container` are translation units of the `types` module
+# rather than modules of their own, so they are named and not derived.
+set( viame_types_sources
+     ${vital_python_headers}
      image_python.cxx
      image_container_python.cxx
-     types_module_python.cxx
-   )
+     "${CMAKE_CURRENT_BINARY_DIR}/types_fold_python.cxx"
+  )
+foreach( name IN LISTS viame_types_modules )
+  if( name STREQUAL "types" )
+    list( APPEND viame_types_sources types_module_python.cxx )
+  else()
+    list( APPEND viame_types_sources "${name}_python.cxx" )
+  endif()
+endforeach()
 
 viame_add_python_library(
-  types
+  _types
   "${THIS_MODULE}"
-  SOURCES ${vital_python_headers}
-          ${vital_python_sources}
+  SOURCES ${viame_types_sources}
   PRIVATE pybind11::pybind11
           ${PYTHON_LIBRARIES}
           viame_algorithm_framework
-)
-
-viame_add_python_library(
-  activity
-  "${THIS_MODULE}"
-  SOURCES activity_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  activity_type
-  "${THIS_MODULE}"
-  SOURCES activity_type_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  bounding_box
-  "${THIS_MODULE}"
-  SOURCES bounding_box_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  camera
-  "${THIS_MODULE}"
-  SOURCES camera_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  camera_intrinsics
-  "${THIS_MODULE}"
-  SOURCES camera_intrinsics_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  camera_map
-  "${THIS_MODULE}"
-  SOURCES camera_map_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  camera_perspective
-  "${THIS_MODULE}"
-  SOURCES camera_perspective_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  camera_perspective_map
-  "${THIS_MODULE}"
-  SOURCES camera_perspective_map_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-           viame_algorithm_framework
   )
 
-viame_add_python_library(
-  camera_rpc
-  "${THIS_MODULE}"
-  SOURCES camera_rpc_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
+# What turns `VIAME_PYTHON_MODULE` from `PYBIND11_MODULE` into a registration
+# function; see `python_fold.h`. Set on the target rather than globally, so
+# that a translation unit outside this fold still builds its own module.
+target_compile_definitions( python-types-_types PRIVATE VIAME_PYTHON_FOLD )
+target_include_directories( python-types-_types PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}" )
 
-viame_add_python_library(
-  category_hierarchy
-  "${THIS_MODULE}"
-  SOURCES category_hierarchy_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  color
-  "${THIS_MODULE}"
-  SOURCES color_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  covariance
-  "${THIS_MODULE}"
-  SOURCES covariance_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  database_query
-  "${THIS_MODULE}"
-  SOURCES database_query_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  descriptor
-  "${THIS_MODULE}"
-  SOURCES descriptor_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  descriptor_request
-  "${THIS_MODULE}"
-  SOURCES descriptor_request_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  descriptor_set
-  "${THIS_MODULE}"
-  SOURCES descriptor_set_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  detected_object
-  "${THIS_MODULE}"
-  SOURCES detected_object_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  detected_object_set
-  "${THIS_MODULE}"
-  SOURCES detected_object_set_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  detected_object_type
-  "${THIS_MODULE}"
-  SOURCES detected_object_type_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  essential_matrix
-  "${THIS_MODULE}"
-  SOURCES essential_matrix_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  feature
-  "${THIS_MODULE}"
-  SOURCES feature_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  feature_set
-  "${THIS_MODULE}"
-  SOURCES feature_set_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  feature_track_set
-  "${THIS_MODULE}"
-  SOURCES feature_track_set_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  fundamental_matrix
-  "${THIS_MODULE}"
-  SOURCES fundamental_matrix_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-# Dropped with phase 5's import: the C++ types behind these did not come
-# across, because nothing in VIAME reaches them and phase 5's prune lists
-# them anyway. The python names go too; nothing imports them.
-
-viame_add_python_library(
-  geodesy
-  "${THIS_MODULE}"
-  SOURCES geodesy_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-
-
-viame_add_python_library(
-  geo_point
-  "${THIS_MODULE}"
-  SOURCES geo_point_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  geo_polygon
-  "${THIS_MODULE}"
-  SOURCES geo_polygon_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  homography
-  "${THIS_MODULE}"
-  SOURCES homography_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  homography_f2f
-  "${THIS_MODULE}"
-  SOURCES homography_f2f_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-
-viame_add_python_library(
-  iqr_feedback
-  "${THIS_MODULE}"
-  SOURCES iqr_feedback_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  landmark
-  "${THIS_MODULE}"
-  SOURCES landmark_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework)
-
-viame_add_python_library(
-  landmark_map
-  "${THIS_MODULE}"
-  SOURCES landmark_map_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  local_tangent_space
-  "${THIS_MODULE}"
-  SOURCES local_tangent_space_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  match_set
-  "${THIS_MODULE}"
-  SOURCES match_set_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-
-viame_add_python_library(
-  metadata
-  "${THIS_MODULE}"
-  SOURCES metadata_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  metadata_map
-  "${THIS_MODULE}"
-  SOURCES metadata_map_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  metadata_tags
-  "${THIS_MODULE}"
-  SOURCES metadata_tags_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  metadata_traits
-  "${THIS_MODULE}"
-  SOURCES metadata_traits_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  point
-  "${THIS_MODULE}"
-  SOURCES point_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  polygon
-  "${THIS_MODULE}"
-  SOURCES polygon_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  query_result
-  "${THIS_MODULE}"
-  SOURCES query_result_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  rotation
-  "${THIS_MODULE}"
-  SOURCES rotation_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  similarity
-  "${THIS_MODULE}"
-  SOURCES similarity_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  sfm_constraints
-  "${THIS_MODULE}"
-  SOURCES sfm_constraints_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  timestamp
-  "${THIS_MODULE}"
-  SOURCES timestamp_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  track
-  "${THIS_MODULE}"
-  SOURCES track_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  track_descriptor
-  "${THIS_MODULE}"
-  SOURCES track_descriptor_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  track_interval
-  "${THIS_MODULE}"
-  SOURCES track_interval_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  track_set
-  "${THIS_MODULE}"
-  SOURCES track_set_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  transform_2d
-  "${THIS_MODULE}"
-  SOURCES transform_2d_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  uid
-  "${THIS_MODULE}"
-  SOURCES uid_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  object_track_set
-  "${THIS_MODULE}"
-  SOURCES object_track_set_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  video_raw_image
-  "${THIS_MODULE}"
-  SOURCES video_raw_image_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  video_raw_metadata
-  "${THIS_MODULE}"
-  SOURCES video_raw_metadata_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-viame_add_python_library(
-  video_settings
-  "${THIS_MODULE}"
-  SOURCES video_settings_python.cxx
-  PRIVATE pybind11::pybind11
-          ${PYTHON_LIBRARIES}
-          viame_algorithm_framework
-)
-
-#if(NOT SKBUILD)
-#  viame_create_python_init(vital/types
-#    types
-#    activity_type
-#    bounding_box
-#    category_hierarchy
-#    camera
-#    camera_intrinsics
-#    camera_map
-#    camera_perspective
-#    camera_perspective_map
-#    camera_rpc
-#    color
-#    covariance
-#    database_query
-#    descriptor
-#    descriptor_request
-#    descriptor_set
-#    # Next module is required by detected_object, so must be loaded first.
-#    detected_object_type
-#    detected_object
-#    detected_object_set
-#    essential_matrix
-#    feature
-#    feature_set
-#    feature_track_set
-#    fundamental_matrix
-#    geodesy
-#    geo_covariance
-#    geo_MGRS
-#    geo_polygon
-#    geo_point
-#    transform_2d
-#    homography
-#    homography_f2f
-#    homography_f2w
-#    iqr_feedback
-#    landmark
-#    landmark_map
-#    rotation
-#    match_set
-#    mesh
-#    metadata
-#    metadata_map
-#    metadata_tags
-#    metadata_traits
-#    point
-#    polygon
-#    query_result
-#    similarity
-#    sfm_constraints
-#    timestamp
-#    track
-#    track_descriptor
-#    track_interval
-#    track_set
-#    uid
-#    object_track_set
-#    # activity depends on timestamp, which must be loaded first
-#    activity
-#  )
-#endif()
+# The re-export shims. Generated rather than committed: fifty-six one-line
+# files that must agree with the list above are a thing to derive, not to
+# maintain.
+foreach( name IN LISTS viame_types_modules )
+  set( shim "${CMAKE_CURRENT_BINARY_DIR}/shims/${name}.py" )
+  file( CONFIGURE OUTPUT "${shim}"
+        CONTENT "# Generated by VIAME. viame.types.${name} is a submodule of the
+# folded `_types` extension module; see python.cmake and python_fold.h.
+from viame.types._types.${name} import *  # noqa: F401,F403
+" )
+  viame_add_python_module( "${shim}" "${THIS_MODULE}" "${name}" )
+endforeach()

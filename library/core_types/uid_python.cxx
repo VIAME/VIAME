@@ -5,10 +5,11 @@
 #include <viame/core_types/uid.h>
 
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE( uid, m )
+VIAME_PYTHON_MODULE( uid, m )
 {
   py::class_< viame::uid, std::shared_ptr< viame::uid > >(
     m,

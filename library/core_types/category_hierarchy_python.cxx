@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <string>
+#include "python_fold.h"
 
 namespace py = pybind11;
 namespace kv = viame;
@@ -18,7 +19,7 @@ using label_id_t = kv::category_hierarchy::label_id_t;
 using label_vec_t = kv::category_hierarchy::label_vec_t;
 using label_id_vec_t = kv::category_hierarchy::label_id_vec_t;
 
-PYBIND11_MODULE( category_hierarchy, m )
+VIAME_PYTHON_MODULE( category_hierarchy, m )
 {
   py::class_< kv::category_hierarchy,
     std::shared_ptr< kv::category_hierarchy > >( m, "CategoryHierarchy" )

@@ -10,6 +10,7 @@
 #include <pybind11/stl.h>
 
 #include <stdexcept>
+#include "python_fold.h"
 
 namespace py = pybind11;
 
@@ -131,7 +132,7 @@ track_attribute_keys( viame::track const& self )
 } // namespace viame
 
 using namespace viame::python;
-PYBIND11_MODULE( track, m )
+VIAME_PYTHON_MODULE( track, m )
 {
   py::class_< viame::track_state,
     std::shared_ptr< viame::track_state > >( m, "TrackState" )
