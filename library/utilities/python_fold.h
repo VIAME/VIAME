@@ -2,14 +2,14 @@
 // BSD 3-Clause License. See either the root top-level LICENSE file or  #
 // https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-#ifndef VIAME_CORE_TYPES_PYTHON_FOLD_H
-#define VIAME_CORE_TYPES_PYTHON_FOLD_H
+#ifndef VIAME_UTILITIES_PYTHON_FOLD_H
+#define VIAME_UTILITIES_PYTHON_FOLD_H
 
 #include <pybind11/pybind11.h>
 
 /**
  * \file
- * \brief One extension module for `viame.types`, or fifty-six.
+ * \brief One extension module per package, or one per binding.
  *
  * Each `*_python.cxx` here used to be its own extension module, and fifty-six
  * modules cost 68.6 MB because every one of them carries its own copy of the
@@ -33,8 +33,12 @@
  * `types_init.py`, and `pybind11` raised a clear error when it was wrong.
  * Folded, every submodule registers during one import, so the master calls
  * them in the order `types_init.py` imports them. That file is therefore
- * the definition of the order, and `python.cmake` reads it rather than
+ * the definition of the order, and the generator reads it rather than
  * keeping a second list that could disagree with it.
+ *
+ * It lives in `library/utilities` because that is on the include path of
+ * every python binding target in the tree -- checked, not assumed -- and the
+ * fold is not `core_types`' alone.
  */
 
 #ifdef VIAME_PYTHON_FOLD
@@ -60,7 +64,7 @@
  *
  * Folded, the requirement is met by registering in dependency order instead,
  * so this is a no-op that exists to keep the declaration in the source where
- * `generate_types_fold.py` can read it. The dependencies are *not* derivable
+ * `cmake/viame/generate_python_fold.py` can read it. The dependencies are *not* derivable
  * any other way, and `types_init.py`'s order does not satisfy them: seventeen
  * of them are back edges there.
  */
@@ -72,5 +76,46 @@
 #define VIAME_PYTHON_REQUIRE( path ) ::pybind11::module::import( path )
 
 #endif
+
+/**
+ * \brief True if \p Vector is already bound, having aliased it to \p name.
+ *
+ * Five bindings in `viame.pipeline` bind `std::vector< std::string >` --
+ * as `names_t`, `ProcessNames`, `StringVector`, `string_vector` and
+ * `VectorString`, the last with a `shared_ptr` holder. As five modules that
+ * was fine: `bind_vector` is module-local, so each got its own. One module
+ * cannot, and pybind11 keys on the value type, so the holder does not
+ * separate them either:
+ *
+ *     generic_type: type "names_t" is already registered!
+ *
+ * So in a folded build the first submodule to ask binds it and the rest get
+ * an alias to the same python type -- which is what they were in effect
+ * anyway, five names for one C++ type. Unfolded this always returns false
+ * and every module binds its own, exactly as before.
+ *
+ * `detail::get_type_handle` rather than `py::type::of`, which static_asserts
+ * on any type with a built-in caster, and `std::vector< std::string >` has
+ * one from `stl.h` whatever `bind_vector` does with it.
+ */
+template < typename Vector >
+inline bool
+viame_python_already_bound( ::pybind11::module& m, char const* name )
+{
+#ifdef VIAME_PYTHON_FOLD
+  auto handle =
+    ::pybind11::detail::get_type_handle( typeid( Vector ), false );
+  if( handle )
+  {
+    m.attr( name ) =
+      ::pybind11::reinterpret_borrow< ::pybind11::object >( handle );
+    return true;
+  }
+#else
+  ( void ) m;
+  ( void ) name;
+#endif
+  return false;
+}
 
 #endif

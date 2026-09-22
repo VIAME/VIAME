@@ -62,79 +62,27 @@ set( THIS_MODULE pipeline )
 viame_add_python_module(
   ${CMAKE_CURRENT_LIST_DIR}/pipeline_init.py "${THIS_MODULE}" __init__ )
 
-viame_add_python_library( datum "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/datum_python.cxx
+# One extension module rather than ten. Same reason as `viame.types`: each
+# module carried its own copy of the same instantiated pybind11 and STL
+# templates. `viame.pipeline.<name>` is unchanged -- each is a submodule of
+# `_pipeline` with a generated one-line re-export.
+#
+# `bake` and `load` below, and `adapters/`, keep their own modules: they are
+# different packages, and the fold is per package. They are skipped
+# automatically, because the generator only collects translation units that
+# say `VIAME_PYTHON_MODULE`.
+#
+# The PRIVATE list is the union of what the ten asked for individually --
+# `viame_util` was on four of them and `viame_plugin` on the two factories.
+viame_fold_python_package( "${THIS_MODULE}" viame.pipeline _pipeline
+  INIT pipeline_init.py
+  MIN_MODULES 10
   PRIVATE ${_viame_pipeline_python_common}
           viame_pipeline_framework
           viame_python_util
           viame_algorithm_framework
           viame_util
-  )
-
-viame_add_python_library( edge "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/edge_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
-  )
-
-viame_add_python_library( pipeline "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/pipeline_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
-  )
-
-viame_add_python_library( process "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/process_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
-          viame_util
-  )
-
-viame_add_python_library( process_factory "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/process_factory_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
           viame_plugin
-  )
-
-viame_add_python_library( scheduler "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/scheduler_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
-  )
-
-viame_add_python_library( scheduler_factory "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/scheduler_factory_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
-          viame_plugin
-  )
-
-viame_add_python_library( stamp "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/stamp_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
-  )
-
-viame_add_python_library( utils "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/utils_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
-  )
-
-viame_add_python_library( version "${THIS_MODULE}"
-  SOURCES ${CMAKE_CURRENT_LIST_DIR}/version_python.cxx
-  PRIVATE ${_viame_pipeline_python_common}
-          viame_pipeline_framework
-          viame_python_util
   )
 
 # ---------------------------------------------------------------------------

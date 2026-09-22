@@ -31,6 +31,7 @@
 #include <cstdint>
 #include <limits>
 #include <string>
+#include "python_fold.h"
 
 /**
  * \file datum.cxx
@@ -77,7 +78,7 @@ char const* sprokit_datum_PyCapsule_name() { return "viame::pipeline::datum"; }
 
 using namespace viame::pipeline::python;
 
-PYBIND11_MODULE( datum, m )
+VIAME_PYTHON_MODULE( datum, m )
 {
   enum_< viame::pipeline::datum::type_t >(
     m, "DatumType",
@@ -98,10 +99,14 @@ PYBIND11_MODULE( datum, m )
     std::shared_ptr< std::vector< double > > >(
     m, "VectorDouble",
     module_local( true ) );
-  bind_vector< std::vector< std::string >,
-    std::shared_ptr< std::vector< std::string > > >(
-    m, "VectorString",
-    module_local( true ) );
+  if( !viame_python_already_bound< std::vector< std::string > >(
+        m, "VectorString" ) )
+  {
+    bind_vector< std::vector< std::string >,
+      std::shared_ptr< std::vector< std::string > > >(
+      m, "VectorString",
+      module_local( true ) );
+  }
 
   // constructors
   m.def(

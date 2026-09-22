@@ -10,6 +10,7 @@
 #include "python_wrappers.cxx"
 
 #include <pybind11/pybind11.h>
+#include "python_fold.h"
 
 /**
  * \file scheduler.cxx
@@ -65,7 +66,7 @@ void scheduler_shutdown( object );
 
 using namespace viame::pipeline::python;
 
-PYBIND11_MODULE( scheduler, m )
+VIAME_PYTHON_MODULE( scheduler, m )
 {
   class_< viame::pipeline::scheduler, scheduler_trampoline, viame::pipeline::scheduler_t >(
     m, "PythonScheduler",

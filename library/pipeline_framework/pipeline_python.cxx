@@ -11,6 +11,7 @@
 #include "python_wrappers.cxx"
 
 #include <pybind11/stl_bind.h>
+#include "python_fold.h"
 #if WIN32
 #pragma warning (pop)
 #endif
@@ -43,9 +44,12 @@ static std::vector< wrap_port_addr > receivers_for_port(
 } // namespace viame
 
 using namespace viame::pipeline::python;
-PYBIND11_MODULE( pipeline, m )
+VIAME_PYTHON_MODULE( pipeline, m )
 {
-  bind_vector< std::vector< std::string > >( m, "names_t" );
+  if( !viame_python_already_bound< std::vector< std::string > >( m, "names_t" ) )
+  {
+    bind_vector< std::vector< std::string > >( m, "names_t" );
+  }
 
   class_< viame::pipeline::pipeline, viame::pipeline::pipeline_t >(
     m, "Pipeline",

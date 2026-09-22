@@ -9,6 +9,7 @@
 #include <pybind11/stl_bind.h>
 
 #include "python_wrappers.cxx"
+#include "python_fold.h"
 
 /**
  * \file edge.cxx
@@ -37,7 +38,7 @@ static wrap_edge_datum peek_datum(
 } // namespace viame
 
 using namespace viame::pipeline::python;
-PYBIND11_MODULE( edge, m )
+VIAME_PYTHON_MODULE( edge, m )
 {
   class_< wrap_edge_datum >( m, "EdgeDatum" )
     .def( init<>() )

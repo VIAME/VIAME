@@ -19,6 +19,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
+#include "python_fold.h"
 
 using namespace pybind11;
 
@@ -104,9 +105,13 @@ python_scheduler_factory
 using namespace viame::pipeline::python;
 
 // ==================================================================
-PYBIND11_MODULE( scheduler_factory, m )
+VIAME_PYTHON_MODULE( scheduler_factory, m )
 {
-  bind_vector< std::vector< std::string > >( m, "string_vector" );
+  if( !viame_python_already_bound< std::vector< std::string > >(
+        m, "string_vector" ) )
+  {
+    bind_vector< std::vector< std::string > >( m, "string_vector" );
+  }
 
   // Define unbound functions.
   m.def(

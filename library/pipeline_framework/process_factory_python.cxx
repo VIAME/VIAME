@@ -20,6 +20,7 @@
 #include <pybind11/stl_bind.h>
 
 #include "python_wrappers.cxx"
+#include "python_fold.h"
 
 using namespace pybind11;
 
@@ -121,13 +122,32 @@ python_process_factory
 using namespace viame::pipeline::python;
 
 // ==================================================================
-PYBIND11_MODULE( process_factory, m )
+VIAME_PYTHON_MODULE( process_factory, m )
 {
+  // `create_process` has a `config_block` default argument, so that type has
+  // to be registered before this module's functions are defined:
+  //
+  //     arg(): could not convert default argument
+  //     'config: std::shared_ptr<viame::config_block>' ... (type not
+  //     registered yet?)
+  //
+  // As ten separate modules something else had always imported `viame.config`
+  // first and this was invisible. Folded, the ten register during one import
+  // and nothing else has run. A real import, not `VIAME_PYTHON_REQUIRE`:
+  // `viame.config` is a different extension module, so importing it here
+  // cannot re-enter the module being initialised, which is the only reason
+  // that macro is a no-op when folded.
+  ::pybind11::module::import( "viame.config" );
+
   class_< viame::pipeline::processes_t >(
     m, "Processes",
     "A collection of processes." );
 
-  bind_vector< std::vector< std::string > >( m, "StringVector" );
+  if( !viame_python_already_bound< std::vector< std::string > >(
+        m, "StringVector" ) )
+  {
+    bind_vector< std::vector< std::string > >( m, "StringVector" );
+  }
 
   m.def(
     "is_process_module_loaded", &is_process_loaded,

@@ -400,3 +400,128 @@ function( viame_python_add_command name command comment )
     add_dependencies( ${name} ${ARGN} )
   endif()
 endfunction()
+
+#+
+# Build a package's bindings as one extension module instead of many.
+#
+#   viame_fold_python_package( <modpath> <package> <module>
+#     [INIT <file>] [EXTRA_SOURCES ...] [PRIVATE <lib>...] )
+#
+# `<modpath>` is the package path under `viame` (`types`, `pipeline`),
+# `<package>` its python name (`viame.types`), `<module>` the folded
+# extension's name (`_types`). `INIT` names a file whose import order breaks
+# ties so the generated file stays stable. `EXTRA_SOURCES` are translation
+# units that belong to the module but are not modules themselves.
+#
+# Why this exists: fifty-six `viame.types` modules cost 68.6 MB because each
+# carries its own copy of the same instantiated pybind11 and STL templates.
+# Linked as one they are 16.6 MB, 8.2 MB stripped -- 83% of the exported
+# symbols were duplicates.
+#
+# The import path does not change. Each binding becomes a submodule and a
+# generated one-line `<name>.py` re-exports it.
+#
+# The hard part is registration order, and it is why the module list comes
+# from a generator rather than from a glob or a list kept here. See
+# `cmake/viame/generate_python_fold.py` and `library/utilities/python_fold.h`.
+#-
+function( viame_fold_python_package modpath package module )
+  set( oneValueArgs INIT MIN_MODULES )
+  set( multiValueArgs EXTRA_SOURCES PRIVATE )
+  cmake_parse_arguments( FOLD "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
+  set( generated "${CMAKE_CURRENT_BINARY_DIR}/${module}_fold_python.cxx" )
+
+  set( min_arg )
+  if( FOLD_MIN_MODULES )
+    set( min_arg --min-modules "${FOLD_MIN_MODULES}" )
+  endif()
+
+  set( init_arg )
+  if( FOLD_INIT )
+    set( init_arg --init "${CMAKE_CURRENT_SOURCE_DIR}/${FOLD_INIT}" )
+  endif()
+
+  execute_process(
+    COMMAND "${PYTHON_EXECUTABLE}"
+            "${VIAME_CMAKE_DIR}/viame/generate_python_fold.py"
+            --source-dir "${CMAKE_CURRENT_SOURCE_DIR}"
+            --package    "${package}"
+            --module     "${module}"
+            --output     "${generated}"
+            ${init_arg} ${min_arg}
+    RESULT_VARIABLE fold_result
+    OUTPUT_VARIABLE fold_output
+    ERROR_VARIABLE  fold_error
+    )
+  if( NOT fold_result EQUAL 0 )
+    message( FATAL_ERROR
+      "generate_python_fold.py failed for ${package} (${fold_result}):\n"
+      "${fold_output}${fold_error}" )
+  endif()
+  string( STRIP "${fold_output}" fold_output )
+  message( STATUS "${fold_output}" )
+
+  # Re-run when a binding is added, removed, or changes what it needs.
+  # Configure-time generation is otherwise invisible to the build.
+  file( GLOB fold_binding_sources
+        CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*_python.cxx" )
+  set_property( DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+                ${fold_binding_sources}
+                "${VIAME_CMAKE_DIR}/viame/generate_python_fold.py" )
+
+  # The submodules the generator emitted are also the source list. Read back
+  # rather than globbed: a glob picks up dead `*_python.cxx` files that have
+  # never had an object in the build, and two of `core_types`' five no longer
+  # compile.
+  file( STRINGS "${generated}" fold_lines
+        REGEX "def_submodule\\( \"[A-Za-z_0-9]+\" \\)" )
+  set( fold_modules )
+  foreach( line IN LISTS fold_lines )
+    string( REGEX REPLACE ".*def_submodule\\( \"([A-Za-z_0-9]+)\" \\).*" "\\1"
+            name "${line}" )
+    list( APPEND fold_modules "${name}" )
+  endforeach()
+
+  list( LENGTH fold_modules fold_count )
+  if( fold_count LESS 2 )
+    message( FATAL_ERROR
+      "${package}: read ${fold_count} submodules from the generated fold" )
+  endif()
+
+  set( fold_sources ${FOLD_EXTRA_SOURCES} "${generated}" )
+  foreach( name IN LISTS fold_modules )
+    if( DEFINED VIAME_FOLD_SOURCE_${name} )
+      list( APPEND fold_sources "${VIAME_FOLD_SOURCE_${name}}" )
+    else()
+      list( APPEND fold_sources "${name}_python.cxx" )
+    endif()
+  endforeach()
+
+  viame_add_python_library( ${module} "${modpath}"
+    SOURCES ${fold_sources}
+    PRIVATE ${FOLD_PRIVATE}
+    )
+
+  _viame_safe_modpath( "${modpath}" fold_safe_modpath )
+  set( fold_target "python-${fold_safe_modpath}-${module}" )
+
+  # What turns `VIAME_PYTHON_MODULE` from `PYBIND11_MODULE` into a
+  # registration function. On the target, not globally, so a binding outside
+  # a fold still builds its own module.
+  target_compile_definitions( ${fold_target} PRIVATE VIAME_PYTHON_FOLD )
+  target_include_directories( ${fold_target} PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}" )
+
+  # The re-export shims. Generated, because fifty-six one-line files that
+  # must agree with the list above are a thing to derive, not to maintain.
+  foreach( name IN LISTS fold_modules )
+    set( shim "${CMAKE_CURRENT_BINARY_DIR}/shims/${name}.py" )
+    file( CONFIGURE OUTPUT "${shim}"
+          CONTENT "# Generated by VIAME. ${package}.${name} is a submodule of the
+# folded `${module}` extension; see viame_fold_python_package.
+from ${package}.${module}.${name} import *  # noqa: F401,F403
+" )
+    viame_add_python_module( "${shim}" "${modpath}" "${name}" )
+  endforeach()
+endfunction()

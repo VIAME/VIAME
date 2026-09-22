@@ -49,6 +49,28 @@ include lib/python3.*/site-packages/viame/**  -> viame/
 include lib/libviame.so*  -> {data}/lib/
 
 # ----------------------------------------------------------------------------
+# The tools
+#
+# `viame` and `kwiver` are ELF executables, not python entry points, so they
+# go through the wheel's `scripts` scheme: pip unpacks `.data/scripts/` into
+# the environment's `bin/` and marks it executable, which puts `viame` on the
+# PATH of an activated environment.
+#
+# They need no patching either. Their RUNPATH is `$ORIGIN/../lib:$ORIGIN/`,
+# and from `<env>/bin` that first entry is `<env>/lib` -- the same directory
+# `{data}/lib/` above unpacks into.
+#
+# The five shell scripts the manifest also installs under `bin/` are left
+# out deliberately: they resolve their own paths against a `VIAME_INSTALL`
+# layout with `configs/` and add-on archives beside them, which a code-only
+# wheel does not have. Shipping them would put commands on the PATH that
+# fail in a way that looks like a broken install rather than a missing
+# component.
+# ----------------------------------------------------------------------------
+include bin/viame   -> {scripts}/
+include bin/kwiver  -> {scripts}/
+
+# ----------------------------------------------------------------------------
 # What never ships
 #
 # `__pycache__` is the build tree's, compiled against a path the wheel will

@@ -180,13 +180,21 @@ def read_manifest(path):
     return files
 
 
-def select(prefix, rules, data_dir, manifest=None):
+def select(prefix, rules, data_dir, scripts_dir=None, manifest=None):
     """Return {wheel-relative path: source Path}.
 
-    A destination may use `{data}`, which expands to the wheel's
-    `<name>-<version>.data/data` -- the scheme pip unpacks into the
-    environment prefix, and so the one place a wheel can put a shared library
-    where an `$ORIGIN/../../../../../lib` RUNPATH will find it.
+    Two placeholders, being the two install schemes this needs.
+
+    `{data}` is `<name>-<version>.data/data`, which pip unpacks into the
+    environment prefix. `{data}/lib/` is therefore `<env>/lib`, the one place
+    a wheel can put a shared library where an `$ORIGIN/../../../../../lib`
+    RUNPATH will find it.
+
+    `{scripts}` is `<name>-<version>.data/scripts`, unpacked into `<env>/bin`
+    and marked executable. It is deliberately **not** spelled
+    `{data}/scripts`: that is `.data/data/scripts`, which installs to
+    `<env>/scripts`, a directory nothing looks in. It packs, the mode bits
+    are right, and the command is simply not on the PATH.
     """
     prefix = Path(prefix)
     if not prefix.is_dir():
@@ -213,6 +221,8 @@ def select(prefix, rules, data_dir, manifest=None):
                 skipped.append(rel)
                 continue
             rule_dest = rule.dest.replace("{data}", data_dir)
+            if scripts_dir is not None:
+                rule_dest = rule_dest.replace("{scripts}", scripts_dir)
             if rule_dest.endswith("/"):
                 # No `**` in the pattern means the glob names files in one
                 # directory, so the file's own name is the tail. A shared
@@ -431,7 +441,8 @@ def build(args):
     rules = read_contents(args.contents)
     dist = f"{args.name}-{args.version}"
     manifest = read_manifest(args.manifest) if args.manifest else None
-    chosen = select(args.prefix, rules, f"{dist}.data/data", manifest)
+    chosen = select(args.prefix, rules, f"{dist}.data/data",
+                    f"{dist}.data/scripts", manifest)
 
     tag = f"{args.python_tag}-{args.abi_tag}-{args.platform_tag}"
     out = Path(args.output_dir)

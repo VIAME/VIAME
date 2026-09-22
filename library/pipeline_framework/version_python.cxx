@@ -7,6 +7,7 @@
 #include <viame/pipeline_framework/version.h>
 
 #include <viame/algorithm_framework/version.h>
+#include "python_fold.h"
 
 /**
  * \file version.cxx
@@ -65,7 +66,7 @@ class runtime
 
 using namespace viame::pipeline::python;
 
-PYBIND11_MODULE( version, m )
+VIAME_PYTHON_MODULE( version, m )
 {
   class_< compile >(
     m, "compile",

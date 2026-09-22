@@ -16,6 +16,7 @@ PYBIND11_MAKE_OPAQUE( string_set )
 #include <utility>
 
 #include "python_wrappers.cxx"
+#include "python_fold.h"
 
 /**
  * \file process.cxx
@@ -177,13 +178,22 @@ std::string config_value(
 
 using namespace viame::pipeline::python;
 
-PYBIND11_MODULE( process, m )
+VIAME_PYTHON_MODULE( process, m )
 {
-  bind_vector< viame::pipeline::process::names_t >(
-    m, "ProcessNames",
-    module_local(),
-    "A collection of process names." )
-  ;
+  VIAME_PYTHON_REQUIRE( "viame.pipeline.pipeline" );
+
+  // `process::names_t` is `std::vector< std::string >`, which four other
+  // bindings in this package also bind, under four other names. One module
+  // can hold one binding of a C++ type; see `viame_python_already_bound`.
+  if( !viame_python_already_bound< viame::pipeline::process::names_t >(
+        m, "ProcessNames" ) )
+  {
+    bind_vector< viame::pipeline::process::names_t >(
+      m, "ProcessNames",
+      module_local(),
+      "A collection of process names." )
+    ;
+  }
 
   m.attr( "ProcessTypes" ) = m.attr( "ProcessNames" );
   m.attr( "ProcessTypes" ).attr( "__main__" ) =

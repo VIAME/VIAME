@@ -5,6 +5,7 @@
 #include <pybind11/pybind11.h>
 
 #include "python_wrappers.cxx"
+#include "python_fold.h"
 
 /**
  * \file stamp.cxx
@@ -14,7 +15,7 @@
 
 using namespace pybind11;
 using namespace viame::pipeline::python;
-PYBIND11_MODULE( stamp, m )
+VIAME_PYTHON_MODULE( stamp, m )
 {
   m.def(
     "new_stamp", &new_stamp,

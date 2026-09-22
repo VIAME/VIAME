@@ -5,6 +5,7 @@
 #include <pybind11/pybind11.h>
 
 #include <viame/pipeline_framework/utils.h>
+#include "python_fold.h"
 
 /**
  * \file utils.cxx
@@ -14,7 +15,7 @@
 
 using namespace pybind11;
 
-PYBIND11_MODULE( utils, m )
+VIAME_PYTHON_MODULE( utils, m )
 {
   m.def(
     "name_thread", &viame::pipeline::name_thread,

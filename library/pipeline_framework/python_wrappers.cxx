@@ -61,14 +61,26 @@ public:
   bool stamp_lt( wrap_stamp const& other );
 };
 
-wrap_stamp
+// `inline` on the four definitions below, and it is load-bearing.
+//
+// This file is `#include`d by seven bindings rather than compiled as a
+// translation unit of its own. As seven separate extension modules each got
+// a private copy and nothing noticed. Folded into one `_pipeline` module
+// they are seven copies in one link:
+//
+//     multiple definition of `viame::pipeline::python::new_stamp(...)'
+//
+// `inline` is what says "one definition, however many translation units see
+// it", which is what this file has always meant and never said.
+
+inline wrap_stamp
 new_stamp( ::viame::pipeline::stamp::increment_t const& increment )
 {
   ::viame::pipeline::stamp_t st = ::viame::pipeline::stamp::new_stamp( increment );
   return wrap_stamp( st );
 }
 
-wrap_stamp
+inline wrap_stamp
 incremented_stamp( wrap_stamp const& st )
 {
   ::viame::pipeline::stamp_t st_inc =
@@ -76,14 +88,14 @@ incremented_stamp( wrap_stamp const& st )
   return wrap_stamp( st_inc );
 }
 
-bool
+inline bool
 wrap_stamp
 ::stamp_eq( wrap_stamp const& other )
 {
   return ( *( get_stamp() ) == *( other.get_stamp() ) );
 }
 
-bool
+inline bool
 wrap_stamp
 ::stamp_lt( wrap_stamp const& other )
 {
