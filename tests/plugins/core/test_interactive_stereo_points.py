@@ -178,3 +178,28 @@ def test_sampled_segmentation_seed_from_the_right_camera(service):
 def test_unmatched_right_camera_seed_reports_no_match(service):
     response = service.handle_transfer_segmentation_point({'points': [[195, 60]], 'source_camera': 'right'})
     assert not response['success'] and response['num_matched'] == 0
+
+
+FISH = {'exterior': [[30, 50], [90, 50], [90, 80], [30, 80]], 'holes': []}
+
+
+def test_interior_points_are_spread_and_clear_of_the_edge(service):
+    points = service._interior_points(FISH, 5)
+    assert len(points) == 5 and len({tuple(p) for p in points}) == 5
+    assert all(35 <= x <= 85 and 55 <= y <= 75 for x, y in points)
+    assert service._interior_points({'exterior': [[0, 0], [1, 1]], 'holes': []}, 5) == []
+
+
+def test_mask_without_a_click_is_seeded_from_its_interior(service):
+    response = service.handle_transfer_segmentation_point({'polygons': [FISH]})
+    assert response['success'] and len(response['transferred_points']) == 5
+    assert all(20 <= x <= 80 and 50 <= y <= 80 for x, y in response['transferred_points'])
+
+
+def test_a_seed_that_shifts_unlike_the_rest_is_dropped(service):
+    samples = service._interior_points(FISH, 5)
+    odd = max(samples, key=lambda p: p[0] + p[1])
+    # That sample sits over a much nearer surface than the rest of the mask.
+    service._current_disparity[int(odd[1]) - 4:int(odd[1]) + 5, int(odd[0]) - 4:int(odd[0]) + 5] = 60.
+    seeds = service.handle_transfer_segmentation_point({'polygons': [FISH]})['transferred_points']
+    assert sorted(seeds) == sorted([x - 10, y] for x, y in samples if [x, y] != odd)

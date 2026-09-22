@@ -443,7 +443,7 @@ class InteractiveStereoService:
                 flow derives a head/tail line from the polygon on each camera and
                 generates the length measurement.
             segmentation_point_sampling: When True, the other camera's segmentation
-                seed is the median of segmentation_point_samples warped points
+                seeds are segmentation_point_samples warped points
                 sampled inside the source polygon (noise reduction).
             segmentation_point_samples: number of points to sample when
                 segmentation_point_sampling is enabled.
@@ -1598,33 +1598,43 @@ class InteractiveStereoService:
         return None
 
     @staticmethod
-    def _sample_points_in_polygon(polygon, n):
-        """Sample up to n random points uniformly inside a polygon (rejection sampling)."""
-        pts = np.asarray(polygon, dtype=np.float64)
-        if pts.ndim != 2 or pts.shape[0] < 3:
+    def _interior_points(polygon, n):
+        """Up to n points well inside a polygon ({"exterior", "holes"}), spread
+        apart: the deepest interior point first, then farthest-point picks
+        among the pixels at least a third as deep."""
+        exterior = np.asarray(polygon.get("exterior") or [], dtype=np.float64)
+        if exterior.ndim != 2 or exterior.shape[0] < 3:
             return []
-        contour = pts.astype(np.float32).reshape(-1, 1, 2)
-        (x0, y0), (x1, y1) = pts.min(axis=0), pts.max(axis=0)
-        samples = []
-        attempts = 0
-        while len(samples) < n and attempts < n * 200:
-            attempts += 1
-            x = float(np.random.uniform(x0, x1))
-            y = float(np.random.uniform(y0, y1))
-            if cv2.pointPolygonTest(contour, (x, y), False) >= 0:
-                samples.append([x, y])
-        return samples
+        origin = np.floor(exterior.min(axis=0)) - 1
+        size = (np.ceil(exterior.max(axis=0)) - origin + 2).astype(int)
+        mask = np.zeros((size[1], size[0]), dtype=np.uint8)
+        cv2.fillPoly(mask, [np.rint(exterior - origin).astype(np.int32)], 1)
+        for hole in polygon.get("holes") or []:
+            if len(hole) >= 3:
+                cv2.fillPoly(mask, [np.rint(np.asarray(hole) - origin).astype(np.int32)], 0)
+        depth = cv2.distanceTransform(mask, cv2.DIST_L2, 3)
+        if depth.max() <= 0:
+            return []
+        ys, xs = np.where(depth >= depth.max() / 3.0)
+        candidates = np.column_stack([xs, ys]).astype(np.float64)
+        chosen = [candidates[np.argmax(depth[ys, xs])]]
+        while len(chosen) < min(n, len(candidates)):
+            gaps = np.min([np.hypot(*(candidates - c).T) for c in chosen], axis=0)
+            if gaps.max() <= 0:
+                break
+            chosen.append(candidates[np.argmax(gaps)])
+        return [[float(x + origin[0]), float(y + origin[1])] for x, y in chosen]
 
     def handle_transfer_segmentation_point(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Warp segmentation seed point(s) from the source camera to the other.
 
-        When point sampling is enabled, samples N random points
-        inside the source polygon, warps each via the configured stereo backend
-        (epipolar template matching or dense disparity) and returns the
-        coordinate-wise MEDIAN as a single positive seed point (noise reduction for
-        bad point mappings). Otherwise warps the provided click points directly.
+        With point sampling enabled, or when no click is given, the seeds are
+        points spread well inside each source polygon, warped via the configured
+        stereo backend, keeping those that shift the way the rest of their
+        polygon does. Otherwise the provided click points are warped directly.
 
         Request: { "points": [[x,y]..], "labels": [..], "polygon": [[x,y]..],
+                   "polygons": [{"exterior": [..], "holes": [[..]]}..],
                    "source_camera": "left" (default) | "right" }
         """
         if not self._enabled:
@@ -1633,6 +1643,8 @@ class InteractiveStereoService:
         points = request.get("points") or []
         labels = request.get("labels") or [1] * len(points)
         polygon = request.get("polygon")
+        polygons = request.get("polygons") or (
+            [{"exterior": polygon, "holes": []}] if polygon else [])
         from_right = request.get("source_camera", "left") == "right"
 
         def warp(source_points):
@@ -1645,20 +1657,34 @@ class InteractiveStereoService:
                 matched = [self._warp_one_point(p) for p in source_points]
             return [(i, q) for i, q in enumerate(matched) if q is not None]
 
-        if self._seg_point_sampling and polygon:
-            samples = self._sample_points_in_polygon(polygon, self._seg_point_samples)
-            warped = [q for _, q in warp(samples)] if samples else []
-            if warped:
-                median = np.median(np.asarray(warped), axis=0)
-                self._log(f"Segmentation point: median of {len(warped)} warped samples")
+        # Seeds come from inside the source mask when sampling is on, and
+        # whenever there is a mask but no click to warp.
+        if polygons and (self._seg_point_sampling or not points):
+            per_polygon = max(2, -(-self._seg_point_samples // len(polygons)))
+            seeds = []
+            for poly in polygons:
+                samples = self._interior_points(poly, per_polygon)
+                matched = warp(samples) if samples else []
+                if not matched:
+                    continue
+                # One object moves as one between the cameras: a sample that
+                # shifted unlike the rest matched something else.
+                shifts = np.asarray([np.subtract(q, samples[i]) for i, q in matched])
+                extent = np.ptp(np.asarray(poly["exterior"], dtype=np.float64), axis=0)
+                tolerance = max(4.0, 0.1 * float(np.hypot(*extent)))
+                agree = np.hypot(*(shifts - np.median(shifts, axis=0)).T) <= tolerance
+                seeds += [[float(q[0]), float(q[1])] for (_, q), ok in zip(matched, agree) if ok]
+            if seeds:
+                self._log(f"Segmentation seeds: {len(seeds)} interior point(s) of "
+                          f"{len(polygons)} source polygon(s)")
                 return {
                     "success": True,
-                    "transferred_points": [[float(median[0]), float(median[1])]],
-                    "point_labels": [1],
-                    "sampled": len(warped),
-                    "num_matched": len(warped),
+                    "transferred_points": seeds,
+                    "point_labels": [1] * len(seeds),
+                    "sampled": len(seeds),
+                    "num_matched": len(seeds),
                 }
-            self._log("Point sampling found no matches; falling back to direct warp")
+            self._log("No interior point of the source mask matched; falling back to direct warp")
 
         if from_right:
             matched = warp(points) if points else []

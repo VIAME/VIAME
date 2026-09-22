@@ -745,6 +745,19 @@ class InteractiveSegmentationService:
             self._stereo_warper.handle_enable({"calibration_file": calibration_file})
         return self._stereo_warper
 
+    @staticmethod
+    def _polygons_area(polygons) -> float:
+        """Area enclosed by {"exterior", "holes"} polygons, holes excluded."""
+        def ring(points):
+            xy = np.asarray(points, dtype=float)
+            if xy.ndim != 2 or len(xy) < 3:
+                return 0.0
+            return 0.5 * abs(float(np.dot(xy[:, 0], np.roll(xy[:, 1], -1))
+                                   - np.dot(xy[:, 1], np.roll(xy[:, 0], -1))))
+
+        return sum(ring(p.get("exterior") or []) - sum(ring(h) for h in p.get("holes") or [])
+                   for p in polygons or [])
+
     def handle_stereo_segment(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Stereo point-segmentation orchestration.
 
@@ -763,9 +776,14 @@ class InteractiveSegmentationService:
         'right') says which; without it the source is matched against the
         stereo pair the warper already has loaded, and taken as left otherwise.
 
+        Without a click (an existing mask being mapped across) the seeds are
+        points inside the source mask. A result whose area is out of scale with
+        the source is refused rather than returned.
+
         Request: {
-            points, point_labels,            # the source-camera click
+            points, point_labels,            # the source-camera click, if any
             polygon,                         # source-camera polygon
+            polygons,                        # all of its parts, with holes
             source_image_path, other_image_path,
             calibration_file, frame_time
         }
@@ -773,6 +791,10 @@ class InteractiveSegmentationService:
         points = request.get("points") or []
         point_labels = request.get("point_labels") or [1] * len(points)
         source_polygon = request.get("polygon")
+        source_polygons = request.get("polygons") or (
+            [{"exterior": source_polygon, "holes": []}] if source_polygon else [])
+        if not source_polygon and source_polygons:
+            source_polygon = source_polygons[0]["exterior"]
         source_image = request.get("source_image_path")
         other_image = request.get("other_image_path")
         frame_time = request.get("frame_time")
@@ -804,6 +826,7 @@ class InteractiveSegmentationService:
             "points": points,
             "labels": point_labels,
             "polygon": source_polygon,
+            "polygons": source_polygons,
             "source_camera": side,
         })
         seed_points = warp.get("transferred_points") or []
@@ -838,25 +861,22 @@ class InteractiveSegmentationService:
                 "seed_labels": seed_labels,
             }
 
-        if source_polygon:
-            def area(ring):
-                xy = np.asarray(ring, dtype=float)
-                return 0.5 * abs(float(np.dot(xy[:, 0], np.roll(xy[:, 1], -1))
-                                       - np.dot(xy[:, 1], np.roll(xy[:, 0], -1))))
-
-            reason = warper.size_mismatch(area(source_polygon), area(other_polygon))
-            if reason:
-                return {
-                    "success": False,
-                    "error": reason,
-                    "size_mismatch": True,
-                    "seed_points": seed_points,
-                    "seed_labels": seed_labels,
-                }
+        other_polygons = seg.get("polygons") or [{"exterior": other_polygon, "holes": []}]
+        reason = warper.size_mismatch(
+            self._polygons_area(source_polygons), self._polygons_area(other_polygons))
+        if reason:
+            return {
+                "success": False,
+                "error": reason,
+                "size_mismatch": True,
+                "seed_points": seed_points,
+                "seed_labels": seed_labels,
+            }
 
         result = {
             "success": True,
             "polygon": other_polygon,
+            "polygons": other_polygons,
             "bounds": seg.get("bounds"),
             "score": seg.get("score"),
             "seed_points": seed_points,
