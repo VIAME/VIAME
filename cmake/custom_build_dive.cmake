@@ -90,6 +90,9 @@ get_filename_component( _LOG_DIR "${_LOG_DIR}/../.." ABSOLUTE )
 set( _STDOUT_FILE "${_LOG_DIR}/dive_build_stdout.log" )
 set( _STDERR_FILE "${_LOG_DIR}/dive_build_stderr.log" )
 
+# Stamp with the build's start time so sources edited mid-build still count
+# as newer on the next run.
+file( TOUCH "${DIVE_STAMP}.pending" )
 execute_process(
   COMMAND ${_CMD}
   RESULT_VARIABLE _RC
@@ -106,8 +109,9 @@ if( EXISTS "${DIVE_ARTIFACT}" )
   if( NOT _COPY_RC EQUAL 0 )
     message( FATAL_ERROR "DIVE: install into ${DIVE_INSTALL_DIR} failed (rc=${_COPY_RC})" )
   endif()
-  file( WRITE "${DIVE_STAMP}" "" )
+  file( RENAME "${DIVE_STAMP}.pending" "${DIVE_STAMP}" )
 else()
+  file( REMOVE "${DIVE_STAMP}.pending" )
   # Replay captured output to stdout so a real failure isn't silent.
   if( EXISTS "${_STDOUT_FILE}" )
     file( READ "${_STDOUT_FILE}" _OUT )
