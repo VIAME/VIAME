@@ -175,8 +175,20 @@ def read_manifest(path):
     a filter rather than a cleanup: a stale module that still imports is how
     a package ends up shipping code nobody can find in the tree.
     """
+    manifest = Path(path)
+    if not manifest.is_file():
+        # The manifest only exists after an install, and a superbuild may put
+        # it somewhere other than the top of the build tree. Missing is not
+        # fatal: the filter is an improvement on walking the prefix, not a
+        # precondition for building a wheel. Said loudly, because without it
+        # the wheel can carry files from builds whose sources are gone.
+        print(f"  note: {path} does not exist, so the wheel is selected by "
+              f"walking the prefix. Anything an earlier build left there and "
+              f"the contents file matches will be packed.", file=sys.stderr)
+        return None
+
     files = set()
-    for line in Path(path).read_text().splitlines():
+    for line in manifest.read_text().splitlines():
         line = line.strip()
         if line:
             files.add(str(Path(line).resolve()))
@@ -536,7 +548,7 @@ def wheel_metadata(root_is_purelib, tag):
 
 
 def build(args):
-    rules = read_contents(args.contents)
+    rules = [r for f in args.contents for r in read_contents(f)]
     dist = f"{args.name}-{args.version}"
     manifest = read_manifest(args.manifest) if args.manifest else None
     chosen = select(args.prefix, rules, f"{dist}.data/data",
@@ -633,7 +645,9 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--prefix", required=True, help="install prefix to take files from")
-    p.add_argument("--contents", required=True, help="the contents file")
+    p.add_argument("--contents", required=True, action="append",
+                   help="a contents file; repeatable, so a generated selection "
+                        "can be layered over the hand-written list")
     p.add_argument("--manifest",
                    help="CMake install_manifest.txt; restricts the wheel to what "
                         "this build installed, rather than whatever the prefix "

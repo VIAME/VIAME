@@ -175,3 +175,21 @@ multi-gigabyte dependency on someone who only wants `import viame.types`, and
 declaring the `nvidia-*` wheels directly would pin a CUDA major version
 against torch's own choice of one. The RUNPATH is the mechanism; which CUDA
 arrives is torch's decision, which is the point.
+
+## Default configs, and what is deliberately absent
+
+The wheel ships the pipelines that need no model -- 99 files, 266 KB, chosen
+by `select_default_configs.py` rather than listed by hand. A pipeline whose
+`relativepath weight = models/x.pth` pointed at nothing would be worse than
+absent: it looks installed and fails at configure time.
+
+**Nothing from `configs/add-ons/` is ever shipped.** Add-on packs are model
+distributions -- `DEFAULT-FISH`, `GFIT`, `SAM3` and sixteen others, 8.6 GB of
+weights on this install -- and they are fetched at runtime. The selector
+refuses add-on paths explicitly rather than merely not looking at them.
+
+So a pipeline that *does* need a model still runs, with its models supplied
+the way add-ons always supply them:
+
+    VIAME_INSTALL=/path/with/models \
+      kwiver runner /path/to/detector_gfit_groups_v3.pipe ...
