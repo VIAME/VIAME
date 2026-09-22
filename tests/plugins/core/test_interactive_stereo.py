@@ -504,7 +504,7 @@ class TestLinePointTransfer:
             service.handle_transfer_line({'line': [[0, 0], [100, 100]]})
 
     def test_transfer_line_disparity_not_ready(self, mock_stereo_algo):
-        """Test line transfer when disparity not ready."""
+        """Line transfer defers its response until disparity is ready."""
         from viame.core.interactive_stereo import InteractiveStereoService
 
         service = InteractiveStereoService(
@@ -512,9 +512,26 @@ class TestLinePointTransfer:
         )
         service._enabled = True
         service._disparity_ready = False
+        received = threading.Event()
+        responses = []
 
-        with pytest.raises(ValueError, match="Disparity not ready"):
-            service.handle_transfer_line({'line': [[0, 0], [100, 100]]})
+        def receive(response):
+            responses.append(response)
+            received.set()
+
+        service._send_response = receive
+        assert service.handle_transfer_line(
+            {'id': 'line-1', 'line': [[0, 0], [100, 100]]}) is None
+        assert not responses
+
+        with service._compute_lock:
+            service._current_disparity = np.full((200, 200), 10.0)
+            service._disparity_ready = True
+            service._disparity_event.set()
+        assert received.wait(3), 'Deferred transfer did not finish'
+        assert len(responses) == 1
+        assert responses[0]['id'] == 'line-1'
+        assert responses[0]['success']
 
     def test_transfer_points_basic(self, mock_stereo_algo):
         """Test basic point transfer."""
