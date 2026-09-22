@@ -1505,8 +1505,8 @@ class SAM3ModelManager:
     def _init_sam2_image(self, model_id):
         """Initialize SAM2 for single image prediction."""
         try:
-            from sam2.build_sam import build_sam2
-            from sam2.sam2_image_predictor import SAM2ImagePredictor
+            from viame.sam2.build_sam import build_sam2
+            from viame.sam2.sam2_image_predictor import SAM2ImagePredictor
 
             sam_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
             model = build_sam2(
@@ -1522,7 +1522,7 @@ class SAM3ModelManager:
     def _init_sam2_video(self, model_id):
         """Initialize SAM2 for video prediction."""
         try:
-            from sam2.build_sam import build_sam2_video_predictor
+            from viame.sam2.build_sam import build_sam2_video_predictor
 
             sam_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
             self._video_predictor = build_sam2_video_predictor(

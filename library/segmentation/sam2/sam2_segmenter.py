@@ -79,8 +79,8 @@ class SAM2Segmenter(SegmentViaPoints):
 
     def _init_model(self):
         """Initialize the SAM2 model."""
-        from sam2.build_sam import build_sam2
-        from sam2.sam2_image_predictor import SAM2ImagePredictor
+        from viame.sam2.build_sam import build_sam2
+        from viame.sam2.sam2_image_predictor import SAM2ImagePredictor
 
         checkpoint = self._config.checkpoint or None
         cfg = self._config.cfg

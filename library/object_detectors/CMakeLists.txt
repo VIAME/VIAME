@@ -227,53 +227,80 @@ if( VIAME_ENABLE_PYTHON )
   endforeach()
 
   # ---------------------------------------------------------------------------
-  # `viame.rfdetr`, vendored
+  # Vendored forks: `viame.rfdetr`, `viame.sam2`
   #
-  # The RF-DETR fork is carried inside the `viame` package rather than
-  # installed beside it as a top-level `rfdetr`. `rfdetr` on PyPI is different
-  # software -- its `resolution` is an int where the fork's is a
-  # `(height, width)` tuple -- so a wheel shipping ours under that name would
-  # claim a name we do not own, and one that *depended* on that name would
-  # resolve to something that fails at configuration.
+  # Both are forks whose PyPI name resolves to different software -- rfdetr's
+  # `resolution` is an int upstream and a `(height, width)` tuple here; sam2's
+  # published 1.1.0 is not the 1.0 this builds. So the wheel can neither
+  # depend on those names nor ship its own code under them, and carries them
+  # inside the `viame` package instead.
   #
-  # `vendor_rfdetr.py` rewrites the fork's absolute self-imports and its string
-  # module paths as it copies, so `viame.rfdetr` is closed over itself. A
-  # `sys.modules` alias would have been less work and is wrong: with the real
-  # `rfdetr` also installed, the vendored code's own imports would resolve
-  # against *that* copy through the ordinary path finder.
+  # `vendor_python_fork.py` rewrites the self-imports, the string module
+  # paths, and -- for sam2 -- the 181 `_target_:` lines its Hydra configs use
+  # to name modules, plus `initialize_config_module`. An alias would have been
+  # less work and is wrong: with the real package also installed, the vendored
+  # code's own imports resolve against *that* copy through the path finder.
+  #
+  # Done at build time from the submodule, so the fork stays a clean checkout
+  # and an upstream merge never conflicts with the rewrite. A fork VIAME
+  # patches gets its patch overlay applied first -- vendoring the raw
+  # submodule would silently drop those edits.
   #
   # `install( DIRECTORY )` rather than `viame_add_python_package`, which globs
-  # `*.py` only: the backbone reads six `dinov2_configs/*.json` at runtime.
+  # `*.py`: rfdetr's backbone reads six `dinov2_configs/*.json` at runtime and
+  # sam2 is built entirely from 13 YAML files.
   # ---------------------------------------------------------------------------
-  if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-RF-DETR )
-    set( viame_rfdetr_fork "${CMAKE_SOURCE_DIR}/packages/pytorch-libs/rf-detr" )
-    _viame_python_package( viame_rfdetr_package )
-    set( viame_rfdetr_built
-         "${kwiver_python_output_path}/${python_sitename}/${viame_rfdetr_package}/rfdetr" )
+  function( viame_vendor_fork name target fork_dir package_subdir )
+    set( oneValueArgs PATCHES )
+    cmake_parse_arguments( VF "" "${oneValueArgs}" "" ${ARGN} )
+
+    _viame_python_package( vf_package )
+    set( built
+         "${kwiver_python_output_path}/${python_sitename}/${vf_package}/${target}" )
+
+    set( patch_arg )
+    if( VF_PATCHES AND EXISTS "${VF_PATCHES}" )
+      set( patch_arg --patches "${VF_PATCHES}" )
+    endif()
 
     execute_process(
       COMMAND "${PYTHON_EXECUTABLE}"
-              "${VIAME_CMAKE_DIR}/viame/vendor_rfdetr.py"
-              --source  "${viame_rfdetr_fork}/src/rfdetr"
-              --licence "${viame_rfdetr_fork}/LICENSE"
-              --output  "${viame_rfdetr_built}"
-      RESULT_VARIABLE viame_rfdetr_result
-      OUTPUT_VARIABLE viame_rfdetr_output
-      ERROR_VARIABLE  viame_rfdetr_error
+              "${VIAME_CMAKE_DIR}/viame/vendor_python_fork.py"
+              --source  "${fork_dir}/${package_subdir}"
+              --name    "${name}"
+              --target  "viame.${target}"
+              --licence "${fork_dir}/LICENSE"
+              --output  "${built}"
+              ${patch_arg}
+      RESULT_VARIABLE vf_result
+      OUTPUT_VARIABLE vf_output
+      ERROR_VARIABLE  vf_error
       )
-    if( NOT viame_rfdetr_result EQUAL 0 )
+    if( NOT vf_result EQUAL 0 )
       message( FATAL_ERROR
-        "vendor_rfdetr.py failed (${viame_rfdetr_result}):\n"
-        "${viame_rfdetr_output}${viame_rfdetr_error}" )
+        "vendor_python_fork.py failed for ${name} (${vf_result}):\n"
+        "${vf_output}${vf_error}" )
     endif()
-    string( STRIP "${viame_rfdetr_output}" viame_rfdetr_output )
-    message( STATUS "${viame_rfdetr_output}" )
+    string( STRIP "${vf_output}" vf_output )
+    message( STATUS "${vf_output}" )
 
-    install( DIRECTORY "${viame_rfdetr_built}/"
-      DESTINATION "${kwiver_python_install_path}/${viame_rfdetr_package}/rfdetr"
+    install( DIRECTORY "${built}/"
+      DESTINATION "${kwiver_python_install_path}/${vf_package}/${target}"
       COMPONENT   runtime
       PATTERN "__pycache__" EXCLUDE
       )
+  endfunction()
+
+  if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_PYTORCH )
+    if( VIAME_ENABLE_PYTORCH-RF-DETR )
+      viame_vendor_fork( rfdetr rfdetr
+        "${CMAKE_SOURCE_DIR}/packages/pytorch-libs/rf-detr" "src/rfdetr" )
+    endif()
+    if( VIAME_ENABLE_PYTORCH-SAM2 )
+      viame_vendor_fork( sam2 sam2
+        "${CMAKE_SOURCE_DIR}/packages/pytorch-libs/sam2" "sam2"
+        PATCHES "${CMAKE_SOURCE_DIR}/packages/patches/sam2/sam2" )
+    endif()
   endif()
 
   # Each backend's trainer, launcher and onnx exporter sit beside its

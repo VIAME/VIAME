@@ -133,8 +133,8 @@ class Sam2Refiner(RefineDetections):
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
 
-        from sam2.build_sam import build_sam2
-        from sam2.sam2_image_predictor import SAM2ImagePredictor
+        from viame.sam2.build_sam import build_sam2
+        from viame.sam2.sam2_image_predictor import SAM2ImagePredictor
 
         hydra_overrides_extra = [
             # "++model.fill_hole_area=8",
@@ -424,8 +424,8 @@ class Sam2TrackRefiner(RefineTracks):
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
 
-        from sam2.build_sam import build_sam2
-        from sam2.sam2_image_predictor import SAM2ImagePredictor
+        from viame.sam2.build_sam import build_sam2
+        from viame.sam2.sam2_image_predictor import SAM2ImagePredictor
 
         hydra_overrides_extra = []
         model = build_sam2(

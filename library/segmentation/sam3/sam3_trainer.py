@@ -516,7 +516,7 @@ class SAM3Trainer(TrainDetector):
             model = build_sam3(config["model"]["sam_model_id"])
         except ImportError:
             try:
-                from sam2.build_sam import build_sam2
+                from viame.sam2.build_sam import build_sam2
 
                 model = build_sam2(
                     config_file=self._sam2_config_file,
@@ -1176,7 +1176,7 @@ class SAM3TrackerTrainer(TrainTracker):
             pass
 
         try:
-            from sam2.build_sam import build_sam2
+            from viame.sam2.build_sam import build_sam2
 
             model = build_sam2(
                 config_file=self._sam2_config_file,
