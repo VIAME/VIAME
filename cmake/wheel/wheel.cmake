@@ -92,6 +92,7 @@ add_custom_target( wheel
   COMMAND "${_viame_wheel_python}"
           "${VIAME_WHEEL_DIR}/select_default_configs.py"
           --prefix "${CMAKE_INSTALL_PREFIX}"
+          --manifest "${CMAKE_BINARY_DIR}/install_manifest.txt"
           --output "${VIAME_WHEEL_DEFAULT_CONFIGS}"
   COMMAND "${_viame_wheel_python}"
           "${VIAME_WHEEL_DIR}/build_wheel.py"
