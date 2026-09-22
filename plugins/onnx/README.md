@@ -355,3 +355,35 @@ Validated with torch 2.12 / onnxruntime 1.23 / numpy 2.0:
   candidate overlap 25/25, identical cosine scores). Positional end-to-end
   validation of method 2 needs real imagery: DINOv2 features are uninformative
   on synthetic patterns (so is the reference).
+
+
+## Interactive annotation helper graphs
+
+These weight-free exporters are shared by browser and desktop ONNX hosts.
+DIVE bundles the generated graphs in `client/public/models/`; the exporters
+live here and are installed in `viame.onnx` by the ONNX plugin build.
+
+| Exporter | Output | Operations |
+| --- | --- | --- |
+| [export_sam_postprocess.py](export_sam_postprocess.py) | `sam_postprocess.onnx` | Select the highest-scoring SAM2/SAM3 mask, resize and remove padding, resize to the original image, and threshold to a binary mask. Only the selected candidate is upscaled. |
+| [export_stereo_sampler.py](export_stereo_sampler.py) | `stereo_sample.onnx` | Gather a clipped 7×7 neighbourhood per point from cached disparity, interpolate at original-image pixel spacing, filter invalid values, and select the 90th-percentile disparity and valid fraction. |
+
+Exporting requires `onnx`. Reference validation with `--check` also requires
+`numpy` and `onnxruntime`; SAM validation additionally uses `opencv-python`.
+No model checkpoints or PyTorch installation are required. Input/output tensor
+contracts are documented in each exporter. Both default to writing the named
+`.onnx` file in the current directory; `--out` selects another destination.
+
+From the VIAME source root, regenerate DIVE's bundled assets with:
+
+```bash
+python plugins/onnx/export_sam_postprocess.py --check \
+  --out packages/dive/client/public/models/sam_postprocess.onnx
+python plugins/onnx/export_stereo_sampler.py --check \
+  --out packages/dive/client/public/models/stereo_sample.onnx
+```
+
+After installation, the exporters can also be invoked as
+`python -m viame.onnx.export_sam_postprocess` and
+`python -m viame.onnx.export_stereo_sampler`. Providing these graphs does not
+switch the desktop interactive service away from its existing native sampler.

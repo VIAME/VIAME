@@ -28,6 +28,8 @@ set( onnx_modules
   calibration_io
   geometry_numpy
   export_stereo_mapping
+  export_sam_postprocess
+  export_stereo_sampler
   run_epipolar_onnx
   fast_foundation_stereo )
 
