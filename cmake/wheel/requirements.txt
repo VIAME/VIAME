@@ -1,0 +1,69 @@
+# Requires-Dist, one per line. The part common to every CUDA variant; torch
+# and the nvidia runtime live in requirements-cu<major>.txt.
+#
+# Established by running the GFIT and DEFAULT-FISH pipelines in an empty
+# environment, not by scanning imports -- five entries below appear nowhere
+# in VIAME's sources and were found only by a pipeline failing on them.
+#
+# Where floors overlap, the highest wins. Note this branch installs the
+# PyTorch forks as separate distributions rather than vendoring them, so
+# rfdetr and sam2 cannot be declared here -- their PyPI names are different
+# software. They are installed by the build.
+
+# --- the interpreter and arrays -------------------------------------------
+# numpy's floor is sam2's; ours was 1.13.
+numpy>=1.24.4
+
+# --- torch ----------------------------------------------------------------
+# In the base requirements rather than behind an extra, by decision: nearly
+# every pipeline that does anything needs it, and a wheel that installs but
+# cannot run is the failure this file exists to prevent. It is also what
+# brings the `nvidia-*` CUDA wheels the binaries' RUNPATH points at -- see
+# `add_cuda_rpath` in build_wheel.py. Floors are sam2's, above rfdetr's
+# 2.2.0 / 0.17.0.
+# torch and the CUDA runtime are per-variant; see requirements-cu12.txt
+# and requirements-cu13.txt.
+
+# --- what VIAME's own algorithms import -----------------------------------
+scriptconfig
+ubelt
+pillow>=9.4.0
+opencv-python-headless
+onnxruntime
+ensemble_boxes
+
+# --- the Kitware stack the netharn classifiers use ------------------------
+kwimage
+kwcoco
+kwarray
+ndsampler
+
+# --- reached through vendored netharn's lazy imports ----------------------
+# None of these appear in an import scan of VIAME's own sources; each was
+# found by a pipeline failing on it.
+astunparse
+pygtrie
+networkx_algo_common_subtree
+torch_liberator
+liberator
+
+# --- inherited from `viame.rfdetr` ----------------------------------------
+requests
+tqdm>=4.66.1
+transformers>=5.1.0,<6.0.0
+pydantic>=2.0,<3
+pyDeprecate>=0.9,<0.10
+supervision
+
+# --- inherited from `viame.sam2` ------------------------------------------
+# sam2 builds its model graph through Hydra, so these are not optional: the
+# package does not import without them.
+hydra-core>=1.3.2
+iopath>=0.1.10
+
+# --- deliberately absent ---------------------------------------------------
+# `rfdetr` and `sam2`: vendored as `viame.rfdetr` and `viame.sam2`. Their PyPI
+#   names resolve to different software -- rfdetr 1.10.1 takes an int where
+#   ours takes a `(h, w)` tuple -- so depending on them would be worse than
+#   not depending on them.
+# `patchelf`: needed to *build* a wheel, never to use one.

@@ -38,6 +38,39 @@ endif()
 set( VIAME_WHEEL_OUTPUT_DIR "${CMAKE_BINARY_DIR}/wheel"
      CACHE PATH "Where `make wheel` writes the .whl" )
 
+# The CUDA variant, read from the toolkit this build used. It decides the
+# nvidia wheel layout the RUNPATH targets, which requirements-cu* is layered
+# on, and whether the wheel carries a local version. cu13 is the default and
+# unmarked; cu12 is `viame+cu12`, for the Pascal and Volta hardware CUDA 13
+# dropped. PyPI refuses local versions, so a variant needs its own index.
+if( VIAME_ENABLE_CUDA AND CMAKE_CUDA_COMPILER AND NOT DEFINED VIAME_WHEEL_CUDA_MAJOR )
+  if( CUDA_VERSION_MAJOR )
+    set( VIAME_WHEEL_CUDA_MAJOR "${CUDA_VERSION_MAJOR}" )
+  elseif( CUDAToolkit_VERSION_MAJOR )
+    set( VIAME_WHEEL_CUDA_MAJOR "${CUDAToolkit_VERSION_MAJOR}" )
+  endif()
+endif()
+
+set( _wheel_variant_args )
+set( _wheel_variant_requires )
+if( VIAME_WHEEL_CUDA_MAJOR )
+  set( _variant_file
+       "${VIAME_WHEEL_DIR}/requirements-cu${VIAME_WHEEL_CUDA_MAJOR}.txt" )
+  if( NOT EXISTS "${_variant_file}" )
+    message( FATAL_ERROR
+      "No wheel requirements for CUDA ${VIAME_WHEEL_CUDA_MAJOR}. Add "
+      "cmake/wheel/requirements-cu${VIAME_WHEEL_CUDA_MAJOR}.txt and a layout "
+      "in CUDA_WHEEL_DIRS in build_wheel.py." )
+  endif()
+  list( APPEND _wheel_variant_args --cuda-major "${VIAME_WHEEL_CUDA_MAJOR}" )
+  list( APPEND _wheel_variant_requires --requires-from "${_variant_file}" )
+  if( NOT VIAME_WHEEL_CUDA_MAJOR EQUAL 13 )
+    list( APPEND _wheel_variant_args
+          --local-version "cu${VIAME_WHEEL_CUDA_MAJOR}" )
+  endif()
+  message( STATUS "  wheel: CUDA ${VIAME_WHEEL_CUDA_MAJOR} variant" )
+endif()
+
 # The interpreter the extension modules were built against decides the wheel's
 # tag, so ask the build's python rather than whatever is first on PATH.
 if( DEFINED PYTHON_EXECUTABLE )
@@ -70,7 +103,9 @@ add_custom_target( wheel
           --manifest   "${CMAKE_BINARY_DIR}/install_manifest.txt"
           --top-level  viame
           --top-level  kwiver
-          --requires   "numpy>=1.13.0"
+          --requires-from "${VIAME_WHEEL_DIR}/requirements.txt"
+          ${_wheel_variant_requires}
+          ${_wheel_variant_args}
           --license-file "${CMAKE_SOURCE_DIR}/LICENSE.txt"
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
   COMMENT "Packing ${CMAKE_INSTALL_PREFIX} into a wheel"

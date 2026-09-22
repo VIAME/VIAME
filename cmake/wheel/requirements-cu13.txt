@@ -1,0 +1,18 @@
+# torch and the CUDA runtime for a CUDA 13 build, layered over
+# requirements.txt. This is the default variant: the plain `viame` wheel.
+#
+# CUDA 13's nvcc starts at compute_75, so this has no GPU support on Pascal
+# (6.0, 6.1) or Volta (7.0). Those users want the +cu12 wheel.
+
+# No upper bound: torch 2.11+ is cu13, which this matches.
+torch>=2.11
+torchvision>=0.18.1
+
+# cu13 dropped the suffix on the core distributions and consolidated their
+# libraries into nvidia/cu13/lib, which is what this wheel's RUNPATH targets.
+# cudnn kept both. Declared rather than left to torch: which CUDA a binary
+# needs is a property of how it was compiled.
+nvidia-cuda-runtime
+nvidia-cublas
+nvidia-curand
+nvidia-cudnn-cu13
