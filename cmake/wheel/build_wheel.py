@@ -28,8 +28,11 @@ import csv
 import hashlib
 import io
 import re
+import shutil
 import struct
+import subprocess
 import sys
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -151,7 +154,33 @@ def _static_prefix(pattern):
     return "/".join(parts)
 
 
-def select(prefix, rules, data_dir):
+def read_manifest(path):
+    """The set of files a build installed, from CMake's `install_manifest.txt`.
+
+    An install prefix is an accumulation: `make install` only ever adds, so a
+    prefix that has been built into for months holds files whose sources were
+    deleted long ago. Selecting a wheel's contents by walking it therefore
+    packs other builds' leavings. On this branch that was twelve files --
+    two `.bak_prereid` backups, `video_io/image_viewer.py` and
+    `video_io/pil_image_io.py` at the path they had before the `image_io`
+    split moved them, and a `viame/home/local/.../core.py` tree left by a
+    build that resolved an absolute path as a relative one.
+
+    None of them would have broken the wheel, which is what makes this worth
+    a filter rather than a cleanup: a stale module that still imports is how
+    a package ends up shipping code nobody can find in the tree.
+    """
+    files = set()
+    for line in Path(path).read_text().splitlines():
+        line = line.strip()
+        if line:
+            files.add(str(Path(line).resolve()))
+    if not files:
+        raise SystemExit(f"{path}: empty manifest")
+    return files
+
+
+def select(prefix, rules, data_dir, manifest=None):
     """Return {wheel-relative path: source Path}.
 
     A destination may use `{data}`, which expands to the wheel's
@@ -164,6 +193,7 @@ def select(prefix, rules, data_dir):
         raise SystemExit(f"{prefix}: not a directory")
 
     chosen = {}
+    skipped = []
     for rule in (r for r in rules if r.action == "include"):
         base = _static_prefix(rule.pattern)
         root = prefix / base if base else prefix
@@ -178,6 +208,9 @@ def select(prefix, rules, data_dir):
             rel = src.relative_to(prefix).as_posix()
             matched, tail = _match_tail(rule.pattern, rel)
             if not matched:
+                continue
+            if manifest is not None and str(src.resolve()) not in manifest:
+                skipped.append(rel)
                 continue
             rule_dest = rule.dest.replace("{data}", data_dir)
             if rule_dest.endswith("/"):
@@ -201,6 +234,21 @@ def select(prefix, rules, data_dir):
         for dest in [d for d, s in chosen.items()
                      if _match(rule.pattern, s.relative_to(prefix).as_posix())]:
             del chosen[dest]
+
+    # Report only what an exclude rule would not have dropped anyway. Most of
+    # what a prefix holds beyond its manifest is `__pycache__`, and burying
+    # the interesting entries under three hundred of those is the same as not
+    # reporting them.
+    notable = [rel for rel in skipped
+               if not any(_match(r.pattern, rel)
+                          for r in rules if r.action == "exclude")]
+    if notable:
+        print(f"  {len(notable)} file(s) in the prefix but not in this build's "
+              f"install manifest, left out:", file=sys.stderr)
+        for rel in sorted(notable)[:12]:
+            print(f"    {rel}", file=sys.stderr)
+        if len(notable) > 12:
+            print(f"    ... and {len(notable) - 12} more", file=sys.stderr)
 
     if not chosen:
         raise SystemExit("the contents file selected no files")
@@ -289,6 +337,60 @@ def soname(path):
 
 
 # ----------------------------------------------------------------------------
+# Stripping
+#
+# The symbol tables are 40% of what this branch installs -- 116 MB of
+# extension modules become 62 MB, and `libviame.so` 52 MB becomes 39 MB --
+# and there is no DWARF behind them to lose: `.debug_*` across the whole
+# install is 0.1 MB. So this costs nothing anyone was getting a debugger out
+# for, and it is the difference between a wheel that meets its size target
+# and one that does not.
+#
+# Stripped into a scratch copy rather than in place. The install prefix is
+# something people run from and debug against; a `make wheel` that quietly
+# stripped it would be a surprising thing for a packaging step to do.
+# ----------------------------------------------------------------------------
+
+def strip_into(src, scratch, seen):
+    """A stripped copy of `src` under `scratch`, or `src` if stripping fails.
+
+    Returns the path to pack. `seen` maps an already-stripped source to its
+    copy so that a library packed under two names is only stripped once.
+    """
+    if src in seen:
+        return seen[src]
+    try:
+        with open(src, "rb") as f:
+            if f.read(4) != b"\x7fELF":
+                seen[src] = src
+                return src
+    except OSError:
+        seen[src] = src
+        return src
+
+    dst = scratch / f"{len(seen)}-{src.name}"
+    try:
+        shutil.copy2(src, dst)
+        r = subprocess.run(["strip", "--strip-all", str(dst)],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            # A library that will not strip is packed as it is rather than
+            # failing the build; the size target is not worth a wheel that
+            # cannot be produced on a machine without binutils.
+            print(f"  note: strip failed for {src.name}: {r.stderr.strip()[:120]}",
+                  file=sys.stderr)
+            dst.unlink(missing_ok=True)
+            seen[src] = src
+            return src
+    except (OSError, FileNotFoundError) as e:
+        print(f"  note: cannot strip ({e}); packing unstripped", file=sys.stderr)
+        seen[src] = src
+        return src
+    seen[src] = dst
+    return dst
+
+
+# ----------------------------------------------------------------------------
 # Wheel metadata
 # ----------------------------------------------------------------------------
 
@@ -328,7 +430,8 @@ def wheel_metadata(root_is_purelib, tag):
 def build(args):
     rules = read_contents(args.contents)
     dist = f"{args.name}-{args.version}"
-    chosen = select(args.prefix, rules, f"{dist}.data/data")
+    manifest = read_manifest(args.manifest) if args.manifest else None
+    chosen = select(args.prefix, rules, f"{dist}.data/data", manifest)
 
     tag = f"{args.python_tag}-{args.abi_tag}-{args.platform_tag}"
     out = Path(args.output_dir)
@@ -337,46 +440,60 @@ def build(args):
 
     requires = [r for r in (args.requires or []) if r]
     records = []
+    stripped = {}
+    raw = packed = 0
+    scratch = Path(tempfile.mkdtemp(prefix="viame-wheel-"))
 
-    with zipfile.ZipFile(whl, "w", zipfile.ZIP_DEFLATED) as z:
-        for dest in sorted(chosen):
-            src = chosen[dest]
-            z.write(src, dest)
-            digest, size = _hash(src)
-            records.append((dest, digest, size))
+    try:
+        with zipfile.ZipFile(whl, "w", zipfile.ZIP_DEFLATED) as z:
+            for dest in sorted(chosen):
+                src = chosen[dest]
+                raw += src.stat().st_size
+                if args.strip:
+                    src = strip_into(src, scratch, stripped)
+                packed += src.stat().st_size
+                z.write(src, dest)
+                digest, size = _hash(src)
+                records.append((dest, digest, size))
 
-        info = f"{dist}.dist-info"
-        extras = {
-            f"{info}/METADATA": metadata(args.name, args.version, args.summary,
-                                         requires, args.description),
-            f"{info}/WHEEL": wheel_metadata(False, tag),
-            f"{info}/top_level.txt": "".join(t + "\n" for t in sorted(args.top_level or [])),
-        }
-        if args.entry_points and Path(args.entry_points).is_file():
-            extras[f"{info}/entry_points.txt"] = Path(args.entry_points).read_text()
-        if args.license_file and Path(args.license_file).is_file():
-            extras[f"{info}/LICENSE"] = Path(args.license_file).read_text(errors="replace")
+            info = f"{dist}.dist-info"
+            extras = {
+                f"{info}/METADATA": metadata(args.name, args.version, args.summary,
+                                             requires, args.description),
+                f"{info}/WHEEL": wheel_metadata(False, tag),
+                f"{info}/top_level.txt": "".join(
+                    n + "\n" for n in sorted(args.top_level or [])),
+            }
+            if args.entry_points and Path(args.entry_points).is_file():
+                extras[f"{info}/entry_points.txt"] = Path(args.entry_points).read_text()
+            if args.license_file and Path(args.license_file).is_file():
+                extras[f"{info}/LICENSE"] = Path(args.license_file).read_text(errors="replace")
 
-        for dest, text in extras.items():
-            data = text.encode()
-            z.writestr(dest, data)
-            digest = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
-            records.append((dest, f"sha256={digest}", len(data)))
+            for dest, text in extras.items():
+                data = text.encode()
+                z.writestr(dest, data)
+                digest = base64.urlsafe_b64encode(
+                    hashlib.sha256(data).digest()).rstrip(b"=").decode()
+                records.append((dest, f"sha256={digest}", len(data)))
 
-        # RECORD lists itself with neither hash nor size
-        buf = io.StringIO()
-        w = csv.writer(buf, lineterminator="\n")
-        for row in sorted(records):
-            w.writerow(row)
-        w.writerow([f"{info}/RECORD", "", ""])
-        z.writestr(f"{info}/RECORD", buf.getvalue())
+            # RECORD lists itself with neither hash nor size
+            buf = io.StringIO()
+            w = csv.writer(buf, lineterminator="\n")
+            for row in sorted(records):
+                w.writerow(row)
+            w.writerow([f"{info}/RECORD", "", ""])
+            z.writestr(f"{info}/RECORD", buf.getvalue())
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
 
     total = sum(r[2] for r in records)
     print(f"  {whl}")
     print(f"  {len(chosen)} files, {total / 1048576:.1f} MB uncompressed, "
           f"{whl.stat().st_size / 1048576:.1f} MB compressed")
+    if args.strip and raw:
+        print(f"  stripped {raw / 1048576:.1f} -> {packed / 1048576:.1f} MB "
+              f"({100 * (raw - packed) / raw:.0f}% off before compression)")
     return 0
-
 
 
 def main(argv=None):
@@ -384,6 +501,10 @@ def main(argv=None):
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--prefix", required=True, help="install prefix to take files from")
     p.add_argument("--contents", required=True, help="the contents file")
+    p.add_argument("--manifest",
+                   help="CMake install_manifest.txt; restricts the wheel to what "
+                        "this build installed, rather than whatever the prefix "
+                        "has accumulated")
     p.add_argument("--output-dir", required=True)
     p.add_argument("--name", default="viame")
     p.add_argument("--version", required=True)
@@ -396,6 +517,10 @@ def main(argv=None):
     p.add_argument("--python-tag", default=f"cp{sys.version_info.major}{sys.version_info.minor}")
     p.add_argument("--abi-tag", default=f"cp{sys.version_info.major}{sys.version_info.minor}")
     p.add_argument("--platform-tag", default="linux_x86_64")
+    p.add_argument("--strip", action="store_true",
+                   help="strip symbol tables from packed binaries; see `strip_into`")
+    p.add_argument("--no-strip", dest="strip", action="store_false")
+    p.set_defaults(strip=True)
     return build(p.parse_args(argv))
 
 

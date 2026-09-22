@@ -55,6 +55,7 @@ add_custom_target( wheel
           --contents   "${VIAME_WHEEL_DIR}/contents.txt"
           --output-dir "${VIAME_WHEEL_OUTPUT_DIR}"
           --version    "${VIAME_WHEEL_VERSION}"
+          --manifest   "${CMAKE_BINARY_DIR}/install_manifest.txt"
           --top-level  viame
           --top-level  kwiver
           --requires   "numpy>=1.13.0"
