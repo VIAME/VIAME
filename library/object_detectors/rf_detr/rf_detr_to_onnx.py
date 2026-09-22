@@ -61,7 +61,7 @@ def build_rfdetr_model(weight_fpath, device='cpu', resolution_override=0):
     else:
         resolution = parse_resolution(args.get('resolution', 0))
 
-    import rfdetr
+    from viame import rfdetr
     table = _SEG if segmentation else _DET
     if model_size not in table:
         raise ValueError(f"unknown model_size {model_size!r}")

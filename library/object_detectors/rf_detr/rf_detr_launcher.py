@@ -43,8 +43,7 @@ def build_and_train(params):
     # before rfdetr is first imported here.
     ensure_rfdetr_compatibility()
 
-    import rfdetr
-
+    from viame import rfdetr
     if params.get("segmentation"):
         sizes = {"nano": "RFDETRSegNano", "small": "RFDETRSegSmall",
                  "medium": "RFDETRSegMedium", "large": "RFDETRSegLarge"}
@@ -88,7 +87,7 @@ def build_and_train(params):
     # predating ddp_timeout_seconds would drop it silently and leave the run on the
     # 30-minute watchdog while the config claims otherwise. Say so instead.
     if "ddp_timeout_seconds" in train_kwargs:
-        from rfdetr.config import TrainConfig
+        from viame.rfdetr.config import TrainConfig
 
         if "ddp_timeout_seconds" not in getattr(TrainConfig, "model_fields", {}):
             print("[rf_detr_launcher] WARNING: installed rfdetr does not support "
@@ -112,7 +111,7 @@ def build_and_train(params):
     # per rank, since PTL re-execs this script and each rank builds its own
     # trainer. train() exposes no callbacks seam, so wrap build_trainer.
     if train_kwargs.get("resume"):
-        import rfdetr.training as rfdetr_training
+        import viame.rfdetr.training as rfdetr_training
 
         original_build_trainer = rfdetr_training.build_trainer
         resume_lr = rfdetr_resume_lr_callback()

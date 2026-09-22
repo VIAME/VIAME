@@ -273,7 +273,7 @@ class RFDETRDetector(ImageObjectDetector):
         # Import the appropriate RF-DETR model class based on size and whether a
         # segmentation (mask) head is present. Seg checkpoints carry extra
         # segmentation_head.* weights that only load into the RFDETRSeg* classes.
-        import rfdetr
+        from viame import rfdetr
         det_models = {
             'nano': 'RFDETRNano', 'small': 'RFDETRSmall', 'medium': 'RFDETRMedium',
             'base': 'RFDETRBase', 'large': 'RFDETRLarge',

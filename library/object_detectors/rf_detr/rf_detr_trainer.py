@@ -150,7 +150,7 @@ def select_model_class(model_size, segmentation):
     if key not in table:
         kind = 'segmentation' if segmentation else 'detection'
         raise ValueError(f"Unknown {kind} model size: {model_size}")
-    import rfdetr
+    from viame import rfdetr
     return getattr(rfdetr, table[key])
 
 
@@ -162,7 +162,7 @@ def model_block_size(model_size, segmentation):
     """
     model_class = select_model_class(model_size, segmentation)
 
-    import rfdetr.config as rfdetr_config
+    import viame.rfdetr.config as rfdetr_config
 
     # RFDETRLarge's _model_config_class is the abstract base, so resolve by name
     config_class = getattr(
@@ -607,7 +607,7 @@ class RFDETRTrainer(TrainDetector):
             'motion_only': 'AUG_MOTION_ONLY',
         }
         if key in presets:
-            from rfdetr.datasets import aug_config as rfdetr_aug
+            from viame.rfdetr.datasets import aug_config as rfdetr_aug
             preset = getattr(rfdetr_aug, presets[key])
             return list(preset) if isinstance(preset, list) else dict(preset)
 
@@ -1246,7 +1246,7 @@ class RFDETRTrainer(TrainDetector):
         # through Trainer.should_stop. Inject a callback that flips it on timeout
         # or interrupt, wrapping build_trainer since train() exposes no other seam.
         import pytorch_lightning as pl
-        import rfdetr.training as rfdetr_training
+        import viame.rfdetr.training as rfdetr_training
 
         class _StopControlCallback(pl.Callback):
             def __init__(self, timeout_seconds=None):

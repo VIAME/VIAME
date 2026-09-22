@@ -882,7 +882,7 @@ def apply_rfdetr_stem_lr(lr_stem, lr_encoder, lr_component_decay,
     if lr_stem <= 0:
         return
 
-    import rfdetr.models.backbone.backbone as _bb
+    import viame.rfdetr.models.backbone.backbone as _bb
 
     orig = getattr(_bb.get_dinov2_lr_decay_rate, '_viame_orig',
                    _bb.get_dinov2_lr_decay_rate)

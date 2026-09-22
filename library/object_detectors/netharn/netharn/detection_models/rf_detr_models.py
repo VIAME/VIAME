@@ -448,7 +448,7 @@ class RFDETR_Detector(nh.layers.Module):
 
     def _get_variant_config(self, variant, num_queries, resolution):
         """Build the pydantic ModelConfig for a model variant."""
-        from rfdetr import config as rfdetr_config
+        from viame.rfdetr import config as rfdetr_config
 
         variant_to_config_cls = {
             'base': rfdetr_config.RFDETRBaseConfig,
@@ -492,9 +492,9 @@ class RFDETR_Detector(nh.layers.Module):
     def _build_model(self, model_config, weight_path):
         """Build the RF-DETR model, criterion, and postprocessor."""
         import os
-        from rfdetr.assets.model_weights import get_model_cache_dir
-        from rfdetr.config import TrainConfig, SegmentationTrainConfig
-        from rfdetr.models import (build_criterion_from_config,
+        from viame.rfdetr.assets.model_weights import get_model_cache_dir
+        from viame.rfdetr.config import TrainConfig, SegmentationTrainConfig
+        from viame.rfdetr.models import (build_criterion_from_config,
                                    build_model_from_config,
                                    load_pretrain_weights)
 

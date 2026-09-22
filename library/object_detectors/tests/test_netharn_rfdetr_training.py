@@ -195,15 +195,15 @@ def native_config(monkeypatch):
     """Load real vendored config classes without RF-DETR's torchvision imports."""
     import importlib.util
     root = ROOT.parents[2] / 'packages/pytorch-libs/rf-detr/src/rfdetr'
-    package = ModuleType('rfdetr')
+    package = ModuleType('viame.rfdetr')
     package.__path__ = [str(root)]
-    monkeypatch.setitem(sys.modules, 'rfdetr', package)
-    utilities = ModuleType('rfdetr.utilities')
+    monkeypatch.setitem(sys.modules, 'viame.rfdetr', package)
+    utilities = ModuleType('viame.rfdetr.utilities')
     utilities.__path__ = [str(root / 'utilities')]
-    monkeypatch.setitem(sys.modules, 'rfdetr.utilities', utilities)
-    spec = importlib.util.spec_from_file_location('rfdetr.config', root / 'config.py')
+    monkeypatch.setitem(sys.modules, 'viame.rfdetr.utilities', utilities)
+    spec = importlib.util.spec_from_file_location('viame.rfdetr.config', root / 'config.py')
     module = importlib.util.module_from_spec(spec)
-    monkeypatch.setitem(sys.modules, 'rfdetr.config', module)
+    monkeypatch.setitem(sys.modules, 'viame.rfdetr.config', module)
     spec.loader.exec_module(module)
     package.config = module
     return module
@@ -229,12 +229,12 @@ def test_actual_variant_configuration(native_config, segmentation, expected_quer
 def test_native_weights_use_rfdetr_loader(native_config, monkeypatch, tmp_path):
     path = tmp_path / 'native.pth'
     path.touch()
-    models = ModuleType('rfdetr.models')
+    models = ModuleType('viame.rfdetr.models')
     network = torch.nn.Linear(2, 2)
     models.build_model_from_config = Mock(return_value=network)
     models.load_pretrain_weights = Mock(return_value=['fish'])
     models.build_criterion_from_config = Mock(return_value=('criterion', 'postprocess'))
-    assets = ModuleType('rfdetr.assets.model_weights')
+    assets = ModuleType('viame.rfdetr.assets.model_weights')
     assets.get_model_cache_dir = Mock(return_value=str(tmp_path))
     monkeypatch.setitem(sys.modules, models.__name__, models)
     monkeypatch.setitem(sys.modules, assets.__name__, assets)
@@ -330,13 +330,13 @@ def test_keypoint_run_rejects_missing_or_wrong_names():
 @pytest.mark.parametrize('lightning', [False, True])
 def test_real_native_checkpoint_keeps_head_and_query_weights(native_config, monkeypatch, tmp_path, lightning):
     import importlib.util
-    assets = ModuleType('rfdetr.assets.model_weights')
+    assets = ModuleType('viame.rfdetr.assets.model_weights')
     assets.download_pretrain_weights = lambda *a, **kw: None
     assets.validate_pretrain_weights = lambda *a, **kw: True
     assets.get_model_cache_dir = lambda: str(tmp_path)
     monkeypatch.setitem(sys.modules, assets.__name__, assets)
     root = ROOT.parents[2] / 'packages/pytorch-libs/rf-detr/src/rfdetr'
-    decorators = ModuleType('rfdetr.utilities.decorators')
+    decorators = ModuleType('viame.rfdetr.utilities.decorators')
     decorators.deprecated = lambda *a, **kw: lambda func: func
     monkeypatch.setitem(sys.modules, decorators.__name__, decorators)
     spec = importlib.util.spec_from_file_location('native_weights_test', root / 'models/weights.py')

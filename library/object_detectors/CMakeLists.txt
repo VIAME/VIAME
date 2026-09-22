@@ -226,6 +226,56 @@ if( VIAME_ENABLE_PYTHON )
       CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-${option} )
   endforeach()
 
+  # ---------------------------------------------------------------------------
+  # `viame.rfdetr`, vendored
+  #
+  # The RF-DETR fork is carried inside the `viame` package rather than
+  # installed beside it as a top-level `rfdetr`. `rfdetr` on PyPI is different
+  # software -- its `resolution` is an int where the fork's is a
+  # `(height, width)` tuple -- so a wheel shipping ours under that name would
+  # claim a name we do not own, and one that *depended* on that name would
+  # resolve to something that fails at configuration.
+  #
+  # `vendor_rfdetr.py` rewrites the fork's absolute self-imports and its string
+  # module paths as it copies, so `viame.rfdetr` is closed over itself. A
+  # `sys.modules` alias would have been less work and is wrong: with the real
+  # `rfdetr` also installed, the vendored code's own imports would resolve
+  # against *that* copy through the ordinary path finder.
+  #
+  # `install( DIRECTORY )` rather than `viame_add_python_package`, which globs
+  # `*.py` only: the backbone reads six `dinov2_configs/*.json` at runtime.
+  # ---------------------------------------------------------------------------
+  if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-RF-DETR )
+    set( viame_rfdetr_fork "${CMAKE_SOURCE_DIR}/packages/pytorch-libs/rf-detr" )
+    _viame_python_package( viame_rfdetr_package )
+    set( viame_rfdetr_built
+         "${kwiver_python_output_path}/${python_sitename}/${viame_rfdetr_package}/rfdetr" )
+
+    execute_process(
+      COMMAND "${PYTHON_EXECUTABLE}"
+              "${VIAME_CMAKE_DIR}/viame/vendor_rfdetr.py"
+              --source  "${viame_rfdetr_fork}/src/rfdetr"
+              --licence "${viame_rfdetr_fork}/LICENSE"
+              --output  "${viame_rfdetr_built}"
+      RESULT_VARIABLE viame_rfdetr_result
+      OUTPUT_VARIABLE viame_rfdetr_output
+      ERROR_VARIABLE  viame_rfdetr_error
+      )
+    if( NOT viame_rfdetr_result EQUAL 0 )
+      message( FATAL_ERROR
+        "vendor_rfdetr.py failed (${viame_rfdetr_result}):\n"
+        "${viame_rfdetr_output}${viame_rfdetr_error}" )
+    endif()
+    string( STRIP "${viame_rfdetr_output}" viame_rfdetr_output )
+    message( STATUS "${viame_rfdetr_output}" )
+
+    install( DIRECTORY "${viame_rfdetr_built}/"
+      DESTINATION "${kwiver_python_install_path}/${viame_rfdetr_package}/rfdetr"
+      COMPONENT   runtime
+      PATTERN "__pycache__" EXCLUDE
+      )
+  endif()
+
   # Each backend's trainer, launcher and onnx exporter sit beside its
   # detector since P2-T07, under the same option; `netharn/netharn` and the
   # `learn` packages are the vendored trees the detectors and trainers share.

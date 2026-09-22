@@ -190,11 +190,11 @@ class RFDETRRefiner(RefineDetections):
         import torch
         import torch.nn.functional as F
         import torchvision.transforms.functional as TF
-        from rfdetr.utilities.tensors import nested_tensor_from_tensor_list
-        from rfdetr.utilities.shapes import as_pair
-        from rfdetr.models.math import inverse_sigmoid
-        from rfdetr.models.transformer import gen_encoder_output_proposals
-        from rfdetr.detr import _ensure_model_on_device
+        from viame.rfdetr.utilities.tensors import nested_tensor_from_tensor_list
+        from viame.rfdetr.utilities.shapes import as_pair
+        from viame.rfdetr.models.math import inverse_sigmoid
+        from viame.rfdetr.models.transformer import gen_encoder_output_proposals
+        from viame.rfdetr.detr import _ensure_model_on_device
 
         rf = self._detector._model
         ctx = rf.model
