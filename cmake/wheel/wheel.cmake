@@ -48,13 +48,26 @@ else()
   set( _viame_wheel_python "python3" )
 endif()
 
+# The default configs are selected from the install rather than listed by
+# hand: which pipelines need no model is a property of the configs, and a
+# hand-kept list would drift from them. Nothing from `configs/add-ons/` is
+# ever selected -- add-on packs are model distributions, fetched at runtime.
+set( VIAME_WHEEL_DEFAULT_CONFIGS
+     "${VIAME_WHEEL_OUTPUT_DIR}/default-configs.txt" )
+
 add_custom_target( wheel
+  COMMAND "${_viame_wheel_python}"
+          "${VIAME_WHEEL_DIR}/select_default_configs.py"
+          --prefix "${CMAKE_INSTALL_PREFIX}"
+          --output "${VIAME_WHEEL_DEFAULT_CONFIGS}"
   COMMAND "${_viame_wheel_python}"
           "${VIAME_WHEEL_DIR}/build_wheel.py"
           --prefix     "${CMAKE_INSTALL_PREFIX}"
           --contents   "${VIAME_WHEEL_DIR}/contents.txt"
+          --contents   "${VIAME_WHEEL_DEFAULT_CONFIGS}"
           --output-dir "${VIAME_WHEEL_OUTPUT_DIR}"
           --version    "${VIAME_WHEEL_VERSION}"
+          --manifest   "${CMAKE_BINARY_DIR}/install_manifest.txt"
           --top-level  viame
           --top-level  kwiver
           --requires   "numpy>=1.13.0"
