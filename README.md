@@ -111,10 +111,11 @@ algorithms, runnable via command-line, see:
 
 kitware/viame:gpu-algorithms-default
 
-This image is headless (ie, it contains no GUI) and contains a VIAME desktop (not web)
-installation in the folder /opt/noaa/viame. For links to the VIAME-Web docker containers see the
-above section in the installation documentation. Most add-on models are not included in the
-instance but can be downloaded via running the script download_viame_addons.sh in the bin folder.
+This image is headless (ie, it contains no GUI) and contains a command line interface
+installation in the folder /opt/noaa/viame. For links to the full VIAME-Web containers
+see the above section in the installation documentation. Most add-on models are not
+included by default but can be downloaded via running the script download_viame_addons.sh
+in the bin folder, or by using the viame add-ons tool.
 
 
 Command Line Interface Basics
@@ -126,15 +127,17 @@ description each, and `viame help <tool>` prints that tool's own options:
 
 ```
 viame help                                       # list every tool
-viame add-ons                                    # list and install model add-ons
 viame run my_pipeline.pipe                       # run a single pipeline file as-is
-viame run detector.pipe video.mp4                # run a pipeline on one video
-viame run detector.pipe image_list.txt           # ... or a list of images
+viame run my_pipeline.pipe video.mp4             # run a pipeline on a video
+viame run detector.zip video.mp4                 # run a detector on a video
+viame run detector.zip image_list.txt            # ... or a list of images
 viame run -p detector.pipe -d videos/            # run a pipeline over a folder
-viame train -c train_detector.conf -i data/      # train a model
-viame score -c detections.csv -t groundtruth.csv # score against groundtruth
+viame train -i data/ -c train_detector.conf      # train a model on some data
+viame score -c detections.csv -t groundtruth.csv # score file against groundtruth
+viame score -c computed/ -t groundtruth/         # score folder against groundtruth
 viame csv -i detections.csv --print-types        # inspect a VIAME csv
 viame json -i tracks.json --print-types          # inspect a DIVE or COCO json
+viame add-ons                                    # list and install model add-ons
 ```
 
 

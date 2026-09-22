@@ -23,6 +23,11 @@ DIVE_REMOTE = "https://github.com/Kitware/dive.git"
 DIVE_SITE = "https://kitware.github.io/dive"
 SUBMODULE = "packages/dive"
 
+README_INCLUDE = (
+    ".. include:: ../../../../examples/annotation_and_visualization/README.rst\n"
+    "   :start-after: .. dive-manual-toctree\n"
+    "   :end-before: .. dive-section-end")
+
 PAGE_GROUPS = [
     ("Getting Started", [
         ("Web-Version.md", "Web Version"),
@@ -249,14 +254,11 @@ def copy_assets(text, source, dest):
 
 def write_index(ref):
     lines = [
-        "DIVE Interface",
-        "==============",
+        README_INCLUDE,
         "",
-        "DIVE is the web and desktop annotator bundled with VIAME. These pages are",
-        "vendored from the `DIVE manual`_ at the revision VIAME currently ships",
-        "(``" + ref[:12] + "``) so that annotation and pipeline-running instructions",
-        "sit alongside the algorithm documentation. The upstream site is authoritative",
-        "for anything newer.",
+        "The pages below are vendored from the `DIVE manual`_ at the revision VIAME",
+        "currently ships (``" + ref[:12] + "``). The upstream site is authoritative for",
+        "anything newer.",
         "",
         ".. _DIVE manual: " + DIVE_SITE,
         "",
@@ -271,8 +273,7 @@ def write_index(ref):
 def write_placeholder(reason):
     OUTPUT.mkdir(parents=True, exist_ok=True)
     (OUTPUT / "index.rst").write_text(
-        "DIVE Interface\n"
-        "==============\n\n"
+        README_INCLUDE + "\n\n"
         "The DIVE manual could not be retrieved for this build (" + reason + ").\n"
         "See `the DIVE documentation site <" + DIVE_SITE + ">`_.\n",
         encoding="utf-8")

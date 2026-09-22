@@ -1298,6 +1298,7 @@ lib/python3.10/site-packages/viame/measurement/colmap/prior_coverage_sfm.py
 lib/python3.10/site-packages/viame/measurement/colmap/reconstruction.py
 lib/python3.10/site-packages/viame/measurement/curved_measurement.py
 lib/python3.10/site-packages/viame/measurement/interactive_stereo.py
+lib/python3.10/site-packages/viame/measurement/measure_curved_process.py
 lib/python3.10/site-packages/viame/measurement/minima_loftr/__init__.py
 lib/python3.10/site-packages/viame/measurement/minima_loftr/backbone/__init__.py
 lib/python3.10/site-packages/viame/measurement/minima_loftr/backbone/resnet_fpn.py
@@ -1319,7 +1320,9 @@ lib/python3.10/site-packages/viame/measurement/onnx/calibration_io.py
 lib/python3.10/site-packages/viame/measurement/onnx/epipolar_dino_matcher.py
 lib/python3.10/site-packages/viame/measurement/onnx/epipolar_matcher.py
 lib/python3.10/site-packages/viame/measurement/onnx/export_fast_foundation_stereo_web.py
+lib/python3.10/site-packages/viame/measurement/onnx/export_sam_postprocess.py
 lib/python3.10/site-packages/viame/measurement/onnx/export_stereo_mapping.py
+lib/python3.10/site-packages/viame/measurement/onnx/export_stereo_sampler.py
 lib/python3.10/site-packages/viame/measurement/onnx/fast_foundation_stereo.py
 lib/python3.10/site-packages/viame/measurement/onnx/geometry_numpy.py
 lib/python3.10/site-packages/viame/measurement/onnx/run_epipolar_onnx.py

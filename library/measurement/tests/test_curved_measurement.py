@@ -90,9 +90,29 @@ def test_mask_path_ignores_fin_branch():
     curve = cm.mask_centerline(mask, [[20, 50], [130, 50]])
     assert np.max(np.abs(curve[:, 1] - 50)) < 8
     np.testing.assert_equal(curve[[0, -1]], [[20, 50], [130, 50]])
+    free = cm.mask_centerline(mask, [[30, 47], [120, 54]], anchored=False)
+    assert free[0, 0] < 22 and free[-1, 0] > 128
+    assert np.max(np.abs(free[:, 1] - 50)) < 3
     mask[:, 65:85] = False
     with pytest.raises(ValueError, match='connected'):
         cm.mask_centerline(mask, [[20, 50], [130, 50]])
+    merged, union = cm.merge_components(mask)
+    assert not union[50, 75] and merged[50, 75]
+    assert len(cm.mask_centerline(merged, [[20, 50], [130, 50]])) > 80
+
+
+def test_fit_midline_pins_ends_and_ignores_the_swing_onto_the_ridge():
+    x = np.linspace(0, 100, 101)
+    path = np.column_stack([x, 50 + 10 * np.sin(np.pi * x / 100)])
+    path[:5, 1] = np.linspace(80, path[5, 1], 5)
+    curve = cm.fit_midline(path, harmonics=3, count=101)
+    np.testing.assert_allclose(curve[[0, -1]], path[[0, -1]])
+    middle = curve[20:80]
+    chord = path[0, 1] + (path[-1, 1] - path[0, 1]) * middle[:, 0] / 100
+    assert np.all(np.diff(curve[:, 0]) > 0)
+    assert np.abs(np.diff(curve[:, 1], 2)).max() < 0.1
+    assert np.abs(cm.fit_midline(path, np.zeros(101, bool), count=101)[50] - [50, 65]).max() < 1e-6
+    assert (middle[:, 1] < chord).all()
 
 
 def test_cli(tmp_path, monkeypatch):

@@ -602,10 +602,20 @@ find_stereo_matches_calibration(
       continue;
     }
     kv::vector_2d left_center = bbox1.center();
+    const double box_size = std::max( bbox1.width(), bbox1.height() );
 
-    // Project left center to right camera at default depth
-    kv::vector_2d expected_right = project_left_to_right(
-      left_cam, right_cam, left_center, options.default_depth );
+    // With a depth, expect the right center near the projected left center.
+    // Without one, only its distance to the epipolar line can be judged:
+    // allow the threshold or a quarter box, whichever is larger, since the
+    // two views box the animal slightly differently.
+    const bool use_depth = options.default_depth > 0;
+    kv::vector_2d expected_right;
+    if( use_depth )
+    {
+      expected_right = project_left_to_right(
+        left_cam, right_cam, left_center, options.default_depth );
+    }
+    const double epipolar_gate = std::max( options.max_reprojection_error, box_size / 4.0 );
 
     for( int j = 0; j < n2; ++j )
     {
@@ -629,13 +639,29 @@ find_stereo_matches_calibration(
       }
       kv::vector_2d right_center = bbox2.center();
 
-      // Quick check: is the right detection center reasonably close to expected position?
-      // This is a heuristic to avoid expensive triangulation for obviously bad matches
-      double expected_dist = ( right_center - expected_right ).norm();
-      double search_radius = std::max( bbox1.width(), bbox1.height() ) * 2.0;
-      if( expected_dist > search_radius )
+      if( use_depth )
       {
-        continue;
+        // Quick check: is the right detection center reasonably close to expected position?
+        // This is a heuristic to avoid expensive triangulation for obviously bad matches
+        double expected_dist = ( right_center - expected_right ).norm();
+        if( expected_dist > box_size * 2.0 )
+        {
+          continue;
+        }
+      }
+      else
+      {
+        if( epipolar_line_distance( left_cam, right_cam, left_center, right_center ) > epipolar_gate )
+        {
+          continue;
+        }
+        // Anything along the line is a candidate; a box of a very different
+        // size is another animal.
+        const double size2 = std::max( bbox2.width(), bbox2.height() );
+        if( size2 > box_size * 2.5 || size2 < box_size / 2.5 )
+        {
+          continue;
+        }
       }
 
       // Compute reprojection error by triangulating the centers
@@ -643,7 +669,7 @@ find_stereo_matches_calibration(
         left_cam, right_cam, left_center, right_center );
 
       // Check threshold
-      if( reproj_error < options.max_reprojection_error )
+      if( reproj_error < ( use_depth ? options.max_reprojection_error : epipolar_gate ) )
       {
         cost_matrix[i][j] = reproj_error;
       }
@@ -834,19 +860,27 @@ find_stereo_matches_epipolar_iou(
       continue;
     }
 
-    // Project left bbox center to right image at default depth
+    // Project left bbox center to right image at default depth; without a
+    // depth the box is placed per candidate, at the point on the epipolar
+    // line nearest that candidate's center.
     kv::vector_2d left_center = bbox1.center();
-    kv::vector_2d projected_center = project_left_to_right(
-      left_cam, right_cam, left_center, options.default_depth );
+    const bool use_depth = options.default_depth > 0;
+    kv::vector_2d projected_center;
+    if( use_depth )
+    {
+      projected_center = project_left_to_right(
+        left_cam, right_cam, left_center, options.default_depth );
+    }
 
-    // Build projected bbox in right image (same width/height as left, centered at projected point)
     double w = bbox1.width();
     double h = bbox1.height();
-    kv::bounding_box_d projected_bbox(
-      projected_center.x() - w / 2.0,
-      projected_center.y() - h / 2.0,
-      projected_center.x() + w / 2.0,
-      projected_center.y() + h / 2.0 );
+    auto projected_box = [&]( const kv::vector_2d& center )
+    {
+      return kv::bounding_box_d(
+        center.x() - w / 2.0, center.y() - h / 2.0,
+        center.x() + w / 2.0, center.y() + h / 2.0 );
+    };
+    kv::bounding_box_d projected_bbox = projected_box( projected_center );
 
     for( int j = 0; j < n2; ++j )
     {
@@ -866,6 +900,18 @@ find_stereo_matches_epipolar_iou(
       if( !bbox2.is_valid() )
       {
         continue;
+      }
+
+      if( !use_depth )
+      {
+        kv::vector_3d point_3d = triangulate_point(
+          left_cam, right_cam, left_center, bbox2.center() );
+        kv::vector_3d in_right = right_cam.rotation() * ( point_3d - right_cam.center() );
+        if( in_right.z() <= 0 )
+        {
+          continue;
+        }
+        projected_bbox = projected_box( right_cam.project( point_3d ) );
       }
 
       // Compute IOU between projected left bbox and actual right bbox

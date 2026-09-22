@@ -601,6 +601,9 @@ copy_cudnn_libraries() {
   echo "Copying CUDNN libraries from $cudnn_base to $dest_lib"
 
   # Copy CUDNN 9 libraries
+  # Missing one of these is not a link error -- cuDNN dlopens its engine
+  # libraries when an op needs them -- so a gap shows up at inference as
+  # "Unable to load any of {libcudnn_...}" and a quiet fallback to CPU.
   local cudnn_libs=(
     "libcudnn.so.9"
     "libcudnn_adv.so.9"
@@ -608,6 +611,7 @@ copy_cudnn_libraries() {
     "libcudnn_ops.so.9"
     "libcudnn_engines_precompiled.so.9"
     "libcudnn_engines_runtime_compiled.so.9"
+    "libcudnn_engines_tensor_ir.so.9"
     "libcudnn_graph.so.9"
     "libcudnn_heuristic.so.9"
   )
@@ -616,21 +620,12 @@ copy_cudnn_libraries() {
     cp -P "$cudnn_base/${lib}"* "$dest_lib" 2>/dev/null || true
   done
 
-  # Create clean symlinks (remove existing, then create)
-  local cudnn_symlinks=(
-    "libcudnn"
-    "libcudnn_adv"
-    "libcudnn_cnn"
-    "libcudnn_ops"
-    "libcudnn_engines_precompiled"
-    "libcudnn_engines_runtime_compiled"
-    "libcudnn_graph"
-    "libcudnn_heuristic"
-  )
-
-  for lib in "${cudnn_symlinks[@]}"; do
-    rm -f "$dest_lib/${lib}.so" 2>/dev/null || true
-    ln -s "${lib}.so.9" "$dest_lib/${lib}.so" 2>/dev/null || true
+  # Symlinks are derived from the list above rather than repeated, which is
+  # how the two came to disagree in the first place.
+  for lib in "${cudnn_libs[@]}"; do
+    local base="${lib%.so.9}"
+    rm -f "$dest_lib/${base}.so" 2>/dev/null || true
+    ln -s "${base}.so.9" "$dest_lib/${base}.so" 2>/dev/null || true
   done
 
   echo "CUDNN library copy and symlink creation complete"

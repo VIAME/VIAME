@@ -307,7 +307,9 @@ TEST( PairStereoDetectionsTest, epipolar_iou_options_defaults )
 {
   epipolar_iou_matching_options opts;
   EXPECT_DOUBLE_EQ( opts.iou_threshold, 0.1 );
-  EXPECT_DOUBLE_EQ( opts.default_depth, 5.0 );
+  // Zero means the left box is placed along the epipolar line at each
+  // candidate rather than at an assumed depth.
+  EXPECT_DOUBLE_EQ( opts.default_depth, 0.0 );
   EXPECT_TRUE( opts.require_class_match );
   EXPECT_TRUE( opts.use_optimal_assignment );
 }
@@ -320,8 +322,7 @@ TEST( PairStereoDetectionsTest, keypoint_projection_options_defaults )
 {
   keypoint_projection_matching_options opts;
   EXPECT_DOUBLE_EQ( opts.max_keypoint_distance, 50.0 );
-  // Unlike epipolar_iou, which always projects at a fixed depth, this matcher
-  // reads default_depth <= 0 as "triangulate" -- finding the depth that
+  // default_depth <= 0 means "triangulate" -- finding the depth that
   // minimises the L/R reprojection residual instead of assuming one. Zero is
   // therefore the intended default, and a positive value switches that off.
   EXPECT_DOUBLE_EQ( opts.default_depth, 0.0 );
@@ -748,7 +749,8 @@ TEST( PairStereoDetectionsTest, calibration_options_defaults )
 {
   calibration_matching_options opts;
   EXPECT_DOUBLE_EQ( opts.max_reprojection_error, 10.0 );
-  EXPECT_DOUBLE_EQ( opts.default_depth, 5.0 );
+  // Zero: candidates are gated by epipolar distance, not a projected position.
+  EXPECT_DOUBLE_EQ( opts.default_depth, 0.0 );
   EXPECT_TRUE( opts.require_class_match );
   EXPECT_TRUE( opts.use_optimal_assignment );
 }
@@ -871,4 +873,60 @@ TEST( PairStereoDetectionsTest, filter_tracks_combined_filters )
 
   ASSERT_EQ( filtered.size(), 1u );
   EXPECT_EQ( filtered[0]->id(), 2 );
+}
+
+// =============================================================================
+// Tests: Depth-free box pairing on a synthetic rig
+// =============================================================================
+
+namespace {
+
+// A rectified pair, 1000px focal length, baseline 100 units along +x.
+std::pair< kv::simple_camera_perspective, kv::simple_camera_perspective >
+synthetic_rig()
+{
+  auto intrinsics = std::make_shared< kv::simple_camera_intrinsics >(
+    1000.0, kv::vector_2d( 640.0, 400.0 ), 1.0, 0.0 );
+  kv::simple_camera_perspective left( kv::vector_3d( 0, 0, 0 ), kv::rotation_d(), intrinsics );
+  kv::simple_camera_perspective right( kv::vector_3d( 100.0, 0, 0 ), kv::rotation_d(), intrinsics );
+  return { left, right };
+}
+
+kv::detected_object_sptr box_at( double cx, double cy, double w, double h )
+{
+  return make_detection_with_class( cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2, "fish" );
+}
+
+} // namespace
+
+TEST( PairStereoDetectionsTest, calibration_pairs_boxes_without_a_depth )
+{
+  auto rig = synthetic_rig();
+  // Two fish at depths 2000 and 5000: disparity 50 and 20 px on this rig.
+  std::vector< kv::detected_object_sptr > left = { box_at( 300, 200, 80, 40 ), box_at( 900, 600, 60, 30 ) };
+  std::vector< kv::detected_object_sptr > right = { box_at( 880, 601, 60, 30 ), box_at( 250, 203, 80, 40 ) };
+  calibration_matching_options opts;
+  opts.max_reprojection_error = 10.0;
+  auto matches = find_stereo_matches_calibration( left, right, rig.first, rig.second, opts, nullptr );
+  ASSERT_EQ( matches.size(), 2u );
+  std::map< int, int > by_left( matches.begin(), matches.end() );
+  EXPECT_EQ( by_left[0], 1 );
+  EXPECT_EQ( by_left[1], 0 );
+
+  // Off the epipolar line by 60 px: not a candidate at any depth.
+  right = { box_at( 250, 260, 80, 40 ) };
+  left = { left[0] };
+  EXPECT_TRUE( find_stereo_matches_calibration( left, right, rig.first, rig.second, opts, nullptr ).empty() );
+}
+
+TEST( PairStereoDetectionsTest, epipolar_iou_pairs_boxes_without_a_depth )
+{
+  auto rig = synthetic_rig();
+  std::vector< kv::detected_object_sptr > left = { box_at( 300, 200, 80, 40 ) };
+  std::vector< kv::detected_object_sptr > right = { box_at( 250, 204, 84, 40 ), box_at( 250, 300, 80, 40 ) };
+  epipolar_iou_matching_options opts;
+  opts.iou_threshold = 0.5;
+  auto matches = find_stereo_matches_epipolar_iou( left, right, rig.first, rig.second, opts, nullptr );
+  ASSERT_EQ( matches.size(), 1u );
+  EXPECT_EQ( matches[0].second, 0 );
 }

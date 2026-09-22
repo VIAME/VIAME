@@ -15,8 +15,8 @@ This service uses KWIVER vital algorithms configured via config files:
 - PerformTextQuery: For text-based detection/segmentation (optional)
 
 Usage:
-    python -m viame.segmentation.interactive_segmentation --config /path/to/config.pipe
-    python -m viame.segmentation.interactive_segmentation --config /path/to/config.pipe --plugin-path /path/to/plugins
+    python -m viame.core.interactive_segmentation --config /path/to/config.pipe
+    python -m viame.core.interactive_segmentation --config /path/to/config.pipe --plugin-path /path/to/plugins
 
 Protocol:
     Input (JSON per line on stdin):
@@ -89,6 +89,7 @@ class InteractiveSegmentationService:
         multipolygon_policy: str = "allow",
         max_polygon_points: int = 25,
         adaptive_simplify: bool = False,
+        max_polygon_points_limit: int = 100,
         plugin_paths: Optional[List[str]] = None,
         device: Optional[str] = None,
     ):
@@ -102,6 +103,8 @@ class InteractiveSegmentationService:
             hole_policy: How to handle holes in masks ('allow' or 'remove')
             multipolygon_policy: How to handle multiple polygons ('allow', 'convex_hull', 'largest')
             max_polygon_points: Maximum number of points in output polygons
+            max_polygon_points_limit: Ceiling the point budget grows to for
+                point-click masks too complex for max_polygon_points
             adaptive_simplify: Use adaptive polygon simplification
             plugin_paths: Extra plugin paths, forwarded to the embedded stereo
                 warper used by stereo_segment.
@@ -114,6 +117,10 @@ class InteractiveSegmentationService:
         self._multipolygon_policy = multipolygon_policy
         self._max_polygon_points = max_polygon_points
         self._adaptive_simplify = adaptive_simplify
+        self._max_polygon_points_limit = max(max_polygon_points, max_polygon_points_limit)
+        self._prompt_instances = None
+        self._prompt_instances_key = None
+        self._prompt_instances_like = None
         self._current_image_path: Optional[str] = None
         self._current_image_container = None
         # Embedded interactive-stereo warper for stereo_segment (lazy). Reuses
@@ -155,13 +162,13 @@ class InteractiveSegmentationService:
         if self._image_io_algo is not None:
             return self._image_io_algo.load(image_path)
 
-        # Fallback to pil conversion
+        # Fallback to VitalPIL conversion
         from viame.types import ImageContainer
-        from viame.util import pil
+        from viame.util import VitalPIL
         from PIL import Image as PILImage
 
         pil_img = PILImage.open(image_path).convert("RGB")
-        vital_img = pil.from_pil(pil_img)
+        vital_img = VitalPIL.from_pil(pil_img)
         return ImageContainer(vital_img)
 
     def _load_video_frame(self, video_path: str, frame_time: float):
@@ -205,14 +212,23 @@ class InteractiveSegmentationService:
                   f"from {os.path.basename(video_path)}")
         return image
 
-    def _detections_to_response(self, detected_objects) -> List[Dict[str, Any]]:
-        """Convert DetectedObjectSet to response dictionaries."""
-        from viame.segmentation.segmentation_utils import (
-            mask_to_polygon,
-            mask_to_polygons,
-            simplify_polygon_to_max_points,
-            adaptive_simplify_polygon,
-        )
+    def _simplify_ring(self, ring, grow):
+        from viame.segmentation.segmentation_utils import simplify_polygon_within_error
+
+        limit = self._max_polygon_points_limit if grow else self._max_polygon_points
+        return simplify_polygon_within_error(
+            ring, self._max_polygon_points, limit, adaptive=self._adaptive_simplify)
+
+    def _detections_to_response(self, detected_objects, keep_points=None, instances=False) -> List[Dict[str, Any]]:
+        """Convert DetectedObjectSet to response dictionaries.
+
+        `polygon` is the single polygon the configured policies leave; the
+        `polygons` list always carries every component of the mask, and any
+        component holding one of `keep_points` (the positive prompts) survives
+        the small-component filter. For a buffer of mask `instances` the
+        bounds span every polygon, and a ring too complex for
+        max_polygon_points takes up to max_polygon_points_limit."""
+        from viame.segmentation.segmentation_utils import mask_to_polygon, mask_to_polygons
 
         results = []
 
@@ -240,50 +256,22 @@ class InteractiveSegmentationService:
                     )
 
                     # Get multi-polygon data with holes
+                    offset_x, offset_y = bbox.min_x(), bbox.min_y()
                     raw_polygons, mp_bounds = mask_to_polygons(
-                        mask, self._hole_policy, self._multipolygon_policy
+                        mask, self._hole_policy, "allow",
+                        keep_points=[[x - offset_x, y - offset_y] for x, y in (keep_points or [])],
                     )
 
-                    # Simplify polygon if needed
-                    if polygon and len(polygon) > self._max_polygon_points:
-                        original_points = len(polygon)
-                        if self._adaptive_simplify:
-                            polygon = adaptive_simplify_polygon(
-                                polygon, self._max_polygon_points, min_points=4
-                            )
-                        else:
-                            polygon = simplify_polygon_to_max_points(
-                                polygon, self._max_polygon_points
-                            )
-                        if len(polygon) != original_points:
-                            self._log(f"Simplified polygon: {original_points} -> {len(polygon)} points")
+                    if polygon:
+                        polygon = self._simplify_ring(polygon, instances)
 
-                    # Simplify each polygon in multi-polygon data
                     if raw_polygons:
                         for poly_data in raw_polygons:
-                            ext = poly_data["exterior"]
-                            if len(ext) > self._max_polygon_points:
-                                if self._adaptive_simplify:
-                                    poly_data["exterior"] = adaptive_simplify_polygon(
-                                        ext, self._max_polygon_points, min_points=4
-                                    )
-                                else:
-                                    poly_data["exterior"] = simplify_polygon_to_max_points(
-                                        ext, self._max_polygon_points
-                                    )
-                            for i, hole in enumerate(poly_data["holes"]):
-                                if len(hole) > self._max_polygon_points:
-                                    if self._adaptive_simplify:
-                                        poly_data["holes"][i] = adaptive_simplify_polygon(
-                                            hole, self._max_polygon_points, min_points=4
-                                        )
-                                    else:
-                                        poly_data["holes"][i] = simplify_polygon_to_max_points(
-                                            hole, self._max_polygon_points
-                                        )
+                            poly_data["exterior"] = self._simplify_ring(poly_data["exterior"], instances)
+                            poly_data["holes"] = [
+                                self._simplify_ring(hole, instances) for hole in poly_data["holes"]]
 
                     # Offset polygon to original image coordinates (mask is cropped to bbox)
-                    offset_x, offset_y = bbox.min_x(), bbox.min_y()
                     if polygon:
                         polygon = [[x + offset_x, y + offset_y] for x, y in polygon]
 
@@ -301,6 +289,8 @@ class InteractiveSegmentationService:
                         polygons_data = raw_polygons
 
                     # Use polygon-derived bounds instead of detection bbox
+                    if instances and raw_polygons and mp_bounds != [0, 0, 0, 0]:
+                        poly_bounds = mp_bounds
                     if polygon and poly_bounds and poly_bounds != [0, 0, 0, 0]:
                         bounds = [
                             poly_bounds[0] + offset_x, poly_bounds[1] + offset_y,
@@ -357,6 +347,7 @@ class InteractiveSegmentationService:
         points = request.get("points", [])
         point_labels = request.get("point_labels", [])
         frame_time = request.get("frame_time")
+        line = request.get("line")
 
         if not image_path:
             raise ValueError("image_path is required")
@@ -375,17 +366,28 @@ class InteractiveSegmentationService:
         # Convert points to vital Point2d objects using x,y constructor
         vital_points = [Point2d(float(p[0]), float(p[1])) for p in points]
         vital_labels = [int(label) for label in point_labels]
+        positives = [[float(p[0]), float(p[1])] for p, l in zip(points, vital_labels) if l == 1]
+        instances = not (line and len(line) >= 2)
+
+        if not positives:
+            raise ValueError("Add a foreground point first; background points only trim existing masks")
 
         # Run segmentation (suppress stdout to prevent library warnings corrupting JSON)
         with suppress_stdout():
-            detected_objects = self._segment_algo.segment(
-                self._current_image_container,
-                vital_points,
-                vital_labels
-            )
+            if instances:
+                detected_objects = self._segment_instances(cache_key, points, vital_labels)
+            else:
+                detected_objects = self._segment_algo.segment(
+                    self._current_image_container,
+                    vital_points,
+                    vital_labels
+                )
+                detected_objects = self._fit_to_line(
+                    detected_objects, line, vital_points, vital_labels)
 
             # Convert results
-            results = self._detections_to_response(detected_objects)
+            results = self._detections_to_response(
+                detected_objects, keep_points=positives, instances=instances)
 
         if results:
             # Return the best result (first one)
@@ -399,6 +401,161 @@ class InteractiveSegmentationService:
                 "bounds": None,
                 "score": 0.0,
             }
+
+    def _full_mask(self, det, dims):
+        """A detection's cropped mask placed on a full-frame canvas."""
+        if det is None or det.mask is None:
+            return None
+        crop = det.mask.image().asarray()
+        if crop is None or crop.size == 0:
+            return None
+        if crop.ndim == 3:
+            crop = crop[:, :, 0]
+        box = det.bounding_box
+        x0, y0 = int(box.min_x()), int(box.min_y())
+        full = np.zeros(dims, dtype=bool)
+        h = min(crop.shape[0], dims[0] - y0)
+        w = min(crop.shape[1], dims[1] - x0)
+        if h > 0 and w > 0:
+            full[y0:y0 + h, x0:x0 + w] = crop[:h, :w] > 0
+        return full
+
+    def _detection_from_mask(self, mask, like):
+        """A detection set holding `mask`, scored and typed like `like`."""
+        from viame.types import (
+            DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
+
+        result = DetectedObjectSet()
+        ys, xs = np.where(mask)
+        if len(xs) == 0:
+            return result
+        x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
+        bbox = BoundingBoxD(x0, y0, x1, y1)
+        det = (DetectedObject(bbox, like.confidence, like.type)
+               if like.type is not None else DetectedObject(bbox, like.confidence))
+        crop = np.ascontiguousarray(mask[y0:y1 + 1, x0:x1 + 1].astype(np.uint8))
+        det.mask = ImageContainer(Image(crop))
+        result.add(det)
+        return result
+
+    def _segment_instances(self, cache_key, points, labels):
+        """Point clicks as a buffer of per-object mask instances (see
+        PromptInstances), returned as the one detection covering them all."""
+        from viame.types import Point2d, DetectedObjectSet
+        from viame.segmentation.segmentation_utils import PromptInstances
+
+        image = self._current_image_container
+        dims = (image.height(), image.width())
+        last = {}
+
+        def predict(pos, neg):
+            objs = self._segment_algo.segment(
+                image,
+                [Point2d(float(x), float(y)) for x, y in list(pos) + list(neg)],
+                [1] * len(pos) + [0] * len(neg))
+            det = next(iter(objs), None) if objs is not None else None
+            if det is not None:
+                last["det"] = det
+            return self._full_mask(det, dims)
+
+        if self._prompt_instances_key != cache_key or self._prompt_instances.shape != dims:
+            self._prompt_instances = PromptInstances(dims, None)
+            self._prompt_instances_key = cache_key
+            self._prompt_instances_like = None
+        buffer = self._prompt_instances
+        buffer.predict = predict
+        try:
+            buffer.sync(list(zip(points, labels)))
+        except Exception:
+            self._prompt_instances_key = None
+            raise
+        finally:
+            buffer.predict = None
+        self._log(f"Point prompts held as {len(buffer.instances)} mask instance(s)")
+        if "det" in last:
+            self._prompt_instances_like = last["det"]
+        if self._prompt_instances_like is None:
+            return DetectedObjectSet()
+        return self._detection_from_mask(buffer.mask(), self._prompt_instances_like)
+
+    def _fit_to_line(self, detected_objects, line, vital_points, vital_labels):
+        """Keep a mask prompted from a head/tail line in scale with that line:
+        when it comes out far larger, retry with background prompts ringing
+        the line, then clip whatever remains to a band around the line."""
+        from viame.types import (
+            Point2d, DetectedObject, DetectedObjectSet, BoundingBoxD,
+            ImageContainer, Image)
+        from viame.segmentation.segmentation_utils import (
+            mask_oversized_for_line, mask_undersized_for_line,
+            line_background_points, clip_mask_to_line)
+
+        def first(objects):
+            return next(iter(objects), None) if objects is not None else None
+
+        def oversized(det):
+            box = det.bounding_box
+            return mask_oversized_for_line(
+                [box.min_x(), box.min_y(), box.max_x(), box.max_y()], line)
+
+        det = first(detected_objects)
+        if det is None or not oversized(det):
+            return detected_objects
+
+        image = self._current_image_container
+        background = line_background_points(line, (image.width(), image.height()))
+        if background:
+            self._log("Mask out of scale with its line; retrying with background prompts")
+            retried = self._segment_algo.segment(
+                image,
+                list(vital_points) + [Point2d(x, y) for x, y in background],
+                list(vital_labels) + [0] * len(background))
+            retry = first(retried)
+            if retry is not None:
+                if not oversized(retry):
+                    return retried
+                det = retry
+
+        self._log("Mask still out of scale with its line; clipping to the line")
+        result = DetectedObjectSet()
+        if det.mask is None:
+            return result
+        box = det.bounding_box
+        clipped = clip_mask_to_line(
+            det.mask.image().asarray(), (box.min_x(), box.min_y()), line)
+        if clipped is None:
+            return result
+        mask, (x0, y0) = clipped
+        bounds = [x0, y0, x0 + mask.shape[1] - 1, y0 + mask.shape[0] - 1]
+        if mask_undersized_for_line(bounds, line):
+            # Only a scrap of the mask lay along the line: report no mask so
+            # the caller keeps its own line-derived box.
+            return result
+        bbox = BoundingBoxD(*bounds)
+        fitted = (DetectedObject(bbox, det.confidence, det.type)
+                  if det.type is not None else DetectedObject(bbox, det.confidence))
+        fitted.mask = ImageContainer(Image(np.ascontiguousarray(mask)))
+        result.add(fitted)
+        return result
+
+    def handle_polygon_keypoints(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Head/tail keypoints for a polygon, derived the way the keypoint
+        pipelines derive them from a mask (add_keypoints_from_mask)."""
+        from viame.segmentation.segmentation_utils import polygons_to_keypoints
+
+        polygons = request.get("polygons")
+        if polygons is None:
+            polygon = request.get("polygon")
+            if not polygon or len(polygon) < 3:
+                raise ValueError("polygon with at least three points is required")
+            polygons = [{"exterior": polygon, "holes": []}]
+        if not polygons:
+            raise ValueError("at least one polygon is required")
+        with suppress_stdout():
+            keypoints = polygons_to_keypoints(polygons)
+        if keypoints is None:
+            return {"success": False, "error": "Could not derive head/tail from the polygon"}
+        head, tail = keypoints
+        return {"success": True, "head": head, "tail": tail}
 
     def handle_text_query(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle a text_query command using PerformTextQuery algorithm."""
@@ -564,7 +721,7 @@ class InteractiveSegmentationService:
         instantiated here, so the (large) segmentation model is not loaded twice.
         """
         if self._stereo_warper is None:
-            from viame.measurement.interactive_stereo import (
+            from viame.core.interactive_stereo import (
                 InteractiveStereoService,
                 load_algorithm_from_config,
                 find_viame_config,
@@ -588,6 +745,19 @@ class InteractiveSegmentationService:
             self._stereo_warper.handle_enable({"calibration_file": calibration_file})
         return self._stereo_warper
 
+    @staticmethod
+    def _polygons_area(polygons) -> float:
+        """Area enclosed by {"exterior", "holes"} polygons, holes excluded."""
+        def ring(points):
+            xy = np.asarray(points, dtype=float)
+            if xy.ndim != 2 or len(xy) < 3:
+                return 0.0
+            return 0.5 * abs(float(np.dot(xy[:, 0], np.roll(xy[:, 1], -1))
+                                   - np.dot(xy[:, 1], np.roll(xy[:, 0], -1))))
+
+        return sum(ring(p.get("exterior") or []) - sum(ring(h) for h in p.get("holes") or [])
+                   for p in polygons or [])
+
     def handle_stereo_segment(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Stereo point-segmentation orchestration.
 
@@ -602,12 +772,18 @@ class InteractiveSegmentationService:
           3. optionally derives a head/tail line for each polygon and the
              stereo length measurement.
 
-        The source camera is treated as 'left' and the other as 'right' for the
-        warper, matching the existing point/line transfer convention.
+        The click may come from either camera. `source_camera` ('left' or
+        'right') says which; without it the source is matched against the
+        stereo pair the warper already has loaded, and taken as left otherwise.
+
+        Without a click (an existing mask being mapped across) the seeds are
+        points inside the source mask. A result whose area is out of scale with
+        the source is refused rather than returned.
 
         Request: {
-            points, point_labels,            # the source-camera click
+            points, point_labels,            # the source-camera click, if any
             polygon,                         # source-camera polygon
+            polygons,                        # all of its parts, with holes
             source_image_path, other_image_path,
             calibration_file, frame_time
         }
@@ -615,6 +791,10 @@ class InteractiveSegmentationService:
         points = request.get("points") or []
         point_labels = request.get("point_labels") or [1] * len(points)
         source_polygon = request.get("polygon")
+        source_polygons = request.get("polygons") or (
+            [{"exterior": source_polygon, "holes": []}] if source_polygon else [])
+        if not source_polygon and source_polygons:
+            source_polygon = source_polygons[0]["exterior"]
         source_image = request.get("source_image_path")
         other_image = request.get("other_image_path")
         frame_time = request.get("frame_time")
@@ -624,10 +804,17 @@ class InteractiveSegmentationService:
 
         warper = self._get_stereo_warper(request.get("calibration_file"))
 
-        # Make the current stereo pair active (source=left, other=right).
+        side = request.get("source_camera")
+        if side not in ("left", "right"):
+            swapped = (source_image is not None
+                       and source_image == warper._current_right_path
+                       and other_image == warper._current_left_path)
+            side = "right" if swapped else "left"
+        from_right = side == "right"
+
         set_resp = warper.handle_set_frame({
-            "left_image_path": source_image,
-            "right_image_path": other_image,
+            "left_image_path": other_image if from_right else source_image,
+            "right_image_path": source_image if from_right else other_image,
             "frame_time": frame_time,
         })
         if not set_resp.get("disparity_ready", False):
@@ -639,6 +826,8 @@ class InteractiveSegmentationService:
             "points": points,
             "labels": point_labels,
             "polygon": source_polygon,
+            "polygons": source_polygons,
+            "source_camera": side,
         })
         seed_points = warp.get("transferred_points") or []
         seed_labels = warp.get("point_labels") or [1] * len(seed_points)
@@ -672,9 +861,22 @@ class InteractiveSegmentationService:
                 "seed_labels": seed_labels,
             }
 
+        other_polygons = seg.get("polygons") or [{"exterior": other_polygon, "holes": []}]
+        reason = warper.size_mismatch(
+            self._polygons_area(source_polygons), self._polygons_area(other_polygons))
+        if reason:
+            return {
+                "success": False,
+                "error": reason,
+                "size_mismatch": True,
+                "seed_points": seed_points,
+                "seed_labels": seed_labels,
+            }
+
         result = {
             "success": True,
             "polygon": other_polygon,
+            "polygons": other_polygons,
             "bounds": seg.get("bounds"),
             "score": seg.get("score"),
             "seed_points": seed_points,
@@ -684,13 +886,13 @@ class InteractiveSegmentationService:
         # 3. Optional head/tail lines + stereo measurement.
         if source_polygon and other_polygon:
             measure = warper.handle_measure_from_polygons({
-                "polygon_left": source_polygon,
-                "polygon_right": other_polygon,
+                "polygon_left": other_polygon if from_right else source_polygon,
+                "polygon_right": source_polygon if from_right else other_polygon,
             })
             if measure.get("generate_line"):
                 result["generate_line"] = True
-                result["line_source"] = measure.get("line_left")
-                result["line_other"] = measure.get("line_right")
+                result["line_source"] = measure.get("line_right" if from_right else "line_left")
+                result["line_other"] = measure.get("line_left" if from_right else "line_right")
                 if "measurement" in measure:
                     result["measurement"] = measure["measurement"]
 
@@ -705,6 +907,7 @@ class InteractiveSegmentationService:
             "set_image": self.handle_set_image,
             "clear_image": self.handle_clear_image,
             "stereo_segment": self.handle_stereo_segment,
+            "polygon_keypoints": self.handle_polygon_keypoints,
         }
 
         # Add text_query handler if algorithm is configured
@@ -878,6 +1081,7 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
         "multipolygon_policy": cfg.get_value("service:multipolygon_policy") if cfg.has_value("service:multipolygon_policy") else "allow",
         "max_polygon_points": int(cfg.get_value("service:max_polygon_points")) if cfg.has_value("service:max_polygon_points") else 25,
         "adaptive_simplify": cfg.get_value("service:adaptive_simplify").lower() in ('true', '1', 'yes') if cfg.has_value("service:adaptive_simplify") else False,
+        "max_polygon_points_limit": int(cfg.get_value("service:max_polygon_points_limit")) if cfg.has_value("service:max_polygon_points_limit") else 100,
     }
 
     return segment_algo, text_query_algo, image_io_algo, service_config
@@ -946,6 +1150,7 @@ segment_via_points:sam2:device = cuda
 service:hole_policy = allow
 service:multipolygon_policy = allow
 service:max_polygon_points = 25
+service:max_polygon_points_limit = 100
 service:adaptive_simplify = false
 """
     else:
@@ -978,6 +1183,7 @@ perform_text_query:sam3:max_detections = 10
 service:hole_policy = allow
 service:multipolygon_policy = allow
 service:max_polygon_points = 25
+service:max_polygon_points_limit = 100
 service:adaptive_simplify = false
 """
 
@@ -994,13 +1200,13 @@ def main():
         epilog="""
 Examples:
     # Use a config file
-    python -m viame.segmentation.interactive_segmentation --config /path/to/config.pipe
+    python -m viame.core.interactive_segmentation --config /path/to/config.pipe
 
     # Generate a default config file
-    python -m viame.segmentation.interactive_segmentation --generate-config sam2.pipe --model sam2
+    python -m viame.core.interactive_segmentation --generate-config sam2.pipe --model sam2
 
     # With additional plugin paths
-    python -m viame.segmentation.interactive_segmentation --config config.pipe --plugin-path /path/to/plugins
+    python -m viame.core.interactive_segmentation --config config.pipe --plugin-path /path/to/plugins
         """
     )
     parser.add_argument(

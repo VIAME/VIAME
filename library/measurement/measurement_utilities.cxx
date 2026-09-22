@@ -558,6 +558,7 @@ map_keypoints_to_camera_settings
   , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
   , detection_pairing_threshold( 0.1 )
+  , detection_pairing_default_depth( 0.0 )
   , detection_pairing_require_class_match( true )
   , detection_pairing_use_optimal_assignment( true )
   , dino_crop_max_area_ratio( 0.05 )
@@ -819,6 +820,12 @@ map_keypoints_to_camera_settings
     "(default 0.1). For 'calibration' this is the max reprojection error in pixels. "
     "For 'keypoint_projection' this is the max average keypoint pixel distance." );
 
+  config->set_value( "detection_pairing_default_depth", detection_pairing_default_depth,
+    "Depth (calibration units) at which 'calibration' and 'epipolar_iou' project a "
+    "left box into the right image. 0 (default) needs no depth: candidates are "
+    "gated by their distance to the epipolar line and, for epipolar_iou, the "
+    "box is placed along that line at the right box before the overlap test." );
+
   config->set_value( "detection_pairing_require_class_match", detection_pairing_require_class_match,
     "If true, only pair detections whose top class labels match (default true)." );
 
@@ -931,6 +938,7 @@ map_keypoints_to_camera_settings
   debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
   detection_pairing_threshold = config->get_value< double >( "detection_pairing_threshold", detection_pairing_threshold );
+  detection_pairing_default_depth = config->get_value< double >( "detection_pairing_default_depth", detection_pairing_default_depth );
   detection_pairing_require_class_match = config->get_value< bool >( "detection_pairing_require_class_match", detection_pairing_require_class_match );
   detection_pairing_use_optimal_assignment = config->get_value< bool >( "detection_pairing_use_optimal_assignment", detection_pairing_use_optimal_assignment );
   dino_crop_max_area_ratio = config->get_value< double >( "dino_crop_max_area_ratio", dino_crop_max_area_ratio );

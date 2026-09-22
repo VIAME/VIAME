@@ -30,6 +30,21 @@ def test_failed_install_rolls_back(tmp_path):
     assert not (target / 'b.pipe').exists()
 
 
+def test_symlinked_destination_is_replaced_not_followed(tmp_path):
+    outside = tmp_path / 'elsewhere' / 'model.pth'
+    outside.parent.mkdir()
+    outside.write_text('old')
+    target = tmp_path / 'install' / 'configs' / 'pipelines' / 'models' / 'model.pth'
+    target.parent.mkdir(parents=True)
+    target.symlink_to(outside)
+    archive = tmp_path / 'pack.zip'
+    with zipfile.ZipFile(archive, 'w') as z:
+        z.writestr('configs/pipelines/models/model.pth', 'new')
+    m.install_archive(tmp_path / 'install', archive)
+    assert not target.is_symlink() and target.read_text() == 'new'
+    assert outside.read_text() == 'old'
+
+
 @pytest.mark.parametrize('name', ['../escape', r'C:\escape', r'folder\..\escape'])
 def test_unsafe_member_rejected(tmp_path, name):
     archive = tmp_path / 'pack.zip'

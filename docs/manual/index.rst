@@ -58,7 +58,6 @@ KWIVER's arrows, is gone: VIAME no longer has any.
    sections/installing_from_binaries
    sections/building_from_source
    sections/annotation_and_visualization
-   sections/dive/index
    sections/examples_overview
    sections/detection_file_conversions
    sections/object_detection

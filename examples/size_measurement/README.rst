@@ -504,6 +504,35 @@ right disparity map must be converted first. All paths are resolved against the
 working directory. Independent right disparity also enables round-trip checking
 in offline ``left`` mode.
 
+Batch pipeline
+~~~~~~~~~~~~~~
+
+``stereo_measure_current_annots_spline_generic.pipe`` (fast-fdn-stereo add-on) measures
+every annotated centerline in a stereo dataset with the
+``compute_curved_measurements`` process. Each left vertex is transferred to the
+right camera through Fast-Foundation-Stereo disparity on the rectified grid; in
+the default ``bidirectional`` mode a second inference on the swapped, flipped
+pair yields an independent right-reference disparity, every vertex must round
+trip within ``consistency_px``, and the two curve lengths must agree. Right
+detections lacking a centerline receive the transferred vertices (and are
+created when missing); an annotated right centerline constrains the transfer
+and is kept as drawn unless ``right_keypoint_policy`` is ``refine_all``.
+Measured detections carry ``length``, ``curved_length``, ``straight_length`` and
+``curvature_ratio`` attributes, and the per-track aggregate is written as
+``avg_length``. Frames whose transfer fails any check keep no length.
+
+A detection without drawn spine vertices gets its centerline from its mask
+(polygon): the skeleton path between head and tail, smoothed and resampled to
+``centerline_vertices`` points, is written back as ``head``, ``spine_NNN``,
+``tail`` keypoints on the left camera and transferred to the right, so DIVE
+shows the curve on both. Head and tail come from the annotation when present
+and from the mask's hull extremes otherwise. Stray mask fragments and holes
+are removed first. Boxes with neither mask nor endpoints stay unmeasured by
+this pipe; ``stereo_measure_current_annots_spline_fish.pipe`` (default-fish
+add-on, also needs fast-fdn-stereo) runs the RF-DETR segmentation and keypoint
+heads inside the measurer first, so boxes alone are enough there.
+``centerline_source`` restricts the choice to ``keypoints`` or ``mask``.
+
 Editable DIVE centerlines
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -1,7 +1,7 @@
 
-=================================
-User Interfaces and Visualization
-=================================
+==================================
+User Interfaces and Visualizations
+==================================
 
 This document corresponds to the `Annotation and Visualization`_ example folder within a VIAME
 desktop installation. Contained in this example are launch scripts for some of the more common
@@ -12,6 +12,8 @@ images from video files at frame rates indicated within the metadata of truth fi
 
 .. _Annotation and Visualization: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
 .. _CLI scripts: https://viame.readthedocs.io/en/latest/sections/examples_overview.html
+
+.. dive-manual-toctree
 
 **************
 DIVE Interface
@@ -31,23 +33,8 @@ The interface can be launched via double clicking the "launch_dive_interface" sc
 or at the top level of the installation. Alternatively a smaller version of DIVE can be installed independently
 of VIAME, which contains no algorithms or AI-assisted annotation.
 
-.. _dedicated user manual: https://viame.readthedocs.io/en/latest/sections/dive/index.html
+.. _dedicated user manual: https://kitware.github.io/dive/
 .. _tutorial videos: https://www.youtube.com/channel/viame
-
-.. dive-crosslink
-
-DIVE Documentation in This Manual
-=================================
-
-The DIVE manual is mirrored into this documentation: see the `DIVE interface
-introduction`_, the `DIVE navigation and editing bar`_, the `DIVE annotation
-quickstart`_, and the `DIVE keyboard shortcuts`_.
-
-.. _DIVE interface introduction: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-User-Interface-Overview.html
-.. _DIVE navigation and editing bar: https://viame.readthedocs.io/en/latest/sections/dive/UI-Navigation-Editing-Bar.html
-.. _DIVE annotation quickstart: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html
-.. _DIVE keyboard shortcuts: https://viame.readthedocs.io/en/latest/sections/dive/Mouse-Keyboard-Shortcuts.html
-
 
 Interactive Segmentation in DIVE
 ================================
@@ -112,6 +99,8 @@ scripting or integration with other tools)::
   source /path/to/VIAME/install/setup_viame.sh
   python -m viame.segmentation.interactive_segmentation \
     --config configs/pipelines/interactive_segmenter_watershed.conf
+
+.. dive-section-end
 
 **************
 VIEW Interface

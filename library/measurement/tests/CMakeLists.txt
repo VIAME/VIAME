@@ -65,3 +65,14 @@ endif()
 
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
 # viame_discover_gtests( viame tracks_pairing_from_stereo LIBRARIES ... )
+
+# From `tests/plugins/core` upstream; loads `measure_curved_process` by path.
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
+    NAME    "unit:measurement:measure_curved_process"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_measure_curved_process.py"
+    LABELS  UNIT
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
+endif()

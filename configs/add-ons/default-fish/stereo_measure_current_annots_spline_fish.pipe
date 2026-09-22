@@ -1,0 +1,142 @@
+# =============================================================================
+# Title: Curved fish measurement from boxes pipeline
+#
+# Description: Measures curved fish lengths from annotations on either camera
+# that may be boxes only. The RF-DETR segmentation and keypoint heads add a
+# mask and head/tail to each left box that lacks them, the centerline follows
+# the mask skeleton between head and tail and is written back as spine
+# keypoints, then every vertex is transferred through Fast-Foundation-Stereo
+# disparity and back. Needs the fast-fdn-stereo add-on. Uses models:
+# fish_rf_detr_seg_kp_1728.pth and fast_foundation_stereo_l.onnx.
+# Outputs to computed_tracks1.csv and computed_tracks2.csv.
+#
+# Requires Calibration: True
+# Calibration Keys: measurer:calibration_file
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    20
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ================================ DATA INPUTS ================================
+
+include common_stereo_input_with_tracks.pipe
+
+# ============================ MEASUREMENT PROCESS ============================
+
+process measurer
+  :: compute_curved_measurements
+  :calibration_file                            ./calibration_matrices.npz
+
+  stereo_disparity:type                        = fast_foundation_stereo_onnx
+
+  block stereo_disparity:fast_foundation_stereo_onnx
+    relativepath model_path                    = models/fast_foundation_stereo_l.onnx
+    relativepath config_path                   = models/fast_foundation_stereo_l.yaml
+    backend                                    = auto
+    device                                     = auto
+    output_mode                                = disparity
+    remove_invisible                           = true
+  endblock
+
+  # Masks and head/tail for left boxes that do not already carry them.
+  refiner:type                                 = rf_detr
+
+  block refiner:rf_detr
+    :model_size                                large
+    :device                                    auto
+    relativepath weight =                      models/fish_rf_detr_seg_kp_1728.pth
+    :num_channels                              3
+    :segmentation                              true
+    :resolution                                960x1728
+    :add_masks                                 true
+    :add_keypoints                             true
+    :overwrite_existing                        false
+    :keypoint_vis_thresh                       0.5      # DIVE_PARAM["Keypoint Visibility Threshold", range_float, 0, 1, 0.05]
+    :keypoints_in_box                          true
+  endblock
+
+  :centerline_source                           auto     # DIVE_PARAM["Centerline Source (auto, keypoints, mask)", string]
+  :centerline_vertices                         8        # DIVE_PARAM["Centerline Vertices", range_int, 4, 64]
+  :centerline_harmonics                        3        # DIVE_PARAM["Midline Flexibility (sine terms)", range_int, 1, 8]
+
+  :mode                                        bidirectional  # DIVE_PARAM["Transfer Mode (left, bidirectional)", string]
+  :samples                                     32       # DIVE_PARAM["Centerline Samples", range_int, 4, 512]
+  :smoothing                                   0.5      # DIVE_PARAM["Centerline Smoothing (px)", range_float, 0, 10, 0.1]
+  :consistency_px                              1.5      # DIVE_PARAM["Max Round-Trip Error (px)", range_float, 0.1, 15, 0.1]
+  :centerline_tolerance_px                     5.0      # DIVE_PARAM["Max Distance To Right Centerline (px)", range_float, 0.5, 50, 0.5]
+  :max_length_disagreement                     0.1      # DIVE_PARAM["Max Left/Right Length Disagreement", range_float, 0.01, 1, 0.01]
+  :max_depth_ratio                             2.0      # DIVE_PARAM["Max Depth Ratio Along Curve", range_float, 1, 10, 0.1]
+
+  :right_keypoint_policy                       keep_existing  # DIVE_PARAM["Existing Right Centerlines (keep_existing, refine_all)", string]
+  :update_right_keypoints                      true     # DIVE_PARAM["Write Right Centerlines", bool]
+  :create_synthetic_detections                 true     # DIVE_PARAM["Create Missing Right Detections", bool]
+  :box_scale_factor                            1.1
+
+  :length_aggregation_method                   median
+  :record_stereo_method                        true
+
+  :rectification_alpha                         -1.0
+  :refine_keypoints_disparity_window           3        # DIVE_PARAM["Disparity Sample Radius", range_int, 0, 50]
+  :refine_keypoints_disparity_percentile       0.9      # DIVE_PARAM["Disparity Percentile", range_float, 0, 1, 0.05]
+
+connect from downsampler.timestamp
+        to   measurer.timestamp
+connect from track_reader1.object_track_set
+        to   measurer.object_track_set1
+connect from track_reader2.object_track_set
+        to   measurer.object_track_set2
+
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+
+# ============================== OUTPUT WRITERS ===============================
+
+process track_classifier1
+  :: refine_tracks
+  :refiner:type                                average_tot
+  :refiner:average_tot:tot_option              weighted_average
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
+
+connect from measurer.object_track_set1
+        to   track_classifier1.object_track_set
+connect from track_classifier1.object_track_set
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+connect from downsampler.output_2
+        to   track_writer1.image_file_name
+
+process track_classifier2
+  :: refine_tracks
+  :refiner:type                                average_tot
+  :refiner:average_tot:tot_option              weighted_average
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
+
+connect from measurer.object_track_set2
+        to   track_classifier2.object_track_set
+connect from track_classifier2.object_track_set
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+connect from downsampler.output_4
+        to   track_writer2.image_file_name
+
+# -- end of file --

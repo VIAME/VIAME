@@ -302,7 +302,9 @@ def install_archive(install, archive):
             report_progress('install', 0, 100)
             for i, (info, name) in enumerate(members):
                 target = dest / name[len(prefix):]
-                resolved = target.resolve()
+                # Resolve the directory only: a destination that is itself a
+                # symlink (e.g. to a model kept elsewhere) is replaced, not followed.
+                resolved = target.parent.resolve() / target.name
                 if install not in resolved.parents or resolved in seen:
                     raise ValueError('Unsafe or duplicate archive destination: ' + name)
                 if target.exists() and not target.is_file():

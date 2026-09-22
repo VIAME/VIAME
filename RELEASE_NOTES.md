@@ -1,8 +1,11 @@
-v0.23.2 - 9/17/2026
+v0.23.2 - 9/22/2026
 ===================
 
 
 - Update default fish model pack
+
+
+- Additional updates for stereo mappings in VIAME and DIVE UI
 
 
 

@@ -128,56 +128,21 @@ process motion
 connect from detector_input.image
         to   motion.image
 
-process binarize
-  :: image_filter
-  :filter:type                                 vxl_threshold
-  :filter:vxl_threshold:type                   absolute
-  :filter:vxl_threshold:threshold              {threshold}
-
-connect from motion.motion_heat_map
-        to   binarize.image
-
-process opening
-  :: image_filter
-  :filter:type                                 vxl_morphology
-  :filter:vxl_morphology:morphology            open
-  :filter:vxl_morphology:element_shape         disk
-  :filter:vxl_morphology:kernel_radius         {open_radius}
-
-connect from binarize.image
-        to   opening.image
-
-process closing
-  :: image_filter
-  :filter:type                                 vxl_morphology
-  :filter:vxl_morphology:morphology            close
-  :filter:vxl_morphology:element_shape         disk
-  :filter:vxl_morphology:kernel_radius         {close_radius}
-
-connect from opening.image
-        to   closing.image
-
-process mask_to_byte
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-  :filter:vxl_convert_image:format             byte
-  :filter:vxl_convert_image:scale_factor       255.0
-
-connect from closing.image
-        to   mask_to_byte.image
-
 process detector
   :: image_object_detector
   :detector:type                                      detect_heat_map
-  :detector:detect_heat_map:threshold                 0
+  :detector:detect_heat_map:threshold                 {threshold}
+  :detector:detect_heat_map:opening_radius            {open_radius}
+  :detector:detect_heat_map:closing_radius            {close_radius}
   :detector:detect_heat_map:force_bbox_width          -1
   :detector:detect_heat_map:force_bbox_height         -1
   :detector:detect_heat_map:min_area                  {min_area}
   :detector:detect_heat_map:max_area                  {max_area}
   :detector:detect_heat_map:min_fill_fraction         {min_fill}
+  :detector:detect_heat_map:score_mode                max
   :detector:detect_heat_map:class_name                {class_name}
 
-connect from mask_to_byte.image
+connect from motion.motion_heat_map
         to   detector.image
 
 process detector_writer
@@ -433,11 +398,6 @@ class FrameDiffTrainer(TrainDetector):
               "at IoU %s)" % (open_r, close_r, recall, precision,
                               self._match_iou))
 
-        # kernel_radius 0 is not a no-op: vxl_morphology builds a degenerate
-        # structuring element and clears the mask. Below 1 is the identity.
-        open_out = open_r if open_r > 0 else 0.5
-        close_out = close_r if close_r > 0 else 0.5
-
         if self._output_directory and \
           not os.path.exists(self._output_directory):
             os.makedirs(self._output_directory)
@@ -448,8 +408,8 @@ class FrameDiffTrainer(TrainDetector):
             f.write(PIPELINE_TEMPLATE.format(
                 frame_separation=sep,
                 threshold=("%.1f" % threshold),
-                open_radius=open_out,
-                close_radius=close_out,
+                open_radius=open_r,
+                close_radius=close_r,
                 min_area=self._min_area,
                 max_area=self._max_area,
                 min_fill=self._min_fill,

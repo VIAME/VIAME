@@ -623,7 +623,25 @@ class DetectEvaluator(object):
             # 'draw': False,  # hack while this still exists
         })
         print('coco_eval_config = {}'.format(ub.urepr(coco_eval_config, nl=1)))
-        coco_eval_config['pred_dataset'] = gid_to_pred
+        # kwcoco's _coerce_dets records extra['coco_dset'] for a CocoDataset,
+        # a sampler or a path, but not for the {gid: Detections} mapping we
+        # have here, while CocoEvaluator._init() reads pred_extra['coco_dset']
+        # unconditionally to associate true and predicted images. Hand it a
+        # real dataset, built the way detect_predict converts a single image,
+        # and keyed by the truth gids so the association has something to
+        # match on.
+        import kwcoco
+        _true_coco = truth_sampler.dset
+        _pred_coco = kwcoco.CocoDataset()
+        for _gid, _dets in gid_to_pred.items():
+            _pred_coco.add_image(**_true_coco.imgs[_gid])
+            for _ann in _dets.to_coco(style='new'):
+                _ann['image_id'] = _gid
+                if 'category_name' in _ann:
+                    _ann['category_id'] = _pred_coco.ensure_category(
+                        _ann['category_name'])
+                _pred_coco.add_annotation(**_ann)
+        coco_eval_config['pred_dataset'] = _pred_coco
         coco_eval = coco_evaluator.CocoEvaluator(coco_eval_config)
         coco_eval._init()
         results = coco_eval.evaluate()

@@ -6,7 +6,7 @@
 # body points. Outputs to computed_detections.csv.
 #
 # Input: IMAGE
-# Output: BBOX + POLYGON + KEYPOINTS
+# Output: BBOX + MASK + HEAD-TAIL
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

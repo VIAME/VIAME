@@ -41,6 +41,22 @@ class RFDETRRefinerConfig(scfg.DataConfig):
         'false, frames where every detection is already complete skip the model.'))
     keypoint_vis_thresh = scfg.Value(0.5, help=(
         'Minimum keypoint visibility (sigmoid) to attach a keypoint'))
+    keypoints_in_box = scfg.Value(True, help=(
+        'Express each keypoint relative to the box the model predicts for its '
+        'query and map it into the input box, then clamp it to the box. The '
+        'head is trained against the model\'s own box, so a keypoint can '
+        'otherwise land outside the box it was asked about.'))
+    match_native = scfg.Value(True, help=(
+        'Run the model as a detector and give each input box the mask and '
+        'keypoints of the detection that overlaps it best. The heads are far '
+        'more reliable on the model\'s own queries than on injected boxes.'))
+    match_iou = scfg.Value(0.4, help='Minimum IoU between an input box and its matched detection')
+    match_threshold = scfg.Value(0.1, help='Confidence threshold for detections offered to the matching')
+    inject_unmatched = scfg.Value(False, help=(
+        'Run the heads on the boxes no detection matched by injecting them as '
+        'decoder reference points. Off by default: masks and keypoints from '
+        'injected boxes are often partial. With match_native off, every box is '
+        'injected regardless.'))
     apply_query_delta = scfg.Value(False, help=(
         'Apply the learned per-slot reference-point delta on top of the input '
         'boxes. The model applies it to first-stage proposals; input boxes are '
@@ -56,13 +72,14 @@ class RFDETRRefinerConfig(scfg.DataConfig):
 
 class RFDETRRefiner(RefineDetections):
     """
-    Runs the segmentation and keypoint heads of an RF-DETR checkpoint on
-    externally supplied boxes.
+    Adds the masks and keypoints of an RF-DETR checkpoint to externally
+    supplied boxes.
 
-    The backbone is run once per frame; the input boxes are then injected as
-    the decoder's reference points in place of the model's own two-stage
-    proposals, so each box gets a mask and keypoints computed for exactly that
-    box (the default config pins reference points across decoder layers).
+    By default the model runs as a detector and each input box takes the mask
+    and keypoints of the detection overlapping it best. Boxes can instead (or
+    when unmatched) be injected as the decoder's reference points in place of
+    the model's own two-stage proposals, which answers for exactly that box
+    but with much less reliable heads.
     """
 
     def __init__(self):
@@ -88,6 +105,11 @@ class RFDETRRefiner(RefineDetections):
         self._add_keypoints = parse_bool(self._kwiver_config['add_keypoints'])
         self._overwrite = parse_bool(self._kwiver_config['overwrite_existing'])
         self._vis_thresh = float(self._kwiver_config['keypoint_vis_thresh'])
+        self._keypoints_in_box = parse_bool(self._kwiver_config['keypoints_in_box'])
+        self._match_native = parse_bool(self._kwiver_config['match_native'])
+        self._match_iou = float(self._kwiver_config['match_iou'])
+        self._match_threshold = float(self._kwiver_config['match_threshold'])
+        self._inject_unmatched = parse_bool(self._kwiver_config['inject_unmatched'])
         self._apply_delta = parse_bool(self._kwiver_config['apply_query_delta'])
         self._fill = parse_bool(self._kwiver_config['fill_with_proposals'])
 
@@ -152,8 +174,18 @@ class RFDETRRefiner(RefineDetections):
              det_list[i].bounding_box.max_x(), det_list[i].bounding_box.max_y()]
             for i in todo], dtype=np.float32)
 
+        masks = [None] * len(todo)
+        kps = [None] * len(todo)
         with torch.no_grad():
-            masks, kps = self._run_heads(img, boxes)
+            if self._match_native:
+                self._fill_from_detections(img, boxes, masks, kps)
+            inject = [j for j in range(len(todo)) if masks[j] is None and kps[j] is None
+                      and (self._inject_unmatched or not self._match_native)]
+            if inject:
+                head_masks, head_kps = self._run_heads(img, boxes[inject])
+                for n, j in enumerate(inject):
+                    masks[j] = None if head_masks is None else head_masks[n]
+                    kps[j] = None if head_kps is None else head_kps[n]
 
         output = DetectedObjectSet()
         for det in det_list:
@@ -162,7 +194,7 @@ class RFDETRRefiner(RefineDetections):
         for j, i in enumerate(todo):
             det = det_list[i]
             box = boxes[j]
-            if masks is not None and (self._overwrite or det.mask is None):
+            if masks[j] is not None and (self._overwrite or det.mask is None):
                 x1 = min(max(int(np.floor(box[0])), 0), max(img_w - 1, 0))
                 y1 = min(max(int(np.floor(box[1])), 0), max(img_h - 1, 0))
                 x2 = min(max(int(np.ceil(box[2])) + 1, x1 + 1), img_w)
@@ -170,7 +202,7 @@ class RFDETRRefiner(RefineDetections):
                 crop = np.ascontiguousarray(masks[j][y1:y2, x1:x2].astype(np.uint8))
                 if crop.size and crop.any():
                     det.mask = ImageContainer(Image(crop))
-            if kps is not None and (self._overwrite or not det.keypoints):
+            if kps[j] is not None and (self._overwrite or not det.keypoints):
                 if self._overwrite:
                     det.clear_keypoints()
                 for k, name in enumerate(self._keypoint_names):
@@ -180,6 +212,39 @@ class RFDETRRefiner(RefineDetections):
                         pt.value = [float(x), float(y)]
                         det.add_keypoint(name, pt)
         return output
+
+    def _fill_from_detections(self, img, boxes, masks, kps):
+        """Native detections matched one to one to the input boxes, best IoU
+        first; fills masks[j] (full frame) and kps[j] ([K,3]) where matched."""
+        from PIL import Image as PILImage
+        model_input = PILImage.fromarray(img) if img.shape[2] == 3 else img
+        found = self._detector._model.predict(model_input, threshold=self._match_threshold)
+        if found is None or len(found) == 0:
+            return
+        native = np.asarray(found.xyxy, dtype=np.float32)
+        native_masks = getattr(found, 'mask', None) if self._add_masks else None
+        native_kps = (getattr(found, 'data', None) or {}).get('keypoints') \
+            if self._add_keypoints else None
+
+        lt = np.maximum(boxes[:, None, :2], native[None, :, :2])
+        rb = np.minimum(boxes[:, None, 2:], native[None, :, 2:])
+        inter = np.clip(rb - lt, 0, None).prod(-1)
+        area = lambda b: (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
+        iou = inter / np.maximum(area(boxes)[:, None] + area(native)[None, :] - inter, 1e-9)
+
+        while iou.size and iou.max() >= self._match_iou:
+            j, n = np.unravel_index(np.argmax(iou), iou.shape)
+            iou[j, :] = -1
+            iou[:, n] = -1
+            if native_masks is not None:
+                masks[j] = np.asarray(native_masks[n], dtype=bool)
+            if native_kps is not None:
+                kp = np.array(native_kps[n], dtype=np.float32)
+                if self._keypoints_in_box:
+                    size = np.maximum(native[n, 2:] - native[n, :2], 1e-6)
+                    rel = (kp[:, :2] - native[n, :2]) / size
+                    kp[:, :2] = boxes[j, :2] + np.clip(rel, 0, 1) * (boxes[j, 2:] - boxes[j, :2])
+                kps[j] = kp
 
     def _run_heads(self, img, boxes_xyxy):
         """
@@ -300,13 +365,36 @@ class RFDETRRefiner(RefineDetections):
 
             if self._add_keypoints:
                 kp = net._compute_keypoints(hs, references)[-1][0, :n]
-                xy = kp[..., :2] * torch.tensor([img_w, img_h], device=device, dtype=kp.dtype)
+                xy = kp[..., :2]
+                if self._keypoints_in_box:
+                    xy = self._keypoints_into_input_box(
+                        net, hs[-1][0, :n], references[-1][0, :n], xy, ref_in[start:start + n])
+                xy = xy * torch.tensor([img_w, img_h], device=device, dtype=kp.dtype)
                 vis = kp[..., 2:3].sigmoid()
                 all_kps.append(torch.cat([xy, vis], -1).cpu().numpy())
 
         masks_out = np.concatenate(all_masks, 0) if all_masks else None
         kps_out = np.concatenate(all_kps, 0) if all_kps else None
         return masks_out, kps_out
+
+    @staticmethod
+    def _keypoints_into_input_box(net, hs, ref, kp_xy, box_in):
+        """Keypoints in the frame of the model's predicted box, carried into
+        the input box (all normalized cxcywh / xy). Clamped to the input box."""
+        import torch
+        delta = net.bbox_embed(hs)
+        if net.bbox_reparam:
+            pred_cxcy = delta[..., :2] * ref[..., 2:] + ref[..., :2]
+            pred_wh = delta[..., 2:].exp() * ref[..., 2:]
+        else:
+            pred = (delta + ref).sigmoid()
+            pred_cxcy, pred_wh = pred[..., :2], pred[..., 2:]
+        pred_wh = pred_wh.clamp_min(1e-6)
+        rel = (kp_xy - pred_cxcy.unsqueeze(-2)) / pred_wh.unsqueeze(-2)
+        xy = box_in[..., :2].unsqueeze(-2) + rel * box_in[..., 2:].unsqueeze(-2)
+        lo = (box_in[..., :2] - box_in[..., 2:] / 2).unsqueeze(-2)
+        hi = (box_in[..., :2] + box_in[..., 2:] / 2).unsqueeze(-2)
+        return torch.max(torch.min(xy, hi), lo)
 
     @staticmethod
     def _native_proposals(tr, memory, mask_flatten, spatial_shapes_hw, gen_proposals):

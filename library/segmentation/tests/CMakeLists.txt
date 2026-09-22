@@ -93,3 +93,18 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_PYTORCH )
     WORKING_DIRECTORY "${VIAME_BUILD_INSTALL_PREFIX}"
   )
 endif()
+
+# From `tests/plugins/core` upstream, which lite dissolved. They load
+# `segmentation_utils` by path, repointed to `library/segmentation`.
+if( VIAME_ENABLE_PYTHON )
+  foreach( case IN ITEMS multipolygon_keypoints segmentation_line_scale
+                         segmentation_prompt_instances )
+    viame_add_test(
+      NAME    "unit:segmentation:${case}"
+      TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_${case}.py"
+      LABELS  UNIT
+      TIMEOUT 300
+      SOURCE_SETUP
+    )
+  endforeach()
+endif()

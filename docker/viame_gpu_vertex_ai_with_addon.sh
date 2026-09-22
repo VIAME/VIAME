@@ -93,6 +93,8 @@ WORKDIR /workspace
 
 ENV VIAME_INSTALL_DIR=/opt/noaa/viame
 ENV VIAME_WORK_DIR=/workspace
+# Optional local path or GCS URI for stereo pipelines
+ENV VIAME_CALIBRATION_FILE=""
 # Match the LD_LIBRARY_PATH from the official NVIDIA CUDA image so the "regular"
 # cuda libraries are found before the compat layer. Vertex/Cloud Run inject newer
 # NVIDIA drivers than the compat layer's hard-coded support list, so preferring

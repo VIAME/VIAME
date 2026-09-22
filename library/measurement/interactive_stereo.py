@@ -18,8 +18,8 @@ Unlike SAM, this service proactively computes disparity maps when the user navig
 to a new frame, so the disparity is ready when they draw annotations.
 
 Usage:
-    python -m viame.measurement.interactive_stereo --config /path/to/config.pipe
-    python -m viame.measurement.interactive_stereo --config /path/to/config.pipe --plugin-path /path/to/plugins
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe --plugin-path /path/to/plugins
 
 Protocol:
     Input (JSON per line on stdin):
@@ -66,7 +66,7 @@ import cv2
 # Compiled C++ stereo measurement bindings. The stereo length/measurement math
 # lives solely in viame::core::compute_stereo_measurement (no Python duplicate),
 # so this module is a hard dependency.
-from viame.measurement import _measurement as _cpp_measurement
+from viame.core import _measurement as _cpp_measurement
 
 
 class EpipolarTemplateMatcher:
@@ -130,7 +130,7 @@ class EpipolarTemplateMatcher:
                 f"DINO weights not found: {self._dino_weights_path} "
                 "(is the DINO add-on installed?)")
         try:
-            from viame.measurement.dino import dino_matcher
+            from viame.pytorch import dino_matcher
             self._dino_matcher = dino_matcher
             dino_matcher.init_matcher(
                 model_name=self._dino_model_name, device="cuda", threshold=0.0,
@@ -156,7 +156,7 @@ class EpipolarTemplateMatcher:
         """
         Load stereo calibration (K_left, K_right, R, T) from a file.
 
-        Normalized on viame::core::read_stereo_rig (via the viame.measurement._measurement
+        Normalized on viame::core::read_stereo_rig (via the viame.core._measurement
         bindings) -- the same loader the measurement pipeline processes use --
         which supports .json, .yml/.yaml, .npz, .mat and OpenCV calibration
         directories.
@@ -314,7 +314,7 @@ class EpipolarTemplateMatcher:
         range (midpoint distance to the left camera) and RMS reprojection error.
 
         Computed by viame::core::compute_stereo_measurement via the
-        viame.measurement._measurement bindings (single source of truth shared with
+        viame.core._measurement bindings (single source of truth shared with
         the C++ measurement pipeline). Returns a dict in calibration units, or
         None if the matcher is not calibrated.
         """
@@ -427,6 +427,7 @@ class InteractiveStereoService:
         segmentation_generate_line: bool = False,
         segmentation_point_sampling: bool = False,
         segmentation_point_samples: int = 5,
+        max_transfer_size_ratio: float = 2.5,
         send_response=None,
     ):
         """
@@ -442,10 +443,13 @@ class InteractiveStereoService:
                 flow derives a head/tail line from the polygon on each camera and
                 generates the length measurement.
             segmentation_point_sampling: When True, the other camera's segmentation
-                seed is the median of segmentation_point_samples warped points
+                seeds are segmentation_point_samples warped points
                 sampled inside the source polygon (noise reduction).
             segmentation_point_samples: number of points to sample when
                 segmentation_point_sampling is enabled.
+            max_transfer_size_ratio: a shape whose area on the other camera is
+                more than this many times larger or smaller than the original
+                is refused instead of mapped; 0 disables the check.
         """
         self._stereo_algo = compute_stereo_depth_map_algo
         self._dense_grid_options = dense_grid_options or {}
@@ -461,8 +465,7 @@ class InteractiveStereoService:
         self._seg_generate_line = bool(segmentation_generate_line)
         self._seg_point_sampling = bool(segmentation_point_sampling)
         self._seg_point_samples = max(1, int(segmentation_point_samples))
-        # Lazily-created add_keypoints_from_mask vital algorithm (polygon -> head/tail)
-        self._keypoint_algo = None
+        self._max_transfer_size_ratio = float(max_transfer_size_ratio)
 
         self._enabled = False
 
@@ -1164,7 +1167,40 @@ class InteractiveStereoService:
                 result["measurement"] = measurement
             return result
 
+    def size_mismatch(self, source_area: float, mapped_area: float) -> Optional[str]:
+        """Why a shape mapped to the other camera is refused for its size, or None."""
+        limit = self._max_transfer_size_ratio
+        if limit <= 0 or source_area <= 0 or mapped_area <= 0:
+            return None
+        ratio = mapped_area / source_area
+        if 1.0 / limit <= ratio <= limit:
+            return None
+        self._log(f"Mapped shape is {ratio:.2g}x the original area (limit {limit:.2g}x); not mapped")
+        return "Failed to map to the other camera"
+
+    @staticmethod
+    def _hull_area(points) -> float:
+        """Convex hull area of a point set, 0 when it is close to a line."""
+        import cv2
+        pts = np.asarray(points, dtype=np.float32)
+        if len(pts) < 3:
+            return 0.0
+        area = float(cv2.contourArea(cv2.convexHull(pts)))
+        extent = pts.max(axis=0) - pts.min(axis=0)
+        return area if area >= 0.03 * float(extent @ extent) else 0.0
+
     def _do_transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Point transfer that refuses a point set whose size changes too much."""
+        response = self._transfer_points(request)
+        mapped = response.get("transferred_points") or []
+        if response.get("success") and all(p is not None for p in mapped):
+            reason = self.size_mismatch(
+                self._hull_area(request["points"]), self._hull_area(mapped))
+            if reason:
+                return {"success": False, "error": reason, "size_mismatch": True}
+        return response
+
+    def _transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Execute points transfer with lock already held or disparity known ready."""
         with self._compute_lock:
             points = request.get("points")
@@ -1433,7 +1469,7 @@ class InteractiveStereoService:
 
     def _measure_edited_centerline(self, left_line, right_line):
         """Re-match edited centerlines; vertex indices are not stereo matches."""
-        from viame.measurement.curved_measurement import resample_polyline
+        from viame.core.curved_measurement import resample_polyline
         from scipy.spatial import cKDTree
         left = resample_polyline(left_line, 32)
         right = resample_polyline(right_line, 512)
@@ -1484,7 +1520,7 @@ class InteractiveStereoService:
         swapped images, then unflips the output into right-reference disparity.
         Explicit frame paths prevent accidentally measuring stale frame data.
         """
-        from viame.measurement.curved_measurement import request_measurement
+        from viame.core.curved_measurement import request_measurement
         if not self._enabled or self._use_epipolar:
             raise ValueError("measure_curve requires an enabled dense stereo backend")
         with self._compute_lock:
@@ -1539,56 +1575,11 @@ class InteractiveStereoService:
 
         return {"success": True, "avg_length": float(avg)}
 
-    def _get_keypoint_algo(self):
-        """Lazily create the add_keypoints_from_mask vital algorithm, configured
-        to match the measurement / keypoint pipelines (hull_extremes method,
-        clip_to_mask) rather than the algorithm's bare default, so that
-        interactively-placed head/tail keypoints agree with the batch ones."""
-        if self._keypoint_algo is None:
-            from viame.algo import RefineDetections
-            algo = RefineDetections.create("add_keypoints_from_mask")
-            cfg = algo.get_configuration()
-            cfg.set_value("method", "hull_extremes")
-            cfg.set_value("clip_to_mask", "true")
-            algo.set_configuration(cfg)
-            self._keypoint_algo = algo
-        return self._keypoint_algo
-
-    def _polygon_to_keypoints(self, polygon):
-        """Derive head/tail keypoints for a polygon via add_keypoints_from_mask.
-
-        Rasterizes the polygon to a mask, runs the vital algorithm, and returns
-        (head_xy, tail_xy) in image coordinates, or None on failure.
-        """
-        from viame.types import (
-            DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
-
-        pts = np.asarray(polygon, dtype=np.float64)
-        if pts.ndim != 2 or pts.shape[0] < 3:
-            return None
-        x0, y0 = np.floor(pts.min(axis=0)).astype(int)
-        x1, y1 = np.ceil(pts.max(axis=0)).astype(int)
-        w, h = int(x1 - x0), int(y1 - y0)
-        if w <= 0 or h <= 0:
-            return None
-
-        mask = np.zeros((h, w), dtype=np.uint8)
-        cv2.fillPoly(mask, [(pts - [x0, y0]).astype(np.int32)], 255)
-        det = DetectedObject(
-            BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
-            1.0, None, ImageContainer(Image(mask)))
-        dummy = ImageContainer(Image(np.zeros((h, w, 3), dtype=np.uint8)))
-
-        refined = self._get_keypoint_algo().refine(dummy, DetectedObjectSet([det]))
-        dets = list(refined)
-        if not dets:
-            return None
-        kps = dets[0].keypoints
-        if 'head' not in kps or 'tail' not in kps:
-            return None
-        head = kps['head'].value
-        tail = kps['tail'].value
-        return ([float(head[0]), float(head[1])], [float(tail[0]), float(tail[1])])
+    @staticmethod
+    def _polygon_to_keypoints(polygon):
+        """Head/tail keypoints for a polygon, shared with the segmentation service."""
+        from viame.segmentation.segmentation_utils import polygon_to_keypoints
+        return polygon_to_keypoints(polygon)
 
     def _warp_one_point(self, p):
         """Warp a single point from the source to the other camera using whichever
@@ -1607,33 +1598,44 @@ class InteractiveStereoService:
         return None
 
     @staticmethod
-    def _sample_points_in_polygon(polygon, n):
-        """Sample up to n random points uniformly inside a polygon (rejection sampling)."""
-        pts = np.asarray(polygon, dtype=np.float64)
-        if pts.ndim != 2 or pts.shape[0] < 3:
+    def _interior_points(polygon, n):
+        """Up to n points well inside a polygon ({"exterior", "holes"}), spread
+        apart: the deepest interior point first, then farthest-point picks
+        among the pixels at least a third as deep."""
+        exterior = np.asarray(polygon.get("exterior") or [], dtype=np.float64)
+        if exterior.ndim != 2 or exterior.shape[0] < 3:
             return []
-        contour = pts.astype(np.float32).reshape(-1, 1, 2)
-        (x0, y0), (x1, y1) = pts.min(axis=0), pts.max(axis=0)
-        samples = []
-        attempts = 0
-        while len(samples) < n and attempts < n * 200:
-            attempts += 1
-            x = float(np.random.uniform(x0, x1))
-            y = float(np.random.uniform(y0, y1))
-            if cv2.pointPolygonTest(contour, (x, y), False) >= 0:
-                samples.append([x, y])
-        return samples
+        origin = np.floor(exterior.min(axis=0)) - 1
+        size = (np.ceil(exterior.max(axis=0)) - origin + 2).astype(int)
+        mask = np.zeros((size[1], size[0]), dtype=np.uint8)
+        cv2.fillPoly(mask, [np.rint(exterior - origin).astype(np.int32)], 1)
+        for hole in polygon.get("holes") or []:
+            if len(hole) >= 3:
+                cv2.fillPoly(mask, [np.rint(np.asarray(hole) - origin).astype(np.int32)], 0)
+        depth = cv2.distanceTransform(mask, cv2.DIST_L2, 3)
+        if depth.max() <= 0:
+            return []
+        ys, xs = np.where(depth >= depth.max() / 3.0)
+        candidates = np.column_stack([xs, ys]).astype(np.float64)
+        chosen = [candidates[np.argmax(depth[ys, xs])]]
+        while len(chosen) < min(n, len(candidates)):
+            gaps = np.min([np.hypot(*(candidates - c).T) for c in chosen], axis=0)
+            if gaps.max() <= 0:
+                break
+            chosen.append(candidates[np.argmax(gaps)])
+        return [[float(x + origin[0]), float(y + origin[1])] for x, y in chosen]
 
     def handle_transfer_segmentation_point(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Warp segmentation seed point(s) from the source camera to the other.
 
-        When point sampling is enabled, samples N random points
-        inside the source polygon, warps each via the configured stereo backend
-        (epipolar template matching or dense disparity) and returns the
-        coordinate-wise MEDIAN as a single positive seed point (noise reduction for
-        bad point mappings). Otherwise warps the provided click points directly.
+        With point sampling enabled, or when no click is given, the seeds are
+        points spread well inside each source polygon, warped via the configured
+        stereo backend, keeping those that shift the way the rest of their
+        polygon does. Otherwise the provided click points are warped directly.
 
-        Request: { "points": [[x,y]..], "labels": [..], "polygon": [[x,y]..] }
+        Request: { "points": [[x,y]..], "labels": [..], "polygon": [[x,y]..],
+                   "polygons": [{"exterior": [..], "holes": [[..]]}..],
+                   "source_camera": "left" (default) | "right" }
         """
         if not self._enabled:
             raise ValueError("Service not enabled. Call enable first.")
@@ -1641,28 +1643,60 @@ class InteractiveStereoService:
         points = request.get("points") or []
         labels = request.get("labels") or [1] * len(points)
         polygon = request.get("polygon")
+        polygons = request.get("polygons") or (
+            [{"exterior": polygon, "holes": []}] if polygon else [])
+        from_right = request.get("source_camera", "left") == "right"
 
-        if self._seg_point_sampling and polygon:
+        def warp(source_points):
+            """Valid matches only, as (index, [x, y]) pairs."""
+            if from_right:
+                response = self._transfer_points(
+                    {"points": source_points, "source_camera": "right"})
+                return [(i, q) for i, q in enumerate(response["transferred_points"]) if q is not None]
             with self._compute_lock:
-                warped = []
-                for p in self._sample_points_in_polygon(polygon, self._seg_point_samples):
-                    matched = self._warp_one_point(p)
-                    if matched is not None:
-                        warped.append(matched)
-            if warped:
-                median = np.median(np.asarray(warped), axis=0)
-                self._log(f"Segmentation point: median of {len(warped)} warped samples")
+                matched = [self._warp_one_point(p) for p in source_points]
+            return [(i, q) for i, q in enumerate(matched) if q is not None]
+
+        # Seeds come from inside the source mask when sampling is on, and
+        # whenever there is a mask but no click to warp.
+        if polygons and (self._seg_point_sampling or not points):
+            per_polygon = max(2, -(-self._seg_point_samples // len(polygons)))
+            seeds = []
+            for poly in polygons:
+                samples = self._interior_points(poly, per_polygon)
+                matched = warp(samples) if samples else []
+                if not matched:
+                    continue
+                # One object moves as one between the cameras: a sample that
+                # shifted unlike the rest matched something else.
+                shifts = np.asarray([np.subtract(q, samples[i]) for i, q in matched])
+                extent = np.ptp(np.asarray(poly["exterior"], dtype=np.float64), axis=0)
+                tolerance = max(4.0, 0.1 * float(np.hypot(*extent)))
+                agree = np.hypot(*(shifts - np.median(shifts, axis=0)).T) <= tolerance
+                seeds += [[float(q[0]), float(q[1])] for (_, q), ok in zip(matched, agree) if ok]
+            if seeds:
+                self._log(f"Segmentation seeds: {len(seeds)} interior point(s) of "
+                          f"{len(polygons)} source polygon(s)")
                 return {
                     "success": True,
-                    "transferred_points": [[float(median[0]), float(median[1])]],
-                    "point_labels": [1],
-                    "sampled": len(warped),
-                    "num_matched": len(warped),
+                    "transferred_points": seeds,
+                    "point_labels": [1] * len(seeds),
+                    "sampled": len(seeds),
+                    "num_matched": len(seeds),
                 }
-            self._log("Point sampling found no matches; falling back to direct warp")
+            self._log("No interior point of the source mask matched; falling back to direct warp")
+
+        if from_right:
+            matched = warp(points) if points else []
+            return {
+                "success": bool(matched),
+                "transferred_points": [q for _, q in matched],
+                "point_labels": [labels[i] for i, _ in matched],
+                "num_matched": len(matched),
+            }
 
         # Direct warp of the supplied click points
-        response = self._do_transfer_points({"points": points})
+        response = self._transfer_points({"points": points})
         response["point_labels"] = labels
         # Dense mode always produces a disparity per point; treat each
         # returned point as a match unless the epipolar path reported otherwise.
@@ -1861,6 +1895,8 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
         "segmentation_point_sampling": _cfg_bool("segmentation_point_sampling", False),
         "segmentation_point_samples": int(cfg.get_value("segmentation_point_samples"))
             if cfg.has_value("segmentation_point_samples") else 5,
+        "max_transfer_size_ratio": float(cfg.get_value("max_transfer_size_ratio"))
+            if cfg.has_value("max_transfer_size_ratio") else 2.5,
     }
 
     return stereo_algo, epipolar_matcher, service_config
@@ -1933,13 +1969,13 @@ def main():
         epilog="""
 Examples:
     # Use a config file
-    python -m viame.measurement.interactive_stereo --config /path/to/config.pipe
+    python -m viame.core.interactive_stereo --config /path/to/config.pipe
 
     # Generate a default config file
-    python -m viame.measurement.interactive_stereo --generate-config stereo.conf
+    python -m viame.core.interactive_stereo --generate-config stereo.conf
 
     # With additional plugin paths
-    python -m viame.measurement.interactive_stereo --config config.pipe --plugin-path /path/to/plugins
+    python -m viame.core.interactive_stereo --config config.pipe --plugin-path /path/to/plugins
         """
     )
     parser.add_argument(

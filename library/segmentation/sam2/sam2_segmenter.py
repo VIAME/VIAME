@@ -40,6 +40,7 @@ class SAM2Segmenter(SegmentViaPoints):
         self._config = SAM2SegmenterConfig()
         self._predictor = None
         self._model = None
+        self._embedded_image = None
 
     def get_configuration(self):
         cfg = super(SegmentViaPoints, self).get_configuration()
@@ -144,8 +145,13 @@ class SAM2Segmenter(SegmentViaPoints):
         # Ensure contiguous memory layout for PyTorch
         img_array = np.ascontiguousarray(img_array)
 
-        # Set image on predictor
-        self._predictor.set_image(img_array)
+        # The image encoder dominates the cost; successive prompts on one image reuse it.
+        if (self._embedded_image is None
+                or self._embedded_image.shape != img_array.shape
+                or not np.array_equal(self._embedded_image, img_array)):
+            self._embedded_image = None
+            self._predictor.set_image(img_array)
+            self._embedded_image = img_array
 
         # Convert points to numpy arrays
         point_coords = np.array([[p.value[0], p.value[1]] for p in points], dtype=np.float32)

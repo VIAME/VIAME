@@ -24,6 +24,7 @@ from viame.segmentation.sam3.sam3_utilities import (
     SharedSAM3ModelCache,
     image_to_rgb_numpy,
     get_autocast_context,
+    _Sam3p1ImagePredictorAdapter,
 )
 
 
@@ -156,8 +157,17 @@ class SAM3Segmenter(SegmentViaPoints):
 
         # Use lock to ensure thread safety when using shared predictor
         with self._model_lock:
-            # Set image on predictor
-            self._predictor.set_image(img_array)
+            # The image encoder dominates the cost; successive prompts on one
+            # image reuse it. The SAM 3.1 adapter keeps per-object state in its
+            # session, so it still starts a fresh one for every call.
+            embedded = getattr(self._predictor, "_viame_embedded_image", None)
+            if (isinstance(self._predictor, _Sam3p1ImagePredictorAdapter)
+                    or embedded is None
+                    or embedded.shape != img_array.shape
+                    or not np.array_equal(embedded, img_array)):
+                self._predictor._viame_embedded_image = None
+                self._predictor.set_image(img_array)
+                self._predictor._viame_embedded_image = img_array
 
             with torch.inference_mode(), autocast_context:
                 masks, scores, _ = self._predictor.predict(

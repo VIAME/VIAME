@@ -65,7 +65,8 @@ struct VIAME_MEASUREMENT_EXPORT iou_matching_options
 struct VIAME_MEASUREMENT_EXPORT calibration_matching_options
 {
   double max_reprojection_error = 10.0;
-  double default_depth = 5.0;
+  /// <= 0: no depth assumption; candidates are gated by epipolar distance
+  double default_depth = 0.0;
   bool require_class_match = true;
   bool use_optimal_assignment = true;
 
@@ -98,7 +99,8 @@ struct VIAME_MEASUREMENT_EXPORT feature_matching_options
 struct VIAME_MEASUREMENT_EXPORT epipolar_iou_matching_options
 {
   double iou_threshold = 0.1;
-  double default_depth = 5.0;
+  /// <= 0: no depth assumption; the box is placed along the epipolar line
+  double default_depth = 0.0;
   bool require_class_match = true;
   bool use_optimal_assignment = true;
 

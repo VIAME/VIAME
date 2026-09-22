@@ -474,6 +474,7 @@ def mask_to_polygons(
     hole_policy: str = "allow",
     multipolygon_policy: str = "allow",
     min_area_fraction: float = 0.01,
+    keep_points=None,
 ) -> Tuple[List[dict], List[float]]:
     """
     Convert binary mask to multiple polygon coordinates with hole support.
@@ -498,6 +499,8 @@ def mask_to_polygons(
             - "largest": Keep only the largest polygon by area
             - "convex_hull": Return the convex hull of all polygons
         min_area_fraction: Minimum polygon area as fraction of the largest polygon.
+        keep_points: [x, y] points (e.g. positive prompts) whose polygons are
+            kept however small they are.
             Polygons smaller than this are discarded as noise. (default: 0.01 = 1%)
 
     Returns:
@@ -530,11 +533,18 @@ def mask_to_polygons(
     if not shapely_polys:
         return [], [0, 0, 0, 0]
 
-    # Filter small polygons by area relative to the largest
+    # Filter small polygons by area relative to the largest, keeping any that
+    # hold a point the caller insists on.
     if len(shapely_polys) > 1 and min_area_fraction > 0:
+        from shapely.geometry import Point as ShapelyPoint
+
         max_area = max(p.area for p in shapely_polys)
         threshold = max_area * min_area_fraction
-        shapely_polys = [p for p in shapely_polys if p.area >= threshold]
+        anchors = [ShapelyPoint(x, y) for x, y in (keep_points or [])]
+        shapely_polys = [
+            p for p in shapely_polys
+            if p.area >= threshold or any(p.intersects(a) for a in anchors)
+        ]
 
     if not shapely_polys:
         return [], [0, 0, 0, 0]
@@ -604,3 +614,344 @@ def shapely_to_mask(
         origin_convention=origin_convention,
     )
     return kw_mask.data
+
+
+_KEYPOINT_ALGO = None
+
+
+def polygon_keypoint_algo():
+    """The add_keypoints_from_mask vital algorithm, configured as the
+    measurement and keypoint pipelines configure it (hull_extremes,
+    clip_to_mask), so interactively derived head/tail agree with batch."""
+    global _KEYPOINT_ALGO
+    if _KEYPOINT_ALGO is None:
+        from kwiver.vital.algo import RefineDetections
+        algo = RefineDetections.create("add_keypoints_from_mask")
+        cfg = algo.get_configuration()
+        cfg.set_value("method", "hull_extremes")
+        cfg.set_value("clip_to_mask", "true")
+        algo.set_configuration(cfg)
+        _KEYPOINT_ALGO = algo
+    return _KEYPOINT_ALGO
+
+
+def polygons_to_mask(polygons):
+    """Rasterize all components and holes of one fish in a shared image crop."""
+    import cv2
+
+    components = []
+    for polygon in polygons:
+        rings = [np.asarray(ring, dtype=np.float64) for ring in
+                 [polygon["exterior"], *polygon.get("holes", [])]]
+        if any(ring.ndim != 2 or ring.shape[0] < 3 or ring.shape[1] != 2
+               or not np.isfinite(ring).all() for ring in rings):
+            raise ValueError("Polygon rings require at least three finite x/y points")
+        components.append(rings)
+    if not components:
+        return None
+    pts = np.concatenate([rings[0] for rings in components])
+    x0, y0 = np.floor(pts.min(axis=0)).astype(int)
+    x1, y1 = np.ceil(pts.max(axis=0)).astype(int)
+    w, h = int(x1 - x0), int(y1 - y0)
+    if w <= 0 or h <= 0:
+        return None
+    mask = np.zeros((h, w), dtype=np.uint8)
+    for rings in components:
+        component = np.zeros_like(mask)
+        shifted = [(ring - [x0, y0]).astype(np.int32) for ring in rings]
+        cv2.fillPoly(component, [shifted[0]], 255)
+        if len(shifted) > 1:
+            cv2.fillPoly(component, shifted[1:], 0)
+        # Union separately so a hole cannot erase another polygon's foreground.
+        np.maximum(mask, component, out=mask)
+    return mask, (int(x0), int(y0), int(x1), int(y1))
+
+
+def polygon_to_keypoints(polygon) -> Optional[Tuple[List[float], List[float]]]:
+    """Backward-compatible single-polygon head/tail extraction."""
+    return polygons_to_keypoints([{"exterior": polygon, "holes": []}])
+
+
+def polygons_to_keypoints(polygons) -> Optional[Tuple[List[float], List[float]]]:
+    """Derive one head/tail pair from all components of a fish's mask."""
+    from kwiver.vital.types import (
+        DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
+
+    rasterized = polygons_to_mask(polygons)
+    if rasterized is None:
+        return None
+    mask, (x0, y0, x1, y1) = rasterized
+    h, w = mask.shape
+    det = DetectedObject(
+        BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
+        1.0, None, ImageContainer(Image(mask)))
+    dummy = ImageContainer(Image(np.zeros((h, w, 3), dtype=np.uint8)))
+
+    dets = list(polygon_keypoint_algo().refine(dummy, DetectedObjectSet([det])))
+    if not dets:
+        return None
+    kps = dets[0].keypoints
+    if 'head' not in kps or 'tail' not in kps:
+        return None
+    head, tail = kps['head'].value, kps['tail'].value
+    return ([float(head[0]), float(head[1])], [float(tail[0]), float(tail[1])])
+
+
+def polyline_length(line) -> float:
+    pts = np.asarray(line, dtype=np.float64)
+    if pts.ndim != 2 or pts.shape[0] < 2:
+        return 0.0
+    return float(np.linalg.norm(np.diff(pts, axis=0), axis=1).sum())
+
+
+def mask_to_line_scale(bounds, line) -> Optional[float]:
+    """A mask's longer box side relative to the length of the head/tail line
+    it was prompted from; the line spans the object, so this sits near 1."""
+    length = polyline_length(line)
+    if length <= 0 or bounds is None:
+        return None
+    return float(max(bounds[2] - bounds[0], bounds[3] - bounds[1])) / length
+
+
+def mask_oversized_for_line(bounds, line, max_ratio: float = 2.5) -> bool:
+    """True when the model latched onto something far larger than the line."""
+    scale = mask_to_line_scale(bounds, line)
+    return scale is not None and scale > max_ratio
+
+
+def mask_undersized_for_line(bounds, line, min_ratio: float = 0.5) -> bool:
+    scale = mask_to_line_scale(bounds, line)
+    return scale is not None and scale < min_ratio
+
+
+def line_background_points(
+    line, image_size: Tuple[int, int],
+    end_ratio: float = 0.35, side_ratio: float = 0.6,
+) -> List[List[float]]:
+    """Background prompts ringing a head/tail line: past each end and off to
+    both sides, far enough out to clear a deep-bodied object."""
+    pts = np.asarray(line, dtype=np.float64)
+    length = polyline_length(pts)
+    chord = pts[-1] - pts[0]
+    norm = float(np.linalg.norm(chord))
+    if length <= 0 or norm <= 0:
+        return []
+    axis = chord / norm
+    normal = np.array([-axis[1], axis[0]])
+    ring = [pts[0] - axis * end_ratio * length, pts[-1] + axis * end_ratio * length]
+    for fraction in (0.25, 0.5, 0.75):
+        base = pts[0] + chord * fraction
+        ring.append(base + normal * side_ratio * length)
+        ring.append(base - normal * side_ratio * length)
+    width, height = image_size
+    return [
+        [float(p[0]), float(p[1])] for p in ring
+        if 0 <= p[0] < width and 0 <= p[1] < height
+    ]
+
+
+def clip_mask_to_line(
+    mask: np.ndarray, offset: Tuple[float, float], line,
+    half_width_ratio: float = 0.3,
+) -> Optional[Tuple[np.ndarray, Tuple[int, int]]]:
+    """Keep only the part of a cropped mask (top-left at offset, image
+    coordinates) within half_width_ratio * line length of the line. Returns
+    the largest surviving piece, re-cropped, with its new offset, or None
+    when nothing is left."""
+    import cv2
+
+    length = polyline_length(line)
+    if length <= 0 or mask.size == 0:
+        return None
+    binary = (mask[:, :, 0] if mask.ndim == 3 else mask) > 0
+    local = np.round(np.asarray(line, dtype=np.float64) - np.asarray(offset)).astype(np.int32)
+    region = np.zeros(binary.shape, dtype=np.uint8)
+    thickness = max(1, int(round(2 * half_width_ratio * length)))
+    cv2.polylines(region, [local.reshape(-1, 1, 2)], False, 1, thickness=thickness)
+    clipped = (binary & (region > 0)).astype(np.uint8)
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(clipped, connectivity=8)
+    if count < 2:
+        return None
+    # The band can cut a sprawling mask into scraps; only the largest is the object.
+    clipped = labels == 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    ys, xs = np.where(clipped)
+    x0, y0, x1, y1 = xs.min(), ys.min(), xs.max(), ys.max()
+    new_offset = (int(round(offset[0])) + int(x0), int(round(offset[1])) + int(y0))
+    return clipped[y0:y1 + 1, x0:x1 + 1].astype(np.uint8), new_offset
+
+
+def mask_components(mask: np.ndarray) -> Tuple[int, np.ndarray]:
+    """Connected components (8-connectivity) of a binary mask: (count, labels)."""
+    import cv2
+
+    count, labels = cv2.connectedComponents((mask > 0).astype(np.uint8), connectivity=8)
+    return count - 1, labels
+
+
+def point_in_mask(mask: np.ndarray, point) -> bool:
+    x, y = int(round(point[0])), int(round(point[1]))
+    return 0 <= y < mask.shape[0] and 0 <= x < mask.shape[1] and bool(mask[y, x])
+
+
+def component_at(mask: np.ndarray, point) -> Optional[np.ndarray]:
+    """The connected component of the mask holding the point, or None."""
+    if not point_in_mask(mask, point):
+        return None
+    _, labels = mask_components(mask)
+    return labels == labels[int(round(point[1])), int(round(point[0]))]
+
+
+def disk_mask(shape: Tuple[int, int], point, radius: float) -> np.ndarray:
+    ys, xs = np.ogrid[:shape[0], :shape[1]]
+    return (xs - point[0]) ** 2 + (ys - point[1]) ** 2 <= radius ** 2
+
+
+def simplify_polygon_within_error(
+    polygon: List[List[float]],
+    max_points: int = 25,
+    max_points_limit: int = 100,
+    max_error: float = 0.05,
+    adaptive: bool = False,
+) -> List[List[float]]:
+    """
+    Simplify to max_points, doubling that budget (up to max_points_limit)
+    while the simplified ring's area differs from the original's by more than
+    max_error of the original area.
+    """
+    from shapely.geometry import Polygon as ShapelyPolygon
+
+    simplify = adaptive_simplify_polygon if adaptive else simplify_polygon_to_max_points
+    if len(polygon) <= max_points:
+        return polygon
+    try:
+        original = ShapelyPolygon(polygon).buffer(0)
+    except Exception:
+        return simplify(polygon, max_points)
+    budget = max_points
+    while True:
+        result = simplify(polygon, budget)
+        if budget >= max_points_limit or original.is_empty or original.area <= 0:
+            return result
+        try:
+            error = original.symmetric_difference(ShapelyPolygon(result).buffer(0)).area
+        except Exception:
+            return result
+        if error <= max_error * original.area:
+            return result
+        budget = min(max_points_limit, budget * 2)
+
+
+class PromptInstances:
+    """
+    Creation buffer for point-click segmentation: one mask instance per object,
+    built from prompts taken in click order.
+
+    A positive click inside an instance refines it. One outside every instance
+    joins the nearest instance whose joint prediction comes back as a single
+    region holding all of its clicks, and otherwise starts a new instance from
+    a prediction of its own, so every positive lies inside some instance and
+    the output is simply as many polygons as that takes. Negative clicks apply
+    to every instance; one the model still covers is carved out as a small disk.
+
+    `predict(positives, negatives)` returns a full-frame binary mask or None.
+    """
+
+    def __init__(self, shape, predict, min_radius: int = 4, max_join_attempts: int = 3,
+                 max_join_growth: float = 1.5):
+        self.shape = tuple(shape)
+        self.predict = predict
+        self.radius = max(min_radius, int(round(0.01 * float(np.hypot(*self.shape)))))
+        self.max_join_attempts = max_join_attempts
+        self.max_join_growth = max_join_growth
+        self.instances: List[dict] = []
+        self.negatives: List = []
+        self.prompts: List = []
+
+    def sync(self, prompts) -> None:
+        """Bring the buffer to `prompts` ([point, label] in click order),
+        replaying from scratch unless they extend what is already applied."""
+        prompts = [([float(p[0]), float(p[1])], int(label)) for p, label in prompts]
+        if prompts[:len(self.prompts)] != self.prompts:
+            self.instances, self.negatives, self.prompts = [], [], []
+        for point, label in prompts[len(self.prompts):]:
+            if label == 1:
+                self._add_positive(point)
+            else:
+                self._add_negative(point)
+            self.prompts.append((point, label))
+
+    def mask(self) -> np.ndarray:
+        total = np.zeros(self.shape, dtype=bool)
+        for instance in self.instances:
+            total |= instance["mask"]
+        return total
+
+    def _region(self, positives, connected: bool = False) -> Optional[np.ndarray]:
+        """The predicted components holding the positives; None when any is
+        missed, or (connected) when they do not share one component."""
+        predicted = self.predict(positives, self.negatives)
+        if predicted is None:
+            return None
+        predicted = np.asarray(predicted) > 0
+        _, labels = mask_components(predicted)
+        found = set()
+        for point in positives:
+            if not point_in_mask(predicted, point):
+                return None
+            found.add(labels[int(round(point[1])), int(round(point[0]))])
+        if connected and len(found) > 1:
+            return None
+        return np.isin(labels, list(found))
+
+    def _enforce(self, instance) -> None:
+        for negative in self.negatives:
+            if point_in_mask(instance["mask"], negative):
+                instance["mask"] = instance["mask"] & ~disk_mask(self.shape, negative, self.radius)
+
+    @staticmethod
+    def _box_area(mask) -> float:
+        ys, xs = np.where(mask)
+        if len(xs) == 0:
+            return 0.0
+        return float((xs.max() - xs.min() + 1) * (ys.max() - ys.min() + 1))
+
+    def _add_positive(self, point) -> None:
+        owner = next((i for i in self.instances if point_in_mask(i["mask"], point)), None)
+        if owner is not None:
+            refined = self._region(owner["positives"] + [point])
+            owner["positives"].append(point)
+            if refined is not None:
+                owner["mask"] = refined
+            self._enforce(owner)
+            return
+
+        alone = self._region([point])
+        if alone is None:
+            return
+
+        def distance(instance):
+            return min(np.hypot(p[0] - point[0], p[1] - point[1]) for p in instance["positives"])
+
+        for instance in sorted(self.instances, key=distance)[:self.max_join_attempts]:
+            joint = self._region(instance["positives"] + [point], connected=True)
+            if joint is None:
+                continue
+            # A joint mask far larger than its parts swallowed background.
+            if self._box_area(joint) > self.max_join_growth * self._box_area(instance["mask"] | alone):
+                continue
+            instance["positives"].append(point)
+            instance["mask"] = joint
+            self._enforce(instance)
+            return
+
+        instance = {"positives": [point], "mask": alone}
+        self._enforce(instance)
+        self.instances.append(instance)
+
+    def _add_negative(self, point) -> None:
+        self.negatives.append(point)
+        for instance in self.instances:
+            again = self._region(instance["positives"])
+            if again is not None:
+                instance["mask"] = again
+            self._enforce(instance)
