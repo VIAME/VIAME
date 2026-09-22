@@ -193,3 +193,40 @@ the way add-ons always supply them:
 
     VIAME_INSTALL=/path/with/models \
       kwiver runner /path/to/detector_gfit_groups_v3.pipe ...
+
+## Declared dependencies
+
+`cmake/wheel/requirements.txt`, which the `wheel` target passes as
+`--requires-from`. Kept as a file so the reasoning for each entry lives
+beside it.
+
+The list was established by **running** the GFIT and DEFAULT-FISH pipelines
+in an empty environment, not by scanning imports. Five entries --
+`astunparse`, `pygtrie`, `networkx_algo_common_subtree`, `torch_liberator`,
+`liberator` -- appear nowhere in VIAME's sources and were found only by a
+pipeline failing on them, reached through vendored netharn's lazy imports.
+
+Vendoring moves a fork's requirements onto us: `viame.rfdetr` and
+`viame.sam2` are inside this package, so `transformers`, `pydantic`,
+`hydra-core`, `iopath` and the rest are ours now. Where floors overlap the
+highest wins -- torch is `>=2.3.1`, sam2's, above rfdetr's `>=2.2.0`.
+
+### The CUDA major is ours to declare
+
+The wheel requires `nvidia-cuda-runtime-cu12`, `nvidia-cublas-cu12`,
+`nvidia-curand-cu12` and `nvidia-cudnn-cu12`, and an earlier version of this
+document argued it should not. That argument was wrong, and a clean install
+proved it: `pip install viame` brought `torch 2.14.0+cu130`, whose wheels
+provide `libcudart.so.13` under a consolidated `nvidia/cu13/lib`, while this
+build needs `libcudart.so.12` under the per-component `nvidia/cuda_runtime/
+lib`. Nothing failed -- the loader quietly fell back to a system CUDA 12,
+which is the dependency the RUNPATH work existed to remove.
+
+Which CUDA a binary needs is a property of how it was compiled, not of what
+torch later chooses, so the wheel declares it. The `cu12` here must match
+`CUDA_TOOLKIT_ROOT_DIR` in the build. A torch that picked a different major
+coexists -- different package names, different directories -- at the cost of
+two CUDA runtimes on disk.
+
+With these declared, all five CUDA libraries resolve inside the environment
+for both the extension modules and `bin/viame`, and none from the system.

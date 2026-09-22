@@ -525,14 +525,14 @@ def _hash(path):
     return f"sha256={digest}", size
 
 
-def metadata(name, version, summary, requires, description):
+def metadata(name, version, summary, requires, description, requires_python):
     lines = [
         "Metadata-Version: 2.1",
         f"Name: {name}",
         f"Version: {version}",
         f"Summary: {summary}",
         "License: BSD-3-Clause",
-        "Requires-Python: >=3.8",
+        f"Requires-Python: >={requires_python}",
     ]
     lines += [f"Requires-Dist: {r}" for r in requires]
     return "\n".join(lines) + "\n\n" + description + "\n"
@@ -560,6 +560,13 @@ def build(args):
     whl = out / f"{dist}-{tag}.whl"
 
     requires = [r for r in (args.requires or []) if r]
+    if args.requires_from:
+        for line in Path(args.requires_from).read_text().splitlines():
+            line = line.split("#", 1)[0].strip()
+            if line:
+                requires.append(line)
+    if not requires:
+        print("  note: the wheel declares no dependencies", file=sys.stderr)
     records = []
     staged = {}
     raw = packed = 0
@@ -595,7 +602,8 @@ def build(args):
             info = f"{dist}.dist-info"
             extras = {
                 f"{info}/METADATA": metadata(args.name, args.version, args.summary,
-                                             requires, args.description),
+                                             requires, args.description,
+                                             args.requires_python),
                 f"{info}/WHEEL": wheel_metadata(False, tag),
                 f"{info}/top_level.txt": "".join(
                     n + "\n" for n in sorted(args.top_level or [])),
@@ -658,6 +666,14 @@ def main(argv=None):
     p.add_argument("--summary", default="VIAME: Video and Image Analytics for Marine Environments")
     p.add_argument("--description", default="See https://github.com/VIAME/VIAME")
     p.add_argument("--requires", action="append", help="a Requires-Dist entry; repeatable")
+    p.add_argument("--requires-python", default="3.10",
+                   help="the floor for Requires-Python. Not below the wheel's "
+                        "own python tag: it is built for one interpreter, and "
+                        "vendored sam2 needs 3.10 regardless.")
+    p.add_argument("--requires-from",
+                   help="a file of Requires-Dist entries, one per line, `#` "
+                        "comments ignored; kept as a file so the reasoning for "
+                        "each can live beside it")
     p.add_argument("--top-level", action="append", help="a top-level package name; repeatable")
     p.add_argument("--entry-points", help="an entry_points.txt to embed")
     p.add_argument("--license-file")

@@ -70,7 +70,7 @@ add_custom_target( wheel
           --manifest   "${CMAKE_BINARY_DIR}/install_manifest.txt"
           --top-level  viame
           --top-level  kwiver
-          --requires   "numpy>=1.13.0"
+          --requires-from "${VIAME_WHEEL_DIR}/requirements.txt"
           --license-file "${CMAKE_SOURCE_DIR}/LICENSE.txt"
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
   COMMENT "Packing ${CMAKE_INSTALL_PREFIX} into a wheel"
