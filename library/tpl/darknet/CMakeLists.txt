@@ -148,6 +148,13 @@ if( VIAME_ENABLE_CUDA )
 
     if( CUDNN_LIBRARY )
       target_link_libraries( viame_darknet_core PRIVATE ${CUDNN_LIBRARY} )
+      # `darknet.h` includes `cudnn.h`, which is only on the compiler's path
+      # by luck when cuDNN lives inside the CUDA toolkit. It does not when
+      # cuDNN comes from its own install or from the `nvidia-cudnn-cu*` wheel.
+      if( CUDNN_INCLUDE_DIR )
+        target_include_directories( viame_darknet_core PRIVATE
+                                    ${CUDNN_INCLUDE_DIR} )
+      endif()
     else()
       message( FATAL_ERROR "VIAME_ENABLE_CUDNN is on and cudnn was not found" )
     endif()

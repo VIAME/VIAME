@@ -33,7 +33,7 @@ Once for each python there is a directory for, run with that python:
 
 ```sh
 python -m pip install pip-tools
-cd packaging/requirements
+cd cmake/packaging/requirements
 PY=py$(python -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 EXCLUDE="--unsafe-package=triton --unsafe-package=opencv-python \

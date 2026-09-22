@@ -15,7 +15,7 @@ minversion = "6.0"
 # deleted from the tree, and naming a file pytest cannot find is how a suite
 # ends up collecting nothing without saying so.
 testpaths = [
-    "../library/core_types/tests/python",
-    "../library/pipeline_framework/tests/python",
-    "../tools/tests",
+    "../../library/core_types/tests/python",
+    "../../library/pipeline_framework/tests/python",
+    "../../tools/tests",
 ]

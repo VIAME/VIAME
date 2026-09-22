@@ -4,7 +4,7 @@
 # `packages/pytorch-libs/*` are research repositories with no wheel on any
 # index, or with a VIAME patch applied over them. Each is built into a wheel
 # and installed `--no-deps`, so what it needs comes from
-# `packaging/requirements/forks.lock` and pip resolves nothing.
+# `cmake/packaging/requirements/forks.lock` and pip resolves nothing.
 #
 # `--no-deps` is the change. The superbuild installed each fork's wheel with
 # dependencies, so pip fetched whatever the fork's metadata asked for at
