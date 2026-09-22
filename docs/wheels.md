@@ -74,3 +74,57 @@ If the native libraries were not found this fails with a missing shared
 object; if a dependency such as `numpy` is absent it fails with
 `initialization failed` wrapping a `ModuleNotFoundError`, which is a
 different problem and means the packing worked.
+
+## What the wheel needs at runtime
+
+Established by installing it into an empty virtual environment with `pip` and
+running the GFIT pipelines until they produced detections, rather than by
+reading imports. The dependency list below is what that took, in the order it
+was discovered.
+
+**To import `viame` at all:** `numpy`, which the wheel declares.
+
+**To run the GFIT detector and classifier:** `torch`, `torchvision`,
+`scriptconfig`, `ubelt`, `pillow`, `opencv-python-headless`, then the Kitware
+stack `kwimage`, `kwcoco`, `kwarray`, `ndsampler`, and then `astunparse`,
+`pygtrie`, `networkx_algo_common_subtree`, `torch_liberator` and `liberator`,
+which the vendored netharn reaches through several layers of lazy import.
+
+None of these are in the wheel, and none need to be: they are all on PyPI.
+
+**`rfdetr` is the exception, and it is the interesting one.** `pip install
+rfdetr` gets 1.10.1 from PyPI, and the pipeline fails on it:
+
+    1 validation error for RFDETRLargeConfig
+    resolution: Input should be a valid integer
+                [input_value=(960, 1728), input_type=tuple]
+
+VIAME does not use that package. It builds a fork, `rfdetr 1.8.0.dev0`, from
+`packages/pytorch-libs/rf-detr`, and that fork takes a `(height, width)`
+tuple. This is what open decision 9 and P9-T01 are about: seventeen forks with
+no wheel on any public index. Until that index exists a wheel cannot declare
+`rfdetr` as a requirement, because the name resolves to something else.
+
+**CUDA does not come from the wheel, and does not currently come from torch
+either.** The extension modules link `libcudart`, `libcudnn`, `libcublas`,
+`libcublasLt` and `libcurand`, and in a fresh environment they resolve
+against `/usr/local/cuda` -- a system installation the wheel neither declares
+nor ships. On a machine without one, `import viame.types` fails. Making them
+come from the `nvidia-*` wheels that torch already pulls in is the fix, and it
+is not done: it needs those directories on the modules' RUNPATH, or a
+preload, since the `nvidia-*` wheels put their libraries under
+`site-packages/nvidia/*/lib` rather than anywhere the loader looks by default.
+
+## What a code-only wheel cannot do on its own
+
+`configs/` is not in the wheel, so pipelines and models come from elsewhere.
+Point `VIAME_INSTALL` at an install that has them:
+
+    VIAME_INSTALL=/path/to/install \
+      kwiver runner /path/to/configs/pipelines/detector_gfit_groups_v3.pipe \
+        -s input:video_filename=input_list.txt
+
+That is the arrangement the code-only decision implies, and it works: the GFIT
+groups pipeline run this way, with the code from a pip-installed wheel and the
+configs and models from an install, produced **detections identical to the
+same pipeline run entirely from that install**.
