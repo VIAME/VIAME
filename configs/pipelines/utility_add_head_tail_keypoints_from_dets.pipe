@@ -28,7 +28,7 @@ process detection_refiner
   :refiner:type                                add_keypoints_from_mask
 
   block refiner:add_keypoints_from_mask
-    :method                                    oriented_bbox
+    :method                                    hull_extremes
     :clip_to_mask                              true
   endblock
 
