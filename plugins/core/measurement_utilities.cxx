@@ -4567,7 +4567,7 @@ public:
     cv::Mat const source( static_cast< int >( buffer.shape[0] ), static_cast< int >( buffer.shape[1] ),
                           CV_8UC( channels ), buffer.ptr );
     cv::Mat const rectified = m_utilities.rectify_image( source, is_right );
-    std::vector< ssize_t > shape{ rectified.rows, rectified.cols };
+    std::vector< Py_ssize_t > shape{ rectified.rows, rectified.cols };
     if( buffer.ndim == 3 )
     {
       shape.push_back( channels );
@@ -4662,10 +4662,10 @@ private:
     {
       throw std::invalid_argument( "points must be Nx2" );
     }
-    py::array_t< double > out( { buffer.shape[0], static_cast< ssize_t >( 2 ) } );
+    py::array_t< double > out( { buffer.shape[0], static_cast< Py_ssize_t >( 2 ) } );
     auto in = points.unchecked< 2 >();
     auto result = out.mutable_unchecked< 2 >();
-    for( ssize_t i = 0; i < buffer.shape[0]; ++i )
+    for( Py_ssize_t i = 0; i < buffer.shape[0]; ++i )
     {
       kv::vector_2d const mapped = fn( kv::vector_2d( in( i, 0 ), in( i, 1 ) ) );
       result( i, 0 ) = mapped.x();
