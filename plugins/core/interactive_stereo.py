@@ -1423,15 +1423,14 @@ class InteractiveStereoService:
         ).start()
         return None
 
-    def handle_measure_line(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_measure_line(self, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Compute the 3D length of a line given its endpoints on BOTH images.
 
-        Unlike transfer_line, this performs no matching: the caller supplies the
-        already-corresponded left and right line endpoints (e.g. when a stereo
-        annotation that exists on both cameras is edited). The endpoints are
-        triangulated and the Euclidean distance is returned in calibration units.
-
-        Request: { "left_line": [[x,y],[x,y]], "right_line": [[x,y],[x,y]] }
+        Two-point lines triangulate supplied endpoints without matching.
+        Multi-point lines re-match their centerlines and defer the response
+        until this frame's disparity/images are ready, just like transfer_points.
+        Optional left_image_path, right_image_path and frame_time identify the
+        requested frame so deferred work cannot use a neighbouring video frame.
         """
         if not self._enabled:
             raise ValueError("Service not enabled. Call enable first.")
@@ -1441,7 +1440,24 @@ class InteractiveStereoService:
         if not left_line or not right_line or min(len(left_line), len(right_line)) < 2:
             raise ValueError("left_line and right_line need at least two points")
         if len(left_line) > 2 or len(right_line) > 2:
-            return self._measure_edited_centerline(left_line, right_line)
+            pending = dict(request)
+            with self._compute_lock:
+                # Legacy callers omit frame identity: snapshot it before waiting.
+                if pending.get("left_image_path") is None:
+                    pending.update(left_image_path=self._current_left_path,
+                                   right_image_path=self._current_right_path,
+                                   frame_time=self._current_frame_time)
+                ready = self._disparity_ready and (
+                    self._left_gray is not None and self._right_gray is not None
+                    if self._use_epipolar else self._current_disparity is not None)
+            if ready:
+                return self._measure_centerline_request(pending)
+            threading.Thread(
+                target=self._deferred_transfer,
+                args=(pending.get("id"), self._measure_centerline_request, pending),
+                daemon=True,
+            ).start()
+            return None
 
         lp1, lp2 = left_line[0], left_line[1]
         rp1, rp2 = right_line[0], right_line[1]
@@ -1467,13 +1483,21 @@ class InteractiveStereoService:
             "measurement": measurement,
         }
 
-    def _measure_edited_centerline(self, left_line, right_line):
+    def _measure_centerline_request(self, request):
+        return self._measure_edited_centerline(
+            request["left_line"], request["right_line"], request)
+
+    def _measure_edited_centerline(self, left_line, right_line, request):
         """Re-match edited centerlines; vertex indices are not stereo matches."""
         from viame.core.curved_measurement import resample_polyline
         from scipy.spatial import cKDTree
         left = resample_polyline(left_line, 32)
         right = resample_polyline(right_line, 512)
         with self._compute_lock:
+            if (request.get("left_image_path") != self._current_left_path or
+                    request.get("right_image_path") != self._current_right_path or
+                    request.get("frame_time") != self._current_frame_time):
+                raise ValueError("Line measurement request no longer matches the current frame")
             if not self._disparity_ready:
                 raise ValueError("Disparity not ready for curved measurement")
             if self._use_epipolar:
