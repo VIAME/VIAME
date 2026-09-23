@@ -5,10 +5,8 @@
 # environment, not by scanning imports -- five entries below appear nowhere
 # in VIAME's sources and were found only by a pipeline failing on them.
 #
-# Where floors overlap, the highest wins. Note this branch installs the
-# PyTorch forks as separate distributions rather than vendoring them, so
-# rfdetr and sam2 cannot be declared here -- their PyPI names are different
-# software. They are installed by the build.
+# Vendoring makes a fork's requirements ours: viame.rfdetr and viame.sam2 are
+# inside this package. Where floors overlap, the highest wins.
 
 # --- the interpreter and arrays -------------------------------------------
 # numpy's floor is sam2's; ours was 1.13.
@@ -23,6 +21,17 @@ numpy>=1.24.4
 # 2.2.0 / 0.17.0.
 # torch and the CUDA runtime are per-variant; see requirements-cu12.txt
 # and requirements-cu13.txt.
+
+# --- video -----------------------------------------------------------------
+# PyAV backs `vidl_ffmpeg`, `ffmpeg` and `pyav`, which is how every shipped
+# pipeline reads a video, and `viame/video_io/pyav_video_input.py` imports it
+# directly. It is also where FFmpeg comes from: this wheel carries no libav,
+# and PyAV's own wheel bundles the lot in `av.libs`.
+#
+# Declared although `supervision` happens to pull it in today. Depending on
+# somebody else's dependency for the video reader is how video decoding stops
+# working in a release nobody thought had touched it.
+av
 
 # --- what VIAME's own algorithms import -----------------------------------
 scriptconfig
