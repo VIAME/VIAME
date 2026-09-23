@@ -24,6 +24,32 @@ class TrainHandler:
     self._process = None
     self._log_lines = []
     self._lock = threading.Lock()
+    self._cached_env = None
+
+  def _get_viame_env( self ):
+    """Capture environment from sourcing setup_viame.sh once and cache it."""
+    if self._cached_env is not None:
+      return self._cached_env
+
+    if not os.path.isfile( self.setup_script ):
+      raise RuntimeError( "VIAME setup script not found: {}".format( self.setup_script ) )
+
+    proc = subprocess.run(
+      [ "bash", "-c", 'source "$1" && env -0', "--", self.setup_script ],
+      capture_output=True,
+      text=True
+    )
+    if proc.returncode != 0:
+      raise RuntimeError( "Failed to source {}: {}".format( self.setup_script, proc.stderr.strip() ) )
+
+    env_dict = os.environ.copy()
+    for item in proc.stdout.split( "\0" ):
+      if item:
+        key, _, val = item.partition( "=" )
+        env_dict[ key ] = val
+
+    self._cached_env = env_dict
+    return self._cached_env
 
   def get_status( self ):
     with self._lock:
@@ -47,37 +73,38 @@ class TrainHandler:
       self._status = "running"
       self._log_lines = []
 
-    input_dir = payload.get( "input_dir", "" )
-    output_dir = payload.get( "output_dir",
-                              os.path.join( self.work_dir, "training_output" ) )
-    config = payload.get( "config", "" )
-    settings = payload.get( "settings", {} )
-
-    local_input = self._resolve_gcs_path( input_dir, "training_input" )
-    local_output = os.path.join( self.work_dir, "training_output" )
-    os.makedirs( local_output, exist_ok=True )
-
-    # Build viame train command
-    cmd = "source {} && viame train".format( self.setup_script )
-
-    if config:
-      cmd += " -c {}".format( config )
-
-    cmd += " -i {}".format( local_input )
-    cmd += " -o {}".format( local_output )
-
-    for key, value in settings.items():
-      cmd += " -s {}={}".format( key, value )
-
-    logger.info( "Running: %s", cmd )
-
     try:
+      input_dir = payload.get( "input_dir", "" )
+      config = payload.get( "config", "" )
+      settings = payload.get( "settings", {} )
+
+      local_input = self._resolve_gcs_path( input_dir, "training_input" )
+      local_output = os.path.join( self.work_dir, "training_output" )
+      os.makedirs( local_output, exist_ok=True )
+
+      # Build viame train command as Python argument list
+      cmd = [ "viame", "train" ]
+
+      if config:
+        cmd.extend( [ "-c", str( config ) ] )
+
+      cmd.extend( [ "-i", str( local_input ) ] )
+      cmd.extend( [ "-o", str( local_output ) ] )
+
+      for key, value in settings.items():
+        cmd.extend( [ "-s", "{}={}".format( key, value ) ] )
+
+      logger.info( "Running: %s", cmd )
+
+      env = self._get_viame_env()
+
       proc = subprocess.Popen(
-        [ "bash", "-c", cmd ],
+        cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        cwd=self.work_dir
+        cwd=self.work_dir,
+        env=env
       )
 
       self._process = proc
