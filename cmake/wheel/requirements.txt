@@ -22,6 +22,17 @@ numpy>=1.24.4
 # torch and the CUDA runtime are per-variant; see requirements-cu12.txt
 # and requirements-cu13.txt.
 
+# --- video -----------------------------------------------------------------
+# PyAV backs `vidl_ffmpeg`, `ffmpeg` and `pyav`, which is how every shipped
+# pipeline reads a video, and `viame/video_io/pyav_video_input.py` imports it
+# directly. It is also where FFmpeg comes from: this wheel carries no libav,
+# and PyAV's own wheel bundles the lot in `av.libs`.
+#
+# Declared although `supervision` happens to pull it in today. Depending on
+# somebody else's dependency for the video reader is how video decoding stops
+# working in a release nobody thought had touched it.
+av
+
 # --- what VIAME's own algorithms import -----------------------------------
 scriptconfig
 ubelt
