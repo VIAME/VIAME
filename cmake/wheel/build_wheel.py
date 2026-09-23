@@ -754,7 +754,7 @@ def metadata(name, version, summary, requires, description, requires_python):
         f"Version: {version}",
         f"Summary: {summary}",
         "License: BSD-3-Clause",
-        f"Requires-Python: >={requires_python}",
+        f"Requires-Python: {requires_python}",
         "Description-Content-Type: text/markdown",
     ]
     lines += [f"Project-URL: {label}, {url}" for label, url in PROJECT_URLS]
@@ -770,6 +770,27 @@ def wheel_metadata(root_is_purelib, tag):
         f"Root-Is-Purelib: {'true' if root_is_purelib else 'false'}\n"
         f"Tag: {tag}\n"
     )
+
+
+def python_requirement(abi_tag, declared=None):
+    """The python versions this wheel actually runs on.
+
+    A `cp310` wheel runs on CPython 3.10 and nothing else: the extension
+    modules use the full API and link `libpython3.10.so.1.0`, so the honest
+    bound is `==3.10.*`, not `>=3.10`. pip picks by tag either way, but a
+    user on 3.12 then gets "Requires-Python ==3.10.*" instead of the far less
+    helpful "could not find a version that satisfies the requirement".
+
+    An `abi3` wheel is the exception -- it is version independent upwards --
+    so that keeps a floor.
+    """
+    if declared:
+        return declared
+    m = re.fullmatch(r"cp(\d)(\d+)", abi_tag or "")
+    if m:
+        return f"=={m.group(1)}.{m.group(2)}.*"
+    m = re.fullmatch(r"cp(\d)(\d+)", (abi_tag or "").split("-")[0])
+    return f">={m.group(1)}.{m.group(2)}" if m else ">=3.10"
 
 
 def build(args):
@@ -866,7 +887,9 @@ def build(args):
             extras = {
                 f"{info}/METADATA": metadata(args.name, version, args.summary,
                                              requires, args.description,
-                                             args.requires_python),
+                                             python_requirement(
+                                                 args.abi_tag,
+                                                 args.requires_python)),
                 f"{info}/WHEEL": wheel_metadata(False, tag),
                 f"{info}/top_level.txt": "".join(
                     n + "\n" for n in sorted(args.top_level or [])),
@@ -934,10 +957,10 @@ def main(argv=None):
     p.add_argument("--summary", default="VIAME: Video and Image Analytics for Marine Environments")
     p.add_argument("--description", default=DESCRIPTION)
     p.add_argument("--requires", action="append", help="a Requires-Dist entry; repeatable")
-    p.add_argument("--requires-python", default="3.10",
-                   help="the floor for Requires-Python. Not below the wheel's "
-                        "own python tag: it is built for one interpreter, and "
-                        "vendored sam2 needs 3.10 regardless.")
+    p.add_argument("--requires-python", default=None,
+                   help="a literal Requires-Python specifier, overriding the "
+                        "one derived from the ABI tag (e.g. '>=3.10'). The "
+                        "derived value is what the wheel actually runs on.")
     p.add_argument("--requires-from", action="append",
                    help="a file of Requires-Dist entries, one per line, `#` "
                         "comments ignored; kept as a file so the reasoning for "
