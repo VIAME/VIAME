@@ -71,7 +71,15 @@ run_critical() {
     return 1
   fi
 
-  cid=$(docker run -d --gpus all -v "$SRC_DIR/tests:/src_tests:ro" \
+  # --shm-size: docker gives a container 64 MB of /dev/shm by default, and the
+  # netharn training test's PyTorch DataLoader workers pass batches through
+  # shared memory. Without this it dies with "unable to allocate shared
+  # memory(shm) ... No space left on device (28)" -- which names a disk error
+  # but is not one, and which failed the gate on images that were fine. The
+  # installer scripts here run their build container with --shm-size for the
+  # same reason.
+  cid=$(docker run -d --gpus all --shm-size=16g \
+          -v "$SRC_DIR/tests:/src_tests:ro" \
           --entrypoint sleep "$image" infinity) || return 1
   # shellcheck disable=SC2064
   trap "docker rm -f $cid >/dev/null 2>&1" RETURN

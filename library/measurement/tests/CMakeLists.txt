@@ -55,7 +55,7 @@ endif()
 if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_OPENCV )
   viame_add_test(
     NAME    "unit:measurement:curved_measurement"
-    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_curved_measurement.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_interactive_stereo_points.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_dense_stereo_grid.py"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_curved_measurement.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_interactive_stereo_points.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_stereo_line_readiness.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_dense_stereo_grid.py"
     LABELS  UNIT CORE
     TIMEOUT 300
     SOURCE_SETUP
