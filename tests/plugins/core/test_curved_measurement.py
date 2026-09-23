@@ -155,10 +155,11 @@ def test_service_routing_and_stale_frame(monkeypatch):
         right_line=[[70, 80], [85, 95], [100, 110], [130, 80]]))
     assert curve_result['measurement']['curved_length'] == pytest.approx(6 * np.sqrt(2))
     assert curve_result['measurement']['straight_length'] == pytest.approx(6)
-    invalid = service.handle_request(dict(command='measure_line',
+    # Disparity matches that leave the edited right curve defer to that curve.
+    off_curve = service.handle_request(dict(command='measure_line',
         left_line=[[80, 80], [110, 110], [140, 80]], right_line=[[70, 30], [130, 30]]))
-    assert not invalid['success']
-    assert 'measurement' not in invalid
+    assert off_curve['success']
+    assert np.asarray(off_curve['matched_points'])[:, 1] == pytest.approx(30)
 
     with pytest.raises(ValueError, match='current stereo frame'):
         service.handle_request(dict(request, left_image_path='old.png'))

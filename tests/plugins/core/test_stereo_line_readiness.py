@@ -39,7 +39,7 @@ def service(monkeypatch):
 def request():
     return dict(id='curve-1', command='measure_line',
                 left_line=[[80, 80], [110, 110], [140, 80]],
-                right_line=[[70, 80], [100, 110], [130, 80]],
+                right_line=[[70, 80], [85, 95], [100, 110], [130, 80]],
                 left_image_path='left.mp4', right_image_path='right.mp4', frame_time=0)
 
 
@@ -84,6 +84,25 @@ def test_straight_measurement_does_not_wait_for_disparity(service):
         left_line=[[80, 80], [140, 80]], right_line=[[70, 80], [130, 80]]))
     assert result['success']
     assert result['measurement']['length'] == pytest.approx(6)
+
+
+def test_paired_vertices_measure_at_once_without_disparity(service):
+    result = service.handle_request(dict(request(), right_line=[[70, 80], [100, 110], [130, 80]]))
+    assert result['success']
+    assert result['measurement']['curved_length'] == pytest.approx(6 * np.sqrt(2))
+    assert result['measurement']['straight_length'] == pytest.approx(6)
+
+
+def test_disparity_holes_fall_back_onto_the_right_curve(service):
+    disparity = np.full((200, 200), 10.)
+    disparity[90:130, :] = 0
+    service._current_disparity = disparity
+    service._disparity_ready = True
+    result = service.handle_request(request())
+    assert result['success']
+    assert result['measurement']['curved_length'] == pytest.approx(6 * np.sqrt(2))
+    matched = np.asarray(result['matched_points'])
+    assert np.abs(matched[:, 0] - (np.asarray(result['sampled_points'])[:, 0] - 10)).max() < 1e-6
 
 
 def test_rejects_stale_identity_even_when_disparity_is_ready(service):

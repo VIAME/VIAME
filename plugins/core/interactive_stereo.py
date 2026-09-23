@@ -1426,9 +1426,10 @@ class InteractiveStereoService:
     def handle_measure_line(self, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Compute the 3D length of a line given its endpoints on BOTH images.
 
-        Two-point lines triangulate supplied endpoints without matching.
-        Multi-point lines re-match their centerlines and defer the response
-        until this frame's disparity/images are ready, just like transfer_points.
+        Two-point lines triangulate supplied endpoints without matching, as do
+        multi-point lines whose vertices pair up one to one. Other multi-point
+        lines re-match their centerlines and defer the response until this
+        frame's disparity/images are ready, just like transfer_points.
         Optional left_image_path, right_image_path and frame_time identify the
         requested frame so deferred work cannot use a neighbouring video frame.
         """
@@ -1439,6 +1440,8 @@ class InteractiveStereoService:
         right_line = request.get("right_line")
         if not left_line or not right_line or min(len(left_line), len(right_line)) < 2:
             raise ValueError("left_line and right_line need at least two points")
+        if len(left_line) > 2 and len(left_line) == len(right_line):
+            return self._measure_paired_centerline(left_line, right_line)
         if len(left_line) > 2 or len(right_line) > 2:
             pending = dict(request)
             with self._compute_lock:
@@ -1487,12 +1490,54 @@ class InteractiveStereoService:
         return self._measure_edited_centerline(
             request["left_line"], request["right_line"], request)
 
+    def _segment_measurement(self, lp1, rp1, lp2, rp2):
+        if self._use_epipolar:
+            if not self._epipolar_matcher.calibrated:
+                return None
+            return self._epipolar_matcher.compute_measurement(lp1, rp1, lp2, rp2)
+        return self._dense_measurement(lp1, rp1, lp2, rp2)
+
+    def _centerline_measurement(self, left, right):
+        """Sum of the piecewise stereo lengths of corresponded polylines."""
+        pieces = [self._segment_measurement(left[i], right[i], left[i + 1], right[i + 1])
+                  for i in range(len(left) - 1)]
+        chord = self._segment_measurement(left[0], right[0], left[-1], right[-1])
+        if (chord is None or
+                any(p is None or not np.isfinite(p['length']) or p['length'] <= 0 for p in pieces)):
+            return {"success": False, "error": "Invalid reconstructed centerline"}
+        length = float(sum(p['length'] for p in pieces))
+        measurement = dict(chord, length=length, curved_length=length,
+                           straight_length=chord['length'],
+                           curvature_ratio=length / chord['length'] if chord['length'] > 0 else 1.0,
+                           stereo_rms=max(p.get('stereo_rms', 0) for p in pieces))
+        return {"success": True, "length": length, "measurement": measurement}
+
+    def _measure_paired_centerline(self, left_line, right_line):
+        """Equal vertex counts already correspond: no disparity is needed."""
+        left = np.asarray(left_line, dtype=float)
+        right = np.asarray(right_line, dtype=float)
+        if not (np.isfinite(left).all() and np.isfinite(right).all()):
+            return {"success": False, "error": "Centerline vertices must be finite"}
+        return self._centerline_measurement(left, right)
+
+    @staticmethod
+    def _along_curve(curve, reference):
+        """Points on curve at the arc-length fractions of reference's points."""
+        def fractions(points):
+            d = np.r_[0, np.cumsum(np.linalg.norm(np.diff(points, axis=0), axis=1))]
+            return d / d[-1] if d[-1] > 0 else np.linspace(0, 1, len(points))
+        f = fractions(curve)
+        return np.column_stack([np.interp(fractions(reference), f, curve[:, i]) for i in range(2)])
+
     def _measure_edited_centerline(self, left_line, right_line, request):
-        """Re-match edited centerlines; vertex indices are not stereo matches."""
+        """Re-match edited centerlines whose vertices do not pair up. A sample
+        the disparity cannot place, or places off the right curve, takes the
+        point at the same arc-length fraction of that curve instead."""
         from viame.core.curved_measurement import resample_polyline
         from scipy.spatial import cKDTree
         left = resample_polyline(left_line, 32)
         right = resample_polyline(right_line, 512)
+        fallback = self._along_curve(right, left)
         with self._compute_lock:
             if (request.get("left_image_path") != self._current_left_path or
                     request.get("right_image_path") != self._current_right_path or
@@ -1503,9 +1548,7 @@ class InteractiveStereoService:
             if self._use_epipolar:
                 matches = [self._epipolar_matcher.match_point(self._left_gray, self._right_gray, p)
                            for p in left]
-                if any(p is None for p in matches):
-                    return {"success": False, "error": "Incomplete centerline correspondence"}
-                matched = np.asarray(matches, dtype=float)
+                matched = np.asarray([f if m is None else m for m, f in zip(matches, fallback)], dtype=float)
             else:
                 disparity = self._current_disparity
                 if disparity is None:
@@ -1513,29 +1556,16 @@ class InteractiveStereoService:
                 grid = self._to_grid(left)
                 matched_grid, disp = self._match_grid(grid, disparity)
                 h, w = disparity.shape
-                if (not np.isfinite(disp).all() or (disp <= 0).any() or
-                        (matched_grid[:, 0] < 0).any() or (matched_grid[:, 0] >= w).any() or
-                        (matched_grid[:, 1] < 0).any() or (matched_grid[:, 1] >= h).any()):
-                    return {"success": False, "error": "Invalid centerline disparity"}
-                matched = self._from_grid(matched_grid)
-            if not np.isfinite(matched).all() or (cKDTree(right).query(matched)[0] > 5).any():
-                return {"success": False, "error": "Matched points disagree with the edited right curve"}
-            def segment(i, j):
-                if self._use_epipolar:
-                    return self._epipolar_matcher.compute_measurement(left[i], matched[i], left[j], matched[j])
-                return self._dense_measurement(left[i], matched[i], left[j], matched[j])
-            pieces = [segment(i, i + 1) for i in range(len(left) - 1)]
-            chord = segment(0, -1)
-        if (chord is None or chord['length'] <= 0 or
-                any(p is None or not np.isfinite(p['length']) or p['length'] <= 0 or
-                    p.get('stereo_rms', 0) > 5 for p in pieces)):
-            return {"success": False, "error": "Invalid reconstructed centerline"}
-        length = float(sum(p['length'] for p in pieces))
-        measurement = dict(chord, length=length, curved_length=length,
-                           straight_length=chord['length'], curvature_ratio=length / chord['length'],
-                           stereo_rms=max(p.get('stereo_rms', 0) for p in pieces))
-        return {"success": True, "length": length, "measurement": measurement,
-                "sampled_points": left.tolist(), "matched_points": matched.tolist()}
+                placed = (np.isfinite(disp) & (disp > 0) & np.isfinite(matched_grid).all(axis=1) &
+                          (matched_grid[:, 0] >= 0) & (matched_grid[:, 0] < w) &
+                          (matched_grid[:, 1] >= 0) & (matched_grid[:, 1] < h))
+                matched = np.where(placed[:, None], self._from_grid(np.nan_to_num(matched_grid)), fallback)
+            off_curve = ~np.isfinite(matched).all(axis=1) | (cKDTree(right).query(matched)[0] > 5)
+            matched = np.where(off_curve[:, None], fallback, matched)
+            result = self._centerline_measurement(left, matched)
+        if result["success"]:
+            result.update(sampled_points=left.tolist(), matched_points=matched.tolist())
+        return result
 
     def handle_measure_curve(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Opt-in curved measurement on the current rectified disparity grid.
