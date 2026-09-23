@@ -678,6 +678,75 @@ def _hash(path):
     return f"sha256={digest}", size
 
 
+DESCRIPTION = """\
+# VIAME
+
+VIAME is an open-source computer vision toolkit for analysing imagery and
+video, built for marine science: detection, tracking, stereo measurement,
+classification, search and training, in configurable pipelines.
+
+This wheel carries the VIAME runtime and the `viame` command line tool.
+
+## Install
+
+```
+pip install viame
+```
+
+Bring your own GPU stack: `torch` comes with the CUDA runtime this build
+links against, and nothing CUDA is bundled here.
+
+## Use
+
+```
+viame run detector_generic input.mp4       # run a pipeline over a video
+viame train --list                         # what can be trained
+viame score -c computed.csv -t truth.csv   # score results
+```
+
+```python
+import viame
+```
+
+The pipelines that ship are those whose models are small enough to travel
+with the code. Larger models are add-on packs, fetched at runtime:
+
+```
+viame add-ons
+```
+
+## Links
+
+* [viametoolkit.org](https://www.viametoolkit.org)
+* [Source](https://github.com/VIAME/VIAME)
+* [Documentation](https://viame.readthedocs.io)
+
+BSD 3-Clause licensed.
+"""
+
+
+# What the project page shows. Markdown, because the description is written
+# as markdown and PyPI otherwise reads it as reStructuredText and renders it
+# wrong -- `twine check` warns about exactly this.
+CLASSIFIERS = (
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+)
+
+PROJECT_URLS = (
+    ("Homepage", "https://www.viametoolkit.org"),
+    ("Source", "https://github.com/VIAME/VIAME"),
+    ("Documentation", "https://viame.readthedocs.io"),
+    ("Issues", "https://github.com/VIAME/VIAME/issues"),
+)
+
+
 def metadata(name, version, summary, requires, description, requires_python):
     lines = [
         "Metadata-Version: 2.1",
@@ -686,7 +755,10 @@ def metadata(name, version, summary, requires, description, requires_python):
         f"Summary: {summary}",
         "License: BSD-3-Clause",
         f"Requires-Python: >={requires_python}",
+        "Description-Content-Type: text/markdown",
     ]
+    lines += [f"Project-URL: {label}, {url}" for label, url in PROJECT_URLS]
+    lines += [f"Classifier: {c}" for c in CLASSIFIERS]
     lines += [f"Requires-Dist: {r}" for r in requires]
     return "\n".join(lines) + "\n\n" + description + "\n"
 
@@ -860,7 +932,7 @@ def main(argv=None):
                         "refuses local versions, so a variant wheel needs an "
                         "index of its own.")
     p.add_argument("--summary", default="VIAME: Video and Image Analytics for Marine Environments")
-    p.add_argument("--description", default="See https://github.com/VIAME/VIAME")
+    p.add_argument("--description", default=DESCRIPTION)
     p.add_argument("--requires", action="append", help="a Requires-Dist entry; repeatable")
     p.add_argument("--requires-python", default="3.10",
                    help="the floor for Requires-Python. Not below the wheel's "
