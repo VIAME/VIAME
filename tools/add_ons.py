@@ -265,12 +265,14 @@ def content_prefix(names):
             return prefix
 
 
-def destination_for(prefix):
+def destination_for(prefix, names):
     parts = prefix.rstrip('/').split('/') if prefix else []
     if parts[-2:] == ['configs', 'pipelines']:
         return PIPELINES_DIR
     if parts[-1:] == ['configs']:
         return Path('configs')
+    if any(name[len(prefix):].startswith('configs/') for name in names):
+        return Path('.')
     return PIPELINES_DIR
 
 
@@ -294,8 +296,9 @@ def install_archive(install, archive):
                     members.append((info, name))
             if not members:
                 raise ValueError('Archive contains no files')
-            prefix = content_prefix([name for _, name in members])
-            dest = install / destination_for(prefix)
+            names = [name for _, name in members]
+            prefix = content_prefix(names)
+            dest = install / destination_for(prefix, names)
             seen = set()
             total_bytes = sum(info.file_size for info, _ in members)
             extracted_bytes = 0
