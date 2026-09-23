@@ -285,15 +285,35 @@ MEASUREMENT_PIPELINE = "stereo_measure_current_annots_default.pipe"
 # * `template_matching` rectifies both images first: `stereoRectify`,
 #   `initUndistortRectifyMap` and `remap` as well.
 # * `compute_disparity` runs SGBM over the rectified pair and looks the
-#   disparity up at each keypoint. It is recorded **broken**: it measures
-#   three of the five targets at a tenth of their length and puts their right
-#   keypoints hundreds of pixels off the left edge of the image. The cause is
-#   upstream and reproduces on the reference build of `main`: the shipped
-#   config turns the WLS filter on, and `ocv_stereo_disparity` writes its
-#   `raw` output back as sixteenths in an **int16**, where the filter's
-#   fill-in values saturate at 32767 -- 2047 pixels of disparity on a rig
-#   whose real disparity is 45. `find_corresponding_point_external_disparity`
-#   rejects only values at or below zero, so it takes them. Finding 1.21.
+#   disparity up at each keypoint. It measures **two of the five** targets,
+#   and measures those two well: 401.6 against a true 400.5 and 349.2
+#   against a true 350.5, both within half a per cent.
+#
+#   The three it misses are not a defect in the method. SGBM cannot produce
+#   a disparity in the leftmost `num_disparities` columns, because the
+#   search there runs off the left edge of the right image -- the first
+#   column carrying any value is exactly `num_disparities`, measured at 256,
+#   128, 64 and 48. The shipped config asks for 256 on a 640 wide frame, so
+#   40% of the image has no disparity at all, and three of the five targets
+#   have a keypoint inside that band. Their sample windows are entirely
+#   invalid and `find_corresponding_point_external_disparity` returns false.
+#
+#   256 is right for the hardware and wrong for this fixture: a real rig
+#   measuring a fish at a couple of metres wants 200 to 600 pixels of
+#   disparity, which is why every stereo config in the tree asks for 192 to
+#   256. This scene's rig needs about 35. Dropping the shipped number to fit
+#   the fixture would cap what the pipeline can measure in the field, so the
+#   recording carries the dead band instead. Lowering it to 64 here measures
+#   all five, within 2.4% on the worst and 0.4% on the rest, which is how
+#   the above was checked.
+#
+#   An earlier version of this comment blamed finding 1.21 -- WLS fill
+#   values saturating at 32767, or 2047 pixels of disparity. That does not
+#   hold: no recorded `ocv_stereo_disparity` golden contains a saturated
+#   value, the largest being 1264 sixteenths, or 79 pixels. The recording
+#   that showed right keypoints hundreds of pixels off the left edge was
+#   made before `e4e9e2aeb` fixed byte-versus-pixel stride addressing in the
+#   sampler, which was reading the wrong memory.
 # * `depth_projection` uses no image content at all -- it puts the right
 #   point where `default_depth` says it would be -- so it is pure projection
 #   geometry, and its answers are wrong by the ratio of that default to the
@@ -481,25 +501,23 @@ PAIR_STEREO_DEPTH_RATIO_TOLERANCE = 0.10
 # recovers the ground truth, which `check_calibration_truth` checks and
 # which does not care how the frames were chosen.
 UNSTABLE = {
-    # `compute_disparity` reads its depth out of the **saturated** disparity
-    # map of finding 1.21: the WLS filter's fill values reach 32767, which is
-    # 2047 pixels of disparity on a rig whose real disparity is 45, and
-    # neighbouring pixels of such a map hold wildly different numbers. So a
-    # rectification that differs in its seventh significant digit -- which is
-    # exactly what `library/measurement/projection` differs by, since OpenCV
-    # samples its image border in float and this works in double -- lands the
-    # lookup on a different pixel and moves a right keypoint by ten.
+    # `compute_disparity` samples a 15x15 window of the disparity map at each
+    # keypoint and takes its median, so a rectification that differs in its
+    # seventh significant digit -- which is exactly what
+    # `library/measurement/projection` differs by, since OpenCV samples its
+    # image border in float and this works in double -- can shift the window
+    # by a pixel and move the median onto a neighbouring disparity.
     #
-    # There is no tolerance that makes that a byte contract, and pretending
-    # otherwise would be recording noise. What is still contractual is below
-    # in `compare_unstable`: the same tracks get a measurement, and their
-    # lengths are still an order of magnitude short of the truth, which is
-    # the defect this case exists to pin. A method that started working would
-    # fail this -- and should, because it would be a change worth noticing.
+    # Held loosely for that reason rather than because the numbers are bad:
+    # the two targets it measures land within half a per cent of the truth.
+    # What stays contractual is below in `compare_unstable`: the same tracks
+    # get a measurement, which is what pins the dead band the shipped
+    # `num_disparities` leaves down the left of the frame. A build that
+    # measured more or fewer targets would fail this -- and should, because
+    # it would mean that band had moved.
     ("measurement", MEASUREMENT_PIPELINE, "compute_disparity"):
-        "the disparity map it reads is saturated (finding 1.21), so a "
-        "rectification differing in the seventh digit moves a keypoint by "
-        "ten pixels",
+        "the median over its sample window can move to a neighbouring "
+        "disparity when rectification differs in the seventh digit",
     ("calibration_pipeline", CALIBRATION_PIPELINE, "frames_6"):
         "kmedians seeds from cv::theRNG(), whose state is not an input to "
         "the algorithm, so which six of the twelve frames are selected "
@@ -515,14 +533,22 @@ def unstable(kind, impl, variant=None):
 
 
 # How far an unstable `measurement` member may move. `track_ids` is exact --
-# the same tracks have to get a measurement -- and `length` keeps a wide band
-# that still separates "the broken method, reproduced" from "the method
-# started working", which would be ten times larger. The keypoints and the
-# midpoints are checked for shape alone, since those are the values the
-# saturated map moves around.
+# the same tracks have to get a measurement, which is what pins the dead
+# band down the left of the frame.
+#
+# `length` allows ten per cent, from the arithmetic rather than by feel: the
+# sampled disparity here is about 35 pixels, so a median that moves by one
+# lands 1/35 out on the range and the length follows it, near enough three
+# per cent. Ten leaves room for three such steps. It used to be thirty,
+# which was sized to hold a recording that was an order of magnitude wrong;
+# the recording is now within half a per cent of the truth and does not need
+# that much room.
+#
+# The keypoints and the midpoints are checked for shape alone, since those
+# are what a shifted window moves.
 MEASUREMENT_UNSTABLE_TOLERANCE = {
     "track_ids": 0.0,
-    "length": 0.3,
+    "length": 0.10,
 }
 
 

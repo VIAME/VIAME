@@ -1150,57 +1150,57 @@
           "members": {
             "length": {
               "dtype": "float64",
-              "sha256": "9af2bb056d12c9fc",
+              "sha256": "0f5eb29b09f2aea0",
               "shape": [
-                3,
+                2,
                 1
               ]
             },
             "midpoint": {
               "dtype": "float64",
-              "sha256": "d216f6a04c904857",
+              "sha256": "f9ae42cdb14d34a0",
               "shape": [
-                3,
+                2,
                 3
               ]
             },
             "range": {
               "dtype": "float64",
-              "sha256": "1dc42b2ff49a2b4b",
+              "sha256": "058c96c0a539fa7d",
               "shape": [
-                3,
+                2,
                 1
               ]
             },
             "right_head": {
               "dtype": "float64",
-              "sha256": "adb87ac36b8e6c35",
+              "sha256": "437ec34177b1e73f",
               "shape": [
-                3,
+                2,
                 2
               ]
             },
             "right_tail": {
               "dtype": "float64",
-              "sha256": "7e9b58f290f3cd97",
+              "sha256": "4d224e618d70fd2f",
               "shape": [
-                3,
+                2,
                 2
               ]
             },
             "rms": {
               "dtype": "float64",
-              "sha256": "6a7af0cd5e9c08fd",
+              "sha256": "207b874856950a58",
               "shape": [
-                3,
+                2,
                 1
               ]
             },
             "track_ids": {
               "dtype": "float64",
-              "sha256": "2b4b8a31ad969909",
+              "sha256": "fc62429c3e69001d",
               "shape": [
-                3,
+                2,
                 1
               ]
             }
