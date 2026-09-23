@@ -14,6 +14,16 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
   )
 
+  # Not a recording: video through a whole pipeline, which is the gap that
+  # let two pipeline-breaking faults past `golden:video`.
+  viame_add_test(
+    NAME    "pipeline:video"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_video_pipeline.py"
+    LABELS  GOLDEN
+    TIMEOUT 900
+    SOURCE_SETUP
+  )
+
   viame_add_test(
     NAME    "golden:replay"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_golden.py"
