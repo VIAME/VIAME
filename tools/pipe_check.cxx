@@ -15,6 +15,8 @@
 #include <viame/pipeline_framework/process.h>
 #include <viame/pipeline_framework/pipeline_builder.h>
 
+#include <viame/algorithm_framework/util/get_paths.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
@@ -364,7 +366,22 @@ std::string
 install_root()
 {
   char const* const env = std::getenv( "VIAME_INSTALL" );
-  return env ? std::string( env ) : std::string();
+
+  if( env )
+  {
+    return std::string( env );
+  }
+
+  // `<exe>/..`, the same fallback `python_script_applet` and the runner use.
+  // Without it `--all` is the one applet that still needs the environment
+  // set, which a pip-installed VIAME has no script to set.
+  std::error_code ec;
+  auto const prefix = fs::path( kv::get_executable_path() ) / "..";
+  auto const canonical = fs::weakly_canonical( prefix, ec );
+  auto const root = ec ? prefix : canonical;
+
+  return fs::is_directory( root / "configs", ec ) ? root.string()
+                                                  : std::string();
 }
 
 // ----------------------------------------------------------------------------
