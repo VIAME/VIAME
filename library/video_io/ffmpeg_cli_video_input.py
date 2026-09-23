@@ -225,6 +225,22 @@ class FFmpegCliVideoInput(VideoInput):
     def open(self, video_name):
         self.close()
 
+        # See the note in pyav_video_input: a reader that declares nothing is
+        # refused by video_input_process.
+        for name, value in (
+            (VideoInput.HAS_EOV, True),
+            (VideoInput.HAS_FRAME_NUMBERS, True),
+            (VideoInput.HAS_FRAME_TIME, True),
+            (VideoInput.HAS_FRAME_DATA, True),
+            (VideoInput.HAS_FRAME_RATE, True),
+            (VideoInput.HAS_METADATA, False),
+            (VideoInput.HAS_ABSOLUTE_FRAME_TIME, False),
+            (VideoInput.HAS_TIMEOUT, False),
+            (VideoInput.IS_SEEKABLE_BY_FRAME, True),
+            (VideoInput.IS_SEEKABLE_BY_TIME, True),
+        ):
+            self.set_capability(name, value)
+
         self._filename = video_name
         self._mode = self._time_mode()
         self._origin = self._time_origin()
@@ -405,7 +421,10 @@ class FFmpegCliVideoInput(VideoInput):
         return float(self._rate or -1.0)
 
     def filename(self):
-        return self._filename
+        """Empty: a video stream has no per-frame file. See the note in
+        `pyav_video_input`; returning the container makes `image_writer`
+        try to save a frame as the video."""
+        return ""
 
     def end_of_video(self):
         return self._exhausted or self._process is None

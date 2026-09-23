@@ -14,6 +14,15 @@
 namespace viame::python {
 namespace py = pybind11;
 
+// `set_capability` is protected, so a python implementation cannot reach it
+// without this. Without it a python video reader advertises nothing, and
+// `video_input_process` refuses it with "Video reader selected does not
+// supply image data" -- which is what every python-backed reader did.
+struct video_input_publicist : viame::algo::video_input
+{
+  using viame::algo::video_input::set_capability;
+};
+
 void video_input(py::module& m)
 {
   py::module::import("viame.config");
@@ -238,6 +247,13 @@ void video_input(py::module& m)
  settings of the input video.
 
  \return Implementation video settings, or \c nullptr if none are needed.)"))
+    .def("set_capability", &video_input_publicist::set_capability,
+         py::arg("name"), py::arg("value"),
+         py::doc(R"( \brief Declare a capability of this implementation.
+
+ For python implementations, which otherwise have no way to reach the
+ protected setter. Call it from `open`, as the C++ readers do: a reader
+ that does not declare HAS_FRAME_DATA is rejected by video_input_process.)"))
     .def("get_implementation_capabilities", &viame::algo::video_input::get_implementation_capabilities, py::doc(R"( \brief Return capabilities of concrete implementation.
 
  This method returns the capabilities for the currently opened

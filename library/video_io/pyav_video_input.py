@@ -185,8 +185,31 @@ class PyAVVideoInput(VideoInput):
     # ------------------------------------------------------------------
     # Opening and closing
 
+    def _declare_capabilities(self):
+        """Tell the C++ side what this reader can do.
+
+        `video_input_process` reads these and refuses a reader that does not
+        claim HAS_FRAME_DATA, so a python reader that declares nothing cannot
+        be used from a pipeline at all -- only through the python API, which
+        is why the golden video cases did not catch it.
+        """
+        for name, value in (
+            (VideoInput.HAS_EOV, True),
+            (VideoInput.HAS_FRAME_NUMBERS, True),
+            (VideoInput.HAS_FRAME_TIME, True),
+            (VideoInput.HAS_FRAME_DATA, True),
+            (VideoInput.HAS_FRAME_RATE, True),
+            (VideoInput.HAS_METADATA, False),
+            (VideoInput.HAS_ABSOLUTE_FRAME_TIME, False),
+            (VideoInput.HAS_TIMEOUT, False),
+            (VideoInput.IS_SEEKABLE_BY_FRAME, True),
+            (VideoInput.IS_SEEKABLE_BY_TIME, True),
+        ):
+            self.set_capability(name, value)
+
     def open(self, video_name):
         self.close()
+        self._declare_capabilities()
 
         self._delegate = self._fallback()
 
@@ -537,10 +560,20 @@ class PyAVVideoInput(VideoInput):
         return float(self._average_rate() or -1.0)
 
     def filename(self):
+        """The file the *current frame* came from, which for a video stream
+        is nothing.
+
+        Not the container path. `video_input_process` pushes this on its
+        `file_name` port and `image_writer_process` writes to it verbatim, so
+        returning the video meant a pipeline tried to save a frame as
+        `clip.mp4`. An image list has a real per-frame file and returns it;
+        a video has none, and KWIVER's `vidl_ffmpeg` returns empty here for
+        the same reason, which is what makes `file_name_template` apply.
+        """
         if self._delegate is not None:
             return self._delegate.filename()
 
-        return self._filename
+        return ""
 
     def end_of_video(self):
         if self._delegate is not None:
