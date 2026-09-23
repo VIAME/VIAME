@@ -211,22 +211,60 @@ Vendoring moves a fork's requirements onto us: `viame.rfdetr` and
 `hydra-core`, `iopath` and the rest are ours now. Where floors overlap the
 highest wins -- torch is `>=2.3.1`, sam2's, above rfdetr's `>=2.2.0`.
 
-### The CUDA major is ours to declare
-
-The wheel requires `nvidia-cuda-runtime-cu12`, `nvidia-cublas-cu12`,
-`nvidia-curand-cu12` and `nvidia-cudnn-cu12`, and an earlier version of this
-document argued it should not. That argument was wrong, and a clean install
-proved it: `pip install viame` brought `torch 2.14.0+cu130`, whose wheels
-provide `libcudart.so.13` under a consolidated `nvidia/cu13/lib`, while this
-build needs `libcudart.so.12` under the per-component `nvidia/cuda_runtime/
-lib`. Nothing failed -- the loader quietly fell back to a system CUDA 12,
-which is the dependency the RUNPATH work existed to remove.
+### The CUDA major is ours to declare, and the default variant has nothing to declare
 
 Which CUDA a binary needs is a property of how it was compiled, not of what
-torch later chooses, so the wheel declares it. The `cu12` here must match
-`CUDA_TOOLKIT_ROOT_DIR` in the build. A torch that picked a different major
-coexists -- different package names, different directories -- at the cost of
-two CUDA runtimes on disk.
+torch later chooses. So the question is only ever whether the build agrees
+with torch.
 
-With these declared, all five CUDA libraries resolve inside the environment
-for both the extension modules and `bin/viame`, and none from the system.
+**The default wheel (cu13) declares no CUDA at all.** A plain
+`pip install torch` brings the whole runtime -- `nvidia-cuda-runtime`,
+`nvidia-cublas`, `nvidia-curand` and `nvidia-cudnn-cu13`, via
+`cuda-toolkit` -- and those are the copies this wheel's RUNPATH points at.
+Verified on a clean install: every CUDA library `bin/viame` loads comes from
+`site-packages/nvidia/`, none from `/usr/local/cuda`. `torch>=2.11` is the
+floor that makes it true, since torch moved to cu13 at 2.11.
+
+**The `+cu12` variant declares all of them**, plus `torch<2.11`. It has to:
+current torch is cu13, so this build's `libcudart.so.12` would find nothing
+of torch's and fall back to a system CUDA 12 -- which is the dependency the
+RUNPATH work existed to remove. An earlier clean install did exactly that,
+silently. The bound and the declarations are what make the mismatch safe.
+
+Nothing CUDA is ever *bundled* in either variant. The wheel ships RUNPATHs
+and, for cu12, dependency names.
+
+## The platform tag
+
+PyPI refuses `linux_x86_64`; a wheel has to say which glibc it needs, as a
+manylinux tag (PEP 600). `build_wheel.py` **computes** the tag from the
+binaries' glibc symbol versions rather than taking it on trust, because a
+declared tag that is wrong installs cleanly and then fails at import on the
+machine it was wrong about. This build comes out
+`manylinux_2_35_x86_64`, which is what `auditwheel show` independently says.
+
+`auditwheel repair` is deliberately not used. It assumes the native
+libraries live inside the importable package, and this wheel's do not:
+`libviame.so.1` is in `.data/data/lib/` and the tools are in
+`.data/scripts/`. Pointed at that layout it relocates the library into the
+package and rewrites the RUNPATHs, undoing the `$ORIGIN` paths that make
+CUDA resolve from the nvidia wheels. The two things it does that we want --
+compute the glibc floor, and check nothing outside the policy is relied on
+-- are done directly instead.
+
+`--bundle` packs a system library the manylinux allowlist does not cover,
+and only if something in the wheel actually needs it. `libgomp.so.1` is the
+one: it goes beside `libviame.so.1` in `{data}/lib/`, whose RUNPATH already
+has `$ORIGIN`, so nothing is patched. A build without OpenMP does not carry
+it.
+
+### Uploading
+
+The default wheel's name and tag are both PyPI-legal:
+`viame-<version>-cp310-cp310-manylinux_2_35_x86_64.whl`. The `+cu12`
+variant carries a PEP 440 local version, which **PyPI refuses** -- that
+variant needs its own index.
+
+The version comes from the first line of `RELEASE_NOTES.md`. A release
+number can never be reused on PyPI, so uploading is a deliberate,
+irreversible act and is not part of `make wheel`.
