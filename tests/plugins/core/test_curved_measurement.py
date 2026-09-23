@@ -160,6 +160,8 @@ def test_service_routing_and_stale_frame(monkeypatch):
         left_line=[[80, 80], [110, 110], [140, 80]], right_line=[[70, 30], [130, 30]]))
     assert off_curve['success']
     assert np.asarray(off_curve['matched_points'])[:, 1] == pytest.approx(30)
+    assert 'may be inaccurate' in off_curve['warning']
+    assert 'warning' not in curve_result
 
     with pytest.raises(ValueError, match='current stereo frame'):
         service.handle_request(dict(request, left_image_path='old.png'))

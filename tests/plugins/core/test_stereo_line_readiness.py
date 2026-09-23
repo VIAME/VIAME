@@ -86,11 +86,27 @@ def test_straight_measurement_does_not_wait_for_disparity(service):
     assert result['measurement']['length'] == pytest.approx(6)
 
 
-def test_paired_vertices_measure_at_once_without_disparity(service):
-    result = service.handle_request(dict(request(), right_line=[[70, 80], [100, 110], [130, 80]]))
+def test_paired_vertices_measure_once_the_disparity_wait_gives_up(service):
+    service._DISPARITY_WAIT_SECONDS = 0.05
+    received = threading.Event()
+    responses = []
+    service._send_response = lambda response: (responses.append(response), received.set())
+    payload = dict(request(), right_line=[[72, 80], [102, 110], [132, 80]])
+    assert service.handle_request(payload) is None
+    assert received.wait(3), 'Measurement without disparity did not finish'
+    assert responses[0]['success']
+    assert responses[0]['measurement']['curved_length'] == pytest.approx(6 * np.sqrt(2))
+    sampled = np.asarray(responses[0]['sampled_points'])
+    np.testing.assert_allclose(np.asarray(responses[0]['matched_points']), sampled - [8, 0])
+
+
+def test_paired_vertices_still_refine_on_the_disparity(service):
+    service._current_disparity = np.full((200, 200), 10.)
+    service._disparity_ready = True
+    result = service.handle_request(dict(request(), right_line=[[72, 80], [102, 110], [132, 80]]))
     assert result['success']
-    assert result['measurement']['curved_length'] == pytest.approx(6 * np.sqrt(2))
-    assert result['measurement']['straight_length'] == pytest.approx(6)
+    sampled = np.asarray(result['sampled_points'])
+    np.testing.assert_allclose(np.asarray(result['matched_points']), sampled - [10, 0])
 
 
 def test_disparity_holes_fall_back_onto_the_right_curve(service):

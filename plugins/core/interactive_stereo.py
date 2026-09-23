@@ -1426,10 +1426,10 @@ class InteractiveStereoService:
     def handle_measure_line(self, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Compute the 3D length of a line given its endpoints on BOTH images.
 
-        Two-point lines triangulate supplied endpoints without matching, as do
-        multi-point lines whose vertices pair up one to one. Other multi-point
-        lines re-match their centerlines and defer the response until this
-        frame's disparity/images are ready, just like transfer_points.
+        Two-point lines triangulate supplied endpoints without matching.
+        Multi-point lines re-match their centerlines on this frame's disparity,
+        deferring the response while it computes, and fall back on the lines
+        themselves wherever the disparity cannot place a sample or never comes.
         Optional left_image_path, right_image_path and frame_time identify the
         requested frame so deferred work cannot use a neighbouring video frame.
         """
@@ -1440,8 +1440,6 @@ class InteractiveStereoService:
         right_line = request.get("right_line")
         if not left_line or not right_line or min(len(left_line), len(right_line)) < 2:
             raise ValueError("left_line and right_line need at least two points")
-        if len(left_line) > 2 and len(left_line) == len(right_line):
-            return self._measure_paired_centerline(left_line, right_line)
         if len(left_line) > 2 or len(right_line) > 2:
             pending = dict(request)
             with self._compute_lock:
@@ -1456,9 +1454,7 @@ class InteractiveStereoService:
             if ready:
                 return self._measure_centerline_request(pending)
             threading.Thread(
-                target=self._deferred_transfer,
-                args=(pending.get("id"), self._measure_centerline_request, pending),
-                daemon=True,
+                target=self._deferred_measure, args=(pending.get("id"), pending), daemon=True,
             ).start()
             return None
 
@@ -1486,6 +1482,18 @@ class InteractiveStereoService:
             "measurement": measurement,
         }
 
+    _DISPARITY_WAIT_SECONDS = 120
+
+    def _deferred_measure(self, request_id, request):
+        """Wait for disparity, but measure from the lines alone if it never comes."""
+        self._disparity_event.wait(timeout=self._DISPARITY_WAIT_SECONDS)
+        try:
+            response = self._measure_centerline_request(request)
+        except Exception as e:
+            response = {"success": False, "error": str(e)}
+        response["id"] = request_id
+        self._send_response(response)
+
     def _measure_centerline_request(self, request):
         return self._measure_edited_centerline(
             request["left_line"], request["right_line"], request)
@@ -1512,13 +1520,15 @@ class InteractiveStereoService:
                            stereo_rms=max(p.get('stereo_rms', 0) for p in pieces))
         return {"success": True, "length": length, "measurement": measurement}
 
-    def _measure_paired_centerline(self, left_line, right_line):
-        """Equal vertex counts already correspond: no disparity is needed."""
+    @staticmethod
+    def _paired_points(left_line, right_line, samples):
+        """Points on right_line at the vertex-relative positions samples hold
+        on left_line: equal vertex counts correspond one to one."""
         left = np.asarray(left_line, dtype=float)
         right = np.asarray(right_line, dtype=float)
-        if not (np.isfinite(left).all() and np.isfinite(right).all()):
-            return {"success": False, "error": "Centerline vertices must be finite"}
-        return self._centerline_measurement(left, right)
+        along = lambda points: np.r_[0, np.cumsum(np.linalg.norm(np.diff(points, axis=0), axis=1))]
+        u = np.interp(along(samples), along(left), np.arange(len(left)))
+        return np.column_stack([np.interp(u, np.arange(len(right)), right[:, i]) for i in range(2)])
 
     @staticmethod
     def _along_curve(curve, reference):
@@ -1530,29 +1540,34 @@ class InteractiveStereoService:
         return np.column_stack([np.interp(fractions(reference), f, curve[:, i]) for i in range(2)])
 
     def _measure_edited_centerline(self, left_line, right_line, request):
-        """Re-match edited centerlines whose vertices do not pair up. A sample
-        the disparity cannot place, or places off the right curve, takes the
-        point at the same arc-length fraction of that curve instead."""
+        """Re-match edited centerlines on the disparity; vertex indices are not
+        stereo matches. A sample the disparity cannot place, or places off the
+        right curve, takes the paired vertex position (equal counts) or the
+        same arc-length fraction of the right curve instead, and without any
+        disparity the whole line measures that way."""
         from viame.core.curved_measurement import resample_polyline
         from scipy.spatial import cKDTree
         left = resample_polyline(left_line, 32)
         right = resample_polyline(right_line, 512)
-        fallback = self._along_curve(right, left)
+        fallback = (self._paired_points(left_line, right_line, left)
+                    if len(left_line) == len(right_line) else self._along_curve(right, left))
         with self._compute_lock:
             if (request.get("left_image_path") != self._current_left_path or
                     request.get("right_image_path") != self._current_right_path or
                     request.get("frame_time") != self._current_frame_time):
                 raise ValueError("Line measurement request no longer matches the current frame")
-            if not self._disparity_ready:
-                raise ValueError("Disparity not ready for curved measurement")
-            if self._use_epipolar:
+            placed = np.zeros(len(left), dtype=bool)
+            if not self._disparity_ready or (
+                    self._left_gray is None or self._right_gray is None
+                    if self._use_epipolar else self._current_disparity is None):
+                matched = fallback
+            elif self._use_epipolar:
                 matches = [self._epipolar_matcher.match_point(self._left_gray, self._right_gray, p)
                            for p in left]
+                placed = np.array([m is not None for m in matches])
                 matched = np.asarray([f if m is None else m for m, f in zip(matches, fallback)], dtype=float)
             else:
                 disparity = self._current_disparity
-                if disparity is None:
-                    raise ValueError("Disparity not ready for curved measurement")
                 grid = self._to_grid(left)
                 matched_grid, disp = self._match_grid(grid, disparity)
                 h, w = disparity.shape
@@ -1560,11 +1575,18 @@ class InteractiveStereoService:
                           (matched_grid[:, 0] >= 0) & (matched_grid[:, 0] < w) &
                           (matched_grid[:, 1] >= 0) & (matched_grid[:, 1] < h))
                 matched = np.where(placed[:, None], self._from_grid(np.nan_to_num(matched_grid)), fallback)
-            off_curve = ~np.isfinite(matched).all(axis=1) | (cKDTree(right).query(matched)[0] > 5)
+            distance = np.where(np.isfinite(matched).all(axis=1),
+                                cKDTree(right).query(np.nan_to_num(matched))[0], np.inf)
+            off_curve = distance > 5
             matched = np.where(off_curve[:, None], fallback, matched)
             result = self._centerline_measurement(left, matched)
         if result["success"]:
             result.update(sampled_points=left.tolist(), matched_points=matched.tolist())
+            disputed = int((placed & off_curve).sum())
+            if disputed and disputed >= 0.25 * placed.sum():
+                result["warning"] = (
+                    f"Stereo matches disagree with the drawn line on {disputed} of {int(placed.sum())} "
+                    f"samples (up to {np.max(distance[placed & off_curve]):.0f} px); the length may be inaccurate")
         return result
 
     def handle_measure_curve(self, request: Dict[str, Any]) -> Dict[str, Any]:
