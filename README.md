@@ -131,12 +131,12 @@ viame run my_pipeline.pipe                       # run a single pipeline file as
 viame run my_pipeline.pipe video.mp4             # run a pipeline on a video
 viame run detector.zip video.mp4                 # run a detector on a video
 viame run detector.zip image_list.txt            # ... or a list of images
-viame run -p detector.pipe -d videos/            # run a pipeline over a folder
-viame train -i data/ -c train_detector.conf      # train a model on some data
-viame score -c detections.csv -t groundtruth.csv # score file against groundtruth
-viame score -c computed/ -t groundtruth/         # score folder against groundtruth
-viame csv -i detections.csv --print-types        # inspect a VIAME csv
-viame json -i tracks.json --print-types          # inspect a DIVE or COCO json
+viame run detector.pipe videos/                  # run a pipeline over a folder
+viame train data/ train_detector.conf            # train a model on some data
+viame score detections.csv groundtruth.csv       # score file against groundtruth
+viame score computed/ groundtruth/               # score folder against groundtruth
+viame csv detections.csv --print-types           # inspect a VIAME csv
+viame json tracks.json --print-types             # inspect a DIVE or COCO json
 viame add-ons                                    # list and install model add-ons
 ```
 
