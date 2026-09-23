@@ -1183,8 +1183,6 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
-    install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.csv
-             DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/filter_non_web_pipelines.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
@@ -1201,6 +1199,11 @@ else()
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
   endif()
+
+  # The add-on catalog DIVE and tools/add_ons.py fall back to when the
+  # latest one on GitHub is unreachable, on Windows as well as Linux.
+  install( FILES         ${VIAME_CMAKE_DIR}/download_viame_addons.csv
+           DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
   ###
   # Install system libs if packaging enabled
