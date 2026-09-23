@@ -27,11 +27,23 @@ set( VIAME_WHEEL_DIR "${CMAKE_CURRENT_LIST_DIR}" )
 # not a tagged release says so, because an untagged wheel that claims to be
 # 1.0.0 is the kind of thing that ends up installed somewhere and cannot be
 # told apart from the real one.
+# The wheel's version comes from the top of RELEASE_NOTES.md, which is where
+# releases are actually numbered; `VIAME_VERSION` in this file has not
+# tracked it.
+file( STRINGS "${CMAKE_SOURCE_DIR}/RELEASE_NOTES.md" _release_head LIMIT_COUNT 1 )
+if( _release_head MATCHES "v?([0-9]+\\.[0-9]+\\.[0-9]+)" )
+  set( VIAME_RELEASE_VERSION "${CMAKE_MATCH_1}" )
+else()
+  message( FATAL_ERROR
+    "Could not read a version from the first line of RELEASE_NOTES.md: "
+    "'${_release_head}'" )
+endif()
+
 if( NOT DEFINED VIAME_WHEEL_VERSION )
   if( VIAME_VERSION_RELEASE )
-    set( VIAME_WHEEL_VERSION "${VIAME_VERSION}" )
+    set( VIAME_WHEEL_VERSION "${VIAME_RELEASE_VERSION}" )
   else()
-    set( VIAME_WHEEL_VERSION "${VIAME_VERSION}.dev0" )
+    set( VIAME_WHEEL_VERSION "${VIAME_RELEASE_VERSION}.dev0" )
   endif()
 endif()
 

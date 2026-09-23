@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Emit a wheel contents fragment for the pipelines a wheel can run.
+"""Emit a wheel contents fragment for the pipelines and training
+configs a wheel can run.
 
 Run by the `wheel` target before `build_wheel.py`, whose `--contents` takes
 more than one file so a generated selection can be layered over the
@@ -77,8 +78,10 @@ def main(argv=None):
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--prefix", required=True, help="the install prefix")
     p.add_argument("--output", required=True, help="the contents fragment to write")
-    p.add_argument("--destination", default="viame/configs/pipelines/",
-                   help="where the configs land inside the wheel")
+    p.add_argument("--destination", default="{data}/configs/pipelines/",
+                   help="where the configs land inside the wheel. The "
+                        "default is the env prefix, which is where `viame` "
+                        "looks: `<exe>/../configs`.")
     p.add_argument("--manifest",
                    help="CMake install_manifest.txt. Without it the prefix is "
                         "read as-is, which includes pipelines earlier builds "
@@ -106,8 +109,12 @@ def main(argv=None):
     def built(path):
         return installed is None or str(path.resolve()) in installed
 
+    # `.conf` as well as `.pipe`: `viame train` reads the training configs,
+    # and the same model rule applies to both.
+    entries = sorted(list(root.glob("*.pipe")) + list(root.glob("*.conf")))
+
     selected, models, needs_model, mismatched = set(), set(), 0, []
-    for entry in sorted(root.glob("*.pipe")):
+    for entry in entries:
         if entry.name.startswith("common_") or not built(entry):
             continue        # an include, or not a pipeline this build makes
         chain = closure(entry, root)
