@@ -71,6 +71,20 @@ include bin/viame   -> {scripts}/
 include bin/kwiver  -> {scripts}/
 
 # ----------------------------------------------------------------------------
+# The tool scripts
+#
+# `viame run <name>`, `add-ons`, `index`, `search` and the rest are applets
+# that shell out to a script in `configs/`. `python_script_applet` looks in
+# `$VIAME_INSTALL/configs` and then `<exe>/../configs`; from `<env>/bin` the
+# second is `<env>/configs`, which is what `{data}/` unpacks into. So these
+# work with no environment set, and `run.py` finds the pipelines beside it
+# because it resolves them from its own `__file__`.
+# ----------------------------------------------------------------------------
+include configs/*.py            -> {data}/configs/
+include configs/gui-params/**   -> {data}/configs/gui-params/
+include configs/prj-template/** -> {data}/configs/prj-template/
+
+# ----------------------------------------------------------------------------
 # What never ships
 #
 # `__pycache__` is the build tree's, compiled against a path the wheel will
