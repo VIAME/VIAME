@@ -8,7 +8,7 @@ from kwiver.vital.types import DetectedObjectType
 from kwiver.vital.util import VitalPIL
 from kwiver.vital.types import ImageContainer
 from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import BoundingBoxD, ObjectTrackState, Track, ObjectTrackSet
+from kwiver.vital.types import BoundingBoxD, ObjectTrackSet
 
 from PIL import Image as PILImage
 
@@ -22,6 +22,8 @@ from viame.pytorch.utilities import (
     box_from_mask,
     image_to_rgb_numpy,
     get_autocast_context,
+    make_track,
+    make_track_state,
 )
 from viame.core.segmentation_utils import (
     kwimage_mask_to_shapely,
@@ -563,7 +565,7 @@ class Sam2TrackRefiner(RefineTracks):
                 processed_track_ids.add(tid)
 
                 new_det = self._create_refined_detection(old_det, mask)
-                new_state = ObjectTrackState(ts, new_det)
+                new_state = make_track_state(ts, new_det)
 
                 # Rebuild track with the refined state for this frame
                 new_history = []
@@ -573,7 +575,7 @@ class Sam2TrackRefiner(RefineTracks):
                     else:
                         new_history.append(state)
 
-                new_track = Track(tid, new_history)
+                new_track = make_track(tid, new_history)
                 output_tracks.append(new_track)
 
                 # If tracking is enabled, register/update this as a tracked
@@ -610,7 +612,7 @@ class Sam2TrackRefiner(RefineTracks):
                 if new_det is None:
                     continue
 
-                new_state = ObjectTrackState(ts, new_det)
+                new_state = make_track_state(ts, new_det)
                 tdata["history"].append(new_state)
                 bbox = new_det.bounding_box
                 tdata["last_box"] = [
@@ -634,7 +636,7 @@ class Sam2TrackRefiner(RefineTracks):
 
             for tid, tdata in self._tracked_objects.items():
                 if tid not in processed_track_ids and len(tdata["history"]) > 0:
-                    output_tracks.append(Track(tid, list(tdata["history"])))
+                    output_tracks.append(make_track(tid, tdata["history"]))
 
             for tid in expired:
                 del self._tracked_objects[tid]

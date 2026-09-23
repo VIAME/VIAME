@@ -24,8 +24,6 @@ from kwiver.vital.types import (
     DetectedObject,
     DetectedObjectSet,
     DetectedObjectType,
-    ObjectTrackState,
-    Track,
     ObjectTrackSet,
     Polygon,
 )
@@ -39,7 +37,12 @@ from viame.pytorch.sam3_utilities import (
     compute_iou,
     image_to_rgb_numpy,
 )
-from viame.pytorch.utilities import vital_config_update, report_cuda_errors
+from viame.pytorch.utilities import (
+    make_track,
+    make_track_state,
+    report_cuda_errors,
+    vital_config_update,
+)
 
 
 class SAM3TrackerConfig(SAM3BaseConfig):
@@ -270,7 +273,7 @@ class SAM3Tracker(TrackObjects):
                 # For now, we'll add them to detection as extra data
 
             # Create track state
-            track_state = ObjectTrackState(ts, det)
+            track_state = make_track_state(ts, det)
             self._tracks[tid]["history"].append(track_state)
 
         # Remove lost tracks
@@ -289,7 +292,7 @@ class SAM3Tracker(TrackObjects):
         output_tracks = []
         for tid, track_data in self._tracks.items():
             if len(track_data["history"]) > 0:
-                track = Track(tid, track_data["history"])
+                track = make_track(tid, track_data["history"])
                 output_tracks.append(track)
 
         return ObjectTrackSet(output_tracks)
@@ -326,7 +329,7 @@ class SAM3Tracker(TrackObjects):
         output_tracks = []
         for tid, track_data in self._tracks.items():
             if len(track_data["history"]) > 0:
-                track = Track(tid, track_data["history"])
+                track = make_track(tid, track_data["history"])
                 output_tracks.append(track)
 
         return ObjectTrackSet(output_tracks)

@@ -12,12 +12,10 @@ from kwiver.vital.types import (
     DetectedObject,
     DetectedObjectSet,
     DetectedObjectType,
-    ObjectTrackState,
     ObjectTrackSet,
-    Track,
 )
 
-from viame.pytorch.utilities import report_cuda_errors
+from viame.pytorch.utilities import make_track, make_track_state, report_cuda_errors
 
 
 def _load_deps():
@@ -175,7 +173,7 @@ class MDNetTracker(TrackObjects):
                 bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
                 last_frame_npy = self._format_image(self._last_frame)
                 self._trackers[tid] = mdnet.MDNetTracker(last_frame_npy, bbox)
-                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
+                self._tracks[tid] = [make_track_state(timestamp, DetectedObject(cbox, 1.0))]
                 self._track_init_frames[tid] = self._last_frame_id
             # This track has an initialization signal for the current frame
             elif trk[trk.last_frame].frame_id == frame_id:
@@ -183,7 +181,7 @@ class MDNetTracker(TrackObjects):
                 cbox = trk[trk.last_frame].detection().bounding_box
                 bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
                 self._trackers[tid] = mdnet.MDNetTracker(img_npy, bbox)
-                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
+                self._tracks[tid] = [make_track_state(timestamp, DetectedObject(cbox, 1.0))]
                 init_track_ids.append(tid)
                 self._track_init_frames[tid] = frame_id
 
@@ -208,12 +206,12 @@ class MDNetTracker(TrackObjects):
                 cbox = BoundingBoxD(
                     bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]
                 )
-                new_state = ObjectTrackState(timestamp, cbox, score)
+                new_state = make_track_state(timestamp, DetectedObject(cbox, float(score)))
                 self._tracks[tid].append(new_state)
 
         # Output results
         output_tracks = ObjectTrackSet(
-            [Track(tid, trk) for tid, trk in self._tracks.items()]
+            [make_track(tid, trk) for tid, trk in self._tracks.items()]
         )
 
         self._last_frame_id = timestamp.get_frame()
