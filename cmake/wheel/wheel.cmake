@@ -23,13 +23,8 @@ endif()
 
 set( VIAME_WHEEL_DIR "${CMAKE_CURRENT_LIST_DIR}" )
 
-# The wheel's version. `VIAME_VERSION` is the release number; a build that is
-# not a tagged release says so, because an untagged wheel that claims to be
-# 1.0.0 is the kind of thing that ends up installed somewhere and cannot be
-# told apart from the real one.
 # The wheel's version comes from the top of RELEASE_NOTES.md, which is where
-# releases are actually numbered; `VIAME_VERSION` in this file has not
-# tracked it.
+# releases are actually numbered; `VIAME_VERSION` has not tracked it.
 file( STRINGS "${CMAKE_SOURCE_DIR}/RELEASE_NOTES.md" _release_head LIMIT_COUNT 1 )
 if( _release_head MATCHES "v?([0-9]+\\.[0-9]+\\.[0-9]+)" )
   set( VIAME_RELEASE_VERSION "${CMAKE_MATCH_1}" )
@@ -40,11 +35,10 @@ else()
 endif()
 
 if( NOT DEFINED VIAME_WHEEL_VERSION )
-  if( VIAME_VERSION_RELEASE )
-    set( VIAME_WHEEL_VERSION "${VIAME_RELEASE_VERSION}" )
-  else()
-    set( VIAME_WHEEL_VERSION "${VIAME_RELEASE_VERSION}.dev0" )
-  endif()
+  # RELEASE_NOTES.md is the release record, so its number is the version.
+  # `VIAME_WHEEL_VERSION` can still be set to add a `.dev0` or similar for a
+  # build that should not claim to be the release.
+  set( VIAME_WHEEL_VERSION "${VIAME_RELEASE_VERSION}" )
 endif()
 
 set( VIAME_WHEEL_OUTPUT_DIR "${CMAKE_BINARY_DIR}/wheel"
@@ -115,6 +109,9 @@ add_custom_target( wheel
           --version    "${VIAME_WHEEL_VERSION}"
           --manifest   "${CMAKE_BINARY_DIR}/install_manifest.txt"
           --top-level  viame
+          # libgomp is outside the manylinux allowlist; packed only if
+          # this build actually uses OpenMP
+          --bundle     libgomp.so.1
           --requires-from "${VIAME_WHEEL_DIR}/requirements.txt"
           ${_wheel_variant_requires}
           ${_wheel_variant_args}

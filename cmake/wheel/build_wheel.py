@@ -302,8 +302,19 @@ def select(prefix, rules, data_dir, scripts_dir=None, manifest=None):
 # needs nothing but python.
 # ----------------------------------------------------------------------------
 
-def soname(path):
-    """The ELF SONAME of `path`, or None if it has none or is not an ELF."""
+def elf_info(path):
+    """`path`'s SONAME, DT_NEEDED list and the symbol versions it requires.
+
+    Returns `{"soname", "needed", "versions"}`, or None if `path` is not a
+    64-bit ELF. `versions` maps a library name to the set of version labels
+    this object asks it for -- `libc.so.6` -> `{"GLIBC_2.35", ...}` -- which
+    is what decides the manylinux tag.
+
+    Pure python on purpose: the wheel is built wherever VIAME was, and
+    requiring binutils to package it would be a new build dependency for
+    something this small. Checked against `objdump -p` on every ELF in the
+    wheel; see `--audit` output.
+    """
     try:
         with open(path, "rb") as f:
             data = f.read()
@@ -315,6 +326,7 @@ def soname(path):
         return None
     endian = "<" if data[5] == 1 else ">"
     u16 = lambda o: struct.unpack_from(endian + "H", data, o)[0]
+    u32 = lambda o: struct.unpack_from(endian + "I", data, o)[0]
     u64 = lambda o: struct.unpack_from(endian + "Q", data, o)[0]
 
     e_phoff, e_phentsize, e_phnum = u64(0x20), u16(0x36), u16(0x38)
@@ -340,7 +352,8 @@ def soname(path):
         return None
 
     d_off, d_size = dynamic
-    strtab = name_off = None
+    strtab = name_off = verneed = None
+    needed_offs = []
     for i in range(d_size // 16):
         o = d_off + i * 16
         if o + 16 > len(data):
@@ -348,19 +361,62 @@ def soname(path):
         tag, val = u64(o), u64(o + 8)
         if tag == 0:                          # DT_NULL
             break
-        if tag == 5:                          # DT_STRTAB
+        if tag == 1:                          # DT_NEEDED
+            needed_offs.append(val)
+        elif tag == 5:                        # DT_STRTAB
             strtab = val
         elif tag == 14:                       # DT_SONAME
             name_off = val
-    if strtab is None or name_off is None:
+        elif tag == 0x6ffffffe:               # DT_VERNEED
+            verneed = val
+    if strtab is None:
         return None
     base = to_offset(strtab)
     if base is None:
         return None
-    end = data.find(b"\0", base + name_off)
-    if end < 0:
-        return None
-    return data[base + name_off:end].decode("ascii", "replace") or None
+
+    def string(off):
+        end = data.find(b"\0", base + off)
+        return (data[base + off:end].decode("ascii", "replace")
+                if end >= 0 else "")
+
+    info = {
+        "soname": (string(name_off) or None) if name_off is not None else None,
+        "needed": [s for s in (string(o) for o in needed_offs) if s],
+        "versions": {},
+    }
+
+    # DT_VERNEED is a chain of Elf64_Verneed, each with its own chain of
+    # Elf64_Vernaux. This is where `GLIBC_2.35` actually lives -- the symbol
+    # table records an index into it, not the string.
+    vn = to_offset(verneed) if verneed is not None else None
+    seen = 0
+    while vn is not None and vn + 16 <= len(data) and seen < 256:
+        seen += 1
+        vn_cnt, vn_file, vn_aux, vn_next = (u16(vn + 2), u32(vn + 4),
+                                            u32(vn + 8), u32(vn + 12))
+        lib = string(vn_file)
+        aux, want = vn + vn_aux, info["versions"].setdefault(lib, set())
+        for _ in range(min(vn_cnt, 256)):
+            if aux + 16 > len(data):
+                break
+            vna_name, vna_next = u32(aux + 8), u32(aux + 12)
+            label = string(vna_name)
+            if label:
+                want.add(label)
+            if not vna_next:
+                break
+            aux += vna_next
+        if not vn_next:
+            break
+        vn += vn_next
+    return info
+
+
+def soname(path):
+    """The ELF SONAME of `path`, or None if it has none or is not an ELF."""
+    info = elf_info(path)
+    return info["soname"] if info else None
 
 
 # ----------------------------------------------------------------------------
@@ -502,6 +558,112 @@ def add_cuda_rpath(path, dest, dist, purelib, state, major=None):
 
 
 # ----------------------------------------------------------------------------
+# The platform tag
+#
+# PyPI refuses `linux_x86_64`: a wheel has to say which glibc it needs, as a
+# manylinux tag (PEP 600). The tag is computed from the binaries rather than
+# declared, because a declared one that is wrong installs cleanly and then
+# fails at import on the machine it was wrong about.
+#
+# `auditwheel` is the usual tool and is not used here. It assumes the native
+# libraries sit inside the importable package, and this wheel's do not --
+# `libviame.so.1` is in `.data/data/lib/` and the tools are in
+# `.data/scripts/`. Pointed at that layout it would relocate the library into
+# the package and rewrite the RUNPATHs, undoing the `$ORIGIN` paths that make
+# CUDA resolve from the nvidia wheels. What it does that we want is two
+# things -- compute the glibc floor, and check nothing outside the policy is
+# relied on -- and both are done here directly.
+# ----------------------------------------------------------------------------
+
+# PEP 600's allowlist: what a manylinux wheel may expect the system to have.
+# Anything else must be in the wheel or come from a declared dependency.
+MANYLINUX_ALLOWLIST = frozenset({
+    "libgcc_s.so.1", "libstdc++.so.6", "libm.so.6", "libdl.so.2",
+    "librt.so.1", "libc.so.6", "libnsl.so.1", "libutil.so.1",
+    "libpthread.so.0", "ld-linux-x86-64.so.2", "libresolv.so.2",
+    "libX11.so.6", "libXext.so.6", "libXrender.so.1", "libICE.so.6",
+    "libSM.so.6", "libGL.so.1", "libgobject-2.0.so.0",
+    "libgthread-2.0.so.0", "libglib-2.0.so.0",
+})
+
+# Not in the allowlist, but not the system's to provide either: these arrive
+# with a package this wheel declares a dependency on, at a path the RUNPATH
+# already reaches. `libpython` is the interpreter running the import.
+def _from_a_dependency(lib):
+    return (lib.startswith(("libcud", "libcub", "libcur", "libnv", "libnccl"))
+            or lib.startswith(("libtorch", "libpython")) or lib == "libc10.so")
+
+
+def _version_key(label):
+    """`GLIBC_2.35` -> `(2, 35)`; None for a label that is not a version."""
+    _, _, rest = label.partition("_")
+    if not rest or not rest[0].isdigit():
+        return None
+    try:
+        return tuple(int(x) for x in rest.split("."))
+    except ValueError:
+        return None
+
+
+def audit_platform(paths, arch="x86_64"):
+    """The manylinux tag `paths` need, and what they rely on from outside.
+
+    Returns `(tag, floor, outside)`: the computed tag, the glibc version it
+    encodes, and a mapping of library name -> how many objects need it for
+    everything neither in the wheel, on the allowlist, nor from a declared
+    dependency.
+    """
+    inside = {posixpath.basename(d) for d in paths}
+    inside |= {soname(s) for s in paths.values() if soname(s)}
+    floor, outside = (2, 5), {}
+    for dest, src in sorted(paths.items()):
+        info = elf_info(src)
+        if not info:
+            continue
+        for lib, labels in info["versions"].items():
+            if not lib.startswith("libc.so") and not lib.startswith("libm.so") \
+               and not lib.startswith("ld-linux"):
+                continue
+            for label in labels:
+                if label.startswith("GLIBC_"):
+                    key = _version_key(label)
+                    if key and key > floor:
+                        floor = key
+        for lib in info["needed"]:
+            if lib in inside or lib in MANYLINUX_ALLOWLIST or _from_a_dependency(lib):
+                continue
+            outside[lib] = outside.get(lib, 0) + 1
+    tag = f"manylinux_{floor[0]}_{floor[1] if len(floor) > 1 else 0}_{arch}"
+    return tag, floor, outside
+
+
+def find_system_library(name):
+    """The real file behind a system `libfoo.so.N`, or None.
+
+    For bundling something the manylinux policy does not cover. `ldconfig`
+    first because it knows the configured paths; the usual directories after,
+    for a system without it.
+    """
+    try:
+        out = subprocess.run(["ldconfig", "-p"], capture_output=True,
+                             text=True, timeout=30).stdout
+        for line in out.splitlines():
+            left, _, path = line.partition(" => ")
+            if left.strip().split(" ")[0] == name and path.strip():
+                resolved = Path(path.strip()).resolve()
+                if resolved.is_file():
+                    return resolved
+    except (OSError, subprocess.SubprocessError):
+        pass
+    for d in ("/usr/lib/x86_64-linux-gnu", "/lib/x86_64-linux-gnu",
+              "/usr/lib64", "/usr/lib", "/lib64"):
+        candidate = Path(d) / name
+        if candidate.is_file():
+            return candidate.resolve()
+    return None
+
+
+# ----------------------------------------------------------------------------
 # Wheel metadata
 # ----------------------------------------------------------------------------
 
@@ -547,7 +709,42 @@ def build(args):
     chosen = select(args.prefix, rules, f"{dist}.data/data",
                     f"{dist}.data/scripts", manifest)
 
-    tag = f"{args.python_tag}-{args.abi_tag}-{args.platform_tag}"
+    # Libraries the manylinux policy does not cover, packed beside
+    # `libviame.so.1` in `{data}/lib/`. That directory is the environment
+    # prefix's `lib/`, and libviame's RUNPATH already has `$ORIGIN`, so a
+    # bundled library is found with nothing to patch.
+    #
+    # Only what is actually needed: which of these a build depends on follows
+    # from its options -- no OpenMP, no libgomp -- and packing one nothing
+    # asks for would put a second copy of it in the process for nothing.
+    audit_tag, floor, outside = audit_platform(chosen)
+    for name in (args.bundle or []):
+        if name not in outside:
+            continue
+        src = find_system_library(name)
+        if src is None:
+            raise SystemExit(
+                f"build_wheel: {name} is needed and outside the manylinux "
+                f"allowlist, but is not on this system to bundle")
+        chosen[f"{dist}.data/data/lib/{soname(src) or name}"] = src
+        outside.pop(name)
+        print(f"  bundled {name} ({src.stat().st_size / 1024:.0f} KB, "
+              f"from {src})")
+
+    platform_tag = args.platform_tag
+    if platform_tag == "auto":
+        platform_tag = audit_tag
+        print(f"  platform tag: {audit_tag} "
+              f"(glibc {floor[0]}.{floor[1] if len(floor) > 1 else 0})")
+    elif platform_tag != audit_tag:
+        print(f"  note: tagged {platform_tag}, but the binaries need "
+              f"{audit_tag}", file=sys.stderr)
+    if outside:
+        listed = ", ".join(f"{k} (x{v})" for k, v in sorted(outside.items()))
+        print(f"  note: relies on {listed}, which manylinux does not promise "
+              f"-- `--bundle` it, or declare what provides it", file=sys.stderr)
+
+    tag = f"{args.python_tag}-{args.abi_tag}-{platform_tag}"
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     whl = out / f"{dist}-{tag}.whl"
@@ -679,7 +876,14 @@ def main(argv=None):
     p.add_argument("--license-file")
     p.add_argument("--python-tag", default=f"cp{sys.version_info.major}{sys.version_info.minor}")
     p.add_argument("--abi-tag", default=f"cp{sys.version_info.major}{sys.version_info.minor}")
-    p.add_argument("--platform-tag", default="linux_x86_64")
+    p.add_argument("--platform-tag", default="auto",
+                   help="`auto` computes the manylinux tag from the binaries' "
+                        "glibc symbol versions, which is what PyPI requires "
+                        "(it refuses `linux_x86_64`). A literal tag is used "
+                        "as given, with a note if the binaries disagree.")
+    p.add_argument("--bundle", action="append", metavar="libfoo.so.N",
+                   help="pack this system library into the wheel; repeatable. "
+                        "For what the manylinux allowlist does not cover.")
     p.add_argument("--strip", action="store_true",
                    help="strip symbol tables from packed binaries; see `strip_into`")
     p.add_argument("--no-strip", dest="strip", action="store_false")
