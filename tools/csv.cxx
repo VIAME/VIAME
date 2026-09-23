@@ -115,7 +115,7 @@ csv_applet
   m_cmd_options->add_options()
     ( "h,help", "Display usage information",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "i,input", "Input file, directory, or file name pattern to process. "
+    ( "i,input", "Input file, directory, or file name pattern to process., also the positional argument. "
       "Wildcards apply to the file name only, not to directories",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "decrease-fid", "Decrease frame IDs in files by 1",
@@ -155,6 +155,9 @@ csv_applet
     ( "comp-file", "If set, generate a comparison file contrasting types in all inputs",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ;
+
+  m_cmd_options->positional_help( "[input]" );
+  m_cmd_options->parse_positional( { "input" } );
 }
 
 // =======================================================================================
@@ -171,9 +174,13 @@ csv_applet
   // Print help
   if( cmd_args[ "help" ].as< bool >() )
   {
-    std::cout << "Usage: viame csv [options]\n"
+    std::cout << "Usage: viame csv [input] [options]\n"
               << "\nPerform filtering and analysis actions on VIAME CSV files.\n"
-              << m_cmd_options->help() << std::endl;
+              << m_cmd_options->help()
+              << "\nExamples:\n"
+              << "  viame csv detections.csv --print-types --track-count\n"
+              << "  viame csv results/ --conf-threshold 0.5 --filter-single\n"
+              << std::endl;
     return EXIT_SUCCESS;
   }
 

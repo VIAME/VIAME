@@ -1085,9 +1085,11 @@ score_applet
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "v,verbose", "Enable verbose output",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "c,computed", "Input computed detection/track file or folder",
+    ( "c,computed", "Input computed detection/track file or folder, "
+      "also the first positional argument",
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
-    ( "t,truth", "Input ground truth file or folder",
+    ( "t,truth", "Input ground truth file or folder, "
+      "also the second positional argument",
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
     ( "input-ext", "File extension filter for folder inputs (default: .csv)",
       ::cxxopts::value< std::string >()->default_value( "" ), "ext" )
@@ -1168,6 +1170,9 @@ score_applet
     ( "no-print", "Suppress printing summary to stdout",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ;
+
+  m_cmd_options->positional_help( "[computed] [truth]" );
+  m_cmd_options->parse_positional( { "computed", "truth" } );
 }
 
 // =============================================================================
@@ -1181,14 +1186,14 @@ score_applet
 
   if( cmd_args[ "help" ].as< bool >() )
   {
-    std::cout << "Usage: viame score [options]\n\n"
+    std::cout << "Usage: viame score [computed] [truth] [options]\n\n"
               << "Score detection and tracking results using the evaluate_models library.\n"
               << "Computes comprehensive metrics including precision, recall, F1, AP,\n"
               << "MOT metrics (MOTA, MOTP, IDF1), HOTA, and KWANT-style metrics.\n"
               << m_cmd_options->help()
               << "\nExamples:\n"
-              << "  viame score -c detections.csv -t groundtruth.csv\n"
-              << "  viame score -c results/ -t truth/ --iou 0.5 --per-class\n"
+              << "  viame score detections.csv groundtruth.csv\n"
+              << "  viame score results/ truth/ --iou 0.5 --per-class\n"
               << "  viame score -c det.csv -t gt.csv -o metrics.json --output-plots plots/\n"
               << "  viame score -c det.csv -t gt.csv --output-pr-csv pr_curve.csv\n"
               << std::endl;
@@ -1246,13 +1251,13 @@ score_applet
   // Validate inputs
   if( params.opt_computed.empty() )
   {
-    LOG_ERROR( g_logger, "No computed file/folder specified. Use --computed or -c option." );
+    LOG_ERROR( g_logger, "No computed file/folder specified: give it first, or with -c." );
     return EXIT_FAILURE;
   }
 
   if( params.opt_truth.empty() )
   {
-    LOG_ERROR( g_logger, "No ground truth file/folder specified. Use --truth or -t option." );
+    LOG_ERROR( g_logger, "No ground truth file/folder specified: give it second, or with -t." );
     return EXIT_FAILURE;
   }
 

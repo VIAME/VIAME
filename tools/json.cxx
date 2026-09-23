@@ -1726,7 +1726,7 @@ json_applet
   m_cmd_options->add_options()
     ( "h,help", "Display usage information",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "i,input", "Input JSON file, directory, or file name pattern to process. "
+    ( "i,input", "Input JSON file, directory, or file name pattern to process., also the positional argument. "
       "Wildcards apply to the file name only, not to directories",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "decrease-fid", "Decrease frame IDs in files by 1",
@@ -1770,6 +1770,9 @@ json_applet
     ( "validate", "Check file structure and report problems; makes no changes",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ;
+
+  m_cmd_options->positional_help( "[input]" );
+  m_cmd_options->parse_positional( { "input" } );
 }
 
 // =======================================================================================
@@ -1783,7 +1786,7 @@ json_applet
 
   if( cmd_args[ "help" ].as< bool >() )
   {
-    std::cout << "Usage: viame json [options]\n"
+    std::cout << "Usage: viame json [input] [options]\n"
               << "\nPerform filtering and analysis actions on DIVE and COCO JSON files.\n"
               << "\nThis tool mirrors 'viame csv' for JSON annotation files: frame ID\n"
               << "adjustment, type filtering and replacement, track renumbering,\n"
@@ -1791,10 +1794,10 @@ json_applet
               << "the file contents.\n"
               << m_cmd_options->help()
               << "\nExamples:\n"
-              << "  viame json -i tracks.json --print-types --track-count\n"
-              << "  viame json -i annotations/ --conf-threshold 0.5 --filter-single\n"
-              << "  viame json -i \"*.coco.json\" --replace-file synonyms.csv\n"
-              << "  viame json -i tracks.json --validate\n"
+              << "  viame json tracks.json --print-types --track-count\n"
+              << "  viame json annotations/ --conf-threshold 0.5 --filter-single\n"
+              << "  viame json \"*.coco.json\" --replace-file synonyms.csv\n"
+              << "  viame json tracks.json --validate\n"
               << std::endl;
     return EXIT_SUCCESS;
   }
