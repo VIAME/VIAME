@@ -10,7 +10,11 @@
 #include <pybind11/stl_bind.h>
 
 // Type conversions
+#include <viame/core_types/database_query.h>
+#include <viame/core_types/descriptor_request.h>
 #include <viame/core_types/descriptor_set.h>
+#include <viame/core_types/iqr_feedback.h>
+#include <viame/core_types/track_descriptor_set.h>
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/feature_track_set.h>
 #include <viame/core_types/geo_polygon.h>
@@ -166,6 +170,48 @@ if( any.type() == typeid( TYPE ) )                           \
   throw py::type_error( msg );
 }
 
+// Place a typed null shared_ptr on a port. A pipeline built around input and
+// output adapters expects every input port populated each step, and the ports
+// it is not using want an empty sptr of the right static type.
+// `add_value_correct_type` cannot express that: None carries no type, and it
+// rejects None for exactly that reason.
+void
+add_nullptr(
+  ka::adapter_data_set& self, ::viame::pipeline::process::port_t const& port,
+  std::string const& type_name )
+{
+  if( type_name == "descriptor_request" )
+  {
+    self.add_value< std::shared_ptr< ::viame::descriptor_request > >(
+      port, nullptr );
+    return;
+  }
+  if( type_name == "database_query" )
+  {
+    self.add_value< std::shared_ptr< ::viame::database_query > >(
+      port, nullptr );
+    return;
+  }
+  if( type_name == "iqr_feedback" )
+  {
+    self.add_value< std::shared_ptr< ::viame::iqr_feedback > >(
+      port, nullptr );
+    return;
+  }
+  if( type_name == "uchar_vector" )
+  {
+    self.add_value< std::shared_ptr< std::vector< unsigned char > > >(
+      port, nullptr );
+    return;
+  }
+  if( type_name == "track_descriptor_set" )
+  {
+    self.add_value< ::viame::track_descriptor_set_sptr >( port, nullptr );
+    return;
+  }
+  throw py::value_error( "add_nullptr: unsupported type name: " + type_name );
+}
+
 } // namespace python
 
 } // namespace pipeline
@@ -226,6 +272,10 @@ PYBIND11_MODULE( adapter_data_set, m )
     .def( "__setitem__", &viame::pipeline::python::add_value_correct_type )
 
     .def( "add_datum", &ka::adapter_data_set::add_datum )
+
+    .def( "add_nullptr", &viame::pipeline::python::add_nullptr,
+          "Place a typed null on a port, for the input ports a step is "
+          "not populating." )
 
     // General get_value which gets data of any type from a port and __getitem__
     .def(
