@@ -106,11 +106,23 @@ for version in $VERSIONS; do
   # not `PYTHON_EXECUTABLE`; LOCATION and a root pin it.
   python_root="$( "$python_exe" -c 'import sys, os; print(os.path.dirname(os.path.dirname(sys.executable)))' )"
 
-  # Build prerequisites, in the interpreter being built against: a fresh
-  # standalone interpreter has neither setuptools nor wheel, and
-  # `install_egg_info` needs setuptools.
-  "$python_exe" -m pip install --quiet --upgrade setuptools wheel >/dev/null 2>&1 ||
-    echo "   warning: could not install setuptools/wheel into python${version}"
+  # Build prerequisites, in the interpreter being built against:
+  # `install_egg_info` runs `setup.py` with it and a fresh standalone
+  # interpreter has no setuptools. `--break-system-packages` because a
+  # uv-managed interpreter is marked externally managed under PEP 668 and
+  # refuses otherwise; these are throwaway build interpreters.
+  #
+  # Checked rather than warned about. Without setuptools the build runs for
+  # several minutes and three hundred files before `install_egg_info` fails,
+  # and a warning at the top has long scrolled away by then.
+  "$python_exe" -m pip install --quiet --break-system-packages \
+      --upgrade setuptools wheel >/dev/null 2>&1 || true
+
+  if ! "$python_exe" -c "import setuptools" >/dev/null 2>&1; then
+    echo "   no setuptools for python${version} and it could not be installed"
+    RESULTS+=("${version}|failed|setuptools missing; install_egg_info would fail")
+    continue
+  fi
 
   mkdir -p "$tree"
   start=$(date +%s)
