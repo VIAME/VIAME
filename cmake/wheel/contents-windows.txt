@@ -1,0 +1,68 @@
+# What goes into the viame wheel, on Windows.
+#
+# The same grammar as contents.txt, which documents it. This file exists
+# because the install layout differs, not because the wheel does:
+#
+#   linux                              windows
+#   lib/python3.X/site-packages/viame  Lib/site-packages/viame
+#   lib/libviame.so.1                  bin/viame.dll
+#   bin/viame                          bin/viame.exe
+#
+# **Unverified.** This was written from the Windows install layout and the
+# CMake rules, not from a Windows build -- there was no Windows machine to
+# hand. Expect to correct the paths below on the first real run; the builder
+# fails loudly rather than shipping an empty wheel if they are wrong. The
+# python package and the configs are the parts most likely to be right, and
+# the DLL names the parts most likely to be wrong.
+
+# ----------------------------------------------------------------------------
+# The python package
+#
+# `Lib/site-packages`, capitalised and unversioned, is where a Windows
+# install puts it -- there is no `python3.X` level.
+# ----------------------------------------------------------------------------
+include Lib/site-packages/viame/**  -> viame/
+
+# ----------------------------------------------------------------------------
+# The native library
+#
+# Into `{data}/Library/bin`, which is where `_add_windows_dll_directories`
+# looks, since Windows has no RUNPATH to point at `{data}/lib` the way the
+# ELF builds do. A DLL beside the .exe is also found, which is why the tools
+# below land in the same scheme.
+# ----------------------------------------------------------------------------
+include bin/viame.dll   -> {data}/Library/bin/
+include bin/*.dll       -> {data}/Library/bin/
+
+# ----------------------------------------------------------------------------
+# The tools
+#
+# `.exe` through the scripts scheme, as on linux: pip unpacks it into the
+# environment's `Scripts` directory, which is on the PATH of an activated
+# environment.
+# ----------------------------------------------------------------------------
+include bin/viame.exe   -> {scripts}/
+include bin/kwiver.exe  -> {scripts}/
+
+# ----------------------------------------------------------------------------
+# The tool scripts and default configs -- identical to linux
+# ----------------------------------------------------------------------------
+include configs/*.py            -> {data}/configs/
+include configs/gui-params/**   -> {data}/configs/gui-params/
+include configs/prj-template/** -> {data}/configs/prj-template/
+
+# ----------------------------------------------------------------------------
+# What never ships
+#
+# `.lib` are import libraries, needed to link against VIAME, not to run it.
+# `.pdb` are debug symbols, which are what Windows has instead of the symbol
+# tables `strip` removes on linux -- and they are larger than the binaries.
+# ----------------------------------------------------------------------------
+exclude **/__pycache__/**
+exclude **/*.pyc
+exclude **/*.pyo
+exclude **/tests/**
+exclude **/test/**
+exclude **/*.lib
+exclude **/*.pdb
+exclude **/*.exp

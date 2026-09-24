@@ -278,7 +278,12 @@ def select(prefix, rules, data_dir, scripts_dir=None, manifest=None):
             print(f"    ... and {len(notable) - 12} more", file=sys.stderr)
 
     if not chosen:
-        raise SystemExit("the contents file selected no files")
+        raise SystemExit(
+            f"the contents file selected no files under {prefix}.\n"
+            f"Every rule naming a path that is not there usually means the "
+            f"contents file is for another platform: a windows install has "
+            f"viame.exe and Lib/site-packages, not bin/viame and "
+            f"lib/python3.X, so it needs contents-windows.txt.")
     return chosen
 
 
@@ -428,6 +433,9 @@ def soname(path):
 # ----------------------------------------------------------------------------
 
 def strip_into(src, scratch, seen):
+    """On Windows this is a no-op: MSVC puts debug information in a separate
+    `.pdb`, so the binary is already what `strip` would leave behind, and
+    there is no `strip` to run."""
     """A stripped copy of `src` under `scratch`, or `src` if stripping fails.
 
     Returns the path to pack. `seen` maps an already-stripped source to its
@@ -435,6 +443,8 @@ def strip_into(src, scratch, seen):
     """
     if src in seen:
         return seen[src]
+    if WINDOWS:
+        return src
     try:
         with open(src, "rb") as f:
             if f.read(4) != b"\x7fELF":
@@ -486,6 +496,13 @@ def strip_into(src, scratch, seen):
 # into `nvidia/cu13/lib` and dropped the suffix on those distributions.
 # Both sets are listed for either variant -- an entry that does not exist
 # costs nothing, and it keeps resolving when torch and VIAME disagree.
+# Windows keeps its DLLs in `bin` and only the import libraries in `lib`, so
+# the directories a binary has to reach differ from the ELF case. Nothing is
+# patched there in any event -- Windows has no RUNPATH, and the package's
+# `__init__` calls `os.add_dll_directory` instead -- but the tag and the
+# layout still have to be right.
+WINDOWS = sys.platform == "win32"
+
 CUDA_WHEEL_DIRS = {
     12: (
         "nvidia/cuda_runtime/lib",   # libcudart
@@ -499,6 +516,12 @@ CUDA_WHEEL_DIRS = {
         "nvidia/cudnn/lib",          # still its own, still suffixed
     ),
 }
+
+if WINDOWS:
+    CUDA_WHEEL_DIRS = {
+        major: tuple(d[:-len("/lib")] + "/bin" for d in dirs)
+        for major, dirs in CUDA_WHEEL_DIRS.items()
+    }
 
 
 def _env_relative(dest, dist, purelib):
@@ -526,7 +549,14 @@ def cuda_rpath_entries(dest, dist, purelib, major=None):
 
 
 def add_cuda_rpath(path, dest, dist, purelib, state, major=None):
-    """Append the nvidia wheel directories to `path`'s RUNPATH, in place."""
+    """Append the nvidia wheel directories to `path`'s RUNPATH, in place.
+
+    Windows has no RUNPATH. There the same job is done at import time by
+    `_add_windows_dll_directories` in the package's `__init__`, so this does
+    nothing rather than pretending to.
+    """
+    if WINDOWS:
+        return False
     if state["patchelf"] is None:
         state["patchelf"] = shutil.which("patchelf") or False
     if not state["patchelf"]:
@@ -605,6 +635,12 @@ def _version_key(label):
         return None
 
 
+def windows_tag():
+    """The wheel platform tag for this Windows interpreter."""
+    import sysconfig
+    return (sysconfig.get_platform() or "win_amd64").replace("-", "_").replace(".", "_")
+
+
 def audit_platform(paths, arch="x86_64"):
     """The manylinux tag `paths` need, and what they rely on from outside.
 
@@ -613,6 +649,11 @@ def audit_platform(paths, arch="x86_64"):
     everything neither in the wheel, on the allowlist, nor from a declared
     dependency.
     """
+    if WINDOWS:
+        # No glibc to bound and no allowlist to audit: a `win_amd64` wheel
+        # says which CPU it is for and nothing about the C runtime.
+        return windows_tag(), None, {}
+
     inside = {posixpath.basename(d) for d in paths}
     inside |= {soname(s) for s in paths.values() if soname(s)}
     floor, outside = (2, 5), {}
@@ -644,6 +685,8 @@ def find_system_library(name):
     first because it knows the configured paths; the usual directories after,
     for a system without it.
     """
+    if WINDOWS:
+        return None          # no ldconfig, and no manylinux policy to satisfy
     try:
         out = subprocess.run(["ldconfig", "-p"], capture_output=True,
                              text=True, timeout=30).stdout
