@@ -332,13 +332,9 @@ def demo_voc_weights(key='lightnet'):
     """
 
     if key == 'lightnet':
-        # url = 'https://gitlab.com/EAVISE/lightnet/raw/master/examples/yolo-voc/lightnet_weights.pt'
-        # hash_prefix = 'c4597fed8eb1b01da3495'
-        fpath = ub.grabdata('https://data.kitware.com/api/v1/file/5c2e6e1a8d777f072bf2dc65/download',
-                            fname='lightnet_weights.pt',
-                            appname='netharn',
-                            hasher='sha512',
-                            hash_prefix='c4597fed8eb1b01')
+        url = 'https://gitlab.com/EAVISE/lightnet/raw/master/examples/yolo-voc/lightnet_weights.pt'
+        fpath = ub.grabdata(url, fname='lightnet_weights.pt', appname='netharn',
+                            hasher='sha512', hash_prefix='c4597fed8eb1b01da3495')
         return fpath
     elif key == 'darknet':
         url = 'https://pjreddie.com/media/files/yolo-voc.weights'
