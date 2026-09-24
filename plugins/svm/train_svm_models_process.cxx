@@ -61,7 +61,7 @@ create_config_trait( label_folder, std::string, "database",
   "Folder containing label files with descriptor UIDs per category" );
 create_config_trait( label_extension, std::string, "lbl",
   "File extension for label files" );
-create_config_trait( output_directory, std::string, "category_models",
+create_config_trait( output_directory, std::string, "trained_model",
   "Output directory for trained SVM model files" );
 create_config_trait( background_category, std::string, "background",
   "Category name to skip (background class)" );
@@ -143,7 +143,7 @@ public:
     , m_conn_str( "" )
     , m_label_folder( "database" )
     , m_label_extension( "lbl" )
-    , m_output_directory( "category_models" )
+    , m_output_directory( "trained_model" )
     , m_background_category( "background" )
     , m_maximum_positive_count( 75 )
     , m_maximum_negative_count( 750 )

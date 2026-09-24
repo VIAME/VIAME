@@ -5,7 +5,14 @@ SET VIAME_INSTALL=.\..\..
 
 REM Processing options
 SET INPUT_DIRECTORY=training_data
-SET INITIAL_MODEL=category_models\trained_classifier.zip
+REM Seed model: the pack written by training, or an unpacked folder
+IF EXIST "trained_model.zip" (
+  SET INITIAL_MODEL=trained_model.zip
+) ELSE IF EXIST "trained_model" (
+  SET INITIAL_MODEL=trained_model
+) ELSE (
+  SET INITIAL_MODEL=category_models\trained_classifier.zip
+)
 
 REM Disable warnings
 SET KWIMAGE_DISABLE_C_EXTENSIONS=1
@@ -20,7 +27,7 @@ IF EXIST "%INITIAL_MODEL%" (
   viame.exe train ^
     -i "%INPUT_DIRECTORY%" ^
     -c "%VIAME_INSTALL%\configs\pipelines\train_frame_classifier_netharn_efficientnet.conf" ^
-    -s "detector_trainer:netharn:seed_model=%INITIAL_MODEL%" ^
+    --init-weights "%INITIAL_MODEL%" ^
     --threshold 0.0
 ) ELSE (
   IF EXIST "deep_training" (

@@ -12,9 +12,11 @@ export FRAME_RATE=5
 export TOTAL_GPU_COUNT=1
 export PIPES_PER_GPU=1
 
-# Trained model: the pack written by the training scripts, or the legacy folder
+# Trained model: the pack written by training, or an unpacked folder
 if [ -f trained_model.zip ]; then
   export TRAINED_MODEL=trained_model.zip/detector.pipe
+elif [ -d trained_model ]; then
+  export TRAINED_MODEL=trained_model/detector.pipe
 else
   export TRAINED_MODEL=category_models/detector.pipe
 fi

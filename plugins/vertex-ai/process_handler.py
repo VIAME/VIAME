@@ -91,7 +91,7 @@ class ProcessHandler:
 
   def download_model_artifacts( self, storage_uri ):
     """Download model artifacts from AIP_STORAGE_URI at container startup."""
-    model_dir = os.path.join( self.work_dir, "category_models" )
+    model_dir = os.path.join( self.work_dir, "trained_model" )
     os.makedirs( model_dir, exist_ok=True )
 
     logger.info( "Downloading model artifacts from %s", storage_uri )

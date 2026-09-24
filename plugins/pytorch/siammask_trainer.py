@@ -65,7 +65,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._config_file = ""
         self._seed_model = ""
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
+        self._output_directory = "trained_model"
         self._output_prefix = "siammask_tracker"
         self._pipeline_template = ""
         self._gpu_count = -1
@@ -656,7 +656,7 @@ class SiamMaskTrainer( TrainTracker ):
         # The model is copied whether or not a pipeline template was given.
         # Returning early on an empty template used to skip the copy as well,
         # so a run that trained for nineteen hours and reported "training
-        # completed successfully" left category_models empty and was marked
+        # completed successfully" left trained_model empty and was marked
         # FAILED for having no model in it.
 
         # Find the latest checkpoint

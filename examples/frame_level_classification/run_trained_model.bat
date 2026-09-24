@@ -18,6 +18,15 @@ REM Extra resource utilization options
 SET TOTAL_GPU_COUNT=1
 SET PIPES_PER_GPU=1
 
+REM Trained model: the pack written by training, or an unpacked folder
+IF EXIST "trained_model.zip" (
+  SET TRAINED_MODEL=trained_model.zip\detector.pipe
+) ELSE IF EXIST "trained_model" (
+  SET TRAINED_MODEL=trained_model\detector.pipe
+) ELSE (
+  SET TRAINED_MODEL=category_models\detector.pipe
+)
+
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
@@ -26,7 +35,7 @@ SET VIAME_PROJECT_DIR=%~dp0
 
 viame.exe run ^
   -l "%INPUT_LIST%" -ifrate %INPUT_FRAME_RATE% -frate %PROCESS_FRAME_RATE% ^
-  -p category_models\detector.pipe -o %OUTPUT_DIRECTORY% --no-reset-prompt ^
+  -p "%TRAINED_MODEL%" -o %OUTPUT_DIRECTORY% --no-reset-prompt ^
   -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU%
 
 pause

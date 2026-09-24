@@ -1655,7 +1655,7 @@ write_model_card( const model_card_inputs& in )
     model_name.pop_back();
   }
   model_name = get_filename_no_path( model_name );
-  if( model_name.empty() || model_name == "." || model_name == "category_models" )
+  if( model_name.empty() || model_name == "." || model_name == "trained_model" )
   {
     model_name = "Trained VIAME model";
   }
@@ -2723,7 +2723,7 @@ train_applet
     }
 
     // Report label: the last two components of the output location, e.g.
-    // "seals_2026/category_models", falling back to the detector type
+    // "seals_2026/trained_model", falling back to the detector type
     std::string monitor_name = opt_detector;
     {
       const std::string full =

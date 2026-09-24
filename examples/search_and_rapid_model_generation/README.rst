@@ -270,7 +270,7 @@ There we go, that's a little better isn't it.
 Okay these guys are a little weird, but nothing another round of annotations can't fix.
 
 After you're happy with your models, you should export them (Query -> Export IQR Model) to
-a directory called 'category_models' in your project folder for re-use on both new and larger
+a directory called 'trained_model' in your project folder for re-use on both new and larger
 datasets.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_17_saved_models.png
@@ -283,11 +283,11 @@ The category models directory should contain only .svm model files.
 Re-Run Models on Additional Data
 ================================
 
-If you have one or more .svm model files in your category_models folder, you can run the
+If you have one or more .svm model files in your trained_model folder, you can run the
 'bash process_list_using_models.sh' script in your project folder. This can either be on
 the same data you just processed, or new data. By default, this script consumes the supplied
 ingest_list.txt and produces a detection file called 'svm_detections.csv' containing a probability
-for each input model in the category_models directory per detection. Alternatively this pipeline,
+for each input model in the trained_model directory per detection. Alternatively this pipeline,
 this can be run from `within the annotation GUI`_.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png

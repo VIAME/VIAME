@@ -12,9 +12,11 @@ REM Extra resource utilization options
 SET TOTAL_GPU_COUNT=1
 SET PIPES_PER_GPU=1
 
-REM Trained model: the pack written by the training scripts, or the legacy folder
+REM Trained model: the pack written by training, or an unpacked folder
 IF EXIST "trained_model.zip" (
   SET TRAINED_MODEL=trained_model.zip\detector.pipe
+) ELSE IF EXIST "trained_model" (
+  SET TRAINED_MODEL=trained_model\detector.pipe
 ) ELSE (
   SET TRAINED_MODEL=category_models\detector.pipe
 )
