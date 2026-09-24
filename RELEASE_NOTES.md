@@ -1,3 +1,14 @@
+v0.23.3 - 9/25/2026
+===================
+
+
+- Fixes to python whl
+
+
+- Fixes to point segmentation and stereo mapping interactions
+
+
+
 v0.23.2 - 9/22/2026
 ===================
 
