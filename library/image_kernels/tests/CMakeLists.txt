@@ -77,3 +77,19 @@ viame_discover_gtests( viame convert_polygons_to_mask
 
 viame_discover_gtests( viame windowed_refiner_utils
   LIBRARIES ${moved_core_test_libraries} )
+
+###
+# The python bindings
+#
+# Same kernels, reached from python. Held to the conventions rather than to
+# OpenCV, which is what they replace.
+##
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
+    NAME    "unit:image_kernels:python"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_image_kernels_python.py"
+    LABELS  UNIT
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
+endif()

@@ -86,6 +86,24 @@ install( FILES       ${CMAKE_CURRENT_BINARY_DIR}/viame_image_kernels_export.h
          DESTINATION include/viame/image_kernels )
 
 ###
+# Python bindings
+#
+# So that VIAME's python can stop reaching for OpenCV. These kernels replaced
+# OpenCV's image operations in C++ during the lite port and are held to the
+# goldens; binding them gives the python half the same numbers, rather than
+# Pillow's, whose resampling differs by a half pixel.
+##
+if( VIAME_ENABLE_PYTHON )
+  viame_add_python_library( _image_kernels image_kernels
+    SOURCES image_kernels_python.cxx
+    PRIVATE viame_image_kernels
+    )
+
+  viame_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/image_kernels_init.py image_kernels __init__ )
+endif()
+
+###
 # Tests
 ##
 if( VIAME_ENABLE_TESTS )
