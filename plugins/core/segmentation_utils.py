@@ -955,3 +955,15 @@ class PromptInstances:
             if again is not None:
                 instance["mask"] = again
             self._enforce(instance)
+
+
+def clip_mask_to_box(mask, box):
+    """The mask with everything outside ``box`` ([x0, y0, x1, y1]) cleared."""
+    x0, y0, x1, y1 = box
+    h, w = mask.shape[:2]
+    x0, y0 = max(0, int(np.floor(x0))), max(0, int(np.floor(y0)))
+    x1, y1 = min(w, int(np.ceil(x1)) + 1), min(h, int(np.ceil(y1)) + 1)
+    clipped = np.zeros_like(mask)
+    if x1 > x0 and y1 > y0:
+        clipped[y0:y1, x0:x1] = mask[y0:y1, x0:x1]
+    return clipped
