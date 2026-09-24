@@ -59,9 +59,10 @@ def merge_components(mask, min_fraction=0.05):
     fills the gap between the facing edges of nearest neighbours so one path
     can cross them. Bridges exist for connectivity only and are absent from
     union."""
-    import cv2
     from scipy import ndimage
     from scipy.spatial import cKDTree
+
+    from viame import image_kernels
     mask = np.asarray(mask, dtype=bool)
     labels, count = ndimage.label(mask, structure=np.ones((3, 3)))
     if count == 0:
@@ -81,9 +82,11 @@ def merge_components(mask, min_fraction=0.05):
         i = min(pending, key=lambda k: gaps[k][0].min())
         distance, index = gaps[i]
         facing = distance <= 1.25 * distance.min() + 1
-        hull = cv2.convexHull(np.vstack([pixels[i][facing], tree.data[index[facing]]])
-                              .astype(np.int32))
-        cv2.fillConvexPoly(raster, hull, 1)
+        hull = image_kernels.convex_hull(
+            np.vstack([pixels[i][facing], tree.data[index[facing]]]))
+        # `fill_polygon` fills the outline too, which on a convex hull is
+        # exactly what `cv2.fillConvexPoly` does.
+        image_kernels.fill_polygon(raster, hull, 1)
         joined.append(i)
         pending.remove(i)
     return raster > 0, union
@@ -326,14 +329,17 @@ def measure_curve(left_curve, left_disparity, calibration, *, right_curve=None,
 
 def request_measurement(request, left_disparity, right_disparity=None):
     """Shared service/CLI adapter: explicit curves or binary mask paths + endpoints."""
-    import cv2
+    from viame.utilities import imageops
+
     curves, masks = {}, {}
     for side in ('left', 'right'):
         masks[side] = None
         if request.get(side + '_mask_path'):
-            mask = cv2.imread(request[side + '_mask_path'], cv2.IMREAD_GRAYSCALE)
-            if mask is None:
-                raise ValueError('Cannot read ' + side + ' mask')
+            try:
+                mask = imageops.read_image(request[side + '_mask_path'],
+                                           grayscale=True)
+            except OSError as exc:
+                raise ValueError('Cannot read ' + side + ' mask') from exc
             masks[side] = mask > 0
         curves[side] = request.get(side + '_curve')
         if curves[side] is None and masks[side] is not None:

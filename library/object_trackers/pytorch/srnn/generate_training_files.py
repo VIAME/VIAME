@@ -11,7 +11,7 @@ from pathlib import Path
 import pickle
 import random
 
-import cv2
+from viame.utilities import imageops
 
 from viame import image_kernels
 from viame import image_kernels
@@ -472,7 +472,7 @@ def create_bbox_files(
         sc_x, sc_y = homography.transform([c_x, c_y])
 
     # store cropped image
-    get_blob('img').write(cv2.imencode('.jpg', crop_img)[1].tobytes())
+    get_blob('img').write(imageops.encode_image(crop_img, '.jpg'))
     # store bbox center (row, col)
     get_blob('bc').write(np.array([sc_y, sc_x], dtype=np.float32).tobytes())
     # store grid
@@ -543,7 +543,7 @@ def generate_feature_files(
                         result.append((tid, bb))
                 return result
 
-            cur_frame = cv2.imread(str(img_path))
+            cur_frame = imageops.read_image(img_path)
             img_h, img_w = cur_frame.shape[:2]
             bb_info = filter_bb_info(img_w, img_h, bb_info)
             n_grids = compute_grid_features(

@@ -7,10 +7,10 @@ from __future__ import unicode_literals
 
 import json
 import logging
-import sys
 import os
 
-import cv2
+from viame import image_kernels
+from viame.utilities import imageops
 import numpy as np
 from torch.utils.data import Dataset
 
@@ -21,10 +21,6 @@ from viame.object_trackers.siammask.siammask.core.config import cfg
 
 logger = logging.getLogger("global")
 
-# setting opencv
-pyv = sys.version[0]
-if pyv[0] == '3':
-    cv2.ocl.setUseOpenCL(False)
 
 
 class SubDataset(object):
@@ -263,12 +259,21 @@ class TrkDataset(Dataset):
             template, search = dataset.get_positive_pair(index)
 
         # get image
-        template_image = cv2.imread(template[0])
-        if template_image is None:
-            raise IOError(f"Failed to load template image: {template[0]}")
-        search_image = cv2.imread(search[0])
-        if search_image is None:
-            raise IOError(f"Failed to load search image: {search[0]}")
+        # BGR: the whole tracker stack is BGR (see `base_tracker`'s docs and
+        # the `img[:, :, ::-1]` in `siammask_tracker`), because that is what
+        # the pretrained weights were trained on. `read_image` gives RGB, so
+        # the swap happens here at the boundary and the arrays below stay in
+        # the convention the net expects.
+        try:
+            template_image = image_kernels.swap_channels(
+                imageops.read_image(template[0]))
+        except OSError as exc:
+            raise IOError(f"Failed to load template image: {template[0]}") from exc
+        try:
+            search_image = image_kernels.swap_channels(
+                imageops.read_image(search[0]))
+        except OSError as exc:
+            raise IOError(f"Failed to load search image: {search[0]}") from exc
 
         # get the search mask, where par_crop wrote one. A negative pair
         # searches a different target than the template, so its mask would
@@ -342,4 +347,4 @@ class TrkDataset(Dataset):
         if not os.path.exists(mask_path):
             return None
 
-        return cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        return imageops.read_image(mask_path, grayscale=True)

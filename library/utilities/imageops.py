@@ -61,6 +61,51 @@ def write_image(path, array):
     _pil().fromarray(array, mode=mode).save(str(path))
 
 
+def encode_image(array, suffix=".png", quality=None):
+    """An encoded image as bytes, which is `cv2.imencode`.
+
+    `suffix` names the format the way `cv2.imencode` does, by file
+    extension. `quality` is JPEG quality 0..100 where it applies, matching
+    `cv2.IMWRITE_JPEG_QUALITY`; OpenCV's default is 95 and Pillow's is 75,
+    so it is passed explicitly rather than left to differ.
+    """
+    import io
+
+    array = np.asarray(array)
+    if array.dtype != np.uint8:
+        array = np.clip(array, 0, 255).astype(np.uint8)
+
+    mode = "L" if array.ndim == 2 else "RGB"
+    image = _pil().fromarray(array, mode=mode)
+
+    formats = {".png": "PNG", ".jpg": "JPEG", ".jpeg": "JPEG",
+               ".bmp": "BMP", ".tif": "TIFF", ".tiff": "TIFF",
+               ".webp": "WEBP"}
+    suffix = suffix.lower()
+    if suffix not in formats:
+        raise ValueError("cannot encode {!r}".format(suffix))
+
+    options = {}
+    if formats[suffix] == "JPEG":
+        options["quality"] = 95 if quality is None else int(quality)
+
+    buffer = io.BytesIO()
+    image.save(buffer, format=formats[suffix], **options)
+    return buffer.getvalue()
+
+
+def decode_image(data, grayscale=False):
+    """An image decoded from bytes, which is `cv2.imdecode`.
+
+    RGB, not BGR, for the same reason `read_image` is.
+    """
+    import io
+
+    image = _pil().open(io.BytesIO(bytes(data)))
+    image = image.convert("L" if grayscale else "RGB")
+    return np.asarray(image)
+
+
 def to_gray(array):
     """RGB to grayscale, by the same luma weights OpenCV uses."""
     array = np.asarray(array)

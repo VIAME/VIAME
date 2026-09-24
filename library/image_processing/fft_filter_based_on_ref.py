@@ -11,7 +11,8 @@ from viame.types import ImageContainer
 from PIL import Image as pil_image
 from viame.util.pil import get_pil_image, from_pil
 
-import cv2
+from viame import image_kernels
+from viame.utilities import imageops
 import numpy as np
 
 class filter_based_on_ref_process( ViameProcess ):
@@ -51,7 +52,10 @@ class filter_based_on_ref_process( ViameProcess ):
         self._response_kernel = int( self.config_value( 'response_kernel' ) )
         self._smooth_kernel = int( self.config_value( 'smooth_kernel' ) )
 
-        noise_frame = cv2.imread( self._reference_image )
+        # `read_image` gives RGB, as `image().asarray()` does below; the
+        # reference used to be read BGR and subtracted from an RGB frame,
+        # which put the red and blue noise estimates on the wrong channels.
+        noise_frame = imageops.read_image( self._reference_image )
         self._noise_fft = np.fft.fft2( noise_frame )
 
     # -------------------------------------------------------------------------
@@ -69,10 +73,13 @@ class filter_based_on_ref_process( ViameProcess ):
 
         im_filt = np.absolute( np.fft.ifft2( filt ) )
 
-        im_filt = np.log( cv2.blur( im_filt, ( self._response_kernel, self._response_kernel ) ) )
+        # float32: the kernels take the pixel types a pipeline carries and
+        # `np.absolute` of an inverse FFT is float64.
+        im_filt = np.log( image_kernels.box_blur(
+            im_filt.astype( np.float32 ), self._response_kernel ) )
         im_filt = ( im_filt - im_filt.min() ) / ( im_filt.max() - im_filt.min() )
 
-        smoothed_8bit = cv2.blur( input_8bit, ( self._smooth_kernel, self._smooth_kernel ) )
+        smoothed_8bit = image_kernels.box_blur( input_8bit, self._smooth_kernel )
         
         output_image = input_8bit * im_filt + smoothed_8bit * ( 1.0 - im_filt )
 

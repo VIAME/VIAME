@@ -1,8 +1,8 @@
 from os.path import join, isdir, exists
 from os import listdir, mkdir, makedirs
 from tqdm import tqdm
-import cv2
 from viame import image_kernels
+from viame.utilities import imageops
 import numpy as np
 import xml.etree.ElementTree as ET
 from concurrent import futures
@@ -97,9 +97,9 @@ def crop_video(video, image_folder, crop_path, instance_size):
         if not exists(mask_file):
             return None
 
-        patch = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
-
-        if patch is None:
+        try:
+            patch = imageops.read_image(mask_file, grayscale=True)
+        except OSError:
             return None
 
         canvas = np.zeros(im_shape[:2], dtype=np.uint8)
@@ -160,8 +160,8 @@ def crop_video(video, image_folder, crop_path, instance_size):
             image_file = join(image_folder, video, line[1])
             if not exists(image_file) and len(image_files) > int(line[2]):
                 image_file = image_files[int(line[2])]
-            im = cv2.imread(image_file)
-            assert not im is None, "Missing image."
+            # BGR, as the tracker's weights expect; see `dataset.py`
+            im = image_kernels.swap_channels(imageops.read_image(image_file))
             if box_overlap(bbox, [ 0, 0, im.shape[0], im.shape[1] ]) < 0.50:
                 continue
             avg_chans = np.mean(im, axis=(0, 1))
@@ -169,13 +169,17 @@ def crop_video(video, image_folder, crop_path, instance_size):
             z, x, x_mask = crop_like_SiamFC(im, bbox, instance_size=instance_size, padding=avg_chans, mask=mask)
             z_path = join(video_crop_base_path, f'{im_num:08}.{idx:08}.z.jpg')
             x_path = join(video_crop_base_path, f'{im_num:08}.{idx:08}.x.jpg')
-            cv2.imwrite(x_path, x)
-            cv2.imwrite(z_path, z)
+            # Swapped back to RGB on the way out, so the crops on disk have
+            # the colours a viewer expects and `dataset.py` swaps again when
+            # it reads them
+            imageops.write_image(x_path, image_kernels.swap_channels(x))
+            imageops.write_image(z_path, image_kernels.swap_channels(z))
             if x_mask is not None:
                 # Named off the search crop so the dataset can find it without
                 # dataset.json having to carry it
-                cv2.imwrite(join(video_crop_base_path,
-                                 f'{im_num:08}.{idx:08}.x.mask.png'), x_mask)
+                imageops.write_image(
+                    join(video_crop_base_path,
+                         f'{im_num:08}.{idx:08}.x.mask.png'), x_mask)
 
 
 def par_crop(instance_size=511, num_threads=24, image_folder='data_folder', save_folder='siamrpn++_model'):
