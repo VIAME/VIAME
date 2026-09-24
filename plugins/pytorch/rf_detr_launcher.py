@@ -27,8 +27,8 @@ def build_and_train(params):
 
     from viame.pytorch.utilities import (
         apply_rfdetr_stem_lr, ensure_fork_start_method,
-        ensure_rfdetr_compatibility, parse_resolution, resolution_is_set,
-        rfdetr_resume_lr_callback)
+        ensure_rfdetr_compatibility, find_rfdetr_seed_weights,
+        parse_resolution, resolution_is_set, rfdetr_resume_lr_callback)
 
     # Python 3.14 defaults Linux to the forkserver start method, which cannot
     # pickle rfdetr's ChannelSubset transform and kills every DataLoader worker.
@@ -77,7 +77,13 @@ def build_and_train(params):
     # load_pretrain_weights sizes the head for this dataset and keeps the rest
     # of the checkpoint.
     seed = params.get("seed_model") or ""
-    if seed and os.path.exists(seed):
+    if not (seed and os.path.exists(seed)):
+        # The default COCO weights, from the install when the RF-DETR add-on
+        # provides them, otherwise downloaded by rfdetr.
+        seed = find_rfdetr_seed_weights(model_cls, [params.get("pretrained_dir") or ""]) or ""
+        if seed:
+            print(f"[rf_detr_launcher] Seeding from installed weights {seed}", flush=True)
+    if seed:
         model = model_cls(pretrain_weights=seed, **model_kwargs)
     else:
         model = model_cls(**model_kwargs)

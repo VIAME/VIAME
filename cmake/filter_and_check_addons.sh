@@ -241,6 +241,7 @@ for name in "${selected_addons[@]}"; do
   echo "  Extracting models from old archive..."
   unzip -q -o "$archive" 'configs/pipelines/models/*' -d "$stage_dir" 2>/dev/null || true
   unzip -q -o "$archive" 'configs/pipelines/transforms/*' -d "$stage_dir" 2>/dev/null || true
+  unzip -q -o "$archive" 'configs/pipelines/transformations/*' -d "$stage_dir" 2>/dev/null || true
 
   # Copy latest pipeline files from source add-on folder
   echo "  Copying latest pipelines from source..."
@@ -252,7 +253,8 @@ for name in "${selected_addons[@]}"; do
   for subdir in "$addon_folder"/*/; do
     [ -d "$subdir" ] || continue
     subdir_name=$(basename "$subdir")
-    if [ "$subdir_name" != "models" ] && [ "$subdir_name" != "transforms" ]; then
+    if [ "$subdir_name" != "models" ] && [ "$subdir_name" != "transforms" ] \
+       && [ "$subdir_name" != "transformations" ]; then
       # Check if subdir contains .pipe or .conf files
       if find "$subdir" \( -name "*.pipe" -o -name "*.conf" \) -print -quit | grep -q .; then
         mkdir -p "$stage_dir/configs/pipelines/$subdir_name"

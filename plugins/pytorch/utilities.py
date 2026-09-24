@@ -776,6 +776,51 @@ def report_cuda_errors(context):
 # =============================================================================
 
 
+def rfdetr_default_pretrain_file(model_cls):
+    """The bare filename rfdetr fetches for ``model_cls`` when no seed is given
+    (for example rf-detr-large-2026.pth), or None when the variant has none.
+
+    Variants either pin ``_model_config_class`` or, like RFDETRLarge, build
+    their config in ``get_model_config``; the config class carrying the
+    default is then the one named after the variant in ``rfdetr.config``.
+    """
+    candidates = [getattr(model_cls, '_model_config_class', None)]
+    try:
+        import rfdetr.config as rfdetr_config
+        candidates.append(getattr(rfdetr_config, model_cls.__name__ + 'Config', None))
+    except ImportError:
+        pass
+    for config_cls in candidates:
+        field = getattr(config_cls, 'model_fields', {}).get('pretrain_weights')
+        default = getattr(field, 'default', None)
+        if isinstance(default, str) and default:
+            return default
+    return None
+
+
+def find_rfdetr_seed_weights(model_cls, search_dirs=()):
+    """Locate an installed copy of ``model_cls``'s default pretrained weights.
+
+    The RF-DETR add-on ships the COCO seed weights in the install's
+    configs/pipelines/models folder so that training does not download them
+    at run time. Returns the path of the file found in ``search_dirs`` or in
+    that folder (through VIAME_INSTALL), or None, in which case rfdetr fetches
+    the weights itself.
+    """
+    filename = rfdetr_default_pretrain_file(model_cls)
+    if not filename:
+        return None
+    directories = [directory for directory in search_dirs if directory]
+    install = os.environ.get('VIAME_INSTALL', '')
+    if install:
+        directories.append(os.path.join(install, 'configs', 'pipelines', 'models'))
+    for directory in directories:
+        candidate = os.path.join(directory, filename)
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
 def ensure_rfdetr_compatibility():
     """
     Ensure compatibility with RF-DETR under transformers 5.x.

@@ -1,14 +1,48 @@
 # =============================================================================
 # Title: Common - Default Tracker
 #
-# Description: Current incumbent is a modified version of "Tracking the
-# Untrackable" implemented in pytorch, trained on assorted fish data. Uses
-# model: srnn_rnn_v.pt.
+# Description: Multi-object tracker used by the default tracking pipelines.
+# ByteTrack (the base VIAME default) associates detections by IoU with a
+# two-stage strategy for high and low confidence detections. The SRNN
+# alternative is a modified "Tracking the Untrackable" appearance tracker
+# implemented in pytorch and trained on assorted fish data, using the models
+# srnn_siamese.pt, srnn_rnn_f.pt and srnn_rnn_v.pt from this add-on.
 # =============================================================================
 
 process tracker
   :: track_objects
-  :track_objects:type                          srnn
+  :track_objects:type                          bytetrack  # DIVE_PARAM ["Tracker", choice, bytetrack, srnn]
+
+block track_objects:bytetrack
+
+  # Tuned on FishTrack23 over RF-DETR rgb_1728 detections.
+
+  # Confidence threshold for the first (high-confidence) association stage
+  :high_thresh                                 0.75097625
+
+  # Confidence threshold for the second (low-confidence) association stage
+  :low_thresh                                  0.27399542
+
+  # IoU distance bound for the first association pass
+  :match_thresh                                0.98
+
+  # IoU distance bound for the second (low-confidence) association pass
+  :second_match_thresh                         0.98
+
+  # IoU distance bound for matching unconfirmed, single-hit tracks
+  :unconfirmed_match_thresh                    0.98
+
+  # Number of frames to keep lost tracks before removal
+  :track_buffer                                17
+
+  # Minimum confidence to initialize a new track
+  :new_track_thresh                            0.8049812
+
+  # Kalman position and velocity uncertainty weights
+  :std_weight_position                         0.26666666666666666
+  :std_weight_velocity                         0.17804493814764857
+
+endblock
 
 block track_objects:srnn
   :siamese_model_input_size                    224

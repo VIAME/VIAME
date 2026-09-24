@@ -15,6 +15,7 @@ import scriptconfig as scfg
 import ubelt as ub
 
 from viame.pytorch.utilities import (
+    find_rfdetr_seed_weights,
     ensure_fork_start_method,
     report_cuda_errors,
     vital_config_update,
@@ -268,6 +269,11 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     identifier = "viame-rf-detr-detector"
     train_directory = "deep_training"
     seed_model = ""
+    pretrained_dir = scfg.Value('', help=(
+        'Folder holding the RF-DETR COCO seed weights (rf-detr-*.pth) used when '
+        'seed_model is empty, so they are not downloaded at run time. The '
+        'install\'s configs/pipelines/models, where the RF-DETR add-on puts '
+        'them, is always checked as well.'))
 
     # RF-DETR model configuration
     model_size = scfg.Value('base', help='Model size: nano, small, medium, base, or large')
@@ -1161,8 +1167,14 @@ class RFDETRTrainer(TrainDetector):
         if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
             model = RFDETRModel(pretrain_weights=self._seed_model, **model_kwargs)
         else:
-            # Use pretrained weights
-            model = RFDETRModel(**model_kwargs)
+            # The default COCO weights, from the install when the RF-DETR
+            # add-on provides them, otherwise downloaded by rfdetr.
+            installed = find_rfdetr_seed_weights(RFDETRModel, [self._pretrained_dir])
+            if installed:
+                print(f"[RFDETRTrainer] Seeding from installed weights {installed}")
+                model = RFDETRModel(pretrain_weights=installed, **model_kwargs)
+            else:
+                model = RFDETRModel(**model_kwargs)
 
         # Parse training parameters
         resume_from = self._resolve_resume()
@@ -1517,6 +1529,7 @@ class RFDETRTrainer(TrainDetector):
             resolution=format_resolution(self._resolution),
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
             seed_model=self._seed_model,
+            pretrained_dir=self._pretrained_dir,
             class_names=list(self._class_names),
             # Not a TrainConfig field, so it cannot ride in train_kwargs (pydantic
             # extra="ignore" would drop it silently). The launcher applies it as a
