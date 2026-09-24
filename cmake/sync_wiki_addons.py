@@ -15,9 +15,9 @@ two already agree, which is precisely when no sync is needed.
 
 Versions are read back from the server: a Girder item named
 ``VIAME-Default-Fish-Models-v2.3.zip`` sets that section's **Version:** to v2.3,
-whether it lives on viame.kitware.com or data.kitware.com. Links that are not
-Girder items (Google Drive) have their URL synced but their version left alone,
-since there is no name to read.
+whichever Girder host serves it. Links that are not Girder items (Google Drive)
+have their URL synced but their version left alone, since there is no name to
+read.
 
   cmake/sync_wiki_addons.py                 # report drift, change nothing
   cmake/sync_wiki_addons.py --apply         # edit the wiki clone
@@ -45,8 +45,8 @@ GIRDER_ITEM_API = 'https://%s/api/v1/item/%s'
 # trailing words). Only entries listed here are synced.
 #
 # Deliberately absent:
-#   ARCTIC-SEAL   the wiki links a different artifact (a data.kitware.com
-#                 Windows/Linux pair), not the package the CSV carries
+#   ARCTIC-SEAL   the wiki links a different artifact (an older Windows/Linux
+#                 pair), not the package the CSV carries
 #   ALIGN-CAMERAS no section exists on the page yet
 WIKI_SECTIONS = {
     'DEFAULT-FISH':   'Fish Detector and Tracker',

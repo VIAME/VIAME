@@ -13,7 +13,7 @@
 
 if (VIAME_ENABLE_PYTHON)
   DownloadAndExtract(
-    https://data.kitware.com/api/v1/file/6a311e9ba7bcc12a3cf54ac1/download
+    https://viame.kitware.com/api/v1/item/6ab572e52d17596fb9c5d3e0/download
     4f89aea0e8fc4323bc48557d3efe5e98
     ${VIAME_DOWNLOAD_DIR}/pipelines_test_data.zip
     ${CMAKE_CURRENT_SOURCE_DIR} )
