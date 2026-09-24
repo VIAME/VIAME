@@ -197,10 +197,12 @@ static kv::config_block_sptr default_config()
     "Optional file for storing possible data errors and warning." );
   config->set_value( "output_directory", "",
     "Directory to store trained model files and generated pipelines. "
-    "If empty and output_file is not set, files are written to the current directory." );
+    "If empty, files are written to the current directory, or to a staging "
+    "folder named after output_file when that is set." );
   config->set_value( "output_file", "",
-    "If specified, create a zip file containing the model files and pipeline "
-    "instead of writing to output_directory. Takes precedence over output_directory." );
+    "If specified, everything written to output_directory (pipelines, models, "
+    "model card, evaluation) is packed into this zip file at the end of a "
+    "successful run and the directory is removed." );
   config->set_value( "pipeline_template", "",
     "Optional template file for generating output pipeline. Keywords in the "
     "template will be replaced with values from the trainer." );
@@ -1051,11 +1053,9 @@ static bool validate_trainer_output_keys(
 // Process the output map returned by a trainer's update_model() method.
 // - If the value is an existing file path, it's a file copy (key=output filename)
 // - Otherwise, it's a template replacement (key becomes [-KEY-] in template)
-// - If output_file is specified, creates a zip archive instead of writing to directory
 static void process_trainer_output(
     const std::map< std::string, std::string >& output_map,
     const std::string& output_directory,
-    const std::string& output_file,
     const std::string& pipeline_template,
     const std::string& output_pipeline_name,
     const std::string& algorithm_type = "",
@@ -1154,54 +1154,6 @@ static void process_trainer_output(
     }
   }
 
-  // If output_file is specified, create a zip archive
-  if( !output_file.empty() )
-  {
-    std::map< std::string, std::string > zip_files;
-    std::map< std::string, std::string > zip_string_contents;
-
-    // Add all model files to be included in zip
-    for( const auto& pair : file_copies )
-    {
-      const std::string& dest_filename = pair.first;
-      const std::string& source_path = pair.second;
-      zip_files[ dest_filename ] = source_path;
-    }
-
-    // Generate pipeline content if template is configured
-    if( !pipeline_template.empty() && does_file_exist( pipeline_template ) )
-    {
-      std::string pipeline_content;
-      if( replace_keywords_in_template_to_string(
-            pipeline_template, template_replacements, pipeline_content ) )
-      {
-        zip_string_contents[ output_pipeline_name ] = pipeline_content;
-      }
-      else
-      {
-        std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
-      }
-    }
-
-    // Create the zip file
-    if( create_zip_file( output_file, zip_files, zip_string_contents ) )
-    {
-      std::cout << "Created output zip file: " << output_file << std::endl;
-      std::cout << "  - Contains " << zip_files.size() << " model file(s)" << std::endl;
-      if( !zip_string_contents.empty() )
-      {
-        std::cout << "  - Contains generated pipeline: " << output_pipeline_name << std::endl;
-      }
-    }
-    else
-    {
-      std::cerr << "Error: failed to create zip file: " << output_file << std::endl;
-    }
-
-    return;
-  }
-
-  // Otherwise, use output_directory (existing behavior)
   // Create output directory if needed
   if( !output_directory.empty() )
   {
@@ -2029,7 +1981,8 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "seconds" )
     ( "init-weights", "Optional input seed weights over-ride",
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
-    ( "output-file", "Output zip file for model and pipeline (overrides output-dir)",
+    ( "output-file", "Pack the whole output directory (pipelines, models, model "
+      "card, evaluation) into this zip on success and remove the directory",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "normalize-16bit", "Enable percentile normalization for 16-bit/float imagery",
       ::cxxopts::value< bool >()->default_value( "false" ) )
@@ -2479,14 +2432,39 @@ train_applet
     std::map< std::string, std::vector< std::string > > weight_ext =
       {
         { ".zip", { "seed_model" } },
-        { ".pth", { "backbone", "seed_weights" } },
-        { ".pt", { "backbone", "seed_weights" } },
+        { ".pth", { "backbone", "seed_weights", "rf_detr:seed_model" } },
+        { ".pt", { "backbone", "seed_weights", "rf_detr:seed_model" } },
         { ".py", { "config" } },
         { ".weights", { "seed_weights" } },
         { ".wt", { "seed_weights" } }
       };
 
     std::map< std::string, std::string > found_files;
+
+    // A model pack (a zip holding a .pipe) is unpacked so its model file can
+    // seed training like a folder of weights would.
+    if( does_file_exist( opt_init_weights ) && ends_with_extension( opt_init_weights, ".zip" ) )
+    {
+      std::vector< std::string > entries;
+
+      if( list_zip_entries( opt_init_weights, entries ) &&
+          std::any_of( entries.begin(), entries.end(),
+            []( const std::string& e ) { return ends_with_extension( e, ".pipe" ); } ) )
+      {
+        const std::string unpacked = append_path(
+          filesystem::temp_directory_path().string(),
+          "viame_seed_" + std::to_string( static_cast< long long >( std::time( nullptr ) ) ) );
+
+        if( !extract_zip_file( opt_init_weights, unpacked ) )
+        {
+          std::cout << "Unable to unpack seed model " << opt_init_weights << std::endl;
+          return EXIT_FAILURE;
+        }
+
+        std::cout << "Seeding from model pack " << opt_init_weights << std::endl;
+        opt_init_weights = unpacked;
+      }
+    }
 
     if( does_folder_exist( opt_init_weights ) )
     {
@@ -2773,6 +2751,22 @@ train_applet
   if( !opt_output_file.empty() )
   {
     output_file = opt_output_file;
+  }
+
+  // A pack is assembled in a folder first; without one configured, stage it
+  // next to the zip under the zip's own name.
+  if( !output_file.empty() && output_directory.empty() )
+  {
+    output_directory = output_file;
+
+    if( ends_with_extension( output_directory, ".zip" ) )
+    {
+      output_directory = output_directory.substr( 0, output_directory.size() - 4 );
+    }
+    if( output_directory.empty() || output_directory == output_file )
+    {
+      output_directory = output_file + "_files";
+    }
   }
 
   if( !kv::check_nested_algo_configuration< kv::algo::image_io >( "image_reader", config ) )
@@ -4462,7 +4456,7 @@ train_applet
       std::map< std::string, std::string > trainer_output =
         detector_trainer->update_model();
 
-      process_trainer_output( trainer_output, output_directory, output_file,
+      process_trainer_output( trainer_output, output_directory,
         pipeline_template, output_pipeline_name, detector_type, true, false,
         train_trackers ? tracker_pipeline_template : "",
         train_trackers ? output_tracker_pipeline_name : "" );
@@ -4807,7 +4801,7 @@ train_applet
         std::map< std::string, std::string > trainer_output =
           tracker_trainer->update_model();
 
-        process_trainer_output( trainer_output, output_directory, output_file,
+        process_trainer_output( trainer_output, output_directory,
           tracker_pipeline_template, output_tracker_pipeline_name,
           current_tracker, false, true );
       }
@@ -4856,10 +4850,9 @@ train_applet
 
   if( !test_data.empty() && !training_failed && !training_interrupted )
   {
-    if( !output_file.empty() || opt_emb_pipe || pipeline_template.empty() )
+    if( opt_emb_pipe || pipeline_template.empty() )
     {
-      std::cout << "Test evaluation needs a runnable pipeline written to a "
-                << "directory; skipping it" << std::endl;
+      std::cout << "Test evaluation needs a runnable pipeline; skipping it" << std::endl;
     }
     else
     {
@@ -4881,7 +4874,7 @@ train_applet
   }
 
   if( ( !trained_detectors.empty() || !trained_trackers.empty() ) &&
-      !training_interrupted && output_file.empty() )
+      !training_interrupted )
   {
     model_card_inputs card;
     card.output_directory = output_directory.empty() ? std::string( "." ) : output_directory;
@@ -4915,6 +4908,22 @@ train_applet
     card.test_results_dir = test_results_dir;
 
     write_model_card( card );
+  }
+
+  if( !output_file.empty() && !training_failed && !training_interrupted &&
+      ( !trained_detectors.empty() || !trained_trackers.empty() ) )
+  {
+    if( create_zip_from_folder( output_file, output_directory ) )
+    {
+      std::cout << "Created model pack " << output_file << std::endl;
+      filesystem::remove_all( output_directory );
+    }
+    else
+    {
+      std::cout << "Unable to create " << output_file << "; the trained files remain in "
+                << output_directory << std::endl;
+      training_failed = true;
+    }
   }
 
   return training_failed ? EXIT_FAILURE : EXIT_SUCCESS;

@@ -159,7 +159,7 @@ print_run_modes()
     << std::endl
     << "      and zips holding .pipe files (asking which to run when there"
     << std::endl
-    << "      are several)."
+    << "      are several, or name one as pack.zip/detector.pipe)."
     << std::endl
     << "      Without an input, only reports what the file was recognized as."
     << std::endl << std::endl;

@@ -325,7 +325,7 @@ def resolve_pipeline( name ):
 
 def is_pipeline_name( name ):
   return name.endswith( default_pipe_ext ) or resolve_pipeline( name ) != name \
-    or model_wrap.is_model_file( name )
+    or model_wrap.is_model_file( name ) or model_wrap.split_zip_path( name )[1] != ""
 
 def choose_pipe_in_zip( info ):
   choices = list( info.pipes )
@@ -347,7 +347,7 @@ def choose_pipe_in_zip( info ):
 def model_id_for( options ):
   return getattr( options, "model_file", options.pipeline )
 
-def wrap_model_as_pipeline( model_path, has_input ):
+def wrap_model_as_pipeline( model_path, has_input, pipe_in_zip="" ):
   work_dir = tempfile.mkdtemp( prefix="viame_run_" )
   atexit.register( shutil.rmtree, work_dir, True )
   info = model_wrap.identify( model_path, work_dir )
@@ -356,6 +356,11 @@ def wrap_model_as_pipeline( model_path, has_input ):
   if not has_input:
     log_info( info.describe() + lb )
     sys.exit( 0 )
+  if pipe_in_zip:
+    try:
+      model_wrap.select_pipe( info, pipe_in_zip )
+    except ValueError as e:
+      exit_with_error( str( e ) )
   if len( info.pipes ) > 1:
     choose_pipe_in_zip( info )
   pipeline_root = os.path.join( get_script_path(), pipeline_dir )
@@ -1264,10 +1269,14 @@ if __name__ == "__main__" :
 
   args.pipeline = resolve_pipeline( args.pipeline )
 
+  # "pack.zip/detector.pipe" names one pipeline inside a model pack
+  args.pipeline, pipe_in_zip = model_wrap.split_zip_path( args.pipeline )
+
   if model_wrap.is_model_file( args.pipeline ):
     args.model_file = os.path.abspath( args.pipeline )
     args.pipeline = wrap_model_as_pipeline( args.pipeline,
-      any( [ args.input, args.input_video, args.input_dir, args.input_list ] ) )
+      any( [ args.input, args.input_video, args.input_dir, args.input_list ] ),
+      pipe_in_zip )
 
   # Assorted error checking up front
   process_data = True

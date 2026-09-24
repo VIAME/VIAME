@@ -454,6 +454,21 @@ bool create_zip_file(
     const std::map< std::string, std::string >& files_to_add,
     const std::map< std::string, std::string >& string_contents = {} );
 
+/// Create a zip file holding every file under a folder, named relative to it
+VIAME_CORE_EXPORT
+bool create_zip_from_folder( const std::string& zip_path,
+                             const std::string& folder );
+
+/// List the entry names of a zip file (directories excluded)
+VIAME_CORE_EXPORT
+bool list_zip_entries( const std::string& zip_path,
+                       std::vector< std::string >& entries );
+
+/// Extract every entry of a zip file (stored or deflated) under a folder
+VIAME_CORE_EXPORT
+bool extract_zip_file( const std::string& zip_path,
+                       const std::string& destination );
+
 } // end namespace viame
 
 #endif /* VIAME_CORE_UTILITIES_FILE_H */
