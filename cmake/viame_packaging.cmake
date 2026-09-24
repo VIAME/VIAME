@@ -33,7 +33,7 @@ mark_as_advanced( VIAME_PACKAGE_DEVEL )
 set( CPACK_PACKAGE_NAME                "VIAME" )
 set( CPACK_PACKAGE_VENDOR              "Kitware" )
 set( CPACK_PACKAGE_VERSION             "${VIAME_VERSION}" )
-set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Video and Image Analytics for Marine Environments" )
+set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Video and Image Analytics for Multiple Environments" )
 set( CPACK_RESOURCE_FILE_LICENSE       "${VIAME_SOURCE_DIR}/LICENSE.txt" )
 set( CPACK_PACKAGE_FILE_NAME           "VIAME-${VIAME_VERSION}-${CMAKE_SYSTEM_NAME}" )
 

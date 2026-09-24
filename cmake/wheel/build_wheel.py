@@ -788,9 +788,17 @@ def _hash(path):
 DESCRIPTION = """\
 # VIAME
 
+**Video and Image Analytics for Multiple Environments.**
+
 VIAME is an open-source computer vision toolkit for analysing imagery and
-video, built for marine science: detection, tracking, stereo measurement,
-classification, search and training, in configurable pipelines.
+video: detection, tracking, stereo measurement, classification, search and
+training, assembled into configurable pipelines.
+
+It was originally built for marine life detection, and much of what ships
+still reflects that heritage. The toolkit itself is general, though -- none
+of the detection, tracking, measurement or training machinery assumes
+anything about what it is looking at -- and it is used well beyond that
+today as a general purpose computer vision toolkit.
 
 This wheel carries the VIAME runtime and the `viame` command line tool.
 
@@ -805,18 +813,33 @@ links against, and nothing CUDA is bundled here.
 
 ## Use
 
+Every tool is a subcommand of `viame`. `viame help` lists them with a one
+line description each, and `viame help <tool>` prints that tool's options.
+
 ```
-viame run detector_generic input.mp4       # run a pipeline over a video
-viame train --list                         # what can be trained
-viame score -c computed.csv -t truth.csv   # score results
+viame help                                       # list every tool
+viame run my_pipeline.pipe                       # run a single pipeline file as-is
+viame run my_pipeline.pipe video.mp4             # run a pipeline on a video
+viame run detector.zip video.mp4                 # run a detector on a video
+viame run detector.zip image_list.txt            # ... or a list of images
+viame run detector.pipe videos/                  # run a pipeline over a folder
+viame train data/ train_detector.conf            # train a model on some data
+viame score detections.csv groundtruth.csv       # score file against groundtruth
+viame score computed/ groundtruth/               # score folder against groundtruth
+viame csv detections.csv --print-types           # inspect a VIAME csv
+viame json tracks.json --print-types             # inspect a DIVE or COCO json
+viame add-ons                                    # list and install model add-ons
 ```
 
 ```python
 import viame
 ```
 
+## Models
+
 The pipelines that ship are those whose models are small enough to travel
-with the code. Larger models are add-on packs, fetched at runtime:
+with the code. Larger models are add-on packs, fetched at runtime into the
+environment alongside the shipped pipelines:
 
 ```
 viame add-ons
@@ -1079,7 +1102,7 @@ def main(argv=None):
                         "`+cu12`. The default build carries none. Note PyPI "
                         "refuses local versions, so a variant wheel needs an "
                         "index of its own.")
-    p.add_argument("--summary", default="VIAME: Video and Image Analytics for Marine Environments")
+    p.add_argument("--summary", default="VIAME: Video and Image Analytics for Multiple Environments")
     p.add_argument("--description", default=DESCRIPTION)
     p.add_argument("--requires", action="append", help="a Requires-Dist entry; repeatable")
     p.add_argument("--requires-python", default=None,

@@ -165,7 +165,7 @@ void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
                         viame::plugin_manager& vpm )
 {
   // display help message
-  std::cout << "VIAME - Video and Image Analytics for Marine Environments" << std::endl
+  std::cout << "VIAME - Video and Image Analytics for Multiple Environments" << std::endl
             << std::endl
             << "Usage: viame <applet> [args]" << std::endl
             << std::endl
