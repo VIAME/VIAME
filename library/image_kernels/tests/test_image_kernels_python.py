@@ -8,6 +8,12 @@ natural frame:
     swap_channels  identical
     crop           identical
     resize         max difference 25  -- a different pixel centre convention
+    to_hsv/to_hls  max difference 1
+    to_lab         max difference 2
+
+The three colour spaces round trip at least as well as OpenCV's own do: on a
+random frame, 4 against its 5 for HSV and HLS, and 21 for both on L*a*b*,
+where the loss is the 8-bit quantisation rather than either implementation.
 
 The resize difference is expected and is why these exist rather than Pillow:
 matching the C++ half matters, matching OpenCV does not, and OpenCV is what
@@ -16,7 +22,9 @@ is being removed.
 import numpy as np
 import pytest
 
-from viame.image_kernels import crop, resize, swap_channels, to_gray, to_rgb
+from viame.image_kernels import (crop, from_hls, from_hsv, from_lab, resize,
+                                 swap_channels, to_gray, to_hls, to_hsv,
+                                 to_lab, to_rgb)
 
 
 def _frame(width=64, height=48):
@@ -77,3 +85,46 @@ def test_to_rgb_repeats_the_single_channel():
 def test_a_two_dimensional_image_stays_two_dimensional():
     gray = to_gray(_frame())
     assert resize(gray, 16, 12).shape == (12, 16)
+
+
+# ---------------------------------------------------------------------------
+# Colour spaces
+#
+# Hue is on OpenCV's 0..179 scale, not 0..360, because that is what the eight
+# python call sites that used `cv2.COLOR_RGB2HSV` were written against.
+
+@pytest.mark.parametrize("forward,inverse", [(to_hsv, from_hsv),
+                                             (to_hls, from_hls),
+                                             (to_lab, from_lab)])
+def test_a_colour_space_round_trips(forward, inverse):
+    frame = _frame()
+    back = inverse(forward(frame))
+    assert back.shape == frame.shape
+    # 8-bit L*a*b* is lossy enough that OpenCV loses as much; what is checked
+    # is that nothing is grossly wrong, not that it is exact.
+    assert np.abs(back.astype(int) - frame.astype(int)).max() <= 24
+
+
+@pytest.mark.parametrize("convert", [to_hsv, to_hls, to_lab])
+def test_a_colour_space_keeps_the_shape(convert):
+    assert convert(_frame(32, 16)).shape == (16, 32, 3)
+
+
+@pytest.mark.parametrize("convert", [to_hsv, to_hls, to_lab, from_hsv,
+                                     from_hls, from_lab])
+def test_a_colour_space_needs_three_channels(convert):
+    with pytest.raises(ValueError):
+        convert(np.zeros((8, 8), dtype=np.uint8))
+
+
+def test_hue_of_the_primaries_is_on_the_opencv_scale():
+    """Red 0, green 60 and blue 120 -- degrees halved to fit a byte."""
+    primaries = np.array([[[255, 0, 0], [0, 255, 0], [0, 0, 255]]],
+                         dtype=np.uint8)
+    assert list(to_hsv(primaries)[0, :, 0]) == [0, 60, 120]
+
+
+def test_grey_has_no_saturation():
+    grey = np.full((4, 4, 3), 128, dtype=np.uint8)
+    assert to_hsv(grey)[..., 1].max() == 0
+    assert to_hls(grey)[..., 2].max() == 0

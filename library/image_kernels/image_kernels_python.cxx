@@ -27,6 +27,7 @@
 #include <pybind11/stl.h>
 
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace py = pybind11;
@@ -144,6 +145,63 @@ swap_channels( py::array_t< uint8_t, py::array::c_style | py::array::forcecast >
   return as_array( viame::image_kernels::swap_rb( source ), true );
 }
 
+/// The three-channel conversions all have the same shape: HxWx3 in, HxWx3
+/// out. `three_channel` is the check they share, named so the error says
+/// which conversion asked.
+py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const&
+three_channel(
+  py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+  char const* who )
+{
+  if( array.ndim() != 3 || array.shape( 2 ) != 3 )
+  {
+    throw std::invalid_argument( std::string( who ) + " wants an HxWx3 image" );
+  }
+  return array;
+}
+
+py::array
+to_hsv( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+{
+  auto const source = as_image( three_channel( array, "to_hsv" ) );
+  return as_array( viame::image_kernels::rgb_to_hsv( source ), true );
+}
+
+py::array
+from_hsv( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+{
+  auto const source = as_image( three_channel( array, "from_hsv" ) );
+  return as_array( viame::image_kernels::hsv_to_rgb( source ), true );
+}
+
+py::array
+to_hls( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+{
+  auto const source = as_image( three_channel( array, "to_hls" ) );
+  return as_array( viame::image_kernels::rgb_to_hls( source ), true );
+}
+
+py::array
+from_hls( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+{
+  auto const source = as_image( three_channel( array, "from_hls" ) );
+  return as_array( viame::image_kernels::hls_to_rgb( source ), true );
+}
+
+py::array
+to_lab( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+{
+  auto const source = as_image( three_channel( array, "to_lab" ) );
+  return as_array( viame::image_kernels::rgb_to_lab( source ), true );
+}
+
+py::array
+from_lab( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+{
+  auto const source = as_image( three_channel( array, "from_lab" ) );
+  return as_array( viame::image_kernels::lab_to_rgb( source ), true );
+}
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _image_kernels, m )
@@ -173,4 +231,24 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
 
   m.def( "swap_channels", &swap_channels, py::arg( "image" ),
          "RGB to BGR, or back." );
+
+  m.def( "to_hsv", &to_hsv, py::arg( "image" ),
+         "RGB to HSV. Hue is 0..179 and saturation and value 0..255, which "
+         "is OpenCV's 8-bit scaling, not a textbook's 0..360." );
+
+  m.def( "from_hsv", &from_hsv, py::arg( "image" ),
+         "HSV back to RGB, on the same 0..179 hue scale as to_hsv." );
+
+  m.def( "to_hls", &to_hls, py::arg( "image" ),
+         "RGB to HLS, hue on the same 0..179 scale as to_hsv." );
+
+  m.def( "from_hls", &from_hls, py::arg( "image" ),
+         "HLS back to RGB." );
+
+  m.def( "to_lab", &to_lab, py::arg( "image" ),
+         "RGB to CIE L*a*b*, 8-bit: L scaled to 0..255 and a and b offset "
+         "by 128, again OpenCV's scaling." );
+
+  m.def( "from_lab", &from_lab, py::arg( "image" ),
+         "L*a*b* back to RGB, on the same 8-bit scaling as to_lab." );
 }
