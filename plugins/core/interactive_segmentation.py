@@ -1117,12 +1117,14 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
     return segment_algo, text_query_algo, image_io_algo, service_config
 
 
-def find_viame_config(model_type: str = "sam3") -> Optional[str]:
+def find_viame_config(model_type: Optional[str] = None) -> Optional[str]:
     """
-    Find the default segmentation config file in VIAME install.
+    Find the segmentation config file in the VIAME install.
 
     Args:
-        model_type: Type of model ('sam2' or 'sam3')
+        model_type: 'sam2' or 'sam3' for that add-on's config. With none
+            given, SAM2 is preferred for point segmentation (SAM3 may be
+            installed only for text queries), then SAM3, then the default.
 
     Returns:
         Path to config file if found, None otherwise
@@ -1139,11 +1141,15 @@ def find_viame_config(model_type: str = "sam3") -> Optional[str]:
         "sam3": "interactive_segmenter_sam3.conf",
     }
 
-    config_name = config_files.get(model_type)
-    if config_name:
-        config_path = pipelines_dir / config_name
-        if config_path.exists():
-            return str(config_path)
+    if model_type is None:
+        candidates = [config_files["sam2"], config_files["sam3"],
+                      "interactive_segmenter_default.conf"]
+    else:
+        candidates = [config_files.get(model_type)]
+
+    for config_name in candidates:
+        if config_name and (pipelines_dir / config_name).exists():
+            return str(pipelines_dir / config_name)
 
     return None
 
