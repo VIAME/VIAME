@@ -33,6 +33,9 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import cv2
+
+from viame import image_kernels
+from viame import image_kernels
 import numpy as np
 
 # Matcher input size: long side after resize, dims floored to /8 (LoFTR df).
@@ -142,7 +145,7 @@ def _to_match_tensor(gray: np.ndarray, device: str):
     scale = MATCH_SIZE / max(h, w)
     nh = max(8, int(h * scale) // 8 * 8)
     nw = max(8, int(w * scale) // 8 * 8)
-    resized = cv2.resize(gray, (nw, nh), interpolation=cv2.INTER_AREA)
+    resized = image_kernels.resize_area(gray, nw, nh)
     tensor = torch.from_numpy(resized)[None, None].float().div(255.0)
     return tensor.to(device), (w / nw, h / nh)
 

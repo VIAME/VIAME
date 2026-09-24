@@ -12,6 +12,7 @@ import numpy as np
 
 from viame.classifiers.sleap.sleap_common import MODEL_FORMAT, SleapPredictor, load_artifact, parse_keypoint_names
 from viame.object_detectors.base import spawn_safe_worker_count
+from viame.utilities import imageops
 
 
 def make_labels(records, names):

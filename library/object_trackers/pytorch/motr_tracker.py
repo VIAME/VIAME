@@ -51,6 +51,7 @@ from viame.object_trackers.pytorch.botsort_tracker import (
     to_ObjectTrackSet,
 )
 from viame.object_detectors.base import report_cuda_errors
+from viame import image_kernels
 
 logger = logging.getLogger(__name__)
 
@@ -276,6 +277,7 @@ def crop_detections(np_image, boxes_tlbr, crop_size):
     None when no image is available.
     """
     import cv2
+    from viame import image_kernels
 
     if np_image is None:
         return None
@@ -291,7 +293,7 @@ def crop_detections(np_image, boxes_tlbr, crop_size):
         crop = np_image[y1:y2, x1:x2]
         if crop.ndim == 2:
             crop = np.stack([crop] * 3, axis=-1)
-        crop = cv2.resize(crop, (crop_size, crop_size))
+        crop = image_kernels.resize(crop, crop_size, crop_size)
         crops.append(crop.astype(np.float32).transpose(2, 0, 1) / 255.0)
 
     return np.stack(crops) if crops else None

@@ -64,6 +64,7 @@ except ImportError:
 
 from viame.object_trackers.pytorch.reid_data import (
     _frame_bounds, ReIDDataset, PKSampler)
+from viame import image_kernels
 
 
 class DeepSORTTrainer(TrainTracker):
@@ -224,6 +225,7 @@ class DeepSORTTrainer(TrainTracker):
         Each track_id folder contains crops of the same object across frames.
         """
         import cv2
+        from viame import image_kernels
         import numpy as np
 
         crop_h, crop_w = map(int, self._crop_size.split('x'))
@@ -441,7 +443,7 @@ class DeepSORTTrainer(TrainTracker):
 
                     # Crop and resize
                     crop = img[y1:y2, x1:x2]
-                    crop = cv2.resize(crop, (crop_w, crop_h))
+                    crop = image_kernels.resize(crop, crop_w, crop_h)
 
                     # Save crop
                     track_dir = output_dir / track_id

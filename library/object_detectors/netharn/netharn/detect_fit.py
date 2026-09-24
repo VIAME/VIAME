@@ -10,6 +10,7 @@ matplotlib.use('Agg')
 
 from viame.object_detectors.netharn import netharn as nh  # NOQA
 import numpy as np  # NOQA
+from viame import image_kernels
 import os  # NOQA
 import torch  # NOQA
 import ubelt as ub  # NOQA
@@ -677,7 +678,7 @@ class DetectHarn(nh.FitHarn):
                 canvas = kwimage.draw_text_on_image(
                     canvas, 'drawing-error', org=(0, 0), valign='top')
 
-            # canvas = cv2.resize(canvas, (300, 300))
+            # canvas = image_kernels.resize(canvas, 300, 300)
             imgs.append(canvas)
 
         stacked = imgs[0] if len(imgs) == 1 else kwimage.stack_images_grid(imgs)

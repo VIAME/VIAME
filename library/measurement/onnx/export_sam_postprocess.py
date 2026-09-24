@@ -22,6 +22,7 @@ from pathlib import Path
 
 import onnx
 from onnx import TensorProto as T, helper as h
+from viame import image_kernels
 
 
 def build_model():
@@ -67,6 +68,7 @@ def build_model():
 
 def check(model):
     import cv2
+    from viame import image_kernels
     import numpy as np
     import onnxruntime as ort
 
@@ -83,9 +85,9 @@ def check(model):
                           (("original_size", original), ("reshaped_size", reshaped), ("padded_size", padded))})
             mask, score = session.run(None, feeds)
             best = int(scores.argmax())
-            ref = cv2.resize(logits[0, best], padded[::-1], interpolation=cv2.INTER_LINEAR)
+            ref = image_kernels.resize(logits[0, best], padded[1], padded[0])
             ref = ref[:reshaped[0], :reshaped[1]]
-            ref = cv2.resize(ref, original[::-1], interpolation=cv2.INTER_LINEAR) > 0
+            ref = image_kernels.resize(ref, original[1], original[0]) > 0
             np.testing.assert_array_equal(mask, ref)
             np.testing.assert_equal(score, scores[best])
     print("ONNX Runtime matches reference selection, resize, crop and threshold (6 cases)")

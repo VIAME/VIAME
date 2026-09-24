@@ -14,6 +14,7 @@ from viame.classifiers.sleap.sleap_common import (
     read_config, transform_points,
 )
 from viame.object_detectors.base import register_vital_algorithm
+from viame.utilities import imageops
 
 
 class SleapTrainer(TrainDetector):

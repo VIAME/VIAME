@@ -16,6 +16,7 @@ import random
 
 import numpy as np
 import cv2
+from viame import image_kernels
 
 from viame.object_detectors.base import get_gpu_device
 
@@ -45,7 +46,7 @@ def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3
     iaug[ iaug > 255 ] = 255
     iaug[ iaug < 0 ] = 0
 
-    crop = cv2.resize(iaug,tuple([outsize,outsize]))
+    crop = image_kernels.resize(iaug, outsize, outsize)
     return crop
 
 

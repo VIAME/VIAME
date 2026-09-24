@@ -23,6 +23,7 @@ import json
 import re
 import importlib
 import subprocess
+from viame import image_kernels
 
 # Populated by import_dependencies()
 np = None
@@ -315,8 +316,8 @@ def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
 
     h1, w1 = img1.shape[:2]
     h2, w2 = img2.shape[:2]
-    small1 = cv2.resize(img1, (int(w1 * scale), int(h1 * scale)))
-    small2 = cv2.resize(img2, (int(w2 * scale), int(h2 * scale)))
+    small1 = image_kernels.resize(img1, int(w1 * scale), int(h1 * scale))
+    small2 = image_kernels.resize(img2, int(w2 * scale), int(h2 * scale))
 
     gray1 = cv2.cvtColor(small1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(small2, cv2.COLOR_BGR2GRAY)
@@ -498,7 +499,7 @@ def _compute_camera_chain(image_folder, cam_images, label="",
             anchor_scores.append((0, i))
             continue
         h, w = img.shape[:2]
-        small = cv2.resize(img, (int(w * 0.25), int(h * 0.25)))
+        small = image_kernels.resize(img, int(w * 0.25), int(h * 0.25))
         gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
         kp = sift_quick.detect(gray, None)
         anchor_scores.append((len(kp) if kp else 0, i))
@@ -1610,7 +1611,7 @@ def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500)
                                'method': 'sift'}
             continue
         h, w = img.shape[:2]
-        small = cv2.resize(img, (int(w * scale), int(h * scale)))
+        small = image_kernels.resize(img, int(w * scale), int(h * scale))
         gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
         kp = sift.detect(gray, None)
         n_kp = len(kp) if kp else 0

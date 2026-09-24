@@ -40,6 +40,7 @@ from viame.object_detectors.base import (
     register_vital_algorithm,
     parse_bool,
 )
+from viame.utilities import imageops
 
 
 class Detectron2DetectorConfig(scfg.DataConfig):

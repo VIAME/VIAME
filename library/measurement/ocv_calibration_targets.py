@@ -32,6 +32,7 @@ import logging
 import math
 
 import numpy as np
+from viame import image_kernels
 
 from viame.algo import ImageObjectDetector
 from viame.types import (BoundingBoxD, DetectedObject,
@@ -147,7 +148,9 @@ def detect_chessboard(gray, grid):
     scale = _detection_scale(gray.shape)
 
     if scale < 1.0:
-        small = cv2.resize(gray, None, fx=scale, fy=scale)
+        small = image_kernels.resize(
+            gray, max(1, int(gray.shape[1] * scale)),
+            max(1, int(gray.shape[0] * scale)))
         found, corners = cv2.findChessboardCorners(small, grid, flags=flags)
 
         if found:
@@ -264,7 +267,9 @@ def detect_dots(gray, min_area, max_area, min_circularity):
 
     scale = _detection_scale(gray.shape)
 
-    work = cv2.resize(gray, None, fx=scale, fy=scale) if scale < 1.0 else gray
+    work = (image_kernels.resize(
+        gray, max(1, int(gray.shape[1] * scale)),
+        max(1, int(gray.shape[0] * scale))) if scale < 1.0 else gray)
     inverted = cv2.bitwise_not(work)
 
     params = cv2.SimpleBlobDetector_Params()

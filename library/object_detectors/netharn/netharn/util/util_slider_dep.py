@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import ubelt as ub
 import torch.utils.data as torch_data
+from viame import image_kernels
 
 
 class SlidingSlices(ub.NiceRepr):
@@ -225,8 +226,8 @@ class SlidingSlices(ub.NiceRepr):
             >>> pred = np.arange(slider.n_total).reshape(pred_shape)
             >>> # upscale using computed transforms
             >>> (yscale, xscale), padding, prepad_shape = slider.clf_upscale_transform(dims)
-            >>> cv2.resize(pred.astype(np.uint8), prepad_shape)[0].shape
-            >>> resized = cv2.resize(pred.astype(np.uint8), prepad_shape)
+            >>> image_kernels.resize(pred.astype(np.uint8), prepad_shape[0], prepad_shape[1])[0].shape
+            >>> resized = image_kernels.resize(pred.astype(np.uint8), prepad_shape[0], prepad_shape[1])
             >>> resized = np.pad(resized, padding, mode='constant')
             >>> # FIXME: Following scale doesnt work right
             >>> import kwimage
@@ -328,6 +329,7 @@ class SlidingSlices(ub.NiceRepr):
             >>> upscaled = slider.upscale_overlay(pred)
         """
         import cv2
+        from viame import image_kernels
         # We can model this with a simple affine transform.  First allocate the
         # required output size, then construct the transform. Padding and
         # cropping will occur naturally.

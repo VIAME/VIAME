@@ -22,6 +22,7 @@ from viame.types import BoundingBoxD
 
 from viame.algo import TrainDetector
 from viame.object_detectors.base import safe_crop
+from viame import image_kernels
 
 
 class KWCocoTrainDetectorConfig(scfg.DataConfig):
@@ -141,6 +142,7 @@ class KWCocoTrainDetector(TrainDetector):
     def extract_chips_for_dets( self, image_files, truth_sets ):
         print('[KWCocoTrainDetector] extract_chips_for_dets')
         import cv2
+        from viame import image_kernels
         output_files = []
         output_dets = []
 
@@ -166,7 +168,7 @@ class KWCocoTrainDetector(TrainDetector):
                 if scale != 1.0:
                     img_max_x = int( scale * img_max_x )
                     img_max_y = int( scale * img_max_y )
-                    img = cv2.resize( img, ( img_max_x, img_max_y ) )
+                    img = image_kernels.resize(img, img_max_x, img_max_y)
 
                 # Run optional background detector on data
                 if self._detector_model:

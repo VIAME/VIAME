@@ -30,6 +30,7 @@ import numpy as np
 from viame.algo import TrainTracker
 
 from viame.object_detectors.base import report_cuda_errors
+from viame.utilities import imageops
 
 
 class MOTRTrainer(TrainTracker):

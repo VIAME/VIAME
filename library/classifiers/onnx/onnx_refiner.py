@@ -18,6 +18,7 @@ import math
 import numpy as np
 
 from viame.algo import RefineDetections
+from viame import image_kernels
 
 
 def _vital_config_update(cfg, cfg_in):
@@ -153,6 +154,7 @@ class OnnxRefiner(RefineDetections):
     # -- inference --
     def refine(self, image_data, detections):
         import cv2
+        from viame import image_kernels
         from viame.types import DetectedObjectSet, DetectedObjectType
 
         if len(detections) == 0:
@@ -171,7 +173,7 @@ class OnnxRefiner(RefineDetections):
             if scale != 1.0:
                 img_max_x = int(img_max_x * scale)
                 img_max_y = int(img_max_y * scale)
-                img = cv2.resize(img, (img_max_x, img_max_y))
+                img = image_kernels.resize(img, img_max_x, img_max_y)
 
         image_chips, detection_ids = [], []
         for i, det in enumerate(detections):

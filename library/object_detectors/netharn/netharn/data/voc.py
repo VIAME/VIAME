@@ -15,6 +15,7 @@ import ubelt as ub
 import numpy as np
 from viame.object_detectors.netharn.netharn.data import collate
 import torch.utils.data as torch_data
+from viame import image_kernels
 
 
 class VOCDataset(torch_data.Dataset, ub.NiceRepr):
@@ -215,6 +216,7 @@ class VOCDataset(torch_data.Dataset, ub.NiceRepr):
     def _load_item(self, index, inp_size=None):
         # from .models.yolo2.utils.yolo import _offset_boxes
         import cv2
+        from viame import image_kernels
         image = self._load_image(index)
         annot = self._load_annotation(index)
 
@@ -231,7 +233,7 @@ class VOCDataset(torch_data.Dataset, ub.NiceRepr):
             boxes[:, 0::2] *= sx
             boxes[:, 1::2] *= sy
             interpolation = cv2.INTER_AREA if (sx + sy) <= 2 else cv2.INTER_CUBIC
-            hwc = cv2.resize(image, (w, h), interpolation=interpolation)
+            hwc = image_kernels.resize(image, w, h)
             return hwc, boxes, gt_classes
 
     def _load_image(self, index):

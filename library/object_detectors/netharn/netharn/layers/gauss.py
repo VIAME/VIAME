@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from viame.object_detectors.netharn.netharn.layers import common
 import torch.nn.functional as F
+from viame import image_kernels
 
 
 class Conv1d_pad(torch.nn.Conv1d, common.ModuleMixin):
@@ -93,11 +94,12 @@ class GaussianBlurNd(common.Module):
         from viame.object_detectors.netharn import netharn as nh
         import kwimage
         import cv2
+        from viame import image_kernels
         import ubelt as ub
         from torchvision.transforms.functional import to_tensor
 
         image = kwimage.grab_test_image('carl')
-        image = cv2.resize(image, (256, 256))
+        image = image_kernels.resize(image, 256, 256)
         im = to_tensor(image)
         input = torch.stack([im] * 16, dim=0)
 

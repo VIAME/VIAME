@@ -12,6 +12,9 @@ import pickle
 import random
 
 import cv2
+
+from viame import image_kernels
+from viame import image_kernels
 import numpy as np
 import scipy.optimize
 import scipy.special
@@ -458,7 +461,7 @@ def create_bbox_files(
 
     # crop image
     crop_img = cur_frame[y:y + h, x:x + w]
-    crop_img = cv2.resize(crop_img, (224, 224))
+    crop_img = image_kernels.resize(crop_img, 224, 224)
 
     # Compute (stabilized) bbox center
     c_x = x + w / 2

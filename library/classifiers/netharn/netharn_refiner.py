@@ -12,7 +12,7 @@ from viame.utilities.compat import strtobool
 import numpy as np
 
 import math
-import cv2
+from viame import image_kernels
 
 from viame.object_detectors.base import safe_crop, vital_config_update, report_cuda_errors
 
@@ -213,7 +213,7 @@ class NetharnRefiner(RefineDetections):
             if scale != 1.0:
                 img_max_x = int(img_max_x * scale)
                 img_max_y = int(img_max_y * scale)
-                img = cv2.resize(img, (img_max_x, img_max_y))
+                img = image_kernels.resize(img, img_max_x, img_max_y)
 
         # Extract patches for ROIs
         image_chips = []

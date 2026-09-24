@@ -15,6 +15,7 @@ from viame.object_detectors.netharn.netharn import layers
 from packaging.version import parse as Version
 import torch.nn.functional as F
 from viame.object_detectors.netharn.netharn.data.channel_spec import ChannelSpec  # NOQA
+from viame import image_kernels
 
 
 _TORCH_HAS_BOOL_COMP = Version(torch.__version__) >= Version('1.2.0')
@@ -1134,8 +1135,9 @@ def demo_image(inp_size):
     import kwimage
     import numpy as np
     import cv2
+    from viame import image_kernels
     rgb255 = kwimage.grab_test_image('astro', 'rgb')
-    rgb01 = cv2.resize(rgb255, inp_size).astype(np.float32) / 255
+    rgb01 = image_kernels.resize(rgb255, inp_size[0], inp_size[1]).astype(np.float32) / 255
     im_data = torch.FloatTensor([rgb01.transpose(2, 0, 1)])
     return im_data, rgb255
 

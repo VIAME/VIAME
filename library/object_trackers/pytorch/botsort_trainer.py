@@ -60,6 +60,7 @@ except ImportError:
 
 from viame.object_trackers.pytorch.reid_data import (
     _frame_bounds, ReIDDataset, PKSampler)
+from viame import image_kernels
 
 
 class BoTSORTTrainer(TrainTracker):
@@ -379,6 +380,7 @@ class BoTSORTTrainer(TrainTracker):
     def _prepare_reid_data(self):
         """Prepare Re-ID training data (same as DeepSORT)."""
         import cv2
+        from viame import image_kernels
 
         crop_h, crop_w = map(int, self._crop_size.split('x'))
 
@@ -589,7 +591,7 @@ class BoTSORTTrainer(TrainTracker):
                         continue
 
                     crop = img[y1:y2, x1:x2]
-                    crop = cv2.resize(crop, (crop_w, crop_h))
+                    crop = image_kernels.resize(crop, crop_w, crop_h)
 
                     track_dir = output_dir / track_id
                     track_dir.mkdir(exist_ok=True)

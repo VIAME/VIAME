@@ -47,6 +47,7 @@ from pathlib import Path
 from typing import Iterator
 
 import numpy as np
+from viame import image_kernels
 
 
 # ---------------------------------------------------------------------------
@@ -235,6 +236,7 @@ class OnnxPredictor:
         """Resize to eval size, normalise, NCHW float32: squash-resize with
         INTER_AREA, scale, then (x - mean) / std."""
         import cv2
+        from viame import image_kernels
         if image_np.ndim == 2:
             image_np = np.repeat(image_np[..., None], 3, axis=-1)
         elif image_np.shape[2] == 4:
@@ -243,8 +245,7 @@ class OnnxPredictor:
                   "linear": cv2.INTER_LINEAR, "cubic": cv2.INTER_CUBIC,
                   "nearest": cv2.INTER_NEAREST}.get(
                       getattr(self, "_interp_name", "area"), cv2.INTER_AREA)
-        resized = cv2.resize(image_np, (self._eval_w, self._eval_h),
-                             interpolation=interp)
+        resized = image_kernels.resize(image_np, self._eval_w, self._eval_h)
         img_f32 = resized.astype(np.float32) * self._scale
         img_f32 = (img_f32 - self._mean) / self._std
         return img_f32.transpose(2, 0, 1)[None, ...]
@@ -264,7 +265,7 @@ class OnnxPredictor:
         new_h = max(int(round(src_h * scale)), 1)
         new_w = max(int(round(src_w * scale)), 1)
         interp = cv2.INTER_AREA if scale < 1 else cv2.INTER_LINEAR
-        resized = cv2.resize(image_np, (new_w, new_h), interpolation=interp)
+        resized = image_kernels.resize(image_np, new_w, new_h)
         canvas = np.zeros((self._eval_h, self._eval_w, 3), dtype=image_np.dtype)
         pad_y = (self._eval_h - new_h) // 2
         pad_x = (self._eval_w - new_w) // 2
@@ -353,8 +354,7 @@ class OnnxPredictor:
             if want_masks:
                 # Per-query mask logits -> resize (bilinear) to the frame and
                 # threshold at 0, exactly as rfdetr PostProcess does.
-                m = cv2.resize(masks[q].astype(np.float32), (W, H),
-                               interpolation=cv2.INTER_LINEAR)
+                m = image_kernels.resize(masks[q].astype(np.float32), W, H)
                 det["mask"] = (m > 0.0).astype(np.uint8)
             result.append(det)
         return result

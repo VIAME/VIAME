@@ -52,6 +52,7 @@ from viame.processes.base import ViameProcess
 
 from viame.object_trackers.simple_homog_tracker import add_declare_config
 from .stabilize_many_images import add_declare_input_port
+from viame import image_kernels
 
 
 PREFILTER_SIZE = 320
@@ -69,13 +70,12 @@ def _log(message):
 def _prefilter_scores(gray):
     """Cheap, model-free frame quality metrics on one grayscale image."""
     import cv2
+    from viame import image_kernels
 
     h, w = gray.shape
     scale = PREFILTER_SIZE / float(max(h, w))
     if scale < 1.0:
-        gray = cv2.resize(
-            gray, (max(1, int(w * scale)), max(1, int(h * scale))),
-            interpolation=cv2.INTER_AREA)
+        gray = image_kernels.resize_area(gray, max(1, int(w * scale)), max(1, int(h * scale)))
     texture = float(cv2.Laplacian(gray, cv2.CV_64F).var())
     hist = np.bincount(gray.ravel(), minlength=256).astype(np.float64)
     p = hist / max(hist.sum(), 1.0)

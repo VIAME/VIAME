@@ -42,6 +42,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
+from viame.utilities import imageops
 
 try:  # imported as a package member
     from viame.measurement.onnx.calibration_io import load_calibration

@@ -1,5 +1,6 @@
 import numpy as np
 from viame.object_detectors.netharn.netharn.data.transforms import augmenter_base
+from viame import image_kernels
 
 try:
     import imgaug
@@ -24,6 +25,7 @@ def demodata_hsv_image(w=200, h=200):
         >>> kwplot.show_if_requested()
     """
     import cv2
+    from viame import image_kernels
     hsv = np.zeros((h, w, 3), dtype=np.float32)
 
     hue = np.linspace(0, 360, num=w)
@@ -430,7 +432,7 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
         dsize = tuple(orig_size)
         # Choose INTER_AREA if we are shrinking the image
         interpolation = cv2.INTER_AREA if sf.sum() < 2 else cv2.INTER_CUBIC
-        inverted_img = cv2.resize(unpadded_img, dsize, interpolation=interpolation)
+        inverted_img = image_kernels.resize(unpadded_img, dsize[0], dsize[1])
         return inverted_img
 
     def _boxes_letterbox_apply(self, boxes, orig_size, target_size):
@@ -532,7 +534,7 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
         interpolation = cv2.INTER_AREA if sf.sum() < 2 else cv2.INTER_CUBIC
         if any(d < 0 for d in dsize):
             raise ValueError('dsize={} must be non-negative'.format(dsize))
-        scaled = cv2.resize(img, dsize, interpolation=interpolation)
+        scaled = image_kernels.resize(img, dsize[0], dsize[1])
 
         border = self.border.draw_sample()
         cval = self.fill_color.draw_sample()

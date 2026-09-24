@@ -19,6 +19,7 @@ import numpy as np
 
 from viame.object_detectors.onnx.onnx_predictor import (
     _open_onnx_package, _providers_for_device, _cuda_device_id)
+from viame import image_kernels
 
 
 def letterbox_resize(image, height, width):
@@ -26,6 +27,7 @@ def letterbox_resize(image, height, width):
     when shrinking, INTER_LANCZOS4 when growing, pad offset rounded rather than
     floored."""
     import cv2
+    from viame import image_kernels
     if image.ndim == 2:
         image = np.repeat(image[..., None], 3, axis=-1)
     elif image.shape[2] == 4:
@@ -44,8 +46,7 @@ def letterbox_resize(image, height, width):
     right, bot = target_size - (embed_size + offset)
 
     interpolation = cv2.INTER_AREA if equal_sxy < 1 else cv2.INTER_LANCZOS4
-    embedded = cv2.resize(image, (int(embed_size[0]), int(embed_size[1])),
-                          interpolation=interpolation)
+    embedded = image_kernels.resize(image, int(embed_size[0]), int(embed_size[1]))
     return cv2.copyMakeBorder(embedded, int(top), int(bot), int(left),
                               int(right), borderType=cv2.BORDER_CONSTANT,
                               value=0)
@@ -123,8 +124,7 @@ class OnnxClassifierPredictor:
                 image = np.repeat(image[..., None], 3, axis=-1)
             elif image.shape[2] == 4:
                 image = image[..., :3]
-            resized = cv2.resize(image, (self._eval_w, self._eval_h),
-                                 interpolation=cv2.INTER_LINEAR)
+            resized = image_kernels.resize(image, self._eval_w, self._eval_h)
         arr = resized.astype(np.float32) * self._scale
         arr = (arr - self._mean) / self._std
         return arr.transpose(2, 0, 1)

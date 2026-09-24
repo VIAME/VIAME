@@ -45,6 +45,7 @@ from viame.types import (
 )
 
 from viame.object_detectors.base import report_cuda_errors
+from viame import image_kernels
 
 
 def _resolve_attr(model, names):
@@ -309,6 +310,7 @@ class SAM3Trainer(TrainDetector):
     ):
         """Process one split (train/val) of the data."""
         import cv2
+        from viame import image_kernels
 
         images_json = []
         annotations_json = []
@@ -1442,7 +1444,7 @@ class SAM3TrackerTrainer(TrainTracker):
 
         orig_h, orig_w = img.shape[:2]
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (chip_w, chip_h))
+        img = image_kernels.resize(img, chip_w, chip_h)
         img_tensor = torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
 
         scale_x = chip_w / orig_w

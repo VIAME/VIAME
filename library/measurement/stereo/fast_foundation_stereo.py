@@ -31,6 +31,7 @@ from viame.utilities.utils import (
 )
 
 from viame.object_detectors.base import vital_config_update, report_cuda_errors
+from viame import image_kernels
 
 
 class FastFoundationStereoConfig(scfg.DataConfig):
@@ -307,6 +308,7 @@ class FastFoundationStereo(ComputeStereoDepthMap):
         """
         import torch
         import cv2
+        from viame import image_kernels
 
         left_npy = self._format_image(left_image)
         right_npy = self._format_image(right_image)
@@ -323,12 +325,8 @@ class FastFoundationStereo(ComputeStereoDepthMap):
         if scale < 1.0:
             H_scaled = int(H_orig * scale)
             W_scaled = int(W_orig * scale)
-            left_npy = cv2.resize(
-                left_npy, (W_scaled, H_scaled), interpolation=cv2.INTER_AREA
-            )
-            right_npy = cv2.resize(
-                right_npy, (W_scaled, H_scaled), interpolation=cv2.INTER_AREA
-            )
+            left_npy = image_kernels.resize_area(left_npy, W_scaled, H_scaled)
+            right_npy = image_kernels.resize_area(right_npy, W_scaled, H_scaled)
             H, W = H_scaled, W_scaled
         else:
             H, W = H_orig, W_orig
@@ -376,9 +374,7 @@ class FastFoundationStereo(ComputeStereoDepthMap):
 
         if scale < 1.0:
             # Disparity scales inversely with image scale.
-            disp_npy = cv2.resize(
-                disp_npy, (W_orig, H_orig), interpolation=cv2.INTER_LINEAR
-            )
+            disp_npy = image_kernels.resize(disp_npy, W_orig, H_orig)
             disp_npy = disp_npy / scale
 
         if self._config["remove_invisible"]:

@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import ubelt as ub
 from viame.object_detectors.netharn.netharn.models.yolo2 import light_postproc
+from viame import image_kernels
 
 __all__ = ['Yolo']
 
@@ -382,8 +383,9 @@ def demo_image(inp_size):
     from ... import util
     import numpy as np
     import cv2
+    from viame import image_kernels
     rgb255 = util.grab_test_image('astro', 'rgb')
-    rgb01 = cv2.resize(rgb255, inp_size).astype(np.float32) / 255
+    rgb01 = image_kernels.resize(rgb255, inp_size[0], inp_size[1]).astype(np.float32) / 255
     im_data = torch.FloatTensor([rgb01.transpose(2, 0, 1)])
     return im_data, rgb255
 

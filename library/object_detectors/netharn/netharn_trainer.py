@@ -32,6 +32,7 @@ import random
 import math
 
 from viame.object_detectors.base import safe_crop, recurse_copy, report_cuda_errors
+from viame import image_kernels
 
 
 class NetHarnTrainer( TrainDetector ):
@@ -564,6 +565,7 @@ class NetHarnTrainer( TrainDetector ):
 
     def _extract_chips_range( self, image_files, truth_sets, indices, detector ):
         import cv2
+        from viame import image_kernels
         output_files = []
         output_dets = []
 
@@ -607,7 +609,7 @@ class NetHarnTrainer( TrainDetector ):
                 if scale != 1.0:
                     img_max_x = int( scale * img_max_x )
                     img_max_y = int( scale * img_max_y )
-                    img = cv2.resize( img, ( img_max_x, img_max_y ) )
+                    img = image_kernels.resize(img, img_max_x, img_max_y)
 
             if len( groundtruth ) == 0 and len( detections ) == 0:
                 continue

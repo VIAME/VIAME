@@ -13,6 +13,7 @@ from types import ModuleType, SimpleNamespace
 
 import numpy as np
 import pytest
+from viame.utilities import imageops
 
 pytest.importorskip('cv2')
 ROOT = Path(__file__).resolve().parents[3]

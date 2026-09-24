@@ -19,6 +19,7 @@ import time
 import re
 import subprocess
 import glob
+from viame import image_kernels
 
 # Populated by import_dependencies()
 np = None
@@ -568,8 +569,8 @@ def run_dense(rec, image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
             # Downscale for feature extraction
             h0, w0 = bgr_a.shape[:2]
             h, w = int(h0 * scale), int(w0 * scale)
-            small_a = cv2.resize(bgr_a, (w, h), interpolation=cv2.INTER_AREA)
-            small_b = cv2.resize(bgr_b, (w, h), interpolation=cv2.INTER_AREA)
+            small_a = image_kernels.resize_area(bgr_a, w, h)
+            small_b = image_kernels.resize_area(bgr_b, w, h)
 
             gray_a = cv2.cvtColor(small_a, cv2.COLOR_BGR2GRAY)
             gray_b = cv2.cvtColor(small_b, cv2.COLOR_BGR2GRAY)

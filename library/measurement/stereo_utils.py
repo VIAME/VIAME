@@ -7,6 +7,7 @@
 import itertools as it
 import numpy as np
 import cv2
+from viame import image_kernels
 import scipy.optimize
 
 def downsample_average_blocks(img, factor):
@@ -50,7 +51,7 @@ def imscale(img, scale):
     # interpolation = cv2.INTER_CUBIC
     # interpolation = cv2.INTER_LANCZOS4
 
-    new_img = cv2.resize(img, new_dsize, interpolation=interpolation)
+    new_img = image_kernels.resize(img, new_dsize[0], new_dsize[1])
     return new_img, new_scale
 
 

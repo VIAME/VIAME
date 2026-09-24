@@ -33,6 +33,9 @@ from PIL import Image as pil_image
 from viame.util.pil import get_pil_image, from_pil
 
 import cv2
+
+from viame import image_kernels
+from viame import image_kernels
 import csv
 import logging
 import numpy as np
@@ -58,7 +61,7 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
     # resize if requested
     if match_low_res:
         aspect = optical_gray.shape[1] / optical_gray.shape[0]
-        optical_gray = cv2.resize( optical_gray, ( int( match_height*aspect ), match_height) )
+        optical_gray = image_kernels.resize(optical_gray, int( match_height*aspect ), match_height)
     
     # Detect SIFT features and compute descriptors.
     sift = cv2.xfeatures2d.SIFT_create()

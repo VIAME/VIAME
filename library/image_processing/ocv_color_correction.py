@@ -37,6 +37,7 @@ import numpy as np
 
 from viame.algo import ImageFilter
 from viame.types import Image, ImageContainer
+from viame import image_kernels
 
 logger = logging.getLogger(__name__)
 
@@ -167,6 +168,7 @@ class ApplyColorCorrection(ImageFilter):
     def _auto_gamma(self, image):
         """The gamma that would bring the mean to middle gray."""
         import cv2
+        from viame import image_kernels
 
         gray = (cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 if image.ndim == 3 and image.shape[2] == 3 else image)
@@ -310,8 +312,7 @@ class ApplyColorCorrection(ImageFilter):
 
         if depth_map is not None and depth_map.size:
             if depth_map.shape[:2] != image.shape[:2]:
-                depth = cv2.resize(depth_map,
-                                   (image.shape[1], image.shape[0]))
+                depth = image_kernels.resize(depth_map, image.shape[1], image.shape[0])
             else:
                 depth = depth_map.copy()
         elif self._use_auto_depth:

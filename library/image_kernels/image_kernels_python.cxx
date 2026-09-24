@@ -98,6 +98,15 @@ resize( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const&
 }
 
 py::array
+resize_area( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+             size_t width, size_t height )
+{
+  auto const source = as_image( array );
+  return as_array( viame::image_kernels::resize_area( source, width, height ),
+                   array.ndim() == 3 );
+}
+
+py::array
 crop( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
       size_t left, size_t top, size_t width, size_t height )
 {
@@ -145,6 +154,12 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "height" ),
          "Bilinear resize. The same kernel the C++ pipelines use, so a "
          "resized frame matches whether it was resized here or there." );
+
+  m.def( "resize_area", &resize_area, py::arg( "image" ), py::arg( "width" ),
+         py::arg( "height" ),
+         "Resize by averaging each destination pixel's source footprint, "
+         "which is the right filter for shrinking. Agrees with OpenCV's "
+         "INTER_AREA to within one grey level." );
 
   m.def( "crop", &crop, py::arg( "image" ), py::arg( "left" ), py::arg( "top" ),
          py::arg( "width" ), py::arg( "height" ),

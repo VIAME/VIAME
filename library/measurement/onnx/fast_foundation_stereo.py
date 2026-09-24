@@ -33,6 +33,7 @@ from viame.types import Image, ImageContainer
 from viame.utilities.utils import (
     str2bool, image_container_to_uint8_hwc, read_stereo_calibration,
 )
+from viame import image_kernels
 
 
 
@@ -487,6 +488,7 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
 
     def compute(self, left_image, right_image):
         import cv2
+        from viame import image_kernels
 
         left_npy = self._format_image(left_image)
         right_npy = self._format_image(right_image)
@@ -506,12 +508,8 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
         # resolution.
         fx = target_w / float(W_orig)
         if (target_h, target_w) != (H_orig, W_orig):
-            left_npy = cv2.resize(
-                left_npy, (target_w, target_h), interpolation=cv2.INTER_LINEAR
-            )
-            right_npy = cv2.resize(
-                right_npy, (target_w, target_h), interpolation=cv2.INTER_LINEAR
-            )
+            left_npy = image_kernels.resize(left_npy, target_w, target_h)
+            right_npy = image_kernels.resize(right_npy, target_w, target_h)
 
         # ImageNet normalisation, NCHW float32
         left_norm = (
@@ -530,7 +528,7 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
 
         # Scale disparity back to original image coordinates.
         if (target_h, target_w) != (H_orig, W_orig):
-            disp = cv2.resize(disp, (W_orig, H_orig), interpolation=cv2.INTER_LINEAR)
+            disp = image_kernels.resize(disp, W_orig, H_orig)
             disp = disp / fx  # disparity scales inversely with image scale
 
         if self._config["remove_invisible"]:

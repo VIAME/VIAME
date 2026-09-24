@@ -24,6 +24,7 @@ from viame.utilities.utils import (
 )
 
 from viame.object_detectors.base import vital_config_update, report_cuda_errors
+from viame import image_kernels
 
 
 class FoundationStereoConfig(scfg.DataConfig):
@@ -284,6 +285,7 @@ class FoundationStereo(ComputeStereoDepthMap):
         """
         import torch
         import cv2
+        from viame import image_kernels
 
         # Convert to numpy arrays
         left_npy = self._format_image(left_image)
@@ -303,12 +305,8 @@ class FoundationStereo(ComputeStereoDepthMap):
         if scale < 1.0:
             H_scaled = int(H_orig * scale)
             W_scaled = int(W_orig * scale)
-            left_npy = cv2.resize(
-                left_npy, (W_scaled, H_scaled), interpolation=cv2.INTER_AREA
-            )
-            right_npy = cv2.resize(
-                right_npy, (W_scaled, H_scaled), interpolation=cv2.INTER_AREA
-            )
+            left_npy = image_kernels.resize_area(left_npy, W_scaled, H_scaled)
+            right_npy = image_kernels.resize_area(right_npy, W_scaled, H_scaled)
             H, W = H_scaled, W_scaled
             # Scale calibration parameters
             focal_length_scaled = self._focal_length * scale
@@ -357,9 +355,7 @@ class FoundationStereo(ComputeStereoDepthMap):
         # Scale disparity back to original resolution if needed
         if scale < 1.0:
             # Disparity values scale inversely with image scale
-            disp_npy = cv2.resize(
-                disp_npy, (W_orig, H_orig), interpolation=cv2.INTER_LINEAR
-            )
+            disp_npy = image_kernels.resize(disp_npy, W_orig, H_orig)
             disp_npy = disp_npy / scale  # Scale disparity values back
 
         # Handle invisible regions if requested (at original resolution)

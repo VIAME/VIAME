@@ -37,6 +37,7 @@ from viame.object_detectors.base import (
     get_autocast_context,
     parse_bool,
 )
+from viame import image_kernels
 
 
 # =============================================================================
@@ -1089,13 +1090,10 @@ class _SharedSAM3PredictorWrapper:
         # Resize masks to original size if needed
         if masks.shape[-2:] != self._original_size:
             import cv2
+            from viame import image_kernels
             resized_masks = []
             for m in masks:
-                resized = cv2.resize(
-                    m.astype(np.float32),
-                    (self._original_size[1], self._original_size[0]),
-                    interpolation=cv2.INTER_LINEAR
-                )
+                resized = image_kernels.resize(m.astype(np.float32), self._original_size[1], self._original_size[0])
                 resized_masks.append(resized > 0.5)
             masks = np.array(resized_masks)
 
