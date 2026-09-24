@@ -57,10 +57,22 @@ numpy. Roughly 100 sites, no numerical subtlety beyond rounding.
 `contours`. Visual output only, so goldens that compare rendered frames are
 the check.
 
-**3. Resampling.** `resize` (51), `remap` (18), `warpAffine` (7) to
-`image_kernels/resample` and `warp`. Interpolation must match or the
-measurement goldens move; expect to record differences deliberately rather
-than chase bit equality.
+**3. Resampling.** `resize` (51), `remap` (18), `warpAffine` (7).
+
+Measured against cv2 on a natural frame before committing to an approach,
+because the obvious route -- Pillow, already a dependency -- turns out not
+to be a drop-in:
+
+    area       max  1   mean 0.24    drop-in
+    bilinear   max 14   mean 0.55    3.9% of pixels differ by >2
+    bicubic    max 19   mean 0.74    6.1%
+    nearest    max 50   mean 2.26    24%, a half-pixel convention difference
+
+So Pillow covers `INTER_AREA` and nothing else safely. The other three want
+`image_kernels/resample`, which was written during this port precisely to
+replace OpenCV's resizing in C++ and is already held to the goldens. Binding
+that is the work here; reaching for Pillow would quietly shift every
+resampled result.
 
 **4. Camera geometry.** `initUndistortRectifyMap` (16), `undistortPoints`
 (15), `Rodrigues` (11), `projectPoints` (9) to `projection.h`, which already
