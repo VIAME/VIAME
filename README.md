@@ -118,6 +118,30 @@ included by default but can be downloaded via running the script download_viame_
 in the bin folder, or by using the viame add-ons tool.
 
 
+Python Package
+--------------
+
+A headless, command-line installation is available on PyPI for Linux, with
+wheels for Python 3.10 through 3.14:
+
+pip install viame
+
+This installs the `viame` tool onto your path alongside the `viame` python
+package, and needs no environment set up afterwards. GPU support comes from
+whichever CUDA torch pulls in, so no separate CUDA installation is required.
+The pipelines that ship are those whose models are small enough to travel
+with the code; larger models are fetched on demand with the viame add-ons
+tool, into the same environment. A few quick examples:
+
+```
+viame help                                       # list every tool
+viame run detector.zip video.mp4                 # run a detector on a video
+viame train data/ train_detector.conf            # train a model on some data
+viame score detections.csv groundtruth.csv       # score against groundtruth
+viame add-ons                                    # list and install model add-ons
+```
+
+
 Command Line Interface Basics
 -----------------------------
 
