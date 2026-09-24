@@ -2,19 +2,10 @@
 # Root configuration file CMakeLists
 ##
 
-# Installs never remove files, so clear stale pipelines before reinstalling.
-# Only *.pipe and *.conf; models/ and transformations/ hold downloaded weights.
-install( CODE "
-  file( GLOB_RECURSE _viame_stale_pipes
-        \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/*.pipe\"
-        \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/*.conf\" )
-  list( LENGTH _viame_stale_pipes _viame_stale_count )
-  if( _viame_stale_count GREATER 0 )
-    message( STATUS
-      \"Clearing \${_viame_stale_count} previously installed pipeline file(s)\" )
-    file( REMOVE \${_viame_stale_pipes} )
-  endif()
-" )
+# Installs never remove files: clear what the previous install put in
+# configs/pipelines before reinstalling (see the script for what qualifies).
+install( CODE "set( VIAME_BUILD_MANIFEST \"${CMAKE_BINARY_DIR}/install_manifest.txt\" )" )
+install( SCRIPT "${VIAME_CMAKE_DIR}/prune_installed_pipelines.cmake" )
 
 # Core, default configuration files
 add_subdirectory( pipelines )
