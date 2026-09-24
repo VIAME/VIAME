@@ -11,9 +11,18 @@ ROOT = Path(__file__).resolve().parents[3]
 
 @pytest.fixture
 def service(monkeypatch):
+    # The real image kernels, kept across the stubbing: `interactive_stereo`
+    # converts its frames with them, and a stub would leave those paths
+    # untested rather than exercised.
+    import viame.image_kernels as real_image_kernels
+
     core = types.ModuleType('viame.measurement')
     core._measurement = Mock()
-    monkeypatch.setitem(sys.modules, 'viame', types.ModuleType('viame'))
+    stub = types.ModuleType('viame')
+    stub.image_kernels = real_image_kernels
+    monkeypatch.setitem(sys.modules, 'viame', stub)
+    monkeypatch.setitem(sys.modules, 'viame.image_kernels',
+                        real_image_kernels)
     monkeypatch.setitem(sys.modules, 'viame.measurement', core)
     for name in ('curved_measurement', 'interactive_stereo'):
         spec = importlib.util.spec_from_file_location('viame.measurement.' + name, ROOT / 'library/measurement' / (name + '.py'))

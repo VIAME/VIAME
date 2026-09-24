@@ -18,6 +18,7 @@ import numpy as np
 import scriptconfig as scfg
 
 from viame.algo import SegmentViaPoints
+from viame import image_kernels
 
 
 class WatershedSegmenterConfig(scfg.DataConfig):
@@ -128,23 +129,29 @@ class WatershedSegmenter(SegmentViaPoints):
         # Convert image to numpy array
         img_array = image.image().asarray()
 
-        # Ensure 3-channel BGR format for OpenCV
-        if img_array.ndim == 2:
-            img_array = cv2.cvtColor(img_array, cv2.COLOR_GRAY2BGR)
-        elif img_array.shape[2] == 1:
-            img_array = cv2.cvtColor(img_array.squeeze(), cv2.COLOR_GRAY2BGR)
-        elif img_array.shape[2] == 4:
-            img_array = cv2.cvtColor(img_array, cv2.COLOR_RGBA2BGR)
-        elif img_array.shape[2] == 3:
-            # Assume RGB, convert to BGR for OpenCV
-            img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-
-        # Ensure uint8
+        # uint8 first: the channel conversions below are the kernels', and
+        # they take the pixel types a pipeline carries rather than casting
+        # whatever they are given. This ran the other way round when it was
+        # cv2, which converted silently.
         if img_array.dtype != np.uint8:
             if img_array.max() <= 1.0:
                 img_array = (img_array * 255).astype(np.uint8)
             else:
                 img_array = img_array.astype(np.uint8)
+
+        # Ensure 3-channel BGR format for the matcher
+        if img_array.ndim == 2:
+            img_array = image_kernels.to_rgb(img_array)
+        elif img_array.shape[2] == 1:
+            img_array = image_kernels.to_rgb(
+                np.ascontiguousarray(img_array.squeeze()))
+        elif img_array.shape[2] == 4:
+            # Drop alpha, then RGB to BGR
+            img_array = image_kernels.swap_channels(
+                np.ascontiguousarray(img_array[:, :, :3]))
+        elif img_array.shape[2] == 3:
+            # Assume RGB, convert to BGR
+            img_array = image_kernels.swap_channels(img_array)
 
         # Ensure contiguous memory layout
         img_array = np.ascontiguousarray(img_array)

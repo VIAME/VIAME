@@ -67,6 +67,7 @@ import cv2
 # lives solely in viame::core::compute_stereo_measurement (no Python duplicate),
 # so this module is a hard dependency.
 from viame.core import _measurement as _cpp_measurement
+from viame import image_kernels
 
 
 class EpipolarTemplateMatcher:
@@ -1024,12 +1025,12 @@ class InteractiveStereoService:
                 left_arr = np.array(left_container.image().asarray())
                 right_arr = np.array(right_container.image().asarray())
                 # Convert RGB to grayscale
-                left_gray = cv2.cvtColor(left_arr, cv2.COLOR_RGB2GRAY) if left_arr.ndim == 3 else left_arr
-                right_gray = cv2.cvtColor(right_arr, cv2.COLOR_RGB2GRAY) if right_arr.ndim == 3 else right_arr
+                left_gray = image_kernels.to_gray(left_arr) if left_arr.ndim == 3 else left_arr
+                right_gray = image_kernels.to_gray(right_arr) if right_arr.ndim == 3 else right_arr
                 # BGR for DINO
                 if self._epipolar_matcher._dino_available:
-                    left_bgr = cv2.cvtColor(left_arr, cv2.COLOR_RGB2BGR) if left_arr.ndim == 3 else left_arr
-                    right_bgr = cv2.cvtColor(right_arr, cv2.COLOR_RGB2BGR) if right_arr.ndim == 3 else right_arr
+                    left_bgr = image_kernels.swap_channels(left_arr) if left_arr.ndim == 3 else left_arr
+                    right_bgr = image_kernels.swap_channels(right_arr) if right_arr.ndim == 3 else right_arr
                     self._epipolar_matcher.set_images(left_bgr, right_bgr)
             else:
                 left_gray = cv2.imread(left_path, cv2.IMREAD_GRAYSCALE)

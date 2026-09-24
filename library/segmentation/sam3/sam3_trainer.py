@@ -46,6 +46,7 @@ from viame.types import (
 
 from viame.object_detectors.base import report_cuda_errors
 from viame import image_kernels
+from viame.utilities import imageops
 
 
 def _resolve_attr(model, names):
@@ -1438,12 +1439,14 @@ class SAM3TrackerTrainer(TrainTracker):
         import cv2
         import torch
 
-        img = cv2.imread(frame["image"])
-        if img is None:
+        try:
+            img = imageops.read_image(frame["image"])
+        except OSError:
             return None
 
         orig_h, orig_w = img.shape[:2]
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # `read_image` gives RGB, which is what this wanted -- the swap that
+        # used to follow `cv2.imread` was undoing cv2's BGR.
         img = image_kernels.resize(img, chip_w, chip_h)
         img_tensor = torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
 

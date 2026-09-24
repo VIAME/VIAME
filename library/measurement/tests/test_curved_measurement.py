@@ -132,7 +132,15 @@ def test_service_routing_and_stale_frame(monkeypatch):
     # disparity geometry and request adapter execute below.
     core = types.ModuleType('viame.measurement')
     core._measurement = Mock()
-    monkeypatch.setitem(sys.modules, 'viame', types.ModuleType('viame'))
+    # The real image kernels survive the stubbing: `interactive_stereo`
+    # converts its frames with them, so stubbing them out would skip the
+    # very paths this exercises.
+    import viame.image_kernels as real_image_kernels
+    stub = types.ModuleType('viame')
+    stub.image_kernels = real_image_kernels
+    monkeypatch.setitem(sys.modules, 'viame', stub)
+    monkeypatch.setitem(sys.modules, 'viame.image_kernels',
+                        real_image_kernels)
     monkeypatch.setitem(sys.modules, 'viame.measurement', core)
     monkeypatch.setitem(sys.modules, 'viame.measurement.curved_measurement', cm)
     spec = importlib.util.spec_from_file_location('curve_service_test', ROOT / 'library/measurement/interactive_stereo.py')

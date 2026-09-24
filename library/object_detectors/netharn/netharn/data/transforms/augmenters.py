@@ -41,6 +41,9 @@ def demodata_hsv_image(w=200, h=200):
         p[:, :, 2] = v
         parts.append(p)
     final_hsv = np.hstack(parts)
+    # float32 0..1 with hue in 0..360, which is cv2's float convention and
+    # not the kernels' uint8 one (hue 0..179). Left on cv2 until the kernels
+    # carry the float form; porting it to `from_hsv` silently rescales hue.
     rgb01 = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2RGB)
     rgb255 = (rgb01 * 255).astype(np.uint8)
     return rgb255

@@ -82,6 +82,20 @@ blocks everything.
 is already a dependency; `cvtColor` (54 sites) to `image_kernels/color` or
 numpy. Roughly 100 sites, no numerical subtlety beyond rounding.
 
+**1a. The float colour spaces.** `cv2.cvtColor` has *two* conventions and
+the kernels carry one. On uint8, `COLOR_RGB2HSV` gives hue 0..179 so it fits
+a byte; on float32 it gives hue 0..**360** and saturation and value 0..1.
+`image_kernels.to_hsv` is the uint8 one, and netharn's augmenter uses the
+float one -- `img01 = img / 255.0` then `hsv[:, :, 0] + hue_bound * dh` with
+`hue_bound` 360. Porting those three sites to `to_hsv` rescales hue by two
+without a word.
+
+They are left on cv2 with a comment saying why, and the fix is a float
+overload of the four colour conversions following cv2's float scaling. The
+bindings refuse a float32 array rather than casting it, so this failed
+loudly rather than silently -- which is the argument for having dropped
+`forcecast`.
+
 **2. Drawing and contours.** `rectangle`, `putText`, `fillPoly`,
 `findContours`, `contourArea` to `image_kernels/draw`, `polygon` and
 `contours`. Visual output only, so goldens that compare rendered frames are
