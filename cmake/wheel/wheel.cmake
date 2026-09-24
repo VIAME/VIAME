@@ -119,6 +119,10 @@ add_custom_target( wheel
           --version    "${VIAME_WHEEL_VERSION}"
           --manifest   "${CMAKE_BINARY_DIR}/install_manifest.txt"
           --top-level  viame
+          # The tools go on the PATH as python launchers; the binaries they
+          # exec live in {data}/libexec/viame. See contents.txt.
+          --launcher   viame
+          --launcher   kwiver
           # libgomp is outside the manylinux allowlist; packed only if
           # this build actually uses OpenMP
           --bundle     libgomp.so.1

@@ -67,8 +67,20 @@ include lib/libviame.so*  -> {data}/lib/
 # fail in a way that looks like a broken install rather than a missing
 # component.
 # ----------------------------------------------------------------------------
-include bin/viame   -> {scripts}/
-include bin/kwiver  -> {scripts}/
+# Into `{data}/libexec/viame/` rather than onto the PATH, and a generated
+# python launcher takes their place -- `--launcher` in wheel.cmake. These are
+# ELF binaries linking `libpython3.X.so.1.0`, and nothing knows where that is
+# until an interpreter is running: on a distribution python it is in the
+# ldconfig cache, on a standalone one (pyenv, conda, uv, python.org) it is
+# not, and the tool dies before main with "error while loading shared
+# libraries". The launcher asks the running interpreter and sets
+# LD_LIBRARY_PATH before exec'ing these.
+# Flat under `libexec/`, not `libexec/viame/`: these carry
+# `$ORIGIN/../lib` for libviame, and from `<prefix>/libexec/` that is
+# `<prefix>/lib`, which is where `{data}/lib/` lands. One directory
+# deeper and it resolves to `<prefix>/libexec/lib`, which is nothing.
+include bin/viame   -> {data}/libexec/
+include bin/kwiver  -> {data}/libexec/
 
 # ----------------------------------------------------------------------------
 # The tool scripts
