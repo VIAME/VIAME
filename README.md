@@ -128,18 +128,9 @@ pip install viame
 
 This puts the `viame` tool described below onto your path, needing no
 environment set up afterwards, and installs the `viame` python package
-alongside it so the same algorithms can be driven directly from python:
-
-```
-from viame.algo import VideoInput
-from viame.modules import modules
-
-modules.load_known_modules()
-reader = VideoInput.create('vidl_ffmpeg')
-reader.open('video.mp4')
-while reader.next_frame():
-    image = reader.frame_image()
-```
+alongside it, so the same detectors, trackers, readers and measurement
+algorithms the pipelines use can be driven directly from python. See
+[Using VIAME as a Python Package](docs/python_package.md).
 
 GPU support comes from whichever CUDA torch pulls in, so no separate CUDA
 installation is required. The pipelines that ship are those whose models are
