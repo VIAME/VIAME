@@ -223,7 +223,6 @@ def adjust_gamma(img, gamma=1.0):
         >>> kwplot.imshow(adjust_gamma(img, 2), pnum=(3, 3, 8), fnum=1)
         >>> kwplot.imshow(adjust_gamma(imgf, 2), pnum=(3, 3, 9), fnum=1)
     """
-    import cv2
     if img.dtype.kind in ('i', 'u'):
         # build a lookup table mapping the pixel values [0, 255] to
         # their adjusted gamma values
@@ -233,7 +232,7 @@ def adjust_gamma(img, gamma=1.0):
             ((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)
         ]).astype("uint8")
         # apply gamma correction using the lookup table
-        return cv2.LUT(img, table)
+        return table[img]
     else:
         import kwimage
         np_img = kwimage.ensure_float01(img, copy=False)
@@ -243,22 +242,6 @@ def adjust_gamma(img, gamma=1.0):
         return np_img
 
 
-def _lookup_cv2_colorspace_conversion_code(src_space, dst_space):
-    import cv2
-    src = src_space.upper()
-    dst = dst_space.upper()
-    convert_attr = 'COLOR_{}2{}'.format(src, dst)
-    if not hasattr(cv2, convert_attr):
-        prefix = 'COLOR_{}2'.format(src)
-        valid_dst_spaces = [
-            key.replace(prefix, '')
-            for key in cv2.__dict__.keys() if key.startswith(prefix)]
-        raise KeyError(
-            '{} does not exist, valid conversions from {} are to {}'.format(
-                convert_attr, src_space, valid_dst_spaces))
-    else:
-        code = getattr(cv2, convert_attr)
-    return code
 
 
 if __name__ == '__main__':

@@ -19,7 +19,6 @@ Pure geometry -- no model weights, no kwiver runtime.
 import sys
 from pathlib import Path
 
-import cv2
 import numpy as np
 import pytest
 
@@ -31,6 +30,8 @@ try:
 except ImportError:
     sys.path.insert(0, str(_PLUGIN_DIR))
     import alignment_core
+
+from viame.utilities import geometry
 
 
 SIZE_A = (1920, 1080)
@@ -46,8 +47,7 @@ TRUE_H = np.array([
 
 
 def project(H, pts):
-    return cv2.perspectiveTransform(
-        np.asarray(pts, np.float64).reshape(-1, 1, 2), H).reshape(-1, 2)
+    return geometry.apply_homography(H, pts)
 
 
 def make_observation(rng, n_points=20, noise_px=0.3, offset_px=0.0):

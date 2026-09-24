@@ -141,7 +141,7 @@ def random_colors(N, rgb=False, maximum=255):
 
 
 if __name__ == "__main__":
-    import cv2
+    from viame.utilities import imageops
 
     size = 100
     H, W = 10, 10
@@ -152,5 +152,5 @@ if __name__ == "__main__":
             if idx >= len(_COLORS):
                 break
             canvas[h * size : (h + 1) * size, w * size : (w + 1) * size] = _COLORS[idx]
-    cv2.imshow("a", canvas)
-    cv2.waitKey(0)
+    imageops.write_image("colormap.png", (canvas * 255).astype("uint8"))
+    print("wrote colormap.png")

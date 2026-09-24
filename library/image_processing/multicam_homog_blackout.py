@@ -37,13 +37,14 @@ from .stabilize_many_images import (
 
 def blackout_image(img, polys):
     """Return a copy of `img` (ndarray) with the given polygons filled black"""
-    import cv2
+    from viame import image_kernels
     out = np.ascontiguousarray(img)
-    pts = [np.round(np.asarray(p)).astype(np.int32) for p, _name in polys]
+    pts = [np.asarray(p, dtype=np.float64).reshape(-1, 2) for p, _name in polys]
     pts = [p for p in pts if len(p) >= 3]
     if pts:
         out = out.copy()
-        cv2.fillPoly(out, pts, 0)
+        for poly in pts:
+            image_kernels.fill_polygon(out, poly, 0)
     return out
 
 

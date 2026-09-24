@@ -95,13 +95,14 @@ def detection_mask(det, shape):
         if xs.stop > xs.start and ys.stop > ys.start:
             out[ys, xs] = crop[ys.start - y0:ys.stop - y0, xs.start - x0:xs.stop - x0] > 0
     else:
-        import cv2
+        from viame import image_kernels
         polygons = [np.asarray(p, dtype=float).reshape(-1, 2) for p in det.get_flattened_polygons()]
-        polygons = [np.rint(p).astype(np.int32) for p in polygons if len(p) >= 3]
+        polygons = [p for p in polygons if len(p) >= 3]
         if not polygons:
             return None
         raster = np.zeros((h, w), dtype=np.uint8)
-        cv2.fillPoly(raster, polygons, 1)
+        for poly in polygons:
+            image_kernels.fill_polygon(raster, poly, 1)
         out = raster > 0
     return out if out.any() else None
 

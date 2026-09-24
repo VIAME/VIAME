@@ -54,7 +54,7 @@ def _image_to_plane_h(image, camera, origin, ex, ey, normal, w, h):
     """Homography mapping image pixels -> 2D plane coordinates by casting
     the corner rays onto the plane. Returns None for degenerate geometry
     (plane behind camera / grazing rays)."""
-    import cv2
+    from viame.utilities import geometry
     cam_from_world = image.cam_from_world()
     R = cam_from_world.rotation.matrix()
     t = cam_from_world.translation
@@ -73,8 +73,7 @@ def _image_to_plane_h(image, camera, origin, ex, ey, normal, w, h):
             return None
         X = C + s * d
         plane_pts.append([(X - origin) @ ex, (X - origin) @ ey])
-    return cv2.getPerspectiveTransform(
-        corners.astype(np.float32), np.array(plane_pts, dtype=np.float32))
+    return geometry.four_point_homography(corners, plane_pts)
 
 
 def _fit_similarity_2d(src, dst):
