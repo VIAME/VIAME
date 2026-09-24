@@ -80,6 +80,7 @@ CentOS
 [\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)) <br>
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
+<!-- install-links:start -->
 **Windows Full Desktop Binaries:** <br>
 * [VIAME v0.23.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/149gURaPiIYic97St0-F1OlS4qBeGaNly/view?usp=sharing) <br>
 * [VIAME v0.23.2 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6ab3e49292470417fec95cff/download) <br>
@@ -91,6 +92,7 @@ CentOS
 * [VIAME v0.23.2 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6ab3f53492470417fec95d06/download) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1U2H-AE6IwGkClmNEDw-GAETtJTDfKUuR/view?usp=sharing) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fbc82dfcff796fee73d01/download)
+<!-- install-links:end -->
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
