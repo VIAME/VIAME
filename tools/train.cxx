@@ -49,6 +49,8 @@
 #include <cctype>
 #include <regex>
 #include <thread>
+#include <ctime>
+#include <iomanip>
 #include <atomic>
 #include <algorithm>
 #include <cstdio>
@@ -1354,7 +1356,7 @@ struct test_evaluation_inputs
 // Runs the trained detector over every test item, then scores the results
 // against their truth with the score applet. Never fatal: training already
 // succeeded, so problems here are reported and the model is kept.
-bool
+std::string
 evaluate_on_test_set( const test_evaluation_inputs& in )
 {
   std::cout << std::endl << "========================================" << std::endl;
@@ -1365,7 +1367,7 @@ evaluate_on_test_set( const test_evaluation_inputs& in )
   {
     std::cout << "No runnable pipeline at " << in.pipeline
               << ", skipping test evaluation" << std::endl;
-    return false;
+    return std::string();
   }
 
   const std::string results_dir = append_path( in.output_directory, "test_results" );
@@ -1375,7 +1377,7 @@ evaluate_on_test_set( const test_evaluation_inputs& in )
   if( !create_folder( computed_dir ) || !create_folder( truth_dir ) )
   {
     std::cout << "Unable to create " << results_dir << std::endl;
-    return false;
+    return std::string();
   }
 
   std::set< std::string > used_stems;
@@ -1516,7 +1518,7 @@ evaluate_on_test_set( const test_evaluation_inputs& in )
   if( scored == 0 )
   {
     std::cout << "No test item could be run, nothing to score" << std::endl;
-    return false;
+    return std::string();
   }
 
   std::vector< std::string > args = {
@@ -1575,11 +1577,375 @@ evaluate_on_test_set( const test_evaluation_inputs& in )
   {
     std::cout << "Test set scoring did not complete; detections are in "
               << computed_dir << std::endl;
-    return false;
+    return std::string();
   }
 
   std::cout << "Test set metrics written to " << results_dir << std::endl;
-  return true;
+  return results_dir;
+}
+
+struct model_card_inputs
+{
+  std::string output_directory;
+  std::string detector_pipeline;         // Empty when no detector was trained
+  std::string tracker_pipeline;          // Empty when no tracker was trained
+  std::vector< std::string > detector_types;
+  std::vector< std::string > tracker_types;
+  std::string config_file;
+  std::string init_weights;
+  bool gt_frames_only = false;
+  kv::category_hierarchy_sptr labels;
+
+  // Sequence-level split; every entry of `items` is train unless listed below.
+  std::vector< std::string > items;
+  std::vector< size_t > item_frame_counts;
+  std::set< size_t > validation_items;   // Indices into items
+  std::vector< std::string > test_items;
+
+  // Frame-level split as actually handed to the trainer.
+  std::vector< std::string > train_frames;
+  std::vector< kv::detected_object_set_sptr > train_truth;
+  std::vector< std::string > validation_frames;
+  std::vector< kv::detected_object_set_sptr > validation_truth;
+  bool validation_auto_selected = false;
+  double validation_percent = 0.0;
+
+  std::string test_results_dir;          // Empty when the test set was not scored
+};
+
+std::map< std::string, unsigned >
+count_truth_classes( const std::vector< kv::detected_object_set_sptr >& truth,
+                     unsigned& annotated_frames )
+{
+  std::map< std::string, unsigned > counts;
+  annotated_frames = 0;
+
+  for( const auto& set : truth )
+  {
+    if( !set || set->empty() )
+    {
+      continue;
+    }
+
+    ++annotated_frames;
+
+    for( const auto& det : *set )
+    {
+      std::string name = "unlabeled";
+
+      if( det && det->type() && det->type()->size() > 0 )
+      {
+        det->type()->get_most_likely( name );
+      }
+
+      counts[ name ] += 1;
+    }
+  }
+
+  return counts;
+}
+
+std::string
+markdown_escape( const std::string& text )
+{
+  std::string out;
+
+  for( char c : text )
+  {
+    if( c == '|' )
+    {
+      out += "\\|";
+    }
+    else
+    {
+      out += c;
+    }
+  }
+
+  return out;
+}
+
+// Writes MODEL_CARD.md next to the trained pipelines, in the spirit of a
+// Hugging Face model card: what was trained, over which categories, and on
+// exactly which data. The frame-level split is written alongside it so the
+// automatic validation choice is reproducible.
+void
+write_model_card( const model_card_inputs& in )
+{
+  const std::string splits_dir = append_path( in.output_directory, "splits" );
+  create_folder( splits_dir );
+
+  auto write_frame_list = [&]( const std::string& name,
+                               const std::vector< std::string >& frames )
+  {
+    std::ofstream out( append_path( splits_dir, name ) );
+
+    for( const auto& frame : frames )
+    {
+      out << frame << std::endl;
+    }
+  };
+
+  write_frame_list( "train_frames.txt", in.train_frames );
+  write_frame_list( "validation_frames.txt", in.validation_frames );
+
+  unsigned train_annotated = 0, validation_annotated = 0;
+  const auto train_counts = count_truth_classes( in.train_truth, train_annotated );
+  const auto validation_counts = count_truth_classes( in.validation_truth, validation_annotated );
+
+  unsigned train_total = 0, validation_total = 0;
+  for( const auto& kv_pair : train_counts ) { train_total += kv_pair.second; }
+  for( const auto& kv_pair : validation_counts ) { validation_total += kv_pair.second; }
+
+  std::string model_name = in.output_directory;
+  while( !model_name.empty() && ( model_name.back() == '/' || model_name.back() == '\\' ) )
+  {
+    model_name.pop_back();
+  }
+  model_name = get_filename_no_path( model_name );
+  if( model_name.empty() || model_name == "." || model_name == "category_models" )
+  {
+    model_name = "Trained VIAME model";
+  }
+
+  std::time_t now = std::time( nullptr );
+  char date[ 32 ] = { 0 };
+  std::strftime( date, sizeof( date ), "%Y-%m-%d", std::localtime( &now ) );
+
+  std::ofstream card( append_path( in.output_directory, "MODEL_CARD.md" ) );
+
+  if( !card )
+  {
+    std::cout << "Unable to write MODEL_CARD.md in " << in.output_directory << std::endl;
+    return;
+  }
+
+  // Front matter
+  card << "---" << std::endl
+       << "library_name: viame" << std::endl
+       << "pipeline_tag: "
+       << ( in.detector_types.empty() ? "object-tracking" : "object-detection" ) << std::endl
+       << "tags:" << std::endl
+       << "- viame" << std::endl;
+  // "wrapper (inner)" entries become one tag per name.
+  std::set< std::string > tags;
+  for( const auto& list : { in.detector_types, in.tracker_types } )
+  {
+    for( const auto& type : list )
+    {
+      std::string token;
+      for( char c : type + " " )
+      {
+        if( std::isalnum( static_cast< unsigned char >( c ) ) || c == '_' || c == '-' )
+        {
+          token += c;
+        }
+        else if( !token.empty() )
+        {
+          tags.insert( token );
+          token.clear();
+        }
+      }
+    }
+  }
+  for( const auto& tag : tags ) { card << "- " << tag << std::endl; }
+  card << "---" << std::endl << std::endl;
+
+  card << "# " << model_name << std::endl << std::endl
+       << "Trained with `viame train` on " << date << "." << std::endl << std::endl;
+
+  // Model details
+  card << "## Model details" << std::endl << std::endl
+       << "| | |" << std::endl
+       << "|---|---|" << std::endl;
+
+  auto join = []( const std::vector< std::string >& v )
+  {
+    std::string out;
+    for( const auto& e : v ) { out += ( out.empty() ? "" : ", " ) + e; }
+    return out;
+  };
+
+  if( !in.detector_types.empty() )
+  {
+    card << "| Detector | " << join( in.detector_types ) << " |" << std::endl
+         << "| Detector pipeline | `" << get_filename_no_path( in.detector_pipeline ) << "` |" << std::endl;
+  }
+  if( !in.tracker_types.empty() )
+  {
+    card << "| Tracker | " << join( in.tracker_types ) << " |" << std::endl
+         << "| Tracker pipeline | `" << get_filename_no_path( in.tracker_pipeline ) << "` |" << std::endl;
+  }
+  if( !in.config_file.empty() )
+  {
+    card << "| Training config | `" << get_filename_no_path( in.config_file ) << "` |" << std::endl;
+  }
+  card << "| Seed weights | "
+       << ( in.init_weights.empty() ? "none (trained from the configuration's defaults)"
+                                    : "`" + get_filename_no_path( in.init_weights ) + "`" )
+       << " |" << std::endl
+       << "| Frames used | " << ( in.gt_frames_only ? "annotated frames only" : "all frames" )
+       << " |" << std::endl << std::endl;
+
+  // Categories
+  card << "## Categories" << std::endl << std::endl;
+
+  std::vector< std::string > class_names;
+  if( in.labels )
+  {
+    class_names = in.labels->all_class_names();
+  }
+  else
+  {
+    for( const auto& kv_pair : train_counts ) { class_names.push_back( kv_pair.first ); }
+    for( const auto& kv_pair : validation_counts )
+    {
+      if( !train_counts.count( kv_pair.first ) ) { class_names.push_back( kv_pair.first ); }
+    }
+  }
+
+  card << "The model was trained over " << class_names.size() << " categor"
+       << ( class_names.size() == 1 ? "y" : "ies" )
+       << ( in.labels ? ", as declared by the labels file"
+                      : ", taken from the ground truth as no labels file was given" )
+       << "." << std::endl << std::endl
+       << "| Category | Also matched as | Train annotations | Validation annotations |" << std::endl
+       << "|---|---|---:|---:|" << std::endl;
+
+  auto count_of = []( const std::map< std::string, unsigned >& counts, const std::string& name )
+  {
+    auto it = counts.find( name );
+    return it == counts.end() ? 0u : it->second;
+  };
+
+  for( const auto& name : class_names )
+  {
+    std::vector< std::string > synonyms;
+    if( in.labels )
+    {
+      synonyms = in.labels->get_class_synonyms( name );
+    }
+    card << "| " << markdown_escape( name ) << " | " << markdown_escape( join( synonyms ) )
+         << " | " << count_of( train_counts, name )
+         << " | " << count_of( validation_counts, name ) << " |" << std::endl;
+  }
+  card << "| **Total** | | " << train_total << " | " << validation_total << " |"
+       << std::endl << std::endl;
+
+  // Data splits
+  card << "## Data splits" << std::endl << std::endl;
+
+  size_t train_items = 0, validation_items = 0;
+  for( size_t i = 0; i < in.items.size(); ++i )
+  {
+    ( in.validation_items.count( i ) ? validation_items : train_items ) += 1;
+  }
+
+  card << "| Split | Sequences | Frames | Annotated frames | Annotations |" << std::endl
+       << "|---|---:|---:|---:|---:|" << std::endl
+       << "| Train | " << train_items << " | " << in.train_frames.size() << " | "
+       << train_annotated << " | " << train_total << " |" << std::endl
+       << "| Validation | " << ( in.validation_auto_selected ? std::string( "(from train)" )
+                                                             : std::to_string( validation_items ) )
+       << " | " << in.validation_frames.size() << " | " << validation_annotated << " | "
+       << validation_total << " |" << std::endl
+       << "| Test | " << in.test_items.size() << " | | | |" << std::endl << std::endl;
+
+  card << "The exact frame lists are in `splits/train_frames.txt` and "
+       << "`splits/validation_frames.txt`." << std::endl << std::endl;
+
+  card << "### Train" << std::endl << std::endl;
+  for( size_t i = 0; i < in.items.size(); ++i )
+  {
+    if( in.validation_items.count( i ) ) { continue; }
+    card << "- `" << in.items[i] << "`";
+    if( i < in.item_frame_counts.size() )
+    {
+      card << " (" << in.item_frame_counts[i] << " frames)";
+    }
+    card << std::endl;
+  }
+  card << std::endl;
+
+  card << "### Validation" << std::endl << std::endl;
+  if( in.validation_auto_selected )
+  {
+    std::ostringstream pct;
+    pct << std::fixed << std::setprecision( 0 ) << in.validation_percent * 100.0;
+    card << "No validation set was given, so VIAME held out " << in.validation_frames.size()
+         << " frame" << ( in.validation_frames.size() == 1 ? "" : "s" )
+         << " (target " << pct.str() << "% of the training frames, in bursts) "
+         << "from the training sequences above. The frames chosen are listed in "
+         << "`splits/validation_frames.txt`." << std::endl;
+  }
+  else if( in.validation_frames.empty() )
+  {
+    card << "No validation set was used." << std::endl;
+  }
+  else
+  {
+    for( size_t i = 0; i < in.items.size(); ++i )
+    {
+      if( !in.validation_items.count( i ) ) { continue; }
+      card << "- `" << in.items[i] << "`";
+      if( i < in.item_frame_counts.size() )
+      {
+        card << " (" << in.item_frame_counts[i] << " frames)";
+      }
+      card << std::endl;
+    }
+  }
+  card << std::endl;
+
+  card << "### Test" << std::endl << std::endl;
+  if( in.test_items.empty() )
+  {
+    card << "No test set was given." << std::endl;
+  }
+  else
+  {
+    for( const auto& item : in.test_items )
+    {
+      card << "- `" << item << "`" << std::endl;
+    }
+  }
+  card << std::endl;
+
+  // Evaluation
+  card << "## Evaluation" << std::endl << std::endl;
+
+  std::ifstream summary;
+  if( !in.test_results_dir.empty() )
+  {
+    summary.open( append_path( in.test_results_dir, "test_summary.txt" ) );
+  }
+
+  if( summary.is_open() )
+  {
+    card << "Scores of the trained detector on the test sequences, computed by "
+         << "`viame score`. Full metrics, plots and the per-sequence detections are in `"
+         << get_filename_no_path( in.test_results_dir ) << "/`." << std::endl << std::endl
+         << "```" << std::endl;
+    std::string line;
+    while( std::getline( summary, line ) )
+    {
+      card << line << std::endl;
+    }
+    card << "```" << std::endl;
+  }
+  else if( !in.test_items.empty() )
+  {
+    card << "A test set was given but could not be scored; see the training log." << std::endl;
+  }
+  else
+  {
+    card << "No held-out test set was scored. Label some sequences as test to have "
+         << "the trained model evaluated automatically." << std::endl;
+  }
+  card << std::endl;
+
+  std::cout << "Wrote model card to "
+            << append_path( in.output_directory, "MODEL_CARD.md" ) << std::endl;
 }
 
 } // end anonymous namespace
@@ -4015,6 +4381,8 @@ train_applet
   // on this too, to know when to restart a run.
   bool training_failed = false;
   bool training_interrupted = false;
+  std::vector< std::string > trained_detectors;
+  std::vector< std::string > trained_trackers;
 
   // Run training algorithm(s) - loop through all configs/detectors for multi-model training
   for( unsigned model_idx = 0; model_idx < model_count; ++model_idx )
@@ -4136,10 +4504,19 @@ train_applet
         }
       }
     }
-    else if( multi_model_training )
+    else
     {
-      std::cout << "Model " << ( model_idx + 1 ) << " training completed successfully"
-                << std::endl;
+      // Windowed trainers wrap the network trainer; name both.
+      const std::string inner_type = current_config->get_value< std::string >(
+        "detector_trainer:" + detector_type + ":trainer:type", "" );
+      trained_detectors.push_back(
+        inner_type.empty() ? detector_type : detector_type + " (" + inner_type + ")" );
+
+      if( multi_model_training )
+      {
+        std::cout << "Model " << ( model_idx + 1 ) << " training completed successfully"
+                  << std::endl;
+      }
     }
   }
 
@@ -4465,6 +4842,7 @@ train_applet
       }
       else
       {
+        trained_trackers.push_back( current_tracker );
         std::cout << "Tracker training completed successfully" << std::endl;
       }
     }
@@ -4473,6 +4851,8 @@ train_applet
     std::cout << "Tracker training complete" << std::endl;
     std::cout << "========================================" << std::endl;
   }
+
+  std::string test_results_dir;
 
   if( !test_data.empty() && !training_failed && !training_interrupted )
   {
@@ -4496,8 +4876,45 @@ train_applet
       eval.video_exts = video_exts;
       eval.groundtruth_exts = groundtruth_exts;
 
-      evaluate_on_test_set( eval );
+      test_results_dir = evaluate_on_test_set( eval );
     }
+  }
+
+  if( ( !trained_detectors.empty() || !trained_trackers.empty() ) &&
+      !training_interrupted && output_file.empty() )
+  {
+    model_card_inputs card;
+    card.output_directory = output_directory.empty() ? std::string( "." ) : output_directory;
+    card.detector_types = trained_detectors;
+    card.tracker_types = trained_trackers;
+    card.detector_pipeline = trained_detectors.empty() ? std::string() : output_pipeline_name;
+    card.tracker_pipeline = trained_trackers.empty() ? std::string() : output_tracker_pipeline_name;
+    card.config_file = opt_config;
+    card.init_weights = opt_init_weights;
+    card.gt_frames_only = opt_gt_only;
+    card.labels = model_labels;
+    card.items = all_data;
+    for( const auto& frames : item_frame_paths )
+    {
+      card.item_frame_counts.push_back( frames.size() );
+    }
+    if( validation_sequence_pivot >= 0 )
+    {
+      for( size_t i = validation_sequence_pivot; i < all_data.size(); ++i )
+      {
+        card.validation_items.insert( i );
+      }
+    }
+    card.test_items = test_data;
+    card.train_frames = train_image_fn;
+    card.train_truth = train_gt;
+    card.validation_frames = validation_image_fn;
+    card.validation_truth = validation_gt;
+    card.validation_auto_selected = validation_sequence_pivot < 0 && !validation_image_fn.empty();
+    card.validation_percent = percent_validation;
+    card.test_results_dir = test_results_dir;
+
+    write_model_card( card );
   }
 
   return training_failed ? EXIT_FAILURE : EXIT_SUCCESS;
