@@ -880,24 +880,23 @@ def wheel_metadata(root_is_purelib, tag):
 
 
 def python_requirement(abi_tag, declared=None):
-    """The python versions this wheel actually runs on.
+    """The Requires-Python this wheel should carry.
 
-    A `cp310` wheel runs on CPython 3.10 and nothing else: the extension
-    modules use the full API and link `libpython3.10.so.1.0`, so the honest
-    bound is `==3.10.*`, not `>=3.10`. pip picks by tag either way, but a
-    user on 3.12 then gets "Requires-Python ==3.10.*" instead of the far less
-    helpful "could not find a version that satisfies the requirement".
+    A floor, not the exact version the wheel runs on, and the difference
+    matters because of how PyPI models it. `Requires-Python` is stored **per
+    release**, not per file: PyPI takes it from the first file uploaded and
+    advertises that for every file in the release. So five wheels sharing one
+    version cannot each declare their own.
 
-    An `abi3` wheel is the exception -- it is version independent upwards --
-    so that keeps a floor.
+    0.23.2 shipped with `==3.10.*` for exactly that reason and was
+    installable only on 3.10 -- the cp311 to cp314 wheels were on the index
+    and unreachable, filtered out before pip ever looked at their tags. pip
+    selects by wheel tag perfectly well on its own; the release-level field
+    only has to not exclude anything.
     """
     if declared:
         return declared
-    m = re.fullmatch(r"cp(\d)(\d+)", abi_tag or "")
-    if m:
-        return f"=={m.group(1)}.{m.group(2)}.*"
-    m = re.fullmatch(r"cp(\d)(\d+)", (abi_tag or "").split("-")[0])
-    return f">={m.group(1)}.{m.group(2)}" if m else ">=3.10"
+    return ">=3.10"
 
 
 def build(args):
