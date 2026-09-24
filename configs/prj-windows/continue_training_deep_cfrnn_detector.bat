@@ -5,7 +5,13 @@ SET VIAME_INSTALL=C:\Program Files\VIAME
 
 REM Processing options
 SET INPUT_DIRECTORY=training_data
-SET SEED_MODEL=category_models\trained_detector.zip
+
+REM Seed model: the pack written by the training scripts, or the legacy folder
+IF EXIST "trained_model.zip" (
+  SET SEED_MODEL=trained_model.zip
+) ELSE (
+  SET SEED_MODEL=category_models\trained_detector.zip
+)
 
 REM Disable warnings
 SET KWIMAGE_DISABLE_C_EXTENSIONS=1
@@ -20,15 +26,15 @@ IF EXIST "%SEED_MODEL%" (
   viame.exe train ^
     -i "%INPUT_DIRECTORY%" ^
     -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn.conf" ^
-    -s "detector_trainer:ocv_windowed:trainer:netharn:seed_model=%SEED_MODEL%" ^
-    --threshold 0.0
+    --init-weights "%SEED_MODEL%" ^
+    --threshold 0.0 --output-file trained_model.zip
 ) ELSE (
   IF EXIST "deep_training" (
     viame.exe train ^
       -i "%INPUT_DIRECTORY%" ^
       -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn.conf" ^
       --continue ^
-      --threshold 0.0
+      --threshold 0.0 --output-file trained_model.zip
   ) ELSE (
     ECHO Initial seed model or in progress training folder does not exist, exiting
   )
