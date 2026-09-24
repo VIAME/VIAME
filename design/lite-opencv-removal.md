@@ -7,9 +7,34 @@ extra -- gone.
 Where it stands
 ---------------
 
-    96 python files import cv2
-    789 call sites
-    189 distinct cv2 APIs
+Started at 96 files in our own code. As of the drawing and filtering
+bindings:
+
+    76 python files under library/, tools/ and tests/ import cv2
+    82 more under packages/, which are vendored and are the problem below
+
+**The vendored forks are what actually blocks the goal.** `mmcv`, `mmdet`,
+`imgaug`, `mmdeploy` and `sam2` are third-party sources carried in
+`packages/pytorch-libs`, they import cv2 in 82 files, and all five are
+installed into `site-packages` by a normal build. So porting every one of
+our own call sites gets the tree to
+
+    grep -r "import cv2" library/     no matches
+
+while `opencv-python-headless` still has to stay in `requirements.txt`,
+because removing it breaks `import mmdet`. Phase 6 as written cannot
+happen without a decision on those five, and the choice is not ours to
+make silently:
+
+  * port them too -- 82 files of upstream code we would then be
+    maintaining a fork of, against forks we already struggle to rebase;
+  * make them an optional extra, so the base wheel has no cv2 and the
+    pipelines that need mmdet pull it in with them;
+  * drop them from lite.
+
+The second is the one that fits what lite is for, and it is cheap: the
+declaration moves from the base list to an extra. Nothing below depends on
+which is chosen, so the porting continues either way.
 
 All 189 go. The four with no VIAME equivalent are written rather than
 quarantined -- they are classical multi-view geometry, not OpenCV secrets:

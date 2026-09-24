@@ -19,6 +19,10 @@
 #include <viame/utilities/python_fold.h>
 
 #include <viame/image_kernels/color.h>
+#include <viame/image_kernels/draw.h>
+#include <viame/image_kernels/filter.h>
+#include <viame/image_kernels/histogram.h>
+#include <viame/image_kernels/morphology.h>
 #include <viame/image_kernels/resample.h>
 #include <viame/image_kernels/warp.h>
 
@@ -26,6 +30,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <cmath>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -202,6 +207,294 @@ from_lab( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > cons
   return as_array( viame::image_kernels::lab_to_rgb( source ), true );
 }
 
+py::array
+demosaic( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+          std::string const& pattern )
+{
+  using viame::image_kernels::bayer_pattern;
+
+  if( !( array.ndim() == 2 || ( array.ndim() == 3 && array.shape( 2 ) == 1 ) ) )
+  {
+    throw std::invalid_argument( "demosaic wants a single plane mosaic" );
+  }
+
+  bayer_pattern which;
+  if( pattern == "BG" )      { which = bayer_pattern::BG; }
+  else if( pattern == "GB" ) { which = bayer_pattern::GB; }
+  else if( pattern == "RG" ) { which = bayer_pattern::RG; }
+  else if( pattern == "GR" ) { which = bayer_pattern::GR; }
+  else
+  {
+    throw std::invalid_argument(
+      "demosaic pattern must be one of BG, GB, RG, GR; got '" + pattern + "'" );
+  }
+
+  auto const source = as_image( array );
+  return as_array( viame::image_kernels::demosaic( source, which ), true );
+}
+
+// ---------------------------------------------------------------------------
+// Drawing
+//
+// These write into the caller's array rather than returning a new one, which
+// is what `cv2.fillPoly`, `cv2.rectangle` and `cv2.putText` do and what the
+// call sites expect: an overlay is built up by a run of them.
+
+/// A writable view over numpy memory, for the drawing kernels.
+viame::image_of< uint8_t >
+as_mutable_image( py::array_t< uint8_t, py::array::c_style >& array )
+{
+  auto buffer = array.request( true );
+
+  if( buffer.ndim < 2 || buffer.ndim > 3 )
+  {
+    throw std::invalid_argument( "image must be HxW or HxWxC uint8" );
+  }
+
+  auto const depth =
+    static_cast< size_t >( buffer.ndim == 3 ? buffer.shape[ 2 ] : 1 );
+
+  return viame::image_of< uint8_t >(
+    static_cast< uint8_t* >( buffer.ptr ),
+    static_cast< size_t >( buffer.shape[ 1 ] ),
+    static_cast< size_t >( buffer.shape[ 0 ] ),
+    depth,
+    static_cast< ptrdiff_t >( depth ),
+    static_cast< ptrdiff_t >( buffer.shape[ 1 ] ) *
+      static_cast< ptrdiff_t >( depth ),
+    1 );
+}
+
+viame::image_kernels::colour
+as_colour( py::object const& value )
+{
+  if( py::isinstance< py::float_ >( value ) ||
+      py::isinstance< py::int_ >( value ) )
+  {
+    return { value.cast< double >() };
+  }
+
+  return value.cast< std::vector< double > >();
+}
+
+std::vector< viame::image_kernels::point >
+as_points( py::array_t< double, py::array::c_style | py::array::forcecast >
+             const& array )
+{
+  auto const buffer = array.request();
+
+  if( buffer.ndim != 2 || buffer.shape[ 1 ] != 2 )
+  {
+    throw std::invalid_argument( "points must be an N by 2 array of x, y" );
+  }
+
+  auto const* data = static_cast< double const* >( buffer.ptr );
+  std::vector< viame::image_kernels::point > out;
+  out.reserve( static_cast< size_t >( buffer.shape[ 0 ] ) );
+
+  for( Py_ssize_t n = 0; n < buffer.shape[ 0 ]; ++n )
+  {
+    viame::image_kernels::point p;
+    p.i = static_cast< long >( std::lround( data[ n * 2 ] ) );
+    p.j = static_cast< long >( std::lround( data[ n * 2 + 1 ] ) );
+    out.push_back( p );
+  }
+
+  return out;
+}
+
+void
+fill_polygon( py::array_t< uint8_t, py::array::c_style >& array,
+              py::array_t< double, py::array::c_style | py::array::forcecast >
+                const& points,
+              py::object const& colour )
+{
+  auto image = as_mutable_image( array );
+  viame::image_kernels::fill_polygon( image, as_points( points ),
+                                      as_colour( colour ) );
+}
+
+void
+draw_rect( py::array_t< uint8_t, py::array::c_style >& array,
+           long left, long top, long right, long bottom,
+           py::object const& colour, long thickness )
+{
+  auto image = as_mutable_image( array );
+
+  viame::image_kernels::rect bounds;
+  bounds.left = left;
+  bounds.top = top;
+  bounds.right = right;
+  bounds.bottom = bottom;
+
+  viame::image_kernels::draw_rect( image, bounds, as_colour( colour ),
+                                   thickness );
+}
+
+void
+draw_text( py::array_t< uint8_t, py::array::c_style >& array,
+           std::string const& text, long x, long y,
+           py::object const& colour, long scale )
+{
+  auto image = as_mutable_image( array );
+  viame::image_kernels::draw_text( image, text, x, y, as_colour( colour ),
+                                   scale );
+}
+
+void
+draw_line( py::array_t< uint8_t, py::array::c_style >& array,
+           long x0, long y0, long x1, long y1, py::object const& colour )
+{
+  auto image = as_mutable_image( array );
+  viame::image_kernels::draw_line( image, x0, y0, x1, y1,
+                                   as_colour( colour ) );
+}
+
+void
+draw_circle( py::array_t< uint8_t, py::array::c_style >& array,
+             long x, long y, long radius, py::object const& colour,
+             long thickness )
+{
+  auto image = as_mutable_image( array );
+  viame::image_kernels::draw_circle( image, x, y, radius,
+                                     as_colour( colour ), thickness );
+}
+
+py::tuple
+text_size( std::string const& text, long scale )
+{
+  auto const box = viame::image_kernels::text_size( text, scale );
+  return py::make_tuple( box.width(), box.height() );
+}
+
+// ---------------------------------------------------------------------------
+// Filtering, histograms and morphology
+
+viame::image_kernels::border_mode
+as_border( std::string const& name )
+{
+  using viame::image_kernels::border_mode;
+
+  if( name == "constant" )    { return border_mode::CONSTANT; }
+  if( name == "replicate" )   { return border_mode::REPLICATE; }
+  if( name == "reflect" )     { return border_mode::REFLECT; }
+  if( name == "reflect_101" ) { return border_mode::REFLECT_101; }
+
+  throw std::invalid_argument(
+    "border must be one of constant, replicate, reflect, reflect_101; got '" +
+    name + "'" );
+}
+
+py::array
+gaussian_blur( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+               size_t size, double sigma, std::string const& border )
+{
+  auto const source = as_image( array );
+  return as_array(
+    viame::image_kernels::gaussian_blur( source, size, sigma,
+                                         as_border( border ) ),
+    array.ndim() == 3 );
+}
+
+py::array
+box_blur( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+          size_t size, std::string const& border )
+{
+  auto const source = as_image( array );
+  return as_array(
+    viame::image_kernels::box_blur( source, size, as_border( border ) ),
+    array.ndim() == 3 );
+}
+
+py::array
+add_weighted( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& first,
+              double alpha,
+              py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& second,
+              double beta, double gamma )
+{
+  auto const a = as_image( first );
+  auto const b = as_image( second );
+
+  if( a.width() != b.width() || a.height() != b.height() ||
+      a.depth() != b.depth() )
+  {
+    throw std::invalid_argument( "add_weighted wants two images of one size" );
+  }
+
+  return as_array(
+    viame::image_kernels::add_weighted( a, alpha, b, beta, gamma ),
+    first.ndim() == 3 );
+}
+
+py::array
+normalize( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+           double low, double high )
+{
+  auto const source = as_image( array );
+  return as_array( viame::image_kernels::normalize_min_max( source, low, high ),
+                   array.ndim() == 3 );
+}
+
+py::array
+equalize( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+{
+  auto const source = as_image( array );
+  return as_array( viame::image_kernels::equalize( source ),
+                   array.ndim() == 3 );
+}
+
+py::array
+clahe( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+       double clip_limit, size_t tiles_x, size_t tiles_y )
+{
+  auto const source = as_image( array );
+  return as_array(
+    viame::image_kernels::clahe( source, clip_limit, tiles_x, tiles_y ),
+    array.ndim() == 3 );
+}
+
+viame::image_kernels::structuring_element
+as_element( std::string const& shape, int width, int height )
+{
+  if( shape == "rect" )
+  {
+    return viame::image_kernels::rect_element( width, height );
+  }
+  if( shape == "cross" )
+  {
+    return viame::image_kernels::cross_element( width, height );
+  }
+  if( shape == "disk" )
+  {
+    return viame::image_kernels::disk_element( width / 2.0 );
+  }
+
+  throw std::invalid_argument(
+    "element must be one of rect, cross, disk; got '" + shape + "'" );
+}
+
+py::array
+erode( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+       std::string const& shape, int width, int height )
+{
+  auto const source = as_image( array );
+  return as_array(
+    viame::image_kernels::grey_erode( source,
+                                      as_element( shape, width, height ) ),
+    array.ndim() == 3 );
+}
+
+py::array
+dilate( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+        std::string const& shape, int width, int height )
+{
+  auto const source = as_image( array );
+  return as_array(
+    viame::image_kernels::grey_dilate( source,
+                                       as_element( shape, width, height ) ),
+    array.ndim() == 3 );
+}
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _image_kernels, m )
@@ -251,4 +544,87 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
 
   m.def( "from_lab", &from_lab, py::arg( "image" ),
          "L*a*b* back to RGB, on the same 8-bit scaling as to_lab." );
+
+  m.def( "demosaic", &demosaic, py::arg( "image" ), py::arg( "pattern" ),
+         "Bayer mosaic to RGB. The pattern names the **mosaic** -- \"BG\" is "
+         "blue at (0, 0) -- which is what a camera datasheet means and the "
+         "reverse of how OpenCV spells its constants, so this is "
+         "cv2.COLOR_BayerRG2RGB, not BayerBG2RGB." );
+
+  m.def( "fill_polygon", &fill_polygon, py::arg( "image" ),
+         py::arg( "points" ), py::arg( "colour" ),
+         "Fill a polygon in place, outline included -- which is what "
+         "cv2.fillPoly does, and is not what \"fill\" suggests. Points are "
+         "an N by 2 array of x, y." );
+
+  m.def( "draw_rect", &draw_rect, py::arg( "image" ), py::arg( "left" ),
+         py::arg( "top" ), py::arg( "right" ), py::arg( "bottom" ),
+         py::arg( "colour" ), py::arg( "thickness" ) = 1,
+         "cv2.rectangle, with one difference that matters: `right` and "
+         "`bottom` are **exclusive**, where cv2.rectangle's second corner "
+         "is inclusive -- so a ported call passes x2 + 1 and y2 + 1. Given "
+         "that, this is pixel for pixel what cv2.rectangle draws at "
+         "thickness 1 and at -1, which fills. Thicker outlines differ: the "
+         "kernel squares off each step where OpenCV mitres the corner." );
+
+  m.def( "draw_text", &draw_text, py::arg( "image" ), py::arg( "text" ),
+         py::arg( "x" ), py::arg( "y" ), py::arg( "colour" ),
+         py::arg( "scale" ) = 1,
+         "Draw text with its **top left** at (x, y), where cv2.putText "
+         "places it by the baseline. The glyphs are a 5 by 7 bitmap font, "
+         "so this does not look like OpenCV's text; it is legible, which is "
+         "what a debug overlay needs." );
+
+  m.def( "draw_line", &draw_line, py::arg( "image" ), py::arg( "x0" ),
+         py::arg( "y0" ), py::arg( "x1" ), py::arg( "y1" ),
+         py::arg( "colour" ),
+         "cv2.line, one pixel wide. Bresenham, as cv2.LINE_8 is, but the "
+         "tie breaking differs: about one pixel in nine of a long diagonal "
+         "lands on the other side of the step." );
+
+  m.def( "draw_circle", &draw_circle, py::arg( "image" ), py::arg( "x" ),
+         py::arg( "y" ), py::arg( "radius" ), py::arg( "colour" ),
+         py::arg( "thickness" ) = 1,
+         "cv2.circle, pixel for pixel at thickness 1. A thickness below "
+         "zero fills." );
+
+  m.def( "text_size", &text_size, py::arg( "text" ), py::arg( "scale" ) = 1,
+         "The (width, height) of text, as cv2.getTextSize reports it." );
+
+  m.def( "gaussian_blur", &gaussian_blur, py::arg( "image" ),
+         py::arg( "size" ), py::arg( "sigma" ) = 0.0,
+         py::arg( "border" ) = "reflect_101",
+         "cv2.GaussianBlur. `size` is the odd kernel width and height, and "
+         "sigma is derived from it when left at zero." );
+
+  m.def( "box_blur", &box_blur, py::arg( "image" ), py::arg( "size" ),
+         py::arg( "border" ) = "reflect_101", "cv2.blur." );
+
+  m.def( "add_weighted", &add_weighted, py::arg( "first" ),
+         py::arg( "alpha" ), py::arg( "second" ), py::arg( "beta" ),
+         py::arg( "gamma" ) = 0.0,
+         "first * alpha + second * beta + gamma, saturated. "
+         "cv2.addWeighted." );
+
+  m.def( "normalize", &normalize, py::arg( "image" ), py::arg( "low" ) = 0.0,
+         py::arg( "high" ) = 255.0,
+         "Rescale the image's range onto [low, high]. cv2.normalize with "
+         "NORM_MINMAX." );
+
+  m.def( "equalize", &equalize, py::arg( "image" ),
+         "cv2.equalizeHist." );
+
+  m.def( "clahe", &clahe, py::arg( "image" ), py::arg( "clip_limit" ) = 40.0,
+         py::arg( "tiles_x" ) = 8, py::arg( "tiles_y" ) = 8,
+         "Contrast limited adaptive histogram equalisation, which is what "
+         "cv2.createCLAHE().apply() does." );
+
+  m.def( "erode", &erode, py::arg( "image" ), py::arg( "shape" ) = "rect",
+         py::arg( "width" ) = 3, py::arg( "height" ) = 3,
+         "Grey erosion. cv2.erode with cv2.getStructuringElement; the shape "
+         "is one of rect, cross, disk." );
+
+  m.def( "dilate", &dilate, py::arg( "image" ), py::arg( "shape" ) = "rect",
+         py::arg( "width" ) = 3, py::arg( "height" ) = 3,
+         "Grey dilation. cv2.dilate." );
 }

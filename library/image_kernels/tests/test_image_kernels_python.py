@@ -22,9 +22,14 @@ is being removed.
 import numpy as np
 import pytest
 
-from viame.image_kernels import (crop, from_hls, from_hsv, from_lab, resize,
-                                 swap_channels, to_gray, to_hls, to_hsv,
-                                 to_lab, to_rgb)
+from viame.image_kernels import (add_weighted, box_blur, clahe, crop,
+                                 demosaic, dilate, draw_circle, draw_line,
+                                 draw_rect, draw_text, equalize, erode,
+                                 fill_polygon,
+                                 from_hls, from_hsv, from_lab, gaussian_blur,
+                                 normalize, resize, resize_area,
+                                 swap_channels, text_size, to_gray, to_hls,
+                                 to_hsv, to_lab, to_rgb)
 
 
 def _frame(width=64, height=48):
@@ -128,3 +133,166 @@ def test_grey_has_no_saturation():
     grey = np.full((4, 4, 3), 128, dtype=np.uint8)
     assert to_hsv(grey)[..., 1].max() == 0
     assert to_hls(grey)[..., 2].max() == 0
+
+
+# ---------------------------------------------------------------------------
+# Filtering, histograms and morphology
+#
+# Measured against cv2 when written, on a random 64 by 96 frame: gaussian_blur,
+# box_blur, add_weighted, normalize, equalize, erode, dilate and demosaic are
+# all **bit identical**, and clahe is within one grey level. Those are strong
+# enough agreements to assert shape and invariants here and leave the pixel
+# comparison to tests/golden.
+
+def _gray(width=64, height=48):
+    y, x = np.mgrid[0:height, 0:width]
+    return (((x * 7) % 256) ^ ((y * 11) % 256)).astype(np.uint8)
+
+
+@pytest.mark.parametrize("blur", [lambda a: gaussian_blur(a, 5),
+                                  lambda a: box_blur(a, 5)])
+def test_a_blur_keeps_the_shape_and_narrows_the_range(blur):
+    frame = _gray()
+    out = blur(frame)
+    assert out.shape == frame.shape
+    assert np.ptp(out) <= np.ptp(frame)
+
+
+def test_a_blur_of_a_flat_image_is_flat():
+    flat = np.full((20, 20), 90, dtype=np.uint8)
+    assert gaussian_blur(flat, 5).min() == 90
+    assert gaussian_blur(flat, 5).max() == 90
+
+
+def test_add_weighted_averages():
+    dark = np.full((8, 8), 40, dtype=np.uint8)
+    light = np.full((8, 8), 200, dtype=np.uint8)
+    assert add_weighted(dark, 0.5, light, 0.5)[0, 0] == 120
+
+
+def test_add_weighted_wants_one_size():
+    with pytest.raises(ValueError):
+        add_weighted(np.zeros((4, 4), np.uint8), 1.0,
+                     np.zeros((5, 5), np.uint8), 1.0)
+
+
+def test_normalize_spans_the_range():
+    out = normalize(_gray() // 4 + 30, 0, 255)
+    assert out.min() == 0 and out.max() == 255
+
+
+def test_equalize_and_clahe_keep_the_shape():
+    frame = _gray()
+    assert equalize(frame).shape == frame.shape
+    assert clahe(frame, 2.0, 8, 8).shape == frame.shape
+
+
+def test_erode_darkens_and_dilate_brightens():
+    frame = _gray()
+    assert erode(frame, "rect", 3, 3).mean() <= frame.mean()
+    assert dilate(frame, "rect", 3, 3).mean() >= frame.mean()
+
+
+def test_an_unknown_structuring_element_is_refused():
+    with pytest.raises(ValueError):
+        erode(_gray(), "hexagon", 3, 3)
+
+
+def test_an_unknown_border_is_refused():
+    with pytest.raises(ValueError):
+        gaussian_blur(_gray(), 5, 0.0, "wrap")
+
+
+def test_demosaic_gives_three_planes():
+    mosaic = _gray(32, 24)
+    assert demosaic(mosaic, "BG").shape == (24, 32, 3)
+
+
+def test_demosaic_names_the_mosaic_not_opencvs_spelling():
+    """`BG` is blue at (0, 0), which is cv2.COLOR_BayerRG2RGB, not BayerBG2RGB.
+
+    The two read the letters in opposite orders; getting this backwards
+    swaps red and blue on every debayered frame, which is the kind of bug
+    that survives review because the image still looks like an image.
+    """
+    mosaic = np.zeros((4, 4), dtype=np.uint8)
+    mosaic[0::2, 0::2] = 255          # blue sites of a BG mosaic
+    out = demosaic(mosaic, "BG")
+    assert out[0, 0, 2] > out[0, 0, 0]
+
+
+def test_an_unknown_bayer_pattern_is_refused():
+    with pytest.raises(ValueError):
+        demosaic(_gray(8, 8), "XY")
+
+
+# ---------------------------------------------------------------------------
+# Drawing
+#
+# These write into the array they are given, as cv2.fillPoly and friends do.
+
+def test_fill_polygon_writes_in_place():
+    canvas = np.zeros((20, 30), dtype=np.uint8)
+    fill_polygon(canvas, np.array([[2.0, 2.0], [20.0, 3.0], [15.0, 15.0]]), 255)
+    assert canvas.max() == 255
+
+
+def test_fill_polygon_ignores_a_degenerate_polygon():
+    canvas = np.zeros((20, 30), dtype=np.uint8)
+    fill_polygon(canvas, np.array([[2.0, 2.0], [20.0, 3.0]]), 255)
+    assert canvas.max() == 0
+
+
+def test_points_must_be_pairs():
+    canvas = np.zeros((20, 30), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        fill_polygon(canvas, np.zeros((4, 3)), 255)
+
+
+def test_draw_rect_bounds_are_exclusive():
+    """cv2.rectangle's second corner is inclusive; this one is not.
+
+    The pixels are otherwise identical, so this off by one is the whole
+    difference between the two and is worth a test of its own.
+    """
+    canvas = np.zeros((20, 20), dtype=np.uint8)
+    draw_rect(canvas, 2, 2, 10, 10, 255, 1)
+    assert canvas[2, 9] == 255
+    assert canvas[2, 10] == 0
+
+
+def test_draw_rect_fills_at_a_negative_thickness():
+    canvas = np.zeros((20, 20), dtype=np.uint8)
+    draw_rect(canvas, 2, 2, 10, 10, 255, -1)
+    assert canvas[5, 5] == 255
+
+
+def test_draw_circle_and_line_mark_the_canvas():
+    canvas = np.zeros((40, 40), dtype=np.uint8)
+    draw_circle(canvas, 20, 20, 8, 255, 1)
+    assert canvas[20, 12] == 255
+
+    line = np.zeros((40, 40), dtype=np.uint8)
+    draw_line(line, 0, 0, 39, 39, 255)
+    assert line[20, 20] == 255
+
+
+def test_draw_text_places_by_the_top_left():
+    canvas = np.zeros((20, 80), dtype=np.uint8)
+    draw_text(canvas, "VIAME", 2, 2, 255)
+    width, height = text_size("VIAME")
+    assert canvas[:2].max() == 0             # nothing above the top
+    assert canvas[2:2 + height, 2:2 + width].max() == 255
+
+
+def test_text_size_grows_with_the_scale():
+    assert text_size("hi", 2)[0] > text_size("hi", 1)[0]
+
+
+def test_colour_may_be_a_scalar_or_per_plane():
+    canvas = np.zeros((10, 10, 3), dtype=np.uint8)
+    draw_rect(canvas, 1, 1, 8, 8, 200, -1)
+    assert list(canvas[4, 4]) == [200, 200, 200]
+
+    draw_rect(canvas, 1, 1, 8, 8, [10, 20, 30], -1)
+    assert list(canvas[4, 4]) == [10, 20, 30]

@@ -49,6 +49,25 @@ def _dlt(source, target):
     return homography
 
 
+def four_point_homography(source, target):
+    """The exact homography taking four points onto four points.
+
+    `cv2.getPerspectiveTransform`. With exactly four correspondences the
+    system is determined, so there is no fitting to do and no RANSAC to run;
+    this is `find_homography`'s inner solve on its own. The four points must
+    be given in matching order, and no three of either set may be collinear.
+    """
+    source = np.asarray(source, dtype=np.float64).reshape(-1, 2)
+    target = np.asarray(target, dtype=np.float64).reshape(-1, 2)
+
+    if len(source) != 4 or len(target) != 4:
+        raise ValueError(
+            "four_point_homography wants exactly four correspondences; got "
+            "{} and {}".format(len(source), len(target)))
+
+    return _dlt(source, target)
+
+
 def apply_homography(homography, points):
     """Map points through a homography, returning inhomogeneous coordinates."""
     points = np.asarray(points, dtype=np.float64).reshape(-1, 2)
