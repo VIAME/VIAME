@@ -9,41 +9,92 @@
 # environment prefix.
 #
 # **This file is the branch's half of the wheel.** `build_wheel.py` is shared
-# and knows nothing about either layout; what differs between `main` and
-# `lite` is meant to differ here. On `main` that is two python packages
-# (`viame` imports `kwiver`) and four families of shared library; on `lite`
-# it is one package and one `libviame.so`. Merging the branches should be a
-# conflict in this file, if anywhere, and not in the builder.
+# with `main` and knows nothing about either layout; what differs between the
+# branches is meant to differ here. `main`'s copy of this file takes two
+# python packages -- `viame` imports `kwiver` there -- and four families of
+# shared library. This branch has neither: P11 made the tree one `viame`
+# package, and P10-T01 folded 105 libraries into a single `libviame.so`.
 #
-# There is no size target on `main` -- that is a `lite` concern -- so this
-# takes the packages whole rather than trying to work out a minimal set.
+# Unlike `main`, this branch has a size target: the wheel is meant to be
+# 100 MB. That is why this file is a short list of what is wanted rather than
+# `lib/**`. The install prefix is an accumulation -- `make install` only ever
+# adds, so a prefix carries every build that was ever run into it, including
+# a February OpenCV and shared libraries whose sources were deleted months
+# ago. Selecting by name means the wheel holds what this branch builds, not
+# what its prefix happens to contain.
 
 # ----------------------------------------------------------------------------
-# The python packages
+# The python package
 #
+# One package, `viame`, built beside the C++ it binds since P8-T01.
 # `python3.*` rather than a pinned version: the builder is handed a prefix,
-# not a configure, and the interpreter it was built against is the one in the
-# path. The wheel's own tag records which that was.
+# not a configure, and the wheel's own tag records the interpreter.
 # ----------------------------------------------------------------------------
-include lib/python3.*/site-packages/viame/**   -> viame/
-include lib/python3.*/site-packages/kwiver/**  -> kwiver/
+include lib/python3.*/site-packages/viame/**  -> viame/
 
 # ----------------------------------------------------------------------------
-# The native libraries
+# The native library
 #
-# Into `{data}/lib/` rather than beside the extension modules, because the
-# modules' RUNPATH is `$ORIGIN/../../../../../lib`: from
-# `site-packages/<pkg>/<sub>/x.so` that is the environment prefix's `lib/`,
-# which is where pip unpacks `.data/data/lib/`. Nothing has to be patched.
+# One file. Every extension module resolves to `libviame.so.1` and nothing
+# else in `lib/` -- the fold absorbed vital, sprokit and kwiver, and this
+# branch's plugin manager is `viame::`, not `kwiver::`. Checked rather than
+# assumed: the transitive `NEEDED` closure of `libviame.so` inside `lib/`
+# is `libviame.so` alone.
 #
-# Four families, because that is what the extension modules resolve to --
-# 51 of them need `libvital_types`, and the rest of the graph hangs off it.
-# `.a` archives are excluded below: nothing in a wheel links against them.
+# Into `{data}/lib/` because the modules' RUNPATH is
+# `$ORIGIN/../../../../../lib`, which from `site-packages/viame/<sub>/x.so`
+# is the environment prefix's `lib/`, and that is where pip unpacks
+# `.data/data/lib/`. Nothing has to be patched.
 # ----------------------------------------------------------------------------
-include lib/libviame*.so*    -> {data}/lib/
-include lib/libkwiver*.so*   -> {data}/lib/
-include lib/libvital*.so*    -> {data}/lib/
-include lib/libsprokit*.so*  -> {data}/lib/
+include lib/libviame.so*  -> {data}/lib/
+
+# ----------------------------------------------------------------------------
+# The tools
+#
+# `viame` and `kwiver` are ELF executables, not python entry points, so they
+# go through the wheel's `scripts` scheme: pip unpacks `.data/scripts/` into
+# the environment's `bin/` and marks it executable, which puts `viame` on the
+# PATH of an activated environment.
+#
+# They need no patching either. Their RUNPATH is `$ORIGIN/../lib:$ORIGIN/`,
+# and from `<env>/bin` that first entry is `<env>/lib` -- the same directory
+# `{data}/lib/` above unpacks into.
+#
+# The five shell scripts the manifest also installs under `bin/` are left
+# out deliberately: they resolve their own paths against a `VIAME_INSTALL`
+# layout with `configs/` and add-on archives beside them, which a code-only
+# wheel does not have. Shipping them would put commands on the PATH that
+# fail in a way that looks like a broken install rather than a missing
+# component.
+# ----------------------------------------------------------------------------
+# Into `{data}/libexec/viame/` rather than onto the PATH, and a generated
+# python launcher takes their place -- `--launcher` in wheel.cmake. These are
+# ELF binaries linking `libpython3.X.so.1.0`, and nothing knows where that is
+# until an interpreter is running: on a distribution python it is in the
+# ldconfig cache, on a standalone one (pyenv, conda, uv, python.org) it is
+# not, and the tool dies before main with "error while loading shared
+# libraries". The launcher asks the running interpreter and sets
+# LD_LIBRARY_PATH before exec'ing these.
+# Flat under `libexec/`, not `libexec/viame/`: these carry
+# `$ORIGIN/../lib` for libviame, and from `<prefix>/libexec/` that is
+# `<prefix>/lib`, which is where `{data}/lib/` lands. One directory
+# deeper and it resolves to `<prefix>/libexec/lib`, which is nothing.
+include bin/viame   -> {data}/libexec/
+include bin/kwiver  -> {data}/libexec/
+
+# ----------------------------------------------------------------------------
+# The tool scripts
+#
+# `viame run <name>`, `add-ons`, `index`, `search` and the rest are applets
+# that shell out to a script in `configs/`. `python_script_applet` looks in
+# `$VIAME_INSTALL/configs` and then `<exe>/../configs`; from `<env>/bin` the
+# second is `<env>/configs`, which is what `{data}/` unpacks into. So these
+# work with no environment set, and `run.py` finds the pipelines beside it
+# because it resolves them from its own `__file__`.
+# ----------------------------------------------------------------------------
+include configs/*.py            -> {data}/configs/
+include configs/gui-params/**   -> {data}/configs/gui-params/
+include configs/prj-template/** -> {data}/configs/prj-template/
 
 # ----------------------------------------------------------------------------
 # What never ships
@@ -51,6 +102,11 @@ include lib/libsprokit*.so*  -> {data}/lib/
 # `__pycache__` is the build tree's, compiled against a path the wheel will
 # not have. Tests and their data are not what `pip install viame` is for.
 # Static archives are link-time only.
+#
+# Not excluded here because they are not included above, and worth saying so:
+# `configs/` is 8.6 GB of downloaded models, `include/` is for out-of-tree
+# C++ plugin development, and `bin/` holds the tools. A code-only wheel is
+# the decision on record; models are fetched separately.
 # ----------------------------------------------------------------------------
 exclude **/__pycache__/**
 exclude **/*.pyc

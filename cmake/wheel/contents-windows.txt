@@ -41,6 +41,9 @@ include bin/*.dll       -> {data}/Library/bin/
 # environment's `Scripts` directory, which is on the PATH of an activated
 # environment.
 # ----------------------------------------------------------------------------
+# Windows keeps the .exe directly on the PATH: python3X.dll sits beside
+# python.exe in the environment, which is already searched, so the
+# libpython problem the linux launcher solves does not arise.
 include bin/viame.exe   -> {scripts}/
 include bin/kwiver.exe  -> {scripts}/
 
