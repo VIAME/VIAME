@@ -43,25 +43,29 @@ GIRDER_ITEM_API = 'https://%s/api/v1/item/%s'
 
 # CSV key -> wiki section heading (matched by prefix, so headings can carry
 # trailing words). Only entries listed here are synced.
-#
-# Deliberately absent:
-#   ARCTIC-SEAL   the wiki links a different artifact (an older Windows/Linux
-#                 pair), not the package the CSV carries
-#   ALIGN-CAMERAS no section exists on the page yet
 WIKI_SECTIONS = {
     'DEFAULT-FISH':   'Fish Detector and Tracker',
-    'DARKNET':        'Additional Darknet YOLO Architectures',
-    'LEARN':          'ConvNext Low-Shot Models',
     'GENERIC':        'Generic Object Proposer',
+    'RF-DETR':        'RF-DETR Seed Models',
     'SAM2':           'SAM2 Auto',
     'SAM3':           'SAM3 Text Query',
+    'FAST-FDN-STEREO': 'Fast Foundation Stereo',
+    'DINO3':          'DINO Stereo Point Matching',
+    'ALIGN-CAMERAS':  'Camera Alignment',
+    'SRNN':           'SRNN Appearance Tracker',
+    'SIAMMASK':       'SiamMask and SiamRPN++',
+    'DARKNET':        'Additional Darknet YOLO Architectures',
     'COMMUNITY-FISH': 'Community Fish Detection',
+    'LEARN':          'ConvNext Low-Shot Models',
     'SEA-LION':       'Sea Lion Models',
     'GFIT':           'Gulf Fish Identification Track',
+    'ARCTIC-SEAL':    'Arctic Seals',
     'HABCAM':         'HabCam Models',
     'EM-TUNA':        'EM Tuna Detectors',
     'MOUSS-DEEP7':    'MOUSS Deep 7',
     'SWFSC-PENGHEAD': 'Penguin Head',
+    'AERIAL-PENGUIN': 'SWFSC Aerial Penguin',
+    'GROUPER-MOON':   'Grouper Moon',
 }
 
 # Sections whose **Version:** tracks something other than the package filename
