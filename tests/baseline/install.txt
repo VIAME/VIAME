@@ -4,7 +4,6 @@ bin/filter_non_web_pipelines.sh
 bin/kwiver
 bin/limit_train_time_for_viame_web.sh
 bin/viame
-bin/viame_train_detector
 configs/3d.py
 configs/add_ons.py
 configs/calibrate.py
@@ -1266,6 +1265,8 @@ lib/python3.10/site-packages/viame/file_io/write_object_track_set_coco.py
 lib/python3.10/site-packages/viame/image_io/__init__.py
 lib/python3.10/site-packages/viame/image_io/image_viewer.py
 lib/python3.10/site-packages/viame/image_io/pil_image_io.py
+lib/python3.10/site-packages/viame/image_kernels/__init__.py
+lib/python3.10/site-packages/viame/image_kernels/_image_kernels.so
 lib/python3.10/site-packages/viame/image_processing/__init__.py
 lib/python3.10/site-packages/viame/image_processing/align_cameras_process.py
 lib/python3.10/site-packages/viame/image_processing/alignment_core.py
@@ -1293,6 +1294,7 @@ lib/python3.10/site-packages/viame/io/metadata_io.so
 lib/python3.10/site-packages/viame/log.py
 lib/python3.10/site-packages/viame/measurement/__init__.py
 lib/python3.10/site-packages/viame/measurement/_measurement.so
+lib/python3.10/site-packages/viame/measurement/_projection.so
 lib/python3.10/site-packages/viame/measurement/colmap/__init__.py
 lib/python3.10/site-packages/viame/measurement/colmap/prior_coverage_sfm.py
 lib/python3.10/site-packages/viame/measurement/colmap/reconstruction.py
@@ -1328,6 +1330,7 @@ lib/python3.10/site-packages/viame/measurement/onnx/geometry_numpy.py
 lib/python3.10/site-packages/viame/measurement/onnx/run_epipolar_onnx.py
 lib/python3.10/site-packages/viame/measurement/onnx/triangulate.py
 lib/python3.10/site-packages/viame/measurement/prior_coverage_opencv.py
+lib/python3.10/site-packages/viame/measurement/projection.py
 lib/python3.10/site-packages/viame/measurement/stereo/__init__.py
 lib/python3.10/site-packages/viame/measurement/stereo/fast_foundation_stereo.py
 lib/python3.10/site-packages/viame/measurement/stereo/foundation_stereo.py
@@ -1939,8 +1942,11 @@ lib/python3.10/site-packages/viame/util/find_python_library.py
 lib/python3.10/site-packages/viame/util/pil.py
 lib/python3.10/site-packages/viame/utilities/__init__.py
 lib/python3.10/site-packages/viame/utilities/compat.py
+lib/python3.10/site-packages/viame/utilities/geometry.py
+lib/python3.10/site-packages/viame/utilities/imageops.py
 lib/python3.10/site-packages/viame/utilities/model_wrap.py
 lib/python3.10/site-packages/viame/utilities/module_aliases.py
+lib/python3.10/site-packages/viame/utilities/opencv_yaml.py
 lib/python3.10/site-packages/viame/utilities/utilities_ply.py
 lib/python3.10/site-packages/viame/utilities/utils.py
 lib/python3.10/site-packages/viame/utilities/vital_registration.py
