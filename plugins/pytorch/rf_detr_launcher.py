@@ -3,7 +3,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.           #
 """Standalone RF-DETR training entrypoint for multi-GPU (DDP) runs.
 
-The embedded viame_train_detector interpreter cannot launch DDP (which needs a
+The embedded viame train interpreter cannot launch DDP (which needs a
 re-executable script with a ``__main__`` guard), so rf_detr_trainer.py spawns
 this module as a subprocess when more than one GPU is available. PTL then
 re-execs it once per rank. Parameters arrive as a JSON file (argv[1])."""
