@@ -1336,6 +1336,17 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "input-truth", "Input list containing training truth",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "validation-list", "Optional list of data held out of training for "
+      "validation, in the same format as --input-list",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "validation-truth", "Truth for --validation-list, given the same way "
+      "as --input-truth",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "test-list", "Optional list of test data excluded from training and "
+      "validation, recorded in the output directory for later scoring",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "test-truth", "Truth for --test-list, given the same way as --input-truth",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "labels", "Input label file for train categories (.txt, .csv, or .json)",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "v,validation", "Optional validation input directory",
@@ -1510,6 +1521,10 @@ train_applet
   }
   std::string opt_input_list = cmd_args[ "input-list" ].as< std::string >();
   std::string opt_input_truth = cmd_args[ "input-truth" ].as< std::string >();
+  std::string opt_validation_list = cmd_args[ "validation-list" ].as< std::string >();
+  std::string opt_validation_truth = cmd_args[ "validation-truth" ].as< std::string >();
+  std::string opt_test_list = cmd_args[ "test-list" ].as< std::string >();
+  std::string opt_test_truth = cmd_args[ "test-truth" ].as< std::string >();
   std::string opt_label_file = cmd_args[ "labels" ].as< std::string >();
   std::string opt_validation_dir = cmd_args[ "validation" ].as< std::string >();
   std::string opt_detector = cmd_args[ "detector" ].as< std::string >();
@@ -2351,6 +2366,14 @@ train_applet
     {
       dataset << "Input list: " << opt_input_list << std::endl;
     }
+    if( !opt_validation_list.empty() )
+    {
+      dataset << "Validation list: " << opt_validation_list << std::endl;
+    }
+    if( !opt_test_list.empty() )
+    {
+      dataset << "Test list (excluded): " << opt_test_list << std::endl;
+    }
     if( !opt_validation_dir.empty() )
     {
       dataset << "Validation directory: " << opt_validation_dir << std::endl;
@@ -2519,66 +2542,141 @@ train_applet
   }
   else if( !opt_input_list.empty() )
   {
-    if( !does_file_exist( opt_input_list ) ||
-        !load_file_list( opt_input_list, all_data ) )
+    // Loads a data list plus its truth, which is either a single groundtruth
+    // file used for every entry or a list matched line by line.
+    auto load_data_list = [&]( const std::string& list_fn,
+                               const std::string& truth_fn,
+                               const std::string& purpose,
+                               std::vector< std::string >& data,
+                               std::vector< std::string >& truth )
     {
-      std::cout << "Unable to load: " << opt_input_list << std::endl;
-      return EXIT_FAILURE;
-    }
+      if( !does_file_exist( list_fn ) || !load_file_list( list_fn, data ) )
+      {
+        std::cout << "Unable to load: " << list_fn << std::endl;
+        return false;
+      }
 
-    while( !all_data.empty() && all_data.back().empty() )
-    {
-      all_data.pop_back();
-    }
+      while( !data.empty() && data.back().empty() )
+      {
+        data.pop_back();
+      }
 
-    if( all_data.empty() )
+      if( data.empty() )
+      {
+        std::cout << "Input " << purpose << " data list contains no entries" << std::endl;
+        return false;
+      }
+
+      if( truth_fn.empty() )
+      {
+        return true;
+      }
+
+      if( !does_file_exist( truth_fn ) )
+      {
+        std::cout << "Unable to find: " << truth_fn << std::endl;
+        return false;
+      }
+
+      if( ends_with_extension( truth_fn, groundtruth_exts ) )
+      {
+        truth.resize( data.size(), truth_fn );
+        return true;
+      }
+
+      if( !load_file_list( truth_fn, truth ) )
+      {
+        std::cout << "Unable to load: " << truth_fn << std::endl;
+        return false;
+      }
+
+      while( truth.size() > data.size() && truth.back().empty() )
+      {
+        truth.pop_back();
+      }
+
+      if( data.size() != truth.size() )
+      {
+        std::cout << "Input " << purpose << " data and truth list lengths do not match"
+                  << std::endl;
+        return false;
+      }
+
+      return true;
+    };
+
+    if( !load_data_list( opt_input_list, opt_input_truth, "training", all_data, all_truth ) )
     {
-      std::cout << "Input training data list contains no entries" << std::endl;
       return EXIT_FAILURE;
     }
 
     auto_detect_truth = opt_input_truth.empty();
 
-    if( !auto_detect_truth )
+    if( !opt_validation_list.empty() )
     {
-      // Check if input_truth is a single file (CSV) or a list file
-      if( does_file_exist( opt_input_truth ) )
+      if( auto_detect_truth != opt_validation_truth.empty() )
       {
-        // Check if it's a groundtruth file directly (e.g., .csv) or a list file
-        bool is_truth_file = ends_with_extension( opt_input_truth, groundtruth_exts );
-
-        if( is_truth_file )
-        {
-          // Single truth file for all images - replicate it for each data entry
-          all_truth.resize( all_data.size(), opt_input_truth );
-        }
-        else
-        {
-          // It's a list file containing paths to truth files
-          if( !load_file_list( opt_input_truth, all_truth ) )
-          {
-            std::cout << "Unable to load: " << opt_input_truth << std::endl;
-            return EXIT_FAILURE;
-          }
-
-          while( all_truth.size() > all_data.size() && all_truth.back().empty() )
-          {
-            all_truth.pop_back();
-          }
-
-          if( all_data.size() != all_truth.size() )
-          {
-            std::cout << "Training data and truth list lengths do not match" << std::endl;
-            return EXIT_FAILURE;
-          }
-        }
-      }
-      else
-      {
-        std::cout << "Unable to find: " << opt_input_truth << std::endl;
+        std::cout << "--validation-truth must be given exactly when --input-truth is"
+                  << std::endl;
         return EXIT_FAILURE;
       }
+
+      std::vector< std::string > validation_data, validation_truth;
+
+      if( !load_data_list( opt_validation_list, opt_validation_truth, "validation",
+                           validation_data, validation_truth ) )
+      {
+        return EXIT_FAILURE;
+      }
+
+      validation_pivot = all_data.size();
+
+      all_data.insert( all_data.end(), validation_data.begin(), validation_data.end() );
+      all_truth.insert( all_truth.end(), validation_truth.begin(), validation_truth.end() );
     }
+
+    if( !opt_test_list.empty() )
+    {
+      if( auto_detect_truth != opt_test_truth.empty() )
+      {
+        std::cout << "--test-truth must be given exactly when --input-truth is"
+                  << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      std::vector< std::string > test_data, test_truth;
+
+      if( !load_data_list( opt_test_list, opt_test_truth, "test", test_data, test_truth ) )
+      {
+        return EXIT_FAILURE;
+      }
+
+      const std::string test_dir =
+        output_directory.empty() ? std::string( "." ) : output_directory;
+
+      create_folder( test_dir );
+
+      std::ofstream test_list( append_path( test_dir, "test_list.txt" ) );
+      std::ofstream test_truth_list( append_path( test_dir, "test_truth_list.txt" ) );
+
+      for( unsigned i = 0; i < test_data.size(); ++i )
+      {
+        test_list << test_data[i] << std::endl;
+
+        if( i < test_truth.size() )
+        {
+          test_truth_list << test_truth[i] << std::endl;
+        }
+      }
+
+      std::cout << "Excluding " << test_data.size() << " test item(s) from training, "
+                << "recorded in " << test_dir << std::endl;
+    }
+  }
+  else if( !opt_validation_list.empty() || !opt_test_list.empty() )
+  {
+    std::cout << "--validation-list and --test-list require --input-list" << std::endl;
+    return EXIT_FAILURE;
   }
 
   // Load optional manual validation folder
