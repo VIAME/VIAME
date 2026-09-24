@@ -1,9 +1,8 @@
 Removing the OpenCV python dependency
 =====================================
 
-Goal: `pip install viame` needs no `opencv-python-headless`. The algorithms
-that are OpenCV *by definition* -- the ones registered under `ocv_*` -- keep
-it, behind an optional extra.
+Goal: no `opencv-python-headless`, anywhere, for anything. Not an optional
+extra -- gone.
 
 Where it stands
 ---------------
@@ -12,14 +11,20 @@ Where it stands
     789 call sites
     189 distinct cv2 APIs
 
-Removing it entirely is not the goal and should not be: four of those APIs
-have no VIAME equivalent and reimplementing them is a numerical project in
-its own right, not a port.
+All 189 go. The four with no VIAME equivalent are written rather than
+quarantined -- they are classical multi-view geometry, not OpenCV secrets:
 
-    cv2.findHomography          12 sites   RANSAC + DLT + LM refinement
-    cv2.calibrateCamera          9 sites   full bundle adjustment
-    cv2.stereoCalibrate          3 sites   ditto, two cameras
-    cv2.findChessboardCorners    3 sites   corner detection + subpixel
+    cv2.findHomography          12 sites   normalised DLT + RANSAC
+    cv2.calibrateCamera          9 sites   Zhang's method + LM refinement
+    cv2.stereoCalibrate          3 sites   the same, two cameras
+    cv2.findChessboardCorners    3 sites   quad detection + subpixel refine
+
+What makes that safe to attempt is how the calibration goldens are written:
+they check against **ground truth** with tolerances -- focal 2%, centre
+0.5%, baseline 1% -- not against OpenCV's recorded numbers. A replacement
+has to be accurate, not bit identical, and the synthetic scene has known
+answers (fx 600, fy 610, baseline 120) to be accurate against. That is a
+gentler target than reproducing OpenCV, and it is already in the tree.
 
 The rest is mostly a handful of primitives, and VIAME already has the C++
 for most of them -- `library/image_kernels` (25 headers: resample, warp,
@@ -31,10 +36,10 @@ None of it is bound to python. That is the gap this plan closes.
 What "done" looks like
 ----------------------
 
-    pip install viame            no OpenCV, every shipped pipeline runs
-    pip install viame[opencv]    adds the ocv_* algorithms
+    grep -r "import cv2" library/     no matches
+    pip install viame                every shipped pipeline runs
 
-and a test that fails if `import cv2` reappears on a core path.
+and a test that fails if it comes back.
 
 Phases
 ------
@@ -79,14 +84,16 @@ resampled result.
 implements all four. The highest golden risk in the plan and the reason
 `library/measurement/projection` exists at all.
 
-**5. Quarantine the rest.** The four hard APIs, and the files that are
-OpenCV by name, move behind `viame.utilities.opencv`, which imports cv2
-lazily and raises a message naming the extra. 11 files are already
-`ocv_*`/`opencv*` and stay as they are.
+**5. The four estimators.** `findHomography` first -- normalised DLT and
+RANSAC are a page of numpy and validate directly against cv2 on synthetic
+correspondences. Then `findChessboardCorners`, then `calibrateCamera` by
+Zhang's method with an LM refinement, then `stereoCalibrate` on top of it.
+`scipy.optimize.least_squares` does the refinement; scipy is already in the
+tree transitively and gets declared.
 
-**6. Make the dependency optional.** `opencv-python-headless` moves from
-`requirements.txt` to an `[opencv]` extra, and a test asserts no core module
-imports cv2.
+**6. Delete the dependency.** `opencv-python-headless` comes out of
+`requirements.txt` entirely, the `ocv_*` algorithms are renamed or retired,
+and a test fails if `import cv2` appears anywhere under `library/`.
 
 Order of attack within a phase
 ------------------------------
