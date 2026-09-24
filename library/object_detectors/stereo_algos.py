@@ -23,6 +23,7 @@ from os.path import splitext
 
 from viame.measurement.stereo_utils import (imscale, ensure_grayscale, from_homog, to_homog)
 from viame.measurement.stereo_utils import minimum_weight_assignment
+from viame.measurement import projection
 
 logger = logging.getLogger(__name__)
 
@@ -924,8 +925,8 @@ class StereoLengthMeasurments(object):
         rvec1, tvec1, rvec2, tvec2 = cal.extrinsic_vecs()
 
         # Make extrinsic matrices
-        R1 = cv2.Rodrigues(rvec1)[0]
-        R2 = cv2.Rodrigues(rvec2)[0]
+        R1 = projection.rodrigues(rvec1)
+        R2 = projection.rodrigues(rvec2)
         T1 = tvec1[:, None]
         T2 = tvec2[:, None]
         RT1 = np.hstack([R1, T1])
@@ -1073,7 +1074,7 @@ class StereoCalibration(object):
         logger.debug('Loading npzfile {}'.format(cal_fpath))
         data = dict(np.load(cal_fpath))
         flat_dict = {}
-        flat_dict['om'] = cv2.Rodrigues(data['R'])[0].ravel()
+        flat_dict['om'] = projection.rodrigues(data['R']).ravel()
         flat_dict['T'] = data['T'].ravel()
 
         K1 = data['cameraMatrixL']
@@ -1131,7 +1132,7 @@ class StereoCalibration(object):
 
         # Convert rotation matrix to Rodrigues vector
         R = np.array(data['R']).reshape(3, 3)
-        om = cv2.Rodrigues(R)[0].ravel()
+        om = projection.rodrigues(R).ravel()
 
         flat_dict = {}
         flat_dict['om'] = om

@@ -42,6 +42,7 @@ from viame.types import (CameraMap, RotationD, SimpleCameraIntrinsics,
                                 FeatureTrackSet)
 
 from viame.measurement import stereo_frame_selection as selection
+from viame.measurement import projection
 
 logger = logging.getLogger(__name__)
 
@@ -340,10 +341,14 @@ class OptimizeStereoCameras(OptimizeCameras):
 
         logger.info("Stereo calibration complete, RMS error: %s", rms)
 
-        r1, r2, p1, p2, q = cv2.stereoRectify(
+        rectified = projection.stereo_rectify(
             k_left, dist_left, k_right, dist_right,
-            (self._image_width, self._image_height), rotation, translation,
-            flags=cv2.CALIB_ZERO_DISPARITY)[:5]
+            self._image_width, self._image_height, rotation, translation)
+        r1 = rectified["left_rotation"]
+        r2 = rectified["right_rotation"]
+        p1 = rectified["left_projection"]
+        p2 = rectified["right_projection"]
+        q = rectified["disparity_to_depth"]
 
         logger.info("Computing stereo rectification...")
         logger.info("Writing calibration files...")
@@ -383,11 +388,15 @@ class OptimizeStereoCameras(OptimizeCameras):
         count = 0
 
         for index in range(len(points.image_pts[0])):
-            left = points.image_pts[0][index].reshape(-1, 1, 2)
-            right = points.image_pts[1][index].reshape(-1, 1, 2)
+            left = points.image_pts[0][index].reshape(-1, 2)
+            right = points.image_pts[1][index].reshape(-1, 2)
 
-            left = cv2.undistortPoints(left, k_left, dist_left, P=k_left)
-            right = cv2.undistortPoints(right, k_right, dist_right, P=k_right)
+            left = projection.undistort_points(left, k_left, dist_left,
+                                               None, k_left)
+            right = projection.undistort_points(right, k_right, dist_right,
+                                                None, k_right)
+            left = left.reshape(-1, 1, 2)
+            right = right.reshape(-1, 1, 2)
 
             left_lines = cv2.computeCorrespondEpilines(
                 left, 1, fundamental).reshape(-1, 3)
@@ -500,15 +509,13 @@ def _renumber(track, identifier):
 def _perspective_camera(intrinsics, distortion, rotation=None,
                         translation=None):
     """A vital camera from an OpenCV intrinsic matrix and pose."""
-    import cv2
-
     camera = SimpleCameraPerspective()
     camera.set_intrinsics(SimpleCameraIntrinsics(
         np.asarray(intrinsics, dtype=np.float64),
         np.asarray(distortion, dtype=np.float64).reshape(-1)))
 
     if rotation is not None:
-        vector, _ = cv2.Rodrigues(np.asarray(rotation, dtype=np.float64))
+        vector = projection.rodrigues(np.asarray(rotation, dtype=np.float64))
         camera.set_rotation(RotationD(vector.reshape(-1)))
         camera.set_translation(
             np.asarray(translation, dtype=np.float64).reshape(-1))

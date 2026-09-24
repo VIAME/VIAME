@@ -19,6 +19,7 @@ import sys
 import glob
 import argparse
 import json
+from viame.measurement import projection
 
 
 def parse_ptscal(filepath):
@@ -1901,7 +1902,7 @@ def robust_consensus_RT(all_results):
     R_list = [r['R'] for r in all_results]
     T_list = [r['T'] for r in all_results]
 
-    rvecs = np.array([cv2.Rodrigues(R)[0].flatten() for R in R_list])
+    rvecs = np.array([projection.rodrigues(R).flatten() for R in R_list])
     tvecs = np.array([T.flatten() for T in T_list])
 
     # Median rotation vector
@@ -1929,7 +1930,7 @@ def robust_consensus_RT(all_results):
     if combined_inliers.sum() < 3:
         combined_inliers = inliers  # Fall back to rotation-only filtering
 
-    R_consensus, _ = cv2.Rodrigues(np.median(rvecs[combined_inliers], axis=0))
+    R_consensus = projection.rodrigues(np.median(rvecs[combined_inliers], axis=0))
     T_consensus = np.median(tvecs[combined_inliers], axis=0).reshape(3, 1)
     T_consensus = T_consensus / np.linalg.norm(T_consensus)
 
@@ -1994,10 +1995,10 @@ def cross_label_right_dots(left_matched, K_left, dist_left, K_right, dist_right,
             useExtrinsicGuess=True, flags=cv2.SOLVEPNP_ITERATIVE)
 
         # Compute right camera pose: R_right = R_stereo @ R_left, T_right = R_stereo @ T_left + T_stereo
-        R_L, _ = cv2.Rodrigues(rvec_l)
+        R_L = projection.rodrigues(rvec_l)
         R_right = R @ R_L
         T_right = R @ tvec_l + T
-        rvec_right, _ = cv2.Rodrigues(R_right)
+        rvec_right = projection.rodrigues(R_right)
 
         # Project all world points into right camera
         proj, _ = cv2.projectPoints(all_3d, rvec_right, T_right, K_right, dist_right)

@@ -32,6 +32,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <utility>
 #include <string>
 #include <vector>
 
@@ -39,9 +40,17 @@ namespace py = pybind11;
 
 namespace {
 
+/// The array types the kernels take. `forcecast` is deliberately **not**
+/// used: a float32 depth map handed to a uint8 binding would be silently
+/// truncated, and a silently wrong depth map is worse than a TypeError.
+/// Where a caller may reasonably have either, both are bound.
+template < typename T >
+using array_of = py::array_t< T, py::array::c_style >;
+
 /// A view over numpy memory. The caller keeps the array alive for the call.
-viame::image_of< uint8_t >
-as_image( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+template < typename T >
+viame::image_of< T >
+as_image( array_of< T > const& array )
 {
   auto const buffer = array.request();
 
@@ -53,8 +62,8 @@ as_image( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > cons
   auto const depth =
     static_cast< size_t >( buffer.ndim == 3 ? buffer.shape[2] : 1 );
 
-  return viame::image_of< uint8_t >(
-    static_cast< uint8_t const* >( buffer.ptr ),
+  return viame::image_of< T >(
+    static_cast< T const* >( buffer.ptr ),
     static_cast< size_t >( buffer.shape[1] ),
     static_cast< size_t >( buffer.shape[0] ),
     depth,
@@ -65,8 +74,9 @@ as_image( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > cons
 
 /// Copied by index rather than memcpy'd: an image_of carries its own strides
 /// and a kernel's result is not required to be packed.
+template < typename T >
 py::array
-as_array( viame::image_of< uint8_t > const& image, bool keep_third_axis )
+as_array( viame::image_of< T > const& image, bool keep_third_axis )
 {
   std::vector< Py_ssize_t > shape{
     static_cast< Py_ssize_t >( image.height() ),
@@ -77,8 +87,8 @@ as_array( viame::image_of< uint8_t > const& image, bool keep_third_axis )
     shape.push_back( static_cast< Py_ssize_t >( image.depth() ) );
   }
 
-  py::array_t< uint8_t > out( shape );
-  uint8_t* destination = out.mutable_data();
+  py::array_t< T > out( shape );
+  T* destination = out.mutable_data();
 
   for( size_t y = 0; y < image.height(); ++y )
   {
@@ -94,35 +104,36 @@ as_array( viame::image_of< uint8_t > const& image, bool keep_third_axis )
   return std::move( out );
 }
 
+template < typename T >
 py::array
-resize( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
-        size_t width, size_t height )
+resize( array_of< T > const& array, size_t width, size_t height )
 {
-  auto const source = as_image( array );
-  return as_array( viame::image_kernels::resize_bilinear( source, width, height ),
-                   array.ndim() == 3 );
+  return as_array(
+    viame::image_kernels::resize_bilinear( as_image( array ), width, height ),
+    array.ndim() == 3 );
+}
+
+template < typename T >
+py::array
+resize_area( array_of< T > const& array, size_t width, size_t height )
+{
+  return as_array(
+    viame::image_kernels::resize_area( as_image( array ), width, height ),
+    array.ndim() == 3 );
+}
+
+template < typename T >
+py::array
+crop( array_of< T > const& array, size_t left, size_t top, size_t width,
+      size_t height )
+{
+  return as_array(
+    viame::image_kernels::crop( as_image( array ), left, top, width, height ),
+    array.ndim() == 3 );
 }
 
 py::array
-resize_area( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
-             size_t width, size_t height )
-{
-  auto const source = as_image( array );
-  return as_array( viame::image_kernels::resize_area( source, width, height ),
-                   array.ndim() == 3 );
-}
-
-py::array
-crop( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
-      size_t left, size_t top, size_t width, size_t height )
-{
-  auto const source = as_image( array );
-  return as_array( viame::image_kernels::crop( source, left, top, width, height ),
-                   array.ndim() == 3 );
-}
-
-py::array
-to_gray( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+to_gray( array_of< uint8_t > const& array )
 {
   if( array.ndim() != 3 )
   {
@@ -133,14 +144,14 @@ to_gray( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const
 }
 
 py::array
-to_rgb( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+to_rgb( array_of< uint8_t > const& array )
 {
   auto const source = as_image( array );
   return as_array( viame::image_kernels::gray_to_rgb( source ), true );
 }
 
 py::array
-swap_channels( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+swap_channels( array_of< uint8_t > const& array )
 {
   if( array.ndim() != 3 )
   {
@@ -153,9 +164,9 @@ swap_channels( py::array_t< uint8_t, py::array::c_style | py::array::forcecast >
 /// The three-channel conversions all have the same shape: HxWx3 in, HxWx3
 /// out. `three_channel` is the check they share, named so the error says
 /// which conversion asked.
-py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const&
+array_of< uint8_t > const&
 three_channel(
-  py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+  array_of< uint8_t > const& array,
   char const* who )
 {
   if( array.ndim() != 3 || array.shape( 2 ) != 3 )
@@ -166,49 +177,49 @@ three_channel(
 }
 
 py::array
-to_hsv( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+to_hsv( array_of< uint8_t > const& array )
 {
   auto const source = as_image( three_channel( array, "to_hsv" ) );
   return as_array( viame::image_kernels::rgb_to_hsv( source ), true );
 }
 
 py::array
-from_hsv( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+from_hsv( array_of< uint8_t > const& array )
 {
   auto const source = as_image( three_channel( array, "from_hsv" ) );
   return as_array( viame::image_kernels::hsv_to_rgb( source ), true );
 }
 
 py::array
-to_hls( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+to_hls( array_of< uint8_t > const& array )
 {
   auto const source = as_image( three_channel( array, "to_hls" ) );
   return as_array( viame::image_kernels::rgb_to_hls( source ), true );
 }
 
 py::array
-from_hls( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+from_hls( array_of< uint8_t > const& array )
 {
   auto const source = as_image( three_channel( array, "from_hls" ) );
   return as_array( viame::image_kernels::hls_to_rgb( source ), true );
 }
 
 py::array
-to_lab( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+to_lab( array_of< uint8_t > const& array )
 {
   auto const source = as_image( three_channel( array, "to_lab" ) );
   return as_array( viame::image_kernels::rgb_to_lab( source ), true );
 }
 
 py::array
-from_lab( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+from_lab( array_of< uint8_t > const& array )
 {
   auto const source = as_image( three_channel( array, "from_lab" ) );
   return as_array( viame::image_kernels::lab_to_rgb( source ), true );
 }
 
 py::array
-demosaic( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+demosaic( array_of< uint8_t > const& array,
           std::string const& pattern )
 {
   using viame::image_kernels::bayer_pattern;
@@ -241,8 +252,9 @@ demosaic( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > cons
 // call sites expect: an overlay is built up by a run of them.
 
 /// A writable view over numpy memory, for the drawing kernels.
-viame::image_of< uint8_t >
-as_mutable_image( py::array_t< uint8_t, py::array::c_style >& array )
+template < typename T >
+viame::image_of< T >
+as_mutable_image( array_of< T >& array )
 {
   auto buffer = array.request( true );
 
@@ -254,8 +266,8 @@ as_mutable_image( py::array_t< uint8_t, py::array::c_style >& array )
   auto const depth =
     static_cast< size_t >( buffer.ndim == 3 ? buffer.shape[ 2 ] : 1 );
 
-  return viame::image_of< uint8_t >(
-    static_cast< uint8_t* >( buffer.ptr ),
+  return viame::image_of< T >(
+    static_cast< T* >( buffer.ptr ),
     static_cast< size_t >( buffer.shape[ 1 ] ),
     static_cast< size_t >( buffer.shape[ 0 ] ),
     depth,
@@ -303,8 +315,9 @@ as_points( py::array_t< double, py::array::c_style | py::array::forcecast >
   return out;
 }
 
+template < typename T >
 void
-fill_polygon( py::array_t< uint8_t, py::array::c_style >& array,
+fill_polygon( array_of< T >& array,
               py::array_t< double, py::array::c_style | py::array::forcecast >
                 const& points,
               py::object const& colour )
@@ -314,8 +327,9 @@ fill_polygon( py::array_t< uint8_t, py::array::c_style >& array,
                                       as_colour( colour ) );
 }
 
+template < typename T >
 void
-draw_rect( py::array_t< uint8_t, py::array::c_style >& array,
+draw_rect( array_of< T >& array,
            long left, long top, long right, long bottom,
            py::object const& colour, long thickness )
 {
@@ -331,8 +345,9 @@ draw_rect( py::array_t< uint8_t, py::array::c_style >& array,
                                    thickness );
 }
 
+template < typename T >
 void
-draw_text( py::array_t< uint8_t, py::array::c_style >& array,
+draw_text( array_of< T >& array,
            std::string const& text, long x, long y,
            py::object const& colour, long scale )
 {
@@ -341,8 +356,9 @@ draw_text( py::array_t< uint8_t, py::array::c_style >& array,
                                    scale );
 }
 
+template < typename T >
 void
-draw_line( py::array_t< uint8_t, py::array::c_style >& array,
+draw_line( array_of< T >& array,
            long x0, long y0, long x1, long y1, py::object const& colour )
 {
   auto image = as_mutable_image( array );
@@ -350,8 +366,9 @@ draw_line( py::array_t< uint8_t, py::array::c_style >& array,
                                    as_colour( colour ) );
 }
 
+template < typename T >
 void
-draw_circle( py::array_t< uint8_t, py::array::c_style >& array,
+draw_circle( array_of< T >& array,
              long x, long y, long radius, py::object const& colour,
              long thickness )
 {
@@ -386,7 +403,7 @@ as_border( std::string const& name )
 }
 
 py::array
-gaussian_blur( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+gaussian_blur( array_of< uint8_t > const& array,
                size_t size, double sigma, std::string const& border )
 {
   auto const source = as_image( array );
@@ -397,7 +414,7 @@ gaussian_blur( py::array_t< uint8_t, py::array::c_style | py::array::forcecast >
 }
 
 py::array
-box_blur( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+box_blur( array_of< uint8_t > const& array,
           size_t size, std::string const& border )
 {
   auto const source = as_image( array );
@@ -407,9 +424,9 @@ box_blur( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > cons
 }
 
 py::array
-add_weighted( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& first,
+add_weighted( array_of< uint8_t > const& first,
               double alpha,
-              py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& second,
+              array_of< uint8_t > const& second,
               double beta, double gamma )
 {
   auto const a = as_image( first );
@@ -427,7 +444,7 @@ add_weighted( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > 
 }
 
 py::array
-normalize( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+normalize( array_of< uint8_t > const& array,
            double low, double high )
 {
   auto const source = as_image( array );
@@ -436,7 +453,7 @@ normalize( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > con
 }
 
 py::array
-equalize( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array )
+equalize( array_of< uint8_t > const& array )
 {
   auto const source = as_image( array );
   return as_array( viame::image_kernels::equalize( source ),
@@ -444,7 +461,7 @@ equalize( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > cons
 }
 
 py::array
-clahe( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+clahe( array_of< uint8_t > const& array,
        double clip_limit, size_t tiles_x, size_t tiles_y )
 {
   auto const source = as_image( array );
@@ -474,7 +491,7 @@ as_element( std::string const& shape, int width, int height )
 }
 
 py::array
-erode( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+erode( array_of< uint8_t > const& array,
        std::string const& shape, int width, int height )
 {
   auto const source = as_image( array );
@@ -485,7 +502,7 @@ erode( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& 
 }
 
 py::array
-dilate( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+dilate( array_of< uint8_t > const& array,
         std::string const& shape, int width, int height )
 {
   auto const source = as_image( array );
@@ -534,8 +551,9 @@ as_map( py::array_t< float, py::array::c_style | py::array::forcecast > const&
     static_cast< ptrdiff_t >( buffer.shape[ 1 ] ), 1 );
 }
 
+template < typename T >
 py::array
-remap( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+remap( array_of< T > const& array,
        py::array_t< float, py::array::c_style | py::array::forcecast > const& map_x,
        py::array_t< float, py::array::c_style | py::array::forcecast > const& map_y,
        std::string const& interpolation, std::string const& border,
@@ -574,8 +592,9 @@ as_matrix_3x3( py::array_t< double, py::array::c_style | py::array::forcecast >
   return out;
 }
 
+template < typename T >
 py::array
-warp_perspective( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+warp_perspective( array_of< T > const& array,
                   py::array_t< double, py::array::c_style | py::array::forcecast > const& transform,
                   size_t width, size_t height,
                   std::string const& interpolation, std::string const& border,
@@ -589,8 +608,9 @@ warp_perspective( py::array_t< uint8_t, py::array::c_style | py::array::forcecas
     array.ndim() == 3 );
 }
 
+template < typename T >
 py::array
-warp_affine( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+warp_affine( array_of< T > const& array,
              py::array_t< double, py::array::c_style | py::array::forcecast > const& transform,
              size_t width, size_t height,
              std::string const& interpolation, std::string const& border,
@@ -622,24 +642,65 @@ warp_affine( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > c
     array.ndim() == 3 );
 }
 
+/// Bind one name to the uint8, uint16 and float32 overloads.
+///
+/// VIAME ships 16-bit pipelines (`common_default_input_16bit.pipe`), so a
+/// filter that draws on whatever frame it is handed sees uint16, and the
+/// resamplers see float32 from a depth or disparity stage. Registering only
+/// uint8 and relying on a cast is what `forcecast` did, and it is what this
+/// avoids.
+template < typename Byte, typename Short, typename Float, typename... Extra >
+void
+for_every_pixel_type( py::module& m, char const* name, Byte byte_version,
+                      Short short_version, Float float_version,
+                      Extra&&... extra )
+{
+  m.def( name, byte_version, extra... );
+  m.def( name, short_version, extra... );
+  m.def( name, float_version, std::forward< Extra >( extra )... );
+}
+
+/// Bind one name to both the uint8 and the float32 overload.
+///
+/// pybind tries them in the order they are registered, and without
+/// `forcecast` on either an array of the other type falls through to the
+/// second rather than being silently converted. uint8 goes first because
+/// that is what a frame is; float32 is there for the maps a depth or
+/// disparity stage carries, which `cv2.remap` took happily and a uint8-only
+/// binding would have truncated without a word.
+template < typename Byte, typename Float, typename... Extra >
+void
+for_both_pixel_types( py::module& m, char const* name, Byte byte_version,
+                      Float float_version, Extra&&... extra )
+{
+  m.def( name, byte_version, extra... );
+  m.def( name, float_version, std::forward< Extra >( extra )... );
+}
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _image_kernels, m )
 {
   m.doc() = "VIAME's own image kernels, so python needs no OpenCV";
 
-  m.def( "resize", &resize, py::arg( "image" ), py::arg( "width" ),
+  for_every_pixel_type( m, "resize", &resize< uint8_t >,
+         &resize< uint16_t >, &resize< float >,
+         py::arg( "image" ), py::arg( "width" ),
          py::arg( "height" ),
          "Bilinear resize. The same kernel the C++ pipelines use, so a "
          "resized frame matches whether it was resized here or there." );
 
-  m.def( "resize_area", &resize_area, py::arg( "image" ), py::arg( "width" ),
+  for_every_pixel_type( m, "resize_area", &resize_area< uint8_t >,
+         &resize_area< uint16_t >,
+         &resize_area< float >, py::arg( "image" ), py::arg( "width" ),
          py::arg( "height" ),
          "Resize by averaging each destination pixel's source footprint, "
          "which is the right filter for shrinking. Agrees with OpenCV's "
          "INTER_AREA to within one grey level." );
 
-  m.def( "crop", &crop, py::arg( "image" ), py::arg( "left" ), py::arg( "top" ),
+  for_every_pixel_type( m, "crop", &crop< uint8_t >,
+         &crop< uint16_t >, &crop< float >,
+         py::arg( "image" ), py::arg( "left" ), py::arg( "top" ),
          py::arg( "width" ), py::arg( "height" ),
          "Crop to a rectangle, clamped to the image." );
 
@@ -678,13 +739,15 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "reverse of how OpenCV spells its constants, so this is "
          "cv2.COLOR_BayerRG2RGB, not BayerBG2RGB." );
 
-  m.def( "fill_polygon", &fill_polygon, py::arg( "image" ),
+  for_both_pixel_types( m, "fill_polygon", &fill_polygon< uint8_t >,
+         &fill_polygon< uint16_t >, py::arg( "image" ),
          py::arg( "points" ), py::arg( "colour" ),
          "Fill a polygon in place, outline included -- which is what "
          "cv2.fillPoly does, and is not what \"fill\" suggests. Points are "
          "an N by 2 array of x, y." );
 
-  m.def( "draw_rect", &draw_rect, py::arg( "image" ), py::arg( "left" ),
+  for_both_pixel_types( m, "draw_rect", &draw_rect< uint8_t >,
+         &draw_rect< uint16_t >, py::arg( "image" ), py::arg( "left" ),
          py::arg( "top" ), py::arg( "right" ), py::arg( "bottom" ),
          py::arg( "colour" ), py::arg( "thickness" ) = 1,
          "cv2.rectangle, with one difference that matters: `right` and "
@@ -694,7 +757,8 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "thickness 1 and at -1, which fills. Thicker outlines differ: the "
          "kernel squares off each step where OpenCV mitres the corner." );
 
-  m.def( "draw_text", &draw_text, py::arg( "image" ), py::arg( "text" ),
+  for_both_pixel_types( m, "draw_text", &draw_text< uint8_t >,
+         &draw_text< uint16_t >, py::arg( "image" ), py::arg( "text" ),
          py::arg( "x" ), py::arg( "y" ), py::arg( "colour" ),
          py::arg( "scale" ) = 1,
          "Draw text with its **top left** at (x, y), where cv2.putText "
@@ -702,14 +766,16 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "so this does not look like OpenCV's text; it is legible, which is "
          "what a debug overlay needs." );
 
-  m.def( "draw_line", &draw_line, py::arg( "image" ), py::arg( "x0" ),
+  for_both_pixel_types( m, "draw_line", &draw_line< uint8_t >,
+         &draw_line< uint16_t >, py::arg( "image" ), py::arg( "x0" ),
          py::arg( "y0" ), py::arg( "x1" ), py::arg( "y1" ),
          py::arg( "colour" ),
          "cv2.line, one pixel wide. Bresenham, as cv2.LINE_8 is, but the "
          "tie breaking differs: about one pixel in nine of a long diagonal "
          "lands on the other side of the step." );
 
-  m.def( "draw_circle", &draw_circle, py::arg( "image" ), py::arg( "x" ),
+  for_both_pixel_types( m, "draw_circle", &draw_circle< uint8_t >,
+         &draw_circle< uint16_t >, py::arg( "image" ), py::arg( "x" ),
          py::arg( "y" ), py::arg( "radius" ), py::arg( "colour" ),
          py::arg( "thickness" ) = 1,
          "cv2.circle, pixel for pixel at thickness 1. A thickness below "
@@ -755,7 +821,9 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "width" ) = 3, py::arg( "height" ) = 3,
          "Grey dilation. cv2.dilate." );
 
-  m.def( "remap", &remap, py::arg( "image" ), py::arg( "map_x" ),
+  for_every_pixel_type( m, "remap", &remap< uint8_t >,
+         &remap< uint16_t >, &remap< float >,
+         py::arg( "image" ), py::arg( "map_x" ),
          py::arg( "map_y" ), py::arg( "interpolation" ) = "bilinear",
          py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,
          "cv2.remap. The maps give the source position of each output "
@@ -763,14 +831,18 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "which is what a rectification does: the maps are made once and "
          "every frame is sampled through them." );
 
-  m.def( "warp_perspective", &warp_perspective, py::arg( "image" ),
+  for_every_pixel_type( m, "warp_perspective", &warp_perspective< uint8_t >,
+         &warp_perspective< uint16_t >,
+         &warp_perspective< float >, py::arg( "image" ),
          py::arg( "transform" ), py::arg( "width" ) = 0,
          py::arg( "height" ) = 0, py::arg( "interpolation" ) = "bilinear",
          py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,
          "cv2.warpPerspective. The transform maps source to destination; "
          "a zero width or height keeps the source's." );
 
-  m.def( "warp_affine", &warp_affine, py::arg( "image" ),
+  for_every_pixel_type( m, "warp_affine", &warp_affine< uint8_t >,
+         &warp_affine< uint16_t >,
+         &warp_affine< float >, py::arg( "image" ),
          py::arg( "transform" ), py::arg( "width" ) = 0,
          py::arg( "height" ) = 0, py::arg( "interpolation" ) = "bilinear",
          py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,

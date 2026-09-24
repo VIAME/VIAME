@@ -393,3 +393,53 @@ def test_warp_perspective_wants_a_three_by_three():
 
 def test_a_warp_takes_the_requested_size():
     assert warp_perspective(_smooth(), np.eye(3), 20, 10).shape == (10, 20, 3)
+
+
+# ---------------------------------------------------------------------------
+# Pixel types
+#
+# `forcecast` is deliberately not on these bindings. With it, a float32 depth
+# map handed to a uint8 binding is silently truncated -- and a silently wrong
+# depth map is worse than a TypeError. So the types a VIAME pipeline actually
+# carries are bound explicitly: uint8, uint16 for the 16-bit pipelines
+# (`common_default_input_16bit.pipe`), and float32 for a depth or disparity
+# stage. Anything else raises.
+
+@pytest.mark.parametrize("dtype", [np.uint8, np.uint16, np.float32])
+def test_the_resamplers_carry_the_pixel_type(dtype):
+    frame = (_smooth() / 2).astype(dtype)
+    assert resize(frame, 32, 24).dtype == dtype
+    assert resize_area(frame, 32, 24).dtype == dtype
+    assert crop(frame, 0, 0, 20, 10).dtype == dtype
+
+    mx, my = _identity_maps()
+    assert remap(frame, mx, my).dtype == dtype
+    assert warp_perspective(frame, np.eye(3)).dtype == dtype
+
+
+def test_a_float32_map_keeps_its_range():
+    """The point of the float overload: 5000.0 must not come back as 255."""
+    depth = np.full((8, 8), 5000.0, dtype=np.float32)
+    assert resize(depth, 4, 4).max() == pytest.approx(5000.0)
+
+
+def test_a_sixteen_bit_frame_keeps_its_range():
+    frame = np.full((8, 8), 40000, dtype=np.uint16)
+    assert resize(frame, 4, 4).max() == 40000
+
+
+@pytest.mark.parametrize("dtype", [np.uint8, np.uint16])
+def test_drawing_takes_the_frame_types(dtype):
+    canvas = np.zeros((20, 20), dtype=dtype)
+    draw_rect(canvas, 2, 2, 10, 10, 300 if dtype is np.uint16 else 200, -1)
+    assert canvas[5, 5] > 0
+
+    fill_polygon(canvas, np.array([[1.0, 1.0], [15.0, 2.0], [10.0, 14.0]]), 7)
+    assert canvas.max() > 0
+
+
+def test_an_unsupported_pixel_type_is_refused_not_cast():
+    with pytest.raises(TypeError):
+        resize(np.zeros((8, 8), np.float64), 4, 4)
+    with pytest.raises(TypeError):
+        resize(np.zeros((8, 8), np.int32), 4, 4)

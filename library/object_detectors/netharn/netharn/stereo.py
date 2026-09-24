@@ -4,6 +4,7 @@ import cv2
 import kwimage
 import ubelt as ub
 import numpy as np
+from viame.measurement import projection
 
 
 def _calibrate_single_camera(img_points, object_points, img_dsize):
@@ -540,12 +541,12 @@ class StereoCalibration():
 
         # Make extrincic matrices
         rvec1 = np.zeros((3, 1))
-        R1 = cv2.Rodrigues(rvec1)[0]
+        R1 = projection.rodrigues(rvec1)
         T1 = np.zeros((3, 1))
         tvec1 = T1
 
         R2 = cali.extrinsics['R']
-        rvec2 = cv2.Rodrigues(R2)[0]
+        rvec2 = projection.rodrigues(R2)
         T2 = cali.extrinsics['T']
         tvec2 = T2
 

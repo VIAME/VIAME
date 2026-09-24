@@ -46,7 +46,11 @@ def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3
     iaug[ iaug > 255 ] = 255
     iaug[ iaug < 0 ] = 0
 
-    crop = image_kernels.resize(iaug, outsize, outsize)
+    # Resized as float, which is what `cv2.resize` did with the float64 the
+    # brightness jitter above produces -- the caller casts to uint8 after.
+    # float32 rather than float64 because that is the kernel's float type,
+    # and the values are 0..255.
+    crop = image_kernels.resize(iaug.astype(np.float32), outsize, outsize)
     return crop
 
 

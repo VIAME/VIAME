@@ -20,6 +20,7 @@ import re
 import subprocess
 import glob
 from viame import image_kernels
+from viame.measurement import projection
 
 # Populated by import_dependencies()
 np = None
@@ -367,7 +368,7 @@ def generate_prior_coverage(rec, output_csv, class_name):
             continue
 
         # Project with distortion via cv2.projectPoints
-        rvec, _ = cv2.Rodrigues(R)
+        rvec = projection.rodrigues(R)
         pts_2d, _ = cv2.projectPoints(pts_3d, rvec, t, K, dist)
         pts_2d = pts_2d.reshape(-1, 2)
 
@@ -483,7 +484,7 @@ def generate_prior_coverage_standalone(rec, output_csv, class_name="suppressed")
                 prior_pids |= observed_pids(img)
                 continue
 
-            rvec, _ = cv2.Rodrigues(R)
+            rvec = projection.rodrigues(R)
             pts_2d, _ = cv2.projectPoints(pts_3d, rvec, t, K, dist)
             pts_2d = pts_2d.reshape(-1, 2)
 

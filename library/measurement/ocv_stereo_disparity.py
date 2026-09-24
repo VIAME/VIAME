@@ -71,7 +71,7 @@ def _to_gray(array):
     the RGB array those are `RGB2GRAY` and `RGBA2GRAY`, which weight the
     channels the same way round.
     """
-    import cv2
+    from viame import image_kernels
 
     if array.ndim == 2:
         return array
@@ -80,10 +80,11 @@ def _to_gray(array):
         return array[:, :, 0]
 
     if array.shape[2] == 3:
-        return cv2.cvtColor(array, cv2.COLOR_RGB2GRAY)
+        return image_kernels.to_gray(array)
 
     if array.shape[2] == 4:
-        return cv2.cvtColor(array, cv2.COLOR_RGBA2GRAY)
+        # The alpha plane is not part of the luminance; drop it and convert
+        return image_kernels.to_gray(np.ascontiguousarray(array[:, :, :3]))
 
     return array[:, :, 0]
 
@@ -283,7 +284,7 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
         remapping the disparity through it puts each rectified value back
         where its pixel came from.
         """
-        import cv2
+        from viame.measurement import projection
 
         if self._rectification is not None:
             return self._rectification
@@ -291,35 +292,39 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
         calibration = self._load_calibration()
         height, width = shape
 
-        rectify = cv2.stereoRectify(
+        rectify = projection.stereo_rectify(
             calibration["k_left"], calibration["dist_left"],
             calibration["k_right"], calibration["dist_right"],
-            (width, height), calibration["rotation"],
-            calibration["translation"],
-            flags=cv2.CALIB_ZERO_DISPARITY, alpha=0)
+            width, height, calibration["rotation"],
+            calibration["translation"], alpha=0.0)
 
-        r1, r2, p1, p2, q = rectify[:5]
+        r1 = rectify["left_rotation"]
+        r2 = rectify["right_rotation"]
+        p1 = rectify["left_projection"]
+        p2 = rectify["right_projection"]
 
-        left_x, left_y = cv2.initUndistortRectifyMap(
+        left_x, left_y = projection.rectification_maps(
             calibration["k_left"], calibration["dist_left"], r1, p1,
-            (width, height), cv2.CV_32FC1)
-        right_x, right_y = cv2.initUndistortRectifyMap(
+            width, height)
+        right_x, right_y = projection.rectification_maps(
             calibration["k_right"], calibration["dist_right"], r2, p2,
-            (width, height), cv2.CV_32FC1)
+            width, height)
 
-        grid = np.stack(np.meshgrid(np.arange(width, dtype=np.float32),
-                                    np.arange(height, dtype=np.float32)),
-                        axis=-1).reshape(-1, 1, 2)
+        grid = np.stack(np.meshgrid(np.arange(width, dtype=np.float64),
+                                    np.arange(height, dtype=np.float64)),
+                        axis=-1).reshape(-1, 2)
 
-        undistorted = cv2.undistortPoints(
-            grid, calibration["k_left"], calibration["dist_left"], R=r1, P=p1)
+        undistorted = projection.undistort_points(
+            grid, calibration["k_left"], calibration["dist_left"], r1, p1)
         undistorted = undistorted.reshape(height, width, 2)
 
         self._rectification = {
             "left_x": left_x, "left_y": left_y,
             "right_x": right_x, "right_y": right_y,
-            "unrectify_x": np.ascontiguousarray(undistorted[:, :, 0]),
-            "unrectify_y": np.ascontiguousarray(undistorted[:, :, 1]),
+            "unrectify_x": np.ascontiguousarray(
+                undistorted[:, :, 0], dtype=np.float32),
+            "unrectify_y": np.ascontiguousarray(
+                undistorted[:, :, 1], dtype=np.float32),
             "p1": p1, "p2": p2,
         }
 
@@ -329,6 +334,7 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
 
     def compute(self, left_image, right_image):
         import cv2
+        from viame import image_kernels
 
         if left_image is None or right_image is None:
             logger.warning("Null input image(s)")
@@ -351,14 +357,14 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
         left_colour_rectified = None
 
         if rectifying:
-            left_rect = cv2.remap(left_gray, maps["left_x"], maps["left_y"],
-                                  cv2.INTER_LINEAR)
-            right_rect = cv2.remap(right_gray, maps["right_x"],
-                                   maps["right_y"], cv2.INTER_LINEAR)
+            left_rect = image_kernels.remap(left_gray, maps["left_x"],
+                                            maps["left_y"], "bilinear")
+            right_rect = image_kernels.remap(right_gray, maps["right_x"],
+                                             maps["right_y"], "bilinear")
 
             if self._export_as_alpha:
-                left_colour_rectified = cv2.remap(
-                    left, maps["left_x"], maps["left_y"], cv2.INTER_LINEAR)
+                left_colour_rectified = image_kernels.remap(
+                    left, maps["left_x"], maps["left_y"], "bilinear")
         else:
             left_rect = left_gray
             right_rect = right_gray
@@ -394,10 +400,12 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
             float_map = depth
 
         if rectifying and not self._output_rectified:
-            aligned = cv2.remap(float_map, maps["unrectify_x"],
-                                maps["unrectify_y"], cv2.INTER_NEAREST,
-                                borderMode=cv2.BORDER_CONSTANT,
-                                borderValue=0)
+            # Nearest, so a depth is carried rather than blended with its
+            # neighbours; float32 throughout, which the kernel takes as
+            # such rather than truncating it to a byte.
+            aligned = image_kernels.remap(
+                float_map, maps["unrectify_x"], maps["unrectify_y"],
+                "nearest", "constant", 0.0)
         else:
             aligned = float_map
 
