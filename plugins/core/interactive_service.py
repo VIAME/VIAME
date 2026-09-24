@@ -56,6 +56,7 @@ logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)
 from viame.core.interactive_segmentation import (  # noqa: E402
     InteractiveSegmentationService,
     load_algorithms_from_config,
+    load_text_query_algo_from_config,
     find_viame_config as find_segmentation_config,
     suppress_stdout,
 )
@@ -137,6 +138,7 @@ class InteractiveService:
                     raise ValueError(
                         "No segmentation config available "
                         "(interactive_segmenter_default.conf); is VIAME_INSTALL set?")
+                self._segmentation_loaded_configs = configs
                 self._log("Loading segmentation backend...")
                 with suppress_stdout():
                     seg_algo, tq_algo, image_io_algo, svc_cfg = \
@@ -229,10 +231,26 @@ class InteractiveService:
             return {"success": True}
 
         seg = self._ensure_segmentation()
+        if command == "text_query" and not seg.has_text_query():
+            self._discover_text_query(seg)
         if command == "stereo_segment":
             # Reuse the one stereo backend (no second stereo model load).
             seg.set_stereo_warper(self._ensure_stereo())
         return seg.handle_request(request)
+
+    def _discover_text_query(self, seg: InteractiveSegmentationService) -> None:
+        """The text-query config is a sibling found when the segmentation
+        backend is built, so an add-on installed after that is looked for on
+        the first text query rather than needing a restart."""
+        with self._build_lock:
+            if seg.has_text_query():
+                return
+            with suppress_stdout():
+                algo = load_text_query_algo_from_config(
+                    self._segmentation_loaded_configs, self._device)
+            if algo is not None:
+                seg.set_text_query_algo(algo)
+                self._log("Text query backend found after startup")
 
     @staticmethod
     def _stereo_idle_response(command: str) -> Dict[str, Any]:
