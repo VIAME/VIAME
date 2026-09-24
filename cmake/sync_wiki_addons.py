@@ -50,6 +50,7 @@ GIRDER_ITEM_API = 'https://%s/api/v1/item/%s'
 #   ALIGN-CAMERAS no section exists on the page yet
 WIKI_SECTIONS = {
     'DEFAULT-FISH':   'Fish Detector and Tracker',
+    'DARKNET':        'Additional Darknet YOLO Architectures',
     'LEARN':          'ConvNext Low-Shot Models',
     'GENERIC':        'Generic Object Proposer',
     'SAM2':           'SAM2 Auto',

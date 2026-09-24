@@ -57,14 +57,6 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
-  # Darknet training seed models, consumed by the darknet-yolo add-on configs
-  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-DARKNET-YOLO )
-    DownloadAndExtract(
-      https://viame.kitware.com/api/v1/item/6ab572e52d17596fb9c5d3dc/download
-      80cfe1dfd89ccd938b587a81b13bdef9
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v4_csp_s_seed_model-v1.0.zip
-      ${CMAKE_CURRENT_SOURCE_DIR} )
-  endif()
 endif()
 
 ###
