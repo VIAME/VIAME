@@ -98,7 +98,8 @@ endif()
 # `segmentation_utils` by path, repointed to `library/segmentation`.
 if( VIAME_ENABLE_PYTHON )
   foreach( case IN ITEMS multipolygon_keypoints segmentation_line_scale
-                         segmentation_prompt_instances )
+                         segmentation_prompt_instances
+                         interactive_text_query_discovery )
     viame_add_test(
       NAME    "unit:segmentation:${case}"
       TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_${case}.py"

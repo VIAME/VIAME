@@ -38,20 +38,31 @@ connect from downsampler.output_2
 
 # Tracker algorithm
 process short_term_tracker
-  :: siammask_tracker
+  :: track_objects
+  :track_objects:type                          siammask
 
-  relativepath config_file =                   models/siammask_default.yaml
-  relativepath model_file =                    models/pysot_default_siammask.pth
+  block track_objects:siammask
+    relativepath config_file =                 models/siammask_default.yaml
+    relativepath model_file =                  models/pysot_default_siammask.pth
+    :threshold                                 0.80
+  endblock
 
-  :threshold                                   0.80
+process seed_converter
+  :: convert_tracks_to_detections
+  :frame_ids_only                              true
+
+connect from downsampler.timestamp
+        to   seed_converter.timestamp
+connect from detection_reader.object_track_set
+        to   seed_converter.object_track_set
 
 # Connect inputs to tracker
 connect from downsampler.output_1
         to   short_term_tracker.image
 connect from downsampler.timestamp
         to   short_term_tracker.timestamp
-connect from detection_reader.object_track_set
-        to   short_term_tracker.initializations
+connect from seed_converter.detected_object_set
+        to   short_term_tracker.detected_object_set
 
 # ============================== OUTPUT TRK DATA ==============================
 

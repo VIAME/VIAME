@@ -29,7 +29,7 @@ import numpy as np
 from viame.algo import RefineTracks, RefineDetections
 from viame.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
-    ObjectTrackState, Track, ObjectTrackSet, ImageContainer
+    ObjectTrackSet, ImageContainer
 )
 from viame.util import pil
 from PIL import Image as PILImage
@@ -39,7 +39,8 @@ from viame.segmentation.sam3.sam3_utilities import (
     mask_to_polygon, mask_to_points, box_from_mask, compute_iou,
     image_to_rgb_numpy, get_autocast_context, parse_bool
 )
-from viame.object_detectors.base import vital_config_update, report_cuda_errors
+from viame.object_detectors.base import make_track, make_track_state, report_cuda_errors
+from viame.utilities.utils import vital_config_update
 
 
 # Bounds and cost model for auto-sizing SAM3's grounding batch (see
@@ -1714,7 +1715,7 @@ class SAM3Refiner(RefineTracks):
         output_tracks = []
         for obj_id, history in self._propagated_tracks.items():
             if len(history) > 0:
-                output_tracks.append(Track(obj_id, list(history)))
+                output_tracks.append(make_track(obj_id, list(history)))
 
         return ObjectTrackSet(output_tracks)
 
@@ -1992,7 +1993,7 @@ class SAM3Refiner(RefineTracks):
                 continue
             frame_ts = self._timestamps[fidx]
 
-            new_state = ObjectTrackState(frame_ts, det)
+            new_state = make_track_state(frame_ts, det)
             self._propagated_tracks.setdefault(oid, []).append(new_state)
 
         # Include input seed detections that SAM3 may not have yielded
@@ -2012,7 +2013,7 @@ class SAM3Refiner(RefineTracks):
                     dot = DetectedObjectType(
                         _safe_class_name(class_name), 1.0)
                     det = DetectedObject(bbox, 1.0, dot)
-                    state = ObjectTrackState(frame_ts, det)
+                    state = make_track_state(frame_ts, det)
                     self._propagated_tracks.setdefault(tid, []).append(state)
 
         for oid in self._propagated_tracks:
@@ -2114,7 +2115,7 @@ class SAM3Refiner(RefineTracks):
                 new_det = self._create_refined_detection(
                     old_det, mask, self._adjust_boxes
                 )
-                new_state = ObjectTrackState(ts, new_det)
+                new_state = make_track_state(ts, new_det)
 
                 new_history = []
                 for state in track:
@@ -2123,7 +2124,7 @@ class SAM3Refiner(RefineTracks):
                     else:
                         new_history.append(state)
 
-                output_tracks.append(Track(tid, new_history))
+                output_tracks.append(make_track(tid, new_history))
 
                 # Register/refresh this track in the propagation tracker so
                 # its box carries forward on subsequent frames.
@@ -2158,7 +2159,7 @@ class SAM3Refiner(RefineTracks):
                 )
                 if new_det is None:
                     continue
-                new_state = ObjectTrackState(ts, new_det)
+                new_state = make_track_state(ts, new_det)
                 tdata['history'].append(new_state)
                 bbox = new_det.bounding_box
                 tdata['last_box'] = [bbox.min_x(), bbox.min_y(),
@@ -2172,9 +2173,9 @@ class SAM3Refiner(RefineTracks):
                     mask, boxes_to_segment[i], class_name, score
                 )
                 if det is not None:
-                    new_state = ObjectTrackState(ts, det)
+                    new_state = make_track_state(ts, det)
                     tid = self._allocate_next_id()
-                    output_tracks.append(Track(tid, [new_state]))
+                    output_tracks.append(make_track(tid, [new_state]))
                     if self._track_new_objects:
                         bbox = det.bounding_box
                         self._tracked_objects[tid] = {
@@ -2199,7 +2200,7 @@ class SAM3Refiner(RefineTracks):
 
             for tid, tdata in self._tracked_objects.items():
                 if tid not in processed_track_ids and len(tdata['history']) > 0:
-                    output_tracks.append(Track(tid, list(tdata['history'])))
+                    output_tracks.append(make_track(tid, list(tdata['history'])))
                     processed_track_ids.add(tid)
 
             for tid in expired:
@@ -2211,7 +2212,7 @@ class SAM3Refiner(RefineTracks):
             for tid, (track, state, det) in track_states.items():
                 if tid not in processed_track_ids:
                     output_tracks.append(
-                        track if track.id == tid else Track(tid, list(track))
+                        track if track.id == tid else make_track(tid, list(track))
                     )
                     processed_track_ids.add(tid)
 
@@ -2219,7 +2220,7 @@ class SAM3Refiner(RefineTracks):
             tid = self._input_id_remap.get(track.id, track.id)
             if tid not in processed_track_ids and tid not in track_states:
                 output_tracks.append(
-                    track if track.id == tid else Track(tid, list(track))
+                    track if track.id == tid else make_track(tid, list(track))
                 )
 
         return ObjectTrackSet(output_tracks)

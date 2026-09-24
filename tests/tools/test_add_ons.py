@@ -45,6 +45,16 @@ def test_symlinked_destination_is_replaced_not_followed(tmp_path):
     assert outside.read_text() == 'old'
 
 
+def test_root_level_files_beside_configs_extract_at_install_root(tmp_path):
+    archive = tmp_path / 'pack.zip'
+    with zipfile.ZipFile(archive, 'w') as z:
+        z.writestr('LICENSE', 'license')
+        z.writestr('configs/pipelines/a.pipe', 'pipe')
+    m.install_archive(tmp_path, archive)
+    assert (tmp_path / 'configs/pipelines/a.pipe').read_text() == 'pipe'
+    assert (tmp_path / 'LICENSE').read_text() == 'license'
+
+
 @pytest.mark.parametrize('name', ['../escape', r'C:\escape', r'folder\..\escape'])
 def test_unsafe_member_rejected(tmp_path, name):
     archive = tmp_path / 'pack.zip'

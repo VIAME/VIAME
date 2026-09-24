@@ -1171,6 +1171,19 @@ def _add_kwimage_keypoints(detected_object, points, vis_thresh):
         detected_object.add_keypoint(str(name) if name is not None else "kp{}".format(k), pt)
 
 
+def make_track_state(ts, det):
+    from kwiver.vital.types import ObjectTrackState
+    return ObjectTrackState(ts.get_frame(), ts.get_time_usec(), det)
+
+
+def make_track(tid, states):
+    from kwiver.vital.types import Track
+    trk = Track(id=tid)
+    for state in states:
+        trk.append(state)
+    return trk
+
+
 def kwimage_to_kwiver_detections(detections, keypoint_vis_thresh=0.5):
     """
     Convert kwimage.Detections to kwiver DetectedObjectSet.

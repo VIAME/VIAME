@@ -21,18 +21,7 @@ import scriptconfig as scfg
 
 from timeit import default_timer as timer
 
-from viame.algo import TrackObjects
-from viame.types import Image, ImageContainer
-from viame.types import BoundingBoxD
-from viame.types import DetectedObject, DetectedObjectSet
-from viame.types import ObjectTrackState, Track, ObjectTrackSet
-
-from viame.object_trackers.siammask.siammask.core.config import cfg
-from viame.object_trackers.siammask.siammask.models.model_builder import ModelBuilder
-from viame.object_trackers.siammask.siammask.tracker.tracker_builder import build_tracker
-from viame.object_trackers.siammask.siammask.utils.bbox import get_axis_aligned_bbox
-from viame.object_trackers.siammask.siammask.utils.model_load import load_pretrain
-from viame.object_detectors.base import gpu_list_desc, parse_gpu_list, report_cuda_errors
+from viame.object_detectors.base import make_track, make_track_state, report_cuda_errors
 
 logger = logging.getLogger(__name__)
 
@@ -183,10 +172,9 @@ class SiamMaskTracker(TrackObjects):
             start_box = [cx - (w - 1) / 2, cy - (h - 1) / 2, w, h]
             self._trackers[tid] = build_tracker(self._model)
             self._trackers[tid].init(image_arr, start_box)
-            if dot is None:
-                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
-            else:
-                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0, dot)]
+            self._tracks[tid] = [
+                make_track_state(timestamp, DetectedObject(cbox, 1.0, dot))
+            ]
             self._track_init_frames[tid] = timestamp.get_frame()
             self._track_last_frames[tid] = timestamp.get_frame()
 
@@ -223,14 +211,9 @@ class SiamMaskTracker(TrackObjects):
                         ) * 255
                         det.mask = ImageContainer(Image(relative_mask))
 
-                    # (timestamp, detected_object) is the overload that keeps the
-                    # mask: passing the box and score separately alongside the
-                    # detection matches no overload at all, and the segmentation
-                    # SiamMask exists to produce would be dropped if the type were
-                    # passed instead of the detection.
-                    new_state = ObjectTrackState(ts, det)
+                    new_state = make_track_state(ts, det)
                 else:
-                    new_state = ObjectTrackState(ts, cbox, float(score))
+                    new_state = make_track_state(ts, DetectedObject(cbox, float(score)))
 
                 self._tracks[tid].append(new_state)
                 self._track_last_frames[tid] = frame_id
@@ -285,7 +268,7 @@ class SiamMaskTracker(TrackObjects):
 
         # Output tracks
         output_tracks = ObjectTrackSet(
-            [Track(tid, trk) for tid, trk in self._tracks.items()]
+            [make_track(tid, trk) for tid, trk in self._tracks.items()]
         )
 
         self._last_ts = ts
@@ -326,7 +309,7 @@ class SiamMaskTracker(TrackObjects):
 
             self._trackers[0] = build_tracker(self._model)
             self._trackers[0].init(img, start_box)
-            self._tracks[0] = [ObjectTrackState(ts, cbox, 1.0)]
+            self._tracks[0] = [make_track_state(ts, DetectedObject(cbox, 1.0))]
             self._track_init_frames[0] = ts.get_frame()
             self._track_last_frames[0] = ts.get_frame()
 
@@ -334,7 +317,7 @@ class SiamMaskTracker(TrackObjects):
             self._last_img = img
             self._is_first = False
 
-            return ObjectTrackSet([Track(0, self._tracks[0])])
+            return ObjectTrackSet([make_track(0, self._tracks[0])])
 
         return ObjectTrackSet([])
 
@@ -348,7 +331,7 @@ class SiamMaskTracker(TrackObjects):
         vital.types.ObjectTrackSet
             Final set of all tracks
         """
-        return ObjectTrackSet([Track(tid, trk) for tid, trk in self._tracks.items()])
+        return ObjectTrackSet([make_track(tid, trk) for tid, trk in self._tracks.items()])
 
     def reset(self):
         """Reset tracker state for new sequence."""

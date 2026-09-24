@@ -460,6 +460,12 @@ static bool is_option_value( const std::string& token )
   return ( !token.empty() && token[0] != '-' );
 }
 
+static bool ends_with( const std::string& str, const std::string& suffix )
+{
+  return str.size() >= suffix.size() &&
+    str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
+}
+
 // =======================================================================================
 // Context gathering for LLM-assisted training
 
@@ -817,6 +823,12 @@ static std::vector< std::string > build_child_train_args(
       "llm-max-restarts", "llm-model", "llm-cmd", "monitor-email",
       "monitor-smtp", "monitor-smtp-user", "monitor-poll" };
 
+  const auto is_positional_config = []( const std::string& arg )
+  {
+    return !arg.empty() && arg[0] != '-' &&
+      arg.find( '=' ) == std::string::npos && ends_with( arg, ".conf" );
+  };
+
   std::vector< std::string > output;
   output.push_back( applet_name );
 
@@ -868,6 +880,10 @@ static std::vector< std::string > build_child_train_args(
         }
         continue;
       }
+    }
+    else if( is_positional_config( arg ) )
+    {
+      continue;
     }
 
     output.push_back( arg );
@@ -1313,6 +1329,9 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "i,input", "Input directory containing groundtruth",
       ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
+    ( "positional", "Training data directory and .conf file, in either "
+      "order, given without -i and -c",
+      ::cxxopts::value< std::vector< std::string > >(), "input|config" )
     ( "input-list", "Input list with data for training",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "input-truth", "Input list containing training truth",
@@ -1378,6 +1397,9 @@ train_applet
     ( "monitor-poll", "Seconds between training monitor checks",
       ::cxxopts::value< std::string >()->default_value( "1200" ), "seconds" )
     ;
+
+  m_cmd_options->positional_help( "[input] [config]" );
+  m_cmd_options->parse_positional( { "positional" } );
 }
 
 // =======================================================================================
@@ -1425,9 +1447,14 @@ train_applet
   // Print help
   if( cmd_args[ "help" ].as< bool >() )
   {
-    std::cout << "Usage: viame train [options]\n"
+    std::cout << "Usage: viame train [input] [config] [options]\n"
               << "\nTrain one of several object detectors in the system.\n"
-              << m_cmd_options->help() << std::endl;
+              << m_cmd_options->help()
+              << "\nExamples:\n"
+              << "  viame train data/                     # " << default_train_config << "\n"
+              << "  viame train data/ train_detector.conf\n"
+              << "  viame train -i data/ -c train_detector.conf --threshold 0.0\n"
+              << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -1445,6 +1472,42 @@ train_applet
 
   std::string opt_config = cmd_args[ "config" ].as< std::string >();
   std::string opt_input_dir = cmd_args[ "input" ].as< std::string >();
+
+  if( cmd_args.count( "positional" ) )
+  {
+    for( const std::string& arg :
+         cmd_args[ "positional" ].as< std::vector< std::string > >() )
+    {
+      std::string* target = nullptr;
+      const char* label = nullptr;
+
+      if( ends_with( arg, ".conf" ) )
+      {
+        target = &opt_config;
+        label = "config";
+      }
+      else if( does_folder_exist( arg ) )
+      {
+        target = &opt_input_dir;
+        label = "input directory";
+      }
+      else
+      {
+        std::cerr << "Unrecognized argument \"" << arg << "\": expected a "
+                  << "training data directory or a .conf file" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      if( !target->empty() )
+      {
+        std::cerr << "The " << label << " was given twice: \"" << *target
+                  << "\" and \"" << arg << "\"" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      *target = arg;
+    }
+  }
   std::string opt_input_list = cmd_args[ "input-list" ].as< std::string >();
   std::string opt_input_truth = cmd_args[ "input-truth" ].as< std::string >();
   std::string opt_label_file = cmd_args[ "labels" ].as< std::string >();

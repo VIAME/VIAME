@@ -134,6 +134,12 @@ class InteractiveSegmentationService:
         """Log to stderr (stdout is reserved for JSON responses)."""
         print(f"[SegmentationService] {message}", file=sys.stderr, flush=True)
 
+    def has_text_query(self) -> bool:
+        return self._text_query_algo is not None
+
+    def set_text_query_algo(self, algo) -> None:
+        self._text_query_algo = algo
+
     def _send_response(self, response: Dict[str, Any]) -> None:
         """Send JSON response to stdout."""
         print(json.dumps(response), flush=True)
@@ -969,37 +975,25 @@ class InteractiveSegmentationService:
         self._log("Service shutting down")
 
 
-def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, device: str = None):
-    """
-    Load and configure algorithms from one or more KWIVER config files.
+def _text_query_sibling(config_dir, vital_config):
+    """The text-query config beside a segmenter config: the default when it
+    names a backend, else an add-on's own file. A VIAME install rewrites the
+    default with the core placeholder, which names none."""
+    default = config_dir / "interactive_text_query_default.conf"
+    candidates = [default] + sorted(
+        p for p in config_dir.glob("interactive_text_query_*.conf") if p != default)
+    for candidate in candidates:
+        if candidate.exists() and vital_config.read_config_file(
+                str(candidate)).has_value("perform_text_query:type"):
+            return candidate
+    return None
 
-    The segmenter and text query configurations are independent files; pass
-    them both to get both algorithms. If a single config path is given and
-    it does not define ``perform_text_query:type``, a sibling
-    ``interactive_text_query_default.conf`` in the same directory is auto-
-    loaded when present. Later configs in the list override keys from
-    earlier ones.
 
-    Args:
-        config_path: Path to a config file, or a list of paths. Later
-            entries merge on top of earlier ones.
-        plugin_paths: Optional list of additional plugin paths to load
-        device: Optional device override (cuda, cpu, auto)
-
-    Returns:
-        Tuple of (segment_via_points_algo, perform_text_query_algo, image_io_algo, service_config)
-    """
-    from viame.algo import SegmentViaPoints, PerformTextQuery, ImageIO
+def _merge_configs(config_path, device: str = None):
+    """Read one or more config files into a single block: a lone segmenter
+    config pulls in its text-query sibling, relative model paths resolve
+    against the config directories, and ``device`` overrides the SAM keys."""
     import viame.config as vital_config
-    from viame.modules import modules as vital_modules
-
-    # Load plugin modules
-    vital_modules.load_known_modules()
-
-    if plugin_paths:
-        for path in plugin_paths:
-            if os.path.isdir(path):
-                vital_modules.load_module(path)
 
     if isinstance(config_path, (str, os.PathLike)):
         config_paths = [str(config_path)]
@@ -1016,8 +1010,8 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
     if len(config_paths) == 1:
         probe = vital_config.read_config_file(config_paths[0])
         if not probe.has_value("perform_text_query:type"):
-            sibling = Path(config_paths[0]).parent / "interactive_text_query_default.conf"
-            if sibling.exists():
+            sibling = _text_query_sibling(Path(config_paths[0]).parent, vital_config)
+            if sibling is not None:
                 config_paths.append(str(sibling))
 
     cfg = vital_config.read_config_file(config_paths[0])
@@ -1054,6 +1048,60 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
         for key in device_keys:
             cfg.set_value(key, device)
 
+    return cfg
+
+
+def _text_query_algo_from(cfg):
+    from viame.algo import PerformTextQuery
+
+    if not cfg.has_value("perform_text_query:type"):
+        return None
+    impl_name = cfg.get_value("perform_text_query:type")
+    algo = PerformTextQuery.create(impl_name)
+    algo.set_configuration(cfg.subblock("perform_text_query:" + impl_name))
+    return algo
+
+
+def load_text_query_algo_from_config(config_path, device: str = None):
+    """Build only the perform_text_query algorithm, or None when no config
+    (including the auto-discovered sibling) defines one. Lets a service that
+    started before a text-query add-on was installed pick it up later."""
+    return _text_query_algo_from(_merge_configs(config_path, device))
+
+
+def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, device: str = None):
+    """
+    Load and configure algorithms from one or more KWIVER config files.
+
+    The segmenter and text query configurations are independent files; pass
+    them both to get both algorithms. If a single config path is given and
+    it does not define ``perform_text_query:type``, a sibling
+    ``interactive_text_query_default.conf`` in the same directory is auto-
+    loaded when present. Later configs in the list override keys from
+    earlier ones.
+
+    Args:
+        config_path: Path to a config file, or a list of paths. Later
+            entries merge on top of earlier ones.
+        plugin_paths: Optional list of additional plugin paths to load
+        device: Optional device override (cuda, cpu, auto)
+
+    Returns:
+        Tuple of (segment_via_points_algo, perform_text_query_algo, image_io_algo, service_config)
+    """
+    from viame.algo import SegmentViaPoints, ImageIO
+    from viame.modules import modules as vital_modules
+
+    # Load plugin modules
+    vital_modules.load_known_modules()
+
+    if plugin_paths:
+        for path in plugin_paths:
+            if os.path.isdir(path):
+                vital_modules.load_module(path)
+
+    cfg = _merge_configs(config_path, device)
+
     # Create segment_via_points algorithm
     segment_algo = None
     if cfg.has_value("segment_via_points:type"):
@@ -1062,11 +1110,7 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
         segment_algo.set_configuration(cfg.subblock("segment_via_points:" + impl_name))
 
     # Create perform_text_query algorithm (optional)
-    text_query_algo = None
-    if cfg.has_value("perform_text_query:type"):
-        impl_name = cfg.get_value("perform_text_query:type")
-        text_query_algo = PerformTextQuery.create(impl_name)
-        text_query_algo.set_configuration(cfg.subblock("perform_text_query:" + impl_name))
+    text_query_algo = _text_query_algo_from(cfg)
 
     # Create image_io algorithm for loading images (optional but recommended)
     image_io_algo = None
@@ -1087,12 +1131,14 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
     return segment_algo, text_query_algo, image_io_algo, service_config
 
 
-def find_viame_config(model_type: str = "sam3") -> Optional[str]:
+def find_viame_config(model_type: Optional[str] = None) -> Optional[str]:
     """
-    Find the default segmentation config file in VIAME install.
+    Find the segmentation config file in the VIAME install.
 
     Args:
-        model_type: Type of model ('sam2' or 'sam3')
+        model_type: 'sam2' or 'sam3' for that add-on's config. With none
+            given, SAM2 is preferred for point segmentation (SAM3 may be
+            installed only for text queries), then SAM3, then the default.
 
     Returns:
         Path to config file if found, None otherwise
@@ -1109,11 +1155,15 @@ def find_viame_config(model_type: str = "sam3") -> Optional[str]:
         "sam3": "interactive_segmenter_sam3.conf",
     }
 
-    config_name = config_files.get(model_type)
-    if config_name:
-        config_path = pipelines_dir / config_name
-        if config_path.exists():
-            return str(config_path)
+    if model_type is None:
+        candidates = [config_files["sam2"], config_files["sam3"],
+                      "interactive_segmenter_default.conf"]
+    else:
+        candidates = [config_files.get(model_type)]
+
+    for config_name in candidates:
+        if config_name and (pipelines_dir / config_name).exists():
+            return str(pipelines_dir / config_name)
 
     return None
 

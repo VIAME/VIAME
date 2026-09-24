@@ -27,8 +27,16 @@ connect from in_adapt.image
         to   short_term_tracker.image
 connect from in_adapt.timestamp
         to   short_term_tracker.timestamp
+process seed_converter
+  :: convert_tracks_to_detections
+  :frame_ids_only                              true
+
+connect from in_adapt.timestamp
+        to   seed_converter.timestamp
 connect from in_adapt.object_track_set
-        to   short_term_tracker.initializations
+        to   seed_converter.object_track_set
+connect from seed_converter.detected_object_set
+        to   short_term_tracker.detected_object_set
 
 connect from short_term_tracker.object_track_set
         to   out_adapt.object_track_set

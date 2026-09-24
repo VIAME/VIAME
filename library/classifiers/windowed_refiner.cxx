@@ -52,7 +52,8 @@ windowed_refiner
 // degenerate boxes with zero width or height, which the region-intersection
 // logic would otherwise silently drop -- are passed through unmodified in
 // their original position. Everything else is refined by refine_core(). The
-// returned set is guaranteed 1:1 with, and in the same order as, the input.
+// returned set starts 1:1 with, and in the same order as, the input; any new
+// objects the nested refiner adds follow it.
 kv::detected_object_set_sptr
 windowed_refiner
 ::refine( kv::image_container_sptr image_data,
@@ -113,6 +114,12 @@ windowed_refiner
     {
       output->add( input_dets[ i ] );
     }
+  }
+
+  // New objects a text-query refiner found go after the input positions.
+  for( ; r < refined_dets.size(); r++ )
+  {
+    output->add( refined_dets[ r ] );
   }
 
   return output;

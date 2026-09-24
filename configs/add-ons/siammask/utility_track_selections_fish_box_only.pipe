@@ -39,13 +39,22 @@ connect from downsampler.output_2
 # Tracker algorithm
 include common_short_term_tracker.pipe
 
+process seed_converter
+  :: convert_tracks_to_detections
+  :frame_ids_only                              true
+
+connect from downsampler.timestamp
+        to   seed_converter.timestamp
+connect from detection_reader.object_track_set
+        to   seed_converter.object_track_set
+
 # Connect inputs to tracker
 connect from downsampler.output_1
         to   short_term_tracker.image
 connect from downsampler.timestamp
         to   short_term_tracker.timestamp
-connect from detection_reader.object_track_set
-        to   short_term_tracker.initializations
+connect from seed_converter.detected_object_set
+        to   short_term_tracker.detected_object_set
 
 # ============================== OUTPUT TRK DATA ==============================
 

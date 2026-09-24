@@ -6,11 +6,13 @@
 # =============================================================================
 
 process short_term_tracker
-  :: siammask_tracker
+  :: track_objects
+  :track_objects:type                          siammask
 
-  relativepath config_file =                   models/pysot_fish_siamrpn.yaml
-  relativepath model_file =                    models/pysot_fish_siamrpn.pth
-
-  :threshold                                   0.90
+  block track_objects:siammask
+    relativepath config_file =                 models/pysot_fish_siamrpn.yaml
+    relativepath model_file =                  models/pysot_fish_siamrpn.pth
+    :threshold                                 0.90
+  endblock
 
 # -- end of file --

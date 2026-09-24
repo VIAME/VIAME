@@ -154,6 +154,16 @@ class TestCsvApplet:
         assert "fish" in result.stdout
         assert "scallop" in result.stdout
 
+    def test_input_may_be_positional(self, viame_env, detections_csv, tmp_path):
+        work = tmp_path / "types.csv"
+        shutil.copy(detections_csv, work)
+
+        result = run_viame(viame_env, "csv", str(work), "--print-types")
+
+        assert result.returncode == 0
+        assert "fish" in result.stdout
+        assert "scallop" in result.stdout
+
     def test_track_count(self, viame_env, detections_csv, tmp_path):
         work = tmp_path / "counts.csv"
         shutil.copy(detections_csv, work)
@@ -395,6 +405,12 @@ class TestJsonAppletDive:
         assert "scallop" in result.stdout
         # track 3 also scores weed, but lower than scallop
         assert "weed" not in result.stdout
+
+    def test_input_may_be_positional(self, viame_env, dive_json):
+        result = run_viame(viame_env, "json", str(dive_json), "--print-types")
+
+        assert result.returncode == 0
+        assert "fish" in result.stdout
 
     def test_track_count(self, viame_env, dive_json):
         result = run_viame(viame_env, "json", "-i", str(dive_json), "--track-count")
@@ -769,6 +785,54 @@ def geometry_data(tmp_path):
 
 
 class TestScoreApplet:
+    def test_positional_files(self, viame_env, scoring_data, tmp_path):
+        computed, truth = scoring_data
+        metrics = tmp_path / "metrics.json"
+
+        result = run_viame(
+            viame_env, "score", str(computed), str(truth), "-o", str(metrics)
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert "precision" in json.loads(metrics.read_text())
+
+    def test_positional_folders(self, viame_env, scoring_data, tmp_path):
+        computed, truth = scoring_data
+        for name, source in (("computed", computed), ("truth", truth)):
+            (tmp_path / name).mkdir()
+            shutil.copy(source, tmp_path / name / "sequence.csv")
+        metrics = tmp_path / "metrics.json"
+
+        result = run_viame(
+            viame_env,
+            "score",
+            str(tmp_path / "computed"),
+            str(tmp_path / "truth"),
+            "-o", str(metrics),
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert "precision" in json.loads(metrics.read_text())
+
+    def test_flag_and_positional_may_mix(self, viame_env, scoring_data, tmp_path):
+        computed, truth = scoring_data
+        metrics = tmp_path / "metrics.json"
+
+        result = run_viame(
+            viame_env, "score", "-c", str(computed), str(truth), "-o", str(metrics)
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert metrics.exists()
+
+    def test_missing_truth_is_reported(self, viame_env, scoring_data):
+        computed, _ = scoring_data
+
+        result = run_viame(viame_env, "score", str(computed))
+
+        assert result.returncode != 0
+        assert "No ground truth" in result.stderr
+
     def test_writes_metrics_json(self, viame_env, scoring_data, tmp_path):
         computed, truth = scoring_data
         metrics = tmp_path / "metrics.json"
@@ -913,6 +977,78 @@ class TestScoreApplet:
             "--match-mode", "mask",
         )
         assert result.returncode != 0
+
+
+class TestTrainArguments:
+    """`train [input] [config]` takes the data folder and .conf positionally.
+
+    Nothing here trains: an empty data folder stops the run right after the
+    arguments have been resolved.
+    """
+
+    @staticmethod
+    def _train(env, *args):
+        return run_viame(env, "train", *args, "--no-query", timeout=600)
+
+    @pytest.fixture
+    def default_conf(self):
+        install = find_viame_install()
+        if install is None:
+            pytest.skip("No VIAME install found")
+        path = install / "configs" / "pipelines" / "train_detector_default.conf"
+        if not path.exists():
+            pytest.skip("Missing default training config")
+        return path
+
+    @pytest.fixture
+    def data(self, tmp_path):
+        folder = tmp_path / "data"
+        folder.mkdir()
+        return folder
+
+    def test_folder_then_config(self, viame_env, data, default_conf):
+        result = self._train(viame_env, str(data), str(default_conf))
+
+        assert "No config given" not in result.stdout
+        assert "no sub-folders" in result.stdout + result.stderr
+
+    def test_config_then_folder(self, viame_env, data, default_conf):
+        result = self._train(viame_env, str(default_conf), str(data))
+
+        assert "No config given" not in result.stdout
+        assert "no sub-folders" in result.stdout + result.stderr
+
+    def test_folder_alone_uses_the_default_config(self, viame_env, data):
+        result = self._train(viame_env, str(data))
+
+        assert "No config given, using" in result.stdout
+        assert "train_detector_default.conf" in result.stdout
+        assert "no sub-folders" in result.stdout + result.stderr
+
+    def test_conf_shorthand_takes_a_folder(self, viame_env, data, default_conf):
+        result = run_viame(
+            viame_env, str(default_conf), str(data), "--no-query", timeout=600
+        )
+
+        assert "No config given" not in result.stdout
+        assert "no sub-folders" in result.stdout + result.stderr
+
+    def test_unknown_positional_is_reported(self, viame_env, tmp_path):
+        result = self._train(viame_env, str(tmp_path / "nope"))
+
+        assert result.returncode != 0
+        assert "Unrecognized argument" in result.stderr
+
+    def test_folder_given_twice_is_reported(self, viame_env, data):
+        result = self._train(viame_env, str(data), "-i", str(data))
+
+        assert result.returncode != 0
+        assert "given twice" in result.stderr
+
+    def test_help_describes_the_positionals(self, viame_env):
+        result = run_viame(viame_env, "train", "--help")
+
+        assert "viame train [input] [config]" in result.stdout
 
 
 class TestRunDispatch:
@@ -1174,6 +1310,26 @@ class TestRunModelFile:
         assert "holds several pipelines" in result.stdout
         assert "1) detector.pipe" in result.stdout
         assert "2) tracker.pipe" in result.stdout
+
+    def test_zipped_pipeline_runs_on_a_folder(
+        self, viame_env, hough_pipeline, circles_image, tmp_path
+    ):
+        flat = tmp_path / "detector.pipe"
+        flattened = run_viame(
+            viame_env, "pipeline", "flatten", str(hough_pipeline), "-o", str(flat)
+        )
+        assert flattened.returncode == 0, flattened.stderr
+        with zipfile.ZipFile(tmp_path / "detector.zip", "w") as zf:
+            zf.write(flat, "detector.pipe")
+        folder = tmp_path / "images"
+        folder.mkdir()
+        for name in ("one.jpg", "two.jpg"):
+            shutil.copy(circles_image, folder / name)
+
+        result = self._run(viame_env, tmp_path, "detector.zip", "images")
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert (tmp_path / "out" / "images_detections.csv").exists()
 
     def test_rf_detr_checkpoint_runs_on_an_image(
         self, viame_env, rf_detr_weights, circles_image, tmp_path

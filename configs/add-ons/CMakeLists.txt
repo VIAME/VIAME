@@ -29,11 +29,19 @@ foreach( _addon_name IN LISTS VIAME_ADDON_NAMES )
           file( COPY \"${_addon_dir}/\${_addon_rel}\"
                 DESTINATION
                 \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/\${_addon_rel_dir}\" )
+          list( APPEND _viame_build_installed \"\${_addon_rel}\" )
         endforeach()
       " )
     endif()
   endif()
 endforeach()
+
+# Record the copies for the next install's prune; no manifest lists them.
+install( CODE "
+  list( JOIN _viame_build_installed \"\\n\" _viame_build_installed_text )
+  file( WRITE \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/.build-installed\"
+        \"\${_viame_build_installed_text}\\n\" )
+" )
 
 # Emit pipe-file comparison warnings at the end of the add-ons install phase
 get_property( _pipe_warnings GLOBAL PROPERTY VIAME_PIPE_WARNINGS )
