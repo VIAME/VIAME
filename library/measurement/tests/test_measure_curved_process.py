@@ -13,8 +13,18 @@ ROOT = Path(__file__).resolve().parents[3]
 
 @pytest.fixture
 def module(monkeypatch):
+    # The real image kernels, kept across the stubbing below: this test
+    # replaces `viame` with an empty module so the process can be loaded
+    # without a pipeline, and `detection_mask` rasterises its polygons with
+    # `image_kernels.fill_polygon`. Stubbing that out too would leave the
+    # polygon branch untested.
+    import viame.image_kernels as real_image_kernels
+
     for name in ('viame', 'viame.processes', 'viame.measurement'):
         monkeypatch.setitem(sys.modules, name, types.ModuleType(name))
+    sys.modules['viame'].image_kernels = real_image_kernels
+    monkeypatch.setitem(sys.modules, 'viame.image_kernels',
+                        real_image_kernels)
     pipeline = types.ModuleType('viame.pipeline')
     pipeline.datum, pipeline.process = Mock(), Mock()
     process_base = types.ModuleType('viame.processes.base')

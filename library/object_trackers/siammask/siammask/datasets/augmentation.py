@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import numpy as np
 import cv2
+from viame import image_kernels
 
 from viame.object_trackers.siammask.siammask.utils.bbox import corner2center, \
         Center, center2corner, Corner
@@ -38,10 +39,9 @@ class Augmentation:
                             [0, b, d]]).astype(np.float32)
         # A mask carries labels rather than intensities, so it is resampled
         # without interpolation to stay binary
-        flags = cv2.INTER_NEAREST if nearest else cv2.INTER_LINEAR
-        crop = cv2.warpAffine(image, mapping, (out_sz, out_sz), flags=flags,
-                              borderMode=cv2.BORDER_CONSTANT,
-                              borderValue=padding)
+        how = 'nearest' if nearest else 'bilinear'
+        crop = image_kernels.warp_affine(image, mapping, out_sz, out_sz, how,
+                                         'constant', padding)
         return crop
 
     def _blur_aug(self, image):

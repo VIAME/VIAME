@@ -215,7 +215,6 @@ class SlidingSlices(ub.NiceRepr):
 
         Example:
             >>> # xdoctest: +REQUIRES(module:kwimage)
-            >>> import cv2
             >>> source = np.zeros((3, 25, 25))
             >>> window = (3, 5, 5)
             >>> step = 2
@@ -328,7 +327,6 @@ class SlidingSlices(ub.NiceRepr):
             >>> # upscale using computed transforms
             >>> upscaled = slider.upscale_overlay(pred)
         """
-        import cv2
         from viame import image_kernels
         # We can model this with a simple affine transform.  First allocate the
         # required output size, then construct the transform. Padding and
@@ -352,11 +350,8 @@ class SlidingSlices(ub.NiceRepr):
         ])
         dsize = (orig_w, orig_h)
 
-        if pred.dtype.kind == 'i':
-            upscaled = cv2.warpAffine(pred, aff, dsize, flags=cv2.INTER_NEAREST)
-        else:
-            upscaled = cv2.warpAffine(pred, aff, dsize, flags=cv2.INTER_LINEAR)
-        return upscaled
+        how = 'nearest' if pred.dtype.kind == 'i' else 'bilinear'
+        return image_kernels.warp_affine(pred, aff, dsize[0], dsize[1], how)
 
 
 class SlidingIndexDataset(torch_data.Dataset):

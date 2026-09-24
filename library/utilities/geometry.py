@@ -68,6 +68,35 @@ def four_point_homography(source, target):
     return _dlt(source, target)
 
 
+def rotation_matrix_2d(centre, angle, scale=1.0):
+    """The two by three affine that rotates about `centre`.
+
+    `cv2.getRotationMatrix2D`, including its sign convention: a positive
+    `angle` is **counter-clockwise** in a coordinate system whose y runs
+    down the image, which looks clockwise on screen.
+    """
+    radians = np.deg2rad(angle)
+    alpha = scale * np.cos(radians)
+    beta = scale * np.sin(radians)
+    x, y = float(centre[0]), float(centre[1])
+
+    return np.array([
+        [alpha, beta, (1.0 - alpha) * x - beta * y],
+        [-beta, alpha, beta * x + (1.0 - alpha) * y],
+    ], dtype=np.float64)
+
+
+def invert_affine(affine):
+    """The inverse of a two by three affine, as a two by three.
+
+    `cv2.invertAffineTransform`: widen to three by three with a (0, 0, 1)
+    bottom row, invert, and drop the row again.
+    """
+    affine = np.asarray(affine, dtype=np.float64).reshape(2, 3)
+    full = np.vstack([affine, [0.0, 0.0, 1.0]])
+    return np.linalg.inv(full)[:2]
+
+
 def apply_homography(homography, points):
     """Map points through a homography, returning inhomogeneous coordinates."""
     points = np.asarray(points, dtype=np.float64).reshape(-1, 2)

@@ -56,7 +56,7 @@ def crop_detection(image, box, size, padding):
     ``size`` is (height, width); padding multiplies the box extent. Padding at
     image edges stays black rather than shifting the crop and its object center.
     """
-    import cv2
+    from viame import image_kernels
     box = np.asarray(box, dtype=float)
     if box.shape != (4,) or not np.isfinite(box).all():
         return None
@@ -70,16 +70,16 @@ def crop_detection(image, box, size, padding):
     scale = min(w / ((x2 - x1) * padding), h / ((y2 - y1) * padding))
     affine = np.array([[scale, 0, w / 2 - scale * (x1 + x2) / 2],
                        [0, scale, h / 2 - scale * (y1 + y2) / 2]], dtype=np.float64)
-    crop = cv2.warpAffine(image, affine, (w, h), flags=cv2.INTER_LINEAR,
-                          borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+    crop = image_kernels.warp_affine(image, affine, w, h, 'bilinear',
+                                     'constant', 0.0)
     return crop, affine
 
 
 def transform_points(points, affine, inverse=False):
     points = np.asarray(points, dtype=np.float64)
     if inverse:
-        import cv2
-        affine = cv2.invertAffineTransform(affine)
+        from viame.utilities import geometry
+        affine = geometry.invert_affine(affine)
     return points @ affine[:, :2].T + affine[:, 2]
 
 

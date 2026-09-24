@@ -6,6 +6,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import cv2
+from viame import image_kernels
 import numpy as np
 
 from viame.object_trackers.siammask.siammask.core.config import cfg
@@ -29,10 +30,8 @@ class SiamMaskTracker(SiamRPNTracker):
         d = -b * bbox[1]
         mapping = np.array([[a, 0, c],
                             [0, b, d]]).astype(np.float32)
-        crop = cv2.warpAffine(image, mapping, (out_sz[0], out_sz[1]),
-                              flags=cv2.INTER_LINEAR,
-                              borderMode=cv2.BORDER_CONSTANT,
-                              borderValue=padding)
+        crop = image_kernels.warp_affine(image, mapping, out_sz[0], out_sz[1],
+                                         'bilinear', 'constant', padding)
         return crop
 
     def _mask_post_processing(self, mask):

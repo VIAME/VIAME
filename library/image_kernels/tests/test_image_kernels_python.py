@@ -27,9 +27,10 @@ from viame.image_kernels import (add_weighted, box_blur, clahe, crop,
                                  draw_rect, draw_text, equalize, erode,
                                  fill_polygon,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
-                                 normalize, resize, resize_area,
+                                 normalize, remap, resize, resize_area,
                                  swap_channels, text_size, to_gray, to_hls,
-                                 to_hsv, to_lab, to_rgb)
+                                 to_hsv, to_lab, to_rgb, warp_affine,
+                                 warp_perspective)
 
 
 def _frame(width=64, height=48):
@@ -296,3 +297,99 @@ def test_colour_may_be_a_scalar_or_per_plane():
 
     draw_rect(canvas, 1, 1, 8, 8, [10, 20, 30], -1)
     assert list(canvas[4, 4]) == [10, 20, 30]
+
+
+# ---------------------------------------------------------------------------
+# Warping
+#
+# Against cv2 on a smooth frame, ignoring the border where the border rule
+# dominates: remap and the two warps agree to **one grey level** on bilinear
+# and on bicubic. Nearest is the exception -- it differs on about 7% of
+# pixels, all of them ties, because `std::lround` rounds a half away from
+# zero and OpenCV's `cvRound` rounds it to even.
+
+def _smooth(width=64, height=48):
+    y, x = np.mgrid[0:height, 0:width]
+    return np.stack([np.sin(x / 9.0) * 110 + 128,
+                     np.cos(y / 7.0) * 110 + 128,
+                     (x + y) * 2 % 256], axis=-1).astype(np.uint8)
+
+
+def _identity_maps(width=64, height=48):
+    mx, my = np.meshgrid(np.arange(width, dtype=np.float32),
+                         np.arange(height, dtype=np.float32))
+    return mx, my
+
+
+def test_remap_through_the_identity_returns_the_image():
+    frame = _smooth()
+    mx, my = _identity_maps()
+    assert np.array_equal(remap(frame, mx, my), frame)
+
+
+def test_remap_takes_the_maps_size():
+    frame = _smooth()
+    mx, my = _identity_maps(20, 10)
+    assert remap(frame, mx, my).shape == (10, 20, 3)
+
+
+def test_remap_wants_two_maps_of_one_size():
+    frame = _smooth()
+    mx, _ = _identity_maps(20, 10)
+    _, my = _identity_maps(30, 10)
+    with pytest.raises(ValueError):
+        remap(frame, mx, my)
+
+
+@pytest.mark.parametrize("how", ["nearest", "bilinear", "bicubic", "area"])
+def test_every_interpolation_is_accepted(how):
+    frame = _smooth()
+    mx, my = _identity_maps()
+    assert remap(frame, mx, my, how).shape == frame.shape
+
+
+def test_an_unknown_interpolation_is_refused():
+    frame = _smooth()
+    mx, my = _identity_maps()
+    with pytest.raises(ValueError):
+        remap(frame, mx, my, "lanczos")
+
+
+def test_bicubic_is_not_bilinear():
+    """Otherwise the cubic call sites would be silently downgraded.
+
+    Fifteen `cv2.remap` and `cv2.resize` call sites ask for INTER_CUBIC; if
+    `"bicubic"` quietly fell through to the bilinear kernel this test is the
+    only thing that would notice.
+    """
+    frame = _smooth()
+    mx, my = _identity_maps()
+    shifted_x, shifted_y = mx + 0.37, my + 0.21
+    linear = remap(frame, shifted_x, shifted_y, "bilinear")
+    cubic = remap(frame, shifted_x, shifted_y, "bicubic")
+    assert not np.array_equal(linear, cubic)
+
+
+def test_warp_perspective_through_the_identity_returns_the_image():
+    frame = _smooth()
+    assert np.array_equal(warp_perspective(frame, np.eye(3)), frame)
+
+
+def test_warp_affine_through_the_identity_returns_the_image():
+    frame = _smooth()
+    identity = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+    assert np.array_equal(warp_affine(frame, identity), frame)
+
+
+def test_warp_affine_wants_a_two_by_three():
+    with pytest.raises(ValueError):
+        warp_affine(_smooth(), np.eye(3))
+
+
+def test_warp_perspective_wants_a_three_by_three():
+    with pytest.raises(ValueError):
+        warp_perspective(_smooth(), np.zeros((2, 3)))
+
+
+def test_a_warp_takes_the_requested_size():
+    assert warp_perspective(_smooth(), np.eye(3), 20, 10).shape == (10, 20, 3)

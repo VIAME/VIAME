@@ -41,15 +41,16 @@ namespace image_kernels {
 // ----------------------------------------------------------------------------
 /// How a sample between pixels is found.
 ///
-/// `NEAREST`, `BILINEAR` and `AREA` are OpenCV's `INTER_NEAREST`,
-/// `INTER_LINEAR` and `INTER_AREA`. Area is a mean over the source rectangle
-/// an output pixel covers, which is the only one of the three that does not
-/// alias when shrinking -- and the reason OpenCV's own documentation tells
-/// you to use it for that.
+/// `NEAREST`, `BILINEAR`, `BICUBIC` and `AREA` are OpenCV's `INTER_NEAREST`,
+/// `INTER_LINEAR`, `INTER_CUBIC` and `INTER_AREA`. Area is a mean over the
+/// source rectangle an output pixel covers, which is the only one of the four
+/// that does not alias when shrinking -- and the reason OpenCV's own
+/// documentation tells you to use it for that.
 enum class interpolation
 {
   NEAREST,
   BILINEAR,
+  BICUBIC,
   AREA,
 };
 
@@ -86,6 +87,65 @@ sample_bilinear( viame::image_of< T > const& image, double x,
 }
 
 // ----------------------------------------------------------------------------
+/// The cubic convolution weights OpenCV uses, for a fraction \p f.
+///
+/// Keys' cubic with **a = -0.75**, which is the value OpenCV picked and not
+/// the -0.5 that makes the kernel interpolate the underlying cubic exactly.
+/// The choice is visible -- -0.75 sharpens a touch more -- so it is the one
+/// to copy rather than the textbook one.
+inline void
+cubic_weights( double f, double weights[ 4 ] )
+{
+  constexpr double a = -0.75;
+
+  weights[ 0 ] = ( ( a * ( f + 1 ) - 5 * a ) * ( f + 1 ) + 8 * a ) * ( f + 1 )
+                 - 4 * a;
+  weights[ 1 ] = ( ( a + 2 ) * f - ( a + 3 ) ) * f * f + 1;
+  weights[ 2 ] = ( ( a + 2 ) * ( 1 - f ) - ( a + 3 ) ) * ( 1 - f ) *
+                   ( 1 - f ) + 1;
+  weights[ 3 ] = 1.0 - weights[ 0 ] - weights[ 1 ] - weights[ 2 ];
+}
+
+// ----------------------------------------------------------------------------
+/// Bicubic sample of one plane at a real position, with a border rule.
+///
+/// `cv::INTER_CUBIC`: a four by four neighbourhood weighted by Keys' cubic.
+/// The result is **not clamped** here -- a cubic overshoots at an edge, and
+/// the caller's `saturate_pixel` is what brings it back into range, which is
+/// also where OpenCV does it.
+template < typename T >
+double
+sample_bicubic( viame::image_of< T > const& image, double x,
+                double y, size_t plane, border_mode mode,
+                double constant = 0.0 )
+{
+  auto const left = static_cast< long >( std::floor( x ) );
+  auto const top = static_cast< long >( std::floor( y ) );
+
+  double wx[ 4 ];
+  double wy[ 4 ];
+  cubic_weights( x - static_cast< double >( left ), wx );
+  cubic_weights( y - static_cast< double >( top ), wy );
+
+  double total = 0.0;
+
+  for( int j = 0; j < 4; ++j )
+  {
+    double row = 0.0;
+
+    for( int i = 0; i < 4; ++i )
+    {
+      row += wx[ i ] * sample_with_border( image, left + i - 1, top + j - 1,
+                                           plane, mode, constant );
+    }
+
+    total += wy[ j ] * row;
+  }
+
+  return total;
+}
+
+// ----------------------------------------------------------------------------
 /// Nearest sample of one plane, with a border rule.
 ///
 /// **Rounds** the position: a sample at 1.9 comes from pixel 2. That is what
@@ -103,6 +163,35 @@ sample_nearest( viame::image_of< T > const& image, double x, double y,
 {
   return sample_with_border( image, std::lround( x ), std::lround( y ), plane,
                              mode, constant );
+}
+
+// ----------------------------------------------------------------------------
+/// One sample by whichever rule \p how names.
+///
+/// The warps all share this rather than each testing the enum themselves, so
+/// that a rule added here reaches every one of them. `AREA` has no meaning
+/// for a warp -- there is no source rectangle to average when the mapping is
+/// arbitrary -- so it samples bilinear, which is what OpenCV does with
+/// `INTER_AREA` passed to `remap`.
+template < typename T >
+double
+sample_at( viame::image_of< T > const& image, double x, double y,
+           size_t plane, interpolation how, border_mode mode,
+           double constant = 0.0 )
+{
+  switch( how )
+  {
+    case interpolation::NEAREST:
+      return sample_nearest( image, x, y, plane, mode, constant );
+
+    case interpolation::BICUBIC:
+      return sample_bicubic( image, x, y, plane, mode, constant );
+
+    case interpolation::AREA:
+    case interpolation::BILINEAR:
+    default:
+      return sample_bilinear( image, x, y, plane, mode, constant );
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -418,10 +507,16 @@ resize( viame::image_of< T > const& image, size_t width,
         }
         else
         {
-          value = sample_bilinear(
-            image, ( static_cast< double >( i ) + 0.5 ) * scale_x - 0.5,
-            ( static_cast< double >( j ) + 0.5 ) * scale_y - 0.5, plane,
-            mode );
+          // BILINEAR and BICUBIC share the centred grid; only the kernel
+          // over it differs.
+          auto const sx =
+            ( static_cast< double >( i ) + 0.5 ) * scale_x - 0.5;
+          auto const sy =
+            ( static_cast< double >( j ) + 0.5 ) * scale_y - 0.5;
+
+          value = ( how == interpolation::BICUBIC )
+            ? sample_bicubic( image, sx, sy, plane, mode )
+            : sample_bilinear( image, sx, sy, plane, mode );
         }
 
         out( i, j, plane ) = saturate_pixel< T >( value );
@@ -538,9 +633,8 @@ warp_perspective_inverse( viame::image_of< T > const& image,
 
       for( size_t plane = 0; plane < image.depth(); ++plane )
       {
-        auto const value = ( how == interpolation::NEAREST )
-          ? sample_nearest( image, sx, sy, plane, mode, constant )
-          : sample_bilinear( image, sx, sy, plane, mode, constant );
+        auto const value = sample_at( image, sx, sy, plane, how, mode,
+                                      constant );
 
         out( i, j, plane ) = saturate_pixel< T >( value );
       }
@@ -667,9 +761,8 @@ remap( viame::image_of< T > const& image,
 
       for( size_t plane = 0; plane < image.depth(); ++plane )
       {
-        auto const value = ( how == interpolation::NEAREST )
-          ? sample_nearest( image, sx, sy, plane, mode, constant )
-          : sample_bilinear( image, sx, sy, plane, mode, constant );
+        auto const value = sample_at( image, sx, sy, plane, how, mode,
+                                      constant );
 
         out( i, j, plane ) = saturate_pixel< T >( value );
       }

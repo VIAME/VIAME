@@ -2,6 +2,7 @@ from os.path import join, isdir, exists
 from os import listdir, mkdir, makedirs
 from tqdm import tqdm
 import cv2
+from viame import image_kernels
 import numpy as np
 import xml.etree.ElementTree as ET
 from concurrent import futures
@@ -40,9 +41,9 @@ def crop_hwc(image, bbox, out_sz, padding=(0, 0, 0), nearest=False):
                         [0, b, d]]).astype(np.float32)
     # Masks are labels rather than intensities, so they are resampled without
     # interpolation to stay binary
-    flags = cv2.INTER_NEAREST if nearest else cv2.INTER_LINEAR
-    crop = cv2.warpAffine(image, mapping, (out_sz, out_sz), flags=flags,
-                          borderMode=cv2.BORDER_CONSTANT, borderValue=padding)
+    how = 'nearest' if nearest else 'bilinear'
+    crop = image_kernels.warp_affine(image, mapping, out_sz, out_sz, how,
+                                     'constant', padding)
     return crop
 
 

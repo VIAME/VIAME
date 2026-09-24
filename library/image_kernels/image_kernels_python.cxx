@@ -495,6 +495,133 @@ dilate( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const&
     array.ndim() == 3 );
 }
 
+// ---------------------------------------------------------------------------
+// Warping
+
+viame::image_kernels::interpolation
+as_interpolation( std::string const& name )
+{
+  using viame::image_kernels::interpolation;
+
+  if( name == "nearest" )  { return interpolation::NEAREST; }
+  if( name == "bilinear" ) { return interpolation::BILINEAR; }
+  if( name == "bicubic" )  { return interpolation::BICUBIC; }
+  if( name == "area" )     { return interpolation::AREA; }
+
+  throw std::invalid_argument(
+    "interpolation must be one of nearest, bilinear, bicubic, area; got '" +
+    name + "'" );
+}
+
+/// A map of source positions, as `remap` takes them: one plane of float.
+viame::image_of< float >
+as_map( py::array_t< float, py::array::c_style | py::array::forcecast > const&
+          array )
+{
+  auto const buffer = array.request();
+
+  if( !( buffer.ndim == 2 ||
+         ( buffer.ndim == 3 && buffer.shape[ 2 ] == 1 ) ) )
+  {
+    throw std::invalid_argument( "a remap map is one plane of float" );
+  }
+
+  return viame::image_of< float >(
+    static_cast< float const* >( buffer.ptr ),
+    static_cast< size_t >( buffer.shape[ 1 ] ),
+    static_cast< size_t >( buffer.shape[ 0 ] ),
+    1, 1,
+    static_cast< ptrdiff_t >( buffer.shape[ 1 ] ), 1 );
+}
+
+py::array
+remap( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+       py::array_t< float, py::array::c_style | py::array::forcecast > const& map_x,
+       py::array_t< float, py::array::c_style | py::array::forcecast > const& map_y,
+       std::string const& interpolation, std::string const& border,
+       double constant )
+{
+  auto const source = as_image( array );
+  return as_array(
+    viame::image_kernels::remap( source, as_map( map_x ), as_map( map_y ),
+                                 as_interpolation( interpolation ),
+                                 as_border( border ), constant ),
+    array.ndim() == 3 );
+}
+
+viame::matrix_3x3d
+as_matrix_3x3( py::array_t< double, py::array::c_style | py::array::forcecast >
+                 const& array )
+{
+  auto const buffer = array.request();
+
+  if( buffer.ndim != 2 || buffer.shape[ 0 ] != 3 || buffer.shape[ 1 ] != 3 )
+  {
+    throw std::invalid_argument( "wanted a three by three matrix" );
+  }
+
+  auto const* data = static_cast< double const* >( buffer.ptr );
+  viame::matrix_3x3d out;
+
+  for( unsigned row = 0; row < 3; ++row )
+  {
+    for( unsigned column = 0; column < 3; ++column )
+    {
+      out( row, column ) = data[ row * 3 + column ];
+    }
+  }
+
+  return out;
+}
+
+py::array
+warp_perspective( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+                  py::array_t< double, py::array::c_style | py::array::forcecast > const& transform,
+                  size_t width, size_t height,
+                  std::string const& interpolation, std::string const& border,
+                  double constant )
+{
+  auto const source = as_image( array );
+  return as_array(
+    viame::image_kernels::warp_perspective(
+      source, as_matrix_3x3( transform ), width, height,
+      as_interpolation( interpolation ), as_border( border ), constant ),
+    array.ndim() == 3 );
+}
+
+py::array
+warp_affine( py::array_t< uint8_t, py::array::c_style | py::array::forcecast > const& array,
+             py::array_t< double, py::array::c_style | py::array::forcecast > const& transform,
+             size_t width, size_t height,
+             std::string const& interpolation, std::string const& border,
+             double constant )
+{
+  auto const buffer = transform.request();
+
+  if( buffer.ndim != 2 || buffer.shape[ 0 ] != 2 || buffer.shape[ 1 ] != 3 )
+  {
+    throw std::invalid_argument( "warp_affine wants a two by three matrix" );
+  }
+
+  auto const* data = static_cast< double const* >( buffer.ptr );
+  viame::matrix_< 2, 3, double > affine;
+
+  for( unsigned row = 0; row < 2; ++row )
+  {
+    for( unsigned column = 0; column < 3; ++column )
+    {
+      affine( row, column ) = data[ row * 3 + column ];
+    }
+  }
+
+  auto const source = as_image( array );
+  return as_array(
+    viame::image_kernels::warp_affine(
+      source, affine, width, height, as_interpolation( interpolation ),
+      as_border( border ), constant ),
+    array.ndim() == 3 );
+}
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _image_kernels, m )
@@ -627,4 +754,25 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   m.def( "dilate", &dilate, py::arg( "image" ), py::arg( "shape" ) = "rect",
          py::arg( "width" ) = 3, py::arg( "height" ) = 3,
          "Grey dilation. cv2.dilate." );
+
+  m.def( "remap", &remap, py::arg( "image" ), py::arg( "map_x" ),
+         py::arg( "map_y" ), py::arg( "interpolation" ) = "bilinear",
+         py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,
+         "cv2.remap. The maps give the source position of each output "
+         "pixel, one plane of float each, and the output takes their size -- "
+         "which is what a rectification does: the maps are made once and "
+         "every frame is sampled through them." );
+
+  m.def( "warp_perspective", &warp_perspective, py::arg( "image" ),
+         py::arg( "transform" ), py::arg( "width" ) = 0,
+         py::arg( "height" ) = 0, py::arg( "interpolation" ) = "bilinear",
+         py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,
+         "cv2.warpPerspective. The transform maps source to destination; "
+         "a zero width or height keeps the source's." );
+
+  m.def( "warp_affine", &warp_affine, py::arg( "image" ),
+         py::arg( "transform" ), py::arg( "width" ) = 0,
+         py::arg( "height" ) = 0, py::arg( "interpolation" ) = "bilinear",
+         py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,
+         "cv2.warpAffine, by a two by three matrix." );
 }

@@ -15,8 +15,8 @@ import math
 import random
 
 import numpy as np
-import cv2
 from viame import image_kernels
+from viame.utilities import geometry
 
 from viame.object_detectors.base import get_gpu_device
 
@@ -33,8 +33,8 @@ def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3
     crop = np.asarray(input_image.crop((ul[0],ul[1],lr[0],lr[1])))
 
     halfboxsize = boxsize / 2.0
-    A = cv2.getRotationMatrix2D( (halfboxsize, halfboxsize), rot, 1.0 )
-    rcrop = cv2.warpAffine( crop, A, (boxsize,boxsize))
+    A = geometry.rotation_matrix_2d( (halfboxsize, halfboxsize), rot, 1.0 )
+    rcrop = image_kernels.warp_affine( crop, A, boxsize, boxsize )
 
     halfcsize = csize / 2.0
     ul = np.array([int(halfboxsize - halfcsize), int(halfboxsize - halfcsize)])
