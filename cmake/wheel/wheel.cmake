@@ -41,6 +41,16 @@ if( NOT DEFINED VIAME_WHEEL_VERSION )
   set( VIAME_WHEEL_VERSION "${VIAME_RELEASE_VERSION}" )
 endif()
 
+# Which contents file describes this install. The layouts differ enough --
+# `Lib/site-packages` against `lib/python3.X/site-packages`, `.dll` against
+# `.so` -- that one file cannot serve both, and a file for the wrong platform
+# matches nothing and fails the build rather than shipping an empty wheel.
+if( WIN32 )
+  set( VIAME_WHEEL_CONTENTS "${VIAME_WHEEL_DIR}/contents-windows.txt" )
+else()
+  set( VIAME_WHEEL_CONTENTS "${VIAME_WHEEL_DIR}/contents.txt" )
+endif()
+
 set( VIAME_WHEEL_OUTPUT_DIR "${CMAKE_BINARY_DIR}/wheel"
      CACHE PATH "Where `make wheel` writes the .whl" )
 
@@ -103,7 +113,7 @@ add_custom_target( wheel
   COMMAND "${_viame_wheel_python}"
           "${VIAME_WHEEL_DIR}/build_wheel.py"
           --prefix     "${CMAKE_INSTALL_PREFIX}"
-          --contents   "${VIAME_WHEEL_DIR}/contents.txt"
+          --contents   "${VIAME_WHEEL_CONTENTS}"
           --contents   "${VIAME_WHEEL_DEFAULT_CONFIGS}"
           --output-dir "${VIAME_WHEEL_OUTPUT_DIR}"
           --version    "${VIAME_WHEEL_VERSION}"

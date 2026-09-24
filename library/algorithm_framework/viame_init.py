@@ -11,6 +11,55 @@ CPP_SEARCH_PATHS_ENTRYPOINT = "viame.cpp_search_paths"
 _LOGGING_ENVIRON_VAR = "KWIVER_PYTHON_DEFAULT_LOG_LEVEL"
 
 
+def _add_windows_dll_directories() -> None:
+    """Windows' answer to the `$ORIGIN` RUNPATH the ELF builds carry.
+
+    A wheel resolves CUDA out of the `nvidia-*` wheels pip installed beside
+    it. On Linux that is a RUNPATH baked into each binary; Windows has no
+    RUNPATH at all, and since 3.8 will not search PATH for a dependent DLL of
+    an extension module either. `os.add_dll_directory` is what is left.
+
+    Both layouts are offered because they differ by CUDA major -- cu12 keeps
+    a directory per component, cu13 consolidated -- and a directory that is
+    not there costs nothing. `bin` rather than `lib`: the windows nvidia
+    wheels put their DLLs in `nvidia/<component>/bin` and only the import
+    libraries in `lib`.
+
+    Silent by design. A CPU-only install has none of these and must not be
+    made to look broken by it.
+    """
+    if os.name != "nt" or not hasattr(os, "add_dll_directory"):
+        return
+
+    roots = []
+    for entry in sys.path:
+        nvidia = Path(entry) / "nvidia"
+        if nvidia.is_dir():
+            roots.append(nvidia)
+
+    # `<env>/Library/bin` is where this wheel's own DLLs land, beside the
+    # tools, mirroring `{data}/lib` on Linux.
+    prefix = Path(sys.prefix)
+    for extra in (prefix / "Library" / "bin", prefix / "bin"):
+        if extra.is_dir():
+            try:
+                os.add_dll_directory(str(extra))
+            except OSError:
+                pass
+
+    for root in roots:
+        for component in sorted(root.iterdir()):
+            for candidate in (component / "bin", component / "lib"):
+                if candidate.is_dir():
+                    try:
+                        os.add_dll_directory(str(candidate))
+                    except OSError:
+                        pass
+
+
+_add_windows_dll_directories()
+
+
 def _logging_onetime_init() -> None:
     """
     One-time initialize viame-module-scope logging level.
