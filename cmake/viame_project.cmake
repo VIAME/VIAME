@@ -359,8 +359,6 @@ else()
            DESTINATION   bin )
   install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
            DESTINATION   bin )
-  install( PROGRAMS      ${VIAME_CMAKE_DIR}/viame_train_detector
-           DESTINATION   bin )
 
   if( VIAME_ENABLE_DIVE )
     install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_dive_interface.sh"
