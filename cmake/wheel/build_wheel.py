@@ -792,8 +792,8 @@ DESCRIPTION = """\
 
 Originally made for marine life detection, VIAME has evolved into a general
 open-source computer vision toolkit for analysing imagery and video:
-detection, tracking, stereo measurement, classification, search and
-training, assembled into configurable pipelines.
+detection, tracking, classification, size measurement, stereo/multi-camera
+processing, search and training, assembled into configurable pipelines.
 
 This wheel carries the VIAME runtime and the `viame` command line tool.
 
