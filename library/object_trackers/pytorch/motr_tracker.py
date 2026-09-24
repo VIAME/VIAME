@@ -276,7 +276,6 @@ def crop_detections(np_image, boxes_tlbr, crop_size):
     Returns a [D, 3, crop, crop] float32 numpy array scaled to 0-1, or
     None when no image is available.
     """
-    import cv2
     from viame import image_kernels
 
     if np_image is None:

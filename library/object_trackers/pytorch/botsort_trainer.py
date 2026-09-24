@@ -379,7 +379,7 @@ class BoTSORTTrainer(TrainTracker):
 
     def _prepare_reid_data(self):
         """Prepare Re-ID training data (same as DeepSORT)."""
-        import cv2
+        from viame.utilities import imageops
         from viame import image_kernels
 
         crop_h, crop_w = map(int, self._crop_size.split('x'))
@@ -511,8 +511,7 @@ class BoTSORTTrainer(TrainTracker):
 
     def _process_split_data(self, track_sets, image_maps, names, output_dir, crop_h, crop_w):
         """Process tracks for one split."""
-        import cv2
-
+        from viame.utilities import imageops
         total_crops = 0
 
         computed_by_sequence = self._load_computed_by_sequence(
@@ -572,7 +571,7 @@ class BoTSORTTrainer(TrainTracker):
                 if not os.path.exists(img_path):
                     continue
 
-                img = cv2.imread(img_path)
+                img = imageops.read_image( img_path)
                 if img is None:
                     continue
 
@@ -597,7 +596,7 @@ class BoTSORTTrainer(TrainTracker):
                     track_dir.mkdir(exist_ok=True)
 
                     crop_path = track_dir / f"{det['frame_id']:06d}.jpg"
-                    cv2.imwrite(str(crop_path), crop)
+                    imageops.write_image( str(crop_path), crop)
                     total_crops += 1
 
         if computed_by_sequence:

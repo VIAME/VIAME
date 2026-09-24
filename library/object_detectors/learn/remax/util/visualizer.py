@@ -15,7 +15,6 @@ import os, sys
 from textwrap import wrap
 import torch
 import numpy as np
-import cv2
 import datetime
 import pdb
 import matplotlib.pyplot as plt

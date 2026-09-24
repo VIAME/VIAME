@@ -153,7 +153,6 @@ class OnnxRefiner(RefineDetections):
 
     # -- inference --
     def refine(self, image_data, detections):
-        import cv2
         from viame import image_kernels
         from viame.types import DetectedObjectSet, DetectedObjectType
 

@@ -45,8 +45,10 @@ def letterbox_resize(image, height, width):
     left, top = offset
     right, bot = target_size - (embed_size + offset)
 
-    interpolation = cv2.INTER_AREA if equal_sxy < 1 else cv2.INTER_LANCZOS4
-    embedded = image_kernels.resize(image, int(embed_size[0]), int(embed_size[1]))
+    # Shrinking wants the area filter; growing gets bilinear, which is the
+    # smoothest kernel we have where OpenCV reached for Lanczos.
+    resize = image_kernels.resize_area if equal_sxy < 1 else image_kernels.resize
+    embedded = resize(image, int(embed_size[0]), int(embed_size[1]))
     return cv2.copyMakeBorder(embedded, int(top), int(bot), int(left),
                               int(right), borderType=cv2.BORDER_CONSTANT,
                               value=0)

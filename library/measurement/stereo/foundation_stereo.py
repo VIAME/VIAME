@@ -284,7 +284,6 @@ class FoundationStereo(ComputeStereoDepthMap):
                 - Depth map (millimeters, uint16) if output_mode='depth'
         """
         import torch
-        import cv2
         from viame import image_kernels
 
         # Convert to numpy arrays

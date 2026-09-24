@@ -487,7 +487,6 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
         return image_container_to_uint8_hwc(image_container)
 
     def compute(self, left_image, right_image):
-        import cv2
         from viame import image_kernels
 
         left_npy = self._format_image(left_image)

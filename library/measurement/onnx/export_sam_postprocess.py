@@ -67,7 +67,6 @@ def build_model():
 
 
 def check(model):
-    import cv2
     from viame import image_kernels
     import numpy as np
     import onnxruntime as ort

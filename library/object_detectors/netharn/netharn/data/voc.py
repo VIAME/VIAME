@@ -215,7 +215,6 @@ class VOCDataset(torch_data.Dataset, ub.NiceRepr):
 
     def _load_item(self, index, inp_size=None):
         # from .models.yolo2.utils.yolo import _offset_boxes
-        import cv2
         from viame import image_kernels
         image = self._load_image(index)
         annot = self._load_annotation(index)
@@ -232,16 +231,16 @@ class VOCDataset(torch_data.Dataset, ub.NiceRepr):
             sy = float(h) / image.shape[0]
             boxes[:, 0::2] *= sx
             boxes[:, 1::2] *= sy
-            interpolation = cv2.INTER_AREA if (sx + sy) <= 2 else cv2.INTER_CUBIC
-            hwc = image_kernels.resize(image, w, h)
+            # Shrinking wants an area filter and enlarging a smooth one; the
+            # kernels offer bilinear where OpenCV offered cubic.
+            shrinking = (sx + sy) <= 2
+            resize = image_kernels.resize_area if shrinking else image_kernels.resize
+            hwc = resize(image, w, h)
             return hwc, boxes, gt_classes
 
     def _load_image(self, index):
-        import cv2
-        fpath = self.gpaths[index]
-        imbgr = cv2.imread(fpath, flags=cv2.IMREAD_COLOR)
-        imrgb_255 = cv2.cvtColor(imbgr, cv2.COLOR_BGR2RGB)
-        return imrgb_255
+        from viame.utilities import imageops
+        return imageops.read_image(self.gpaths[index])
 
     def _load_annotation(self, index):
         import scipy

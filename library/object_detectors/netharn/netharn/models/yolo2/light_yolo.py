@@ -382,7 +382,6 @@ def initial_imagenet_weights():
 def demo_image(inp_size):
     from ... import util
     import numpy as np
-    import cv2
     from viame import image_kernels
     rgb255 = util.grab_test_image('astro', 'rgb')
     rgb01 = image_kernels.resize(rgb255, inp_size[0], inp_size[1]).astype(np.float32) / 255

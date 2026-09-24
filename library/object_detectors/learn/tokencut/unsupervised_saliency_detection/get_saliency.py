@@ -10,7 +10,6 @@ import os
 
 from shutil import copyfile
 import PIL.Image as Image
-import cv2
 import numpy as np
 from tqdm import tqdm
 

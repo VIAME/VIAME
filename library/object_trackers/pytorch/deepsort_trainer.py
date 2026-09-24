@@ -224,7 +224,7 @@ class DeepSORTTrainer(TrainTracker):
 
         Each track_id folder contains crops of the same object across frames.
         """
-        import cv2
+        from viame.utilities import imageops
         from viame import image_kernels
         import numpy as np
 
@@ -357,7 +357,7 @@ class DeepSORTTrainer(TrainTracker):
 
     def _process_split_data(self, track_sets, image_maps, names, output_dir, crop_h, crop_w, split_name):
         """Process tracks for one split (train/test)."""
-        import cv2
+        from viame.utilities import imageops
         import numpy as np
 
         total_crops = 0
@@ -422,7 +422,7 @@ class DeepSORTTrainer(TrainTracker):
                 if not os.path.exists(img_path):
                     continue
 
-                img = cv2.imread(img_path)
+                img = imageops.read_image( img_path)
                 if img is None:
                     continue
 
@@ -450,7 +450,7 @@ class DeepSORTTrainer(TrainTracker):
                     track_dir.mkdir(exist_ok=True)
 
                     crop_path = track_dir / f"{det['frame_id']:06d}.jpg"
-                    cv2.imwrite(str(crop_path), crop)
+                    imageops.write_image( str(crop_path), crop)
                     total_crops += 1
 
         if computed_by_sequence:
@@ -500,7 +500,7 @@ class DeepSORTTrainer(TrainTracker):
             from torch.utils.data import Dataset, DataLoader, Sampler
             import torchvision.transforms as transforms
             from torchvision.models import resnet18, resnet50, ResNet18_Weights, ResNet50_Weights
-            import cv2
+            from viame.utilities import imageops
             from PIL import Image
         except ImportError as e:
             print(f"PyTorch not available: {e}")

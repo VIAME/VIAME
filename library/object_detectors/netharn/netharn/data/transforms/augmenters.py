@@ -430,9 +430,9 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
 
         sf = orig_size / embed_size
         dsize = tuple(orig_size)
-        # Choose INTER_AREA if we are shrinking the image
-        interpolation = cv2.INTER_AREA if sf.sum() < 2 else cv2.INTER_CUBIC
-        inverted_img = image_kernels.resize(unpadded_img, dsize[0], dsize[1])
+        # The area filter if we are shrinking the image, bilinear otherwise
+        resize = image_kernels.resize_area if sf.sum() < 2 else image_kernels.resize
+        inverted_img = resize(unpadded_img, dsize[0], dsize[1])
         return inverted_img
 
     def _boxes_letterbox_apply(self, boxes, orig_size, target_size):
@@ -530,11 +530,11 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
 
         sf = embed_size / orig_size
         dsize = tuple(embed_size)
-        # Choose INTER_AREA if we are shrinking the image
-        interpolation = cv2.INTER_AREA if sf.sum() < 2 else cv2.INTER_CUBIC
+        # The area filter if we are shrinking the image, bilinear otherwise
+        resize = image_kernels.resize_area if sf.sum() < 2 else image_kernels.resize
         if any(d < 0 for d in dsize):
             raise ValueError('dsize={} must be non-negative'.format(dsize))
-        scaled = image_kernels.resize(img, dsize[0], dsize[1])
+        scaled = resize(img, dsize[0], dsize[1])
 
         border = self.border.draw_sample()
         cval = self.fill_color.draw_sample()

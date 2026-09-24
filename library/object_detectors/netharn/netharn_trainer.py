@@ -564,7 +564,7 @@ class NetHarnTrainer( TrainDetector ):
         return [ output_files, output_dets ]
 
     def _extract_chips_range( self, image_files, truth_sets, indices, detector ):
-        import cv2
+        from viame.utilities import imageops
         from viame import image_kernels
         output_files = []
         output_dets = []
@@ -580,7 +580,7 @@ class NetHarnTrainer( TrainDetector ):
                 scale = self.compute_scale_factor( groundtruth )
 
             if len( groundtruth ) > 0:
-                img = cv2.imread( filename )
+                img = imageops.read_image( filename )
 
                 if len( np.shape( img ) ) < 2:
                     continue
@@ -589,11 +589,9 @@ class NetHarnTrainer( TrainDetector ):
                 # (matches the scale it was trained at), then map its boxes into
                 # the scaled chip coordinate space used for cropping below.
                 if detector is not None:
-                    # Detectors see RGB at inference time (pipeline image
-                    # readers), but cv2.imread returns BGR. Only the detector
-                    # input is swapped; chips are written back out via cv2.
-                    kw_image_container = ImageContainer(
-                        Image( cv2.cvtColor( img, cv2.COLOR_BGR2RGB ) ) )
+                    # Detectors see RGB at inference time, which is what
+                    # `read_image` hands back, so the image goes in as read.
+                    kw_image_container = ImageContainer( Image( img ) )
                     detections = detector.detect( kw_image_container )
                     if scale != 1.0:
                         for det in detections:
@@ -728,7 +726,7 @@ class NetHarnTrainer( TrainDetector ):
                 crop_str = ( '%07d_%05d' % ( i, chip_index ) ) + self._chip_extension
                 chip_index = chip_index + 1
                 new_file = os.path.join( self._chip_directory, crop_str )
-                cv2.imwrite( new_file, crop )
+                imageops.write_image( new_file, crop )
 
                 # Set new box size for this detection
                 gt.bounding_box = BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] )
@@ -811,7 +809,7 @@ class NetHarnTrainer( TrainDetector ):
                 crop_str = ( '%07d_%05d' % ( i, chip_index ) ) + self._chip_extension
                 chip_index = chip_index + 1
                 new_file = os.path.join( self._chip_directory, crop_str )
-                cv2.imwrite( new_file, crop )
+                imageops.write_image( new_file, crop )
 
                 # Set new box size for this detection
                 det.bounding_box = BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] )

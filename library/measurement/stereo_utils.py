@@ -47,10 +47,6 @@ def imscale(img, scale):
     new_scale = new_w / w, new_h / h
     new_dsize = (new_w, new_h)
 
-    interpolation = cv2.INTER_LINEAR
-    # interpolation = cv2.INTER_CUBIC
-    # interpolation = cv2.INTER_LANCZOS4
-
     new_img = image_kernels.resize(img, new_dsize[0], new_dsize[1])
     return new_img, new_scale
 

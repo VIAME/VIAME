@@ -141,7 +141,7 @@ class KWCocoTrainDetector(TrainDetector):
 
     def extract_chips_for_dets( self, image_files, truth_sets ):
         print('[KWCocoTrainDetector] extract_chips_for_dets')
-        import cv2
+        from viame.utilities import imageops
         from viame import image_kernels
         output_files = []
         output_dets = []
@@ -156,7 +156,7 @@ class KWCocoTrainDetector(TrainDetector):
                 scale = self.compute_scale_factor( groundtruth )
 
             if len( groundtruth ) > 0:
-                img = cv2.imread( filename )
+                img = imageops.read_image( filename )
 
                 if len( np.shape( img ) ) < 2:
                     continue
@@ -293,7 +293,7 @@ class KWCocoTrainDetector(TrainDetector):
                 self._sample_count = self._sample_count + 1
                 crop_str = ( '%09d' %  self._sample_count ) + self._chip_extension
                 new_file = os.path.join( self._chip_directory, crop_str )
-                cv2.imwrite( new_file, crop )
+                imageops.write_image( new_file, crop )
 
                 # Set new box size for this detection
                 gt.bounding_box = BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] )
@@ -376,7 +376,7 @@ class KWCocoTrainDetector(TrainDetector):
                 self._sample_count = self._sample_count + 1
                 crop_str = ( '%09d' %  self._sample_count ) + self._chip_extension
                 new_file = os.path.join( self._chip_directory, crop_str )
-                cv2.imwrite( new_file, crop )
+                imageops.write_image( new_file, crop )
 
                 # Set new box size for this detection
                 det.bounding_box = BoundingBoxD( 0, 0, np.shape( crop )[1], np.shape( crop )[0] )
