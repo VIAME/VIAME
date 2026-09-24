@@ -132,17 +132,24 @@ alongside it, so the same detectors, trackers, readers and measurement
 algorithms the pipelines use can be driven directly from python. See
 [Using VIAME as a Python Package](docs/python_package.md).
 
-GPU support comes from whichever CUDA torch pulls in, so no separate CUDA
-installation is required. The pipelines that ship are those whose models are
-small enough to travel with the code; larger models are fetched on demand
-with the viame add-ons tool, into the same environment.
+The pipelines that ship are those whose models are small enough to travel
+with the code; larger models are fetched on demand with the viame add-ons
+tool, into the same environment.
 
 Command Line Interface Basics
 -----------------------------
 
-After sourcing the setup script in an install, every command line tool is a
-subcommand of the `viame` program. `viame help` lists them with a one line
-description each, and `viame help <tool>` prints that tool's own options:
+Every command line tool is a subcommand of the `viame` program. `viame help`
+lists them with a one line description each, and `viame help <tool>` prints
+that tool's own options.
+
+A desktop or docker installation needs its environment set up first, once
+per shell:
+
+source [viame-install-directory]/setup_viame.sh
+
+The pip package needs no such step: `pip install viame` puts `viame` on the
+path already configured, and the commands below work straight away.
 
 ```
 viame help                                       # list every tool

@@ -23,9 +23,65 @@ registered until you do, and `create` will not find an implementation.
 Running a pipeline
 ------------------
 
-A `.pipe` file is baked and run by the tool, not by the python bindings --
-there is no binding that loads a pipeline file in process. From python,
-call the tool:
+There are two ways, and the first is usually the one you want.
+
+### In memory, through an embedded pipeline
+
+`EmbeddedPipeline` runs a `.pipe` in process and lets you push data in and
+pull results out, one frame at a time, with nothing written to disk. The
+pipeline needs an `input_adapter` and an `output_adapter` where it would
+otherwise have a reader and a writer:
+
+    # detect.pipe
+    process in
+      :: input_adapter
+
+    process detector
+      :: image_object_detector
+      :detector:type                               hough_circle
+
+    process out
+      :: output_adapter
+
+    connect from in.image                     to detector.image
+    connect from detector.detected_object_set to out.detected_object_set
+    connect from in.image                     to out.image
+
+Then drive it:
+
+    import cv2, numpy as np
+    from viame.modules import modules
+    modules.load_known_modules()
+
+    from viame.adapters import EmbeddedPipeline, AdapterDataSet
+    from viame.types import Image, ImageContainer
+
+    pipeline = EmbeddedPipeline()
+    pipeline.build_pipeline("detect.pipe", ".")
+    pipeline.start()
+
+    for frame in frames:                       # any numpy array
+        data = AdapterDataSet.create()
+        data["image"] = ImageContainer(Image(frame))
+        pipeline.send(data)
+
+        output = pipeline.receive()
+        detections = output["detected_object_set"]
+        print(len(detections))
+
+    pipeline.send_end_of_input()
+    pipeline.wait()
+
+`input_port_names()` and `output_port_names()` report what the adapters
+expose, which is how you find out what a given pipeline wants to be fed.
+`build_pipeline`'s second argument anchors `relativepath` config entries to
+the pipe file rather than the working directory.
+
+### Through the command line tool
+
+For a pipeline that reads and writes files anyway -- a whole video in, a
+csv out -- there is nothing to gain from holding it in memory, and the tool
+already handles input types, output directories and batching:
 
     import subprocess, pathlib
 
@@ -39,10 +95,6 @@ call the tool:
 The shipped pipelines live in `<sys.prefix>/configs/pipelines`, so a
 pipeline can be named directly as above or given as a path. `viame run`
 takes a video, an image list, or a folder.
-
-If what you want is the algorithms rather than the pipeline around them,
-skip the tool and use the interfaces below -- that is the same work without
-a subprocess.
 
 
 Running a detector on your own imagery
