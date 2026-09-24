@@ -198,12 +198,36 @@ as_array( viame::matrix_< Rows, Columns, double > const& matrix )
   return out;
 }
 
+
+/// The lens coefficients, however the caller has them.
+///
+/// A calibration file stores these as a one by N or N by one matrix as often
+/// as a flat list -- `cv::FileStorage` writes `(1, 5)` -- and `cv2` took any
+/// of those. A `list[float]` parameter would reject the array forms, so the
+/// shape is flattened here instead of at every call site. `None` and an
+/// empty array both mean no distortion.
+viame::measurement::distortion_t
+as_distortion( py::object const& value )
+{
+  if( value.is_none() )
+  {
+    return {};
+  }
+
+  auto const array = value.cast< array_d >();
+  auto const buffer = array.request();
+  auto const* data = static_cast< double const* >( buffer.ptr );
+
+  return viame::measurement::distortion_t(
+    data, data + static_cast< size_t >( buffer.size ) );
+}
+
 // ---------------------------------------------------------------------------
 // The bindings
 
 py::array_t< double >
 project_points( array_d const& points, array_d const& intrinsics,
-                viame::measurement::distortion_t const& coefficients,
+                py::object const& coefficients,
                 py::object const& rotation, py::object const& translation )
 {
   auto const input = as_points( points, 3, "project_points" );
@@ -241,12 +265,12 @@ project_points( array_d const& points, array_d const& intrinsics,
 
     auto const mapped = has_translation
       ? viame::measurement::project_point( point, turn, shift, matrix,
-                                           coefficients )
+                                           as_distortion( coefficients ) )
       : ( has_rotation
             ? viame::measurement::project_point( point, turn, matrix,
-                                                 coefficients )
+                                                 as_distortion( coefficients ) )
             : viame::measurement::project_point( point, matrix,
-                                                 coefficients ) );
+                                                 as_distortion( coefficients ) ) );
 
     *destination++ = mapped[ 0 ];
     *destination++ = mapped[ 1 ];
@@ -257,11 +281,12 @@ project_points( array_d const& points, array_d const& intrinsics,
 
 py::array_t< double >
 undistort_points( array_d const& points, array_d const& intrinsics,
-                  viame::measurement::distortion_t const& coefficients,
+                  py::object const& coefficients,
                   py::object const& rotation, py::object const& projection )
 {
   auto const input = as_points( points, 2, "undistort_points" );
   auto const matrix = as_matrix_3x3( intrinsics, "undistort_points" );
+  auto const lens = as_distortion( coefficients );
 
   auto turn = viame::matrix_3x3d::Identity();
 
@@ -294,7 +319,7 @@ undistort_points( array_d const& points, array_d const& intrinsics,
                                   input.data[ n * 2 + 1 ] );
 
     auto const mapped = viame::measurement::undistort_point(
-      point, matrix, coefficients, turn, onto );
+      point, matrix, lens, turn, onto );
 
     *destination++ = mapped[ 0 ];
     *destination++ = mapped[ 1 ];
@@ -328,16 +353,18 @@ rodrigues( array_d const& value )
 
 py::dict
 stereo_rectify( array_d const& left_intrinsics,
-                viame::measurement::distortion_t const& left_distortion,
+                py::object const& left_distortion,
                 array_d const& right_intrinsics,
-                viame::measurement::distortion_t const& right_distortion,
+                py::object const& right_distortion,
                 size_t width, size_t height,
                 array_d const& rotation, array_d const& translation,
                 double alpha )
 {
   auto const result = viame::measurement::stereo_rectify(
-    as_matrix_3x3( left_intrinsics, "stereo_rectify" ), left_distortion,
-    as_matrix_3x3( right_intrinsics, "stereo_rectify" ), right_distortion,
+    as_matrix_3x3( left_intrinsics, "stereo_rectify" ),
+    as_distortion( left_distortion ),
+    as_matrix_3x3( right_intrinsics, "stereo_rectify" ),
+    as_distortion( right_distortion ),
     width, height,
     as_matrix_3x3( rotation, "stereo_rectify" ),
     as_vector_3( translation, "stereo_rectify" ), alpha );
@@ -354,7 +381,7 @@ stereo_rectify( array_d const& left_intrinsics,
 
 py::tuple
 rectification_maps( array_d const& intrinsics,
-                    viame::measurement::distortion_t const& coefficients,
+                    py::object const& coefficients,
                     array_d const& rotation, array_d const& projection,
                     size_t width, size_t height )
 {
@@ -362,7 +389,8 @@ rectification_maps( array_d const& intrinsics,
   viame::image_of< float > map_y;
 
   viame::measurement::rectification_maps(
-    as_matrix_3x3( intrinsics, "rectification_maps" ), coefficients,
+    as_matrix_3x3( intrinsics, "rectification_maps" ),
+    as_distortion( coefficients ),
     as_matrix_3x3( rotation, "rectification_maps" ),
     as_matrix_3x4( projection, "rectification_maps" ),
     width, height, map_x, map_y );
@@ -397,7 +425,7 @@ VIAME_PYTHON_MODULE( _projection, m )
 
   m.def( "project_points", &project_points, py::arg( "points" ),
          py::arg( "intrinsics" ),
-         py::arg( "coefficients" ) = viame::measurement::distortion_t{},
+         py::arg( "coefficients" ) = py::none(),
          py::arg( "rotation" ) = py::none(),
          py::arg( "translation" ) = py::none(),
          "cv2.projectPoints. Takes an N by 3 of camera-frame points and "
@@ -406,7 +434,7 @@ VIAME_PYTHON_MODULE( _projection, m )
 
   m.def( "undistort_points", &undistort_points, py::arg( "points" ),
          py::arg( "intrinsics" ),
-         py::arg( "coefficients" ) = viame::measurement::distortion_t{},
+         py::arg( "coefficients" ) = py::none(),
          py::arg( "rotation" ) = py::none(),
          py::arg( "projection" ) = py::none(),
          "cv2.undistortPoints. With no coefficients this is exact; with any "

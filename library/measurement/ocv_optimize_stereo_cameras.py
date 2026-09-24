@@ -341,9 +341,14 @@ class OptimizeStereoCameras(OptimizeCameras):
 
         logger.info("Stereo calibration complete, RMS error: %s", rms)
 
+        # alpha -1, which is what `cv2.stereoRectify` uses when no alpha is
+        # given: OpenCV's "default scaling", meaning no rescaling at all
+        # rather than the zoom-to-no-border that alpha 0 asks for. Passing
+        # 0 here moved the rectified focal by 30 pixels.
         rectified = projection.stereo_rectify(
             k_left, dist_left, k_right, dist_right,
-            self._image_width, self._image_height, rotation, translation)
+            self._image_width, self._image_height, rotation, translation,
+            alpha=-1.0)
         r1 = rectified["left_rotation"]
         r2 = rectified["right_rotation"]
         p1 = rectified["left_projection"]
