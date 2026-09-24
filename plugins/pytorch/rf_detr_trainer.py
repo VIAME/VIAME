@@ -269,11 +269,12 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     identifier = "viame-rf-detr-detector"
     train_directory = "deep_training"
     seed_model = ""
-    seed_model_optional = scfg.Value(False, help=(
-        'Fall back to the default COCO weights when seed_model is set but the '
-        'file is missing, instead of failing. The training configs set this '
-        'while pointing seed_model at the RF-DETR add-on\'s copy of those '
-        'weights, so an install without the add-on downloads them as before.'))
+    seed_model_url_fallback = scfg.Value(False, help=(
+        'What to do when seed_model is set but the file is missing: false '
+        'fails, true falls back to the default COCO weights, and a URL fetches '
+        'the file from there. The training configs set true while pointing '
+        'seed_model at the RF-DETR add-on\'s copy of those weights, so an '
+        'install without the add-on downloads them as before.'))
     pretrained_dir = scfg.Value('', help=(
         'Folder holding the RF-DETR COCO seed weights (rf-detr-*.pth) used when '
         'seed_model is empty, so they are not downloaded at run time. The '
@@ -1169,7 +1170,7 @@ class RFDETRTrainer(TrainDetector):
         # the wrapper here would be discarded). With num_classes set above,
         # load_pretrain_weights sizes the head for this dataset and keeps the rest
         # of the checkpoint.
-        seed = resolve_rfdetr_seed(self._seed_model, self._seed_model_optional,
+        seed = resolve_rfdetr_seed(self._seed_model, self._seed_model_url_fallback,
                                    RFDETRModel, [self._pretrained_dir])
         if seed:
             print(f"[RFDETRTrainer] Seeding from {seed}")
@@ -1531,7 +1532,7 @@ class RFDETRTrainer(TrainDetector):
             resolution=format_resolution(self._resolution),
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
             seed_model=self._seed_model,
-            seed_model_optional=parse_bool(self._seed_model_optional),
+            seed_model_url_fallback=str(self._seed_model_url_fallback),
             pretrained_dir=self._pretrained_dir,
             class_names=list(self._class_names),
             # Not a TrainConfig field, so it cannot ride in train_kwargs (pydantic

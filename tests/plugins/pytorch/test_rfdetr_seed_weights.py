@@ -74,7 +74,7 @@ def test_installed_weights_are_found_in_the_config_dir_or_the_install(fake_rfdet
     assert find(base, [str(configured)]) is None
 
 
-def test_seed_model_falls_back_only_when_optional(fake_rfdetr, tmp_path, monkeypatch, capsys):
+def test_seed_model_falls_back_only_when_allowed(fake_rfdetr, tmp_path, monkeypatch, capsys):
     namespace = {'os': os, 'parse_bool': lambda v: str(v).strip().lower() in ('1', 'true', 'yes', 'on')}
     load_function('rfdetr_default_pretrain_file', namespace)
     load_function('find_rfdetr_seed_weights', namespace)
@@ -89,7 +89,7 @@ def test_seed_model_falls_back_only_when_optional(fake_rfdetr, tmp_path, monkeyp
     missing = str(tmp_path / 'models' / 'rf-detr-large-2026.pth')
     with pytest.raises(ValueError, match='seed_model does not exist'):
         resolve(missing, False, large)
-    # Optional: the missing add-on copy falls through to the default weights,
+    # Allowed: the missing add-on copy falls through to the default weights,
     # which rfdetr downloads when no installed copy exists either.
     assert resolve(missing, 'True', large) == ''
     assert 'is not present' in capsys.readouterr().out
@@ -101,3 +101,42 @@ def test_seed_model_falls_back_only_when_optional(fake_rfdetr, tmp_path, monkeyp
     monkeypatch.setenv('VIAME_INSTALL', str(tmp_path / 'install'))
     assert resolve(missing, True, large) == str(installed / 'rf-detr-large-2026.pth')
     assert resolve('', False, large) == str(installed / 'rf-detr-large-2026.pth')
+
+
+def test_seed_model_url_fallback_fetches_the_file(fake_rfdetr, tmp_path, monkeypatch):
+    namespace = {'os': os, 'parse_bool': lambda v: str(v).strip().lower() in ('1', 'true', 'yes', 'on')}
+    load_function('rfdetr_default_pretrain_file', namespace)
+    load_function('find_rfdetr_seed_weights', namespace)
+    fetched = []
+
+    def fake_download(url, seed_path):
+        fetched.append(url)
+        os.makedirs(os.path.dirname(seed_path), exist_ok=True)
+        with open(seed_path, 'wb') as f:
+            f.write(b'weights')
+        return seed_path
+    namespace['download_rfdetr_seed'] = fake_download
+    resolve = load_function('resolve_rfdetr_seed', namespace)
+    large = type('RFDETRLarge', (), {})
+    missing = str(tmp_path / 'models' / 'rf-detr-large-2026.pth')
+    assert resolve(missing, 'https://example.test/rf-detr-large-2026.pth', large) == missing
+    assert fetched == ['https://example.test/rf-detr-large-2026.pth']
+    # Present afterwards, so no second fetch.
+    assert resolve(missing, 'https://example.test/rf-detr-large-2026.pth', large) == missing
+    assert len(fetched) == 1
+
+
+def test_download_rfdetr_seed_lands_beside_the_config_or_in_the_cache(tmp_path, monkeypatch):
+    namespace = {'os': os}
+    download = load_function('download_rfdetr_seed', namespace)
+    served = tmp_path / 'served.pth'
+    served.write_bytes(b'served weights')
+    url = served.as_uri()
+    target = tmp_path / 'models' / 'rf-detr-large-2026.pth'
+    target.parent.mkdir()
+    assert download(url, str(target)) == str(target)
+    assert target.read_bytes() == b'served weights'
+    # An unwritable install folder sends the file to rfdetr's cache instead.
+    monkeypatch.setenv('RF_HOME', str(tmp_path / 'cache'))
+    monkeypatch.setattr(os, 'access', lambda path, mode: False)
+    assert download(url, str(tmp_path / 'readonly' / 'rf-detr-large-2026.pth')) == str(tmp_path / 'cache' / 'rf-detr-large-2026.pth')

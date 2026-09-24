@@ -76,7 +76,7 @@ def build_and_train(params):
     # the wrapper would be silently discarded. With num_classes set above,
     # load_pretrain_weights sizes the head for this dataset and keeps the rest
     # of the checkpoint.
-    seed = resolve_rfdetr_seed(params.get("seed_model"), params.get("seed_model_optional", False),
+    seed = resolve_rfdetr_seed(params.get("seed_model"), params.get("seed_model_url_fallback", False),
                                model_cls, [params.get("pretrained_dir") or ""])
     if seed:
         print(f"[rf_detr_launcher] Seeding from {seed}", flush=True)
