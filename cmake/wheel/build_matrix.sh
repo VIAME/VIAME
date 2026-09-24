@@ -97,6 +97,21 @@ for version in $VERSIONS; do
   echo "   tree $tree"
   echo "   log  $log"
 
+  # VIAME calls `find_package( Python )`, whose default FIND_STRATEGY is
+  # VERSION: it takes the *highest* interpreter it can see, not the one asked
+  # for. With 3.10 to 3.14 all on PATH that silently builds every tree against
+  # the newest -- it picked 3.14 for the 3.10 tree, and surfaced three hundred
+  # files later as setuptools missing, since `install_egg_info` runs
+  # `${Python_EXECUTABLE}`. `Python_EXECUTABLE` is the variable that matters,
+  # not `PYTHON_EXECUTABLE`; LOCATION and a root pin it.
+  python_root="$( "$python_exe" -c 'import sys, os; print(os.path.dirname(os.path.dirname(sys.executable)))' )"
+
+  # Build prerequisites, in the interpreter being built against: a fresh
+  # standalone interpreter has neither setuptools nor wheel, and
+  # `install_egg_info` needs setuptools.
+  "$python_exe" -m pip install --quiet --upgrade setuptools wheel >/dev/null 2>&1 ||
+    echo "   warning: could not install setuptools/wheel into python${version}"
+
   mkdir -p "$tree"
   start=$(date +%s)
 
@@ -105,8 +120,11 @@ for version in $VERSIONS; do
     cmake -S "$SOURCE_DIR" -B "$tree" \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX="$prefix" \
-          -DPYTHON_EXECUTABLE="$python_exe" \
+          -DPython_EXECUTABLE="$python_exe" \
+          -DPython_ROOT_DIR="$python_root" \
+          -DPython_FIND_STRATEGY=LOCATION \
           -DPython3_EXECUTABLE="$python_exe" \
+          -DPYTHON_EXECUTABLE="$python_exe" \
           -DVIAME_ENABLE_PYTHON=ON \
           "${CMAKE_ARGS[@]+"${CMAKE_ARGS[@]}"}" &&
     echo "### build" &&
