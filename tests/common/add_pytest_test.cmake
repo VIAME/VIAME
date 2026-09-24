@@ -15,8 +15,38 @@
 # PYTHONPATH (default mode) so test modules can `from viame_env import ...`.
 set( VIAME_TESTS_COMMON_DIR "${CMAKE_CURRENT_LIST_DIR}" )
 
-if( NOT Python3_EXECUTABLE )
+# The interpreter, and its version, for every test registered here.
+#
+# The tree configures python with `find_package( Python )`, which populates
+# `Python_*` and leaves `Python3_*` empty. Taking `Python3_EXECUTABLE` alone
+# and searching for the rest went wrong twice: a bare
+# `find_package( Python3 )` picks the newest interpreter on PATH rather than
+# the one the tree was built against, and `Python3_VERSION_MAJOR` being empty
+# built a site-packages path of `lib/python./site-packages`, which silently
+# dropped pytest and everything else off PYTHONPATH.
+#
+# So prefer what the tree already found, fall back to a Python3 search only
+# when there is nothing, and refuse to register tests against a version we
+# could not determine rather than emit a path with a hole in it.
+if( Python_EXECUTABLE AND Python_VERSION_MAJOR )
+  set( VIAME_TEST_PYTHON "${Python_EXECUTABLE}" )
+  set( VIAME_TEST_PYTHON_VERSION
+       "${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" )
+elseif( Python3_EXECUTABLE AND Python3_VERSION_MAJOR )
+  set( VIAME_TEST_PYTHON "${Python3_EXECUTABLE}" )
+  set( VIAME_TEST_PYTHON_VERSION
+       "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}" )
+else()
   find_package( Python3 COMPONENTS Interpreter REQUIRED )
+  set( VIAME_TEST_PYTHON "${Python3_EXECUTABLE}" )
+  set( VIAME_TEST_PYTHON_VERSION
+       "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}" )
+endif()
+
+if( NOT VIAME_TEST_PYTHON_VERSION MATCHES "^[0-9]+\\.[0-9]+$" )
+  message( FATAL_ERROR
+    "Could not determine the python version for the tests; got "
+    "'${VIAME_TEST_PYTHON_VERSION}' from '${VIAME_TEST_PYTHON}'" )
 endif()
 
 if( WIN32 )
@@ -59,7 +89,7 @@ function( viame_add_test )
   else()
     set( py_path "${install_dir}/python" )
     set( site_packages
-      "${install_dir}/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
+      "${install_dir}/lib/python${VIAME_TEST_PYTHON_VERSION}/site-packages" )
 
     set( pythonpath_parts "${py_path}" "${site_packages}" "${VIAME_TESTS_COMMON_DIR}" )
     foreach( extra_dir IN LISTS PT_PYTHONPATH_DIRS )
@@ -69,7 +99,7 @@ function( viame_add_test )
 
     add_test(
       NAME "${PT_NAME}"
-      COMMAND ${Python3_EXECUTABLE} -m pytest ${PT_TARGET} -v --tb=short
+      COMMAND ${VIAME_TEST_PYTHON} -m pytest ${PT_TARGET} -v --tb=short
     )
   endif()
 

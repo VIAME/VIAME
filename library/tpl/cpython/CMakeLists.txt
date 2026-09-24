@@ -86,9 +86,20 @@ endif()
 
 find_program( MAKE_EXECUTABLE NAMES gmake make REQUIRED )
 
+# `DOWNLOAD_EXTRACT_TIMESTAMP` is a CMake 3.24 keyword. On anything older it
+# is not recognised, so it and its value are swallowed into `URL` as two more
+# list entries and the configure dies with "At least one entry of URL is a
+# path (invalid in a list)" -- which names neither this file nor the keyword.
+# The tree's minimum is 3.16, so it is passed only where it exists.
+if( CMAKE_VERSION VERSION_GREATER_EQUAL "3.24" )
+  set( _extract_timestamp DOWNLOAD_EXTRACT_TIMESTAMP TRUE )
+else()
+  set( _extract_timestamp )
+endif()
+
 ExternalProject_Add( viame_cpython
   URL                 ${_cpython_url}
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  ${_extract_timestamp}
   PREFIX              ${CMAKE_CURRENT_BINARY_DIR}
   BUILD_IN_SOURCE     1
   CONFIGURE_COMMAND   ./configure ${_cpython_configure_args}

@@ -28,9 +28,20 @@ if( VIAME_GTEST_SOURCE_DIR )
   set( FETCHCONTENT_SOURCE_DIR_GOOGLETEST "${VIAME_GTEST_SOURCE_DIR}" )
 endif()
 
+# `DOWNLOAD_EXTRACT_TIMESTAMP` is a CMake 3.24 keyword. On anything older it
+# is not recognised, so it and its value are swallowed into `URL` as two more
+# list entries and the configure dies with "At least one entry of URL is a
+# path (invalid in a list)" -- which names neither this file nor the keyword.
+# The tree's minimum is 3.16, so it is passed only where it exists.
+if( CMAKE_VERSION VERSION_GREATER_EQUAL "3.24" )
+  set( _extract_timestamp DOWNLOAD_EXTRACT_TIMESTAMP TRUE )
+else()
+  set( _extract_timestamp )
+endif()
+
 FetchContent_Declare( googletest
   URL https://github.com/google/googletest/archive/refs/tags/v${VIAME_GTEST_VERSION}.tar.gz
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  ${_extract_timestamp}
   )
 
 # Its own tests and install rules are not wanted; VIAME ships no gtest
