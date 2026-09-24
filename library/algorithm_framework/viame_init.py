@@ -11,6 +11,56 @@ CPP_SEARCH_PATHS_ENTRYPOINT = "viame.cpp_search_paths"
 _LOGGING_ENVIRON_VAR = "KWIVER_PYTHON_DEFAULT_LOG_LEVEL"
 
 
+def _preload_libpython() -> None:
+    """Make libpython findable before any extension module loads.
+
+    Every extension here, and libviame itself, carries an explicit
+    `NEEDED libpython3.X.so.1.0`. That is unusual -- an extension normally
+    leaves python symbols undefined and resolves them from the interpreter
+    already in memory -- and it means the loader has to *find* libpython by
+    name when the first native submodule is imported.
+
+    On a distribution python it does: Ubuntu keeps libpython3.10 in the
+    ldconfig cache. A standalone interpreter -- pyenv, conda, uv,
+    python.org -- keeps it in its own lib directory, which is on nobody's
+    search path, and every `import viame.types` fails with
+
+        ImportError: libpython3.12.so.1.0: cannot open shared object file
+
+    while a bare `import viame` succeeds, because this file is pure python.
+
+    Loading it here by absolute path registers its soname with the loader,
+    so the NEEDED entries of everything imported afterwards resolve against
+    this copy. Silent and best-effort: where libpython is already reachable
+    this changes nothing, and a statically linked interpreter has no file to
+    load and does not need one.
+    """
+    if os.name != "posix":
+        return
+
+    import sysconfig
+
+    names = []
+    ldlib = sysconfig.get_config_var("INSTSONAME") or sysconfig.get_config_var("LDLIBRARY")
+    if ldlib:
+        names.append(ldlib)
+    names.append("libpython{}.{}.so.1.0".format(*sys.version_info[:2]))
+
+    for var in ("LIBDIR", "LIBPL"):
+        directory = sysconfig.get_config_var(var)
+        if not directory:
+            continue
+        for name in names:
+            candidate = Path(directory) / name
+            if candidate.is_file():
+                try:
+                    import ctypes
+                    ctypes.CDLL(str(candidate), mode=ctypes.RTLD_GLOBAL)
+                    return
+                except OSError:
+                    pass
+
+
 def _add_windows_dll_directories() -> None:
     """Windows' answer to the `$ORIGIN` RUNPATH the ELF builds carry.
 
@@ -57,6 +107,7 @@ def _add_windows_dll_directories() -> None:
                         pass
 
 
+_preload_libpython()
 _add_windows_dll_directories()
 
 
