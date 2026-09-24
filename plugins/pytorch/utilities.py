@@ -821,6 +821,30 @@ def find_rfdetr_seed_weights(model_cls, search_dirs=()):
     return None
 
 
+def resolve_rfdetr_seed(seed_model, seed_model_optional, model_cls, search_dirs=()):
+    """The weights an RF-DETR run starts from: ``seed_model`` when it exists,
+    else an installed copy of the variant's default weights (see
+    ``find_rfdetr_seed_weights``), else '' so that rfdetr downloads them.
+
+    A ``seed_model`` that is set but missing is an error unless
+    ``seed_model_optional`` is true, which is how the training configs point
+    at the RF-DETR add-on's copy of the COCO weights while still working on an
+    install that does not have the add-on.
+    """
+    seed = str(seed_model or '').strip()
+    if seed and not os.path.exists(seed):
+        if not parse_bool(seed_model_optional):
+            raise ValueError(
+                f"seed_model does not exist: {seed}. Install the pack that provides it, "
+                "or set seed_model_optional = True to fall back to the default weights.")
+        print(f"[RFDETRTrainer] seed_model {seed} is not present; using the default "
+              "COCO weights instead", flush=True)
+        seed = ''
+    if seed:
+        return seed
+    return find_rfdetr_seed_weights(model_cls, search_dirs) or ''
+
+
 def ensure_rfdetr_compatibility():
     """
     Ensure compatibility with RF-DETR under transformers 5.x.

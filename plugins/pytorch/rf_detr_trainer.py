@@ -15,7 +15,7 @@ import scriptconfig as scfg
 import ubelt as ub
 
 from viame.pytorch.utilities import (
-    find_rfdetr_seed_weights,
+    resolve_rfdetr_seed,
     ensure_fork_start_method,
     report_cuda_errors,
     vital_config_update,
@@ -269,6 +269,11 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     identifier = "viame-rf-detr-detector"
     train_directory = "deep_training"
     seed_model = ""
+    seed_model_optional = scfg.Value(False, help=(
+        'Fall back to the default COCO weights when seed_model is set but the '
+        'file is missing, instead of failing. The training configs set this '
+        'while pointing seed_model at the RF-DETR add-on\'s copy of those '
+        'weights, so an install without the add-on downloads them as before.'))
     pretrained_dir = scfg.Value('', help=(
         'Folder holding the RF-DETR COCO seed weights (rf-detr-*.pth) used when '
         'seed_model is empty, so they are not downloaded at run time. The '
@@ -1164,17 +1169,14 @@ class RFDETRTrainer(TrainDetector):
         # the wrapper here would be discarded). With num_classes set above,
         # load_pretrain_weights sizes the head for this dataset and keeps the rest
         # of the checkpoint.
-        if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
-            model = RFDETRModel(pretrain_weights=self._seed_model, **model_kwargs)
+        seed = resolve_rfdetr_seed(self._seed_model, self._seed_model_optional,
+                                   RFDETRModel, [self._pretrained_dir])
+        if seed:
+            print(f"[RFDETRTrainer] Seeding from {seed}")
+            model = RFDETRModel(pretrain_weights=seed, **model_kwargs)
         else:
-            # The default COCO weights, from the install when the RF-DETR
-            # add-on provides them, otherwise downloaded by rfdetr.
-            installed = find_rfdetr_seed_weights(RFDETRModel, [self._pretrained_dir])
-            if installed:
-                print(f"[RFDETRTrainer] Seeding from installed weights {installed}")
-                model = RFDETRModel(pretrain_weights=installed, **model_kwargs)
-            else:
-                model = RFDETRModel(**model_kwargs)
+            # rfdetr fetches the variant's default COCO weights itself.
+            model = RFDETRModel(**model_kwargs)
 
         # Parse training parameters
         resume_from = self._resolve_resume()
@@ -1529,6 +1531,7 @@ class RFDETRTrainer(TrainDetector):
             resolution=format_resolution(self._resolution),
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
             seed_model=self._seed_model,
+            seed_model_optional=parse_bool(self._seed_model_optional),
             pretrained_dir=self._pretrained_dir,
             class_names=list(self._class_names),
             # Not a TrainConfig field, so it cannot ride in train_kwargs (pydantic

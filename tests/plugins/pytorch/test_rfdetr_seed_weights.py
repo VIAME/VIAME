@@ -72,3 +72,32 @@ def test_installed_weights_are_found_in_the_config_dir_or_the_install(fake_rfdet
     # A variant without a default never claims a file.
     base = type('RFDETRBase', (), {'_model_config_class': config_class(None)})
     assert find(base, [str(configured)]) is None
+
+
+def test_seed_model_falls_back_only_when_optional(fake_rfdetr, tmp_path, monkeypatch, capsys):
+    namespace = {'os': os, 'parse_bool': lambda v: str(v).strip().lower() in ('1', 'true', 'yes', 'on')}
+    load_function('rfdetr_default_pretrain_file', namespace)
+    load_function('find_rfdetr_seed_weights', namespace)
+    resolve = load_function('resolve_rfdetr_seed', namespace)
+    large = type('RFDETRLarge', (), {})
+    monkeypatch.delenv('VIAME_INSTALL', raising=False)
+
+    present = tmp_path / 'my_seed.pth'
+    present.write_bytes(b'weights')
+    assert resolve(str(present), False, large) == str(present)
+
+    missing = str(tmp_path / 'models' / 'rf-detr-large-2026.pth')
+    with pytest.raises(ValueError, match='seed_model does not exist'):
+        resolve(missing, False, large)
+    # Optional: the missing add-on copy falls through to the default weights,
+    # which rfdetr downloads when no installed copy exists either.
+    assert resolve(missing, 'True', large) == ''
+    assert 'is not present' in capsys.readouterr().out
+
+    # An installed copy elsewhere still wins over the download.
+    installed = tmp_path / 'install' / 'configs' / 'pipelines' / 'models'
+    installed.mkdir(parents=True)
+    (installed / 'rf-detr-large-2026.pth').write_bytes(b'weights')
+    monkeypatch.setenv('VIAME_INSTALL', str(tmp_path / 'install'))
+    assert resolve(missing, True, large) == str(installed / 'rf-detr-large-2026.pth')
+    assert resolve('', False, large) == str(installed / 'rf-detr-large-2026.pth')
