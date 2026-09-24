@@ -126,21 +126,25 @@ wheels for Python 3.10 through 3.14:
 
 pip install viame
 
-This installs the `viame` tool onto your path alongside the `viame` python
-package, and needs no environment set up afterwards. GPU support comes from
-whichever CUDA torch pulls in, so no separate CUDA installation is required.
-The pipelines that ship are those whose models are small enough to travel
-with the code; larger models are fetched on demand with the viame add-ons
-tool, into the same environment. A few quick examples:
+This puts the `viame` tool described below onto your path, needing no
+environment set up afterwards, and installs the `viame` python package
+alongside it so the same algorithms can be driven directly from python:
 
 ```
-viame help                                       # list every tool
-viame run detector.zip video.mp4                 # run a detector on a video
-viame train data/ train_detector.conf            # train a model on some data
-viame score detections.csv groundtruth.csv       # score against groundtruth
-viame add-ons                                    # list and install model add-ons
+from viame.algo import VideoInput
+from viame.modules import modules
+
+modules.load_known_modules()
+reader = VideoInput.create('vidl_ffmpeg')
+reader.open('video.mp4')
+while reader.next_frame():
+    image = reader.frame_image()
 ```
 
+GPU support comes from whichever CUDA torch pulls in, so no separate CUDA
+installation is required. The pipelines that ship are those whose models are
+small enough to travel with the code; larger models are fetched on demand
+with the viame add-ons tool, into the same environment.
 
 Command Line Interface Basics
 -----------------------------
