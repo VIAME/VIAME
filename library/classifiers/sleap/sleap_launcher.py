@@ -71,7 +71,7 @@ def make_training_config(options, train_path, val_path, output_dir):
 
 def evaluate(model_path, records, device='cpu', batch_size=16):
     """Report missing predictions as failures in bbox-normalized PCK@0.05."""
-    import cv2
+    from viame.utilities import imageops
     predictor = SleapPredictor(model_path, device=device)
     names = predictor.names
     errors = [[] for _ in names]
@@ -82,10 +82,10 @@ def evaluate(model_path, records, device='cpu', batch_size=16):
         rows = records[start:start + batch_size]
         images = []
         for row in rows:
-            image = cv2.imread(row['image'], cv2.IMREAD_COLOR)
+            image = imageops.read_image(row['image'])
             if image is None:
                 raise OSError('Unable to read evaluation crop: %s' % row['image'])
-            images.append(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+            images.append(image)
         points, _ = predictor.predict(images)
         for row, prediction in zip(rows, points):
             truth = np.asarray(row['points'], dtype=float)

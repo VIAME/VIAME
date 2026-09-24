@@ -178,7 +178,7 @@ def test_refiner_skips_complete_and_empty_sets(modules):
 
 
 def make_trainer_data(modules, tmp_path):
-    import cv2
+    from viame.utilities import imageops
     trainer = modules.sleap_trainer.SleapTrainer()
     cfg = trainer.get_configuration()
     cfg.update(train_directory=str(tmp_path), crop_height='32', crop_width='32', crop_padding='1',
@@ -191,7 +191,7 @@ def make_trainer_data(modules, tmp_path):
         # BGR red checks that both export and inference agree on RGB channels.
         image[24:29, 16:21] = [0, 0, 255]
         path = tmp_path / ('frame%d.png' % i)
-        cv2.imwrite(str(path), image)
+        imageops.write_image(str(path), image)
         files.append(str(path))
         points = {'HEAD': [18, 26], 'tail': [34, 26]} if i != 0 else {'head': [18, 26]}
         sets.append([Detection([10, 10, 42, 42], points)])
@@ -200,14 +200,14 @@ def make_trainer_data(modules, tmp_path):
 
 
 def test_training_export_missing_points_color_and_geometry(modules, tmp_path):
-    import cv2
+    from viame.utilities import imageops
     trainer = make_trainer_data(modules, tmp_path)
     records = trainer.records['train']
     assert len(records) == 2
     assert records[0]['points'] == [[8.0, 16.0], [None, None]]
     assert records[1]['points'] == [[8.0, 16.0], [24.0, 16.0]]
     # Images are written in OpenCV's BGR order, read as RGB by SLEAP.
-    assert cv2.imread(records[0]['image'])[16, 8].tolist() == [0, 0, 255]
+    assert imageops.read_image(records[0]['image'])[16, 8].tolist() == [0, 0, 255]
     assert records[0]['box_diagonal'] == pytest.approx(np.hypot(32, 32))
 
 

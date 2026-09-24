@@ -4,7 +4,7 @@
 
 from collections import namedtuple
 import json
-import cv2
+from viame.utilities import imageops
 from viame.algo import ImageObjectDetector
 from viame.types import (
     BoundingBoxD,
@@ -119,7 +119,7 @@ class ReMaxDINODetector(ImageObjectDetector):
     def detect(self, image_data):
         input_image = image_data.asarray().astype("uint8")
         if self._rgb_to_bgr:
-            input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
+            input_image = imageops.swap_channels(input_image)
         inputs = (
             torch.from_numpy(input_image)
             .permute(2, 0, 1)

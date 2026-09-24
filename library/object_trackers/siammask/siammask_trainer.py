@@ -13,7 +13,7 @@ from viame.types import (
 from viame.utilities.compat import strtobool
 from shutil import copyfile
 
-import cv2
+from viame.utilities import imageops
 import numpy as np
 
 import os
@@ -353,7 +353,7 @@ class SiamMaskTrainer( TrainTracker ):
                         mask_name = "masks/{:06d}_{}.png".format(
                             position, track_id )
 
-                        cv2.imwrite( os.path.join( seq_dir, mask_name ),
+                        imageops.write_image( os.path.join( seq_dir, mask_name ),
                                      mask * 255 )
                         mask_count += 1
 

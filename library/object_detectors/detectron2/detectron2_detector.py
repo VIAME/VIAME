@@ -375,8 +375,8 @@ class Detectron2Detector(ImageObjectDetector):
             detections = self._predictor.predict_image(im_chw)
         else:
             # Direct detectron2 interface expects BGR numpy array
-            import cv2
-            im_bgr = cv2.cvtColor(full_rgb, cv2.COLOR_RGB2BGR)
+            from viame.utilities import imageops
+            im_bgr = imageops.swap_channels(full_rgb)
 
             with torch.no_grad():
                 outputs = self._predictor(im_bgr)

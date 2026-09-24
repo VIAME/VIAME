@@ -5,7 +5,7 @@
 from collections import namedtuple
 import json
 
-import cv2
+from viame.utilities import imageops
 from viame.utilities.compat import strtobool
 from viame.algo import ImageObjectDetector
 from viame.types import (
@@ -251,7 +251,7 @@ class ReMaxConvNextDetector(ImageObjectDetector):
     def detect(self, image_data):
         input_image = image_data.asarray().astype("uint8")
         if self._rgb_to_bgr:
-            input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
+            input_image = imageops.swap_channels(input_image)
         detections = inference_detector(self._model, input_image)
         if isinstance(detections, tuple):
             bbox_result, _ = detections

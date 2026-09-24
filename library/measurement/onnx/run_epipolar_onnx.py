@@ -94,8 +94,8 @@ def _load_gray(path):
     """Load an image as a float32 grayscale array. Prefers OpenCV (matching the
     C++ BGR2GRAY conversion); falls back to Pillow if cv2 is unavailable."""
     try:
-        import cv2
-        img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        from viame.utilities import imageops
+        img = imageops.read_image(path, grayscale=True)
         if img is None:
             raise SystemExit("Could not read image: " + path)
         return img.astype(np.float32)

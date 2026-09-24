@@ -1,5 +1,5 @@
 import os
-import cv2
+from viame.utilities import imageops
 import pandas as pd
 
 def store_cub_image_sizes(root):
@@ -11,7 +11,7 @@ def store_cub_image_sizes(root):
     for i in range(len(paths)):
         path = paths.iloc[i].path
         image_path = os.path.join(root, 'CUB_200_2011/images', path)
-        image = cv2.imread(image_path)
+        image = imageops.read_image(image_path)
         sizes.loc[i] = [paths.iloc[i].id, image.shape[1], image.shape[0]]
 
     save_path = os.path.join(root, 'CUB_200_2011', 'image_sizes.txt')

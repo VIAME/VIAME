@@ -289,7 +289,7 @@ class MOTRTrainer(TrainTracker):
 
         Returns (total loss tensor, number of supervised rows).
         """
-        import cv2
+        from viame.utilities import imageops
         import torch
         import torch.nn.functional as F
 
@@ -308,11 +308,9 @@ class MOTRTrainer(TrainTracker):
         supervised = 0
 
         for t, frame in enumerate(clip):
-            img = cv2.imread(frame["image"])
+            img = imageops.read_image(frame["image"])
             if img is None:
                 continue
-            # Runtime images arrive RGB from ImageContainer.asarray()
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img_h, img_w = img.shape[:2]
 
             identities, boxes, scores = self._simulate_detections(

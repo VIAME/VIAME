@@ -6,7 +6,7 @@ from collections import namedtuple
 
 import logging
 import sys
-import cv2
+from viame.utilities import imageops
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -256,7 +256,7 @@ class MMDetDetector(ImageObjectDetector):
     def detect(self, image_data):
         input_image = image_data.asarray().astype("uint8")
         if self._rgb_to_bgr:
-            input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR)
+            input_image = imageops.swap_channels(input_image)
 
         from mmdet.apis import inference_detector
 

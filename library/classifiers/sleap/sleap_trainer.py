@@ -87,7 +87,7 @@ class SleapTrainer(TrainDetector):
         return self.work_dir
 
     def add_data_from_disk(self, categories, train_files, train_dets, test_files, test_dets):
-        import cv2
+        from viame.utilities import imageops
         self._workspace()
         names = parse_keypoint_names(self.options['keypoint_names'])
         size = (self.options['crop_height'], self.options['crop_width'])
@@ -97,10 +97,10 @@ class SleapTrainer(TrainDetector):
             directory = self.work_dir / split
             directory.mkdir(exist_ok=True)
             for filename, detections in zip(files, truth):
-                image = cv2.imread(str(filename), cv2.IMREAD_COLOR)
+                image = imageops.read_image(str(filename))
                 if image is None:
                     raise OSError('Unable to read training image: %s' % filename)
-                image = as_rgb(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+                image = as_rgb(image)
                 for det in detections:
                     if categories is not None and det.type is not None:
                         if not categories.has_class_name(det.type.get_most_likely_class()):
@@ -123,7 +123,7 @@ class SleapTrainer(TrainDetector):
                         continue
                     points[~visible] = np.nan
                     path = directory / ('%08d.png' % len(self.records[split]))
-                    if not cv2.imwrite(str(path), cv2.cvtColor(crop, cv2.COLOR_RGB2BGR)):
+                    if not imageops.write_image(str(path), crop):
                         raise OSError('Unable to write crop: %s' % path)
                     self.records[split].append(dict(
                         image=str(path), source_image=str(Path(filename).resolve()),
