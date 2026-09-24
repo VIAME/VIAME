@@ -76,8 +76,9 @@ def _assert_profile(doc, expect_video=False):
 
 def test_mask_to_polygons_returns_image_coordinates():
     """kwiver masks are box-relative; the polygon must land in image space."""
-    if not uc._HAS_CV2:
-        pytest.skip("OpenCV not available")
+    # No availability guard: the tracing is `viame.image_kernels`, which
+    # ships with VIAME, where `cv2` was an optional import that could be
+    # missing.
     mask = np.zeros((10, 10), np.uint8)
     mask[2:8, 3:9] = 1
 

@@ -19,6 +19,7 @@
 #include <viame/utilities/python_fold.h>
 
 #include <viame/image_kernels/color.h>
+#include <viame/image_kernels/contours.h>
 #include <viame/image_kernels/draw.h>
 #include <viame/image_kernels/filter.h>
 #include <viame/image_kernels/histogram.h>
@@ -359,11 +360,45 @@ draw_text( array_of< T >& array,
 template < typename T >
 void
 draw_line( array_of< T >& array,
-           long x0, long y0, long x1, long y1, py::object const& colour )
+           long x0, long y0, long x1, long y1, py::object const& colour,
+           long thickness )
 {
   auto image = as_mutable_image( array );
   viame::image_kernels::draw_line( image, x0, y0, x1, y1,
-                                   as_colour( colour ) );
+                                   as_colour( colour ), thickness );
+}
+
+/// `cv2.polylines`: the segments of a chain, drawn one after another.
+template < typename T >
+void
+draw_polyline( array_of< T >& array,
+               py::array_t< double, py::array::c_style | py::array::forcecast >
+                 const& points,
+               py::object const& colour, bool closed, long thickness )
+{
+  auto const chain = as_points( points );
+
+  if( chain.size() < 2 )
+  {
+    return;
+  }
+
+  auto image = as_mutable_image( array );
+  auto const paint = as_colour( colour );
+
+  for( size_t n = 0; n + 1 < chain.size(); ++n )
+  {
+    viame::image_kernels::draw_line( image, chain[ n ].i, chain[ n ].j,
+                                     chain[ n + 1 ].i, chain[ n + 1 ].j,
+                                     paint, thickness );
+  }
+
+  if( closed )
+  {
+    viame::image_kernels::draw_line( image, chain.back().i, chain.back().j,
+                                     chain.front().i, chain.front().j,
+                                     paint, thickness );
+  }
 }
 
 template < typename T >
@@ -677,6 +712,154 @@ for_both_pixel_types( py::module& m, char const* name, Byte byte_version,
   m.def( name, float_version, std::forward< Extra >( extra )... );
 }
 
+// ---------------------------------------------------------------------------
+// Contours and connected components
+
+/// A contour as an N by 2 array of x, y -- the shape `cv2.findContours`
+/// returns once the caller has reshaped away its middle axis, and the shape
+/// `fill_polygon` above takes.
+py::array_t< double >
+contour_array( std::vector< viame::image_kernels::point > const& contour )
+{
+  py::array_t< double > out( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( contour.size() ), 2 } );
+
+  auto* destination = out.mutable_data();
+
+  for( auto const& p : contour )
+  {
+    *destination++ = static_cast< double >( p.i );
+    *destination++ = static_cast< double >( p.j );
+  }
+
+  return out;
+}
+
+std::vector< viame::image_kernels::point >
+contour_points( py::array_t< double, py::array::c_style | py::array::forcecast >
+                  const& array, char const* who )
+{
+  auto const buffer = array.request();
+
+  if( buffer.ndim != 2 || buffer.shape[ 1 ] != 2 )
+  {
+    throw std::invalid_argument(
+      std::string( who ) + " wants an N by 2 array of x, y" );
+  }
+
+  auto const* data = static_cast< double const* >( buffer.ptr );
+  std::vector< viame::image_kernels::point > out;
+  out.reserve( static_cast< size_t >( buffer.shape[ 0 ] ) );
+
+  for( Py_ssize_t n = 0; n < buffer.shape[ 0 ]; ++n )
+  {
+    viame::image_kernels::point p;
+    p.i = static_cast< long >( std::lround( data[ n * 2 ] ) );
+    p.j = static_cast< long >( std::lround( data[ n * 2 + 1 ] ) );
+    out.push_back( p );
+  }
+
+  return out;
+}
+
+template < typename T >
+py::list
+find_contours( array_of< T > const& array )
+{
+  auto const traced =
+    viame::image_kernels::find_contours( as_image( array ) );
+
+  py::list out;
+
+  for( auto const& contour : traced )
+  {
+    out.append( contour_array( contour ) );
+  }
+
+  return out;
+}
+
+double
+contour_area( py::array_t< double, py::array::c_style | py::array::forcecast >
+                const& contour )
+{
+  return viame::image_kernels::contour_area(
+    contour_points( contour, "contour_area" ) );
+}
+
+py::tuple
+bounding_rect( py::array_t< double, py::array::c_style | py::array::forcecast >
+                 const& contour )
+{
+  auto const box = viame::image_kernels::bounding_rect(
+    contour_points( contour, "bounding_rect" ) );
+
+  // x, y, width, height, as `cv2.boundingRect` returns
+  return py::make_tuple( box.left, box.top, box.width(), box.height() );
+}
+
+py::array_t< double >
+convex_hull( py::array_t< double, py::array::c_style | py::array::forcecast >
+               const& points )
+{
+  return contour_array( viame::image_kernels::convex_hull(
+    contour_points( points, "convex_hull" ) ) );
+}
+
+py::dict
+min_area_rect( py::array_t< double, py::array::c_style | py::array::forcecast >
+                 const& points )
+{
+  auto const box = viame::image_kernels::min_area_rect(
+    contour_points( points, "min_area_rect" ) );
+
+  py::dict out;
+  out[ "centre" ] = py::make_tuple( box.centre_i, box.centre_j );
+  out[ "size" ] = py::make_tuple( box.width, box.height );
+  out[ "angle" ] = box.angle;
+
+  return out;
+}
+
+py::array_t< double >
+approx_poly( py::array_t< double, py::array::c_style | py::array::forcecast >
+               const& contour, double epsilon )
+{
+  return contour_array( viame::image_kernels::approx_poly(
+    contour_points( contour, "approx_poly" ), epsilon ) );
+}
+
+template < typename T >
+py::tuple
+label_components( array_of< T > const& array, int connectivity )
+{
+
+  auto const how = ( connectivity == 4 )
+    ? viame::image_kernels::connectivity::FOUR
+    : viame::image_kernels::connectivity::EIGHT;
+
+  size_t count = 0;
+  auto const labels =
+    viame::image_kernels::label_components( as_image( array ), how, count );
+
+  py::array_t< int32_t > out( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( labels.height() ),
+    static_cast< Py_ssize_t >( labels.width() ) } );
+
+  auto* destination = out.mutable_data();
+
+  for( size_t y = 0; y < labels.height(); ++y )
+  {
+    for( size_t x = 0; x < labels.width(); ++x )
+    {
+      *destination++ = labels( x, y, 0 );
+    }
+  }
+
+  // count + 1 to match `cv2.connectedComponents`, which counts the background
+  return py::make_tuple( static_cast< int >( count ) + 1, out );
+}
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _image_kernels, m )
@@ -769,10 +952,18 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   for_both_pixel_types( m, "draw_line", &draw_line< uint8_t >,
          &draw_line< uint16_t >, py::arg( "image" ), py::arg( "x0" ),
          py::arg( "y0" ), py::arg( "x1" ), py::arg( "y1" ),
-         py::arg( "colour" ),
-         "cv2.line, one pixel wide. Bresenham, as cv2.LINE_8 is, but the "
-         "tie breaking differs: about one pixel in nine of a long diagonal "
-         "lands on the other side of the step." );
+         py::arg( "colour" ), py::arg( "thickness" ) = 1,
+         "cv2.line. Bresenham, as cv2.LINE_8 is, but the tie breaking "
+         "differs: about one pixel in nine of a long diagonal lands on the "
+         "other side of the step. A thickness above one draws a filled "
+         "square at each step, which is OpenCV's approximation for a thin "
+         "line and not its mitred join." );
+
+  for_both_pixel_types( m, "draw_polyline", &draw_polyline< uint8_t >,
+         &draw_polyline< uint16_t >, py::arg( "image" ), py::arg( "points" ),
+         py::arg( "colour" ), py::arg( "closed" ) = false,
+         py::arg( "thickness" ) = 1,
+         "cv2.polylines: the segments of an N by 2 chain of x, y." );
 
   for_both_pixel_types( m, "draw_circle", &draw_circle< uint8_t >,
          &draw_circle< uint16_t >, py::arg( "image" ), py::arg( "x" ),
@@ -847,4 +1038,36 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "height" ) = 0, py::arg( "interpolation" ) = "bilinear",
          py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,
          "cv2.warpAffine, by a two by three matrix." );
+
+  for_both_pixel_types( m, "find_contours", &find_contours< uint8_t >,
+         &find_contours< uint16_t >, py::arg( "mask" ),
+         "cv2.findContours with RETR_EXTERNAL, which is the only mode VIAME "
+         "asks for. Suzuki and Abe's border following, as OpenCV's is: the "
+         "traced point sets, areas and bounding boxes are identical. One "
+         "difference -- each contour here is **closed**, repeating its first "
+         "point at the end, where cv2 leaves it open, so a contour is one "
+         "point longer than cv2's. Returns a list of N by 2 arrays of x, y, "
+         "which is cv2's shape without its middle axis." );
+
+  m.def( "contour_area", &contour_area, py::arg( "contour" ),
+         "cv2.contourArea, unsigned." );
+
+  m.def( "bounding_rect", &bounding_rect, py::arg( "contour" ),
+         "cv2.boundingRect: (x, y, width, height)." );
+
+  m.def( "convex_hull", &convex_hull, py::arg( "points" ),
+         "cv2.convexHull. Andrew's monotone chain; collinear points are "
+         "dropped, as OpenCV's are." );
+
+  m.def( "min_area_rect", &min_area_rect, py::arg( "points" ),
+         "cv2.minAreaRect, as a dict of centre, size and angle." );
+
+  m.def( "approx_poly", &approx_poly, py::arg( "contour" ),
+         py::arg( "epsilon" ), "cv2.approxPolyDP, closed." );
+
+  for_both_pixel_types( m, "label_components", &label_components< uint8_t >,
+         &label_components< uint16_t >, py::arg( "mask" ),
+         py::arg( "connectivity" ) = 8,
+         "cv2.connectedComponents: (count, labels), where count includes "
+         "the background as label 0." );
 }

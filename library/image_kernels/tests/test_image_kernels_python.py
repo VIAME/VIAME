@@ -22,8 +22,12 @@ is being removed.
 import numpy as np
 import pytest
 
-from viame.image_kernels import (add_weighted, box_blur, clahe, crop,
+from viame.image_kernels import (add_weighted, approx_poly, bounding_rect,
+                                 box_blur, clahe, contour_area, convex_hull,
+                                 crop,
                                  demosaic, dilate, draw_circle, draw_line,
+                                 find_contours, label_components,
+                                 min_area_rect,
                                  draw_rect, draw_text, equalize, erode,
                                  fill_polygon,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
@@ -443,3 +447,71 @@ def test_an_unsupported_pixel_type_is_refused_not_cast():
         resize(np.zeros((8, 8), np.float64), 4, 4)
     with pytest.raises(TypeError):
         resize(np.zeros((8, 8), np.int32), 4, 4)
+
+
+# ---------------------------------------------------------------------------
+# Contours
+#
+# Against cv2 on a mask of a rectangle and a disc: the traced **point sets**
+# are identical, as are the areas, the bounding boxes, the convex hulls, the
+# minimum-area rectangles and the component partitions. The one difference is
+# length -- each contour here is closed, repeating its first point, where
+# cv2's is open.
+
+def _two_shapes():
+    mask = np.zeros((60, 80), dtype=np.uint8)
+    mask[10:30, 12:40] = 1
+    ys, xs = np.mgrid[0:60, 0:80]
+    mask[((xs - 60) ** 2 + (ys - 42) ** 2) <= 81] = 1
+    return mask
+
+
+def test_find_contours_traces_each_shape():
+    contours = find_contours(_two_shapes())
+    assert len(contours) == 2
+    assert all(c.shape[1] == 2 for c in contours)
+
+
+def test_a_contour_is_closed():
+    """cv2 leaves its contours open; these repeat the first point."""
+    contour = max(find_contours(_two_shapes()), key=len)
+    assert np.array_equal(contour[0], contour[-1])
+
+
+def test_contour_area_and_bounding_rect_match_the_shape():
+    contour = max(find_contours(_two_shapes()), key=len)
+    assert contour_area(contour) == pytest.approx(513.0)
+    assert bounding_rect(contour) == (12, 10, 28, 20)
+
+
+def test_an_empty_mask_traces_nothing():
+    assert find_contours(np.zeros((10, 10), dtype=np.uint8)) == []
+
+
+def test_convex_hull_drops_the_interior_point():
+    points = np.array([[5.0, 5.0], [40.0, 7.0], [38.0, 30.0], [7.0, 28.0],
+                       [20.0, 15.0]])
+    assert len(convex_hull(points)) == 4
+
+
+def test_min_area_rect_of_an_axis_aligned_square():
+    square = np.array([[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]])
+    box = min_area_rect(square)
+    assert box["size"][0] * box["size"][1] == pytest.approx(100.0, rel=0.02)
+
+
+def test_approx_poly_reduces_a_rectangle_to_four_corners():
+    contour = max(find_contours(_two_shapes()), key=len)
+    assert len(approx_poly(contour, 3.0)) == 4
+
+
+def test_label_components_counts_the_background():
+    count, labels = label_components(_two_shapes(), 8)
+    assert count == 3                      # two shapes plus the background
+    assert labels.shape == (60, 80)
+    assert set(np.unique(labels)) == {0, 1, 2}
+
+
+def test_a_contour_must_be_pairs():
+    with pytest.raises(ValueError):
+        contour_area(np.zeros((5, 3)))

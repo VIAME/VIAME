@@ -32,11 +32,7 @@ import os
 
 import numpy as np
 
-try:
-    import cv2
-    _HAS_CV2 = True
-except ImportError:
-    _HAS_CV2 = False
+from viame import image_kernels
 
 
 # Global category mapping shared across all COCO writer instances so
@@ -172,16 +168,12 @@ def mask_to_polygons(mask_array, offset_x=0.0, offset_y=0.0):
     convert_polygons_to_mask.cxx), whereas a COCO segmentation is always in
     image coordinates, so *offset_x*/*offset_y* shift the traced contours back
     into image space. Returns a list of flat ``[x1, y1, x2, y2, ...]`` contours,
-    or an empty list if OpenCV is unavailable or nothing was traced.
+    or an empty list if nothing was traced.
     """
-    if not _HAS_CV2:
-        return []
-    found = cv2.findContours(
-        mask_array.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contours = found[-2]
+    contours = image_kernels.find_contours(
+        np.ascontiguousarray(mask_array, dtype=np.uint8))
     polygons = []
-    for contour in contours:
-        pts = contour.reshape(-1, 2)
+    for pts in contours:
         if len(pts) < 3:
             continue
         flat = []
@@ -225,22 +217,19 @@ def polygons_to_mask(segmentation, height, width):
     """Rasterize a COCO/kwcoco polygon segmentation to a binary mask.
 
     Handles plain polygon coordinate lists and kwcoco ``{exterior,
-    interiors}`` dicts.  Requires OpenCV; returns *None* if cv2 is not
-    available.
+    interiors}`` dicts.
     """
-    if not _HAS_CV2:
-        return None
     mask = np.zeros((height, width), dtype=np.uint8)
     for poly in segmentation:
         if isinstance(poly, dict):
-            ext = np.array(poly['exterior'], dtype=np.int32).reshape(-1, 2)
-            cv2.fillPoly(mask, [ext], 1)
+            ext = np.array(poly['exterior'], dtype=np.float64).reshape(-1, 2)
+            image_kernels.fill_polygon(mask, ext, 1)
             for hole in poly.get('interiors', []):
-                hole_pts = np.array(hole, dtype=np.int32).reshape(-1, 2)
-                cv2.fillPoly(mask, [hole_pts], 0)
+                hole_pts = np.array(hole, dtype=np.float64).reshape(-1, 2)
+                image_kernels.fill_polygon(mask, hole_pts, 0)
         elif isinstance(poly, list):
-            pts = np.array(poly, dtype=np.float64).reshape(-1, 2).astype(np.int32)
-            cv2.fillPoly(mask, [pts], 1)
+            pts = np.array(poly, dtype=np.float64).reshape(-1, 2)
+            image_kernels.fill_polygon(mask, pts, 1)
     return mask
 
 

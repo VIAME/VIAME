@@ -18,6 +18,7 @@ Dependencies:
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
+from viame import image_kernels
 
 
 def simplify_polygon_to_max_points(
@@ -637,8 +638,6 @@ def polygon_keypoint_algo():
 
 def polygons_to_mask(polygons):
     """Rasterize all components and holes of one fish in a shared image crop."""
-    import cv2
-
     components = []
     for polygon in polygons:
         rings = [np.asarray(ring, dtype=np.float64) for ring in
@@ -658,10 +657,11 @@ def polygons_to_mask(polygons):
     mask = np.zeros((h, w), dtype=np.uint8)
     for rings in components:
         component = np.zeros_like(mask)
-        shifted = [(ring - [x0, y0]).astype(np.int32) for ring in rings]
-        cv2.fillPoly(component, [shifted[0]], 255)
-        if len(shifted) > 1:
-            cv2.fillPoly(component, shifted[1:], 0)
+        shifted = [np.asarray(ring, dtype=np.float64) - [x0, y0]
+                   for ring in rings]
+        image_kernels.fill_polygon(component, shifted[0], 255)
+        for hole in shifted[1:]:
+            image_kernels.fill_polygon(component, hole, 0)
         # Union separately so a hole cannot erase another polygon's foreground.
         np.maximum(mask, component, out=mask)
     return mask, (int(x0), int(y0), int(x1), int(y1))
@@ -758,8 +758,6 @@ def clip_mask_to_line(
     coordinates) within half_width_ratio * line length of the line. Returns
     the largest surviving piece, re-cropped, with its new offset, or None
     when nothing is left."""
-    import cv2
-
     length = polyline_length(line)
     if length <= 0 or mask.size == 0:
         return None
@@ -767,13 +765,17 @@ def clip_mask_to_line(
     local = np.round(np.asarray(line, dtype=np.float64) - np.asarray(offset)).astype(np.int32)
     region = np.zeros(binary.shape, dtype=np.uint8)
     thickness = max(1, int(round(2 * half_width_ratio * length)))
-    cv2.polylines(region, [local.reshape(-1, 1, 2)], False, 1, thickness=thickness)
+    image_kernels.draw_polyline(region, local.reshape(-1, 2).astype(np.float64),
+                                1, False, thickness)
     clipped = (binary & (region > 0)).astype(np.uint8)
-    count, labels, stats, _ = cv2.connectedComponentsWithStats(clipped, connectivity=8)
+    count, labels = image_kernels.label_components(clipped, 8)
     if count < 2:
         return None
-    # The band can cut a sprawling mask into scraps; only the largest is the object.
-    clipped = labels == 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    # The band can cut a sprawling mask into scraps; only the largest is the
+    # object. `cv2.connectedComponentsWithStats` reported the areas; counting
+    # the labels gives the same thing, and label 0 is the background.
+    areas = np.bincount(labels.ravel(), minlength=count)
+    clipped = labels == 1 + int(np.argmax(areas[1:]))
     ys, xs = np.where(clipped)
     x0, y0, x1, y1 = xs.min(), ys.min(), xs.max(), ys.max()
     new_offset = (int(round(offset[0])) + int(x0), int(round(offset[1])) + int(y0))
@@ -782,9 +784,8 @@ def clip_mask_to_line(
 
 def mask_components(mask: np.ndarray) -> Tuple[int, np.ndarray]:
     """Connected components (8-connectivity) of a binary mask: (count, labels)."""
-    import cv2
-
-    count, labels = cv2.connectedComponents((mask > 0).astype(np.uint8), connectivity=8)
+    count, labels = image_kernels.label_components(
+        (mask > 0).astype(np.uint8), 8)
     return count - 1, labels
 
 
