@@ -997,20 +997,6 @@ class InteractiveSegmentationService:
         self._log("Service shutting down")
 
 
-def _text_query_sibling(config_dir, vital_config):
-    """The text-query config beside a segmenter config: the default when it
-    names a backend, else an add-on's own file. A VIAME install rewrites the
-    default with the core placeholder, which names none."""
-    default = config_dir / "interactive_text_query_default.conf"
-    candidates = [default] + sorted(
-        p for p in config_dir.glob("interactive_text_query_*.conf") if p != default)
-    for candidate in candidates:
-        if candidate.exists() and vital_config.read_config_file(
-                str(candidate)).has_value("perform_text_query:type"):
-            return candidate
-    return None
-
-
 def _merge_configs(config_path, device: str = None):
     """Read one or more config files into a single block: a lone segmenter
     config pulls in its text-query sibling, relative model paths resolve
@@ -1032,8 +1018,8 @@ def _merge_configs(config_path, device: str = None):
     if len(config_paths) == 1:
         probe = vital_config.read_config_file(config_paths[0])
         if not probe.has_value("perform_text_query:type"):
-            sibling = _text_query_sibling(Path(config_paths[0]).parent, vital_config)
-            if sibling is not None:
+            sibling = Path(config_paths[0]).parent / "interactive_text_query_default.conf"
+            if sibling.exists():
                 config_paths.append(str(sibling))
 
     cfg = vital_config.read_config_file(config_paths[0])
