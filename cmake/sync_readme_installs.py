@@ -6,10 +6,11 @@
 """Render the README's installer download lists from download_viame_install.csv.
 
 The CSV is the source of truth for the current releases: one line per
-installer holding its file name, its MD5, then every mirror it can be fetched
-from. GitHub renders the README statically, so the two "Full Desktop Binaries"
-lists are regenerated from the CSV by this script and kept between the
-<!-- install-links:start --> and <!-- install-links:end --> markers.
+installer holding its platform (WINDOWS, LINUX or MAC), device (GPU or CPU),
+version, MD5, then every mirror it can be fetched from. GitHub renders the
+README statically, so the two "Full Desktop Binaries" lists are regenerated
+from the CSV by this script and kept between the <!-- install-links:start -->
+and <!-- install-links:end --> markers.
 
   cmake/sync_readme_installs.py            # report drift, change nothing
   cmake/sync_readme_installs.py --apply    # rewrite the README lists
@@ -21,46 +22,44 @@ can gate CI.
 import argparse
 import csv
 import os
-import re
 import sys
 
 START = '<!-- install-links:start -->'
 END = '<!-- install-links:end -->'
-# VIAME-v0.23.2-Windows-64Bit.zip, VIAME-CPU-v0.21.1-Linux-64Bit.tar.gz
-NAME_RE = re.compile(r'^VIAME-(?P<cpu>CPU-)?(?P<version>v[0-9.]+)-(?P<platform>Windows|Linux|Mac)-'
-                     r'[^.]*\.(?P<ext>zip|tar\.gz)$')
+PLATFORMS = {'WINDOWS': ('Windows', 'zip'), 'LINUX': ('Linux', 'tar.gz'), 'MAC': ('Mac', 'tar.gz')}
+DEVICES = {'GPU': 'GPU Enabled', 'CPU': 'CPU Only'}
 
 
 def read_csv(path):
-    """-> [(name, md5, [mirror, ...])]"""
+    """-> [(platform, device, version, md5, [mirror, ...])]"""
     rows = []
     with open(path, newline='') as fh:
         for row in csv.reader(fh, skipinitialspace=True):
             if not row or not row[0].strip() or row[0].lstrip().startswith('#'):
                 continue
-            name, md5, mirrors = row[0].strip(), row[1].strip(), [m.strip() for m in row[2:] if m.strip()]
-            if not mirrors:
-                raise SystemExit('%s lists no mirrors' % name)
-            rows.append((name, md5, mirrors))
+            fields = [f.strip() for f in row]
+            if len(fields) < 5:
+                raise SystemExit('expected platform, device, version, md5 and a mirror: %s' % ', '.join(row))
+            platform, device, version, md5 = fields[:4]
+            if platform.upper() not in PLATFORMS:
+                raise SystemExit('unknown platform %s (WINDOWS, LINUX or MAC)' % platform)
+            if device.upper() not in DEVICES:
+                raise SystemExit('unknown device %s (GPU or CPU)' % device)
+            rows.append((platform.upper(), device.upper(), version, md5, [m for m in fields[4:] if m]))
     return rows
 
 
 def render(rows):
-    """The Markdown for the two platform lists, in README order."""
-    groups = {'Windows': [], 'Linux': []}
-    for name, _md5, mirrors in rows:
-        m = NAME_RE.match(name)
-        if not m or m.group('platform') not in groups:
-            raise SystemExit('cannot describe installer from its name: %s' % name)
-        label = '%s %s, %s' % (m.group('version'), m.group('platform'),
-                               'CPU Only' if m.group('cpu') else 'GPU Enabled')
+    """The Markdown for the per-platform lists, in CSV order of first appearance."""
+    groups = {}
+    for platform, device, version, _md5, mirrors in rows:
+        name, ext = PLATFORMS[platform]
         for i, url in enumerate(mirrors, 1):
-            groups[m.group('platform')].append(
-                '* [VIAME %s, Mirror%d (.%s)](%s)' % (label, i, m.group('ext'), url))
+            groups.setdefault(platform, []).append(
+                '* [VIAME %s %s, %s, Mirror%d (.%s)](%s)' % (version, name, DEVICES[device], i, ext, url))
     out = []
-    for platform in ('Windows', 'Linux'):
-        out.append('**%s Full Desktop Binaries:** <br>' % platform)
-        lines = groups[platform]
+    for platform, lines in groups.items():
+        out.append('**%s Full Desktop Binaries:** <br>' % PLATFORMS[platform][0])
         out.extend(line + (' <br>' if i < len(lines) - 1 else '') for i, line in enumerate(lines))
         out.append('')
     return '\n'.join(out).rstrip('\n') + '\n'
