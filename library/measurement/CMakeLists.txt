@@ -207,6 +207,17 @@ if( VIAME_ENABLE_PYTHON )
     PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
   viame_target_link_libraries( python-measurement-_measurement
     PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_measurement )
+
+  # The camera geometry, which is the half of the OpenCV removal that python
+  # could not do: `projectPoints`, `undistortPoints`, `Rodrigues`,
+  # `stereoRectify` and `initUndistortRectifyMap` all live in `projection.h`
+  # already. A module of its own rather than more of `_measurement`, because
+  # that one is a stereo measurement service and this is primitives.
+  viame_add_python_library( _projection
+    measurement
+    SOURCES projection_python.cxx )
+  viame_target_link_libraries( python-measurement-_projection
+    PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_measurement )
 endif()
 
 ###

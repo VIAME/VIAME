@@ -111,16 +111,11 @@ def load_json(path):
 # ---------------------------------------------------------------------------
 
 def _read_ocv_yaml(path, names):
-    import cv2
-    fs = cv2.FileStorage(path, cv2.FILE_STORAGE_READ)
-    if not fs.isOpened():
-        raise ValueError("Could not open OpenCV YAML: " + path)
-    out = {}
-    for n in names:
-        node = fs.getNode(n)
-        out[n] = node.mat() if not node.empty() else None
-    fs.release()
-    return out
+    from viame.utilities import opencv_yaml
+    try:
+        return opencv_yaml.read(path, names)
+    except OSError as exc:
+        raise ValueError("Could not open OpenCV YAML: " + path) from exc
 
 
 def _find(d, *names):
@@ -164,8 +159,9 @@ def load_ocv_dir(dir_path):
 # ---------------------------------------------------------------------------
 
 def load_mat(path):
-    import cv2
     from scipy.io import loadmat
+
+    from viame.measurement import projection
     m = loadmat(path, squeeze_me=True, struct_as_record=False)
     if "Cal" in m:                # fields may be nested in a "Cal" struct
         cal = m["Cal"]
@@ -185,7 +181,7 @@ def load_mat(path):
     dist_l = get("kc_left") if has("kc_left") else []
     dist_r = get("kc_right") if has("kc_right") else []
     om = np.asarray(get("om"), dtype=np.float64).reshape(3)
-    R = cv2.Rodrigues(om)[0]
+    R = projection.rodrigues(om)
     T = np.asarray(get("T"), dtype=np.float64).reshape(3)
     return _assemble(K_for("left"), dist_l, K_for("right"), dist_r, R, T)
 

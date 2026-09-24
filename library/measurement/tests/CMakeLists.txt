@@ -47,6 +47,16 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 600
     SOURCE_SETUP
   )
+
+  # The camera geometry bindings, which are what python calls instead of
+  # cv2.projectPoints and the four around it.
+  viame_add_test(
+    NAME    "unit:measurement:projection_python"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_projection_python.py"
+    LABELS  UNIT CORE
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
 endif()
 
 # From `tests/plugins/core` in P2-T09: curved measurement and the interactive

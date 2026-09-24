@@ -38,6 +38,12 @@ scriptconfig
 ubelt
 pillow>=9.4.0
 opencv-python-headless
+
+# Five modules imported it already and none declared it; `opencv_yaml`, which
+# reads the calibration files `cv::FileStorage` writes, makes six. Undeclared
+# because something else happened to pull it in is how a release stops being
+# able to read a calibration.
+pyyaml
 onnxruntime
 ensemble_boxes
 
