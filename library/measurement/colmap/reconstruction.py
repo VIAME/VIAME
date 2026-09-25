@@ -22,6 +22,7 @@ import glob
 from viame import image_kernels
 from viame.measurement import projection
 from viame.utilities import imageops
+from viame.utilities import geometry
 
 # Populated by import_dependencies()
 np = None
@@ -107,7 +108,7 @@ def triangulate_matches(kp1, kp2, matches, K, R1, t1, R2, t2):
     P2 = K @ np.hstack([R2, t2.reshape(3, 1)])
 
     # Triangulate
-    pts4d = cv2.triangulatePoints(P1, P2, pts1.T, pts2.T)
+    pts4d = geometry.triangulate_points(P1, P2, pts1, pts2)
     pts3d = (pts4d[:3] / pts4d[3]).T  # Nx3
 
     # Filter: points must be in front of both cameras
@@ -368,10 +369,8 @@ def generate_prior_coverage(rec, output_csv, class_name):
             prior_pids |= observed_pids(img)
             continue
 
-        # Project with distortion via cv2.projectPoints
-        rvec = projection.rodrigues(R)
-        pts_2d, _ = cv2.projectPoints(pts_3d, rvec, t, K, dist)
-        pts_2d = pts_2d.reshape(-1, 2)
+        # Project with distortion
+        pts_2d = projection.project_points(pts_3d, K, dist, R, t)
 
         # Filter to within image bounds
         margin = 0
@@ -387,8 +386,7 @@ def generate_prior_coverage(rec, output_csv, class_name):
             continue
 
         # Convex hull
-        hull = cv2.convexHull(pts_2d.astype(np.float32))
-        hull_pts = hull.reshape(-1, 2)
+        hull_pts = image_kernels.convex_hull(pts_2d)
 
         # Clamp hull vertices to image bounds
         hull_pts[:, 0] = np.clip(hull_pts[:, 0], 0, w - 1)
@@ -485,9 +483,7 @@ def generate_prior_coverage_standalone(rec, output_csv, class_name="suppressed")
                 prior_pids |= observed_pids(img)
                 continue
 
-            rvec = projection.rodrigues(R)
-            pts_2d, _ = cv2.projectPoints(pts_3d, rvec, t, K, dist)
-            pts_2d = pts_2d.reshape(-1, 2)
+            pts_2d = projection.project_points(pts_3d, K, dist, R, t)
 
             inside = (
                 (pts_2d[:, 0] >= 0) & (pts_2d[:, 0] < w) &
@@ -499,8 +495,7 @@ def generate_prior_coverage_standalone(rec, output_csv, class_name="suppressed")
                 prior_pids |= observed_pids(img)
                 continue
 
-            hull = cv2.convexHull(pts_2d.astype(np.float32))
-            hull_pts = hull.reshape(-1, 2)
+            hull_pts = image_kernels.convex_hull(pts_2d)
             hull_pts[:, 0] = np.clip(hull_pts[:, 0], 0, w - 1)
             hull_pts[:, 1] = np.clip(hull_pts[:, 1], 0, h - 1)
 
@@ -607,8 +602,8 @@ def run_dense(rec, image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
             # Fundamental matrix filtering
             pts1 = np.float64([kp_a[m.queryIdx].pt for m in good_matches])
             pts2 = np.float64([kp_b[m.trainIdx].pt for m in good_matches])
-            F, inlier_mask = cv2.findFundamentalMat(pts1, pts2, cv2.FM_RANSAC,
-                                                     ransacReprojThreshold=2.0)
+            F, inlier_mask = geometry.find_fundamental(pts1, pts2,
+                                                       threshold=2.0)
             if inlier_mask is None:
                 continue
             inlier_matches = [m for m, keep in zip(good_matches, inlier_mask.ravel()) if keep]

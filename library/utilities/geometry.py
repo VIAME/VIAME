@@ -123,6 +123,156 @@ def fit_homography(source, target):
     return _dlt(source, target)
 
 
+def triangulate_points(projection1, projection2, points1, points2):
+    """Triangulate matched points seen by two cameras.
+
+    `cv2.triangulatePoints`, and the same direct linear transform: each
+    correspondence gives four equations in the homogeneous 3D point, and the
+    solution is the smallest singular vector of that four by four.
+
+    Takes the two 3 by 4 projection matrices and two N by 2 arrays of image
+    points. Returns a **4 by N** array of homogeneous points, which is the
+    shape cv2 returns -- divide by the fourth row for Euclidean coordinates.
+    Points at infinity come back with a fourth component near zero rather
+    than as an error, which is the whole reason the answer is homogeneous.
+    """
+    projection1 = np.asarray(projection1, dtype=np.float64).reshape(3, 4)
+    projection2 = np.asarray(projection2, dtype=np.float64).reshape(3, 4)
+    points1 = np.asarray(points1, dtype=np.float64).reshape(-1, 2)
+    points2 = np.asarray(points2, dtype=np.float64).reshape(-1, 2)
+
+    if len(points1) != len(points2):
+        raise ValueError(
+            "triangulate_points wants matching point counts; got {} and "
+            "{}".format(len(points1), len(points2)))
+
+    count = len(points1)
+    rows = np.empty((count, 4, 4), dtype=np.float64)
+
+    # x * P[2] - P[0] and y * P[2] - P[1], per camera
+    rows[:, 0] = points1[:, 0:1] * projection1[2] - projection1[0]
+    rows[:, 1] = points1[:, 1:2] * projection1[2] - projection1[1]
+    rows[:, 2] = points2[:, 0:1] * projection2[2] - projection2[0]
+    rows[:, 3] = points2[:, 1:2] * projection2[2] - projection2[1]
+
+    _, _, vt = np.linalg.svd(rows)
+    return vt[:, -1, :].T
+
+
+def _eight_point(source, target):
+    """The fundamental matrix from eight or more correspondences.
+
+    Hartley's normalised eight point algorithm: condition both point sets,
+    solve the linear system, force rank two by zeroing the smallest singular
+    value, then undo the conditioning. The rank two step is what makes it a
+    fundamental matrix rather than an arbitrary three by three -- without it
+    the epipolar lines do not meet at an epipole.
+    """
+    normalised_source, ts = _normalise(source)
+    normalised_target, tt = _normalise(target)
+
+    x1, y1 = normalised_source[:, 0], normalised_source[:, 1]
+    x2, y2 = normalised_target[:, 0], normalised_target[:, 1]
+    ones = np.ones(len(source))
+
+    rows = np.column_stack(
+        [x2 * x1, x2 * y1, x2, y2 * x1, y2 * y1, y2, x1, y1, ones])
+
+    _, _, vt = np.linalg.svd(rows)
+    fundamental = vt[-1].reshape(3, 3)
+
+    # rank two
+    u, singular, vt2 = np.linalg.svd(fundamental)
+    singular[2] = 0.0
+    fundamental = u @ np.diag(singular) @ vt2
+
+    fundamental = tt.T @ fundamental @ ts
+    norm = np.abs(fundamental).max()
+    return fundamental / norm if norm > 1e-12 else fundamental
+
+
+def _sampson_distance(fundamental, source, target):
+    """The first-order geometric error of each correspondence.
+
+    `cv2.findFundamentalMat`'s RANSAC threshold is on this, not on the raw
+    algebraic residual -- Sampson's approximation to the distance from the
+    point pair to the nearest pair that satisfies the epipolar constraint.
+    """
+    ones = np.ones((len(source), 1))
+    p1 = np.hstack([source, ones])
+    p2 = np.hstack([target, ones])
+
+    line2 = p1 @ fundamental.T          # the epipolar line in the second view
+    line1 = p2 @ fundamental            # and in the first
+
+    residual = np.einsum("ij,ij->i", p2, line2)
+    denominator = (line2[:, 0] ** 2 + line2[:, 1] ** 2 +
+                   line1[:, 0] ** 2 + line1[:, 1] ** 2)
+    denominator = np.where(denominator < 1e-12, 1e-12, denominator)
+
+    return residual ** 2 / denominator
+
+
+def find_fundamental(source, target, threshold=3.0, confidence=0.99,
+                     max_iterations=2000, seed=0):
+    """The fundamental matrix relating two views, and its inlier mask.
+
+    `cv2.findFundamentalMat` with `FM_RANSAC`. Eight point samples, scored by
+    Sampson distance -- which is what OpenCV thresholds too, so the
+    `threshold` here means what `ransacReprojThreshold` meant there -- and a
+    refit over the consensus set.
+
+    Returns `(fundamental, mask)`, or `(None, None)` when there are fewer
+    than eight correspondences or no consensus is found.
+    """
+    source = np.asarray(source, dtype=np.float64).reshape(-1, 2)
+    target = np.asarray(target, dtype=np.float64).reshape(-1, 2)
+
+    if len(source) != len(target):
+        raise ValueError("source and target must have the same length")
+    if len(source) < 8:
+        return None, None
+
+    rng = np.random.default_rng(seed)
+    count = len(source)
+    best_inliers = np.zeros(count, dtype=bool)
+    best_total = 0
+    iterations = max_iterations
+    squared = threshold ** 2
+
+    step = 0
+    while step < min(iterations, max_iterations):
+        step += 1
+        sample = rng.choice(count, 8, replace=False)
+        try:
+            candidate = _eight_point(source[sample], target[sample])
+        except np.linalg.LinAlgError:
+            continue
+        if not np.all(np.isfinite(candidate)):
+            continue
+
+        inliers = _sampson_distance(candidate, source, target) < squared
+        total = int(inliers.sum())
+
+        if total > best_total:
+            best_total, best_inliers = total, inliers
+            ratio = total / float(count)
+            if ratio >= 1.0:
+                break
+            denominator = np.log(max(1e-12, 1.0 - ratio ** 8))
+            iterations = int(np.ceil(np.log(1.0 - confidence) / denominator))
+
+    if best_total < 8:
+        return None, None
+
+    try:
+        refined = _eight_point(source[best_inliers], target[best_inliers])
+    except np.linalg.LinAlgError:
+        return None, None
+
+    return refined, best_inliers
+
+
 def apply_homography(homography, points):
     """Map points through a homography, returning inhomogeneous coordinates."""
     points = np.asarray(points, dtype=np.float64).reshape(-1, 2)

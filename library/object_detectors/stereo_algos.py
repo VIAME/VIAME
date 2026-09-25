@@ -24,6 +24,7 @@ from os.path import splitext
 from viame.measurement.stereo_utils import (imscale, ensure_grayscale, from_homog, to_homog)
 from viame.measurement.stereo_utils import minimum_weight_assignment
 from viame.measurement import projection
+from viame.utilities import geometry
 
 logger = logging.getLogger(__name__)
 
@@ -936,14 +937,15 @@ class StereoLengthMeasurments(object):
         # This puts points in "normalized camera coordinates" making them
         # independent of the intrinsic parameters. Moving to world coordinates
         # can now be done using only the RT transform.
-        unpts1_cv = cv2.undistortPoints(pts1_cv, K1, distCoeffs=kc1)
-        unpts2_cv = cv2.undistortPoints(pts2_cv, K2, distCoeffs=kc2)
+        unpts1_cv = projection.undistort_points(pts1_cv, K1, kc1)
+        unpts2_cv = projection.undistort_points(pts2_cv, K2, kc2)
 
         # note: trinagulatePoints docs say that it wants a 3x4 projection
         # matrix (ie K.dot(RT)), but we only need to use the RT extrinsic
         # matrix because the undistorted points already account for the K
         # intrinsic matrix.
-        world_pts_homog = cv2.triangulatePoints(RT1, RT2, unpts1_cv, unpts2_cv)
+        world_pts_homog = geometry.triangulate_points(
+            RT1, RT2, unpts1_cv, unpts2_cv)
         world_pts = from_homog(world_pts_homog)
 
         # Compute distance between key pairs of 3D bounding box points

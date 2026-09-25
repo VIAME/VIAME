@@ -5,6 +5,7 @@ import kwimage
 import ubelt as ub
 import numpy as np
 from viame.measurement import projection
+from viame.utilities import geometry
 
 
 def _calibrate_single_camera(img_points, object_points, img_dsize):
@@ -566,10 +567,9 @@ class StereoCalibration():
         # intrinsic matrix.
         #
         # Input 2d-points should be (dim=2 x num)
-        unpts1_T = unpts1_cv[:, 0, :].T
-        unpts2_T = unpts2_cv[:, 0, :].T
         # homog points returned as (dim=4 x num)
-        world_pts_homogT = cv2.triangulatePoints(RT1, RT2, unpts1_T, unpts2_T)
+        world_pts_homogT = geometry.triangulate_points(
+            RT1, RT2, unpts1_cv, unpts2_cv)
 
         # Remove homogenous coordinate
         # Returns (num x dim=3) world coordinates
