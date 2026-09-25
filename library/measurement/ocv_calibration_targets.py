@@ -2,13 +2,13 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Calibration target detection, on cv2.
+"""Calibration target detection.
 
 the `opencv` plugin's `detect_calibration_targets.cxx` and the four detection
 helpers it uses from `calibrate_stereo_cameras`, in python, per
-`lite-removals.md` section 2.4. `findChessboardCorners`, `cornerSubPix` and
-`SimpleBlobDetector` are calib3d and features2d rather than `image_kernels`
-primitives, so the algorithm stays OpenCV's.
+`lite-removals.md` section 2.4. The checkerboard path is ours end to end --
+`viame.utilities.chessboard` for the corners and `image_kernels` for the
+refinement; only the dot path still wants OpenCV, for `SimpleBlobDetector`.
 
 Three things here are reproduced rather than corrected, because
 `tests/golden/measurement` records what the C++ produced:
@@ -33,6 +33,7 @@ import math
 
 import numpy as np
 from viame import image_kernels
+from viame.utilities import chessboard
 
 from viame.algo import ImageObjectDetector
 from viame.types import (BoundingBoxD, DetectedObject,
@@ -146,17 +147,16 @@ def detect_chessboard(gray, grid):
     at the reduced size, scaled back up, and then refined again at full
     resolution -- both refinements, which is what the C++ does.
     """
-    import cv2
-
-    flags = cv2.CALIB_CB_ADAPTIVE_THRESH
-
     scale = _detection_scale(gray.shape)
 
+    # Unrefined, because the refinement below is the one the C++ made and is
+    # already at this file's window rather than the detector's default.
     if scale < 1.0:
         small = image_kernels.resize(
             gray, max(1, int(gray.shape[1] * scale)),
             max(1, int(gray.shape[0] * scale)))
-        found, corners = cv2.findChessboardCorners(small, grid, flags=flags)
+        found, corners = chessboard.find_chessboard_corners(
+            small, grid[0], grid[1], refine=False)
 
         if found:
             corners = image_kernels.corner_subpix(
@@ -165,7 +165,8 @@ def detect_chessboard(gray, grid):
                 SUBPIX_CRITERIA_ITERATIONS, SUBPIX_CRITERIA_EPSILON)
             corners = corners / scale
     else:
-        found, corners = cv2.findChessboardCorners(gray, grid, flags=flags)
+        found, corners = chessboard.find_chessboard_corners(
+            gray, grid[0], grid[1], refine=False)
 
     if not found:
         return False, [], grid

@@ -2614,3 +2614,56 @@ static baseline cannot catch a name asked for and never registered. This is
 the same hole seen from the other side: a name that was *supposed* to be
 registered and silently was not. Tier 1 passing is not evidence that the
 python plugins exist.
+
+## 2.33 A smaller chessboard inside a chessboard, and which colour tells you
+
+`findChessboardCorners` was the last of the four estimators
+`lite-opencv-removal.md` phase 5 names. Reproducing *where* it puts the
+corners turned out to be the easy half; reproducing *when it refuses* was the
+part with a real defect behind it.
+
+The detector traces the squares of one colour, works out how they tile, and
+reads the inner corners off that tiling. Ask a seven by five board for seven
+by five and it is found. Ask the same board for six by five and there are
+genuinely two ways to lay one out inside it, both complete, both made of real
+squares with real squares all around them. OpenCV refuses all of them. A first
+cut here accepted them, and that is not a cosmetic difference: nothing
+downstream can tell. The caller pairs whatever comes back against a fixed set
+of object points and calibrates, and a sub-grid produces a confident
+calibration of the wrong rig with a small, plausible residual.
+
+Requiring the block to be *maximal* within its own lattice -- no complete
+further row or column against any side -- removes most of them. It does not
+remove `(5, 3)`, and the reason is worth keeping:
+
+    block   0 dark :  24 quads,  35 lattice corners   5x3=-     7x5=YES
+    block   0 light:  12 quads,  15 lattice corners   5x3=YES   7x5=-
+
+The light squares of a board touch the margin around it, so border following
+traces them and the margin as one blob and the area filter drops it. The light
+pass therefore sees only the **interior** light squares -- twelve of them --
+and those form a complete, maximal five by three lattice of their own. Every
+test local to that lattice passes, because as far as it goes it is a real
+board. Only the rest of the picture disagrees.
+
+So the rest of the picture is what has to be asked, and the naive form of the
+question is also wrong. Stepping one place beyond an edge and looking for a
+traced corner rejects *every* board, the true one included: one step beyond a
+real board is its outer rim, and a rim is made of corners too.
+
+What separates them is colour. Inside a board, every corner is where two dark
+squares and two light ones meet, so both passes have a quadrilateral touching
+it. On the rim only one colour is present, the other side being the margin. An
+edge with both colours the whole way past it has more board beyond; an edge
+without has ended. That test agrees with `cv::findChessboardCorners` on all
+ten grids tried against the recorded fixture, where maximality alone left one
+disagreement.
+
+The general shape of this is the one worth carrying: a detector for a
+*physical object* has to reject as well as locate, and a replacement validated
+only on images that contain the thing will reproduce the locating and lose the
+rejecting. There is no test for it in a recording of successful detections,
+which is why `wrong_grid` -- a recording of finding nothing -- is in
+`measurement_cases.py`, and why `unit:utilities:chessboard` asks for four
+sub-grids by name and demands the whole board in the same breath. Refusing
+everything passes the first of those perfectly.

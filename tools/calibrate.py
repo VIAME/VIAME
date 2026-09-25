@@ -21,7 +21,8 @@ import argparse
 import json
 from viame import image_kernels
 from viame.measurement import projection
-from viame.utilities import calibration, geometry, imageops, opencv_yaml
+from viame.utilities import (calibration, chessboard, geometry, imageops,
+                             opencv_yaml)
 
 
 def parse_ptscal(filepath):
@@ -153,22 +154,22 @@ def detect_grid_image(image, grid_size=(6,5), max_dim=5000):
     while scale * min_len > max_dim:
         scale /= 2.0
 
-    # termination criteria for corner refinement
-
-    # Find the chess board corners
-    flags = cv2.CALIB_CB_ADAPTIVE_THRESH
+    # Find the chess board corners. Unrefined, because the refinement below
+    # is at this tool's window rather than the detector's default.
     if scale < 1.0:
         small = image_kernels.resize_area(
             image, max(1, int(round(image.shape[1] * scale))),
             max(1, int(round(image.shape[0] * scale))))
-        ret, corners = cv2.findChessboardCorners(small, grid_size, flags=flags)
+        ret, corners = chessboard.find_chessboard_corners(
+            small, grid_size[0], grid_size[1], refine=False)
         if ret:
             # `(11, 11)` is the **half** window in both, so a 23 pixel search
             corners = image_kernels.corner_subpix(
                 small, corners.reshape(-1, 2), 11, 11, 30, 0.001)
             corners = (corners / scale).astype(np.float32)
     else:
-        ret, corners = cv2.findChessboardCorners(image, grid_size, flags=flags)
+        ret, corners = chessboard.find_chessboard_corners(
+            image, grid_size[0], grid_size[1], refine=False)
 
     if ret:
         # refine the location of the corners at full resolution

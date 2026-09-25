@@ -96,15 +96,19 @@ def _detect_grid_image(image, grid_dsize):
         small = kwimage.imresize(image, scale=scale)
         return _detect_grid_image(small, grid_dsize)
     else:
-        # termination criteria
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-        # Find the chess board corners
-        flags = cv2.CALIB_CB_ADAPTIVE_THRESH
-        ret, corners = cv2.findChessboardCorners(image, grid_dsize, flags=flags)
+        # Find the chess board corners. `(11, 11)` is the **half** window in
+        # both `cv::cornerSubPix` and the kernel, so it is a 23 pixel search
+        # in either; halving it here would quarter the search area.
+        from viame import image_kernels
+        from viame.utilities import chessboard
+
+        ret, corners = chessboard.find_chessboard_corners(
+            image, grid_dsize[0], grid_dsize[1], refine=False)
         if ret:
             # refine the location of the corners
-            cv2.cornerSubPix(image, corners, (11, 11), (-1, -1), criteria)
-            return corners[:, 0, :]
+            return image_kernels.corner_subpix(
+                np.ascontiguousarray(image), corners.reshape(-1, 2),
+                11, 11, 30, 0.001).astype(np.float32)
         else:
             raise Exception('Failed to localize grid')
 

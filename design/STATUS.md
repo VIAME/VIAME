@@ -677,3 +677,52 @@ substitution came in with the alias, not with SURF. Porting VXL's estimator
 would close it.
 
 `install.txt` gains the two headers and nothing else.
+
+`findChessboardCorners` is written, and with it the last of the four
+estimators `lite-opencv-removal.md` phase 5 names -- `findHomography`,
+`calibrateCamera`, `stereoCalibrate` and this. `library/utilities/chessboard.py`
+thresholds against a local mean at five block sizes, traces the squares of
+both colours, and reads the inner corners off the forty-five-degree lattice
+the squares of one colour make, which gives the row-major ordering for free
+rather than by sorting coordinates. The three call sites -- the calibration
+target detector, `tools/calibrate.py` and netharn's `stereo.py` -- are ported,
+and no `cv2.findChessboardCorners` is left outside the recorder that exists to
+keep it.
+
+**Measured against cv2**, over thirty boards of five shapes under perspective,
+uneven lighting and noise: found 30 of 30, the same 30 cv2 finds, worst corner
+0.215 px from truth against cv2's 0.215. End to end, ten rendered views of a
+known rig calibrated from these corners recover fx to 0.14 px of a true 1100,
+where the same calibration from cv2's corners recovers it to 0.13. On the ten
+grids tried against the recorded fixture -- the board's own and nine near it --
+the two agree on every one about whether a board is there.
+
+**Two defects were found by asking for the second of those, not the first.**
+The ordering could come back *mirrored*: a transpose is a perfectly tidy grid
+and is not a board seen from anywhere, and it fits a calibration to a pose
+reflected through the image plane. `_orient` now keeps only the four
+relabellings that are genuine turns, choosing between them by which first
+corner is nearest the image origin. And a smaller grid inside a board was
+accepted as that board, which nothing downstream can detect -- the caller
+pairs it against a fixed set of object points and calibrates confidently to
+the wrong rig. Maximality within the lattice removes most; the one it does not
+remove, and what does, is lite-findings 2.33.
+
+**Green:** BASELINE, UNIT and CORE 474 of 474 with `unit:utilities:chessboard`
+new and 19 cases in it, GOLDEN and CRITICAL 10 of 10, `golden:replay` 270 of
+270. `install.txt` gains `viame/utilities/chessboard.py` and nothing else.
+
+Two golden tolerances moved, and both are the same cause rather than a
+failure. The recordings hold what `cv::findChessboardCorners` produced, and
+two corner finders that are both right hand slightly different starting points
+to the same sub-pixel refinement: 2.2e-2 px at worst over the recorded board's
+thirty-five corners, 5.4e-3 median. `ocv_detect_calibration_targets` gains a
+5e-2 px allowance on its detection boxes -- which are five pixel squares
+centred on a sub-pixel corner, not rectangles of whole pixels -- and the
+stereo calibration pipeline's relative tolerance goes from 1e-5 to 1e-4, being
+a non-convex fit of forty corners over twelve views settling on a different
+member of the same flat minimum (4.0e-5 measured, on the rectified principal
+point). `check_calibration_truth` is what says this is still right rather than
+merely still close to itself: it holds the same run against the rig the views
+were rendered through, focal 2%, centre 0.5%, baseline 1%, and passes
+untouched.

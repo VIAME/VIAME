@@ -416,8 +416,16 @@ def check_detections(item, case, outputs, group):
                 "{} {} detection {}: fields {} != recorded {}".format(
                     case_id(item), name, index, sorted(got), sorted(want)))
 
-            # The box: exact, because it is a pixel rectangle
-            assert got["bbox"] == want["bbox"], (
+            # The box: exact, because it is a pixel rectangle -- unless the
+            # implementation draws it round something that is not a pixel.
+            box_tolerance = BBOX_TOLERANCES_BY_IMPL.get(case["impl"], 0.0)
+
+            assert len(got["bbox"]) == len(want["bbox"]), (
+                "{} {} detection {}: bbox is {!r}, recorded {!r}".format(
+                    case_id(item), name, index, got["bbox"], want["bbox"]))
+
+            assert all(abs(a - b) <= box_tolerance
+                       for a, b in zip(got["bbox"], want["bbox"])), (
                 "{} {} detection {}: bbox is {!r}, recorded {!r}".format(
                     case_id(item), name, index, got["bbox"], want["bbox"]))
 
@@ -437,6 +445,33 @@ def check_detections(item, case, outputs, group):
                     "{} {} detection {} type '{}': {!r}, recorded "
                     "{!r}".format(case_id(item), name, index, label,
                                   got["types"][label], score))
+
+
+# How far a recorded detection's box may move, per implementation. Zero
+# everywhere it is not named here, which is everywhere a box is a rectangle of
+# whole pixels around a blob.
+#
+# `ocv_detect_calibration_targets` is the exception, and not by accident: its
+# box is a five pixel square centred on a **sub-pixel** corner, so it carries
+# the corner's last digits into what looks like a pixel rectangle. The corner
+# finder behind it is now `viame.utilities.chessboard` rather than
+# `cv::findChessboardCorners`, and two corner finders that are both right do
+# not agree to the bit -- they each hand a slightly different starting point
+# to the same sub-pixel refinement, which then converges to very nearly, but
+# not exactly, the same place.
+#
+# Measured across the thirty-five corners of the recorded board: 2.2e-2 at
+# worst, 5.4e-3 median. The allowance below is twice the worst, which is a
+# fortieth of a pixel and a two-hundredth of the box. Every failure this
+# check was put here to catch -- a corner missed, a grid ordered differently,
+# a refinement window lost -- moves a box by whole pixels and is still
+# caught. What says the difference is agreement rather than damage is
+# `unit:utilities:chessboard`, which calibrates a known rig from these
+# corners and recovers its focal length to a seventh of a pixel, where the
+# same calibration from OpenCV's corners recovers it to an eighth.
+BBOX_TOLERANCES_BY_IMPL = {
+    "ocv_detect_calibration_targets": 5e-2,
+}
 
 
 # How far a recorded feature or descriptor may move. Zero: SIFT and SURF are
@@ -497,9 +532,28 @@ ARRAY_TOLERANCES_BY_KIND = {
     # useful about the two entries of the translation vector that are zero
     # by construction: the rig is a horizontal baseline, so `T` is
     # (-baseline, ~0, ~0) and the two small entries would be held to
-    # `relative * 1.0`. Measured there: 1.2e-4 millimetres.
+    # `relative * 1.0`. Measured there: 1.2e-4 millimetres, and 2.1e-3 once
+    # the corner finder changed -- which is the floor below rather than the
+    # relative tolerance, since 2.1e-3 of a millimetre against a residual of
+    # 2.8 looks like a lot and against the 120 millimetre baseline it
+    # belongs to is 1.8e-5. The floor is a hundredth of a millimetre, which
+    # on that baseline is a part in ten thousand, and `check_calibration_truth`
+    # holds the same baseline to one per cent independently.
+    # The stereo one is looser than the mono one by an order of magnitude,
+    # and that is the corner finder above rather than OpenCV's version. Its
+    # corners sit up to 2.2e-2 of a pixel from the ones this was recorded
+    # with, and a calibration is a non-convex fit: forty corners over twelve
+    # views, each moved in the last digits, settle on a different member of
+    # the same flat minimum. Measured at 4.0e-5 relative, on the rectified
+    # principal point -- 1.4e-2 of a pixel at 345.4. Rounded up to 1e-4,
+    # which is a thirtieth of a pixel there.
+    #
+    # `check_calibration_truth` is what says this is still right rather than
+    # merely still close to itself: it holds the same run against the rig the
+    # views were rendered through -- focal 2%, centre 0.5%, baseline 1% --
+    # and passes untouched.
     ( "calibration_pipeline", "stereo_calibrate_cameras_default.pipe" ):
-        ( 1e-03, 1e-05 ),
+        ( 1e-02, 1e-04 ),
     ( "mono_calibration", "utility_calibrate_single_camera.pipe" ):
         ( 1e-03, 1e-05 ),
 }

@@ -44,6 +44,14 @@ quarantined -- they are classical multi-view geometry, not OpenCV secrets:
     cv2.stereoCalibrate          3 sites   the same, two cameras
     cv2.findChessboardCorners    3 sites   quad detection + subpixel refine
 
+**All four are now written**, in `library/utilities/geometry.py`,
+`calibration.py` and `chessboard.py`. What the estimate above got wrong is
+which one was hard. The three fits were an afternoon each and validate
+against ground truth directly. The corner detector was not, and not because
+finding corners is difficult -- it matches OpenCV to a fortieth of a pixel --
+but because a detector has to **refuse** as well as find, and nothing in a
+recording of successful detections says so. Finding 2.33 has it.
+
 What makes that safe to attempt is how the calibration goldens are written:
 they check against **ground truth** with tolerances -- focal 2%, centre
 0.5%, baseline 1% -- not against OpenCV's recorded numbers. A replacement

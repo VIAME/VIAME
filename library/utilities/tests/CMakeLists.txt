@@ -72,4 +72,15 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 600
     SOURCE_SETUP
   )
+
+  # The corner finder that feeds the calibration above, replacing
+  # cv::findChessboardCorners. CORE for the same reason, and it renders and
+  # calibrates ten views of a board, hence the longer timeout.
+  viame_add_test(
+    NAME    "unit:utilities:chessboard"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_chessboard.py"
+    LABELS  UNIT CORE
+    TIMEOUT 900
+    SOURCE_SETUP
+  )
 endif()
