@@ -2,13 +2,25 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""RANSAC estimation of a homography and a fundamental matrix, on cv2.
+"""RANSAC estimation of a homography and a fundamental matrix.
 
 `library/image_processing/estimate_{homography,fundamental_matrix}.cxx` in
-python, per `lite-removals.md` section 2.4: `cv::findHomography` and
-`cv::findFundamentalMat` are a minimal solver, a RANSAC loop and a
-Levenberg-Marquardt refinement each, with sampling and tie-breaking rules that
-decide which of several consistent models survives. They stay OpenCV's.
+python. These were the last two call sites of `cv::findHomography` and
+`cv::findFundamentalMat`; both are `viame.utilities.geometry`'s now -- a
+normalised DLT and Hartley's eight point algorithm, each inside a RANSAC
+loop with a refit over the consensus set.
+
+Neither reproduces OpenCV's numbers, and neither is meant to: a RANSAC
+draws different samples and converges on a different member of the set of
+models the data supports. What they are held to is accuracy against known
+answers, and `tests/golden/opencv`'s recordings for these two cases were
+re-made against them deliberately. On synthetic correspondences with a
+quarter corrupted, measured before the switch:
+
+    homography   0.1092 px of reprojection error, against OpenCV's 0.1090,
+                 and the identical inlier set
+    fundamental  0.28 px of Sampson error against OpenCV's 0.72, and 99%
+                 agreement with the true inlier set against its 91%
 
 Both return `(matrix, inliers)`. That is the convention for a python
 implementation of a method with an output parameter, and here it is the whole
@@ -25,6 +37,7 @@ import numpy as np
 
 from viame.algo import EstimateFundamentalMatrix, EstimateHomography
 from viame.types import FundamentalMatrixD, HomographyD
+from viame.utilities import geometry
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +47,13 @@ MIN_FUNDAMENTAL_POINTS = 8
 
 
 def _points(values):
-    """A vital point list as the `CV_32F` array `cv2` wants.
+    """A vital point list as an N by 2 array.
 
-    Float32 because the C++ built `std::vector<cv::Point2f>`: the estimate is
-    made from single-precision coordinates and would move slightly if this
-    passed doubles.
+    Float32, still: the C++ built `std::vector<cv::Point2f>`, so the
+    estimate is made from single-precision coordinates and would move
+    slightly if this passed doubles. The estimators promote to float64
+    internally, which is where the arithmetic wants to be, but what they are
+    given is what the C++ was given.
     """
     return np.array([[float(p[0]), float(p[1])] for p in values],
                     dtype=np.float32)
@@ -59,7 +74,7 @@ def _flags(mask, count):
 
 
 class EstimateHomographyOCV(EstimateHomography):
-    """Estimate a homography with `cv2.findHomography` and RANSAC."""
+    """Estimate a homography with `geometry.find_homography` and RANSAC."""
 
     def __init__(self):
         EstimateHomography.__init__(self)
@@ -75,15 +90,13 @@ class EstimateHomographyOCV(EstimateHomography):
         return True
 
     def estimate(self, pts1, pts2, inlier_scale=1.0):
-        import cv2
-
         if len(pts1) < MIN_HOMOGRAPHY_POINTS or \
                 len(pts2) < MIN_HOMOGRAPHY_POINTS:
             logger.error("Not enough points to estimate a homography")
             return None, []
 
-        matrix, mask = cv2.findHomography(
-            _points(pts1), _points(pts2), cv2.RANSAC, inlier_scale)
+        matrix, mask = geometry.find_homography(
+            _points(pts1), _points(pts2), threshold=inlier_scale)
 
         if matrix is None:
             return None, []
@@ -93,7 +106,7 @@ class EstimateHomographyOCV(EstimateHomography):
 
 
 class EstimateFundamentalMatrixOCV(EstimateFundamentalMatrix):
-    """Estimate a fundamental matrix with `cv2.findFundamentalMat`."""
+    """Estimate a fundamental matrix with `geometry.find_fundamental`."""
 
     def __init__(self):
         EstimateFundamentalMatrix.__init__(self)
@@ -124,29 +137,22 @@ class EstimateFundamentalMatrixOCV(EstimateFundamentalMatrix):
         return True
 
     def estimate(self, pts1, pts2, inlier_scale=1.0):
-        import cv2
-
         if len(pts1) < MIN_FUNDAMENTAL_POINTS or \
                 len(pts2) < MIN_FUNDAMENTAL_POINTS:
             logger.error("Not enough points to estimate a fundamental matrix")
             return None, []
 
-        matrix, mask = cv2.findFundamentalMat(
-            _points(pts1), _points(pts2), cv2.FM_RANSAC, inlier_scale,
-            self._confidence_threshold)
+        matrix, mask = geometry.find_fundamental(
+            _points(pts1), _points(pts2), threshold=inlier_scale,
+            confidence=self._confidence_threshold)
 
         if matrix is None:
             return None, _flags(mask, len(pts1))
 
-        # `findFundamentalMat` can return three stacked solutions from the
-        # seven point algorithm. The C++ handed whatever came back to a 3x3
-        # conversion that threw on a shape mismatch, so the first is what a
-        # caller ever saw work; taking it explicitly says so.
-        matrix = np.asarray(matrix, dtype=np.float64)
-        if matrix.shape != (3, 3):
-            matrix = matrix[:3, :3]
-
-        return FundamentalMatrixD(matrix), _flags(mask, len(pts1))
+        # The stacked-solutions case is gone with the seven point algorithm:
+        # `find_fundamental` is eight point and returns one three by three.
+        return FundamentalMatrixD(np.asarray(matrix, dtype=np.float64)), \
+            _flags(mask, len(pts1))
 
 
 def __vital_algorithm_register__():

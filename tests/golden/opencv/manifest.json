@@ -2862,25 +2862,25 @@
     {
       "config": {},
       "impl": "ocv",
-      "inlier_scale": 1.0,
+      "inlier_scale": 10.0,
       "inputs": [
         "synthetic"
       ],
       "kind": "homography",
       "outputs": {
         "synthetic": {
-          "file": "homography/ocv/defaults_scale_1/synthetic.npz",
+          "file": "homography/ocv/defaults_scale_10/synthetic.npz",
           "members": {
             "inliers": {
               "dtype": "int64",
-              "sha256": "987cb47a4b09fd0b",
+              "sha256": "e33bd2d365b1d86b",
               "shape": [
                 60
               ]
             },
             "matrix": {
               "dtype": "float64",
-              "sha256": "5629761bab86e5fe",
+              "sha256": "48a5a3ba21a53ca2",
               "shape": [
                 3,
                 3
@@ -2890,7 +2890,7 @@
         }
       },
       "unstable": {},
-      "variant": "defaults_scale_1"
+      "variant": "defaults_scale_10"
     },
     {
       "config": {},
@@ -2913,7 +2913,7 @@
             },
             "matrix": {
               "dtype": "float64",
-              "sha256": "ff49aaf669595c4c",
+              "sha256": "48a5a3ba21a53ca2",
               "shape": [
                 3,
                 3
@@ -2924,39 +2924,6 @@
       },
       "unstable": {},
       "variant": "defaults_scale_10"
-    },
-    {
-      "config": {},
-      "impl": "ocv",
-      "inlier_scale": 1.0,
-      "inputs": [
-        "synthetic"
-      ],
-      "kind": "fundamental",
-      "outputs": {
-        "synthetic": {
-          "file": "fundamental/ocv/defaults_scale_1/synthetic.npz",
-          "members": {
-            "inliers": {
-              "dtype": "int64",
-              "sha256": "268770cb4f407e73",
-              "shape": [
-                80
-              ]
-            },
-            "matrix": {
-              "dtype": "float64",
-              "sha256": "05092e7179931441",
-              "shape": [
-                3,
-                3
-              ]
-            }
-          }
-        }
-      },
-      "unstable": {},
-      "variant": "defaults_scale_1"
     },
     {
       "config": {},
@@ -2972,14 +2939,14 @@
           "members": {
             "inliers": {
               "dtype": "int64",
-              "sha256": "77cd462b9f41b3a7",
+              "sha256": "55a0c6e63d74d915",
               "shape": [
                 80
               ]
             },
             "matrix": {
               "dtype": "float64",
-              "sha256": "aad87f2c56a85de4",
+              "sha256": "bdcf017f6ca4fc54",
               "shape": [
                 3,
                 3
@@ -2992,29 +2959,27 @@
       "variant": "defaults_scale_10"
     },
     {
-      "config": {
-        "confidence_threshold": "0.90"
-      },
+      "config": {},
       "impl": "ocv",
-      "inlier_scale": 1.0,
+      "inlier_scale": 10.0,
       "inputs": [
         "synthetic"
       ],
       "kind": "fundamental",
       "outputs": {
         "synthetic": {
-          "file": "fundamental/ocv/confidence_90_scale_1/synthetic.npz",
+          "file": "fundamental/ocv/defaults_scale_10/synthetic.npz",
           "members": {
             "inliers": {
               "dtype": "int64",
-              "sha256": "268770cb4f407e73",
+              "sha256": "55a0c6e63d74d915",
               "shape": [
                 80
               ]
             },
             "matrix": {
               "dtype": "float64",
-              "sha256": "05092e7179931441",
+              "sha256": "bdcf017f6ca4fc54",
               "shape": [
                 3,
                 3
@@ -3024,7 +2989,7 @@
         }
       },
       "unstable": {},
-      "variant": "confidence_90_scale_1"
+      "variant": "defaults_scale_10"
     },
     {
       "config": {
@@ -3042,14 +3007,49 @@
           "members": {
             "inliers": {
               "dtype": "int64",
-              "sha256": "77cd462b9f41b3a7",
+              "sha256": "55a0c6e63d74d915",
               "shape": [
                 80
               ]
             },
             "matrix": {
               "dtype": "float64",
-              "sha256": "aad87f2c56a85de4",
+              "sha256": "bdcf017f6ca4fc54",
+              "shape": [
+                3,
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "confidence_90_scale_10"
+    },
+    {
+      "config": {
+        "confidence_threshold": "0.90"
+      },
+      "impl": "ocv",
+      "inlier_scale": 10.0,
+      "inputs": [
+        "synthetic"
+      ],
+      "kind": "fundamental",
+      "outputs": {
+        "synthetic": {
+          "file": "fundamental/ocv/confidence_90_scale_10/synthetic.npz",
+          "members": {
+            "inliers": {
+              "dtype": "int64",
+              "sha256": "55a0c6e63d74d915",
+              "shape": [
+                80
+              ]
+            },
+            "matrix": {
+              "dtype": "float64",
+              "sha256": "bdcf017f6ca4fc54",
               "shape": [
                 3,
                 3
