@@ -7,11 +7,37 @@ extra -- gone.
 Where it stands
 ---------------
 
-Started at 96 files in our own code. As of the drawing and filtering
-bindings:
+Started at 96 files in our own code. As of the optical flow, dense and
+sparse:
 
-    76 python files under library/, tools/ and tests/ import cv2
-    82 more under packages/, which are vendored and are the problem below
+    18 python files under library/, tools/ and tests/ import cv2
+    6 more under tests/golden/, which record *from* OpenCV and stay
+    82 under packages/, which are vendored and are the problem below
+
+What is left is not a long tail of call sites any more. Every one of the 18
+is blocked on exactly one of seven things:
+
+    SIFT, SURF, ORB and the FLANN matcher   8 files, a decision
+    StereoSGBM, BM and the WLS filter       3 files, finding 2.38
+    OpenCV's fixed-point L*a*b* tables      2 files, a decision
+    highgui                                 2 files, no replacement exists
+    cv::grabCut                             1 file
+    MOG2 background subtraction             1 file
+    HoughCircles                            1 file, finding 2.37
+
+Two of those carry a second blocker behind the first, and both are worth
+knowing before anyone estimates them: `ocv_enhancer` also wants
+`fastNlMeansDenoisingColored`, and `tools/calibrate` also wants highgui and
+`VideoCapture`. And one of the two highgui files is only there because the
+other is: `tests/examples/test_utilities` probes for a window backend so that
+a pipeline containing `image_viewer` can skip rather than fail.
+
+The two marked "a decision" are the two where a port is possible and the
+question is whether it should happen: reproducing OpenCV's L*a*b* tables
+would make `ocv_convert_color` exact and unblock `ocv_color_correction`, at
+the price of carrying a table that is a speed compromise rather than an
+accuracy one, which P7-T03 declined once already. The SIFT cluster is the
+same shape at six times the size.
 
 **The vendored forks are what actually blocks the goal.** `mmcv`, `mmdet`,
 `imgaug`, `mmdeploy` and `sam2` are third-party sources carried in
