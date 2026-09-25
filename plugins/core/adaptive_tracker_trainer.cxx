@@ -11,6 +11,8 @@
 #include <vital/types/object_track_set.h>
 #include <vital/exceptions.h>
 
+#include <Eigen/Dense>
+
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -116,6 +118,32 @@ struct tracking_data_statistics
   double id_switch_rate = 0;  // per frame
 
   // -------------------------------------------------------------------------
+  // Association: how well each motion model carries a box to its next state
+  std::vector< double > raw_ious;         // previous box as-is
+  std::vector< double > predicted_ious;   // constant-velocity prediction
+  std::vector< double > registered_ious;  // previous box moved by the other tracks' fitted transform
+  std::vector< double > registered_residuals;  // leftover motion after that, in box sizes
+  size_t association_pair_count = 0;
+  size_t ambiguous_pair_count = 0;
+  double camera_motion_energy = 0;
+  double total_motion_energy = 0;
+
+  double median_raw_iou = 0;
+  double median_predicted_iou = 0;
+  double median_registered_iou = 0;
+  double median_registered_residual = 0;
+  double iou_match_rate = 0;
+  double motion_match_rate = 0;
+  double registration_match_rate = 0;
+  double registration_coverage = 0;
+  double camera_motion_fraction = 0;
+  double ambiguity_rate = 0;
+
+  // "iou", "motion", "registration" (objects move within the registered
+  // frame), "fixed" (they don't), "appearance", or empty with no pairs
+  std::string association_regime;
+
+  // -------------------------------------------------------------------------
   // Frame statistics
   size_t total_frames = 0;
   size_t frames_with_tracks = 0;
@@ -129,8 +157,119 @@ struct tracking_data_statistics
     double small_area_thresh, double large_area_thresh,
     double close_distance_thresh, double high_variance_thresh );
 
+  void classify_association(
+    double match_iou, double required_match_rate,
+    double max_ambiguity_rate, double min_registration_coverage,
+    double registration_margin, double fixed_residual );
+
   void log_statistics( kv::logger_handle_t logger ) const;
 };
+
+
+namespace {
+
+double
+box_iou( const kv::bounding_box_d& a, const kv::bounding_box_d& b )
+{
+  double iw = std::min( a.max_x(), b.max_x() ) - std::max( a.min_x(), b.min_x() );
+  double ih = std::min( a.max_y(), b.max_y() ) - std::max( a.min_y(), b.min_y() );
+
+  if( iw <= 0 || ih <= 0 )
+  {
+    return 0.0;
+  }
+
+  double inter = iw * ih;
+  double uni = a.area() + b.area() - inter;
+  return uni > 0 ? inter / uni : 0.0;
+}
+
+
+kv::bounding_box_d
+shifted_box( const kv::bounding_box_d& b, double dx, double dy )
+{
+  return kv::bounding_box_d(
+    b.min_x() + dx, b.min_y() + dy, b.max_x() + dx, b.max_y() + dy );
+}
+
+
+double
+median_of( std::vector< double > values )
+{
+  if( values.empty() )
+  {
+    return 0.0;
+  }
+
+  auto mid = values.begin() + values.size() / 2;
+  std::nth_element( values.begin(), mid, values.end() );
+  return *mid;
+}
+
+
+double
+fraction_at_least( const std::vector< double >& values, double thresh )
+{
+  if( values.empty() )
+  {
+    return 0.0;
+  }
+
+  size_t count = std::count_if( values.begin(), values.end(),
+    [thresh]( double v ){ return v >= thresh; } );
+  return static_cast< double >( count ) / values.size();
+}
+
+} // end anonymous namespace
+
+
+void
+tracking_data_statistics::classify_association(
+  double match_iou, double required_match_rate,
+  double max_ambiguity_rate, double min_registration_coverage,
+  double registration_margin, double fixed_residual )
+{
+  if( association_pair_count == 0 )
+  {
+    return;
+  }
+
+  median_raw_iou = median_of( raw_ious );
+  median_predicted_iou = median_of( predicted_ious );
+  median_registered_iou = median_of( registered_ious );
+  median_registered_residual = median_of( registered_residuals );
+
+  iou_match_rate = fraction_at_least( raw_ious, match_iou );
+  motion_match_rate = fraction_at_least( predicted_ious, match_iou );
+  registration_match_rate = fraction_at_least( registered_ious, match_iou );
+
+  registration_coverage =
+    static_cast< double >( registered_ious.size() ) / association_pair_count;
+  ambiguity_rate =
+    static_cast< double >( ambiguous_pair_count ) / association_pair_count;
+
+  if( total_motion_energy > 0 )
+  {
+    camera_motion_fraction =
+      std::max( 0.0, camera_motion_energy / total_motion_energy );
+  }
+
+  // Ambiguity is checked first: no motion model fixes two objects
+  // overlapping the same predicted box.
+  if( ambiguity_rate > max_ambiguity_rate )
+    association_regime = "appearance";
+  else if( iou_match_rate >= required_match_rate )
+    association_regime = "iou";
+  else if( motion_match_rate >= required_match_rate )
+    association_regime = "motion";
+  else if( registration_coverage >= min_registration_coverage &&
+           registration_match_rate >= required_match_rate &&
+           registration_match_rate - motion_match_rate >= registration_margin )
+    association_regime = median_registered_residual <= fixed_residual ?
+      "fixed" : "registration";
+  else
+    association_regime = "appearance";
+}
 
 
 void
@@ -353,6 +492,23 @@ tracking_data_statistics::log_statistics( kv::logger_handle_t logger ) const
   LOG_INFO( logger, "  Occlusion-prone fraction: " << ( occlusion_prone_fraction * 100 ) << "%" );
   LOG_INFO( logger, "  Potential ID switches: " << potential_id_switch_count
             << " (rate: " << id_switch_rate << "/frame)" );
+
+  LOG_INFO( logger, "--- Association ---" );
+  LOG_INFO( logger, "  Box pairs: " << association_pair_count
+            << ", registered: " << registered_ious.size()
+            << " (" << ( registration_coverage * 100 ) << "%)" );
+  LOG_INFO( logger, "  Median IoU: raw=" << median_raw_iou
+            << ", predicted=" << median_predicted_iou
+            << ", registered=" << median_registered_iou );
+  LOG_INFO( logger, "  Match rate: raw=" << iou_match_rate
+            << ", predicted=" << motion_match_rate
+            << ", registered=" << registration_match_rate );
+  LOG_INFO( logger, "  Median registered residual: " << median_registered_residual
+            << " box sizes" );
+  LOG_INFO( logger, "  Camera motion fraction: " << camera_motion_fraction
+            << ", ambiguity rate: " << ambiguity_rate );
+  LOG_INFO( logger, "  Regime: " << ( association_regime.empty() ?
+            "unknown" : association_regime ) );
 }
 
 
@@ -382,8 +538,10 @@ struct tracker_trainer_config
   std::string occlusion_preference;          // "low", "medium", "high", or empty
   std::string appearance_preference;         // "consistent", "varying", or empty
   bool prefers_reid = false;                 // Prefers scenarios needing appearance features
+  std::set< std::string > association_preference;  // regimes this tracker handles
 
-  // Computed preference score
+  // Computed ranking
+  bool association_match = false;
   double preference_score = 0.0;
 };
 
@@ -428,6 +586,14 @@ public:
   double large_object_threshold = 16384.0;
   double close_distance_threshold = 50.0;
   double high_variance_threshold = 0.3;
+  double association_match_iou = 0.3;
+  double association_match_rate = 0.9;
+  double max_ambiguity_rate = 0.05;
+  size_t registration_min_tracks = 2;
+  double registration_min_coverage = 0.5;
+  double registration_margin = 0.2;
+  double fixed_residual = 0.25;
+  const size_t affine_min_tracks = 4;
   std::string output_statistics_file;
   bool verbose = true;
   size_t max_trainers_to_run = 3;
@@ -437,6 +603,9 @@ public:
   void compute_statistics_from_groundtruth(
     const std::vector< kv::object_track_set_sptr >& train_gt,
     const std::vector< kv::object_track_set_sptr >& test_gt );
+
+  void accumulate_association_statistics(
+    const kv::object_track_set_sptr& track_set );
 
   bool check_hard_requirements( const tracker_trainer_config& tc ) const;
 
@@ -684,6 +853,15 @@ adaptive_tracker_trainer::priv::compute_statistics_from_groundtruth(
     }
   }
 
+  for( const auto& track_set : train_gt )
+  {
+    accumulate_association_statistics( track_set );
+  }
+  for( const auto& track_set : test_gt )
+  {
+    accumulate_association_statistics( track_set );
+  }
+
   // Compute summary statistics
   m_stats.compute_summary(
     short_track_threshold, long_track_threshold,
@@ -692,9 +870,202 @@ adaptive_tracker_trainer::priv::compute_statistics_from_groundtruth(
     small_object_threshold, large_object_threshold,
     close_distance_threshold, high_variance_threshold );
 
+  m_stats.classify_association(
+    association_match_iou, association_match_rate,
+    max_ambiguity_rate, registration_min_coverage,
+    registration_margin, fixed_residual );
+
   if( verbose )
   {
     m_stats.log_statistics( m_logger );
+  }
+}
+
+
+void
+adaptive_tracker_trainer::priv::accumulate_association_statistics(
+  const kv::object_track_set_sptr& track_set )
+{
+  if( !track_set )
+  {
+    return;
+  }
+
+  struct transition
+  {
+    kv::track_id_t id;
+    kv::bounding_box_d prev, cur, predicted;
+    double dx, dy;
+  };
+
+  std::map< kv::frame_id_t, std::vector< std::pair< kv::track_id_t, kv::bounding_box_d > > >
+    frame_boxes;
+  std::map< std::pair< kv::frame_id_t, kv::frame_id_t >, std::vector< transition > >
+    transitions;
+
+  for( const auto& track : track_set->tracks() )
+  {
+    if( !track )
+    {
+      continue;
+    }
+
+    std::vector< std::pair< kv::frame_id_t, kv::bounding_box_d > > states;
+    for( const auto& state : *track )
+    {
+      auto obj_state = std::dynamic_pointer_cast< kv::object_track_state >( state );
+      if( obj_state && obj_state->detection() &&
+          obj_state->detection()->bounding_box().is_valid() )
+      {
+        states.emplace_back( obj_state->frame(), obj_state->detection()->bounding_box() );
+      }
+    }
+
+    for( size_t i = 0; i < states.size(); ++i )
+    {
+      frame_boxes[ states[i].first ].emplace_back( track->id(), states[i].second );
+
+      if( i == 0 )
+      {
+        continue;
+      }
+
+      const auto& prev = states[i - 1];
+      const auto& cur = states[i];
+      double dt = static_cast< double >( cur.first - prev.first );
+
+      transition t{ track->id(), prev.second, cur.second, prev.second, 0, 0 };
+      t.dx = cur.second.center()[0] - prev.second.center()[0];
+      t.dy = cur.second.center()[1] - prev.second.center()[1];
+
+      if( i >= 2 )
+      {
+        const auto& prior = states[i - 2];
+        double prior_dt = static_cast< double >( prev.first - prior.first );
+        double vx = ( prev.second.center()[0] - prior.second.center()[0] ) / prior_dt;
+        double vy = ( prev.second.center()[1] - prior.second.center()[1] ) / prior_dt;
+        t.predicted = shifted_box( prev.second, vx * dt, vy * dt );
+      }
+
+      transitions[ { prev.first, cur.first } ].push_back( t );
+    }
+  }
+
+  for( const auto& group : transitions )
+  {
+    const auto& members = group.second;
+    bool registered = members.size() >= registration_min_tracks;
+
+    // Each box is mapped by a transform fit to the OTHER tracks only; fitting
+    // on itself would register any box perfectly once there are few tracks.
+    Eigen::Vector2d origin( 0, 0 );
+    Eigen::Matrix3d normal = Eigen::Matrix3d::Zero();
+    Eigen::Vector3d rhs_x = Eigen::Vector3d::Zero(), rhs_y = Eigen::Vector3d::Zero();
+
+    auto design = [&]( const transition& t )
+    {
+      auto c = t.prev.center();
+      return Eigen::Vector3d( c[0] - origin[0], c[1] - origin[1], 1.0 );
+    };
+
+    if( registered )
+    {
+      for( const auto& t : members )
+      {
+        origin += Eigen::Vector2d( t.prev.center()[0], t.prev.center()[1] );
+      }
+      origin /= static_cast< double >( members.size() );
+
+      for( const auto& t : members )
+      {
+        Eigen::Vector3d p = design( t );
+        normal += p * p.transpose();
+        rhs_x += p * t.cur.center()[0];
+        rhs_y += p * t.cur.center()[1];
+      }
+    }
+
+    const auto& others = frame_boxes[ group.first.second ];
+
+    for( const auto& t : members )
+    {
+      double predicted_iou = box_iou( t.predicted, t.cur );
+
+      m_stats.association_pair_count++;
+      m_stats.raw_ious.push_back( box_iou( t.prev, t.cur ) );
+      m_stats.predicted_ious.push_back( predicted_iou );
+
+      if( registered )
+      {
+        auto prev_c = t.prev.center();
+        double mapped_x = 0, mapped_y = 0, scale = 1.0;
+        bool fitted = false;
+
+        if( members.size() - 1 >= affine_min_tracks )
+        {
+          Eigen::Vector3d p = design( t );
+          Eigen::Matrix3d n = normal - p * p.transpose();
+          Eigen::FullPivLU< Eigen::Matrix3d > lu( n );
+          lu.setThreshold( 1e-9 );
+
+          if( lu.rank() == 3 )
+          {
+            Eigen::Vector3d ax = lu.solve( rhs_x - p * t.cur.center()[0] );
+            Eigen::Vector3d ay = lu.solve( rhs_y - p * t.cur.center()[1] );
+            mapped_x = ax.dot( p );
+            mapped_y = ay.dot( p );
+            scale = std::sqrt( std::abs( ax[0] * ay[1] - ax[1] * ay[0] ) );
+            fitted = true;
+          }
+        }
+
+        if( !fitted )
+        {
+          std::vector< double > xs, ys;
+          for( const auto& o : members )
+          {
+            if( o.id != t.id )
+            {
+              xs.push_back( o.dx );
+              ys.push_back( o.dy );
+            }
+          }
+          mapped_x = prev_c[0] + median_of( xs );
+          mapped_y = prev_c[1] + median_of( ys );
+        }
+
+        double hw = 0.5 * t.prev.width() * scale;
+        double hh = 0.5 * t.prev.height() * scale;
+        kv::bounding_box_d mapped(
+          mapped_x - hw, mapped_y - hh, mapped_x + hw, mapped_y + hh );
+
+        m_stats.registered_ious.push_back( box_iou( mapped, t.cur ) );
+
+        double rx = t.cur.center()[0] - mapped_x;
+        double ry = t.cur.center()[1] - mapped_y;
+        double size = std::sqrt( std::max( t.prev.area(), 1.0 ) );
+        m_stats.registered_residuals.push_back( std::sqrt( rx * rx + ry * ry ) / size );
+
+        double total = t.dx * t.dx + t.dy * t.dy;
+        m_stats.total_motion_energy += total;
+        m_stats.camera_motion_energy += total - ( rx * rx + ry * ry );
+      }
+
+      for( const auto& other : others )
+      {
+        if( other.first == t.id )
+        {
+          continue;
+        }
+
+        double other_iou = box_iou( t.predicted, other.second );
+        if( other_iou > 0 && other_iou >= predicted_iou )
+        {
+          m_stats.ambiguous_pair_count++;
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -921,12 +1292,15 @@ adaptive_tracker_trainer::priv::select_trainers()
     if( check_hard_requirements( tc ) )
     {
       tc.preference_score = compute_preference_score( tc );
+      tc.association_match =
+        tc.association_preference.count( m_stats.association_regime ) > 0;
       qualifying.push_back( &tc );
 
       if( verbose )
       {
         LOG_INFO( m_logger, "Trainer " << tc.name << " qualifies with preference score "
-                  << tc.preference_score );
+                  << tc.preference_score << ( tc.association_match ?
+                  ", matches association regime" : "" ) );
       }
     }
     else
@@ -938,18 +1312,16 @@ adaptive_tracker_trainer::priv::select_trainers()
     }
   }
 
-  // Sort by preference score (descending)
-  std::sort( qualifying.begin(), qualifying.end(),
+  // The association regime decides; preferences only order within it
+  std::stable_sort( qualifying.begin(), qualifying.end(),
     []( const tracker_trainer_config* a, const tracker_trainer_config* b )
     {
+      if( a->association_match != b->association_match )
+      {
+        return a->association_match;
+      }
       return a->preference_score > b->preference_score;
     } );
-
-  // Limit to max_trainers_to_run
-  if( qualifying.size() > max_trainers_to_run )
-  {
-    qualifying.resize( max_trainers_to_run );
-  }
 
   return qualifying;
 }
@@ -1050,6 +1422,22 @@ adaptive_tracker_trainer::priv::write_statistics_file() const
   out << "    \"id_switch_rate\": " << m_stats.id_switch_rate << "\n";
   out << "  },\n";
 
+  // Association
+  out << "  \"association\": {\n";
+  out << "    \"pairs\": " << m_stats.association_pair_count << ",\n";
+  out << "    \"registration_coverage\": " << m_stats.registration_coverage << ",\n";
+  out << "    \"median_raw_iou\": " << m_stats.median_raw_iou << ",\n";
+  out << "    \"median_predicted_iou\": " << m_stats.median_predicted_iou << ",\n";
+  out << "    \"median_registered_iou\": " << m_stats.median_registered_iou << ",\n";
+  out << "    \"median_registered_residual\": " << m_stats.median_registered_residual << ",\n";
+  out << "    \"iou_match_rate\": " << m_stats.iou_match_rate << ",\n";
+  out << "    \"motion_match_rate\": " << m_stats.motion_match_rate << ",\n";
+  out << "    \"registration_match_rate\": " << m_stats.registration_match_rate << ",\n";
+  out << "    \"camera_motion_fraction\": " << m_stats.camera_motion_fraction << ",\n";
+  out << "    \"ambiguity_rate\": " << m_stats.ambiguity_rate << ",\n";
+  out << "    \"regime\": \"" << m_stats.association_regime << "\"\n";
+  out << "  },\n";
+
   // Frames
   out << "  \"frames\": {\n";
   out << "    \"total\": " << m_stats.total_frames << ",\n";
@@ -1124,6 +1512,16 @@ adaptive_tracker_trainer
     config->set_value( prefix + "prefers_reid", tc.prefers_reid,
       "Prefer scenarios where Re-ID/appearance features help. Default: false" );
 
+    std::string regimes;
+    for( const auto& r : tc.association_preference )
+    {
+      regimes += ( regimes.empty() ? "" : "," ) + r;
+    }
+    config->set_value( prefix + "association_preference", regimes,
+      "Comma list of association regimes this tracker handles: 'iou', "
+      "'motion', 'registration', 'fixed', 'appearance'. A trainer matching the data's "
+      "regime outranks every trainer that does not." );
+
     kv::get_nested_algo_configuration<kv::algo::train_tracker>(
       prefix + "trainer", config, tc.trainer );
   }
@@ -1153,6 +1551,13 @@ adaptive_tracker_trainer
   d->large_object_threshold = c_large_object_threshold;
   d->close_distance_threshold = c_close_distance_threshold;
   d->high_variance_threshold = c_high_variance_threshold;
+  d->association_match_iou = c_association_match_iou;
+  d->association_match_rate = c_association_match_rate;
+  d->max_ambiguity_rate = c_max_ambiguity_rate;
+  d->registration_min_tracks = c_registration_min_tracks;
+  d->registration_min_coverage = c_registration_min_coverage;
+  d->registration_margin = c_registration_margin;
+  d->fixed_residual = c_fixed_residual;
   d->output_statistics_file = c_output_statistics_file;
   d->verbose = c_verbose;
 
@@ -1204,6 +1609,18 @@ adaptive_tracker_trainer
       config->get_value< std::string >( prefix + "appearance_preference", "" );
     tc.prefers_reid =
       config->get_value< bool >( prefix + "prefers_reid", false );
+
+    std::stringstream regimes(
+      config->get_value< std::string >( prefix + "association_preference", "" ) );
+    for( std::string r; std::getline( regimes, r, ',' ); )
+    {
+      r.erase( 0, r.find_first_not_of( " \t" ) );
+      r.erase( r.find_last_not_of( " \t" ) + 1 );
+      if( !r.empty() )
+      {
+        tc.association_preference.insert( r );
+      }
+    }
 
     // Nested trainer
     kv::algo::train_tracker_sptr trainer;
@@ -1324,10 +1741,12 @@ adaptive_tracker_trainer
       "the run report success with no model." );
   }
 
-  LOG_INFO( d->m_logger, "Running " << selected.size() << " tracker trainer(s)..." );
+  LOG_INFO( d->m_logger, "Running up to " << d->max_trainers_to_run
+            << " of " << selected.size() << " qualifying tracker trainer(s)..." );
 
-  // Run selected trainers sequentially
-  for( size_t i = 0; i < selected.size(); ++i )
+  // A failed trainer hands its slot to the next-ranked one
+  size_t completed = 0;
+  for( size_t i = 0; i < selected.size() && completed < d->max_trainers_to_run; ++i )
   {
     auto& tc = *selected[i];
     LOG_INFO( d->m_logger, "Running tracker trainer " << ( i + 1 ) << "/" << selected.size()
@@ -1360,12 +1779,14 @@ adaptive_tracker_trainer
       // Run training
       std::map<std::string, std::string> trainer_output = tc.trainer->update_model();
 
-      // Merge output from this trainer into combined output
+      // Trainers run best-first, so an earlier trainer's keys (notably
+      // "type") win over a later one's
       for( const auto& pair : trainer_output )
       {
-        combined_output[pair.first] = pair.second;
+        combined_output.insert( pair );
       }
 
+      completed++;
       LOG_INFO( d->m_logger, "Completed tracker trainer: " << tc.name );
     }
     catch( const std::exception& e )

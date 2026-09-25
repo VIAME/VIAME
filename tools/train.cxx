@@ -1137,17 +1137,25 @@ static void process_trainer_output(
     }
   }
 
-  // Only a detector fills [-DETECTOR-IMPL-]; a tracker sharing the template
-  // would otherwise substitute itself in as the detector.
-  if( is_detector )
-  {
-    std::string impl = generate_detector_impl_replacement(
-        output_map, pipeline_template );
+  const std::string output_pipeline = output_directory.empty() ?
+    output_pipeline_name : append_path( output_directory, output_pipeline_name );
 
-    if( !impl.empty() )
-    {
-      template_replacements[ "[-DETECTOR-IMPL-]" ] = impl;
-    }
+  // A tracker continues the pipeline the detector pass wrote, not the template
+  const std::string source_template =
+    ( output_file.empty() && fill_into_existing_pipeline &&
+      does_file_exist( output_pipeline ) ) ? output_pipeline : pipeline_template;
+
+  // Each trainer fills only its own slot, so a shared template never gets
+  // a tracker substituted in as the detector or vice versa.
+  const std::string impl_marker =
+    is_detector ? "[-DETECTOR-IMPL-]" : "[-TRACKER-IMPL-]";
+  const std::string impl = is_detector
+    ? generate_detector_impl_replacement( output_map, source_template )
+    : generate_tracker_impl_replacement( output_map, source_template );
+
+  if( !impl.empty() )
+  {
+    template_replacements[ impl_marker ] = impl;
   }
 
   // If output_file is specified, create a zip archive
@@ -1245,14 +1253,6 @@ static void process_trainer_output(
   // Generate pipeline from template if configured
   if( !pipeline_template.empty() && does_file_exist( pipeline_template ) )
   {
-    std::string output_pipeline = output_directory.empty() ?
-      output_pipeline_name : append_path( output_directory, output_pipeline_name );
-
-    // A tracker continues the pipeline the detector pass wrote, not the template
-    const std::string source_template =
-      ( fill_into_existing_pipeline && does_file_exist( output_pipeline ) )
-        ? output_pipeline : pipeline_template;
-
     if( replace_keywords_in_template_file(
           source_template, output_pipeline, template_replacements ) )
     {

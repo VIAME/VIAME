@@ -290,7 +290,6 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_tracker_adaptive.conf
     train_tracker_botsort.conf
     train_tracker_deepsort.conf
   )
@@ -299,6 +298,7 @@ endif()
 if( VIAME_ENABLE_PYTHON )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_tracker_bytetrack.conf
+    train_tracker_default.conf
     train_tracker_ocsort.conf )
 endif()
 

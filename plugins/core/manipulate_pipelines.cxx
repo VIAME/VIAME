@@ -75,20 +75,21 @@ struct pipe_entry
 std::string format_output_as_pipe_blocks(
     const std::map< std::string, std::string >& config_entries,
     const std::set< std::string >& copied_filenames,
-    const std::string& base_indent )
+    const std::string& base_indent,
+    const std::string& root )
 {
   if( config_entries.empty() )
   {
     return "";
   }
 
-  // 1. Prefix each config key with "detector:" and split at last ':'
+  // 1. Prefix each config key with the root and split at last ':'
   std::vector< pipe_entry > entries;
 
   for( const auto& pair : config_entries )
   {
     pipe_entry e;
-    std::string full_key = "detector:" + pair.first;
+    std::string full_key = root + ":" + pair.first;
 
     // Split at the last ':'
     std::size_t last_colon = full_key.rfind( ':' );
@@ -213,12 +214,16 @@ std::string format_output_as_pipe_blocks(
 }
 
 // =============================================================================
-std::string generate_detector_impl_replacement(
+namespace {
+
+std::string generate_impl_replacement(
     const std::map< std::string, std::string >& output_map,
-    const std::string& pipeline_template )
+    const std::string& pipeline_template,
+    const std::string& marker,
+    const std::string& root )
 {
   if( pipeline_template.empty() || !does_file_exist( pipeline_template )
-      || !file_contains_string( pipeline_template, "[-DETECTOR-IMPL-]" ) )
+      || !file_contains_string( pipeline_template, marker ) )
   {
     return "";
   }
@@ -229,6 +234,12 @@ std::string generate_detector_impl_replacement(
 
   for( const auto& pair : output_map )
   {
+    // Consumed by the training tool, not algorithm config
+    if( pair.first == "eval_folder" || pair.first == "tracker_pipeline_template" )
+    {
+      continue;
+    }
+
     if( !pair.second.empty() && does_file_exist( pair.second ) )
     {
       copied_filenames.insert( pair.first );
@@ -245,9 +256,30 @@ std::string generate_detector_impl_replacement(
                           std::istreambuf_iterator< char >() );
   tfile.close();
 
-  std::string indent = detect_marker_indent( tcontent, "[-DETECTOR-IMPL-]" );
+  std::string indent = detect_marker_indent( tcontent, marker );
 
-  return format_output_as_pipe_blocks( config_entries, copied_filenames, indent );
+  return format_output_as_pipe_blocks(
+    config_entries, copied_filenames, indent, root );
+}
+
+} // anonymous namespace
+
+// =============================================================================
+std::string generate_detector_impl_replacement(
+    const std::map< std::string, std::string >& output_map,
+    const std::string& pipeline_template )
+{
+  return generate_impl_replacement(
+    output_map, pipeline_template, "[-DETECTOR-IMPL-]", "detector" );
+}
+
+// =============================================================================
+std::string generate_tracker_impl_replacement(
+    const std::map< std::string, std::string >& output_map,
+    const std::string& pipeline_template )
+{
+  return generate_impl_replacement(
+    output_map, pipeline_template, "[-TRACKER-IMPL-]", "track_objects" );
 }
 
 } // end namespace viame

@@ -426,6 +426,16 @@ if( VIAME_ENABLE_PYTHON )
     frame_diff_trainer )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/homog_iou_tracker.py
+    core
+    homog_iou_tracker )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/homog_iou_trainer.py
+    core
+    homog_iou_trainer )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
     core
     ocsort_tracker )
