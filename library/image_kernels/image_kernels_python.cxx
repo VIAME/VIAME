@@ -813,10 +813,22 @@ min_area_rect( py::array_t< double, py::array::c_style | py::array::forcecast >
   auto const box = viame::image_kernels::min_area_rect(
     contour_points( points, "min_area_rect" ) );
 
+  auto const corners = box.corners();
+
+  py::array_t< double > corner_array( std::vector< Py_ssize_t >{ 4, 2 } );
+  auto* destination = corner_array.mutable_data();
+
+  for( auto const& corner : corners )
+  {
+    *destination++ = corner.first;
+    *destination++ = corner.second;
+  }
+
   py::dict out;
   out[ "centre" ] = py::make_tuple( box.centre_i, box.centre_j );
   out[ "size" ] = py::make_tuple( box.width, box.height );
   out[ "angle" ] = box.angle;
+  out[ "corners" ] = corner_array;
 
   return out;
 }
@@ -858,6 +870,33 @@ label_components( array_of< T > const& array, int connectivity )
 
   // count + 1 to match `cv2.connectedComponents`, which counts the background
   return py::make_tuple( static_cast< int >( count ) + 1, out );
+}
+
+template < typename T >
+py::array
+filter_2d( array_of< T > const& array,
+           py::array_t< double, py::array::c_style | py::array::forcecast >
+             const& weights,
+           std::string const& border, double constant )
+{
+  auto const buffer = weights.request();
+
+  if( buffer.ndim != 2 )
+  {
+    throw std::invalid_argument( "filter_2d wants a two dimensional kernel" );
+  }
+
+  viame::image_kernels::kernel k;
+  k.width = static_cast< size_t >( buffer.shape[ 1 ] );
+  k.height = static_cast< size_t >( buffer.shape[ 0 ] );
+
+  auto const* data = static_cast< double const* >( buffer.ptr );
+  k.weights.assign( data, data + k.width * k.height );
+
+  return as_array(
+    viame::image_kernels::filter_2d( as_image( array ), k,
+                                     as_border( border ), constant ),
+    array.ndim() == 3 );
 }
 
 } // namespace
@@ -1060,7 +1099,12 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "dropped, as OpenCV's are." );
 
   m.def( "min_area_rect", &min_area_rect, py::arg( "points" ),
-         "cv2.minAreaRect, as a dict of centre, size and angle." );
+         "cv2.minAreaRect, as a dict of centre, size, angle and the four "
+         "`corners` -- which is cv2.boxPoints, so the two calls are one "
+         "here. Adjacent entries are adjacent corners; the run may start at "
+         "a different corner than OpenCV's or go the other way round, "
+         "because OpenCV normalises its angle into [0, 90) and this keeps "
+         "the edge it found." );
 
   m.def( "approx_poly", &approx_poly, py::arg( "contour" ),
          py::arg( "epsilon" ), "cv2.approxPolyDP, closed." );
@@ -1070,4 +1114,11 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "connectivity" ) = 8,
          "cv2.connectedComponents: (count, labels), where count includes "
          "the background as label 0." );
+
+  for_every_pixel_type( m, "filter_2d", &filter_2d< uint8_t >,
+         &filter_2d< uint16_t >, &filter_2d< float >, py::arg( "image" ),
+         py::arg( "kernel" ), py::arg( "border" ) = "reflect_101",
+         py::arg( "constant" ) = 0.0,
+         "cv2.filter2D with a two dimensional kernel. Correlation, not "
+         "convolution, as OpenCV's is." );
 }

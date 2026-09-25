@@ -259,19 +259,15 @@ class TrkDataset(Dataset):
             template, search = dataset.get_positive_pair(index)
 
         # get image
-        # BGR: the whole tracker stack is BGR (see `base_tracker`'s docs and
-        # the `img[:, :, ::-1]` in `siammask_tracker`), because that is what
-        # the pretrained weights were trained on. `read_image` gives RGB, so
-        # the swap happens here at the boundary and the arrays below stay in
-        # the convention the net expects.
+        # RGB, as everything in VIAME is; the crop and augment below do not
+        # care about channel order, and the swap to the BGR the pretrained
+        # weights expect happens once, where the tensor is built.
         try:
-            template_image = image_kernels.swap_channels(
-                imageops.read_image(template[0]))
+            template_image = imageops.read_image(template[0])
         except OSError as exc:
             raise IOError(f"Failed to load template image: {template[0]}") from exc
         try:
-            search_image = image_kernels.swap_channels(
-                imageops.read_image(search[0]))
+            search_image = imageops.read_image(search[0])
         except OSError as exc:
             raise IOError(f"Failed to load search image: {search[0]}") from exc
 
@@ -302,6 +298,11 @@ class TrkDataset(Dataset):
         # get labels
         cls, delta, delta_weight, overlap = self.anchor_target(
                 bbox, cfg.TRAIN.OUTPUT_SIZE, neg)
+        # To BGR here and nowhere else: this is the net's boundary, and its
+        # weights were trained on BGR. `siammask_tracker` does the same
+        # reversal at inference, on the RGB frame the pipeline hands it.
+        template = image_kernels.swap_channels(template)
+        search = image_kernels.swap_channels(search)
         template = template.transpose((2, 0, 1)).astype(np.float32)
         search = search.transpose((2, 0, 1)).astype(np.float32)
         result = {

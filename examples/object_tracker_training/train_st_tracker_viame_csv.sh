@@ -14,7 +14,7 @@ export GPU_COUNT=1
 export THRESH=0.0
 
 export PY_VER=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
-export SCRIPT_DIR=${VIAME_INSTALL}/lib/python${PY_VER}/site-packages/viame/pytorch/siammask
+export SCRIPT_DIR=${VIAME_INSTALL}/lib/python${PY_VER}/site-packages/viame/object_trackers/siammask
 
 source ${VIAME_INSTALL}/setup_viame.sh
 

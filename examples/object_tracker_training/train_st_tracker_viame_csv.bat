@@ -11,7 +11,7 @@ SET GPU_COUNT=1
 SET THRESH=0.0
 
 FOR /F "tokens=* USEBACKQ" %%F IN (`python -c "import sys; print('.'.join(map(str, sys.version_info[:2])))"`) DO SET PY_VER=%%F
-SET SCRIPT_DIR="%VIAME_INSTALL%\lib\python%PY_VER%\site-packages\viame\pytorch\siammask"
+SET SCRIPT_DIR="%VIAME_INSTALL%\lib\python%PY_VER%\site-packages\viame\object_trackers\siammask"
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 

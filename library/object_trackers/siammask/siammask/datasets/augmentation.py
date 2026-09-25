@@ -6,7 +6,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy as np
-import cv2
 from viame import image_kernels
 
 from viame.object_trackers.siammask.siammask.utils.bbox import corner2center, \
@@ -55,20 +54,20 @@ class Augmentation:
             kernel[c, :] += 1. / size * (1-wx)
             return kernel
         kernel = rand_kernel()
-        image = cv2.filter2D(image, -1, kernel)
+        image = image_kernels.filter_2d(image, kernel)
         return image
 
     def _color_aug(self, image):
         offset = np.dot(self.rgbVar, np.random.randn(3, 1))
-        offset = offset[::-1]  # bgr 2 rgb
+        # `rgbVar` is in RGB order and so is the image now, so the reversal
+        # this used to do -- for a BGR image -- would put the variance on
+        # the wrong channels.
         offset = offset.reshape(3)
         image = image - offset
         return image
 
     def _gray_aug(self, image):
-        grayed = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        image = cv2.cvtColor(grayed, cv2.COLOR_GRAY2BGR)
-        return image
+        return image_kernels.to_rgb(image_kernels.to_gray(image))
 
     def _shift_scale_aug(self, image, bbox, crop_bbox, size, mask=None):
         im_h, im_w = image.shape[:2]
@@ -117,13 +116,13 @@ class Augmentation:
         return image, bbox, mask
 
     def _flip_aug(self, image, bbox, mask=None):
-        image = cv2.flip(image, 1)
+        image = np.ascontiguousarray(image[:, ::-1])
         width = image.shape[1]
         bbox = Corner(width - 1 - bbox.x2, bbox.y1,
                       width - 1 - bbox.x1, bbox.y2)
 
         if mask is not None:
-            mask = cv2.flip(mask, 1)
+            mask = np.ascontiguousarray(mask[:, ::-1])
 
         return image, bbox, mask
 

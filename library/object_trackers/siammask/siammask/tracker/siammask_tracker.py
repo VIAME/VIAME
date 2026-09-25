@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import cv2
 from viame import image_kernels
 import numpy as np
 
@@ -37,20 +36,16 @@ class SiamMaskTracker(SiamRPNTracker):
     def _mask_post_processing(self, mask):
         target_mask = (mask > cfg.TRACK.MASK_THRESHOLD)
         target_mask = target_mask.astype(np.uint8)
-        # OpenCV 2/3 returned (image, contours, hierarchy); 4 and 5 return
-        # (contours, hierarchy). `[-2]` is the contours in either, and does
-        # not need a version test -- `cv2.__version__[0] == '4'` was False on
-        # 5.x and sent it down the three-value path, which throws.
-        found = cv2.findContours(target_mask,
-                                 cv2.RETR_EXTERNAL,
-                                 cv2.CHAIN_APPROX_NONE)
-        contours = found[-2]
-        cnt_area = [cv2.contourArea(cnt) for cnt in contours]
+        # No return-shape dance any more: OpenCV 2 and 3 returned
+        # (image, contours, hierarchy) where 4 and 5 return two, and the
+        # version test that picked between them was itself wrong on 5.x.
+        contours = image_kernels.find_contours(target_mask)
+        cnt_area = [image_kernels.contour_area(c) for c in contours]
         if len(contours) != 0 and np.max(cnt_area) > 100:
-            contour = contours[np.argmax(cnt_area)]
-            polygon = contour.reshape(-1, 2)
-            prbox = cv2.boxPoints(cv2.minAreaRect(polygon))
-            rbox_in_img = prbox
+            polygon = contours[np.argmax(cnt_area)]
+            # `min_area_rect` carries its own corners, so this is
+            # cv2.boxPoints( cv2.minAreaRect( ... ) ) in one call
+            rbox_in_img = image_kernels.min_area_rect(polygon)["corners"]
         else:  # empty mask
             location = cxy_wh_2_rect(self.center_pos, self.size)
             rbox_in_img = np.array([[location[0], location[1]],
