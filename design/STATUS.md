@@ -1327,10 +1327,10 @@ radius turning out to be a ten-bin-per-`dr` histogram rather than the sorted
 distance walk the old source describes, with `dp = 1` matching until a wider
 sweep said otherwise; finding 2.38 has SGBM's cost, window, selection,
 subpixel, consistency check and median all reproducing **exactly** on a one
-row image at `P1 = 1, P2 = 2`, the drift starting the moment a second row
-gives the three vertical directions something to read -- which is a sharper
-statement than the first one this entry carried, and was worth going back for
--- and an OpenCV quirk that any port has to copy: the cost is not updated for
+row image at `P1 = 1, P2 = 2`, the drift appearing in the later rows once the
+three vertical directions have something to read -- a statement this entry
+has now had to make twice, because the first version of it generalised from
+one row and the second from four -- and an OpenCV quirk that any port has to copy: the cost is not updated for
 the last `SADWindowSize/2` rows of every image, because the guard that skips
 them contradicts the clamp that was meant to replicate them.
 

@@ -2895,34 +2895,38 @@ statement about a lot of machinery at once:
   against a second disparity map built in the same backward sweep, and the
   three by three median the whole thing finishes with.
 
-**What did not, and it is one row deeper than it first looked.** The first
-reading was that the aggregation only drifts once `P2` exceeds `P1` by much.
-That was an artefact of testing on one row: **add a second row and even
-`P1 = 1, P2 = 2` drifts**, and by four rows it drifts badly. Over a sweep of
-three heights, five widths, two block sizes and three penalty pairs, 7.8% of
-pixels disagree, by whole pixels rather than by a sixteenth.
+**What did not.** Over a sweep of three heights, five widths, two block sizes
+and three penalty pairs, 7.8% of pixels disagree, and where they disagree it
+is usually by a sixteenth or two but sometimes by whole pixels, on the
+neighbourhoods where the cost is ambiguous enough for a small difference in
+the accumulated path to pick the other minimum.
 
-One row exercises only the direction along the row, because the three that
-read the row above are reading a cleared buffer. So the fault is in those
-three -- the ones at `(x-1, y-1)`, `(x, y-1)` and `(x+1, y-1)` -- and not, as
-first supposed, in
+Two statements about *where*, and the second one is a correction of the
+first, which is why both are here:
 
-    L(d) = C(d) + min( L'(d), L'(d-1) + P1, L'(d+1) + P1, min L' + P2 )
-                - ( min L' + P2 )
+* the first reading was that the aggregation drifts only once `P2` is much
+  larger than `P1`. That came from testing one row, which exercises only the
+  direction along the row -- the three that read the row above are reading a
+  cleared buffer;
+* measured again across heights: **row 0 is exact at `P1 = 1, P2 = 2` every
+  time**, and the differences appear in the later rows. But not uniformly --
+  four rows of one width is exact and three rows of the same width is not --
+  so "it drifts with height" is as far as the evidence goes. With `P2` much
+  larger than `P1` the first row disagrees too, by a sixteenth or so, which
+  is a second and smaller thing.
 
-which the single-row case already exercises to exactness. Three things were
-ruled out along the way and are worth not re-testing: it is not the direction
-count, since removing the fifth backward direction makes it three times
-worse; it is not the disparity-edge convention, since padding `d-1` and `d+1`
-with `SHRT_MAX`, with the edge value or with `minLr + P2` all give the same
-answer; and it is not which of `min L'` or `min L' + P2` is subtracted, since
-the difference is constant in `d` and cancels.
+Three things were ruled out along the way and are worth not re-testing: the
+direction count, since removing the fifth backward direction makes it three
+times worse; the disparity-edge convention, since padding the recursion's
+`d-1` and `d+1` with `SHRT_MAX`, with the edge value or with `minLr + P2` all
+give the same answer; and which of `min L'` or `min L' + P2` is subtracted,
+since the difference is constant in `d` and cancels.
 
-A two-column, one-row image disagrees as well, and there no rule in the
-family above reproduces cv2 at all -- which suggests the very narrow case
-takes a different path and is the wrong place to start. The right place is a
-two **row** image, where exactly one of the three suspect directions has
-anything in it.
+A two-column image disagrees as well and **no** rule in that family
+reproduces cv2 on it at all, which says the very narrow case takes a
+different path and is the wrong place to start. Start instead from two rows
+of a width where one row is exact, where exactly one step of the vertical
+recursion separates a right answer from a wrong one.
 
 **One quirk found on the way, and it is OpenCV's rather than ours.** The
 vertical half of the SAD box is a running sum, and the row it adds is guarded
