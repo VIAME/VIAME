@@ -1048,3 +1048,55 @@ measurement -- plus `ocv_enhancer`, `hough_circle_detector`,
 
 **Green:** `tools:3d` passes; BASELINE, UNIT and CORE 475 of 475; GOLDEN and
 CRITICAL 10 of 10.
+
+`netharn/stereo.py` is off cv2 -- 21 files -- and it has a test for the first
+time.
+
+The last entry called this one "portable now, with care" and then declined it
+because the file has no coverage and no importers, so nothing would catch a
+mistake. That was the wrong conclusion from the right observation: no coverage
+is a reason to **write the check**, not to skip the work.
+
+Every symbol it needed already existed. The port is `calibrate_camera` for the
+progressive single-camera fit, `stereo_calibrate`, `stereo_rectify`,
+`rectification_maps`, `undistort_points`, `project_points`, `reproject_to_3d`,
+`image_kernels.remap` and `opencv_yaml` -- about sixty sites across the class,
+the demo and the notes.
+
+Four things were not the mechanical substitution they looked like, and three
+of them were caught by checking a signature rather than by the port failing:
+
+* `stereo_calibrate`'s flag is `fix_intrinsics`, plural, and its rotation and
+  translation come back at 1 and 2 where cv2 returned the intrinsics it was
+  told to keep and put them at 5 and 6.
+* `stereo_rectify` returns a **dict**, not the tuple whose first five entries
+  `ret2[:5]` unpacked, and `CALIB_ZERO_DISPARITY` is not a flag it takes --
+  it is the only mode it implements.
+* `convertMaps` had nothing left to do: it existed to turn the fixed-point
+  `CV_16SC2` pair back into floats, and `rectification_maps` returns the float
+  form already.
+* `findEssentialMat`, the one symbol with no replacement, sits inside `if 0:`
+  and has never run. Its own last line is how to get E without it -- the
+  essential matrix is the fundamental one carried through the intrinsics --
+  so the block now uses `geometry.find_fundamental` and says so.
+
+Two deliberate differences. `INTER_LANCZOS4` in the demo became bicubic, which
+is a visible quality choice in a function that draws pictures for a person to
+look at; and `rectify_image` took an `interpolation` argument it has never
+used -- the call under it asked for cubic whatever the argument said -- which
+is kept rather than quietly given the meaning it looks like it has.
+
+**Measured against cv2**: the rectification maps are **bit identical**;
+`rectify_points` agrees to 1.7e-13 px; rectify then unrectify round trips to
+7.3e-7 px, which says both directions are right rather than that one was used
+twice; and `rectify_image` is 2 counts at worst with a 0.016 mean on a
+structured scene, 7 and 1.01 on pure noise -- the adversarial case for any
+interpolator. Both are the fixed-point-versus-double cubic difference the
+goldens already carry a (4.0, 0.25) tolerance for under `warp/ocv`.
+
+`unit:object_detectors:netharn_stereo` is new, seven cases, and checks
+properties rather than OpenCV's numbers where it can: a map read at a
+rectified pixel must give back the point that rectifies to it, and unrectify
+must undo rectify.
+
+**Green:** BASELINE, UNIT and CORE 476 of 476; GOLDEN and CRITICAL 10 of 10.

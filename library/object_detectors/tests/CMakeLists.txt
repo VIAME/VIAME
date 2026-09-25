@@ -19,6 +19,17 @@ endif()
 # From `tests/plugins/pytorch` in P2-T09: the netharn and RF-DETR trainer
 # sources, read by path. `test_feature_device.py` came too, unregistered.
 if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_PYTORCH )
+  # netharn's stereo rectification, which had no test at all before it was
+  # ported off cv2 -- so this is the check that did not exist rather than one
+  # of something already covered.
+  viame_add_test(
+    NAME    "unit:object_detectors:netharn_stereo"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_netharn_stereo.py"
+    LABELS  UNIT
+    TIMEOUT 600
+    SOURCE_SETUP
+  )
+
   viame_add_test(
     NAME    "unit:object_detectors:netharn_peer_probe"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_netharn_peer_probe.py"
