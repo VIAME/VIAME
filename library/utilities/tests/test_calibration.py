@@ -254,3 +254,89 @@ def test_stereo_without_fixed_intrinsics_is_refused():
         calibration.stereo_calibrate(
             object_points, left, right, left_k, np.zeros(5),
             right_k, np.zeros(5), (WIDTH, HEIGHT), flags=())
+
+
+# ---------------------------------------------------------------------------
+# Pose from points
+#
+# Against cv2 when written: `solve_pnp` matches `cv2.solvePnP` to five
+# decimal places on both a planar and a non-planar target with identical
+# reprojection error, and `solve_pnp_ransac` recovers the identical inlier
+# set and pose with a quarter of the correspondences corrupted.
+
+ROTATION = np.array([0.15, -0.22, 0.08])
+TRANSLATION = np.array([40.0, -25.0, 600.0])
+
+
+def _pnp_scene(planar, count=30, noise=0.1, seed=8):
+    rng = np.random.default_rng(seed)
+    k = _intrinsics(800.0, 800.0)
+    z = np.zeros(count) if planar else rng.uniform(-60.0, 60.0, count)
+    points = np.column_stack([rng.uniform(-100.0, 100.0, count),
+                              rng.uniform(-80.0, 80.0, count), z])
+    seen = calibration.project_points(points, ROTATION, TRANSLATION, k,
+                                      np.zeros(5))
+    return points, seen + rng.normal(0.0, noise, seen.shape), k
+
+
+@pytest.mark.parametrize("planar", [True, False])
+def test_solve_pnp_recovers_the_pose(planar):
+    points, seen, k = _pnp_scene(planar)
+    rotation, translation = calibration.solve_pnp(points, seen, k, np.zeros(5))
+
+    np.testing.assert_allclose(rotation, ROTATION, atol=0.01)
+    np.testing.assert_allclose(translation, TRANSLATION, atol=1.0)
+
+
+def test_solve_pnp_needs_four_points():
+    points, seen, k = _pnp_scene(True)
+    assert calibration.solve_pnp(points[:3], seen[:3], k) == (None, None)
+
+
+def test_solve_pnp_wants_matching_counts():
+    points, seen, k = _pnp_scene(True)
+    with pytest.raises(ValueError):
+        calibration.solve_pnp(points, seen[:10], k)
+
+
+def test_solve_pnp_ransac_rejects_outliers():
+    rng = np.random.default_rng(12)
+    points, seen, k = _pnp_scene(False, count=40)
+    corrupted = seen.copy()
+    bad = rng.choice(len(corrupted), 10, replace=False)
+    corrupted[bad] += rng.uniform(-60.0, 60.0, (10, 2))
+
+    rotation, translation, inliers = calibration.solve_pnp_ransac(
+        points, corrupted, k, np.zeros(5), threshold=8.0)
+
+    truth = np.ones(len(corrupted), dtype=bool)
+    truth[bad] = False
+    assert (inliers == truth).all()
+    np.testing.assert_allclose(rotation, ROTATION, atol=0.01)
+
+
+def test_a_non_planar_target_needs_a_seed():
+    """There is no closed form to start it from, which is the same line
+    OpenCV draws by demanding CALIB_USE_INTRINSIC_GUESS for one."""
+    rng = np.random.default_rng(6)
+    board = np.column_stack([rng.uniform(-90.0, 90.0, 26),
+                             rng.uniform(-70.0, 70.0, 26),
+                             np.where(np.arange(26) % 2, 0.0, 40.0)])
+    object_points, image_points = [], []
+    for index in range(8):
+        rotation = np.array([0.1 * np.sin(index), 0.12 * np.cos(index), 0.05])
+        translation = np.array([0.0, 0.0, 600.0])
+        object_points.append(board)
+        image_points.append(calibration.project_points(
+            board, rotation, translation, _intrinsics(700.0, 700.0),
+            np.zeros(5)))
+
+    with pytest.raises(ValueError):
+        calibration.calibrate_camera(object_points, image_points,
+                                     (WIDTH, HEIGHT))
+
+    # With a seed it runs, and lands on the focal length it was rendered at
+    _, k, _, _, _ = calibration.calibrate_camera(
+        object_points, image_points, (WIDTH, HEIGHT),
+        flags=("use_intrinsic_guess",), intrinsics=_intrinsics(640.0, 640.0))
+    assert abs(k[0, 0] - 700.0) / 700.0 < 0.02

@@ -21,7 +21,7 @@ import argparse
 import json
 from viame import image_kernels
 from viame.measurement import projection
-from viame.utilities import geometry, imageops, opencv_yaml
+from viame.utilities import calibration, geometry, imageops, opencv_yaml
 
 
 def parse_ptscal(filepath):
@@ -677,23 +677,19 @@ def match_dots_to_pts(image_dots, pts_data, image_shape, dot_sizes=None):
                                  [0, f_est, h / 2.0],
                                  [0, 0, 1]], dtype=np.float64)
 
-            success, rvec, tvec, inliers = cv2.solvePnPRansac(
+            rvec, tvec, inliers = calibration.solve_pnp_ransac(
                 seed_w, seed_i, K_approx, None,
-                reprojectionError=20.0, iterationsCount=3000,
-                flags=cv2.SOLVEPNP_ITERATIVE)
+                threshold=20.0, max_iterations=3000)
 
-            if not success or inliers is None or len(inliers) < 4:
+            if rvec is None or int(inliers.sum()) < 4:
                 continue
 
             # Refine PnP with inliers only
-            inl = inliers.ravel()
-            try:
-                success2, rvec, tvec = cv2.solvePnP(
-                    seed_w[inl], seed_i[inl], K_approx, None,
-                    rvec=rvec, tvec=tvec, useExtrinsicGuess=True,
-                    flags=cv2.SOLVEPNP_ITERATIVE)
-            except cv2.error:
-                pass
+            refined = calibration.solve_pnp(
+                seed_w[inliers], seed_i[inliers], K_approx, None,
+                rotation=rvec, translation=tvec)
+            if refined[0] is not None:
+                rvec, tvec = refined
 
             # Iterative PnP refinement: project → match → re-solve PnP
             tree_all = cKDTree(image_2d)
@@ -719,11 +715,10 @@ def match_dots_to_pts(image_dots, pts_data, image_shape, dot_sizes=None):
                                  dtype=np.float64)
                 new_i = np.array([image_2d[im] for im in pnp_matched.keys()],
                                  dtype=np.float64)
-                s2, rv2, tv2, inl2 = cv2.solvePnPRansac(
+                rv2, tv2, inl2 = calibration.solve_pnp_ransac(
                     new_w, new_i, K_approx, None,
-                    rvec=rvec, tvec=tvec, useExtrinsicGuess=True,
-                    reprojectionError=15.0, iterationsCount=2000)
-                if s2 and inl2 is not None and len(inl2) >= 6:
+                    threshold=15.0, max_iterations=2000)
+                if rv2 is not None and int(inl2.sum()) >= 6:
                     rvec, tvec = rv2, tv2
 
             # Final projection at tight threshold
@@ -1625,13 +1620,14 @@ def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"
             K_q = np.array([[f_i, 0, w/2.0], [0, f_i, h/2.0], [0, 0, 1]],
                            dtype=np.float64)
             d_q = np.array([0, 0, 0, 0], dtype=np.float64)
-            fl_q = 0
+            fl_q = set()
             if is_np:
-                fl_q = cv2.CALIB_USE_INTRINSIC_GUESS | cv2.CALIB_FIX_PRINCIPAL_POINT
+                fl_q = {"use_intrinsic_guess", "fix_principal_point"}
             try:
-                ret, mtx, dist_c, rvecs, tvecs = cv2.calibrateCamera(
-                    objpoints, imgpoints, img_shape, K_q, d_q, flags=fl_q)
-            except cv2.error:
+                ret, mtx, dist_c, rvecs, tvecs = calibration.calibrate_camera(
+                    objpoints, imgpoints, img_shape, flags=fl_q,
+                    intrinsics=K_q, distortion=d_q)
+            except (ValueError, np.linalg.LinAlgError):
                 break
 
             # Compute per-point reprojection errors
@@ -1660,16 +1656,18 @@ def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"
     # Define calibration steps for progress reporting
     steps = [
         ("Initial calibration", None),
-        ("Testing aspect ratio", cv2.CALIB_FIX_ASPECT_RATIO),
-        ("Testing principal point", cv2.CALIB_FIX_PRINCIPAL_POINT),
-        ("Testing tangential distortion", cv2.CALIB_ZERO_TANGENT_DIST),
-        ("Testing K3 distortion", cv2.CALIB_FIX_K3),
-        ("Testing K2 distortion", cv2.CALIB_FIX_K2),
-        ("Testing K1 distortion", cv2.CALIB_FIX_K1),
+        ("Testing aspect ratio", "fix_aspect_ratio"),
+        ("Testing principal point", "fix_principal_point"),
+        ("Testing tangential distortion", "zero_tangent_dist"),
+        ("Testing K3 distortion", "fix_k3"),
+        ("Testing K2 distortion", "fix_k2"),
+        ("Testing K1 distortion", "fix_k1"),
     ]
     total_steps = len(steps)
 
-    flags = 0
+    # Names rather than OR'd constants; the loop below only ever adds one,
+    # so a set says what the bitmask said.
+    flags = set()
 
     # Check if object points are non-planar (e.g., dots+pts with two Z-planes).
     # OpenCV requires CALIB_USE_INTRINSIC_GUESS for non-planar rigs because it
@@ -1686,17 +1684,21 @@ def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"
     d = np.array([0, 0, 0, 0], dtype=np.float64)
 
     if non_planar:
-        flags |= cv2.CALIB_USE_INTRINSIC_GUESS
+        # A non-planar target has no per-view homography to start from, so
+        # the intrinsics have to be seeded -- which is what OpenCV meant by
+        # requiring CALIB_USE_INTRINSIC_GUESS for one.
+        flags.add("use_intrinsic_guess")
         # Fix principal point for non-planar rigs with sparse points to prevent
         # the optimizer from diverging
-        flags |= cv2.CALIB_FIX_PRINCIPAL_POINT
+        flags.add("fix_principal_point")
 
     def try_calibrate(objp, imgp, shape, K_init, d_init, cal_flags):
-        """Wrapper that catches OpenCV calibration errors."""
+        """Wrapper that turns a failed calibration into None."""
         try:
-            return cv2.calibrateCamera(objp, imgp, shape, K_init, d_init,
-                                       flags=cal_flags)
-        except cv2.error:
+            return calibration.calibrate_camera(
+                objp, imgp, shape, flags=cal_flags,
+                intrinsics=K_init, distortion=d_init)
+        except (ValueError, np.linalg.LinAlgError):
             return None
 
     # Step 1: Initial calibration
@@ -1713,7 +1715,7 @@ def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"
     print_progress(2, total_steps, prefix=f'Calibrating {camera_name}', suffix=steps[1][0])
     aspect_ratio = mtx[0,0] / mtx[1,1]
     if 1.0 - min(aspect_ratio, 1.0/aspect_ratio) < 0.01:
-        flags += cv2.CALIB_FIX_ASPECT_RATIO
+        flags.add("fix_aspect_ratio")
         result = try_calibrate(objpoints, imgpoints, img_shape, K, d, flags)
         if result is not None:
             cal_result = result
@@ -1721,50 +1723,50 @@ def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"
 
     # Step 3: Test principal point (skip if already fixed for non-planar)
     print_progress(3, total_steps, prefix=f'Calibrating {camera_name}', suffix=steps[2][0])
-    if not (flags & cv2.CALIB_FIX_PRINCIPAL_POINT):
+    if "fix_principal_point" not in flags:
         pp = np.array([mtx[0,2], mtx[1,2]])
         rel_pp_diff = (pp - np.array(img_shape)/2) / np.array(img_shape)
         if max(abs(rel_pp_diff)) < 0.05:
-            flags += cv2.CALIB_FIX_PRINCIPAL_POINT
+            flags.add("fix_principal_point")
             result = try_calibrate(objpoints, imgpoints, img_shape, K, d, flags)
             if result is not None:
                 cal_result = result
 
     # set a threshold 25% more than the baseline error
     error_threshold = 1.25 * cal_result[0]
-    last_result = (cal_result, flags)
+    last_result = (cal_result, set(flags))
 
     # Step 4: Test tangential distortion
     print_progress(4, total_steps, prefix=f'Calibrating {camera_name}', suffix=steps[3][0])
-    flags += cv2.CALIB_ZERO_TANGENT_DIST
+    flags.add("zero_tangent_dist")
     result = try_calibrate(objpoints, imgpoints, img_shape, K, d, flags)
     if result is None or result[0] > error_threshold:
         print_progress(total_steps, total_steps, prefix=f'Calibrating {camera_name}', suffix='Done')
         return last_result
     cal_result = result
-    last_result = (cal_result, flags)
+    last_result = (cal_result, set(flags))
 
     # Step 5: Test K3
     print_progress(5, total_steps, prefix=f'Calibrating {camera_name}', suffix=steps[4][0])
-    flags += cv2.CALIB_FIX_K3
+    flags.add("fix_k3")
     result = try_calibrate(objpoints, imgpoints, img_shape, K, d, flags)
     if result is None or result[0] > error_threshold:
         print_progress(total_steps, total_steps, prefix=f'Calibrating {camera_name}', suffix='Done')
         return last_result
-    last_result = (result, flags)
+    last_result = (result, set(flags))
 
     # Step 6: Test K2
     print_progress(6, total_steps, prefix=f'Calibrating {camera_name}', suffix=steps[5][0])
-    flags += cv2.CALIB_FIX_K2
+    flags.add("fix_k2")
     result = try_calibrate(objpoints, imgpoints, img_shape, K, d, flags)
     if result is None or result[0] > error_threshold:
         print_progress(total_steps, total_steps, prefix=f'Calibrating {camera_name}', suffix='Done')
         return last_result
-    last_result = (result, flags)
+    last_result = (result, set(flags))
 
     # Step 7: Test K1
     print_progress(7, total_steps, prefix=f'Calibrating {camera_name}', suffix=steps[6][0])
-    flags += cv2.CALIB_FIX_K1
+    flags.add("fix_k1")
     result = try_calibrate(objpoints, imgpoints, img_shape, K, d, flags)
     print_progress(total_steps, total_steps, prefix=f'Calibrating {camera_name}', suffix='Done')
     if result is None or result[0] > error_threshold:
@@ -2008,20 +2010,19 @@ def cross_label_right_dots(left_matched, K_left, dist_left, K_right, dist_right,
             continue
 
         # Solve PnP for left camera
-        ok, rvec_l, tvec_l, inliers = cv2.solvePnPRansac(
-            l_obj.astype(np.float64),
-            l_img.reshape(-1, 1, 2).astype(np.float64),
-            K_left, dist_left, iterationsCount=300, reprojectionError=6.0)
-        if not ok or inliers is None or len(inliers) < 6:
+        rvec_l, tvec_l, inliers = calibration.solve_pnp_ransac(
+            l_obj.astype(np.float64), l_img.astype(np.float64),
+            K_left, dist_left, threshold=6.0, max_iterations=300)
+        if rvec_l is None or int(inliers.sum()) < 6:
             continue
 
         # Refine with inliers
-        idx = inliers.flatten()
-        ok, rvec_l, tvec_l = cv2.solvePnP(
-            l_obj[idx].astype(np.float64),
-            l_img[idx].reshape(-1, 1, 2).astype(np.float64),
-            K_left, dist_left, rvec=rvec_l, tvec=tvec_l,
-            useExtrinsicGuess=True, flags=cv2.SOLVEPNP_ITERATIVE)
+        refined = calibration.solve_pnp(
+            l_obj[inliers].astype(np.float64),
+            l_img[inliers].astype(np.float64),
+            K_left, dist_left, rotation=rvec_l, translation=tvec_l)
+        if refined[0] is not None:
+            rvec_l, tvec_l = refined
 
         # Compute right camera pose: R_right = R_stereo @ R_left, T_right = R_stereo @ T_left + T_stereo
         R_L = projection.rodrigues(rvec_l)
@@ -2539,9 +2540,9 @@ Input modes:
 
         print(f"Stereo calibration using {len(stereo_objpoints)} frames with common matches")
         print_progress(1, 2, prefix='Stereo calibration', suffix='Computing extrinsics')
-        ret = cv2.stereoCalibrate(stereo_objpoints, stereo_left_pts, stereo_right_pts,
-                                  K_left, dist_left, K_right, dist_right, img_shape,
-                                  flags=cv2.CALIB_FIX_INTRINSIC)
+        ret = calibration.stereo_calibrate(
+            stereo_objpoints, stereo_left_pts, stereo_right_pts,
+            K_left, dist_left, K_right, dist_right, img_shape)
         frames = stereo_frames  # for summary output
         standard_rms = ret[0]
         print(f"\nStandard stereoCalibrate RMS: {standard_rms:.2f} pixels")
@@ -2638,11 +2639,14 @@ Input modes:
         objpoints = [objp] * len(frames)
 
         print_progress(1, 2, prefix='Stereo calibration', suffix='Computing extrinsics')
-        ret = cv2.stereoCalibrate(objpoints, left_points, right_points,
-                                  K_left, dist_left, K_right, dist_right, img_shape,
-                                  flags=cv2.CALIB_FIX_INTRINSIC)
+        ret = calibration.stereo_calibrate(
+            objpoints, left_points, right_points,
+            K_left, dist_left, K_right, dist_right, img_shape)
     stereo_rms_error = ret[0]
-    R, T = ret[5:7]
+    # `(rms, rotation, translation, essential, fundamental)`, where
+    # `cv2.stereoCalibrate` also handed back the intrinsics it was told to
+    # leave alone -- so R and T were at 5 and 6 and are at 1 and 2 here.
+    R, T = ret[1:3]
 
     print_progress(2, 2, prefix='Stereo calibration', suffix='Computing rectification')
     rectified = projection.stereo_rectify(

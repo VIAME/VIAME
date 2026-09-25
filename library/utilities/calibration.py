@@ -16,6 +16,12 @@ covers it compares against the rig the views were rendered through for
 exactly that reason. Measured on that rig, both this and OpenCV recover the
 focal lengths to about 1e-6 relative.
 
+The target may be planar or not. A planar one is Zhang's case and starts
+from the closed form; a non-planar one has no per-view homography, so it
+needs the intrinsics seeded and takes its starting poses from `solve_pnp`
+instead. OpenCV draws the same line, which is why it demands
+`CALIB_USE_INTRINSIC_GUESS` for a non-planar rig.
+
 `flags` takes the `cv2.CALIB_*` names as strings, because the constants are
 what is going away:
 
@@ -335,6 +341,183 @@ def initial_camera_matrix(object_points, image_points, image_size,
     return intrinsics
 
 
+def _pose_from_dlt(object_points, image_points, intrinsics):
+    """An initial pose from six or more non-coplanar correspondences.
+
+    The direct linear transform on the projection matrix, then the intrinsics
+    divided out. `K^-1 P` is a scaled `[R | t]`, so the scale comes from the
+    length of a rotation column and the rotation is the nearest true one to
+    what is left.
+    """
+    object_points = np.asarray(object_points, dtype=np.float64).reshape(-1, 3)
+    image_points = np.asarray(image_points, dtype=np.float64).reshape(-1, 2)
+
+    # Normalised image coordinates, so the system is conditioned
+    inverse = np.linalg.inv(intrinsics)
+    homogeneous = np.hstack([image_points, np.ones((len(image_points), 1))])
+    normalised = (homogeneous @ inverse.T)[:, :2]
+
+    centre = object_points.mean(axis=0)
+    spread = max(np.abs(object_points - centre).max(), 1e-12)
+    scaled = (object_points - centre) / spread
+
+    rows = []
+    for (x, y, z), (u, v) in zip(scaled, normalised):
+        rows.append([x, y, z, 1, 0, 0, 0, 0, -u * x, -u * y, -u * z, -u])
+        rows.append([0, 0, 0, 0, x, y, z, 1, -v * x, -v * y, -v * z, -v])
+
+    _, _, vt = np.linalg.svd(np.asarray(rows))
+    matrix = vt[-1].reshape(3, 4)
+
+    rotation = matrix[:, :3]
+    translation = matrix[:, 3]
+
+    # Undo the conditioning of the object points
+    translation = translation - rotation @ (centre / spread)
+    rotation = rotation / spread
+
+    scale = np.linalg.norm(rotation[0])
+    if scale < 1e-12:
+        return None, None
+
+    rotation = rotation / scale
+    translation = translation / scale
+
+    # In front of the camera, not behind it
+    if translation[2] < 0:
+        rotation, translation = -rotation, -translation
+
+    u, _, vt2 = np.linalg.svd(rotation)
+    rotation = u @ vt2
+    if np.linalg.det(rotation) < 0:
+        u[:, 2] *= -1
+        rotation = u @ vt2
+
+    return _inverse_rodrigues(rotation), translation
+
+
+def solve_pnp(object_points, image_points, intrinsics, distortion=None,
+              rotation=None, translation=None):
+    """The camera pose that projects `object_points` onto `image_points`.
+
+    `cv2.solvePnP` with `SOLVEPNP_ITERATIVE`: an initial pose -- from the
+    caller, or from a homography for a planar target and a DLT otherwise --
+    refined by minimising reprojection error.
+
+    Returns `(rotation, translation)` with the rotation as an axis-angle
+    triple, which is cv2's `rvec`/`tvec`, or `(None, None)` when there are
+    too few points or the geometry is degenerate.
+    """
+    object_points = np.asarray(object_points, dtype=np.float64).reshape(-1, 3)
+    image_points = np.asarray(image_points, dtype=np.float64).reshape(-1, 2)
+    intrinsics = np.asarray(intrinsics, dtype=np.float64).reshape(3, 3)
+
+    if len(object_points) != len(image_points):
+        raise ValueError("one image point per object point")
+
+    if len(object_points) < 4:
+        return None, None
+
+    if distortion is None:
+        distortion = np.zeros(DISTORTION_TERMS)
+    else:
+        distortion = np.asarray(distortion, dtype=np.float64).reshape(-1)
+        distortion = np.pad(distortion[:DISTORTION_TERMS],
+                            (0, max(0, DISTORTION_TERMS - len(distortion))))
+
+    if rotation is None or translation is None:
+        planar = (np.abs(object_points[:, 2] -
+                         object_points[0, 2]).max() < 1e-9)
+
+        if planar:
+            homography = _view_homography(object_points[:, :2], image_points)
+            rotation, translation = _extrinsics_from_homography(homography,
+                                                                intrinsics)
+        elif len(object_points) >= 6:
+            rotation, translation = _pose_from_dlt(object_points,
+                                                   image_points, intrinsics)
+        else:
+            return None, None
+
+        if rotation is None:
+            return None, None
+
+    seed = np.concatenate([np.asarray(rotation, dtype=np.float64).reshape(3),
+                           np.asarray(translation, dtype=np.float64).reshape(3)])
+
+    def residuals(values):
+        return (project_points(object_points, values[:3], values[3:],
+                               intrinsics, distortion) - image_points).ravel()
+
+    solution = _least_squares()(residuals, seed, method="lm", max_nfev=1000)
+
+    return solution.x[:3].copy(), solution.x[3:].copy()
+
+
+def solve_pnp_ransac(object_points, image_points, intrinsics, distortion=None,
+                     threshold=8.0, confidence=0.99, max_iterations=100,
+                     seed=0):
+    """`solve_pnp` with outlier rejection, which is `cv2.solvePnPRansac`.
+
+    Six point samples, scored by reprojection distance in pixels -- so
+    `threshold` means what `reprojectionError` meant -- and a final fit over
+    the consensus set.
+
+    Returns `(rotation, translation, inliers)`, the last a boolean mask, or
+    `(None, None, None)` when no pose survives.
+    """
+    object_points = np.asarray(object_points, dtype=np.float64).reshape(-1, 3)
+    image_points = np.asarray(image_points, dtype=np.float64).reshape(-1, 2)
+
+    count = len(object_points)
+    if count < 6:
+        found = solve_pnp(object_points, image_points, intrinsics, distortion)
+        if found[0] is None:
+            return None, None, None
+        return found[0], found[1], np.ones(count, dtype=bool)
+
+    rng = np.random.default_rng(seed)
+    best_inliers = np.zeros(count, dtype=bool)
+    best_total = 0
+    iterations = max_iterations
+
+    step = 0
+    while step < min(iterations, max_iterations):
+        step += 1
+        sample = rng.choice(count, 6, replace=False)
+
+        rotation, translation = solve_pnp(object_points[sample],
+                                          image_points[sample],
+                                          intrinsics, distortion)
+        if rotation is None:
+            continue
+
+        projected = project_points(object_points, rotation, translation,
+                                   intrinsics, distortion)
+        error = np.linalg.norm(projected - image_points, axis=1)
+        inliers = error < threshold
+        total = int(inliers.sum())
+
+        if total > best_total:
+            best_total, best_inliers = total, inliers
+            ratio = total / float(count)
+            if ratio >= 1.0:
+                break
+            denominator = np.log(max(1e-12, 1.0 - ratio ** 6))
+            iterations = int(np.ceil(np.log(1.0 - confidence) / denominator))
+
+    if best_total < 4:
+        return None, None, None
+
+    rotation, translation = solve_pnp(object_points[best_inliers],
+                                      image_points[best_inliers],
+                                      intrinsics, distortion)
+    if rotation is None:
+        return None, None, None
+
+    return rotation, translation, best_inliers
+
+
 def calibrate_camera(object_points, image_points, image_size, flags=(),
                      intrinsics=None, distortion=None):
     """Intrinsics, distortion and a pose per view, from a planar target.
@@ -362,15 +545,23 @@ def calibrate_camera(object_points, image_points, image_size, flags=(),
     if not object_points:
         raise ValueError("calibration needs at least one view")
 
-    for plane in object_points:
-        if np.abs(plane[:, 2] - plane[0, 2]).max() > 1e-9:
-            raise ValueError(
-                "calibrate_camera wants a planar target; the object points "
-                "are not coplanar")
+    # A non-planar target has no per-view homography, so Zhang's closed form
+    # cannot start it and the caller has to supply the intrinsics -- which is
+    # exactly what OpenCV means by requiring `CALIB_USE_INTRINSIC_GUESS` for
+    # one. With a seed the poses come from PnP instead and the rest is the
+    # same bundle adjustment.
+    planar = all(np.abs(plane[:, 2] - plane[0, 2]).max() <= 1e-9
+                 for plane in object_points)
+
+    if not planar and intrinsics is None:
+        raise ValueError(
+            "a non-planar target needs a seeded intrinsic matrix; there is "
+            "no closed form to start it from")
 
     homographies = []
-    for plane, seen in zip(object_points, image_points):
-        homographies.append(_view_homography(plane[:, :2], seen))
+    if planar:
+        for plane, seen in zip(object_points, image_points):
+            homographies.append(_view_homography(plane[:, :2], seen))
 
     if intrinsics is None:
         if len(homographies) >= 3:
@@ -406,7 +597,18 @@ def calibrate_camera(object_points, image_points, image_size, flags=(),
             elif name in flags:
                 distortion[index] = 0.0
 
-    poses = [_extrinsics_from_homography(h, intrinsics) for h in homographies]
+    if planar:
+        poses = [_extrinsics_from_homography(h, intrinsics)
+                 for h in homographies]
+    else:
+        poses = []
+        for points, seen in zip(object_points, image_points):
+            rotation, translation = solve_pnp(points, seen, intrinsics,
+                                              distortion)
+            if rotation is None:
+                raise ValueError(
+                    "could not find a starting pose for one of the views")
+            poses.append((rotation, translation))
 
     def residuals(values):
         k, d, current = _unpack(values, intrinsics, distortion,
