@@ -587,14 +587,17 @@ class DetectFitDataset(torch.utils.data.Dataset):
             if sseg_method == 'ellipse':
                 for box in dets.data['boxes']:
                     if box is not None:
-                        import cv2
+                        from viame import image_kernels
                         mask = np.zeros(chw01.shape[1:], dtype=np.float32)
 
                         center = tuple(map(int, box.center))
                         axes = (int(box.width) // 3, int(box.height) // 3)
                         color_ = 1
-                        cv2.ellipse(mask, center, axes, angle=0.0, startAngle=0.0,
-                                    endAngle=360.0, color=color_, thickness=-1)
+                        # A full ellipse filled, which is what start 0 to end
+                        # 360 at thickness -1 asked for.
+                        image_kernels.fill_ellipse(
+                            mask, center[0], center[1], axes[0], axes[1],
+                            color_, 0.0)
 
                         mask_tensor = torch.tensor(mask, dtype=torch.float32)
                         class_mask_list.append(mask_tensor.unsqueeze(0))

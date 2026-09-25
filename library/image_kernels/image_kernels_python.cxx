@@ -431,6 +431,17 @@ draw_circle( array_of< T >& array,
                                      as_colour( colour ), thickness );
 }
 
+template < typename T >
+void
+fill_ellipse( array_of< T >& array,
+              long x, long y, long radius_x, long radius_y,
+              py::object const& colour, double angle )
+{
+  auto image = as_mutable_image( array );
+  viame::image_kernels::fill_ellipse( image, x, y, radius_x, radius_y,
+                                      as_colour( colour ), angle );
+}
+
 py::tuple
 text_size( std::string const& text, long scale )
 {
@@ -1311,6 +1322,15 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "colour" ), py::arg( "closed" ) = false,
          py::arg( "thickness" ) = 1,
          "cv2.polylines: the segments of an N by 2 chain of x, y." );
+
+  for_every_pixel_type( m, "fill_ellipse", &fill_ellipse< uint8_t >,
+         &fill_ellipse< uint16_t >, &fill_ellipse< float >,
+         py::arg( "image" ), py::arg( "x" ), py::arg( "y" ),
+         py::arg( "radius_x" ), py::arg( "radius_y" ), py::arg( "colour" ),
+         py::arg( "angle" ) = 0.0,
+         "Fill an ellipse in place, which is cv2.ellipse at thickness -1. "
+         "Filled only: an outlined ellipse is a polygonal approximation in "
+         "OpenCV and a filled one is exact, so only the exact half is here." );
 
   for_both_pixel_types( m, "draw_circle", &draw_circle< uint8_t >,
          &draw_circle< uint16_t >, py::arg( "image" ), py::arg( "x" ),

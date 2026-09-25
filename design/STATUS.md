@@ -962,3 +962,39 @@ every pixel is next to the background above and below, so the whole strip is
 gains `include/viame/image_kernels/distance.h` -- the headers are installed,
 so a header-only kernel is still a new installed file. Our own tree is at
 **24** files importing cv2, from 38 at the start of this run.
+
+`fill_ellipse` written, and `detect_dataset.py` off cv2 -- 23 files now.
+
+The caller is the ellipse bootstrap that stands in for a missing
+segmentation mask while training: given a box and no mask, draw an ellipse a
+third of its size inside it. `cv2.ellipse` at thickness -1, which is the
+filled case and the only one written here. An outlined ellipse is a different
+problem -- OpenCV walks a polygonal approximation whose vertex count depends
+on the axes -- and no caller needs it, so `fill_ellipse` is named for what it
+does rather than promising an outline it has not got.
+
+**It is deliberately not pixel identical to `cv::ellipse`, and is the more
+accurate of the two.** OpenCV fills the polygon it approximates the ellipse
+with, and that runs a boundary ring fatter: over eight shapes measured,
+OpenCV covers 4 to 10 per cent more pixels, every one of them on the edge. A
+circle of radius 20 is 1257 pixels here against an exact area of 1256.6, and
+1307 in OpenCV. The filled case needs no approximation at all -- a pixel is
+inside or it is not, and the test is the ellipse equation -- so the exact one
+is what is here, with the measurement in the header and a test asserting the
+area.
+
+That is a difference worth having rather than reproducing, and the path is a
+rough proxy inside a detection box where a boundary ring is well below the
+approximation already being made. It is also off by default:
+`segmentation_bootstrap` is `['given']` unless a training config asks for
+`ellipse`.
+
+**`hough_circle_detector.py` was looked at and left.** It needs `HoughCircles`
+and therefore `Canny`, neither of which exists here, and it is golden-recorded
+against OpenCV's own output -- so it is the same class as SIFT and SGBM rather
+than a tractable port, and the earlier note that listed it as tractable was
+wrong.
+
+**Green:** BASELINE, UNIT and CORE 475 of 475 with 5 new kernel cases (143 in
+`unit:image_kernels:python`); GOLDEN and CRITICAL 10 of 10. `install.txt`
+unchanged -- `fill_ellipse` went into the existing `draw.h`.

@@ -34,7 +34,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  watershed,
                                  min_area_rect,
                                  draw_rect, draw_text, equalize, erode,
-                                 fill_polygon,
+                                 fill_ellipse, fill_polygon,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
                                  normalize, remap, resize, resize_area,
                                  swap_channels, text_size, to_gray, to_hls,
@@ -304,6 +304,65 @@ def test_an_unknown_bayer_pattern_is_refused():
 # Drawing
 #
 # These write into the array they are given, as cv2.fillPoly and friends do.
+
+def test_fill_ellipse_covers_the_exact_area():
+    """The mathematical ellipse, not OpenCV's polygonal fill of it.
+
+    `cv::ellipse` fills the polygon it approximates the ellipse with, and
+    that runs a boundary ring fatter -- 4 to 10 per cent more pixels over the
+    shapes measured, a circle of radius 20 coming out 1307 there against
+    1257 here. 1257 is the right answer: the exact area is 1256.6.
+    """
+    image = np.zeros((80, 80), dtype=np.uint8)
+
+    fill_ellipse(image, 40, 40, 20, 20, 1)
+
+    assert int(image.sum()) == pytest.approx(np.pi * 400, abs=4)
+
+
+def test_fill_ellipse_respects_its_two_axes():
+    image = np.zeros((60, 100), dtype=np.uint8)
+
+    fill_ellipse(image, 50, 30, 30, 12, 1)
+
+    rows = np.where(image.any(axis=1))[0]
+    columns = np.where(image.any(axis=0))[0]
+
+    assert columns.min() == 20 and columns.max() == 80
+    assert rows.min() == 18 and rows.max() == 42
+
+
+def test_fill_ellipse_turns():
+    """A quarter turn swaps the axes, which is the cheapest check that the
+    angle is applied at all and applied about the centre."""
+    upright = np.zeros((100, 100), dtype=np.uint8)
+    fill_ellipse(upright, 50, 50, 30, 12, 1)
+
+    turned = np.zeros((100, 100), dtype=np.uint8)
+    fill_ellipse(turned, 50, 50, 30, 12, 1, 90.0)
+
+    assert np.array_equal(turned, upright.T)
+
+
+def test_fill_ellipse_clips_at_the_edge():
+    image = np.zeros((60, 60), dtype=np.uint8)
+
+    fill_ellipse(image, 5, 5, 20, 20, 1)
+
+    assert image[0, 0] == 1
+    assert image.sum() < np.pi * 400
+
+
+def test_a_degenerate_ellipse_is_a_line():
+    """Zero on one axis draws the line through the centre, as OpenCV does,
+    rather than drawing nothing."""
+    image = np.zeros((20, 40), dtype=np.uint8)
+
+    fill_ellipse(image, 20, 10, 8, 0, 1)
+
+    assert image[10].sum() == 17
+    assert image.sum() == 17
+
 
 def test_fill_polygon_writes_in_place():
     canvas = np.zeros((20, 30), dtype=np.uint8)
