@@ -1100,3 +1100,40 @@ rectified pixel must give back the point that rectifies to it, and unrectify
 must undo rectify.
 
 **Green:** BASELINE, UNIT and CORE 476 of 476; GOLDEN and CRITICAL 10 of 10.
+
+`tools/convert.py` off cv2 -- and the reason it was still on it is the point
+of this entry.
+
+The file count has been produced all along by grepping for `import cv2`.
+`tools/convert.py` does not contain that line. It builds a lazy module object
+instead:
+
+    cv2 = _LazyModule(lambda: __import__('cv2'))
+
+and then calls `stereoRectify`, `FileStorage`, `projectPoints` and
+`stereoCalibrate` through it. The grep saw nothing, so the file has been
+counted as clean while calling four OpenCV functions, and the "verified map"
+of the last entry had a hole in exactly the place it claimed to be
+authoritative.
+
+It was found by cross-checking two lists that should have matched -- files
+*using* `cv2.` against files *importing* cv2 -- which is a check worth keeping:
+anything in the first list and not the second is either prose naming a
+function we replaced, or a dependency hiding behind an indirection. Doing that
+over the tree turned up one real case and thirty-odd prose mentions.
+`packages/` has two more, both `from cv2 import ...`, and both in vendored
+code.
+
+The port needed nothing new: `stereo_rectify`, `opencv_yaml`,
+`project_points` and `stereo_calibrate` all existed. The same two contract
+differences as `netharn/stereo.py` applied -- `stereo_rectify` returns a dict
+and implements zero disparity as its only mode rather than as a flag, and
+`stereo_calibrate` puts R and T at 1 and 2 -- plus a third: cv2's
+`stereoRectify` returned a seven-tuple whose last two entries are the valid
+regions of interest, which this file unpacked and never used.
+
+So the count was 22, not 21, and is now genuinely 21.
+
+**Green:** `tools:convert` passes; the `tools` label is 22 of 25 with the same
+three pre-existing failures (`index`, `inspect_file`, `run_bulk`), unchanged
+by this; BASELINE, UNIT and CORE 476 of 476; GOLDEN and CRITICAL 10 of 10.

@@ -37,8 +37,14 @@ from pathlib import Path
 
 import numpy as np
 
-# cv2 and scipy are only needed for calibration conversion and load on first
-# use; h5py only for ITK transforms (see load_itk_h5).
+from viame.measurement import projection
+from viame.utilities import calibration, opencv_yaml
+
+# scipy is only needed for calibration conversion and loads on first use;
+# h5py only for ITK transforms (see load_itk_h5). cv2 used to be lazy here
+# too, through the same wrapper -- which is worth noting because a lazy module
+# object is invisible to a grep for `import cv2`, and this file was counted as
+# off OpenCV while it still called four of its functions.
 class _LazyModule:
     """Import a heavy dependency the first time one of its members is used."""
 
@@ -60,13 +66,11 @@ def _load_rotation():
     return Rotation
 
 
-cv2 = _LazyModule(lambda: __import__('cv2'))
 Rotation = _LazyModule(_load_rotation)
 
 
 def _import_calibration_deps():
-    """Load OpenCV and SciPy now, so a missing dependency fails up front."""
-    cv2._load()
+    """Load SciPy now, so a missing dependency fails up front."""
     Rotation._load()
 
 # Shared C++ loader (viame::read_stereo_rig). Optional: the tool still works as
@@ -142,16 +146,20 @@ class StereoCalibration:
         if width is None or height is None:
             raise ValueError("Image dimensions required to compute rectification")
 
-        self.R1, self.R2, self.P1, self.P2, self.Q, _, _ = cv2.stereoRectify(
-            cameraMatrix1=self.camera_matrix_left,
-            distCoeffs1=self.dist_coeffs_left,
-            cameraMatrix2=self.camera_matrix_right,
-            distCoeffs2=self.dist_coeffs_right,
-            imageSize=(width, height),
-            R=self.R,
-            T=self.T,
-            flags=cv2.CALIB_ZERO_DISPARITY
-        )
+        # Zero disparity is the only mode `stereo_rectify` implements rather
+        # than a flag it takes, and it returns a dict where cv2 returned a
+        # seven-tuple whose last two entries were the valid regions of
+        # interest -- which this never used.
+        rectified = projection.stereo_rectify(
+            self.camera_matrix_left, self.dist_coeffs_left,
+            self.camera_matrix_right, self.dist_coeffs_right,
+            width, height, self.R, self.T)
+
+        self.R1 = rectified['left_rotation']
+        self.R2 = rectified['right_rotation']
+        self.P1 = rectified['left_projection']
+        self.P2 = rectified['right_projection']
+        self.Q = rectified['disparity_to_depth']
 
     def validate(self, require_extrinsics=True):
         """Validate that minimum required data is present."""
@@ -280,16 +288,12 @@ def read_json(input_path):
 
 def _parse_cv_yml(path, *keys):
     """Parse keys from an OpenCV FileStorage YML file."""
-    outputs = []
-    fs = cv2.FileStorage(str(path), cv2.FILE_STORAGE_READ)
-    if not fs.isOpened():
-        raise IOError(f"Cannot open file: {path}")
+    try:
+        found = opencv_yaml.read(str(path), keys)
+    except OSError as error:
+        raise IOError(f"Cannot open file: {path}") from error
 
-    for key in keys:
-        outputs.append(fs.getNode(key).mat())
-
-    fs.release()
-    return tuple(outputs)
+    return tuple(found[key] for key in keys)
 
 
 def read_opencv(input_path):
@@ -630,7 +634,7 @@ def read_cal(left_camcal=None, right_camcal=None, ptscal_path=None,
         extrinsics_mode: How to handle extrinsics:
             'skip'    - Output intrinsics only, no R/T
             'derive'  - Use PtsCAL + both cameras to derive R,T via
-                        cv2.stereoCalibrate with fixed intrinsics
+                        stereo_calibrate with fixed intrinsics
             'extract' - Placeholder for future CamCAL formats with extrinsics
 
     Returns:
@@ -680,12 +684,14 @@ def read_cal(left_camcal=None, right_camcal=None, ptscal_path=None,
         rvec_zero = np.zeros((3, 1), dtype=np.float64)
         tvec_zero = np.zeros((3, 1), dtype=np.float64)
 
-        pts_2d_left, _ = cv2.projectPoints(
-            pts_3d, rvec_zero, tvec_zero,
-            calib.camera_matrix_left, calib.dist_coeffs_left)
-        pts_2d_right, _ = cv2.projectPoints(
-            pts_3d, rvec_zero, tvec_zero,
-            calib.camera_matrix_right, calib.dist_coeffs_right)
+        pts_2d_left = projection.project_points(
+            np.ascontiguousarray(pts_3d, dtype=np.float64),
+            calib.camera_matrix_left, calib.dist_coeffs_left,
+            rvec_zero, tvec_zero)
+        pts_2d_right = projection.project_points(
+            np.ascontiguousarray(pts_3d, dtype=np.float64),
+            calib.camera_matrix_right, calib.dist_coeffs_right,
+            rvec_zero, tvec_zero)
 
         # Reshape for stereoCalibrate
         obj_pts = [pts_3d.reshape(-1, 1, 3).astype(np.float32)]
@@ -694,11 +700,13 @@ def read_cal(left_camcal=None, right_camcal=None, ptscal_path=None,
 
         img_size = (calib.image_width, calib.image_height)
 
-        _, _, _, _, _, R, T, _, _ = cv2.stereoCalibrate(
+        # R and T come back at 1 and 2, where cv2 returned the intrinsics it
+        # had been told to keep and put them at 5 and 6.
+        _, R, T, _, _ = calibration.stereo_calibrate(
             obj_pts, img_left, img_right,
             calib.camera_matrix_left, calib.dist_coeffs_left,
             calib.camera_matrix_right, calib.dist_coeffs_right,
-            img_size, flags=cv2.CALIB_FIX_INTRINSIC)
+            img_size, flags={'fix_intrinsics'})
 
         calib.R = R
         calib.T = T
@@ -831,14 +839,10 @@ def write_json(calib, output_path):
 
 def _write_cv_yml(path, **kwargs):
     """Write data to an OpenCV FileStorage YML file."""
-    fs = cv2.FileStorage(str(path), cv2.FILE_STORAGE_WRITE)
-    if not fs.isOpened():
-        raise IOError(f"Cannot open file: {path}")
-
-    for key, value in kwargs.items():
-        fs.write(key, value)
-
-    fs.release()
+    try:
+        opencv_yaml.write(str(path), kwargs)
+    except OSError as error:
+        raise IOError(f"Cannot open file: {path}") from error
 
 
 def write_opencv(calib, output_path, image_width=None, image_height=None):
