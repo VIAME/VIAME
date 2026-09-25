@@ -24,6 +24,7 @@ import re
 import importlib
 import subprocess
 from viame import image_kernels
+from viame.utilities import imageops
 
 # Populated by import_dependencies()
 np = None
@@ -309,9 +310,10 @@ def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
                                    root_sift=False, use_affine=False,
                                    sift_contrast=0.04, clahe_clip=4.0):
     """Internal: compute homography at a single scale."""
-    img1 = cv2.imread(img1_path)
-    img2 = cv2.imread(img2_path)
-    if img1 is None or img2 is None:
+    try:
+        img1 = imageops.read_image(img1_path)
+        img2 = imageops.read_image(img2_path)
+    except OSError:
         return None, None
 
     h1, w1 = img1.shape[:2]
@@ -319,8 +321,8 @@ def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
     small1 = image_kernels.resize(img1, int(w1 * scale), int(h1 * scale))
     small2 = image_kernels.resize(img2, int(w2 * scale), int(h2 * scale))
 
-    gray1 = cv2.cvtColor(small1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(small2, cv2.COLOR_BGR2GRAY)
+    gray1 = image_kernels.to_gray(small1)
+    gray2 = image_kernels.to_gray(small2)
 
     if use_clahe:
         clahe = cv2.createCLAHE(clipLimit=clahe_clip, tileGridSize=(8, 8))

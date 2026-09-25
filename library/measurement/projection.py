@@ -16,6 +16,7 @@ through, so a rectification is those two calls and nothing else.
 from viame.measurement._projection import (  # noqa: F401
     project_points,
     rectification_maps,
+    reproject_to_3d,
     rodrigues,
     stereo_rectify,
     undistort_points,
@@ -24,6 +25,7 @@ from viame.measurement._projection import (  # noqa: F401
 __all__ = [
     "project_points",
     "rectification_maps",
+    "reproject_to_3d",
     "rodrigues",
     "stereo_rectify",
     "undistort_points",

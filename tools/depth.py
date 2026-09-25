@@ -12,8 +12,11 @@ import argparse
 import os
 import sys
 
-import cv2
 import numpy as np
+
+from viame import image_kernels
+from viame.measurement import projection
+from viame.utilities import imageops, opencv_yaml
 
 from disparity import scaled_disparity
 from viame.utilities.utilities_ply import write_ply_file
@@ -32,27 +35,28 @@ def main():
 
     args = parser.parse_args()
 
-    img = cv2.imread(args.stereo_image)
-    if img is None:
-        raise ValueError(f"Failed to read image: {args.stereo_image}")
+    try:
+        img = imageops.read_image(args.stereo_image)
+    except OSError as exc:
+        raise ValueError(f"Failed to read image: {args.stereo_image}") from exc
 
     left_img = img[:, 0:img.shape[1] // 2]
     right_img = img[:, img.shape[1] // 2:]
 
     # Read the matrix for backprojecting to 3D
-    fs = cv2.FileStorage(args.extrinsics, flags=0)
-    if not fs.isOpened():
-        raise ValueError(f"Failed to open extrinsics file: {args.extrinsics}")
-    Q = fs.getNode("Q").mat()
-    fs.release()
+    try:
+        Q = opencv_yaml.read(args.extrinsics, ["Q"])["Q"]
+    except OSError as exc:
+        raise ValueError(
+            f"Failed to open extrinsics file: {args.extrinsics}") from exc
 
     if Q is None:
         raise ValueError("Q matrix not found in extrinsics file")
 
     basename, _ = os.path.splitext(os.path.basename(args.stereo_image))
 
-    left_gray = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)
-    right_gray = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)
+    left_gray = image_kernels.to_gray(np.ascontiguousarray(left_img))
+    right_gray = image_kernels.to_gray(np.ascontiguousarray(right_img))
 
     print("computing disparity")
     disp_img = scaled_disparity(left_gray, right_gray)
@@ -60,7 +64,7 @@ def main():
     # Get mask of valid disparity pixels
     valid = disp_img > 0
 
-    img3d = cv2.reprojectImageTo3D(disp_img, Q)
+    img3d = projection.reproject_to_3d(disp_img, Q)
 
     pts3d = img3d[valid]
     depths = pts3d[:, 2]

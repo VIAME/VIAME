@@ -101,10 +101,12 @@ def _to_gray(array):
     """The grey image the detectors see, red and blue swapped.
 
     See the module docstring: the C++ asked for an RGB mat and then took
-    `BGR2GRAY` on it. Reproducing that means taking `BGR2GRAY` on the RGB
-    array, which is the same wrong way round.
+    `BGR2GRAY` on it. Reproducing that means weighting the RGB array's red
+    and blue the wrong way round, which is what the swap below does --
+    `to_gray` uses the RGB weights, so the array is reversed going in.
+    Deliberate, and held in place by `tests/golden/measurement`.
     """
-    import cv2
+    from viame import image_kernels
 
     if array.ndim == 2:
         return array
@@ -113,10 +115,12 @@ def _to_gray(array):
         return array[:, :, 0]
 
     if array.shape[2] == 3:
-        return cv2.cvtColor(array, cv2.COLOR_BGR2GRAY)
+        return image_kernels.to_gray(image_kernels.swap_channels(array))
 
     if array.shape[2] == 4:
-        return cv2.cvtColor(array, cv2.COLOR_BGRA2GRAY)
+        # The alpha plane is not part of the luminance
+        return image_kernels.to_gray(image_kernels.swap_channels(
+            np.ascontiguousarray(array[:, :, :3])))
 
     return array[:, :, 0]
 

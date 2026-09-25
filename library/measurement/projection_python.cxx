@@ -222,6 +222,54 @@ as_distortion( py::object const& value )
     data, data + static_cast< size_t >( buffer.size ) );
 }
 
+
+/// A four by four, for the disparity-to-depth matrix.
+viame::matrix_4x4d
+as_matrix_4x4( array_d const& array, char const* who )
+{
+  auto const buffer = array.request();
+
+  if( buffer.ndim != 2 || buffer.shape[ 0 ] != 4 || buffer.shape[ 1 ] != 4 )
+  {
+    throw std::invalid_argument(
+      std::string( who ) + " wants a four by four matrix" );
+  }
+
+  auto const* data = static_cast< double const* >( buffer.ptr );
+  viame::matrix_4x4d out;
+
+  for( unsigned row = 0; row < 4; ++row )
+  {
+    for( unsigned column = 0; column < 4; ++column )
+    {
+      out( row, column ) = data[ row * 4 + column ];
+    }
+  }
+
+  return out;
+}
+
+/// A single plane view over numpy memory.
+template < typename T >
+viame::image_of< T >
+as_plane( py::array_t< T, py::array::c_style > const& array )
+{
+  auto const buffer = array.request();
+
+  if( !( buffer.ndim == 2 ||
+         ( buffer.ndim == 3 && buffer.shape[ 2 ] == 1 ) ) )
+  {
+    throw std::invalid_argument( "wanted a single plane image" );
+  }
+
+  return viame::image_of< T >(
+    static_cast< T const* >( buffer.ptr ),
+    static_cast< size_t >( buffer.shape[ 1 ] ),
+    static_cast< size_t >( buffer.shape[ 0 ] ),
+    1, 1,
+    static_cast< ptrdiff_t >( buffer.shape[ 1 ] ), 1 );
+}
+
 // ---------------------------------------------------------------------------
 // The bindings
 
@@ -417,6 +465,58 @@ rectification_maps( array_d const& intrinsics,
   return py::make_tuple( copy_out( map_x ), copy_out( map_y ) );
 }
 
+py::array_t< float >
+reproject_to_3d( py::object const& disparity, array_d const& matrix )
+{
+  // float32 and int16 both appear: a float disparity carries its fractional
+  // part, and a 16-bit signed one is taken to have **none** -- which is what
+  // OpenCV documents and what an SGBM disparity, with four fractional bits,
+  // quietly violates. Both are accepted and neither is converted silently.
+  viame::image_of< float > result;
+
+  auto const depth = as_matrix_4x4( matrix, "reproject_to_3d" );
+
+  if( py::isinstance< py::array_t< float > >( disparity ) )
+  {
+    auto const plane =
+      disparity.cast< py::array_t< float, py::array::c_style > >();
+    result = viame::measurement::reproject_to_3d( as_plane< float >( plane ),
+                                                  depth );
+  }
+  else if( py::isinstance< py::array_t< int16_t > >( disparity ) )
+  {
+    auto const plane =
+      disparity.cast< py::array_t< int16_t, py::array::c_style > >();
+    result = viame::measurement::reproject_to_3d( as_plane< int16_t >( plane ),
+                                                  depth );
+  }
+  else
+  {
+    throw std::invalid_argument(
+      "reproject_to_3d wants a float32 or int16 disparity" );
+  }
+
+  py::array_t< float > out( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( result.height() ),
+    static_cast< Py_ssize_t >( result.width() ),
+    3 } );
+
+  auto* destination = out.mutable_data();
+
+  for( size_t y = 0; y < result.height(); ++y )
+  {
+    for( size_t x = 0; x < result.width(); ++x )
+    {
+      for( size_t d = 0; d < 3; ++d )
+      {
+        *destination++ = result( x, y, d );
+      }
+    }
+  }
+
+  return out;
+}
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _projection, m )
@@ -460,4 +560,12 @@ VIAME_PYTHON_MODULE( _projection, m )
          py::arg( "projection" ), py::arg( "width" ), py::arg( "height" ),
          "cv2.initUndistortRectifyMap into a pair of float maps, ready for "
          "image_kernels.remap." );
+
+  m.def( "reproject_to_3d", &reproject_to_3d, py::arg( "disparity" ),
+         py::arg( "disparity_to_depth" ),
+         "cv2.reprojectImageTo3D with handleMissingValues false. One plane "
+         "in, three out -- x, y and z in the left rectified camera's frame. "
+         "Takes float32 or int16; a 16-bit disparity is read as having no "
+         "fractional bits, which is what OpenCV documents and what an SGBM "
+         "disparity, carrying four, quietly violates." );
 }

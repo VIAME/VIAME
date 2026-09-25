@@ -21,6 +21,7 @@ import subprocess
 import glob
 from viame import image_kernels
 from viame.measurement import projection
+from viame.utilities import imageops
 
 # Populated by import_dependencies()
 np = None
@@ -562,19 +563,20 @@ def run_dense(rec, image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
             if not os.path.exists(path_a) or not os.path.exists(path_b):
                 continue
 
-            bgr_a = cv2.imread(path_a)
-            bgr_b = cv2.imread(path_b)
-            if bgr_a is None or bgr_b is None:
+            try:
+                rgb_a = imageops.read_image(path_a)
+                rgb_b = imageops.read_image(path_b)
+            except OSError:
                 continue
 
             # Downscale for feature extraction
-            h0, w0 = bgr_a.shape[:2]
+            h0, w0 = rgb_a.shape[:2]
             h, w = int(h0 * scale), int(w0 * scale)
-            small_a = image_kernels.resize_area(bgr_a, w, h)
-            small_b = image_kernels.resize_area(bgr_b, w, h)
+            small_a = image_kernels.resize_area(rgb_a, w, h)
+            small_b = image_kernels.resize_area(rgb_b, w, h)
 
-            gray_a = cv2.cvtColor(small_a, cv2.COLOR_BGR2GRAY)
-            gray_b = cv2.cvtColor(small_b, cv2.COLOR_BGR2GRAY)
+            gray_a = image_kernels.to_gray(small_a)
+            gray_b = image_kernels.to_gray(small_b)
 
             # Extract features
             kp_a, des_a = sift.detectAndCompute(gray_a, None)
