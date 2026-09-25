@@ -62,6 +62,19 @@ TOLERANCES = {
     # they are a precision compromise for speed, and a port that is more
     # accurate than what it replaces is the better of the two to keep.
     "ocv_convert_color": (1.0, 0.5),
+    # `ocv_optical_flow` since the Farneback port. The flow itself is
+    # reproduced to float32 rounding -- never worse than 7e-5 of a pixel
+    # against `cv2.calcOpticalFlowFarneback` over six frame sizes and one,
+    # two and four pyramid levels -- but the filter encodes the magnitude as
+    # `mag * 255 / scale` truncated into a byte, so a pixel whose magnitude
+    # sits within a millionth of a whole grey level falls on the other side
+    # of the truncation. Measured over the recorded twelve frame sequence:
+    # one count at worst, 1.4e-5 mean, and **one pixel in seventy thousand**
+    # moved at all.
+    "ocv_optical_flow": (1.0, 0.001),
+    "train_aug_add_optical_flow.pipe": (1.0, 0.001),
+    "train_aug_add_optical_flow_adaptive.pipe": (1.0, 0.001),
+    "train_aug_all_motion.pipe": (1.0, 0.001),
 }
 
 # The same, for a name that means different things in different kinds. `ocv`

@@ -1183,3 +1183,136 @@ consumer of the install did not. Both are listed now.
 
 **Green:** BASELINE, UNIT and CORE 476 of 476; GOLDEN and CRITICAL 10 of 10;
 `tools` 25 of 25.
+
+Farneback optical flow, written out, and a constant that had gone stale.
+
+`image_kernels/optical_flow.h` is `cv::calcOpticalFlowFarneback` with `flags`
+at zero: the quadratic fitted to every neighbourhood by weighted least
+squares, the two fits solved for the displacement between them, averaged over
+a box and re-estimated, coarse to fine. It agrees with cv2 to **7e-5 of a
+pixel at worst** over six frame sizes from 63x81 to 1080p and one, two and
+four pyramid levels -- float32 rounding and nothing else.
+
+It was built the right way round: a numpy prototype first, checked against
+cv2 at a single pyramid level until it agreed, and only then written in C++.
+That order paid for itself twice. The first check was 0.68 of a pixel out and
+the reason was not the algorithm -- `levels=1` in OpenCV means *two* levels,
+because the count is how many are added above the frame -- and the second was
+0.15 out because OpenCV Gaussian-blurs even the level it does not resize,
+with a three tap kernel it derives from a sigma of zero. Neither is visible
+in the description of the method; both are visible in a difference.
+
+Three things it needs are OpenCV's rather than ours, and each is written out
+in the header with the reason:
+
+* the pyramid resamples by **OpenCV's** bilinear convention, which puts the
+  destination centre at `(i + 0.5) * scale - 0.5`; `resize_bilinear`
+  reproduces VXL, which spans the source corner to corner, and the half pixel
+  between them is a whole pixel of flow by the time the pyramid is back down;
+* the rim is faded by a five entry weight table before the box average;
+* the two by two solve carries a 1e-3 on the determinant.
+
+The filter `ocv_optical_flow` is now on it, and `library/image_processing/
+optical_flow.py` is off cv2. 20 files to 19.
+
+**What the port turned up is bigger than the port.** The recorded golden
+failed at first, and not because of the flow: `image_kernels`' `rgb_to_gray`
+is BT.601 at fourteen fractional bits, which is what OpenCV used through
+version 4, and the build ships **OpenCV 5.0, which uses fifteen** -- and not
+by doubling, since green gains a count and blue loses one. A quarter of a
+percent of colours differ by one grey level. That had been invisible because
+the golden checking `rgb_to_gray` was recorded with a tolerance of 1, exactly
+the size of the gap, and because nothing downstream read a grey level as a
+number until this filter did: a quarter of a percent in became 5.9% of output
+pixels moved by up to three counts. Finding 2.36 has the method for fitting
+the constants back, and the shift is corrected.
+
+With it corrected the golden is **one pixel in seventy thousand, by one
+count**, which is the byte truncation catching a magnitude that sits within a
+millionth of a grey level of the boundary. `TOLERANCES` carries (1.0, 0.001)
+for `ocv_optical_flow` and the three pipelines that wrap it --
+`train_aug_add_optical_flow`, its `_adaptive` twin and `train_aug_all_motion`,
+the last of which the name filter missed the first time and the full replay
+caught -- with the measurement in the comment. That is inside the envelope already accepted --
+`ocv_convert_color` at (1.0, 0.5), warp/ocv at (4.0, 0.25) -- rather than the
+four-times-the-loosest that `ocv_color_correction` would have needed.
+
+Twelve unit tests, including the one that pins OpenCV's edge: a frame against
+itself is not still on its last row, because a pixel there has no neighbour to
+interpolate the second fit from, and `cv2` puts the same 0.047 in the same
+corner to within 6e-8.
+
+**Speed.** 0.83 s for a 1080p pair at four levels against cv2's 0.5, compiled
+at -O3; the merged build compiles at **-O0** -- `CMAKE_BUILD_TYPE` is empty --
+where the same call takes 4.0 s, so a timing taken from this build is a
+timing of the build and not of the code. Getting to 1.5x took three passes:
+the pyramid's Gaussian is separable rather than `filter_2d`'s square one (the
+coarsest level asks for a seventeen tap blur of the *full resolution* frame,
+which is 289 weighted samples a pixel the square way and 34 the other), the
+polynomial fit pairs its taps by the symmetry of the weights, and the box
+average keeps one row of vertical sums rather than the whole column -- which
+on 1080p is eighty megabytes written and read three times per level.
+
+**Green:** BASELINE, UNIT and CORE 476 of 476; GOLDEN and CRITICAL 10 of 10.
+
+
+Sparse tracking too, and a pyramid that was one level too tall.
+
+BoT-SORT's camera motion compensation is off cv2. It needed three things and
+two of them are new kernels:
+
+* `image_kernels.good_features_to_track` -- Shi and Tomasi's corner measure,
+  which is `min_eigen_value` above it, thresholded at a fraction of the
+  strongest, reduced to local maxima and thinned by a minimum distance. It
+  returns the **same list** `cv2.goodFeaturesToTrack` does, position for
+  position, over two images and three distance settings including zero;
+* `image_kernels.lucas_kanade` -- `cv2.calcOpticalFlowPyrLK`, the window
+  matched in fixed point at fourteen bits over a pyramid. Status identical
+  and positions within 1.7e-4 of a pixel, often exactly equal;
+* `utilities.geometry.find_homography`, which already existed.
+
+Two details decided the answer rather than the last decimal.
+
+The first is that **OpenCV squares the termination epsilon once, up front**,
+and compares it against the squared step -- so the shipped 0.01 is a
+hundredth of a pixel squared. Missing it stops several iterations early and
+lands a tenth of a pixel out, which was the whole of the first
+disagreement.
+
+The second is worth more than the port. The first version agreed with cv2 to
+a thousandth of a pixel on blurred noise and then, on a fixture built as a
+**periodic grid of squares**, followed 61 points where cv2 followed 100 and
+put the median displacement at 25 pixels where the truth was 5. The cause was
+not the tracker: OpenCV stops the pyramid as soon as the next level would be
+no bigger than the matching window, and this built one more. A level the
+window does not fit inside is not a level a point can be matched on, and on
+a scene that repeats every twenty pixels the coarse estimate locks onto the
+wrong repeat and the point never comes back. On random texture the extra
+level converges to the same answer and the fault is invisible; the periodic
+fixture is what made it visible, and it is now a test that asks for nine
+levels and requires the answer to be the one two levels gives.
+
+`CameraMotionCompensation` also stopped asking for `COLOR_BGR2GRAY` on an
+array `image.asarray()` hands over as **RGB**, which had been reading the red
+channel as blue. The weights are the right way round now, which moves the
+corner list on a strongly coloured frame and not at all on a grey one.
+
+Nine tests for the class, held to the motion that is in the pair rather than
+to a recording, because this tracker has never had one; twelve more for the
+two kernels.
+
+**Cost.** On a 1080p frame at -O3, 1000 corners take 0.255 s against cv2's
+0.057 and following them takes 0.108 against cv2's 0.008 -- so the motion
+compensation goes from about 0.065 s a frame to about 0.36. The gap is
+vectorisation: both inner loops are a window swept scalar where OpenCV sweeps
+it eight or sixteen pixels at a time. It is worth saying out loud because
+BoT-SORT also runs a re-identification network per frame, which is the larger
+number, but 0.3 s is not nothing on a long video. The merged build compiles
+at -O0, so a timing taken there is about five times this and is a timing of
+the build.
+
+Our own tree: 18 files, counting the way every entry before this one has --
+the six under `tests/golden/` that record *from* OpenCV are not in it and
+never were.
+
+**Green:** BASELINE, UNIT and CORE; GOLDEN and CRITICAL; tools.

@@ -1037,6 +1037,7 @@ include/viame/image_kernels/homography_overlap.h
 include/viame/image_kernels/layout.h
 include/viame/image_kernels/match.h
 include/viame/image_kernels/morphology.h
+include/viame/image_kernels/optical_flow.h
 include/viame/image_kernels/pixel.h
 include/viame/image_kernels/polygon.h
 include/viame/image_kernels/resample.h

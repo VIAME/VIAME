@@ -2,6 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
+from viame import image_kernels
 from viame.algo import ImageFilter
 
 from viame.types import Image
@@ -97,23 +98,26 @@ class OpticalFlowFilter(ImageFilter):
         return True
 
     def filter(self, in_img):
-        import cv2
-
         arr = in_img.image().asarray()
 
         if arr.ndim == 3 and arr.shape[2] >= 3:
-            gray = cv2.cvtColor(arr[..., :3].astype(np.uint8), cv2.COLOR_RGB2GRAY)
+            gray = image_kernels.to_gray(
+                np.ascontiguousarray(arr[..., :3], dtype=np.uint8))
         elif arr.ndim == 3:
-            gray = arr[..., 0].astype(np.uint8)
+            gray = np.ascontiguousarray(arr[..., 0], dtype=np.uint8)
         else:
-            gray = arr.astype(np.uint8)
+            gray = np.ascontiguousarray(arr, dtype=np.uint8)
 
         if self._prev is None or self._prev.shape != gray.shape:
             flow = np.zeros((gray.shape[0], gray.shape[1], 2), dtype=np.float32)
         else:
-            flow = cv2.calcOpticalFlowFarneback(
-                self._prev, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0
-            )
+            # The defaults `cv2.calcOpticalFlowFarneback` was called with, and
+            # the same numbers `image_kernels.optical_flow` defaults to; they
+            # are written out because a pipeline reader should be able to see
+            # what the flow was measured with without opening the binding.
+            flow = image_kernels.optical_flow(
+                self._prev, gray, pyr_scale=0.5, levels=3, winsize=15,
+                iterations=3, poly_n=5, poly_sigma=1.2)
         self._prev = gray
 
         if self.compensate_background:

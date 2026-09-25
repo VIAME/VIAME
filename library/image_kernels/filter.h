@@ -468,8 +468,11 @@ sobel( viame::image_of< T > const& image, int dx, int dy,
     pad( vertical );
   }
 
-  return filter_2d< Out >( image, separable_kernel( horizontal, vertical ),
-                           mode );
+  // Both template arguments, because with `Out` and `T` the same the one
+  // argument overload below is an equally good match and the call is
+  // ambiguous -- which only shows up on a float image
+  return filter_2d< Out, T >( image, separable_kernel( horizontal, vertical ),
+                              mode );
 }
 
 // ----------------------------------------------------------------------------

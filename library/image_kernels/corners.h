@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 /// \file
-/// \brief Sub-pixel corner refinement
+/// \brief Corner detection and sub-pixel refinement
 ///
 /// What `cv::cornerSubPix` did. The idea is one observation: at a corner, the
 /// image gradient in the neighbourhood is orthogonal to the vector from the
@@ -30,6 +30,7 @@
 #ifndef VIAME_IMAGE_KERNELS_CORNERS_H
 #define VIAME_IMAGE_KERNELS_CORNERS_H
 
+#include <image_kernels/filter.h>
 #include <image_kernels/warp.h>
 
 #include <limits>
@@ -40,6 +41,7 @@
 #include <cmath>
 #include <cstddef>
 #include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 namespace viame {
@@ -205,6 +207,318 @@ corner_subpix( viame::image_of< T > const& image,
 
     corner = current;
   }
+}
+
+
+// ----------------------------------------------------------------------------
+/// The smaller eigenvalue of the structure tensor at every pixel.
+///
+/// What `cv::cornerMinEigenVal` computed, and the corner strength
+/// `goodFeaturesToTrack` ranks by: the gradient covariance summed over a
+/// block, whose smaller eigenvalue is large only where the gradient points
+/// in two directions at once -- which is what a corner is and an edge is
+/// not.
+///
+/// The scaling is OpenCV's and matters, because the quality threshold below
+/// is a fraction of the largest value and a caller comparing against
+/// `minEigThreshold` is comparing against an absolute one: the Sobel is
+/// divided by `2^(aperture-1) * block_size`, and by 255 more for a byte
+/// image, so the answer is in units of the normalised gradient rather than
+/// of the pixel.
+///
+/// @param image one plane
+/// @param block_size the side of the block the covariance is summed over
+/// @param aperture the Sobel size, which has to be 3 -- OpenCV's 1, 5, 7 and
+///        -1 are refused rather than approximated, since nothing asks for
+///        them and a silently different gradient would move every corner
+template < typename T >
+viame::image_of< float >
+min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
+                 int aperture = 3 )
+{
+  if( image.depth() != 1 )
+  {
+    throw std::invalid_argument( "min_eigen_value takes a single plane" );
+  }
+
+  if( block_size < 1 || aperture != 3 )
+  {
+    throw std::invalid_argument(
+      "min_eigen_value wants a positive block and a Sobel of 3" );
+  }
+
+  auto scale = static_cast< double >( 1 << ( aperture - 1 ) ) * block_size;
+
+  if( std::is_same< T, uint8_t >::value )
+  {
+    scale *= 255.0;
+  }
+
+  scale = 1.0 / scale;
+
+  auto const dx = sobel< float >( image, 1, 0, static_cast< size_t >( aperture ) );
+  auto const dy = sobel< float >( image, 0, 1, static_cast< size_t >( aperture ) );
+
+  auto const width = image.width();
+  auto const height = image.height();
+
+  // The three distinct entries of the covariance, before the block sum
+  std::vector< float > xx( width * height ), xy( width * height ),
+                       yy( width * height );
+
+  for( size_t y = 0; y < height; ++y )
+  {
+    for( size_t x = 0; x < width; ++x )
+    {
+      auto const gx = static_cast< float >( dx( x, y, 0 ) * scale );
+      auto const gy = static_cast< float >( dy( x, y, 0 ) * scale );
+      auto const at = y * width + x;
+
+      xx[ at ] = gx * gx;
+      xy[ at ] = gx * gy;
+      yy[ at ] = gy * gy;
+    }
+  }
+
+  // An **unnormalised** box sum, which is what `boxFilter` with `normalize`
+  // off gives and what the halving below is paired with
+  auto const radius = block_size / 2;
+
+  auto const block_sum =
+    [ & ]( std::vector< float > const& source )
+    {
+      std::vector< float > across( width * height );
+
+      for( size_t y = 0; y < height; ++y )
+      {
+        for( size_t x = 0; x < width; ++x )
+        {
+          double total = 0.0;
+
+          for( int k = -radius; k <= radius; ++k )
+          {
+            auto const at = detail::border_index(
+              static_cast< long >( x ) + k, static_cast< long >( width ),
+              border_mode::REFLECT_101 );
+            total += source[ y * width + static_cast< size_t >( at ) ];
+          }
+
+          across[ y * width + x ] = static_cast< float >( total );
+        }
+      }
+
+      std::vector< float > out( width * height );
+
+      for( size_t y = 0; y < height; ++y )
+      {
+        for( size_t x = 0; x < width; ++x )
+        {
+          double total = 0.0;
+
+          for( int k = -radius; k <= radius; ++k )
+          {
+            auto const at = detail::border_index(
+              static_cast< long >( y ) + k, static_cast< long >( height ),
+              border_mode::REFLECT_101 );
+            total += across[ static_cast< size_t >( at ) * width + x ];
+          }
+
+          out[ y * width + x ] = static_cast< float >( total );
+        }
+      }
+
+      return out;
+    };
+
+  auto const cxx = block_sum( xx );
+  auto const cxy = block_sum( xy );
+  auto const cyy = block_sum( yy );
+
+  viame::image_of< float > out( width, height, 1 );
+
+  for( size_t y = 0; y < height; ++y )
+  {
+    for( size_t x = 0; x < width; ++x )
+    {
+      auto const at = y * width + x;
+      auto const a = cxx[ at ] * 0.5f;
+      auto const b = cxy[ at ];
+      auto const c = cyy[ at ] * 0.5f;
+
+      out( x, y, 0 ) = a + c - std::sqrt( ( a - c ) * ( a - c ) + b * b );
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// The corners `cv::goodFeaturesToTrack` would have found, strongest first.
+///
+/// Shi and Tomasi's measure -- `min_eigen_value` above -- thresholded at
+/// \p quality_level of the strongest in the image, reduced to the local
+/// maxima of a three by three window, sorted, and then thinned so that no
+/// two kept corners are within \p min_distance of each other.
+///
+/// Two details are OpenCV's and are what make the list the same list:
+///
+/// * the one pixel rim is never a corner, whatever its strength, because the
+///   maximum it is compared against would have to read outside the image;
+/// * equal strengths are broken by position, in row major order, because
+///   OpenCV sorts pointers into the strength image and a stable sort on
+///   equal values leaves them in the order they were collected.
+///
+/// @param image one plane
+/// @param max_corners the most to return, or zero for no limit
+/// @param quality_level the fraction of the strongest a corner must reach
+/// @param min_distance how far apart two corners have to be
+/// @param block_size the block the corner measure sums over
+/// @param aperture the Sobel size
+template < typename T >
+std::vector< std::pair< float, float > >
+good_features_to_track( viame::image_of< T > const& image,
+                        int max_corners = 1000, double quality_level = 0.01,
+                        double min_distance = 10.0, int block_size = 3,
+                        int aperture = 3 )
+{
+  if( quality_level <= 0.0 || min_distance < 0.0 )
+  {
+    throw std::invalid_argument(
+      "good_features_to_track wants a positive quality and distance" );
+  }
+
+  auto const strength = min_eigen_value( image, block_size, aperture );
+
+  auto const width = strength.width();
+  auto const height = strength.height();
+
+  std::vector< std::pair< float, float > > out;
+
+  if( width < 3 || height < 3 )
+  {
+    return out;
+  }
+
+  float best = strength( 0, 0, 0 );
+
+  for( size_t y = 0; y < height; ++y )
+  {
+    for( size_t x = 0; x < width; ++x )
+    {
+      best = std::max( best, strength( x, y, 0 ) );
+    }
+  }
+
+  auto const floor_value = static_cast< float >( best * quality_level );
+
+  // Position and strength of every local maximum that clears the threshold,
+  // collected in row major order so that a stable sort keeps OpenCV's
+  // tie-break
+  struct candidate { float value; size_t x; size_t y; };
+  std::vector< candidate > found;
+
+  for( size_t y = 1; y + 1 < height; ++y )
+  {
+    for( size_t x = 1; x + 1 < width; ++x )
+    {
+      auto const value = strength( x, y, 0 );
+
+      if( !( value > floor_value ) || value == 0.0f )
+      {
+        continue;
+      }
+
+      auto highest = value;
+
+      for( size_t j = y - 1; j <= y + 1; ++j )
+      {
+        for( size_t i = x - 1; i <= x + 1; ++i )
+        {
+          highest = std::max( highest, strength( i, j, 0 ) );
+        }
+      }
+
+      if( value == highest )
+      {
+        found.push_back( { value, x, y } );
+      }
+    }
+  }
+
+  std::stable_sort( found.begin(), found.end(),
+                    []( candidate const& a, candidate const& b )
+                    { return a.value > b.value; } );
+
+  auto const wanted = static_cast< size_t >(
+    max_corners > 0 ? max_corners : static_cast< int >( found.size() ) );
+
+  if( min_distance < 1.0 )
+  {
+    for( auto const& one : found )
+    {
+      out.emplace_back( static_cast< float >( one.x ),
+                        static_cast< float >( one.y ) );
+
+      if( out.size() == wanted ) { break; }
+    }
+
+    return out;
+  }
+
+  // The grid is OpenCV's way of asking only the neighbours: a cell is a
+  // minimum distance across, so nothing outside the nine cells around a
+  // candidate can be too close to it.
+  auto const cell = static_cast< size_t >( std::max(
+    1L, static_cast< long >( std::nearbyint( min_distance ) ) ) );
+  auto const across = ( width + cell - 1 ) / cell;
+  auto const down = ( height + cell - 1 ) / cell;
+
+  std::vector< std::vector< std::pair< float, float > > > grid( across * down );
+
+  auto const squared = min_distance * min_distance;
+
+  for( auto const& one : found )
+  {
+    auto const cx = one.x / cell;
+    auto const cy = one.y / cell;
+
+    auto keep = true;
+
+    auto const low_x = cx > 0 ? cx - 1 : 0;
+    auto const low_y = cy > 0 ? cy - 1 : 0;
+    auto const high_x = std::min( cx + 1, across - 1 );
+    auto const high_y = std::min( cy + 1, down - 1 );
+
+    for( auto j = low_y; j <= high_y && keep; ++j )
+    {
+      for( auto i = low_x; i <= high_x && keep; ++i )
+      {
+        for( auto const& other : grid[ j * across + i ] )
+        {
+          auto const dx = static_cast< double >( one.x ) - other.first;
+          auto const dy = static_cast< double >( one.y ) - other.second;
+
+          if( dx * dx + dy * dy < squared )
+          {
+            keep = false;
+            break;
+          }
+        }
+      }
+    }
+
+    if( !keep ) { continue; }
+
+    std::pair< float, float > const corner{ static_cast< float >( one.x ),
+                                            static_cast< float >( one.y ) };
+
+    grid[ cy * across + cx ].push_back( corner );
+    out.push_back( corner );
+
+    if( out.size() == wanted ) { break; }
+  }
+
+  return out;
 }
 
 } // namespace image_kernels

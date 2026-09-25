@@ -14,6 +14,18 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 300
     SOURCE_SETUP
   )
+
+  # BoT-SORT's camera motion compensation, which P7 took off cv2: Shi-Tomasi
+  # corners, pyramidal Lucas-Kanade and a RANSAC homography. Held to the
+  # motion that is actually in the pair rather than to a recording, since
+  # this tracker has never had one.
+  viame_add_test(
+    NAME    "unit:object_trackers:botsort_cmc"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_botsort_cmc.py"
+    LABELS  UNIT
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
 endif()
 
 # From `tests/plugins/core` in P2-T09. Linked as they were there, against the

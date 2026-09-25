@@ -34,6 +34,7 @@ set( image_kernels_headers
   layout.h
   match.h
   morphology.h
+  optical_flow.h
   pixel.h
   polygon.h
   resample.h

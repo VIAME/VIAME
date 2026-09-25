@@ -28,7 +28,9 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  crop, distance_transform,
                                  intersect_convex, moments,
                                  demosaic, dilate, draw_circle, draw_line,
-                                 find_contours, label_components,
+                                 find_contours, good_features_to_track,
+                                 label_components, lucas_kanade,
+                                 min_eigen_value,
                                  corner_subpix, make_border,
                                  match_template, morphology,
                                  watershed,
@@ -36,7 +38,8 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  draw_rect, draw_text, equalize, erode,
                                  fill_ellipse, fill_polygon,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
-                                 normalize, remap, resize, resize_area,
+                                 normalize, optical_flow, remap, resize,
+                                 resize_area,
                                  swap_channels, text_size, to_gray, to_hls,
                                  to_hsv, to_lab, to_rgb, warp_affine,
                                  warp_perspective, dilate)
@@ -1139,3 +1142,237 @@ def test_a_flat_neighbourhood_does_not_move_the_corner():
     flat = np.full((40, 40), 128, dtype=np.uint8)
     seeded = np.array([[20.0, 20.0]])
     assert np.array_equal(corner_subpix(flat, seeded.copy()), seeded)
+
+
+# ----------------------------------------------------------------------------
+# Farneback optical flow
+
+
+def _drifting_pair(shift_x=3, shift_y=2, width=96, height=72):
+    """Two crops of one textured field, the second moved by a whole shift.
+
+    Textured because a flow estimator has nothing to measure on flat ground,
+    and blurred because the polynomial fit wants a field it can fit -- which
+    is also what a real frame looks like once a lens has been through it.
+    """
+    rng = np.random.default_rng(4)
+    field = (rng.random((height + 16, width + 16)) * 255).astype(np.float32)
+    field = gaussian_blur(field, 7, 2.0)
+
+    first = np.ascontiguousarray(
+        field[8:8 + height, 8:8 + width].astype(np.uint8))
+    second = np.ascontiguousarray(
+        field[8 + shift_y:8 + shift_y + height,
+              8 + shift_x:8 + shift_x + width].astype(np.uint8))
+
+    return first, second
+
+
+def test_optical_flow_returns_two_planes_of_float():
+    first, second = _drifting_pair()
+    flow = optical_flow(first, second)
+    assert flow.shape == (first.shape[0], first.shape[1], 2)
+    assert flow.dtype == np.float32
+
+
+def test_optical_flow_finds_the_shift_it_was_given():
+    """A whole-frame translation of (3, 2) should read as (-3, -2): the flow
+    says where a pixel of the first frame went, and a second frame cropped
+    three to the right shows the scene having moved three to the left."""
+    first, second = _drifting_pair(3, 2)
+    flow = optical_flow(first, second)
+
+    middle = flow[20:-20, 20:-20]
+    assert abs(np.median(middle[:, :, 0]) + 3.0) < 0.1
+    assert abs(np.median(middle[:, :, 1]) + 2.0) < 0.1
+
+
+def test_optical_flow_of_a_frame_with_itself_is_still():
+    """Away from the rim. The rim is **not** still, and that is OpenCV's
+    rather than a defect: a pixel on the last row or column has no neighbour
+    to interpolate the second frame's fit from, so that fit is taken as zero
+    instead of as the first frame's and the difference reads as motion, and
+    the coarser pyramid levels then carry a little of it inward.
+    `cv2.calcOpticalFlowFarneback` puts the same 0.047 in the same corner of
+    the same pair, to within 6e-8, and the same 4e-4 ten pixels in.
+    """
+    first, _ = _drifting_pair()
+    flow = optical_flow(first, first)
+    assert np.abs(flow[10:-10, 10:-10]).max() < 1e-3
+
+
+def test_optical_flow_of_flat_ground_is_still():
+    """No gradient means no displacement to measure, and the 1e-3 on the
+    determinant is what keeps that from being a division by zero."""
+    flat = np.full((64, 64), 120, dtype=np.uint8)
+    flow = optical_flow(flat, flat)
+    assert np.abs(flow).max() < 1e-6
+
+
+def test_optical_flow_wants_two_frames_of_a_size():
+    first, _ = _drifting_pair()
+    with pytest.raises(ValueError):
+        optical_flow(first, np.zeros((10, 10), dtype=np.uint8))
+
+
+def test_optical_flow_wants_a_single_plane():
+    with pytest.raises((ValueError, TypeError)):
+        optical_flow(np.zeros((32, 32, 3), dtype=np.uint8),
+                     np.zeros((32, 32, 3), dtype=np.uint8))
+
+
+@pytest.mark.parametrize("bad", [
+    {"pyr_scale": 1.0},
+    {"pyr_scale": 0.0},
+    {"levels": -1},
+    {"winsize": 0},
+    {"poly_n": 0},
+])
+def test_optical_flow_refuses_a_parameter_out_of_range(bad):
+    first, second = _drifting_pair()
+    with pytest.raises(ValueError):
+        optical_flow(first, second, **bad)
+
+
+def test_optical_flow_takes_more_levels_than_the_frame_can_hold():
+    """The pyramid stops at 32 pixels, so asking for ten levels of a small
+    frame builds however many fit rather than shrinking to nothing."""
+    first, second = _drifting_pair(3, 2)
+    flow = optical_flow(first, second, levels=10)
+    middle = flow[20:-20, 20:-20]
+    assert abs(np.median(middle[:, :, 0]) + 3.0) < 0.1
+
+
+# ----------------------------------------------------------------------------
+# Corners to track, and following them
+
+
+def _corner_field(width=160, height=120):
+    """A field with corners in it: a grid of squares, blurred."""
+    out = np.zeros((height, width), np.uint8)
+    out[::20, :] = 200
+    out[:, ::20] = 200
+    for y in range(10, height, 20):
+        for x in range(10, width, 20):
+            out[y:y + 6, x:x + 6] = 255
+    return gaussian_blur(out, 3, 1.0)
+
+
+def test_min_eigen_value_is_large_at_a_corner_and_small_along_an_edge():
+    image = np.zeros((60, 60), np.uint8)
+    image[20:40, 20:40] = 255
+    image = gaussian_blur(image, 5, 1.0)
+
+    strength = min_eigen_value(image)
+
+    # The corner of the square against the middle of one of its edges
+    assert strength[20, 20] > strength[30, 20] * 5
+    assert strength[5, 5] < strength[20, 20] * 0.01
+
+
+def test_min_eigen_value_is_one_plane_of_float():
+    out = min_eigen_value(_corner_field())
+    assert out.shape == (120, 160)
+    assert out.dtype == np.float32
+
+
+def test_good_features_finds_the_corners_and_keeps_them_apart():
+    corners = good_features_to_track(_corner_field(), max_corners=200,
+                                     quality_level=0.01, min_distance=10.0)
+    assert corners.shape[1] == 2
+    assert len(corners) > 20
+
+    gaps = np.linalg.norm(corners[:, None, :] - corners[None, :, :], axis=2)
+    gaps[np.arange(len(corners)), np.arange(len(corners))] = np.inf
+    assert gaps.min() >= 10.0
+
+
+def test_good_features_honours_the_limit():
+    corners = good_features_to_track(_corner_field(), max_corners=7,
+                                     min_distance=5.0)
+    assert len(corners) == 7
+
+
+def test_good_features_returns_them_strongest_first():
+    field = _corner_field()
+    corners = good_features_to_track(field, max_corners=20, min_distance=10.0)
+    strength = min_eigen_value(field)
+    values = [strength[int(y), int(x)] for x, y in corners]
+    assert values == sorted(values, reverse=True)
+
+
+def test_good_features_finds_nothing_on_flat_ground():
+    """Every pixel is equally strong, so every pixel ties with its
+    neighbours and none of them is a local maximum."""
+    flat = np.full((60, 60), 100, np.uint8)
+    assert len(good_features_to_track(flat)) == 0
+
+
+def test_lucas_kanade_follows_a_translation():
+    field = _corner_field(200, 160)
+    first = np.ascontiguousarray(field[10:150, 10:190])
+    second = np.ascontiguousarray(field[13:153, 15:195])   # moved (5, 3)
+
+    points = good_features_to_track(first, max_corners=100,
+                                    min_distance=10.0)
+    moved, status = lucas_kanade(first, second, points)
+
+    assert moved.shape == points.shape
+    assert status.shape == (len(points),)
+
+    followed = status == 1
+    assert followed.sum() > len(points) * 0.8
+
+    step = moved[followed] - points[followed]
+    assert abs(np.median(step[:, 0]) + 5.0) < 0.2
+    assert abs(np.median(step[:, 1]) + 3.0) < 0.2
+
+
+def test_lucas_kanade_leaves_a_still_frame_alone():
+    field = _corner_field()
+    points = good_features_to_track(field, max_corners=50, min_distance=10.0)
+    moved, status = lucas_kanade(field, field, points)
+    assert np.abs(moved[status == 1] - points[status == 1]).max() < 1e-4
+
+
+def test_lucas_kanade_refuses_a_point_with_no_corner_under_it():
+    flat = np.full((80, 80), 100, np.uint8)
+    points = np.array([[40.0, 40.0]], np.float32)
+    _moved, status = lucas_kanade(flat, flat, points)
+    assert status[0] == 0
+
+
+def test_lucas_kanade_wants_pairs():
+    field = _corner_field()
+    with pytest.raises(ValueError):
+        lucas_kanade(field, field, np.zeros((3, 3), np.float32))
+
+
+def test_lucas_kanade_wants_two_frames_of_a_size():
+    field = _corner_field()
+    with pytest.raises(ValueError):
+        lucas_kanade(field, np.zeros((10, 10), np.uint8),
+                     np.zeros((1, 2), np.float32))
+
+
+def test_the_pyramid_stops_before_the_window_stops_fitting():
+    """A level no bigger than the window is not a level a point can be
+    matched on, and OpenCV stops the pyramid before building one. Asking for
+    more levels than fit has to give the same answer as asking for exactly
+    as many, and on a **periodic** scene it visibly does not if the extra
+    level is built: the coarse estimate locks onto the wrong repeat of the
+    pattern and the point never finds its way back.
+    """
+    field = _corner_field(200, 160)
+    first = np.ascontiguousarray(field[10:150, 10:190])
+    second = np.ascontiguousarray(field[13:153, 15:195])
+
+    points = good_features_to_track(first, max_corners=100,
+                                    min_distance=10.0)
+
+    settled, settled_status = lucas_kanade(first, second, points, levels=2)
+
+    for asked in (3, 5, 9):
+        moved, status = lucas_kanade(first, second, points, levels=asked)
+        assert np.array_equal(status, settled_status)
+        assert np.array_equal(moved, settled)

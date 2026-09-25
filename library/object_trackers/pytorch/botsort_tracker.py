@@ -27,11 +27,13 @@ import scipy.optimize
 import scipy.linalg
 import scriptconfig as scfg
 
+from viame import image_kernels
 from viame.algo import TrackObjects
 from viame.types import ObjectTrackSet, ObjectTrackState, Track
 from viame.object_detectors.base import report_cuda_errors
 from viame.object_trackers.common.kalman import KalmanFilter
 from viame.object_trackers.common.track_state import TrackState
+from viame.utilities import geometry
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,12 @@ class CameraMotionCompensation:
     Estimates camera motion between frames using sparse optical flow.
 
     Computes homography transformation to compensate for camera movement.
+
+    Shi-Tomasi corners, followed by pyramidal Lucas-Kanade, fitted with a
+    RANSAC homography -- all three from `image_kernels` and `utilities`
+    rather than cv2. The corner list is the same list OpenCV returns, to the
+    pixel, and the tracked positions are within a thousandth of a pixel of
+    `cv2.calcOpticalFlowPyrLK`'s.
     """
 
     def __init__(self, method="sparse_flow"):
@@ -51,14 +59,25 @@ class CameraMotionCompensation:
         self.prev_frame = None
         self.prev_keypoints = None
 
-        try:
-            import cv2
+    @staticmethod
+    def _gray(frame):
+        """The frame as one plane.
 
-            self.cv2 = cv2
-            self._available = True
-        except ImportError:
-            self._available = False
-            logger.warning("OpenCV not available, CMC disabled")
+        `image.asarray()` hands this **RGB**, which is what VIAME carries
+        internally, and the conversion weights the channels -- so the
+        `COLOR_BGR2GRAY` this used to ask cv2 for was reading the red
+        channel as blue and the blue as red. The weights are the right way
+        round now, which moves the corner list a little on a strongly
+        coloured frame and not at all on a grey one.
+        """
+        if frame.ndim == 2:
+            return np.ascontiguousarray(frame, dtype=np.uint8)
+
+        if frame.shape[2] >= 3:
+            return image_kernels.to_gray(
+                np.ascontiguousarray(frame[:, :, :3], dtype=np.uint8))
+
+        return np.ascontiguousarray(frame[:, :, 0], dtype=np.uint8)
 
     def compute_homography(self, frame):
         """
@@ -66,14 +85,7 @@ class CameraMotionCompensation:
 
         Returns identity if no previous frame or not enough matches.
         """
-        if not self._available:
-            return np.eye(3)
-
-        gray = (
-            self.cv2.cvtColor(frame, self.cv2.COLOR_BGR2GRAY)
-            if len(frame.shape) == 3
-            else frame
-        )
+        gray = self._gray(frame)
 
         if self.prev_frame is None:
             self.prev_frame = gray
@@ -87,23 +99,14 @@ class CameraMotionCompensation:
             return np.eye(3)
 
         try:
-            next_pts, status, _ = self.cv2.calcOpticalFlowPyrLK(
-                self.prev_frame,
-                gray,
-                self.prev_keypoints,
-                None,
-                winSize=(21, 21),
-                maxLevel=3,
-                criteria=(
-                    self.cv2.TERM_CRITERIA_EPS | self.cv2.TERM_CRITERIA_COUNT,
-                    30,
-                    0.01,
-                ),
-            )
+            next_pts, status = image_kernels.lucas_kanade(
+                self.prev_frame, gray, self.prev_keypoints,
+                win_width=21, win_height=21, levels=3, iterations=30,
+                epsilon=0.01)
 
             # Filter good matches
-            good_prev = self.prev_keypoints[status.flatten() == 1]
-            good_next = next_pts[status.flatten() == 1]
+            good_prev = self.prev_keypoints[status == 1]
+            good_next = next_pts[status == 1]
 
             if len(good_prev) < 4:
                 self.prev_frame = gray
@@ -111,9 +114,8 @@ class CameraMotionCompensation:
                 return np.eye(3)
 
             # Estimate homography with RANSAC
-            H, mask = self.cv2.findHomography(
-                good_prev, good_next, self.cv2.RANSAC, 5.0
-            )
+            H, _mask = geometry.find_homography(good_prev, good_next,
+                                                threshold=5.0)
 
             if H is None:
                 H = np.eye(3)
@@ -129,10 +131,8 @@ class CameraMotionCompensation:
 
     def _detect_keypoints(self, gray):
         """Detect keypoints for optical flow tracking."""
-        corners = self.cv2.goodFeaturesToTrack(
-            gray, maxCorners=1000, qualityLevel=0.01, minDistance=10
-        )
-        return corners if corners is not None else np.array([])
+        return image_kernels.good_features_to_track(
+            gray, max_corners=1000, quality_level=0.01, min_distance=10.0)
 
     def apply_cmc(self, tracks, homography):
         """

@@ -27,6 +27,7 @@
 #include <viame/image_kernels/histogram.h>
 #include <viame/image_kernels/match.h>
 #include <viame/image_kernels/morphology.h>
+#include <viame/image_kernels/optical_flow.h>
 #include <viame/image_kernels/resample.h>
 #include <viame/image_kernels/warp.h>
 #include <viame/image_kernels/watershed.h>
@@ -852,6 +853,114 @@ distance_transform( array_of< T > const& array )
 }
 
 template < typename T >
+py::array_t< float >
+good_features( array_of< T > const& array, int max_corners,
+               double quality_level, double min_distance, int block_size,
+               int aperture )
+{
+  auto const found = viame::image_kernels::good_features_to_track(
+    as_image( array ), max_corners, quality_level, min_distance, block_size,
+    aperture );
+
+  py::array_t< float > out( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( found.size() ), 2 } );
+
+  auto* destination = out.mutable_data();
+
+  for( auto const& corner : found )
+  {
+    *destination++ = corner.first;
+    *destination++ = corner.second;
+  }
+
+  return out;
+}
+
+template < typename T >
+py::array
+min_eigen_value( array_of< T > const& array, int block_size, int aperture )
+{
+  return as_array( viame::image_kernels::min_eigen_value(
+    as_image( array ), block_size, aperture ), false );
+}
+
+py::tuple
+lucas_kanade( array_of< uint8_t > const& first,
+              array_of< uint8_t > const& second,
+              py::array_t< float, py::array::c_style > const& points,
+              int win_width, int win_height, int levels, int iterations,
+              double epsilon, double min_eigen )
+{
+  auto const buffer = points.request();
+
+  if( !( buffer.ndim == 2 && buffer.shape[ 1 ] == 2 ) )
+  {
+    throw std::invalid_argument(
+      "lucas_kanade wants an N by 2 array of x, y" );
+  }
+
+  auto const count = static_cast< size_t >( buffer.shape[ 0 ] );
+  auto const* source = static_cast< float const* >( buffer.ptr );
+
+  std::vector< std::pair< float, float > > wanted;
+  wanted.reserve( count );
+
+  for( size_t i = 0; i < count; ++i )
+  {
+    wanted.emplace_back( source[ i * 2 ], source[ i * 2 + 1 ] );
+  }
+
+  viame::image_kernels::lucas_kanade_params params;
+  params.win_width = win_width;
+  params.win_height = win_height;
+  params.levels = levels;
+  params.iterations = iterations;
+  params.epsilon = epsilon;
+  params.min_eigen = min_eigen;
+
+  std::vector< uint8_t > status;
+
+  auto const moved = viame::image_kernels::lucas_kanade_flow(
+    as_image( first ), as_image( second ), wanted, status, params );
+
+  py::array_t< float > places( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( moved.size() ), 2 } );
+  py::array_t< uint8_t > kept( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( status.size() ) } );
+
+  auto* place = places.mutable_data();
+  auto* keep = kept.mutable_data();
+
+  for( size_t i = 0; i < moved.size(); ++i )
+  {
+    *place++ = moved[ i ].first;
+    *place++ = moved[ i ].second;
+    keep[ i ] = status[ i ];
+  }
+
+  return py::make_tuple( places, kept );
+}
+
+template < typename T >
+py::array
+optical_flow( array_of< T > const& first, array_of< T > const& second,
+              double pyr_scale, int levels, int winsize, int iterations,
+              int poly_n, double poly_sigma )
+{
+  viame::image_kernels::farneback_params params;
+  params.pyr_scale = pyr_scale;
+  params.levels = levels;
+  params.winsize = winsize;
+  params.iterations = iterations;
+  params.poly_n = poly_n;
+  params.poly_sigma = poly_sigma;
+
+  return as_array(
+    viame::image_kernels::farneback_optical_flow(
+      as_image( first ), as_image( second ), params ), true );
+}
+
+template < typename T >
 py::list
 find_borders( array_of< T > const& array )
 {
@@ -1513,6 +1622,45 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "cv2.copyMakeBorder. `border` is constant, replicate, reflect, "
          "reflect_101 or wrap, and `value` is used by constant alone -- as "
          "OpenCV's is." );
+
+  for_both_pixel_types( m, "good_features_to_track",
+         &good_features< uint8_t >, &good_features< float >,
+         py::arg( "image" ), py::arg( "max_corners" ) = 1000,
+         py::arg( "quality_level" ) = 0.01,
+         py::arg( "min_distance" ) = 10.0, py::arg( "block_size" ) = 3,
+         py::arg( "aperture" ) = 3,
+         "cv2.goodFeaturesToTrack with the Shi-Tomasi measure -- the Harris "
+         "one is not offered. Returns an N by 2 float32 array of x, y, "
+         "strongest first, thinned so that no two are within "
+         "`min_distance`. `max_corners` at or below zero means no limit." );
+
+  for_both_pixel_types( m, "min_eigen_value", &min_eigen_value< uint8_t >,
+         &min_eigen_value< float >, py::arg( "image" ),
+         py::arg( "block_size" ) = 3, py::arg( "aperture" ) = 3,
+         "cv2.cornerMinEigenVal: the smaller eigenvalue of the gradient "
+         "covariance over a block, which is large only where the gradient "
+         "points two ways at once. `aperture` has to be 3." );
+
+  m.def( "lucas_kanade", &lucas_kanade, py::arg( "first" ),
+         py::arg( "second" ), py::arg( "points" ),
+         py::arg( "win_width" ) = 21, py::arg( "win_height" ) = 21,
+         py::arg( "levels" ) = 3, py::arg( "iterations" ) = 30,
+         py::arg( "epsilon" ) = 0.01, py::arg( "min_eigen" ) = 1e-4,
+         "cv2.calcOpticalFlowPyrLK. Returns the moved points as an N by 2 "
+         "float32 array and a uint8 status, 1 where the point was followed. "
+         "`epsilon` is squared and compared against the squared step, as "
+         "OpenCV's is." );
+
+  for_every_pixel_type( m, "optical_flow", &optical_flow< uint8_t >,
+         &optical_flow< uint16_t >, &optical_flow< float >,
+         py::arg( "first" ), py::arg( "second" ),
+         py::arg( "pyr_scale" ) = 0.5, py::arg( "levels" ) = 3,
+         py::arg( "winsize" ) = 15, py::arg( "iterations" ) = 3,
+         py::arg( "poly_n" ) = 5, py::arg( "poly_sigma" ) = 1.2,
+         "cv2.calcOpticalFlowFarneback with `flags` at zero. Returns an "
+         "H by W by 2 float32 array of the displacement from `first` to "
+         "`second`, horizontal first, in pixels. Both images are a single "
+         "plane." );
 
   for_both_pixel_types( m, "watershed", &watershed< uint8_t >,
          &watershed< uint16_t >, py::arg( "image" ), py::arg( "markers" ),

@@ -2757,3 +2757,112 @@ count downstream. Anything that bins, thresholds, sorts or indexes on a pixel
 value -- a histogram, a watershed queue, a label -- can turn the last bit into
 a visible amount, and "within one of OpenCV" is only a useful statement about
 a step whose output is read as a number rather than used as a key.
+
+## 2.36 OpenCV moved its greyscale by one bit, and our copy stayed
+
+`image_kernels`' `rgb_to_gray` was written to be OpenCV's greyscale exactly,
+and it was:
+
+    gray = ( R*4899 + G*9617 + B*1868 + (1 << 13) ) >> 14
+
+BT.601 at fourteen fractional bits, which is what `modules/imgproc` used
+through OpenCV 4. The build ships OpenCV **5.0**, which uses fifteen:
+
+    gray = ( R*9798 + G*19235 + B*3735 + (1 << 14) ) >> 15
+
+and the two are not the same conversion. The extra bit does not simply double
+the weights -- green gains a count and blue loses one -- so the answers differ
+by one grey level on about **a quarter of a percent** of colours.
+
+It had been invisible for two reasons, both of which are worth noticing.
+
+The first is that the golden that checks it, `color.rgb_to_gray_matches_opencv`,
+was recorded with a tolerance of **1**, which is exactly the size of the gap.
+A tolerance wide enough to absorb a rounding difference is also wide enough to
+absorb a version change, and the test kept passing while the thing it was
+holding us to moved. A tolerance is a statement about precision; it is not a
+statement that the implementation underneath is still the same one.
+
+The second is that nothing downstream read a single grey level as a number.
+The moment one did -- `ocv_optical_flow`, where the greyscale feeds a
+polynomial fit and the result is scaled by 255/8 into a byte -- the quarter of
+a percent became **5.9% of the output pixels moved, by up to three counts**,
+with the flow itself reproduced to 7e-5 of a pixel. The port looked wrong and
+the port was right; the conversion in front of it was a version out of date.
+
+Finding the current weights took a fit rather than a reading: the shift and
+the three coefficients were searched over a small range around BT.601, with
+the constraint that they sum to `1 << shift` so that white stays white, and
+scored against `cv2.cvtColor` on 22500 random colours. One candidate matched
+on every pixel, at every shift that is a multiple of it -- 15, 16, 17 and 18
+all describe the same conversion -- and fourteen does not. That is worth
+keeping as a method: **when a constant has to agree with a library, fit it to
+the library rather than to the paper**, because the library is the thing the
+recordings were made with.
+
+With the shift corrected the optical flow golden goes from 5.9% of pixels
+moved to **one pixel in seventy thousand, by one count**, which is the byte
+truncation catching a magnitude that sits within a millionth of a grey level
+of the boundary, and is the tolerance `ocv_optical_flow` now carries.
+
+## 2.37 Canny came back exactly; the circle transform's radius did not
+
+`hough_circle` is the one detector left whose only cv2 call is an algorithm
+rather than a primitive, and it is two algorithms: `cv::Canny` and
+`cv::HoughCircles` under `HOUGH_GRADIENT`, which runs Canny itself. Both were
+prototyped and measured before anything was written in C++, and the two
+results are worth recording separately because they came out differently.
+
+**Canny reproduced bit for bit, first try**, over a noise field and a disc, at
+three threshold pairs, in both L1 and L2 gradient: not one pixel of 4800
+differs from `cv2.Canny` in any of the twelve runs. The details that have to
+be right are the 16-bit Sobel with a replicated border, the quantisation of
+the gradient direction by comparing `|dy| << 15` against `|dx| * TG22` rather
+than by an angle, and the two conditions on the push -- a candidate is only
+seeded if the **previous column** was not seeded and the pixel above is not
+already an edge, which is what keeps a thick ridge from seeding along its
+whole length.
+
+**The circle transform's radius estimate is not the one the literature or the
+old source describes.** The accumulation is as expected -- each edge pixel
+votes along its own gradient, in both directions, from `min_radius` to
+`max_radius`, in a 1/1024 fixed point -- and the **centres came out exactly
+right at `dp = 1`** on the first attempt. The radii did not, and the reason is
+that OpenCV no longer picks the radius by sorting the distances from the
+centre and walking them. It bins them:
+
+    bins_per_dr = 10
+    n_bins      = round((max_radius - min_radius) / dr * bins_per_dr)
+    bin         = clamp(round((distance - min_radius) / dr * bins_per_dr))
+
+and then sweeps the histogram from the top, taking a window of `bins_per_dr`
+bins at a time and keeping the window whose count, weighted against its own
+radius, is the best so far. That is why every radius it returns is a multiple
+of `dp/20`: 19.4, 9.6, 5.5 at `dp = 1`, and 18.8, 12.6, 6.2 at `dp = 2`. A
+port that sorts distances instead lands within a pixel and never exactly.
+
+With the histogram in, and with the outer loop's own decrement -- which fires
+*after* the inner window loop has already walked the index back, and which is
+the whole of a 0.4 pixel error -- the transform matched `cv2.HoughCircles`
+exactly, centre and radius, on a three-circle scene at `dp = 1` and three
+`param2` values. **That was not enough evidence, and widening the sweep said
+so**: over three scenes, two minimum distances, four thresholds and two radius
+ranges, eight of forty-eight configurations still disagree, and they disagree
+by cv2 finding centres the port does not. The lesson is the one the count has
+already taught twice this phase -- a port is not done because the case in
+front of you passes; it is done when the sweep passes.
+
+Where the remaining difference lives is fairly clear and is not settled here.
+The peak test picks a cell that beats its four neighbours, and whether each
+comparison is strict decides what happens on a plateau: at `dp = 2` two of
+cv2's centres sit on cells that **equal** their right or lower neighbour, so
+OpenCV cannot be strict in all four directions, and making it non-strict to
+the right and below then adds centres at `dp = 1` that cv2 does not report.
+The rule cannot be fitted from the outside, because cv2 never shows its centre
+list: what it returns has already been filtered by the radius histogram's own
+count. Settling it wants the accumulator instrumented from inside, which is
+the next attempt's first move.
+
+So the port is not landed. What is landed is this note, with the histogram
+written out, so that attempt starts from the two answers rather than from the
+literature.

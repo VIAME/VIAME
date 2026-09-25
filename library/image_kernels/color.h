@@ -46,11 +46,19 @@ constexpr double bt601_blue = 0.114;
 
 namespace detail {
 
-/// OpenCV's fixed-point luminance weights: BT.601 at 14 fractional bits.
-constexpr int gray_shift = 14;
-constexpr int gray_red = 4899;      // 0.299 * (1 << 14), rounded
-constexpr int gray_green = 9617;    // 0.587 * (1 << 14), rounded
-constexpr int gray_blue = 1868;     // 0.114 * (1 << 14), rounded
+/// OpenCV's fixed-point luminance weights: BT.601 at 15 fractional bits.
+///
+/// Fifteen, not the fourteen OpenCV used up to version 4. The three weights
+/// are not simply doubled by the extra bit -- green gains a count and blue
+/// loses one -- so the two disagree by one grey level on about a quarter of
+/// a percent of pixels, which is enough to move a corner or a descriptor
+/// downstream. Found by fitting the shift and the three weights to what the
+/// installed `cv2.cvtColor(..., COLOR_RGB2GRAY)` returns: these reproduce it
+/// on every one of 22500 random colours, and the fourteen bit set does not.
+constexpr int gray_shift = 15;
+constexpr int gray_red = 9798;      // 0.299 * (1 << 15), rounded
+constexpr int gray_green = 19235;   // 0.587 * (1 << 15), rounded
+constexpr int gray_blue = 3735;     // 0.114 * (1 << 15), rounded
 
 /// One integer luminance, rounded the way OpenCV rounds it.
 inline int
