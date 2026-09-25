@@ -31,7 +31,10 @@ from viame.image_kernels._image_kernels import (  # noqa: F401
     from_lab,
     gaussian_blur,
     label_components,
+    make_border,
+    match_template,
     min_area_rect,
+    morphology,
     normalize,
     remap as _remap,
     resize,
@@ -45,6 +48,7 @@ from viame.image_kernels._image_kernels import (  # noqa: F401
     to_rgb,
     warp_affine as _warp_affine,
     warp_perspective as _warp_perspective,
+    watershed,
 )
 
 __all__ = [
@@ -73,7 +77,10 @@ __all__ = [
     "from_lab",
     "gaussian_blur",
     "label_components",
+    "make_border",
+    "match_template",
     "min_area_rect",
+    "morphology",
     "normalize",
     "remap",
     "resize",
@@ -87,6 +94,7 @@ __all__ = [
     "to_rgb",
     "warp_affine",
     "warp_perspective",
+    "watershed",
 ]
 
 

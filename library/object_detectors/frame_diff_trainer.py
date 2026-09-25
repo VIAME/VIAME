@@ -49,6 +49,7 @@ import os
 import numpy as np
 
 from viame.algo import TrainDetector
+from viame import image_kernels
 
 
 def _to_grey(image):
@@ -65,22 +66,30 @@ def three_frame_diff(prev_img, cur_img, next_img):
 
 
 def boxes_from_mask(mask, open_r, close_r, min_area, max_area, min_fill):
-    import cv2
+    from viame import image_kernels
+
     m = mask.astype(np.uint8)
     if open_r > 0:
-        k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
-                                      (2 * open_r + 1, 2 * open_r + 1))
-        m = cv2.morphologyEx(m, cv2.MORPH_OPEN, k)
+        size = 2 * open_r + 1
+        m = image_kernels.morphology(m, "open", "disk", size, size)
     if close_r > 0:
-        k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,
-                                      (2 * close_r + 1, 2 * close_r + 1))
-        m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, k)
-    n, _, stats, _ = cv2.connectedComponentsWithStats(m, connectivity=8)
+        size = 2 * close_r + 1
+        m = image_kernels.morphology(m, "close", "disk", size, size)
+    n, labels = image_kernels.label_components(m, 8)
+
+    # `connectedComponentsWithStats` returned a row of
+    # (left, top, width, height, area) per label. The same five numbers come
+    # out of the label image directly, and label 0 is the background.
     out = []
     for i in range(1, n):
-        x, y, w, h, a = stats[i]
+        ys, xs = np.where(labels == i)
+        if not len(xs):
+            continue
+        a = len(xs)
         if a < min_area or a > max_area:
             continue
+        x, y = int(xs.min()), int(ys.min())
+        w, h = int(xs.max()) - x + 1, int(ys.max()) - y + 1
         if w * h <= 0 or a / float(w * h) < min_fill:
             continue
         out.append((float(x), float(y), float(x + w), float(y + h)))
@@ -260,7 +269,7 @@ class FrameDiffTrainer(TrainDetector):
         """Motion images and groundtruth for a sample of annotated frames, at
         one separation, plus the in-box and background motion statistics the
         threshold is derived from."""
-        import cv2
+        from viame.utilities import imageops
 
         files, dets = self._train_files, self._train_dets
         usable = [i for i in range(sep, len(files) - sep)
@@ -277,7 +286,7 @@ class FrameDiffTrainer(TrainDetector):
 
         for i in usable:
             try:
-                imgs = [cv2.imread(files[j], cv2.IMREAD_GRAYSCALE)
+                imgs = [imageops.read_image(files[j], grayscale=True)
                         for j in (i - sep, i, i + sep)]
             except Exception:
                 continue

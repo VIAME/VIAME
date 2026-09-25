@@ -13,7 +13,6 @@ watershed algorithm.
 
 import sys
 
-import cv2
 import numpy as np
 import scriptconfig as scfg
 
@@ -132,7 +131,7 @@ class WatershedSegmenter(SegmentViaPoints):
         # uint8 first: the channel conversions below are the kernels', and
         # they take the pixel types a pipeline carries rather than casting
         # whatever they are given. This ran the other way round when it was
-        # cv2, which converted silently.
+        # OpenCV, which converted silently.
         if img_array.dtype != np.uint8:
             if img_array.max() <= 1.0:
                 img_array = (img_array * 255).astype(np.uint8)
@@ -191,11 +190,13 @@ class WatershedSegmenter(SegmentViaPoints):
 
         # Draw foreground markers (label 1)
         for x, y in fg_points:
-            cv2.circle(markers, (x, y), self._config.foreground_radius, 1, -1)
+            image_kernels.draw_circle(
+                markers, x, y, self._config.foreground_radius, 1, -1)
 
         # Draw background markers (label 2)
         for x, y in bg_points:
-            cv2.circle(markers, (x, y), self._config.background_radius, 2, -1)
+            image_kernels.draw_circle(
+                markers, x, y, self._config.background_radius, 2, -1)
 
         # If no background points provided, create automatic background markers
         # at the edges of the expanded bounding box
@@ -213,45 +214,39 @@ class WatershedSegmenter(SegmentViaPoints):
         if blur_size > 0:
             if blur_size % 2 == 0:
                 blur_size += 1
-            img_processed = cv2.GaussianBlur(img_processed, (blur_size, blur_size), 0)
+            img_processed = image_kernels.gaussian_blur(
+                img_processed, blur_size)
 
         # Apply watershed
-        cv2.watershed(img_processed, markers)
+        image_kernels.watershed(img_processed, markers)
 
         # Create binary mask from watershed result
         # Watershed labels: -1 = boundary, 1 = foreground, 2 = background
         mask = (markers == 1).astype(np.uint8)
 
         # Post-process mask
-        kernel = np.ones(
-            (self._config.morph_kernel_size, self._config.morph_kernel_size), np.uint8
-        )
+        size = self._config.morph_kernel_size
 
         # Close small holes
-        mask = cv2.morphologyEx(
-            mask, cv2.MORPH_CLOSE, kernel, iterations=self._config.morph_iterations
-        )
+        mask = image_kernels.morphology(
+            mask, "close", "rect", size, size,
+            self._config.morph_iterations)
 
         # Remove small noise
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
+        mask = image_kernels.morphology(mask, "open", "rect", size, size)
 
         # Fill holes if requested
         if self._parse_bool(self._config.fill_holes):
             # Find contours and fill
-            contours, _ = cv2.findContours(
-                mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-            )
-            cv2.drawContours(mask, contours, -1, 1, -1)
+            for contour in image_kernels.find_contours(mask):
+                image_kernels.fill_polygon(mask, contour, 1)
 
         # Filter by minimum area
         if self._config.min_area > 0:
-            contours, _ = cv2.findContours(
-                mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-            )
             mask_filtered = np.zeros_like(mask)
-            for cnt in contours:
-                if cv2.contourArea(cnt) >= self._config.min_area:
-                    cv2.drawContours(mask_filtered, [cnt], -1, 1, -1)
+            for contour in image_kernels.find_contours(mask):
+                if image_kernels.contour_area(contour) >= self._config.min_area:
+                    image_kernels.fill_polygon(mask_filtered, contour, 1)
             mask = mask_filtered
 
         # Create detected object set

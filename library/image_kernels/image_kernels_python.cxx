@@ -23,9 +23,11 @@
 #include <viame/image_kernels/draw.h>
 #include <viame/image_kernels/filter.h>
 #include <viame/image_kernels/histogram.h>
+#include <viame/image_kernels/match.h>
 #include <viame/image_kernels/morphology.h>
 #include <viame/image_kernels/resample.h>
 #include <viame/image_kernels/warp.h>
+#include <viame/image_kernels/watershed.h>
 
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -899,6 +901,109 @@ filter_2d( array_of< T > const& array,
     array.ndim() == 3 );
 }
 
+template < typename T >
+py::array
+match_template( array_of< T > const& array, array_of< T > const& pattern )
+{
+  return as_array(
+    viame::image_kernels::match_template_ncc( as_image( array ),
+                                              as_image( pattern ) ),
+    false );
+}
+
+/// `cv2.morphologyEx` for the two compositions VIAME asks for.
+template < typename T >
+py::array
+morphology( array_of< T > const& array, std::string const& operation,
+            std::string const& shape, int width, int height, int iterations )
+{
+  auto const element = as_element( shape, width, height );
+  auto image = as_image( array );
+  viame::image_of< T > work( image );
+
+  bool const opening = ( operation == "open" );
+
+  if( !opening && operation != "close" )
+  {
+    throw std::invalid_argument(
+      "morphology operation must be open or close; got '" + operation + "'" );
+  }
+
+  // An opening is an erosion then a dilation and a closing the reverse.
+  // `iterations` applies **each half** that many times -- n erosions and
+  // then n dilations -- rather than repeating the pair, which is what
+  // `cv2.morphologyEx` does and is not the same thing: at three iterations
+  // the two differ by over a hundred grey levels.
+  auto const passes = std::max( 1, iterations );
+
+  auto const first = opening ? &viame::image_kernels::grey_erode< T >
+                             : &viame::image_kernels::grey_dilate< T >;
+  auto const second = opening ? &viame::image_kernels::grey_dilate< T >
+                              : &viame::image_kernels::grey_erode< T >;
+
+  for( int pass = 0; pass < passes; ++pass ) { work = first( work, element ); }
+  for( int pass = 0; pass < passes; ++pass ) { work = second( work, element ); }
+
+  return as_array( work, array.ndim() == 3 );
+}
+
+/// `cv2.copyMakeBorder` with a constant, which is the only mode asked for.
+template < typename T >
+py::array
+make_border( array_of< T > const& array, size_t top, size_t bottom,
+             size_t left, size_t right, py::object const& value )
+{
+  auto const source = as_image( array );
+  auto const paint = as_colour( value );
+
+  viame::image_of< T > out( source.width() + left + right,
+                            source.height() + top + bottom,
+                            source.depth() );
+
+  for( size_t y = 0; y < out.height(); ++y )
+  {
+    for( size_t x = 0; x < out.width(); ++x )
+    {
+      bool const inside =
+        x >= left && y >= top &&
+        x < left + source.width() && y < top + source.height();
+
+      for( size_t d = 0; d < out.depth(); ++d )
+      {
+        out( x, y, d ) = inside
+          ? source( x - left, y - top, d )
+          : viame::image_kernels::saturate_pixel< T >(
+              viame::image_kernels::detail::plane_value( paint, d ) );
+      }
+    }
+  }
+
+  return as_array( out, array.ndim() == 3 );
+}
+
+template < typename T >
+void
+watershed( array_of< T > const& array,
+           py::array_t< int32_t, py::array::c_style >& markers )
+{
+  auto buffer = markers.request( true );
+
+  if( !( buffer.ndim == 2 ||
+         ( buffer.ndim == 3 && buffer.shape[ 2 ] == 1 ) ) )
+  {
+    throw std::invalid_argument( "watershed markers are a single plane" );
+  }
+
+  viame::image_of< int32_t > seeds(
+    static_cast< int32_t* >( buffer.ptr ),
+    static_cast< size_t >( buffer.shape[ 1 ] ),
+    static_cast< size_t >( buffer.shape[ 0 ] ),
+    1, 1,
+    static_cast< ptrdiff_t >( buffer.shape[ 1 ] ), 1 );
+
+  viame::image_kernels::watershed( as_image( array ), seeds );
+}
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _image_kernels, m )
@@ -1121,4 +1226,33 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "constant" ) = 0.0,
          "cv2.filter2D with a two dimensional kernel. Correlation, not "
          "convolution, as OpenCV's is." );
+
+  for_every_pixel_type( m, "match_template", &match_template< uint8_t >,
+         &match_template< uint16_t >, &match_template< float >,
+         py::arg( "image" ), py::arg( "pattern" ),
+         "cv2.matchTemplate with TM_CCOEFF_NORMED, which is the only mode "
+         "VIAME asks for. All planes score together, as OpenCV does, and "
+         "the mean subtracted is per plane." );
+
+  for_every_pixel_type( m, "morphology", &morphology< uint8_t >,
+         &morphology< uint16_t >, &morphology< float >, py::arg( "image" ),
+         py::arg( "operation" ), py::arg( "shape" ) = "rect",
+         py::arg( "width" ) = 3, py::arg( "height" ) = 3,
+         py::arg( "iterations" ) = 1,
+         "cv2.morphologyEx for MORPH_OPEN and MORPH_CLOSE. `iterations` "
+         "repeats the pair, as cv2 does." );
+
+  for_every_pixel_type( m, "make_border", &make_border< uint8_t >,
+         &make_border< uint16_t >, &make_border< float >, py::arg( "image" ),
+         py::arg( "top" ), py::arg( "bottom" ), py::arg( "left" ),
+         py::arg( "right" ), py::arg( "value" ) = 0,
+         "cv2.copyMakeBorder with BORDER_CONSTANT." );
+
+  for_both_pixel_types( m, "watershed", &watershed< uint8_t >,
+         &watershed< uint16_t >, py::arg( "image" ), py::arg( "markers" ),
+         "cv2.watershed: Meyer's flooding over a hierarchical queue, "
+         "modifying `markers` in place. A positive marker seeds a region, "
+         "zero is ground to claim, and where two regions meet the pixel "
+         "becomes -1. The image's one pixel border is -1 by definition, as "
+         "OpenCV's is." );
 }

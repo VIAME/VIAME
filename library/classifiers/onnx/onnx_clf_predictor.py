@@ -11,7 +11,7 @@ in ``[0, 1]`` and returns ``(N, C)`` softmax probabilities. Preprocessing
 matches netharn's datasets: ``kwimage.imresize(..., letterbox=True)``, then
 ``/ 255``.
 
-Requires: onnxruntime, numpy, opencv (cv2).
+Requires: onnxruntime and numpy.
 """
 from __future__ import annotations
 
@@ -26,7 +26,6 @@ def letterbox_resize(image, height, width):
     """Pixel-exact port of ``kwimage.imresize(..., letterbox=True)``: INTER_AREA
     when shrinking, INTER_LANCZOS4 when growing, pad offset rounded rather than
     floored."""
-    import cv2
     from viame import image_kernels
     if image.ndim == 2:
         image = np.repeat(image[..., None], 3, axis=-1)
@@ -49,9 +48,8 @@ def letterbox_resize(image, height, width):
     # smoothest kernel we have where OpenCV reached for Lanczos.
     resize = image_kernels.resize_area if equal_sxy < 1 else image_kernels.resize
     embedded = resize(image, int(embed_size[0]), int(embed_size[1]))
-    return cv2.copyMakeBorder(embedded, int(top), int(bot), int(left),
-                              int(right), borderType=cv2.BORDER_CONSTANT,
-                              value=0)
+    return image_kernels.make_border(embedded, int(top), int(bot),
+                                    int(left), int(right), 0)
 
 
 class OnnxClassifierPredictor:
@@ -118,7 +116,6 @@ class OnnxClassifierPredictor:
 
     # ------------------------------------------------------------------
     def _preprocess(self, image):
-        import cv2
         if self._resize_mode == "letterbox":
             resized = letterbox_resize(image, self._eval_h, self._eval_w)
         else:
