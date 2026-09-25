@@ -21,6 +21,7 @@
 #include <viame/image_kernels/color.h>
 #include <viame/image_kernels/contours.h>
 #include <viame/image_kernels/corners.h>
+#include <viame/image_kernels/distance.h>
 #include <viame/image_kernels/draw.h>
 #include <viame/image_kernels/filter.h>
 #include <viame/image_kernels/histogram.h>
@@ -832,6 +833,14 @@ bounding_rect( py::array_t< double, py::array::c_style | py::array::forcecast >
 /// detector above all, which finds a dark shape as the **hole** in the
 /// lighter region around it and would see nothing at all without them.
 template < typename T >
+py::array
+distance_transform( array_of< T > const& array )
+{
+  return as_array(
+    viame::image_kernels::distance_transform( as_image( array ) ), false );
+}
+
+template < typename T >
 py::list
 find_borders( array_of< T > const& array )
 {
@@ -1405,6 +1414,14 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
 
   m.def( "bounding_rect", &bounding_rect, py::arg( "contour" ),
          "cv2.boundingRect: (x, y, width, height)." );
+
+  for_both_pixel_types( m, "distance_transform",
+         &distance_transform< uint8_t >, &distance_transform< uint16_t >,
+         py::arg( "mask" ),
+         "The distance from each non-zero pixel to the nearest zero, as "
+         "float32. cv2.distanceTransform with DIST_L2 and a mask of 3, which "
+         "is a chamfer approximation and not the Euclidean distance its name "
+         "suggests." );
 
   for_both_pixel_types( m, "find_borders", &find_borders< uint8_t >,
          &find_borders< uint16_t >, py::arg( "mask" ),

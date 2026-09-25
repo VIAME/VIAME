@@ -914,3 +914,51 @@ cv2 and lite-findings 2.35 has the measurements.
 **Green:** BASELINE, UNIT and CORE 475 of 475 with 9 new kernel cases; GOLDEN
 and CRITICAL 10 of 10. `install.txt` unchanged. Our own tree stays at 26 files
 importing cv2.
+
+Two more files off cv2, and a correction to the last entry: it said the
+remaining work all needed one of the open decisions, and that was wrong.
+Several files need none.
+
+**`stereo_frame_selection.py`**: `cv2.kmeans` with `KMEANS_PP_CENTERS`
+replaced by `_kmeans`, Arthur and Vassilvitskii's seeding and Lloyd's
+iteration, best of five attempts by compactness. This one looked like it
+needed a decision and did not: the case is golden-recorded, but the cv2
+k-means only *seeds* a k-medians refinement that runs to convergence, so the
+recorded `frames_6` output is a fixed point both seedings reach.
+`golden:replay` passes unchanged.
+
+The generator is seeded rather than global, which is a small correction to
+what it replaces. OpenCV draws from `cv::theRNG()`, so its clustering depends
+on what else in the process has drawn from it -- which means a recording of
+its output depends on the order the suite runs in. The same data now gives the
+same clustering every time.
+
+**`interactive_stereo.py`**: `matchTemplate`, `imread`, `contourArea`,
+`convexHull` and `fillPoly` all had kernels already; the one gap was
+`distanceTransform`, now `library/image_kernels/distance.h`. Against cv2 with
+`DIST_L2` and a mask of 3: bit identical on a speckle, an all-foreground mask,
+an all-background one and a shape running off the edge, and within 4.8e-7 --
+float32's own rounding -- on a rectangle, a disc and an annulus. One BGR swap
+stays, at the boundary where DINO wants BGR, and says so.
+
+`DIST_L2` with a mask of 3 is a **chamfer approximation and not the Euclidean
+distance its name promises**: Borgefors' step costs, 0.955 sideways and 1.3693
+diagonally, fitted to minimise the worst error rather than to be exact along
+an axis, so even a horizontal run comes out 4.5% short. The header says so and
+a test asserts it, because it is the thing a reader will take for a bug.
+
+Two mistakes of mine worth recording, both caught by measurement rather than
+by review. The sentinel for "no zero anywhere to be distant from" was
+`FLT_MAX / 4` where OpenCV uses `FLT_MAX`, so an all-foreground mask came back
+a different infinity; and a comment claimed the image edge counts as
+background, which is the opposite of what both implementations do and would
+make every mask touching a border read as thin there. And the first test of
+the step cost was wrong rather than the code: it used a one-row strip, where
+every pixel is next to the background above and below, so the whole strip is
+0.955 and the step cost never appears.
+
+**Green:** BASELINE, UNIT and CORE 475 of 475 with 5 new kernel cases (138 in
+`unit:image_kernels:python`); GOLDEN and CRITICAL 10 of 10. `install.txt`
+gains `include/viame/image_kernels/distance.h` -- the headers are installed,
+so a header-only kernel is still a new installed file. Our own tree is at
+**24** files importing cv2, from 38 at the start of this run.

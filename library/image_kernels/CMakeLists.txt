@@ -24,6 +24,7 @@ set( image_kernels_headers
   contours.h
   convert.h
   dispatch.h
+  distance.h
   draw.h
   filter.h
   font_5x7.h

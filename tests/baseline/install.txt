@@ -1027,6 +1027,7 @@ include/viame/image_kernels/contours.h
 include/viame/image_kernels/convert.h
 include/viame/image_kernels/convert_polygons_to_mask.h
 include/viame/image_kernels/dispatch.h
+include/viame/image_kernels/distance.h
 include/viame/image_kernels/draw.h
 include/viame/image_kernels/filter.h
 include/viame/image_kernels/font_5x7.h

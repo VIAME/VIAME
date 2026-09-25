@@ -5,8 +5,8 @@
 """Turning stereo feature tracks into calibration point sets.
 
 the `opencv` plugin's `filter_stereo_feature_tracks.cxx` and `kmedians.cxx` in
-python, per `lite-removals.md` section 2.4. Nothing here is OpenCV except
-`cv2.kmeans`, which seeds the k-medians refinement.
+python, per `lite-removals.md` section 2.4. Nothing here is OpenCV: the
+k-means that seeds the k-medians refinement is `_kmeans` below.
 
 What it does, in the order `select_frames` does it:
 
@@ -392,19 +392,94 @@ def _repair_empty_clusters(data, labels, centres):
     return labels, centres
 
 
+def _kmeans_plus_plus(data, clusters, rng):
+    """Arthur and Vassilvitskii's seeding, which is `KMEANS_PP_CENTERS`.
+
+    The first centre is uniform and each one after is drawn with probability
+    proportional to its squared distance from the nearest centre already
+    chosen -- which spreads the seeds out and is why k-means++ finds a good
+    optimum from far fewer attempts than random seeding needs.
+    """
+    chosen = [int(rng.integers(len(data)))]
+
+    nearest = ((data - data[chosen[0]]) ** 2).sum(axis=1)
+
+    for _ in range(1, clusters):
+        total = float(nearest.sum())
+
+        if total <= 0.0:
+            # Every point sits on a centre already; the rest are arbitrary.
+            chosen.append(int(rng.integers(len(data))))
+        else:
+            chosen.append(int(np.searchsorted(np.cumsum(nearest),
+                                              rng.random() * total)))
+
+        nearest = np.minimum(nearest,
+                             ((data - data[chosen[-1]]) ** 2).sum(axis=1))
+
+    return data[chosen].copy()
+
+
+def _kmeans(data, clusters, attempts, iterations, epsilon, seed=0):
+    """`cv2.kmeans` with `KMEANS_PP_CENTERS`: Lloyd's, best of several tries.
+
+    Returns the labels and centres of the attempt with the lowest sum of
+    squared distances, which is what OpenCV calls the compactness.
+
+    The generator is seeded rather than global. OpenCV's draws from
+    `cv::theRNG()`, so its answer depends on what else in the process has
+    drawn from it -- a property nothing should want and which makes a
+    recording of its output depend on the order the suite runs in. Here the
+    same data gives the same clustering every time.
+    """
+    data = np.ascontiguousarray(data, dtype=np.float64)
+
+    if len(data) <= clusters:
+        return (np.arange(len(data), dtype=np.int32),
+                data.astype(np.float32).copy())
+
+    rng = np.random.default_rng(seed)
+
+    best = None
+
+    for _ in range(max(1, attempts)):
+        centres = _kmeans_plus_plus(data, clusters, rng)
+
+        for _ in range(iterations):
+            distances = ((data[:, None, :] - centres[None, :, :]) ** 2
+                         ).sum(axis=2)
+            labels = distances.argmin(axis=1)
+
+            moved = centres.copy()
+
+            for cluster in range(clusters):
+                members = data[labels == cluster]
+
+                if len(members):
+                    centres[cluster] = members.mean(axis=0)
+
+            if np.abs(moved - centres).max() <= epsilon:
+                break
+
+        distances = ((data[:, None, :] - centres[None, :, :]) ** 2).sum(axis=2)
+        labels = distances.argmin(axis=1)
+        compactness = float(distances[np.arange(len(data)), labels].sum())
+
+        if best is None or compactness < best[0]:
+            best = (compactness, labels.astype(np.int32), centres.copy())
+
+    return best[1], best[2].astype(np.float32)
+
+
 def kmedians(data, clusters):
     """`viame::kmedians`: k-means for the initial centres, then medians.
 
     The refinement runs until the centres stop moving, which is what the C++
-    does; `cv2.kmeans` only provides the starting point.
+    does; the k-means only provides the starting point, and the loop below
+    converges to the same fixed point from any reasonable one.
     """
-    import cv2
-
-    _, labels, centres = cv2.kmeans(
-        data, clusters, None,
-        (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
-         KMEANS_MAX_ITERATIONS, KMEANS_EPSILON),
-        KMEANS_ATTEMPTS, cv2.KMEANS_PP_CENTERS)
+    labels, centres = _kmeans(data, clusters, KMEANS_ATTEMPTS,
+                              KMEANS_MAX_ITERATIONS, KMEANS_EPSILON)
 
     labels = labels.reshape(-1).astype(np.int32)
     centres = np.asarray(centres, dtype=np.float32)

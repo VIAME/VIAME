@@ -25,7 +25,8 @@ import pytest
 from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  bounding_rect,
                                  box_blur, clahe, contour_area, convex_hull,
-                                 crop, intersect_convex, moments,
+                                 crop, distance_transform,
+                                 intersect_convex, moments,
                                  demosaic, dilate, draw_circle, draw_line,
                                  find_contours, label_components,
                                  corner_subpix, make_border,
@@ -684,6 +685,85 @@ def test_intersect_convex_contained_square_is_the_smaller_one():
 # static_asserts on an integer pixel and is right to: it equalises a
 # histogram, which needs a bounded range of discrete levels to build one
 # over, and `cv2.createCLAHE` takes 8 and 16 bit for the same reason.
+
+# ---------------------------------------------------------------------------
+# Distance transform
+#
+# Against cv2 with DIST_L2 and a mask of 3: bit identical on a speckle, an
+# all-foreground mask, an all-background one and a shape running off the
+# edge, and within 4.8e-7 -- float32's own rounding -- on a rectangle, a disc
+# and an annulus.
+#
+# The mode is a **chamfer approximation** and not the Euclidean distance the
+# name suggests: two passes with Borgefors' step costs, 0.955 sideways and
+# 1.3693 diagonally, which are not 1 and sqrt(2). They are fitted to minimise
+# the worst error rather than to be exact along an axis, so even a horizontal
+# run comes out 4.5% short -- which the first test below states outright,
+# because it is the thing a reader will assume is a bug.
+
+def test_the_distance_is_a_chamfer_and_not_euclidean():
+    """A 1-pixel step costs 0.955, not 1. That is the mode, not an error.
+
+    One zero column and the rest foreground, so the nearest zero really is
+    along the row. A one-row strip would not do: every pixel of it is next to
+    the background above and below, so the whole strip is 0.955 and the step
+    cost never shows.
+    """
+    mask = np.ones((6, 8), dtype=np.uint8)
+    mask[:, 0] = 0
+
+    out = distance_transform(np.ascontiguousarray(mask))
+
+    assert out.dtype == np.float32
+    assert list(out[3][:4]) == pytest.approx([0.0, 0.955, 1.910, 2.865],
+                                             abs=1e-5)
+
+
+def test_background_is_zero_and_shapes_grow_inward():
+    mask = np.zeros((20, 20), dtype=np.uint8)
+    mask[5:15, 5:15] = 1
+
+    out = distance_transform(np.ascontiguousarray(mask))
+
+    assert out[0, 0] == 0.0
+    assert out[4, 10] == 0.0                       # just outside the square
+    # The deepest point is the middle, five pixels in
+    assert out[9, 9] == pytest.approx(out.max())
+    assert out.max() == pytest.approx(5 * 0.955, abs=1e-4)
+
+
+def test_a_mask_with_no_background_saturates():
+    """There is no zero to be distant from, so there is no answer.
+
+    OpenCV returns a saturated float here and so does this; what matters is
+    that it is obviously not a distance rather than quietly a small one.
+    """
+    out = distance_transform(np.ones((8, 8), dtype=np.uint8))
+
+    assert np.all(out > 1e30)
+
+
+def test_the_image_edge_is_not_background():
+    """A shape running off the edge is not made shallow by the edge.
+
+    The pixels beyond are unknown, not empty, which is OpenCV's rule and the
+    right one -- the other way round, every mask touching a border would read
+    as thin there.
+    """
+    mask = np.zeros((10, 10), dtype=np.uint8)
+    mask[:, 5:] = 1
+
+    out = distance_transform(np.ascontiguousarray(mask))
+
+    # Depth grows away from the boundary at column 5 and is not reset by the
+    # right-hand edge of the image.
+    assert out[5, 9] > out[5, 6]
+
+
+def test_distance_transform_wants_one_plane():
+    with pytest.raises((ValueError, TypeError)):
+        distance_transform(np.zeros((8, 8, 3), dtype=np.uint8))
+
 
 def _float_frame():
     rng = np.random.default_rng(21)

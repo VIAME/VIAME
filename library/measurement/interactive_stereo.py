@@ -61,13 +61,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-import cv2
 
 # Compiled C++ stereo measurement bindings. The stereo length/measurement math
 # lives solely in viame::core::compute_stereo_measurement (no Python duplicate),
 # so this module is a hard dependency.
 from viame.core import _measurement as _cpp_measurement
 from viame import image_kernels
+from viame.utilities import imageops
 
 
 class EpipolarTemplateMatcher:
@@ -289,8 +289,9 @@ class EpipolarTemplateMatcher:
                 x_tgt - half:x_tgt + half + 1
             ].astype(np.float32)
 
-            result = cv2.matchTemplate(
-                target_patch, template, cv2.TM_CCOEFF_NORMED)
+            result = image_kernels.match_template(
+                np.ascontiguousarray(target_patch),
+                np.ascontiguousarray(template))
             score = float(result[0, 0])
 
             if score > best_score:
@@ -1033,16 +1034,24 @@ class InteractiveStereoService:
                     right_bgr = image_kernels.swap_channels(right_arr) if right_arr.ndim == 3 else right_arr
                     self._epipolar_matcher.set_images(left_bgr, right_bgr)
             else:
-                left_gray = cv2.imread(left_path, cv2.IMREAD_GRAYSCALE)
-                right_gray = cv2.imread(right_path, cv2.IMREAD_GRAYSCALE)
-                if left_gray is None or right_gray is None:
+                try:
+                    left_gray = imageops.read_image(left_path, grayscale=True)
+                    right_gray = imageops.read_image(right_path,
+                                                     grayscale=True)
+                except OSError as error:
                     raise ValueError(
-                        f"Failed to load images: left={left_path}, right={right_path}")
+                        f"Failed to load images: left={left_path}, right={right_path}") from error
 
-                # Load BGR images for DINO feature extraction if enabled
+                # DINO wants BGR, and `read_image` gives RGB, so this is the
+                # one boundary that still swaps.
                 if self._epipolar_matcher._dino_available:
-                    left_bgr = cv2.imread(left_path, cv2.IMREAD_COLOR)
-                    right_bgr = cv2.imread(right_path, cv2.IMREAD_COLOR)
+                    try:
+                        left_bgr = image_kernels.swap_channels(
+                            imageops.read_image(left_path))
+                        right_bgr = image_kernels.swap_channels(
+                            imageops.read_image(right_path))
+                    except OSError:
+                        left_bgr = right_bgr = None
                     if left_bgr is not None and right_bgr is not None:
                         self._epipolar_matcher.set_images(left_bgr, right_bgr)
 
@@ -1182,11 +1191,11 @@ class InteractiveStereoService:
     @staticmethod
     def _hull_area(points) -> float:
         """Convex hull area of a point set, 0 when it is close to a line."""
-        import cv2
-        pts = np.asarray(points, dtype=np.float32)
+        pts = np.asarray(points, dtype=np.float64)
         if len(pts) < 3:
             return 0.0
-        area = float(cv2.contourArea(cv2.convexHull(pts)))
+        area = float(image_kernels.contour_area(
+            image_kernels.convex_hull(np.ascontiguousarray(pts))))
         extent = pts.max(axis=0) - pts.min(axis=0)
         return area if area >= 0.03 * float(extent @ extent) else 0.0
 
@@ -1685,11 +1694,16 @@ class InteractiveStereoService:
         origin = np.floor(exterior.min(axis=0)) - 1
         size = (np.ceil(exterior.max(axis=0)) - origin + 2).astype(int)
         mask = np.zeros((size[1], size[0]), dtype=np.uint8)
-        cv2.fillPoly(mask, [np.rint(exterior - origin).astype(np.int32)], 1)
+        image_kernels.fill_polygon(
+            mask, np.ascontiguousarray(
+                np.rint(exterior - origin).astype(np.float64)), 1)
         for hole in polygon.get("holes") or []:
             if len(hole) >= 3:
-                cv2.fillPoly(mask, [np.rint(np.asarray(hole) - origin).astype(np.int32)], 0)
-        depth = cv2.distanceTransform(mask, cv2.DIST_L2, 3)
+                image_kernels.fill_polygon(
+                    mask, np.ascontiguousarray(
+                        np.rint(np.asarray(hole) - origin).astype(np.float64)),
+                    0)
+        depth = image_kernels.distance_transform(mask)
         if depth.max() <= 0:
             return []
         ys, xs = np.where(depth >= depth.max() / 3.0)
