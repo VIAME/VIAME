@@ -1316,3 +1316,21 @@ the six under `tests/golden/` that record *from* OpenCV are not in it and
 never were.
 
 **Green:** BASELINE, UNIT and CORE; GOLDEN and CRITICAL; tools.
+Two attempts that are not commits, written down where the next one will find
+them.
+
+`hough_circle` and `ocv_stereo_disparity` are the two files left whose only
+cv2 call is an algorithm rather than a primitive, and both were prototyped
+against cv2 this round. Neither landed, and the notes are worth more than the
+attempt: finding 2.37 has Canny reproducing bit for bit and `HoughCircles`'
+radius turning out to be a ten-bin-per-`dr` histogram rather than the sorted
+distance walk the old source describes, with `dp = 1` matching until a wider
+sweep said otherwise; finding 2.38 has SGBM's cost, window, selection,
+subpixel, consistency check and median all reproducing **exactly** at
+`P1 = 1, P2 = 2`, the aggregation drifting as soon as `P2` exceeds `P1` by
+much, and an OpenCV quirk that any port has to copy -- the cost is not
+updated for the last `SADWindowSize/2` rows of every image, because the guard
+that skips them contradicts the clamp that was meant to replicate them.
+
+Both entries say where the next attempt starts, which is the point of writing
+them down rather than leaving a branch.

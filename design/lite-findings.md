@@ -2866,3 +2866,57 @@ the next attempt's first move.
 So the port is not landed. What is landed is this note, with the histogram
 written out, so that attempt starts from the two answers rather than from the
 literature.
+
+## 2.38 SGBM: everything around the aggregation reproduced, the aggregation did not
+
+The disparity cluster is the largest single prize left -- one algorithm,
+`cv::StereoSGBM`, is the only cv2 call in `netharn/disparity.py` and
+`tools/disparity.py` and the matcher behind `ocv_stereo_disparity` -- so it
+was prototyped the same way the optical flow was. It did not come out the
+same way, and the shape of the failure is worth having written down.
+
+**What reproduced exactly.** With `P1 = 1` and `P2 = 2`, where the smoothness
+term is almost nothing and the answer is essentially the cost's own minimum,
+the port is **identical to `cv2.StereoSGBM` over a whole row**, subpixel and
+all. That is a strong statement about a lot of machinery at once:
+
+* the Birchfield-Tomasi cost, including its two "channels" -- a Sobel-x
+  clipped through a table of `min(max(k, -ftzero), ftzero) + ftzero` with
+  `ftzero = max(preFilterCap, 15) | 1`, and the raw row -- and the half-sample
+  extremes `min(v, (v+vleft)/2, (v+vright)/2)` on both sides, with the second
+  channel's contribution shifted right by two;
+* the first and last column of **both** channels being forced to the table's
+  zero entry;
+* the SAD window as a box sum whose borders replicate;
+* the winner-take-all with its uniqueness test, the quadratic subpixel
+  interpolation -- `denom2 = max(S[d-1] + S[d+1] - 2 S[d], 1)` and a **C
+  truncating** division, not a floor -- the left-right consistency check
+  against a second disparity map built in the same backward sweep, and the
+  three by three median the whole thing finishes with.
+
+**What did not.** As soon as `P2` is meaningfully larger than `P1`, the
+aggregation drifts: over a sweep of three heights, five widths, two block
+sizes and three penalty pairs, 7.8% of pixels disagree, and where they
+disagree they disagree by whole pixels rather than by a sixteenth. It is not
+the direction count -- removing the fifth, backward direction makes it three
+times worse -- and it is not the disparity-edge convention, since padding the
+recursion's `d-1` and `d+1` with `SHRT_MAX`, with the edge value or with
+`minLr + P2` all give the same answer. It is somewhere inside
+
+    L(d) = C(d) + min( L'(d), L'(d-1) + P1, L'(d+1) + P1, min L' + P2 )
+                - ( min L' + P2 )
+
+and the experiment that will find it is a two-column image, which already
+disagrees and is small enough to write out by hand.
+
+**One quirk found on the way, and it is OpenCV's rather than ours.** The
+vertical half of the SAD box is a running sum, and the row it adds is guarded
+by `if (k < height)` while the row it indexes is `min(k, height-1)`. The
+clamp suggests the intent was to replicate the last row; the guard means the
+whole update is skipped instead. So for the last `SADWindowSize/2` rows of
+every image **the cost is not updated at all** -- those rows reuse the last
+cost that was computed. A port that replicates the border, which is what the
+clamp says, is wrong at the bottom of every disparity map.
+
+Not landed. The prototype's value is this entry: the surrounding machinery is
+settled and the remaining question is one four-term minimum wide.
