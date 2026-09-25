@@ -80,6 +80,8 @@ from viame.image_processing.registration_utils import (
 from viame.measurement.prior_coverage_opencv import (
     _geo_anchor_with_cal,
 )
+from viame.utilities import geometry, imageops
+from viame import image_kernels
 
 CAM_ORDER = {'CENTER': 0, 'PORT': 1, 'STAR': 2, None: 0}
 
@@ -137,7 +139,6 @@ class CoverageGrid:
 
     def stamp_polygon(self, quad_enu, order_idx):
         """Mark all cells inside the polygon as observed (keep first observer)."""
-        import cv2
         q = np.asarray(quad_enu, dtype=np.float64) / self.cell
         lo = np.floor(q.min(axis=0)).astype(np.int64) - 1
         hi = np.ceil(q.max(axis=0)).astype(np.int64) + 1
@@ -145,7 +146,7 @@ class CoverageGrid:
         if w <= 0 or h <= 0 or w * h > 64e6:
             return
         mask = np.zeros((h, w), dtype=np.uint8)
-        cv2.fillPoly(mask, [np.round(q - lo).astype(np.int32)], 1)
+        image_kernels.fill_polygon(mask, q - lo, 1)
         ys, xs = np.nonzero(mask)
         cx, cy = xs + lo[0], ys + lo[1]
         tx, ty = cx // self.TILE, cy // self.TILE
@@ -423,10 +424,9 @@ def _metadata_transform(rec, heading, width, height, to_enu,
     quad = smd.footprint_quad_enu(
         x, y, rec.get('alt_agl'),
         heading, rec.get('focal35_mm') or 85.0, lateral_frac)
-    import cv2
     src = _image_rect(width, height).astype(np.float32)
     dst = np.array(quad, dtype=np.float32)
-    T = cv2.getPerspectiveTransform(src, dst)
+    T = geometry.four_point_homography(src, dst)
     return T
 
 
@@ -444,7 +444,6 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
     (rel, class, polygon, source_order) tuples in order; source_order is the
     global order index of the earlier image that observed the region.
     """
-    import cv2
     rows = []
     revisit_events = []
     frac_prior = {}
@@ -550,12 +549,11 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
                     sfx = 'revisit'
                     rev_owner_counts[int(oo)] = int((owner == oo).sum())
                 mask = (owner == oo).astype(np.uint8)
-                contours, _ = cv2.findContours(
-                    mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                contours = image_kernels.find_contours(mask)
                 for cnt in contours:
                     if len(cnt) < 3:
                         continue
-                    cnt = cv2.approxPolyDP(cnt, 1.5, True).reshape(-1, 2)
+                    cnt = image_kernels.approx_poly(cnt, 1.5)
                     if len(cnt) < 3:
                         continue
                     poly = cnt.astype(np.float64) * stride + stride // 2
@@ -600,8 +598,8 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
             seen = seen_any.copy()
             for _sfx, poly, _src in polys:
                 m = np.zeros(gx.shape, dtype=np.uint8)
-                cv2.fillPoly(m, [np.round(
-                    (poly - stride // 2) / stride).astype(np.int32)], 1)
+                image_kernels.fill_polygon(
+                    m, (poly - stride // 2) / stride, 1)
                 seen |= m.astype(bool)
             frac_prior[o.rel] = float(seen.mean())
         else:
@@ -665,7 +663,6 @@ def write_blackout_images(out_dir, site_folder, observations, rows,
     site with everything already seen elsewhere blacked out.
     """
     import shutil
-    import cv2
     by_image = {}
     for rel, _sfx, poly, _src in rows:
         by_image.setdefault(rel, []).append(poly)
@@ -678,12 +675,15 @@ def write_blackout_images(out_dir, site_folder, observations, rows,
         if not polys:
             shutil.copy2(src, dst)
             continue
-        img = cv2.imread(src, cv2.IMREAD_UNCHANGED)
-        if img is None:
+        try:
+            img = imageops.read_unchanged(src)
+        except OSError:
             shutil.copy2(src, dst)
             continue
-        cv2.fillPoly(img, [np.round(p).astype(np.int32) for p in polys], 0)
-        cv2.imwrite(dst, img)
+        img = np.ascontiguousarray(img)
+        for polygon in polys:
+            image_kernels.fill_polygon(img, polygon, 0)
+        imageops.write_image(dst, img)
         n_black += 1
     if verbose:
         print(f'    blackout images -> {out_dir} '
@@ -753,12 +753,40 @@ def _shade(color, i, n):
     return tuple(int(round(c * f)) for c in color)
 
 
+def _read_image(path):
+    """The image, or None when it cannot be read.
+
+    `cv2.imread` returned None for an unreadable file; `imageops.read_image`
+    raises, and the thumbnail grid wants to skip the tile rather than stop.
+    """
+    from viame.utilities import imageops
+
+    try:
+        return imageops.read_image(path)
+    except OSError:
+        return None
+
+
 def _put_text(img, text, org, scale=0.55, color=(255, 255, 255)):
-    import cv2
-    cv2.putText(img, text, org, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 0, 0), 3,
-                cv2.LINE_AA)
-    cv2.putText(img, text, org, cv2.FONT_HERSHEY_SIMPLEX, scale, color, 1,
-                cv2.LINE_AA)
+    """Label text, dark-outlined so it reads over any background.
+
+    `cv2.putText` placed by the baseline and took a fractional scale; the
+    kernels' bitmap font places by the top left and scales by whole pixels,
+    so the size rounds to the nearest whole multiple and the origin moves
+    down by a line. The outline is four offset copies rather than a thicker
+    stroke, which is what a bitmap font can offer.
+    """
+    from viame import image_kernels
+
+    size = max(1, int(round(scale * 2)))
+    x, y = int(org[0]), int(org[1])
+    _, height = image_kernels.text_size(text, size)
+    y = max(0, y - height)
+
+    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        image_kernels.draw_text(img, text, x + dx, y + dy, [0, 0, 0], size)
+
+    image_kernels.draw_text(img, text, x, y, list(color), size)
 
 
 def _vis_window(triggers, obs_map, by_image, max_rows):
@@ -799,7 +827,6 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
     Each tile also shows the water/land classifier verdict (the class label,
     tinted cyan for water and green for land).
     """
-    import cv2
     by_image = {}
     for rel, suffix, poly, src in rows:
         by_image.setdefault(rel, []).append((suffix, poly, src))
@@ -823,14 +850,14 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
         row_tiles = []
         for cam in cams:
             o = obs_map.get((cam, t))
-            img = (cv2.imread(os.path.join(site_folder, o.rel))
+            img = (_read_image(os.path.join(site_folder, o.rel))
                    if o is not None else None)
             if img is None:
                 row_tiles.append(None)
                 continue
             s = thumb_w / img.shape[1]
             th = int(img.shape[0] * s)
-            thumb = cv2.resize(img, (thumb_w, th))
+            thumb = image_kernels.resize_area(img, thumb_w, th)
             grouped = {c: [(p, sr) for sfx, p, sr in by_image.get(o.rel, [])
                            if sfx == c] for c in CLASS_DRAW_ORDER}
 
@@ -840,17 +867,20 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
                 for i, (poly, _sr) in enumerate(grouped[cls]):
                     p = np.round(poly * s).astype(np.int32)
                     lay = thumb.copy()
-                    cv2.fillPoly(lay, [p], _shade(CLASS_COLOR[cls], i,
-                                                  len(grouped[cls])))
-                    thumb = cv2.addWeighted(lay, 0.10, thumb, 0.90, 0)
+                    image_kernels.fill_polygon(
+                        lay, poly * s, list(_shade(CLASS_COLOR[cls], i,
+                                                   len(grouped[cls]))))
+                    thumb = image_kernels.add_weighted(lay, 0.10, thumb, 0.90)
             # Boundaries on top: one stroke + tag per prior frame.
             for cls in CLASS_DRAW_ORDER:
                 n = len(grouped[cls])
                 for i, (poly, sr) in enumerate(grouped[cls]):
                     p = np.round(poly * s).astype(np.int32)
                     col = _shade(CLASS_COLOR[cls], i, n)
-                    cv2.polylines(thumb, [p], True, (0, 0, 0), 4, cv2.LINE_AA)
-                    cv2.polylines(thumb, [p], True, col, 2, cv2.LINE_AA)
+                    image_kernels.draw_polyline(thumb, poly * s, [0, 0, 0],
+                                                True, 4)
+                    image_kernels.draw_polyline(thumb, poly * s, list(col),
+                                                True, 2)
                     tag = f'{CLASS_TAG[cls]}{i + 1}'
                     stag = _source_tag(src_obs.get(sr))
                     if stag:
@@ -874,7 +904,7 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
             if clabel:
                 ccol = (255, 255, 0) if cinfo.get('is_water') else (0, 220, 0)
                 _put_text(thumb, clabel, (8, 68), 0.5, ccol)
-            cv2.rectangle(thumb, (0, 0), (thumb_w - 1, th - 1), (60, 60, 60), 1)
+            image_kernels.draw_rect(thumb, 0, 0, thumb_w, th, [60, 60, 60], 1)
             row_tiles.append(thumb)
         tiles.append(row_tiles)
     if th is None:
@@ -917,12 +947,13 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
     for cls, txt in (('sequential', 'S = sequential (same camera)'),
                      ('cross_camera', 'X = cross-camera (rig)'),
                      ('revisit', 'R = revisit / loop closure')):
-        cv2.rectangle(banner, (x, 60), (x + 18, 70), CLASS_COLOR[cls], -1)
+        image_kernels.draw_rect(banner, x, 60, x + 19, 71,
+                                list(CLASS_COLOR[cls]), -1)
         _put_text(banner, txt, (x + 24, 70), 0.5, CLASS_COLOR[cls])
-        (tw, _), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+        tw, _ = image_kernels.text_size(txt, 1)
         x += 24 + tw + 40
     grid_img = np.vstack([banner, grid_img])
-    cv2.imwrite(path, grid_img)
+    imageops.write_image(path, grid_img)
 
 
 # ---------------------------------------------------------------------------

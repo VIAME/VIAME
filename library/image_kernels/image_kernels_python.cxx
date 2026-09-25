@@ -20,6 +20,7 @@
 
 #include <viame/image_kernels/color.h>
 #include <viame/image_kernels/contours.h>
+#include <viame/image_kernels/corners.h>
 #include <viame/image_kernels/draw.h>
 #include <viame/image_kernels/filter.h>
 #include <viame/image_kernels/histogram.h>
@@ -34,6 +35,7 @@
 #include <pybind11/stl.h>
 
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #include <utility>
 #include <string>
@@ -1004,6 +1006,47 @@ watershed( array_of< T > const& array,
   viame::image_kernels::watershed( as_image( array ), seeds );
 }
 
+template < typename T >
+py::array_t< double >
+corner_subpix( array_of< T > const& array,
+               py::array_t< double, py::array::c_style | py::array::forcecast >
+                 const& corners,
+               int half_width, int half_height, int iterations,
+               double epsilon )
+{
+  auto const buffer = corners.request();
+
+  if( buffer.ndim != 2 || buffer.shape[ 1 ] != 2 )
+  {
+    throw std::invalid_argument(
+      "corner_subpix wants an N by 2 array of x, y" );
+  }
+
+  auto const* data = static_cast< double const* >( buffer.ptr );
+  std::vector< std::pair< double, double > > points;
+  points.reserve( static_cast< size_t >( buffer.shape[ 0 ] ) );
+
+  for( Py_ssize_t n = 0; n < buffer.shape[ 0 ]; ++n )
+  {
+    points.emplace_back( data[ n * 2 ], data[ n * 2 + 1 ] );
+  }
+
+  viame::image_kernels::corner_subpix( as_image( array ), points, half_width,
+                                       half_height, iterations, epsilon );
+
+  py::array_t< double > out( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( points.size() ), 2 } );
+  auto* destination = out.mutable_data();
+
+  for( auto const& point : points )
+  {
+    *destination++ = point.first;
+    *destination++ = point.second;
+  }
+
+  return out;
+}
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _image_kernels, m )
@@ -1255,4 +1298,14 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "zero is ground to claim, and where two regions meet the pixel "
          "becomes -1. The image's one pixel border is -1 by definition, as "
          "OpenCV's is." );
+
+  for_every_pixel_type( m, "corner_subpix", &corner_subpix< uint8_t >,
+         &corner_subpix< uint16_t >, &corner_subpix< float >,
+         py::arg( "image" ), py::arg( "corners" ),
+         py::arg( "half_width" ) = 5, py::arg( "half_height" ) = 5,
+         py::arg( "iterations" ) = 40, py::arg( "epsilon" ) = 0.001,
+         "cv2.cornerSubPix. At a corner the image gradient is orthogonal to "
+         "the vector from the corner to the pixel carrying it, which is a "
+         "two by two system in the corner position; this solves it and "
+         "re-centres until it settles. Returns the refined N by 2." );
 }

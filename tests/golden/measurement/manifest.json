@@ -212,7 +212,7 @@
         "chessboard": {
           "detections": 35,
           "file": "detect/ocv_detect_calibration_targets/defaults/chessboard.json",
-          "sha256": "0b1cdecd62c25a9b"
+          "sha256": "54ebb156087c8511"
         },
         "dot_grid": {
           "detections": 35,
@@ -237,7 +237,7 @@
         "chessboard": {
           "detections": 35,
           "file": "detect/ocv_detect_calibration_targets/checkerboard/chessboard.json",
-          "sha256": "0b1cdecd62c25a9b"
+          "sha256": "54ebb156087c8511"
         },
         "dot_grid": {
           "detections": 0,

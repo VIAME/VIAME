@@ -27,7 +27,8 @@ from viame.image_kernels import (add_weighted, approx_poly, bounding_rect,
                                  crop,
                                  demosaic, dilate, draw_circle, draw_line,
                                  find_contours, label_components,
-                                 make_border, match_template, morphology,
+                                 corner_subpix, make_border,
+                                 match_template, morphology,
                                  watershed,
                                  min_area_rect,
                                  draw_rect, draw_text, equalize, erode,
@@ -639,3 +640,79 @@ def test_watershed_wants_markers_the_size_of_the_image():
     image, _ = _two_blobs()
     with pytest.raises(ValueError):
         watershed(image, np.zeros((10, 10), dtype=np.int32))
+
+
+# ---------------------------------------------------------------------------
+# Sub-pixel corners
+#
+# On a rendered chessboard whose corners are known exactly, seeded with up to
+# two pixels of error, this recovers them to 4e-4 of a pixel and agrees with
+# `cv2.cornerSubPix` to 6e-4. cv2 is the more precise of the two in absolute
+# terms -- 2e-5 -- but both are two orders below the ~0.15 px a real detector
+# starts from, which is what the number has to be small against.
+
+def _chessboard(square=40, columns=8, rows=6):
+    """A board whose corners sit at the **pixel boundaries**.
+
+    That half pixel matters: the corner between the squares meeting at
+    `(i * square, j * square)` is at `i * square - 0.5` in pixel-centre
+    coordinates, and forgetting it makes a correct refinement look 0.707 px
+    wrong -- which is exactly root two over two.
+    """
+    image = np.zeros((rows * square, columns * square), dtype=np.uint8)
+    for j in range(rows):
+        for i in range(columns):
+            if (i + j) % 2 == 0:
+                image[j * square:(j + 1) * square,
+                      i * square:(i + 1) * square] = 255
+
+    image = gaussian_blur(image, 5, 1.2)
+
+    corners = np.array([[i * square - 0.5, j * square - 0.5]
+                        for j in range(1, rows) for i in range(1, columns)],
+                       dtype=np.float64)
+    return image, corners
+
+
+def test_corner_subpix_recovers_a_displaced_corner():
+    image, truth = _chessboard()
+    rng = np.random.default_rng(3)
+    seeded = truth + rng.uniform(-2.0, 2.0, truth.shape)
+
+    refined = corner_subpix(image, seeded, 5, 5, 40, 0.001)
+
+    before = np.linalg.norm(seeded - truth, axis=1).mean()
+    after = np.linalg.norm(refined - truth, axis=1).mean()
+    assert before > 1.0
+    assert after < 0.01
+
+
+def test_corner_subpix_leaves_a_settled_corner_alone():
+    image, truth = _chessboard()
+    refined = corner_subpix(image, truth.copy(), 5, 5, 40, 0.001)
+    assert np.linalg.norm(refined - truth, axis=1).max() < 0.01
+
+
+def test_corner_subpix_returns_the_shape_it_was_given():
+    image, truth = _chessboard()
+    assert corner_subpix(image, truth.copy()).shape == truth.shape
+
+
+def test_corner_subpix_wants_pairs():
+    image, _ = _chessboard()
+    with pytest.raises(ValueError):
+        corner_subpix(image, np.zeros((4, 3)))
+
+
+def test_corner_subpix_wants_a_real_window():
+    image, truth = _chessboard()
+    with pytest.raises(ValueError):
+        corner_subpix(image, truth.copy(), 0, 5)
+
+
+def test_a_flat_neighbourhood_does_not_move_the_corner():
+    """No gradient means no corner; the system is singular and the estimate
+    has to stay where it was rather than divide by zero."""
+    flat = np.full((40, 40), 128, dtype=np.uint8)
+    seeded = np.array([[20.0, 20.0]])
+    assert np.array_equal(corner_subpix(flat, seeded.copy()), seeded)

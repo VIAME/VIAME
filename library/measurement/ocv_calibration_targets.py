@@ -47,7 +47,10 @@ TARGET_WIDTH = 5
 # run on the smaller one and refined on the original.
 MAX_DIMENSION = 5000
 
-# `cornerSubPix`'s window and termination, from the C++.
+# `cornerSubPix`'s window and termination, from the C++. This is the **half**
+# window in both: `cv::cornerSubPix`'s `winSize` is half the side length, and
+# so is `image_kernels.corner_subpix`'s, so (11, 11) is a 23 pixel search in
+# either. Halving it on the way through would quarter the search area.
 SUBPIX_WINDOW = (11, 11)
 SUBPIX_CRITERIA_ITERATIONS = 30
 SUBPIX_CRITERIA_EPSILON = 0.001
@@ -145,8 +148,6 @@ def detect_chessboard(gray, grid):
     """
     import cv2
 
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
-                SUBPIX_CRITERIA_ITERATIONS, SUBPIX_CRITERIA_EPSILON)
     flags = cv2.CALIB_CB_ADAPTIVE_THRESH
 
     scale = _detection_scale(gray.shape)
@@ -158,8 +159,10 @@ def detect_chessboard(gray, grid):
         found, corners = cv2.findChessboardCorners(small, grid, flags=flags)
 
         if found:
-            corners = cv2.cornerSubPix(small, corners, SUBPIX_WINDOW,
-                                       (-1, -1), criteria)
+            corners = image_kernels.corner_subpix(
+                small, corners.reshape(-1, 2),
+                SUBPIX_WINDOW[0], SUBPIX_WINDOW[1],
+                SUBPIX_CRITERIA_ITERATIONS, SUBPIX_CRITERIA_EPSILON)
             corners = corners / scale
     else:
         found, corners = cv2.findChessboardCorners(gray, grid, flags=flags)
@@ -167,11 +170,16 @@ def detect_chessboard(gray, grid):
     if not found:
         return False, [], grid
 
-    corners = cv2.cornerSubPix(np.ascontiguousarray(gray),
-                               np.ascontiguousarray(corners, dtype=np.float32),
-                               SUBPIX_WINDOW, (-1, -1), criteria)
+    corners = image_kernels.corner_subpix(
+        np.ascontiguousarray(gray), np.asarray(corners).reshape(-1, 2),
+        SUBPIX_WINDOW[0], SUBPIX_WINDOW[1],
+        SUBPIX_CRITERIA_ITERATIONS, SUBPIX_CRITERIA_EPSILON)
 
-    return True, corners.reshape(-1, 2), grid
+    # float32, because that is what `cv::cornerSubPix` returned and what the
+    # detector has always emitted. The kernel works and returns in double;
+    # keeping the double here would move every recorded corner by about four
+    # millionths of a pixel, which is the storage and not the answer.
+    return True, corners.reshape(-1, 2).astype(np.float32), grid
 
 
 def _auto_grids():
