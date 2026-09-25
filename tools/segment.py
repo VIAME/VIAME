@@ -264,10 +264,11 @@ def resolve_fps(csv_path):
 # -----------------------------------------------------------------------------
 # MP4 probing
 #
-# VIAME's bundled OpenCV is built without FFMPEG, so cv2 cannot open these videos
-# at all (it reports 0x0, 0 frames). The pipeline reads them fine via vidl_ffmpeg,
-# but anything we want to know here -- resolution, frame count, native rate -- has
-# to come from parsing the container ourselves.
+# Nothing this tool can import decodes an MP4: it is off cv2 entirely now, and
+# the OpenCV it used to use was built without FFMPEG and reported 0x0 and zero
+# frames anyway. The pipeline reads them fine via vidl_ffmpeg, but anything we
+# want to know here -- resolution, frame count, native rate -- has to come from
+# parsing the container ourselves.
 # -----------------------------------------------------------------------------
 
 def _atoms(fh, start, end):
@@ -1388,8 +1389,8 @@ def masks_to_polys(mask, offset_x, offset_y, box=None):
     or a re-segmented detection would end up shaped differently from every one
     around it.
     """
-    import cv2
     import numpy as np
+    from viame import image_kernels
     binary = (mask > 0).astype(np.uint8)
     if box is not None:
         keep = np.zeros_like(binary)
@@ -1402,13 +1403,15 @@ def masks_to_polys(mask, offset_x, offset_y, box=None):
         binary = binary * keep
     if binary.sum() == 0:
         return []
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # `find_contours` traces outer borders only, which is `RETR_EXTERNAL`.
+    contours = image_kernels.find_contours(np.ascontiguousarray(binary))
     polys = []
     for contour in contours:
-        if cv2.contourArea(contour) < 2:
+        if image_kernels.contour_area(contour) < 2:
             continue
-        eps = max(1.0, 0.01 * cv2.arcLength(contour, True))
-        approx = cv2.approxPolyDP(contour, eps, True).reshape(-1, 2)
+        eps = max(1.0, 0.01 * image_kernels.arc_length(contour, True))
+        approx = np.asarray(
+            image_kernels.approx_poly(contour, eps)).reshape(-1, 2)
         if len(approx) < 3:
             continue
         flat = []
@@ -1440,10 +1443,9 @@ def cmd_reseg(args):
                         if f.lower().endswith(IMAGE_EXTS))
 
         def load_frame(frame):
-            import cv2
             if frame >= len(images):
                 return None
-            return cv2.imread(os.path.join(input_path, images[frame]))
+            return imageops.read_image(os.path.join(input_path, images[frame]))
     else:
         ffmpeg = args.ffmpeg or find_ffmpeg()
         if not ffmpeg:
@@ -1455,12 +1457,11 @@ def cmd_reseg(args):
         os.makedirs(scratch, exist_ok=True)
 
         def load_frame(frame):
-            import cv2
             still = os.path.join(scratch, 'frame_%08d.png' % frame)
             if not os.path.exists(still):
                 if not extract_frame(input_path, frame, rec['fps'], still, ffmpeg):
                     return None
-            return cv2.imread(still)
+            return imageops.read_image(still)
 
     # Work out which rows to redo.
     targets = []           # (line_index, frame, box)
@@ -1490,11 +1491,11 @@ def cmd_reseg(args):
     if args.dry_run:
         return 0
 
-    import cv2
     import numpy as np
     import torch
     from sam2.build_sam import build_sam2
     from sam2.sam2_image_predictor import SAM2ImagePredictor
+    from viame.utilities import imageops
 
     # The config is resolved by SAM2's own hydra search path, but the checkpoint is
     # a plain file we have to point at ourselves.
@@ -1521,7 +1522,6 @@ def cmd_reseg(args):
         if image is None:
             n_empty += len(items)
             continue
-        image = image[:, :, ::-1]
 
         left, top, win_w, win_h = window
         win_w = min(win_w, image.shape[1] - left)
@@ -1629,8 +1629,8 @@ def polygons_to_head_tail(polys, algo):
     combined extent and runs the vital algorithm, exactly as the interactive
     service does for a single click-drawn polygon.
     """
-    import cv2
     import numpy as np
+    from viame import image_kernels
     from viame.types import (
         DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
 
@@ -1650,7 +1650,10 @@ def polygons_to_head_tail(polys, algo):
         return None
 
     mask = np.zeros((h, w), dtype=np.uint8)
-    cv2.fillPoly(mask, [(c - [x0, y0]).astype(np.int32) for c in contours], 255)
+    for contour in contours:
+        image_kernels.fill_polygon(
+            mask, np.ascontiguousarray(
+                (contour - [x0, y0]).astype(np.float64)), 255)
     det = DetectedObject(
         BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
         1.0, None, ImageContainer(Image(mask)))

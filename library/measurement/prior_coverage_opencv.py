@@ -675,11 +675,10 @@ def _metadata_transform(rec, heading, width, height, to_enu,
     quad = smd.footprint_quad_enu(
         x, y, rec.get('alt_agl'),
         heading, rec.get('focal35_mm') or 85.0, lateral_frac)
-    import cv2
-    src = _image_rect(width, height).astype(np.float32)
-    dst = np.array(quad, dtype=np.float32)
-    T = cv2.getPerspectiveTransform(src, dst)
-    return T
+    from viame.utilities import geometry
+    src = _image_rect(width, height).astype(np.float64)
+    dst = np.array(quad, dtype=np.float64)
+    return geometry.four_point_homography(src, dst)
 
 
 class SiteRegistration:

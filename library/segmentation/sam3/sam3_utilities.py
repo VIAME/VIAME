@@ -1089,7 +1089,6 @@ class _SharedSAM3PredictorWrapper:
 
         # Resize masks to original size if needed
         if masks.shape[-2:] != self._original_size:
-            import cv2
             from viame import image_kernels
             resized_masks = []
             for m in masks:
@@ -1715,20 +1714,19 @@ def mask_to_points(mask, num_points):
     Returns:
         List of (x, y) tuples
     """
-    import cv2
+    from viame import image_kernels
 
-    contours, _ = cv2.findContours(
-        mask.astype(np.uint8),
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
+    # `find_contours` traces outer borders only, which is `RETR_EXTERNAL`.
+    contours = image_kernels.find_contours(
+        np.ascontiguousarray(mask.astype(np.uint8))
     )
 
     if len(contours) == 0:
         return []
 
-    contour = max(contours, key=cv2.contourArea)
+    contour = max(contours, key=image_kernels.contour_area)
 
-    M = cv2.moments(contour)
+    M = image_kernels.moments(contour)
     if M["m00"] == 0:
         return []
 
@@ -1741,7 +1739,7 @@ def mask_to_points(mask, num_points):
         for i in range(0, len(contour), step):
             if len(points) >= num_points:
                 break
-            pt = contour[i].squeeze()
+            pt = np.asarray(contour)[i]
             points.append((int(pt[0]), int(pt[1])))
 
     return points[:num_points]

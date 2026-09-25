@@ -726,3 +726,56 @@ point). `check_calibration_truth` is what says this is still right rather than
 merely still close to itself: it holds the same run against the rig the views
 were rendered through, focal 2%, centre 0.5%, baseline 1%, and passes
 untouched.
+
+Six more files off cv2, and three kernels written to get them there.
+`arc_length`, `moments` and `intersect_convex` join `contours.h` --
+`cv2.arcLength`, `cv2.moments` on a contour, and `cv2.intersectConvexConvex`
+by Sutherland and Hodgman's clipping. Measured against cv2: arc length to
+6e-7, the six moments to 1.5e-11, and the overlap area to 8e-6 over two
+hundred random pairs, every one of those being cv2's float32 against our
+double.
+
+`intersect_convex` is the one with a decision in it. It works in
+`std::pair< double, double >` rather than the integer `point` the rest of
+`contours.h` uses, because the vertices of an overlap are where two edges
+cross and are almost never at a pixel centre; rounding them is a whole pixel
+of error on each, and these decide whether two cameras saw the same fish. It
+also winds both polygons counter-clockwise before clipping rather than
+trusting the caller, since a clockwise argument clips everything away and
+returns an empty overlap that reads as "they do not touch".
+
+Ported: `object_detectors/base.py` (the mask-to-polygon helper every detector
+inherits), `multicam_homog_det_suppressor.py`, `sam3_utilities.py`,
+`tools/segment.py`, `align_cameras_process.py`, `prior_coverage_opencv.py`
+and `tools/rectify.py`, plus the readable half of `registration_utils.py` --
+its CLAHE, its overlap test, its three remaining `imread`s and its
+`perspectiveTransform`. What is left there is SIFT, FLANN and the matchers.
+
+Two of those are RGB normalisations rather than swaps. `tools/segment.py`
+loaded frames with `cv2.imread` and then did `image[:, :, ::-1]` to undo the
+BGR; it now reads RGB and the swap is gone. `registration_utils.py` read BGR
+and took `COLOR_BGR2GRAY`, which is the same number `to_gray` gives an RGB
+array -- the same three weights on the same three channels, in the order each
+is handed them.
+
+`align_cameras_process.py` is the one that did **not** go through
+`image_kernels`. `cv2.Laplacian( gray, CV_64F )` asks for a float64 result
+from a uint8 image on purpose: half a Laplacian is negative, and `filter_2d`
+returns the type it is given, so taking it in uint8 would clamp that half to
+zero and roughly halve the variance being measured. The three by three
+stencil is written out instead, with numpy's `reflect` for OpenCV's
+`BORDER_REFLECT_101`.
+
+**Green:** BASELINE, UNIT and CORE 474 of 474 with 9 new kernel cases, GOLDEN
+and CRITICAL 10 of 10, `golden:replay` 270 of 270. `install.txt` unchanged --
+no new files, only new entry points in an existing module.
+
+The `tools` label, which is neither tier and which `tools/rectify.py` and
+`tools/segment.py` live in, passes 22 of 25. `tools:rectify` and
+`tools:segment` are two of the 22. The three failures -- `tools:index`,
+`tools:inspect_file` and `tools:run_bulk` -- are **pre-existing**: they fail
+identically with this branch's changes stashed. Each is a test that stubs
+`viame` out with a bare `types.ModuleType`, so anything reaching for
+`viame.utilities` gets "'viame' is not a package". That is the fixture trap
+recorded three times already in this port, and this is a fourth instance of
+it that nothing in either tier can see.

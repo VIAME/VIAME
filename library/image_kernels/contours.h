@@ -29,6 +29,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace viame {
@@ -475,6 +476,117 @@ contour_area( std::vector< point > const& contour )
 }
 
 // ----------------------------------------------------------------------------
+/// The length of \p contour, which is `cv::arcLength`.
+///
+/// The sum of the edges between consecutive vertices, with the edge back to
+/// the first counted when \p closed. Like `contour_area`, this measures the
+/// polygon through the pixel centres: a three by three square traced at its
+/// centres has a perimeter of eight, not twelve.
+inline double
+arc_length( std::vector< point > const& contour, bool closed = true )
+{
+  if( contour.size() < 2 )
+  {
+    return 0.0;
+  }
+
+  double total = 0.0;
+  auto const last = closed ? contour.size() : contour.size() - 1;
+
+  for( size_t at = 0; at < last; ++at )
+  {
+    auto const& a = contour[ at ];
+    auto const& b = contour[ ( at + 1 ) % contour.size() ];
+
+    auto const di = static_cast< double >( b.i ) - static_cast< double >( a.i );
+    auto const dj = static_cast< double >( b.j ) - static_cast< double >( a.j );
+
+    total += std::sqrt( di * di + dj * dj );
+  }
+
+  return total;
+}
+
+// ----------------------------------------------------------------------------
+/// The spatial moments of a polygon, which is `cv::moments` on a contour.
+///
+/// Green's theorem over the boundary, which is what OpenCV does for a contour
+/// rather than summing over the pixels inside it -- so these agree with
+/// `contour_area` and not with a mask's pixel count, for the same reason it
+/// gives.
+///
+/// Only the moments through the second order are computed, because the
+/// centroid and the orientation are all anything in this tree asks for. The
+/// signs follow the winding, as OpenCV's do; `m00` is negative for a
+/// clockwise contour and callers wanting an area want `contour_area`.
+struct contour_moments
+{
+  double m00 = 0.0;
+  double m10 = 0.0;
+  double m01 = 0.0;
+  double m20 = 0.0;
+  double m11 = 0.0;
+  double m02 = 0.0;
+
+  /// The centroid, or the first vertex when the contour encloses nothing.
+  ///
+  /// A degenerate contour -- a line, a point, a figure of eight -- has `m00`
+  /// of zero and no centroid, and dividing by it gives an infinity that
+  /// propagates quietly. OpenCV leaves that to the caller and every caller
+  /// forgets, so it is handled here.
+  std::pair< double, double >
+  centroid( std::pair< double, double > const& fallback ) const
+  {
+    if( m00 == 0.0 )
+    {
+      return fallback;
+    }
+
+    return { m10 / m00, m01 / m00 };
+  }
+};
+
+inline contour_moments
+moments( std::vector< point > const& contour )
+{
+  contour_moments out;
+
+  if( contour.size() < 3 )
+  {
+    return out;
+  }
+
+  for( size_t at = 0; at < contour.size(); ++at )
+  {
+    auto const& a = contour[ at ];
+    auto const& b = contour[ ( at + 1 ) % contour.size() ];
+
+    auto const ai = static_cast< double >( a.i );
+    auto const aj = static_cast< double >( a.j );
+    auto const bi = static_cast< double >( b.i );
+    auto const bj = static_cast< double >( b.j );
+
+    auto const cross = ai * bj - bi * aj;
+
+    out.m00 += cross;
+    out.m10 += ( ai + bi ) * cross;
+    out.m01 += ( aj + bj ) * cross;
+    out.m20 += ( ai * ai + ai * bi + bi * bi ) * cross;
+    out.m11 += ( 2.0 * ai * aj + ai * bj + bi * aj + 2.0 * bi * bj ) * cross;
+    out.m02 += ( aj * aj + aj * bj + bj * bj ) * cross;
+  }
+
+  out.m00 /= 2.0;
+  out.m10 /= 6.0;
+  out.m01 /= 6.0;
+  out.m20 /= 12.0;
+  out.m11 /= 24.0;
+  out.m02 /= 12.0;
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
 /// The convex hull of \p points, counter-clockwise, which is
 /// `cv::convexHull`.
 ///
@@ -530,6 +642,134 @@ convex_hull( std::vector< point > points )
 
   hull.resize( at > 0 ? at - 1 : 0 );
   return hull;
+}
+
+// ----------------------------------------------------------------------------
+/// The overlap of two **convex** polygons, which is
+/// `cv::intersectConvexConvex`.
+///
+/// Sutherland and Hodgman's clipping: take the first polygon and cut it
+/// against each edge of the second in turn, keeping what falls inside. For
+/// convex polygons that is exact and the result is convex, which is why
+/// OpenCV has a separate entry point from the general polygon boolean.
+///
+/// In sub-pixel points rather than the integer `point` above, and that is not
+/// a matter of taste: the vertices of an overlap are where two edges cross,
+/// which is almost never at a pixel centre. Rounding them is a whole pixel of
+/// error on each, and these are used to decide whether two cameras saw the
+/// same fish.
+///
+/// Both polygons are wound counter-clockwise first rather than trusting the
+/// caller, because a clockwise argument clips everything away and returns an
+/// empty overlap, which reads as "they do not touch" and is not.
+inline std::vector< std::pair< double, double > >
+intersect_convex( std::vector< std::pair< double, double > > const& first,
+                  std::vector< std::pair< double, double > > const& second )
+{
+  if( first.size() < 3 || second.size() < 3 )
+  {
+    return {};
+  }
+
+  auto anticlockwise = []( std::vector< std::pair< double, double > > polygon )
+  {
+    double twice = 0.0;
+
+    for( size_t at = 0; at < polygon.size(); ++at )
+    {
+      auto const& a = polygon[ at ];
+      auto const& b = polygon[ ( at + 1 ) % polygon.size() ];
+
+      twice += a.first * b.second - b.first * a.second;
+    }
+
+    if( twice < 0.0 )
+    {
+      std::reverse( polygon.begin(), polygon.end() );
+    }
+
+    return polygon;
+  };
+
+  auto const clip = anticlockwise( second );
+  auto working = anticlockwise( first );
+
+  for( size_t edge = 0; edge < clip.size() && !working.empty(); ++edge )
+  {
+    auto const& from = clip[ edge ];
+    auto const& to = clip[ ( edge + 1 ) % clip.size() ];
+
+    auto const ei = to.first - from.first;
+    auto const ej = to.second - from.second;
+
+    // Positive to the left of the edge, which is inside an anticlockwise
+    // polygon.
+    auto side = [ & ]( std::pair< double, double > const& at )
+    {
+      return ei * ( at.second - from.second ) -
+             ej * ( at.first - from.first );
+    };
+
+    std::vector< std::pair< double, double > > kept;
+    kept.reserve( working.size() + 1 );
+
+    for( size_t at = 0; at < working.size(); ++at )
+    {
+      auto const& here = working[ at ];
+      auto const& next = working[ ( at + 1 ) % working.size() ];
+
+      auto const here_side = side( here );
+      auto const next_side = side( next );
+
+      if( here_side >= 0.0 )
+      {
+        kept.push_back( here );
+      }
+
+      // A sign change means this edge crosses the clipping line, so the
+      // crossing joins the result between the two.
+      if( ( here_side > 0.0 && next_side < 0.0 ) ||
+          ( here_side < 0.0 && next_side > 0.0 ) )
+      {
+        auto const along = here_side / ( here_side - next_side );
+
+        kept.emplace_back(
+          here.first + along * ( next.first - here.first ),
+          here.second + along * ( next.second - here.second ) );
+      }
+    }
+
+    working = std::move( kept );
+  }
+
+  return working;
+}
+
+// ----------------------------------------------------------------------------
+/// The area a sub-pixel polygon encloses, unsigned.
+///
+/// `contour_area` for the points `intersect_convex` deals in. The shoelace
+/// formula again, and the same thing it measures: the polygon through the
+/// points given, not a count of pixels.
+inline double
+polygon_area( std::vector< std::pair< double, double > > const& polygon )
+{
+  if( polygon.size() < 3 )
+  {
+    return 0.0;
+  }
+
+  double twice = 0.0;
+
+  for( size_t at = 0; at < polygon.size(); ++at )
+  {
+    auto const& a = polygon[ at ];
+    auto const& b = polygon[ ( at + 1 ) % polygon.size() ];
+
+    twice += a.first * b.second - b.first * a.second;
+  }
+
+  return std::abs( twice ) / 2.0;
 }
 
 // ----------------------------------------------------------------------------

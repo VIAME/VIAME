@@ -27,7 +27,7 @@ for a fully-connected triplet a loop-closure residual (H13 vs H23.H12)
 is reported. Skipped candidates are recorded, disabled, with a
 machine-readable reason -- one blank-ocean frame must not kill the job.
 
-The images are read with cv2 from the file_name ports rather than from
+The images are read from the file_name ports rather than from
 the decoded ``image{i}`` ports (declared optional, left unconnected in
 the shipped pipes). The common input includes configure
 ``image_reader:vxl:force_byte true`` with ``auto_stretch`` left at its
@@ -69,14 +69,25 @@ def _log(message):
 
 def _prefilter_scores(gray):
     """Cheap, model-free frame quality metrics on one grayscale image."""
-    import cv2
     from viame import image_kernels
 
     h, w = gray.shape
     scale = PREFILTER_SIZE / float(max(h, w))
     if scale < 1.0:
         gray = image_kernels.resize_area(gray, max(1, int(w * scale)), max(1, int(h * scale)))
-    texture = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+
+    # `cv2.Laplacian( gray, CV_64F )`, written out rather than through
+    # `image_kernels.filter_2d`, and the `CV_64F` is the reason: the kernel
+    # returns the type it was given, and half of a Laplacian is negative, so
+    # taking it in the image's own uint8 would clamp that half to zero and
+    # roughly halve the variance this is measuring. The stencil is the
+    # three by three one OpenCV uses at its default `ksize` of 1, and numpy's
+    # `reflect` is `BORDER_REFLECT_101`, which is OpenCV's default too.
+    padded = np.pad(gray.astype(np.float64), 1, mode="reflect")
+    laplacian = (padded[:-2, 1:-1] + padded[2:, 1:-1] +
+                 padded[1:-1, :-2] + padded[1:-1, 2:] -
+                 4.0 * padded[1:-1, 1:-1])
+    texture = float(laplacian.var())
     hist = np.bincount(gray.ravel(), minlength=256).astype(np.float64)
     p = hist / max(hist.sum(), 1.0)
     nonzero = p[p > 0]

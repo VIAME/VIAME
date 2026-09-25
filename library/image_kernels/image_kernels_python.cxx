@@ -802,6 +802,85 @@ bounding_rect( py::array_t< double, py::array::c_style | py::array::forcecast >
   return py::make_tuple( box.left, box.top, box.width(), box.height() );
 }
 
+double
+arc_length( py::array_t< double, py::array::c_style | py::array::forcecast >
+              const& contour, bool closed )
+{
+  return viame::image_kernels::arc_length(
+    contour_points( contour, "arc_length" ), closed );
+}
+
+py::dict
+moments( py::array_t< double, py::array::c_style | py::array::forcecast >
+           const& contour )
+{
+  auto const found = viame::image_kernels::moments(
+    contour_points( contour, "moments" ) );
+
+  py::dict out;
+  out[ "m00" ] = found.m00;
+  out[ "m10" ] = found.m10;
+  out[ "m01" ] = found.m01;
+  out[ "m20" ] = found.m20;
+  out[ "m11" ] = found.m11;
+  out[ "m02" ] = found.m02;
+
+  return out;
+}
+
+/// The sub-pixel points `intersect_convex` deals in, which `contour_points`
+/// cannot give: it rounds to the pixel grid, and the vertices of an overlap
+/// are where two edges cross.
+std::vector< std::pair< double, double > >
+polygon_points( py::array_t< double, py::array::c_style | py::array::forcecast >
+                  const& array, char const* who )
+{
+  auto const buffer = array.request();
+
+  if( buffer.ndim != 2 || buffer.shape[ 1 ] != 2 )
+  {
+    throw std::invalid_argument(
+      std::string( who ) + " wants an N by 2 array of x, y" );
+  }
+
+  auto const* data = static_cast< double const* >( buffer.ptr );
+  std::vector< std::pair< double, double > > out;
+  out.reserve( static_cast< size_t >( buffer.shape[ 0 ] ) );
+
+  for( Py_ssize_t n = 0; n < buffer.shape[ 0 ]; ++n )
+  {
+    out.emplace_back( data[ n * 2 ], data[ n * 2 + 1 ] );
+  }
+
+  return out;
+}
+
+py::tuple
+intersect_convex(
+  py::array_t< double, py::array::c_style | py::array::forcecast > const& first,
+  py::array_t< double, py::array::c_style | py::array::forcecast > const& second )
+{
+  auto const overlap = viame::image_kernels::intersect_convex(
+    polygon_points( first, "intersect_convex" ),
+    polygon_points( second, "intersect_convex" ) );
+
+  py::array_t< double > points(
+    std::vector< Py_ssize_t >{ static_cast< Py_ssize_t >( overlap.size() ),
+                               2 } );
+  auto* destination = points.mutable_data();
+
+  for( auto const& corner : overlap )
+  {
+    *destination++ = corner.first;
+    *destination++ = corner.second;
+  }
+
+  // The area first, as `cv2.intersectConvexConvex` returns it, and the
+  // polygon second.
+  return py::make_tuple( viame::image_kernels::polygon_area( overlap ),
+                         points );
+}
+
 py::array_t< double >
 convex_hull( py::array_t< double, py::array::c_style | py::array::forcecast >
                const& points )
@@ -1241,6 +1320,19 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
 
   m.def( "bounding_rect", &bounding_rect, py::arg( "contour" ),
          "cv2.boundingRect: (x, y, width, height)." );
+
+  m.def( "arc_length", &arc_length, py::arg( "contour" ),
+         py::arg( "closed" ) = true,
+         "The length of a contour, which is cv2.arcLength." );
+
+  m.def( "moments", &moments, py::arg( "contour" ),
+         "A contour's spatial moments through the second order, which is "
+         "cv2.moments on a contour." );
+
+  m.def( "intersect_convex", &intersect_convex, py::arg( "first" ),
+         py::arg( "second" ),
+         "The overlap of two convex polygons as (area, points), which is "
+         "cv2.intersectConvexConvex." );
 
   m.def( "convex_hull", &convex_hull, py::arg( "points" ),
          "cv2.convexHull. Andrew's monotone chain; collinear points are "

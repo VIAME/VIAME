@@ -307,14 +307,15 @@ def wrap_poly(poly, class_, source_name=None, merged_count=0):
 
 def _polys_overlap(a, b):
     """True when convex polygons a and b (N,2) intersect (shapely when
-    available, else cv2.intersectConvexConvex)."""
+    available, else image_kernels.intersect_convex)."""
     try:
         from shapely.geometry import Polygon
         return Polygon(a).intersects(Polygon(b))
     except ImportError:
-        import cv2
-        area, _ = cv2.intersectConvexConvex(
-            a.astype(np.float32), b.astype(np.float32))
+        from viame import image_kernels
+        area, _ = image_kernels.intersect_convex(
+            np.ascontiguousarray(a, dtype=np.float64),
+            np.ascontiguousarray(b, dtype=np.float64))
         return area > 0
 
 
@@ -330,9 +331,10 @@ def _union_poly(polys):
             u = max(u.geoms, key=lambda g: g.area)
         pts = np.array(u.exterior.coords[:-1])
     except ImportError:
-        import cv2
-        pts = cv2.convexHull(
-            np.concatenate(polys).astype(np.float32)).reshape(-1, 2)
+        from viame import image_kernels
+        pts = np.asarray(image_kernels.convex_hull(
+            np.ascontiguousarray(np.concatenate(polys),
+                                 dtype=np.float64))).reshape(-1, 2)
     return np.clip(pts, 0, None)
 
 

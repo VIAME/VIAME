@@ -61,15 +61,14 @@ def pad_img_to_fit_bbox(img, x1, y1, x2, y2):
     Returns:
         tuple: (padded_img, new_x1, new_x2, new_y1, new_y2)
     """
-    import cv2
+    from viame import image_kernels
 
-    img = cv2.copyMakeBorder(
-        img,
+    img = image_kernels.make_border(
+        np.ascontiguousarray(img),
         -min(0, y1),
         max(y2 - img.shape[0], 0),
         -min(0, x1),
         max(x2 - img.shape[1], 0),
-        cv2.BORDER_CONSTANT,
     )
 
     y2 += -min(0, y1)
@@ -182,27 +181,28 @@ def mask_to_polygon(mask, simplification=0.01):
         List of floats [x1, y1, x2, y2, ...] or None if conversion fails.
         Use with DetectedObject.set_flattened_polygon().
     """
-    import cv2
+    from viame import image_kernels
 
-    contours, _ = cv2.findContours(
-        mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    # `find_contours` traces outer borders only, which is `RETR_EXTERNAL`.
+    contours = image_kernels.find_contours(
+        np.ascontiguousarray(mask.astype(np.uint8))
     )
 
     if len(contours) == 0:
         return None
 
-    contour = max(contours, key=cv2.contourArea)
+    contour = max(contours, key=image_kernels.contour_area)
 
     if simplification > 0:
-        perimeter = cv2.arcLength(contour, True)
+        perimeter = image_kernels.arc_length(contour, True)
         epsilon = simplification * perimeter
-        contour = cv2.approxPolyDP(contour, epsilon, True)
+        contour = image_kernels.approx_poly(contour, epsilon)
 
     if len(contour) < 3:
         return None
 
-    points = contour.squeeze()
-    if len(points.shape) == 1:
+    points = np.asarray(contour)
+    if points.ndim == 1:
         return None
 
     # Return flattened list [x1, y1, x2, y2, ...]

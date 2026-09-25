@@ -24,7 +24,7 @@ import re
 import importlib
 import subprocess
 from viame import image_kernels
-from viame.utilities import imageops
+from viame.utilities import geometry, imageops
 
 # Populated by import_dependencies()
 np = None
@@ -302,6 +302,25 @@ def compute_homography_pair(img1_path, img2_path, scale=0.5, nfeatures=8192,
 
     return None, None
 
+def _read_or_none(path):
+    """An image as RGB, or None when it cannot be read.
+
+    `cv2.imread` returned None for a missing or unreadable file and these
+    callers test for it; `imageops.read_image` raises instead, which is the
+    better contract and not the one they were written against.
+
+    Note the channel order. This is RGB where `cv2.imread` gave BGR, and the
+    callers that follow it with a grey conversion want `to_gray` rather than
+    `COLOR_BGR2GRAY` -- which comes to the same number, since the two apply
+    the same three weights to the same three channels in the order each is
+    given them.
+    """
+    try:
+        return imageops.read_image(path)
+    except OSError:
+        return None
+
+
 def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
                                    use_clahe, match_ratio, min_inliers,
                                    min_inlier_ratio, ransac_thresh,
@@ -325,16 +344,19 @@ def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
     gray2 = image_kernels.to_gray(small2)
 
     if use_clahe:
-        clahe = cv2.createCLAHE(clipLimit=clahe_clip, tileGridSize=(8, 8))
+        def equalise(gray):
+            return image_kernels.clahe(np.ascontiguousarray(gray),
+                                       clahe_clip, 8, 8)
+
         if always_clahe:
-            gray1 = clahe.apply(gray1)
-            gray2 = clahe.apply(gray2)
+            gray1 = equalise(gray1)
+            gray2 = equalise(gray2)
         else:
             # Adaptive: only apply if image has low contrast
             if gray1.std() < 20:
-                gray1 = clahe.apply(gray1)
+                gray1 = equalise(gray1)
             if gray2.std() < 20:
-                gray2 = clahe.apply(gray2)
+                gray2 = equalise(gray2)
 
     sift = cv2.SIFT_create(nfeatures=nfeatures, contrastThreshold=sift_contrast)
     kp1, des1 = sift.detectAndCompute(gray1, None)
@@ -496,13 +518,13 @@ def _compute_camera_chain(image_folder, cam_images, label="",
         if is_water:
             anchor_scores.append((0, i))
             continue
-        img = cv2.imread(os.path.join(image_folder, fname))
+        img = _read_or_none(os.path.join(image_folder, fname))
         if img is None:
             anchor_scores.append((0, i))
             continue
         h, w = img.shape[:2]
         small = image_kernels.resize(img, int(w * 0.25), int(h * 0.25))
-        gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
+        gray = image_kernels.to_gray(small)
         kp = sift_quick.detect(gray, None)
         anchor_scores.append((len(kp) if kp else 0, i))
 
@@ -1256,23 +1278,25 @@ def detect_loop_edges(chain, image_folder, cam_images, min_gap=15,
     reg = sorted(chain.keys())
     if len(reg) < 3:
         return []
-    img0 = cv2.imread(os.path.join(image_folder, cam_images[reg[0]]))
+    img0 = _read_or_none(os.path.join(image_folder, cam_images[reg[0]]))
     if img0 is None:
         return []
     h0, w0 = img0.shape[:2]
 
     def corners(H):
-        pts = np.float32([[0, 0], [w0, 0], [w0, h0], [0, h0]]).reshape(-1, 1, 2)
-        return cv2.perspectiveTransform(pts, H).reshape(-1, 2)
+        pts = np.array([[0, 0], [w0, 0], [w0, h0], [0, h0]], dtype=np.float64)
+        return geometry.apply_homography(H, pts)
 
     fp = {i: corners(chain[i]) for i in reg}
 
     def overlap(a, b):
-        inter, _ = cv2.intersectConvexConvex(a.astype(np.float32), b.astype(np.float32))
+        a = np.ascontiguousarray(a, dtype=np.float64)
+        b = np.ascontiguousarray(b, dtype=np.float64)
+        inter, _ = image_kernels.intersect_convex(a, b)
         if not inter or inter <= 0:
             return 0.0
-        return inter / min(cv2.contourArea(a.astype(np.float32)),
-                           cv2.contourArea(b.astype(np.float32)))
+        return inter / min(image_kernels.contour_area(a),
+                           image_kernels.contour_area(b))
 
     edges = []
     for ai in range(len(reg)):
@@ -1606,7 +1630,7 @@ def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500)
     results = {}
     for fname in image_list:
         img_path = os.path.join(image_folder, fname)
-        img = cv2.imread(img_path)
+        img = _read_or_none(img_path)
         if img is None:
             results[fname] = {'is_water': True, 'label': 'unknown',
                                'scores': {}, 'keypoints': 0,
@@ -1614,7 +1638,7 @@ def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500)
             continue
         h, w = img.shape[:2]
         small = image_kernels.resize(img, int(w * scale), int(h * scale))
-        gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
+        gray = image_kernels.to_gray(small)
         kp = sift.detect(gray, None)
         n_kp = len(kp) if kp else 0
         is_water = n_kp < threshold

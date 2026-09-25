@@ -11,8 +11,11 @@ Compute a stereo rectified image pair from calibration parameters.
 import argparse
 import sys
 
-import cv2
 import numpy as np
+
+from viame import image_kernels
+from viame.measurement import projection
+from viame.utilities import imageops, opencv_yaml
 
 
 def main():
@@ -34,9 +37,12 @@ def main():
 
     args = parser.parse_args()
 
-    img = cv2.imread(args.input_image, cv2.IMREAD_UNCHANGED)
-    if img is None:
-        raise ValueError(f"Failed to read image: {args.input_image}")
+    # Unchanged, because a Bayer frame is a single plane and a 16-bit one
+    # must not be narrowed before it is rectified.
+    try:
+        img = imageops.read_unchanged(args.input_image)
+    except OSError as error:
+        raise ValueError(f"Failed to read image: {args.input_image}") from error
 
     if img.shape[1] % 2:
         raise ValueError("Stitched stereo image width must be even")
@@ -45,30 +51,33 @@ def main():
     right_img = img[:, img.shape[1] // 2:]
 
     if args.bayer:
-        left_img = cv2.cvtColor(left_img if left_img.ndim == 2 else left_img[:, :, 0], cv2.COLOR_BayerBG2BGR)
-        right_img = cv2.cvtColor(right_img if right_img.ndim == 2 else right_img[:, :, 0], cv2.COLOR_BayerBG2BGR)
+        # "RG" names the mosaic, which is what `cv2.COLOR_BayerBG2BGR` asks
+        # for: OpenCV spells its constants by the second row's pair, the
+        # reverse of a datasheet. RGB out, where OpenCV gave BGR.
+        def debayer(plane):
+            plane = plane if plane.ndim == 2 else plane[:, :, 0]
+            return image_kernels.demosaic(np.ascontiguousarray(plane), "RG")
 
-    img_shape = left_img.shape[1::-1]
+        left_img = debayer(left_img)
+        right_img = debayer(right_img)
+
+    height, width = left_img.shape[:2]
 
     # Read the intrinsics parameters
-    fs = cv2.FileStorage(args.intrinsics, flags=0)
-    if not fs.isOpened():
-        raise ValueError(f"Failed to open intrinsics file: {args.intrinsics}")
-    M1 = fs.getNode("M1").mat()
-    D1 = fs.getNode("D1").mat()
-    M2 = fs.getNode("M2").mat()
-    D2 = fs.getNode("D2").mat()
-    fs.release()
+    try:
+        found = opencv_yaml.read(args.intrinsics, ("M1", "D1", "M2", "D2"))
+    except OSError as error:
+        raise ValueError(
+            f"Failed to open intrinsics file: {args.intrinsics}") from error
+    M1, D1, M2, D2 = (found[k] for k in ("M1", "D1", "M2", "D2"))
 
     # Read the extrinsic parameters
-    fs = cv2.FileStorage(args.extrinsics, flags=0)
-    if not fs.isOpened():
-        raise ValueError(f"Failed to open extrinsics file: {args.extrinsics}")
-    R1 = fs.getNode("R1").mat()
-    R2 = fs.getNode("R2").mat()
-    P1 = fs.getNode("P1").mat()
-    P2 = fs.getNode("P2").mat()
-    fs.release()
+    try:
+        found = opencv_yaml.read(args.extrinsics, ("R1", "R2", "P1", "P2"))
+    except OSError as error:
+        raise ValueError(
+            f"Failed to open extrinsics file: {args.extrinsics}") from error
+    R1, R2, P1, P2 = (found[k] for k in ("R1", "R2", "P1", "P2"))
 
     # Validate required matrices
     for name, mat in [("M1", M1), ("D1", D1), ("M2", M2), ("D2", D2),
@@ -85,18 +94,25 @@ def main():
         if mat.size not in (4, 5, 8, 12, 14) or not np.isfinite(mat).all():
             raise ValueError(f"Invalid distortion coefficients: {name}")
 
-    # Compute rectification maps
-    map11, map12 = cv2.initUndistortRectifyMap(M1, D1, R1, P1, img_shape, cv2.CV_16SC2)
-    map21, map22 = cv2.initUndistortRectifyMap(M2, D2, R2, P2, img_shape, cv2.CV_16SC2)
+    # Compute rectification maps. Float maps rather than the fixed point
+    # `CV_16SC2` pair OpenCV was asked for, which quantises the sample
+    # positions to a thirty-second of a pixel.
+    map11, map12 = projection.rectification_maps(M1, D1, R1, P1, width, height)
+    map21, map22 = projection.rectification_maps(M2, D2, R2, P2, width, height)
 
     # Apply rectification
-    left_rect = cv2.remap(left_img, map11, map12, cv2.INTER_CUBIC)
-    right_rect = cv2.remap(right_img, map21, map22, cv2.INTER_CUBIC)
+    left_rect = image_kernels.remap(np.ascontiguousarray(left_img),
+                                    map11, map12, "bicubic")
+    right_rect = image_kernels.remap(np.ascontiguousarray(right_img),
+                                     map21, map22, "bicubic")
 
     # Save rectified pair
     rect_pair = np.hstack((left_rect, right_rect))
-    if not cv2.imwrite(args.output_image, rect_pair):
-        raise ValueError(f"Failed to write rectified image: {args.output_image}")
+    try:
+        imageops.write_image(args.output_image, rect_pair)
+    except OSError as error:
+        raise ValueError(
+            f"Failed to write rectified image: {args.output_image}") from error
 
     print(f"Saved rectified image to {args.output_image}")
     return 0

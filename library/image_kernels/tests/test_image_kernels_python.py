@@ -22,9 +22,10 @@ is being removed.
 import numpy as np
 import pytest
 
-from viame.image_kernels import (add_weighted, approx_poly, bounding_rect,
+from viame.image_kernels import (add_weighted, approx_poly, arc_length,
+                                 bounding_rect,
                                  box_blur, clahe, contour_area, convex_hull,
-                                 crop,
+                                 crop, intersect_convex, moments,
                                  demosaic, dilate, draw_circle, draw_line,
                                  find_contours, label_components,
                                  corner_subpix, make_border,
@@ -513,6 +514,94 @@ def test_label_components_counts_the_background():
     assert count == 3                      # two shapes plus the background
     assert labels.shape == (60, 80)
     assert set(np.unique(labels)) == {0, 1, 2}
+
+
+def test_arc_length_of_a_rectangle():
+    """The polygon through the pixel centres, as `contour_area` measures too.
+
+    The traced rectangle spans 12..39 and 10..29, so it is 27 by 19 at its
+    centres and goes twice round: 92, not the 96 a pixel count suggests.
+    """
+    contour = max(find_contours(_two_shapes()), key=len)
+    assert arc_length(contour, True) == pytest.approx(92.0)
+
+
+def test_arc_length_open_drops_the_closing_edge():
+    square = np.array([[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]])
+    assert arc_length(square, True) == pytest.approx(40.0)
+    assert arc_length(square, False) == pytest.approx(30.0)
+
+
+def test_moments_give_the_centroid_of_a_square():
+    square = np.array([[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]])
+    m = moments(square)
+
+    assert m["m00"] == pytest.approx(100.0)
+    assert m["m10"] / m["m00"] == pytest.approx(5.0)
+    assert m["m01"] / m["m00"] == pytest.approx(5.0)
+
+
+def test_moments_find_an_offset_centroid():
+    """An L is not centred on its bounding box, which is the point of asking."""
+    shape = np.array([[0.0, 0.0], [30.0, 0.0], [30.0, 10.0],
+                      [10.0, 10.0], [10.0, 30.0], [0.0, 30.0]])
+    m = moments(shape)
+
+    assert m["m00"] == pytest.approx(500.0)
+    assert m["m10"] / m["m00"] == pytest.approx(11.0)
+    assert m["m01"] / m["m00"] == pytest.approx(11.0)
+
+
+def test_intersect_convex_overlapping_squares():
+    a = np.array([[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]])
+    b = np.array([[5.0, 5.0], [15.0, 5.0], [15.0, 15.0], [5.0, 15.0]])
+
+    area, points = intersect_convex(a, b)
+
+    assert area == pytest.approx(25.0)
+    assert len(points) == 4
+
+
+def test_intersect_convex_keeps_sub_pixel_crossings():
+    """The vertices of an overlap are where two edges cross.
+
+    Rounding them to the pixel grid is a whole pixel of error on each, which
+    is why this works in doubles rather than through `contour_points`.
+    """
+    a = np.array([[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]])
+    b = np.array([[2.5, 2.5], [12.5, 2.5], [12.5, 12.5], [2.5, 12.5]])
+
+    area, points = intersect_convex(a, b)
+
+    assert area == pytest.approx(56.25)
+    assert np.any(np.abs(points - np.round(points)) > 0.1)
+
+
+def test_intersect_convex_is_the_same_either_way_round():
+    """Winding is normalised, so a clockwise argument is not silently empty."""
+    a = np.array([[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]])
+    clockwise = a[::-1].copy()
+    b = np.array([[5.0, 5.0], [15.0, 5.0], [15.0, 15.0], [5.0, 15.0]])
+
+    assert intersect_convex(clockwise, b)[0] == pytest.approx(25.0)
+    assert intersect_convex(b, a)[0] == pytest.approx(25.0)
+
+
+def test_intersect_convex_of_disjoint_squares_is_empty():
+    a = np.array([[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]])
+    b = np.array([[20.0, 20.0], [30.0, 20.0], [30.0, 30.0], [20.0, 30.0]])
+
+    area, points = intersect_convex(a, b)
+
+    assert area == 0.0
+    assert len(points) == 0
+
+
+def test_intersect_convex_contained_square_is_the_smaller_one():
+    outer = np.array([[0.0, 0.0], [20.0, 0.0], [20.0, 20.0], [0.0, 20.0]])
+    inner = np.array([[5.0, 5.0], [10.0, 5.0], [10.0, 10.0], [5.0, 10.0]])
+
+    assert intersect_convex(outer, inner)[0] == pytest.approx(25.0)
 
 
 def test_a_contour_must_be_pairs():
