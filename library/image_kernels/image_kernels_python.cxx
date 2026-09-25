@@ -169,9 +169,10 @@ swap_channels( array_of< uint8_t > const& array )
 /// The three-channel conversions all have the same shape: HxWx3 in, HxWx3
 /// out. `three_channel` is the check they share, named so the error says
 /// which conversion asked.
-array_of< uint8_t > const&
+template < typename T >
+array_of< T > const&
 three_channel(
-  array_of< uint8_t > const& array,
+  array_of< T > const& array,
   char const* who )
 {
   if( array.ndim() != 3 || array.shape( 2 ) != 3 )
@@ -181,29 +182,42 @@ three_channel(
   return array;
 }
 
+// The hue and cylinder conversions come in two scalings, and which one a
+// caller gets is decided by the **type it passes**, exactly as
+// `cv::cvtColor` decides it. An 8-bit image has hue halved into 0..179 and
+// saturation and value over 0..255, because a byte cannot hold degrees; a
+// float image keeps hue in 0..360 and the other two in 0..1.
+//
+// Both were always in `color.h`; only the uint8 half was bound, which left
+// every float caller -- the netharn augmenters among them -- on cv2, because
+// handing their 0..360 hue to the 8-bit form silently halves it.
+template < typename T >
 py::array
-to_hsv( array_of< uint8_t > const& array )
+to_hsv( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "to_hsv" ) );
   return as_array( viame::image_kernels::rgb_to_hsv( source ), true );
 }
 
+template < typename T >
 py::array
-from_hsv( array_of< uint8_t > const& array )
+from_hsv( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "from_hsv" ) );
   return as_array( viame::image_kernels::hsv_to_rgb( source ), true );
 }
 
+template < typename T >
 py::array
-to_hls( array_of< uint8_t > const& array )
+to_hls( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "to_hls" ) );
   return as_array( viame::image_kernels::rgb_to_hls( source ), true );
 }
 
+template < typename T >
 py::array
-from_hls( array_of< uint8_t > const& array )
+from_hls( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "from_hls" ) );
   return as_array( viame::image_kernels::hls_to_rgb( source ), true );
@@ -212,14 +226,14 @@ from_hls( array_of< uint8_t > const& array )
 py::array
 to_lab( array_of< uint8_t > const& array )
 {
-  auto const source = as_image( three_channel( array, "to_lab" ) );
+  auto const source = as_image( three_channel< uint8_t >( array, "to_lab" ) );
   return as_array( viame::image_kernels::rgb_to_lab( source ), true );
 }
 
 py::array
 from_lab( array_of< uint8_t > const& array )
 {
-  auto const source = as_image( three_channel( array, "from_lab" ) );
+  auto const source = as_image( three_channel< uint8_t >( array, "from_lab" ) );
   return as_array( viame::image_kernels::lab_to_rgb( source ), true );
 }
 
@@ -435,10 +449,11 @@ as_border( std::string const& name )
   if( name == "replicate" )   { return border_mode::REPLICATE; }
   if( name == "reflect" )     { return border_mode::REFLECT; }
   if( name == "reflect_101" ) { return border_mode::REFLECT_101; }
+  if( name == "wrap" )        { return border_mode::WRAP; }
 
   throw std::invalid_argument(
-    "border must be one of constant, replicate, reflect, reflect_101; got '" +
-    name + "'" );
+    "border must be one of constant, replicate, reflect, reflect_101, wrap; "
+    "got '" + name + "'" );
 }
 
 py::array
@@ -1028,31 +1043,50 @@ morphology( array_of< T > const& array, std::string const& operation,
   return as_array( work, array.ndim() == 3 );
 }
 
-/// `cv2.copyMakeBorder` with a constant, which is the only mode asked for.
+/// `cv2.copyMakeBorder`, in any of the modes `border_mode` carries.
+///
+/// The padding is read through `border_index`, which is the same rule the
+/// filters and the warps pad with -- so an image padded here and then
+/// filtered agrees with one filtered with the border rule applied inline,
+/// which is the only way the two can be used together.
+///
+/// `value` is used by `constant` alone, as OpenCV's is.
 template < typename T >
 py::array
 make_border( array_of< T > const& array, size_t top, size_t bottom,
-             size_t left, size_t right, py::object const& value )
+             size_t left, size_t right, py::object const& value,
+             std::string const& border )
 {
   auto const source = as_image( array );
   auto const paint = as_colour( value );
+  auto const mode = as_border( border );
 
   viame::image_of< T > out( source.width() + left + right,
                             source.height() + top + bottom,
                             source.depth() );
 
+  auto const width = static_cast< long >( source.width() );
+  auto const height = static_cast< long >( source.height() );
+
   for( size_t y = 0; y < out.height(); ++y )
   {
+    auto const from_y = viame::image_kernels::detail::border_index(
+      static_cast< long >( y ) - static_cast< long >( top ), height, mode );
+
     for( size_t x = 0; x < out.width(); ++x )
     {
-      bool const inside =
-        x >= left && y >= top &&
-        x < left + source.width() && y < top + source.height();
+      auto const from_x = viame::image_kernels::detail::border_index(
+        static_cast< long >( x ) - static_cast< long >( left ), width, mode );
+
+      // -1 from either axis is `border_index` saying "outside, and the mode
+      // has nothing to read" -- which only `CONSTANT` says.
+      bool const inside = from_x >= 0 && from_y >= 0;
 
       for( size_t d = 0; d < out.depth(); ++d )
       {
         out( x, y, d ) = inside
-          ? source( x - left, y - top, d )
+          ? source( static_cast< size_t >( from_x ),
+                    static_cast< size_t >( from_y ), d )
           : viame::image_kernels::saturate_pixel< T >(
               viame::image_kernels::detail::plane_value( paint, d ) );
       }
@@ -1162,17 +1196,23 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   m.def( "swap_channels", &swap_channels, py::arg( "image" ),
          "RGB to BGR, or back." );
 
-  m.def( "to_hsv", &to_hsv, py::arg( "image" ),
-         "RGB to HSV. Hue is 0..179 and saturation and value 0..255, which "
-         "is OpenCV's 8-bit scaling, not a textbook's 0..360." );
+  for_both_pixel_types( m, "to_hsv", &to_hsv< uint8_t >, &to_hsv< float >,
+         py::arg( "image" ),
+         "RGB to HSV, in the scaling the input type chooses -- as "
+         "cv2.cvtColor does. uint8 gives hue 0..179 with saturation and "
+         "value 0..255, OpenCV's 8-bit convention rather than a textbook's; "
+         "float32 gives hue 0..360 with the other two over 0..1." );
 
-  m.def( "from_hsv", &from_hsv, py::arg( "image" ),
-         "HSV back to RGB, on the same 0..179 hue scale as to_hsv." );
+  for_both_pixel_types( m, "from_hsv", &from_hsv< uint8_t >,
+         &from_hsv< float >, py::arg( "image" ),
+         "HSV back to RGB, on whichever scale to_hsv gives that type." );
 
-  m.def( "to_hls", &to_hls, py::arg( "image" ),
-         "RGB to HLS, hue on the same 0..179 scale as to_hsv." );
+  for_both_pixel_types( m, "to_hls", &to_hls< uint8_t >, &to_hls< float >,
+         py::arg( "image" ),
+         "RGB to HLS, on the same two scales as to_hsv." );
 
-  m.def( "from_hls", &from_hls, py::arg( "image" ),
+  for_both_pixel_types( m, "from_hls", &from_hls< uint8_t >,
+         &from_hls< float >, py::arg( "image" ),
          "HLS back to RGB." );
 
   m.def( "to_lab", &to_lab, py::arg( "image" ),
@@ -1381,7 +1421,10 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          &make_border< uint16_t >, &make_border< float >, py::arg( "image" ),
          py::arg( "top" ), py::arg( "bottom" ), py::arg( "left" ),
          py::arg( "right" ), py::arg( "value" ) = 0,
-         "cv2.copyMakeBorder with BORDER_CONSTANT." );
+         py::arg( "border" ) = "constant",
+         "cv2.copyMakeBorder. `border` is constant, replicate, reflect, "
+         "reflect_101 or wrap, and `value` is used by constant alone -- as "
+         "OpenCV's is." );
 
   for_both_pixel_types( m, "watershed", &watershed< uint8_t >,
          &watershed< uint16_t >, py::arg( "image" ), py::arg( "markers" ),

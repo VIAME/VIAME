@@ -310,8 +310,7 @@ class SAM3Trainer(TrainDetector):
         self, image_files, detection_sets, output_dir, category_map, split_name
     ):
         """Process one split (train/val) of the data."""
-        import cv2
-        from viame import image_kernels
+        from viame.utilities import imageops
 
         images_json = []
         annotations_json = []
@@ -323,8 +322,9 @@ class SAM3Trainer(TrainDetector):
                 continue
 
             # Read image dimensions
-            img = cv2.imread(img_path)
-            if img is None:
+            try:
+                img = imageops.read_image(img_path)
+            except OSError:
                 print(f"Warning: Could not read image: {img_path}")
                 continue
 
@@ -608,7 +608,6 @@ class SAM3Trainer(TrainDetector):
 
                     # Create mask from segmentation
                     if "segmentation" in ann and len(ann["segmentation"]) > 0:
-                        import cv2
 
                         mask = np.zeros(
                             (self.img_size[0], self.img_size[1]), dtype=np.uint8
@@ -617,8 +616,14 @@ class SAM3Trainer(TrainDetector):
                             pts = np.array(seg).reshape(-1, 2)
                             pts[:, 0] *= scale_x
                             pts[:, 1] *= scale_y
-                            pts = pts.astype(np.int32)
-                            cv2.fillPoly(mask, [pts], 1)
+                            # Truncated to int first, as the `astype` that
+                            # fed `cv2.fillPoly` did: `fill_polygon` rounds
+                            # to nearest, so converting here keeps the
+                            # vertices exactly where they were.
+                            image_kernels.fill_polygon(
+                                mask,
+                                np.ascontiguousarray(pts.astype(np.int32),
+                                                     dtype=np.float64), 1)
                         masks.append(mask)
                     else:
                         # Box mask
@@ -1436,7 +1441,6 @@ class SAM3TrackerTrainer(TrainTracker):
 
         Returns None if the image cannot be read.
         """
-        import cv2
         import torch
 
         try:
@@ -1461,7 +1465,10 @@ class SAM3TrackerTrainer(TrainTracker):
             pts = np.array(frame["polygon"], dtype=np.float64).reshape(-1, 2)
             pts[:, 0] *= scale_x
             pts[:, 1] *= scale_y
-            cv2.fillPoly(mask, [pts.astype(np.int32)], 1)
+            image_kernels.fill_polygon(
+                mask,
+                np.ascontiguousarray(pts.astype(np.int32), dtype=np.float64),
+                1)
         else:
             mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = 1
 

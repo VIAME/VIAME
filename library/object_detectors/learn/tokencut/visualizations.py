@@ -1,10 +1,10 @@
 """
 Vis utilities. Code adapted from LOST: https://github.com/valeoai/LOST
 """
-import cv2
 import torch
 import skimage.io
 import numpy as np
+from viame import image_kernels
 import torch.nn as nn
 from PIL import Image
 import scipy
@@ -22,10 +22,10 @@ def visualize_predictions(img, pred, vis_folder, im_name, save=True):
     """
     image = np.copy(img)
     # Plot the box
-    cv2.rectangle(
+    image_kernels.draw_rect(
         image,
-        (int(pred[0]), int(pred[1])),
-        (int(pred[2]), int(pred[3])),
+        int(pred[0]), int(pred[1]),
+        int(pred[2]) + 1, int(pred[3]) + 1,
         (255, 0, 0), 3,
     )
     if save:
@@ -40,19 +40,19 @@ def visualize_predictions_gt(img, pred, gt, vis_folder, im_name, dim, scales, sa
     """
     image = np.copy(img)
     # Plot the box
-    cv2.rectangle(
+    image_kernels.draw_rect(
         image,
-        (int(pred[0]), int(pred[1])),
-        (int(pred[2]), int(pred[3])),
+        int(pred[0]), int(pred[1]),
+        int(pred[2]) + 1, int(pred[3]) + 1,
         (255, 0, 0), 3,
     )
     # Plot the ground truth box
     if len(gt>1):
         for i in range(len(gt)):
-            cv2.rectangle(
+            image_kernels.draw_rect(
                 image,
-                (int(gt[i][0]), int(gt[i][1])),
-                (int(gt[i][2]), int(gt[i][3])),
+                int(gt[i][0]), int(gt[i][1]),
+                int(gt[i][2]) + 1, int(gt[i][3]) + 1,
                 (0, 0, 255), 3,
             )
     if save:

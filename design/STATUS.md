@@ -779,3 +779,50 @@ identically with this branch's changes stashed. Each is a test that stubs
 `viame.utilities` gets "'viame' is not a package". That is the fixture trap
 recorded three times already in this port, and this is a fourth instance of
 it that nothing in either tier can see.
+
+Five more files off cv2, and the two kernel gaps that were holding them
+there. Our own tree is down from 32 files importing cv2 to 27.
+
+**The HSV conversions had a float form all along and only the 8-bit half was
+bound.** `color.h` already branched on whether the pixel type is integral:
+bytes get hue halved into 0..179 with saturation and value over 0..255,
+because a byte cannot hold degrees, and floats keep hue in 0..360 with the
+other two over 0..1 -- which is exactly how `cv::cvtColor` decides it. The
+binding took `array_of< uint8_t >` only, so every float caller stayed on cv2;
+the netharn augmenters carried a comment saying so, because handing their
+0..360 hue to the 8-bit form silently halves it. Templating the four
+conversions and registering uint8 and float32 overloads is the whole fix.
+Against cv2 on a random frame: hue within 4.3e-4 of a degree, saturation
+2.1e-6, value exact, and the float round trip is *better* than cv2's -- 2.4e-7
+against 6.6e-7.
+
+**`make_border` was constant-only.** It is now every mode `border_mode`
+carries, reading the padding through the same `border_index` the filters and
+warps pad with, so an image padded here and then filtered agrees with one
+filtered with the rule applied inline. `WRAP` was added to the enum to
+complete the set, three lines, with the sign of C++'s `%` handled -- -1 % 5
+is -1, and the wanted answer is 4. All five modes are **bit-identical** to
+`cv2.copyMakeBorder` on an 8-bit frame padded seven pixels each side.
+
+Adding `wrap` broke a test, which is the test doing its job:
+`test_an_unknown_border_is_refused` used `"wrap"` as its example of an
+unknown border and `"wrap"` is now a border. It names `linear_ramp` instead
+-- numpy's pad offers several rules OpenCV has no equivalent for, and asking
+for one must fail rather than quietly padding some other way.
+
+Ported: the netharn augmenters (`HSVShift`, the letterbox `Resize`, and the
+demo image), `sam3_trainer.py`, and the three `learn/` visualisation files.
+Two more RGB normalisations went with them -- the tokencut debug dump wrote
+its channels reversed, because `cv2.imwrite` treats an array as BGR and these
+come from a torch tensor and were always RGB.
+
+The drawing swaps are the one place the output is *not* identical and the
+comments say so at each call: `draw_rect`'s second corner is exclusive where
+`cv2.rectangle`'s is inclusive, so a ported call passes x2 + 1; and
+`draw_text` places by the top left rather than the baseline and draws a 5 by
+7 bitmap font rather than Hershey. These are debug overlays, where legible is
+the requirement.
+
+**Green:** BASELINE, UNIT and CORE 474 of 474 with 12 new kernel cases (119
+in `unit:image_kernels:python`), GOLDEN and CRITICAL 10 of 10.
+`install.txt` unchanged.

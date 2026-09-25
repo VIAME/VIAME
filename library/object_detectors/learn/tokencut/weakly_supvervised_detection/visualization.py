@@ -1,10 +1,10 @@
 """
 Vis utilities. Code adapted from LOST: https://github.com/valeoai/LOST
 """
-import cv2
 import numpy as np
 from PIL import Image
-import cv2
+from viame import image_kernels
+from viame.utilities import imageops
 import scipy
 import numpy as np 
 import torch
@@ -18,7 +18,10 @@ def visualize_img(image):
     #image = np.uint8(np.transpose(image, (1,2,0)))
     print(f'image shape: {image.shape}')
     image = np.uint8(image*256)
-    cv2.imwrite('./test/test_img.png', image)
+    # RGB, where `cv2.imwrite` treated these arrays as BGR and wrote the
+    # channels reversed. They come from a torch tensor and were always RGB,
+    # so this debug dump now has its colours the right way round.
+    imageops.write_image('./test/test_img.png', image)
         
 def visualize_fms(image, mask, seed, im_name, dim, scales, folder, save=True):
     w_featmap, h_featmap = dim
@@ -33,7 +36,7 @@ def visualize_fms(image, mask, seed, im_name, dim, scales, folder, save=True):
     if save:
         pltname1 = f"{folder}/LOST_{im_name}.png"
         #Image.fromarray(image).save(pltname1)
-        cv2.imwrite(pltname1, image)
+        imageops.write_image(pltname1, image)
  #       print(f"Predictions saved at {pltname1}.")
         pltname2 = f"{folder}/Mask_{im_name}.png"
         plt.imsave(fname=pltname2, arr=mask)
@@ -57,19 +60,19 @@ def visualize_predictions_gt(image, pred, gt, im_name, seed, dim, scales, folder
     image = np.ascontiguousarray(image, dtype=np.uint8)
 
     # Plot the box
-    cv2.rectangle(
+    image_kernels.draw_rect(
         image,
-        (int(pred[0]), int(pred[1])),
-        (int(pred[2]), int(pred[3])),
+        int(pred[0]), int(pred[1]),
+        int(pred[2]) + 1, int(pred[3]) + 1,
         (255, 0, 0), 2 # RED
     )
     # Plot the ground truth box
     if len(gt>1):
         for i in range(len(gt)):
-            cv2.rectangle(
+            image_kernels.draw_rect(
                 image,
-                (int(gt[i][0]), int(gt[i][1])),
-                (int(gt[i][2]), int(gt[i][3])),
+                int(gt[i][0]), int(gt[i][1]),
+                int(gt[i][2]) + 1, int(gt[i][3]) + 1,
                 (0, 0, 255), 3, #BLUE
             )
     

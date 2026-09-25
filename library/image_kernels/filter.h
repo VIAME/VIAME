@@ -40,6 +40,7 @@ namespace image_kernels {
 /// * `REPLICATE`    -- the edge pixel, repeated:      aaaaa|abcde|eeeee
 /// * `REFLECT`      -- mirrored including the edge:   edcba|abcde|edcba
 /// * `REFLECT_101`  -- mirrored excluding the edge:   dcba|abcde|dcba
+/// * `WRAP`         -- the far side, tiled:           bcdea|abcde|abcde
 ///
 /// `REFLECT_101` is OpenCV's default and the one a `cv::` call gets when it
 /// says nothing, which is why it is the default here.
@@ -49,6 +50,7 @@ enum class border_mode
   REPLICATE,
   REFLECT,
   REFLECT_101,
+  WRAP,
 };
 
 namespace detail {
@@ -86,6 +88,13 @@ border_index( long at, long extent, border_mode mode )
         if( at >= extent ) { at = 2 * extent - at - 1; }
       }
       return at;
+
+    case border_mode::WRAP:
+      // Tiled, which is `cv::BORDER_WRAP`. The remainder is made
+      // non-negative first: C++'s `%` keeps the sign of the dividend, so
+      // -1 % 5 is -1 rather than the 4 that is wanted here.
+      at %= extent;
+      return at < 0 ? at + extent : at;
 
     case border_mode::REFLECT_101:
     default:

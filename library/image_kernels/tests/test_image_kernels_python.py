@@ -104,8 +104,14 @@ def test_a_two_dimensional_image_stays_two_dimensional():
 # ---------------------------------------------------------------------------
 # Colour spaces
 #
-# Hue is on OpenCV's 0..179 scale, not 0..360, because that is what the eight
-# python call sites that used `cv2.COLOR_RGB2HSV` were written against.
+# The scaling follows the **type**, exactly as `cv::cvtColor` makes it: an
+# 8-bit image has hue halved into 0..179 with saturation and value over
+# 0..255, because a byte cannot hold degrees, and a float image keeps hue in
+# 0..360 with the other two over 0..1.
+#
+# Both forms were always in `color.h`. Only the 8-bit one was bound, which is
+# why the netharn augmenters stayed on cv2: they work in float, and handing
+# their 0..360 hue to the 8-bit form silently halves it.
 
 @pytest.mark.parametrize("forward,inverse", [(to_hsv, from_hsv),
                                              (to_hls, from_hls),
@@ -207,9 +213,67 @@ def test_an_unknown_structuring_element_is_refused():
         erode(_gray(), "hexagon", 3, 3)
 
 
+def test_float_hsv_keeps_degrees():
+    """float32 gets 0..360 and 0..1, where uint8 gets 0..179 and 0..255."""
+    rgb = np.array([[[1.0, 0.0, 0.0],
+                     [0.0, 1.0, 0.0],
+                     [0.0, 0.0, 1.0],
+                     [0.5, 0.5, 0.5]]], dtype=np.float32)
+
+    hsv = to_hsv(rgb)
+
+    assert hsv.dtype == np.float32
+    assert hsv[0, 0, 0] == pytest.approx(0.0)      # red
+    assert hsv[0, 1, 0] == pytest.approx(120.0)    # green
+    assert hsv[0, 2, 0] == pytest.approx(240.0)    # blue
+    assert hsv[0, 3, 1] == pytest.approx(0.0)      # grey has no saturation
+    assert hsv[0, 3, 2] == pytest.approx(0.5)
+
+
+def test_float_hsv_round_trips_far_better_than_eight_bit():
+    """No 0..179 halving and no 0..255 quantisation to lose."""
+    rng = np.random.default_rng(4)
+    rgb = rng.random((12, 16, 3)).astype(np.float32)
+
+    back = from_hsv(to_hsv(rgb))
+
+    assert back.dtype == np.float32
+    assert np.abs(back - rgb).max() < 1e-5
+
+
+def test_the_two_hsv_scalings_agree_once_rescaled():
+    """The same conversion, said in two units.
+
+    Converting a frame as float and as bytes must give the same colour: hue
+    halved, the other two over 255. Held loosely because the 8-bit form
+    rounds each channel to an integer, which is a whole degree of hue.
+    """
+    frame = _frame()
+
+    as_bytes = to_hsv(frame).astype(np.float64)
+    as_float = to_hsv(np.ascontiguousarray(
+        frame.astype(np.float32) / 255.0)).astype(np.float64)
+
+    assert np.abs(as_bytes[:, :, 0] - as_float[:, :, 0] / 2.0).max() <= 1.0
+    assert np.abs(as_bytes[:, :, 1] - as_float[:, :, 1] * 255.0).max() <= 1.0
+    assert np.abs(as_bytes[:, :, 2] - as_float[:, :, 2] * 255.0).max() <= 1.0
+
+
 def test_an_unknown_border_is_refused():
+    """`wrap` used to be the example here, and is now a border rule.
+
+    Which is the point of naming a mode that is genuinely absent instead:
+    numpy's pad offers `linear_ramp`, `mean` and several more that OpenCV has
+    no equivalent for, and asking for one must fail rather than quietly
+    padding some other way.
+    """
     with pytest.raises(ValueError):
-        gaussian_blur(_gray(), 5, 0.0, "wrap")
+        gaussian_blur(_gray(), 5, 0.0, "linear_ramp")
+
+
+def test_wrap_is_a_border_rule_everywhere_it_is_offered():
+    """Added with `make_border`, and `as_border` serves every caller."""
+    assert gaussian_blur(_gray(), 5, 0.0, "wrap").shape == _gray().shape
 
 
 def test_demosaic_gives_three_planes():
@@ -658,6 +722,49 @@ def test_make_border_takes_a_value_per_plane():
     frame = np.zeros((8, 8, 3), dtype=np.uint8)
     out = make_border(frame, 2, 2, 2, 2, [7, 8, 9])
     assert list(out[0, 0]) == [7, 8, 9]
+
+
+# The padding modes, on a single row so the rule is readable. The source is
+# `a b c d e` as 1..5, padded three each side:
+#
+#   replicate     a a a | a b c d e | e e e
+#   reflect       c b a | a b c d e | e d c
+#   reflect_101   d c b | a b c d e | d c b
+#   wrap          c d e | a b c d e | a b c
+#
+# `reflect` and `reflect_101` differ by whether the edge pixel is repeated,
+# which is the distinction numpy calls `symmetric` and `reflect` -- the same
+# two words for the other two rules. Getting them the wrong way round shifts
+# a padded image by one pixel and nothing else, which is why they are spelled
+# out here rather than trusted.
+@pytest.mark.parametrize("mode,expected", [
+    ("replicate",   [1, 1, 1, 1, 2, 3, 4, 5, 5, 5, 5]),
+    ("reflect",     [3, 2, 1, 1, 2, 3, 4, 5, 5, 4, 3]),
+    ("reflect_101", [4, 3, 2, 1, 2, 3, 4, 5, 4, 3, 2]),
+    ("wrap",        [3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3]),
+])
+def test_make_border_pads_by_the_rule(mode, expected):
+    row = np.array([[1, 2, 3, 4, 5]], dtype=np.uint8)
+    out = make_border(row, 0, 0, 3, 3, 0, mode)
+    assert list(out[0]) == expected
+
+
+def test_make_border_constant_ignores_the_far_side():
+    row = np.array([[1, 2, 3, 4, 5]], dtype=np.uint8)
+    out = make_border(row, 0, 0, 2, 2, 9, "constant")
+    assert list(out[0]) == [9, 9, 1, 2, 3, 4, 5, 9, 9]
+
+
+def test_make_border_defaults_to_constant():
+    """Every caller written before the modes existed passed no mode."""
+    row = np.array([[1, 2, 3, 4, 5]], dtype=np.uint8)
+    assert np.array_equal(make_border(row, 0, 0, 2, 2, 9),
+                          make_border(row, 0, 0, 2, 2, 9, "constant"))
+
+
+def test_make_border_refuses_an_unknown_mode():
+    with pytest.raises(ValueError):
+        make_border(_gray(), 1, 1, 1, 1, 0, "linear_ramp")
 
 
 # ---------------------------------------------------------------------------

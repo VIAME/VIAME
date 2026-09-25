@@ -15,7 +15,6 @@ def demodata_hsv_image(w=200, h=200):
     """
     Example:
         >>> # xdoctest: +REQUIRES(module:imgaug)
-        >>> # xdoctest: +REQUIRES(module:cv2)
         >>> rgb255 = demodata_hsv_image()
         >>> # xdoctest: +REQUIRES(--show)
         >>> import kwplot
@@ -24,7 +23,6 @@ def demodata_hsv_image(w=200, h=200):
         >>> kwplot.imshow(rgb255, colorspace='rgb')
         >>> kwplot.show_if_requested()
     """
-    import cv2
     from viame import image_kernels
     hsv = np.zeros((h, w, 3), dtype=np.float32)
 
@@ -41,10 +39,10 @@ def demodata_hsv_image(w=200, h=200):
         p[:, :, 2] = v
         parts.append(p)
     final_hsv = np.hstack(parts)
-    # float32 0..1 with hue in 0..360, which is cv2's float convention and
-    # not the kernels' uint8 one (hue 0..179). Left on cv2 until the kernels
-    # carry the float form; porting it to `from_hsv` silently rescales hue.
-    rgb01 = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2RGB)
+    # float32 0..1 with hue in 0..360. The kernels pick the scaling from the
+    # type, as cv2.cvtColor does, so a float array keeps degrees where a
+    # uint8 one would have them halved into 0..179.
+    rgb01 = image_kernels.from_hsv(np.ascontiguousarray(final_hsv))
     rgb255 = (rgb01 * 255).astype(np.uint8)
     return rgb255
 
@@ -149,7 +147,6 @@ class HSVShift(augmenter_base.ParamatarizedAugmenter):
         return keypoints_on_images
 
     def forward(self, img, random_state=None):
-        import cv2
         assert self.input_colorspace == 'rgb'
         assert img.dtype.kind == 'u' and img.dtype.itemsize == 1
 
@@ -167,10 +164,11 @@ class HSVShift(augmenter_base.ParamatarizedAugmenter):
 
         self._prev_params = (dh, ds, dv)
 
-        # Note the cv2 conversion to HSV does not go into the 0-1 range,
-        # instead it goes into (0-360, 0-1, 0-1) for hue, sat, and val.
-        img01 = img.astype(np.float32) / 255.0
-        hsv = cv2.cvtColor(img01, cv2.COLOR_RGB2HSV)
+        # The float conversion does not go into the 0-1 range, instead it
+        # goes into (0-360, 0-1, 0-1) for hue, sat, and val -- the scaling
+        # the kernels give a float array, and cv2 gave one before them.
+        img01 = np.ascontiguousarray(img.astype(np.float32) / 255.0)
+        hsv = image_kernels.to_hsv(img01)
 
         hue_bound = 360.0
         sat_bound = 1.0
@@ -194,7 +192,7 @@ class HSVShift(augmenter_base.ParamatarizedAugmenter):
         hsv[:, :, 1] = np.clip(ds * hsv[:, :, 1], 0.0, sat_bound)
         hsv[:, :, 2] = np.clip(dv * hsv[:, :, 2], 0.0, val_bound)
 
-        img01 = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+        img01 = image_kernels.from_hsv(np.ascontiguousarray(hsv))
         img255 = (img01 * 255).astype(np.uint8)
         return img255
 
@@ -281,7 +279,6 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
     """
     def __init__(self, target_size, fill_color=127, mode='letterbox',
                  border='constant', random_state=None):
-        import cv2
         super(Resize, self).__init__(random_state=random_state)
         self.target_size = None if target_size is None else np.array(target_size)
         self.mode = mode
@@ -294,26 +291,30 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
                 fill_color, "fill_color", value_range=None,
                 tuple_to_uniform=True, list_to_choice=True)
 
-        self._cv2_border_type_map = {
-            'constant': cv2.BORDER_CONSTANT,
-            'edge': cv2.BORDER_REPLICATE,
+        # numpy's pad names on the left, the kernels' border names on the
+        # right. Note `reflect` and `symmetric`: numpy's `reflect` excludes
+        # the edge pixel and OpenCV calls that `REFLECT_101`, while numpy's
+        # `symmetric` includes it and OpenCV calls *that* `REFLECT`. The two
+        # vocabularies use the same word for different rules, and the map is
+        # where that is resolved.
+        self._border_type_map = {
+            'constant': 'constant',
+            'edge': 'replicate',
             'linear_ramp': None,
             'maximum': None,
             'mean': None,
             'median': None,
             'minimum': None,
-            'reflect': cv2.BORDER_REFLECT_101,
-            'symmetric': cv2.BORDER_REFLECT,
-            'wrap': cv2.BORDER_WRAP,
-            cv2.BORDER_CONSTANT: cv2.BORDER_CONSTANT,
-            cv2.BORDER_REPLICATE: cv2.BORDER_REPLICATE,
-            cv2.BORDER_REFLECT_101: cv2.BORDER_REFLECT_101,
-            cv2.BORDER_REFLECT: cv2.BORDER_REFLECT
+            'reflect': 'reflect_101',
+            'symmetric': 'reflect',
+            'wrap': 'wrap',
+            'replicate': 'replicate',
+            'reflect_101': 'reflect_101',
         }
         if isinstance(border, str):
             if border == imgaug.ALL:
-                border = [k for k, v in self._cv2_border_type_map.items()
-                          if v is not None and isinstance(k, str)]
+                border = [k for k, v in self._border_type_map.items()
+                          if v is not None]
             else:
                 border = [border]
         if isinstance(border, (list, tuple)):
@@ -423,7 +424,6 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
             >>> kwplot.imshow(img, fnum=1, pnum=(1, 3, 2))
             >>> kwplot.imshow(inverted_img, fnum=1, pnum=(1, 3, 3))
         """
-        import cv2
         shift, scale, embed_size = self._letterbox_transform(orig_size, target_size)
         top, bot, left, right = self._padding(embed_size, shift, target_size)
 
@@ -525,7 +525,6 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
 
     def _img_letterbox_apply(self, img, embed_size, shift, target_size):
         import kwimage
-        import cv2
         top, bot, left, right = self._padding(embed_size, shift, target_size)
 
         orig_size = np.array(img.shape[0:2][::-1])
@@ -547,14 +546,14 @@ class Resize(augmenter_base.ParamatarizedAugmenter):
         else:
             value = (int(cval),) * channels
 
-        borderType = self._cv2_border_type_map[border]
+        borderType = self._border_type_map[border]
         if borderType is None:
             raise ValueError('bad border type border={}, borderType={}'.format(
                 border, borderType))
 
-        hwc255 = cv2.copyMakeBorder(scaled, top, bot, left, right,
-                                    borderType=borderType,
-                                    value=value)
+        hwc255 = image_kernels.make_border(
+            np.ascontiguousarray(scaled), top, bot, left, right,
+            value, borderType)
         return hwc255
 
 

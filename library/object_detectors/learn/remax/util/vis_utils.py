@@ -2,8 +2,8 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-import cv2
 import numpy as np
+from viame import image_kernels
 
 from util.utils import renorm
 from util.misc import color_sys
@@ -26,15 +26,19 @@ def add_box_to_img(img, boxes, colorlist, brands=None):
     H, W = img.shape[:2]
     for _i, (box, color) in enumerate(zip(boxes, colorlist)):
         x, y, w, h = box[0] * W, box[1] * H, box[2] * W, box[3] * H
-        img = cv2.rectangle(img.copy(), (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), color, 2)
+        img = np.ascontiguousarray(img.copy())
+        # `draw_rect`'s second corner is exclusive where cv2.rectangle's is
+        # inclusive, hence the + 1 on each.
+        image_kernels.draw_rect(img, int(x-w/2), int(y-h/2),
+                                int(x+w/2) + 1, int(y+h/2) + 1, color, 2)
         if brands is not None:
             brand = brands[_i]
-            org = (int(x-w/2), int(y+h/2))
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            fontScale = 0.5
-            thickness = 1
-            img = cv2.putText(img.copy(), str(brand), org, font, 
-                fontScale, color, thickness, cv2.LINE_AA)
+            # `draw_text` places by the **top left**, where cv2.putText
+            # placed by the baseline, and draws a 5 by 7 bitmap font rather
+            # than Hershey -- so this overlay is legible rather than
+            # identical, which is what a debug overlay needs.
+            image_kernels.draw_text(img, str(brand), int(x-w/2),
+                                    int(y+h/2), color, 1)
     return img
 
 def plot_dual_img(img, boxes, labels, idxs, probs=None):
@@ -84,13 +88,12 @@ def plot_raw_img(img, boxes, labels):
     for box, label in zip(boxes.tolist(), labels.tolist()):
         x, y, w, h = box[0] * W, box[1] * H, box[2] * W, box[3] * H
         # import ipdb; ipdb.set_trace()
-        img = cv2.rectangle(img.copy(), (int(x-w/2), int(y-h/2)), (int(x+w/2), int(y+h/2)), _color_getter(label), 2)
-        # add text
-        org = (int(x-w/2), int(y+h/2))
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        fontScale = 1
-        thickness = 1
-        img = cv2.putText(img.copy(), str(label), org, font, 
-            fontScale, _color_getter(label), thickness, cv2.LINE_AA)
+        img = np.ascontiguousarray(img.copy())
+        image_kernels.draw_rect(img, int(x-w/2), int(y-h/2),
+                                int(x+w/2) + 1, int(y+h/2) + 1,
+                                _color_getter(label), 2)
+        # add text, placed by its top left rather than its baseline
+        image_kernels.draw_text(img, str(label), int(x-w/2), int(y+h/2),
+                                _color_getter(label), 2)
 
     return img
