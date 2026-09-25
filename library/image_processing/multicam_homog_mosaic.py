@@ -42,7 +42,7 @@ def compute_mosaic(arrays, homogs, max_dimension=20000):
     Returns the mosaic ndarray. The first camera is drawn last, so in
     overlap areas the reference camera's pixels win.
     """
-    import cv2
+    from viame import image_kernels
     try:
         ref_inv = np.linalg.inv(homogs[0])
     except np.linalg.LinAlgError:
@@ -78,9 +78,9 @@ def compute_mosaic(arrays, homogs, max_dimension=20000):
     # Reverse order: camera 1 drawn last so the reference camera wins overlaps
     for arr, R in list(zip(arrays, rels))[::-1]:
         arr = np.ascontiguousarray(arr)
-        warped = cv2.warpPerspective(arr, S @ R, (W, Ht))
-        mask = cv2.warpPerspective(
-            np.full(arr.shape[:2], 255, dtype=np.uint8), S @ R, (W, Ht))
+        warped = image_kernels.warp_perspective(arr, S @ R, W, Ht)
+        mask = image_kernels.warp_perspective(
+            np.full(arr.shape[:2], 255, dtype=np.uint8), S @ R, W, Ht)
         if mosaic is None:
             mosaic = np.zeros_like(warped)
         m = mask > 127

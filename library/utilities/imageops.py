@@ -52,6 +52,19 @@ def read_image(path, grayscale=False):
     return np.asarray(image)
 
 
+def read_unchanged(path):
+    """The image exactly as stored: bit depth, channels and all.
+
+    `cv2.imread` with `IMREAD_UNCHANGED | IMREAD_ANYDEPTH`. Nothing is
+    converted -- a 16-bit single channel thermal frame stays 16-bit and
+    single channel, an 8-bit colour one comes back three channel **RGB**,
+    and an alpha channel survives as a fourth. The caller decides what to do
+    with what it got, which is the point of asking for unchanged.
+    """
+    image = _pil().open(str(path))
+    return np.asarray(image)
+
+
 def write_image(path, array):
     """Write a 2-D grayscale or 3-D RGB array."""
     array = np.asarray(array)
@@ -104,6 +117,16 @@ def decode_image(data, grayscale=False):
     image = _pil().open(io.BytesIO(bytes(data)))
     image = image.convert("L" if grayscale else "RGB")
     return np.asarray(image)
+
+
+def decode_unchanged(data):
+    """Bytes decoded exactly as stored, which is `cv2.imdecode` with
+    `IMREAD_UNCHANGED` -- except that an alpha image comes back **RGBA**
+    where cv2 hands back BGRA.
+    """
+    import io
+
+    return np.asarray(_pil().open(io.BytesIO(bytes(data))))
 
 
 def to_gray(array):

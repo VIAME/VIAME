@@ -93,7 +93,6 @@ class GaussianBlurNd(common.Module):
     Benchmark:
         from viame.object_detectors.netharn import netharn as nh
         import kwimage
-        import cv2
         from viame import image_kernels
         import ubelt as ub
         from torchvision.transforms.functional import to_tensor

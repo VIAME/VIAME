@@ -97,6 +97,32 @@ def invert_affine(affine):
     return np.linalg.inv(full)[:2]
 
 
+def fit_homography(source, target):
+    """The least-squares homography over every correspondence given.
+
+    `cv2.findHomography` with `method=0`: no RANSAC, no outlier rejection,
+    every point weighted the same. That is the right call once a consensus
+    set has already been chosen -- which is how the alignment uses it, to
+    refit in native pixels over the inliers RANSAC found.
+
+    Needs four correspondences, and no three of either set collinear.
+    """
+    source = np.asarray(source, dtype=np.float64).reshape(-1, 2)
+    target = np.asarray(target, dtype=np.float64).reshape(-1, 2)
+
+    if len(source) != len(target):
+        raise ValueError(
+            "fit_homography wants matching point counts; got {} and "
+            "{}".format(len(source), len(target)))
+
+    if len(source) < 4:
+        raise ValueError(
+            "fit_homography needs four correspondences, got "
+            "{}".format(len(source)))
+
+    return _dlt(source, target)
+
+
 def apply_homography(homography, points):
     """Map points through a homography, returning inhomogeneous coordinates."""
     points = np.asarray(points, dtype=np.float64).reshape(-1, 2)

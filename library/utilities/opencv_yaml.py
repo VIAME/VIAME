@@ -20,6 +20,10 @@ Two things make it not plain YAML:
 Both are handled here and nothing else is: this reads what OpenCV writes,
 not the whole of YAML's tag zoo. `cv::FileStorage`'s XML and JSON dialects
 are not supported, because nothing in the tree reads one.
+
+`write` emits the same dialect, so a calibration this tree produces still
+opens in anything that expects OpenCV's format -- which matters, because
+these files outlive the tool that wrote them.
 """
 
 import re
@@ -94,3 +98,62 @@ def read(path, names):
     """
     document = load(path)
     return {name: document.get(name) for name in names}
+
+
+def dumps(values):
+    """An OpenCV YAML document for a mapping of name to value.
+
+    Matrices go out as `!!opencv-matrix` with `rows`, `cols`, `dt` and a
+    flat `data` list, which is what `cv::FileStorage` writes and what
+    `loads` above reads back. Everything else is emitted as a plain scalar.
+
+    The `%YAML:1.0` header has no space after the colon. That is not a typo:
+    it is what OpenCV writes and what its own parser expects, and a space
+    there makes `cv::FileStorage` reject the file.
+    """
+    lines = ["%YAML:1.0", "---"]
+
+    for name, value in values.items():
+        array = np.asarray(value)
+
+        if array.ndim == 0 and array.dtype.kind in "USO":
+            lines.append("{}: {}".format(name, value))
+            continue
+
+        if array.ndim == 0:
+            lines.append("{}: {:.16g}".format(name, float(array)))
+            continue
+
+        if array.ndim == 1:
+            array = array.reshape(1, -1)
+
+        if array.ndim != 2:
+            raise ValueError(
+                "{}: only scalars and two dimensional matrices are "
+                "written".format(name))
+
+        rows, cols = array.shape
+        # `d` for double, `i` for integer, as OpenCV spells its element types
+        letter = "i" if array.dtype.kind in "iu" else "d"
+        flat = array.reshape(-1)
+
+        if letter == "i":
+            entries = ", ".join(str(int(v)) for v in flat)
+        else:
+            entries = ", ".join("{:.16g}.".format(float(v))
+                                if float(v) == int(float(v))
+                                else "{:.16g}".format(float(v)) for v in flat)
+
+        lines.append("{}: !!opencv-matrix".format(name))
+        lines.append("   rows: {}".format(rows))
+        lines.append("   cols: {}".format(cols))
+        lines.append("   dt: {}".format(letter))
+        lines.append("   data: [ {} ]".format(entries))
+
+    return "\n".join(lines) + "\n"
+
+
+def write(path, values):
+    """`dumps` to a file, which is what `cv2.FileStorage(path, WRITE)` did."""
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(dumps(values))

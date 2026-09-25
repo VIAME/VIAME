@@ -6,7 +6,6 @@
 
 import itertools as it
 import numpy as np
-import cv2
 from viame import image_kernels
 import scipy.optimize
 
@@ -96,15 +95,17 @@ def from_homog(homog_pts):
 def ensure_grayscale(img):
     """
     Checks if an image is grayscale.
-    If not it is assumed to be BGR or BGRA and converted.
+    If not it is assumed to be RGB or RGBA and converted.
     """
     n_channels = get_num_channels(img)
     if n_channels == 1:
         img_gray = img
     elif n_channels == 3:
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img_gray = image_kernels.to_gray(np.ascontiguousarray(img))
     elif n_channels == 4:
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
+        # The alpha plane is not part of the luminance
+        img_gray = image_kernels.to_gray(
+            np.ascontiguousarray(img[:, :, :3]))
     else:
         raise ValueError(
             'input with {} channels is not an image'.format(n_channels))
@@ -270,45 +271,32 @@ def overlay_heatmask(img, mask, alpha=.9, cmap='plasma'):
     return draw_img
 
 
-def putMultiLineText(img, text, org, **kwargs):
-    """
-    References:
-        https://stackoverflow.com/questions/27647424/
+def putMultiLineText(img, text, org, colour=(255, 255, 255), scale=1,
+                     **kwargs):
+    """Draw text a line at a time, which `draw_text` does not do itself.
+
+    `org` is the **top left** of the first line. `cv2.putText` placed by the
+    baseline; the kernels' bitmap font has no baseline to speak of, so the
+    two disagree by a line height and every caller here wanted the top edge
+    anyway.
 
     Example:
-        >>> from viame.processes.opencv.imutils import *
+        >>> import numpy as np
         >>> img = np.zeros((100, 500, 3), dtype=np.uint8) + 50
         >>> img = putMultiLineText(img, 'Hello World\nHow are you?', (50, 50))
-        >>> # xdoc: +REQUIRES(--show)
-        >>> fpath = ub.ensure_app_cache_dir('opencv') + '/putMultiLineText.png'
-        >>> cv2.imwrite(fpath, img)
-        >>> ub.startfile(fpath)
+        >>> img.max() > 50
+        True
     """
-    if 'fontFace' not in kwargs:
-        kwargs['fontFace'] = cv2.FONT_HERSHEY_SIMPLEX
-    if 'fontScale' not in kwargs:
-        kwargs['fontScale'] = 1
-    if 'thickness' not in kwargs:
-        kwargs['thickness'] = 1
-    if 'color' not in kwargs:
-        kwargs['color'] = [255, 255, 255]
+    from viame import image_kernels
 
-    getsize_kw = {
-        k: kwargs[k]
-        for k in ['fontFace', 'fontScale', 'thickness']
-        if k in kwargs
-    }
-
-    x0, y0 = org
+    x0, y = org
     ypad = kwargs.get('thickness', 2) + 4
-    y = y0
-    for i, line in enumerate(text.split('\n')):
-        (w, h), text_sz = cv2.getTextSize(text, **getsize_kw)
-        if cv2.__version__.startswith('2'):
-            cv2.putText(img, line, (x0, y), **kwargs)
-        else:
-            img = cv2.putText(img, line, (x0, y), **kwargs)
+
+    for line in text.split('\n'):
+        image_kernels.draw_text(img, line, x0, y, list(colour), scale)
+        _, h = image_kernels.text_size(line, scale)
         y += (h + ypad)
+
     return img
 
 

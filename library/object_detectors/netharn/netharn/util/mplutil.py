@@ -222,7 +222,8 @@ def render_figure_to_image(fig, dpi=None, transparent=None, **savekw):
         calling this function.
     """
     import io
-    import cv2
+
+    from viame.utilities import imageops
     # import matplotlib as mpl
     # axes_extents = extract_axes_extents(fig)
     # extent = mpl.transforms.Bbox.union(axes_extents)
@@ -234,8 +235,9 @@ def render_figure_to_image(fig, dpi=None, transparent=None, **savekw):
         # fig.savefig(stream, **savekw)
         stream.seek(0)
         data = np.fromstring(stream.getvalue(), dtype=np.uint8)
-    im_bgra = cv2.imdecode(data, cv2.IMREAD_UNCHANGED)
-    return im_bgra
+    # RGBA, not the BGRA `cv2.imdecode` used to hand back: matplotlib
+    # writes an RGBA png and this decodes it as written.
+    return imageops.decode_unchanged(data)
 
 
 def savefig2(fig, fpath, **kwargs):
@@ -260,13 +262,11 @@ def copy_figure_to_clipboard(fig):
         https://stackoverflow.com/questions/17676373/python-matplotlib-pyqt-copy-image-to-clipboard
     """
     print('Copying figure %d to the clipboard' % fig.number)
-    import cv2
     import matplotlib as mpl
     app = mpl.backends.backend_qt5.qApp
     QtGui = mpl.backends.backend_qt5.QtGui
-    im_bgra = render_figure_to_image(fig, transparent=True)
-    im_rgba = cv2.cvtColor(im_bgra, cv2.COLOR_BGRA2RGBA)
-    im = im_rgba
+    # Already RGBA, which is what QImage's Format_RGBA8888 wants
+    im = render_figure_to_image(fig, transparent=True)
     QImage = QtGui.QImage
     qim = QImage(im.data, im.shape[1], im.shape[0], im.strides[0], QImage.Format_RGBA8888)
     clipboard = app.clipboard()

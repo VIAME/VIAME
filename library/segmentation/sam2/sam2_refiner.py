@@ -231,7 +231,7 @@ class Sam2Refiner(RefineDetections):
         # degenerate (a few pixels) mask for a box prompt. For those detections
         # only, retry with a foreground point prompt at the box center (combined
         # with the box) to recover a usable mask.
-        import cv2
+        from viame import image_kernels
 
         def _box_mask_failed(binmask, vital_det):
             # A box-prompt result "failed" if its mask within the box is empty,
@@ -248,10 +248,10 @@ class Sam2Refiner(RefineDetections):
             )
             if int(sub.sum()) < self.second_pass_min_pixels:
                 return True
-            cnts, _ = cv2.findContours(sub, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cnts = image_kernels.find_contours(sub)
             if not cnts:
                 return True
-            return len(max(cnts, key=cv2.contourArea)) < 3
+            return len(max(cnts, key=image_kernels.contour_area)) < 3
 
         retry = []
         if self.second_pass_on_failure:

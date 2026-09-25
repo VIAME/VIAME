@@ -35,7 +35,7 @@ Returns, from :meth:`predict_image`, a list of
 ``{'label': int, 'bbox_xyxy': [x0,y0,x1,y1], 'score': float}`` in the ORIGINAL
 image's pixel coordinates.
 
-Requires: onnxruntime, numpy, opencv (cv2).
+Requires: onnxruntime and numpy.
 """
 from __future__ import annotations
 
@@ -235,7 +235,6 @@ class OnnxPredictor:
     def _preprocess(self, image_np: np.ndarray) -> np.ndarray:
         """Resize to eval size, normalise, NCHW float32: squash-resize with
         INTER_AREA, scale, then (x - mean) / std."""
-        import cv2
         from viame import image_kernels
         if image_np.ndim == 2:
             image_np = np.repeat(image_np[..., None], 3, axis=-1)
@@ -256,7 +255,6 @@ class OnnxPredictor:
         """Aspect-preserving resize into the eval canvas, zero padded.
 
         Returns (NCHW, (scale, pad_x, pad_y)) so the decoder can undo it."""
-        import cv2
         if image_np.ndim == 2:
             image_np = np.repeat(image_np[..., None], 3, axis=-1)
         elif image_np.shape[2] == 4:
@@ -343,8 +341,6 @@ class OnnxPredictor:
         boxes, logits, masks = self._rfdetr_raw(nchw)
         qi, ci, scores = self._rfdetr_topk(logits)
         want_masks = self._emit_masks and masks is not None
-        if want_masks:
-            import cv2
         result = []
         for q, c, s in zip(qi, ci, scores):
             cx, cy, bw, bh = (float(v) for v in boxes[q])

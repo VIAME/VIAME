@@ -32,11 +32,10 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import cv2
+import numpy as np
 
 from viame import image_kernels
-from viame import image_kernels
-import numpy as np
+from viame.utilities import geometry, imageops
 
 # Matcher input size: long side after resize, dims floored to /8 (LoFTR df).
 MATCH_SIZE = 640
@@ -111,18 +110,18 @@ def _load_gray_norm(
 
     Returns (gray uint8 HxW, (native_width, native_height)).
     """
-    img = cv2.imread(path, cv2.IMREAD_UNCHANGED | cv2.IMREAD_ANYDEPTH)
-    if img is None:
-        raise ValueError(f"Could not read image: {path}")
+    try:
+        img = imageops.read_unchanged(path)
+    except OSError as exc:
+        raise ValueError(f"Could not read image: {path}") from exc
     h, w = img.shape[:2]
     if img.ndim == 3:
-        # Color inputs are standard 8-bit imagery (BGR from cv2).
+        # Colour inputs are standard 8-bit imagery, RGB as everything here is
         if img.shape[2] == 4:
-            img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+            img = np.ascontiguousarray(img[:, :, :3])
         if img.dtype != np.uint8:
-            img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX) \
-                .astype(np.uint8)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            img = image_kernels.normalize(img, 0, 255).astype(np.uint8)
+        gray = image_kernels.to_gray(img)
     elif img.dtype == np.uint8:
         gray = img
     else:
@@ -225,7 +224,7 @@ def _homography_is_sane(
     corners = np.array(
         [[0, 0], [w, 0], [w, h], [0, h]], np.float64
     ).reshape(-1, 1, 2)
-    warped = cv2.perspectiveTransform(corners, H).reshape(4, 2)
+    warped = geometry.apply_homography(H, corners).reshape(4, 2)
     if not np.all(np.isfinite(warped)):
         return False
     # Warped corners must remain a convex quad with consistent winding.
@@ -327,13 +326,12 @@ def fit_pooled_homography(
     a_native = np.concatenate(native_a)
     b_native = np.concatenate(native_b)
 
-    cv2.setRNGSeed(0)
-    H_norm, mask = cv2.findHomography(
+    H_norm, mask = geometry.find_homography(
         a_norm, b_norm,
-        cv2.USAC_MAGSAC,
-        ransacReprojThreshold=float(merged["ransac_threshold"]),
+        threshold=float(merged["ransac_threshold"]),
         confidence=0.999999,
-        maxIters=10000,
+        max_iterations=10000,
+        seed=0,
     )
     if H_norm is None or mask is None:
         return failure(
@@ -349,8 +347,7 @@ def fit_pooled_homography(
 
     # Refit in native pixels over the inliers (plain least squares),
     # mirroring the single-pair path.
-    H_native, _ = cv2.findHomography(
-        a_native[mask], b_native[mask], 0)
+    H_native = geometry.fit_homography(a_native[mask], b_native[mask])
     if H_native is None or first_sizes is None \
             or not _homography_is_sane(H_native, first_sizes[0],
                                        first_sizes[1]):
@@ -359,8 +356,7 @@ def fit_pooled_homography(
             "The pooled alignment fit is degenerate.")
 
     def reprojection_errors(a_pts: np.ndarray, b_pts: np.ndarray):
-        projected = cv2.perspectiveTransform(
-            a_pts.reshape(-1, 1, 2), H_native).reshape(-1, 2)
+        projected = geometry.apply_homography(H_native, a_pts)
         return np.linalg.norm(projected - b_pts, axis=1)
 
     all_errors = reprojection_errors(a_native, b_native)
@@ -419,11 +415,10 @@ def loop_closure_residual(
     points = np.array(
         [[x, y] for y in ys for x in xs], dtype=np.float64
     ).reshape(-1, 1, 2)
-    direct = cv2.perspectiveTransform(points, np.asarray(H_13, np.float64))
-    composed = cv2.perspectiveTransform(
-        points, np.asarray(H_23, np.float64) @ np.asarray(H_12, np.float64))
-    dists = np.linalg.norm(
-        direct.reshape(-1, 2) - composed.reshape(-1, 2), axis=1)
+    direct = geometry.apply_homography(np.asarray(H_13, np.float64), points)
+    composed = geometry.apply_homography(
+        np.asarray(H_23, np.float64) @ np.asarray(H_12, np.float64), points)
+    dists = np.linalg.norm(direct - composed, axis=1)
     return {
         "mean_px": round(float(np.mean(dists)), 4),
         "max_px": round(float(np.max(dists)), 4),
@@ -610,14 +605,13 @@ def register_image_pair(
 
     # RANSAC at matcher resolution (both images <= MATCH_SIZE) so the
     # pixel threshold means the same thing regardless of native sizes.
-    cv2.setRNGSeed(0)
-    H_match, mask = cv2.findHomography(
+    H_match, mask = geometry.find_homography(
         kpts_a.astype(np.float64),
         kpts_b.astype(np.float64),
-        cv2.USAC_MAGSAC,
-        ransacReprojThreshold=float(opts["ransac_threshold"]),
+        threshold=float(opts["ransac_threshold"]),
         confidence=0.999999,
-        maxIters=10000,
+        max_iterations=10000,
+        seed=0,
     )
     if H_match is None or mask is None:
         return failure(
@@ -641,10 +635,9 @@ def register_image_pair(
     # over the returned correspondences would produce).
     native_a = kpts_a * np.asarray(result.scale_a)
     native_b = kpts_b * np.asarray(result.scale_b)
-    H_native, _ = cv2.findHomography(
+    H_native = geometry.fit_homography(
         native_a[mask].astype(np.float64),
         native_b[mask].astype(np.float64),
-        0,
     )
     if not _homography_is_sane(H_native, size_a, size_b):
         return failure(
