@@ -1326,11 +1326,13 @@ attempt: finding 2.37 has Canny reproducing bit for bit and `HoughCircles`'
 radius turning out to be a ten-bin-per-`dr` histogram rather than the sorted
 distance walk the old source describes, with `dp = 1` matching until a wider
 sweep said otherwise; finding 2.38 has SGBM's cost, window, selection,
-subpixel, consistency check and median all reproducing **exactly** at
-`P1 = 1, P2 = 2`, the aggregation drifting as soon as `P2` exceeds `P1` by
-much, and an OpenCV quirk that any port has to copy -- the cost is not
-updated for the last `SADWindowSize/2` rows of every image, because the guard
-that skips them contradicts the clamp that was meant to replicate them.
+subpixel, consistency check and median all reproducing **exactly** on a one
+row image at `P1 = 1, P2 = 2`, the drift starting the moment a second row
+gives the three vertical directions something to read -- which is a sharper
+statement than the first one this entry carried, and was worth going back for
+-- and an OpenCV quirk that any port has to copy: the cost is not updated for
+the last `SADWindowSize/2` rows of every image, because the guard that skips
+them contradicts the clamp that was meant to replicate them.
 
 Both entries say where the next attempt starts, which is the point of writing
 them down rather than leaving a branch.
