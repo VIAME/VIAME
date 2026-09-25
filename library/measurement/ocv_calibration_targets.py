@@ -7,8 +7,8 @@
 the `opencv` plugin's `detect_calibration_targets.cxx` and the four detection
 helpers it uses from `calibrate_stereo_cameras`, in python, per
 `lite-removals.md` section 2.4. The checkerboard path is ours end to end --
-`viame.utilities.chessboard` for the corners and `image_kernels` for the
-refinement; only the dot path still wants OpenCV, for `SimpleBlobDetector`.
+`viame.utilities.chessboard` for the corners, `viame.utilities.blobs` for the
+dot centres, and `image_kernels` for the refinement. No OpenCV at all.
 
 Three things here are reproduced rather than corrected, because
 `tests/golden/measurement` records what the C++ produced:
@@ -33,7 +33,7 @@ import math
 
 import numpy as np
 from viame import image_kernels
-from viame.utilities import chessboard
+from viame.utilities import blobs, chessboard
 
 from viame.algo import ImageObjectDetector
 from viame.types import (BoundingBoxD, DetectedObject,
@@ -276,45 +276,34 @@ def detect_dots(gray, min_area, max_area, min_circularity):
     detector looks for, and the area limits are scaled by the square of the
     detection scale along with it.
     """
-    import cv2
-
     scale = _detection_scale(gray.shape)
 
     work = (image_kernels.resize(
         gray, max(1, int(gray.shape[1] * scale)),
         max(1, int(gray.shape[0] * scale))) if scale < 1.0 else gray)
-    inverted = cv2.bitwise_not(work)
 
-    params = cv2.SimpleBlobDetector_Params()
-    params.minThreshold = BLOB_MIN_THRESHOLD
-    params.maxThreshold = BLOB_MAX_THRESHOLD
-    params.thresholdStep = BLOB_THRESHOLD_STEP
-    params.minRepeatability = BLOB_MIN_REPEATABILITY
+    # Inverted because the detector traces what is **lighter** than each
+    # threshold, and these targets are dark dots on a light board.
+    inverted = (255 - np.asarray(work)).astype(np.uint8)
 
-    params.filterByArea = True
-    params.minArea = min_area * scale * scale
-    params.maxArea = max_area * scale * scale
+    found, _sizes = blobs.detect_blobs(
+        np.ascontiguousarray(inverted),
+        min_area=min_area * scale * scale,
+        max_area=max_area * scale * scale,
+        min_circularity=min_circularity,
+        min_inertia=BLOB_MIN_INERTIA,
+        min_convexity=BLOB_MIN_CONVEXITY,
+        min_threshold=BLOB_MIN_THRESHOLD,
+        max_threshold=BLOB_MAX_THRESHOLD,
+        threshold_step=BLOB_THRESHOLD_STEP,
+        min_repeatability=BLOB_MIN_REPEATABILITY)
 
-    params.filterByCircularity = True
-    params.minCircularity = min_circularity
-
-    params.filterByConvexity = True
-    params.minConvexity = BLOB_MIN_CONVEXITY
-
-    params.filterByInertia = True
-    params.minInertiaRatio = BLOB_MIN_INERTIA
-
-    params.filterByColor = False
-
-    keypoints = cv2.SimpleBlobDetector_create(params).detect(inverted)
-
-    if len(keypoints) < MIN_DOTS:
+    if len(found) < MIN_DOTS:
         logger.debug("Dot detection: found only %d blobs (need >= %d)",
-                     len(keypoints), MIN_DOTS)
+                     len(found), MIN_DOTS)
         return False, [], (0, 0)
 
-    centers = [(keypoint.pt[0] / scale, keypoint.pt[1] / scale)
-               for keypoint in keypoints]
+    centers = [(point[0] / scale, point[1] / scale) for point in found]
     centers = refine_dot_centers(gray, centers)
 
     return True, centers, (len(centers), 1)

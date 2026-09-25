@@ -817,6 +817,31 @@ bounding_rect( py::array_t< double, py::array::c_style | py::array::forcecast >
   return py::make_tuple( box.left, box.top, box.width(), box.height() );
 }
 
+/// Every border of every component, outer and hole, which is
+/// `cv2.findContours` under `RETR_LIST` or `RETR_CCOMP`.
+///
+/// `find_contours` above takes the `RETR_EXTERNAL` shortcut and is what most
+/// callers want. This is for the ones that need the holes too -- the blob
+/// detector above all, which finds a dark shape as the **hole** in the
+/// lighter region around it and would see nothing at all without them.
+template < typename T >
+py::list
+find_borders( array_of< T > const& array )
+{
+  auto const traced =
+    viame::image_kernels::find_borders( as_image( array ) );
+
+  py::list out;
+
+  for( auto const& border : traced )
+  {
+    out.append( py::make_tuple( contour_array( border.points ),
+                                border.is_hole ) );
+  }
+
+  return out;
+}
+
 double
 arc_length( py::array_t< double, py::array::c_style | py::array::forcecast >
               const& contour, bool closed )
@@ -1360,6 +1385,12 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
 
   m.def( "bounding_rect", &bounding_rect, py::arg( "contour" ),
          "cv2.boundingRect: (x, y, width, height)." );
+
+  for_both_pixel_types( m, "find_borders", &find_borders< uint8_t >,
+         &find_borders< uint16_t >, py::arg( "mask" ),
+         "Every border of every component as (points, is_hole), which is "
+         "cv2.findContours under RETR_LIST. find_contours gives the outer "
+         "ones alone, which is RETR_EXTERNAL and what most callers want." );
 
   m.def( "arc_length", &arc_length, py::arg( "contour" ),
          py::arg( "closed" ) = true,

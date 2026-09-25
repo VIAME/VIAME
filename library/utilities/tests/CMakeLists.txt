@@ -83,4 +83,15 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 900
     SOURCE_SETUP
   )
+
+  # The other calibration target, replacing cv::SimpleBlobDetector. CORE for
+  # the same reason as the two above: the stereo measurement chain stands on
+  # whichever target a rig was shot with.
+  viame_add_test(
+    NAME    "unit:utilities:blobs"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_blobs.py"
+    LABELS  UNIT CORE
+    TIMEOUT 900
+    SOURCE_SETUP
+  )
 endif()

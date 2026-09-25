@@ -21,8 +21,8 @@ import argparse
 import json
 from viame import image_kernels
 from viame.measurement import projection
-from viame.utilities import (calibration, chessboard, geometry, imageops,
-                             opencv_yaml)
+from viame.utilities import (blobs, calibration, chessboard, geometry,
+                             imageops, opencv_yaml)
 
 
 def parse_ptscal(filepath):
@@ -208,40 +208,31 @@ def detect_dots_image(image, max_dim=5000, min_area=30.0, max_area=5000.0,
     else:
         work = image
 
-    # Invert: white dots become dark blobs for SimpleBlobDetector
-    inverted = cv2.bitwise_not(work)
+    # Invert: the detector traces what is **lighter** than each threshold,
+    # so white dots on a dark board are already the right way round and a
+    # dark-dot board is what needs turning over. This tool's targets are the
+    # latter.
+    inverted = (255 - np.asarray(work)).astype(np.uint8)
 
     # Scale area thresholds
     scale2 = scale * scale
     scaled_min_area = min_area * scale2
     scaled_max_area = max_area * scale2
 
-    params = cv2.SimpleBlobDetector_Params()
-    params.minThreshold = 40
-    params.maxThreshold = 220
-    params.thresholdStep = 10
-    params.minRepeatability = 2
-    params.filterByArea = True
-    params.minArea = scaled_min_area
-    params.maxArea = scaled_max_area
-    params.filterByCircularity = True
-    params.minCircularity = min_circularity
-    params.filterByConvexity = True
-    params.minConvexity = 0.70
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.40
-    params.filterByColor = False
+    points, diameters = blobs.detect_blobs(
+        np.ascontiguousarray(inverted),
+        min_area=scaled_min_area, max_area=scaled_max_area,
+        min_circularity=min_circularity,
+        min_inertia=0.40, min_convexity=0.70,
+        min_threshold=40.0, max_threshold=220.0, threshold_step=10.0,
+        min_repeatability=2)
 
-    detector = cv2.SimpleBlobDetector_create(params)
-    keypoints = detector.detect(inverted)
-
-    if len(keypoints) < 3:
+    if len(points) < 3:
         return None, None
 
     # Extract centers and sizes, scale back to full resolution
-    centers = np.array([[[kp.pt[0] / scale, kp.pt[1] / scale]]
-                        for kp in keypoints], dtype=np.float32)
-    sizes = np.array([kp.size / scale for kp in keypoints], dtype=np.float32)
+    centers = (points / scale).reshape(-1, 1, 2).astype(np.float32)
+    sizes = (diameters / scale).astype(np.float32)
 
     # Sub-pixel refinement via intensity-weighted centroid
     refine_dot_centers(image, centers)

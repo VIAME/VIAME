@@ -826,3 +826,51 @@ the requirement.
 **Green:** BASELINE, UNIT and CORE 474 of 474 with 12 new kernel cases (119
 in `unit:image_kernels:python`), GOLDEN and CRITICAL 10 of 10.
 `install.txt` unchanged.
+
+`SimpleBlobDetector` is written, and with it `ocv_detect_calibration_targets`
+is off OpenCV completely -- a shipped, registered algorithm that the
+calibration pipelines name, and the first of them to go the whole way.
+`library/utilities/blobs.py` thresholds at a ladder of levels, keeps the
+shapes that pass four independent tests, and believes only the ones that
+appear at several levels in the same place.
+
+The four tests are worth naming because each catches what the others miss:
+area is the only one with units; circularity rejects a ragged edge; inertia
+rejects a streak, which can be perfectly smooth and so perfectly circular;
+and convexity rejects a crescent or a pair of touching dots, which can pass
+all three above. A calibration fed the centroid of two touching dots comes
+out subtly wrong rather than obviously broken.
+
+**Measured against cv2: 0.0000 px on every case tried** -- the dot grid
+fixture at 35 of 35, the chessboard at 12 of 12, eight drawn discs at three
+noise levels with a streak and a crescent correctly refused, and nothing on a
+blank frame.
+
+**The chessboard is the case that mattered**, and finding 2.33's lesson
+repeated itself. `cv::SimpleBlobDetector` calls `findContours` with
+`RETR_LIST`, not `RETR_EXTERNAL`, and the reason is not tidiness: the marked
+region at each level is what is *lighter* than it, so a **dark** blob on a
+light ground has no outline of its own and appears only as a **hole** in the
+region around it. The first cut traced outer borders only, matched cv2 to the
+last decimal on the dot grid, and found nothing at all on the chessboard
+where cv2 finds twelve. The golden records those twelve, because the `dots`
+variant is run over both fixtures.
+
+The fix was already in the tree. `contours.h` has `find_borders` -- Suzuki and
+Abe's border following proper, every border outer and hole, in OpenCV's own
+order -- and it had never been bound because no python caller had wanted a
+hole before. That is the same shape as the float HSV conversions a commit
+earlier: the capability written, the binding missing. Finding 2.34 has both.
+
+`detect_blobs` returns `(centres, diameters)` rather than centres alone,
+because `tools/calibrate.py` reads the keypoint size. The diameter is twice
+the **median member's** radius, which is what OpenCV puts on the keypoint --
+not the mean of the group and not the radius at any one threshold.
+
+**Green:** BASELINE, UNIT and CORE 475 of 475 with `unit:utilities:blobs` new
+and 13 cases in it; GOLDEN and CRITICAL 10 of 10; `golden:replay` 270 of 270
+with the `dots` recording unchanged and no tolerance touched. `install.txt`
+gains `viame/utilities/blobs.py` and nothing else.
+
+Our own tree is now at 26 files importing cv2, from 38 at the start of this
+run.

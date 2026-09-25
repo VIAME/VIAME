@@ -2667,3 +2667,43 @@ which is why `wrong_grid` -- a recording of finding nothing -- is in
 `measurement_cases.py`, and why `unit:utilities:chessboard` asks for four
 sub-grids by name and demands the whole board in the same breath. Refusing
 everything passes the first of those perfectly.
+
+## 2.34 A blob is a hole, half the time
+
+`cv::SimpleBlobDetector` is the last OpenCV call in the calibration target
+detector, and porting it turned on a detail of `findContours` that is easy to
+read past: the detector calls it with **`RETR_LIST`**, not `RETR_EXTERNAL`.
+
+The thresholding is `THRESH_BINARY`, so at each level the marked region is
+what is **lighter** than the level, and the contours traced are that region's
+borders. For a light blob on a dark ground that is the blob's own outline and
+the distinction does not arise. For a **dark** blob on a light ground there is
+no outline to trace: the light region is the whole background, its outer
+border is the image, and the blob appears only as one of that region's
+**holes**. With outer borders alone a dark blob is invisible.
+
+Both are real inputs. The first cut here traced outer borders only, which is
+what `image_kernels.find_contours` gives, and measured exactly right on the
+dot grid -- 35 of 35, centres identical to cv2's to 0.0000 px -- and found
+nothing at all on the chessboard, where cv2 finds twelve. Twelve is what the
+golden records, because `ocv_detect_calibration_targets` is run over both
+fixtures under the `dots` variant, and a dot detector pointed at a chessboard
+finds its dark squares. Without that second input in the recording the gap
+would have shipped, and it would have shipped as "dot targets of one polarity
+silently find nothing".
+
+The fix was already written. `contours.h` has `find_borders`, Suzuki and Abe's
+border following proper -- every border, outer and hole, in OpenCV's own
+order, which the file's own comment calls `RETR_CCOMP`. It had never been
+bound to python because no python caller had wanted a hole before. Binding it
+took twenty lines and the detector then matches cv2 on every case tried:
+0.0000 px on the dot grid, the chessboard, eight drawn discs at three noise
+levels, and nothing on a blank frame.
+
+Two lessons, and the second is the one worth carrying. A port that measures
+perfectly on the input in front of it can still be wrong about a whole class
+of input -- the dot grid agreed to the last decimal while the detector was
+missing half of what it is for. And "the C++ already does this" is worth
+checking before writing anything: the capability was in the tree, one
+`m.def` away, and the same was true of the float HSV conversions a commit
+earlier. Both times the gap was in the binding, not the algorithm.
