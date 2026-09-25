@@ -998,3 +998,53 @@ wrong.
 **Green:** BASELINE, UNIT and CORE 475 of 475 with 5 new kernel cases (143 in
 `unit:image_kernels:python`); GOLDEN and CRITICAL 10 of 10. `install.txt`
 unchanged -- `fill_ellipse` went into the existing `draw.h`.
+
+`tools/3d.py` off cv2, and a verified map of what is actually left.
+
+The tool listed `cv2` in `REQUIRED_PACKAGES` and **never called it** -- not one
+cv2 symbol appears in the file. It made `opencv-python` a hard dependency of a
+tool that does not use it, and `--install-deps` offered to install it. 22 files
+now.
+
+That was found by checking rather than estimating, after two entries in a row
+claimed things about the remaining work that were wrong: one said the rest all
+needed an open decision, and one listed `hough_circle_detector.py` as
+tractable. Neither was true. So here is the set, verified by listing every cv2
+symbol each file uses and subtracting what `image_kernels`, `projection`,
+`geometry`, `calibration`, `imageops`, `opencv_yaml`, `chessboard` and `blobs`
+already provide:
+
+**Needs a decision, not effort** (golden-recorded against OpenCV's own output,
+so a port has to reproduce it or be given a tolerance): `ocv_color_correction`
+-- every kernel it needs already exists, and lite-findings 2.35 has the
+measurement -- plus `ocv_enhancer`, `hough_circle_detector`,
+`ocv_stereo_disparity`, `netharn/disparity`, and the SIFT cluster
+(`ocv_sift_surf`, `ocv_flann_matcher`, `ocv_feature_types`,
+`registration_utils`, `multimodal_registration`, `colmap/reconstruction`,
+`test_ocv_features`).
+
+**Needs a large algorithm**: `Canny`, SGBM, SIFT, Farneback,
+`calcOpticalFlowPyrLK`, MOG2, `grabCut`, `fastNlMeansDenoisingColored`.
+
+**No offline equivalent**: `image_viewer`, `tests/examples/test_utilities`,
+`tools/inspect_file` -- `imshow`, `namedWindow`, `waitKey`, `VideoCapture`.
+
+**Portable now, with care, and not blocked on anything:**
+
+* `netharn/stereo.py` -- 28 symbols, of which **only `findEssentialMat` is
+  missing, and it sits inside `if 0:`**. Dead code, and the block itself shows
+  `E = K1.T @ F @ K1` as the alternative. `convertMaps` is a no-op here since
+  our rectification maps are already float, and `_coerce_interpolation` is
+  kwimage's rather than cv2's. The real work is sixty mechanical sites with
+  subtleties -- flag accumulation through the progressive calibration,
+  `undistortPoints` with R and P, negated distortion for the inverse maps --
+  across a file with no test coverage and no importers. Worth doing carefully,
+  not quickly.
+* `stereo_algos.py` -- everything but MOG2. Porting it would not drop the file
+  count, since MOG2 keeps cv2 imported, and `minAreaRect` needs convention work
+  first: OpenCV normalises its angle into [0, 90) and swaps width and height to
+  suit where `min_area_rect` keeps the edge it found, and the doctest at
+  `oriented_bbox` pins `angle=-90.0`, so the difference is observable.
+
+**Green:** `tools:3d` passes; BASELINE, UNIT and CORE 475 of 475; GOLDEN and
+CRITICAL 10 of 10.

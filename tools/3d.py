@@ -44,11 +44,14 @@ from viame.image_processing.registration_utils import get_image_files, detect_mu
 # Dependency management
 # ---------------------------------------------------------------------------
 
-# Map of import name -> pip package name. numpy/cv2 are needed for everything;
+# Map of import name -> pip package name. numpy is needed for everything;
 # pycolmap/open3d are needed for the SfM / dense (MVS) reconstruction modes.
+#
+# cv2 was required here and **never called**: not one cv2 symbol appears in
+# this file. It made opencv-python a hard dependency of a tool that does not
+# use it, and `--install-deps` offered to install it.
 REQUIRED_PACKAGES = {
     'numpy': 'numpy',
-    'cv2': 'opencv-python',
 }
 OPTIONAL_PACKAGES = {
     'pycolmap': 'pycolmap',
@@ -150,9 +153,9 @@ def _get_viame_site_packages():
 
 
 def import_dependencies():
-    """Import packages. numpy/cv2 are hard requirements; pycolmap/open3d are
+    """Import packages. numpy is the hard requirement; pycolmap/open3d are
     optional (COLMAP mode only) and left as None if unavailable."""
-    global np, cv2, pycolmap, o3d
+    global np, pycolmap, o3d
     missing = check_dependencies()
     if missing:
         print("ERROR: Missing required dependencies:")
@@ -161,9 +164,7 @@ def import_dependencies():
         print(f"\nRun: python {sys.argv[0]} --install-deps")
         sys.exit(1)
     import numpy as np_
-    import cv2 as cv2_
     np = np_
-    cv2 = cv2_
     _sr.import_dependencies()  # set engine globals
     try:
         import pycolmap as pycolmap_
