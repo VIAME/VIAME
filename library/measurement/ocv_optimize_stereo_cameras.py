@@ -2,7 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Stereo camera calibration, on cv2.
+"""Stereo camera calibration.
 
 the `opencv` plugin's `optimize_stereo_cameras.cxx` in python, per
 `lite-removals.md` section 2.4: `calibrateCamera`, `stereoCalibrate` and
@@ -43,6 +43,7 @@ from viame.types import (CameraMap, RotationD, SimpleCameraIntrinsics,
 
 from viame.measurement import stereo_frame_selection as selection
 from viame.measurement import projection
+from viame.utilities import calibration, geometry
 
 logger = logging.getLogger(__name__)
 
@@ -241,16 +242,15 @@ class OptimizeStereoCameras(OptimizeCameras):
         than keeping the better of the two is what the C++ does, and it is
         why the constraints compound in the order they are tried.
         """
-        import cv2
 
         previous_intrinsics = intrinsics.copy()
         previous_distortion = distortion.copy()
 
         logger.info("  - Running intrinsic calibration: %s", context)
 
-        error, intrinsics, distortion, _, _ = cv2.calibrateCamera(
+        error, intrinsics, distortion, _, _ = calibration.calibrate_camera(
             world, image, (self._image_width, self._image_height),
-            intrinsics, distortion, flags=flags)
+            flags=flags, intrinsics=intrinsics, distortion=distortion)
 
         logger.info("    Calibration error: %s", error)
 
@@ -262,15 +262,15 @@ class OptimizeStereoCameras(OptimizeCameras):
 
     def _calibrate_camera(self, world, image, name):
         """The progressive per-camera fit. Returns `(intrinsics, distortion)`."""
-        import cv2
-
-        intrinsics = cv2.initCameraMatrix2D(
+        intrinsics = calibration.initial_camera_matrix(
             world, image, (self._image_width, self._image_height), 0)
         distortion = np.zeros((1, DISTORTION_COEFFICIENTS), dtype=np.float64)
 
         logger.info("Calibrating %s camera (%d frames)...", name, len(world))
 
-        flags = 0
+        # A set of names rather than OR'd constants: `cv2.CALIB_*` is what
+        # is going away, and the progressive fit only ever adds to it.
+        flags = set()
         unbounded = float(np.finfo(np.float64).max)
 
         _, intrinsics, distortion, error = self._try_improve(
@@ -280,7 +280,7 @@ class OptimizeStereoCameras(OptimizeCameras):
         logger.info("  - Aspect ratio: %s", aspect)
 
         if 1.0 - min(aspect, 1.0 / aspect) < ASPECT_RATIO_TOLERANCE:
-            flags |= cv2.CALIB_FIX_ASPECT_RATIO
+            flags.add("fix_aspect_ratio")
             _, intrinsics, distortion, error = self._try_improve(
                 world, image, intrinsics, distortion, flags, unbounded,
                 "Fixing aspect ratio at 1.0")
@@ -297,19 +297,19 @@ class OptimizeStereoCameras(OptimizeCameras):
             abs(centre_y - self._image_height / 2.0) / self._image_width)
 
         if offset < PRINCIPAL_POINT_TOLERANCE:
-            flags |= cv2.CALIB_FIX_PRINCIPAL_POINT
+            flags.add("fix_principal_point")
             _, intrinsics, distortion, error = self._try_improve(
                 world, image, intrinsics, distortion, flags, unbounded,
                 "Fixed principal point to image center")
 
         max_error = DISTORTION_ERROR_FACTOR * error
 
-        for flag, context in ((cv2.CALIB_ZERO_TANGENT_DIST,
+        for flag, context in (("zero_tangent_dist",
                                "No tangential distortion"),
-                              (cv2.CALIB_FIX_K3, "No K3 distortion"),
-                              (cv2.CALIB_FIX_K2, "No K2 distortion"),
-                              (cv2.CALIB_FIX_K1, "No K1 distortion")):
-            flags |= flag
+                              ("fix_k3", "No K3 distortion"),
+                              ("fix_k2", "No K2 distortion"),
+                              ("fix_k1", "No K1 distortion")):
+            flags.add(flag)
             kept, intrinsics, distortion, error = self._try_improve(
                 world, image, intrinsics, distortion, flags, max_error,
                 context)
@@ -321,7 +321,6 @@ class OptimizeStereoCameras(OptimizeCameras):
 
     def _calibrate_stereo(self, points, left, right):
         """`stereoCalibrate` with the intrinsics fixed, then rectification."""
-        import cv2
 
         k_left, dist_left = left
         k_right, dist_right = right
@@ -332,12 +331,11 @@ class OptimizeStereoCameras(OptimizeCameras):
 
         logger.info("Running stereo calibration...")
 
-        rms, k_left, dist_left, k_right, dist_right, rotation, translation, \
-            essential, fundamental = cv2.stereoCalibrate(
+        rms, rotation, translation, essential, fundamental = \
+            calibration.stereo_calibrate(
                 world, image_left, image_right,
                 k_left, dist_left, k_right, dist_right,
-                (self._image_width, self._image_height),
-                flags=cv2.CALIB_FIX_INTRINSIC)
+                (self._image_width, self._image_height))
 
         logger.info("Stereo calibration complete, RMS error: %s", rms)
 
@@ -387,7 +385,6 @@ class OptimizeStereoCameras(OptimizeCameras):
         Computed and logged rather than returned: nothing consumes it, and
         reproducing the log line is part of reproducing the implementation.
         """
-        import cv2
 
         total = 0.0
         count = 0
@@ -403,10 +400,8 @@ class OptimizeStereoCameras(OptimizeCameras):
             left = left.reshape(-1, 1, 2)
             right = right.reshape(-1, 1, 2)
 
-            left_lines = cv2.computeCorrespondEpilines(
-                left, 1, fundamental).reshape(-1, 3)
-            right_lines = cv2.computeCorrespondEpilines(
-                right, 2, fundamental).reshape(-1, 3)
+            left_lines = geometry.epipolar_lines(fundamental, left, 1)
+            right_lines = geometry.epipolar_lines(fundamental, right, 2)
 
             original_left = points.image_pts[0][index]
             original_right = points.image_pts[1][index]

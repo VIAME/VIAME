@@ -2,7 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Single camera calibration from a track set of target corners, on cv2.
+"""Single camera calibration from a track set of target corners.
 
 the `opencv` plugin's `calibrate_single_camera_process.cxx` and the two utility
 files behind it, in python. Same reason as its stereo counterpart: the fit
@@ -38,6 +38,7 @@ import numpy as np
 
 from viame.pipeline import process
 from viame.processes.base import ViameProcess
+from viame.utilities import calibration
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +174,6 @@ def estimate_image_size(tracks):
 
 def calibrate_single_camera(image_points, object_points, image_size):
     """The progressive fit. Returns `(intrinsics, distortion, rms)`."""
-    import cv2
 
     intrinsics = np.eye(3, dtype=np.float64)
     intrinsics[0][0] = INITIAL_FOCAL_LENGTH
@@ -182,11 +182,13 @@ def calibrate_single_camera(image_points, object_points, image_size):
     intrinsics[1][2] = image_size[1] / 2.0
 
     distortion = np.zeros((5, 1), dtype=np.float64)
-    flags = 0
+    # Names rather than OR'd `cv2.CALIB_*`; the fit only ever adds to the set
+    flags = set()
 
     def fit(flags):
-        return cv2.calibrateCamera(object_points, image_points, image_size,
-                                   intrinsics, distortion, flags=flags)
+        return calibration.calibrate_camera(
+            object_points, image_points, image_size, flags=flags,
+            intrinsics=intrinsics, distortion=distortion)
 
     rms, intrinsics, distortion, _, _ = fit(flags)
     logger.debug("camera initial RMS: %s", rms)
@@ -194,7 +196,7 @@ def calibrate_single_camera(image_points, object_points, image_size):
     aspect = intrinsics[0][0] / intrinsics[1][1]
 
     if 1.0 - min(aspect, 1.0 / aspect) < ASPECT_RATIO_TOLERANCE:
-        flags |= cv2.CALIB_FIX_ASPECT_RATIO
+        flags.add("fix_aspect_ratio")
         rms, intrinsics, distortion, _, _ = fit(flags)
 
     # The horizontal offset over the width and the vertical over the height.
@@ -203,16 +205,15 @@ def calibrate_single_camera(image_points, object_points, image_size):
         abs(intrinsics[1][2] - image_size[1] / 2.0) / image_size[1])
 
     if offset < PRINCIPAL_POINT_TOLERANCE:
-        flags |= cv2.CALIB_FIX_PRINCIPAL_POINT
+        flags.add("fix_principal_point")
         rms, intrinsics, distortion, _, _ = fit(flags)
 
     threshold = DISTORTION_ERROR_FACTOR * rms
 
-    for flag in (cv2.CALIB_ZERO_TANGENT_DIST, cv2.CALIB_FIX_K3,
-                 cv2.CALIB_FIX_K2, cv2.CALIB_FIX_K1):
-        previous = (intrinsics.copy(), distortion.copy(), flags, rms)
+    for flag in ("zero_tangent_dist", "fix_k3", "fix_k2", "fix_k1"):
+        previous = (intrinsics.copy(), distortion.copy(), set(flags), rms)
 
-        flags |= flag
+        flags.add(flag)
         error, intrinsics, distortion, _, _ = fit(flags)
 
         if error > threshold:

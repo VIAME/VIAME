@@ -1941,6 +1941,7 @@ lib/python3.10/site-packages/viame/util/env.py
 lib/python3.10/site-packages/viame/util/find_python_library.py
 lib/python3.10/site-packages/viame/util/pil.py
 lib/python3.10/site-packages/viame/utilities/__init__.py
+lib/python3.10/site-packages/viame/utilities/calibration.py
 lib/python3.10/site-packages/viame/utilities/compat.py
 lib/python3.10/site-packages/viame/utilities/geometry.py
 lib/python3.10/site-packages/viame/utilities/imageops.py

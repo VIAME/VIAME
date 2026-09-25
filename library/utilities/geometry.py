@@ -273,6 +273,31 @@ def find_fundamental(source, target, threshold=3.0, confidence=0.99,
     return refined, best_inliers
 
 
+def epipolar_lines(fundamental, points, which_image):
+    """The epipolar lines in the other view, for each point.
+
+    `cv2.computeCorrespondEpilines`. `which_image` is 1 when the points are
+    in the first view -- giving lines in the second, as `F p` -- and 2 for
+    the reverse, `F^T p`. Each line is returned as (a, b, c) normalised so
+    that a squared plus b squared is one, which is what makes `a x + b y + c`
+    the signed distance from the line and is how every caller uses it.
+    """
+    fundamental = np.asarray(fundamental, dtype=np.float64).reshape(3, 3)
+    points = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+
+    if which_image not in (1, 2):
+        raise ValueError("which_image is 1 or 2, got {}".format(which_image))
+
+    homogeneous = np.hstack([points, np.ones((len(points), 1))])
+    matrix = fundamental if which_image == 1 else fundamental.T
+    lines = homogeneous @ matrix.T
+
+    scale = np.sqrt(lines[:, 0] ** 2 + lines[:, 1] ** 2)
+    scale = np.where(scale < 1e-12, 1.0, scale)
+
+    return lines / scale[:, None]
+
+
 def apply_homography(homography, points):
     """Map points through a homography, returning inhomogeneous coordinates."""
     points = np.asarray(points, dtype=np.float64).reshape(-1, 2)

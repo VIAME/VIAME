@@ -42,4 +42,34 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
     WORKING_DIRECTORY "${VIAME_BUILD_INSTALL_PREFIX}"
   )
+
+  # The OpenCV replacements. `test_geometry.py` and `test_imageops.py` were
+  # written with the first of them and never registered, so they had never
+  # run in a tier -- 18 and 6 assertions sitting in the tree doing nothing.
+  # Registered together here so that does not happen to the third.
+  viame_add_test(
+    NAME    "unit:utilities:geometry"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_geometry.py"
+    LABELS  UNIT CORE
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
+
+  viame_add_test(
+    NAME    "unit:utilities:imageops"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_imageops.py"
+    LABELS  UNIT CORE
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
+
+  # Zhang's calibration, which replaces cv::calibrateCamera. CORE because
+  # the stereo measurement chain stands on it.
+  viame_add_test(
+    NAME    "unit:utilities:calibration"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_calibration.py"
+    LABELS  UNIT CORE
+    TIMEOUT 600
+    SOURCE_SETUP
+  )
 endif()
