@@ -2,14 +2,16 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Detection segmentation with GrabCut and watershed, on cv2.
+"""Detection segmentation with GrabCut and watershed.
 
 the `opencv` plugin's `refine_detections_{grabcut,watershed}.cxx` in python, per
 `lite-removals.md` section 2.6, which sends both to python by name.
 `cv::grabCut` is a Gaussian mixture over the crop, iterated with a min-cut,
-and `cv::watershed` is a flood from labelled markers: neither is an
-`image_kernels` primitive, so the algorithm stays OpenCV's and only the language
-changes.
+and is still OpenCV's; the flood from labelled markers is now
+`image_kernels.watershed`, which is Meyer's algorithm written out with
+`cv::watershed`'s own details -- the per-channel maximum distance, the 256
+bucket queue that is allowed to run backwards, and the image border that is
+watershed line by definition.
 
 Both set a mask on each detection and change nothing else about it. Both are
 held to `tests/golden/opencv`'s `refine` cases, which record the mask of
@@ -26,6 +28,7 @@ import logging
 
 import numpy as np
 
+from viame import image_kernels
 from viame.algo import RefineDetections
 from viame.types import DetectedObjectSet, Image, ImageContainer
 
@@ -157,13 +160,13 @@ def standard_mask(detection):
 
 
 def _to_bgr(image_container):
-    """The BGR array both implementations saw.
+    """The BGR array `cv::grabCut` saw.
 
-    The bridge was asked for a `BGR_COLOR` mat, and unlike most callers
-    neither of these ever converts it back -- the output is a mask, not an
-    image -- so the swap does not cancel and has to happen here.
-    `cv::grabCut` and `cv::watershed` both weigh the channels, so it is not
-    a formality.
+    The bridge was asked for a `BGR_COLOR` mat, and unlike most callers this
+    one never converts it back -- the output is a mask, not an image -- so
+    the swap does not cancel and has to happen here. `cv::grabCut` fits a
+    Gaussian mixture in whatever three dimensional space it is handed, and a
+    mixture over BGR is not the mixture over RGB, so it is not a formality.
     """
     array = image_container.asarray()
 
@@ -172,6 +175,27 @@ def _to_bgr(image_container):
 
     if array.shape[2] >= 3:
         return np.ascontiguousarray(array[:, :, 2::-1])
+
+    return np.ascontiguousarray(np.dstack([array[:, :, 0]] * 3))
+
+
+def _to_three_channel(image_container):
+    """The array the watershed floods, in the channel order it arrived in.
+
+    The distance between two pixels is the **largest** of the three
+    per-channel absolute differences, and the largest of three numbers does
+    not care which order they are in -- so the flooding over RGB is the
+    flooding over BGR, pixel for pixel, and swapping to BGR here would only
+    be work done to be undone. A single plane is still tripled, because the
+    distance wants three to take the maximum of.
+    """
+    array = image_container.asarray()
+
+    if array.ndim == 2:
+        return np.ascontiguousarray(np.dstack([array] * 3))
+
+    if array.shape[2] >= 3:
+        return np.ascontiguousarray(array[:, :, :3])
 
     return np.ascontiguousarray(np.dstack([array[:, :, 0]] * 3))
 
@@ -289,7 +313,7 @@ class RefineDetectionsGrabCut(RefineDetections):
 
 
 class RefineDetectionsWatershed(RefineDetections):
-    """Set each detection's mask with `cv2.watershed`."""
+    """Set each detection's mask with `image_kernels.watershed`."""
 
     def __init__(self):
         RefineDetections.__init__(self)
@@ -322,12 +346,10 @@ class RefineDetectionsWatershed(RefineDetections):
         return True
 
     def refine(self, image_data, detections):
-        import cv2
-
         if image_data is None or detections is None:
             return detections
 
-        image = _to_bgr(image_data)
+        image = _to_three_channel(image_data)
         image_rect = Rect(0, 0, image.shape[1], image.shape[0])
 
         # Everything outside every detection's uncertain region is known
@@ -380,7 +402,7 @@ class RefineDetectionsWatershed(RefineDetections):
         markers = np.maximum(markers, 0)
         markers[background.astype(bool)] = len(entries) + 1
 
-        cv2.watershed(image, markers)
+        image_kernels.watershed(image, markers)
 
         result = DetectedObjectSet()
 

@@ -1137,3 +1137,49 @@ So the count was 22, not 21, and is now genuinely 21.
 **Green:** `tools:convert` passes; the `tools` label is 22 of 25 with the same
 three pre-existing failures (`index`, `inspect_file`, `run_bulk`), unchanged
 by this; BASELINE, UNIT and CORE 476 of 476; GOLDEN and CRITICAL 10 of 10.
+
+Three more off cv2, and the three `tools` failures were one bug.
+
+`tools/inspect_file.py` asked cv2 to decode a first frame when `ffmpeg` was
+not on the path. PyAV is the same libavcodec that branch shells out to and is
+what `library/video_io/pyav_video_input` already reads every video with, so
+the fallback is now PyAV -- and its answer is **stronger**, not merely equal:
+an OpenCV built without a video backend opens nothing, so a failure there
+could not be told from a file that genuinely does not decode and the whole
+branch had to collapse to `None`. PyAV brings its own decoders, so a failure
+there means the file. Checked on `clip.mp4` and `clip_vfr.mp4` (True) and on
+eighteen bytes of rubbish with a `.mp4` on the end (False, where cv2 said
+None). Our own tree: 21 files to 20.
+
+`ocv_watershed` is off cv2 too, on `image_kernels.watershed`, which has been
+written and bound since P2 and which nothing called. The flooding is handed
+**RGB** rather than BGR, because `cv::watershed` measures the distance
+between two pixels as the largest of the three per-channel absolute
+differences and the largest of three numbers does not care what order they
+are in -- so the swap `_to_bgr` does for `cv::grabCut`, which fits a mixture
+in the space it is handed and does care, would only have been work done to
+be undone. Checked both ways: eight random marker layouts over `rgb8.png`
+agree with `cv2.watershed` on every one of 6144 pixels, and the three
+recorded `ocv_watershed` goldens replay exactly. `grabCut` is still OpenCV's
+and still gets BGR; that file's `import cv2` stays until a min-cut is
+written, so the file count does not move for it.
+
+**The three `tools` failures that have been called pre-existing for four
+entries were one bug, and it was ours.** `tools:index`, `tools:inspect_file`
+and `tools:run_bulk` each load a tool by path with the `viame` package
+stubbed out of `sys.modules`, and each stubbed `viame.core` -- a module name
+that P2 renamed. The tool then imports `viame.utilities` or
+`viame.descriptors`, the stub does not cover it, and the import falls through
+to a `viame` that is a bare `ModuleType` and not a package. Renaming the
+three stub keys is the whole fix. The `tools` label is 25 of 25 for the first
+time in this work, and `tools:inspect_file` now actually exercises the file
+the entry above changed, which is the part that matters: it was passing
+nothing while reporting a failure that looked environmental.
+
+Two headers were being built and never installed. `corners.h` and
+`watershed.h` went in with their bindings and neither reached
+`image_kernels_headers`, so the python module had them compiled in and a C++
+consumer of the install did not. Both are listed now.
+
+**Green:** BASELINE, UNIT and CORE 476 of 476; GOLDEN and CRITICAL 10 of 10;
+`tools` 25 of 25.

@@ -1026,6 +1026,7 @@ include/viame/image_kernels/commonality.h
 include/viame/image_kernels/contours.h
 include/viame/image_kernels/convert.h
 include/viame/image_kernels/convert_polygons_to_mask.h
+include/viame/image_kernels/corners.h
 include/viame/image_kernels/dispatch.h
 include/viame/image_kernels/distance.h
 include/viame/image_kernels/draw.h
@@ -1046,6 +1047,7 @@ include/viame/image_kernels/threshold.h
 include/viame/image_kernels/utilities_segmentation.h
 include/viame/image_kernels/viame_image_kernels_export.h
 include/viame/image_kernels/warp.h
+include/viame/image_kernels/watershed.h
 include/viame/image_kernels/windowed_utils.h
 include/viame/image_processing/average_frames.h
 include/viame/image_processing/close_loops_appearance_indexed.h

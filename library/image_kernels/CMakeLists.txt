@@ -23,6 +23,7 @@ set( image_kernels_headers
   commonality.h
   contours.h
   convert.h
+  corners.h
   dispatch.h
   distance.h
   draw.h
@@ -41,6 +42,7 @@ set( image_kernels_headers
   temporal.h
   threshold.h
   warp.h
+  watershed.h
 
   convert_polygons_to_mask.h
   utilities_segmentation.h

@@ -210,15 +210,28 @@ def decodes_first_frame(path):
             return out.returncode == 0
         except (OSError, subprocess.TimeoutExpired):
             pass
+
+    # PyAV, which is the same libavcodec the branch above shells out to and
+    # which `library/video_io/pyav_video_input` already reads every video
+    # with. It replaces a cv2.VideoCapture whose answer was weaker: an
+    # OpenCV built without a video backend opens nothing, so a failure there
+    # could not be told from a file that genuinely does not decode, and the
+    # whole branch had to collapse to None. PyAV brings its own decoders, so
+    # a failure here means the file.
     try:
-        import cv2
-        cap = cv2.VideoCapture(path)
-        ok, _frame = cap.read()
-        cap.release()
-        # An OpenCV without a video backend opens nothing, so only success counts
-        return True if ok else None
-    except Exception:
+        import av
+    except ImportError:
         return None
+
+    try:
+        with av.open(path) as container:
+            for _frame in container.decode(video=0):
+                return True
+    except Exception:
+        return False
+
+    # Opened, and no video stream produced a frame
+    return False
 
 
 def inspect_video(path, report):

@@ -8,7 +8,7 @@ spec = importlib.util.spec_from_file_location("review_inspect_file", Path(__file
 m = importlib.util.module_from_spec(spec)
 import sys, types
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools'))
-with patch.dict(sys.modules, {'viame': types.ModuleType('viame'), 'viame.core': types.SimpleNamespace(model_wrap=types.SimpleNamespace())}):
+with patch.dict(sys.modules, {'viame': types.ModuleType('viame'), 'viame.utilities': types.SimpleNamespace(model_wrap=types.SimpleNamespace())}):
     spec.loader.exec_module(m)
 
 def test_malformed_json_does_not_abort_other_reports(tmp_path):

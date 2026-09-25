@@ -13,7 +13,7 @@ m = importlib.util.module_from_spec(spec)
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools'))
 with patch.dict(sys.modules, {
         'viame': types.ModuleType('viame'),
-        'viame.core': types.SimpleNamespace(
+        'viame.descriptors': types.SimpleNamespace(
             index_descriptors=types.SimpleNamespace(
                 list_index_bundles=lambda path: []))}):
     spec.loader.exec_module(m)
