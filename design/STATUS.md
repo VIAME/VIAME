@@ -874,3 +874,43 @@ gains `viame/utilities/blobs.py` and nothing else.
 
 Our own tree is now at 26 files importing cv2, from 38 at the start of this
 run.
+
+Seven kernels gained their float32 overloads, and a port that did not land is
+recorded rather than forced.
+
+`erode`, `dilate`, `gaussian_blur`, `box_blur`, `normalize` and
+`add_weighted` were bound for uint8 alone although the C++ behind each is a
+template, so any caller holding a float image -- a depth map, a backscatter
+estimate, anything mid-computation -- had to go back to cv2 for them. Against
+cv2 on float32: erode, dilate and add_weighted **exact**; gaussian_blur
+3.1e-5, box_blur 1.6e-5, normalize 6.0e-8, each of those being float32's own
+rounding. `clahe` gained uint16 instead of float, and deliberately: it
+static_asserts on an integer pixel because a histogram needs discrete levels
+to bin into, which is exactly why `cv2.createCLAHE` takes 8 and 16 bit and
+nothing else. That is the third time in this run the gap has been a binding
+rather than an algorithm.
+
+**`ocv_color_correction` was ported and the port was reverted.** With those
+overloads it comes off cv2 cleanly and **thirty-seven of its thirty-nine
+recorded images are bit identical**. The two that are not are the two variants
+that run CLAHE in L*a*b*, at max 16 and mean 1.38 with 68% of pixels moved.
+
+The cause is not the colour conversion -- `to_lab` and `from_lab` are each
+within 2 of OpenCV, and the lightness differs on 40 of 256 grey levels, always
+by one, which is the fixed-point-table difference `TOLERANCES` already records
+for `ocv_convert_color` at (1.0, 0.5). **CLAHE is what turns one count into
+sixteen**: it is a histogram remap, so a lightness landing one count the other
+side of a bin boundary is redistributed by a different mapping. Measured, L
+differs by at most 1 before CLAHE and by 13 after.
+
+So the port can be made exact only by reversing P7-T03's deliberate decision
+not to reproduce OpenCV's fixed-point tables, or accepted only at a tolerance
+four times the loosest max in the table and three times the loosest mean --
+and `TOLERANCES` is keyed per implementation, so that would blanket the eleven
+variants which are currently exact, on a group with no ground truth behind it.
+That is a trade to make deliberately, not in passing, so the filter stays on
+cv2 and lite-findings 2.35 has the measurements.
+
+**Green:** BASELINE, UNIT and CORE 475 of 475 with 9 new kernel cases; GOLDEN
+and CRITICAL 10 of 10. `install.txt` unchanged. Our own tree stays at 26 files
+importing cv2.

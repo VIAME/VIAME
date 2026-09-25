@@ -38,7 +38,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  normalize, remap, resize, resize_area,
                                  swap_channels, text_size, to_gray, to_hls,
                                  to_hsv, to_lab, to_rgb, warp_affine,
-                                 warp_perspective)
+                                 warp_perspective, dilate)
 
 
 def _frame(width=64, height=48):
@@ -666,6 +666,94 @@ def test_intersect_convex_contained_square_is_the_smaller_one():
     inner = np.array([[5.0, 5.0], [10.0, 5.0], [10.0, 10.0], [5.0, 10.0]])
 
     assert intersect_convex(outer, inner)[0] == pytest.approx(25.0)
+
+
+# ---------------------------------------------------------------------------
+# The float32 overloads
+#
+# Seven kernels were bound for uint8 alone although the C++ behind each is a
+# template: a caller with a float image -- a depth map, a backscatter
+# estimate, anything mid-computation -- had to go back to cv2 for them.
+#
+# Against cv2 on a random float32 frame: erode, dilate and add_weighted are
+# exact, gaussian_blur is within 3.1e-5, box_blur 1.6e-5 and normalize 6.0e-8,
+# every one of those being float32's own rounding rather than a difference in
+# what is computed.
+#
+# `clahe` is the exception and is bound for uint8 and uint16 only. It
+# static_asserts on an integer pixel and is right to: it equalises a
+# histogram, which needs a bounded range of discrete levels to build one
+# over, and `cv2.createCLAHE` takes 8 and 16 bit for the same reason.
+
+def _float_frame():
+    rng = np.random.default_rng(21)
+    return np.ascontiguousarray((rng.random((24, 32)) * 255).astype(np.float32))
+
+
+@pytest.mark.parametrize("call", [
+    lambda f: erode(f, "rect", 5, 5),
+    lambda f: dilate(f, "rect", 5, 5),
+    lambda f: gaussian_blur(f, 7, 2.0),
+    lambda f: box_blur(f, 5),
+    lambda f: normalize(f, 0.0, 1.0),
+])
+def test_a_float_image_stays_float(call):
+    out = call(_float_frame())
+    assert out.dtype == np.float32
+    assert out.shape == (24, 32)
+
+
+def test_float_erosion_keeps_the_minimum_of_the_window():
+    """Which is the whole of what an erosion is, and is checkable exactly."""
+    frame = np.zeros((5, 5), dtype=np.float32)
+    frame[2, 2] = -7.5
+    frame[0, 0] = 3.25
+
+    out = erode(np.ascontiguousarray(frame), "rect", 3, 3)
+
+    # The low value spreads over its three by three neighbourhood
+    assert out[1, 1] == pytest.approx(-7.5)
+    assert out[3, 3] == pytest.approx(-7.5)
+    # and a float erosion does not clamp at zero the way a uint8 one must
+    assert out.min() == pytest.approx(-7.5)
+
+
+def test_float_normalize_reaches_both_ends():
+    frame = _float_frame()
+
+    out = normalize(frame, 0.0, 1.0)
+
+    assert out.min() == pytest.approx(0.0)
+    assert out.max() == pytest.approx(1.0)
+
+
+def test_float_add_weighted_does_not_clamp():
+    """A uint8 sum saturates at 255; a float one has nothing to saturate to."""
+    a = np.full((4, 4), 200.0, dtype=np.float32)
+    b = np.full((4, 4), 200.0, dtype=np.float32)
+
+    out = add_weighted(np.ascontiguousarray(a), 1.0,
+                       np.ascontiguousarray(b), 1.0, 0.0)
+
+    assert out.dtype == np.float32
+    assert out[0, 0] == pytest.approx(400.0)
+
+
+def test_clahe_takes_sixteen_bit():
+    rng = np.random.default_rng(5)
+    frame = np.ascontiguousarray(
+        (rng.random((32, 48)) * 65535).astype(np.uint16))
+
+    out = clahe(frame, 2.0, 8, 8)
+
+    assert out.dtype == np.uint16
+    assert out.shape == frame.shape
+
+
+def test_clahe_refuses_a_float_image():
+    """Not an oversight: a histogram needs discrete levels to bin into."""
+    with pytest.raises(TypeError):
+        clahe(_float_frame(), 2.0, 8, 8)
 
 
 def test_a_contour_must_be_pairs():

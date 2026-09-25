@@ -456,8 +456,9 @@ as_border( std::string const& name )
     "got '" + name + "'" );
 }
 
+template < typename T >
 py::array
-gaussian_blur( array_of< uint8_t > const& array,
+gaussian_blur( array_of< T > const& array,
                size_t size, double sigma, std::string const& border )
 {
   auto const source = as_image( array );
@@ -467,8 +468,9 @@ gaussian_blur( array_of< uint8_t > const& array,
     array.ndim() == 3 );
 }
 
+template < typename T >
 py::array
-box_blur( array_of< uint8_t > const& array,
+box_blur( array_of< T > const& array,
           size_t size, std::string const& border )
 {
   auto const source = as_image( array );
@@ -477,10 +479,11 @@ box_blur( array_of< uint8_t > const& array,
     array.ndim() == 3 );
 }
 
+template < typename T >
 py::array
-add_weighted( array_of< uint8_t > const& first,
+add_weighted( array_of< T > const& first,
               double alpha,
-              array_of< uint8_t > const& second,
+              array_of< T > const& second,
               double beta, double gamma )
 {
   auto const a = as_image( first );
@@ -497,8 +500,9 @@ add_weighted( array_of< uint8_t > const& first,
     first.ndim() == 3 );
 }
 
+template < typename T >
 py::array
-normalize( array_of< uint8_t > const& array,
+normalize( array_of< T > const& array,
            double low, double high )
 {
   auto const source = as_image( array );
@@ -514,8 +518,9 @@ equalize( array_of< uint8_t > const& array )
                    array.ndim() == 3 );
 }
 
+template < typename T >
 py::array
-clahe( array_of< uint8_t > const& array,
+clahe( array_of< T > const& array,
        double clip_limit, size_t tiles_x, size_t tiles_y )
 {
   auto const source = as_image( array );
@@ -544,8 +549,9 @@ as_element( std::string const& shape, int width, int height )
     "element must be one of rect, cross, disk; got '" + shape + "'" );
 }
 
+template < typename T >
 py::array
-erode( array_of< uint8_t > const& array,
+erode( array_of< T > const& array,
        std::string const& shape, int width, int height )
 {
   auto const source = as_image( array );
@@ -555,8 +561,9 @@ erode( array_of< uint8_t > const& array,
     array.ndim() == 3 );
 }
 
+template < typename T >
 py::array
-dilate( array_of< uint8_t > const& array,
+dilate( array_of< T > const& array,
         std::string const& shape, int width, int height )
 {
   auto const source = as_image( array );
@@ -1306,40 +1313,53 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   m.def( "text_size", &text_size, py::arg( "text" ), py::arg( "scale" ) = 1,
          "The (width, height) of text, as cv2.getTextSize reports it." );
 
-  m.def( "gaussian_blur", &gaussian_blur, py::arg( "image" ),
+  for_both_pixel_types( m, "gaussian_blur", &gaussian_blur< uint8_t >,
+         &gaussian_blur< float >, py::arg( "image" ),
          py::arg( "size" ), py::arg( "sigma" ) = 0.0,
          py::arg( "border" ) = "reflect_101",
          "cv2.GaussianBlur. `size` is the odd kernel width and height, and "
          "sigma is derived from it when left at zero." );
 
-  m.def( "box_blur", &box_blur, py::arg( "image" ), py::arg( "size" ),
+  for_both_pixel_types( m, "box_blur", &box_blur< uint8_t >,
+         &box_blur< float >, py::arg( "image" ), py::arg( "size" ),
          py::arg( "border" ) = "reflect_101", "cv2.blur." );
 
-  m.def( "add_weighted", &add_weighted, py::arg( "first" ),
+  for_both_pixel_types( m, "add_weighted", &add_weighted< uint8_t >,
+         &add_weighted< float >, py::arg( "first" ),
          py::arg( "alpha" ), py::arg( "second" ), py::arg( "beta" ),
          py::arg( "gamma" ) = 0.0,
-         "first * alpha + second * beta + gamma, saturated. "
-         "cv2.addWeighted." );
+         "first * alpha + second * beta + gamma, saturated -- and for a "
+         "float image \"saturated\" means nothing is clamped, as "
+         "cv2.addWeighted on a float does not clamp either." );
 
-  m.def( "normalize", &normalize, py::arg( "image" ), py::arg( "low" ) = 0.0,
+  for_both_pixel_types( m, "normalize", &normalize< uint8_t >,
+         &normalize< float >, py::arg( "image" ), py::arg( "low" ) = 0.0,
          py::arg( "high" ) = 255.0,
          "Rescale the image's range onto [low, high]. cv2.normalize with "
-         "NORM_MINMAX." );
+         "NORM_MINMAX, whose alpha and beta are the two ends in either "
+         "order." );
 
   m.def( "equalize", &equalize, py::arg( "image" ),
          "cv2.equalizeHist." );
 
-  m.def( "clahe", &clahe, py::arg( "image" ), py::arg( "clip_limit" ) = 40.0,
+  // uint8 and uint16, not float: `clahe` static_asserts on an integer
+  // pixel and is right to. It equalises a histogram, which needs a bounded
+  // range of discrete levels to build one over -- and `cv2.createCLAHE`
+  // accepts 8 and 16 bit for the same reason.
+  for_both_pixel_types( m, "clahe", &clahe< uint8_t >, &clahe< uint16_t >,
+         py::arg( "image" ), py::arg( "clip_limit" ) = 40.0,
          py::arg( "tiles_x" ) = 8, py::arg( "tiles_y" ) = 8,
          "Contrast limited adaptive histogram equalisation, which is what "
          "cv2.createCLAHE().apply() does." );
 
-  m.def( "erode", &erode, py::arg( "image" ), py::arg( "shape" ) = "rect",
+  for_both_pixel_types( m, "erode", &erode< uint8_t >, &erode< float >,
+         py::arg( "image" ), py::arg( "shape" ) = "rect",
          py::arg( "width" ) = 3, py::arg( "height" ) = 3,
          "Grey erosion. cv2.erode with cv2.getStructuringElement; the shape "
          "is one of rect, cross, disk." );
 
-  m.def( "dilate", &dilate, py::arg( "image" ), py::arg( "shape" ) = "rect",
+  for_both_pixel_types( m, "dilate", &dilate< uint8_t >, &dilate< float >,
+         py::arg( "image" ), py::arg( "shape" ) = "rect",
          py::arg( "width" ) = 3, py::arg( "height" ) = 3,
          "Grey dilation. cv2.dilate." );
 

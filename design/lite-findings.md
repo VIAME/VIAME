@@ -2707,3 +2707,53 @@ missing half of what it is for. And "the C++ already does this" is worth
 checking before writing anything: the capability was in the tree, one
 `m.def` away, and the same was true of the float HSV conversions a commit
 earlier. Both times the gap was in the binding, not the algorithm.
+
+## 2.35 CLAHE turns a rounding difference into a visible one
+
+`ocv_color_correction` was ported off cv2 and the port is **not** in the tree.
+It is worth writing down why, because the reason is a property of the pipeline
+rather than a mistake in the port, and the same shape will come up again.
+
+Seven kernels the filter needs -- `erode`, `dilate`, `gaussian_blur`,
+`box_blur`, `normalize`, `add_weighted`, `clahe` -- were bound for uint8 alone
+although the C++ behind each is a template. That half is in the tree and is
+the third instance of 2.34's pattern. Against cv2 on float32: erode, dilate
+and add_weighted exact; gaussian_blur 3.1e-5, box_blur 1.6e-5, normalize
+6.0e-8. `clahe` stays integer-only, and correctly: it static_asserts on an
+integer pixel because a histogram needs discrete levels to bin into, which is
+why `cv2.createCLAHE` takes 8 and 16 bit and nothing else.
+
+With those bound, the filter ports cleanly and **thirty-seven of its
+thirty-nine recorded images come out bit identical**. The two that do not are
+`underwater_fusion` and `readme_example`, the two variants that run CLAHE in
+L*a*b*, and they come out at **max 16, mean 1.38, with 68% of pixels moved**.
+
+The cause is not the colour conversion. Measured separately: `to_lab` is
+within 2 of OpenCV and `from_lab` within 2, and on a grey ramp the lightness
+differs on 40 of 256 levels, always by one. OpenCV converts through a
+fixed-point cube-root table where `image_kernels` works in double, and the two
+round apart on the last count -- which `TOLERANCES` in `test_golden.py`
+already records for `ocv_convert_color` at (1.0, 0.5), with the deliberate
+note that reproducing the tables was considered in P7-T03 and not done because
+a port more accurate than what it replaces is the better one to keep.
+
+**CLAHE is what turns that one count into sixteen.** It is a histogram remap:
+a pixel whose lightness lands one count on the other side of a bin boundary is
+redistributed by a different mapping, and the difference then comes back
+through `Lab2RGB` and through two `addWeighted` fusions. Measured at each
+step: L differs by at most 1 before CLAHE and by **13** after it.
+
+So the port cannot be made exact without reversing the P7-T03 decision and
+reproducing OpenCV's fixed-point tables, and it cannot be accepted at a
+tolerance without setting one four times the loosest max in the table
+(warp/ocv at 4.0) and three times the loosest mean -- which `TOLERANCES` keys
+per *implementation*, so it would blanket the eleven variants that are
+currently exact, on a group whose only contract is the recording and which has
+no ground truth behind it. Neither is a call to make in passing, so the filter
+stays on cv2 and this note stays here.
+
+The general point: a difference of one count is not always a difference of one
+count downstream. Anything that bins, thresholds, sorts or indexes on a pixel
+value -- a histogram, a watershed queue, a label -- can turn the last bit into
+a visible amount, and "within one of OpenCV" is only a useful statement about
+a step whose output is read as a number rather than used as a key.
