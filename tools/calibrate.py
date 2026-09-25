@@ -19,7 +19,9 @@ import sys
 import glob
 import argparse
 import json
+from viame import image_kernels
 from viame.measurement import projection
+from viame.utilities import geometry, imageops, opencv_yaml
 
 
 def parse_ptscal(filepath):
@@ -152,23 +154,28 @@ def detect_grid_image(image, grid_size=(6,5), max_dim=5000):
         scale /= 2.0
 
     # termination criteria for corner refinement
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
     # Find the chess board corners
     flags = cv2.CALIB_CB_ADAPTIVE_THRESH
     if scale < 1.0:
-        small = cv2.resize(image, (0, 0), fx=scale, fy=scale)
+        small = image_kernels.resize_area(
+            image, max(1, int(round(image.shape[1] * scale))),
+            max(1, int(round(image.shape[0] * scale))))
         ret, corners = cv2.findChessboardCorners(small, grid_size, flags=flags)
         if ret:
-            cv2.cornerSubPix(small, corners, (11, 11), (-1, -1), criteria)
-            corners /= scale
+            # `(11, 11)` is the **half** window in both, so a 23 pixel search
+            corners = image_kernels.corner_subpix(
+                small, corners.reshape(-1, 2), 11, 11, 30, 0.001)
+            corners = (corners / scale).astype(np.float32)
     else:
         ret, corners = cv2.findChessboardCorners(image, grid_size, flags=flags)
 
     if ret:
         # refine the location of the corners at full resolution
-        cv2.cornerSubPix(image, corners, (11, 11), (-1, -1), criteria)
-        return corners
+        corners = image_kernels.corner_subpix(
+            np.ascontiguousarray(image), np.asarray(corners).reshape(-1, 2),
+            11, 11, 30, 0.001)
+        return corners.reshape(-1, 1, 2).astype(np.float32)
     else:
         return None
 
@@ -194,7 +201,9 @@ def detect_dots_image(image, max_dim=5000, min_area=30.0, max_area=5000.0,
         scale /= 2.0
 
     if scale < 1.0:
-        work = cv2.resize(image, (0, 0), fx=scale, fy=scale)
+        work = image_kernels.resize_area(
+            image, max(1, int(round(image.shape[1] * scale))),
+            max(1, int(round(image.shape[0] * scale))))
     else:
         work = image
 
@@ -319,15 +328,18 @@ def draw_dots(image, centers, color=(0, 255, 0), radius=8, thickness=2):
     for i in range(len(centers)):
         pt = (int(round(centers[i, 0, 0])), int(round(centers[i, 0, 1])))
         # Circle
-        cv2.circle(image, pt, radius, color, thickness)
+        image_kernels.draw_circle(image, pt[0], pt[1], radius, list(color),
+                                  thickness)
         # Crosshair
-        cv2.line(image, (pt[0] - radius, pt[1]), (pt[0] + radius, pt[1]),
-                 color, max(1, thickness // 2))
-        cv2.line(image, (pt[0], pt[1] - radius), (pt[0], pt[1] + radius),
-                 color, max(1, thickness // 2))
+        image_kernels.draw_line(image, pt[0] - radius, pt[1],
+                                pt[0] + radius, pt[1], list(color),
+                                max(1, thickness // 2))
+        image_kernels.draw_line(image, pt[0], pt[1] - radius,
+                                pt[0], pt[1] + radius, list(color),
+                                max(1, thickness // 2))
     # Count overlay
-    cv2.putText(image, f"{len(centers)} dots", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+    image_kernels.draw_text(image, f"{len(centers)} dots", 10, 30,
+                            list(color), 2)
 
 
 def filter_target_cluster(centers, sizes=None, min_neighbors=3,
@@ -535,8 +547,8 @@ def match_dots_to_pts(image_dots, pts_data, image_shape, dot_sizes=None):
         face_world_xy = np.array([world_xy[p[0]] for p in face_pairs], dtype=np.float64)
         face_image_pts = np.array([image_2d[p[1]] for p in face_pairs], dtype=np.float64)
 
-        H, h_mask = cv2.findHomography(face_world_xy, face_image_pts,
-                                       cv2.RANSAC, 20.0)
+        H, h_mask = geometry.find_homography(face_world_xy, face_image_pts,
+                                             threshold=20.0)
         if H is None or h_mask is None or int(h_mask.sum()) < 4:
             return {}
 
@@ -550,9 +562,7 @@ def match_dots_to_pts(image_dots, pts_data, image_shape, dot_sizes=None):
         tree_px = cKDTree(sub_pts)
 
         # Project all face points, match generously, refit H
-        pts_in = face_xy_all.reshape(-1, 1, 2)
-        pts_out = cv2.perspectiveTransform(pts_in, H)
-        projected = pts_out.reshape(-1, 2)
+        projected = geometry.apply_homography(H, face_xy_all)
         dists, indices = tree_px.query(projected)
 
         seen = {}
@@ -567,12 +577,13 @@ def match_dots_to_pts(image_dots, pts_data, image_shape, dot_sizes=None):
                                 dtype=np.float64)
             match_im = np.array([image_2d[im] for im in seen.keys()],
                                 dtype=np.float64)
-            H_new, _ = cv2.findHomography(match_xy, match_im, cv2.RANSAC, 15.0)
+            H_new, _ = geometry.find_homography(match_xy, match_im,
+                                               threshold=15.0)
             if H_new is not None:
                 H = H_new
 
         # Final projection
-        pts_out = cv2.perspectiveTransform(pts_in, H)
+        pts_out = geometry.apply_homography(H, pts_in).reshape(-1, 1, 2)
         projected = pts_out.reshape(-1, 2)
         dists, indices = tree_px.query(projected)
 
@@ -607,7 +618,7 @@ def match_dots_to_pts(image_dots, pts_data, image_shape, dot_sizes=None):
             return None
         src = np.array([world_xy[p[0]] for p in face_pairs], dtype=np.float64)
         dst = np.array([image_2d[p[1]] for p in face_pairs], dtype=np.float64)
-        H, mask = cv2.findHomography(src, dst, cv2.RANSAC, 15.0)
+        H, mask = geometry.find_homography(src, dst, threshold=15.0)
         if H is None:
             return None
         h1, h2 = H[:, 0], H[:, 1]
@@ -687,9 +698,8 @@ def match_dots_to_pts(image_dots, pts_data, image_shape, dot_sizes=None):
             # Iterative PnP refinement: project → match → re-solve PnP
             tree_all = cKDTree(image_2d)
             for pnp_iter in range(3):
-                proj_all, _ = cv2.projectPoints(
-                    world_3d.astype(np.float64), rvec, tvec, K_approx, None)
-                proj_all = proj_all.reshape(-1, 2)
+                proj_all = projection.project_points(
+                    world_3d.astype(np.float64), K_approx, None, rvec, tvec)
 
                 dists, indices = tree_all.query(proj_all)
                 threshold = 30.0 if pnp_iter == 0 else 20.0
@@ -717,9 +727,8 @@ def match_dots_to_pts(image_dots, pts_data, image_shape, dot_sizes=None):
                     rvec, tvec = rv2, tv2
 
             # Final projection at tight threshold
-            proj_all, _ = cv2.projectPoints(
-                world_3d.astype(np.float64), rvec, tvec, K_approx, None)
-            proj_all = proj_all.reshape(-1, 2)
+            proj_all = projection.project_points(
+                world_3d.astype(np.float64), K_approx, None, rvec, tvec)
             dists, indices = tree_all.query(proj_all)
 
             pnp_matched = {}
@@ -772,7 +781,7 @@ def draw_dot_matches(image, matched_pts, matched_labels, unmatched_dots=None,
         for i in range(len(unmatched_dots)):
             pt = (int(round(unmatched_dots[i, 0, 0])),
                   int(round(unmatched_dots[i, 0, 1])))
-            cv2.circle(image, pt, 8, (0, 0, 255), 2)
+            image_kernels.draw_circle(image, pt[0], pt[1], 8, RED, 2)
 
     # Draw matched dots in green with labels
     n_matched = 0
@@ -781,22 +790,21 @@ def draw_dot_matches(image, matched_pts, matched_labels, unmatched_dots=None,
         for i in range(n_matched):
             pt = (int(round(matched_pts[i, 0, 0])),
                   int(round(matched_pts[i, 0, 1])))
-            cv2.circle(image, pt, 8, (0, 255, 0), 2)
-            cv2.line(image, (pt[0] - 8, pt[1]), (pt[0] + 8, pt[1]),
-                     (0, 255, 0), 1)
-            cv2.line(image, (pt[0], pt[1] - 8), (pt[0], pt[1] + 8),
-                     (0, 255, 0), 1)
-            cv2.putText(image, matched_labels[i],
-                        (pt[0] + 10, pt[1] - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 255, 0), 1)
+            image_kernels.draw_circle(image, pt[0], pt[1], 8, GREEN, 2)
+            image_kernels.draw_line(image, pt[0] - 8, pt[1],
+                                    pt[0] + 8, pt[1], GREEN, 1)
+            image_kernels.draw_line(image, pt[0], pt[1] - 8,
+                                    pt[0], pt[1] + 8, GREEN, 1)
+            image_kernels.draw_text(image, matched_labels[i],
+                                    pt[0] + 10, pt[1] - 5, GREEN, 1)
 
     # Count overlay
     if n_world_total is not None:
         total = n_world_total
     else:
         total = n_matched + (len(unmatched_dots) if unmatched_dots is not None else 0)
-    cv2.putText(image, f"{n_matched}/{total} matched",
-                (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+    image_kernels.draw_text(image, f"{n_matched}/{total} matched",
+                            10, 30, GREEN, 2)
 
 
 def track_and_match_all_frames(frame_data, frame_sizes, pts_data, image_shape,
@@ -998,22 +1006,45 @@ DEFAULT_VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mov', '.mkv', '.wmv', '.flv', '.we
 DEFAULT_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'}
 
 
+# Overlay colours, **RGB**. The originals were BGR literals, so red was
+# (0, 0, 255) and yellow (255, 255, 0); with the images in RGB those would
+# come out blue and cyan. Named rather than repeated so the next one cannot
+# be written in the old order by habit.
+RED = [255, 0, 0]
+GREEN = [0, 255, 0]
+YELLOW = [255, 255, 0]
+
+
+def _read(path):
+    """An image, or None when it cannot be read.
+
+    RGB, where `cv2.imread` gave BGR -- the colour helpers below and
+    everything downstream are RGB now. `cv2.imread` returned None for an
+    unreadable file and the frame loops skip rather than stop, so the
+    exception is turned back into that.
+    """
+    try:
+        return imageops.read_image(path)
+    except OSError:
+        return None
+
+
 def to_grayscale(image, bayer=False):
     """Convert an image to grayscale, handling color, grayscale, and Bayer inputs.
 
     Args:
-        image: Input image (BGR, grayscale, or Bayer)
+        image: Input image (RGB, grayscale, or Bayer)
         bayer: If True, treat as Bayer pattern image
 
     Returns:
         Grayscale image
     """
     if bayer:
-        # Bayer images: extract first channel and debayer
-        if len(image.shape) == 3:
-            return cv2.cvtColor(image[:, :, 0], cv2.COLOR_BayerBG2GRAY)
-        else:
-            return cv2.cvtColor(image, cv2.COLOR_BayerBG2GRAY)
+        # `"BG"` names the **mosaic** -- blue at (0, 0) -- which is
+        # `cv2.COLOR_BayerRG2RGB` and not `BayerBG2RGB`; see `color.h`.
+        mosaic = image[:, :, 0] if len(image.shape) == 3 else image
+        return image_kernels.to_gray(
+            image_kernels.demosaic(np.ascontiguousarray(mosaic), "BG"))
     elif len(image.shape) == 2:
         # Already grayscale
         return image
@@ -1021,32 +1052,28 @@ def to_grayscale(image, bayer=False):
         # Single channel but with extra dimension
         return image[:, :, 0]
     else:
-        # Color image (BGR)
-        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return image_kernels.to_gray(np.ascontiguousarray(image[:, :, :3]))
 
 
 def to_color(image, bayer=False):
-    """Convert an image to BGR color for display.
+    """Convert an image to three channel RGB for display.
 
     Args:
-        image: Input image (BGR, grayscale, or Bayer)
+        image: Input image (RGB, grayscale, or Bayer)
         bayer: If True, treat as Bayer pattern image
 
     Returns:
-        BGR color image
+        RGB color image
     """
     if bayer:
-        if len(image.shape) == 3:
-            return cv2.cvtColor(image[:, :, 0], cv2.COLOR_BayerBG2BGR)
-        else:
-            return cv2.cvtColor(image, cv2.COLOR_BayerBG2BGR)
+        mosaic = image[:, :, 0] if len(image.shape) == 3 else image
+        return image_kernels.demosaic(np.ascontiguousarray(mosaic), "BG")
     elif len(image.shape) == 2:
-        # Grayscale to BGR
-        return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+        return image_kernels.to_rgb(image)
     elif image.shape[2] == 1:
-        return cv2.cvtColor(image[:, :, 0], cv2.COLOR_GRAY2BGR)
+        return image_kernels.to_rgb(np.ascontiguousarray(image[:, :, 0]))
     else:
-        # Already BGR
+        # Already RGB
         return image.copy()
 
 
@@ -1090,7 +1117,7 @@ def image_frames(input_path, frame_step=1, image_extensions=None, show_progress=
     for n, f in enumerate(files):
         if n % frame_step != 0:
             continue
-        frame = cv2.imread(f)
+        frame = _read(f)
         if frame is None:
             raise ValueError(f"Failed to read image file: {f}")
         frames_yielded += 1
@@ -1210,8 +1237,8 @@ def stereo_frames_separate(left_path, right_path, frame_step=1, show_progress=Tr
         print(f"processing {num_frames} stereo image pair(s)")
         size_validated = False
         for n in range(0, num_frames, frame_step):
-            left_frame = cv2.imread(left_files[n])
-            right_frame = cv2.imread(right_files[n])
+            left_frame = _read(left_files[n])
+            right_frame = _read(right_files[n])
             if left_frame is None:
                 raise ValueError(f"Failed to read left image: {left_files[n]}")
             if right_frame is None:
@@ -1350,10 +1377,10 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
                             draw_dot_matches(color_img, m_img, m_labels,
                                              unmatched, n_world)
                         else:
-                            draw_dots(color_img, corners, color=(0, 0, 255))
+                            draw_dots(color_img, corners, color=RED)
                     else:
-                        cv2.putText(color_img, "no dots", (10, 30),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+                        image_kernels.draw_text(color_img, "no dots",
+                                                10, 30, RED, 2)
             elif dots:
                 draw_dots(left_color, left_corners)
                 draw_dots(right_color, right_corners)
@@ -1365,10 +1392,12 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
             # Draw ROI rectangles if specified
             if left_roi is not None:
                 rx1, ry1, rx2, ry2 = left_roi
-                cv2.rectangle(left_color, (rx1, ry1), (rx2, ry2), (255, 255, 0), 2)
+                image_kernels.draw_rect(left_color, rx1, ry1, rx2 + 1,
+                                        ry2 + 1, YELLOW, 2)
             if right_roi is not None:
                 rx1, ry1, rx2, ry2 = right_roi
-                cv2.rectangle(right_color, (rx1, ry1), (rx2, ry2), (255, 255, 0), 2)
+                image_kernels.draw_rect(right_color, rx1, ry1, rx2 + 1,
+                                        ry2 + 1, YELLOW, 2)
             # Stack images side by side for display
             combined = np.hstack([left_color, right_color])
             cv2.imshow('img', combined)
@@ -1540,11 +1569,12 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
             x_off = img_shape[0]
             if left_roi is not None:
                 rx1, ry1, rx2, ry2 = left_roi
-                cv2.rectangle(color_frame, (rx1, ry1), (rx2, ry2), (255, 255, 0), 2)
+                image_kernels.draw_rect(color_frame, rx1, ry1, rx2 + 1,
+                                        ry2 + 1, YELLOW, 2)
             if right_roi is not None:
                 rx1, ry1, rx2, ry2 = right_roi
-                cv2.rectangle(color_frame, (rx1 + x_off, ry1), (rx2 + x_off, ry2),
-                              (255, 255, 0), 2)
+                image_kernels.draw_rect(color_frame, rx1 + x_off, ry1,
+                                        rx2 + x_off + 1, ry2 + 1, YELLOW, 2)
             cv2.imshow('img', color_frame)
             cv2.waitKey(-1)
     print("done")
@@ -1609,9 +1639,8 @@ def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"
             new_objpoints = []
             new_imgpoints = []
             for i in range(len(objpoints)):
-                proj, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i],
-                                            mtx, dist_c)
-                proj = proj.reshape(-1, 2)
+                proj = projection.project_points(
+                    objpoints[i], mtx, dist_c, rvecs[i], tvecs[i])
                 actual = imgpoints[i].reshape(-1, 2)
                 errors = np.sqrt(((proj - actual) ** 2).sum(axis=1))
                 # Remove points with error > 2.5× median (or > 30px absolute)
@@ -1808,8 +1837,8 @@ def estimate_essential_from_stereo_frames(left_path, right_path, input_path,
         pts2 = np.array([kp2[m.trainIdx].pt for m in matches], dtype=np.float64)
 
         # Undistort points
-        pts1_ud = cv2.undistortPoints(pts1.reshape(-1, 1, 2), K_left, dist_left)
-        pts2_ud = cv2.undistortPoints(pts2.reshape(-1, 1, 2), K_right, dist_right)
+        pts1_ud = projection.undistort_points(pts1, K_left, dist_left)
+        pts2_ud = projection.undistort_points(pts2, K_right, dist_right)
 
         E, mask = cv2.findEssentialMat(
             pts1_ud, pts2_ud, np.eye(3),
@@ -2001,8 +2030,8 @@ def cross_label_right_dots(left_matched, K_left, dist_left, K_right, dist_right,
         rvec_right = projection.rodrigues(R_right)
 
         # Project all world points into right camera
-        proj, _ = cv2.projectPoints(all_3d, rvec_right, T_right, K_right, dist_right)
-        proj = proj.reshape(-1, 2)
+        proj = projection.project_points(all_3d, K_right, dist_right,
+                                         rvec_right, T_right)
 
         # Match projections to detected right camera dots
         r_pts = right_raw_dots[f].reshape(-1, 2)
@@ -2078,16 +2107,13 @@ def optimize_translation_scale(K_left, dist_left, K_right, dist_right,
             lm = {la: i for i, la in enumerate(l_la)}
             rm = {la: i for i, la in enumerate(r_la)}
             for lb in common:
-                lp = cv2.undistortPoints(
+                lp = projection.undistort_points(
                     l_im[lm[lb]:lm[lb]+1].astype(np.float64),
-                    K_left, dist_left, P=K_left)
-                rp = cv2.undistortPoints(
+                    K_left, dist_left, None, K_left)
+                rp = projection.undistort_points(
                     r_im[rm[lb]:rm[lb]+1].astype(np.float64),
-                    K_right, dist_right, P=K_right)
-                p4 = cv2.triangulatePoints(
-                    P_L, P_R,
-                    lp.reshape(2, 1).astype(np.float64),
-                    rp.reshape(2, 1).astype(np.float64))
+                    K_right, dist_right, None, K_right)
+                p4 = geometry.triangulate_points(P_L, P_R, lp, rp)
                 tri[lb].append((p4[:3] / p4[3]).ravel())
 
         avg = {lb: np.median(np.array(ps), axis=0) for lb, ps in tri.items()}
@@ -2471,13 +2497,9 @@ Input modes:
 
         # write the intrinsics file
         if not args.intr_file:
-            fs = cv2.FileStorage("intrinsics.yml", cv2.FILE_STORAGE_WRITE)
-            if fs.isOpened():
-                fs.write("M1", K_left)
-                fs.write("D1", dist_left)
-                fs.write("M2", K_right)
-                fs.write("D2", dist_right)
-            fs.release()
+            opencv_yaml.write("intrinsics.yml",
+                              {"M1": K_left, "D1": dist_left,
+                               "M2": K_right, "D2": dist_right})
         else:
             npz_dict = dict(np.load(args.intr_file))
             K_left = npz_dict['cameraMatrixL']
@@ -2574,13 +2596,9 @@ Input modes:
             ret = tuple(ret)
             # Re-write intrinsics.yml with updated right camera intrinsics
             if not args.intr_file:
-                fs = cv2.FileStorage("intrinsics.yml", cv2.FILE_STORAGE_WRITE)
-                if fs.isOpened():
-                    fs.write("M1", K_left)
-                    fs.write("D1", dist_left)
-                    fs.write("M2", K_right)
-                    fs.write("D2", dist_right)
-                fs.release()
+                opencv_yaml.write("intrinsics.yml",
+                                  {"M1": K_left, "D1": dist_left,
+                                   "M2": K_right, "D2": dist_right})
     else:
         # Checkerboard mode (existing path) or pts-only with checkerboard
         if args.pts:
@@ -2603,13 +2621,9 @@ Input modes:
 
         # write the intrinsics file
         if not args.intr_file:
-            fs = cv2.FileStorage("intrinsics.yml", cv2.FILE_STORAGE_WRITE)
-            if fs.isOpened():
-                fs.write("M1", K_left)
-                fs.write("D1", dist_left)
-                fs.write("M2", K_right)
-                fs.write("D2", dist_right)
-            fs.release()
+            opencv_yaml.write("intrinsics.yml",
+                              {"M1": K_left, "D1": dist_left,
+                               "M2": K_right, "D2": dist_right})
         else:
             npz_dict = dict(np.load(args.intr_file))
             K_left = npz_dict['cameraMatrixL']
@@ -2631,22 +2645,20 @@ Input modes:
     R, T = ret[5:7]
 
     print_progress(2, 2, prefix='Stereo calibration', suffix='Computing rectification')
-    ret2 = cv2.stereoRectify(K_left, dist_left, K_right, dist_right, img_shape, R, T,
-                             flags=cv2.CALIB_ZERO_DISPARITY, alpha=0)
-    R1, R2, P1, P2, Q = ret2[:5]
+    rectified = projection.stereo_rectify(
+        K_left, dist_left, K_right, dist_right,
+        img_shape[0], img_shape[1], R, T, alpha=0.0)
+    R1 = rectified["left_rotation"]
+    R2 = rectified["right_rotation"]
+    P1 = rectified["left_projection"]
+    P2 = rectified["right_projection"]
+    Q = rectified["disparity_to_depth"]
     print_progress(2, 2, prefix='Stereo calibration', suffix='Done')
 
     # write the extrinsics file
-    fs = cv2.FileStorage("extrinsics.yml", cv2.FILE_STORAGE_WRITE)
-    if (fs.isOpened()):
-        fs.write("R", R)
-        fs.write("T", T)
-        fs.write("R1", R1)
-        fs.write("R2", R2)
-        fs.write("P1", P1)
-        fs.write("P2", P2)
-        fs.write("Q", Q)
-    fs.release()
+    opencv_yaml.write("extrinsics.yml",
+                      {"R": R, "T": T, "R1": R1, "R2": R2,
+                       "P1": P1, "P2": P2, "Q": Q})
 
     # write KWIVER camera_rig_io-compatible json file (default output)
     json_dict = dict()
