@@ -12,7 +12,8 @@ TODO:
 """
 from collections import namedtuple, OrderedDict
 
-import cv2
+from viame import image_kernels
+from viame.measurement import projection
 import itertools as it
 import numpy as np
 import ubelt as ub
@@ -32,13 +33,54 @@ logger = logging.getLogger(__name__)
 OrientedBBox = namedtuple('OrientedBBox', ('center', 'extent', 'angle'))
 
 
-__OPENCV_VERSION_2__ = cv2.__version__.startswith('2')
-if __OPENCV_VERSION_2__:
-    warnings.warn('Using an old OpenCV version. '
-                  'This may cause unexpected results. '
-                  'Please update to 3.x')
-    import skimage  # NOQA
-    import skimage.measure  # NOQA
+def _rect_in_opencv_terms(corners):
+    """`cv2.minAreaRect`'s (centre, size, angle) from any corner run of it.
+
+    `image_kernels.min_area_rect` hands back the four corners and the edge it
+    happened to find, where OpenCV names the edge whose direction lies in
+    [-90, 0) the width and reports that direction as the angle. The rectangle
+    is the same either way; this is the naming, and it matters because
+    `box_points` below reproduces OpenCV's corner order from it.
+    """
+    points = np.asarray(corners, dtype=np.float64)
+    centre = points.mean(axis=0)
+
+    def direction(edge):
+        # A rectangle's edge has no sign, so the direction is mod 180
+        degrees = np.degrees(np.arctan2(edge[1], edge[0])) % 180.0
+        return degrees - 180.0 if degrees >= 90.0 else degrees
+
+    first, second = points[1] - points[0], points[2] - points[1]
+    angle_first, angle_second = direction(first), direction(second)
+
+    if -90.0 <= angle_first < 0.0:
+        angle, width, height = angle_first, first, second
+    else:
+        angle, width, height = angle_second, second, first
+
+    return ((float(centre[0]), float(centre[1])),
+            (float(np.linalg.norm(width)), float(np.linalg.norm(height))),
+            float(angle))
+
+
+def _box_points(rect):
+    """`cv2.boxPoints`: the four corners in OpenCV's order, from its own
+    formula, so that `box_points()[0]` and `[2]` stay the diagonal they were.
+    """
+    (cx, cy), (width, height), angle = rect
+    radians = np.radians(angle)
+    across = np.cos(radians) * 0.5
+    down = np.sin(radians) * 0.5
+
+    first = (cx - down * height - across * width,
+             cy + across * height - down * width)
+    second = (cx + down * height - across * width,
+              cy - across * height - down * width)
+
+    return np.array([first, second,
+                     (2 * cx - first[0], 2 * cy - first[1]),
+                     (2 * cx - second[0], 2 * cy - second[1])],
+                    dtype=np.float64)
 
 
 def dict_update_subset(dict_, other):
@@ -251,7 +293,14 @@ class DetectedObject(ub.NiceRepr):
             >>> cc_mask[3:5, 2:7] = 1
             >>> self = DetectedObject.from_connected_component(cc_mask)
             >>> print(self.hull().tolist())
-            [[[6, 4]], [[2, 4]], [[2, 3]], [[6, 3]]]
+            [[[2, 3]], [[6, 3]], [[6, 4]], [[2, 4]]]
+
+        Note:
+            The same four points cv2.convexHull gave, walked from a different
+            starting corner -- Andrew's monotone chain begins at the leftmost
+            point where OpenCV's does not. Only `oriented_bbox` consumes this,
+            and a minimum-area rectangle is a function of the point set rather
+            than of the order, so nothing downstream can tell.
         """
         if self.mask is None:
             hull = []
@@ -265,7 +314,10 @@ class DetectedObject(ub.NiceRepr):
             cc_y, cc_x = np.where(self.mask)
             points = np.vstack([cc_x, cc_y]).T
             # Find a minimum oriented bounding box around the points
-            hull = cv2.convexHull(points)
+            # `convex_hull` gives an N by 2; cv2 gave an N by 1 by 2, and
+            # the callers below index it as one
+            hull = image_kernels.convex_hull(
+                points.astype(np.float64))[:, None, :]
             # move points from mask coordinates to image coordinates
             if self.bbox_factor != 1.0:
                 hull = hull * self.bbox_factor
@@ -292,7 +344,9 @@ class DetectedObject(ub.NiceRepr):
             OrientedBBox(center=(4.0, 3.5), extent=(1.0, 4.0), angle=-90.0)
         """
         hull = self.hull()
-        oriented_bbox = OrientedBBox(*cv2.minAreaRect(hull))
+        rect = image_kernels.min_area_rect(
+            np.asarray(hull, dtype=np.float64).reshape(-1, 2))
+        oriented_bbox = OrientedBBox(*_rect_in_opencv_terms(rect['corners']))
         return oriented_bbox
 
     def box_points(self):
@@ -364,11 +418,7 @@ class DetectedObject(ub.NiceRepr):
             >>> print(ub.repr2(points.tolist(), precision=2, nl=0))
             [[2.50, 5.50], [0.00, 3.00], [3.00, 0.00], [5.50, 2.50]]
         """
-        if __OPENCV_VERSION_2__:
-            return np.array(cv2.cv.BoxPoints(self.oriented_bbox()),
-                            dtype=float)
-        else:
-            return cv2.boxPoints(self.oriented_bbox())
+        return _box_points(self.oriented_bbox())
 
     def scale(self, factor):
         """ inplace """
@@ -446,19 +496,9 @@ class GMMForegroundObjectDetector(object):
         dict_update_subset(detector.config, kwargs)
 
         # Setup GMM background subtraction algorithm
-        logger.debug('Using GMM from cv2.__version__ = {}'.format(cv2.__version__))
-        if cv2.__version__.startswith('2'):
-            # not sure about these params
-            detector.background_model = cv2.BackgroundSubtractorMOG2(
-                history=detector.config['n_training_frames'],
-                varThreshold=detector.config['gmm_thresh'],
-                bShadowDetection=False
-            )
-        else:
-            detector.background_model = cv2.createBackgroundSubtractorMOG2(
-                history=detector.config['n_training_frames'],
-                varThreshold=detector.config['gmm_thresh'],
-                detectShadows=False)
+        detector.background_model = image_kernels.Mog2Background(
+            history=detector.config['n_training_frames'],
+            var_threshold=float(detector.config['gmm_thresh']))
 
         # Setup detection filter algorithm
         filter_config = {
@@ -499,10 +539,11 @@ class GMMForegroundObjectDetector(object):
             >>> # xdoctest: REQUIRES(--show)
             >>> draw_img = DrawHelper.draw_detections(img, detections, masks)
             >>> fpath = ub.ensure_app_cache_dir('opencv') + '/GMMForegroundObjectDetector.detect.png'
-            >>> cv2.imwrite(fpath, draw_img)
+            >>> from viame.utilities import imageops
+            >>> imageops.imwrite(fpath, draw_img)
             >>> ub.startfile(fpath)
             >>> #from matplotlib import pyplot as plt
-            >>> #plt.imshow(cv2.cvtColor(draw_img, cv2.COLOR_BGR2RGB))
+            >>> #plt.imshow(draw_img)
             >>> #plt.gca().grid(False)
             >>> #plt.show()
         """
@@ -563,11 +604,15 @@ class GMMForegroundObjectDetector(object):
         logger.debug('postprocess mask')
         ksize = np.array(detector.config['smooth_ksize'])
         ksize = tuple(np.round(ksize / detector.config['factor']).astype(np.int64))
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize)
-        # opening is erosion followed by dilation
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, dst=mask)
+        width, height = int(ksize[0]), int(ksize[1])
+        # `ellipse` is cv2.MORPH_ELLIPSE -- not `disk`, which is VXL's and
+        # rounds an even size down to a symmetric odd one, where this keeps
+        # the even size and the off-centre anchor OpenCV gives it. The default
+        # smoothing size is (10, 10), so the two disagree on the ordinary
+        # case. Opening is erosion followed by dilation.
+        mask = image_kernels.morphology(mask, 'open', 'ellipse', width, height)
         # Do a second dilation
-        mask = cv2.dilate(src=mask, kernel=kernel, dst=mask)
+        mask = image_kernels.dilate(mask, 'ellipse', width, height)
         return mask
 
     def detections_in_mask(detector, mask):
@@ -596,17 +641,9 @@ class GMMForegroundObjectDetector(object):
             >>> detections = list(detector.detections_in_mask(mask))
             >>> assert len(detections) == 7
         """
-        # 4-way connected component algorithm
-        if __OPENCV_VERSION_2__:
-            # opencv2 doesnt have a builtin CC algo, need to use skimage
-            cc_mask, n_ccs_sk = skimage.measure.label(mask, neighbors=8,
-                                                      background=0,
-                                                      return_num=True)
-            # Be consistent with opencv, which always includes the background
-            # label in the num (even if no background exists).
-            n_ccs = n_ccs_sk + 1
-        else:
-            n_ccs, cc_mask = cv2.connectedComponents(mask, connectivity=8)
+        # 8-way connected component algorithm; the count includes the
+        # background label, as cv2.connectedComponents' did
+        n_ccs, cc_mask = image_kernels.label_components(mask, connectivity=8)
 
         factor = detector.config['factor']
 
@@ -958,8 +995,12 @@ class StereoLengthMeasurments(object):
 
         # Reproject points
         world_pts_cv = world_pts.T[:, None, :]
-        proj_pts1_cv = cv2.projectPoints(world_pts_cv, rvec1, tvec1, K1, kc1)[0]
-        proj_pts2_cv = cv2.projectPoints(world_pts_cv, rvec2, tvec2, K2, kc2)[0]
+        # `project_points` takes an N by 3 and gives an N by 2; cv2 wrapped
+        # both in a middle axis of one, which the error terms below index
+        proj_pts1_cv = projection.project_points(
+            world_pts.T, K1, kc1, rvec1, tvec1)[:, None, :]
+        proj_pts2_cv = projection.project_points(
+            world_pts.T, K2, kc2, rvec2, tvec2)[:, None, :]
 
         # Check error
         err1 = ((proj_pts1_cv - pts1_cv)[:, 0, :] ** 2).sum(axis=1)

@@ -18,6 +18,7 @@
 # `warp.h`.
 
 set( image_kernels_headers
+  background.h
   channels.h
   color.h
   commonality.h

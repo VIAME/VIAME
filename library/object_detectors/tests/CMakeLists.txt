@@ -7,6 +7,17 @@ include( viame-test-setup )
 if( VIAME_ENABLE_PYTHON )
   # `hough_circle` is python since P7-T04, and the registry dump cannot read
   # a python implementation's config, so its config contract is held here.
+  # `stereo_algos`, which three shipped pipelines reach through
+  # `gmm_motion_detector` and which had no tests of any kind until it came off
+  # cv2 in P7.
+  viame_add_test(
+    NAME    "unit:object_detectors:stereo_algos"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_stereo_algos.py"
+    LABELS  UNIT
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
+
   viame_add_test(
     NAME    "unit:object_detectors:hough_circle"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_hough_circle_detector.py"

@@ -1680,3 +1680,56 @@ the five times faster is a side effect.
 
 **Green:** BASELINE, UNIT and CORE 479 of 479; GOLDEN and CRITICAL 10 of 10;
 tools 25 of 25 -- all at `-O3`, for the first time.
+
+`stereo_algos` off cv2, and the background mixture written out.
+
+`gmm_motion_detector` is a process three shipped pipelines name, and
+`stereo_algos.py` behind it had **seven** different OpenCV calls and no tests
+of any kind. Both halves of that are fixed. 18 files to 17.
+
+The one real algorithm was `cv::BackgroundSubtractorMOG2`, now
+`image_kernels/background.h`: Zivkovic's per-pixel Gaussian mixture, with the
+complexity reduction prior that lets a mode fade out and be dropped. It
+reproduced cv2 **exactly on the first run** -- six sequences and 220 frames in
+the prototype, then 310 frames through the binding, grayscale and colour, a
+history shorter than the run, a step change in lighting, thresholds from 9 to
+30, and not one pixel of one mask differs. Shadow detection is not
+implemented and says so: the one caller asks for it off, and with it on the
+mask carries a third label rather than two.
+
+The rest were replacements that already existed -- `convex_hull`,
+`min_area_rect`, `label_components`, `morphology`, `dilate` and
+`projection.project_points` -- plus the deletion of an OpenCV 2 fallback that
+had been dead for as long as the file has required OpenCV 3.
+
+Two things needed care rather than substitution.
+
+**`box_points` had to keep OpenCV's corner order.** `box_points()[0]` and
+`[2]` are a diagonal, and which diagonal they are decides the head and tail
+proxies the measurement pipelines use. `min_area_rect` returns the edge it
+found where OpenCV names the edge lying in [-90, 0) the width, so the port
+derives OpenCV's naming from the corners and then applies `cv2.boxPoints`'
+own formula. It reproduces the corner list the module's docstring has always
+claimed, to the digit.
+
+**`disk` is not `cv2.MORPH_ELLIPSE`.** Finding 2.41 has it: `disk` reproduces
+VXL's structuring element, rounds an even size down to a symmetric odd one,
+and is pinned by the VXL recordings, so it could not be changed. `ellipse` is
+a new shape beside it, matching `cv2.getStructuringElement` at twelve sizes,
+including the detail that its row extents are **rounded** rather than
+truncated.
+
+**How it was checked, and the check that was worthless first.** The old file
+was pulled from git, imported beside the new one, and both run over the same
+frames. That comparison said 30 of 30 identical while comparing **zero
+detections** -- the synthetic targets were a seventh of the 800 pixels the
+shipped filter demands. Finding 2.40 is about that. With targets the filter
+accepts, the comparison found a real difference, which was the structuring
+element; with that fixed, over 88 frames carrying 24 detections the bounding
+boxes are **identical** and the oriented-box corners agree to 3.3e-5 of a
+pixel, the measured diagonal to 1.1e-7 relative.
+
+Nineteen tests where there were none: ten for `stereo_algos`, pinning what its
+docstrings claimed and nobody had checked, and nine for the mixture and the
+new element. The first of the ten asserts the test sequence produces
+detections at all, so the rest cannot quietly empty out again.

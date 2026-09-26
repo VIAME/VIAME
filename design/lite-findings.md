@@ -3046,3 +3046,57 @@ engineering was, both times, the one that had not been measured. The rule that
 would have saved all of it is to compare like with like first -- same `-O`,
 same thread count, same instruction set -- and only then ask what the code is
 doing.
+
+## 2.40 A test that compared nothing to nothing, and passed
+
+The `stereo_algos` port was checked the right way -- the old cv2 file was
+pulled out of git, imported beside the new one, and both run over the same
+synthetic frames, comparing detections. It reported **30 frames of 30
+identical** and it was worthless: the shipped shape filter wants at least 800
+pixels, an aspect ratio between 3.5 and 7.5, and twelve pixels of clearance
+from the edge, and the synthetic blobs were about 120 pixels. Both
+implementations returned nothing, and nothing equals nothing.
+
+The tell was there to be read and nearly was not: a comparison that passes
+*first time, everywhere*, on a port that swapped seven different OpenCV calls,
+should not be believed. Printing the count of detections the **reference**
+produced -- not just the agreement -- is one extra line, and it turned "30 of
+30" into "0 detections compared".
+
+With a target the filter actually accepts, the comparison found a real
+difference on 12 of 20 frames, traced to the structuring element below. So the
+bad test was not merely uninformative; it was hiding a genuine defect that the
+good test found in one run.
+
+The rule worth keeping: **an equivalence test has to show that the thing it
+compares happened at all.** The test file now opens with a case whose only job
+is to assert the sequence produces detections, so a future change to the
+filter's defaults cannot quietly empty the other tests out.
+
+## 2.41 `disk` is VXL's and `ellipse` is OpenCV's, and they differ on the size that matters
+
+`image_kernels.morphology` took a shape named `disk`, and the obvious reading
+of it -- that it is what `cv2.MORPH_ELLIPSE` gives -- is wrong. `disk_element`
+says so in its own comment: it reproduces
+`vil_structuring_element::set_to_disk`, because the pipelines it was written
+for were replacing VXL. Two differences, and both bite:
+
+* OpenCV **keeps an even size**. A request for 10 gives a 10 by 10 element
+  whose anchor sits at (5, 5), one row and one column off centre. VXL's disk
+  rounds down to a symmetric 9 by 9. The motion detector's default smoothing
+  size is `(10, 10)`, so this is the ordinary path;
+* the row extents come from `c * sqrt((r^2 - dy^2) / r^2)` passed through
+  `saturate_cast<int>`, which **rounds**. Truncating instead -- again the
+  obvious reading -- leaves the element one pixel narrow on most of its rows,
+  which is a difference of four pixels of area at size 10 and showed up as
+  tens of differing pixels on a real mask.
+
+So `ellipse` is a new shape beside `disk` rather than a correction of it:
+changing `disk` would move the VXL recordings that pin it. With `ellipse` the
+element matches `cv2.getStructuringElement` at twelve sizes and an
+open-then-dilate matches cv2 on twenty-four real masks, exactly.
+
+The general point is about naming. A shape called `disk` and a shape called
+`ellipse` sound like the same idea at different eccentricities; they are two
+libraries' conventions, and a port that reaches for the one whose *name* fits
+gets a subtly different answer. The docstring now says which is which.

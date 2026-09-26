@@ -1020,6 +1020,7 @@ include/viame/image_io/core_image_io.h
 include/viame/image_io/filename_to_timestamp.h
 include/viame/image_io/viame_image_io_export.h
 include/viame/image_io/write_disparity_maps.h
+include/viame/image_kernels/background.h
 include/viame/image_kernels/channels.h
 include/viame/image_kernels/color.h
 include/viame/image_kernels/commonality.h

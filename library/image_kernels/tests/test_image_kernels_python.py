@@ -30,7 +30,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  demosaic, dilate, draw_circle, draw_line,
                                  find_contours, good_features_to_track,
                                  label_components, lucas_kanade,
-                                 min_eigen_value,
+                                 min_eigen_value, Mog2Background,
                                  corner_subpix, make_border,
                                  match_template, morphology,
                                  watershed,
@@ -1395,3 +1395,96 @@ def test_lucas_kanade_does_not_depend_on_how_the_points_were_divided():
         moved, status = lucas_kanade(first, second, points, threads=count)
         assert np.array_equal(status, settled_status)
         assert np.array_equal(moved, settled)
+
+
+# ----------------------------------------------------------------------------
+# The background mixture, and the element OpenCV calls an ellipse
+
+
+def _noise_sequence(frames=20, height=32, width=40, moving=True):
+    rng = np.random.default_rng(5)
+    base = rng.random((height, width)) * 100 + 70
+    out = []
+    for t in range(frames):
+        frame = base + rng.integers(-3, 4, (height, width))
+        if moving and t >= 6:
+            left = 3 + t
+            if left + 6 < width:
+                frame[10:16, left:left + 6] = 245
+        out.append(np.ascontiguousarray(
+            np.clip(frame, 0, 255).astype(np.uint8)))
+    return out
+
+
+def test_the_mixture_learns_the_background_and_then_stops_reporting_it():
+    model = Mog2Background(history=300, var_threshold=30.0)
+    seen = [int((model.apply(f) > 0).sum())
+            for f in _noise_sequence(moving=False)]
+
+    # The first frame is all foreground -- there is no background yet
+    assert seen[0] == 32 * 40
+    assert sum(seen[5:]) == 0
+
+
+def test_the_mixture_reports_what_moves_through_it():
+    model = Mog2Background(history=300, var_threshold=30.0)
+    masks = [model.apply(f) for f in _noise_sequence()]
+    assert sum(int((m > 0).sum()) for m in masks[6:]) > 0
+
+
+def test_the_mask_is_one_plane_of_bytes():
+    model = Mog2Background()
+    mask = model.apply(_noise_sequence(frames=1)[0])
+    assert mask.shape == (32, 40)
+    assert mask.dtype == np.uint8
+    assert set(np.unique(mask)).issubset({0, 255})
+
+
+def test_the_mixture_counts_its_frames_and_can_forget_them():
+    model = Mog2Background()
+    for frame in _noise_sequence(frames=4):
+        model.apply(frame)
+    assert model.frames == 4
+    model.reset()
+    assert model.frames == 0
+    # after forgetting, the next frame is all foreground again
+    assert (model.apply(_noise_sequence(frames=1)[0]) > 0).all()
+
+
+def test_the_mixture_wants_every_frame_the_same_shape():
+    model = Mog2Background()
+    model.apply(np.zeros((8, 8), np.uint8))
+    with pytest.raises(ValueError):
+        model.apply(np.zeros((9, 8), np.uint8))
+
+
+def test_a_three_channel_frame_is_accepted():
+    model = Mog2Background()
+    mask = model.apply(np.zeros((8, 8, 3), np.uint8))
+    assert mask.shape == (8, 8)
+
+
+def test_the_ellipse_element_is_opencvs_not_the_disk():
+    """`disk` is VXL's, and rounds an even size down to a symmetric odd one;
+    `ellipse` is cv2.MORPH_ELLIPSE, which keeps the even size and puts the
+    anchor off centre. The motion detector's default size is 10, so the two
+    disagree on the ordinary case rather than on a corner of one."""
+    single = np.zeros((41, 41), np.uint8)
+    single[20, 20] = 255
+
+    as_disk = dilate(single, 'disk', 10, 10) > 0
+    as_ellipse = dilate(single, 'ellipse', 10, 10) > 0
+
+    assert as_disk.sum() != as_ellipse.sum()
+    # the ellipse spans the full ten rows and columns asked for
+    ys, xs = np.where(as_ellipse)
+    assert ys.max() - ys.min() + 1 == 10
+    assert xs.max() - xs.min() + 1 == 10
+    # where the disk, rounding down, spans nine
+    ys, xs = np.where(as_disk)
+    assert ys.max() - ys.min() + 1 == 9
+
+
+def test_an_unknown_element_shape_is_refused():
+    with pytest.raises(ValueError):
+        dilate(np.zeros((8, 8), np.uint8), 'oval', 3, 3)

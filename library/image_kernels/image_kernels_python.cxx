@@ -18,6 +18,7 @@
 
 #include <viame/utilities/python_fold.h>
 
+#include <viame/image_kernels/background.h>
 #include <viame/image_kernels/color.h>
 #include <viame/image_kernels/contours.h>
 #include <viame/image_kernels/corners.h>
@@ -38,6 +39,7 @@
 
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <utility>
 #include <string>
@@ -557,9 +559,14 @@ as_element( std::string const& shape, int width, int height )
   {
     return viame::image_kernels::disk_element( width / 2.0 );
   }
+  if( shape == "ellipse" )
+  {
+    return viame::image_kernels::ellipse_element( width, height );
+  }
 
   throw std::invalid_argument(
-    "element must be one of rect, cross, disk; got '" + shape + "'" );
+    "element must be one of rect, cross, disk, ellipse; got '" + shape +
+    "'" );
 }
 
 template < typename T >
@@ -851,6 +858,45 @@ distance_transform( array_of< T > const& array )
   return as_array(
     viame::image_kernels::distance_transform( as_image( array ) ), false );
 }
+
+/// `cv::BackgroundSubtractorMOG2` in python: stateful, so a class rather than
+/// a function. The mask comes back as an H by W uint8, 255 for foreground.
+class mog2_wrapper
+{
+public:
+  mog2_wrapper( int history, double var_threshold, int mixtures,
+                double background_ratio, double var_threshold_gen,
+                double var_init, double var_min, double var_max,
+                double complexity_reduction )
+  {
+    viame::image_kernels::mog2_params params;
+    params.history = history;
+    params.var_threshold = var_threshold;
+    params.mixtures = mixtures;
+    params.background_ratio = background_ratio;
+    params.var_threshold_gen = var_threshold_gen;
+    params.var_init = var_init;
+    params.var_min = var_min;
+    params.var_max = var_max;
+    params.complexity_reduction = complexity_reduction;
+
+    m_model.reset( new viame::image_kernels::mog2_background( params ) );
+  }
+
+  py::array
+  apply( array_of< uint8_t > const& array, double learning_rate )
+  {
+    return as_array( m_model->apply( as_image( array ), learning_rate ),
+                     false );
+  }
+
+  void clear() { m_model->reset(); }
+
+  size_t frames() const { return m_model->frames(); }
+
+private:
+  std::shared_ptr< viame::image_kernels::mog2_background > m_model;
+};
 
 template < typename T >
 py::array_t< float >
@@ -1623,6 +1669,28 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "cv2.copyMakeBorder. `border` is constant, replicate, reflect, "
          "reflect_101 or wrap, and `value` is used by constant alone -- as "
          "OpenCV's is." );
+
+  py::class_< mog2_wrapper >( m, "Mog2Background",
+         "cv2.BackgroundSubtractorMOG2 with shadow detection off: a mixture "
+         "of Gaussians per pixel, updated one frame at a time. `apply` "
+         "returns the foreground mask, 255 where the pixel did not match the "
+         "background. Stateful -- the frames have to arrive in order." )
+    .def( py::init< int, double, int, double, double, double, double, double,
+                    double >(),
+          py::arg( "history" ) = 500, py::arg( "var_threshold" ) = 16.0,
+          py::arg( "mixtures" ) = 5, py::arg( "background_ratio" ) = 0.9,
+          py::arg( "var_threshold_gen" ) = 9.0, py::arg( "var_init" ) = 15.0,
+          py::arg( "var_min" ) = 4.0, py::arg( "var_max" ) = 75.0,
+          py::arg( "complexity_reduction" ) = 0.05 )
+    .def( "apply", &mog2_wrapper::apply, py::arg( "image" ),
+          py::arg( "learning_rate" ) = -1.0,
+          "Update the mixture with one frame and return its foreground mask. "
+          "A negative learning rate asks for OpenCV's automatic "
+          "1 / min(2 * frames, history)." )
+    .def( "reset", &mog2_wrapper::clear,
+          "Forget every frame seen so far." )
+    .def_property_readonly( "frames", &mog2_wrapper::frames,
+          "How many frames have been through it." );
 
   for_both_pixel_types( m, "good_features_to_track",
          &good_features< uint8_t >, &good_features< float >,

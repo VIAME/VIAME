@@ -8,6 +8,7 @@
 #include <viame/core_types/image.h>
 
 #include <algorithm>
+#include <cmath>
 
 #include <cstddef>
 #include <utility>
@@ -43,6 +44,63 @@ disk_element( double radius )
       {
         element.emplace_back( i, j );
       }
+    }
+  }
+
+  return element;
+}
+
+// ----------------------------------------------------------------------------
+/// The element `cv::getStructuringElement( MORPH_ELLIPSE, ... )` builds.
+///
+/// Not `disk_element`, which is VXL's and is what the pipelines replacing VXL
+/// are set up around. The two differ in two ways that matter:
+///
+/// * OpenCV keeps an **even** size rather than rounding it down, so a 10 by
+///   10 request gives a 10 by 10 element whose anchor is at (5, 5) -- one
+///   row and one column off centre. VXL's disk of the same request is a
+///   symmetric 9 by 9. The motion detector's default smoothing size is
+///   (10, 10), so this is the ordinary case and not a corner of one;
+/// * the row extents come from `c * sqrt((r^2 - dy^2) / r^2)` **rounded** to
+///   an int, which is not the same set of pixels as "inside the circle" --
+///   and truncating instead, which is the obvious reading, leaves the element
+///   a pixel narrow on most of its rows.
+///
+/// \p width and \p height are the element's size, as OpenCV's `ksize` is.
+inline structuring_element
+ellipse_element( int width, int height )
+{
+  structuring_element element;
+
+  if( width <= 0 || height <= 0 )
+  {
+    return element;
+  }
+
+  auto const r = height / 2;
+  auto const c = width / 2;
+  auto const inverse = r ? 1.0 / ( static_cast< double >( r ) * r ) : 0.0;
+
+  for( int i = 0; i < height; ++i )
+  {
+    auto const dy = i - r;
+
+    if( std::abs( dy ) > r )
+    {
+      continue;
+    }
+
+    // `saturate_cast< int >` **rounds**; truncating here makes the element
+    // a pixel narrow on most rows
+    auto const dx = static_cast< int >( std::nearbyint(
+      c * std::sqrt( static_cast< double >( r * r - dy * dy ) * inverse ) ) );
+
+    auto const from = std::max( c - dx, 0 );
+    auto const to = std::min( c + dx + 1, width );
+
+    for( int j = from; j < to; ++j )
+    {
+      element.emplace_back( j - c, dy );
     }
   }
 
