@@ -9,6 +9,32 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 project( VIAME )
 
 ###
+# Optimisation is opt-out rather than opt-in
+##
+# CMake leaves `CMAKE_BUILD_TYPE` empty by default, which means no `-O` flag
+# at all, and VIAME set no default of its own -- so `cmake ..` with nothing
+# else said produced an **unoptimized** build and said nothing about it. That
+# is what `build/merged-build` is, and the same code compiled `-O3` is about
+# five times faster: a 1080p Farneback call goes from 4.0 s to 0.83. The wheels
+# were never affected, because `cmake/wheel/build_matrix.sh` passes `Release`
+# explicitly; what was affected was every tree configured by hand, and the
+# tests, which have therefore only ever exercised an unoptimized build.
+#
+# `FORCE` because the empty value is already in the cache of any tree
+# configured before this, so reconfiguring one picks the default up -- and
+# triggers a full rebuild when it does. A debug build now has to ask, which is
+# the way round it should have been.
+if( NOT CMAKE_CONFIGURATION_TYPES )
+  if( NOT CMAKE_BUILD_TYPE )
+    set( CMAKE_BUILD_TYPE Release CACHE STRING
+      "Build type: Debug, Release, RelWithDebInfo or MinSizeRel" FORCE )
+  endif()
+
+  set_property( CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    Debug Release RelWithDebInfo MinSizeRel )
+endif()
+
+###
 # Core versioning flags
 ##
 

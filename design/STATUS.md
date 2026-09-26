@@ -1569,3 +1569,65 @@ work in this entry: the golden replay is 10 of 10, the tracker agrees with cv2
 over the twenty-six configuration sweep, the thread count does not change a
 bit of the answer at 1, 2, 3, 8 or auto, and the 164 python kernel cases and
 nine camera-motion cases pass.
+
+Optimisation becomes opt-out, and two flags move to where they belong.
+
+VIAME set **no default build type**. CMake leaves `CMAKE_BUILD_TYPE` empty,
+empty means no `-O` flag, so `cmake ..` with nothing else said produced an
+unoptimized build and said nothing about it. That is what `build/merged-build`
+is, and the same code at `-O3` is about five times faster -- a 1080p Farneback
+call goes from 4.0 s to 0.83. The wheels were never affected, because
+`cmake/wheel/build_matrix.sh` and its PowerShell twin pass `Release`
+explicitly; what was affected was every tree configured by hand, and **the
+tests, which have therefore only ever exercised an unoptimized build.** That
+last part is the real exposure: if `-O3` moved a numeric result, no golden
+would know.
+
+The root `CMakeLists.txt` now defaults to `Release` when nothing is asked for,
+guarded on `CMAKE_CONFIGURATION_TYPES` so a multi-config generator is left
+alone, and `FORCE`d because the empty value is already in the cache of every
+tree configured before this.
+
+Two flags were also in the wrong variable:
+
+* `-std=c++11` was prepended to every compile by `viame-flags-gnu.cmake` and
+  `viame-flags-clang.cmake`, and then `CMAKE_CXX_STANDARD 17` appended
+  `-std=gnu++17`. The later one won, so the build was correct, but every
+  translation unit carried a contradictory flag and anything reading
+  `compile_commands.json` would believe the first. The `CMAKE_CXX_STANDARD`
+  already does this job, so the line is gone;
+* `-Wl,--no-undefined` and `-Wl,--copy-dt-needed-entries` were compile flags.
+  The compiler ignores them there; they reached the linker only because CMake
+  also puts `CMAKE_CXX_FLAGS` on the link line. They are linker flags now, via
+  a `viame_check_linker_flag` beside the existing compiler-flag check.
+
+**Moving them preserves behaviour exactly, and that was checked rather than
+hoped.** The worry with a global linker flag is a C-linked target picking up
+`--no-undefined` that did not have it before. There is no such target: of the
+316 link rules in the build tree, 308 invoke `/usr/bin/c++` and the other
+eight are `ar`, which does not link. So `CMAKE_CXX_FLAGS` was already on every
+link line in the tree.
+
+`viame-flags.cmake` also gained an `include_guard`, because appending to
+`CMAKE_CXX_FLAGS` is not idempotent and a second include said every flag
+twice. It has one include site, so nothing is guarded out that wanted to run.
+
+**Verified without reconfiguring VIAME**, which would have cost hours: a
+throwaway project including the real `viame-flags` modules and carrying a copy
+of the build-type block confirms all six behaviours -- the default appears when
+nothing is asked, an explicit `Debug` is respected rather than forced,
+reconfiguring keeps it, the compile line loses `-std=c++11` and gains
+`-O3 -DNDEBUG -std=gnu++17`, the linker flags appear on the executable, shared
+and module link lines, and a double include no longer doubles anything. It
+compiles and links.
+
+**What has not happened is the rebuild.** These files are configure
+dependencies, so the next build of `merged-build` will reconfigure itself,
+take the `Release` default, and rebuild everything at `-O3` -- hours at `-j2`
+on a shared machine, and the one change in this whole phase that could
+legitimately move a golden. That is worth doing precisely because it would
+close the gap named above, and it is worth doing deliberately rather than as a
+side effect of the next `cmake --build`, so it is left for a run of its own.
+
+**Green:** unchanged from the entry above -- these are configure-time files and
+the installed binaries are untouched until that rebuild.

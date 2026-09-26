@@ -2,7 +2,6 @@
 # Compiler flags specific to use with clang++
 #
 
-viame_check_compiler_flag( -std=c++11 -std=c++0x )
 viame_check_compiler_flag( -fvisibility=hidden )
 viame_check_compiler_flag( -Wall )
 viame_check_compiler_flag( -Werror=return-type )
