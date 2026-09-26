@@ -6,6 +6,7 @@ Temporary media are removed on exit. Results are diagnostic, not pass/fail
 tests; a repaired native build should produce different results.
 """
 
+import argparse
 import json
 from pathlib import Path
 import subprocess
@@ -23,9 +24,12 @@ from viame import image_kernels as kernels
 
 ROOT = Path(__file__).resolve().parents[2]
 COMMIT = "2ca6de3f8"
+WORKING_TREE = False
 
 
 def committed(path):
+    if WORKING_TREE:
+        return (ROOT / path).read_bytes()
     return subprocess.check_output(
         ["git", "show", COMMIT + ":" + path], cwd=ROOT)
 
@@ -72,8 +76,15 @@ def heartbeat(function):
 
 
 def main():
+    global COMMIT, WORKING_TREE
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--commit", default=COMMIT)
+    parser.add_argument("--working-tree", action="store_true",
+                        help="probe the current source instead of the review snapshot")
+    args = parser.parse_args()
+    COMMIT, WORKING_TREE = args.commit, args.working_tree
     cv2.setNumThreads(1)
-    out = dict(commit=COMMIT, native_package=kernels.__file__,
+    out = dict(commit="working-tree" if WORKING_TREE else COMMIT, native_package=kernels.__file__,
                opencv=cv2.__version__, opencv_threads=cv2.getNumThreads())
     ops = module("review_imageops", "library/utilities/imageops.py")
     video = module("review_video", "library/video_io/pyav_video_input.py")
