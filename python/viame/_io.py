@@ -4,6 +4,9 @@ import csv
 import json
 import math
 import os
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 from functools import lru_cache
 
@@ -190,13 +193,116 @@ def _annotations(path, format_name):
         reader.close()
 
 
-def open(filename, frame_rate=None):
-    """Load an image, image list/directory, video, or annotation file.
+def _pipeline_root():
+    """Find the same installed templates used by the run applet."""
+    install = os.environ.get("VIAME_INSTALL")
+    if install:
+        return Path(install) / "configs" / "pipelines"
+    executable = shutil.which("viame")
+    candidates = ([Path(executable).resolve().parent.parent] if executable else [])
+    candidates.extend(Path(__file__).resolve().parents)
+    for root in candidates:
+        if (root / "configs" / "pipelines").is_dir():
+            return root / "configs" / "pipelines"
+    raise RuntimeError("Cannot find VIAME pipelines; source setup_viame.sh or set VIAME_INSTALL")
+
+
+class Pipeline:
+    """Prepared pipeline/model using the same wrappers and runner as viame run.
+
+    Opening prepares files without starting inference. ``run(input_path)``
+    processes a file or directory; ``run()`` executes a self-contained pipe.
+    ``path`` names the prepared pipe. Extracted/generated files remain valid
+    until ``close()``; use a context manager to release them promptly.
+    """
+    def __init__(self, filename, pipeline=None):
+        self.filename = str(Path(filename).resolve())
+        self.path = self.filename
+        self.info = None
+        self.closed = False
+        self._work = None
+        try:
+            if file_kind(self.filename) == "pipe":
+                if pipeline is not None:
+                    raise ValueError("pipeline selects a member of a ZIP, not a standalone pipe")
+                return
+            from viame.core import model_wrap
+            self._work = tempfile.TemporaryDirectory(prefix="viame_open_")
+            self.info = model_wrap.identify(self.filename, self._work.name)
+            if not self.info.runnable:
+                raise ValueError(self.info.describe())
+            if pipeline is not None:
+                if pipeline not in self.info.pipes:
+                    raise ValueError("Unknown pipeline {!r}; choices: {}".format(
+                        pipeline, ", ".join(self.info.pipes)))
+                self.info.pipes = [pipeline]
+            if len(self.info.pipes) > 1:
+                raise ValueError("ZIP contains several pipelines; pass pipeline= with one of: "
+                                 + ", ".join(self.info.pipes))
+            self.path = model_wrap.build_pipeline(
+                self.info, self._work.name, str(_pipeline_root()))
+        except Exception:
+            self.close()
+            raise
+
+    def run(self, input=None, *, output_dir=None, frame_rate=None, args=(), **kwargs):
+        """Run synchronously and return subprocess.CompletedProcess.
+
+        ``args`` is a sequence of additional ``viame run`` CLI arguments.
+        Remaining keywords go to subprocess.run (e.g. timeout, capture_output).
+        Nonzero exits raise CalledProcessError unless check=False is supplied.
+        Input sampling and outputs follow the run command's defaults.
+        """
+        if self.closed:
+            raise ValueError("Pipeline is closed")
+        if isinstance(args, (str, bytes)):
+            raise TypeError("args must be a sequence of CLI arguments, not a string")
+        if input is None and (output_dir is not None or frame_rate is not None):
+            raise ValueError("output_dir and frame_rate require an input path")
+        if frame_rate is not None:
+            if isinstance(frame_rate, bool) or not math.isfinite(float(frame_rate)) or float(frame_rate) <= 0:
+                raise ValueError("frame_rate must be a positive finite number")
+        executable = "viame.exe" if os.name == "nt" else "viame"
+        install = os.environ.get("VIAME_INSTALL")
+        if install and (Path(install) / "bin" / executable).is_file():
+            executable = str(Path(install) / "bin" / executable)
+        command = [executable, "run", self.path]
+        if input is not None:
+            command.append(str(Path(input).expanduser().resolve()))
+        if output_dir is not None:
+            command.extend(["-o", str(Path(output_dir).expanduser().resolve())])
+        if frame_rate is not None:
+            command.extend(["-frate", str(frame_rate)])
+        command.extend(os.fspath(arg) for arg in args)
+        kwargs.setdefault("check", True)
+        kwargs.setdefault("text", True)
+        return subprocess.run(command, **kwargs)
+
+    def close(self):
+        self.closed = True
+        if self._work is not None:
+            self._work.cleanup()
+            self._work = None
+
+    def __enter__(self):
+        if self.closed:
+            raise ValueError("Pipeline is closed")
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+
+def open(filename, frame_rate=None, *, pipeline=None):
+    """Load imagery, annotations, a pipeline, or a supported model bundle.
 
     An image returns an ImageContainer. Image lists and videos return lazy
     iterators of ImageContainers. VIAME CSV, DIVE JSON and COCO JSON return
     ObjectTrackSets through their respective readers. Paths in lists resolve
     relative to the list first, then to the working directory.
+
+    Pipelines and models return a Pipeline handle; call its run() method to
+    execute it. For a ZIP with several pipes, select a member with pipeline=.
 
     ``frame_rate`` is an optional positive, finite video sampling rate in Hz;
     it cannot increase the source rate. Both ``open(path, 5)`` and
@@ -216,6 +322,10 @@ def open(filename, frame_rate=None):
     kind = file_kind(path)
     if frame_rate is not None and kind != "video":
         raise ValueError("frame_rate is supported only for video inputs")
+    if pipeline is not None and kind != "model":
+        raise ValueError("pipeline is supported only for ZIP pipeline selection")
+    if kind in ("pipe", "model"):
+        return Pipeline(path, pipeline=pipeline)
     if kind == "image":
         return _load_image(_image_reader(), path)
     if kind == "video":
