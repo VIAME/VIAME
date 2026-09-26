@@ -3659,3 +3659,37 @@ binding was invisible to Python until
 not take" should send you to the configure targets before anywhere else. And
 the failure was latent for several cycles: the file only began being installed
 at all in a recent one, which is what put a stale copy on top of a good one.
+
+
+## 2.51 SGBM landed, and what the callers needed beyond the algorithm
+
+`image_kernels.stereo_sgbm` reproduces `cv::StereoSGBM` for `MODE_SGBM` and
+`MODE_HH`: **0 of 714240 pixels** over 1440 configurations, plus the speckle
+filter over 120 more and the three-plane cost over 144. `tools/disparity.py`
+and `netharn/disparity.py` are off cv2.
+
+Two things the algorithm write-ups do not mention, both of which a caller here
+depends on:
+
+* **`filterSpeckles` runs after the median, not before it.** A flood per
+  unlabelled pixel, where a neighbour joins when it is within the tolerance of
+  *the pixel being expanded* rather than of the seed -- so a region is a chain
+  of small steps and can span a range much wider than the tolerance. The set it
+  reaches does not depend on traversal order, which is why a plain stack
+  reproduces OpenCV's wavefront exactly.
+* **The cost has a three-plane path.** `calcPixelCostBT` branches on `cn`, and
+  at 3 it builds **six** channels -- three clipped Sobels at full weight and
+  three raw planes shifted right by two -- rather than converting to grey.
+  Both disparity callers can be handed colour, so a single-plane-only kernel
+  would have refused real input. Two planes is refused here, because OpenCV has
+  no cost for it.
+
+The disparity cluster is not finished: `ocv_stereo_disparity.py` selects
+`MODE_SGBM_3WAY`, which is a **different implementation** in OpenCV
+(`CalcVerticalSums` and friends, not `computeDisparitySGBM`), and also reaches
+`cv::StereoBM`. Neither is covered by what landed here.
+
+Worth noting for the channel order: the disparity cost **sums over the
+planes**, so permuting them changes nothing provided both images are permuted
+alike. That is why `tools/disparity.py` can read RGB where it used to read
+BGR without touching the result.

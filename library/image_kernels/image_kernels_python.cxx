@@ -22,6 +22,7 @@
 #include <viame/image_kernels/color.h>
 #include <viame/image_kernels/edges.h>
 #include <viame/image_kernels/hough.h>
+#include <viame/image_kernels/stereo.h>
 #include <viame/image_kernels/contours.h>
 #include <viame/image_kernels/corners.h>
 #include <viame/image_kernels/distance.h>
@@ -577,6 +578,48 @@ equalize( array_of< uint8_t > const& array )
   auto const source = as_image( array );
   return as_array( VIAME_KERNEL_CALL( equalize, source ),
                    array.ndim() == 3 );
+}
+
+py::array_t< int16_t >
+stereo_sgbm( array_of< uint8_t > const& left, array_of< uint8_t > const& right,
+             int min_disparity, int num_disparities, int block_size, int p1,
+             int p2, int disp12_max_diff, int pre_filter_cap,
+             int uniqueness_ratio, int speckle_window_size, int speckle_range,
+             bool full_dp )
+{
+  auto const one = as_image( left );
+  auto const two = as_image( right );
+
+  viame::image_kernels::sgbm_params params;
+  params.min_disparity = min_disparity;
+  params.num_disparities = num_disparities;
+  params.block_size = block_size;
+  params.p1 = p1;
+  params.p2 = p2;
+  params.disp12_max_diff = disp12_max_diff;
+  params.pre_filter_cap = pre_filter_cap;
+  params.uniqueness_ratio = uniqueness_ratio;
+  params.speckle_window_size = speckle_window_size;
+  params.speckle_range = speckle_range;
+  params.full_dp = full_dp;
+
+  auto const found = VIAME_KERNEL_CALL( stereo_sgbm, one, two, params );
+
+  py::array_t< int16_t > out( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( found.height() ),
+    static_cast< Py_ssize_t >( found.width() ) } );
+
+  auto* destination = out.mutable_data();
+
+  for( size_t j = 0; j < found.height(); ++j )
+  {
+    for( size_t i = 0; i < found.width(); ++i )
+    {
+      *destination++ = found( i, j, 0 );
+    }
+  }
+
+  return out;
 }
 
 py::array_t< float >
@@ -1632,6 +1675,17 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "Rescale the image's range onto [low, high]. cv2.normalize with "
          "NORM_MINMAX, whose alpha and beta are the two ends in either "
          "order." );
+
+  m.def( "stereo_sgbm", &stereo_sgbm, py::arg( "left" ), py::arg( "right" ),
+         py::arg( "min_disparity" ) = 0, py::arg( "num_disparities" ) = 16,
+         py::arg( "block_size" ) = 3, py::arg( "p1" ) = 0, py::arg( "p2" ) = 0,
+         py::arg( "disp12_max_diff" ) = 0, py::arg( "pre_filter_cap" ) = 0,
+         py::arg( "uniqueness_ratio" ) = 0,
+         py::arg( "speckle_window_size" ) = 0, py::arg( "speckle_range" ) = 0,
+         py::arg( "full_dp" ) = false,
+         "cv2.StereoSGBM.compute: a signed 16 bit disparity map in sixteenths "
+         "of a pixel, with (min_disparity - 1) * 16 meaning no disparity. "
+         "`full_dp` is MODE_HH." );
 
   m.def( "hough_circles", &hough_circles, py::arg( "image" ),
          py::arg( "dp" ) = 1.0, py::arg( "min_dist" ) = 1.0,

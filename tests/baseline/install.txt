@@ -1045,6 +1045,7 @@ include/viame/image_kernels/pixel.h
 include/viame/image_kernels/polygon.h
 include/viame/image_kernels/resample.h
 include/viame/image_kernels/statistics.h
+include/viame/image_kernels/stereo.h
 include/viame/image_kernels/stretch.h
 include/viame/image_kernels/temporal.h
 include/viame/image_kernels/threshold.h
@@ -1176,12 +1177,14 @@ include/viame/training/viame_training_export.h
 include/viame/training/windowed_trainer.h
 include/viame/utilities/applet_attributes.h
 include/viame/utilities/atomic_output.h
+include/viame/utilities/embedded_pipeline.h
 include/viame/utilities/manipulate_pipelines.h
 include/viame/utilities/python_script_applet.h
 include/viame/utilities/utilities_file.h
 include/viame/utilities/utilities_image.h
 include/viame/utilities/utilities_target_clfr.h
 include/viame/utilities/utilities_tracks.h
+include/viame/utilities/viame_embedded_pipeline_export.h
 include/viame/utilities/viame_utilities_export.h
 include/viame/video_io/detect_shot_breaks.h
 include/viame/video_io/viame_video_io_export.h
@@ -1209,6 +1212,7 @@ lib/python3.10/site-packages/viame.egg-info/not-zip-safe
 lib/python3.10/site-packages/viame.egg-info/requires.txt
 lib/python3.10/site-packages/viame.egg-info/top_level.txt
 lib/python3.10/site-packages/viame/__init__.py
+lib/python3.10/site-packages/viame/_embedded.py
 lib/python3.10/site-packages/viame/_file_formats.py
 lib/python3.10/site-packages/viame/_io.py
 lib/python3.10/site-packages/viame/_io_native.so
@@ -1957,6 +1961,7 @@ lib/python3.10/site-packages/viame/utilities/blobs.py
 lib/python3.10/site-packages/viame/utilities/calibration.py
 lib/python3.10/site-packages/viame/utilities/chessboard.py
 lib/python3.10/site-packages/viame/utilities/compat.py
+lib/python3.10/site-packages/viame/utilities/embedded_pipeline.so
 lib/python3.10/site-packages/viame/utilities/geometry.py
 lib/python3.10/site-packages/viame/utilities/imageops.py
 lib/python3.10/site-packages/viame/utilities/model_wrap.py

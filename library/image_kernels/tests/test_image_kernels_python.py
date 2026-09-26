@@ -26,7 +26,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
                                  hough_circles,
                                  normalize, optical_flow, remap, resize,
-                                 resize_area,
+                                 resize_area, stereo_sgbm,
                                  swap_channels, text_size, to_gray, to_hls,
                                  to_hsv, to_lab, to_rgb, warp_affine,
                                  warp_perspective, dilate)
@@ -259,6 +259,43 @@ def test_canny_reproduces_opencvs_edge_map():
     assert edges.shape == (20, 20)
     assert sorted(np.unique(edges).tolist()) == [0, 255]
     assert int((edges > 0).sum()) == 40
+
+
+def test_stereo_sgbm_reproduces_opencvs_matcher():
+    """`cv::StereoSGBM` bit for bit, in sixteenths of a pixel.
+
+    Identical to cv2 5.0.0 over 714240 pixels when this landed -- 1440
+    configurations, `MODE_SGBM` and `MODE_HH`, heights 1 to 20, two disparity
+    counts, three block sizes, four uniqueness ratios, three `disp12MaxDiff`
+    values and two `preFilterCap` values -- plus the speckle filter and the
+    three-plane cost over 264 more.
+
+    Two things in the kernel look like mistakes and are not, and finding 2.38
+    has the measurements: the border value is `ftzero` rather than zero,
+    because OpenCV's clip table is reached through an already-offset pointer;
+    and the recursion subtracts `minLr` rather than `minLr + P2`, which is what
+    the installed build does even though its published source reads otherwise.
+    """
+    rng = np.random.default_rng(3)
+    texture = (rng.random((12, 60)) * 255).astype(np.uint8)
+    left = np.ascontiguousarray(texture[:, 20:52])
+    right = np.ascontiguousarray(texture[:, 15:47])
+
+    found = stereo_sgbm(left, right, num_disparities=16, block_size=3,
+                        p1=72, p2=288, uniqueness_ratio=10)
+
+    assert found.shape == (12, 32)
+    assert found.dtype == np.int16
+    assert found[5, 16:24].tolist() == [48, 52, 48, 33, 35, 38, 41, 40]
+    # (min_disparity - 1) * 16 is "no disparity here"
+    assert int((found == -16).sum()) == 213
+
+
+def test_stereo_sgbm_refuses_a_plane_count_opencv_has_no_cost_for():
+    """One plane or three, which are the two `calcPixelCostBT` implements."""
+    with pytest.raises(ValueError):
+        stereo_sgbm(np.zeros((8, 8, 2), dtype=np.uint8),
+                    np.zeros((8, 8, 2), dtype=np.uint8))
 
 
 def test_hough_circles_reproduces_opencvs_transform():

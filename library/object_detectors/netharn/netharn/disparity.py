@@ -1,6 +1,8 @@
 import numpy as np
 import kwimage
 
+from viame import image_kernels
+
 
 def compute_disparity(img_left, img_right, disp_range=(0, 240), block_size=11,
                       scale=1.0):
@@ -59,7 +61,6 @@ def compute_disparity(img_left, img_right, disp_range=(0, 240), block_size=11,
         >>> kwplot.imshow(disp_im, pnum=(2, 1, 2))
         >>> kwplot.show_if_requested()
     """
-    import cv2
     orig_size = img_left.shape[0:2][::-1]
     if scale != 1.0:
         img_left = kwimage.imresize(img_left, scale=scale)
@@ -70,16 +71,11 @@ def compute_disparity(img_left, img_right, disp_range=(0, 240), block_size=11,
     # num_disp must be a multiple of 16
     num_disp = ((num_disp + 15) // 16) * 16
 
-    disp_alg = cv2.StereoSGBM_create(numDisparities=num_disp,
-                                     minDisparity=min_disp,
-                                     uniquenessRatio=10,
-                                     blockSize=block_size,
-                                     speckleWindowSize=0,
-                                     speckleRange=0,
-                                     P1=8 * block_size**2,
-                                     P2=32 * block_size**2)
-
-    disp_int = disp_alg.compute(img_left, img_right)
+    disp_int = image_kernels.stereo_sgbm(
+        np.ascontiguousarray(img_left), np.ascontiguousarray(img_right),
+        min_disparity=min_disp, num_disparities=num_disp,
+        block_size=block_size, p1=8 * block_size**2, p2=32 * block_size**2,
+        uniqueness_ratio=10)
 
     # max_disp = 16 * disp_range[1]
     disp_float = disp_int.astype(np.float32) / 16
@@ -173,18 +169,17 @@ def multipass_disparity(img_left, img_right, outlier_percent=3,
 
 
 def compute_disparity_old(imgL, imgR, scale=0.5):
-    import cv2
     imgL1 = kwimage.imresize(imgL, scale=scale)
     imgR1 = kwimage.imresize(imgR, scale=scale)
-    disp_alg = cv2.StereoSGBM_create(numDisparities=16, minDisparity=0,
-                                     uniquenessRatio=5, blockSize=15,
-                                     speckleWindowSize=50, speckleRange=2,
-                                     P1=500, P2=2000, disp12MaxDiff=1000,
-                                     mode=cv2.STEREO_SGBM_MODE_HH)
-    disparity = disp_alg.compute(
-        kwimage.convert_colorspace(imgL1, 'rgb', 'gray'),
-        kwimage.convert_colorspace(imgR1, 'rgb', 'gray')
-    )
+    # `MODE_HH` is `full_dp`: both passes and all eight directions.
+    disparity = image_kernels.stereo_sgbm(
+        np.ascontiguousarray(
+            kwimage.convert_colorspace(imgL1, 'rgb', 'gray')),
+        np.ascontiguousarray(
+            kwimage.convert_colorspace(imgR1, 'rgb', 'gray')),
+        min_disparity=0, num_disparities=16, block_size=15,
+        p1=500, p2=2000, disp12_max_diff=1000, uniqueness_ratio=5,
+        speckle_window_size=50, speckle_range=2, full_dp=True)
     disparity = disparity - disparity.min()
     disparity = disparity / disparity.max()
 

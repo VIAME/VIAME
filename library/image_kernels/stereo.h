@@ -1,0 +1,709 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
+/// \file
+/// \brief Semi-global block matching, as `cv::StereoSGBM` computes it
+///
+/// `MODE_SGBM` and `MODE_HH`. Identical to cv2 over 714240 pixels when this
+/// landed -- 1440 configurations, both modes, heights 1 to 20, two disparity
+/// counts, three block sizes, four uniqueness ratios, three `disp12MaxDiff`
+/// values and two `preFilterCap` values.
+///
+/// Two details are worth reading before changing anything here, because both
+/// look like mistakes and neither is. `design/lite-findings.md` 2.38 has the
+/// measurements.
+///
+/// **The border value is `ftzero`, not zero.** OpenCV reaches its clip table
+/// through a pointer that is already offset by `TAB_OFS`, so what its code
+/// writes as `tab[0]` is the entry for a *difference of zero* -- `ftzero` --
+/// and not the first entry of the table, which is the clamp at `-ftzero` and
+/// comes out 0. Getting that wrong puts 0 where 15 belongs on the first and
+/// last column of every row, of both channels, and moves 7.8% of the pixels.
+///
+/// **The recursion subtracts `minLr`, not `minLr + P2`,** even though
+/// OpenCV's published source -- 5.x and the 5.0.0 tag, scalar and SIMD alike
+/// -- subtracts the latter. Measured against the installed build, which is
+/// what the goldens record, the former is right on every uniqueness ratio and
+/// the latter only at zero. The two differ by a uniform `P2` in every `Lr`,
+/// which is a fixed point of the recursion, so the aggregate cost comes out
+/// `directions * P2` higher -- invisible to the winner and to the subpixel
+/// fit, both of which are offset-invariant, and visible only to the
+/// uniqueness ratio, which is a ratio rather than a difference.
+
+#ifndef VIAME_IMAGE_KERNELS_STEREO_H
+#define VIAME_IMAGE_KERNELS_STEREO_H
+
+#include <image_kernels/pixel.h>
+
+#include <viame/core_types/image.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <stdexcept>
+#include <vector>
+
+namespace viame {
+namespace image_kernels {
+
+/// What `cv::StereoSGBM_create` takes, with OpenCV's own defaults.
+struct sgbm_params
+{
+  int min_disparity = 0;
+  int num_disparities = 16;
+  int block_size = 3;
+  int p1 = 0;
+  int p2 = 0;
+  int disp12_max_diff = 0;
+  int pre_filter_cap = 0;
+  int uniqueness_ratio = 0;
+  int speckle_window_size = 0;
+  int speckle_range = 0;
+  /// `MODE_HH`: both passes and all eight directions, rather than five.
+  bool full_dp = false;
+};
+
+namespace detail {
+
+constexpr int sgbm_disp_shift = 4;
+constexpr int sgbm_disp_scale = 1 << sgbm_disp_shift;
+constexpr int sgbm_max_cost = 32767;
+constexpr int sgbm_tab_ofs = 256 * 4;
+
+/// One row of the two matching "channels": a clipped Sobel and the row itself.
+///
+/// The rows above and below are clamped, which is what OpenCV's `n1`/`s1`
+/// offsets of zero at the first and last row amount to.
+/// The `2 * planes` rows a colour image contributes: a clipped Sobel per plane
+/// and then the planes themselves, which is the order `diff_scale` keys off.
+inline void
+sgbm_prepare( viame::image_of< uint8_t > const& image, size_t y,
+              std::vector< int > const& tab, int ftzero,
+              std::vector< std::vector< int > >& rows )
+{
+  auto const width = image.width();
+  auto const height = image.height();
+  auto const planes = image.depth();
+  auto const above = ( y > 0 ) ? y - 1 : y;
+  auto const below = ( y + 1 < height ) ? y + 1 : y;
+
+  rows.assign( planes * 2, std::vector< int >( width, ftzero ) );
+
+  auto const at = [ & ]( size_t row, size_t x, size_t plane )
+  {
+    return static_cast< int >( image( x, row, plane ) );
+  };
+
+  for( size_t plane = 0; plane < planes; ++plane )
+  {
+    auto& sobel = rows[ plane ];
+    auto& raw = rows[ planes + plane ];
+
+    for( size_t x = 1; x + 1 < width; ++x )
+    {
+      auto const value =
+        2 * ( at( y, x + 1, plane ) - at( y, x - 1, plane ) ) +
+        ( at( above, x + 1, plane ) - at( above, x - 1, plane ) ) +
+        ( at( below, x + 1, plane ) - at( below, x - 1, plane ) );
+
+      sobel[ x ] = tab[ static_cast< size_t >( value + sgbm_tab_ofs ) ];
+      raw[ x ] = at( y, x, plane );
+    }
+  }
+}
+
+/// The half-sample extremes Birchfield-Tomasi compares against.
+inline void
+sgbm_extremes( std::vector< int > const& row, std::vector< int >& lowest,
+               std::vector< int >& highest )
+{
+  auto const width = row.size();
+
+  lowest.resize( width );
+  highest.resize( width );
+
+  for( size_t x = 0; x < width; ++x )
+  {
+    auto const value = row[ x ];
+    auto const left = ( x > 0 ) ? ( value + row[ x - 1 ] ) / 2 : value;
+    auto const right = ( x + 1 < width ) ? ( value + row[ x + 1 ] ) / 2 : value;
+
+    lowest[ x ] = std::min( std::min( left, right ), value );
+    highest[ x ] = std::max( std::max( left, right ), value );
+  }
+}
+
+/// `cv::filterSpeckles`: blank any region smaller than \p most whose
+/// neighbours are within \p tolerance of each other.
+///
+/// A flood per unlabelled pixel, where a neighbour joins the region when it
+/// is within `tolerance` of **the pixel being expanded** rather than of the
+/// seed -- so a region is a chain of small steps and can span a range wider
+/// than the tolerance. The set it reaches does not depend on the traversal
+/// order, which is why this uses a plain stack where OpenCV walks a
+/// wavefront.
+inline void
+filter_speckles( viame::image_of< int16_t >& image, int blank, int most,
+                 int tolerance )
+{
+  auto const width = static_cast< int >( image.width() );
+  auto const height = static_cast< int >( image.height() );
+
+  if( width == 0 || height == 0 )
+  {
+    return;
+  }
+
+  std::vector< int > label( static_cast< size_t >( width ) * height, 0 );
+  std::vector< bool > speck( 1, false );
+  std::vector< std::pair< int, int > > pending;
+
+  auto const index = [ & ]( int x, int y )
+  {
+    return static_cast< size_t >( y ) * width + x;
+  };
+  auto const value = [ & ]( int x, int y )
+  {
+    return static_cast< int >(
+      image( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) );
+  };
+
+  auto current = 0;
+
+  for( int y = 0; y < height; ++y )
+  {
+    for( int x = 0; x < width; ++x )
+    {
+      if( value( x, y ) == blank )
+      {
+        continue;
+      }
+
+      if( label[ index( x, y ) ] != 0 )
+      {
+        if( speck[ static_cast< size_t >( label[ index( x, y ) ] ) ] )
+        {
+          image( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) =
+            static_cast< int16_t >( blank );
+        }
+
+        continue;
+      }
+
+      ++current;
+      speck.push_back( false );
+
+      label[ index( x, y ) ] = current;
+      pending.clear();
+      pending.emplace_back( x, y );
+
+      auto size = 0;
+
+      while( !pending.empty() )
+      {
+        auto const at = pending.back();
+        pending.pop_back();
+        ++size;
+
+        auto const here = value( at.first, at.second );
+
+        int const around[ 4 ][ 2 ] = { { at.first, at.second + 1 },
+                                       { at.first, at.second - 1 },
+                                       { at.first + 1, at.second },
+                                       { at.first - 1, at.second } };
+
+        for( auto const& next : around )
+        {
+          auto const nx = next[ 0 ];
+          auto const ny = next[ 1 ];
+
+          if( nx < 0 || ny < 0 || nx >= width || ny >= height ||
+              label[ index( nx, ny ) ] != 0 )
+          {
+            continue;
+          }
+
+          auto const there = value( nx, ny );
+
+          if( there == blank || std::abs( here - there ) > tolerance )
+          {
+            continue;
+          }
+
+          label[ index( nx, ny ) ] = current;
+          pending.emplace_back( nx, ny );
+        }
+      }
+
+      if( size <= most )
+      {
+        speck[ static_cast< size_t >( current ) ] = true;
+        image( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) =
+          static_cast< int16_t >( blank );
+      }
+    }
+  }
+}
+
+} // namespace detail
+
+// ----------------------------------------------------------------------------
+/// `cv::StereoSGBM::compute`: a disparity map in 1/16 of a pixel.
+///
+/// The result is signed 16 bit, as OpenCV's is, with
+/// `(min_disparity - 1) * 16` meaning "no disparity here".
+inline viame::image_of< int16_t >
+stereo_sgbm( viame::image_of< uint8_t > const& left,
+             viame::image_of< uint8_t > const& right,
+             sgbm_params const& params )
+{
+  using namespace detail;
+
+  if( left.depth() != right.depth() ||
+      ( left.depth() != 1 && left.depth() != 3 ) )
+  {
+    throw std::invalid_argument(
+      "stereo_sgbm takes one or three plane images, matching" );
+  }
+
+  if( left.width() != right.width() || left.height() != right.height() )
+  {
+    throw std::invalid_argument( "stereo_sgbm: the two images differ in size" );
+  }
+
+  auto const width = static_cast< int >( left.width() );
+  auto const height = static_cast< int >( left.height() );
+
+  auto const min_d = params.min_disparity;
+  auto const max_d = min_d + params.num_disparities;
+  auto const count = max_d - min_d;
+
+  auto const half = ( params.block_size > 0 ) ? params.block_size / 2 : 1;
+  auto const ftzero = std::max( params.pre_filter_cap, 15 ) | 1;
+  auto const p1 = ( params.p1 > 0 ) ? params.p1 : 2;
+  auto const p2 = std::max( ( params.p2 > 0 ) ? params.p2 : 5, p1 + 1 );
+  auto const uniqueness = ( params.uniqueness_ratio >= 0 )
+                          ? params.uniqueness_ratio : 10;
+  auto const max_diff = ( params.disp12_max_diff > 0 )
+                        ? params.disp12_max_diff : 1;
+
+  auto const invalid = static_cast< int16_t >(
+    ( min_d - 1 ) * sgbm_disp_scale );
+
+  viame::image_of< int16_t > out(
+    static_cast< size_t >( width ), static_cast< size_t >( height ), 1 );
+
+  for( int y = 0; y < height; ++y )
+  {
+    for( int x = 0; x < width; ++x )
+    {
+      out( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) = invalid;
+    }
+  }
+
+  auto const first = std::max( max_d, 0 );
+  auto const last = width + std::min( min_d, 0 );
+  auto const span = last - first;
+
+  if( width == 0 || height == 0 || count <= 0 || span <= 0 )
+  {
+    return out;
+  }
+
+  // The clip table, indexed through `+ sgbm_tab_ofs` -- see the file comment
+  // on why its zero entry is not its first entry.
+  std::vector< int > tab( 256 + sgbm_tab_ofs * 2 );
+
+  for( size_t i = 0; i < tab.size(); ++i )
+  {
+    auto const value = static_cast< int >( i ) - sgbm_tab_ofs;
+
+    tab[ i ] = std::min( std::max( value, -ftzero ), ftzero ) + ftzero;
+  }
+
+  // The per-pixel cost of every row, then the SAD box over it.
+  std::vector< int > raw_cost(
+    static_cast< size_t >( height ) * span * count, 0 );
+
+  {
+    auto const planes = static_cast< int >( left.depth() );
+    std::vector< std::vector< int > > l_rows, r_rows;
+    std::vector< int > l_low, l_high, r_low, r_high;
+
+    for( int y = 0; y < height; ++y )
+    {
+      sgbm_prepare( left, static_cast< size_t >( y ), tab, ftzero, l_rows );
+      sgbm_prepare( right, static_cast< size_t >( y ), tab, ftzero, r_rows );
+
+      for( int channel = 0; channel < planes * 2; ++channel )
+      {
+        auto const& u_row = l_rows[ static_cast< size_t >( channel ) ];
+        auto const& v_row = r_rows[ static_cast< size_t >( channel ) ];
+        // The Sobels first at full weight, then the raw planes at a quarter.
+        auto const shift = ( channel < planes ) ? 0 : 2;
+
+        sgbm_extremes( u_row, l_low, l_high );
+        sgbm_extremes( v_row, r_low, r_high );
+
+        for( int x = first; x < last; ++x )
+        {
+          auto const u = u_row[ static_cast< size_t >( x ) ];
+          auto const u0 = l_low[ static_cast< size_t >( x ) ];
+          auto const u1 = l_high[ static_cast< size_t >( x ) ];
+
+          auto* into = &raw_cost[ ( static_cast< size_t >( y ) * span +
+                                    ( x - first ) ) * count ];
+
+          for( int d = 0; d < count; ++d )
+          {
+            auto const at = x - ( min_d + d );
+            auto const v = v_row[ static_cast< size_t >( at ) ];
+            auto const v0 = r_low[ static_cast< size_t >( at ) ];
+            auto const v1 = r_high[ static_cast< size_t >( at ) ];
+
+            auto const c0 = std::max( 0, std::max( u - v1, v0 - u ) );
+            auto const c1 = std::max( 0, std::max( v - u1, u0 - v ) );
+
+            into[ d ] += std::min( c0, c1 ) >> shift;
+          }
+        }
+      }
+    }
+  }
+
+  std::vector< int > cost( raw_cost.size(), 0 );
+
+  {
+    std::vector< int > across( raw_cost.size(), 0 );
+
+    for( int y = 0; y < height; ++y )
+    {
+      for( int x = 0; x < span; ++x )
+      {
+        auto* into = &across[ ( static_cast< size_t >( y ) * span + x ) * count ];
+
+        for( int k = -half; k <= half; ++k )
+        {
+          auto const at = std::min( std::max( x + k, 0 ), span - 1 );
+          auto const* from = &raw_cost[ ( static_cast< size_t >( y ) * span +
+                                          at ) * count ];
+
+          for( int d = 0; d < count; ++d ) { into[ d ] += from[ d ]; }
+        }
+      }
+    }
+
+    for( int y = 0; y < height; ++y )
+    {
+      for( int k = -half; k <= half; ++k )
+      {
+        auto const at = std::min( std::max( y + k, 0 ), height - 1 );
+
+        for( int x = 0; x < span; ++x )
+        {
+          auto* into = &cost[ ( static_cast< size_t >( y ) * span + x ) * count ];
+          auto const* from = &across[ ( static_cast< size_t >( at ) * span +
+                                        x ) * count ];
+
+          for( int d = 0; d < count; ++d ) { into[ d ] += from[ d ]; }
+        }
+      }
+    }
+  }
+
+  auto const passes = params.full_dp ? 2 : 1;
+  std::vector< int > totals( cost.size(), 0 );
+
+  // Lr is (index, direction, disparity), with the disparity padded by one at
+  // each end so that d-1 and d+1 are always addressable, and the index padded
+  // so that -1 and `span` are.
+  auto const lanes = static_cast< size_t >( count + 2 );
+  auto const stride = lanes * 4;
+  std::vector< std::vector< int > > lr( 2 );
+  std::vector< std::vector< int > > min_lr( 2 );
+
+  std::vector< int > disp2( static_cast< size_t >( width ) );
+  std::vector< int > disp2cost( static_cast< size_t >( width ) );
+
+  for( int pass = 1; pass <= passes; ++pass )
+  {
+    auto const step = ( pass == 1 ) ? 1 : -1;
+    auto const y_from = ( pass == 1 ) ? 0 : height - 1;
+    auto const x_from = ( pass == 1 ) ? 0 : span - 1;
+
+    for( int which = 0; which < 2; ++which )
+    {
+      lr[ which ].assign( stride * ( span + 2 ), 0 );
+      min_lr[ which ].assign( 4u * ( span + 2 ), 0 );
+    }
+
+    int id = 0;
+
+    for( int n = 0; n < height; ++n )
+    {
+      auto const y = y_from + n * step;
+
+      if( pass == 1 )
+      {
+        for( int x = 0; x < span; ++x )
+        {
+          auto* into = &totals[ ( static_cast< size_t >( y ) * span + x ) * count ];
+
+          for( int d = 0; d < count; ++d ) { into[ d ] = 0; }
+        }
+      }
+
+      auto const slot = [ & ]( int which, int index, int direction ) -> int*
+      {
+        return &lr[ which ][ stride * static_cast< size_t >( index + 1 ) +
+                             lanes * static_cast< size_t >( direction ) ];
+      };
+      auto const lowest = [ & ]( int which, int index, int direction ) -> int&
+      {
+        return min_lr[ which ][ 4u * static_cast< size_t >( index + 1 ) +
+                                static_cast< size_t >( direction ) ];
+      };
+
+      for( int m = 0; m < span; ++m )
+      {
+        auto const x = x_from + m * step;
+
+        int* previous[ 4 ] = { slot( id, x - step, 0 ),
+                               slot( 1 - id, x - 1, 1 ),
+                               slot( 1 - id, x, 2 ),
+                               slot( 1 - id, x + 1, 3 ) };
+        int const floor_of[ 4 ] = { lowest( id, x - step, 0 ),
+                                    lowest( 1 - id, x - 1, 1 ),
+                                    lowest( 1 - id, x, 2 ),
+                                    lowest( 1 - id, x + 1, 3 ) };
+
+        for( int k = 0; k < 4; ++k )
+        {
+          previous[ k ][ 0 ] = sgbm_max_cost;
+          previous[ k ][ count + 1 ] = sgbm_max_cost;
+        }
+
+        auto const* here = &cost[ ( static_cast< size_t >( y ) * span + x ) *
+                                  count ];
+        auto* into = &totals[ ( static_cast< size_t >( y ) * span + x ) * count ];
+
+        int best[ 4 ] = { sgbm_max_cost, sgbm_max_cost, sgbm_max_cost,
+                          sgbm_max_cost };
+
+        for( int d = 0; d < count; ++d )
+        {
+          auto sum = into[ d ];
+
+          for( int k = 0; k < 4; ++k )
+          {
+            auto const* row = previous[ k ];
+            auto const ceiling = floor_of[ k ] + p2;
+            auto const value =
+              here[ d ] +
+              std::min( std::min( row[ d + 1 ], row[ d ] + p1 ),
+                        std::min( row[ d + 2 ] + p1, ceiling ) ) -
+              floor_of[ k ];
+
+            slot( id, x, k )[ d + 1 ] = value;
+            best[ k ] = std::min( best[ k ], value );
+            sum += value;
+          }
+
+          into[ d ] = std::max( -32768, std::min( 32767, sum ) );
+        }
+
+        for( int k = 0; k < 4; ++k ) { lowest( id, x, k ) = best[ k ]; }
+      }
+
+      if( pass == passes )
+      {
+        for( int x = 0; x < width; ++x )
+        {
+          disp2[ static_cast< size_t >( x ) ] = invalid;
+          disp2cost[ static_cast< size_t >( x ) ] = sgbm_max_cost;
+        }
+
+        for( int x = span - 1; x >= 0; --x )
+        {
+          auto* totals_at = &totals[ ( static_cast< size_t >( y ) * span + x ) *
+                                     count ];
+          auto lowest_total = sgbm_max_cost;
+          auto winner = -1;
+
+          if( passes == 1 )
+          {
+            auto* row = slot( id, x + 1, 0 );
+            row[ 0 ] = row[ count + 1 ] = sgbm_max_cost;
+
+            auto const floor_here = lowest( id, x + 1, 0 );
+            auto const ceiling = floor_here + p2;
+            auto const* here = &cost[ ( static_cast< size_t >( y ) * span + x ) *
+                                      count ];
+            auto best_fifth = sgbm_max_cost;
+
+            for( int d = 0; d < count; ++d )
+            {
+              auto const value =
+                here[ d ] +
+                std::min( std::min( row[ d + 1 ], row[ d ] + p1 ),
+                          std::min( row[ d + 2 ] + p1, ceiling ) ) -
+                floor_here;
+
+              slot( id, x, 0 )[ d + 1 ] = value;
+              best_fifth = std::min( best_fifth, value );
+
+              auto const total = std::max(
+                -32768, std::min( 32767, totals_at[ d ] + value ) );
+
+              totals_at[ d ] = total;
+
+              if( total < lowest_total )
+              {
+                lowest_total = total;
+                winner = d;
+              }
+            }
+
+            lowest( id, x, 0 ) = best_fifth;
+          }
+          else
+          {
+            for( int d = 0; d < count; ++d )
+            {
+              if( totals_at[ d ] < lowest_total )
+              {
+                lowest_total = totals_at[ d ];
+                winner = d;
+              }
+            }
+          }
+
+          auto crowded = false;
+
+          for( int d = 0; d < count; ++d )
+          {
+            if( totals_at[ d ] * ( 100 - uniqueness ) < lowest_total * 100 &&
+                std::abs( winner - d ) > 1 )
+            {
+              crowded = true;
+              break;
+            }
+          }
+
+          if( crowded )
+          {
+            continue;
+          }
+
+          auto d = winner;
+          auto const mirrored = x + first - d - min_d;
+
+          if( mirrored >= 0 && mirrored < width &&
+              disp2cost[ static_cast< size_t >( mirrored ) ] > lowest_total )
+          {
+            disp2cost[ static_cast< size_t >( mirrored ) ] = lowest_total;
+            disp2[ static_cast< size_t >( mirrored ) ] = d + min_d;
+          }
+
+          int scaled;
+
+          if( d > 0 && d < count - 1 )
+          {
+            // The quadratic fit, with C's truncating division rather than a
+            // floor: the numerator goes negative and the two differ there.
+            auto const denom =
+              std::max( totals_at[ d - 1 ] + totals_at[ d + 1 ] -
+                        2 * totals_at[ d ], 1 );
+            auto const numerator =
+              ( totals_at[ d - 1 ] - totals_at[ d + 1 ] ) * sgbm_disp_scale +
+              denom;
+
+            scaled = d * sgbm_disp_scale + numerator / ( denom * 2 );
+          }
+          else
+          {
+            scaled = d * sgbm_disp_scale;
+          }
+
+          out( static_cast< size_t >( x + first ),
+               static_cast< size_t >( y ), 0 ) =
+            static_cast< int16_t >( scaled + min_d * sgbm_disp_scale );
+        }
+
+        for( int x = first; x < last; ++x )
+        {
+          auto const value = static_cast< int >(
+            out( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) );
+
+          if( value == invalid )
+          {
+            continue;
+          }
+
+          auto const down = value >> sgbm_disp_shift;
+          auto const up = ( value + sgbm_disp_scale - 1 ) >> sgbm_disp_shift;
+          auto const a = x - down;
+          auto const b = x - up;
+
+          if( a >= 0 && a < width &&
+              disp2[ static_cast< size_t >( a ) ] >= min_d &&
+              std::abs( disp2[ static_cast< size_t >( a ) ] - down ) > max_diff &&
+              b >= 0 && b < width &&
+              disp2[ static_cast< size_t >( b ) ] >= min_d &&
+              std::abs( disp2[ static_cast< size_t >( b ) ] - up ) > max_diff )
+          {
+            out( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) =
+              invalid;
+          }
+        }
+      }
+
+      id = 1 - id;
+    }
+  }
+
+  // The 3 by 3 median SGBM finishes with, borders replicating.
+  viame::image_of< int16_t > smoothed(
+    static_cast< size_t >( width ), static_cast< size_t >( height ), 1 );
+
+  for( int y = 0; y < height; ++y )
+  {
+    for( int x = 0; x < width; ++x )
+    {
+      int window[ 9 ];
+      auto at = 0;
+
+      for( int dy = -1; dy <= 1; ++dy )
+      {
+        for( int dx = -1; dx <= 1; ++dx )
+        {
+          auto const sy = std::min( std::max( y + dy, 0 ), height - 1 );
+          auto const sx = std::min( std::max( x + dx, 0 ), width - 1 );
+
+          window[ at++ ] = out( static_cast< size_t >( sx ),
+                                static_cast< size_t >( sy ), 0 );
+        }
+      }
+
+      std::nth_element( window, window + 4, window + 9 );
+
+      smoothed( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) =
+        static_cast< int16_t >( window[ 4 ] );
+    }
+  }
+
+  // And the speckle filter, after the median rather than before it.
+  if( params.speckle_window_size > 0 )
+  {
+    filter_speckles( smoothed, invalid, params.speckle_window_size,
+                     params.speckle_range * sgbm_disp_scale );
+  }
+
+  return smoothed;
+}
+
+} // namespace image_kernels
+} // namespace viame
+
+#endif
