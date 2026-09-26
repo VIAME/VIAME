@@ -47,9 +47,8 @@ def read_image(path, grayscale=False):
     another cv2 call needs `swap_channels`; one that was only measuring or
     displaying does not.
     """
-    image = _pil().open(str(path))
-    image = image.convert("L" if grayscale else "RGB")
-    return np.asarray(image)
+    with _pil().open(str(path)) as image:
+        return np.array(image.convert("L" if grayscale else "RGB"))
 
 
 def read_unchanged(path):
@@ -61,17 +60,40 @@ def read_unchanged(path):
     and an alpha channel survives as a fourth. The caller decides what to do
     with what it got, which is the point of asking for unchanged.
     """
-    image = _pil().open(str(path))
-    return np.asarray(image)
+    with _pil().open(str(path)) as image:
+        return _unchanged_array(image)
+
+
+def _unchanged_array(image):
+    if image.mode == "P":
+        image = image.convert("RGBA" if "transparency" in image.info else "RGB")
+    array = np.array(image)
+    # Older Pillow versions expose 16-bit PNG data as mode I / int32.
+    if image.mode == "I" and image.format == "PNG":
+        array = array.astype(np.uint16)
+    return array
+
+
+def _image_from_array(array):
+    array = np.asarray(array)
+    if array.ndim == 3 and array.shape[2] == 1:
+        array = array[..., 0]
+    if array.dtype not in (np.dtype(np.uint8), np.dtype(np.uint16)):
+        # Keep the existing conversion for floating-point display images.
+        array = np.clip(array, 0, 255).astype(np.uint8)
+    # Let Pillow infer L, RGB, RGBA or I;16 from shape and dtype. Forcing
+    # RGB reinterprets RGBA bytes and destroys both colours and alpha.
+    return _pil().fromarray(array)
 
 
 def write_image(path, array):
-    """Write a 2-D grayscale or 3-D RGB array."""
-    array = np.asarray(array)
-    if array.dtype != np.uint8:
-        array = np.clip(array, 0, 255).astype(np.uint8)
-    mode = "L" if array.ndim == 2 else "RGB"
-    _pil().fromarray(array, mode=mode).save(str(path))
+    """Write an image preserving its supported bit depth and channels.
+
+    Return True on success; encoding and filesystem errors raise.
+    """
+    options = {"quality": 95} if str(path).lower().endswith((".jpg", ".jpeg")) else {}
+    _image_from_array(array).save(str(path), **options)
+    return True
 
 
 def encode_image(array, suffix=".png", quality=None):
@@ -84,12 +106,7 @@ def encode_image(array, suffix=".png", quality=None):
     """
     import io
 
-    array = np.asarray(array)
-    if array.dtype != np.uint8:
-        array = np.clip(array, 0, 255).astype(np.uint8)
-
-    mode = "L" if array.ndim == 2 else "RGB"
-    image = _pil().fromarray(array, mode=mode)
+    image = _image_from_array(array)
 
     formats = {".png": "PNG", ".jpg": "JPEG", ".jpeg": "JPEG",
                ".bmp": "BMP", ".tif": "TIFF", ".tiff": "TIFF",
@@ -114,9 +131,8 @@ def decode_image(data, grayscale=False):
     """
     import io
 
-    image = _pil().open(io.BytesIO(bytes(data)))
-    image = image.convert("L" if grayscale else "RGB")
-    return np.asarray(image)
+    with _pil().open(io.BytesIO(bytes(data))) as image:
+        return np.array(image.convert("L" if grayscale else "RGB"))
 
 
 def decode_unchanged(data):
@@ -126,7 +142,8 @@ def decode_unchanged(data):
     """
     import io
 
-    return np.asarray(_pil().open(io.BytesIO(bytes(data))))
+    with _pil().open(io.BytesIO(bytes(data))) as image:
+        return _unchanged_array(image)
 
 
 def to_gray(array):

@@ -73,6 +73,8 @@ class Detection:
 
 @pytest.fixture
 def modules(monkeypatch):
+    from viame import image_kernels
+
     # Bare packages over the source tree, so the SLEAP modules import without
     # kwiver. All four are `classifiers/sleap` since P2-T07.
     for name, path in [('viame', ROOT / 'library'),
@@ -81,8 +83,9 @@ def modules(monkeypatch):
         module = ModuleType(name)
         module.__path__ = [str(path)]
         monkeypatch.setitem(sys.modules, name, module)
-    for name in ['kwiver', 'viame', 'viame.algo', 'viame.types', 'viame.object_detectors.base']:
+    for name in ['viame.algo', 'viame.types', 'viame.object_detectors.base']:
         monkeypatch.setitem(sys.modules, name, ModuleType(name))
+    sys.modules['viame'].image_kernels = image_kernels
     algo = sys.modules['viame.algo']
     algo.TrainDetector = algo.RefineDetections = Algorithm
     types = sys.modules['viame.types']

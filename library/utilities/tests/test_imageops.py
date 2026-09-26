@@ -60,3 +60,32 @@ def test_round_trip_through_a_file(tmp_path):
     imageops.write_image(path, image)
     assert np.array_equal(imageops.read_image(path), image)
     assert imageops.read_image(path, grayscale=True).ndim == 2
+
+
+@pytest.mark.parametrize("dtype,channels", [(np.uint16, 1), (np.uint8, 4)])
+def test_png_roundtrip_preserves_depth_and_alpha(tmp_path, dtype, channels):
+    from viame.utilities import imageops
+    shape = (5, 7) if channels == 1 else (5, 7, channels)
+    image = (np.arange(np.prod(shape)).reshape(shape) * 109).astype(dtype)
+    path = tmp_path / "roundtrip.png"
+    assert imageops.write_image(path, image) is True
+    restored = imageops.read_unchanged(path)
+    assert restored.dtype == image.dtype
+    np.testing.assert_array_equal(restored, image)
+    restored = imageops.decode_unchanged(imageops.encode_image(image))
+    assert restored.dtype == image.dtype
+    np.testing.assert_array_equal(restored, image)
+
+
+def test_decoded_images_can_be_drawn_on(tmp_path):
+    from viame.utilities import imageops
+    from viame import image_kernels
+    image = np.zeros((8, 9, 3), dtype=np.uint8)
+    path = tmp_path / "writable.png"
+    imageops.write_image(path, image)
+    data = imageops.encode_image(image)
+    for restored in (imageops.read_image(path), imageops.read_unchanged(path),
+                     imageops.decode_image(data), imageops.decode_unchanged(data)):
+        assert restored.flags.writeable
+        image_kernels.fill_polygon(restored, [(1, 1), (6, 1), (6, 6)], (255, 0, 0))
+        assert restored.sum() > 0
