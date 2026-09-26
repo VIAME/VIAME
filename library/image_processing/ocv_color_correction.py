@@ -2,7 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Colour correction for underwater imagery, on cv2.
+"""Colour correction for underwater imagery.
 
 the `opencv` plugin's `apply_color_correction.cxx` in python, beside
 `ocv_enhancer` and for the same reason: it is not an imgproc primitive but
@@ -38,8 +38,36 @@ import numpy as np
 from viame.algo import ImageFilter
 from viame.types import Image, ImageContainer
 from viame import image_kernels
+from viame.utilities import imageops
 
 logger = logging.getLogger(__name__)
+
+
+def _gray_of(image):
+    """`COLOR_BGR2GRAY` on a BGR array, through an RGB kernel.
+
+    Everything in this file is BGR on purpose -- see the module docstring --
+    and `image_kernels.to_gray` takes RGB, so the view is reversed rather than
+    the weights swapped. `to_gray` is bit-identical to `cv2.cvtColor`'s
+    RGB2GRAY, so this is identical to the BGR2GRAY it replaces.
+    """
+    return image_kernels.to_gray(np.ascontiguousarray(image[..., ::-1]))
+
+
+def _to_byte(values):
+    """Round and clamp into a byte, as every stage here ends up doing."""
+    return np.clip(np.rint(np.asarray(values, dtype=np.float64)),
+                   0, 255).astype(np.uint8)
+
+
+def _blur_size(sigma):
+    """The kernel width `cv2.GaussianBlur` derives from a sigma.
+
+    `GaussianBlur(src, (0, 0), sigma)` sizes the kernel itself:
+    `cvRound(sigma * k * 2 + 1) | 1`, where k is 3 for an 8-bit image and 4
+    for a float one. Everything that reaches this is float.
+    """
+    return int(round(sigma * 4 * 2 + 1)) | 1
 
 # `cv::createCLAHE` in the fusion path, which sets both explicitly.
 FUSION_CLIP_LIMIT = 2.0
@@ -167,10 +195,7 @@ class ApplyColorCorrection(ImageFilter):
 
     def _auto_gamma(self, image):
         """The gamma that would bring the mean to middle gray."""
-        import cv2
-        from viame import image_kernels
-
-        gray = (cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gray = (_gray_of(image)
                 if image.ndim == 3 and image.shape[2] == 3 else image)
 
         mean = float(np.asarray(gray, dtype=np.float64).mean() / 255.0)
@@ -191,8 +216,6 @@ class ApplyColorCorrection(ImageFilter):
         image it is handed. That is not obviously intended and it is what
         the recording shows, so it is what happens here.
         """
-        import cv2
-
         gamma = self._gamma if gamma is None else gamma
 
         if self._gamma_auto:
@@ -208,24 +231,21 @@ class ApplyColorCorrection(ImageFilter):
         source = image
 
         if source.dtype != np.uint8:
-            source = np.clip(
-                np.rint(cv2.normalize(source, None, 255, 0,
-                                      cv2.NORM_MINMAX).astype(np.float64)),
-                0, 255).astype(np.uint8)
+            source = _to_byte(image_kernels.normalize(
+                np.ascontiguousarray(source), low=0.0, high=255.0))
 
-        return cv2.LUT(source, table)
+        # `cv2.LUT` is a take along the table, which numpy spells directly.
+        return table[source]
 
     # ------------------------------------------------------------------
     # Gray world
 
     def _gray_world(self, image):
         """Scale each channel to the mean of the three, ignoring bright pixels."""
-        import cv2
-
         if image.ndim != 3 or image.shape[2] != 3:
             return image
 
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        gray = _gray_of(image)
 
         top = 255.0 if image.dtype == np.uint8 else 1.0
         mask = gray < (self._gray_world_sat_threshold * top)
@@ -254,57 +274,62 @@ class ApplyColorCorrection(ImageFilter):
     # Underwater
 
     def _load_depth_map(self):
-        import cv2
-
         if self._depth_map_path and self._depth_map is None:
-            loaded = cv2.imread(self._depth_map_path,
-                                cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)
+            # `IMREAD_ANYDEPTH | IMREAD_GRAYSCALE`: keep the bit depth, take
+            # one plane. `read_unchanged` keeps both, so the plane is taken
+            # here rather than converted, which would rescale a 16-bit map.
+            try:
+                loaded = imageops.read_unchanged(self._depth_map_path)
+            except OSError:
+                loaded = None
 
             if loaded is not None and loaded.size:
-                self._depth_map = cv2.normalize(
-                    loaded, None, 0, 1, cv2.NORM_MINMAX, cv2.CV_32F)
+                if loaded.ndim == 3:
+                    loaded = loaded[..., 0]
+
+                self._depth_map = image_kernels.normalize(
+                    np.ascontiguousarray(loaded.astype(np.float32)),
+                    low=0.0, high=1.0)
 
         return self._depth_map
 
     def _relative_depth(self, image):
         """Depth from the blue over red ratio: red attenuates faster."""
-        import cv2
-
         if image.ndim != 3 or image.shape[2] != 3:
             return np.full(image.shape[:2], 0.5, dtype=np.float32)
 
         blue = image[..., 0].astype(np.float32)
         red = image[..., 2].astype(np.float32)
 
-        ratio = cv2.divide(blue, red + 1.0)
+        # `cv2.divide` on two floats is a plain division, and the +1 keeps
+        # the denominator off zero, so there is no divide-by-zero rule to
+        # reproduce here.
+        ratio = np.ascontiguousarray(blue / (red + 1.0))
 
-        return cv2.normalize(ratio, None, 0, 1, cv2.NORM_MINMAX)
+        return image_kernels.normalize(ratio, low=0.0, high=1.0)
 
     def _remove_backscatter(self, image):
         """Erode to estimate the scattered component, then subtract half of it."""
-        import cv2
-
         if image.ndim != 3 or image.shape[2] != 3:
             return image
 
         size = max(image.shape[0], image.shape[1]) // BACKSCATTER_KERNEL_DIVISOR
         size = max(BACKSCATTER_MIN_KERNEL, size | 1)
 
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (size, size))
-
-        as_float = image.astype(np.float32)
-        backscatter = cv2.erode(as_float, kernel)
-        backscatter = cv2.GaussianBlur(backscatter, (0, 0), size / 2.0)
+        as_float = np.ascontiguousarray(image.astype(np.float32))
+        backscatter = image_kernels.erode(as_float, "rect", size, size)
+        backscatter = image_kernels.gaussian_blur(
+            np.ascontiguousarray(backscatter), _blur_size(size / 2.0),
+            size / 2.0)
 
         result = as_float - backscatter * BACKSCATTER_WEIGHT
-        result = cv2.normalize(result, None, 0, 255, cv2.NORM_MINMAX)
+        result = image_kernels.normalize(
+            np.ascontiguousarray(result), low=0.0, high=255.0)
 
         return np.clip(np.rint(result.astype(np.float64)), 0,
                        255).astype(np.uint8)
 
     def _underwater_simple(self, image):
-        import cv2
-
         if image.ndim != 3 or image.shape[2] != 3:
             return image
 
@@ -329,7 +354,7 @@ class ApplyColorCorrection(ImageFilter):
         out = np.empty_like(image)
 
         for channel, attenuation in enumerate(attenuations):
-            factor = cv2.exp(depth * np.float32(attenuation))
+            factor = np.exp(depth * np.float32(attenuation))
             values = image[..., channel].astype(np.float32) * factor
 
             # `cv::threshold( ..., THRESH_TRUNC )`: an upper clamp only.
@@ -338,39 +363,45 @@ class ApplyColorCorrection(ImageFilter):
             out[..., channel] = np.clip(
                 np.rint(values.astype(np.float64)), 0, 255).astype(np.uint8)
 
-        return cv2.normalize(out, None, 0, 255, cv2.NORM_MINMAX)
+        return image_kernels.normalize(np.ascontiguousarray(out),
+                                       low=0.0, high=255.0)
 
     def _underwater_fusion(self, image):
         """Fuse a white-balanced, a CLAHE and a gamma-lifted version."""
-        import cv2
-
         if image.ndim != 3 or image.shape[2] != 3:
             return image
 
         balanced = self._gray_world(image.copy())
 
-        lab = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
-        planes = list(cv2.split(lab))
+        # The kernels are RGB and this array is BGR, so both conversions go
+        # through a reversed view; `to_lab` and `from_lab` are identical to
+        # cv2 over every 8-bit triple, and so is `clahe`.
+        lab = image_kernels.to_lab(np.ascontiguousarray(image[..., ::-1]))
 
-        clahe = cv2.createCLAHE(clipLimit=FUSION_CLIP_LIMIT,
-                                tileGridSize=FUSION_TILE_GRID)
-        planes[0] = clahe.apply(planes[0])
+        lightness = image_kernels.clahe(
+            np.ascontiguousarray(lab[..., 0]), FUSION_CLIP_LIMIT,
+            FUSION_TILE_GRID[0], FUSION_TILE_GRID[1])
 
-        enhanced = cv2.cvtColor(cv2.merge(planes), cv2.COLOR_Lab2BGR)
+        merged = lab.copy()
+        merged[..., 0] = lightness
+
+        enhanced = np.ascontiguousarray(
+            image_kernels.from_lab(np.ascontiguousarray(merged))[..., ::-1])
 
         lifted = self._gamma_correct(image.copy(), FUSION_GAMMA)
 
-        result = cv2.addWeighted(balanced, FUSION_WHITE_BALANCE_WEIGHT,
-                                 enhanced, FUSION_CLAHE_WEIGHT, 0)
-        result = cv2.addWeighted(result, 1.0, lifted, FUSION_GAMMA_WEIGHT, 0)
+        result = image_kernels.add_weighted(
+            np.ascontiguousarray(balanced), FUSION_WHITE_BALANCE_WEIGHT,
+            np.ascontiguousarray(enhanced), FUSION_CLAHE_WEIGHT, 0.0)
+        result = image_kernels.add_weighted(
+            np.ascontiguousarray(result), 1.0,
+            np.ascontiguousarray(lifted), FUSION_GAMMA_WEIGHT, 0.0)
 
         return self._gray_world(result)
 
     # ------------------------------------------------------------------
 
     def filter(self, image_data):
-        import cv2
-
         if image_data is None:
             return image_data
 
@@ -386,9 +417,8 @@ class ApplyColorCorrection(ImageFilter):
             image = np.ascontiguousarray(array)
 
         if image.dtype != np.uint8:
-            normalised = cv2.normalize(image, None, 255, 0, cv2.NORM_MINMAX)
-            image = np.clip(np.rint(normalised.astype(np.float64)), 0,
-                            255).astype(np.uint8)
+            image = _to_byte(image_kernels.normalize(
+                np.ascontiguousarray(image), low=0.0, high=255.0))
 
         if self._apply_gamma:
             image = self._gamma_correct(image)

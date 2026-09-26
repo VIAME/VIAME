@@ -3432,3 +3432,41 @@ parallel-execution dependent rather than order dependent or code dependent, and
 the aborting subprocess is a plausible neighbour for tests that read logging
 output. Recorded so the next occurrence is a third data point rather than a
 fresh mystery, and so nobody chases it in the code under test.
+
+## 2.49 The colour correction port needed no tolerance after all
+
+`ocv_color_correction.py` is off cv2, and all thirteen of its recorded cases
+pass at the default `(0.0, 0.0)`. A tolerance had been authorised for it on the
+strength of 2.44; it is not taken, because a tolerance that is not needed is
+how 2.43 happened.
+
+Eighteen call sites, every one through a kernel already proved exact: `to_gray`
+through a reversed view, since the file is BGR on purpose and the kernels are
+RGB; `to_lab`, `clahe` and `from_lab` for the fusion path; `erode` with a rect
+element; `normalize`, `add_weighted`; and `read_unchanged` for the depth map,
+which is `IMREAD_ANYDEPTH | IMREAD_GRAYSCALE` and so takes a plane rather than
+converting, which would rescale a 16-bit map. `cv2.LUT` and `cv2.divide` were
+the numpy one-liners they had always been.
+
+**2.44 is not repealed by this.** The backscatter stage still blurs a float
+image and the attenuation model still exponentiates one, and both still differ
+from cv2 at ULP scale. What this shows is that on these thirteen recordings the
+difference never lands close enough to a rounding boundary to move a byte. That
+is a property of the fixtures, not a guarantee about the arithmetic, and a
+fourteenth recording could need the tolerance after all.
+
+## 2.50 A configure-time copy that does not re-copy
+
+`tools:open` failed after an install, with
+`open() got an unexpected keyword argument 'pipeline'`. Nothing to do with the
+change in flight: the **installed** `python/viame/_io.py` was an older revision
+than the source, by about a hundred lines, because `configure-python--_io`
+copies the file at configure time and had not re-run since the merge brought a
+newer one. `make configure-python--_io` and a reinstall fixed it.
+
+Two things worth keeping. The same shape bit earlier in the day -- a new
+binding was invisible to Python until
+`make configure-python-image_kernels-__init__` ran -- so "I rebuilt and it did
+not take" should send you to the configure targets before anywhere else. And
+the failure was latent for several cycles: the file only began being installed
+at all in a recent one, which is what put a stale copy on top of a good one.
