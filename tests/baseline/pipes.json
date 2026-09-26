@@ -124,7 +124,7 @@
   },
   "configs/pipelines/common_empty_tracker.pipe": {
     "status": "error",
-    "message": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipeline.cxx:532",
+    "message": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline",
     "processes": {},
     "algos": {}
   },
@@ -345,7 +345,7 @@
   },
   "configs/pipelines/common_gfit_classifier_groups_v3.pipe": {
     "status": "error",
-    "message": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipeline.cxx:532",
+    "message": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline",
     "processes": {},
     "algos": {}
   },
@@ -669,55 +669,55 @@
   },
   "configs/pipelines/common_sea_lion_fusion_seven_class_cam1.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam1.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam1.pipe:38",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_seven_class_cam2.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam2.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam2.pipe:38",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_seven_class_cam3.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam3.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam3.pipe:38",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_six_class_cam1.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam1.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam1.pipe:36",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_six_class_cam2.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam2.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam2.pipe:36",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_six_class_cam3.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam3.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam3.pipe:36",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_two_class_cam1.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam1.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam1.pipe:36",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_two_class_cam2.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam2.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam2.pipe:36",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_two_class_cam3.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam3.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam3.pipe:36",
     "processes": {},
     "algos": {}
   },
@@ -6459,13 +6459,13 @@
   },
   "configs/pipelines/query_augment_image.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'pytorch_augmentation' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process_factory.cxx:135",
+    "message": "There is no such process of type 'pytorch_augmentation' in the registry",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/query_from_track.pipe": {
     "status": "error",
-    "message": "The port 'track_descriptor_set' on process 'query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process.cxx:766",
+    "message": "The port 'track_descriptor_set' on process 'query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids",
     "processes": {},
     "algos": {}
   },
@@ -6569,7 +6569,7 @@
   },
   "configs/pipelines/query_retrieval_and_iqr.pipe": {
     "status": "error",
-    "message": "The port 'track_descriptor_set' on process 'database_query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process.cxx:766",
+    "message": "The port 'track_descriptor_set' on process 'database_query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids",
     "processes": {},
     "algos": {}
   },
@@ -6590,7 +6590,7 @@
   },
   "configs/pipelines/register_multimodal_unsync_ocv.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'ocv_multimodal_registration' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process_factory.cxx:135",
+    "message": "There is no such process of type 'ocv_multimodal_registration' in the registry",
     "processes": {},
     "algos": {}
   },
@@ -7581,7 +7581,7 @@
   },
   "configs/pipelines/stereo_measure_current_annots_spline_fish.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'compute_curved_measurements' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process_factory.cxx:135",
+    "message": "There is no such process of type 'compute_curved_measurements' in the registry",
     "processes": {},
     "algos": {}
   },
@@ -7711,13 +7711,13 @@
   },
   "configs/pipelines/stereo_measure_gfit_groups_v3_seagis_dual.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'seagis_measurement' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process_factory.cxx:135",
+    "message": "There is no such process of type 'seagis_measurement' in the registry",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/stereo_measure_gfit_groups_v3_seagis_sing.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'seagis_measurement' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process_factory.cxx:135",
+    "message": "There is no such process of type 'seagis_measurement' in the registry",
     "processes": {},
     "algos": {}
   },
@@ -9681,13 +9681,13 @@
   },
   "configs/pipelines/templates/detector_16bit.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_16bit.pipe:79, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_16bit.pipe:79",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/detector_default.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_default.pipe:34, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_default.pipe:34",
     "processes": {},
     "algos": {}
   },
@@ -10485,37 +10485,37 @@
   },
   "configs/pipelines/templates/detector_rf_detr_all_motion.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_all_motion.pipe:133, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_all_motion.pipe:133",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/detector_rf_detr_motion.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_motion.pipe:102, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_motion.pipe:102",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/detector_rf_detr_optical_flow.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow.pipe:54, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow.pipe:54",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/detector_rf_detr_optical_flow_adaptive.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow_adaptive.pipe:59, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow_adaptive.pipe:59",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_16bit.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_16bit.pipe:23, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_16bit.pipe:23",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_default.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_default.pipe:20, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_default.pipe:20",
     "processes": {},
     "algos": {}
   },
@@ -10715,67 +10715,9 @@
     "algos": {}
   },
   "configs/pipelines/templates/embedded_generic_svm_tracker.pipe": {
-    "status": "ok",
-    "message": "",
-    "processes": {
-      "descriptor": {
-        "type": "pytorch_descriptors",
-        "algos": {}
-      },
-      "detector_input": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "detector_output": {
-        "type": "merge_detection_sets",
-        "algos": {}
-      },
-      "generic_detector": {
-        "type": "image_object_detector",
-        "algos": {
-          "detector:type": {
-            "impl": "windowed",
-            "resolved": true
-          },
-          "detector:windowed:detector:type": {
-            "impl": "rf_detr",
-            "resolved": true
-          }
-        }
-      },
-      "nms_refiner": {
-        "type": "refine_detections",
-        "algos": {
-          "refiner:type": {
-            "impl": "nms",
-            "resolved": true
-          }
-        }
-      },
-      "svm_refiner": {
-        "type": "refine_detections",
-        "algos": {
-          "refiner:type": {
-            "impl": "svm",
-            "resolved": true
-          }
-        }
-      },
-      "tracker": {
-        "type": "track_objects",
-        "algos": {
-          "track_objects:type": {
-            "impl": "bytetrack",
-            "resolved": true
-          }
-        }
-      }
-    },
+    "status": "error",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_generic_svm_tracker.pipe:94",
+    "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_netharn_clfr.pipe": {
@@ -11013,160 +10955,44 @@
   },
   "configs/pipelines/templates/embedded_rf_detr_all_motion.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_all_motion.pipe:132, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_all_motion.pipe:132",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_rf_detr_motion.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_motion.pipe:95, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_motion.pipe:95",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_rf_detr_optical_flow.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow.pipe:47, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow.pipe:47",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe:56, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe:56",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_tracker.pipe": {
-    "status": "ok",
-    "message": "",
-    "processes": {
-      "tracker": {
-        "type": "track_objects",
-        "algos": {
-          "track_objects:type": {
-            "impl": "bytetrack",
-            "resolved": true
-          }
-        }
-      }
-    },
+    "status": "error",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_tracker.pipe:11",
+    "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/tracker_default.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/tracker_default.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/tracker_default.pipe:36",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/tracker_generic_svm.pipe": {
-    "status": "ok",
-    "message": "",
-    "processes": {
-      "descriptor": {
-        "type": "pytorch_descriptors",
-        "algos": {}
-      },
-      "detector_input": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "detector_output": {
-        "type": "merge_detection_sets",
-        "algos": {}
-      },
-      "detector_writer": {
-        "type": "detected_object_output",
-        "algos": {
-          "writer:type": {
-            "impl": "viame_csv",
-            "resolved": true
-          }
-        }
-      },
-      "downsampler": {
-        "type": "downsample",
-        "algos": {}
-      },
-      "generic_detector": {
-        "type": "image_object_detector",
-        "algos": {
-          "detector:type": {
-            "impl": "windowed",
-            "resolved": true
-          },
-          "detector:windowed:detector:type": {
-            "impl": "rf_detr",
-            "resolved": true
-          }
-        }
-      },
-      "input": {
-        "type": "video_input",
-        "algos": {
-          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "core",
-            "resolved": true
-          },
-          "video_reader:image_list:image_reader:type": {
-            "impl": "core",
-            "resolved": true
-          },
-          "video_reader:type": {
-            "impl": "image_list",
-            "resolved": true
-          }
-        }
-      },
-      "nms_refiner": {
-        "type": "refine_detections",
-        "algos": {
-          "refiner:type": {
-            "impl": "nms",
-            "resolved": true
-          }
-        }
-      },
-      "svm_refiner": {
-        "type": "refine_detections",
-        "algos": {
-          "refiner:type": {
-            "impl": "svm",
-            "resolved": true
-          }
-        }
-      },
-      "track_classifier": {
-        "type": "refine_tracks",
-        "algos": {
-          "refiner:type": {
-            "impl": "average_tot",
-            "resolved": true
-          }
-        }
-      },
-      "track_writer": {
-        "type": "write_object_track",
-        "algos": {
-          "writer:type": {
-            "impl": "viame_csv",
-            "resolved": true
-          }
-        }
-      },
-      "tracker": {
-        "type": "track_objects",
-        "algos": {
-          "track_objects:type": {
-            "impl": "bytetrack",
-            "resolved": true
-          }
-        }
-      }
-    },
+    "status": "error",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/tracker_generic_svm.pipe:120",
+    "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/utility_add_keypoints_sleap.pipe": {
@@ -14722,7 +14548,7 @@
   },
   "configs/pipelines/train_aug_add_motion_and_color_freq.pipe": {
     "status": "error",
-    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process.cxx:766",
+    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2",
     "processes": {},
     "algos": {}
   },
@@ -15303,7 +15129,7 @@
   },
   "configs/pipelines/train_aug_intensity_hue_motion.pipe": {
     "status": "error",
-    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/process.cxx:766",
+    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2",
     "processes": {},
     "algos": {}
   },
@@ -15492,7 +15318,7 @@
   },
   "configs/pipelines/train_aug_warp_ir_to_eo.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"TODO\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/train_aug_warp_ir_to_eo.pipe:7, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"TODO\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/train_aug_warp_ir_to_eo.pipe:7",
     "processes": {},
     "algos": {}
   },
@@ -16383,49 +16209,6 @@
       }
     }
   },
-  "configs/pipelines/train_tracker_adaptive.conf": {
-    "status": "ok",
-    "message": "",
-    "processes": {},
-    "algos": {
-      "groundtruth_reader:type": {
-        "impl": "auto",
-        "resolved": true
-      },
-      "image_reader:type": {
-        "impl": "ocv",
-        "resolved": true
-      },
-      "track_reader:type": {
-        "impl": "viame_csv",
-        "resolved": true
-      },
-      "tracker_trainer:adaptive:trainer_1:trainer:type": {
-        "impl": "bytetrack",
-        "resolved": true
-      },
-      "tracker_trainer:adaptive:trainer_2:trainer:type": {
-        "impl": "ocsort",
-        "resolved": true
-      },
-      "tracker_trainer:adaptive:trainer_3:trainer:type": {
-        "impl": "deepsort",
-        "resolved": true
-      },
-      "tracker_trainer:adaptive:trainer_4:trainer:type": {
-        "impl": "botsort",
-        "resolved": true
-      },
-      "tracker_trainer:adaptive:trainer_5:trainer:type": {
-        "impl": "srnn",
-        "resolved": true
-      },
-      "tracker_trainer:type": {
-        "impl": "adaptive",
-        "resolved": true
-      }
-    }
-  },
   "configs/pipelines/train_tracker_botsort.conf": {
     "status": "ok",
     "message": "",
@@ -16491,6 +16274,41 @@
       },
       "tracker_trainer:type": {
         "impl": "deepsort",
+        "resolved": true
+      }
+    }
+  },
+  "configs/pipelines/train_tracker_default.conf": {
+    "status": "ok",
+    "message": "",
+    "processes": {},
+    "algos": {
+      "groundtruth_reader:type": {
+        "impl": "auto",
+        "resolved": true
+      },
+      "image_reader:type": {
+        "impl": "ocv",
+        "resolved": true
+      },
+      "track_reader:type": {
+        "impl": "viame_csv",
+        "resolved": true
+      },
+      "tracker_trainer:adaptive:trainer_1:trainer:type": {
+        "impl": "bytetrack",
+        "resolved": true
+      },
+      "tracker_trainer:adaptive:trainer_2:trainer:type": {
+        "impl": "botsort",
+        "resolved": true
+      },
+      "tracker_trainer:adaptive:trainer_3:trainer:type": {
+        "impl": "homog_iou",
+        "resolved": true
+      },
+      "tracker_trainer:type": {
+        "impl": "adaptive",
         "resolved": true
       }
     }
@@ -17931,7 +17749,7 @@
   },
   "configs/pipelines/utility_link_detections_default.pipe": {
     "status": "error",
-    "message": "The file does not exist: common_seamap_tracker_v2.5.pipe included from /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/utility_link_detections_default.pipe:28 could not be found in search path., thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/library/pipeline_framework/lex_processor.cxx:502",
+    "message": "The file does not exist: common_seamap_tracker_v2.5.pipe included from /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/utility_link_detections_default.pipe:28 could not be found in search path.",
     "processes": {},
     "algos": {}
   },

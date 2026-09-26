@@ -222,10 +222,10 @@ configs/pipelines/train_frame_classifier_netharn_resnet.conf
 configs/pipelines/train_reclassifier_default.conf
 configs/pipelines/train_reclassifier_netharn_efficientnet.conf
 configs/pipelines/train_reclassifier_netharn_resnet.conf
-configs/pipelines/train_tracker_adaptive.conf
 configs/pipelines/train_tracker_botsort.conf
 configs/pipelines/train_tracker_bytetrack.conf
 configs/pipelines/train_tracker_deepsort.conf
+configs/pipelines/train_tracker_default.conf
 configs/pipelines/train_tracker_ocsort.conf
 configs/pipelines/transcode_compress.pipe
 configs/pipelines/transcode_default.pipe
@@ -524,10 +524,10 @@ examples/object_detector_training/training_data_mouss/seq3/20170309.233516.983.0
 examples/object_detector_training/training_data_mouss/seq3/20170309.233517.066.015723.png
 examples/object_detector_training/training_data_mouss/seq3/annotations.csv
 examples/object_tracker_training/README.rst
-examples/object_tracker_training/train_adaptive.sh
 examples/object_tracker_training/train_botsort.sh
 examples/object_tracker_training/train_bytetrack.sh
 examples/object_tracker_training/train_deepsort.sh
+examples/object_tracker_training/train_default.sh
 examples/object_tracker_training/train_ocsort.sh
 examples/object_tracker_training/train_siammask.sh
 examples/object_tracker_training/train_srnn.sh
@@ -1550,6 +1550,8 @@ lib/python3.10/site-packages/viame/object_trackers/bytetrack_trainer.py
 lib/python3.10/site-packages/viame/object_trackers/common/__init__.py
 lib/python3.10/site-packages/viame/object_trackers/common/kalman.py
 lib/python3.10/site-packages/viame/object_trackers/common/track_state.py
+lib/python3.10/site-packages/viame/object_trackers/homog_iou_tracker.py
+lib/python3.10/site-packages/viame/object_trackers/homog_iou_trainer.py
 lib/python3.10/site-packages/viame/object_trackers/merge_tracks_tube_iou.py
 lib/python3.10/site-packages/viame/object_trackers/multicam_homog_tracker.py
 lib/python3.10/site-packages/viame/object_trackers/ocsort_tracker.py

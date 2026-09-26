@@ -1811,3 +1811,35 @@ to what they actually achieve, 19 of those to exact, `rgb_to_lab` and
 tolerance of exactly 1 once already. The five left alone are the float
 geometry ones, where shaving the headroom off an interpolating path buys a
 brittle test rather than a contract.
+
+## Baselines re-recorded for the main merge
+
+`9d2d4d7c4` merged main and left three baselines failing. Both recordings moved
+for reasons that are entirely main's, and each was checked rather than assumed
+before re-recording.
+
+**`install.txt`: four paths, no losses.** `train_tracker_adaptive.conf` and
+`train_adaptive.sh` became `train_tracker_default.conf` and `train_default.sh`,
+and `homog_iou_tracker.py` and `homog_iou_trainer.py` are new. That is the whole
+diff.
+
+**`pipes.json`: three templates, and nothing else.** The three tracker
+templates moved from `ok` to `error` with "unexpected token `[`". That reads
+like a broken pipeline and is not one: main moved the `[-TRACKER-IMPL-]`
+placeholder off the value side of a `:key value` line onto a line of its own, so
+the file is no longer a standalone pipe. `templates/tracker_default.pipe` has
+been recorded as `error` with the identical message since long before this
+merge, so the state is already precedented -- the other three have simply
+joined it. `manipulate_pipelines.cxx` substitutes the placeholder before the
+pipeline is ever run, and its four tests pass.
+
+The audit that mattered: **exactly three entries changed status, and exactly
+three had their resolved processes change -- the same three.** No other pipeline
+moved, and no implementation resolved differently anywhere in the other 286.
+`baseline:registry` never failed, so no registered name was lost either.
+
+A third of the file's churn is unrelated to the merge: 38 entries carry new
+error *messages* with the same `error` status, because upstream stopped
+appending `, thrown from <source path>:<line>` to them. The old baseline had
+been recording this source tree's absolute paths and line numbers; it no longer
+does.
