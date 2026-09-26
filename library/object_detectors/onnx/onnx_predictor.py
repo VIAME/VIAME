@@ -240,12 +240,10 @@ class OnnxPredictor:
             image_np = np.repeat(image_np[..., None], 3, axis=-1)
         elif image_np.shape[2] == 4:
             image_np = image_np[..., :3]
-        # Only the area filter is distinct here; the rest of the names all
-        # land on the one bilinear kernel.
-        resize = (image_kernels.resize_area
-                  if getattr(self, "_interp_name", "area") == "area"
-                  else image_kernels.resize)
-        resized = resize(image_np, self._eval_w, self._eval_h)
+        name = getattr(self, "_interp_name", "area")
+        name = {"linear": "bilinear", "cubic": "bicubic"}.get(name, name)
+        resized = image_kernels.resize(image_np, self._eval_w, self._eval_h,
+                                       interpolation=name)
         img_f32 = resized.astype(np.float32) * self._scale
         img_f32 = (img_f32 - self._mean) / self._std
         return img_f32.transpose(2, 0, 1)[None, ...]

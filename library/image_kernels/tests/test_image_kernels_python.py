@@ -1,24 +1,8 @@
-"""The python bindings run the same kernels the C++ pipelines run.
+"""Python image kernels preserve OpenCV conventions for converted callers.
 
-That is the whole point of them: a frame resized in python and a frame
-resized in a pipeline should agree. Measured against cv2 when written, on a
-natural frame:
-
-    to_gray        max difference 0   -- bit identical
-    swap_channels  identical
-    crop           identical
-    resize         max difference 25  -- a different pixel centre convention
-    to_hsv/to_hls  max difference 1
-    to_lab         max difference 0   -- bit identical, over every triple
-    from_lab       max difference 0   -- likewise, and a separate table
-
-The three colour spaces round trip at least as well as OpenCV's own do: on a
-random frame, 4 against its 5 for HSV and HLS, and 21 for both on L*a*b*,
-where the loss is the 8-bit quantisation rather than either implementation.
-
-The resize difference is expected and is why these exist rather than Pillow:
-matching the C++ half matters, matching OpenCV does not, and OpenCV is what
-is being removed.
+C++ callers which originally used VXL retain their separate resampling grid.
+The Python resize binding uses OpenCV pixel centres, since detector and
+classifier preprocessing were trained against that convention.
 """
 import numpy as np
 import pytest
@@ -1560,3 +1544,76 @@ def test_the_ellipse_element_is_opencvs_not_the_disk():
 def test_an_unknown_element_shape_is_refused():
     with pytest.raises(ValueError):
         dilate(np.zeros((8, 8), np.uint8), 'oval', 3, 3)
+
+
+def test_resize_uses_opencv_pixel_centres():
+    image = np.array([[0, 255], [255, 0]], dtype=np.uint8)
+    expected = np.array([[0, 64, 191, 255], [64, 96, 159, 191],
+                         [191, 159, 96, 64], [255, 191, 64, 0]], dtype=np.uint8)
+    np.testing.assert_array_equal(resize(image, 4, 4), expected)
+    np.testing.assert_array_equal(resize(image, 4, 4, interpolation="nearest"),
+                                  image.repeat(2, 0).repeat(2, 1))
+
+
+@pytest.mark.parametrize("dtype", [np.uint8, np.uint16, np.float32])
+def test_area_resize_weights_fractional_pixels(dtype):
+    image = np.array([[0, 0, 255, 0, 0]], dtype=dtype)
+    np.testing.assert_allclose(resize_area(image, 3, 1), [[0, 153, 0]], atol=1e-5)
+    np.testing.assert_allclose(resize_area(np.ones((7, 11), dtype=dtype), 4, 3),
+                               np.ones((3, 4)), atol=2e-7)
+
+
+def test_area_enlargement_has_its_own_grid():
+    image = np.array([[0, 255]], dtype=np.uint8)
+    np.testing.assert_array_equal(resize_area(image, 3, 1), [[0, 128, 255]])
+
+
+def test_native_filter_releases_the_gil():
+    import threading
+    import time
+    image = np.ones((768, 1024, 3), dtype=np.uint8)
+    start = threading.Event()
+    finished = threading.Event()
+    observations = []
+
+    def observer():
+        start.wait()
+        # Give the caller time to enter the native operation.
+        time.sleep(0.005)
+        observations.append(not finished.is_set())
+
+    thread = threading.Thread(target=observer)
+    thread.start()
+    try:
+        start.set()
+        gaussian_blur(image, 61)
+    finally:
+        finished.set()
+        thread.join()
+    assert observations == [True]
+
+
+def test_onnx_preprocessing_honours_nearest_interpolation():
+    from viame.object_detectors.onnx.onnx_predictor import OnnxPredictor
+    predictor = OnnxPredictor.__new__(OnnxPredictor)
+    predictor._eval_w = predictor._eval_h = 4
+    predictor._interp_name = "nearest"
+    predictor._scale, predictor._mean, predictor._std = 1.0, 0.0, 1.0
+    image = np.array([[0, 255], [255, 0]], dtype=np.uint8)
+    expected = image.repeat(2, 0).repeat(2, 1)
+    result = predictor._preprocess(image)
+    assert result.shape == (1, 3, 4, 4)
+    for channel in result[0]:
+        np.testing.assert_array_equal(channel, expected)
+
+
+def test_background_model_serializes_concurrent_updates():
+    from concurrent.futures import ThreadPoolExecutor
+    model = Mog2Background()
+    image = np.zeros((48, 64, 3), dtype=np.uint8)
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        results = list(pool.map(lambda _: model.apply(image), range(16)))
+    assert model.frames == 16
+    assert all(result.shape == image.shape[:2] for result in results)
+    model.reset()
+    assert model.frames == 0

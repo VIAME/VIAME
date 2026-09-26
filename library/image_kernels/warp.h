@@ -255,7 +255,7 @@ round_to_even( float value )
 // ----------------------------------------------------------------------------
 inline linear_axis
 byte_linear_axis( size_t dst_size, size_t src_size, double scale,
-                  bool clamp_ends )
+                  bool clamp_ends, bool area = false )
 {
   // INTER_RESIZE_COEF_BITS is 11
   constexpr float coefficient_scale = 2048.0f;
@@ -276,6 +276,13 @@ byte_linear_axis( size_t dst_size, size_t src_size, double scale,
 
     auto source = static_cast< long >( std::floor( fraction ) );
     fraction -= static_cast< float >( source );
+    if( area )
+    {
+      source = static_cast< long >( std::floor( d * scale ) );
+      fraction = static_cast< float >( ( d + 1 ) - ( source + 1 ) / scale );
+      fraction = fraction <= 0 ? 0 : fraction - std::floor( fraction );
+    }
+
 
     if( clamp_ends )
     {
@@ -310,88 +317,135 @@ byte_linear_axis( size_t dst_size, size_t src_size, double scale,
 inline viame::image_of< uint8_t >
 resize_byte_linear( viame::image_of< uint8_t > const& image,
                     size_t width, size_t height,
-                    double scale_x, double scale_y )
+                    double scale_x, double scale_y, bool area = false )
 {
   auto const src_width = image.width();
   auto const src_height = image.height();
   auto const depth = image.depth();
 
   auto const horizontal =
-    byte_linear_axis( width, src_width, scale_x, true );
+    byte_linear_axis( width, src_width, scale_x, true, area );
   auto const vertical =
-    byte_linear_axis( height, src_height, scale_y, false );
+    byte_linear_axis( height, src_height, scale_y, false, area );
 
-  // The horizontal pass, every source row, in units of 1/2048
-  std::vector< int > buffer( src_height * width * depth );
-
-  auto const clamp_column =
-    [ src_width ]( long column ) -> size_t
-    {
-      if( column < 0 ) { return 0; }
-      if( column >= static_cast< long >( src_width ) )
-      {
-        return src_width - 1;
-      }
-      return static_cast< size_t >( column );
-    };
-
-  for( size_t plane = 0; plane < depth; ++plane )
+  auto const clamp_index = []( long index, size_t extent ) -> size_t
+  { return static_cast< size_t >( std::max( 0L, std::min( index, static_cast< long >( extent ) - 1 ) ) ); };
+  std::vector< ptrdiff_t > x0( width ), x1( width );
+  for( size_t x = 0; x < width; ++x )
   {
-    for( size_t row = 0; row < src_height; ++row )
-    {
-      int* out = buffer.data() + ( plane * src_height + row ) * width;
-
-      for( size_t column = 0; column < width; ++column )
-      {
-        auto const first = clamp_column( horizontal.offset[ column ] );
-        auto const second = clamp_column( horizontal.offset[ column ] + 1 );
-
-        out[ column ] =
-          static_cast< int >( image( first, row, plane ) ) *
-            horizontal.alpha0[ column ] +
-          static_cast< int >( image( second, row, plane ) ) *
-            horizontal.alpha1[ column ];
-      }
-    }
+    x0[x] = clamp_index( horizontal.offset[x], src_width ) * image.w_step();
+    x1[x] = clamp_index( horizontal.offset[x] + 1, src_width ) * image.w_step();
   }
 
+  // Only two source rows contribute to an output row. Cache them rather
+  // than allocating and filtering every source row, including skipped rows.
+  std::vector< int > buffer( 2 * width );
   viame::image_of< uint8_t > out( width, height, depth );
-
-  auto const clamp_row =
-    [ src_height ]( long row ) -> size_t
-    {
-      if( row < 0 ) { return 0; }
-      if( row >= static_cast< long >( src_height ) )
-      {
-        return src_height - 1;
-      }
-      return static_cast< size_t >( row );
-    };
-
   for( size_t plane = 0; plane < depth; ++plane )
   {
-    int const* rows = buffer.data() + plane * src_height * width;
-
+    size_t cached[2] = { src_height, src_height };
+    auto const row = [&]( size_t y ) -> int const*
+    {
+      size_t const slot = y % 2;
+      int* dst = buffer.data() + slot * width;
+      if( cached[slot] != y )
+      {
+        auto const* src = image.first_pixel() + y * image.h_step() + plane * image.d_step();
+        for( size_t x = 0; x < width; ++x )
+        { dst[x] = src[x0[x]] * horizontal.alpha0[x] + src[x1[x]] * horizontal.alpha1[x]; }
+        cached[slot] = y;
+      }
+      return dst;
+    };
     for( size_t j = 0; j < height; ++j )
     {
-      int const* first = rows + clamp_row( vertical.offset[j] ) * width;
-      int const* second = rows + clamp_row( vertical.offset[j] + 1 ) * width;
-
+      int const* first = row( clamp_index( vertical.offset[j], src_height ) );
+      int const* second = row( clamp_index( vertical.offset[j] + 1, src_height ) );
       auto const beta0 = vertical.alpha0[j];
       auto const beta1 = vertical.alpha1[j];
-
+      auto* dst = out.first_pixel() + j * out.h_step() + plane * out.d_step();
       for( size_t i = 0; i < width; ++i )
       {
         auto const value =
           ( ( ( beta0 * ( first[i] >> 4 ) ) >> 16 ) +
             ( ( beta1 * ( second[i] >> 4 ) ) >> 16 ) + 2 ) >> 2;
-
-        out( i, j, plane ) =
-          static_cast< uint8_t >( std::min( 255, std::max( 0, value ) ) );
+        dst[i] = static_cast< uint8_t >( std::min( 255, std::max( 0, value ) ) );
       }
     }
   }
 
+  return out;
+}
+
+// Precompute fractional coverage once, rather than recomputing a rectangle
+// and its weights for every output channel. Float weights match INTER_AREA.
+struct area_weight
+{
+  size_t source;
+  float weight;
+};
+
+inline std::vector< std::vector< area_weight > >
+area_axis( size_t source, size_t target )
+{
+  std::vector< std::vector< area_weight > > axis( target );
+  double const scale = static_cast< double >( source ) / target;
+  for( size_t d = 0; d < target; ++d )
+  {
+    double const start = d * scale, end = start + scale;
+    double const extent = std::min( scale, source - start );
+    size_t first = static_cast< size_t >( std::ceil( start ) );
+    size_t last = std::min( static_cast< size_t >( std::floor( end ) ), source - 1 );
+    first = std::min( first, last );
+    if( first - start > 1e-3 )
+    { axis[d].push_back( { first - 1, static_cast< float >( ( first - start ) / extent ) } ); }
+    for( size_t x = first; x < last; ++x )
+    { axis[d].push_back( { x, static_cast< float >( 1 / extent ) } ); }
+    if( end - last > 1e-3 )
+    { axis[d].push_back( { last, static_cast< float >( std::min( { end - last, 1.0, extent } ) / extent ) } ); }
+  }
+  return axis;
+}
+
+template < typename T >
+viame::image_of< T >
+resize_area_shrink( viame::image_of< T > const& image, size_t width, size_t height )
+{
+  auto const horizontal = area_axis( image.width(), width );
+  auto const vertical = area_axis( image.height(), height );
+  viame::image_of< T > out( width, height, image.depth() );
+  std::vector< float > row( width ), sum( width );
+  for( size_t p = 0; p < image.depth(); ++p )
+  {
+    for( size_t y = 0; y < height; ++y )
+    {
+      std::fill( sum.begin(), sum.end(), 0.0f );
+      for( auto const& yw : vertical[y] )
+      {
+        auto const* src = image.first_pixel() + yw.source * image.h_step() + p * image.d_step();
+        for( size_t x = 0; x < width; ++x )
+        {
+          float total = 0;
+          for( auto const& xw : horizontal[x] )
+          { total += src[xw.source * image.w_step()] * xw.weight; }
+          row[x] = total;
+        }
+        for( size_t x = 0; x < width; ++x ) { sum[x] += row[x] * yw.weight; }
+      }
+      auto* dst = out.first_pixel() + y * out.h_step() + p * out.d_step();
+      for( size_t x = 0; x < width; ++x )
+      {
+        if constexpr( std::is_integral_v< T > )
+        {
+          // OpenCV's byte 2x2 fast path rounds halfway values upward.
+          bool const half_up = std::is_same_v< T, uint8_t > &&
+            image.width() == 2 * width && image.height() == 2 * height;
+          dst[x] = saturate_pixel< T >( half_up ? std::floor( sum[x] + .5f ) : std::nearbyint( sum[x] ) );
+        }
+        else { dst[x] = static_cast< T >( sum[x] ); }
+      }
+    }
+  }
   return out;
 }
 
@@ -439,6 +493,14 @@ resize( viame::image_of< T > const& image, size_t width,
   auto const scale_y =
     static_cast< double >( image.height() ) / static_cast< double >( height );
 
+  if( how == interpolation::AREA )
+  {
+    if( scale_x >= 1 && scale_y >= 1 )
+    { return detail::resize_area_shrink( image, width, height ); }
+    if constexpr( std::is_same_v< T, uint8_t > )
+    { return detail::resize_byte_linear( image, width, height, scale_x, scale_y, true ); }
+  }
+
   viame::image_of< T > out( width, height, image.depth() );
 
   for( size_t plane = 0; plane < image.depth(); ++plane )
@@ -451,47 +513,15 @@ resize( viame::image_of< T > const& image, size_t width,
 
         if( how == interpolation::AREA )
         {
-          // The source rectangle this output pixel covers, clamped to the
-          // image: OpenCV averages whole and partial source pixels alike,
-          // and on an integer ratio -- which is the common case -- that is
-          // exactly a block mean.
-          auto const x0 = static_cast< double >( i ) * scale_x;
-          auto const x1 = x0 + scale_x;
-          auto const y0 = static_cast< double >( j ) * scale_y;
-          auto const y1 = y0 + scale_y;
-
-          auto const first_x = static_cast< long >( std::floor( x0 ) );
-          auto const last_x = static_cast< long >( std::ceil( x1 ) );
-          auto const first_y = static_cast< long >( std::floor( y0 ) );
-          auto const last_y = static_cast< long >( std::ceil( y1 ) );
-
-          double total = 0.0;
-          double weight = 0.0;
-
-          for( long y = first_y; y < last_y; ++y )
-          {
-            auto const covered_y =
-              std::min( y1, static_cast< double >( y ) + 1.0 ) -
-              std::max( y0, static_cast< double >( y ) );
-
-            if( covered_y <= 0.0 ) { continue; }
-
-            for( long x = first_x; x < last_x; ++x )
-            {
-              auto const covered_x =
-                std::min( x1, static_cast< double >( x ) + 1.0 ) -
-                std::max( x0, static_cast< double >( x ) );
-
-              if( covered_x <= 0.0 ) { continue; }
-
-              auto const area = covered_x * covered_y;
-              total += area *
-                sample_with_border( image, x, y, plane, mode );
-              weight += area;
-            }
-          }
-
-          value = ( weight > 0.0 ) ? total / weight : 0.0;
+          // INTER_AREA's enlargement uses a different linear grid from
+          // INTER_LINEAR, including when only one axis grows.
+          auto const sx = static_cast< long >( std::floor( i * scale_x ) );
+          auto const sy = static_cast< long >( std::floor( j * scale_y ) );
+          float fx = static_cast< float >( ( i + 1 ) - ( sx + 1 ) / scale_x );
+          float fy = static_cast< float >( ( j + 1 ) - ( sy + 1 ) / scale_y );
+          fx = fx <= 0 ? 0 : fx - std::floor( fx );
+          fy = fy <= 0 ? 0 : fy - std::floor( fy );
+          value = sample_bilinear( image, sx + fx, sy + fy, plane, mode );
         }
         else if( how == interpolation::NEAREST )
         {

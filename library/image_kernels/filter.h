@@ -369,27 +369,35 @@ separable_filter( viame::image_of< T > const& image,
     {
       auto* destination = buffer.data() + j * width;
 
-      for( size_t i = 0; i < width; ++i )
+      std::fill( destination, destination + width, 0.0 );
+      auto const* source = image.first_pixel() + j * image.h_step() + plane * image.d_step();
+      for( size_t k = 0; k < across.size(); ++k )
       {
-        double total = 0.0;
-
-        for( size_t k = 0; k < across.size(); ++k )
+        double const weight = across[k];
+        if( weight == 0.0 ) { continue; }
+        long const shift = static_cast< long >( k ) - anchor_i;
+        size_t const first = std::min( width, static_cast< size_t >( std::max( 0L, -shift ) ) );
+        size_t const last = static_cast< size_t >( std::max( static_cast< long >( first ),
+          std::min( static_cast< long >( width ), static_cast< long >( width ) - shift ) ) );
+        // Only the edges need border handling. Traverse pixels in the inner
+        // loop so the compiler can vectorize each weighted row addition.
+        for( size_t i = 0; i < first; ++i )
         {
-          auto const weight = across[ k ];
-
-          if( weight == 0.0 ) { continue; }
-
-          total += weight * sample_with_border(
-            image,
-            static_cast< long >( i ) + static_cast< long >( k ) - anchor_i,
-            static_cast< long >( j ), plane, mode, constant );
+          destination[i] += weight * sample_with_border(
+            image, static_cast< long >( i ) + shift, j, plane, mode, constant );
         }
-
-        destination[ i ] = total;
+        for( size_t i = first; i < last; ++i )
+        { destination[i] += weight * source[( static_cast< ptrdiff_t >( i ) + shift ) * image.w_step()]; }
+        for( size_t i = last; i < width; ++i )
+        {
+          destination[i] += weight * sample_with_border(
+            image, static_cast< long >( i ) + shift, j, plane, mode, constant );
+        }
       }
     }
 
     std::vector< double const* > rows( down.size(), nullptr );
+    std::vector< double > totals( width );
 
     for( size_t j = 0; j < height; ++j )
     {
@@ -404,21 +412,24 @@ separable_filter( viame::image_of< T > const& image,
           : buffer.data() + static_cast< size_t >( at ) * width;
       }
 
-      for( size_t i = 0; i < width; ++i )
+      std::fill( totals.begin(), totals.end(), 0.0 );
+      for( size_t k = 0; k < down.size(); ++k )
       {
-        double total = 0.0;
-
-        for( size_t k = 0; k < down.size(); ++k )
+        double const weight = down[k];
+        if( weight == 0.0 ) { continue; }
+        if( rows[k] )
         {
-          auto const weight = down[ k ];
-
-          if( weight == 0.0 ) { continue; }
-
-          total += weight * ( rows[ k ] ? rows[ k ][ i ] : outside );
+          for( size_t i = 0; i < width; ++i )
+          { totals[i] += weight * rows[k][i]; }
         }
-
-        out( i, j, plane ) = saturate_pixel< Out >( total );
+        else
+        {
+          for( size_t i = 0; i < width; ++i ) { totals[i] += weight * outside; }
+        }
       }
+      auto* destination = out.first_pixel() + j * out.h_step() + plane * out.d_step();
+      for( size_t i = 0; i < width; ++i )
+      { destination[i] = saturate_pixel< Out >( totals[i] ); }
     }
   }
 

@@ -117,23 +117,28 @@ rgb_to_gray( viame::image_of< T > const& image )
 
   viame::image_of< T > out( image.width(), image.height(), 1 );
 
+  auto const width = image.width();
+  auto const step = image.w_step();
   for( size_t j = 0; j < image.height(); ++j )
   {
-    for( size_t i = 0; i < image.width(); ++i )
+    auto const* red = image.first_pixel() + j * image.h_step();
+    auto const* green = red + image.d_step();
+    auto const* blue = green + image.d_step();
+    auto* destination = out.first_pixel() + j * out.h_step();
+    for( size_t i = 0; i < width; ++i )
     {
       if constexpr( std::is_integral< T >::value )
       {
-        out( i, j, 0 ) = static_cast< T >(
-          detail::gray_of( static_cast< int >( image( i, j, 0 ) ),
-                           static_cast< int >( image( i, j, 1 ) ),
-                           static_cast< int >( image( i, j, 2 ) ) ) );
+        destination[i] = static_cast< T >(
+          detail::gray_of( static_cast< int >( red[i * step] ),
+                           static_cast< int >( green[i * step] ),
+                           static_cast< int >( blue[i * step] ) ) );
       }
       else
       {
-        out( i, j, 0 ) = static_cast< T >(
-          image( i, j, 0 ) * bt601_red +
-          image( i, j, 1 ) * bt601_green +
-          image( i, j, 2 ) * bt601_blue );
+        destination[i] = static_cast< T >(
+          red[i * step] * bt601_red + green[i * step] * bt601_green +
+          blue[i * step] * bt601_blue );
       }
     }
   }

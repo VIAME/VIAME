@@ -40,6 +40,8 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <mutex>
+#include <cstring>
 #include <stdexcept>
 #include <utility>
 #include <string>
@@ -48,6 +50,21 @@
 namespace py = pybind11;
 
 namespace {
+
+// Convert Python arguments before releasing the GIL, and reacquire it before
+// constructing Python results. Forward references so output arguments survive.
+template < typename Function, typename... Args >
+decltype(auto)
+call_kernel( Function&& function, Args&&... args )
+{
+  py::gil_scoped_release release;
+  return std::forward< Function >( function )( std::forward< Args >( args )... );
+}
+
+#define VIAME_KERNEL_CALL( name, ... ) \
+  call_kernel( []( auto&&... args ) -> decltype(auto) { \
+    return viame::image_kernels::name( \
+      std::forward< decltype(args) >( args )... ); }, __VA_ARGS__ )
 
 /// The array types the kernels take. `forcecast` is deliberately **not**
 /// used: a float32 depth map handed to a uint8 binding would be silently
@@ -81,8 +98,7 @@ as_image( array_of< T > const& array )
     1 );
 }
 
-/// Copied by index rather than memcpy'd: an image_of carries its own strides
-/// and a kernel's result is not required to be packed.
+/// Copy the kernel result into NumPy, respecting its plane and row strides.
 template < typename T >
 py::array
 as_array( viame::image_of< T > const& image, bool keep_third_axis )
@@ -98,14 +114,34 @@ as_array( viame::image_of< T > const& image, bool keep_third_axis )
 
   py::array_t< T > out( shape );
   T* destination = out.mutable_data();
-
-  for( size_t y = 0; y < image.height(); ++y )
+  if( image.width() == 0 || image.height() == 0 || image.depth() == 0 )
   {
-    for( size_t x = 0; x < image.width(); ++x )
+    return out;
+  }
+
+  {
+    py::gil_scoped_release release;
+    auto const width = image.width(), depth = image.depth();
+    for( size_t y = 0; y < image.height(); ++y )
     {
-      for( size_t d = 0; d < image.depth(); ++d )
+      auto const* row = image.first_pixel() + y * image.h_step();
+      if( image.w_step() == static_cast< ptrdiff_t >( depth ) &&
+          ( depth == 1 || image.d_step() == 1 ) )
       {
-        *destination++ = image( x, y, d );
+        std::memcpy( destination, row, width * depth * sizeof( T ) );
+        destination += width * depth;
+      }
+      else
+      {
+        // Copy each plane along contiguous output pixels, exposing strides
+        // once per row rather than through image accessors per sample.
+        for( size_t d = 0; d < depth; ++d )
+        {
+          auto const* src = row + d * image.d_step();
+          for( size_t x = 0; x < width; ++x )
+          { destination[x * depth + d] = src[x * image.w_step()]; }
+        }
+        destination += width * depth;
       }
     }
   }
@@ -113,12 +149,17 @@ as_array( viame::image_of< T > const& image, bool keep_third_axis )
   return std::move( out );
 }
 
+viame::image_kernels::interpolation
+as_interpolation( std::string const& name );
+
 template < typename T >
 py::array
-resize( array_of< T > const& array, size_t width, size_t height )
+resize( array_of< T > const& array, size_t width, size_t height,
+        std::string const& interpolation )
 {
   return as_array(
-    viame::image_kernels::resize_bilinear( as_image( array ), width, height ),
+    VIAME_KERNEL_CALL( resize, as_image( array ), width, height,
+                                  as_interpolation( interpolation ) ),
     array.ndim() == 3 );
 }
 
@@ -127,7 +168,7 @@ py::array
 resize_area( array_of< T > const& array, size_t width, size_t height )
 {
   return as_array(
-    viame::image_kernels::resize_area( as_image( array ), width, height ),
+    VIAME_KERNEL_CALL( resize_area, as_image( array ), width, height ),
     array.ndim() == 3 );
 }
 
@@ -137,7 +178,7 @@ crop( array_of< T > const& array, size_t left, size_t top, size_t width,
       size_t height )
 {
   return as_array(
-    viame::image_kernels::crop( as_image( array ), left, top, width, height ),
+    VIAME_KERNEL_CALL( crop, as_image( array ), left, top, width, height ),
     array.ndim() == 3 );
 }
 
@@ -149,14 +190,14 @@ to_gray( array_of< uint8_t > const& array )
     throw std::invalid_argument( "to_gray wants an HxWx3 image" );
   }
   auto const source = as_image( array );
-  return as_array( viame::image_kernels::rgb_to_gray( source ), false );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_gray, source ), false );
 }
 
 py::array
 to_rgb( array_of< uint8_t > const& array )
 {
   auto const source = as_image( array );
-  return as_array( viame::image_kernels::gray_to_rgb( source ), true );
+  return as_array( VIAME_KERNEL_CALL( gray_to_rgb, source ), true );
 }
 
 py::array
@@ -167,7 +208,7 @@ swap_channels( array_of< uint8_t > const& array )
     throw std::invalid_argument( "swap_channels wants an HxWx3 image" );
   }
   auto const source = as_image( array );
-  return as_array( viame::image_kernels::swap_rb( source ), true );
+  return as_array( VIAME_KERNEL_CALL( swap_rb, source ), true );
 }
 
 /// The three-channel conversions all have the same shape: HxWx3 in, HxWx3
@@ -200,7 +241,7 @@ py::array
 to_hsv( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "to_hsv" ) );
-  return as_array( viame::image_kernels::rgb_to_hsv( source ), true );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_hsv, source ), true );
 }
 
 template < typename T >
@@ -208,7 +249,7 @@ py::array
 from_hsv( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "from_hsv" ) );
-  return as_array( viame::image_kernels::hsv_to_rgb( source ), true );
+  return as_array( VIAME_KERNEL_CALL( hsv_to_rgb, source ), true );
 }
 
 template < typename T >
@@ -216,7 +257,7 @@ py::array
 to_hls( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "to_hls" ) );
-  return as_array( viame::image_kernels::rgb_to_hls( source ), true );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_hls, source ), true );
 }
 
 template < typename T >
@@ -224,21 +265,21 @@ py::array
 from_hls( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "from_hls" ) );
-  return as_array( viame::image_kernels::hls_to_rgb( source ), true );
+  return as_array( VIAME_KERNEL_CALL( hls_to_rgb, source ), true );
 }
 
 py::array
 to_lab( array_of< uint8_t > const& array )
 {
   auto const source = as_image( three_channel< uint8_t >( array, "to_lab" ) );
-  return as_array( viame::image_kernels::rgb_to_lab( source ), true );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_lab, source ), true );
 }
 
 py::array
 from_lab( array_of< uint8_t > const& array )
 {
   auto const source = as_image( three_channel< uint8_t >( array, "from_lab" ) );
-  return as_array( viame::image_kernels::lab_to_rgb( source ), true );
+  return as_array( VIAME_KERNEL_CALL( lab_to_rgb, source ), true );
 }
 
 py::array
@@ -264,7 +305,7 @@ demosaic( array_of< uint8_t > const& array,
   }
 
   auto const source = as_image( array );
-  return as_array( viame::image_kernels::demosaic( source, which ), true );
+  return as_array( VIAME_KERNEL_CALL( demosaic, source, which ), true );
 }
 
 // ---------------------------------------------------------------------------
@@ -346,7 +387,7 @@ fill_polygon( array_of< T >& array,
               py::object const& colour )
 {
   auto image = as_mutable_image( array );
-  viame::image_kernels::fill_polygon( image, as_points( points ),
+  VIAME_KERNEL_CALL( fill_polygon, image, as_points( points ),
                                       as_colour( colour ) );
 }
 
@@ -364,7 +405,7 @@ draw_rect( array_of< T >& array,
   bounds.right = right;
   bounds.bottom = bottom;
 
-  viame::image_kernels::draw_rect( image, bounds, as_colour( colour ),
+  VIAME_KERNEL_CALL( draw_rect, image, bounds, as_colour( colour ),
                                    thickness );
 }
 
@@ -375,7 +416,7 @@ draw_text( array_of< T >& array,
            py::object const& colour, long scale )
 {
   auto image = as_mutable_image( array );
-  viame::image_kernels::draw_text( image, text, x, y, as_colour( colour ),
+  VIAME_KERNEL_CALL( draw_text, image, text, x, y, as_colour( colour ),
                                    scale );
 }
 
@@ -386,7 +427,7 @@ draw_line( array_of< T >& array,
            long thickness )
 {
   auto image = as_mutable_image( array );
-  viame::image_kernels::draw_line( image, x0, y0, x1, y1,
+  VIAME_KERNEL_CALL( draw_line, image, x0, y0, x1, y1,
                                    as_colour( colour ), thickness );
 }
 
@@ -410,14 +451,14 @@ draw_polyline( array_of< T >& array,
 
   for( size_t n = 0; n + 1 < chain.size(); ++n )
   {
-    viame::image_kernels::draw_line( image, chain[ n ].i, chain[ n ].j,
+    VIAME_KERNEL_CALL( draw_line, image, chain[ n ].i, chain[ n ].j,
                                      chain[ n + 1 ].i, chain[ n + 1 ].j,
                                      paint, thickness );
   }
 
   if( closed )
   {
-    viame::image_kernels::draw_line( image, chain.back().i, chain.back().j,
+    VIAME_KERNEL_CALL( draw_line, image, chain.back().i, chain.back().j,
                                      chain.front().i, chain.front().j,
                                      paint, thickness );
   }
@@ -430,7 +471,7 @@ draw_circle( array_of< T >& array,
              long thickness )
 {
   auto image = as_mutable_image( array );
-  viame::image_kernels::draw_circle( image, x, y, radius,
+  VIAME_KERNEL_CALL( draw_circle, image, x, y, radius,
                                      as_colour( colour ), thickness );
 }
 
@@ -441,14 +482,14 @@ fill_ellipse( array_of< T >& array,
               py::object const& colour, double angle )
 {
   auto image = as_mutable_image( array );
-  viame::image_kernels::fill_ellipse( image, x, y, radius_x, radius_y,
+  VIAME_KERNEL_CALL( fill_ellipse, image, x, y, radius_x, radius_y,
                                       as_colour( colour ), angle );
 }
 
 py::tuple
 text_size( std::string const& text, long scale )
 {
-  auto const box = viame::image_kernels::text_size( text, scale );
+  auto const box = VIAME_KERNEL_CALL( text_size, text, scale );
   return py::make_tuple( box.width(), box.height() );
 }
 
@@ -478,7 +519,7 @@ gaussian_blur( array_of< T > const& array,
 {
   auto const source = as_image( array );
   return as_array(
-    viame::image_kernels::gaussian_blur( source, size, sigma,
+    VIAME_KERNEL_CALL( gaussian_blur, source, size, sigma,
                                          as_border( border ) ),
     array.ndim() == 3 );
 }
@@ -490,7 +531,7 @@ box_blur( array_of< T > const& array,
 {
   auto const source = as_image( array );
   return as_array(
-    viame::image_kernels::box_blur( source, size, as_border( border ) ),
+    VIAME_KERNEL_CALL( box_blur, source, size, as_border( border ) ),
     array.ndim() == 3 );
 }
 
@@ -511,7 +552,7 @@ add_weighted( array_of< T > const& first,
   }
 
   return as_array(
-    viame::image_kernels::add_weighted( a, alpha, b, beta, gamma ),
+    VIAME_KERNEL_CALL( add_weighted, a, alpha, b, beta, gamma ),
     first.ndim() == 3 );
 }
 
@@ -521,7 +562,7 @@ normalize( array_of< T > const& array,
            double low, double high )
 {
   auto const source = as_image( array );
-  return as_array( viame::image_kernels::normalize_min_max( source, low, high ),
+  return as_array( VIAME_KERNEL_CALL( normalize_min_max, source, low, high ),
                    array.ndim() == 3 );
 }
 
@@ -529,7 +570,7 @@ py::array
 equalize( array_of< uint8_t > const& array )
 {
   auto const source = as_image( array );
-  return as_array( viame::image_kernels::equalize( source ),
+  return as_array( VIAME_KERNEL_CALL( equalize, source ),
                    array.ndim() == 3 );
 }
 
@@ -540,7 +581,7 @@ clahe( array_of< T > const& array,
 {
   auto const source = as_image( array );
   return as_array(
-    viame::image_kernels::clahe( source, clip_limit, tiles_x, tiles_y ),
+    VIAME_KERNEL_CALL( clahe, source, clip_limit, tiles_x, tiles_y ),
     array.ndim() == 3 );
 }
 
@@ -576,7 +617,7 @@ erode( array_of< T > const& array,
 {
   auto const source = as_image( array );
   return as_array(
-    viame::image_kernels::grey_erode( source,
+    VIAME_KERNEL_CALL( grey_erode, source,
                                       as_element( shape, width, height ) ),
     array.ndim() == 3 );
 }
@@ -588,7 +629,7 @@ dilate( array_of< T > const& array,
 {
   auto const source = as_image( array );
   return as_array(
-    viame::image_kernels::grey_dilate( source,
+    VIAME_KERNEL_CALL( grey_dilate, source,
                                        as_element( shape, width, height ) ),
     array.ndim() == 3 );
 }
@@ -642,7 +683,7 @@ remap( array_of< T > const& array,
 {
   auto const source = as_image( array );
   return as_array(
-    viame::image_kernels::remap( source, as_map( map_x ), as_map( map_y ),
+    VIAME_KERNEL_CALL( remap, source, as_map( map_x ), as_map( map_y ),
                                  as_interpolation( interpolation ),
                                  as_border( border ), constant ),
     array.ndim() == 3 );
@@ -683,7 +724,7 @@ warp_perspective( array_of< T > const& array,
 {
   auto const source = as_image( array );
   return as_array(
-    viame::image_kernels::warp_perspective(
+    VIAME_KERNEL_CALL( warp_perspective,
       source, as_matrix_3x3( transform ), width, height,
       as_interpolation( interpolation ), as_border( border ), constant ),
     array.ndim() == 3 );
@@ -717,7 +758,7 @@ warp_affine( array_of< T > const& array,
 
   auto const source = as_image( array );
   return as_array(
-    viame::image_kernels::warp_affine(
+    VIAME_KERNEL_CALL( warp_affine,
       source, affine, width, height, as_interpolation( interpolation ),
       as_border( border ), constant ),
     array.ndim() == 3 );
@@ -813,7 +854,7 @@ py::list
 find_contours( array_of< T > const& array )
 {
   auto const traced =
-    viame::image_kernels::find_contours( as_image( array ) );
+    VIAME_KERNEL_CALL( find_contours, as_image( array ) );
 
   py::list out;
 
@@ -829,7 +870,7 @@ double
 contour_area( py::array_t< double, py::array::c_style | py::array::forcecast >
                 const& contour )
 {
-  return viame::image_kernels::contour_area(
+  return VIAME_KERNEL_CALL( contour_area,
     contour_points( contour, "contour_area" ) );
 }
 
@@ -837,7 +878,7 @@ py::tuple
 bounding_rect( py::array_t< double, py::array::c_style | py::array::forcecast >
                  const& contour )
 {
-  auto const box = viame::image_kernels::bounding_rect(
+  auto const box = VIAME_KERNEL_CALL( bounding_rect,
     contour_points( contour, "bounding_rect" ) );
 
   // x, y, width, height, as `cv2.boundingRect` returns
@@ -856,7 +897,7 @@ py::array
 distance_transform( array_of< T > const& array )
 {
   return as_array(
-    viame::image_kernels::distance_transform( as_image( array ) ), false );
+    VIAME_KERNEL_CALL( distance_transform, as_image( array ) ), false );
 }
 
 /// `cv::BackgroundSubtractorMOG2` in python: stateful, so a class rather than
@@ -886,15 +927,32 @@ public:
   py::array
   apply( array_of< uint8_t > const& array, double learning_rate )
   {
-    return as_array( m_model->apply( as_image( array ), learning_rate ),
-                     false );
+    auto const source = as_image( array );
+    viame::image_of< uint8_t > result;
+    {
+      py::gil_scoped_release release;
+      std::lock_guard< std::mutex > lock( m_mutex );
+      result = m_model->apply( source, learning_rate );
+    }
+    return as_array( result, false );
   }
 
-  void clear() { m_model->reset(); }
+  void clear()
+  {
+    py::gil_scoped_release release;
+    std::lock_guard< std::mutex > lock( m_mutex );
+    m_model->reset();
+  }
 
-  size_t frames() const { return m_model->frames(); }
+  size_t frames() const
+  {
+    py::gil_scoped_release release;
+    std::lock_guard< std::mutex > lock( m_mutex );
+    return m_model->frames();
+  }
 
 private:
+  mutable std::mutex m_mutex;
   std::shared_ptr< viame::image_kernels::mog2_background > m_model;
 };
 
@@ -904,7 +962,7 @@ good_features( array_of< T > const& array, int max_corners,
                double quality_level, double min_distance, int block_size,
                int aperture )
 {
-  auto const found = viame::image_kernels::good_features_to_track(
+  auto const found = VIAME_KERNEL_CALL( good_features_to_track,
     as_image( array ), max_corners, quality_level, min_distance, block_size,
     aperture );
 
@@ -926,7 +984,7 @@ template < typename T >
 py::array
 min_eigen_value( array_of< T > const& array, int block_size, int aperture )
 {
-  return as_array( viame::image_kernels::min_eigen_value(
+  return as_array( VIAME_KERNEL_CALL( min_eigen_value,
     as_image( array ), block_size, aperture ), false );
 }
 
@@ -967,7 +1025,7 @@ lucas_kanade( array_of< uint8_t > const& first,
 
   std::vector< uint8_t > status;
 
-  auto const moved = viame::image_kernels::lucas_kanade_flow(
+  auto const moved = VIAME_KERNEL_CALL( lucas_kanade_flow,
     as_image( first ), as_image( second ), wanted, status, params );
 
   py::array_t< float > places( std::vector< Py_ssize_t >{
@@ -1003,7 +1061,7 @@ optical_flow( array_of< T > const& first, array_of< T > const& second,
   params.poly_sigma = poly_sigma;
 
   return as_array(
-    viame::image_kernels::farneback_optical_flow(
+    VIAME_KERNEL_CALL( farneback_optical_flow,
       as_image( first ), as_image( second ), params ), true );
 }
 
@@ -1012,7 +1070,7 @@ py::list
 find_borders( array_of< T > const& array )
 {
   auto const traced =
-    viame::image_kernels::find_borders( as_image( array ) );
+    VIAME_KERNEL_CALL( find_borders, as_image( array ) );
 
   py::list out;
 
@@ -1029,7 +1087,7 @@ double
 arc_length( py::array_t< double, py::array::c_style | py::array::forcecast >
               const& contour, bool closed )
 {
-  return viame::image_kernels::arc_length(
+  return VIAME_KERNEL_CALL( arc_length,
     contour_points( contour, "arc_length" ), closed );
 }
 
@@ -1037,7 +1095,7 @@ py::dict
 moments( py::array_t< double, py::array::c_style | py::array::forcecast >
            const& contour )
 {
-  auto const found = viame::image_kernels::moments(
+  auto const found = VIAME_KERNEL_CALL( moments,
     contour_points( contour, "moments" ) );
 
   py::dict out;
@@ -1083,7 +1141,7 @@ intersect_convex(
   py::array_t< double, py::array::c_style | py::array::forcecast > const& first,
   py::array_t< double, py::array::c_style | py::array::forcecast > const& second )
 {
-  auto const overlap = viame::image_kernels::intersect_convex(
+  auto const overlap = VIAME_KERNEL_CALL( intersect_convex,
     polygon_points( first, "intersect_convex" ),
     polygon_points( second, "intersect_convex" ) );
 
@@ -1100,7 +1158,7 @@ intersect_convex(
 
   // The area first, as `cv2.intersectConvexConvex` returns it, and the
   // polygon second.
-  return py::make_tuple( viame::image_kernels::polygon_area( overlap ),
+  return py::make_tuple( VIAME_KERNEL_CALL( polygon_area, overlap ),
                          points );
 }
 
@@ -1108,7 +1166,7 @@ py::array_t< double >
 convex_hull( py::array_t< double, py::array::c_style | py::array::forcecast >
                const& points )
 {
-  return contour_array( viame::image_kernels::convex_hull(
+  return contour_array( VIAME_KERNEL_CALL( convex_hull,
     contour_points( points, "convex_hull" ) ) );
 }
 
@@ -1116,7 +1174,7 @@ py::dict
 min_area_rect( py::array_t< double, py::array::c_style | py::array::forcecast >
                  const& points )
 {
-  auto const box = viame::image_kernels::min_area_rect(
+  auto const box = VIAME_KERNEL_CALL( min_area_rect,
     contour_points( points, "min_area_rect" ) );
 
   auto const corners = box.corners();
@@ -1143,7 +1201,7 @@ py::array_t< double >
 approx_poly( py::array_t< double, py::array::c_style | py::array::forcecast >
                const& contour, double epsilon )
 {
-  return contour_array( viame::image_kernels::approx_poly(
+  return contour_array( VIAME_KERNEL_CALL( approx_poly,
     contour_points( contour, "approx_poly" ), epsilon ) );
 }
 
@@ -1158,7 +1216,7 @@ label_components( array_of< T > const& array, int connectivity )
 
   size_t count = 0;
   auto const labels =
-    viame::image_kernels::label_components( as_image( array ), how, count );
+    VIAME_KERNEL_CALL( label_components, as_image( array ), how, count );
 
   py::array_t< int32_t > out( std::vector< Py_ssize_t >{
     static_cast< Py_ssize_t >( labels.height() ),
@@ -1200,7 +1258,7 @@ filter_2d( array_of< T > const& array,
   k.weights.assign( data, data + k.width * k.height );
 
   return as_array(
-    viame::image_kernels::filter_2d( as_image( array ), k,
+    VIAME_KERNEL_CALL( filter_2d, as_image( array ), k,
                                      as_border( border ), constant ),
     array.ndim() == 3 );
 }
@@ -1210,7 +1268,7 @@ py::array
 match_template( array_of< T > const& array, array_of< T > const& pattern )
 {
   return as_array(
-    viame::image_kernels::match_template_ncc( as_image( array ),
+    VIAME_KERNEL_CALL( match_template_ncc, as_image( array ),
                                               as_image( pattern ) ),
     false );
 }
@@ -1245,8 +1303,11 @@ morphology( array_of< T > const& array, std::string const& operation,
   auto const second = opening ? &viame::image_kernels::grey_dilate< T >
                               : &viame::image_kernels::grey_erode< T >;
 
-  for( int pass = 0; pass < passes; ++pass ) { work = first( work, element ); }
-  for( int pass = 0; pass < passes; ++pass ) { work = second( work, element ); }
+  {
+    py::gil_scoped_release release;
+    for( int pass = 0; pass < passes; ++pass ) { work = first( work, element ); }
+    for( int pass = 0; pass < passes; ++pass ) { work = second( work, element ); }
+  }
 
   return as_array( work, array.ndim() == 3 );
 }
@@ -1276,27 +1337,30 @@ make_border( array_of< T > const& array, size_t top, size_t bottom,
   auto const width = static_cast< long >( source.width() );
   auto const height = static_cast< long >( source.height() );
 
-  for( size_t y = 0; y < out.height(); ++y )
   {
-    auto const from_y = viame::image_kernels::detail::border_index(
-      static_cast< long >( y ) - static_cast< long >( top ), height, mode );
-
-    for( size_t x = 0; x < out.width(); ++x )
+    py::gil_scoped_release release;
+    for( size_t y = 0; y < out.height(); ++y )
     {
-      auto const from_x = viame::image_kernels::detail::border_index(
-        static_cast< long >( x ) - static_cast< long >( left ), width, mode );
+      auto const from_y = viame::image_kernels::detail::border_index(
+        static_cast< long >( y ) - static_cast< long >( top ), height, mode );
 
-      // -1 from either axis is `border_index` saying "outside, and the mode
-      // has nothing to read" -- which only `CONSTANT` says.
-      bool const inside = from_x >= 0 && from_y >= 0;
-
-      for( size_t d = 0; d < out.depth(); ++d )
+      for( size_t x = 0; x < out.width(); ++x )
       {
-        out( x, y, d ) = inside
-          ? source( static_cast< size_t >( from_x ),
-                    static_cast< size_t >( from_y ), d )
-          : viame::image_kernels::saturate_pixel< T >(
-              viame::image_kernels::detail::plane_value( paint, d ) );
+        auto const from_x = viame::image_kernels::detail::border_index(
+          static_cast< long >( x ) - static_cast< long >( left ), width, mode );
+
+        // -1 from either axis is `border_index` saying "outside, and the mode
+        // has nothing to read" -- which only `CONSTANT` says.
+        bool const inside = from_x >= 0 && from_y >= 0;
+
+        for( size_t d = 0; d < out.depth(); ++d )
+        {
+          out( x, y, d ) = inside
+            ? source( static_cast< size_t >( from_x ),
+                      static_cast< size_t >( from_y ), d )
+            : viame::image_kernels::saturate_pixel< T >(
+                viame::image_kernels::detail::plane_value( paint, d ) );
+        }
       }
     }
   }
@@ -1324,7 +1388,7 @@ watershed( array_of< T > const& array,
     1, 1,
     static_cast< ptrdiff_t >( buffer.shape[ 1 ] ), 1 );
 
-  viame::image_kernels::watershed( as_image( array ), seeds );
+  VIAME_KERNEL_CALL( watershed, as_image( array ), seeds );
 }
 
 template < typename T >
@@ -1352,7 +1416,7 @@ corner_subpix( array_of< T > const& array,
     points.emplace_back( data[ n * 2 ], data[ n * 2 + 1 ] );
   }
 
-  viame::image_kernels::corner_subpix( as_image( array ), points, half_width,
+  VIAME_KERNEL_CALL( corner_subpix, as_image( array ), points, half_width,
                                        half_height, iterations, epsilon );
 
   py::array_t< double > out( std::vector< Py_ssize_t >{
@@ -1368,6 +1432,8 @@ corner_subpix( array_of< T > const& array,
   return out;
 }
 
+#undef VIAME_KERNEL_CALL
+
 } // namespace
 
 VIAME_PYTHON_MODULE( _image_kernels, m )
@@ -1377,9 +1443,8 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   for_every_pixel_type( m, "resize", &resize< uint8_t >,
          &resize< uint16_t >, &resize< float >,
          py::arg( "image" ), py::arg( "width" ),
-         py::arg( "height" ),
-         "Bilinear resize. The same kernel the C++ pipelines use, so a "
-         "resized frame matches whether it was resized here or there." );
+         py::arg( "height" ), py::arg( "interpolation" ) = "bilinear",
+         "Resize using nearest, bilinear, bicubic or area interpolation." );
 
   for_every_pixel_type( m, "resize_area", &resize_area< uint8_t >,
          &resize_area< uint16_t >,
