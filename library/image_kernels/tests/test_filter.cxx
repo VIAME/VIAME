@@ -117,6 +117,111 @@ TEST ( filter, filter2d_matches_opencv )
 }
 
 // ----------------------------------------------------------------------------
+/// `separable_filter` is what `gaussian_blur` and `box_blur` run on, and it is
+/// allowed to be because it agrees with the square pass it replaced. That
+/// agreement is not free -- the square pass multiplies the two weights
+/// together before touching the pixel and two passes do not -- so it is
+/// checked here rather than assumed, across the widths, the border rules and
+/// the pixel types where it could come apart.
+TEST ( filter, separable_filter_agrees_with_the_square_pass )
+{
+  io::border_mode const modes[] = { io::border_mode::REFLECT_101,
+                                    io::border_mode::REPLICATE,
+                                    io::border_mode::REFLECT,
+                                    io::border_mode::WRAP,
+                                    io::border_mode::CONSTANT };
+
+  for( size_t trial = 0; trial < 3; ++trial )
+  {
+    auto const width = 37 + trial * 13;
+    auto const height = 29 + trial * 11;
+
+    viame::image_of< uint8_t > bytes( width, height, 3 );
+    viame::image_of< float > floats( width, height, 1 );
+
+    unsigned seed = 11 + static_cast< unsigned >( trial );
+
+    for( size_t y = 0; y < height; ++y )
+    {
+      for( size_t x = 0; x < width; ++x )
+      {
+        for( size_t plane = 0; plane < 3; ++plane )
+        {
+          seed = seed * 1103515245u + 12345u;
+          bytes( x, y, plane ) =
+            static_cast< uint8_t >( ( seed >> 16 ) & 0xff );
+        }
+
+        floats( x, y, 0 ) =
+          static_cast< float >( ( seed >> 8 ) & 0xffff ) / 257.0f;
+      }
+    }
+
+    for( size_t size : { size_t{ 3 }, size_t{ 5 }, size_t{ 7 },
+                         size_t{ 11 } } )
+    {
+      auto const line = io::gaussian_kernel_1d( size, 0.0 );
+
+      for( auto const mode : modes )
+      {
+        auto const square =
+          io::filter_2d( bytes, io::separable_kernel( line, line ), mode, 7.0 );
+        auto const two = io::separable_filter< uint8_t, uint8_t >(
+          bytes, line, line, mode, 7.0 );
+
+        ASSERT_EQ( square.width(), two.width() );
+        ASSERT_EQ( square.depth(), two.depth() );
+
+        for( size_t y = 0; y < height; ++y )
+        {
+          for( size_t x = 0; x < width; ++x )
+          {
+            for( size_t plane = 0; plane < 3; ++plane )
+            {
+              EXPECT_EQ( square( x, y, plane ), two( x, y, plane ) )
+                << "bytes " << width << "x" << height << " size " << size
+                << " mode " << static_cast< int >( mode )
+                << " at " << x << "," << y << "," << plane;
+            }
+          }
+        }
+
+        auto const square_float =
+          io::filter_2d( floats, io::separable_kernel( line, line ), mode,
+                         7.0 );
+        auto const two_float = io::separable_filter< float, float >(
+          floats, line, line, mode, 7.0 );
+
+        for( size_t y = 0; y < height; ++y )
+        {
+          for( size_t x = 0; x < width; ++x )
+          {
+            EXPECT_EQ( square_float( x, y, 0 ), two_float( x, y, 0 ) )
+              << "floats " << width << "x" << height << " size " << size
+              << " mode " << static_cast< int >( mode );
+          }
+        }
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+TEST ( filter, separable_filter_refuses_a_kernel_with_no_shape )
+{
+  viame::image_of< uint8_t > image( 8, 8, 1 );
+  std::vector< double > const line{ 1.0 };
+  std::vector< double > const nothing;
+
+  // The extra parentheses are for the preprocessor: the comma in the template
+  // argument list would otherwise look like another macro argument
+  EXPECT_THROW( ( io::separable_filter< uint8_t, uint8_t >(
+                    image, nothing, line ) ), std::invalid_argument );
+  EXPECT_THROW( ( io::separable_filter< uint8_t, uint8_t >(
+                    image, line, nothing ) ), std::invalid_argument );
+}
+
+// ----------------------------------------------------------------------------
 /// The border rules, on a kernel wide enough that the edge dominates.
 TEST ( filter, border_modes_match_opencv )
 {

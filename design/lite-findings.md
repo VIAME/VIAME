@@ -2939,3 +2939,79 @@ clamp says, is wrong at the bottom of every disparity map.
 
 Not landed. The prototype's value is this entry: the surrounding machinery is
 settled and the remaining question is one four-term minimum wide.
+
+## 2.39 The same performance bug three times, and it was never the arithmetic
+
+Three separate kernels written in this phase turned out to be several times
+slower than the OpenCV call they replaced, and all three times the first
+explanation reached for was vectorisation -- OpenCV sweeps a window eight or
+sixteen pixels at a time and these sweep it one. That explanation was wrong
+every time, or rather it was the *last* few times' worth of the gap and not
+the first. What the profile actually said:
+
+* the Farneback pyramid's Gaussian: **1.9 s** of a 1080p frame pair;
+* `min_eigen_value`, which is the whole of Shi-Tomasi corner detection:
+  **0.219 s** of the 0.245 the detector took;
+* building the Lucas-Kanade pyramid: **0.085 s** of the tracker's 0.111,
+  which left the 21 by 21 window loops -- the part that looks expensive, and
+  the part SIMD would help -- accounting for 0.03.
+
+The common cause is `filter_2d` and the shape of code around it:
+
+**A square pass over a separable kernel.** `separable_kernel` builds the outer
+product and `filter_2d` sweeps it, so an N by N kernel costs N^2 weighted
+samples a pixel where two passes cost 2N. At the seventeen taps the coarsest
+pyramid level asks for, that is 289 against 34.
+
+**A border rule resolved per tap.** `sample_with_border` switches on the
+border mode on every tap of every pixel, and for all but a rim of the kernel's
+own radius the answer is "inside". Eighteen dispatched calls a pixel for two
+Sobel derivatives; some fifty million a frame pair for a four level pyramid.
+
+Both are fixed now, in the general place rather than in each caller:
+`filter_2d` splits the inside from the rim, and `separable_filter` does the
+two passes for `gaussian_blur` and `box_blur`. A 1080p Gaussian at seventeen
+taps went from **1.871 s to 0.146**, at seven taps from 0.355 to 0.069, and
+the corner detector from 0.245 to 0.102.
+
+Two things worth taking from it beyond the numbers.
+
+The first is that **both fixes are arithmetic-preserving, and that was
+checked rather than assumed.** Splitting the rim off visits the taps in the
+same order, so it is exact by construction. Going separable is not: the square
+pass multiplies the two weights together before touching the pixel and two
+passes do not, and floating point multiplication is not associative. So it was
+measured -- three image sizes, four kernel widths, five border modes including
+`CONSTANT`, a three plane byte image and a float one -- and it is identical in
+all sixty. The optimised tracker was checked the same way, not against cv2 but
+against the **previous build of itself**, by checking the committed headers
+back out and diffing the output: byte for byte the same over twenty-six
+configurations.
+
+The second is the ordering. Each of these was found by timing the parts, and
+each time the part that was slow was not the part that looked slow. The window
+loops in Lucas-Kanade are the obvious suspect, they are what OpenCV spends its
+intrinsics on, and they were a quarter of the cost.
+
+**And then "what is left is vectorisation" turned out to be wrong too**, which
+is the last and best part of the lesson. Two things had never been controlled
+for:
+
+* cv2's build reports `Parallel framework: pthreads` and its tracker
+  parallelises over points. On sixteen cores it takes 0.0066 s; held to one
+  thread it takes **0.0211**. A factor of 3.2 of the remaining gap was cv2
+  using the other fifteen cores, not cv2 using wider registers;
+* cv2 dispatches to AVX2 and AVX512 at runtime where this tree builds for the
+  x86-64 baseline -- and that makes almost no difference to *us*, because
+  `-march=native` moves the corner measure by 9% and makes the tracker
+  slower, and `-ffast-math` on top changes nothing. GCC is not vectorising
+  these loops whatever it is permitted to use.
+
+At equal optimisation and equal thread count the gap is about three times, and
+the cheapest way to close it is the **parallel sweep, not the intrinsics** --
+each point is independent of every other, so it stays deterministic. Which is
+the ordering lesson twice over: the explanation that sounds most like real
+engineering was, both times, the one that had not been measured. The rule that
+would have saved all of it is to compare like with like first -- same `-O`,
+same thread count, same instruction set -- and only then ask what the code is
+doing.

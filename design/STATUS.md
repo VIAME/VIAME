@@ -1427,3 +1427,49 @@ is the place where what OpenCV does is wrap. Followed positions still agree to
 configuration.
 
 **Green:** BASELINE, UNIT and CORE 477 of 477; GOLDEN and CRITICAL 10 of 10.
+
+And the same fix in the general place, which is where it should have gone.
+
+The entry above fixed `min_eigen_value` by not using `sobel< float >`, and the
+Farneback entry before it fixed the pyramid's blur by not using
+`gaussian_blur`. Two kernels routing around the same shared code is a sign the
+shared code is the problem, so `filter.h` now carries both fixes itself:
+
+* `filter_2d` splits the pixels whose whole footprint is inside the image from
+  the rim that is not. The taps are visited in the same order on both paths and
+  the zero ones skipped the same way, so it is exact by construction; what the
+  inside path drops is `sample_with_border`, which switches on the border rule
+  **per tap**;
+* `separable_filter` does two one dimensional passes, and `gaussian_blur` and
+  `box_blur` are on it. An N by N kernel costs N^2 weighted samples a pixel
+  swept square and 2N swept twice.
+
+    gaussian_blur, 1080p    3 taps   0.063 -> 0.039 s
+                            7 taps   0.306 -> 0.068 s
+                           17 taps   1.671 -> 0.144 s
+
+Both are bound to python and used well past the tracker, so this is the one
+change today that anything else benefits from.
+
+**Going separable is not exact by construction** -- the square pass multiplies
+the two kernel weights together before touching the pixel and two passes do
+not, and floating point multiplication does not associate. So it is measured
+rather than assumed, and the measurement is now a test: three image sizes,
+four kernel widths, five border rules including `CONSTANT`, a three plane byte
+image and a float one, identical in all sixty. The recorded
+`gaussian_blur_matches_opencv` and `box_blur_matches_opencv` goldens replay
+unchanged, which is the same statement from the other direction.
+
+`blur_plane` in the optical flow stays hand written, and its comment now says
+why for the right reason: not because `gaussian_blur` is slow any more, but
+because everything around it works on flat vectors and going through
+`gaussian_blur` would copy a plane into an `image_of` and back for every level
+of every frame -- a hundred and twenty megabytes at 1080p to save twenty
+lines.
+
+Finding 2.39 collects the whole thing: the same performance bug three times,
+none of it the arithmetic, and two confounds in the comparison that had never
+been controlled for.
+
+**Green:** BASELINE, UNIT and CORE 479 of 479 -- the two new filter tests --
+and GOLDEN and CRITICAL 10 of 10.

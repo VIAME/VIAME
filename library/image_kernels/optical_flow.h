@@ -632,14 +632,13 @@ update_flow( std::vector< float > const& matrices,
 
 /// One plane blurred by the same Gaussian `gaussian_blur` builds.
 ///
-/// Two one dimensional passes rather than `filter_2d`'s single square one.
-/// The kernel is `gaussian_kernel_1d`'s, so the weights are shared with
-/// every other blur in the tree and the answer is the same to the last
-/// rounding; what is not shared is the cost, because the coarsest pyramid
-/// level asks for a seventeen tap blur of the **full resolution** frame and
-/// a square pass would do 289 weighted samples per pixel for it where two
-/// passes do 34. The intermediate row stays in double so the split does not
-/// cost precision either.
+/// `gaussian_blur` is separable itself now -- this file's need for a
+/// seventeen tap blur of a full resolution frame is what sent it that way --
+/// so the two are the same arithmetic and the same cost. What this keeps is
+/// the **buffer**: everything else here works on flat vectors, and calling
+/// `gaussian_blur` would copy a plane into an `image_of` and back out of one
+/// for every level of every frame, which at 1080p is a hundred and twenty
+/// megabytes of copying to save twenty lines.
 inline std::vector< float >
 blur_plane( std::vector< float > const& source, size_t width, size_t height,
             size_t size, double sigma )
