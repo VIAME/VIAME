@@ -2823,49 +2823,64 @@ seeded if the **previous column** was not seeded and the pixel above is not
 already an edge, which is what keeps a thick ridge from seeding along its
 whole length.
 
-**The circle transform's radius estimate is not the one the literature or the
-old source describes.** The accumulation is as expected -- each edge pixel
-votes along its own gradient, in both directions, from `min_radius` to
-`max_radius`, in a 1/1024 fixed point -- and the **centres came out exactly
-right at `dp = 1`** on the first attempt. The radii did not, and the reason is
-that OpenCV no longer picks the radius by sorting the distances from the
-centre and walking them. It bins them:
+**The circle transform took four passes, and the last two came from making
+cv2 show its work.** The accumulation was right from the start -- each edge
+pixel votes along its own gradient, both ways, from `min_radius` to
+`max_radius` in a 1/1024 fixed point -- and the centres were right at `dp = 1`
+immediately. Everything after that was wrong in a way that took a way of
+*observing* cv2 to fix, not more reading.
 
-    bins_per_dr = 10
-    n_bins      = round((max_radius - min_radius) / dr * bins_per_dr)
-    bin         = clamp(round((distance - min_radius) / dr * bins_per_dr))
+The observation is `maxRadius < 0`. Under `HOUGH_GRADIENT` that makes
+`HoughCircles` **return its centres with radius zero**, before the radius
+stage has filtered anything -- which is exactly the internal list an earlier
+attempt gave up for want of. With it, two rules could be fitted rather than
+guessed:
 
-and then sweeps the histogram from the top, taking a window of `bins_per_dr`
-bins at a time and keeping the window whose count, weighted against its own
-radius, is the best so far. That is why every radius it returns is a multiple
-of `dp/20`: 19.4, 9.6, 5.5 at `dp = 1`, and 18.8, 12.6, 6.2 at `dp = 2`. A
-port that sorts distances instead lands within a pixel and never exactly.
+* the peak test is **asymmetric**: strictly greater than the left neighbour
+  and the one above, greater *or equal* against the right and below. Sixteen
+  combinations were scored and this one wins by a factor of eight;
+* the sweep **skips the first cell of each axis and keeps the last**. OpenCV
+  walks its padded accumulator from index 1 to one before the end, and since
+  its padding is all at the far end, that asymmetry falls out. Getting this
+  wrong the obvious way -- skipping both ends -- loses real centres.
 
-With the histogram in, and with the outer loop's own decrement -- which fires
-*after* the inner window loop has already walked the index back, and which is
-the whole of a 0.4 pixel error -- the transform matched `cv2.HoughCircles`
-exactly, centre and radius, on a three-circle scene at `dp = 1` and three
-`param2` values. **That was not enough evidence, and widening the sweep said
-so**: over three scenes, two minimum distances, four thresholds and two radius
-ranges, eight of forty-eight configurations still disagree, and they disagree
-by cv2 finding centres the port does not. The lesson is the one the count has
-already taught twice this phase -- a port is not done because the case in
-front of you passes; it is done when the sweep passes.
+With those two, the centre lists are **identical over 35 configurations**,
+five scenes by seven `(dp, param2)` pairs, `dp` from 1.0 to 3.0, odd image
+sizes included. The ranked order matches too, which means the accumulator
+values agree and not merely their maxima.
 
-Where the remaining difference lives is fairly clear and is not settled here.
-The peak test picks a cell that beats its four neighbours, and whether each
-comparison is strict decides what happens on a plateau: at `dp = 2` two of
-cv2's centres sit on cells that **equal** their right or lower neighbour, so
-OpenCV cannot be strict in all four directions, and making it non-strict to
-the right and below then adds centres at `dp = 1` that cv2 does not report.
-The rule cannot be fitted from the outside, because cv2 never shows its centre
-list: what it returns has already been filtered by the radius histogram's own
-count. Settling it wants the accumulator instrumented from inside, which is
-the next attempt's first move.
+The radius is a **histogram**, not the sorted-distance walk the old source
+describes: ten bins per `dr`, swept from the top a window of ten bins at a
+time, keeping the window whose count weighted against its own radius is best.
+That is why every radius cv2 returns is a multiple of `dp/20`. The outer
+loop's own decrement -- which fires *after* the inner window loop has already
+walked the index back -- is worth 0.4 of a pixel on its own.
 
-So the port is not landed. What is landed is this note, with the histogram
-written out, so that attempt starts from the two answers rather than from the
-literature.
+**What is left is the output order, and only the order.** On the recorded
+fixture with the shipped configuration the port finds the same four circles
+with the same four radii; `(47.5, 46.5, 12.7)` and `(21.5, 21.5, 8.4)` come
+back the other way round. Across scenes the accepted **set** is identical
+every time and the order differs in chunks -- the first few entries follow the
+accumulator ranking and then it scrambles. That looked like a parallel
+collection until it was tested: the order is stable across three runs at 1, 2,
+4, 8 and 16 threads, so it is deterministic and simply a rule not yet found.
+It matters because `min_dist` de-duplication keeps the first of a cluster, so
+order decides which survives.
+
+**And a second obstacle that has nothing to do with Hough.** The detector
+blurs with `cv2.GaussianBlur(gray, (7,7), 1.5)` before the transform, and
+`image_kernels.gaussian_blur` does not reproduce that. It reproduces it
+*exactly* when sigma is zero -- OpenCV's small-kernel table is dyadic, 1/32
+and 7/64, so both sides compute it without rounding -- but for an **explicit
+sigma** it differs by one count on about **20% of pixels**, because
+`cv::GaussianBlur` on an 8-bit image converts the kernel to fixed point and
+filters in integers where this filters in double. Same family as the L*a*b*
+tables and `ocv_convert_color`'s recorded tolerance. Fed cv2's own blurred
+image the port's circle *set* is exact; fed its own, one circle moves a pixel.
+
+So `hough_circle` needs two things, both now named: the ordering rule, and a
+decision about the 8-bit fixed-point filter path. Neither is "the algorithm is
+wrong", which is where this started.
 
 ## 2.38 SGBM: everything around the aggregation reproduced, the aggregation did not
 
