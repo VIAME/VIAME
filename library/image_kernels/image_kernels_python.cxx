@@ -182,8 +182,9 @@ crop( array_of< T > const& array, size_t left, size_t top, size_t width,
     array.ndim() == 3 );
 }
 
+template < typename T >
 py::array
-to_gray( array_of< uint8_t > const& array )
+to_gray( array_of< T > const& array )
 {
   if( array.ndim() != 3 )
   {
@@ -193,15 +194,17 @@ to_gray( array_of< uint8_t > const& array )
   return as_array( VIAME_KERNEL_CALL( rgb_to_gray, source ), false );
 }
 
+template < typename T >
 py::array
-to_rgb( array_of< uint8_t > const& array )
+to_rgb( array_of< T > const& array )
 {
   auto const source = as_image( array );
   return as_array( VIAME_KERNEL_CALL( gray_to_rgb, source ), true );
 }
 
+template < typename T >
 py::array
-swap_channels( array_of< uint8_t > const& array )
+swap_channels( array_of< T > const& array )
 {
   if( array.ndim() != 3 )
   {
@@ -784,12 +787,9 @@ for_every_pixel_type( py::module& m, char const* name, Byte byte_version,
 
 /// Bind one name to both the uint8 and the float32 overload.
 ///
-/// pybind tries them in the order they are registered, and without
-/// `forcecast` on either an array of the other type falls through to the
-/// second rather than being silently converted. uint8 goes first because
-/// that is what a frame is; float32 is there for the maps a depth or
-/// disparity stage carries, which `cv2.remap` took happily and a uint8-only
-/// binding would have truncated without a word.
+/// Use only for operations whose supported dtypes exclude uint16. NumPy
+/// safe casts still allow uint16 to reach a float overload without forcecast;
+/// operations preserving uint16 must use for_every_pixel_type instead.
 template < typename Byte, typename Float, typename... Extra >
 void
 for_both_pixel_types( py::module& m, char const* name, Byte byte_version,
@@ -1460,13 +1460,16 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "width" ), py::arg( "height" ),
          "Crop to a rectangle, clamped to the image." );
 
-  m.def( "to_gray", &to_gray, py::arg( "image" ),
+  for_every_pixel_type( m, "to_gray", &to_gray< uint8_t >,
+         &to_gray< uint16_t >, &to_gray< float >, py::arg( "image" ),
          "RGB to single channel, by the same luma weights as the C++ side." );
 
-  m.def( "to_rgb", &to_rgb, py::arg( "image" ),
+  for_every_pixel_type( m, "to_rgb", &to_rgb< uint8_t >,
+         &to_rgb< uint16_t >, &to_rgb< float >, py::arg( "image" ),
          "Single channel to three identical ones." );
 
-  m.def( "swap_channels", &swap_channels, py::arg( "image" ),
+  for_every_pixel_type( m, "swap_channels", &swap_channels< uint8_t >,
+         &swap_channels< uint16_t >, &swap_channels< float >, py::arg( "image" ),
          "RGB to BGR, or back." );
 
   for_both_pixel_types( m, "to_hsv", &to_hsv< uint8_t >, &to_hsv< float >,
@@ -1563,18 +1566,21 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   m.def( "text_size", &text_size, py::arg( "text" ), py::arg( "scale" ) = 1,
          "The (width, height) of text, as cv2.getTextSize reports it." );
 
-  for_both_pixel_types( m, "gaussian_blur", &gaussian_blur< uint8_t >,
+  for_every_pixel_type( m, "gaussian_blur", &gaussian_blur< uint8_t >,
+         &gaussian_blur< uint16_t >,
          &gaussian_blur< float >, py::arg( "image" ),
          py::arg( "size" ), py::arg( "sigma" ) = 0.0,
          py::arg( "border" ) = "reflect_101",
          "cv2.GaussianBlur. `size` is the odd kernel width and height, and "
          "sigma is derived from it when left at zero." );
 
-  for_both_pixel_types( m, "box_blur", &box_blur< uint8_t >,
+  for_every_pixel_type( m, "box_blur", &box_blur< uint8_t >,
+         &box_blur< uint16_t >,
          &box_blur< float >, py::arg( "image" ), py::arg( "size" ),
          py::arg( "border" ) = "reflect_101", "cv2.blur." );
 
-  for_both_pixel_types( m, "add_weighted", &add_weighted< uint8_t >,
+  for_every_pixel_type( m, "add_weighted", &add_weighted< uint8_t >,
+         &add_weighted< uint16_t >,
          &add_weighted< float >, py::arg( "first" ),
          py::arg( "alpha" ), py::arg( "second" ), py::arg( "beta" ),
          py::arg( "gamma" ) = 0.0,
@@ -1582,7 +1588,8 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "float image \"saturated\" means nothing is clamped, as "
          "cv2.addWeighted on a float does not clamp either." );
 
-  for_both_pixel_types( m, "normalize", &normalize< uint8_t >,
+  for_every_pixel_type( m, "normalize", &normalize< uint8_t >,
+         &normalize< uint16_t >,
          &normalize< float >, py::arg( "image" ), py::arg( "low" ) = 0.0,
          py::arg( "high" ) = 255.0,
          "Rescale the image's range onto [low, high]. cv2.normalize with "
@@ -1602,13 +1609,15 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "Contrast limited adaptive histogram equalisation, which is what "
          "cv2.createCLAHE().apply() does." );
 
-  for_both_pixel_types( m, "erode", &erode< uint8_t >, &erode< float >,
+  for_every_pixel_type( m, "erode", &erode< uint8_t >,
+         &erode< uint16_t >, &erode< float >,
          py::arg( "image" ), py::arg( "shape" ) = "rect",
          py::arg( "width" ) = 3, py::arg( "height" ) = 3,
          "Grey erosion. cv2.erode with cv2.getStructuringElement; the shape "
          "is one of rect, cross, disk." );
 
-  for_both_pixel_types( m, "dilate", &dilate< uint8_t >, &dilate< float >,
+  for_every_pixel_type( m, "dilate", &dilate< uint8_t >,
+         &dilate< uint16_t >, &dilate< float >,
          py::arg( "image" ), py::arg( "shape" ) = "rect",
          py::arg( "width" ) = 3, py::arg( "height" ) = 3,
          "Grey dilation. cv2.dilate." );

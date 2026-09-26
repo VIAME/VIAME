@@ -1,18 +1,11 @@
-"""The handful of image primitives VIAME's python used OpenCV for.
+"""Image I/O and array helpers for VIAME's converted Python callers.
 
-`opencv-python-headless` was a hard dependency of the wheel for this: 789
-call sites across 96 files, almost all of them reading an image, converting
-a colour space, or resizing. None of that needs OpenCV. Pillow and numpy are
-already dependencies and cover it.
+Pillow handles image codecs. Native VIAME kernels provide grayscale and
+nearest, bilinear, bicubic and area resizing with the conventions used by
+OpenCV callers. The helper's Lanczos option retains Pillow's filter.
 
-What is deliberately *not* here: homography estimation, camera calibration
-and chessboard detection. Those are OpenCV algorithms rather than
-primitives, and reimplementing them is a numerical project, not a port. They
-stay behind the `opencv` extra -- see `viame.utilities.opencv`.
-
-Colour handling follows OpenCV's conventions so that ported code keeps
-working: the ITU-R BT.601 luma weights it uses for grayscale, and its
-channel order where a caller was relying on it.
+Colour arrays use RGB channel order. Supported native pixel types are
+uint8, uint16 and float32; conversion and resizing preserve that dtype.
 """
 
 import numpy as np
@@ -28,11 +21,6 @@ INTER_LINEAR = "bilinear"
 INTER_CUBIC = "bicubic"
 INTER_AREA = "area"
 INTER_LANCZOS = "lanczos"
-
-# BT.601, the weights cv2.cvtColor uses for COLOR_*2GRAY. Kept explicit so a
-# reader can see this matches rather than having to trust it.
-_LUMA = (0.299, 0.587, 0.114)
-
 
 def _pil():
     from PIL import Image
@@ -151,9 +139,10 @@ def to_gray(array):
     array = np.asarray(array)
     if array.ndim == 2:
         return array
-    weights = np.asarray(_LUMA, dtype=np.float32)
-    gray = array[..., :3].astype(np.float32) @ weights
-    return np.rint(gray).clip(0, 255).astype(array.dtype)
+    if array.ndim == 3 and array.shape[2] == 1:
+        return array[..., 0]
+    from viame import image_kernels
+    return image_kernels.to_gray(np.ascontiguousarray(array))
 
 
 def to_rgb(array):
@@ -173,25 +162,35 @@ def swap_channels(array):
 
 
 def resize(array, width, height, interpolation=INTER_LINEAR):
-    """Resize to an exact size.
+    """Resize with the native kernels, preserving uint8, uint16 or float32.
 
-    `INTER_AREA` maps to Pillow's box filter, which is what it is: an
-    average over the source pixels covering each destination pixel.
+    Lanczos retains the Pillow implementation used by this helper; the
+    native kernels implement nearest, bilinear, bicubic and area.
     """
-    Image = _pil()
-    filters = {
-        INTER_NEAREST: Image.NEAREST,
-        INTER_LINEAR: Image.BILINEAR,
-        INTER_CUBIC: Image.BICUBIC,
-        INTER_AREA: Image.BOX,
-        INTER_LANCZOS: Image.LANCZOS,
-    }
-    if interpolation not in filters:
+    array = np.asarray(array)
+    if array.dtype not in (np.dtype(np.uint8), np.dtype(np.uint16), np.dtype(np.float32)):
+        raise TypeError("resize expects uint8, uint16 or float32")
+    if interpolation in (INTER_NEAREST, INTER_LINEAR, INTER_CUBIC, INTER_AREA):
+        from viame import image_kernels
+        return image_kernels.resize(np.ascontiguousarray(array), int(width),
+                                    int(height), interpolation=interpolation)
+    if interpolation != INTER_LANCZOS:
         raise ValueError(f"unknown interpolation: {interpolation!r}")
 
-    array = np.asarray(array)
-    mode = "L" if array.ndim == 2 else "RGB"
-    source = array if array.dtype == np.uint8 else np.clip(array, 0, 255).astype(np.uint8)
-    out = Image.fromarray(source, mode=mode).resize(
-        (int(width), int(height)), filters[interpolation])
-    return np.asarray(out)
+    Image = _pil()
+    size = (int(width), int(height))
+    # Pillow cannot filter I;16 or multichannel float arrays. Filtering each
+    # plane as float preserves the range and avoids dropping alpha channels.
+    def plane_resize(plane):
+        source = plane if plane.dtype == np.uint8 else plane.astype(np.float32)
+        return np.array(Image.fromarray(source).resize(size, Image.Resampling.LANCZOS))
+
+    if array.ndim == 2:
+        out = plane_resize(array)
+    elif array.ndim == 3:
+        out = np.stack([plane_resize(array[..., c]) for c in range(array.shape[2])], axis=2)
+    else:
+        raise ValueError("resize expects an HxW or HxWxC image")
+    if np.issubdtype(array.dtype, np.integer):
+        out = np.rint(out).clip(0, np.iinfo(array.dtype).max)
+    return out.astype(array.dtype, copy=False)

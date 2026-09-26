@@ -93,3 +93,13 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
   )
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
+    NAME    "unit:image_kernels:pixel_dtypes"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_pixel_dtypes.py"
+    LABELS  UNIT
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
+endif()

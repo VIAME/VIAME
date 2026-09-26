@@ -89,3 +89,40 @@ def test_decoded_images_can_be_drawn_on(tmp_path):
         assert restored.flags.writeable
         image_kernels.fill_polygon(restored, [(1, 1), (6, 1), (6, 6)], (255, 0, 0))
         assert restored.sum() > 0
+
+
+@pytest.mark.parametrize("dtype,value", [(np.uint16, 40000), (np.float32, 40000.5)])
+def test_gray_preserves_high_values(dtype, value):
+    image = np.full((5, 7, 4), value, dtype=dtype)
+    gray = imageops.to_gray(image)
+    assert gray.dtype == image.dtype
+    np.testing.assert_allclose(gray, image[..., 0], rtol=1e-7)
+
+
+@pytest.mark.parametrize("interpolation", [imageops.INTER_NEAREST, imageops.INTER_LINEAR,
+    imageops.INTER_CUBIC, imageops.INTER_AREA, imageops.INTER_LANCZOS])
+@pytest.mark.parametrize("dtype,value", [(np.uint8, 200), (np.uint16, 40000),
+                                        (np.float32, 40000.5)])
+@pytest.mark.parametrize("channels", [0, 1, 4])
+def test_resize_preserves_dtype_channels_and_range(interpolation, dtype, value, channels):
+    shape = (5, 7, channels) if channels else (5, 7)
+    image = np.full(shape, value, dtype=dtype)
+    if channels == 4:
+        image[..., 3] = value / 2
+    out = imageops.resize(image, 3, 2, interpolation)
+    assert out.dtype == image.dtype
+    assert out.shape == ((2, 3, channels) if channels else (2, 3))
+    np.testing.assert_allclose(out, np.broadcast_to(image[0, 0], out.shape), rtol=1e-6)
+    assert out.flags.writeable
+
+
+def test_helper_resize_uses_fractional_area_weights():
+    image = np.array([[0, 0, 10000, 0, 0]], dtype=np.uint16)
+    out = imageops.resize(image, 3, 1, imageops.INTER_AREA)
+    np.testing.assert_array_equal(out, [[0, 6000, 0]])
+
+
+def test_helper_resize_retains_rgba_channels():
+    image = np.arange(16, dtype=np.uint8).reshape(2, 2, 4)
+    out = imageops.resize(image, 4, 4, imageops.INTER_NEAREST)
+    np.testing.assert_array_equal(out, image.repeat(2, 0).repeat(2, 1))
