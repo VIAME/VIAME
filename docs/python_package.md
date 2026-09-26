@@ -122,13 +122,14 @@ before calling `create`:
 Running a pipeline
 ------------------
 
-There are two ways, and the first is usually the one you want.
+Use the file loader for automatic adaptation, or the lower-level interfaces below.
 
 ### Open a normal pipeline for in-memory processing
 
 Use `embedded=True` to replace file readers and standard output writers with
-native memory adapters. Includes, configuration substitutions and relative
-model paths are resolved by the native pipeline parser. Models and ZIP
+native memory adapters. The conversion uses the [shared C++ API](embedded_pipeline.md);
+includes, configuration substitutions and relative model paths are resolved
+by the native pipeline parser. Models and ZIP
 bundles use the same preparation as file-based `viame.open`.
 
 ```python

@@ -86,6 +86,5 @@ if( VIAME_ENABLE_PYTHON )
   endforeach()
   kwiver_add_python_library( _io_native ""
     SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/python/_io_native.cxx"
-    PRIVATE kwiver::vital_algo kwiver::vital kwiver::sprokit_pipeline_util
-            kwiver::kwiver_adapter ${PYTHON_LIBRARIES} )
+    PRIVATE kwiver::vital_algo kwiver::vital kwiver::kwiver_adapter ${PYTHON_LIBRARIES} )
 endif()

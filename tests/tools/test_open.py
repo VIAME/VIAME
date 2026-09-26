@@ -503,7 +503,7 @@ def test_embedded_native_detector_and_zip(tmp_path, pipeline_templates, monkeypa
 
 
 def test_embedded_parser_preserves_included_relative_paths(tmp_path):
-    from viame._embedded import _adapt
+    from viame._embedded import _prepare
     folder = tmp_path / 'sub'
     folder.mkdir()
     (folder / 'input.pipe').write_text('''process input
@@ -520,7 +520,9 @@ process writer
 connect from input.image to detector.image
 connect from detector.image to writer.image
 ''')
-    text, names, inputs, outputs = _adapt(pipe, None, None)
+    description = _prepare(pipe, None, None)
+    text, names, outputs = (description.pipeline_text, tuple(description.input_names),
+                            description.output_ports)
     assert str(folder / 'weights.bin') in text
     assert 'video_input' not in text and 'image_writer' not in text
     assert names == ('input',)

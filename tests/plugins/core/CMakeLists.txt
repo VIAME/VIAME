@@ -81,3 +81,6 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_OPENCV )
   set_tests_properties( viame_plugins:core:curved_measurement
     PROPERTIES LABELS "UNIT;CORE" TIMEOUT 300 )
 endif()
+
+kwiver_discover_gtests( viame_core embedded_pipeline
+  LIBRARIES viame_embedded_pipeline kwiver::vital_vpm GTest::gtest_main )

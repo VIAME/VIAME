@@ -571,3 +571,27 @@ if( VIAME_ENABLE_PYTHON )
 
 endif()
 
+
+# Pipeline adaptation is usable from C++ without the Python loader or algorithm
+# implementations in viame_core. Keep the dependency and build footprint small.
+kwiver_add_library( viame_embedded_pipeline SHARED
+  embedded_pipeline.h embedded_pipeline.cxx )
+target_compile_features( viame_embedded_pipeline PUBLIC cxx_std_17 )
+target_include_directories( viame_embedded_pipeline PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> )
+target_link_libraries( viame_embedded_pipeline
+  PUBLIC kwiver::kwiver_adapter
+  PRIVATE kwiver::sprokit_pipeline_util kwiver::vital_config )
+set_target_properties( viame_embedded_pipeline PROPERTIES
+  SOVERSION ${VIAME_VERSION_MAJOR} )
+kwiver_install_headers( embedded_pipeline.h SUBDIR viame )
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_embedded_pipeline_export.h
+  NOPATH SUBDIR viame )
+
+if( VIAME_ENABLE_PYTHON )
+  kwiver_add_python_library( embedded_pipeline core
+    SOURCES embedded_pipeline_python.cxx
+    PRIVATE viame_embedded_pipeline ${PYTHON_LIBRARIES} )
+endif()
