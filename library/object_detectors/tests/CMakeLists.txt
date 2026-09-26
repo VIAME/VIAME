@@ -66,3 +66,10 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_PYTORCH )
     WORKING_DIRECTORY "${VIAME_BUILD_INSTALL_PREFIX}"
   )
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
+    NAME "unit:object_detectors:rfdetr_seed_weights"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_rfdetr_seed_weights.py"
+    LABELS UNIT TIMEOUT 300 SOURCE_SETUP )
+endif()

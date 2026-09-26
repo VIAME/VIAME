@@ -775,6 +775,106 @@ def report_cuda_errors(context):
 # =============================================================================
 
 
+def rfdetr_default_pretrain_file(model_cls):
+    """The bare filename rfdetr fetches for ``model_cls`` when no seed is given
+    (for example rf-detr-large-2026.pth), or None when the variant has none.
+
+    Variants either pin ``_model_config_class`` or, like RFDETRLarge, build
+    their config in ``get_model_config``; the config class carrying the
+    default is then the one named after the variant in ``rfdetr.config``.
+    """
+    candidates = [getattr(model_cls, '_model_config_class', None)]
+    try:
+        import rfdetr.config as rfdetr_config
+        candidates.append(getattr(rfdetr_config, model_cls.__name__ + 'Config', None))
+    except ImportError:
+        pass
+    for config_cls in candidates:
+        field = getattr(config_cls, 'model_fields', {}).get('pretrain_weights')
+        default = getattr(field, 'default', None)
+        if isinstance(default, str) and default:
+            return default
+    return None
+
+
+def find_rfdetr_seed_weights(model_cls, search_dirs=()):
+    """Locate an installed copy of ``model_cls``'s default pretrained weights.
+
+    The RF-DETR add-on ships the COCO seed weights in the install's
+    configs/pipelines/models folder so that training does not download them
+    at run time. Returns the path of the file found in ``search_dirs`` or in
+    that folder (through VIAME_INSTALL), or None, in which case rfdetr fetches
+    the weights itself.
+    """
+    filename = rfdetr_default_pretrain_file(model_cls)
+    if not filename:
+        return None
+    directories = [directory for directory in search_dirs if directory]
+    install = os.environ.get('VIAME_INSTALL', '')
+    if install:
+        directories.append(os.path.join(install, 'configs', 'pipelines', 'models'))
+    for directory in directories:
+        candidate = os.path.join(directory, filename)
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def download_rfdetr_seed(url, seed_path):
+    """Fetch ``url`` for a missing ``seed_path``. The file lands beside where
+    the config expected it when that folder is writable, otherwise in
+    rfdetr's own cache (RF_HOME or ~/.roboflow/models). Returns the path."""
+    import shutil
+    import tempfile
+    import urllib.request
+    target_dir = os.path.dirname(os.path.abspath(seed_path))
+    if not os.access(target_dir, os.W_OK):
+        target_dir = os.environ.get('RF_HOME') or os.path.join(os.path.expanduser('~'), '.roboflow', 'models')
+        os.makedirs(target_dir, exist_ok=True)
+    target = os.path.join(target_dir, os.path.basename(seed_path))
+    if os.path.exists(target):
+        return target
+    print(f"[RFDETRTrainer] Downloading seed weights from {url} to {target}", flush=True)
+    handle, partial = tempfile.mkstemp(prefix=os.path.basename(seed_path) + '.', dir=target_dir)
+    os.close(handle)
+    try:
+        with urllib.request.urlopen(url, timeout=120) as response, open(partial, 'wb') as out:
+            shutil.copyfileobj(response, out, 1 << 22)
+        os.replace(partial, target)
+    finally:
+        if os.path.exists(partial):
+            os.remove(partial)
+    return target
+
+
+def resolve_rfdetr_seed(seed_model, seed_model_url_fallback, model_cls, search_dirs=()):
+    """The weights an RF-DETR run starts from: ``seed_model`` when it exists,
+    else an installed copy of the variant's default weights (see
+    ``find_rfdetr_seed_weights``), else '' so that rfdetr downloads them.
+
+    A ``seed_model`` that is set but missing is an error unless
+    ``seed_model_url_fallback`` allows a fallback: a URL fetches the file from
+    there, and true falls through to the default weights. That is how the
+    training configs point at the RF-DETR add-on's copy of the COCO weights
+    while still working on an install that does not have the add-on.
+    """
+    seed = str(seed_model or '').strip()
+    fallback = str(seed_model_url_fallback or '').strip()
+    if seed and not os.path.exists(seed):
+        if fallback.lower().startswith(('http://', 'https://')):
+            return download_rfdetr_seed(fallback, seed)
+        if not parse_bool(fallback):
+            raise ValueError(
+                f"seed_model does not exist: {seed}. Install the pack that provides it, "
+                "or set seed_model_url_fallback to true or to a URL to fetch it from.")
+        print(f"[RFDETRTrainer] seed_model {seed} is not present; using the default "
+              "COCO weights instead", flush=True)
+        seed = ''
+    if seed:
+        return seed
+    return find_rfdetr_seed_weights(model_cls, search_dirs) or ''
+
+
 def ensure_rfdetr_compatibility():
     """
     Ensure compatibility with RF-DETR under transformers 5.x.

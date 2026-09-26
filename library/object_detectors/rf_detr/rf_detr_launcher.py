@@ -28,7 +28,7 @@ def build_and_train(params):
     from viame.object_detectors.base import (
         apply_rfdetr_stem_lr, ensure_fork_start_method,
         ensure_rfdetr_compatibility, parse_resolution, resolution_is_set,
-        rfdetr_resume_lr_callback)
+        resolve_rfdetr_seed, rfdetr_resume_lr_callback)
 
     # Python 3.14 defaults Linux to the forkserver start method, which cannot
     # pickle rfdetr's ChannelSubset transform and kills every DataLoader worker.
@@ -75,10 +75,13 @@ def build_and_train(params):
     # the wrapper would be silently discarded. With num_classes set above,
     # load_pretrain_weights sizes the head for this dataset and keeps the rest
     # of the checkpoint.
-    seed = params.get("seed_model") or ""
-    if seed and os.path.exists(seed):
+    seed = resolve_rfdetr_seed(params.get("seed_model"), params.get("seed_model_url_fallback", False),
+                               model_cls, [params.get("pretrained_dir") or ""])
+    if seed:
+        print(f"[rf_detr_launcher] Seeding from {seed}", flush=True)
         model = model_cls(pretrain_weights=seed, **model_kwargs)
     else:
+        # rfdetr fetches the variant's default COCO weights itself.
         model = model_cls(**model_kwargs)
 
     train_kwargs = params["train_kwargs"]

@@ -9,24 +9,15 @@ if( VIAME_DOWNLOAD_MODELS )
     # Seed models for model training
     if( VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_PYTORCH-MMDET )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb1922d50a41e3d1956a396/download
+        https://viame.kitware.com/api/v1/item/6ab572e22d17596fb9c5d3d6/download
         d1befaf3b64c185f40a29ed2fca87929
         ${VIAME_DOWNLOAD_DIR}/models-mmdet_primitives-v1.4.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR} )
     endif()
 
-    # Default annotation assist tracking models
-    if( VIAME_ENABLE_PYTORCH-SIAMMASK )
-      DownloadAndExtract(
-        https://viame.kitware.com/api/v1/item/61e4e0ebe90592181da06a79/download
-        39c2a4de745edbed0452f8e951c57537
-        ${VIAME_DOWNLOAD_DIR}/models-pysot_tracking_models-v1.2.zip
-        ${CMAKE_CURRENT_SOURCE_DIR} )
-    endif()
-
     if( VIAME_ENABLE_PYTORCH-MDNET )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5e12b04aaf2e2eed35d42979/download
+        https://viame.kitware.com/api/v1/item/6ab572df2d17596fb9c5d3d4/download
         8f6a709478bbd69e4d97fc34ac9b6003
         ${VIAME_DOWNLOAD_DIR}/models-mdnet_tracking_models-v1.0.0.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -34,7 +25,7 @@ if( VIAME_DOWNLOAD_MODELS )
 
     # Default descriptor models, also supplies the efficientnetv2s train seed
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/62d4dc10bddec9d0c45560b9/download
+      https://viame.kitware.com/api/v1/item/6ab572e42d17596fb9c5d3da/download
       c2a966ee5b48cb123ff6e3739c00b9bf
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.3.zip
       ${CMAKE_CURRENT_SOURCE_DIR} )
@@ -66,14 +57,6 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
-  # Darknet training seed models, consumed by the darknet-yolo add-on configs
-  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-DARKNET-YOLO )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/65697428c5a2b36857ad1a0a/download
-      80cfe1dfd89ccd938b587a81b13bdef9
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v4_csp_s_seed_model-v1.0.zip
-      ${CMAKE_CURRENT_SOURCE_DIR} )
-  endif()
 endif()
 
 ###
@@ -282,7 +265,6 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_tracker_adaptive.conf
     train_tracker_botsort.conf
     train_tracker_deepsort.conf
   )
@@ -291,6 +273,7 @@ endif()
 if( VIAME_ENABLE_PYTHON )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_tracker_bytetrack.conf
+    train_tracker_default.conf
     train_tracker_ocsort.conf )
 endif()
 

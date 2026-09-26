@@ -53,7 +53,7 @@ VIAME supports two primary approaches to size measurement:
 Run CMake to automatically download the demo data into this example folder.
 Alternatively you can download the demo data `directly`_.
 
-.. _directly: https://data.kitware.com/#item/5a8607858d777f068578345e`
+.. _directly: https://viame.kitware.com/girder/#item/6ab572d52d17596fb9c5d3c8
 
 Setup:
 ------

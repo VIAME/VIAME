@@ -37,10 +37,12 @@ further. Not listed in this document thoroughly are programming APIs for develop
 DIVE -- Web and Desktop Annotator
 ==================================
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_dive_annotator.png
+.. image:: ../_static/images/quickstart_dive_annotator.png
+   :alt: Dive annotator
    :width: 45%
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_dive_dataset_list.png
+.. image:: ../_static/images/quickstart_dive_dataset_list.png
+   :alt: Dive dataset list
    :width: 45%
 
 Originally created as the VIAME-Web interface (with a public server hosted at
@@ -309,7 +311,8 @@ Additionally:
 How do I know if I have a GPU?
 ===============================
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_device_manager_gpu.png
+.. image:: ../_static/images/quickstart_device_manager_gpu.png
+   :alt: Device manager gpu
    :width: 60%
 
 On Windows, look in Device Manager. Sometimes computers have more than one card (one embedded
@@ -326,19 +329,23 @@ There are four main types of annotations and detection models:
 .. list-table::
    :widths: 50 50
 
-   * - .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_annotation_box_level.png
+   * - .. image:: ../_static/images/quickstart_annotation_box_level.png
+    :alt: Annotation box level
           :width: 100%
 
        **Box-Level:** A bounding box around the object of interest.
-     - .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_annotation_frame_level.png
+     - .. image:: ../_static/images/quickstart_annotation_frame_level.png
+    :alt: Annotation frame level
           :width: 100%
 
        **Frame-Level:** The entire frame is classified (e.g. the whole image has a label).
-   * - .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_annotation_pixel_level.png
+   * - .. image:: ../_static/images/quickstart_annotation_pixel_level.png
+    :alt: Annotation pixel level
           :width: 100%
 
        **Pixel-Level:** Pixel masks or polygons tracing the exact outline of objects.
-     - .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_annotation_keypoints.png
+     - .. image:: ../_static/images/quickstart_annotation_keypoints.png
+    :alt: Annotation keypoints
           :width: 100%
 
        **Keypoints:** Specific points of interest on objects (e.g. head, tail).
@@ -353,11 +360,13 @@ track with just a single state.
 .. list-table::
    :widths: 50 50
 
-   * - .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_detection_example.png
+   * - .. image:: ../_static/images/quickstart_detection_example.png
+    :alt: Detection example
           :width: 100%
 
        Detection
-     - .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_track_example.png
+     - .. image:: ../_static/images/quickstart_track_example.png
+    :alt: Track example
           :width: 100%
 
        Track
@@ -380,10 +389,12 @@ and masks.
 Annotation Best Practices
 ==========================
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_annotation_best_practices.png
+.. image:: ../_static/images/quickstart_annotation_best_practices.png
+   :alt: Annotation best practices
    :width: 80%
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_annotation_gui_example.png
+.. image:: ../_static/images/quickstart_annotation_gui_example.png
+   :alt: Annotation gui example
    :width: 80%
 
 When creating bounding box annotations:
@@ -396,7 +407,8 @@ When creating bounding box annotations:
 3 Core Model Training Workflows
 *************************************
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_training_workflows_diagram.png
+.. image:: ../_static/images/quickstart_training_workflows_diagram.png
+   :alt: Training workflows diagram
    :width: 80%
 
 Workflow #1: Traditional Deep Learning from Scratch

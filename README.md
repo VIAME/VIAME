@@ -80,6 +80,7 @@ CentOS
 [\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)) <br>
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
+<!-- install-links:start -->
 **Windows Full Desktop Binaries:** <br>
 * [VIAME v0.23.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/149gURaPiIYic97St0-F1OlS4qBeGaNly/view?usp=sharing) <br>
 * [VIAME v0.23.2 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6ab3e49292470417fec95cff/download) <br>
@@ -91,6 +92,7 @@ CentOS
 * [VIAME v0.23.2 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6ab3f53492470417fec95d06/download) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1U2H-AE6IwGkClmNEDw-GAETtJTDfKUuR/view?usp=sharing) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fbc82dfcff796fee73d01/download)
+<!-- install-links:end -->
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
@@ -118,12 +120,38 @@ included by default but can be downloaded via running the script download_viame_
 in the bin folder, or by using the viame add-ons tool.
 
 
+Python Package
+--------------
+
+A headless, command-line installation is available on PyPI for Linux, with
+wheels for Python 3.10 through 3.14:
+
+pip install viame
+
+This puts the `viame` tool described below onto your path, needing no
+environment set up afterwards, and installs the `viame` python package
+alongside it, so the same detectors, trackers, readers and measurement
+algorithms the pipelines use can be driven directly from python. See
+[Using VIAME as a Python Package](docs/python_package.md).
+
+The pipelines that ship are those whose models are small enough to travel
+with the code; larger models are fetched on demand with the viame add-ons
+tool, into the same environment.
+
 Command Line Interface Basics
 -----------------------------
 
-After sourcing the setup script in an install, every command line tool is a
-subcommand of the `viame` program. `viame help` lists them with a one line
-description each, and `viame help <tool>` prints that tool's own options:
+Every command line tool is a subcommand of the `viame` program. `viame help`
+lists them with a one line description each, and `viame help <tool>` prints
+that tool's own options.
+
+A desktop or docker installation needs its environment set up first, once
+per shell:
+
+source [viame-install-directory]/setup_viame.sh
+
+The pip package needs no such step: `pip install viame` puts `viame` on the
+path already configured, and the commands below work straight away.
 
 ```
 viame help                                       # list every tool

@@ -154,8 +154,15 @@ class SAM2Segmenter(SegmentViaPoints):
             self._embedded_image = img_array
 
         # Convert points to numpy arrays
-        point_coords = np.array([[p.value[0], p.value[1]] for p in points], dtype=np.float32)
-        point_labels_arr = np.array(point_labels, dtype=np.int32)
+        # SAM's convention: labels 2 and 3 are the corners of a box prompt.
+        coords = [(p.value[0], p.value[1], int(l)) for p, l in zip(points, point_labels)]
+        corners = {l: (x, y) for x, y, l in coords if l in (2, 3)}
+        box = None
+        if 2 in corners and 3 in corners:
+            box = np.array([*corners[2], *corners[3]], dtype=np.float32)
+        clicks = [(x, y, l) for x, y, l in coords if l not in (2, 3)]
+        point_coords = np.array([[x, y] for x, y, _ in clicks], dtype=np.float32) if clicks else None
+        point_labels_arr = np.array([l for _, _, l in clicks], dtype=np.int32) if clicks else None
 
         # Run inference with appropriate autocast
         device = getattr(self._predictor, 'device', None)
@@ -171,7 +178,8 @@ class SAM2Segmenter(SegmentViaPoints):
             masks, scores, _ = self._predictor.predict(
                 point_coords=point_coords,
                 point_labels=point_labels_arr,
-                multimask_output=True,
+                box=box,
+                multimask_output=box is None,
             )
 
         # Create detected object set

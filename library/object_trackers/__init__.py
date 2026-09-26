@@ -18,6 +18,12 @@ subpackages beside this: `pytorch`, `siammask`, `mdnet` and `sam3`.
 #
 # Each entry is ( interface, name, description, "module:Class" ).
 __vital_algorithm_declarations__ = [
+    ( "track_objects", "homog_iou",
+      "Fixed-target tracker matching boxes after homography registration",
+      "viame.object_trackers.homog_iou_tracker:HomogIOUTracker" ),
+    ( "train_tracker", "homog_iou",
+      "Homography IoU tracker parameter estimation from track groundtruth",
+      "viame.object_trackers.homog_iou_trainer:HomogIOUTrainer" ),
     ( "track_objects", "bytetrack",
       "ByteTrack multi-object tracker with two-stage association",
       "viame.object_trackers.bytetrack_tracker:ByteTrackTracker" ),

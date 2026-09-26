@@ -83,81 +83,98 @@ There are a number of core capapbilities within the software, click on each of t
 
 Object Detection and Tracking
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
+.. image:: _static/images/many_scallop_detections_gui.png
+   :alt: Many scallop detections gui
    :width: 30%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2020/09/Capabilities_Object_Detection.png
+.. image:: _static/images/Capabilities_Object_Detection.png
+   :alt: Capabilities object detection
    :width: 27.5%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
+.. image:: _static/images/Text-Query-Result1.jpg
+   :alt: Text query result
    :width: 27.5%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_tracking
 
 User Interfaces for Annotation, Visualization, and Detector Model Training
 
-.. image:: https://raw.githubusercontent.com/Kitware/dive/refs/heads/main/docs/images/Banner.png
+.. image:: _static/images/dive_banner.png
+   :alt: DIVE annotator
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
+.. image:: _static/images/Point-Segmentation.png
+   :alt: Point segmentation
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Train_From_Dive.png
+.. image:: _static/images/Train_From_Dive.png
+   :alt: Train from dive
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
 Measuring Animal Lengths Using Metadata or Stereo
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
+.. image:: _static/images/fish_measurement_example.png
+   :alt: Fish measurement example
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Show-Features-On-Success1.jpg
+.. image:: _static/images/Calibration-Show-Features-On-Success1.jpg
+   :alt: Calibration show features on success
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Seamap-Short1.png
+.. image:: _static/images/Stereo-Seamap-Short1.png
+   :alt: Stereo seamap short
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
 Text, Image, Video Search for Rapid Model Generation
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
+.. image:: _static/images/iqr_11_initial_results.png
+   :alt: Iqr 11 initial results
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
+.. image:: _static/images/Perform-Text-Query.jpg
+   :alt: Perform text query
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 Illumination Normalization and Color Correction
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
+.. image:: _static/images/color_correct.png
+   :alt: Color correct
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+.. image:: _static/images/Image_Filter_in_DIVE.png
+   :alt: Image filter in dive
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
 
 Detector and Tracker Evaluation
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+.. image:: _static/images/Score_PRC.png
+   :alt: Score prc
    :width: 20%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+.. image:: _static/images/Score_Confusion_Matrix.jpg
+   :alt: Score confusion matrix
    :width: 17.5%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
+.. image:: _static/images/Score_ROC.png
+   :alt: Score roc
    :width: 20%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+.. image:: _static/images/Score_MAP_Table.png
+   :alt: Score map table
    :width: 20%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 

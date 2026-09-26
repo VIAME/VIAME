@@ -354,10 +354,11 @@ class InteractiveSegmentationService:
         point_labels = request.get("point_labels", [])
         frame_time = request.get("frame_time")
         line = request.get("line")
+        box = request.get("box")
 
         if not image_path:
             raise ValueError("image_path is required")
-        if not points:
+        if not points and not box:
             raise ValueError("At least one point is required")
         if len(points) != len(point_labels):
             raise ValueError("points and point_labels must have same length")
@@ -373,14 +374,16 @@ class InteractiveSegmentationService:
         vital_points = [Point2d(float(p[0]), float(p[1])) for p in points]
         vital_labels = [int(label) for label in point_labels]
         positives = [[float(p[0]), float(p[1])] for p, l in zip(points, vital_labels) if l == 1]
-        instances = not (line and len(line) >= 2)
+        instances = not (line and len(line) >= 2) and not box
 
-        if not positives:
+        if not positives and not box:
             raise ValueError("Add a foreground point first; background points only trim existing masks")
 
         # Run segmentation (suppress stdout to prevent library warnings corrupting JSON)
         with suppress_stdout():
-            if instances:
+            if box:
+                detected_objects = self._segment_in_box(box, vital_points, vital_labels)
+            elif instances:
                 detected_objects = self._segment_instances(cache_key, points, vital_labels)
             else:
                 detected_objects = self._segment_algo.segment(
@@ -483,6 +486,25 @@ class InteractiveSegmentationService:
         if self._prompt_instances_like is None:
             return DetectedObjectSet()
         return self._detection_from_mask(buffer.mask(), self._prompt_instances_like)
+
+    def _segment_in_box(self, box, vital_points, vital_labels):
+        """Segment the object a drawn box holds. The corners go to the model
+        as SAM's box prompt (point labels 2 and 3), and the mask is clipped
+        to the box, so it never exceeds what was drawn."""
+        from viame.types import Point2d
+        from viame.segmentation.segmentation_utils import clip_mask_to_box
+
+        x0, y0, x1, y1 = [float(v) for v in box]
+        detected_objects = self._segment_algo.segment(
+            self._current_image_container,
+            list(vital_points) + [Point2d(x0, y0), Point2d(x1, y1)],
+            list(vital_labels) + [2, 3])
+        det = next(iter(detected_objects), None) if detected_objects is not None else None
+        if det is None or det.mask is None:
+            return detected_objects
+        image = self._current_image_container
+        mask = self._full_mask(det, (image.height(), image.width()))
+        return self._detection_from_mask(clip_mask_to_box(mask, (x0, y0, x1, y1)), det)
 
     def _fit_to_line(self, detected_objects, line, vital_points, vital_labels):
         """Keep a mask prompted from a head/tail line in scale with that line:
@@ -975,20 +997,6 @@ class InteractiveSegmentationService:
         self._log("Service shutting down")
 
 
-def _text_query_sibling(config_dir, vital_config):
-    """The text-query config beside a segmenter config: the default when it
-    names a backend, else an add-on's own file. A VIAME install rewrites the
-    default with the core placeholder, which names none."""
-    default = config_dir / "interactive_text_query_default.conf"
-    candidates = [default] + sorted(
-        p for p in config_dir.glob("interactive_text_query_*.conf") if p != default)
-    for candidate in candidates:
-        if candidate.exists() and vital_config.read_config_file(
-                str(candidate)).has_value("perform_text_query:type"):
-            return candidate
-    return None
-
-
 def _merge_configs(config_path, device: str = None):
     """Read one or more config files into a single block: a lone segmenter
     config pulls in its text-query sibling, relative model paths resolve
@@ -1010,8 +1018,8 @@ def _merge_configs(config_path, device: str = None):
     if len(config_paths) == 1:
         probe = vital_config.read_config_file(config_paths[0])
         if not probe.has_value("perform_text_query:type"):
-            sibling = _text_query_sibling(Path(config_paths[0]).parent, vital_config)
-            if sibling is not None:
+            sibling = Path(config_paths[0]).parent / "interactive_text_query_default.conf"
+            if sibling.exists():
                 config_paths.append(str(sibling))
 
     cfg = vital_config.read_config_file(config_paths[0])

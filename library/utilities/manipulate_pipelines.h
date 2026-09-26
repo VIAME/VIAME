@@ -21,7 +21,7 @@ std::string detect_marker_indent(
     const std::string& marker );
 
 /// Format a trainer output map as KWIVER .pipe block syntax for use as
-/// the [-DETECTOR-IMPL-] replacement in pipeline templates.
+/// an [-DETECTOR-IMPL-] or [-TRACKER-IMPL-] replacement in pipeline templates.
 ///
 /// config_entries: non-file key-value pairs (e.g. "type"="netharn",
 ///                 "netharn:deployed"="trained_detector.zip")
@@ -33,7 +33,8 @@ VIAME_UTILITIES_EXPORT
 std::string format_output_as_pipe_blocks(
     const std::map< std::string, std::string >& config_entries,
     const std::set< std::string >& copied_filenames,
-    const std::string& base_indent );
+    const std::string& base_indent,
+    const std::string& root = "detector" );
 
 /// Generate the [-DETECTOR-IMPL-] replacement string from a trainer
 /// output map and a pipeline template file.
@@ -44,6 +45,14 @@ std::string format_output_as_pipe_blocks(
 /// contain [-DETECTOR-IMPL-].
 VIAME_UTILITIES_EXPORT
 std::string generate_detector_impl_replacement(
+    const std::map< std::string, std::string >& output_map,
+    const std::string& pipeline_template );
+
+/// Generate the [-TRACKER-IMPL-] replacement string, rooted at the
+/// track_objects process config. Same contract as
+/// generate_detector_impl_replacement.
+VIAME_UTILITIES_EXPORT
+std::string generate_tracker_impl_replacement(
     const std::map< std::string, std::string >& output_map,
     const std::string& pipeline_template );
 

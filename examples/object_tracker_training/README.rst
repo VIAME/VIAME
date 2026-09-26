@@ -92,7 +92,7 @@ VIAME includes trainers for three categories of tracking algorithms:
 +---------------------+----------+-----------+--------------+--------------------------------------------+
 | SiamMask            | 50+      | Yes       | Full network | User-initialized visual tracking           |
 +---------------------+----------+-----------+--------------+--------------------------------------------+
-| Adaptive            | 10+      | Varies    | Auto-selects | Unsure which tracker to use                |
+| Default             | 1+       | No        | Auto-selects | Unsure which tracker to use                |
 +---------------------+----------+-----------+--------------+--------------------------------------------+
 
 The "Min Data" column indicates the recommended minimum number of annotated tracks.
@@ -209,32 +209,39 @@ Training::
 
 
 ****************************
-Adaptive Tracker Training
+Default Tracker Training
 ****************************
 
-VIAME provides an adaptive training mode that automatically analyzes tracking data
-statistics and selects the best trainer(s) for the given dataset. The adaptive trainer
-computes:
+``train_tracker_default.conf`` trains ByteTrack unless the groundtruth clearly
+calls for frame registration. It measures how groundtruth boxes carry from one
+state to the next, three ways:
 
-- **Track statistics**: counts, lengths (short/medium/long), fragmentation rates
-- **Motion patterns**: velocity (mean, max, std), direction changes
-- **Scene density**: concurrent tracks per frame (sparse/medium/dense)
-- **Object sizes**: for Re-ID crop sizing decisions
-- **Appearance consistency**: within-track size variance
-- **Occlusion/proximity**: close track pairs, potential ID switches
+- **iou**: the previous box as-is
+- **motion**: the previous box moved by its constant-velocity prediction
+- **registration**: the previous box moved by a camera transform (affine, or
+  the median shift with few tracks) fit to the *other* tracks in that frame pair
 
-Based on these statistics, the adaptive trainer selects up to 3 algorithms from:
-ByteTrack (10+ tracks), OC-SORT (10+ tracks), DeepSORT (50+ tracks), BoT-SORT
-(50+ tracks), and SRNN (100+ tracks). Each trainer has hard requirements (minimum
-track count, minimum track length, minimum object area) and soft preferences that
-are scored against the data profile.
+The first that links at least 90% of box pairs at IoU 0.3 sets the regime, and
+registration must also beat the constant-velocity prediction by 0.2. Then:
+
+- targets that still move after registration train **BoT-SORT** with camera
+  motion compensation (no Re-ID model, 10+ tracks, needs the PyTorch plugins)
+- targets that stay put (under a quarter of a box size) train **homog_iou**, a
+  pure registration IoU tracker for high-resolution, low-frame-rate imagery of
+  fixed ground targets
+- everything else trains ByteTrack, which is also the fallback if the chosen
+  trainer fails
+
+Objects that all swim or fly the same way look like camera motion to this
+test, since it only sees the boxes. Registration also needs textured imagery;
+open water will not register even when the groundtruth says it should.
 
 Training::
 
-    viame train -i training_data -c train_tracker_adaptive.conf --threshold 0.0
+    viame train -i training_data -c train_tracker_default.conf --threshold 0.0
 
-The adaptive trainer outputs a ``tracking_data_statistics.json`` file with the
-computed dataset statistics for diagnostics.
+The measurements and the chosen regime are written to
+``tracking_data_statistics.json``.
 
 
 **********************
@@ -265,8 +272,8 @@ scenarios.
 Use **SiamMask** training to fine-tune the visual tracker for your specific domain.
 
 **Unsure what to use:**
-Run the **adaptive** trainer -- it will analyze your tracking data and select the best
-option(s) automatically.
+Run the **default** trainer -- it trains ByteTrack, or BoT-SORT with camera motion
+compensation when the groundtruth shows a moving camera.
 
 
 ***************
@@ -294,8 +301,8 @@ Training Scripts
 ``train_siammask.sh`` / ``.bat``
     Train a SiamMask visual tracking network.
 
-``train_adaptive.sh`` / ``.bat``
-    Run adaptive tracker training (auto-selects best trainer(s)).
+``train_default.sh`` / ``.bat``
+    Train ByteTrack, or a registration tracker when the data needs one.
 
 ``train_st_tracker_viame_csv.sh`` / ``.bat``
     Legacy SiamMask training script (calls trainer directly).

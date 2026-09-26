@@ -348,7 +348,9 @@ def choose_pipe_in_zip( info ):
   listing = lb.join( "  " + str( i + 1 ) + ") " + c for i, c in enumerate( choices ) )
   if not sys.stdin.isatty():
     exit_with_error( os.path.basename( info.path ) + " holds several pipelines" +
-                     " and no terminal is attached to choose one:" + lb + listing )
+                     " and no terminal is attached to choose one:" + lb + listing + lb +
+                     "Name the one to run, e.g. -p " + os.path.basename( info.path ) +
+                     "/" + os.path.basename( choices[0] ) )
   print( os.path.basename( info.path ) + " holds several pipelines:" + lb + listing )
   while True:
     answer = input( "Run which one? [1-" + str( len( choices ) ) + "] " ).strip()

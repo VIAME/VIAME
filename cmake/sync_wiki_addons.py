@@ -14,9 +14,10 @@ than inferred. Matching a CSV row to a wiki section by URL only works while the
 two already agree, which is precisely when no sync is needed.
 
 Versions are read back from the server: a Girder item named
-``VIAME-Default-Fish-Models-v2.3.zip`` sets that section's **Version:** to v2.3.
-Links that are not Girder items (Google Drive, data.kitware.com) have their URL
-synced but their version left alone, since there is no name to read.
+``VIAME-Default-Fish-Models-v2.3.zip`` sets that section's **Version:** to v2.3,
+whichever Girder host serves it. Links that are not Girder items (Google Drive)
+have their URL synced but their version left alone, since there is no name to
+read.
 
   cmake/sync_wiki_addons.py                 # report drift, change nothing
   cmake/sync_wiki_addons.py --apply         # edit the wiki clone
@@ -38,28 +39,33 @@ import urllib.request
 
 WIKI_REMOTE = 'git@github.com:VIAME/VIAME.wiki.git'
 WIKI_PAGE = 'Model-Zoo-and-Add-Ons.md'
-GIRDER_ITEM_API = 'https://viame.kitware.com/api/v1/item/%s'
+GIRDER_ITEM_API = 'https://%s/api/v1/item/%s'
 
 # CSV key -> wiki section heading (matched by prefix, so headings can carry
 # trailing words). Only entries listed here are synced.
-#
-# Deliberately absent:
-#   ARCTIC-SEAL   the wiki links a different artifact (a data.kitware.com
-#                 Windows/Linux pair), not the package the CSV carries
-#   ALIGN-CAMERAS no section exists on the page yet
 WIKI_SECTIONS = {
     'DEFAULT-FISH':   'Fish Detector and Tracker',
-    'LEARN':          'ConvNext Low-Shot Models',
     'GENERIC':        'Generic Object Proposer',
+    'RF-DETR':        'RF-DETR Seed Models',
     'SAM2':           'SAM2 Auto',
     'SAM3':           'SAM3 Text Query',
+    'FAST-FDN-STEREO': 'Fast Foundation Stereo',
+    'DINO3':          'DINO Stereo Point Matching',
+    'ALIGN-CAMERAS':  'Camera Alignment',
+    'SRNN':           'SRNN Appearance Tracker',
+    'SIAMMASK':       'SiamMask and SiamRPN++',
+    'DARKNET':        'Additional Darknet YOLO Architectures',
     'COMMUNITY-FISH': 'Community Fish Detection',
+    'LEARN':          'ConvNext Low-Shot Models',
     'SEA-LION':       'Sea Lion Models',
     'GFIT':           'Gulf Fish Identification Track',
+    'ARCTIC-SEAL':    'Arctic Seals',
     'HABCAM':         'HabCam Models',
     'EM-TUNA':        'EM Tuna Detectors',
     'MOUSS-DEEP7':    'MOUSS Deep 7',
     'SWFSC-PENGHEAD': 'Penguin Head',
+    'AERIAL-PENGUIN': 'SWFSC Aerial Penguin',
+    'GROUPER-MOON':   'Grouper Moon',
 }
 
 # Sections whose **Version:** tracks something other than the package filename
@@ -70,7 +76,7 @@ VERSION_EXEMPT = {'GFIT', 'SAM3'}
 DRIVE_ID_RE = re.compile(r'drive\.google\.com/file/d/([^/]+)')
 DOWNLOAD_RE = re.compile(r'(\[Download[^\]]*\]\()([^)]+)(\))')
 VERSION_RE = re.compile(r'(\*\*Version:\*\* *)(\S+)')
-ITEM_ID_RE = re.compile(r'/item/([0-9a-f]{24})/download')
+ITEM_ID_RE = re.compile(r'https?://([^/]+)/api/v1/item/([0-9a-f]{24})/download')
 NAME_VERSION_RE = re.compile(r'-(v[0-9]+(?:\.[0-9]+)*)\.zip$', re.I)
 
 
@@ -91,10 +97,10 @@ def remote_version(url):
     if not m:
         return None
     try:
-        with urllib.request.urlopen(GIRDER_ITEM_API % m.group(1), timeout=30) as r:
+        with urllib.request.urlopen(GIRDER_ITEM_API % (m.group(1), m.group(2)), timeout=30) as r:
             name = json.load(r).get('name', '')
     except Exception as e:
-        print('  ! could not read item name for %s: %s' % (m.group(1), e))
+        print('  ! could not read item name for %s: %s' % (m.group(2), e))
         return None
     m = NAME_VERSION_RE.search(name)
     return m.group(1) if m else None

@@ -8,10 +8,10 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 REM Adjust log level
 SET VIAME_LOG_LEVEL=info
 
-REM Train tracker using adaptive selection
+REM Train ByteTrack, or a registration-based tracker when the data needs one
 viame.exe train ^
   -i training_data ^
-  -c "%VIAME_INSTALL%\configs\pipelines\train_tracker_adaptive.conf" ^
+  -c "%VIAME_INSTALL%\configs\pipelines\train_tracker_default.conf" ^
   --threshold 0.0
 
 pause

@@ -20,6 +20,7 @@ and a helper referenced in one trainer but only defined in another.
 import pytest
 
 TRAINERS = [
+    ('viame.object_trackers.homog_iou_trainer', 'HomogIOUTrainer'),
     ('viame.object_trackers.bytetrack_trainer', 'ByteTrackTrainer'),
     ('viame.object_trackers.ocsort_trainer', 'OCSORTTrainer'),
     ('viame.object_trackers.pytorch.deepsort_trainer', 'DeepSORTTrainer'),

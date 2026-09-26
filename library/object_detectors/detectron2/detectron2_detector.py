@@ -143,7 +143,7 @@ class Detectron2Detector(ImageObjectDetector):
         from viame.util import pil
         from viame.types import ImageContainer
 
-        url = 'https://data.kitware.com/api/v1/file/6011a5ae2fa25629b919fe6c/download'
+        url = 'https://viame.kitware.com/api/v1/item/6ab572e62d17596fb9c5d3e4/download'
         image_fpath = ub.grabdata(
             url, fname='sealion2010.jpg', appname='viame',
             hash_prefix='f016550faa2c96ef4fdca', hasher='sha512')

@@ -74,9 +74,9 @@ class NetharnClassifier(ImageObjectDetector):
             deployed_fpath = harn.run()
         else:
             deployed_fpath = harn.prev_snapshots()[-1]
-        # TODO: point to a pretrained model on data.kitware
+        # TODO: point to a pretrained model on viame.kitware.com
         # import ubelt as ub
-        # url = 'https://data.kitware.com/api/v1/file/<some-itemid>/download'
+        # url = 'https://viame.kitware.com/api/v1/item/<some-itemid>/download'
         # deployed_fpath = ub.grabdata(
         #     url, fname='some-filename.zip',
         #     appname='viame', hash_prefix='some-hash',
@@ -88,18 +88,18 @@ class NetharnClassifier(ImageObjectDetector):
         Returns an image which can be run through the classifier
 
         Returns:
-            ImageContainer: an image of a scallop
+            ImageContainer: an image of a sea lion
         """
         from PIL import Image as PILImage
         from viame.util import pil
         from viame.types import ImageContainer
 
-        url = "https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download"
+        url = "https://viame.kitware.com/api/v1/item/6ab572e62d17596fb9c5d3e4/download"
         image_fpath = ub.grabdata(
             url,
-            fname="scallop.jpg",
+            fname="sealion2010.jpg",
             appname="viame",
-            hash_prefix="3bd290526c76453bec7",
+            hash_prefix="f016550faa2c96ef4fdca",
             hasher="sha512",
         )
         pil_img = PILImage.open(image_fpath)

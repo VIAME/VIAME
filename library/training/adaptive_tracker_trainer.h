@@ -33,6 +33,9 @@ namespace viame {
  * - Occlusion analysis (track overlap/proximity)
  * - Object sizes (for Re-ID crop sizing decisions)
  * - Appearance consistency (bounding box size variance within tracks)
+ * - Association regime: whether raw IoU, constant-velocity prediction, a
+ *   per-frame camera transform (with fixed or moving targets), or appearance
+ *   is needed to link boxes
  *
  * Use cases:
  * - Running parameter-based trackers (ByteTrack) for simple motion scenarios
@@ -88,6 +91,40 @@ public:
       high_variance_threshold, double, \
       "Size CV above which a track has 'high variance'.", \
       0.3 ), \
+    PARAM_DEFAULT( \
+      association_match_iou, double, \
+      "IoU a carried-forward box needs with the next box to count as associated.", \
+      0.3 ), \
+    PARAM_DEFAULT( \
+      association_match_rate, double, \
+      "Fraction of box pairs a motion model must associate for it to fit the data.", \
+      0.9 ), \
+    PARAM_DEFAULT( \
+      max_ambiguity_rate, double, \
+      "Fraction of box pairs where another object overlaps the predicted box at " \
+      "least as much as the true one, above which the data needs appearance " \
+      "features.", \
+      0.05 ), \
+    PARAM_DEFAULT( \
+      registration_min_tracks, size_t, \
+      "Concurrent tracks a frame pair needs to estimate its camera transform " \
+      "(an affine fit from 5+, else the others' median shift).", \
+      2 ), \
+    PARAM_DEFAULT( \
+      registration_min_coverage, double, \
+      "Fraction of box pairs with a camera shift estimate required before the " \
+      "registration regime can be chosen.", \
+      0.5 ), \
+    PARAM_DEFAULT( \
+      registration_margin, double, \
+      "How much registration must out-associate the constant-velocity " \
+      "prediction before a registration regime is chosen.", \
+      0.2 ), \
+    PARAM_DEFAULT( \
+      fixed_residual, double, \
+      "Median motion left after registration, in box sizes, at or below " \
+      "which targets count as fixed ('fixed' rather than 'registration').", \
+      0.25 ), \
     PARAM_DEFAULT( \
       output_statistics_file, std::string, \
       "Optional file path for JSON statistics. Empty = disabled.", \

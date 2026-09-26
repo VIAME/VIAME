@@ -88,6 +88,7 @@ def modules(monkeypatch):
     types = sys.modules['viame.types']
     types.DetectedObjectSet, types.Point2d = DetectionSet, Point
     sys.modules['viame.object_detectors.base'].register_vital_algorithm = lambda *args: None
+    sys.modules['viame.object_detectors.base'].spawn_safe_worker_count = lambda *args, **kwargs: 0
     modules = {'sleap_common': 'viame.classifiers.sleap.sleap_common',
                'sleap_refiner': 'viame.classifiers.sleap.sleap_refiner',
                'sleap_trainer': 'viame.classifiers.sleap.sleap_trainer',

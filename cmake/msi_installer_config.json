@@ -15,7 +15,7 @@
 
   "girder": {
     "api_url": "https://viame.kitware.com/api/v1",
-    "data_url": "https://data.kitware.com/api/v1",
+    "data_url": "https://viame.kitware.com/api/v1",
     "_credential_note": "Set GIRDER_USER and GIRDER_PASSWORD environment variables"
   },
 

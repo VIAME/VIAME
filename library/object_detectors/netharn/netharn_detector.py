@@ -59,7 +59,7 @@ class NetharnDetector(ImageObjectDetector):
             str: file path to a scallop detector
         """
         import ubelt as ub
-        url = 'https://data.kitware.com/api/v1/file/5dd3eb8eaf2e2eed3508d604/download'
+        url = 'https://viame.kitware.com/api/v1/item/6ab572de2d17596fb9c5d3cc/download'
         deployed_fpath = ub.grabdata(
             url, fname='deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix3.zip',
             appname='viame', hash_prefix='22a1eeb18c9e5706f6578e66abda1e97',
@@ -71,16 +71,16 @@ class NetharnDetector(ImageObjectDetector):
         Returns an image which can be run through the detector
 
         Returns:
-            ImageContainer: an image of a scallop
+            ImageContainer: an image of a sea lion
         """
         from PIL import Image as PILImage
         from viame.util import pil
         from viame.types import ImageContainer
         import ubelt as ub
-        url = 'https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download'
+        url = 'https://viame.kitware.com/api/v1/item/6ab572e62d17596fb9c5d3e4/download'
         image_fpath = ub.grabdata(
-            url, fname='scallop.jpg', appname='viame',
-            hash_prefix='3bd290526c76453bec7', hasher='sha512')
+            url, fname='sealion2010.jpg', appname='viame',
+            hash_prefix='f016550faa2c96ef4fdca', hasher='sha512')
         pil_img = PILImage.open(image_fpath)
         image_data = ImageContainer(pil.from_pil(pil_img))
         return image_data
