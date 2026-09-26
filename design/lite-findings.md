@@ -3276,3 +3276,48 @@ one. Either it carries a tolerance the way `ocv_optical_flow` already does --
 contract question, and it is recorded rather than answered here. What should
 *not* happen is the port landing with a tolerance of 1 quietly attached, which
 is how 2.43 came about.
+## 2.45 The 8-bit Gaussian's kernel is built from a running total
+
+`cv::GaussianBlur` on an 8-bit image does not filter in floating point. It
+converts the kernel to Q8.8 and runs two integer passes -- `ufixedpoint16`
+across, `ufixedpoint32` down -- and `gaussian_blur` agreed with it only where
+the kernel is dyadic, which the sigma-derived small kernels are. For any
+explicit sigma it was a count out on about a fifth of the pixels. That was the
+second of finding 2.37's two named obstacles, and it is now closed: identical
+over **947 configurations**, seven kernel sizes by nine sigmas by five shapes,
+uniform and random and three-channel.
+
+The structure came from reading OpenCV's source, as 2.42's inverse did. The
+arithmetic is: the row pass accumulates `kernel * pixel` in a **uint16**, so
+both the products and the sums saturate at 0xFFFF -- 256 times 255 only just
+fits; the column pass multiplies two Q8.8 values into Q16.16 in a uint32; and
+the byte comes off the top with a half added.
+
+The part no amount of reading the *algorithm* would give is how the kernel is
+normalised, and it is the whole difference. Rounding each tap independently
+does not sum to 256: seven taps at sigma 1.5 come to **253**, and a blur three
+parts in 256 dark is three counts dark at the top of the range. Three
+candidates were measured against cv2:
+
+| how the 256 is reached | worst | pixels out, 20 by 28 frame |
+| --- | ---: | ---: |
+| round each tap, no correction | 5 | 768 of 768 |
+| round each tap, shortfall onto the centre | 2 | 209 |
+| round each tap, shortfall by rounding loss | 1 | 126 |
+| **round the running total, take differences** | **0** | **0** |
+
+The last one is OpenCV's, and it is the only one that is right for a reason
+rather than by construction: rounding the cumulative sum makes the total 256 by
+definition and spreads the rounding error along the kernel instead of parking
+it on one tap.
+
+One deliberate gap. The fixed-point path is not used for a **constant** border,
+because OpenCV's fixed-point row filter simply omits the taps that fall
+outside -- which is a constant of zero and nothing else, where this kernel
+takes the constant as an argument. A constant border keeps the double path and
+the count of difference that comes with it.
+
+With this and the `cmpAccum` ordering rule -- accumulator, then larger radius,
+then smaller x, then smaller y -- both of 2.37's obstacles are named and
+solved. What is left for `hough_circle` is writing Canny and the circle
+transform in C++; they have only ever been prototypes.

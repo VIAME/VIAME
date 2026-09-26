@@ -498,6 +498,130 @@ gaussian_kernel_1d( size_t size, double sigma = 0.0 )
 }
 
 // ----------------------------------------------------------------------------
+namespace detail {
+
+/// OpenCV's Q8.8 kernel for an 8 bit Gaussian, which sums to exactly 256.
+///
+/// Rounding each tap independently does not: a 7-tap sigma 1.5 kernel comes to
+/// 253, and a blur three parts in 256 dark is three counts dark at the top of
+/// the range. OpenCV rounds the **running total** and takes differences, so
+/// the sum is 256 by construction and the rounding error is spread along the
+/// kernel rather than parked on one tap. Putting the shortfall on the centre
+/// tap instead is close but not the same: it leaves two counts on 209 pixels
+/// of a 20 by 28 frame.
+inline std::vector< int >
+gaussian_kernel_fixed( std::vector< double > const& line )
+{
+  constexpr int one = 1 << 8;
+
+  auto total = 0.0;
+
+  for( auto const value : line )
+  {
+    total += value;
+  }
+
+  std::vector< int > raw( line.size() );
+  auto running = 0.0;
+  auto placed = 0;
+
+  for( size_t i = 0; i < line.size(); ++i )
+  {
+    running += line[ i ] / total;
+
+    auto const edge = static_cast< int >(
+      std::nearbyint( running * static_cast< double >( one ) ) );
+
+    raw[ i ] = edge - placed;
+    placed = edge;
+  }
+
+  return raw;
+}
+
+/// `cv::GaussianBlur`'s 8 bit path: Q8.8 across, Q16.16 down.
+///
+/// The row pass accumulates `kernel * pixel` in a uint16, which is why the
+/// products and the sums both saturate at 0xFFFF -- 256 times 255 only just
+/// fits. The column pass multiplies two Q8.8 values into Q16.16 in a uint32
+/// and the byte comes off the top with a half added, which is
+/// `ufixedpoint16::saturate_cast` and `ufixedpoint32`'s in OpenCV's
+/// `fixedpoint.inl.hpp`.
+inline viame::image_of< uint8_t >
+gaussian_blur_fixed( viame::image_of< uint8_t > const& image,
+                     std::vector< double > const& line, border_mode mode )
+{
+  auto const raw = gaussian_kernel_fixed( line );
+  auto const n = raw.size();
+  auto const anchor = static_cast< long >( n / 2 );
+
+  auto const width = image.width();
+  auto const height = image.height();
+  auto const planes = image.depth();
+
+  viame::image_of< uint8_t > out( width, height, planes );
+
+  if( width == 0 || height == 0 || planes == 0 )
+  {
+    return out;
+  }
+
+  std::vector< uint16_t > across( width * height );
+
+  for( size_t plane = 0; plane < planes; ++plane )
+  {
+    for( size_t j = 0; j < height; ++j )
+    {
+      for( size_t i = 0; i < width; ++i )
+      {
+        uint32_t sum = 0;
+
+        for( size_t k = 0; k < n; ++k )
+        {
+          auto const sample = sample_with_border(
+            image, static_cast< long >( i ) + static_cast< long >( k ) - anchor,
+            static_cast< long >( j ), plane, mode, 0.0 );
+
+          auto const product = std::min< uint32_t >(
+            static_cast< uint32_t >( raw[ k ] ) *
+            static_cast< uint32_t >( sample ), 0xFFFFu );
+
+          sum = std::min< uint32_t >( sum + product, 0xFFFFu );
+        }
+
+        across[ j * width + i ] = static_cast< uint16_t >( sum );
+      }
+    }
+
+    for( size_t j = 0; j < height; ++j )
+    {
+      for( size_t i = 0; i < width; ++i )
+      {
+        uint32_t sum = 0;
+
+        for( size_t k = 0; k < n; ++k )
+        {
+          auto const row = border_index(
+            static_cast< long >( j ) + static_cast< long >( k ) - anchor,
+            static_cast< long >( height ), mode );
+
+          sum += static_cast< uint32_t >( raw[ k ] ) *
+                 static_cast< uint32_t >( across[
+                   static_cast< size_t >( row ) * width + i ] );
+        }
+
+        out( i, j, plane ) = static_cast< uint8_t >(
+          std::min< uint32_t >( ( sum + ( 1u << 15 ) ) >> 16, 255u ) );
+      }
+    }
+  }
+
+  return out;
+}
+
+} // namespace detail
+
+// ----------------------------------------------------------------------------
 /// A Gaussian blur, which is `cv::GaussianBlur`.
 ///
 /// @param image the image
@@ -510,6 +634,24 @@ gaussian_blur( viame::image_of< T > const& image, size_t size,
                border_mode mode = border_mode::REFLECT_101 )
 {
   auto const line = gaussian_kernel_1d( size, sigma );
+
+  // `cv::GaussianBlur` does not filter an 8 bit image in floating point. It
+  // converts the kernel to Q8.8 and runs two integer passes, and the answers
+  // differ: identical where the kernel is dyadic -- which the sigma-derived
+  // small kernels are -- and a count apart on about a fifth of the pixels for
+  // any other sigma. `detail::gaussian_blur_fixed` is that path.
+  //
+  // Not for a constant border: OpenCV's fixed-point row filter simply omits
+  // the taps that fall outside, which is a constant of zero and nothing else,
+  // where this kernel takes the constant as an argument.
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    if( mode != border_mode::CONSTANT )
+    {
+      return detail::gaussian_blur_fixed( image, line, mode );
+    }
+  }
+
   return separable_filter< T, T >( image, line, line, mode );
 }
 

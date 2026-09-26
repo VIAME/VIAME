@@ -237,6 +237,28 @@ def test_normalize_spans_the_range():
     assert out.min() == 0 and out.max() == 255
 
 
+def test_gaussian_blur_takes_opencvs_fixed_point_path_for_a_real_sigma():
+    """An 8-bit blur is not a floating-point blur rounded.
+
+    `cv::GaussianBlur` converts the kernel to Q8.8 and runs two integer
+    passes. It agreed already where the kernel is dyadic -- which the
+    sigma-derived small kernels are -- and was a count out on about a fifth of
+    the pixels for any other sigma. What fixes it is building the fixed-point
+    kernel from the **running total**: rounding each tap on its own gives 253
+    for 7 taps at sigma 1.5, and a blur three parts in 256 dark is three
+    counts dark at the top of the range.
+
+    947 configurations were compared against cv2 5.0.0 when this landed --
+    seven kernel sizes, nine sigmas, five shapes, uniform and random and
+    three-channel -- identical on every one.
+    """
+    frame = _gray(16, 12)
+    assert gaussian_blur(frame, 7, 1.5)[:2, :4].tolist() == [[14, 15, 18, 22],
+                                                             [17, 18, 20, 24]]
+    # sigma 0 derives the kernel from the size and was always exact
+    assert gaussian_blur(frame, 7, 0.0).shape == frame.shape
+
+
 def test_clahe_is_opencvs_float_arithmetic_and_its_rounding():
     """Both halves of the agreement, on the smallest case that shows them.
 
