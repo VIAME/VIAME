@@ -21,6 +21,7 @@
 #include <viame/image_kernels/background.h>
 #include <viame/image_kernels/color.h>
 #include <viame/image_kernels/edges.h>
+#include <viame/image_kernels/hough.h>
 #include <viame/image_kernels/contours.h>
 #include <viame/image_kernels/corners.h>
 #include <viame/image_kernels/distance.h>
@@ -576,6 +577,31 @@ equalize( array_of< uint8_t > const& array )
   auto const source = as_image( array );
   return as_array( VIAME_KERNEL_CALL( equalize, source ),
                    array.ndim() == 3 );
+}
+
+py::array_t< float >
+hough_circles( array_of< uint8_t > const& array, double dp, double min_dist,
+               double canny_threshold, double acc_threshold, int min_radius,
+               int max_radius, int max_circles )
+{
+  auto const source = as_image( array );
+  auto const found = VIAME_KERNEL_CALL( hough_circles, source, dp, min_dist,
+                                        canny_threshold, acc_threshold,
+                                        min_radius, max_radius, max_circles );
+
+  py::array_t< float > out( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( found.size() ), 3 } );
+
+  auto* destination = out.mutable_data();
+
+  for( auto const& one : found )
+  {
+    *destination++ = one.x;
+    *destination++ = one.y;
+    *destination++ = one.radius;
+  }
+
+  return out;
 }
 
 py::array
@@ -1606,6 +1632,15 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "Rescale the image's range onto [low, high]. cv2.normalize with "
          "NORM_MINMAX, whose alpha and beta are the two ends in either "
          "order." );
+
+  m.def( "hough_circles", &hough_circles, py::arg( "image" ),
+         py::arg( "dp" ) = 1.0, py::arg( "min_dist" ) = 1.0,
+         py::arg( "canny_threshold" ) = 100.0,
+         py::arg( "acc_threshold" ) = 100.0, py::arg( "min_radius" ) = 0,
+         py::arg( "max_radius" ) = 0, py::arg( "max_circles" ) = -1,
+         "cv2.HoughCircles with HOUGH_GRADIENT, as an N by 3 array of x, y "
+         "and radius. `canny_threshold` is OpenCV's param1 and "
+         "`acc_threshold` its param2." );
 
   m.def( "canny", &canny, py::arg( "image" ), py::arg( "low" ),
          py::arg( "high" ), py::arg( "aperture" ) = 3,

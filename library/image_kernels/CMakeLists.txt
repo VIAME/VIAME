@@ -22,6 +22,7 @@ set( image_kernels_headers
   channels.h
   color.h
   edges.h
+  hough.h
   commonality.h
   contours.h
   convert.h

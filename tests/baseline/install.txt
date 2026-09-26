@@ -1036,6 +1036,7 @@ include/viame/image_kernels/filter.h
 include/viame/image_kernels/font_5x7.h
 include/viame/image_kernels/histogram.h
 include/viame/image_kernels/homography_overlap.h
+include/viame/image_kernels/hough.h
 include/viame/image_kernels/layout.h
 include/viame/image_kernels/match.h
 include/viame/image_kernels/morphology.h
@@ -1208,6 +1209,9 @@ lib/python3.10/site-packages/viame.egg-info/not-zip-safe
 lib/python3.10/site-packages/viame.egg-info/requires.txt
 lib/python3.10/site-packages/viame.egg-info/top_level.txt
 lib/python3.10/site-packages/viame/__init__.py
+lib/python3.10/site-packages/viame/_file_formats.py
+lib/python3.10/site-packages/viame/_io.py
+lib/python3.10/site-packages/viame/_io_native.so
 lib/python3.10/site-packages/viame/adapters/__init__.py
 lib/python3.10/site-packages/viame/adapters/adapter_data_set.so
 lib/python3.10/site-packages/viame/adapters/embedded_pipeline.so

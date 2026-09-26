@@ -1843,3 +1843,33 @@ error *messages* with the same `error` status, because upstream stopped
 appending `, thrown from <source path>:<line>` to them. The old baseline had
 been recording this source tree's absolute paths and line numbers; it no longer
 does.
+
+## The circle transform, and hough_circle off cv2
+
+`hough_circle_detector.py` no longer imports cv2. `image_kernels.canny` and
+`image_kernels.hough_circles` reproduce `cv::Canny` and `cv::HoughCircles`
+under `HOUGH_GRADIENT`, over 160 and **1440** configurations respectively, and
+the detector's golden -- a recording of what the cv2 version detected --
+passes unchanged.
+
+**The algorithm was never the hard part.** Three things decided it, and all
+three are invisible in a description of the method: the 8-bit Gaussian's
+fixed-point kernel (2.45), the fact that the output is sorted by the radius
+histogram's count rather than the accumulator peak, and that the whole
+transform runs in single precision (2.47).
+
+**Two of my own claims were wrong and are corrected in 2.47.** `dp != 1` was
+reported broken on the strength of a comparison against cv2's centres-only
+debugging mode, which sweeps a different ray; it agrees exactly. And the
+`cmpAccum` ordering rule was reported as the missing piece when it was
+necessary but not sufficient.
+
+**The applet tests caught what the golden could not.** The shipped pipeline
+sets both radii to 0, where cv2 reads a non-positive maximum as the larger
+image extent; read literally the detector returned nothing on every image.
+Seven applet tests failed and the golden passed throughout, because the
+recorded case sets 3 and 20 explicitly. A recorded contract that never
+exercises the shipped defaults is not covering them.
+
+**A tolerance-free result.** Nothing here needed one: 2.45's blur, 2.46's
+Canny and 2.47's transform are each compared at exactly zero.

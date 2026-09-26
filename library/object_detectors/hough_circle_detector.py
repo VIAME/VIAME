@@ -2,21 +2,19 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Circle detection by the Hough gradient transform, on cv2.
+"""Circle detection by the Hough gradient transform.
 
 This was `library/object_detectors/hough_circle_detector.cxx`, and P7-T04
-moves it here rather than reimplementing it in `image_kernels`, per
-`lite-removals.md` section 2.6. `cv::HoughCircles` is not an imgproc
-primitive of the kind `image_kernels` carries: it is Canny plus a Sobel-gradient
-accumulator plus a radius vote plus a non-maximum suppression over centres,
-with tie-breaking rules that decide which of several nearby circles survives.
-Reproducing it in C++ would be several hundred lines whose only justification
-is one shipped pipeline, `detector_simple_hough.pipe`.
+moved it here on cv2, judging `cv::HoughCircles` too large to reproduce for
+one shipped pipeline. It has since been reproduced: `image_kernels.canny` and
+`image_kernels.hough_circles` are identical to cv2 over 160 and 864
+configurations, so this file is off cv2 entirely and the registered name, the
+six config keys and their defaults are still the C++ ones.
 
-So the algorithm stays OpenCV's and only the language changes, which is what
-the plan asks for wherever cv2 is allowed in python. The registered name,
-the six config keys and their defaults are the C++ ones, so a pipeline that
-selected `hough_circle` before selects this now with no edit.
+Findings 2.45 to 2.47 record what that took. The short version is that the
+algorithm was never the hard part: what decided agreement was the 8-bit
+Gaussian's fixed-point kernel, the value the output is sorted by, and the fact
+that the whole transform runs in single precision.
 
 What the C++ did to an image before the transform is reproduced exactly:
 
@@ -33,6 +31,10 @@ score per circle, so there is nothing else to put there.
 """
 
 import logging
+
+import numpy as np
+
+from viame import image_kernels
 
 from viame.algo import ImageObjectDetector
 from viame.types import (BoundingBoxD, DetectedObject,
@@ -58,7 +60,7 @@ def _config_double(value):
 
 
 class HoughCircleDetector(ImageObjectDetector):
-    """Detect circles with `cv2.HoughCircles`."""
+    """Detect circles with `image_kernels.hough_circles`."""
 
     def __init__(self):
         ImageObjectDetector.__init__(self)
@@ -107,8 +109,6 @@ class HoughCircleDetector(ImageObjectDetector):
     # Detection
 
     def detect(self, image_data):
-        import cv2
-
         detections = DetectedObjectSet()
 
         if image_data is None:
@@ -119,31 +119,32 @@ class HoughCircleDetector(ImageObjectDetector):
         # `COLOR_BGR2GRAY` on the bridge's BGR mat and `COLOR_RGB2GRAY` on
         # the array are the same arithmetic; see the module docstring.
         if image.ndim == 3 and image.shape[2] >= 3:
-            gray = cv2.cvtColor(image[:, :, :3], cv2.COLOR_RGB2GRAY)
+            gray = image_kernels.to_gray(
+                np.ascontiguousarray(image[:, :, :3]))
         elif image.ndim == 3:
             gray = image[:, :, 0]
         else:
             gray = image
 
-        gray = cv2.GaussianBlur(gray, BLUR_SIZE, BLUR_SIGMA, BLUR_SIGMA)
+        # `BLUR_SIZE` is square and `gaussian_blur` takes the one extent.
+        gray = image_kernels.gaussian_blur(
+            np.ascontiguousarray(gray), BLUR_SIZE[0], float(BLUR_SIGMA))
 
-        circles = cv2.HoughCircles(
+        circles = image_kernels.hough_circles(
             gray,
-            cv2.HOUGH_GRADIENT,
-            self._dp,
-            self._min_dist,
-            param1=self._param1,
-            param2=self._param2,
-            minRadius=self._min_radius,
-            maxRadius=self._max_radius)
+            dp=self._dp,
+            min_dist=self._min_dist,
+            canny_threshold=self._param1,
+            acc_threshold=self._param2,
+            min_radius=self._min_radius,
+            max_radius=self._max_radius)
 
-        if circles is None:
+        if len(circles) == 0:
             logger.debug("Detected 0 objects.")
             return detections
 
-        # cv2 returns (1, n, 3); the C++ got a vector of Vec3f from the same
-        # call, so the rows are in the same order.
-        circles = circles[0]
+        # An N by 3 of x, y, radius, in the order cv2 returned its Vec3f rows
+        # and the C++ read them.
         logger.debug("Detected %d objects.", len(circles))
 
         for x, y, radius in circles:

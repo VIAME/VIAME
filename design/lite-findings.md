@@ -3357,44 +3357,78 @@ Worth noting for the next header: `edges.h` compiled at first only because
 `require_planes` lives. It includes what it uses now.
 
 
-## 2.47 The circle transform, localised but not landed
+## 2.47 The circle transform, landed -- and two wrong answers on the way
 
-With Canny exact (2.46) and the 8-bit blur exact (2.45), both of 2.37's named
-obstacles are gone and the circle transform itself is what remains. It is not
-landed, and this records where it actually stands so the next attempt does not
-re-derive it.
+`hough_circle_detector.py` is off cv2. `image_kernels.hough_circles` is
+identical to `cv2.HoughCircles` under `HOUGH_GRADIENT` over **1440
+configurations** -- eight scenes including odd shapes, a 41 by 43 image,
+concentric circles and an empty one; `dp` 1.0, 1.5, 2.0 and 3.0; three
+`param2`, three `min_dist` and five radius ranges including the shipped
+`(0, 0)`.
 
-**What is confirmed.** At `dp = 1` the accumulator and the peak test are
-**exact**: compared through the `maxRadius < 0` trick, which returns cv2's raw
-centre list before the radius stage filters it, the centres agree to the digit
-and in the same order -- 13 of 13 on one fixture, 4 of 4 on another, and both
-empty where cv2 finds nothing. So the voting, the 1/1024 fixed point, the
-asymmetric peak test and the sweep that skips the first cell of each axis are
-all right, as 2.37 claimed.
+An earlier revision of this finding said the transform was localised but not
+landed, and made two claims that were both wrong. They are corrected here
+rather than deleted, because each was wrong in a way worth not repeating.
 
-**What is not.** End to end at the shipped configuration -- `dp` 1, `min_dist`
-10, `param1` 200, `param2` 20, radii 3 to 20 -- two of five scenes match
-exactly and three do not. The misses are small and they are all of one kind:
-the *set* is nearly right and a **cluster representative differs**, so a centre
-comes back 1 or 2 pixels away and sometimes in a different order. Since the
-centres themselves are exact, the divergence is downstream of them -- in the
-radius histogram, or in the accumulator value `cmpAccum` sorts on, either of
-which changes which member of a `min_dist` cluster survives `RemoveOverlaps`.
+**"`dp != 1` is broken."** It is not. That came from comparing cv2 in its
+`maxRadius < 0` centres-only mode, where it sweeps a much longer ray, against
+our full radius range -- two different questions. `dp` 1.5, 2.0 and 3.0 all
+agree exactly. A diagnostic mode is not a reference implementation.
 
-**The ordering rule is known and is not the whole answer.** OpenCV estimates
-the radius for every centre, sorts by `cmpAccum` -- accumulator descending,
-then radius descending, then x then y ascending -- and only then removes
-overlaps, where the old prototype interleaved de-duplication with estimation.
-Restructuring it that way is necessary and was not sufficient.
+**"The `cmpAccum` ordering rule is what is missing."** Necessary, not
+sufficient, and reported as the answer before it had been tested end to end.
 
-**`dp != 1` is a second, separate gap.** At `dp = 2` one fixture gives cv2 15
-centres against our 1, which is far too large to be a rounding difference and
-says the accumulator geometry is wrong for a scaled grid. 2.37 claimed dp 1.0
-to 3.0 agreed; that was a fitted rule and it does not hold here. It matters
-less than it looks: the detector defaults to 1, the only shipped pipeline sets
-1, and the only recorded golden variant is 1 -- but `detector_simple_hough.pipe`
-exposes `dp` as a DIVE parameter, so a user can reach the broken path.
+What actually decided it, neither of which is in the algorithm as it is
+usually described:
 
-The next step is to isolate the radius estimator the way the centres were
-isolated: feed it cv2's own centre list and compare radii alone, rather than
-comparing an output that five stages contribute to.
+* **The output is sorted by the wrong number if you sort by the accumulator.**
+  `cmpAccum` orders by `EstimatedCircle::accum`, and OpenCV fills that field
+  with `maxCount` from the **radius histogram** -- not the accumulator peak at
+  the centre. Sorting by the peak gives nearly the same circles in nearly the
+  same order and picks a different member of every `min_dist` cluster, which
+  is precisely the symptom the earlier revision described and could not place.
+* **The whole transform runs in single precision.** `idp`, the gradient
+  magnitude, the vote steps, the centres, the radii and the overlap test are
+  all float. In double it agrees on clean scenes and parts company in the tail
+  of noisy ones, which is why five scenes can pass and the sixth not.
+
+**The radius conventions cost seven applet tests.** The shipped pipeline sets
+`min_radius` and `max_radius` to **0**, and in cv2 a non-positive maximum
+means the larger image extent rather than no radii at all. Read literally the
+histogram had no bins and the detector returned nothing on every image. The
+golden did not catch it, because that case sets 3 and 20 explicitly -- so the
+recorded contract never exercised the settings the only shipped pipeline uses.
+Worth remembering when a golden and a config disagree about what "default"
+means.
+
+And then the fix was half wrong too: a maximum **above** the image extent is
+not clamped down. One scene suggested it was, four others disproved it -- the
+vote ray's length and the histogram's bin count both depend on `max_radius`,
+so 300 on a 100 by 120 image finds a circle that 120 does not. Twice today a
+single-scene probe has pointed the wrong way.
+
+A negative `max_radius` -- cv2's centres-only mode -- is refused rather than
+implemented. It is a debugging affordance, and it was genuinely useful for
+isolating the centre list from the radius stage while this was being fitted.
+
+The detector's own docstring used to argue that `cv::HoughCircles` was too
+large to reproduce for one shipped pipeline, "several hundred lines whose only
+justification is one shipped pipeline". That was a reasonable call at the time
+and is superseded: `hough.h` is about 260 lines, and the two hard parts were
+not the algorithm.
+
+## 2.48 The intermittent logger failure has a shape
+
+`viame:external_plugins.a_library_without_the_entry_point_is_skipped` aborting
+a subprocess, together with several `viame:logger` tests, has now failed
+**twice** with the same signature, and both times:
+
+* only under `ctest -j3`, never in isolation -- 28 of 28 pass when the logger
+  and plugin tests are run alone;
+* clearing completely on an immediate re-run of the same binaries, 485 of 485.
+
+That is not yet a cause, but it is no longer "unexplained": it is
+parallel-execution dependent rather than order dependent or code dependent, and
+the aborting subprocess is a plausible neighbour for tests that read logging
+output. Recorded so the next occurrence is a third data point rather than a
+fresh mystery, and so nobody chases it in the code under test.

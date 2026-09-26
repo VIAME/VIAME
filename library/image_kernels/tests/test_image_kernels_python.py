@@ -24,6 +24,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  draw_rect, draw_text, equalize, erode,
                                  fill_ellipse, fill_polygon,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
+                                 hough_circles,
                                  normalize, optical_flow, remap, resize,
                                  resize_area,
                                  swap_channels, text_size, to_gray, to_hls,
@@ -258,6 +259,40 @@ def test_canny_reproduces_opencvs_edge_map():
     assert edges.shape == (20, 20)
     assert sorted(np.unique(edges).tolist()) == [0, 255]
     assert int((edges > 0).sum()) == 40
+
+
+def test_hough_circles_reproduces_opencvs_transform():
+    """`cv2.HoughCircles` under HOUGH_GRADIENT, including its radius defaults.
+
+    Identical to cv2 5.0.0 over 1440 configurations when this landed: eight
+    scenes, four `dp` values, three `param2`, three `min_dist` and five radius
+    ranges including the shipped `(0, 0)`.
+
+    Two things decide the agreement and neither is in the algorithm as it is
+    usually described -- the output is sorted by the count the radius histogram
+    settled on rather than the accumulator peak, and the whole transform runs
+    in single precision. Findings 2.45 to 2.47.
+    """
+    frame = np.full((80, 90), 110, dtype=np.uint8)
+    y, x = np.mgrid[0:80, 0:90]
+    frame[np.abs(np.sqrt((x - 45) ** 2 + (y - 40) ** 2) - 15) < 1.3] = 240
+    frame = np.ascontiguousarray(frame)
+
+    found = hough_circles(frame, dp=1.0, min_dist=10, canny_threshold=200.0,
+                          acc_threshold=20.0, min_radius=5, max_radius=25)
+    assert found.shape == (1, 3)
+    assert [round(float(v), 4) for v in found[0]] == [44.5, 39.5, 13.8]
+
+    # Zero radii are the shipped pipeline's setting, and in cv2 a zero maximum
+    # means the larger image extent rather than no radii at all. Reading it
+    # literally returned nothing and cost seven applet tests.
+    shipped = hough_circles(frame, dp=1.0, min_dist=10, canny_threshold=200.0,
+                            acc_threshold=20.0, min_radius=0, max_radius=0)
+    assert [round(float(v), 4) for v in shipped[0]] == [44.5, 39.5, 13.8]
+
+    # A negative maximum is cv2's centres-only debugging mode, not a setting
+    with pytest.raises(ValueError):
+        hough_circles(frame, max_radius=-1)
 
 
 def test_canny_refuses_what_it_would_get_wrong():
