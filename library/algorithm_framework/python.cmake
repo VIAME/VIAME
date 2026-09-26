@@ -41,6 +41,15 @@ set( _viame_af_python_common
 viame_add_python_module(
   ${CMAKE_CURRENT_LIST_DIR}/viame_init.py "" __init__ )
 
+# Public file loader and the format recognition shared with viame inspect.
+foreach( module IN ITEMS _io _file_formats )
+  viame_add_python_module(
+    "${VIAME_SOURCE_DIR}/python/viame/${module}.py" "" "${module}" )
+endforeach()
+viame_add_python_library( _io_native ""
+  SOURCES "${VIAME_SOURCE_DIR}/python/viame/_io_native.cxx"
+  PRIVATE viame_algorithm_framework )
+
 # `viame.log`, which was `kwiver.vital.vital_logging`.
 viame_add_python_module(
   ${CMAKE_CURRENT_LIST_DIR}/logger/log.py "" log )

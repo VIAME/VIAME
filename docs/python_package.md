@@ -13,8 +13,68 @@ Linux, CPython 3.10 through 3.14. GPU support comes from whichever CUDA
 below was run against the published wheel with nothing downloaded beyond
 the package itself.
 
-One rule applies throughout: **load the plugin modules first**. Nothing is
-registered until you do, and `create` will not find an implementation.
+Loading files
+-------------
+
+`viame.open` recognizes the same file formats as `viame inspect` and loads
+its reader plugins automatically:
+
+```python
+import viame
+
+image = viame.open("image.png")
+array = image.image().asarray()       # RGB, preserving the reader's bit depth
+
+for index, image in enumerate(viame.open("image_list.txt")):
+    process(image)
+
+with viame.open("example.mp4", 5) as frames:  # sample at 5 Hz
+    for image in frames:
+        process(image)
+        print(frames.timestamp.get_frame(), frames.timestamp.get_time_seconds())
+
+# Equivalent keyword form:
+with viame.open("example.mp4", frame_rate=5) as frames:
+    first_image = next(frames)
+
+tracks = viame.open("annotations.csv")  # VIAME CSV
+tracks = viame.open("annotations.json") # recognizes DIVE or COCO JSON
+for track in tracks.tracks():
+    print(track.id, len(track))
+```
+
+| Input | Return value |
+|---|---|
+| Still image | Native `ImageContainer` |
+| Image list (`.txt`) | Lazy `ImageSequence` of image containers |
+| Directory | Lazy image sequence, sorted by filename; subdirectories are skipped |
+| Video | Lazy `VideoSequence` of image containers |
+| VIAME CSV, DIVE JSON, COCO JSON | Native `ObjectTrackSet`, loaded through that format's reader |
+
+An image list contains one path per line; blank lines and comments beginning
+with `#` are ignored. Relative paths resolve against the list's directory
+first, then against the current working directory for older lists. A directory
+loads its immediate image files. Frames are loaded as iteration advances,
+so opening a sequence does not load all its images into memory.
+
+Video sampling keeps the first frame and then the first available frame at
+or after each requested time. It uses presentation timestamps, including for
+variable-rate video, and falls back to the source frame rate if timestamps
+are unavailable. Requesting more than the source rate returns available
+frames without duplicating them. The rate must be positive and finite and
+is accepted only for video inputs. Native frame numbers and timestamps are
+available as `frames.timestamp`; image lists have one-based frame numbers.
+
+Iterators close at end of input or on a read error. Use `with` or call
+`close()` when stopping early. Each iterator is single-pass; call `viame.open`
+again to start over. Unsupported formats and invalid options raise errors;
+opening a file never runs a pipeline or executes a model. Annotation files
+are loaded as a complete track set, preserving the respective reader's
+track IDs, frame numbering and detection data. COCO annotations without a
+track ID become individual single-state tracks.
+
+For the lower-level algorithm interfaces below, load the plugin modules
+before calling `create`:
 
     from viame.modules import modules
     modules.load_known_modules()

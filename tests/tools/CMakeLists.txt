@@ -36,6 +36,7 @@ if( VIAME_ENABLE_PYTHON )
     extract
     index
     inspect_file
+    open
     json
     metadata
     monitor

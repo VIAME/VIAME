@@ -192,3 +192,6 @@ _add_library_paths()
 _setup_projdb_path()
 
 # Wait for environment to be properly set up before importing submodules
+
+# The public loader imports native readers only when a file is opened.
+from ._io import open, ImageSequence, VideoSequence
