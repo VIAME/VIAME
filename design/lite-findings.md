@@ -3177,9 +3177,8 @@ of 1 absorbs without anyone choosing to. 192 configurations now agree exactly,
 over eight shapes including ones that do not divide by their tile grid, clip
 limits from 0 to 40, and grids from 1 by 1 to 8 by 8.
 
-That leaves the two colour files in different places.
-`ocv_color_correction` needs no denoising, so with L*a*b* and CLAHE exact
-nothing algorithmic is in front of it. `ocv_enhancer` still needs
+That leaves the two colour files short of portable, but for a different
+reason than before -- see 2.44. `ocv_enhancer` also still needs
 `fastNlMeansDenoisingColored`, which does not exist here at all and is a real
 algorithm rather than a table.
 
@@ -3214,3 +3213,47 @@ cases exact where none was.
 The Python side needs a re-record, not a tightening, and that is left for a
 decision: the value to record is already known to be right over the whole
 input domain, but replacing a recording is a change to a contract.
+
+
+## 2.44 Float accumulation order, which is not a table and cannot be tabulated
+
+With both L*a*b* conversions and CLAHE exact, `ocv_color_correction` looked
+clear: it uses no denoising, and every call left in it had a replacement. It is
+not clear, and the reason is worth stating because it is a different *kind* of
+obstacle from the tables and it applies to any port of this shape.
+
+Three of its steps agree with cv2 only to within a few float32 ULP:
+
+| step | agreement with cv2 |
+| --- | --- |
+| `GaussianBlur` on a float image, sigma given | max 4.6e-05 on values to 255 |
+| `normalize` NORM_MINMAX on float32 | max 1.5e-05 |
+| `exp` on float32 against `np.exp` | max 3.8e-06, on 40% of values |
+
+The blur one is the instructive case. The obvious explanation is that this
+accumulates in double where OpenCV accumulates in float, so a separable pass
+was written **in float32, in tap order, with OpenCV's own kernel from
+`getGaussianKernel`** and compared: it differs from `cv2.GaussianBlur` by the
+same 4.6e-05. The gap is therefore not a precision choice that can be matched
+by making ours less precise -- it is the *order* in which OpenCV's vectorised
+filter accumulates its taps, which is a property of its SIMD structure rather
+than of the filter. Nothing short of reproducing that structure reproduces the
+number, and it is not something OpenCV guarantees across its own dispatch
+paths.
+
+Also worth noting while here: `normalize` on **uint16** is half a count out,
+and `for_both_pixel_types` binds only uint8 and float, so the uint16 call is
+going somewhere unintended rather than being refused. Worth a look
+independently of this file.
+
+None of this matters while the chain stays in float. It matters because the
+chain ends in a byte: a difference of 4.6e-05 flips a rounded byte only when
+the value sits that close to a boundary, which is rare -- and the recording is
+compared at a tolerance of exactly zero, so rare is still a failure.
+
+So the decision in front of `ocv_color_correction` is not an implementation
+one. Either it carries a tolerance the way `ocv_optical_flow` already does --
+`(1.0, 0.001)`, for this same class of reason -- or it stays on cv2. That is a
+contract question, and it is recorded rather than answered here. What should
+*not* happen is the port landing with a tolerance of 1 quietly attached, which
+is how 2.43 came about.

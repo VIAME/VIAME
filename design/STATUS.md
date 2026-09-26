@@ -1776,11 +1776,19 @@ pixels in a frame are a count off -- the size of gap a tolerance of 1 absorbs
 without anyone deciding to. 192 configurations agree exactly, over eight
 shapes, clip limits 0 to 40 and grids 1x1 to 8x8.
 
-**Which leaves the two colour files in different places.**
-`ocv_color_correction` uses no denoising, so with L*a*b* and CLAHE exact
-nothing algorithmic stands in front of it. `ocv_enhancer` still needs
-`fastNlMeansDenoisingColored`, which is a real algorithm rather than a table
-and does not exist here.
+**Which does not clear either colour file, and the reason changed.** With the
+conversions and CLAHE exact, `ocv_color_correction` looked clear -- it uses no
+denoising and every remaining call had a replacement. It is not: three of its
+steps agree with cv2 only to a few float32 ULP, and the chain ends in a byte
+compared at zero tolerance. `GaussianBlur` on a float image is the instructive
+one -- writing the separable pass in float32 in tap order, with OpenCV's own
+kernel, gives the *same* 4.6e-05 gap, so it is OpenCV's vectorised
+accumulation order rather than a precision choice, and it is not something
+OpenCV guarantees across its own dispatch paths. Finding 2.44. The question
+there is a contract one -- a tolerance like the `(1.0, 0.001)` that
+`ocv_optical_flow` already carries, or stay on cv2 -- and it is recorded
+rather than answered. `ocv_enhancer` additionally needs
+`fastNlMeansDenoisingColored`, which does not exist here.
 
 **Six more tolerances came down** once CLAHE and the inverse landed: the five
 clahe cases and `lab_to_rgb`, all to exact. Of the 60 C++ recordings, **48 are
