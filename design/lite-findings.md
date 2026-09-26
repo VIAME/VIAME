@@ -2962,7 +2962,56 @@ next attempt should not "fix" the bottom rows into staleness. An empirical
 confirmation on a synthetic pair was attempted and the fixture was wrong, so
 the evidence here is the source rather than a measurement.
 
-Still not landed, and a later attempt narrowed it without closing it.
+Still not landed. A later attempt narrowed it a long way, disproved this
+entry's own anchor claim and one hypothesis of its own, and is recorded below
+2.38's original text so the two readings stay visible.
+
+### What the second attempt established
+
+**This entry's anchor claim is false.** "On a one row image the port is
+identical to `cv2.StereoSGBM` across every width tried" -- it is not. One row,
+width 40, `blockSize` 1: **10 of 40** pixels differ. Width 64, `blockSize` 3:
+3 of 64. Meanwhile **five identical rows at `blockSize` 1 are exact**, 0 of 200.
+So the failure was never "one row right, more rows wrong"; it tracks width and
+block size, and the row framing sent the first attempt at the vertical
+recursion for nothing.
+
+**The aggregation is not where it goes wrong.** A second implementation was
+written as a straight transliteration of the scalar path in 5.x's
+`modules/stereo/src/stereosgbm.cpp`, lines 690 to 960 -- every buffer index,
+the `MAX_COST` padding, `minL` starting at `MAX_COST`, the `short` store and
+the single saturation of `S`. It agrees with the first prototype **exactly**,
+including the final backward sweep that the two implement differently. Two
+independently written selections agreeing says the disagreement is in what they
+share.
+
+**Four suspects eliminated, with evidence rather than reasoning:**
+
+* the 3 by 3 median is identical to `cv2.medianBlur` -- 0 of 685 values over
+  three shapes, including negative disparities;
+* the SAD box is not it: at `blockSize` 1, where the box sum is the identity,
+  the disagreement is **worse** (32 of 240, row 0 included);
+* the aliasing, the ends and the integer types all match the source line by
+  line, as above;
+* **SIMD dispatch is not it.** cv2 here dispatches AVX2 and AVX512_SKX, so it
+  runs its vector path and a port naturally reproduces the scalar one, which
+  was a good hypothesis. Run again under
+  `OPENCV_CPU_DISABLE=AVX512_SKX,AVX2,FP16,AVX,SSE4_2,SSE4_1`, cv2 gives
+  **byte-identical** output -- 30 of 1120 differing either way. Not the cause,
+  and worth not re-testing.
+
+**Where it actually is.** Of 30 differing pixels, 9 have a **tied** minimum in
+`S` and 21 have a unique one, so `S` itself differs and argmin tie-breaking is
+at most a third of it. With the median, the box sum, the aggregation and SIMD
+out, what `S` is built from that remains is the **Birchfield-Tomasi cost** --
+which this entry lists among the things that "reproduced exactly". That claim
+rests on the same one-row test that has now been shown false.
+
+So the next step is to compare the cost directly and stop comparing disparity
+maps: `pixel_cost` against the formula at `calcPixelCostBT`, on an input small
+enough to check by hand. Note while doing so that the right image's rows are
+stored **reversed** there -- `prow2[width-1-x]` -- which is the kind of detail
+a port gets right on a symmetric fixture and wrong on a real one.
 
 **The aggregation's aliasing is confirmed correct** against the source rather
 than inferred. For each pixel the four accumulated directions read
