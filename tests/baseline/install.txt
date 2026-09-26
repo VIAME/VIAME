@@ -1031,6 +1031,7 @@ include/viame/image_kernels/corners.h
 include/viame/image_kernels/dispatch.h
 include/viame/image_kernels/distance.h
 include/viame/image_kernels/draw.h
+include/viame/image_kernels/edges.h
 include/viame/image_kernels/filter.h
 include/viame/image_kernels/font_5x7.h
 include/viame/image_kernels/histogram.h

@@ -20,6 +20,7 @@
 
 #include <viame/image_kernels/background.h>
 #include <viame/image_kernels/color.h>
+#include <viame/image_kernels/edges.h>
 #include <viame/image_kernels/contours.h>
 #include <viame/image_kernels/corners.h>
 #include <viame/image_kernels/distance.h>
@@ -575,6 +576,16 @@ equalize( array_of< uint8_t > const& array )
   auto const source = as_image( array );
   return as_array( VIAME_KERNEL_CALL( equalize, source ),
                    array.ndim() == 3 );
+}
+
+py::array
+canny( array_of< uint8_t > const& array, double low, double high,
+       size_t aperture, bool l2_gradient )
+{
+  auto const source = as_image( array );
+  return as_array(
+    VIAME_KERNEL_CALL( canny, source, low, high, aperture, l2_gradient ),
+    array.ndim() == 3 );
 }
 
 template < typename T >
@@ -1595,6 +1606,15 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "Rescale the image's range onto [low, high]. cv2.normalize with "
          "NORM_MINMAX, whose alpha and beta are the two ends in either "
          "order." );
+
+  m.def( "canny", &canny, py::arg( "image" ), py::arg( "low" ),
+         py::arg( "high" ), py::arg( "aperture" ) = 3,
+         py::arg( "l2_gradient" ) = false,
+         "cv2.Canny: a single plane 8 bit edge map, 0 or 255. The gradient is "
+         "a 16 bit Sobel with a replicated border and the direction is "
+         "quantised in 15 bit fixed point, both of which OpenCV's answer "
+         "depends on. The aperture is 3 or 5; cv2 also takes 7, where the 16 "
+         "bit gradient saturates and the two part company." );
 
   m.def( "equalize", &equalize, py::arg( "image" ),
          "cv2.equalizeHist." );

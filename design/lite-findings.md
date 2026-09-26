@@ -3321,3 +3321,37 @@ With this and the `cmpAccum` ordering rule -- accumulator, then larger radius,
 then smaller x, then smaller y -- both of 2.37's obstacles are named and
 solved. What is left for `hough_circle` is writing Canny and the circle
 transform in C++; they have only ever been prototypes.
+
+
+## 2.46 Canny landed, and the two things it refuses
+
+`cv::Canny` is reproduced bit for bit and bound as `image_kernels.canny`.
+Identical to cv2 5.0.0 over **160 configurations** -- eight scenes from a
+single row to 240 by 320, five threshold pairs, apertures 3 and 5, both
+gradient norms. 2.37 had measured this in a prototype that was never kept;
+this is the same result from a kernel that ships.
+
+Two refusals are deliberate, and each is a place where agreeing would have
+meant guessing.
+
+**Aperture 7.** cv2 accepts it and this does not. At that size the 16 bit
+gradient **saturates** -- a 7-tap Sobel reaches 326400 against a ceiling of
+32767 -- and the answers part company. The useful measurement is that the
+fault is not in the derivative: fed cv2's *own* `Sobel` output at aperture 7,
+this suppression differs from `cv2.Canny` on 113 pixels of 2240 in L1 and 154
+in L2, which are the same counts as feeding it ours. So cv2's Canny does
+something else at that aperture, and since a saturated gradient is degenerate
+anyway and `hough_circles` uses 3, refusing beats approximating.
+
+**A three-plane image.** This was a live defect in the first version of the
+kernel, caught by testing the refusal rather than the result.
+`detail::require_planes` means "at **least** N", so `require_planes( image, 1 )`
+passes a three-plane image happily and the kernel then read plane 0 and said
+nothing -- where `cv::Canny` takes the strongest of the three channels per
+pixel. That is the silent-wrong-answer shape the no-`forcecast` decision exists
+to prevent, arriving through a different door. It now refuses, and the
+message says why.
+
+Worth noting for the next header: `edges.h` compiled at first only because
+`image_kernels_python.cxx` includes `color.h` ahead of it, which is where
+`require_planes` lives. It includes what it uses now.

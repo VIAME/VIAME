@@ -9,7 +9,8 @@ import pytest
 
 from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  bounding_rect,
-                                 box_blur, clahe, contour_area, convex_hull,
+                                 box_blur, canny, clahe, contour_area,
+                                 convex_hull,
                                  crop, distance_transform,
                                  intersect_convex, moments,
                                  demosaic, dilate, draw_circle, draw_line,
@@ -235,6 +236,46 @@ def test_add_weighted_wants_one_size():
 def test_normalize_spans_the_range():
     out = normalize(_gray() // 4 + 30, 0, 255)
     assert out.min() == 0 and out.max() == 255
+
+
+def test_canny_reproduces_opencvs_edge_map():
+    """`cv2.Canny` bit for bit, which the circle transform depends on.
+
+    Identical to cv2 5.0.0 over 160 configurations when this landed: eight
+    scenes from a single row to 240 by 320, five threshold pairs, apertures 3
+    and 5, both gradient norms. The details that carry it are a 16-bit Sobel
+    with a replicated border, the direction quantised by comparing
+    `|dy| << 15` against `|dx| * 13573`, and a suppression that is strictly
+    greater behind and greater-or-equal ahead.
+    """
+    disc = np.zeros((20, 20), dtype=np.uint8)
+    y, x = np.mgrid[0:20, 0:20]
+    disc[((x - 10) ** 2 + (y - 10) ** 2) < 36] = 200
+
+    edges = canny(disc, 50.0, 150.0)
+    # two dimensional in, two dimensional out -- the third axis comes back only
+    # when it went in, as everywhere else in these bindings
+    assert edges.shape == (20, 20)
+    assert sorted(np.unique(edges).tolist()) == [0, 255]
+    assert int((edges > 0).sum()) == 40
+
+
+def test_canny_refuses_what_it_would_get_wrong():
+    """Two refusals, both deliberate.
+
+    Aperture 7 is one cv2 accepts: at that size the 16-bit gradient saturates
+    and the two answers part company, and feeding cv2's own Sobel through this
+    suppression differs on 113 pixels of 2240, so the difference is inside
+    cv2's Canny rather than in the derivative.
+
+    A three-plane image is the other. `cv::Canny` takes the strongest of the
+    three channels per pixel; this would have read plane 0 and said nothing.
+    """
+    frame = _gray(16, 12)
+    with pytest.raises(ValueError):
+        canny(frame, 50.0, 150.0, aperture=7)
+    with pytest.raises(ValueError):
+        canny(np.zeros((8, 8, 3), dtype=np.uint8), 50.0, 150.0)
 
 
 def test_gaussian_blur_takes_opencvs_fixed_point_path_for_a_real_sigma():
