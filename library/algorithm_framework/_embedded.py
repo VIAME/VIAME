@@ -7,70 +7,12 @@ import time
 
 from ._io import Pipeline, _algorithms, _pipeline_root
 
-_READERS = {'video_input', 'image_list_reader', 'frame_list_input', 'input_adapter'}
-_WRITERS = {'detected_object_output', 'write_object_track', 'image_writer',
-            'video_output', 'kw_write_homography', 'write_track_descriptor',
-            'output_adapter'}
-
-
-def _selection(processes, requested, defaults, label):
-    if isinstance(requested, str):
-        requested = [requested]
-    names = list(requested) if requested is not None else [
-        name for name, kind in processes.items() if kind in defaults]
-    if not names or len(set(names)) != len(names) or any(n not in processes for n in names):
-        raise ValueError('Select {} process names with {}=; available: {}'.format(
-            label, label, ', '.join(processes)))
-    return names
-
-
-def _adapt(path, inputs, outputs):
-    from ._io_native import pipeline_description
-    processes, edges, config = pipeline_description(str(path), str(_pipeline_root()))
-    inputs = _selection(processes, inputs, _READERS, 'inputs')
-    outputs = _selection(processes, outputs, _WRITERS, 'outputs')
-    removed = set(inputs + outputs)
-    if set(inputs) & set(outputs):
-        raise ValueError('Input and output processes must be distinct')
-    # A writer with downstream consumers is not a sink and cannot be removed.
-    if any(src[0] in outputs for src, dst in edges):
-        raise ValueError('Selected output processes must be sinks')
-    if any(dst[0] in inputs for src, dst in edges):
-        raise ValueError('Selected input processes must be sources')
-    in_name, out_name = 'viame_memory_input', 'viame_memory_output'
-    while in_name in processes:
-        in_name += '_'
-    while out_name in processes:
-        out_name += '_'
-    declarations = {name: kind for name, kind in processes.items() if name not in removed}
-    declarations.update({in_name: 'input_adapter', out_name: 'output_adapter'})
-    input_ports, output_ports, connections = {}, {}, []
-    for src, dst in edges:
-        if src[0] in inputs:
-            key = '.'.join(src)
-            input_ports.setdefault(key, 'input_{}'.format(len(input_ports)))
-            src = (in_name, input_ports[key])
-        if dst[0] in outputs:
-            key = '.'.join(dst)
-            output_ports.setdefault(key, 'output_{}'.format(len(output_ports)))
-            dst = (out_name, output_ports[key])
-        connections.append((src, dst))
-    if not input_ports or not output_ports:
-        raise ValueError('Embedded pipelines need connected input and output ports')
-    lines = ['process {}\n  :: {}\n'.format(name, kind)
-             for name, kind in declarations.items()]
-    # Native extract_configuration resolves relativepath at the original source
-    # location, even when the declaration came from an included file.
-    for key, value in config.items():
-        root, sep, rest = key.partition(':')
-        if root in removed:
-            continue
-        if not sep or '\n' in value or '\r' in value:
-            raise ValueError('Cannot serialize pipeline configuration key: ' + key)
-        lines.append('config {}\n  {} = {}\n'.format(root, rest, value))
-    for src, dst in connections:
-        lines.append('connect from {}.{}\n        to {}.{}\n'.format(*src, *dst))
-    return '\n'.join(lines), tuple(inputs), input_ports, output_ports
+def _prepare(path, inputs, outputs):
+    from viame.utilities.embedded_pipeline import prepare_embedded_pipeline
+    return prepare_embedded_pipeline(
+        str(path), search_paths=[str(_pipeline_root())],
+        inputs=[inputs] if isinstance(inputs, str) else inputs,
+        outputs=[outputs] if isinstance(outputs, str) else outputs)
 
 
 class EmbeddedPipeline(Pipeline):
@@ -91,16 +33,18 @@ class EmbeddedPipeline(Pipeline):
             _, self._types = _algorithms()
             from viame.adapters import adapter_data_set, embedded_pipeline
             self._data_set = adapter_data_set.AdapterDataSet
-            text, self.input_names, self._input_ports, self._output_ports = _adapt(
-                self.path, inputs, outputs)
+            description = _prepare(self.path, inputs, outputs)
+            self.input_names = tuple(description.input_names)
+            self._input_ports = description.input_ports
+            self._output_ports = description.output_ports
             self.input_ports = tuple(self._input_ports)
             self.output_ports = tuple(self._output_ports)
             if self._work is None:
                 self._work = tempfile.TemporaryDirectory(prefix='viame_embedded_')
             self.path = str(Path(self._work.name) / 'embedded.pipe')
-            Path(self.path).write_text(text)
+            Path(self.path).write_text(description.pipeline_text)
             self._native = embedded_pipeline.EmbeddedPipeline()
-            self._native.build_pipeline(self.path, str(Path(self.filename).parent))
+            description.build(self._native)
             self._native.start()
             self._started = True
         except Exception:

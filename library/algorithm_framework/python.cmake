@@ -48,7 +48,7 @@ foreach( module IN ITEMS _io _file_formats _embedded )
 endforeach()
 viame_add_python_library( _io_native ""
   SOURCES "${CMAKE_CURRENT_LIST_DIR}/_io_native.cxx"
-  PRIVATE viame_algorithm_framework viame_pipeline_util viame_adapter )
+  PRIVATE viame_algorithm_framework viame_adapter )
 
 # `viame.log`, which was `kwiver.vital.vital_logging`.
 viame_add_python_module(

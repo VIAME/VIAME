@@ -95,3 +95,6 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
   )
 endif()
+
+viame_discover_gtests( viame embedded_pipeline
+  LIBRARIES viame_embedded_pipeline kwiver::vital_vpm GTest::gtest_main )
