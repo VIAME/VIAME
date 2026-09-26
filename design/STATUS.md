@@ -1473,3 +1473,99 @@ been controlled for.
 
 **Green:** BASELINE, UNIT and CORE 479 of 479 -- the two new filter tests --
 and GOLDEN and CRITICAL 10 of 10.
+
+Threading the tracker, and what threading it exposed.
+
+The entry above left threading as a decision rather than a change, and the
+decision was to do it. `lucas_kanade_flow` takes a `threads` count following
+`windowed_trainer`'s convention -- positive is taken as given, zero asks for
+one per core up to a cap of 32, one runs inline rather than paying for a pool
+-- and divides the points. Following a point reads the pyramid and writes its
+own two answers, so the division cannot change the answer, and a test asserts
+that at 1, 2, 3, 8 and auto it does not.
+
+**It is parity rather than a crutch, and that is measurable.** cv2 threads the
+same loop and not the other one:
+
+                            cv2, 1 thread   cv2, 16 threads
+    goodFeaturesToTrack          0.0351          0.0440
+    calcOpticalFlowPyrLK         0.0375          0.0118
+
+So the tracker is 3.2 times faster on sixteen cores and the corner detector is
+**slower** -- thread overhead on work that is not divided. Which settles the
+question the other entry left open: threading the tracker matches what OpenCV
+does, and threading the corner detector would be covering for something else.
+
+**And threading it was what found the something else.** The first threaded
+measurement was 0.068 to 0.058 -- 1.17 times for sixteen cores -- because the
+pyramid build was 0.039 of it and serial. Amdahl, in other words, pointing
+straight at the part that had not been profiled. Timing inside the pyramid:
+
+    pyr_down       0.0052 s     <- the largest single piece
+    scharr_deriv   0.0031
+    zero-fill      0.0015
+    pad_reflect    0.0002
+
+`pyr_down` was reaching its pixels through `image_of::operator()`, which is
+three multiplications and an index the compiler cannot prove monotonic. This
+is **integer** work with no associativity question in it, so once the loop is
+plain pointers with a fixed stride the compiler widens it by itself:
+**0.0052 to 0.0018**, with no intrinsics written. `pad_reflect` also stopped
+gathering the middle of each row, which is the row -- only the two 21 pixel
+pads are a gather -- and `scharr_deriv` took the same row pointers.
+
+    pyramid build   0.085 -> 0.018 s
+
+The corner measure went to **float**, which is not a precision concession but
+the precision `cv::cornerMinEigenVal` itself uses: its Sobel is `CV_32F` and
+its box filter accumulates in float. Agreement with cv2 is unchanged at 3.8e-7
+relative, and the corner list is identical on all forty-eight configurations
+tried -- three seeds, four sizes, two block sizes, three minimum distances.
+0.064 to 0.050.
+
+Where it now stands, all -O3, 1080p, a thousand corners:
+
+                        started    now      cv2 1thr   cv2 16thr
+    corners              0.245    0.088      0.035       0.044
+    following            0.110    0.032      0.038       0.012
+    together             0.355    0.120      0.073       0.056
+
+Like for like on one thread it is **1.9 times** cv2 rather than the 5.5 this
+began at, and as configured 2.2 times.
+
+**What is left is genuinely cv2's SIMD, and IPP is not the answer either.**
+The build carries Intel IPP 2026.0.0, so that was the next suspect; turning it
+off with `cv2.ipp.setUseIPP(False)` makes `cornerMinEigenVal` *faster*, 0.0171
+to 0.0128, so cv2's own vector path is beating IPP and there is no library
+advantage being hidden. The remaining three times on the corner measure is
+hand written intrinsics over a Sobel, a box filter and an eigenvalue, against
+scalar float here -- and unlike `pyr_down` these are floating point reductions,
+where the compiler will not widen the loop without permission to reassociate,
+which would cost the agreement that has been checked at every step.
+
+**Green:** BASELINE, UNIT and CORE 479 of 479; GOLDEN and CRITICAL 10 of 10.
+The determinism test is a new case inside an existing python file, which is one
+ctest entry, so the count does not move for it.
+
+**One tier 1 run in the middle of this was not green, and the cause is not
+established.** It failed seven tests -- `external_plugins.a_library_without_
+the_entry_point_is_skipped` with a subprocess abort, and six `logger` cases
+that count the lines they capture. Nothing here touches either. The same
+binaries then passed 479 of 479 on the next run, and those twenty-seven tests
+pass twelve times out of twelve at `-j8` on their own, so it needs the whole
+suite's company to appear.
+
+What was ruled out: it is not load or timing, because the logger tests capture
+`std::cerr` by swapping in an `ostringstream` inside the one process; and it is
+not the environment leaking between cases, because each gtest case is its own
+process. What was found while looking, and is worth someone's attention
+whether or not it is the cause: `external_plugins` sets its plugin path to
+`$<TARGET_FILE:viame_library>` and `dlopen`s **libviame.so itself**, a library
+already loaded into the test process. That is a fragile thing to do, and a
+subprocess abort is what it would look like.
+
+Recorded rather than explained, and not claimed fixed. What is verified is the
+work in this entry: the golden replay is 10 of 10, the tracker agrees with cv2
+over the twenty-six configuration sweep, the thread count does not change a
+bit of the answer at 1, 2, 3, 8 or auto, and the 164 python kernel cases and
+nine camera-motion cases pass.

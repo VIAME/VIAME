@@ -1376,3 +1376,22 @@ def test_the_pyramid_stops_before_the_window_stops_fitting():
         moved, status = lucas_kanade(first, second, points, levels=asked)
         assert np.array_equal(status, settled_status)
         assert np.array_equal(moved, settled)
+
+
+def test_lucas_kanade_does_not_depend_on_how_the_points_were_divided():
+    """Following a point reads the pyramid and writes its own two answers, so
+    the thread count is a performance knob and nothing else. OpenCV
+    parallelises the same loop, and measured on sixteen cores it is three
+    times faster than itself on one -- which is why a single threaded port was
+    not being compared with like."""
+    field = _corner_field(200, 160)
+    first = np.ascontiguousarray(field[10:150, 10:190])
+    second = np.ascontiguousarray(field[13:153, 15:195])
+
+    points = good_features_to_track(first, max_corners=200, min_distance=6.0)
+    settled, settled_status = lucas_kanade(first, second, points, threads=1)
+
+    for count in (2, 3, 8, 0):
+        moved, status = lucas_kanade(first, second, points, threads=count)
+        assert np.array_equal(status, settled_status)
+        assert np.array_equal(moved, settled)

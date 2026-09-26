@@ -56,6 +56,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <stdexcept>
+#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -89,6 +90,9 @@ namespace detail {
 
 /// The smallest a pyramid level is allowed to get, as OpenCV's is.
 constexpr int farneback_min_size = 32;
+
+/// Where asking for "one thread per core" stops, as `windowed_trainer`'s does.
+constexpr unsigned max_auto_threads = 32;
 
 /// `cvRound`: to nearest, and a half to the even neighbour.
 ///
@@ -877,6 +881,15 @@ struct lucas_kanade_params
 
   /// The corner strength below which a point is not trackable at all.
   double min_eigen = 1e-4;
+
+  /// How many threads to follow the points on; 0 asks for one per core.
+  ///
+  /// Following a point reads the pyramid and writes its own two answers, so
+  /// the work is independent and the result does not depend on how it was
+  /// divided. `cv::calcOpticalFlowPyrLK` parallelises the same loop the same
+  /// way -- measured on sixteen cores it is three times faster than itself on
+  /// one -- so a single threaded port is not being compared with like.
+  int threads = 0;
 };
 
 namespace detail {
@@ -940,25 +953,74 @@ pyr_down( viame::image_of< uint8_t > const& image )
 
   std::vector< int > across( out_width * height );
 
+  auto const* const base = image.first_pixel();
+  auto const across_step = image.w_step();
+  auto const down_step = image.h_step();
+
+  // The interior columns read five pixels at a fixed stride of two, which is
+  // a shape the compiler can widen. Reaching them through
+  // `image_of::operator()` -- three multiplications, and an index it cannot
+  // prove monotonic -- is what stopped it: this is integer work with no
+  // associativity question, so once it is pointers it vectorises and there is
+  // nothing left here for hand written intrinsics to win.
+  auto const first_interior = ( 2 + 1 ) / 2;
+  auto const last_interior = width >= 3 ? ( width - 3 ) / 2 : size_t{ 0 };
+
   for( size_t y = 0; y < height; ++y )
   {
+    auto const* source = base + down_step * static_cast< ptrdiff_t >( y );
     auto* destination = across.data() + y * out_width;
 
-    for( size_t x = 0; x < out_width; ++x )
+    if( across_step == 1 && last_interior >= first_interior )
     {
-      auto const* at = columns.data() + x * 5;
-      int total = 0;
-
-      for( int k = 0; k < 5; ++k )
+      for( size_t x = 0; x < first_interior && x < out_width; ++x )
       {
-        total += tap[ k ] * image( at[ k ], y, 0 );
+        auto const* at = columns.data() + x * 5;
+        int total = 0;
+        for( int k = 0; k < 5; ++k ) { total += tap[ k ] * source[ at[ k ] ]; }
+        destination[ x ] = total;
       }
 
-      destination[ x ] = total;
+      auto const stop = std::min( last_interior + 1, out_width );
+
+      for( size_t x = first_interior; x < stop; ++x )
+      {
+        auto const* window = source + x * 2 - 2;
+        destination[ x ] = window[ 0 ] + 4 * window[ 1 ] + 6 * window[ 2 ] +
+                           4 * window[ 3 ] + window[ 4 ];
+      }
+
+      for( size_t x = stop; x < out_width; ++x )
+      {
+        auto const* at = columns.data() + x * 5;
+        int total = 0;
+        for( int k = 0; k < 5; ++k ) { total += tap[ k ] * source[ at[ k ] ]; }
+        destination[ x ] = total;
+      }
+    }
+    else
+    {
+      for( size_t x = 0; x < out_width; ++x )
+      {
+        auto const* at = columns.data() + x * 5;
+        int total = 0;
+
+        for( int k = 0; k < 5; ++k )
+        {
+          total += tap[ k ] *
+            source[ across_step * static_cast< ptrdiff_t >( at[ k ] ) ];
+        }
+
+        destination[ x ] = total;
+      }
     }
   }
 
   viame::image_of< uint8_t > out( out_width, out_height, 1 );
+
+  auto* const out_base = out.first_pixel();
+  auto const out_across = out.w_step();
+  auto const out_down = out.h_step();
 
   for( size_t y = 0; y < out_height; ++y )
   {
@@ -970,16 +1032,27 @@ pyr_down( viame::image_of< uint8_t > const& image )
         rows[ y * 5 + static_cast< size_t >( k ) ] * out_width;
     }
 
-    for( size_t x = 0; x < out_width; ++x )
+    auto* destination = out_base + out_down * static_cast< ptrdiff_t >( y );
+
+    if( out_across == 1 )
     {
-      int total = 0;
-
-      for( int k = 0; k < 5; ++k )
+      for( size_t x = 0; x < out_width; ++x )
       {
-        total += tap[ k ] * source[ k ][ x ];
+        auto const total = source[ 0 ][ x ] + 4 * source[ 1 ][ x ] +
+                           6 * source[ 2 ][ x ] + 4 * source[ 3 ][ x ] +
+                           source[ 4 ][ x ];
+        destination[ x ] = static_cast< uint8_t >( ( total + 128 ) >> 8 );
       }
-
-      out( x, y, 0 ) = static_cast< uint8_t >( ( total + 128 ) >> 8 );
+    }
+    else
+    {
+      for( size_t x = 0; x < out_width; ++x )
+      {
+        int total = 0;
+        for( int k = 0; k < 5; ++k ) { total += tap[ k ] * source[ k ][ x ]; }
+        destination[ out_across * static_cast< ptrdiff_t >( x ) ] =
+          static_cast< uint8_t >( ( total + 128 ) >> 8 );
+      }
     }
   }
 
@@ -1019,12 +1092,22 @@ scharr_deriv( viame::image_of< uint8_t > const& image,
     auto const above = above_of[ y ];
     auto const below = below_of[ y ];
 
+    auto const* const row_above =
+      image.first_pixel() + image.h_step() * static_cast< ptrdiff_t >( above );
+    auto const* const row_here =
+      image.first_pixel() + image.h_step() * static_cast< ptrdiff_t >( y );
+    auto const* const row_below =
+      image.first_pixel() + image.h_step() * static_cast< ptrdiff_t >( below );
+    auto const step = image.w_step();
+
     for( size_t x = 0; x < width; ++x )
     {
-      auto const up = static_cast< int >( image( x, above, 0 ) );
-      auto const down = static_cast< int >( image( x, below, 0 ) );
+      auto const at = step * static_cast< ptrdiff_t >( x );
+      auto const up = static_cast< int >( row_above[ at ] );
+      auto const down = static_cast< int >( row_below[ at ] );
 
-      smoothed[ x ] = ( up + down ) * 3 + static_cast< int >( image( x, y, 0 ) ) * 10;
+      smoothed[ x ] =
+        ( up + down ) * 3 + static_cast< int >( row_here[ at ] ) * 10;
       differenced[ x ] = down - up;
     }
 
@@ -1116,8 +1199,13 @@ pad_reflect( viame::image_of< uint8_t > const& image, size_t pad_x,
                                  static_cast< long >( height ) );
 
   // The already-padded rows are copies of each other, so a row whose source
-  // row has been built before is memcpy'd rather than gathered again
+  // row has been built before is copied rather than gathered again
   std::vector< long > built( height, -1 );
+
+  auto const* const base = image.first_pixel();
+  auto const across_step = image.w_step();
+  auto const down_step = image.h_step();
+  auto const packed = across_step == 1;
 
   for( size_t j = 0; j < rows.size(); ++j )
   {
@@ -1126,16 +1214,39 @@ pad_reflect( viame::image_of< uint8_t > const& image, size_t pad_x,
 
     if( built[ y ] >= 0 )
     {
-      std::copy( out.data() + static_cast< size_t >( built[ y ] ) * stride,
-                 out.data() + static_cast< size_t >( built[ y ] ) * stride +
-                   stride,
-                 destination );
+      auto const* from =
+        out.data() + static_cast< size_t >( built[ y ] ) * stride;
+      std::copy( from, from + stride, destination );
       continue;
     }
 
-    for( size_t i = 0; i < stride; ++i )
+    auto const* source = base + down_step * static_cast< ptrdiff_t >( y );
+
+    // The middle of the row is the row: only the two pads are a gather, and
+    // they are `pad_x` wide against a frame that is two thousand across
+    if( packed )
     {
-      destination[ i ] = image( columns[ i ], y, 0 );
+      std::copy( source, source + width, destination + pad_x );
+    }
+    else
+    {
+      for( size_t i = 0; i < width; ++i )
+      {
+        destination[ pad_x + i ] =
+          source[ across_step * static_cast< ptrdiff_t >( i ) ];
+      }
+    }
+
+    for( size_t i = 0; i < pad_x; ++i )
+    {
+      destination[ i ] =
+        source[ across_step * static_cast< ptrdiff_t >( columns[ i ] ) ];
+    }
+
+    for( size_t i = pad_x + width; i < stride; ++i )
+    {
+      destination[ i ] =
+        source[ across_step * static_cast< ptrdiff_t >( columns[ i ] ) ];
     }
 
     built[ y ] = static_cast< long >( j );
@@ -1275,18 +1386,21 @@ lucas_kanade_flow( viame::image_of< uint8_t > const& prev,
   auto const half_x = static_cast< float >( ( params.win_width - 1 ) * 0.5 );
   auto const half_y = static_cast< float >( ( params.win_height - 1 ) * 0.5 );
 
-  std::vector< int > patch( win_w * win_h );
-  std::vector< int > slope_x( win_w * win_h ), slope_y( win_w * win_h );
-
-  for( int level = static_cast< int >( pyramid.size() ) - 1; level >= 0;
-       --level )
+  // One point, coarsest level to finest. The levels are inside the point
+  // rather than the other way about so that a pool is made once instead of
+  // once per level, and because a point only ever reads its **own** answer
+  // from the level above there is no barrier between them.
+  auto const follow =
+    [ & ]( size_t i, std::vector< int >& patch, std::vector< int >& slope_x,
+           std::vector< int >& slope_y )
   {
-    auto const& held = pyramid[ static_cast< size_t >( level ) ];
-    auto const columns = static_cast< long >( held.width );
-    auto const rows = static_cast< long >( held.height );
-
-    for( size_t i = 0; i < count; ++i )
+    for( int level = static_cast< int >( pyramid.size() ) - 1; level >= 0;
+         --level )
     {
+      auto const& held = pyramid[ static_cast< size_t >( level ) ];
+      auto const columns = static_cast< long >( held.width );
+      auto const rows = static_cast< long >( held.height );
+
       auto const shrink = static_cast< float >( 1.0 / ( 1 << level ) );
 
       std::pair< float, float > here{ points[ i ].first * shrink,
@@ -1494,6 +1608,55 @@ lucas_kanade_flow( viame::image_of< uint8_t > const& prev,
         previous_y = step_y;
       }
     }
+  };
+
+  // The same shape `windowed_trainer` uses for its chipping: a positive count
+  // is taken as given, zero asks for one thread per core up to a cap, and one
+  // thread runs inline rather than paying for a pool.
+  auto wanted = params.threads > 0
+    ? static_cast< unsigned >( params.threads )
+    : std::min( std::thread::hardware_concurrency(),
+                detail::max_auto_threads );
+
+  if( wanted == 0 ) { wanted = 1; }
+
+  if( wanted > count ) { wanted = count > 0 ? static_cast< unsigned >( count ) : 1u; }
+
+  if( wanted <= 1 )
+  {
+    std::vector< int > patch( win_w * win_h );
+    std::vector< int > slope_x( win_w * win_h ), slope_y( win_w * win_h );
+
+    for( size_t i = 0; i < count; ++i )
+    {
+      follow( i, patch, slope_x, slope_y );
+    }
+  }
+  else
+  {
+    auto const worker =
+      [ & ]( unsigned which )
+      {
+        // The window scratch is per thread; everything else a point touches
+        // is either read only or indexed by the point itself
+        std::vector< int > patch( win_w * win_h );
+        std::vector< int > slope_x( win_w * win_h ), slope_y( win_w * win_h );
+
+        for( size_t i = which; i < count; i += wanted )
+        {
+          follow( i, patch, slope_x, slope_y );
+        }
+      };
+
+    std::vector< std::thread > pool;
+    pool.reserve( wanted );
+
+    for( unsigned which = 0; which < wanted; ++which )
+    {
+      pool.emplace_back( worker, which );
+    }
+
+    for( auto& one : pool ) { one.join(); }
   }
 
   return out;

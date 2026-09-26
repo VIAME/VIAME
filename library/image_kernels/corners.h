@@ -283,7 +283,15 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
   auto const smooth = sobel_kernel_1d( 0, static_cast< size_t >( aperture ) );
   auto const differ = sobel_kernel_1d( 1, static_cast< size_t >( aperture ) );
 
-  std::vector< double > ring_differ( 3 * width ), ring_smooth( 3 * width );
+  // In float, because `cv::cornerMinEigenVal` is: its Sobel is CV_32F and its
+  // box filter accumulates in float, so this is not a precision concession to
+  // speed but the same precision OpenCV chose, and it halves both the traffic
+  // and the width of a vector lane.
+  std::vector< float > narrow_smooth( smooth.begin(), smooth.end() );
+  std::vector< float > narrow_differ( differ.begin(), differ.end() );
+  auto const narrow_scale = static_cast< float >( scale );
+
+  std::vector< float > ring_differ( 3 * width ), ring_smooth( 3 * width );
   long filled = -1;
 
   // `image_of::operator()` is three multiplications to reach a pixel, and the
@@ -304,17 +312,17 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
       auto const* source = base + down_step * static_cast< ptrdiff_t >( row );
 
       auto const one =
-        [ & ]( long i, double& a, double& b )
+        [ & ]( long i, float& a, float& b )
         {
           for( size_t k = 0; k < 3; ++k )
           {
             auto const index = detail::border_index(
               i + static_cast< long >( k ) - 1, static_cast< long >( width ),
               border_mode::REFLECT_101 );
-            auto const value = static_cast< double >(
+            auto const value = static_cast< float >(
               source[ across_step * static_cast< ptrdiff_t >( index ) ] );
-            a += differ[ k ] * value;
-            b += smooth[ k ] * value;
+            a += narrow_differ[ k ] * value;
+            b += narrow_smooth[ k ] * value;
           }
         };
 
@@ -323,14 +331,14 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
       {
         for( size_t x = 1; x + 1 < width; ++x )
         {
-          double a = 0.0;
-          double b = 0.0;
+          float a = 0.0f;
+          float b = 0.0f;
 
           for( size_t k = 0; k < 3; ++k )
           {
-            auto const value = static_cast< double >( source[ x + k - 1 ] );
-            a += differ[ k ] * value;
-            b += smooth[ k ] * value;
+            auto const value = static_cast< float >( source[ x + k - 1 ] );
+            a += narrow_differ[ k ] * value;
+            b += narrow_smooth[ k ] * value;
           }
 
           to_differ[ x ] = a;
@@ -341,8 +349,8 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
       {
         for( size_t x = 1; x + 1 < width; ++x )
         {
-          double a = 0.0;
-          double b = 0.0;
+          float a = 0.0f;
+          float b = 0.0f;
           one( static_cast< long >( x ), a, b );
           to_differ[ x ] = a;
           to_smooth[ x ] = b;
@@ -353,8 +361,8 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
       // one is the same column twice and harmlessly so
       for( auto const x : { size_t{ 0 }, width - 1 } )
       {
-        double a = 0.0;
-        double b = 0.0;
+        float a = 0.0f;
+        float b = 0.0f;
         one( static_cast< long >( x ), a, b );
         to_differ[ x ] = a;
         to_smooth[ x ] = b;
@@ -391,19 +399,17 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
 
     for( size_t x = 0; x < width; ++x )
     {
-      double across = 0.0;
-      double down = 0.0;
+      float across = 0.0f;
+      float down = 0.0f;
 
       for( size_t k = 0; k < 3; ++k )
       {
-        across += smooth[ k ] * ring_differ[ rows[ k ] * width + x ];
-        down += differ[ k ] * ring_smooth[ rows[ k ] * width + x ];
+        across += narrow_smooth[ k ] * ring_differ[ rows[ k ] * width + x ];
+        down += narrow_differ[ k ] * ring_smooth[ rows[ k ] * width + x ];
       }
 
-      auto const gx = static_cast< float >(
-        static_cast< float >( across ) * scale );
-      auto const gy = static_cast< float >(
-        static_cast< float >( down ) * scale );
+      auto const gx = across * narrow_scale;
+      auto const gy = down * narrow_scale;
 
       to_xx[ x ] = gx * gx;
       to_xy[ x ] = gx * gy;
@@ -431,7 +437,7 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
 
     for( size_t x = 0; x < width; ++x )
     {
-      double a = 0.0, b = 0.0, c = 0.0;
+      float a = 0.0f, b = 0.0f, c = 0.0f;
 
       // The taps are added in the same order either way, so the answer is the
       // same to the last bit; the split keeps the border resolution off the
@@ -460,9 +466,9 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
         }
       }
 
-      to_xx[ x ] = static_cast< float >( a );
-      to_xy[ x ] = static_cast< float >( b );
-      to_yy[ x ] = static_cast< float >( c );
+      to_xx[ x ] = a;
+      to_xy[ x ] = b;
+      to_yy[ x ] = c;
     }
   }
 
@@ -492,7 +498,7 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
 
     for( size_t x = 0; x < width; ++x )
     {
-      double first = 0.0, cross = 0.0, second = 0.0;
+      float first = 0.0f, cross = 0.0f, second = 0.0f;
 
       for( size_t k = 0; k < rows_xx.size(); ++k )
       {
@@ -501,9 +507,9 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
         second += rows_yy[ k ][ x ];
       }
 
-      auto const a = static_cast< float >( first ) * 0.5f;
-      auto const b = static_cast< float >( cross );
-      auto const c = static_cast< float >( second ) * 0.5f;
+      auto const a = first * 0.5f;
+      auto const b = cross;
+      auto const c = second * 0.5f;
 
       destination[ out.w_step() * static_cast< ptrdiff_t >( x ) ] =
         a + c - std::sqrt( ( a - c ) * ( a - c ) + b * b );

@@ -889,7 +889,7 @@ lucas_kanade( array_of< uint8_t > const& first,
               array_of< uint8_t > const& second,
               py::array_t< float, py::array::c_style > const& points,
               int win_width, int win_height, int levels, int iterations,
-              double epsilon, double min_eigen )
+              double epsilon, double min_eigen, int threads )
 {
   auto const buffer = points.request();
 
@@ -917,6 +917,7 @@ lucas_kanade( array_of< uint8_t > const& first,
   params.iterations = iterations;
   params.epsilon = epsilon;
   params.min_eigen = min_eigen;
+  params.threads = threads;
 
   std::vector< uint8_t > status;
 
@@ -1646,10 +1647,13 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "win_width" ) = 21, py::arg( "win_height" ) = 21,
          py::arg( "levels" ) = 3, py::arg( "iterations" ) = 30,
          py::arg( "epsilon" ) = 0.01, py::arg( "min_eigen" ) = 1e-4,
+         py::arg( "threads" ) = 0,
          "cv2.calcOpticalFlowPyrLK. Returns the moved points as an N by 2 "
          "float32 array and a uint8 status, 1 where the point was followed. "
          "`epsilon` is squared and compared against the squared step, as "
-         "OpenCV's is." );
+         "OpenCV's is. `threads` divides the points, 0 for one per core; the "
+         "answer does not depend on the division, and OpenCV parallelises the "
+         "same loop." );
 
   for_every_pixel_type( m, "optical_flow", &optical_flow< uint8_t >,
          &optical_flow< uint16_t >, &optical_flow< float >,

@@ -3009,7 +3009,23 @@ for:
 
 At equal optimisation and equal thread count the gap is about three times, and
 the cheapest way to close it is the **parallel sweep, not the intrinsics** --
-each point is independent of every other, so it stays deterministic. Which is
+each point is independent of every other, so it stays deterministic.
+
+**Threading it then found a fourth instance of the same bug**, which is why
+this note keeps growing. Sixteen cores bought 1.17 times, because the pyramid
+build was serial and most of the cost; timing inside it put `pyr_down` at the
+top; and `pyr_down` was slow for the same reason as everything else here -- it
+reached its pixels through `image_of::operator()`. That one is the most
+instructive of the four, because the fix was not to write vector code but to
+stop preventing it: the loop is integer, a fixed stride apart, with no
+associativity question, so the compiler widened it by itself the moment the
+accessor was gone. 0.0052 s to 0.0018.
+
+Which sharpens the rule. **An accessor that costs three multiplications does
+not just cost three multiplications** -- it hides the access pattern, and a
+loop whose pattern the compiler cannot see is a loop it will not vectorise.
+Every hand-written intrinsic considered for these kernels would have been
+competing against auto-vectorisation that was being suppressed a line above. Which is
 the ordering lesson twice over: the explanation that sounds most like real
 engineering was, both times, the one that had not been measured. The rule that
 would have saved all of it is to compare like with like first -- same `-O`,
