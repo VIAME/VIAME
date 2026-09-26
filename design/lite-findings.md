@@ -3048,19 +3048,36 @@ differ -- though only slightly: on one frame cv2 invalidates **6** pixels the
 port keeps, and the other 34 differences are those six spreading through the
 3 by 3 median.
 
-One theory was tested and disproved rather than left hanging. Since `S` here is
-negative and the test cannot fire on negative values in either implementation,
-the port's `S` looked like it might be offset downward from cv2's by a constant
--- which argmin and the subpixel interpolation would both hide, since both are
-offset-invariant, and which the uniqueness ratio would not. Measured across 320
-pixels: the offset needed to explain the invalidations runs up to 39862 while
-the offset that must **not** be reached to explain the ones cv2 keeps starts at
-12117. The ranges overlap, so no constant offset explains it.
+`S` here is negative, and on negative values that test cannot fire in either
+implementation -- so cv2's `S` must differ from the port's by an offset which is
+**constant in d**. Such an offset is invisible to argmin and to the subpixel
+fit, both of which are offset-invariant, and visible only to the uniqueness
+ratio. That is why everything else agrees.
+
+The offset was measured rather than guessed, by bisecting the `uniquenessRatio`
+at which each pixel first becomes invalid and solving the inequality back. It
+is **not constant**: pixel (0,16) needs an offset in (2593, 2963], pixel (0,17)
+one in (1092, 1098], and the ranges do not overlap. Across 320 pixels the
+values cluster near 1100 to 1700 with outliers, which brackets `5 * P2` (1440
+here, five directions) without settling on it. A per-pixel offset constant in d
+is what the recursion's `- delta` subtraction removes, so the shape of the
+answer is that cv2 keeps some accumulated path minimum the port discards, or
+discards one it keeps -- on a source reading that plainly subtracts
+`P2 + minLr` at line 919.
 
 Also eliminated, each by measurement: the 3 by 3 median (identical to
-`cv2.medianBlur` over 685 values), the SAD box (`blockSize` 1 was worse), the
-aggregation (an independent transliteration agrees with the prototype exactly)
-and SIMD dispatch (`OPENCV_CPU_DISABLE` changes nothing).
+`cv2.medianBlur` over 685 values), the SAD box (`blockSize` 1 was worse), and
+the aggregation (an independent transliteration agrees with the prototype
+exactly).
+
+**One earlier elimination was overstated.** `OPENCV_CPU_DISABLE` was reported
+above as ruling out SIMD; it rules out the *dispatched* paths only. OpenCV
+answered that attempt with "Trying to disable baseline CPU feature: 'SSE3'.
+This has very limited effect", so the baseline SSE2 vector path kept running
+and was never tested. It remains a live candidate for the uniqueness gap -- a
+reduce-min over vector lanes is exactly the kind of thing that would give a
+`minS` differing from the scalar loop's -- though `Da` equals `D` at the
+disparity counts tested, so there are no padding lanes to blame.
 
 **The aggregation's aliasing is confirmed correct** against the source rather
 than inferred. For each pixel the four accumulated directions read
