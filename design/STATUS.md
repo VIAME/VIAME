@@ -1631,3 +1631,52 @@ side effect of the next `cmake --build`, so it is left for a run of its own.
 
 **Green:** unchanged from the entry above -- these are configure-time files and
 the installed binaries are untouched until that rebuild.
+
+The `-O3` rebuild, and the question it was really for.
+
+`merged-build` is reconfigured and rebuilt. The cache went from an empty
+`CMAKE_BUILD_TYPE` to `Release`, the compile line lost `-std=c++11` and gained
+`-O3 -DNDEBUG`, the two `-Wl,` flags moved to the link line, and the whole tree
+rebuilt in **17.5 minutes at -j2** with no errors. The estimate given
+beforehand was "hours", which was wrong by an order of magnitude and is worth
+recording as such: this tree is much smaller than the VIAME it came from.
+
+`-O3` is live in the installed module, not merely in a benchmark:
+
+    Farneback 1080p, 4 levels    4.0 s  ->  0.816 s
+    corners (1000, 1080p)                   0.077
+    following 1000 points                   0.021
+    gaussian_blur, 17 taps                  0.185
+
+The five times on Farneback is the number predicted from the missing `-O`
+flag, which also means every timing quoted in the entries above -- all taken
+from separately compiled `-O3` benchmarks -- describes what this tree now
+actually produces. The two measurement paths agree: 0.077 and 0.021 through
+the install against 0.088 and 0.032 from the standalone benchmarks.
+
+**The point of the rebuild was not the speed.** It was that the goldens had
+only ever been replayed against an unoptimized build, so nothing had ever
+checked whether `-O3` moves a recorded number -- and the default tolerance is
+`(0.0, 0.0)`, exact, so there was no slack to hide in.
+
+A prediction was written down before the run: they would pass, because the
+three ways `-O3` usually moves floating point are all absent here. No `-march`
+or `-mfma`, so FMA contraction cannot happen on the baseline x86-64 target; no
+`-ffast-math` or `-fassociative-math`, so no reassociation; and x86-64 uses SSE
+for scalar float, so no x87 excess precision. That was checked against the
+generated `flags.make` rather than assumed -- none of those flags appears
+anywhere in the tree.
+
+It held. **Not one recorded value moved**:
+
+    BASELINE, UNIT and CORE    479 of 479
+    GOLDEN and CRITICAL         10 of 10
+    tools                       25 of 25
+
+So the recordings are now known to be optimisation-independent, which they
+were only assumed to be before, and the tests and the shipped wheels are
+finally exercising the same kind of build. That is the result worth having;
+the five times faster is a side effect.
+
+**Green:** BASELINE, UNIT and CORE 479 of 479; GOLDEN and CRITICAL 10 of 10;
+tools 25 of 25 -- all at `-O3`, for the first time.
