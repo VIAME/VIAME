@@ -99,6 +99,18 @@ def __vital_algorithm_register__():
         pass
 
     try:
+        from viame.core import homog_iou_tracker
+        homog_iou_tracker.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.core import homog_iou_trainer
+        homog_iou_trainer.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
         from viame.core import read_detected_object_set_coco
         read_detected_object_set_coco.__vital_algorithm_register__()
     except ImportError:
