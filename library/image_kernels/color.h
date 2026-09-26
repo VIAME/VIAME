@@ -25,6 +25,7 @@
 #include <viame/core_types/image.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -548,6 +549,205 @@ constexpr double white_x = 0.950456;
 constexpr double white_y = 1.0;
 constexpr double white_z = 1.088754;
 
+// ----------------------------------------------------------------------------
+/// OpenCV's fixed-point tables for the 8 bit L*a*b* transfer.
+///
+/// `cv::cvtColor` does not take 8 bit RGB through the real-valued formula
+/// above. It goes through two integer tables -- a gamma table on the input
+/// byte and a cube-root table on the fixed-point XYZ value -- and the two
+/// answers disagree by up to two counts. The goldens are recorded from cv2
+/// with a tolerance of zero, so close is not a pass; these are its tables.
+///
+/// The subtlety is in the cube-root table. Its argument is computed in
+/// float, which the index-to-value division has to match, but its cube root
+/// is OpenCV's own, and at two entries that lands on the far side of a
+/// rounding tie from a correctly rounded one. Those two are named below
+/// rather than derived, because deriving them would mean reproducing that
+/// cube root. One of them is reachable, and it alone moves 17645 of the
+/// 16777216 possible triples -- a table entry only shows up where the value
+/// it feeds is itself near a rounding boundary, which is about one time in
+/// seventy.
+struct lab_tables
+{
+  static constexpr int gamma_shift = 3;
+  static constexpr int lab_shift = 12;
+  static constexpr int lab_shift2 = lab_shift + gamma_shift;
+  static constexpr int cbrt_size = 256 * 3 / 2 * ( 1 << gamma_shift );
+
+  /// `(116 * 255 + 50) / 100` and its offset, which put L on 0..255.
+  static constexpr int lightness_scale = ( 116 * 255 + 50 ) / 100;
+  static constexpr int lightness_shift =
+    -( ( 16 * 255 * ( 1 << lab_shift2 ) + 50 ) / 100 );
+
+  std::array< int, 256 > gamma;
+  std::array< int, cbrt_size > cbrt;
+  std::array< int, 9 > coefficient;
+
+  lab_tables()
+  {
+    for( int i = 0; i < 256; ++i )
+    {
+      auto const linear = srgb_to_linear( static_cast< double >( i ) / 255.0 );
+
+      gamma[ static_cast< size_t >( i ) ] = static_cast< int >(
+        std::nearbyint( 255.0 * ( 1 << gamma_shift ) * linear ) );
+    }
+
+    // CIE's own rationals rather than the truncated 0.008856 and 7.787 that
+    // older references print; the difference lands on a rounding boundary.
+    constexpr float knee = 216.0f / 24389.0f;
+    constexpr float slope = 841.0f / 108.0f;
+    constexpr float offset = 4.0f / 29.0f;
+
+    for( int i = 0; i < cbrt_size; ++i )
+    {
+      auto const x = static_cast< float >( i ) /
+                     static_cast< float >( 255 * ( 1 << gamma_shift ) );
+      auto const value = ( x < knee )
+                         ? static_cast< double >( x * slope + offset )
+                         : std::cbrt( static_cast< double >( x ) );
+
+      cbrt[ static_cast< size_t >( i ) ] = static_cast< int >(
+        std::nearbyint( ( 1 << lab_shift2 ) * value ) );
+    }
+
+    // The two ties. Both products are a ten-thousandth above the halfway
+    // point -- 9454.500194 and 37088.500396 -- so rounding sends them up,
+    // and OpenCV's cube root, being a shade low, sends them down. Only the
+    // first can be reached: no row of the matrix below sums to more than one
+    // once divided by the white point, so no index exceeds 2040.
+    cbrt[ 49 ] = 9454;
+    cbrt[ 2958 ] = 37088;
+
+    constexpr double rows[ 9 ] = { 0.412453, 0.357580, 0.180423,
+                                   0.212671, 0.715160, 0.072169,
+                                   0.019334, 0.119193, 0.950227 };
+    constexpr double white[ 3 ] = { white_x, white_y, white_z };
+
+    for( int i = 0; i < 9; ++i )
+    {
+      coefficient[ static_cast< size_t >( i ) ] = static_cast< int >(
+        std::nearbyint( rows[ i ] / white[ i / 3 ] * ( 1 << lab_shift ) ) );
+    }
+  }
+};
+
+inline lab_tables const&
+lab_table()
+{
+  static lab_tables const tables;
+  return tables;
+}
+
+// ----------------------------------------------------------------------------
+/// OpenCV's fixed-point tables for the 8 bit L*a*b* to RGB transfer.
+///
+/// A different implementation from the forward one and from its own float
+/// path: `cv::cvtColor`'s float answer rounded to a byte disagrees with its
+/// 8 bit answer by a count on 2.8% of triples, so neither the real-valued
+/// formula nor the float path reproduces this. Three tables and a 14 bit
+/// fixed point do.
+///
+/// `lightness` carries both y and f(y) per L. `transfer` is f inverted, over
+/// the whole range f(x) and f(z) can reach, biased by `ab_floor` so that a
+/// negative one indexes it. `gamma` is the sRGB transfer on 12 bits, which is
+/// also where the byte comes from: its entries are already 0..255.
+struct lab_inverse_tables
+{
+  static constexpr int lab_shift = 12;
+  static constexpr int base_shift = 14;
+  static constexpr int gamma_shift = 12;
+  static constexpr int base = 1 << base_shift;
+  static constexpr int shift = lab_shift + ( base_shift - gamma_shift );
+  static constexpr int gamma_size = 1 << gamma_shift;
+  static constexpr int ab_floor = -8145;
+  static constexpr int ab_size = base * 9 / 4;
+  /// Where f's linear leg gives way to its cube, on this scaling.
+  static constexpr int knee = 3390;
+
+  std::array< int, 256 > lightness_y;
+  std::array< int, 256 > lightness_f;
+  std::array< int, ab_size > transfer;
+  std::array< int, gamma_size > gamma;
+  std::array< int, 9 > coefficient;
+
+  lab_inverse_tables()
+  {
+    // Built in float, which is what OpenCV builds them in: i * 100 * 16384
+    // passes 2^24 before L reaches 3, so the rounding is part of the table.
+    for( int i = 0; i < 256; ++i )
+    {
+      auto const at = static_cast< size_t >( i );
+
+      if( i <= 20 )
+      {
+        lightness_y[ at ] = static_cast< int >( std::nearbyint(
+          static_cast< float >( i * base * 20 * 9 ) /
+          static_cast< float >( 17 * 29 * 29 * 29 ) ) );
+        lightness_f[ at ] = static_cast< int >( std::nearbyint(
+          static_cast< float >( base ) *
+          ( 16.0f / 116.0f +
+            static_cast< float >( i * 5 ) /
+            static_cast< float >( 3 * 17 * 29 ) ) ) );
+      }
+      else
+      {
+        auto const f = static_cast< float >( i * 100 * base ) /
+                       static_cast< float >( 255 * 116 ) +
+                       static_cast< float >( 16 * base ) / 116.0f;
+
+        lightness_f[ at ] = static_cast< int >( std::nearbyint( f ) );
+        lightness_y[ at ] = static_cast< int >( std::nearbyint(
+          f * f * f / static_cast< float >( base * base ) ) );
+      }
+    }
+
+    // Integer division truncates toward zero here, and the index runs
+    // negative, so this is not a floor. OpenCV's arithmetic, kept as it is.
+    for( int i = ab_floor; i < ab_size + ab_floor; ++i )
+    {
+      auto const at = static_cast< size_t >( i - ab_floor );
+
+      transfer[ at ] = ( i <= knee )
+                       ? i * 108 / 841 - ( base * 16 / 116 * 108 / 841 )
+                       : i * i / base * i / base;
+    }
+
+    for( int i = 0; i < gamma_size; ++i )
+    {
+      auto const value = static_cast< double >( i ) / gamma_size;
+
+      gamma[ static_cast< size_t >( i ) ] = static_cast< int >(
+        std::nearbyint( 255.0 * linear_to_srgb( value ) ) );
+    }
+
+    constexpr double rows[ 9 ] = { 3.240479, -1.53715, -0.498535,
+                                   -0.969256, 1.875991, 0.041556,
+                                   0.055648, -0.204043, 1.057311 };
+    constexpr double white[ 3 ] = { white_x, white_y, white_z };
+
+    for( int i = 0; i < 9; ++i )
+    {
+      coefficient[ static_cast< size_t >( i ) ] = static_cast< int >(
+        std::nearbyint( ( 1 << lab_shift ) * rows[ i ] * white[ i % 3 ] ) );
+    }
+  }
+};
+
+inline lab_inverse_tables const&
+lab_inverse_table()
+{
+  static lab_inverse_tables const tables;
+  return tables;
+}
+
+/// OpenCV's rounding right shift, which floors on a negative value.
+inline int
+descale( int value, int bits )
+{
+  return ( value + ( 1 << ( bits - 1 ) ) ) >> bits;
+}
+
 } // namespace detail
 
 // ----------------------------------------------------------------------------
@@ -570,6 +770,49 @@ rgb_to_lab( viame::image_of< T > const& image )
   auto const top = static_cast< double >( pixel_max< T >() );
 
   viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    auto const& table = detail::lab_table();
+    constexpr int shift = detail::lab_tables::lab_shift;
+    constexpr int shift2 = detail::lab_tables::lab_shift2;
+    constexpr int half = 128 * ( 1 << shift2 );
+    auto const& c = table.coefficient;
+
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        auto const r = table.gamma[ image( i, j, 0 ) ];
+        auto const g = table.gamma[ image( i, j, 1 ) ];
+        auto const b = table.gamma[ image( i, j, 2 ) ];
+
+        int f[ 3 ];
+
+        for( int k = 0; k < 3; ++k )
+        {
+          auto const raw = detail::descale(
+            r * c[ 3 * k ] + g * c[ 3 * k + 1 ] + b * c[ 3 * k + 2 ], shift );
+
+          // The table is sized for a value this cannot reach -- every row of
+          // the matrix sums to one once divided by the white point, so the
+          // largest is 2040 against 3072 -- but an index is an index.
+          f[ k ] = table.cbrt[ static_cast< size_t >( std::min(
+            std::max( raw, 0 ), detail::lab_tables::cbrt_size - 1 ) ) ];
+        }
+
+        out( i, j, 0 ) = saturate_pixel< T >( detail::descale(
+          detail::lab_tables::lightness_scale * f[ 1 ] +
+          detail::lab_tables::lightness_shift, shift2 ) );
+        out( i, j, 1 ) = saturate_pixel< T >(
+          detail::descale( 500 * ( f[ 0 ] - f[ 1 ] ) + half, shift2 ) );
+        out( i, j, 2 ) = saturate_pixel< T >(
+          detail::descale( 200 * ( f[ 1 ] - f[ 2 ] ) + half, shift2 ) );
+      }
+    }
+
+    return out;
+  }
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -625,6 +868,56 @@ lab_to_rgb( viame::image_of< T > const& image )
   auto const top = static_cast< double >( pixel_max< T >() );
 
   viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    using tables = detail::lab_inverse_tables;
+    auto const& table = detail::lab_inverse_table();
+    auto const& c = table.coefficient;
+
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        auto const l = static_cast< int >( image( i, j, 0 ) );
+        auto const a = static_cast< int >( image( i, j, 1 ) );
+        auto const b = static_cast< int >( image( i, j, 2 ) );
+
+        auto const y = table.lightness_y[ static_cast< size_t >( l ) ];
+        auto const f = table.lightness_f[ static_cast< size_t >( l ) ];
+
+        // a and b are divided by 500 and 200 by reciprocal multiplication,
+        // and the +1 on the second is OpenCV's, not a typo of ours.
+        auto const across = ( ( 5 * a * 53687 + ( 1 << 7 ) ) >> 13 ) -
+                            128 * tables::base / 500;
+        auto const along = ( ( b * 41943 + ( 1 << 4 ) ) >> 9 ) -
+                           128 * tables::base / 200 + 1;
+
+        auto const at = [ & ]( int value )
+        {
+          return table.transfer[ static_cast< size_t >( std::min(
+            std::max( value - tables::ab_floor, 0 ),
+            tables::ab_size - 1 ) ) ];
+        };
+
+        int const xyz[ 3 ] = { at( f + across ), y, at( f - along ) };
+
+        for( int k = 0; k < 3; ++k )
+        {
+          auto const raw = detail::descale( c[ 3 * k ] * xyz[ 0 ] +
+                                            c[ 3 * k + 1 ] * xyz[ 1 ] +
+                                            c[ 3 * k + 2 ] * xyz[ 2 ],
+                                            tables::shift );
+
+          out( i, j, static_cast< size_t >( k ) ) = saturate_pixel< T >(
+            table.gamma[ static_cast< size_t >( std::min(
+              std::max( raw, 0 ), tables::gamma_size - 1 ) ) ] );
+        }
+      }
+    }
+
+    return out;
+  }
 
   for( size_t j = 0; j < image.height(); ++j )
   {

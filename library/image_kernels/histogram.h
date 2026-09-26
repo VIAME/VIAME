@@ -409,14 +409,17 @@ clahe( viame::image_of< T > const& image, double clip_limit = 40.0,
       std::vector< T > mapping( levels, 0 );
       size_t running = 0;
 
-      auto const scale = static_cast< double >( levels - 1 ) /
-                         static_cast< double >( tile_area );
+      // In float, which is what OpenCV scales by: `lutScale` is a float
+      // there and the product with it is a float, so a cumulative sum near a
+      // half lands on whichever side float puts it.
+      auto const scale = static_cast< float >( levels - 1 ) /
+                         static_cast< float >( tile_area );
 
       for( size_t level = 0; level < levels; ++level )
       {
         running += counts[ level ];
         mapping[ level ] = saturate_pixel_even< T >(
-          static_cast< double >( running ) * scale );
+          static_cast< float >( running ) * scale );
       }
 
       mappings[ ty * tiles_x + tx ] = std::move( mapping );
@@ -426,15 +429,20 @@ clahe( viame::image_of< T > const& image, double clip_limit = 40.0,
   // Interpolate between the four surrounding tile centres
   viame::image_of< T > out( width, height, 1 );
 
-  auto const half_w = static_cast< double >( tile_w ) / 2.0;
-  auto const half_h = static_cast< double >( tile_h ) / 2.0;
+  // Float again, and in OpenCV's form rather than an equivalent one: it
+  // multiplies by the reciprocal of the tile extent and subtracts a half,
+  // where dividing the offset would round differently. Both this and the
+  // half-to-even rounding below are needed; with either in double the result
+  // is a count out on tens of pixels in a frame, which is what the golden
+  // tolerance used to absorb.
+  auto const inverse_w = 1.0f / static_cast< float >( tile_w );
+  auto const inverse_h = 1.0f / static_cast< float >( tile_h );
 
   for( size_t j = 0; j < height; ++j )
   {
-    auto const ty = ( static_cast< double >( j ) - half_h ) /
-                    static_cast< double >( tile_h );
+    auto const ty = static_cast< float >( j ) * inverse_h - 0.5f;
     auto const top = static_cast< long >( std::floor( ty ) );
-    auto const fy = ty - static_cast< double >( top );
+    auto const fy = ty - static_cast< float >( top );
 
     auto const y0 = static_cast< size_t >(
       std::max( 0L, std::min( static_cast< long >( tiles_y ) - 1, top ) ) );
@@ -444,10 +452,9 @@ clahe( viame::image_of< T > const& image, double clip_limit = 40.0,
 
     for( size_t i = 0; i < width; ++i )
     {
-      auto const tx = ( static_cast< double >( i ) - half_w ) /
-                      static_cast< double >( tile_w );
+      auto const tx = static_cast< float >( i ) * inverse_w - 0.5f;
       auto const left = static_cast< long >( std::floor( tx ) );
-      auto const fx = tx - static_cast< double >( left );
+      auto const fx = tx - static_cast< float >( left );
 
       auto const x0 = static_cast< size_t >(
         std::max( 0L, std::min( static_cast< long >( tiles_x ) - 1, left ) ) );
@@ -458,17 +465,19 @@ clahe( viame::image_of< T > const& image, double clip_limit = 40.0,
       auto const level = static_cast< size_t >( image( i, j, 0 ) );
 
       auto const a =
-        static_cast< double >( mappings[ y0 * tiles_x + x0 ][ level ] );
+        static_cast< float >( mappings[ y0 * tiles_x + x0 ][ level ] );
       auto const b =
-        static_cast< double >( mappings[ y0 * tiles_x + x1 ][ level ] );
+        static_cast< float >( mappings[ y0 * tiles_x + x1 ][ level ] );
       auto const c =
-        static_cast< double >( mappings[ y1 * tiles_x + x0 ][ level ] );
+        static_cast< float >( mappings[ y1 * tiles_x + x0 ][ level ] );
       auto const d =
-        static_cast< double >( mappings[ y1 * tiles_x + x1 ][ level ] );
+        static_cast< float >( mappings[ y1 * tiles_x + x1 ][ level ] );
 
-      out( i, j, 0 ) = saturate_pixel< T >(
-        a * ( 1.0 - fx ) * ( 1.0 - fy ) + b * fx * ( 1.0 - fy ) +
-        c * ( 1.0 - fx ) * fy + d * fx * fy );
+      // Grouped as OpenCV groups it -- across, then down -- because a float
+      // sum is not associative and the two groupings disagree.
+      out( i, j, 0 ) = saturate_pixel_even< T >(
+        ( a * ( 1.0f - fx ) + b * fx ) * ( 1.0f - fy ) +
+        ( c * ( 1.0f - fx ) + d * fx ) * fy );
     }
   }
 

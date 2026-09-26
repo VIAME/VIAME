@@ -1733,3 +1733,73 @@ Nineteen tests where there were none: ten for `stereo_algos`, pinning what its
 docstrings claimed and nobody had checked, and nine for the mixture and the
 new element. The first of the ten asserts the test sequence produces
 detections at all, so the rest cannot quietly empty out again.
+
+## L*a*b* forward, exact -- and a recording that was of the wrong thing
+
+**`rgb_to_lab` is now bit-identical to cv2 on all 16777216 8-bit triples.**
+The whole input domain, not a sample. P7-T03 had declined to reproduce
+OpenCV's fixed-point tables, reasoning that a port working in double is more
+accurate and therefore better; that is right for a library and wrong here,
+because the `ocv_enhancer` and `ocv_color_correction` goldens are recordings
+of cv2 compared at zero tolerance. Better is not a pass. Finding 2.42.
+
+**What decided it was a float.** The gamma table, the 12- and 15-bit shifts
+and the matrix all came out of the structure. The cube-root table needed its
+argument rounded to float first -- computed in double the conversion is wrong
+on 1671 triples -- and then two of its entries still would not come out,
+sitting a ten-thousandth above a rounding tie where OpenCV's cube root lands
+below and arithmetic lands above. Those two are pinned as data with the
+measurement beside them. One is reachable, and it alone was moving 17645
+triples.
+
+**The two cv2 versions.** The prototype agreed with cv2 and the C++ did not,
+on the same inputs and the same algorithm: the prototype had run under the
+install's cv2 5.0.0 and the C++ check under the system's 4.12.0, whose tables
+differ. The recordings name the install they were taken in, so 5.0.0 is the
+contract -- and "matches OpenCV" turns out to be a claim about a version.
+
+**The inverse is exact as well, by reading rather than inferring.**
+`cv::cvtColor`'s 8-bit Lab-to-RGB is a separate implementation from its own
+float path -- cv2's float answer rounded to a byte disagrees with cv2's 8-bit
+answer by a count on 2.8% of triples -- so the float path, which had already
+been reproduced to 1.8e-07 as a natural cubic spline on 1024 knots, was the
+wrong target. Rather than spend hours inferring the integer one, OpenCV's
+source was read: it is Apache-2.0 and public, and reading a dependency's
+implementation is cheaper than inferring it. Exact on all 16777216 triples
+first try. `from_lab` is now bit-identical too.
+
+**CLAHE went exact too, and it needed two changes at once.** OpenCV scales the
+cumulative histogram in float and blends in float from
+`x * (1/tileWidth) - 0.5f`, grouped across-then-down, and rounds half to even
+where this rounded half away from zero. Either one left as it was and tens of
+pixels in a frame are a count off -- the size of gap a tolerance of 1 absorbs
+without anyone deciding to. 192 configurations agree exactly, over eight
+shapes, clip limits 0 to 40 and grids 1x1 to 8x8.
+
+**Which leaves the two colour files in different places.**
+`ocv_color_correction` uses no denoising, so with L*a*b* and CLAHE exact
+nothing algorithmic stands in front of it. `ocv_enhancer` still needs
+`fastNlMeansDenoisingColored`, which is a real algorithm rather than a table
+and does not exist here.
+
+**Six more tolerances came down** once CLAHE and the inverse landed: the five
+clahe cases and `lab_to_rgb`, all to exact. Of the 60 C++ recordings, **48 are
+now held to the byte where 23 were.**
+
+**A recording of the replacement.** `ocv_convert_color`'s `rgb_to_lab` and
+`lab_to_rgb` goldens are bit for bit what the real-valued formula produced, so
+they record the port rather than the OpenCV it replaced -- and the
+`(1.0, 0.5)` tolerance, justified in a comment describing the difference in
+the opposite direction, admitted both stories so nothing had to choose. Six of
+the eight pairs are now exact; these two disagree with their recordings alone,
+the filter's output being identical to cv2 on the same fixture. Finding 2.43.
+The re-record is left as a decision, since replacing a recording changes a
+contract.
+
+**The C++ recordings are cv2's, and they were carrying slack.** They print
+their own margin, and 34 of 60 never approached their tolerance. 28 came down
+to what they actually achieve, 19 of those to exact, `rgb_to_lab` and
+`rgb_to_gray` among them -- the latter having been a version behind under a
+tolerance of exactly 1 once already. The five left alone are the float
+geometry ones, where shaving the headroom off an interpolating path buys a
+brittle test rather than a contract.

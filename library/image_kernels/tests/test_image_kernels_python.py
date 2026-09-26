@@ -9,7 +9,8 @@ natural frame:
     crop           identical
     resize         max difference 25  -- a different pixel centre convention
     to_hsv/to_hls  max difference 1
-    to_lab         max difference 2
+    to_lab         max difference 0   -- bit identical, over every triple
+    from_lab       max difference 0   -- likewise, and a separate table
 
 The three colour spaces round trip at least as well as OpenCV's own do: on a
 random frame, 4 against its 5 for HSV and HLS, and 21 for both on L*a*b*,
@@ -129,6 +130,55 @@ def test_a_colour_space_round_trips(forward, inverse):
     assert np.abs(back.astype(int) - frame.astype(int)).max() <= 24
 
 
+def test_lab_is_opencvs_fixed_point_conversion_and_not_the_formula():
+    """`to_lab` reproduces `cv::cvtColor`'s integer path, not the real-valued
+    definition, and the two disagree by up to two counts. Checked here at
+    the values that separate them.
+
+    `rgb -> lab` was compared against cv2 5.0.0 over all 16777216 8-bit
+    triples when this landed: identical on every one. What the table below
+    holds is the part a formula cannot get right -- the first three rows turn
+    on a single cube-root table entry whose product lands a ten-thousandth
+    above a rounding tie, where OpenCV rounds down and arithmetic rounds up.
+    """
+    cases = [([0, 6, 98], [24, 163, 77]),
+             ([0, 22, 138], [45, 169, 64]),
+             ([32, 1, 86], [24, 163, 85]),
+             ([0, 0, 0], [0, 128, 128]),
+             ([255, 255, 255], [255, 128, 128]),
+             ([255, 0, 0], [136, 208, 195]),
+             ([0, 255, 0], [224, 42, 211]),
+             ([0, 0, 255], [82, 207, 20])]
+
+    frame = np.array([[rgb for rgb, _ in cases]], dtype=np.uint8)
+    expected = np.array([[lab for _, lab in cases]], dtype=np.uint8)
+    assert to_lab(frame).tolist() == expected.tolist()
+
+
+def test_from_lab_is_opencvs_integer_path_and_not_its_float_one():
+    """`cv::cvtColor`'s 8-bit L*a*b*-to-RGB is separate integer code, not its
+    float path rounded: cv2's own float answer, rounded to a byte, disagrees
+    with its 8-bit answer by a count on 2.8% of triples. `from_lab` follows
+    the integer one, and was compared against cv2 5.0.0 over all 16777216
+    triples when it landed -- identical on every one.
+
+    The values below are a sample of that, taken at the ends and at the
+    primaries' own L*a*b*, where the three tables and the 14-bit fixed point
+    all get exercised.
+    """
+    cases = [([0, 128, 128], [0, 0, 0]),
+             ([255, 128, 128], [255, 255, 255]),
+             ([136, 208, 195], [255, 2, 1]),
+             ([224, 42, 211], [7, 255, 3]),
+             ([82, 207, 20], [0, 1, 255]),
+             ([24, 163, 77], [1, 7, 98]),
+             ([45, 169, 64], [0, 23, 139])]
+
+    frame = np.array([[lab for lab, _ in cases]], dtype=np.uint8)
+    expected = np.array([[rgb for _, rgb in cases]], dtype=np.uint8)
+    assert from_lab(frame).tolist() == expected.tolist()
+
+
 @pytest.mark.parametrize("convert", [to_hsv, to_hls, to_lab])
 def test_a_colour_space_keeps_the_shape(convert):
     assert convert(_frame(32, 16)).shape == (16, 32, 3)
@@ -159,9 +209,12 @@ def test_grey_has_no_saturation():
 #
 # Measured against cv2 when written, on a random 64 by 96 frame: gaussian_blur,
 # box_blur, add_weighted, normalize, equalize, erode, dilate and demosaic are
-# all **bit identical**, and clahe is within one grey level. Those are strong
-# enough agreements to assert shape and invariants here and leave the pixel
-# comparison to tests/golden.
+# all **bit identical**. So is clahe, since P7-T04c -- it was a grey level out
+# until the scaling and the interpolation moved to float and the rounding to
+# half-to-even, which is what OpenCV does; 192 configurations agree exactly,
+# over eight shapes including one that does not divide by its tile grid. Those
+# are strong enough agreements to assert shape and invariants here and leave
+# the pixel comparison to tests/golden.
 
 def _gray(width=64, height=48):
     y, x = np.mgrid[0:height, 0:width]
@@ -198,6 +251,25 @@ def test_add_weighted_wants_one_size():
 def test_normalize_spans_the_range():
     out = normalize(_gray() // 4 + 30, 0, 255)
     assert out.min() == 0 and out.max() == 255
+
+
+def test_clahe_is_opencvs_float_arithmetic_and_its_rounding():
+    """Both halves of the agreement, on the smallest case that shows them.
+
+    `clahe` was a grey level away from `cv2.createCLAHE` until two things
+    changed together: the cumulative histogram is scaled in float and the
+    bilinear blend is computed in float and grouped across-then-down, and the
+    result is rounded half to even rather than half away from zero. Either one
+    in double and tens of pixels in a frame come out a count off.
+
+    A 1 by 1 grid takes the interpolation out, so this pins the scaling; the
+    2 by 2 case exercises both.
+    """
+    frame = _gray(16, 12)
+    assert clahe(frame, 3.0, 1, 1)[:2, :4].tolist() == [[4, 17, 29, 42],
+                                                        [25, 28, 12, 60]]
+    assert clahe(frame, 3.0, 2, 2)[:2, :4].tolist() == [[11, 37, 58, 85],
+                                                        [48, 53, 27, 117]]
 
 
 def test_equalize_and_clahe_keep_the_shape():

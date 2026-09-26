@@ -843,8 +843,7 @@ class TestMatCalibration:
     ])
     def test_load_mat_calibration(self, compress, as_struct):
         scipy_io = pytest.importorskip('scipy.io')
-        cv2 = pytest.importorskip('cv2')
-        from viame.measurement import _measurement
+        from viame.measurement import _measurement, projection
 
         om = np.array([0.01, 0.02, -0.005])
         T = np.array([-210.0, 4.0, 4.5])
@@ -871,7 +870,7 @@ class TestMatCalibration:
         assert np.isclose(k_left[0, 2], cc_left[0])
         assert np.isclose(k_left[1, 2], cc_left[1])
         assert np.allclose(np.array(cal['rotation']).reshape(3, 3),
-                           cv2.Rodrigues(om)[0])
+                           projection.rodrigues(om))
         assert np.allclose(np.array(cal['translation']), T)
 
 

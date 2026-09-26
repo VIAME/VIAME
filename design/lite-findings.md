@@ -3100,3 +3100,117 @@ The general point is about naming. A shape called `disk` and a shape called
 `ellipse` sound like the same idea at different eccentricities; they are two
 libraries' conventions, and a port that reaches for the one whose *name* fits
 gets a subtly different answer. The docstring now says which is which.
+
+## 2.42 The L*a*b* table is reproducible, and it is a float that decides it
+
+P7-T03 declined to reproduce OpenCV's fixed-point colour tables, reasoning
+that they are a precision compromise for speed and a port working in double
+is the better of the two to keep. That reasoning is sound for a library and
+wrong for this tree: the goldens for `ocv_enhancer` and `ocv_color_correction`
+are recordings of cv2, compared at a tolerance of zero, so those two files
+cannot come off cv2 until the conversion is identical rather than better.
+
+`rgb_to_lab` is now identical, on **all 16777216 8-bit triples**. The domain
+is small enough to check completely, so this is not a sample.
+
+The shape of OpenCV's path is a gamma table on the input byte, a fixed-point
+matrix, a cube-root table, and 12- and 15-bit rounding shifts. Reconstructing
+it took four wrong answers, each informative:
+
+* The **truncated constants** print in most references -- 0.008856, 7.787,
+  0.137931 -- and OpenCV uses the rationals they came from, 216/24389,
+  841/108 and 4/29. This changes nothing measurable, because the branch they
+  guard covers 18 of 3072 entries, but it is the arithmetic OpenCV does.
+* The cube-root table's **argument is a float**. Computed in double the
+  conversion differs from cv2 on 1671 triples; the argument rounded to float
+  first, on none in the prototype.
+* The cube root itself is **not a correctly rounded one**. Two entries sit a
+  ten-thousandth above a rounding tie -- 9454.500194 and 37088.500396 -- and
+  OpenCV rounds them down where arithmetic rounds them up. Only index 49 is
+  reachable, and that single entry moved 17645 triples. It is pinned as data,
+  with the measurement in the comment, because deriving it would mean
+  reproducing OpenCV's cube root.
+* The prototype agreed with cv2 and the C++ did not, on the same inputs: the
+  prototype had run under the install's **cv2 5.0.0** and the C++ check under
+  the system's **4.12.0**, whose tables differ. The recordings name the
+  install they were taken in, so 5.0.0 is the contract. A cross-version
+  difference in a fixed-point table is worth knowing about: it means "matches
+  OpenCV" is a statement about a version.
+
+The inverse is exact too, and it took a different route to get there.
+
+`cv::cvtColor`'s 8-bit Lab-to-RGB is **a separate implementation from its own
+float path**, not that path rounded: cv2's float answer, rounded to a byte,
+disagrees with cv2's 8-bit answer by a count on 2.8% of triples and by two on
+0.001%. Reverse-engineering it the way the forward was done would have been
+several hours, so OpenCV's source was read instead -- it is Apache-2.0 and
+public, and reading the implementation of a dependency is cheaper than
+inferring it. The prototype was then exact on all 16777216 triples first try.
+
+The parts worth knowing, because none of them is guessable:
+
+* One table per L holds **both y and f(y)**, built in float -- `i * 100 *
+  16384` passes 2^24 before L reaches 3, so that rounding is part of the
+  table, not an artifact.
+* a and b are divided by 500 and 200 by **reciprocal multiplication**, and the
+  b one carries a `+1` that is OpenCV's and not a transcription slip.
+* f is inverted through a table spanning every value f(x) and f(z) can reach,
+  biased by -8145 so a negative index works. Its integer divisions
+  **truncate toward zero over a negative range**, so they are not floors.
+* The sRGB transfer is a plain 4096-entry table whose entries are already
+  0..255, so the gamma and the quantisation to a byte are one lookup.
+
+The float path was reproduced first, before the source was read, and is worth
+recording even though it turned out to be the wrong target: OpenCV's float
+inverse gamma is a **natural cubic spline on 1024 knots**, matched to 1.8e-07,
+with its last interval continuing linearly past the final knot. That is what a
+float conversion needs, and it is not what the 8-bit one uses.
+
+CLAHE went exact in the same sitting, and for a reason worth recording
+separately: **two things had to change together.** OpenCV scales the
+cumulative histogram in float, and computes the bilinear blend in float from
+`x * (1/tileWidth) - 0.5f` grouped across-then-down; and it rounds with
+`saturate_cast`, which is half to even, where this rounded half away from
+zero. Either one left in double or rounded the other way and tens of pixels in
+a frame come out a count off -- which is exactly the size of gap a tolerance
+of 1 absorbs without anyone choosing to. 192 configurations now agree exactly,
+over eight shapes including ones that do not divide by their tile grid, clip
+limits from 0 to 40, and grids from 1 by 1 to 8 by 8.
+
+That leaves the two colour files in different places.
+`ocv_color_correction` needs no denoising, so with L*a*b* and CLAHE exact
+nothing algorithmic is in front of it. `ocv_enhancer` still needs
+`fastNlMeansDenoisingColored`, which does not exist here at all and is a real
+algorithm rather than a table.
+
+## 2.43 A recording of the replacement is not a recording of what it replaced
+
+`ocv_convert_color`'s `rgb_to_lab` and `lab_to_rgb` goldens are, bit for bit,
+what the real-valued formula produced -- not what OpenCV produced. They were
+added by the commit that did the port, so they captured the port's own output.
+With both conversions now identical to cv2 the recordings are the only thing
+that disagrees, which is how it was noticed: six of the eight recorded pairs
+went exact and these two went from passing to still passing at max 1. On the
+recorded fixture the filter's output is identical to cv2 and the recording is
+a count away from both.
+
+The tolerance hid it. `(1.0, 0.5)` was justified in a comment describing a
+difference in the opposite direction -- OpenCV's fixed point against our
+double -- and a tolerance of 1 admits both stories, so nothing ever had to
+choose between them. This is the same shape as `rgb_to_gray` being a version
+behind under a tolerance of exactly 1.
+
+Two things came out of it. The C++ recordings in
+`tests/golden/image_kernels/opencv.json` **are** cv2's, and they print their
+own margin; 34 of the 60 were never approaching their tolerance, so 28 came
+down to what they actually achieve. With the inverse and CLAHE exact as well,
+**48 of the 60 are now held to the byte where 23 were.** The five left are the
+float geometry ones -- `remap_wave`, the two `warp_perspective`,
+`warp_affine_rotate`, `match_ncc` -- where shaving the headroom off an
+interpolating path buys a brittle test rather than a contract. `lab_to_rgb`
+came down to exact once the integer inverse landed, making four of the colour
+cases exact where none was.
+
+The Python side needs a re-record, not a tightening, and that is left for a
+decision: the value to record is already known to be right over the whole
+input domain, but replacing a recording is a change to a contract.

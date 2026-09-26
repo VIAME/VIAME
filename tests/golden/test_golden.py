@@ -50,17 +50,21 @@ import runner                       # noqa: E402
 # with the reason, rather than loosening the default for everyone.
 TOLERANCES = {
     "__default__": (0.0, 0.0),
-    # `ocv_convert_color` since P7-T04b. OpenCV's colour conversions work in
-    # fixed point for an 8 bit image -- a hue through a reciprocal table, an
-    # L*a*b* through a cube-root table -- where `image_kernels` works in double,
-    # so the two round apart on the last count. Measured over the eight
-    # recorded pairs: never more than 1 count, and 0.33 mean at worst
-    # (hsv_to_rgb, where the inverse of a quantised hue lands between two
-    # bytes on a third of the pixels). Two of the eight are exact.
+    # `ocv_convert_color` since P7-T04b, and now for two variants only.
     #
-    # Reproducing the tables instead was considered in P7-T03 and not done:
-    # they are a precision compromise for speed, and a port that is more
-    # accurate than what it replaces is the better of the two to keep.
+    # P7-T03 declined to reproduce OpenCV's fixed-point tables, on the
+    # grounds that a more accurate port is the better of the two to keep, and
+    # this tolerance covered the last count they round apart on. Both L*a*b*
+    # tables were reproduced after all, and `to_lab` and `from_lab` are each
+    # identical to cv2 on all 16777216 8-bit triples. Six of the eight
+    # recorded pairs now match their recording exactly.
+    #
+    # The two that do not are `rgb_to_lab` and `lab_to_rgb`, at max 1 with
+    # 0.08 and 0.04 mean, and the reason is the recordings rather than the
+    # port: each is bit for bit what the real-valued formula produced, so they
+    # record the replacement and not the OpenCV it replaced. The filter's
+    # output is identical to cv2 on the recorded fixture, so re-recording the
+    # two would let this come down to exact. See lite-findings.md 2.43.
     "ocv_convert_color": (1.0, 0.5),
     # `ocv_optical_flow` since the Farneback port. The flow itself is
     # reproduced to float32 rounding -- never worse than 7e-5 of a pixel
