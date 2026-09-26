@@ -3039,7 +3039,49 @@ is a larger fraction of a narrow image, and the aggregation carries the error
 inward from both ends, so the pattern moved with width and block size and only
 looked like it moved with height.
 
-### What is still out: the uniqueness ratio
+### Closed: the uniqueness ratio, and the source does not explain it
+
+`uniquenessRatio` is now exact too, and the fix is one term. cv2 subtracts
+**`minLr` alone** from the path cost where the port subtracted
+`delta = minLr + P2`:
+
+    L = C + min( Lr[d], Lr[d-1] + P1, Lr[d+1] + P1, minLr + P2 ) - minLr
+
+The two differ by a uniform `P2` in every `Lr`, which is a fixed point of the
+recursion -- offset the buffer and the next step reproduces the offset -- so `S`
+comes out `n * P2` higher, where `n` is the direction count. That offset is
+invisible to the argmin and to the subpixel fit, both of which are
+offset-invariant, and visible **only** to the uniqueness ratio, whose test is a
+ratio and not a difference. Which is why everything agreed until a non-zero
+ratio was tried.
+
+The tell was the floor: the port's `S` bottomed out at exactly **-1440**, which
+is `5 * P2` at `P2 = 288` and five directions, and every per-pixel `minS` was
+negative. On negative values `Sp[d]*(100-r) < minS*100` can never fire, in
+either implementation -- so cv2's `S` had to be non-negative, and the offset had
+to be exactly the floor.
+
+Validated over **714240 pixels, 0 differing**, across 1440 configurations:
+`MODE_SGBM` and `MODE_HH`, heights 1 to 20, two disparity counts, three block
+sizes, uniqueness 0/5/10/20, `disp12MaxDiff` 0/1/5 and `preFilterCap` 0/31.
+Both modes matter -- `tools/disparity.py` and `netharn/disparity.py` both pass
+`uniquenessRatio=10`, so this was never optional.
+
+**The source says otherwise, and that is unresolved.** In both the 5.x branch
+and the **5.0.0 tag**, scalar and SIMD alike, the line is
+`... std::min(..., delta0))) - delta0` with `delta0 = P2 + *getMinLr(...)`, and
+`minLr` is written as `min` over `d` of that same `L`. Read as written, that is
+the port's original form, which is wrong against the installed binary on every
+non-zero uniqueness ratio. The likely explanation is that the wheel --
+`opencv_contrib_python_headless-5.0.0.93` -- is not built from the 5.0.0 tag,
+but that is a guess and it is recorded as one.
+
+What this means for a port is unambiguous even so: the goldens are recordings of
+**this** build, so this build is the contract, and the measurement beats the
+listing. Worth a comment in the kernel saying so, because the code will read
+as though it disagrees with OpenCV's published source.
+
+### Previously out: the uniqueness ratio
 
 `uniquenessRatio` is the one parameter still wrong, and it was invisible until
 now because at 0 the test `Sp[d]*(100 - r) < minS*100` can never fire, so every
