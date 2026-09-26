@@ -310,6 +310,7 @@ class PyAVVideoInput(VideoInput):
                 self._frame = None
                 return False
 
+            self._seconds_of(frame)  # Establish the origin even for skipped frames.
             self._number += 1
 
             if self._stop_after_frame and self._number > self._stop_after_frame:
@@ -352,23 +353,28 @@ class PyAVVideoInput(VideoInput):
 
         self._prime_origin()
 
-        target = int((frame_number - 1) / rate / self._stream.time_base)
-        self._container.seek(target, stream=self._stream, backward=True)
-        self._frames = self._container.decode(self._stream)
-        self._exhausted = False
-
-        # The seek lands at or before the target; step forward to it
-        for frame in self._frames:
+        self._seek_to_seconds((frame_number - 1) / rate)
+        while True:
+            frame = self._next_filtered()
+            if frame is None:
+                self._exhausted = True
+                return False
             number = self._number_of(frame, rate)
-
             if number >= frame_number:
                 self._frame = frame
                 self._number = number
                 return True
 
-        self._exhausted = True
+    def _seek_to_seconds(self, seconds):
+        absolute = seconds + (self._start_ts or 0)
+        target = int(absolute / self._stream.time_base)
+        self._container.seek(target, stream=self._stream, backward=True)
+        self._frames = self._container.decode(self._stream)
         self._frame = None
-        return False
+        self._exhausted = False
+        # Filters buffer frames and rescale timestamps. A new decode position
+        # must have a fresh graph, and seek results must pass through it too.
+        self._build_graph()
 
     def _time_origin(self):
         """Microseconds to add to every frame's offset.
@@ -415,9 +421,7 @@ class PyAVVideoInput(VideoInput):
         if self._start_ts is not None:
             return
 
-        self._container.seek(0, stream=self._stream, backward=True)
-        self._frames = self._container.decode(self._stream)
-
+        self._seek_to_seconds(0)
         frame = self._next_filtered()
 
         if frame is not None:
@@ -432,21 +436,17 @@ class PyAVVideoInput(VideoInput):
 
         self._prime_origin()
 
-        target = int(time_usec / MICROSECONDS / self._stream.time_base)
-        self._container.seek(target, stream=self._stream, backward=True)
-        self._frames = self._container.decode(self._stream)
-        self._exhausted = False
-
-        for frame in self._frames:
-            if frame.pts is not None and \
-                    frame.pts * self._stream.time_base * MICROSECONDS >= time_usec:
+        self._seek_to_seconds((time_usec - self._origin) / MICROSECONDS)
+        while True:
+            frame = self._next_filtered()
+            if frame is None:
+                self._exhausted = True
+                return False
+            seconds = self._seconds_of(frame)
+            if seconds is not None and round(seconds * MICROSECONDS) >= time_usec:
                 self._frame = frame
                 self._number = self._number_of(frame, self._average_rate())
                 return True
-
-        self._exhausted = True
-        self._frame = None
-        return False
 
     # ------------------------------------------------------------------
     # The current frame
@@ -597,11 +597,14 @@ class PyAVVideoInput(VideoInput):
         if self._container is None:
             return 0
 
-        # The container did not say, so count without decoding
-        self._count = sum(1 for _ in self._container.demux(self._stream)
-                          if _.pts is not None)
-        self._container.seek(0, stream=self._stream, backward=True)
-        self._frames = self._container.decode(self._stream)
+        # Count decoded frames in a separate reader. Packet counts need not
+        # equal frame counts, and scanning the active decoder changes playback.
+        import av
+        options = {"format": self._format_name} if self._format_name else {}
+        with av.open(self._filename, **options) as container:
+            stream = container.streams.video[0]
+            stream.thread_type = "AUTO"
+            self._count = sum(1 for _ in container.decode(stream))
         return self._count
 
     # ------------------------------------------------------------------
@@ -624,13 +627,12 @@ class PyAVVideoInput(VideoInput):
         if frame.pts is None:
             return None
 
-        if self._start_ts is None:
-            self._start_ts = frame.pts
-
-        # The frame's own time base, not the stream's: filters may rescale it
+        # Store seconds, since filters can change the timestamp time base.
         base = frame.time_base or self._stream.time_base
-
-        offset = float((frame.pts - self._start_ts) * base)
+        presentation = frame.pts * base
+        if self._start_ts is None:
+            self._start_ts = presentation
+        offset = float(presentation - self._start_ts)
 
         return (self._origin +
                 int(offset * MICROSECONDS + 0.5)) / MICROSECONDS
@@ -642,7 +644,7 @@ class PyAVVideoInput(VideoInput):
         if seconds is None or not rate:
             return self._number + 1
 
-        return int(round(seconds * rate)) + 1
+        return int(round((seconds - self._origin / MICROSECONDS) * rate)) + 1
 
 
 # The swscale setup arrows/ffmpeg used: nearest-neighbour chroma, accurate

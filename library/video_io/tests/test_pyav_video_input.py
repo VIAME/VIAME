@@ -131,3 +131,80 @@ def test_the_writer_name_keeps_its_config():
         assert have[key] == default, (
             "video_output 'ffmpeg' config key '{}' defaults to '{}', "
             "recorded '{}'".format(key, have[key], default))
+
+
+@pytest.mark.parametrize("filter_desc", ["yadif=deint=1", "hflip", ""])
+@pytest.mark.parametrize("clip", ["clip.mp4", "clip_10bit.mp4"])
+@pytest.mark.parametrize("time_source", ["start_at_0", "current"])
+def test_seek_returns_filtered_pixels_and_continues(filter_desc, clip, time_source):
+    import numpy as np
+    from viame.video_io.pyav_video_input import PyAVVideoInput
+    algo = PyAVVideoInput()
+    algo._filter_desc = filter_desc
+    algo._time_source = time_source
+    algo.open(os.path.join(GOLDEN, "inputs", clip))
+    try:
+        expected = []
+        times = []
+        while algo.next_frame():
+            expected.append(algo.frame_image().image().asarray().copy())
+            times.append(algo.frame_timestamp().get_time_usec())
+        # Includes a seek after EOF and backwards seeks with buffered frames.
+        for index in (14, 2, 9):
+            assert algo.seek_frame(index + 1)
+            np.testing.assert_array_equal(algo.frame_image().image().asarray(), expected[index])
+            assert algo.frame_timestamp().get_time_usec() == times[index]
+            assert algo.next_frame()
+            np.testing.assert_array_equal(algo.frame_image().image().asarray(), expected[index + 1])
+            assert algo.frame_timestamp().get_time_usec() == times[index + 1]
+        assert algo.seek_time(times[8])
+        np.testing.assert_array_equal(algo.frame_image().image().asarray(), expected[8])
+        assert algo.next_frame()
+        np.testing.assert_array_equal(algo.frame_image().image().asarray(), expected[9])
+    finally:
+        algo.close()
+
+
+def test_count_without_container_metadata_preserves_playback(tmp_path):
+    import av
+    import numpy as np
+    from viame.video_io.pyav_video_input import PyAVVideoInput
+    path = str(tmp_path / "unknown-count.mkv")
+    with av.open(path, "w") as out:
+        stream = out.add_stream("ffv1", rate=10)
+        stream.width, stream.height = 32, 24
+        stream.pix_fmt = "yuv420p"
+        for i in range(12):
+            frame = av.VideoFrame.from_ndarray(np.full((24, 32, 3), i * 15, np.uint8), format="rgb24")
+            for packet in stream.encode(frame):
+                out.mux(packet)
+        for packet in stream.encode():
+            out.mux(packet)
+    algo = PyAVVideoInput()
+    algo.open(path)
+    try:
+        assert algo._stream.frames == 0
+        for _ in range(3):
+            assert algo.next_frame()
+        pixels = algo.frame_image().image().asarray().copy()
+        assert algo.num_frames() == 12
+        assert algo.num_frames() == 12
+        assert algo.frame_timestamp().get_frame() == 3
+        np.testing.assert_array_equal(algo.frame_image().image().asarray(), pixels)
+        assert algo.next_frame()
+        assert algo.frame_timestamp().get_frame() == 4
+        assert algo.frame_timestamp().get_time_seconds() == pytest.approx(0.3)
+    finally:
+        algo.close()
+
+
+def test_timestamp_origin_does_not_depend_on_accessing_timestamps():
+    from viame.video_io.pyav_video_input import PyAVVideoInput
+    algo = PyAVVideoInput()
+    algo.open(CLIP)
+    try:
+        for _ in range(4):
+            assert algo.next_frame()
+        assert algo.frame_timestamp().get_time_seconds() == pytest.approx(recorded()["timestamps"][3])
+    finally:
+        algo.close()
