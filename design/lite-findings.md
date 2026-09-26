@@ -3355,3 +3355,46 @@ message says why.
 Worth noting for the next header: `edges.h` compiled at first only because
 `image_kernels_python.cxx` includes `color.h` ahead of it, which is where
 `require_planes` lives. It includes what it uses now.
+
+
+## 2.47 The circle transform, localised but not landed
+
+With Canny exact (2.46) and the 8-bit blur exact (2.45), both of 2.37's named
+obstacles are gone and the circle transform itself is what remains. It is not
+landed, and this records where it actually stands so the next attempt does not
+re-derive it.
+
+**What is confirmed.** At `dp = 1` the accumulator and the peak test are
+**exact**: compared through the `maxRadius < 0` trick, which returns cv2's raw
+centre list before the radius stage filters it, the centres agree to the digit
+and in the same order -- 13 of 13 on one fixture, 4 of 4 on another, and both
+empty where cv2 finds nothing. So the voting, the 1/1024 fixed point, the
+asymmetric peak test and the sweep that skips the first cell of each axis are
+all right, as 2.37 claimed.
+
+**What is not.** End to end at the shipped configuration -- `dp` 1, `min_dist`
+10, `param1` 200, `param2` 20, radii 3 to 20 -- two of five scenes match
+exactly and three do not. The misses are small and they are all of one kind:
+the *set* is nearly right and a **cluster representative differs**, so a centre
+comes back 1 or 2 pixels away and sometimes in a different order. Since the
+centres themselves are exact, the divergence is downstream of them -- in the
+radius histogram, or in the accumulator value `cmpAccum` sorts on, either of
+which changes which member of a `min_dist` cluster survives `RemoveOverlaps`.
+
+**The ordering rule is known and is not the whole answer.** OpenCV estimates
+the radius for every centre, sorts by `cmpAccum` -- accumulator descending,
+then radius descending, then x then y ascending -- and only then removes
+overlaps, where the old prototype interleaved de-duplication with estimation.
+Restructuring it that way is necessary and was not sufficient.
+
+**`dp != 1` is a second, separate gap.** At `dp = 2` one fixture gives cv2 15
+centres against our 1, which is far too large to be a rounding difference and
+says the accumulator geometry is wrong for a scaled grid. 2.37 claimed dp 1.0
+to 3.0 agreed; that was a fitted rule and it does not hold here. It matters
+less than it looks: the detector defaults to 1, the only shipped pipeline sets
+1, and the only recorded golden variant is 1 -- but `detector_simple_hough.pipe`
+exposes `dp` as a DIVE parameter, so a user can reach the broken path.
+
+The next step is to isolate the radius estimator the way the centres were
+isolated: feed it cv2's own centre list and compare radii alone, rather than
+comparing an output that five stages contribute to.
