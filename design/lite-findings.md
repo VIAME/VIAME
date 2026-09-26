@@ -2943,17 +2943,49 @@ different path and is the wrong place to start. Start instead from two rows
 of a width where one row is exact, where exactly one step of the vertical
 recursion separates a right answer from a wrong one.
 
-**One quirk found on the way, and it is OpenCV's rather than ours.** The
-vertical half of the SAD box is a running sum, and the row it adds is guarded
-by `if (k < height)` while the row it indexes is `min(k, height-1)`. The
-clamp suggests the intent was to replicate the last row; the guard means the
-whole update is skipped instead. So for the last `SADWindowSize/2` rows of
-every image **the cost is not updated at all** -- those rows reuse the last
-cost that was computed. A port that replicates the border, which is what the
-clamp says, is wrong at the bottom of every disparity map.
+**A quirk was recorded here and it is not real.** The claim was that the
+vertical half of the SAD box skips its update for the last `SADWindowSize/2`
+rows, because the row it adds is guarded by `if (k < height)` while the row it
+indexes is `min(k, height-1)` -- so that a port replicating the bottom border
+would be wrong on every image. That was inferred from a partial reading. The
+source says otherwise: in OpenCV 5.x's `modules/stereo/src/stereosgbm.cpp` the
+`if( k < height )` block closes at line 644 and **line 645 is an `else`** which
+still updates the cost, `C[x] = Cprev[x] + hsumAdd[x] - hsumSub[x]`, from the
+clamped `hsumAdd`. That is replication, which is what the clamp always
+suggested.
 
-Not landed. The prototype's value is this entry: the surrounding machinery is
-settled and the remaining question is one four-term minimum wide.
+Checked a second way: the running form OpenCV uses -- with `scale = SH2 + 1`
+on the first row and `hsumSub` clamped at `max(y - SH2 - 1, 0)` -- reproduces
+a box sum with both borders replicated exactly, which is what the prototype's
+`_box_sum` already computes. So this is not where the disagreement is, and the
+next attempt should not "fix" the bottom rows into staleness. An empirical
+confirmation on a synthetic pair was attempted and the fixture was wrong, so
+the evidence here is the source rather than a measurement.
+
+Still not landed, and a later attempt narrowed it without closing it.
+
+**The aggregation's aliasing is confirmed correct** against the source rather
+than inferred. For each pixel the four accumulated directions read
+`getLr(lrID, x - dx)` -- the **current** row's buffer, slot 0 -- and
+`getLr(1 - lrID, x - 1, 1)`, `getLr(1 - lrID, x, 2)`,
+`getLr(1 - lrID, x + 1, 3)` -- the **previous** row's, slots 1 to 3. The
+prototype already does exactly this. So does its handling of the ends: nothing
+ever writes index -1 or index `width1`, `clearLr()` runs once per pass rather
+than per row, and those entries therefore stay zero for the whole pass, which
+is what the prototype's fresh zeros give.
+
+Three more details were checked against the source and are already right in the
+prototype: `minL` starts at `MAX_COST` rather than at the first value; `Lr` is
+stored through a C cast to `short` while `S` accumulates the unwrapped `int`
+and saturates once, which is the prototype's "sum the four and then saturate";
+and `L` is provably bounded to `[C - P2, C]`, so the cast can never wrap and
+is not a candidate.
+
+What remains is therefore **not** the cost, **not** the aliasing, **not** the
+boundaries and **not** the integer types. The next attempt starts with the
+authoritative source in hand -- `modules/stereo/src/stereosgbm.cpp` on the 5.x
+branch, the scalar path at lines 690 to 800 -- and should diff a single pixel's
+four `L` values against it rather than compare disparity maps.
 
 ## 2.39 The same performance bug three times, and it was never the arithmetic
 
