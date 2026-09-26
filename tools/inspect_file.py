@@ -24,27 +24,11 @@ import zipfile
 
 from viame.core import model_wrap
 
-VIDEO_EXTS = (
-    "3qp;3g2;amv;asf;avi;drc;gif;gifv;f4v;f4p;f4a;f4bflv;m4v;mkv;mp4;m4p;"
-    "mpg;mpg2;mp2;mpeg;mpe;mpv;mng;mts;m2ts;mov;mxf;nsv;ogg;ogv;qt;roq;rm;"
-    "rmvb;svi;webm;wmv;vob;yuv").split(';')
-IMAGE_EXTS = (
-    "bmp;dds;gif;heic;jpg;jpeg;png;psd;psp;pspimage;tga;thm;tif;tiff;"
-    "yuv").split(';')
-MODEL_EXTS = ('pt', 'pth', 'ckpt', 'weights', 'onnx', 'zip')
-
-# Magic numbers of the still image formats VIAME's readers accept
-IMAGE_MAGIC = [
-    (b'\xff\xd8\xff', 'JPEG', ('jpg', 'jpeg', 'thm')),
-    (b'\x89PNG\r\n\x1a\n', 'PNG', ('png',)),
-    (b'GIF87a', 'GIF', ('gif',)),
-    (b'GIF89a', 'GIF', ('gif',)),
-    (b'BM', 'BMP', ('bmp',)),
-    (b'II*\x00', 'TIFF', ('tif', 'tiff')),
-    (b'MM\x00*', 'TIFF', ('tif', 'tiff')),
-    (b'DDS ', 'DDS', ('dds',)),
-    (b'8BPS', 'Photoshop', ('psd',)),
-]
+from viame._file_formats import (
+    VIDEO_EXTS, IMAGE_EXTS, MODEL_EXTS, IMAGE_MAGIC, ext_of, read_head,
+    sniff_image_magic, sniff_video, file_kind, json_annotation_format,
+    is_number, is_viame_csv_row, image_list_entries,
+)
 
 
 class Report:
@@ -94,45 +78,6 @@ class Report:
 
 
 # -----------------------------------------------------------------------------
-def ext_of(path):
-    return os.path.splitext(path)[1].lower().lstrip('.')
-
-
-def read_head(path, n=16):
-    try:
-        with open(path, 'rb') as f:
-            return f.read(n)
-    except OSError:
-        return b''
-
-
-def sniff_image_magic(head):
-    for magic, name, exts in IMAGE_MAGIC:
-        if head.startswith(magic):
-            return name, exts
-    if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
-        return 'WebP', ('webp',)
-    return None, ()
-
-
-def sniff_video(head):
-    if head[4:8] in (b'ftyp', b'moov', b'mdat'):
-        return 'MP4/QuickTime'
-    if head.startswith(b'\x1a\x45\xdf\xa3'):
-        return 'Matroska/WebM'
-    if head.startswith(b'RIFF') and head[8:12] == b'AVI ':
-        return 'AVI'
-    if head.startswith(b'\x30\x26\xb2\x75'):
-        return 'ASF/WMV'
-    if head.startswith(b'\x00\x00\x01\xba') or head.startswith(b'\x00\x00\x01\xb3'):
-        return 'MPEG program stream'
-    if head.startswith(b'FLV'):
-        return 'FLV'
-    if head.startswith(b'OggS'):
-        return 'Ogg'
-    return None
-
-
 # -----------------------------------------------------------------------------
 def inspect_image(path, report):
     report.category = 'image'
@@ -271,10 +216,8 @@ def inspect_video(path, report):
 
 def inspect_image_list(path, report, lines):
     report.category = 'image list'
-    entries = [l.strip() for l in lines if l.strip() and not l.startswith('#')]
-    base = os.path.dirname(os.path.abspath(path))
-    missing = [e for e in entries
-               if not os.path.isfile(e) and not os.path.isfile(os.path.join(base, e))]
+    entries = image_list_entries(path, lines)
+    missing = [e for e in entries if not os.path.isfile(e)]
     report.detail = '%d entries' % len(entries)
     report.format = 'one image path per line'
     report.relation = 'input image list for detection, tracking and training'
@@ -456,14 +399,6 @@ def inspect_model(path, report):
 
 
 # -----------------------------------------------------------------------------
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
-
-
 def inspect_csv(path, report):
     report.category = 'CSV'
     with open(path, newline='', errors='replace') as f:
@@ -476,7 +411,7 @@ def inspect_csv(path, report):
         if not line.strip() or line.startswith('#'):
             continue
         cols = next(csv.reader([line]))
-        if len(cols) >= 9 and all(is_number(c) for c in cols[2:9]):
+        if is_viame_csv_row(cols):
             rows.append(cols)
         else:
             bad += 1
@@ -524,7 +459,7 @@ def inspect_json(path, report):
         report.corrupt('invalid JSON: %s' % e)
         return
     report.integrity = 'ok, parses'
-    if isinstance(doc, dict) and isinstance(doc.get('tracks'), dict):
+    if json_annotation_format(doc) == 'dive':
         if not isinstance(doc.get('groups', {}) or {}, (dict, list)):
             report.corrupt('DIVE groups must be an object or array')
             return
@@ -534,7 +469,7 @@ def inspect_json(path, report):
             len(doc['tracks']), len(doc.get('groups', {}) or {}))
         report.relation = 'annotations; read by DIVE, viame json, scoring and training'
         report.notes.append('JSON parses; run viame json --validate for structural validation')
-    elif isinstance(doc, dict) and 'images' in doc and 'annotations' in doc:
+    elif json_annotation_format(doc) == 'coco':
         if not all(isinstance(doc.get(key, []), list) for key in ('images', 'annotations', 'categories')):
             report.corrupt('COCO images, annotations and categories must be arrays')
             return
@@ -569,22 +504,22 @@ def _inspect_path(path):
         report.corrupt('empty file')
         return report
 
-    ext = ext_of(path)
-    if ext == 'pipe':
+    kind = file_kind(path)
+    if kind == 'pipe':
         inspect_pipeline(path, report)
-    elif ext == 'conf':
+    elif kind == 'conf':
         inspect_conf(path, report)
-    elif ext == 'csv':
+    elif kind == 'csv':
         inspect_csv(path, report)
-    elif ext == 'json':
+    elif kind == 'json':
         inspect_json(path, report)
-    elif ext in MODEL_EXTS:
+    elif kind == 'model':
         inspect_model(path, report)
-    elif ext in IMAGE_EXTS or sniff_image_magic(read_head(path))[0]:
+    elif kind == 'image':
         inspect_image(path, report)
-    elif ext in VIDEO_EXTS or sniff_video(read_head(path)):
+    elif kind == 'video':
         inspect_video(path, report)
-    elif ext == 'txt':
+    elif kind == 'image_list':
         with open(path, errors='replace') as f:
             inspect_image_list(path, report, f.readlines())
     else:

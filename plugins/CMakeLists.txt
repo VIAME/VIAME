@@ -78,3 +78,13 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_KWIVER )
     .
     compat )
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  foreach( module IN ITEMS __init__ _io _file_formats )
+    kwiver_add_python_module(
+      "${VIAME_SOURCE_DIR}/python/viame/${module}.py" "" "${module}" )
+  endforeach()
+  kwiver_add_python_library( _io_native ""
+    SOURCES "${VIAME_SOURCE_DIR}/python/viame/_io_native.cxx"
+    PRIVATE kwiver::vital_algo kwiver::vital ${PYTHON_LIBRARIES} )
+endif()
