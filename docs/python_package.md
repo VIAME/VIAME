@@ -50,6 +50,7 @@ for track in tracks.tracks():
 | Directory | Lazy image sequence, sorted by filename; subdirectories are skipped |
 | Video | Lazy `VideoSequence` of image containers |
 | VIAME CSV, DIVE JSON, COCO JSON | Native `ObjectTrackSet`, loaded through that format's reader |
+| `.pipe`, supported model file or ZIP bundle | `Pipeline` handle, prepared using the same model wrappers as `viame run` |
 
 An image list contains one path per line; blank lines and comments beginning
 with `#` are ignored. Relative paths resolve against the list's directory
@@ -72,6 +73,44 @@ opening a file never runs a pipeline or executes a model. Annotation files
 are loaded as a complete track set, preserving the respective reader's
 track IDs, frame numbering and detection data. COCO annotations without a
 track ID become individual single-state tracks.
+
+Pipeline and model files are prepared at open time, then executed explicitly:
+
+```python
+with viame.open("detector.pipe") as detector:
+    result = detector.run("example.mp4", output_dir="results", frame_rate=5)
+
+# A ZIP may contain a pipeline and its weights, or any model package that
+# viame run recognizes (ONNX, netharn, or weights with companion files).
+with viame.open("model.zip") as detector:
+    detector.run("image_list.txt", output_dir="results")
+    print(detector.path)  # prepared .pipe; valid until the handle is closed
+
+# Multiple pipelines require an exact archive member name; no stdin prompt.
+with viame.open("models.zip", pipeline="configs/detector.pipe") as detector:
+    detector.run("images/", output_dir="results")
+
+# A self-contained pipe can supply its own input and output configuration.
+with viame.open("complete.pipe") as pipeline:
+    pipeline.run()
+```
+
+Bare `.pt`, `.pth`, `.ckpt`, `.weights` and `.onnx` files use the same
+identification and templates as `viame run`. Opening prepares configuration;
+model weights load when execution begins. The installed algorithms must
+support the selected model. Set up the VIAME environment as for the CLI.
+
+`Pipeline.run` calls `viame run` synchronously and returns a
+`subprocess.CompletedProcess`. It accepts file or directory inputs and uses
+the command's defaults, including its default sampling rate. Additional CLI
+arguments go in `args=["--no-reset-prompt", ...]`; subprocess options such as
+`capture_output=True` and `timeout=60` are also accepted. Nonzero exit codes
+raise `subprocess.CalledProcessError` unless `check=False` is supplied.
+`frame_rate` belongs on `.run()` for pipelines; the second argument to
+`viame.open` remains reserved for opening videos. Extracted files and rendered
+templates are removed on `close()` or context exit. A handle can run multiple
+inputs before closing. In-memory adapter pipelines use the lower-level
+`EmbeddedPipeline` interface described below.
 
 For the lower-level algorithm interfaces below, load the plugin modules
 before calling `create`:
