@@ -3007,11 +3007,60 @@ out, what `S` is built from that remains is the **Birchfield-Tomasi cost** --
 which this entry lists among the things that "reproduced exactly". That claim
 rests on the same one-row test that has now been shown false.
 
-So the next step is to compare the cost directly and stop comparing disparity
-maps: `pixel_cost` against the formula at `calcPixelCostBT`, on an input small
-enough to check by hand. Note while doing so that the right image's rows are
-stored **reversed** there -- `prow2[width-1-x]` -- which is the kind of detail
-a port gets right on a symmetric fixture and wrong on a real one.
+### Found: the border value, and it was one table index
+
+Comparing the cost against `calcPixelCostBT` rather than comparing disparity
+maps found it immediately, and it is one index.
+
+OpenCV's clip table is reached through `getClipTab()`, which returns
+**`clipTab + TAB_OFS`** -- the pointer is already offset. So inside
+`calcPixelCostBT`, `tab[0]` means `clipTab[TAB_OFS]`, the entry for a
+difference of zero, which is **`ftzero`**. The port built the same table
+unoffset and indexed it as `tab[value + TAB_OFS]`, which is right for the
+Sobel, and then wrote the first and last column as `tab[0]` -- the entry for a
+difference of -1024, which clamps to `-ftzero` and comes out **0**.
+
+So every row's first and last column, in both channels, was 0 where OpenCV has
+15. This entry had listed "the first and last column of **both** channels being
+forced to the table's zero entry" among the things that reproduced exactly. It
+was the table's *first* entry, not its zero entry, and the two are not the same
+once the pointer is offset.
+
+That single value is the whole of the 7.8%. With it corrected:
+
+* **0 of 151200 pixels** differ over 441 configurations -- seven heights from 1
+  to 20, four widths, two disparity counts, three block sizes and three penalty
+  pairs;
+* **0 of 1120** over the one-row sweep that first exposed it, `D` 8 to 32 by
+  width 40 to 72.
+
+It also explains why the failure looked like it tracked rows: a border column
+is a larger fraction of a narrow image, and the aggregation carries the error
+inward from both ends, so the pattern moved with width and block size and only
+looked like it moved with height.
+
+### What is still out: the uniqueness ratio
+
+`uniquenessRatio` is the one parameter still wrong, and it was invisible until
+now because at 0 the test `Sp[d]*(100 - r) < minS*100` can never fire, so every
+earlier sweep ran with it disabled. At 5 and 15, 108 of 162 configurations
+differ -- though only slightly: on one frame cv2 invalidates **6** pixels the
+port keeps, and the other 34 differences are those six spreading through the
+3 by 3 median.
+
+One theory was tested and disproved rather than left hanging. Since `S` here is
+negative and the test cannot fire on negative values in either implementation,
+the port's `S` looked like it might be offset downward from cv2's by a constant
+-- which argmin and the subpixel interpolation would both hide, since both are
+offset-invariant, and which the uniqueness ratio would not. Measured across 320
+pixels: the offset needed to explain the invalidations runs up to 39862 while
+the offset that must **not** be reached to explain the ones cv2 keeps starts at
+12117. The ranges overlap, so no constant offset explains it.
+
+Also eliminated, each by measurement: the 3 by 3 median (identical to
+`cv2.medianBlur` over 685 values), the SAD box (`blockSize` 1 was worse), the
+aggregation (an independent transliteration agrees with the prototype exactly)
+and SIMD dispatch (`OPENCV_CPU_DISABLE` changes nothing).
 
 **The aggregation's aliasing is confirmed correct** against the source rather
 than inferred. For each pixel the four accumulated directions read
