@@ -3241,10 +3241,29 @@ than of the filter. Nothing short of reproducing that structure reproduces the
 number, and it is not something OpenCV guarantees across its own dispatch
 paths.
 
-Also worth noting while here: `normalize` on **uint16** is half a count out,
-and `for_both_pixel_types` binds only uint8 and float, so the uint16 call is
-going somewhere unintended rather than being refused. Worth a look
-independently of this file.
+### The uint16 call that is not refused
+
+Measuring the above turned up something independent of this file. `normalize`
+on a uint16 array returns **float32**, and the same is true of every
+`for_both_pixel_types` binding -- `gaussian_blur`, `box_blur`, `add_weighted`,
+`erode`, `dilate` and the rest.
+
+The no-`forcecast` decision is not as strong as it reads. `array_of< T >` is
+`py::array_t< T, py::array::c_style >`, so `forcecast` really is off -- but
+numpy still performs the casts it considers **safe** without it. uint16 to
+uint8 is unsafe and is refused, which is what the decision was for; uint16 to
+float32 is safe, so the float overload takes it and the result comes back a
+different dtype than it went in. float64 is refused for the same reason uint8
+is, being a narrowing cast.
+
+The exposure is latent rather than live: the golden framework asserts
+`str(actual.dtype) == str(expected.dtype)` before it compares any value, and
+the suite is green, so no recorded path is silently changing type. What is
+missing is the refusal, not a correct answer -- a 16-bit caller gets a working
+float32 result instead of an error telling it to pick a binding. `clahe`,
+`filter_2d`, `remap`, `resize` and the warps already bind uint16 explicitly, so
+the fix for any given kernel is to add the overload rather than to argue about
+casts.
 
 None of this matters while the chain stays in float. It matters because the
 chain ends in a byte: a difference of 4.6e-05 flips a rounded byte only when
