@@ -195,3 +195,5 @@ _setup_projdb_path()
 
 # The public loader imports native readers only when a file is opened.
 from ._io import open, ImageSequence, VideoSequence, Pipeline
+
+from ._embedded import EmbeddedPipeline
