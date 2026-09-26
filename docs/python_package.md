@@ -109,8 +109,8 @@ raise `subprocess.CalledProcessError` unless `check=False` is supplied.
 `frame_rate` belongs on `.run()` for pipelines; the second argument to
 `viame.open` remains reserved for opening videos. Extracted files and rendered
 templates are removed on `close()` or context exit. A handle can run multiple
-inputs before closing. In-memory adapter pipelines use the lower-level
-`EmbeddedPipeline` interface described below.
+inputs before closing. For in-memory processing, use `embedded=True` as described below, or the
+lower-level native `EmbeddedPipeline` interface.
 
 For the lower-level algorithm interfaces below, load the plugin modules
 before calling `create`:
@@ -123,6 +123,67 @@ Running a pipeline
 ------------------
 
 There are two ways, and the first is usually the one you want.
+
+### Open a normal pipeline for in-memory processing
+
+Use `embedded=True` to replace file readers and standard output writers with
+native memory adapters. Includes, configuration substitutions and relative
+model paths are resolved by the native pipeline parser. Models and ZIP
+bundles use the same preparation as file-based `viame.open`.
+
+```python
+with viame.open("detector.pipe", embedded=True) as detector:
+    print(detector.input_names)   # e.g. ('input',)
+    print(detector.output_ports)  # original writer process.port names
+    detector.send(viame.open("image.png"))  # also accepts a numpy image array
+    result = detector.receive(timeout=30)
+    detections = result["detector_writer.detected_object_set"]
+
+with viame.open("stereo.pipe", embedded=True) as stereo:
+    stereo.send({"input1": left_image, "input2": right_image})
+    result = stereo.receive(timeout=30)
+```
+
+One `send` supplies a synchronized set of camera frames. It accepts native
+image containers without converting them to arrays, or 2D/3D NumPy arrays.
+Camera names come from the original reader processes, including three-camera
+and larger graphs. `input_ports` lists the connected reader ports. Standard
+image, timestamp, filename and frame-rate ports are filled automatically:
+
+```python
+pipeline.send(image, timestamp=source_timestamp, frame_rate=30,
+              values={"input.file_name": "frame00042.png"})
+```
+
+Without a timestamp, frame numbers start at one and time starts at zero at
+the supplied `frame_rate` (default 1 Hz). Extra connected ports, such as
+metadata or custom inputs, must be supplied through `values` using the
+original `process.port` name.
+
+Video readers and existing input adapters are recognized by process type.
+Standard detection, track, image, video, homography and track-descriptor
+writers, plus existing output adapters, are replaced. Custom source and sink
+processes can be selected explicitly with
+`inputs=["camera_a", "camera_b"]` and `outputs=["custom_writer"]`.
+Selected inputs must be sources and selected outputs must be sinks. Other
+processes retain their configuration and behavior, including any other file
+I/O they perform. Unsupported graphs fail during preparation or native setup.
+
+`receive()` returns a dictionary keyed by the original writer input ports,
+for example `detector_writer.detected_object_set`. Result values use the
+native adapter types. Sampling and batching remain active: a `send` need
+not produce a result, and output branches must have compatible output rates
+because the output adapter synchronizes their ports. `receive(timeout=...)`
+raises `TimeoutError` if no result arrives; the handle remains usable.
+Send and receive calls use bounded native queues, so interleave them instead
+of sending an entire video before reading results. Calls on a handle should
+be made from one calling thread.
+
+Opening an embedded pipeline configures its algorithms, loads its models and
+starts it waiting for input. Use `with` or call `close()` to send end-of-input,
+finish queued work, discard unread results and release the native pipeline
+and temporary files. Embedded handles use `send`/`receive`; their file-based
+`run` method is disabled.
 
 ### In memory, through an embedded pipeline
 

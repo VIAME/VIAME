@@ -293,7 +293,8 @@ class Pipeline:
         self.close()
 
 
-def open(filename, frame_rate=None, *, pipeline=None):
+def open(filename, frame_rate=None, *, pipeline=None, embedded=False,
+         inputs=None, outputs=None):
     """Load imagery, annotations, a pipeline, or a supported model bundle.
 
     An image returns an ImageContainer. Image lists and videos return lazy
@@ -303,6 +304,8 @@ def open(filename, frame_rate=None, *, pipeline=None):
 
     Pipelines and models return a Pipeline handle; call its run() method to
     execute it. For a ZIP with several pipes, select a member with pipeline=.
+    embedded=True replaces readers and writers with in-memory adapters.
+    inputs/outputs optionally select source/sink process names to replace.
 
     ``frame_rate`` is an optional positive, finite video sampling rate in Hz;
     it cannot increase the source rate. Both ``open(path, 5)`` and
@@ -324,7 +327,14 @@ def open(filename, frame_rate=None, *, pipeline=None):
         raise ValueError("frame_rate is supported only for video inputs")
     if pipeline is not None and kind != "model":
         raise ValueError("pipeline is supported only for ZIP pipeline selection")
+    if (embedded or inputs is not None or outputs is not None) and kind not in ("pipe", "model"):
+        raise ValueError("Embedded options are supported only for pipelines and models")
+    if not embedded and (inputs is not None or outputs is not None):
+        raise ValueError("inputs and outputs require embedded=True")
     if kind in ("pipe", "model"):
+        if embedded:
+            from ._embedded import EmbeddedPipeline
+            return EmbeddedPipeline(path, pipeline=pipeline, inputs=inputs, outputs=outputs)
         return Pipeline(path, pipeline=pipeline)
     if kind == "image":
         return _load_image(_image_reader(), path)

@@ -399,3 +399,160 @@ def test_open_zipped_pipeline_processes_image(tmp_path, pipeline_templates):
     outputs = list((tmp_path / 'results').glob('*detections.csv'))
     assert len(outputs) == 1, result.stdout + result.stderr
     assert '# 1: Detection or Track-id' in outputs[0].read_text()
+
+
+def _memory_pipe(tmp_path, cameras=1, reader='video_input'):
+    path = tmp_path / 'memory.pipe'
+    lines = ['process result\n :: output_adapter\n']
+    for index in range(cameras):
+        name = 'input' if cameras == 1 else 'input{}'.format(index + 1)
+        lines.append('process {}\n :: {}\n :video_filename /missing/images.txt\n'.format(name, reader))
+        for field in ('image', 'timestamp', 'file_name', 'frame_rate'):
+            lines.append('connect from {0}.{1} to result.{0}_{1}\n'.format(name, field))
+    path.write_text('\n'.join(lines))
+    return path
+
+
+@pytest.mark.parametrize('cameras', [1, 2, 3])
+def test_embedded_memory_inputs(tmp_path, cameras):
+    path = _memory_pipe(tmp_path, cameras)
+    with viame.open(path, embedded=True) as pipeline:
+        assert isinstance(pipeline, viame.EmbeddedPipeline)
+        for frame in range(4):
+            images = {name: np.full((8, 12, 3), frame + index, np.uint8)
+                      for index, name in enumerate(pipeline.input_names)}
+            pipeline.send(next(iter(images.values())) if cameras == 1 else images,
+                          frame_rate=10)
+            output = pipeline.receive()
+            for name, image in images.items():
+                np.testing.assert_array_equal(pixels(output['result.' + name + '_image']), image)
+                stamp = output['result.' + name + '_timestamp']
+                assert stamp.get_frame() == frame + 1
+                assert stamp.get_time_seconds() == pytest.approx(frame / 10)
+                assert output['result.' + name + '_frame_rate'] == 10
+        prepared = pipeline.path
+    from pathlib import Path
+    assert pipeline.closed and not Path(prepared).exists()
+    assert path.exists()
+    pipeline.close()
+    with pytest.raises(ValueError, match='closed'):
+        pipeline.send(images)
+    with pytest.raises(ValueError, match='closed'):
+        pipeline.receive()
+
+
+def test_embedded_close_drains_pending_results(tmp_path):
+    # More outputs than the native output queue holds. close must drain while
+    # sending EOF and waiting, including when none of the results were read.
+    with viame.open(_memory_pipe(tmp_path), embedded=True) as pipeline:
+        for _ in range(6):
+            pipeline.send(np.zeros((8, 8, 3), np.uint8))
+    with viame.open(_memory_pipe(tmp_path), embedded=True):
+        pass  # Closing without sending any frames must also terminate.
+
+
+def test_embedded_validation_and_metadata(images, tmp_path):
+    with pytest.raises(ValueError, match='only for pipelines'):
+        viame.open(images[0], embedded=True)
+    path = _memory_pipe(tmp_path, 2)
+    with pytest.raises(ValueError, match='require embedded'):
+        viame.open(path, inputs=['input1'])
+    with pytest.raises(ValueError, match='Select inputs'):
+        viame.open(path, embedded=True, inputs=['missing'])
+    with viame.open(path, embedded=True) as pipeline:
+        image = viame.open(images[0])
+        with pytest.raises(TypeError, match='send'):
+            pipeline.run('video.mp4')
+        with pytest.raises(ValueError, match='by input process'):
+            pipeline.send(image)
+        with pytest.raises(ValueError, match='Unknown image'):
+            pipeline.send({'typo': image})
+        with pytest.raises(ValueError, match='Supply reader port'):
+            pipeline.send({'input1': image})
+        with pytest.raises(ValueError, match='Unknown input ports'):
+            pipeline.send({}, values={'typo': 1})
+        for rate in (True, 0, -1, float('inf'), float('nan')):
+            with pytest.raises(ValueError, match='frame_rate'):
+                pipeline.send({}, frame_rate=rate)
+        _, types = _io._algorithms()
+        stamp = types.Timestamp()
+        stamp.set_frame(42)
+        stamp.set_time_seconds(7)
+        pipeline.send({'input1': image, 'input2': image}, timestamp=stamp,
+                      values={'input1.file_name': 'left.png'})
+        out = pipeline.receive()
+        assert out['result.input1_file_name'] == 'left.png'
+        assert out['result.input2_timestamp'].get_frame() == 42
+
+
+def test_embedded_native_detector_and_zip(tmp_path, pipeline_templates, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    import zipfile
+    archive = tmp_path / 'detector.zip'
+    with zipfile.ZipFile(archive, 'w') as zf:
+        zf.write(pipeline_templates / 'detector_simple_hough.pipe', 'detector.pipe')
+        for name in ('common_default_input_with_downsampler.pipe', 'common_default_input.pipe'):
+            zf.write(pipeline_templates / name, name)
+    with viame.open(archive, pipeline='detector.pipe', embedded=True) as detector:
+        assert detector.input_names == ('input',)
+        for _ in range(3):
+            detector.send(np.zeros((64, 64, 3), np.uint8))
+            output = detector.receive()
+            assert len(output['detector_writer.detected_object_set']) == 0
+    assert not (tmp_path / 'computed_detections.csv').exists()
+
+
+def test_embedded_parser_preserves_included_relative_paths(tmp_path):
+    from viame._embedded import _adapt
+    folder = tmp_path / 'sub'
+    folder.mkdir()
+    (folder / 'input.pipe').write_text('''process input
+ :: video_input
+ :video_filename missing.txt
+process detector
+ :: image_filter
+ relativepath filter:model = weights.bin
+''')
+    pipe = tmp_path / 'main.pipe'
+    pipe.write_text('''include sub/input.pipe
+process writer
+ :: image_writer
+connect from input.image to detector.image
+connect from detector.image to writer.image
+''')
+    text, names, inputs, outputs = _adapt(pipe, None, None)
+    assert str(folder / 'weights.bin') in text
+    assert 'video_input' not in text and 'image_writer' not in text
+    assert names == ('input',)
+    assert 'writer.image' in outputs
+
+
+def test_embedded_explicit_process_selection(tmp_path):
+    # Selecting custom source/sink names does not instantiate their types.
+    path = _memory_pipe(tmp_path, reader='custom_source')
+    path.write_text(path.read_text().replace('output_adapter', 'custom_sink'))
+    with viame.open(path, embedded=True, inputs='input', outputs='result') as pipe:
+        pipe.send(np.zeros((4, 5, 3), np.uint8))
+        assert pixels(pipe.receive()['result.input_image']).shape == (4, 5, 3)
+
+
+def test_embedded_sampling_and_receive_timeout(tmp_path, pipeline_templates):
+    path = tmp_path / 'sampling.pipe'
+    path.write_text('''include {}/common_default_input_with_downsampler.pipe
+process result
+ :: output_adapter
+connect from downsampler.output_1 to result.image
+'''.format(pipeline_templates))
+    with viame.open(path, embedded=True) as pipe:
+        with pytest.raises(TimeoutError):
+            pipe.receive(timeout=0)
+        with pytest.raises(TypeError, match='Images must'):
+            pipe.send(object())
+        pipe.send(np.zeros((8, 8, 3), np.uint8), frame_rate=30)
+        assert 'result.image' in pipe.receive(timeout=10)
+        pipe.send(np.zeros((8, 8, 3), np.uint8), frame_rate=30)
+        with pytest.raises(TimeoutError):
+            pipe.receive(timeout=0.05)  # 5 Hz pipeline drops this 30 Hz frame.
+        for rate in (-1, float('nan'), float('inf')):
+            with pytest.raises(ValueError, match='timeout'):
+                pipe.receive(timeout=rate)
