@@ -1243,9 +1243,10 @@ interpolate the second fit from, and `cv2` puts the same 0.047 in the same
 corner to within 6e-8.
 
 **Speed.** 0.83 s for a 1080p pair at four levels against cv2's 0.5, compiled
-at -O3; the merged build compiles at **-O0** -- `CMAKE_BUILD_TYPE` is empty --
-where the same call takes 4.0 s, so a timing taken from this build is a
-timing of the build and not of the code. Getting to 1.5x took three passes:
+at -O3, which is what the shipped wheel is built at. The **merged build here
+is not**: its `CMAKE_BUILD_TYPE` is empty, so it compiles with no `-O` flag at
+all and the same call takes 4.0 s. A timing taken from this tree is a timing
+of the tree. Every number in this entry and the ones after it is -O3. Getting to 1.5x took three passes:
 the pyramid's Gaussian is separable rather than `filter_2d`'s square one (the
 coarsest level asks for a seventeen tap blur of the *full resolution* frame,
 which is 289 weighted samples a pixel the square way and 34 the other), the
@@ -1336,3 +1337,93 @@ them contradicts the clamp that was meant to replicate them.
 
 Both entries say where the next attempt starts, which is the point of writing
 them down rather than leaving a branch.
+
+The sparse tracker, three times faster, with the same output to the last bit.
+
+The entry above measured BoT-SORT's motion compensation at 0.255 s to find a
+thousand corners in a 1080p frame and 0.108 to follow them, against cv2's
+0.057 and 0.008, and put the gap down to vectorisation. **Most of it was not
+vectorisation; it was three places where this code resolved an image border
+with a switch, per tap, per pixel** -- the same mistake the Farneback entry
+had already found and fixed in the pyramid's Gaussian and which was never
+carried across. Measured rather than guessed: `min_eigen_value` was 0.219 of
+the corner detector's 0.245, and building the pyramid was 0.085 of the
+tracker's 0.111, which left the window loops everyone would have blamed
+accounting for 0.03.
+
+What changed, in the order it paid:
+
+* the corner measure's Sobel is separable, and its horizontal halves live in
+  a three row ring rather than two full planes of `double`. `sobel< float >`
+  reaches the same numbers through `filter_2d`, which sweeps the square nine
+  tap kernel and dispatches on the border rule at each tap -- eighteen calls a
+  pixel for the two derivatives. **0.219 to 0.115**;
+* the three box sums share one sweep, and the covariance is written once
+  rather than materialised three times. Six passes over twenty-four megabytes
+  became two. **0.115 to 0.066**;
+* `pyr_down`, `scharr_deriv` and the padding ask `border_index` once per
+  position and keep the answer, instead of once per tap per pixel -- some
+  fifty million dispatched calls a pair. The padded copy also memcpy's the
+  rows that reflection has already built. **Pyramid 0.085 to 0.044**;
+* the Scharr derivative is written straight into the padded buffer instead of
+  into a plane of its own that was then copied, and only the rim of that
+  buffer is zeroed rather than all nine megabytes of it. **0.044 to 0.039**;
+* the image is walked by row pointer rather than by `image_of::operator()`,
+  which is three multiplications to reach a pixel whose neighbour is already
+  under the pointer. **0.068 to 0.061**.
+
+Measured on an idle machine, twice, both -O3:
+
+    corners            0.245 -> 0.097 s
+    following 1000     0.110 -> 0.072 s
+    together           0.355 -> 0.169 s
+
+**And then the comparison against cv2 had to be redone, because it was not a
+fair one.** cv2's build reports `Parallel framework: pthreads`, and
+`calcOpticalFlowPyrLK` parallelises over points; this machine has sixteen
+cores. Restricted to one thread cv2's tracker goes from 0.0066 s to
+**0.0211** -- so a factor of 3.2 of what had been written down as "OpenCV's
+vectorisation" was simply OpenCV using the other fifteen cores. Corner finding
+barely moves (0.0386 to 0.0337), so that part is not thread-parallel.
+
+    same -O3, one thread each        ours      cv2     ratio
+    corners                          0.097    0.034     2.9
+    following 1000 points            0.072    0.021     3.4
+    cornerMinEigenVal alone          0.061    0.014     4.5
+
+The instruction set turns out **not** to be the constraint, which is worth
+recording because it was the next guess. cv2 dispatches to AVX2 and AVX512 at
+runtime and this tree builds for the x86-64 baseline, but giving it
+`-march=native` moves the corner measure from 0.068 to 0.062 and makes the
+tracker *slower*, and `-ffast-math` on top changes nothing either. GCC is not
+vectorising these loops whatever it is allowed to use, so what is left is
+memory traffic and scalar structure rather than missing instructions.
+
+So the cheapest thing still on the table is **threading, not intrinsics**:
+following a point is independent of every other point, so the same parallel
+sweep OpenCV does would keep the answer deterministic. That is a decision
+rather than a change -- VIAME pipelines may already be parallel above this,
+where threading inside would oversubscribe -- so it is left alone and noted.
+
+The rest of the Farneback filter is untouched and still 0.87 s at four levels,
+within 7e-6 of a pixel.
+
+**Every one of these was meant to be arithmetic-preserving, and was checked
+to be.** Not against cv2 -- against the previous build: the committed headers
+were checked back out, rebuilt, and run over the same twenty-six
+configurations, and the output is byte for byte what the optimised code
+produces, including one disagreement with cv2 that both share.
+
+That disagreement is worth naming, because the wider sweep is what turned it
+up and the earlier entry had claimed better. On one of twenty-six
+configurations, at `levels=0` only, **one point of 159** gets a different
+status from `cv2.calcOpticalFlowPyrLK`: it sits on the edge of the
+`minEigThreshold` test, where the corner strength is compared against 1e-4
+after an accumulation OpenCV performs in `int` and this performs in `int64`.
+A saturated Scharr over a 21 by 21 window reaches 2.9e10, which is past what
+`int` holds, so the one place this port declines to reproduce OpenCV exactly
+is the place where what OpenCV does is wrap. Followed positions still agree to
+7.6e-5 of a pixel and every status agrees at every other level and
+configuration.
+
+**Green:** BASELINE, UNIT and CORE 477 of 477; GOLDEN and CRITICAL 10 of 10.

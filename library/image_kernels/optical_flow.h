@@ -882,6 +882,27 @@ struct lucas_kanade_params
 
 namespace detail {
 
+/// Where each of \p count positions reads from, once, under reflect_101.
+///
+/// `border_index` is a switch on the border rule, and every user of it below
+/// wants the same rule at the same offsets for every pixel of a row. Asking
+/// it once per position and keeping the answer turns a dispatched call per
+/// tap into a load: on a 1080p pair the pyramid alone was making some fifty
+/// million of those calls, which was three quarters of the whole tracker.
+inline std::vector< size_t >
+reflect_map( long from, long count, long extent )
+{
+  std::vector< size_t > out( static_cast< size_t >( count ) );
+
+  for( long i = 0; i < count; ++i )
+  {
+    out[ static_cast< size_t >( i ) ] = static_cast< size_t >(
+      border_index( from + i, extent, border_mode::REFLECT_101 ) );
+  }
+
+  return out;
+}
+
 /// `cv::pyrDown` for bytes: the 5 tap binomial, halved, reflect_101.
 inline viame::image_of< uint8_t >
 pyr_down( viame::image_of< uint8_t > const& image )
@@ -893,23 +914,48 @@ pyr_down( viame::image_of< uint8_t > const& image )
 
   static int const tap[ 5 ] = { 1, 4, 6, 4, 1 };
 
+  // The five source columns of each destination column, and likewise rows
+  std::vector< size_t > columns( out_width * 5 ), rows( out_height * 5 );
+
+  for( size_t x = 0; x < out_width; ++x )
+  {
+    for( int k = 0; k < 5; ++k )
+    {
+      columns[ x * 5 + static_cast< size_t >( k ) ] = static_cast< size_t >(
+        border_index( static_cast< long >( x ) * 2 + k - 2,
+                      static_cast< long >( width ),
+                      border_mode::REFLECT_101 ) );
+    }
+  }
+
+  for( size_t y = 0; y < out_height; ++y )
+  {
+    for( int k = 0; k < 5; ++k )
+    {
+      rows[ y * 5 + static_cast< size_t >( k ) ] = static_cast< size_t >(
+        border_index( static_cast< long >( y ) * 2 + k - 2,
+                      static_cast< long >( height ),
+                      border_mode::REFLECT_101 ) );
+    }
+  }
+
   std::vector< int > across( out_width * height );
 
   for( size_t y = 0; y < height; ++y )
   {
+    auto* destination = across.data() + y * out_width;
+
     for( size_t x = 0; x < out_width; ++x )
     {
+      auto const* at = columns.data() + x * 5;
       int total = 0;
 
       for( int k = 0; k < 5; ++k )
       {
-        auto const at = border_index(
-          static_cast< long >( x ) * 2 + k - 2,
-          static_cast< long >( width ), border_mode::REFLECT_101 );
-        total += tap[ k ] * image( static_cast< size_t >( at ), y, 0 );
+        total += tap[ k ] * image( at[ k ], y, 0 );
       }
 
-      across[ y * out_width + x ] = total;
+      destination[ x ] = total;
     }
   }
 
@@ -917,16 +963,21 @@ pyr_down( viame::image_of< uint8_t > const& image )
 
   for( size_t y = 0; y < out_height; ++y )
   {
+    int const* source[ 5 ];
+
+    for( int k = 0; k < 5; ++k )
+    {
+      source[ k ] = across.data() +
+        rows[ y * 5 + static_cast< size_t >( k ) ] * out_width;
+    }
+
     for( size_t x = 0; x < out_width; ++x )
     {
       int total = 0;
 
       for( int k = 0; k < 5; ++k )
       {
-        auto const at = border_index(
-          static_cast< long >( y ) * 2 + k - 2,
-          static_cast< long >( height ), border_mode::REFLECT_101 );
-        total += tap[ k ] * across[ static_cast< size_t >( at ) * out_width + x ];
+        total += tap[ k ] * source[ k ][ x ];
       }
 
       out( x, y, 0 ) = static_cast< uint8_t >( ( total + 128 ) >> 8 );
@@ -941,24 +992,33 @@ pyr_down( viame::image_of< uint8_t > const& image )
 /// Scharr rather than Sobel because that is what `calcOpticalFlowPyrLK`
 /// uses and the weights differ: 3, 10, 3 across the derivative rather than
 /// 1, 2, 1. Both borders reflect without repeating the edge.
-inline std::vector< int16_t >
-scharr_deriv( viame::image_of< uint8_t > const& image )
+///
+/// Written straight into \p out at \p pad_x, \p pad_y of a \p stride wide
+/// buffer, because the only caller wants it inside a padded one and a plane
+/// of its own would be eight megabytes written and copied for nothing.
+inline void
+scharr_deriv( viame::image_of< uint8_t > const& image,
+              std::vector< int16_t >& out, size_t stride, size_t pad_x,
+              size_t pad_y )
 {
   auto const width = image.width();
   auto const height = image.height();
 
-  std::vector< int16_t > out( width * height * 2 );
-
   std::vector< int > smoothed( width ), differenced( width );
+
+  auto const left_of = reflect_map( -1, static_cast< long >( width ),
+                                    static_cast< long >( width ) );
+  auto const right_of = reflect_map( 1, static_cast< long >( width ),
+                                     static_cast< long >( width ) );
+  auto const above_of = reflect_map( -1, static_cast< long >( height ),
+                                     static_cast< long >( height ) );
+  auto const below_of = reflect_map( 1, static_cast< long >( height ),
+                                     static_cast< long >( height ) );
 
   for( size_t y = 0; y < height; ++y )
   {
-    auto const above = static_cast< size_t >( border_index(
-      static_cast< long >( y ) - 1, static_cast< long >( height ),
-      border_mode::REFLECT_101 ) );
-    auto const below = static_cast< size_t >( border_index(
-      static_cast< long >( y ) + 1, static_cast< long >( height ),
-      border_mode::REFLECT_101 ) );
+    auto const above = above_of[ y ];
+    auto const below = below_of[ y ];
 
     for( size_t x = 0; x < width; ++x )
     {
@@ -969,24 +1029,21 @@ scharr_deriv( viame::image_of< uint8_t > const& image )
       differenced[ x ] = down - up;
     }
 
+    auto* destination = out.data() +
+      ( ( y + pad_y ) * stride + pad_x ) * 2;
+
     for( size_t x = 0; x < width; ++x )
     {
-      auto const left = static_cast< size_t >( border_index(
-        static_cast< long >( x ) - 1, static_cast< long >( width ),
-        border_mode::REFLECT_101 ) );
-      auto const right = static_cast< size_t >( border_index(
-        static_cast< long >( x ) + 1, static_cast< long >( width ),
-        border_mode::REFLECT_101 ) );
+      auto const left = left_of[ x ];
+      auto const right = right_of[ x ];
 
-      out[ ( y * width + x ) * 2 ] =
+      destination[ x * 2 ] =
         static_cast< int16_t >( smoothed[ right ] - smoothed[ left ] );
-      out[ ( y * width + x ) * 2 + 1 ] = static_cast< int16_t >(
+      destination[ x * 2 + 1 ] = static_cast< int16_t >(
         ( differenced[ right ] + differenced[ left ] ) * 3 +
         differenced[ x ] * 10 );
     }
   }
-
-  return out;
 }
 
 /// The fixed point the window interpolation works in.
@@ -994,10 +1051,15 @@ constexpr int lk_weight_bits = 14;
 constexpr float lk_float_scale = 1.0f / ( 1 << 20 );
 
 /// `CV_DESCALE`: shift right with a round rather than a truncate.
-inline int64_t
-descale( int64_t value, int bits )
+///
+/// Templated so the window loops can stay in 32 bit, where they fit: the
+/// interpolation weights sum to 2^14 and the samples are bytes or Scharr
+/// gradients, so the widest product is about 2.6e8.
+template < typename Int >
+inline Int
+descale( Int value, int bits )
 {
-  return ( value + ( static_cast< int64_t >( 1 ) << ( bits - 1 ) ) ) >> bits;
+  return ( value + ( static_cast< Int >( 1 ) << ( bits - 1 ) ) ) >> bits;
 }
 
 /// One pyramid level, with the borders the tracker reads past the edge into.
@@ -1047,20 +1109,37 @@ pad_reflect( viame::image_of< uint8_t > const& image, size_t pad_x,
 
   std::vector< uint8_t > out( stride * ( height + 2 * pad_y ) );
 
-  for( size_t j = 0; j < height + 2 * pad_y; ++j )
+  auto const columns = reflect_map( -static_cast< long >( pad_x ),
+                                    static_cast< long >( stride ),
+                                    static_cast< long >( width ) );
+  auto const rows = reflect_map( -static_cast< long >( pad_y ),
+                                 static_cast< long >( height + 2 * pad_y ),
+                                 static_cast< long >( height ) );
+
+  // The already-padded rows are copies of each other, so a row whose source
+  // row has been built before is memcpy'd rather than gathered again
+  std::vector< long > built( height, -1 );
+
+  for( size_t j = 0; j < rows.size(); ++j )
   {
-    auto const y = static_cast< size_t >( border_index(
-      static_cast< long >( j ) - static_cast< long >( pad_y ),
-      static_cast< long >( height ), border_mode::REFLECT_101 ) );
+    auto* destination = out.data() + j * stride;
+    auto const y = rows[ j ];
+
+    if( built[ y ] >= 0 )
+    {
+      std::copy( out.data() + static_cast< size_t >( built[ y ] ) * stride,
+                 out.data() + static_cast< size_t >( built[ y ] ) * stride +
+                   stride,
+                 destination );
+      continue;
+    }
 
     for( size_t i = 0; i < stride; ++i )
     {
-      auto const x = static_cast< size_t >( border_index(
-        static_cast< long >( i ) - static_cast< long >( pad_x ),
-        static_cast< long >( width ), border_mode::REFLECT_101 ) );
-
-      out[ j * stride + i ] = image( x, y, 0 );
+      destination[ i ] = image( columns[ i ], y, 0 );
     }
+
+    built[ y ] = static_cast< long >( j );
   }
 
   return out;
@@ -1147,19 +1226,27 @@ lucas_kanade_flow( viame::image_of< uint8_t > const& prev,
       held.second = detail::pad_reflect( second, win_w, win_h );
 
       // The gradient is padded with zeros rather than reflected, which is
-      // `BORDER_CONSTANT` and is what OpenCV pads it with
-      auto const gradient = detail::scharr_deriv( first );
-      held.gradient.assign( held.stride() * ( held.height + 2 * win_h ) * 2, 0 );
+      // `BORDER_CONSTANT` and is what OpenCV pads it with. Only the rim is
+      // zeroed: the inside is about to be written over anyway, and at 1080p
+      // the inside is eight of the nine megabytes.
+      auto const stride = held.stride();
+      held.gradient.resize( stride * ( held.height + 2 * win_h ) * 2 );
+
+      std::fill( held.gradient.begin(),
+                 held.gradient.begin() +
+                   static_cast< ptrdiff_t >( win_h * stride * 2 ), 0 );
+      std::fill( held.gradient.end() -
+                   static_cast< ptrdiff_t >( win_h * stride * 2 ),
+                 held.gradient.end(), 0 );
 
       for( size_t y = 0; y < held.height; ++y )
       {
-        for( size_t x = 0; x < held.width; ++x )
-        {
-          auto const to = ( ( y + win_h ) * held.stride() + x + win_w ) * 2;
-          held.gradient[ to ] = gradient[ ( y * held.width + x ) * 2 ];
-          held.gradient[ to + 1 ] = gradient[ ( y * held.width + x ) * 2 + 1 ];
-        }
+        auto* row = held.gradient.data() + ( y + win_h ) * stride * 2;
+        std::fill( row, row + win_w * 2, 0 );
+        std::fill( row + ( win_w + held.width ) * 2, row + stride * 2, 0 );
       }
+
+      detail::scharr_deriv( first, held.gradient, stride, win_w, win_h );
 
       pyramid.push_back( std::move( held ) );
 
@@ -1244,47 +1331,64 @@ lucas_kanade_flow( viame::image_of< uint8_t > const& prev,
 
       int64_t a11 = 0, a12 = 0, a22 = 0;
 
+      auto const stride = held.stride();
+
       for( size_t y = 0; y < win_h; ++y )
       {
+        // One index computed per window row rather than four per window
+        // pixel: the four samples are the two adjacent entries of two
+        // adjacent rows, and the pointers already know where they are
+        auto const* top = &held.first[ 0 ] +
+          static_cast< size_t >( iy + static_cast< long >( y ) +
+                                 static_cast< long >( held.pad_y ) ) * stride +
+          static_cast< size_t >( ix + static_cast< long >( held.pad_x ) );
+        auto const* bottom = top + stride;
+
+        auto const* g_top = held.gradient.data() +
+          ( static_cast< size_t >( iy + static_cast< long >( y ) +
+                                   static_cast< long >( held.pad_y ) ) * stride +
+            static_cast< size_t >( ix + static_cast< long >( held.pad_x ) ) ) * 2;
+        auto const* g_bottom = g_top + stride * 2;
+
+        auto* to_patch = patch.data() + y * win_w;
+        auto* to_x = slope_x.data() + y * win_w;
+        auto* to_y = slope_y.data() + y * win_w;
+
         for( size_t x = 0; x < win_w; ++x )
         {
-          auto const cx = ix + static_cast< long >( x );
-          auto const cy = iy + static_cast< long >( y );
+          auto const value = static_cast< int32_t >( detail::descale(
+            static_cast< int32_t >( top[ x ] ) * w[ 0 ] +
+            static_cast< int32_t >( top[ x + 1 ] ) * w[ 1 ] +
+            static_cast< int32_t >( bottom[ x ] ) * w[ 2 ] +
+            static_cast< int32_t >( bottom[ x + 1 ] ) * w[ 3 ],
+            detail::lk_weight_bits - 5 ) );
 
-          auto const value = detail::descale(
-            static_cast< int64_t >( held.at_first( cx, cy ) ) * w[ 0 ] +
-            static_cast< int64_t >( held.at_first( cx + 1, cy ) ) * w[ 1 ] +
-            static_cast< int64_t >( held.at_first( cx, cy + 1 ) ) * w[ 2 ] +
-            static_cast< int64_t >( held.at_first( cx + 1, cy + 1 ) ) * w[ 3 ],
-            detail::lk_weight_bits - 5 );
+          auto const gx = static_cast< int32_t >( detail::descale(
+            static_cast< int32_t >( g_top[ x * 2 ] ) * w[ 0 ] +
+            static_cast< int32_t >( g_top[ x * 2 + 2 ] ) * w[ 1 ] +
+            static_cast< int32_t >( g_bottom[ x * 2 ] ) * w[ 2 ] +
+            static_cast< int32_t >( g_bottom[ x * 2 + 2 ] ) * w[ 3 ],
+            detail::lk_weight_bits ) );
 
-          auto const* g00 = held.at_gradient( cx, cy );
-          auto const* g01 = held.at_gradient( cx + 1, cy );
-          auto const* g10 = held.at_gradient( cx, cy + 1 );
-          auto const* g11 = held.at_gradient( cx + 1, cy + 1 );
+          auto const gy = static_cast< int32_t >( detail::descale(
+            static_cast< int32_t >( g_top[ x * 2 + 1 ] ) * w[ 0 ] +
+            static_cast< int32_t >( g_top[ x * 2 + 3 ] ) * w[ 1 ] +
+            static_cast< int32_t >( g_bottom[ x * 2 + 1 ] ) * w[ 2 ] +
+            static_cast< int32_t >( g_bottom[ x * 2 + 3 ] ) * w[ 3 ],
+            detail::lk_weight_bits ) );
 
-          auto const gx = detail::descale(
-            static_cast< int64_t >( g00[ 0 ] ) * w[ 0 ] +
-            static_cast< int64_t >( g01[ 0 ] ) * w[ 1 ] +
-            static_cast< int64_t >( g10[ 0 ] ) * w[ 2 ] +
-            static_cast< int64_t >( g11[ 0 ] ) * w[ 3 ],
-            detail::lk_weight_bits );
+          to_patch[ x ] = value;
+          to_x[ x ] = gx;
+          to_y[ x ] = gy;
 
-          auto const gy = detail::descale(
-            static_cast< int64_t >( g00[ 1 ] ) * w[ 0 ] +
-            static_cast< int64_t >( g01[ 1 ] ) * w[ 1 ] +
-            static_cast< int64_t >( g10[ 1 ] ) * w[ 2 ] +
-            static_cast< int64_t >( g11[ 1 ] ) * w[ 3 ],
-            detail::lk_weight_bits );
-
-          auto const at = y * win_w + x;
-          patch[ at ] = static_cast< int >( value );
-          slope_x[ at ] = static_cast< int >( gx );
-          slope_y[ at ] = static_cast< int >( gy );
-
-          a11 += gx * gx;
-          a12 += gx * gy;
-          a22 += gy * gy;
+          // The accumulators stay 64 bit. A saturated Scharr over a 21 by 21
+          // window reaches 2.9e10, which is past what `int` holds, and
+          // OpenCV's own accumulator is an `int` -- so this is the one place
+          // the port declines to reproduce what OpenCV does, because what it
+          // does there is wrap.
+          a11 += static_cast< int64_t >( gx ) * gx;
+          a12 += static_cast< int64_t >( gx ) * gy;
+          a22 += static_cast< int64_t >( gy ) * gy;
         }
       }
 
@@ -1333,23 +1437,29 @@ lucas_kanade_flow( viame::image_of< uint8_t > const& prev,
 
         for( size_t y = 0; y < win_h; ++y )
         {
+          auto const* top = &held.second[ 0 ] +
+            static_cast< size_t >( jy + static_cast< long >( y ) +
+                                   static_cast< long >( held.pad_y ) ) * stride +
+            static_cast< size_t >( jx + static_cast< long >( held.pad_x ) );
+          auto const* bottom = top + stride;
+
+          auto const* from_patch = patch.data() + y * win_w;
+          auto const* from_x = slope_x.data() + y * win_w;
+          auto const* from_y = slope_y.data() + y * win_w;
+
           for( size_t x = 0; x < win_w; ++x )
           {
-            auto const cx = jx + static_cast< long >( x );
-            auto const cy = jy + static_cast< long >( y );
+            auto const value = static_cast< int32_t >( detail::descale(
+              static_cast< int32_t >( top[ x ] ) * v[ 0 ] +
+              static_cast< int32_t >( top[ x + 1 ] ) * v[ 1 ] +
+              static_cast< int32_t >( bottom[ x ] ) * v[ 2 ] +
+              static_cast< int32_t >( bottom[ x + 1 ] ) * v[ 3 ],
+              detail::lk_weight_bits - 5 ) );
 
-            auto const value = detail::descale(
-              static_cast< int64_t >( held.at_second( cx, cy ) ) * v[ 0 ] +
-              static_cast< int64_t >( held.at_second( cx + 1, cy ) ) * v[ 1 ] +
-              static_cast< int64_t >( held.at_second( cx, cy + 1 ) ) * v[ 2 ] +
-              static_cast< int64_t >( held.at_second( cx + 1, cy + 1 ) ) * v[ 3 ],
-              detail::lk_weight_bits - 5 );
+            auto const difference = value - from_patch[ x ];
 
-            auto const at = y * win_w + x;
-            auto const difference = value - patch[ at ];
-
-            b1 += difference * slope_x[ at ];
-            b2 += difference * slope_y[ at ];
+            b1 += static_cast< int64_t >( difference ) * from_x[ x ];
+            b2 += static_cast< int64_t >( difference ) * from_y[ x ];
           }
         }
 

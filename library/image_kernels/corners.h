@@ -256,96 +256,257 @@ min_eigen_value( viame::image_of< T > const& image, int block_size = 3,
 
   scale = 1.0 / scale;
 
-  auto const dx = sobel< float >( image, 1, 0, static_cast< size_t >( aperture ) );
-  auto const dy = sobel< float >( image, 0, 1, static_cast< size_t >( aperture ) );
-
   auto const width = image.width();
   auto const height = image.height();
 
-  // The three distinct entries of the covariance, before the block sum
+  viame::image_of< float > out( width, height, 1 );
+
+  if( width == 0 || height == 0 )
+  {
+    return out;
+  }
+
+  // `sobel< float >` would give the same two planes -- the kernels are
+  // `sobel_kernel_1d`'s and the sums are still in double, so only the order
+  // of two exact additions differs -- but it reaches them through
+  // `filter_2d`, which sweeps the **square** nine tap kernel and resolves the
+  // border with a switch on each of those taps. Eighteen dispatched calls a
+  // pixel for the two derivatives was 0.219 s of the 0.245 it took to find a
+  // thousand corners in a 1080p frame.
+  //
+  // So the derivatives are separable here, and the horizontal halves live in
+  // a three row ring rather than in two full planes: the vertical half only
+  // ever wants rows y-1, y and y+1, and reflecting at the edge asks for a row
+  // that is already one of those three, so nothing has to be kept. Writing
+  // them out instead is thirty-two megabytes stored and loaded again per
+  // frame, which costs more than the arithmetic does.
+  auto const smooth = sobel_kernel_1d( 0, static_cast< size_t >( aperture ) );
+  auto const differ = sobel_kernel_1d( 1, static_cast< size_t >( aperture ) );
+
+  std::vector< double > ring_differ( 3 * width ), ring_smooth( 3 * width );
+  long filled = -1;
+
+  // `image_of::operator()` is three multiplications to reach a pixel, and the
+  // row's pixels are adjacent, so the row is found once and walked. For the
+  // packed single plane case -- which is every caller -- the walk is a plain
+  // stride of one and the compiler can see it.
+  auto const* const base = image.first_pixel();
+  auto const across_step = image.w_step();
+  auto const down_step = image.h_step();
+  auto const packed = across_step == 1;
+
+  auto const fill =
+    [ & ]( size_t row )
+    {
+      auto* to_differ = ring_differ.data() + ( row % 3 ) * width;
+      auto* to_smooth = ring_smooth.data() + ( row % 3 ) * width;
+
+      auto const* source = base + down_step * static_cast< ptrdiff_t >( row );
+
+      auto const one =
+        [ & ]( long i, double& a, double& b )
+        {
+          for( size_t k = 0; k < 3; ++k )
+          {
+            auto const index = detail::border_index(
+              i + static_cast< long >( k ) - 1, static_cast< long >( width ),
+              border_mode::REFLECT_101 );
+            auto const value = static_cast< double >(
+              source[ across_step * static_cast< ptrdiff_t >( index ) ] );
+            a += differ[ k ] * value;
+            b += smooth[ k ] * value;
+          }
+        };
+
+      // The interior, where the three taps are simply adjacent
+      if( packed )
+      {
+        for( size_t x = 1; x + 1 < width; ++x )
+        {
+          double a = 0.0;
+          double b = 0.0;
+
+          for( size_t k = 0; k < 3; ++k )
+          {
+            auto const value = static_cast< double >( source[ x + k - 1 ] );
+            a += differ[ k ] * value;
+            b += smooth[ k ] * value;
+          }
+
+          to_differ[ x ] = a;
+          to_smooth[ x ] = b;
+        }
+      }
+      else
+      {
+        for( size_t x = 1; x + 1 < width; ++x )
+        {
+          double a = 0.0;
+          double b = 0.0;
+          one( static_cast< long >( x ), a, b );
+          to_differ[ x ] = a;
+          to_smooth[ x ] = b;
+        }
+      }
+
+      // And the two columns whose taps leave the image, which for a width of
+      // one is the same column twice and harmlessly so
+      for( auto const x : { size_t{ 0 }, width - 1 } )
+      {
+        double a = 0.0;
+        double b = 0.0;
+        one( static_cast< long >( x ), a, b );
+        to_differ[ x ] = a;
+        to_smooth[ x ] = b;
+      }
+    };
+
+  // The three distinct entries of the gradient covariance, before the block
+  auto const radius = block_size / 2;
+
   std::vector< float > xx( width * height ), xy( width * height ),
                        yy( width * height );
 
   for( size_t y = 0; y < height; ++y )
   {
+    auto const wanted = std::min( y + 1, height - 1 );
+
+    while( filled < static_cast< long >( wanted ) )
+    {
+      fill( static_cast< size_t >( ++filled ) );
+    }
+
+    size_t rows[ 3 ];
+
+    for( size_t k = 0; k < 3; ++k )
+    {
+      rows[ k ] = static_cast< size_t >( detail::border_index(
+        static_cast< long >( y ) + static_cast< long >( k ) - 1,
+        static_cast< long >( height ), border_mode::REFLECT_101 ) ) % 3;
+    }
+
+    auto* to_xx = xx.data() + y * width;
+    auto* to_xy = xy.data() + y * width;
+    auto* to_yy = yy.data() + y * width;
+
     for( size_t x = 0; x < width; ++x )
     {
-      auto const gx = static_cast< float >( dx( x, y, 0 ) * scale );
-      auto const gy = static_cast< float >( dy( x, y, 0 ) * scale );
-      auto const at = y * width + x;
+      double across = 0.0;
+      double down = 0.0;
 
-      xx[ at ] = gx * gx;
-      xy[ at ] = gx * gy;
-      yy[ at ] = gy * gy;
+      for( size_t k = 0; k < 3; ++k )
+      {
+        across += smooth[ k ] * ring_differ[ rows[ k ] * width + x ];
+        down += differ[ k ] * ring_smooth[ rows[ k ] * width + x ];
+      }
+
+      auto const gx = static_cast< float >(
+        static_cast< float >( across ) * scale );
+      auto const gy = static_cast< float >(
+        static_cast< float >( down ) * scale );
+
+      to_xx[ x ] = gx * gx;
+      to_xy[ x ] = gx * gy;
+      to_yy[ x ] = gy * gy;
     }
   }
 
-  // An **unnormalised** box sum, which is what `boxFilter` with `normalize`
-  // off gives and what the halving below is paired with
-  auto const radius = block_size / 2;
-
-  auto const block_sum =
-    [ & ]( std::vector< float > const& source )
-    {
-      std::vector< float > across( width * height );
-
-      for( size_t y = 0; y < height; ++y )
-      {
-        for( size_t x = 0; x < width; ++x )
-        {
-          double total = 0.0;
-
-          for( int k = -radius; k <= radius; ++k )
-          {
-            auto const at = detail::border_index(
-              static_cast< long >( x ) + k, static_cast< long >( width ),
-              border_mode::REFLECT_101 );
-            total += source[ y * width + static_cast< size_t >( at ) ];
-          }
-
-          across[ y * width + x ] = static_cast< float >( total );
-        }
-      }
-
-      std::vector< float > out( width * height );
-
-      for( size_t y = 0; y < height; ++y )
-      {
-        for( size_t x = 0; x < width; ++x )
-        {
-          double total = 0.0;
-
-          for( int k = -radius; k <= radius; ++k )
-          {
-            auto const at = detail::border_index(
-              static_cast< long >( y ) + k, static_cast< long >( height ),
-              border_mode::REFLECT_101 );
-            total += across[ static_cast< size_t >( at ) * width + x ];
-          }
-
-          out[ y * width + x ] = static_cast< float >( total );
-        }
-      }
-
-      return out;
-    };
-
-  auto const cxx = block_sum( xx );
-  auto const cxy = block_sum( xy );
-  auto const cyy = block_sum( yy );
-
-  viame::image_of< float > out( width, height, 1 );
+  // An **unnormalised** box sum of all three at once, which is what
+  // `boxFilter` with `normalize` off gives and what the halving below is
+  // paired with. All three share the sweep because they share every index:
+  // three separate calls made six passes over twenty-four megabytes where
+  // this makes two.
+  std::vector< float > across_xx( width * height ), across_xy( width * height ),
+                       across_yy( width * height );
 
   for( size_t y = 0; y < height; ++y )
   {
+    auto const* from_xx = xx.data() + y * width;
+    auto const* from_xy = xy.data() + y * width;
+    auto const* from_yy = yy.data() + y * width;
+
+    auto* to_xx = across_xx.data() + y * width;
+    auto* to_xy = across_xy.data() + y * width;
+    auto* to_yy = across_yy.data() + y * width;
+
     for( size_t x = 0; x < width; ++x )
     {
-      auto const at = y * width + x;
-      auto const a = cxx[ at ] * 0.5f;
-      auto const b = cxy[ at ];
-      auto const c = cyy[ at ] * 0.5f;
+      double a = 0.0, b = 0.0, c = 0.0;
 
-      out( x, y, 0 ) = a + c - std::sqrt( ( a - c ) * ( a - c ) + b * b );
+      // The taps are added in the same order either way, so the answer is the
+      // same to the last bit; the split keeps the border resolution off the
+      // pixels that are nowhere near one
+      if( x >= static_cast< size_t >( radius ) &&
+          x + static_cast< size_t >( radius ) < width )
+      {
+        for( int k = -radius; k <= radius; ++k )
+        {
+          auto const at = x + static_cast< size_t >( k );
+          a += from_xx[ at ];
+          b += from_xy[ at ];
+          c += from_yy[ at ];
+        }
+      }
+      else
+      {
+        for( int k = -radius; k <= radius; ++k )
+        {
+          auto const at = static_cast< size_t >( detail::border_index(
+            static_cast< long >( x ) + k, static_cast< long >( width ),
+            border_mode::REFLECT_101 ) );
+          a += from_xx[ at ];
+          b += from_xy[ at ];
+          c += from_yy[ at ];
+        }
+      }
+
+      to_xx[ x ] = static_cast< float >( a );
+      to_xy[ x ] = static_cast< float >( b );
+      to_yy[ x ] = static_cast< float >( c );
+    }
+  }
+
+  std::vector< float const* > rows_xx, rows_xy, rows_yy;
+  rows_xx.reserve( static_cast< size_t >( 2 * radius + 1 ) );
+  rows_xy.reserve( static_cast< size_t >( 2 * radius + 1 ) );
+  rows_yy.reserve( static_cast< size_t >( 2 * radius + 1 ) );
+
+  for( size_t y = 0; y < height; ++y )
+  {
+    rows_xx.clear();
+    rows_xy.clear();
+    rows_yy.clear();
+
+    for( int k = -radius; k <= radius; ++k )
+    {
+      auto const at = static_cast< size_t >( detail::border_index(
+        static_cast< long >( y ) + k, static_cast< long >( height ),
+        border_mode::REFLECT_101 ) );
+      rows_xx.push_back( across_xx.data() + at * width );
+      rows_xy.push_back( across_xy.data() + at * width );
+      rows_yy.push_back( across_yy.data() + at * width );
+    }
+
+    auto* destination = out.first_pixel() +
+      out.h_step() * static_cast< ptrdiff_t >( y );
+
+    for( size_t x = 0; x < width; ++x )
+    {
+      double first = 0.0, cross = 0.0, second = 0.0;
+
+      for( size_t k = 0; k < rows_xx.size(); ++k )
+      {
+        first += rows_xx[ k ][ x ];
+        cross += rows_xy[ k ][ x ];
+        second += rows_yy[ k ][ x ];
+      }
+
+      auto const a = static_cast< float >( first ) * 0.5f;
+      auto const b = static_cast< float >( cross );
+      auto const c = static_cast< float >( second ) * 0.5f;
+
+      destination[ out.w_step() * static_cast< ptrdiff_t >( x ) ] =
+        a + c - std::sqrt( ( a - c ) * ( a - c ) + b * b );
     }
   }
 
