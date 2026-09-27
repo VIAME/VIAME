@@ -104,3 +104,6 @@ if( VIAME_ENABLE_PYTHON )
     TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_model_imports.py"
     LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
 endif()
+
+viame_discover_gtests( viame utilities_target_clfr
+  LIBRARIES viame_utilities kwiver::vital GTest::gtest_main )

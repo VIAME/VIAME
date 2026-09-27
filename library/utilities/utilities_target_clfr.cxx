@@ -9,6 +9,8 @@
 
 #include "utilities_target_clfr.h"
 
+#include <algorithm>
+#include <cmath>
 #include <map>
 #include <string>
 #include <vector>
@@ -128,7 +130,40 @@ ranked_class_names( const kv::detected_object_type_sptr& dot,
     return std::vector< std::string >();
   }
 
-  return ( top_n ? dot->top_class_names( top_n ) : dot->class_names() );
+  // Class-map keys are interned string pointers. Sorting only by score makes
+  // ties depend on allocations and module import order, including the last
+  // class admitted by a top-N cutoff. Use names to break exact score ties.
+  std::vector< std::pair< std::string, double > > ranked;
+  for( auto const& entry : *dot )
+  {
+    ranked.emplace_back( *entry.first, entry.second );
+  }
+  std::sort( ranked.begin(), ranked.end(),
+    []( auto const& a, auto const& b )
+    {
+      const bool a_nan = std::isnan( a.second );
+      const bool b_nan = std::isnan( b.second );
+      if( a_nan != b_nan )
+      {
+        return !a_nan;
+      }
+      if( !a_nan && a.second != b.second )
+      {
+        return a.second > b.second;
+      }
+      return a.first < b.first;
+    } );
+  if( top_n && ranked.size() > top_n )
+  {
+    ranked.resize( top_n );
+  }
+  std::vector< std::string > names;
+  names.reserve( ranked.size() );
+  for( auto const& entry : ranked )
+  {
+    names.push_back( entry.first );
+  }
+  return names;
 }
 
 } // end namespace core
