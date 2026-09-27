@@ -403,3 +403,5 @@ if( VIAME_ENABLE_PYTORCH-SLEAP )
       ${MODULE} )
   endforeach()
 endif()
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/cuda_preprocess.py pytorch cuda_preprocess )

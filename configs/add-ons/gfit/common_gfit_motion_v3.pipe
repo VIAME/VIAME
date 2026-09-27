@@ -1,0 +1,15 @@
+# Fused equivalent of the GFIT grayscale, window variance, scale and merge stages.
+process detector_grey
+  :: image_filter
+  :filter:type gfit_motion
+  :filter:gfit_motion:device 0
+  :filter:gfit_motion:backend auto
+
+# Identity preserves the common detector endpoint without another GPU transfer.
+process image_merger2
+  :: image_filter
+  :filter:type vxl_convert_image
+  :filter:vxl_convert_image:format disable
+
+connect from detector_grey.image
+        to image_merger2.image
