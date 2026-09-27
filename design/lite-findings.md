@@ -4430,3 +4430,95 @@ zero, and by a route that is easy to miss: `exp( -dist / 0 )` is `exp( -inf )`
 `if( cvIsNaN( w ) ) w = 1.0` then turns into one. So `h = 0` is "keep the pixel",
 not "average everything". My sweep had never passed `h = 0`, which is the kind of
 boundary a caller reaches for to mean "off".
+
+## 2.68 `INTER_LINEAR_EXACT` is a second resize, not a rounding of the first
+
+`cv::resize` carries two bilinear paths and they are different computations.
+`INTER_LINEAR` takes its coefficients from a single-precision product and
+carries them at eleven bits through two shifts. `INTER_LINEAR_EXACT` takes
+them from a **double reciprocal**, `1/(dst/src)` -- which is not `src/dst` in
+the last bit for every pair of sizes -- holds them in unsigned Q8.8, and
+rounds once at the end. The two disagree by a count on a few percent of
+pixels.
+
+The edge rule is the part that does not fall out of the arithmetic, and it is
+where a first attempt goes wrong. An output whose centre lands outside the
+source is not interpolated against a pinned neighbour, which is what the
+eleven-bit path's `clamp_ends` does; it **copies** the edge sample and rounds
+once, where the interpolating path would have rounded twice. So the axis
+setup reports a first and last output index rather than clamping, and the
+rows outside them take their own loop.
+
+One redirect is worth knowing: an exact halving in both axes is sent to
+`INTER_AREA` instead, because the two agree there and area is cheaper. Not
+for two-channel images, whose area path is not itself exact -- which never
+arises for a planar image.
+
+ORB is why this matters. Its pyramid is built with `INTER_LINEAR_EXACT` and
+then FAST is run over it, so a one-count difference moves the corner set, and
+every keypoint and descriptor after it.
+
+## 2.69 ORB, and a blur that changes because its input is a submatrix
+
+The port came out exact -- keypoints and descriptors both, over 147
+configurations -- and all of the difficulty was in one line of OpenCV that
+does not look like it does anything:
+
+```cpp
+Mat workingMat = imagePyramid(layerInfo[level]);
+GaussianBlur(workingMat, workingMat, Size(7, 7), 2, 2, BORDER_REFLECT_101);
+```
+
+`workingMat` is a **region of a larger buffer**, and `cv::GaussianBlur` guards
+its bit-exact fixed-point path with
+
+```cpp
+sdepth == CV_8U && ((borderType & BORDER_ISOLATED) || !_src.isSubmatrix())
+```
+
+so this call fails the guard and falls through to `sepFilter2D` with the
+**float** kernel. The two blurs differ by a count on about a fifth of an
+8-bit frame: the fixed-point kernel is built by error diffusion with its
+centre tap forced so the taps sum to exactly 256, while `sepFilter2D` rounds
+each float tap on its own -- for size 7 at sigma 2 that is
+`18, 34, 49, 55, 49, 34, 18`, which sums to 257.
+
+rBRIEF compares single pixels, so a count is a bit of the descriptor. Using
+`gaussian_blur` here left 140 bits of 126208 wrong, spread evenly over every
+octave and every bit position: the signature of a comparison landing on a
+tie rather than of a wrong pattern or a wrong angle. `gaussian_blur_float_taps`
+is that second blur.
+
+Reproducing `sepFilter2D` needs its shape and not just its precision.
+`RowVec_8u32f` is a fused multiply-add chain from zero in kernel order;
+`SymmColumnVec_32f8u` multiplies the centre tap and then folds each symmetric
+pair with **one** fused multiply-add of their sum. Written the obvious way --
+unfused, taps in order -- one pixel of one pyramid level came out a unit in
+the last place high, landed on 134.50002 where cv2 landed on 134.5, and
+rounded to 135 rather than 134. One bit of one descriptor of one
+configuration, and it took the same work to find as the other hundred and
+forty.
+
+**A third function that is not a function of its input.** `sepFilter2D`'s
+column pass rounds an exact half to even in its vector body, through
+`v_round`, and away from zero in its scalar remainder, so its answer for the
+last `width % lanes` columns moves with the vector width -- 32 with AVX2, 16
+with SSE2. It joins `HSV2RGB` (2.56) and `fastGlobalSmootherFilter` (2.67).
+It shows only for a dyadic kernel, which is what `sigma == 0` gives at size
+nine or less: those make the whole float32 accumulation exact, so a half
+lands on a half. At any other sigma the sum misses by some bits and the
+rounding is never in question -- which is why ORB, at size 7 and sigma 2, is
+exact anyway. `gaussian_blur_float_taps` takes the vector body, as
+`hsv_to_rgb` and the float blur do.
+
+**Two smaller traps.** `cv::ORB::create` takes `scaleFactor` as a **float**
+though `ORB_Impl` stores a double, so a caller asking for 1.2 is asking for
+1.2000000476837158; taking it as a true double put every level's scale about
+a millionth out and moved keypoint positions in the fifth decimal. And
+`KeyPointsFilter::retainBest` culls with `std::nth_element` followed by
+`std::partition`, neither of which specifies its output order. What it
+*selects* is well defined -- every keypoint whose response reaches the n-th
+largest, ties included, which is what the `partition` is there to keep -- so
+the set is reproducible and the order is not. The port returns detection
+order and says so; a matcher pairs row i of the descriptors with keypoint i
+and both are written the same way, so nothing downstream can tell.

@@ -579,6 +579,18 @@ py::array gaussian_blur ( array_of<T> const &array, size_t size, double sigma,
 
 template < typename T >
 py::array
+gaussian_blur_float_taps( array_of< T > const& array, size_t size,
+                          double sigma, std::string const& border )
+{
+  auto const source = as_image( array );
+  return as_array(
+    VIAME_KERNEL_CALL( gaussian_blur_float_taps, source, size, sigma,
+                       as_border( border ) ),
+    array.ndim() == 3 );
+}
+
+template < typename T >
+py::array
 box_blur( array_of< T > const& array,
           size_t size, std::string const& border )
 {
@@ -1839,6 +1851,23 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
       py::arg ( "workspace" ) = nullptr,
       "cv2.GaussianBlur. `size` is the odd kernel width and height, and "
       "sigma is derived from it when left at zero." );
+
+  for_every_pixel_type( m, "gaussian_blur_float_taps",
+         &gaussian_blur_float_taps< uint8_t >,
+         &gaussian_blur_float_taps< uint16_t >,
+         &gaussian_blur_float_taps< float >, py::arg( "image" ),
+         py::arg( "size" ), py::arg( "sigma" ) = 0.0,
+         py::arg( "border" ) = "reflect_101",
+         "cv2.GaussianBlur as it behaves when handed a **submatrix**, which "
+         "is cv2.sepFilter2D with the float kernel: the bit-exact "
+         "fixed-point path is guarded on the input not being one. The two "
+         "differ by a count on about a fifth of an 8-bit frame. ORB's "
+         "pyramid blur is this one. Exact against cv2 except where the "
+         "float accumulation lands on an exact half, which only a dyadic "
+         "kernel -- `sigma=0` at size 9 or less -- produces: cv2 rounds "
+         "those to even in its vector body and away from zero in its "
+         "scalar remainder, so its own answer moves with the vector "
+         "width. This takes the vector body." );
 
   for_every_pixel_type( m, "box_blur", &box_blur< uint8_t >,
          &box_blur< uint16_t >,

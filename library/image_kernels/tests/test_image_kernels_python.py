@@ -25,6 +25,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  draw_rect, draw_text, equalize, erode,
                                  fill_ellipse, fill_polygon,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
+                                 gaussian_blur_float_taps,
                                  hough_circles, median_blur,
                                  normalize, optical_flow, remap, resize,
                                  resize_area, smooth_globally,
@@ -1920,6 +1921,70 @@ def test_fast_corners_wants_one_plane():
         fast_corners(np.zeros((20, 20, 3), np.uint8), 30)
     # Too small for the ring to fit anywhere, rather than an error.
     assert len(fast_corners(np.zeros((6, 6), np.uint8), 0)) == 0
+
+
+# Recorded from cv2. `_FLOAT_TAP_BLUR` is cv2.sepFilter2D with
+# getGaussianKernel(7, 2, CV_32F), which is what cv2.GaussianBlur runs when
+# its input is a submatrix -- ORB's pyramid levels are; `_BIT_EXACT_BLUR` is
+# the fixed-point path the same call takes on a whole Mat. They differ on 21
+# of these 96 pixels, which is the point of having both.
+_BLUR_SOURCE = np.array([
+    [190, 94, 151, 103, 16, 164, 59, 55, 122, 149, 230, 241],
+    [78, 142, 45, 3, 87, 189, 210, 214, 95, 120, 181, 6],
+    [117, 147, 240, 21, 95, 129, 117, 184, 251, 197, 14, 11],
+    [131, 212, 171, 19, 21, 18, 195, 211, 199, 152, 31, 228],
+    [145, 246, 105, 107, 215, 215, 128, 50, 225, 121, 138, 169],
+    [213, 129, 189, 170, 226, 240, 213, 195, 138, 213, 118, 227],
+    [191, 65, 221, 39, 187, 52, 119, 148, 184, 208, 51, 186],
+    [178, 40, 147, 1, 181, 61, 246, 181, 56, 212, 118, 35]
+], dtype=np.uint8)
+
+_FLOAT_TAP_BLUR = np.array([
+    [121, 117, 107, 102, 107, 119, 134, 148, 148, 140, 133, 129],
+    [125, 121, 112, 106, 111, 122, 136, 148, 148, 140, 133, 130],
+    [134, 131, 122, 116, 120, 129, 142, 152, 151, 143, 135, 133],
+    [145, 143, 134, 128, 129, 136, 147, 154, 154, 146, 138, 136],
+    [147, 147, 139, 136, 137, 144, 153, 158, 156, 147, 139, 137],
+    [145, 147, 141, 140, 140, 146, 153, 157, 155, 149, 143, 141],
+    [140, 143, 139, 142, 143, 149, 155, 158, 156, 150, 146, 144],
+    [137, 142, 139, 144, 146, 151, 156, 158, 155, 150, 146, 144]
+], dtype=np.uint8)
+
+_BIT_EXACT_BLUR = np.array([
+    [121, 117, 108, 102, 107, 119, 134, 148, 148, 140, 133, 129],
+    [124, 121, 112, 106, 111, 122, 136, 148, 148, 140, 133, 129],
+    [134, 132, 123, 116, 120, 129, 142, 152, 151, 143, 135, 133],
+    [145, 143, 134, 127, 129, 136, 147, 154, 154, 146, 138, 136],
+    [147, 147, 140, 136, 138, 144, 153, 158, 156, 147, 139, 137],
+    [145, 147, 141, 140, 141, 146, 153, 157, 155, 149, 142, 141],
+    [140, 143, 140, 141, 143, 149, 155, 158, 155, 151, 145, 145],
+    [138, 141, 140, 143, 146, 151, 156, 158, 155, 150, 146, 145]
+], dtype=np.uint8)
+
+
+def test_float_tap_blur_is_the_submatrix_path():
+    np.testing.assert_array_equal(
+        gaussian_blur_float_taps(_BLUR_SOURCE, 7, 2.0), _FLOAT_TAP_BLUR)
+    np.testing.assert_array_equal(
+        gaussian_blur(_BLUR_SOURCE, 7, 2.0), _BIT_EXACT_BLUR)
+    assert np.count_nonzero(_FLOAT_TAP_BLUR != _BIT_EXACT_BLUR) == 21
+
+
+def test_float_tap_blur_keeps_a_flat_image_flat():
+    # The float taps sum to one only to a few bits, unlike the fixed-point
+    # kernel whose centre is forced so that they sum to exactly 256. It is
+    # still close enough that a constant survives.
+    flat = np.full((40, 48), 173, np.uint8)
+    np.testing.assert_array_equal(
+        gaussian_blur_float_taps(flat, 7, 2.0), flat)
+    np.testing.assert_array_equal(
+        gaussian_blur_float_taps(np.zeros((9, 9), np.uint8), 5, 1.1),
+        np.zeros((9, 9), np.uint8))
+
+
+def test_float_tap_blur_wants_an_odd_kernel():
+    with pytest.raises(ValueError):
+        gaussian_blur_float_taps(np.zeros((8, 8), np.uint8), 4, 1.0)
 
 
 def test_resize_uses_opencv_pixel_centres():

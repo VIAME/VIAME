@@ -20,6 +20,7 @@ import glob
 import argparse
 import json
 from viame import image_kernels
+from viame.image_processing import features, matching
 from viame.measurement import projection
 from viame.utilities import (blobs, calibration, chessboard, geometry,
                              imageops, opencv_yaml)
@@ -1787,48 +1788,39 @@ def estimate_essential_from_stereo_frames(left_path, right_path, input_path,
     Returns:
         List of dicts with 'R', 'T', 'n_inliers', 'n_pose' keys
     """
-    # Try SIFT first, fall back to ORB
-    try:
-        detector = cv2.SIFT_create(nfeatures=3000)
-        matcher = cv2.BFMatcher(cv2.NORM_L2)
-        use_sift = True
-        print("  Using SIFT features")
-    except Exception:
-        detector = cv2.ORB_create(nfeatures=3000)
-        matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-        use_sift = False
-        print("  Using ORB features")
+    # SIFT, with no fallback. The detector is VIAME's own now, so there is
+    # no build of cv2 that could fail to carry it -- the `try` around
+    # `cv2.SIFT_create` was guarding against a wheel without the patented
+    # algorithms, which stopped being a thing when the patent expired in
+    # 2020, and the ORB branch it fell back to was unreachable. ORB is
+    # ported too and `features.orb` is a line away if it is ever wanted.
+    print("  Using SIFT features")
 
     all_results = []
 
     def process_pair(left_gray, right_gray, frame_id):
         """Process a single stereo pair for Essential matrix estimation."""
-        kp1, des1 = detector.detectAndCompute(left_gray, None)
-        kp2, des2 = detector.detectAndCompute(right_gray, None)
+        kp1, des1 = features.sift(left_gray, n_features=3000)
+        kp2, des2 = features.sift(right_gray, n_features=3000)
 
-        if des1 is None or des2 is None or len(kp1) < 30 or len(kp2) < 30:
+        if len(kp1) < 30 or len(kp2) < 30:
             return None
 
-        if use_sift:
-            raw_matches = matcher.knnMatch(des1, des2, k=2)
-            matches = []
-            for m_pair in raw_matches:
-                if len(m_pair) == 2:
-                    m, n = m_pair
-                    if m.distance < 0.75 * n.distance:
-                        matches.append(m)
-            matches = sorted(matches, key=lambda m: m.distance)
-        else:
-            matches = sorted(matcher.match(des1, des2), key=lambda m: m.distance)
+        # `BFMatcher( NORM_L2 ).knnMatch( ..., k=2 )` and Lowe's ratio test,
+        # then the closest 500. `ratio_match` gives the same pairs but not
+        # their distances, and the truncation needs them, so this goes
+        # through `nearest` directly.
+        index, distance = matching.nearest(des1, des2, 2, binary=False,
+                                           with_distance=True)
+        keep = np.flatnonzero(distance[:, 0] < 0.75 * distance[:, 1])
 
-        if len(matches) < 20:
+        if len(keep) < 20:
             return None
 
-        n_match = min(500, len(matches))
-        matches = matches[:n_match]
+        keep = keep[np.argsort(distance[keep, 0], kind='stable')][:500]
 
-        pts1 = np.array([kp1[m.queryIdx].pt for m in matches], dtype=np.float64)
-        pts2 = np.array([kp2[m.trainIdx].pt for m in matches], dtype=np.float64)
+        pts1 = np.array([kp1[q, :2] for q in keep], dtype=np.float64)
+        pts2 = np.array([kp2[index[q, 0], :2] for q in keep], dtype=np.float64)
 
         # Undistort points
         pts1_ud = projection.undistort_points(pts1, K_left, dist_left)
@@ -1855,7 +1847,7 @@ def estimate_essential_from_stereo_frames(left_path, right_path, input_path,
         return {
             'frame': frame_id, 'R': R.copy(), 'T': T.copy(),
             'n_inliers': n_inliers, 'n_pose': n_pose,
-            'n_matches': len(matches)
+            'n_matches': len(keep)
         }
 
     # Iterate over stereo frames

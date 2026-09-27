@@ -20,6 +20,7 @@ set( plugin_headers
   random_hue_shift.h
   split_image_habcam.h
   split_image_horizontally.h
+  orb.h
   sift.h
   sift_features.h
   surf.h
@@ -57,6 +58,7 @@ set( plugin_sources
   random_hue_shift.cxx
   split_image_habcam.cxx
   split_image_horizontally.cxx
+  orb.cxx
   sift.cxx
   sift_features.cxx
   surf.cxx

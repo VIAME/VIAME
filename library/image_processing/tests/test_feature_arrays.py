@@ -5,7 +5,7 @@ import pytest
 from viame.image_processing import features
 
 
-@pytest.mark.parametrize('operation', ['sift', 'surf', 'sift_describe'])
+@pytest.mark.parametrize('operation', ['sift', 'surf', 'orb', 'sift_describe'])
 def test_native_feature_work_releases_gil(operation):
     image = np.random.default_rng(37).integers(0, 256, (768, 768), dtype=np.uint8)
     keypoints = None

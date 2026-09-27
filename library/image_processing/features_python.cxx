@@ -20,8 +20,11 @@
 /// samples the level of the pyramid it was found at; a caller inventing
 /// keypoints of its own leaves it at zero, which describes them at the base.
 
+#include <viame/image_processing/orb.h>
 #include <viame/image_processing/sift.h>
 #include <viame/image_processing/surf.h>
+
+#include <image_kernels/color.h>
 
 #include <viame/core_types/image.h>
 
@@ -42,6 +45,7 @@ namespace {
 
 using array_u8 = py::array_t< uint8_t, py::array::c_style >;
 using array_f = py::array_t< float, py::array::c_style | py::array::forcecast >;
+using array_b = py::array_t< uint8_t, py::array::c_style >;
 
 /// One plane or three, as `image_of< uint8_t >`.
 viame::image_of< uint8_t >
@@ -324,13 +328,150 @@ py::tuple nearest_binary( array_u8 const& query, array_u8 const& train, int k )
   return py::make_tuple( indices, distances );
 }
 
+
+/// ORB wants one plane; cv2 greyscales for the caller and so does this.
+viame::image_of< uint8_t >
+as_grey( array_u8 const& array, char const* who )
+{
+  auto const image = as_image( array, who );
+  return image.depth() == 3
+         ? viame::image_kernels::rgb_to_gray( image ) : image;
+}
+
+py::array_t< uint8_t >
+as_byte_descriptors( std::vector< uint8_t > const& raw, int width )
+{
+  auto const count = width > 0
+                     ? raw.size() / static_cast< size_t >( width ) : size_t{ 0 };
+  py::array_t< uint8_t > out(
+    { static_cast< py::ssize_t >( count ),
+      static_cast< py::ssize_t >( width ) } );
+
+  if( count ) { std::copy( raw.begin(), raw.end(), out.mutable_data() ); }
+
+  return out;
+}
+
+viame::orb::settings
+orb_settings( int n_features, float scale_factor, int n_levels,
+              int edge_threshold, int first_level, int wta_k,
+              std::string const& score_type, int patch_size,
+              int fast_threshold )
+{
+  viame::orb::settings settings;
+  settings.n_features = n_features;
+  settings.scale_factor = scale_factor;
+  settings.n_levels = n_levels;
+  settings.edge_threshold = edge_threshold;
+  settings.first_level = first_level;
+  settings.wta_k = wta_k;
+  settings.patch_size = patch_size;
+  settings.fast_threshold = fast_threshold;
+
+  if( score_type == "harris" ) { settings.harris_score = true; }
+  else if( score_type == "fast" ) { settings.harris_score = false; }
+  else
+  {
+    throw std::invalid_argument(
+      "orb: score_type must be 'harris' or 'fast'; got '" + score_type + "'" );
+  }
+
+  return settings;
+}
+
+std::vector< viame::orb::keypoint >
+as_orb_keypoints( array_f const& array )
+{
+  auto const buffer = array.request();
+
+  if( buffer.ndim != 2 || buffer.shape[ 1 ] < 5 )
+  {
+    throw std::invalid_argument(
+      "orb_describe wants an (n, 5) or (n, 6) keypoint array" );
+  }
+
+  auto const count = static_cast< size_t >( buffer.shape[ 0 ] );
+  auto const stride = static_cast< size_t >( buffer.shape[ 1 ] );
+  auto const* data = static_cast< float const* >( buffer.ptr );
+
+  std::vector< viame::orb::keypoint > out( count );
+
+  for( size_t k = 0; k < count; ++k )
+  {
+    out[ k ].x = data[ k * stride + 0 ];
+    out[ k ].y = data[ k * stride + 1 ];
+    out[ k ].size = data[ k * stride + 2 ];
+    out[ k ].angle = data[ k * stride + 3 ];
+    out[ k ].response = data[ k * stride + 4 ];
+    out[ k ].octave = stride > 5
+                      ? static_cast< int >( data[ k * stride + 5 ] ) : 0;
+  }
+
+  return out;
+}
+
+py::tuple
+orb_detect_and_compute( array_u8 const& array, int n_features,
+                        float scale_factor, int n_levels, int edge_threshold,
+                        int first_level, int wta_k,
+                        std::string const& score_type, int patch_size,
+                        int fast_threshold, bool describe )
+{
+  auto const image = as_grey( array, "orb" );
+  auto const settings = orb_settings( n_features, scale_factor, n_levels,
+                                      edge_threshold, first_level, wta_k,
+                                      score_type, patch_size, fast_threshold );
+
+  std::vector< viame::orb::keypoint > keypoints;
+  std::vector< uint8_t > descriptors;
+
+  {
+    py::gil_scoped_release release;
+    viame::orb::detect_and_compute( image, settings, keypoints,
+                                    describe ? &descriptors : nullptr );
+  }
+
+  return py::make_tuple(
+    as_keypoint_array( keypoints, true ),
+    as_byte_descriptors( describe ? descriptors : std::vector< uint8_t >{},
+                         viame::orb::descriptor_size( settings ) ) );
+}
+
+py::tuple
+orb_describe( array_u8 const& array, array_f const& keypoint_array,
+              int n_features, float scale_factor, int n_levels,
+              int edge_threshold, int first_level, int wta_k,
+              std::string const& score_type, int patch_size,
+              int fast_threshold )
+{
+  auto const image = as_grey( array, "orb_describe" );
+  auto const settings = orb_settings( n_features, scale_factor, n_levels,
+                                      edge_threshold, first_level, wta_k,
+                                      score_type, patch_size, fast_threshold );
+
+  auto keypoints = as_orb_keypoints( keypoint_array );
+  std::vector< uint8_t > descriptors;
+
+  {
+    py::gil_scoped_release release;
+    viame::orb::detect_and_compute( image, settings, keypoints, &descriptors,
+                                    true );
+  }
+
+  return py::make_tuple(
+    as_keypoint_array( keypoints, true ),
+    as_byte_descriptors( descriptors,
+                         viame::orb::descriptor_size( settings ) ) );
+}
+
 } // namespace
 
 PYBIND11_MODULE( _features, m )
 {
   m.def( "nearest_binary", &nearest_binary );
 
-  m.doc() = "VIAME's own SIFT and SURF, as arrays rather than as algorithms";
+  m.doc() = "VIAME's own SIFT, SURF and ORB, as arrays rather than as "
+            "algorithms";
 
   m.def( "sift", &sift_detect_and_compute, py::arg( "image" ),
          py::arg( "n_features" ) = 0, py::arg( "n_octave_layers" ) = 3,
@@ -353,6 +494,36 @@ PYBIND11_MODULE( _features, m )
          "is dropped from both together and a caller holding the old array "
          "would pair every descriptor after the first drop with the wrong "
          "keypoint." );
+
+  m.def( "orb", &orb_detect_and_compute, py::arg( "image" ),
+         py::arg( "n_features" ) = 500, py::arg( "scale_factor" ) = 1.2f,
+         py::arg( "n_levels" ) = 8, py::arg( "edge_threshold" ) = 31,
+         py::arg( "first_level" ) = 0, py::arg( "wta_k" ) = 2,
+         py::arg( "score_type" ) = "harris", py::arg( "patch_size" ) = 31,
+         py::arg( "fast_threshold" ) = 20, py::arg( "describe" ) = true,
+         "Detect ORB keypoints and describe them, as "
+         "`cv2.ORB_create( ... ).detectAndCompute`. Returns "
+         "(keypoints, descriptors): an (n, 6) float32 array of x, y, size, "
+         "angle, response and the pyramid level -- ORB's sixth column is the "
+         "level itself, not SIFT's packed octave -- and an (n, 32) **uint8** "
+         "array, which is a binary descriptor and wants a Hamming distance. "
+         "The keypoints come back in detection order rather than cv2's, "
+         "which its own standard library leaves unspecified; the set is the "
+         "same. `scale_factor` is a float, as `cv2.ORB_create`'s is: 1.2 "
+         "there is really 1.2000000476837158, and the pyramid follows from "
+         "it." );
+
+  m.def( "orb_describe", &orb_describe, py::arg( "image" ),
+         py::arg( "keypoints" ), py::arg( "n_features" ) = 500,
+         py::arg( "scale_factor" ) = 1.2f, py::arg( "n_levels" ) = 8,
+         py::arg( "edge_threshold" ) = 31, py::arg( "first_level" ) = 0,
+         py::arg( "wta_k" ) = 2, py::arg( "score_type" ) = "harris",
+         py::arg( "patch_size" ) = 31, py::arg( "fast_threshold" ) = 20,
+         "Describe the given keypoints, which is `ORB.compute`. Returns the "
+         "keypoints as well, because one too near a border is dropped from "
+         "both together. Each keypoint's sixth column says which pyramid "
+         "level to sample, and its x and y are in the source image's "
+         "coordinates." );
 
   m.def( "surf", &surf_detect_and_compute, py::arg( "image" ),
          py::arg( "hessian_threshold" ) = 100.0, py::arg( "n_octaves" ) = 4,

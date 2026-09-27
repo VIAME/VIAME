@@ -909,6 +909,157 @@ gaussian_blur_fixed( viame::image_of< T > const& image,
 /// @param image the image
 /// @param size the kernel width and height, odd
 /// @param sigma the standard deviation, derived from the size when not given
+// ----------------------------------------------------------------------------
+/// `cv::GaussianBlur` on a byte image when its input is a **submatrix**.
+///
+/// Not a variation on `gaussian_blur`: a different computation, and this is
+/// not a subtlety worth a count. `cv::GaussianBlur`'s bit-exact fixed-point
+/// path is guarded by
+///
+///     sdepth == CV_8U && ((borderType & BORDER_ISOLATED) || !isSubmatrix())
+///
+/// so a caller passing a region of a larger buffer and a border rule that
+/// reaches outside it falls through to `sepFilter2D` with the **float**
+/// kernel instead. The two disagree by a count on about a fifth of the
+/// pixels, because the fixed-point kernel is built by error diffusion with
+/// its centre tap forced so the taps sum to exactly 256, and `sepFilter2D`
+/// rounds each float tap on its own -- for size 7 and sigma 2 that is
+/// 18, 34, 49, 55, 49, 34, 18, which sums to 257.
+///
+/// ORB is the caller that needs this: it blurs each pyramid level in place
+/// inside one packed buffer, with `BORDER_REFLECT_101` and no
+/// `BORDER_ISOLATED`, and its descriptor is a comparison of single pixels,
+/// so a count decides a bit.
+///
+/// The accumulation is **float32** in both passes and its shape is not free.
+/// `RowVec_8u32f` runs a fused multiply-add chain from zero in kernel order;
+/// `SymmColumnVec_32f8u` multiplies the centre tap, then folds each
+/// symmetric pair with **one** fused multiply-add of their sum. Both the
+/// pairing and the fusion are load-bearing: unfused, or with the taps taken
+/// in order, the result lands a single unit in the last place away, which is
+/// enough to move a value that sits exactly on a half. One pixel of one
+/// pyramid level was the whole of the difference when this was first written
+/// the obvious way.
+///
+/// **`sepFilter2D` does not reproduce itself on an exact half.** Its vector
+/// body rounds one to even, through `v_round`, and its scalar remainder
+/// rounds one away from zero, so the answer for the last `width % lanes`
+/// columns depends on the vector width -- 32 with AVX2, 16 with SSE2. This
+/// takes the vector body, as `hsv_to_rgb` and the float blur do, for the
+/// same reason: it is what a real frame's interior goes through, and the
+/// alternative is not portable between hosts.
+///
+/// It only shows for a kernel whose taps are dyadic, which is what
+/// `sigma == 0` gives for sizes up to nine -- 1/4, 1/2, 1/4 and its
+/// relatives. Those make the whole float32 accumulation exact, so a half
+/// lands on a half; for any other sigma the sum misses by some bits and the
+/// rounding is never in question. ORB's blur is size 7 at sigma 2, which is
+/// the second kind: no exact half turned up anywhere in its verification.
+///
+/// @param image the image
+/// @param size the kernel width and height, odd
+/// @param sigma the standard deviation, derived from the size when not given
+template < typename T >
+viame::image_of< T >
+gaussian_blur_float_taps( viame::image_of< T > const& image, size_t size,
+                          double sigma = 0.0,
+                          border_mode mode = border_mode::REFLECT_101 )
+{
+  auto const exact = gaussian_kernel_1d( size, sigma );
+
+  if( exact.size() % 2 == 0 )
+  {
+    throw std::invalid_argument(
+      "gaussian_blur_float_taps: the kernel has to be odd, since the column "
+      "pass folds it about its centre" );
+  }
+
+  // `getGaussianKernel( n, sigma, CV_32F )` is the same kernel narrowed to
+  // float, one tap at a time.
+  std::vector< float > line( exact.size() );
+  for( size_t k = 0; k < exact.size(); ++k )
+  { line[k] = static_cast< float >( exact[k] ); }
+
+  auto const taps = line.size();
+  auto const half = static_cast< long >( taps / 2 );
+  auto const width = image.width();
+  auto const height = image.height();
+
+  viame::image_of< T > out( width, height, image.depth() );
+  std::vector< float > buffer( width * height );
+
+  // Where each tap reads, once rather than per pixel.
+  std::vector< long > across( taps * width );
+  std::vector< long > down( taps * height );
+  for( size_t k = 0; k < taps; ++k )
+  {
+    for( size_t i = 0; i < width; ++i )
+    {
+      across[ k * width + i ] = detail::border_index(
+        static_cast< long >( i ) + static_cast< long >( k ) - half,
+        static_cast< long >( width ), mode );
+    }
+    for( size_t j = 0; j < height; ++j )
+    {
+      down[ k * height + j ] = detail::border_index(
+        static_cast< long >( j ) + static_cast< long >( k ) - half,
+        static_cast< long >( height ), mode );
+    }
+  }
+
+  for( size_t plane = 0; plane < image.depth(); ++plane )
+  {
+    for( size_t j = 0; j < height; ++j )
+    {
+      auto* destination = buffer.data() + j * width;
+      for( size_t i = 0; i < width; ++i )
+      {
+        float total = 0.0f;
+        for( size_t k = 0; k < taps; ++k )
+        {
+          auto const at = across[ k * width + i ];
+          auto const value = at < 0
+            ? 0.0f
+            : static_cast< float >(
+                image( static_cast< size_t >( at ), j, plane ) );
+          total = std::fma( line[k], value, total );
+        }
+        destination[i] = total;
+      }
+    }
+
+    auto const row = [&]( size_t k, size_t j ) -> float const*
+    {
+      auto const at = down[ k * height + j ];
+      return at < 0 ? nullptr
+                    : buffer.data() + static_cast< size_t >( at ) * width;
+    };
+
+    for( size_t j = 0; j < height; ++j )
+    {
+      auto const* centre = row( static_cast< size_t >( half ), j );
+      for( size_t i = 0; i < width; ++i )
+      {
+        float total = centre ? line[ half ] * centre[i] : 0.0f;
+        for( long k = 1; k <= half; ++k )
+        {
+          auto const* above = row( static_cast< size_t >( half + k ), j );
+          auto const* below = row( static_cast< size_t >( half - k ), j );
+          auto const pair = ( above ? above[i] : 0.0f ) +
+                            ( below ? below[i] : 0.0f );
+          total = std::fma( line[ half + k ], pair, total );
+        }
+        // `saturate_cast< uchar >( float )` is `cvRound`, which is half to
+        // even; rounding half away is a count out wherever the accumulation
+        // lands on an exact half, and it does.
+        out( i, j, plane ) = saturate_pixel_even< T >( total );
+      }
+    }
+  }
+
+  return out;
+}
+
 template <typename T>
 viame::image_of<T> gaussian_blur ( viame::image_of<T> const &image, size_t size,
                                    double sigma = 0.0,

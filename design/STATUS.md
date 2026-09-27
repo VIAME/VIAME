@@ -2210,3 +2210,51 @@ which is the user's call and not a rounding to be waved through.
 
 Everything else here is settled: the golden passes in full, including every
 disparity variant, at the tolerances it already had.
+
+## ORB, and the two kernels it needed first
+
+ORB is ported: `library/image_processing/orb.{h,cxx}`, reachable from python as
+`viame.image_processing.features.orb` and `orb_describe`. **Keypoints and
+descriptors are bit identical to cv2 5.0.0 over 147 configurations** -- seven
+images including a flat field, a ramp, pure noise and a three-plane one, and
+twenty-one settings spanning the feature budget, the scale factor from 1.1 to
+2.0, one to twelve levels, the edge and FAST thresholds, both score types, and
+a non-zero `first_level`.
+
+It needed two new kernels, each worth having on its own:
+
+* **`image_kernels.resize( ..., "bilinear_exact" )`** -- `INTER_LINEAR_EXACT`,
+  which is a second bilinear resize rather than a rounding of the first
+  (2.68). Exact over 756 configurations.
+* **`image_kernels.gaussian_blur_float_taps`** -- `cv::GaussianBlur` as it
+  behaves when handed a **submatrix**, which is `sepFilter2D` with the float
+  kernel rather than the bit-exact fixed-point path (2.69). ORB blurs regions
+  of one packed pyramid buffer, so this is the blur its descriptors are built
+  on, and it differs from `gaussian_blur` on about a fifth of an 8-bit frame.
+
+`homog_iou_tracker.py`'s ORB branch is off cv2, which was the last import in
+`library/object_trackers`. Two limits are stated rather than approximated:
+`wta_k` of 3 or 4 and a `patch_size` other than 31 are refused, because both
+draw their sampling pattern from `cv::RNG` and a descriptor from a different
+pattern is not comparable with cv2's at all. Nothing on this branch selects
+either, and the two-bit descriptors would want a Hamming-2 matcher that
+`matching.py` does not offer.
+
+**What this leaves.** Three files with live cv2 calls:
+
+| file | needs | why not yet |
+|---|---|---|
+| `ocv_stereo_disparity.py` | WLS branch, BM branch | unchanged: the WLS branch is the open decision above, and BM is a different algorithm that no shipped config selects |
+| `ocv_segmenters.py` | grabCut | GMM plus Boykov-Kolmogorov max-flow; no config selects `ocv_grabcut` |
+| `tools/calibrate.py` | `findEssentialMat`, `recoverPose`, `stereoCalibrate`, `VideoCapture`, highgui | its SIFT/ORB/`BFMatcher` use can come off now that ORB exists; the pose and calibration solvers cannot |
+
+plus `image_viewer.py`, which is highgui and has no replacement.
+
+**`ocv_ORB` is still not registered as an algorithm.** It was dropped on
+purpose in P5-T04 and `tests/baseline/removed.json` records why -- nothing
+selects it. Five pipeline configs name it in a comment and carry an inert
+`block feature_detector:ocv_ORB`, so a user who switched to it today would get
+an unresolved implementation. Registering it over `orb.h` is now a small piece
+of work, in the shape of `sift_features.{h,cxx}`; it is left undone because
+undoing a recorded removal is the user's call, not a side effect of porting
+the algorithm.

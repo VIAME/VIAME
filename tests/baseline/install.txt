@@ -1075,6 +1075,7 @@ include/viame/image_processing/filter_features_nonmax.h
 include/viame/image_processing/match_features_homography.h
 include/viame/image_processing/merge_images.h
 include/viame/image_processing/morphology.h
+include/viame/image_processing/orb.h
 include/viame/image_processing/random_hue_shift.h
 include/viame/image_processing/refine_detections_write_to_disk.h
 include/viame/image_processing/sift.h

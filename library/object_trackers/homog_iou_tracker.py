@@ -132,22 +132,15 @@ class HomogIOUTracker(TrackObjects):
                                              int(height * scale))
 
         if self._feature_type == 'orb':
-            # ORB is the one detector this branch has not ported, and the
-            # `import` is here rather than at the top of the file so that the
-            # default path -- and every shipped config, none of which sets
-            # `feature_type` -- needs no cv2 at all. See lite-findings.md 2.66.
-            import cv2
-
-            detector = cv2.ORB_create(nfeatures=self._max_features)
-            keypoints, descriptors = detector.detectAndCompute(gray, None)
-
-            if descriptors is None or not len(keypoints):
+            # ORB's keypoints come back in detection order rather than in
+            # cv2's, whose own standard library leaves it unspecified. The
+            # set is the same and `_estimate` pairs row i of the descriptors
+            # with keypoint i, so the order is not observable here.
+            keypoints, descriptors = features.orb(
+                gray, n_features=self._max_features)
+            if not len(keypoints):
                 return np.zeros((0, 6), np.float32), None
-
-            return (np.array([[k.pt[0], k.pt[1], k.size, k.angle, k.response,
-                               float(k.octave)] for k in keypoints],
-                             dtype=np.float32),
-                    descriptors)
+            return keypoints, descriptors
 
         return features.sift(gray, n_features=self._max_features)
 
