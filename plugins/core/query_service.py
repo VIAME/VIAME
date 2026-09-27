@@ -51,7 +51,10 @@ each response echoing the request ``id``. Commands:
       when a video is removed from the index): the stream's bundle files
       with the file backend, its database rows with postgres.
   status          {}
-  formulate_query {image_path, boxes?: [[x1,y1,x2,y2],...]}
+  formulate_query {image_path, boxes?: [[x1,y1,x2,y2],...],
+                   exemplars?: [{image_path, boxes}, ...]}
+      exemplars (e.g. several frames of one track) replace image_path/boxes;
+      each exemplar's descriptors join the query as separate positives
   process_query   {threshold?, iqr_model_b64?}
   refine          {positive_ids: [ref], negative_ids: [ref]}
       refs are "<session>:<instance_id>" strings (bare ints refer to
@@ -811,23 +814,26 @@ class QueryService:
         return best
 
     # ------------------------------------------------------------- commands
-    def _formulate_query(self, image_path: str,
-                         boxes: Optional[List[List[float]]]) -> Dict[str, Any]:
-        if not os.path.exists(image_path):
-            raise ValueError(f"Exemplar image not found: {image_path}")
+    def _formulate_query(self, exemplars: List[Dict[str, Any]]) -> Dict[str, Any]:
+        for exemplar in exemplars:
+            if not os.path.exists(exemplar["image_path"]):
+                raise ValueError(f"Exemplar image not found: {exemplar['image_path']}")
 
         for session in self._sessions:
             session.reset_query_state()
 
         primary = self._sessions[0]
-        primary_out = primary.formulate(image_path, boxes)
-        self._descriptors = primary_out.pop("descriptors")
+        self._descriptors = []
+        for exemplar in exemplars:
+            primary_out = primary.formulate(exemplar["image_path"], exemplar.get("boxes"))
+            self._descriptors.extend(primary_out.pop("descriptors"))
 
         per_session: List[Optional[Dict[str, Any]]] = [primary_out]
-        # The primary auto-ran the query when boxes were provided; without
-        # boxes it emits an empty result list, so every session (primary
-        # included) runs the query explicitly below.
-        if not primary_out.get("results"):
+        # The primary auto-ran a query per exemplar that had boxes, each over
+        # that exemplar alone; without boxes it emits an empty result list.
+        # Either way a multi-exemplar query, or one without results, is run
+        # explicitly over all descriptors.
+        if len(exemplars) > 1 or not primary_out.get("results"):
             per_session[0] = primary.process_query(self._descriptors, 0.0, None)
         for session in self._sessions[1:]:
             per_session.append(
@@ -1045,8 +1051,9 @@ class QueryService:
             raise ValueError(f"No index open (required for '{command}')")
 
         if command == "formulate_query":
-            return self._formulate_query(
-                request["image_path"], request.get("boxes"))
+            exemplars = request.get("exemplars") or [
+                {"image_path": request["image_path"], "boxes": request.get("boxes")}]
+            return self._formulate_query(exemplars)
         if command == "process_query":
             return self._process_query(
                 threshold=request.get("threshold", 0.0),
