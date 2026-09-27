@@ -196,6 +196,65 @@ def test_library_is_packed_under_its_soname():
             f"packed as {list(chosen)}, wanted the SONAME {want}"
 
 
+
+def test_lite_manifest_keeps_merged_library_without_kwiver():
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        prefix = Path(tmp)
+        for manifest, paths in (
+            ('contents.txt', ('lib/python3.10/site-packages/viame/__init__.py',
+                              'lib/libviame.so')),
+            ('contents-windows.txt', ('Lib/site-packages/viame/__init__.py',
+                                      'bin/viame.dll')),
+        ):
+            for path in paths:
+                target = prefix / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text('fixture')
+            chosen = bw.select(prefix, bw.read_contents(
+                Path(__file__).parent / manifest), 'd.data/data', 'd.data/scripts')
+            assert 'viame/__init__.py' in chosen
+            assert 'kwiver/__init__.py' not in chosen
+            for path in paths:
+                assert prefix / path in chosen.values(), path
+
+
+def test_windows_executable_does_not_get_a_linux_launcher():
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / 'bin').mkdir()
+        (root / 'bin/viame.exe').write_bytes(b'MZ fixture')
+        contents = root / 'contents.txt'
+        contents.write_text('include bin/viame.exe -> {scripts}/\n')
+        bw.main(['--prefix', str(root), '--contents', str(contents),
+                 '--output-dir', str(root / 'out'), '--version', '1.0',
+                 '--launcher', 'viame'])
+        with zipfile.ZipFile(next((root / 'out').glob('*.whl'))) as wheel:
+            assert any(p.endswith('/scripts/viame.exe') for p in wheel.namelist())
+            assert not any(p.endswith('/scripts/viame') for p in wheel.namelist())
+
+
+def test_launcher_keeps_child_tools_in_its_environment():
+    from unittest.mock import patch
+    code = bw.LAUNCHER.replace('{name}', 'viame')
+    # pip replaces this special shebang with the installing interpreter.
+    assert code.startswith('#!python\n')
+    namespace = {'__name__': 'launcher_test'}
+    exec(compile(code, '<launcher>', 'exec'), namespace)
+    with patch('sys.executable', '/venv/bin/python'), \
+         patch('sys.prefix', '/venv'), \
+         patch('os.path.exists', return_value=True), \
+         patch('os.path.isdir', side_effect=lambda p: p == '/venv/lib/viame/applets'), \
+         patch.dict('os.environ', {'PATH': '/other/bin'}), \
+         patch('os.execv') as execute:
+        namespace['main']()
+        import os
+        assert os.environ['PATH'].split(os.pathsep)[0] == '/venv/bin'
+        assert execute.call_args.args[0] == '/venv/libexec/viame'
+        assert os.environ['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == '/venv/lib/viame/applets'
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0
