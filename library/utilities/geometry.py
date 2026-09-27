@@ -39,13 +39,20 @@ def _dlt(source, target):
         rows.append([-x, -y, -1, 0, 0, 0, u * x, u * y, u])
         rows.append([0, 0, 0, -x, -y, -1, v * x, v * y, v])
 
-    _, _, vt = np.linalg.svd(np.asarray(rows, dtype=np.float64))
+    design = np.asarray(rows, dtype=np.float64)
+    # Four pairs give an 8x9 system: retain the ninth null-space vector.
+    # Larger fits need only thin U/V, not a quadratic (2*n)x(2*n) U matrix.
+    _, singular, vt = np.linalg.svd(design, full_matrices=len(rows) < 9)
+    if singular[7] <= singular[0] * 1e-12:
+        raise np.linalg.LinAlgError("degenerate homography correspondences")
     homography = vt[-1].reshape(3, 3)
 
     # undo the conditioning
     homography = np.linalg.inv(tt) @ homography @ ts
     if abs(homography[2, 2]) > 1e-12:
         homography = homography / homography[2, 2]
+    if not np.all(np.isfinite(homography)) or np.linalg.matrix_rank(homography) < 3:
+        raise np.linalg.LinAlgError("singular homography")
     return homography
 
 
@@ -327,7 +334,10 @@ def find_homography(source, target, threshold=3.0, confidence=0.995,
     if len(source) < 4:
         return None, None
     if len(source) == 4:
-        return _dlt(source, target), np.ones(4, dtype=bool)
+        try:
+            return _dlt(source, target), np.ones(4, dtype=bool)
+        except np.linalg.LinAlgError:
+            return None, None
 
     rng = np.random.default_rng(seed)
     count = len(source)
@@ -362,7 +372,10 @@ def find_homography(source, target, threshold=3.0, confidence=0.995,
     if best_total < 4:
         return None, None
 
-    return _dlt(source[best_inliers], target[best_inliers]), best_inliers
+    try:
+        return _dlt(source[best_inliers], target[best_inliers]), best_inliers
+    except np.linalg.LinAlgError:
+        return None, None
 
 
 def find_homography_lmeds(source, target, max_iterations=2000, seed=0):
@@ -390,41 +403,69 @@ def find_homography_lmeds(source, target, max_iterations=2000, seed=0):
     if len(source) < 4:
         return None, None
     if len(source) == 4:
-        return _dlt(source, target), np.ones(4, dtype=bool)
+        try:
+            return _dlt(source, target), np.ones(4, dtype=bool)
+        except np.linalg.LinAlgError:
+            return None, None
 
     rng = np.random.default_rng(seed)
     count = len(source)
     best_median = np.inf
     best = None
-
-    for _ in range(max_iterations):
-        sample = rng.choice(count, 4, replace=False)
-
-        try:
-            candidate = _dlt(source[sample], target[sample])
-        except np.linalg.LinAlgError:
+    # LMEDS assumes at least 50% inliers. A 99% chance of one all-inlier
+    # four-point sample needs 72 draws, not an unconditional 2000.
+    draws = min(max_iterations, int(np.ceil(np.log(0.01) / np.log(1 - 0.5 ** 4))))
+    for start in range(0, draws, 32):
+        samples = np.array([rng.choice(count, 4, replace=False)
+                            for _ in range(min(32, draws - start))])
+        src, dst = source[samples], target[samples]
+        centres = [points.mean(axis=1, keepdims=True) for points in (src, dst)]
+        shifted = [points - centre for points, centre in zip((src, dst), centres)]
+        scales = [np.sqrt(2.) / np.maximum(np.linalg.norm(points, axis=2).mean(axis=1), 1e-12)
+                  for points in shifted]
+        src, dst = [points * scale[:, None, None] for points, scale in zip(shifted, scales)]
+        design = np.zeros((len(samples), 8, 9))
+        x, y = src[..., 0], src[..., 1]
+        u, v = dst[..., 0], dst[..., 1]
+        design[:, 0::2, 0:3] = np.stack((-x, -y, -np.ones_like(x)), axis=-1)
+        design[:, 1::2, 3:6] = np.stack((-x, -y, -np.ones_like(x)), axis=-1)
+        design[:, 0::2, 6:9] = np.stack((u*x, u*y, u), axis=-1)
+        design[:, 1::2, 6:9] = np.stack((v*x, v*y, v), axis=-1)
+        # NumPy executes the batch of small SVDs in native code.
+        _, singular, vt = np.linalg.svd(design)
+        valid = singular[:, 7] > singular[:, 0] * 1e-12
+        transforms = []
+        for centre, scale in zip(centres, scales):
+            transform = np.broadcast_to(np.eye(3), (len(samples), 3, 3)).copy()
+            transform[:, 0, 0] = transform[:, 1, 1] = scale
+            transform[:, :2, 2] = -centre[:, 0] * scale[:, None]
+            transforms.append(transform)
+        candidates = np.linalg.inv(transforms[1]) @ vt[:, -1].reshape(-1, 3, 3) @ transforms[0]
+        valid &= np.linalg.matrix_rank(candidates) == 3
+        candidates = candidates[valid]
+        if not len(candidates):
             continue
-
-        if not np.all(np.isfinite(candidate)):
-            continue
-
-        squared = ((apply_homography(candidate, source) - target) ** 2).sum(axis=1)
-        median = float(np.median(squared))
-
-        if median < best_median:
-            best_median, best = median, candidate
+        points = np.column_stack((source, np.ones(count)))
+        mapped = points @ candidates.transpose(0, 2, 1)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            errors = ((mapped[..., :2] / mapped[..., 2:] - target) ** 2).sum(axis=2)
+        errors[~np.isfinite(errors)] = np.inf
+        medians = np.median(errors, axis=1)
+        winner = int(np.argmin(medians))
+        if medians[winner] < best_median:
+            best_median, best = medians[winner], candidates[winner]
 
     if best is None:
         return None, None
-
-    scale = 1.4826 * (1.0 + 5.0 / max(1, count - 4)) * np.sqrt(best_median)
+    scale = max(0.001, 2.5 * 1.4826 * (1.0 + 5.0 / max(1, count - 4)) * np.sqrt(best_median))
     squared = ((apply_homography(best, source) - target) ** 2).sum(axis=1)
-    inliers = squared < (2.5 * scale) ** 2 if scale > 0 else np.ones(count, bool)
-
+    inliers = squared <= scale ** 2
     if int(inliers.sum()) < 4:
-        return best, inliers
-
-    return _dlt(source[inliers], target[inliers]), inliers
+        return None, None
+    try:
+        return _dlt(source[inliers], target[inliers]), inliers
+    except np.linalg.LinAlgError:
+        return None, None
 
 
 def _affine_from(source, target):
@@ -435,8 +476,9 @@ def _affine_from(source, target):
     """
     count = len(source)
     design = np.hstack([source, np.ones((count, 1))])
-    solution, _, _, _ = np.linalg.lstsq(design, target, rcond=None)
-
+    solution, _, rank, _ = np.linalg.lstsq(design, target, rcond=None)
+    if rank < 3 or np.linalg.matrix_rank(solution[:2]) < 2:
+        raise np.linalg.LinAlgError("degenerate affine correspondences")
     return solution.T
 
 
@@ -534,8 +576,10 @@ def estimate_affine_2d(source, target, threshold=3.0, confidence=0.99,
         return None, None
 
     if full:
-        return _affine_from(source[best_inliers], target[best_inliers]), \
-            best_inliers
+        try:
+            return _affine_from(source[best_inliers], target[best_inliers]), best_inliers
+        except np.linalg.LinAlgError:
+            return None, None
 
     # A similarity refit on the consensus: the same normal equations in the
     # (a, b, tx, ty) parameterisation, where the matrix is [[a, -b], [b, a]].

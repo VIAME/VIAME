@@ -207,3 +207,48 @@ def test_invert_affine_round_trips():
     there = affine @ point
     again = back @ np.array([there[0], there[1], 1.0])
     np.testing.assert_allclose(again, point[:2], atol=1e-10)
+
+
+@pytest.mark.parametrize('count', [4, 12])
+@pytest.mark.parametrize('kind', ['affine', 'ransac', 'lmeds'])
+def test_collinear_correspondences_have_no_model(count, kind):
+    from viame.utilities.geometry import estimate_affine_2d, find_homography_lmeds
+    source = np.column_stack((np.arange(count), np.zeros(count)))
+    estimate = {'affine': estimate_affine_2d, 'ransac': find_homography,
+                'lmeds': find_homography_lmeds}[kind]
+    assert estimate(source, source + [5, 7]) == (None, None)
+
+
+def test_affine_degenerate_samples_do_not_hide_valid_consensus():
+    from viame.utilities.geometry import estimate_affine_2d
+    source = np.array([[0, 0], [1, 0], [2, 0], [3, 0], [0, 3], [3, 3]], float)
+    matrix, mask = estimate_affine_2d(source, source + [5, 7])
+    assert mask.all()
+    assert np.allclose(matrix, [[1, 0, 5], [0, 1, 7]])
+
+
+@pytest.mark.parametrize('seed', [0, 1, 2, 3, 4])
+def test_lmeds_recovers_majority_with_outliers(seed):
+    from viame.utilities.geometry import find_homography_lmeds
+    truth, source, target = _scene(seed=seed, count=100)
+    corrupted = target.copy()
+    corrupted[:25] += [150, -80]
+    matrix, mask = find_homography_lmeds(source, corrupted)
+    assert matrix is not None
+    assert not mask[:25].any()
+    assert mask[25:].all()
+    assert np.allclose(apply_homography(matrix, source[25:]), target[25:], atol=1e-6)
+
+
+def test_homography_refit_does_not_allocate_quadratic_u(monkeypatch):
+    from viame.utilities import geometry
+    original = np.linalg.svd
+    shapes = []
+    def record(array, **kwargs):
+        result = original(array, **kwargs)
+        shapes.append(result[0].shape)
+        return result
+    monkeypatch.setattr(np.linalg, 'svd', record)
+    _, source, target = _scene(count=500)
+    geometry.fit_homography(source, target)
+    assert (1000, 1000) not in shapes
