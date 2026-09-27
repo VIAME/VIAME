@@ -22,12 +22,15 @@ Two commands, because they ask different amounts of the registry:
 
 * `viame registry-dump` additionally **constructs** every process, because a
   process's ports and config keys do not exist until it is built. So its
-  modules are imported by design, and `cv2` is expected: the config keys of
-  `gmm_motion_detector` come from `stereo_algos.GMMForegroundObjectDetector
-  .default_params()`, an OpenCV algorithm, and declaring them is part of
-  constructing the process. `torch` and `mmdet` still may not appear -- the
-  pytorch processes reach their models from `_configure`, not from
-  `__init__`, so building one to read its ports stays cheap.
+  modules are imported by design -- but `torch`, `cv2` and `mmdet` still may
+  not appear. The pytorch processes reach their models from `_configure`
+  rather than `__init__`, so building one to read its ports stays cheap; and
+  cv2 was on this list as *allowed* until `stereo_algos` came off it, since
+  `gmm_motion_detector`'s config keys came from
+  `GMMForegroundObjectDetector.default_params()`, which was an OpenCV
+  algorithm. It is ours now, so constructing every process in the tree
+  imports no OpenCV at all. `baseline:lazy_cv2` guards the source side of the
+  same claim.
 
 Usage:
     imports.py --command 'viame runner --help' [--forbid torch cv2 mmdet]

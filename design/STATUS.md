@@ -2375,3 +2375,49 @@ plus `tools/calibrate.py`, which needs `findEssentialMat`, `recoverPose`,
 `stereoCalibrate`, `VideoCapture` and highgui. Its detector and matcher are
 ours already; porting the solvers piecemeal would not remove its import,
 because the display block needs highgui either way.
+
+## The cv2 removal made enforceable
+
+Two guards, because the invariant the port established is easy to break by
+habit and invisible when it is -- the import succeeds on a machine that has
+cv2, and the suite is green.
+
+**`baseline:lazy_cv2`** reads the source. No python file under `library/`,
+`tools/` or `plugins/` may import cv2 at module scope: not at the top, not in
+a `try`, not in an `if` and not in a class body, and not through
+`importlib.import_module("cv2")` or `__import__` either. An import inside a
+function or method is fine -- that is what the three remaining call sites do.
+651 files, and the checker was verified against all six offending forms plus
+the legitimate lazy one. `templates/` is skipped, since its files carry
+`@template@` placeholders and are not valid python until substituted.
+
+**`startup:imports`** reads the behaviour, and it is now stricter than it was.
+It always forbade cv2 in `viame runner --help`; `viame registry-dump` was
+allowed it, because that command **constructs** every process in the tree to
+read its ports, and `gmm_motion_detector`'s config keys came from
+`GMMForegroundObjectDetector.default_params()` -- an OpenCV algorithm at the
+time. `stereo_algos` is ours now, so cv2 is forbidden there too: constructing
+every process in the tree imports no OpenCV at all.
+
+Measured alongside: importing `viame.image_kernels`,
+`image_processing.{ocv_segmenters,features,matching}`,
+`measurement.{ocv_stereo_disparity,projection}`, `image_io.image_viewer`,
+`video_io.frames`, `object_trackers.homog_iou_tracker` and
+`utilities.calibration` -- every module that touches the subject -- leaves
+`cv2` absent from `sys.modules`, and so does `load_known_modules()`.
+
+## Where cv2 still is, and why each one stays
+
+Three call sites, each behind an import inside the function that needs it:
+
+| where | what | why it stays |
+|---|---|---|
+| `ocv_stereo_disparity._apply_wls` and `_cv_matcher` | `ximgproc.createDisparityWLSFilter`, `createRightMatcher`, and a `StereoMatcher` object for them to wrap | the decision above. `_cv_matcher` exists only to give `createRightMatcher` something to derive from; both matchers themselves are ours |
+| `image_viewer._display` and the annotation | `namedWindow`, `imshow`, `waitKey`, and `getTextSize`/`copyMakeBorder`/`putText` | highgui is a window toolkit rather than an algorithm and `image_kernels` should not grow one. The text **could** move to `draw_text`, and deliberately has not: it would change the on-screen glyphs from Hershey's to our 5x7 font without removing the dependency the window needs |
+| `calibrate.estimate_essential_from_stereo_frames` | `findEssentialMat`, `recoverPose` | Nister's five-point algorithm under RANSAC, and the cheirality check over its four decompositions. Not ported; and that function is one route to R and T among several rather than the calibration itself |
+
+**Removing the `opencv-python-headless` declaration is still blocked on the
+vendored packages**, not on our code: `mmcv`, `mmdet`, `imgaug`, `mmdeploy` and
+`sam2` under `packages/pytorch-libs` import cv2 in 82 files and are installed
+into `site-packages` by a normal build. Port them, make them an optional extra,
+or drop them from lite -- the extra is the cheap one, and it needs a decision.

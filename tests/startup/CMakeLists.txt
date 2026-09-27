@@ -54,7 +54,7 @@ add_test(
      '${Python3_EXECUTABLE}' '${startup_dir}/imports.py' \
        --command 'viame runner --help' && \
      '${Python3_EXECUTABLE}' '${startup_dir}/imports.py' \
-       --forbid torch mmdet \
+       --forbid torch cv2 mmdet \
        --command 'viame registry-dump --json --output \
          ${output_dir}/registry_imports.json'"
 )

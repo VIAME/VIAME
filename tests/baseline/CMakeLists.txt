@@ -103,6 +103,23 @@ add_test(
 set_property( TEST "baseline:symbols" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:symbols" PROPERTY TIMEOUT 300 )
 
+# Importing VIAME must not import OpenCV. Every call site that still needs
+# cv2 -- highgui, the WLS disparity filter, two pose solvers -- keeps its
+# `import cv2` inside the function that needs it, so the module loads and only
+# the unportable branch pays. Moving one back to the top is an easy habit and
+# invisible on a machine that has cv2, so this reads the source rather than
+# waiting for a machine that does not.
+add_test(
+  NAME "baseline:lazy_cv2"
+  COMMAND "${Python3_EXECUTABLE}" "${baseline_dir}/check_lazy_cv2.py"
+          "${VIAME_SOURCE_DIR}/library"
+          "${VIAME_SOURCE_DIR}/tools"
+          "${VIAME_SOURCE_DIR}/plugins"
+)
+
+set_property( TEST "baseline:lazy_cv2" PROPERTY LABELS BASELINE )
+set_property( TEST "baseline:lazy_cv2" PROPERTY TIMEOUT 120 )
+
 # What the CMake helpers put where. P8-T08 replaced those helpers, and a
 # build that installs a header one directory to the left compiles, links,
 # tests green and breaks the next person who includes it.
