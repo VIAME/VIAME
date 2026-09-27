@@ -47,33 +47,44 @@ class TrainHandler:
       self._status = "running"
       self._log_lines = []
 
-    input_dir = payload.get( "input_dir", "" )
-    output_dir = payload.get( "output_dir",
-                              os.path.join( self.work_dir, "training_output" ) )
-    config = payload.get( "config", "" )
-    settings = payload.get( "settings", {} )
-
-    local_input = self._resolve_gcs_path( input_dir, "training_input" )
-    local_output = os.path.join( self.work_dir, "training_output" )
-    os.makedirs( local_output, exist_ok=True )
-
-    # Build viame train command
-    cmd = "source {} && viame train".format( self.setup_script )
-
-    if config:
-      cmd += " -c {}".format( config )
-
-    cmd += " -i {}".format( local_input )
-    cmd += " -o {}".format( local_output )
-
-    for key, value in settings.items():
-      cmd += " -s {}={}".format( key, value )
-
-    logger.info( "Running: %s", cmd )
-
     try:
+      input_dir = payload.get( "input_dir", "" )
+      config = payload.get( "config", "" )
+      settings = payload.get( "settings", {} )
+
+      local_input = self._resolve_gcs_path( input_dir, "training_input" )
+      local_output = os.path.join( self.work_dir, "training_output" )
+      os.makedirs( local_output, exist_ok=True )
+
+      # Build viame train command as Python argument list
+      cmd = [ "viame", "train" ]
+
+      if config:
+        cmd.extend( [ "-c", str( config ) ] )
+
+      cmd.extend( [ "-i", str( local_input ) ] )
+      cmd.extend( [ "-o", str( local_output ) ] )
+
+      for key, value in settings.items():
+        cmd.extend( [ "-s", "{}={}".format( key, value ) ] )
+
+      logger.info( "Running: %s", cmd )
+
+      if not os.path.isfile( self.setup_script ):
+        raise RuntimeError( "VIAME setup script not found: {}".format( self.setup_script ) )
+
+      # Only this fixed wrapper is parsed by bash. Request values stay in
+      # positional arguments, and quoted "$@" preserves them literally.
+      # Sourcing and exec in the same shell preserves exports and unsets,
+      # while setup output flows into the normal training log.
+      launcher = [
+        "bash", "-c", 'source "$1" && shift && exec "$@"',
+        "--", os.path.abspath( self.setup_script )
+      ] + cmd
+
       proc = subprocess.Popen(
-        [ "bash", "-c", cmd ],
+        launcher,
+        shell=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
