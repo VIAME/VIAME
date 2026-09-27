@@ -116,6 +116,28 @@ def test_a_colour_space_round_trips(forward, inverse):
     assert np.abs(back.astype(int) - frame.astype(int)).max() <= 24
 
 
+def test_hsv_hue_follows_opencvs_integer_path_through_the_wrap():
+    """`to_hsv` was wrong by half the hue circle, not by a grey level.
+
+    `cv::cvtColor` has a dedicated integer path for 8-bit RGB to HSV -- two
+    reciprocal tables and a 12-bit shift -- and the real-valued formula the
+    kernel used wraps where that path does not. On 398486 of the 16777216
+    triples the two disagreed, by up to **179**. Identical on all of them now.
+
+    `[180, 0, 3]` is the shape of it: a red just past the wrap, where the
+    real-valued hue comes to a shade under zero and rounds to 0, while
+    OpenCV's tables put it at 179. The `ocv_convert_color` recording contains
+    none of these triples, which is why it passed throughout and why only an
+    exhaustive comparison found this.
+    """
+    frame = np.array([[[180, 0, 3], [181, 1, 4], [182, 2, 5],
+                       [0, 0, 0], [255, 255, 255]]], dtype=np.uint8)
+
+    assert to_hsv(frame)[0].tolist() == [[179, 255, 180], [179, 254, 181],
+                                        [179, 252, 182], [0, 0, 0],
+                                        [0, 0, 255]]
+
+
 def test_lab_is_opencvs_fixed_point_conversion_and_not_the_formula():
     """`to_lab` reproduces `cv::cvtColor`'s integer path, not the real-valued
     definition, and the two disagree by up to two counts. Checked here at

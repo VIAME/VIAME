@@ -83,6 +83,46 @@ require_planes( viame::image_of< T > const& image, size_t wanted,
   }
 }
 
+/// OpenCV's fixed-point tables for the 8 bit RGB to HSV conversion.
+///
+/// `cv::cvtColor` does not take 8 bit RGB to HSV through the real-valued
+/// formula. It has a dedicated integer path -- two reciprocal tables and a
+/// 12 bit shift -- and the difference is not a rounding one: the real-valued
+/// hue wraps where the integer one does not, so on 398486 of the 16777216
+/// triples they disagree by up to **179**, which is half the circle rather
+/// than a grey level.
+struct hsv_tables
+{
+  static constexpr int shift = 12;
+  static constexpr int range = 180;
+
+  std::array< int, 256 > saturation;
+  std::array< int, 256 > hue;
+
+  hsv_tables()
+  {
+    saturation[ 0 ] = 0;
+    hue[ 0 ] = 0;
+
+    for( int i = 1; i < 256; ++i )
+    {
+      auto const at = static_cast< size_t >( i );
+
+      saturation[ at ] = static_cast< int >( std::nearbyint(
+        static_cast< double >( 255 << shift ) / i ) );
+      hue[ at ] = static_cast< int >( std::nearbyint(
+        static_cast< double >( range << shift ) / ( 6.0 * i ) ) );
+    }
+  }
+};
+
+inline hsv_tables const&
+hsv_table()
+{
+  static hsv_tables const tables;
+  return tables;
+}
+
 // ----------------------------------------------------------------------------
 /// A signed hue in degrees, as the halved degrees an 8 bit image holds.
 ///
@@ -222,6 +262,55 @@ rgb_to_hsv( viame::image_of< T > const& image )
   auto const top = static_cast< double >( pixel_max< T >() );
 
   viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    auto const& table = detail::hsv_table();
+    constexpr int shift = detail::hsv_tables::shift;
+    constexpr int half = 1 << ( shift - 1 );
+
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        auto const red = static_cast< int >( image( i, j, 0 ) );
+        auto const green = static_cast< int >( image( i, j, 1 ) );
+        auto const blue = static_cast< int >( image( i, j, 2 ) );
+
+        auto const high = std::max( { red, green, blue } );
+        auto const low = std::min( { red, green, blue } );
+        auto const span = high - low;
+
+        // The two masks are 0 or -1, and the arithmetic is OpenCV's own: the
+        // branch is done with `&` so that all three cases cost the same.
+        auto const is_red = ( high == red ) ? -1 : 0;
+        auto const is_green = ( high == green ) ? -1 : 0;
+
+        auto hue =
+          ( is_red & ( green - blue ) ) +
+          ( ~is_red & ( ( is_green & ( blue - red + 2 * span ) ) +
+                        ( ~is_green & ( red - green + 4 * span ) ) ) );
+
+        hue = ( hue * table.hue[ static_cast< size_t >( span ) ] + half ) >>
+              shift;
+
+        if( hue < 0 )
+        {
+          hue += detail::hsv_tables::range;
+        }
+
+        auto const saturation =
+          ( span * table.saturation[ static_cast< size_t >( high ) ] + half ) >>
+          shift;
+
+        out( i, j, 0 ) = saturate_pixel< T >( hue );
+        out( i, j, 1 ) = saturate_pixel< T >( saturation );
+        out( i, j, 2 ) = saturate_pixel< T >( high );
+      }
+    }
+
+    return out;
+  }
 
   for( size_t j = 0; j < image.height(); ++j )
   {

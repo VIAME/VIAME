@@ -3693,3 +3693,60 @@ Worth noting for the channel order: the disparity cost **sums over the
 planes**, so permuting them changes nothing provided both images are permuted
 alike. That is why `tools/disparity.py` can read RGB where it used to read
 BGR without touching the result.
+
+
+## 2.52 The hue was wrong by half the circle, and a fixture hid it
+
+`to_hsv` disagreed with `cv::cvtColor` on **398486 of the 16777216** 8-bit
+triples, by up to **179** -- half the hue circle, not a grey level. Exact on
+all of them now.
+
+`cv::cvtColor` has a dedicated integer path for 8-bit RGB to HSV: two
+reciprocal tables, `255 << 12 / v` and `180 << 12 / 6v`, a 12-bit rounding
+shift, and a branch written as masks so all three max-channel cases cost the
+same. The kernel used the real-valued formula instead, and the two **wrap
+differently**. `[180, 0, 3]` is the shape of it: a red just past the wrap,
+where the real hue comes to a shade under zero and rounds to 0 while the tables
+give 179.
+
+**A recorded golden contained none of the 398486.** `ocv_convert_color`'s
+`rgb_to_hsv` case measured max 0 against its recording both before and after
+this change, so it passed throughout. The 6144-pixel fixture simply never
+visits a triple where the two disagree. That is the argument for checking an
+8-bit conversion over its whole domain rather than on a frame: the domain is
+only 16.7 million, it takes a couple of minutes, and a fixture cannot be
+trusted to contain the interesting 2.4%.
+
+The C++ recording *is* cv2's here, and its tolerance comes down from 1 to 0.
+
+### The inverse, improved but not landed
+
+`from_hsv` differs on 11229 triples, worst 1. Two of the three reasons were
+found and are recorded rather than shipped, because fixing two of three buys
+nothing: no tolerance can come down until it is exact, and every golden already
+passes.
+
+* OpenCV **reduces the hue modulo 6 by repeated subtraction** before flooring
+  it into a sector. A hue byte of 255 is 8.5 sectors, not an out-of-range one,
+  and treating it as out of range -- which is what the `(unsigned)sector >= 6`
+  guard looks like it means -- is wrong on a sixth of the circle. Getting this
+  wrong is worth 4.8 million triples and a worst case of 255.
+* The scale back to a byte is `saturate_cast<uchar>(value * 255.f)`, a **float**
+  multiply and then a round. Rounding a double product instead is worth 2599
+  triples.
+
+With both, 473 triples still differ by 1. They share a signature worth
+starting from: **every channel of every one of them is odd.**
+
+## 2.53 A summary table was lost rather than superseded
+
+The module docstring of `test_image_kernels_python.py` used to carry a table of
+each kernel's measured agreement with cv2 -- `to_gray` bit identical, `resize`
+max 25 and why, and the entries this phase added for `to_lab`, `from_lab` and
+`clahe`. Commit `43e8eda82` replaced that docstring wholesale with two
+sentences about the resize grid, and the table went with it.
+
+Not restored, and deliberately so: the same facts now live in the individual
+test docstrings, where a rewrite of one cannot take the others with it. Worth
+recording because the table read like a maintained index and its loss is
+invisible in the diff unless you were the one maintaining it.
