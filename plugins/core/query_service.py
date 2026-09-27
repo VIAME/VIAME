@@ -57,11 +57,20 @@ each response echoing the request ``id``. Commands:
       refs are "<session>:<instance_id>" strings (bare ints refer to
       session 0 for single-index compatibility)
   export_model    {output_path?}
+  layout_results  {refs: [ref, ...]}
+      Places the given results of the current query in a 3D space around
+      the exemplar: the query sits at the origin and each result's
+      position is its descriptor's offset from the query, projected onto
+      the three principal axes of the set (so distances between points
+      roughly follow descriptor distances). Results without a stored
+      descriptor vector are reported under ``missing``.
   shutdown        {}
 
 Result entries are serialized as
   {ref, session, index_dir, instance_id, stream_id, relevancy_score,
    start_frame, end_frame, tracks: [{id, states: [{frame, bbox}]}]}
+Layout entries are serialized as
+  {ref, position: [x, y, z], distance}
 
 Usage:
     python -m viame.core.query_service [--pipeline-file <query pipe>]
@@ -419,6 +428,9 @@ class QuerySession:
         # Cumulative feedback (refs resolved to plain instance ids)
         self.cumulative_positive: List[int] = []
         self.cumulative_negative: List[int] = []
+        # Raw results of the latest response, by instance id
+        self.last_results: Dict[int, Any] = {}
+        self._bundle_vectors: Dict[str, Optional[Tuple[Dict[str, int], Any]]] = {}
 
         if not os.path.isdir(
                 os.path.join(self.index_dir, "database", "ITQ")):
@@ -483,6 +495,8 @@ class QuerySession:
             response["model_available"] = True
         if out.get("query_result") is not None:
             response["results"] = list(out["query_result"])
+            self.last_results = {
+                qr.instance_id: qr for qr in response["results"]}
             if response["results"] and not self.query_id:
                 # Auto-query fast path: adopt the backend-assigned query id
                 self.query_id = _uid_str(response["results"][0].query_id)
@@ -545,6 +559,47 @@ class QuerySession:
         self.query_id = ""
         self.cumulative_positive = []
         self.cumulative_negative = []
+        self.last_results = {}
+
+    def _bundle(self, stream: str) -> Optional[Tuple[Dict[str, int], Any]]:
+        """uid -> row map and descriptor matrix of a file-backed stream."""
+        if stream not in self._bundle_vectors:
+            import numpy as np
+            database = os.path.join(self.index_dir, "database")
+            uids_path = os.path.join(database, stream + "_uids.txt")
+            npy_path = os.path.join(database, stream + "_descriptors.npy")
+            loaded = None
+            if os.path.exists(uids_path) and os.path.exists(npy_path):
+                try:
+                    with open(uids_path) as f:
+                        rows = {line.strip(): i for i, line in enumerate(f)
+                                if line.strip()}
+                    loaded = (rows, np.load(npy_path, mmap_mode="r"))
+                except Exception as e:
+                    _log(f"Unable to read descriptor bundle {stream}: {e}")
+            self._bundle_vectors[stream] = loaded
+        return self._bundle_vectors[stream]
+
+    def result_vector(self, qr: Any) -> Optional[Any]:
+        """The descriptor vector behind a result: the one it carries, or
+        the stored row of its stream's bundle (the file-backed query
+        engine hands results only uids and history)."""
+        descriptors = qr.descriptors
+        if not descriptors:
+            return None
+        td = descriptors[0]
+        vector = _descriptor_vector(td)
+        if vector is not None:
+            return vector
+        bundle = self._bundle(qr.stream_id)
+        if bundle is None:
+            return None
+        rows, matrix = bundle
+        row = rows.get(_uid_str(td.uid))
+        if row is None or row >= len(matrix):
+            return None
+        import numpy as np
+        return np.asarray(matrix[row], dtype=np.float64)
 
     def close(self) -> None:
         try:
@@ -569,6 +624,48 @@ def _uid_str(uid: Any) -> str:
         return uid.value()
     except Exception:
         return str(uid)
+
+
+def _descriptor_vector(td: Any) -> Optional[Any]:
+    """A track descriptor's values as an array, or None when it has none."""
+    import numpy as np
+    try:
+        if not td.has_descriptor():
+            return None
+        size = td.descriptor_size()
+    except Exception:
+        return None
+    if size <= 0:
+        return None
+    return np.fromiter((td[i] for i in range(size)), dtype=np.float64,
+                       count=size)
+
+
+def embed_around(center: Any, vectors: Any) -> Tuple[List[List[float]],
+                                                     List[float]]:
+    """Project descriptor vectors into 3D around a center vector.
+
+    Offsets from the center are projected onto their own three principal
+    axes (an uncentered PCA, so the center maps to the origin and the
+    projected radius of each point approximates its distance from the
+    center). Component signs are fixed so the layout is stable between
+    calls. Returns the positions and the full-dimensional distances.
+    """
+    import numpy as np
+    offsets = np.asarray(vectors, dtype=np.float64).reshape(-1, len(center))
+    offsets = offsets - np.asarray(center, dtype=np.float64)
+    if offsets.shape[0] == 0:
+        return [], []
+    distances = np.linalg.norm(offsets, axis=1)
+    _u, _s, vt = np.linalg.svd(offsets, full_matrices=False)
+    axes = vt[:3]
+    for i in range(axes.shape[0]):
+        peak = np.argmax(np.abs(axes[i]))
+        if axes[i][peak] < 0:
+            axes[i] = -axes[i]
+    positions = np.zeros((offsets.shape[0], 3))
+    positions[:, :axes.shape[0]] = offsets @ axes.T
+    return positions.tolist(), distances.tolist()
 
 
 def _serialize_result(qr: Any, session: int, index_dir: str,
@@ -797,6 +894,41 @@ class QueryService:
 
         return self._merge(per_session)
 
+    def _layout_results(self, refs: List[Any]) -> Dict[str, Any]:
+        import numpy as np
+        exemplars = [v for v in (_descriptor_vector(td)
+                                 for td in self._descriptors)
+                     if v is not None]
+        if not exemplars:
+            raise ValueError(
+                "No query descriptors available; run formulate_query first")
+        center = np.mean(np.stack(exemplars), axis=0)
+        kept: List[str] = []
+        missing: List[str] = []
+        vectors: List[Any] = []
+        for ref in refs:
+            session_idx, instance = _parse_ref(ref)
+            if session_idx < 0 or session_idx >= len(self._sessions):
+                raise ValueError(f"Unknown session in result ref: {ref}")
+            qr = self._sessions[session_idx].last_results.get(instance)
+            vector = (self._sessions[session_idx].result_vector(qr)
+                      if qr is not None else None)
+            if vector is None or len(vector) != len(center):
+                missing.append(str(ref))
+                continue
+            kept.append(str(ref))
+            vectors.append(vector)
+        positions, distances = embed_around(center, vectors)
+        return {
+            "success": True,
+            "dimensions": int(len(center)),
+            "points": [
+                {"ref": ref, "position": position, "distance": distance}
+                for ref, position, distance
+                in zip(kept, positions, distances)],
+            "missing": missing,
+        }
+
     def _export_model(self, output_path: Optional[str]) -> Dict[str, Any]:
         canonical = self._canonical_session()
         if canonical is None or canonical.computed_model is None:
@@ -925,6 +1057,8 @@ class QueryService:
                 request.get("negative_ids", []))
         if command == "export_model":
             return self._export_model(request.get("output_path"))
+        if command == "layout_results":
+            return self._layout_results(request.get("refs", []))
 
         raise ValueError(f"Unknown command: {command}")
 
