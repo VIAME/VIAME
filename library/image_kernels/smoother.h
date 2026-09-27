@@ -383,37 +383,66 @@ filter_disparity_wls( viame::image_of< uint8_t > const& guide,
       std::vector< float > out_map(
         static_cast< size_t >( left_span ) * height, 0.0f );
 
-      for( int y = 0; y < height; ++y )
+      if( left_span == 0 ) { return out_map; }
+
+      // Disparities are integers, so their sums and squared sums are exact
+      // in double for practical window sizes. Reuse vertical and horizontal
+      // sums instead of visiting every pixel in every overlapping box.
+      std::vector< double > sums( left_span, 0.0 );
+      std::vector< double > squares( left_span, 0.0 );
+      auto const value_at = [ & ]( int x, int y ) -> double
+      {
+        auto const sy = detail::border_index(
+          y, height, border_mode::REFLECT_101 );
+        return from_left ? left_at( origin + x, sy )
+                         : right_at( origin + x, sy );
+      };
+      for( int dy = -radius; dy <= radius; ++dy )
       {
         for( int x = 0; x < left_span; ++x )
         {
-          auto mean = 0.0;
-          auto square = 0.0;
-
-          for( int dy = -radius; dy <= radius; ++dy )
-          {
-            for( int dx = -radius; dx <= radius; ++dx )
-            {
-              // `cv::boxFilter`'s default border, reflect-101, over the band.
-              auto const sy = static_cast< int >( detail::border_index(
-                y + dy, height, border_mode::REFLECT_101 ) );
-              auto const sx = static_cast< int >( detail::border_index(
-                x + dx, left_span, border_mode::REFLECT_101 ) );
-              auto const value = from_left
-                ? left_at( origin + sx, sy ) : right_at( origin + sx, sy );
-
-              mean += value;
-              square += static_cast< double >( value ) * value;
-            }
-          }
-
-          auto const count = static_cast< double >( side ) * side;
+          auto const value = value_at( x, dy );
+          sums[ x ] += value;
+          squares[ x ] += value * value;
+        }
+      }
+      auto const count = static_cast< double >( side ) * side;
+      for( int y = 0; y < height; ++y )
+      {
+        double mean = 0.0, square = 0.0;
+        for( int dx = -radius; dx <= radius; ++dx )
+        {
+          auto const sx = detail::border_index(
+            dx, left_span, border_mode::REFLECT_101 );
+          mean += sums[ sx ];
+          square += squares[ sx ];
+        }
+        for( int x = 0; x < left_span; ++x )
+        {
           auto const average = static_cast< float >( mean / count );
           auto const variance =
             static_cast< float >( square / count ) - average * average;
-
           out_map[ static_cast< size_t >( y ) * left_span + x ] =
             std::max( 1.0f - params.roll_off * variance, 0.0f );
+          if( x + 1 < left_span )
+          {
+            auto const entering = detail::border_index(
+              x + radius + 1, left_span, border_mode::REFLECT_101 );
+            auto const leaving = detail::border_index(
+              x - radius, left_span, border_mode::REFLECT_101 );
+            mean += sums[ entering ] - sums[ leaving ];
+            square += squares[ entering ] - squares[ leaving ];
+          }
+        }
+        if( y + 1 < height )
+        {
+          for( int x = 0; x < left_span; ++x )
+          {
+            auto const entering = value_at( x, y + radius + 1 );
+            auto const leaving = value_at( x, y - radius );
+            sums[ x ] += entering - leaving;
+            squares[ x ] += entering * entering - leaving * leaving;
+          }
         }
       }
 

@@ -65,3 +65,25 @@ def test_zero_strength_denoising_preserves_image(channels):
     image = rng.integers(0, 256, shape, dtype=np.uint8)
     assert np.array_equal(kernels.denoise(image, 0, 7, 21), image)
 
+
+@pytest.mark.parametrize('radius', [0, 2, 5, 10])
+@pytest.mark.parametrize('channels', [1, 3])
+def test_wls_rolling_confidence_matches_opencv(radius, channels):
+    cv2 = pytest.importorskip('cv2')
+    if not hasattr(cv2, 'ximgproc'):
+        pytest.skip('OpenCV contrib is required for the WLS reference')
+    rng = np.random.default_rng(42)
+    shape = (17, 47) if channels == 1 else (17, 47, channels)
+    guide = rng.integers(0, 32, shape, dtype=np.uint8)
+    left = rng.integers(240, 273, (17, 47), dtype=np.int16)
+    right = np.full(left.shape, -256, np.int16)
+    reference = cv2.ximgproc.createDisparityWLSFilterGeneric(True)
+    reference.setDepthDiscontinuityRadius(radius)
+    reference.setLambda(8000)
+    reference.setSigmaColor(1)
+    expected = reference.filter(left, guide, disparity_map_right=right,
+                                ROI=(16, 0, 31, 17))
+    actual = kernels.filter_disparity_wls(
+        guide, left, right, left_offset=16, discontinuity_radius=radius)
+    # OpenCV rounds its result back into int16 disparity units.
+    np.testing.assert_allclose(actual, expected, rtol=0, atol=0.501)
