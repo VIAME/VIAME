@@ -56,3 +56,12 @@ def test_wls_consistent_disparities_keep_their_value():
         guide, left, right, left_offset=16, discontinuity_radius=2)
     assert np.all(result[:, :16] == -16)
     np.testing.assert_allclose(result[:, 16:], 256, rtol=1e-6)
+
+
+@pytest.mark.parametrize('channels', [1, 2, 3])
+def test_zero_strength_denoising_preserves_image(channels):
+    rng = np.random.default_rng(4)
+    shape = (24, 32) if channels == 1 else (24, 32, channels)
+    image = rng.integers(0, 256, shape, dtype=np.uint8)
+    assert np.array_equal(kernels.denoise(image, 0, 7, 21), image)
+

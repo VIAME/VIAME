@@ -112,7 +112,7 @@ denoise_non_local_means( viame::image_of< uint8_t > const& image,
   {
     auto const distance = level * step;
     auto value = ( strength == 0.0 )
-                 ? 1.0
+                 ? ( distance == 0.0 ? 1.0 : 0.0 )
                  : std::exp( -distance / ( strength * strength * planes ) );
 
     if( std::isnan( value ) ) { value = 1.0; }
