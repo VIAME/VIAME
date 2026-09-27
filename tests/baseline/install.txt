@@ -1045,6 +1045,7 @@ include/viame/image_kernels/optical_flow.h
 include/viame/image_kernels/pixel.h
 include/viame/image_kernels/polygon.h
 include/viame/image_kernels/resample.h
+include/viame/image_kernels/smoother.h
 include/viame/image_kernels/statistics.h
 include/viame/image_kernels/stereo.h
 include/viame/image_kernels/stretch.h

@@ -22,6 +22,7 @@
 #include <viame/image_kernels/color.h>
 #include <viame/image_kernels/edges.h>
 #include <viame/image_kernels/hough.h>
+#include <viame/image_kernels/smoother.h>
 #include <viame/image_kernels/stereo.h>
 #include <viame/image_kernels/contours.h>
 #include <viame/image_kernels/corners.h>
@@ -605,6 +606,47 @@ equalize( array_of< uint8_t > const& array )
   auto const source = as_image( array );
   return as_array( VIAME_KERNEL_CALL( equalize, source ),
                    array.ndim() == 3 );
+}
+
+py::array_t< float >
+smooth_globally( array_of< uint8_t > const& guide, array_of< float > const& image,
+                 double lambda, double sigma, double attenuation,
+                 int iterations )
+{
+  auto const one = as_image( guide );
+  auto const two = as_image( image );
+
+  return as_array(
+    VIAME_KERNEL_CALL( smooth_globally, one, two, lambda, sigma, attenuation,
+                       iterations ),
+    image.ndim() == 3 ).cast< py::array_t< float > >();
+}
+
+py::array_t< float >
+filter_disparity_wls( array_of< uint8_t > const& guide,
+                      array_of< int16_t > const& left,
+                      array_of< int16_t > const& right, double lambda,
+                      double sigma, int left_offset, int right_offset,
+                      int min_disparity, int discontinuity_radius,
+                      int lrc_threshold, double roll_off )
+{
+  auto const one = as_image( guide );
+  auto const two = as_image( left );
+  auto const three = as_image( right );
+
+  viame::image_kernels::wls_params params;
+  params.lambda = lambda;
+  params.sigma = sigma;
+  params.left_offset = left_offset;
+  params.right_offset = right_offset;
+  params.min_disparity = min_disparity;
+  params.discontinuity_radius = discontinuity_radius;
+  params.lrc_threshold = lrc_threshold;
+  params.roll_off = static_cast< float >( roll_off );
+
+  return as_array(
+    VIAME_KERNEL_CALL( filter_disparity_wls, one, two, three, params ),
+    false ).cast< py::array_t< float > >();
 }
 
 py::array_t< int16_t >
@@ -1758,6 +1800,25 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "Rescale the image's range onto [low, high]. cv2.normalize with "
          "NORM_MINMAX, whose alpha and beta are the two ends in either "
          "order." );
+
+  m.def( "smooth_globally", &smooth_globally, py::arg( "guide" ),
+         py::arg( "image" ), py::arg( "lambda_" ), py::arg( "sigma" ),
+         py::arg( "attenuation" ) = 0.25, py::arg( "iterations" ) = 3,
+         "cv2.ximgproc.fastGlobalSmootherFilter: an edge aware smoother that "
+         "alternates a horizontal and a vertical tridiagonal solve rather than "
+         "solving the two dimensional system. The guide is one or three planes "
+         "of bytes and gives the edges; the image is float." );
+
+  m.def( "filter_disparity_wls", &filter_disparity_wls, py::arg( "guide" ),
+         py::arg( "left" ), py::arg( "right" ), py::arg( "lambda_" ) = 8000.0,
+         py::arg( "sigma" ) = 1.0, py::arg( "left_offset" ) = 0,
+         py::arg( "right_offset" ) = 0, py::arg( "min_disparity" ) = 0,
+         py::arg( "discontinuity_radius" ) = 5,
+         py::arg( "lrc_threshold" ) = 24, py::arg( "roll_off" ) = 0.001,
+         "cv2.ximgproc.DisparityWLSFilter with its confidence map on: the "
+         "left and right disparity maps in sixteenths, smoothed towards the "
+         "guide's edges and weighted by how much each pixel can be trusted. "
+         "The result is float, still in sixteenths." );
 
   m.def( "stereo_sgbm", &stereo_sgbm, py::arg( "left" ), py::arg( "right" ),
          py::arg( "min_disparity" ) = 0, py::arg( "num_disparities" ) = 16,

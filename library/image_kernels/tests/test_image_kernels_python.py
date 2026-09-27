@@ -26,7 +26,8 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
                                  hough_circles, median_blur,
                                  normalize, optical_flow, remap, resize,
-                                 resize_area, stereo_sgbm,
+                                 resize_area, smooth_globally,
+                                 stereo_sgbm,
                                  swap_channels, text_size, to_gray, to_hls,
                                  to_hsv, to_lab, to_rgb, warp_affine,
                                  warp_perspective, dilate)
@@ -371,6 +372,54 @@ def test_stereo_sgbm_three_way_and_full_modes():
 
     assert three[5, 16:24].tolist() == [-16, 46, 36, 32, 32, 32, 35, 36]
     assert int((three == -16).sum()) == 215
+
+
+def test_smooth_globally_reproduces_the_fast_global_smoother():
+    """`cv2.ximgproc.fastGlobalSmootherFilter`, exactly where it can be.
+
+    Identical to cv2 on these two, and on every image small enough that
+    OpenCV's own row split leaves fewer than four rows per stripe. **It is not
+    identical in general, and cv2 is not identical to itself either**: the
+    horizontal pass runs a four-row vector block with one association and a
+    scalar remainder with another, the split comes from `getNumThreads()`, and
+    cv2's answer for a 512 by 512 image at three threads differs from its answer
+    at one by 4.8e-04. Finding 2.67 has the measurements. The worst gap against
+    this implementation over a 24-configuration sweep is 1.1e-05 relative.
+    """
+    rng = np.random.default_rng(5)
+    guide = np.ascontiguousarray(rng.integers(0, 256, (12, 20), dtype=np.uint8))
+    source = np.ascontiguousarray((rng.random((12, 20)) * 100).astype(np.float32))
+
+    out = smooth_globally(guide, source, 8000.0, 1.0)
+
+    assert out.dtype == np.float32
+    assert out.shape == source.shape
+    assert out[0, :3].tolist() == pytest.approx([70.7496, 0.12, 50.184],
+                                               abs=1e-3)
+    assert float(out.sum()) == pytest.approx(11566.6855, abs=1e-2)
+
+    colour = np.ascontiguousarray(rng.integers(0, 256, (10, 16, 3), dtype=np.uint8))
+    plane = np.ascontiguousarray((rng.random((10, 16)) * 50).astype(np.float32))
+
+    assert float(smooth_globally(colour, plane, 500.0, 5.0).sum()) == \
+        pytest.approx(3939.9517, abs=1e-2)
+
+
+def test_smooth_globally_with_no_edges_finds_the_mean():
+    """A flat guide has no edge to preserve, so the whole image converges.
+
+    Which is the property that says the solve is doing what it claims: a step
+    from 0 to 10 over a uniform guide comes back as very nearly the mean.
+    """
+    guide = np.full((8, 8), 100, dtype=np.uint8)
+    step = np.ascontiguousarray(
+        np.where(np.arange(64).reshape(8, 8) % 8 < 4, 0.0, 10.0
+                 ).astype(np.float32))
+
+    out = smooth_globally(guide, step, 8000.0, 1.0)
+
+    assert out.min() == pytest.approx(5.0, abs=1e-3)
+    assert out.max() == pytest.approx(5.0, abs=1e-3)
 
 
 def test_stereo_sgbm_refuses_an_unknown_mode():

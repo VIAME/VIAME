@@ -2137,3 +2137,42 @@ confidence map from left-right consistency plus the edge-aware "fast global
 smoother", a separable recursive solve and a separate algorithm again. `StereoBM`
 is also still cv2's, though no config selects it.
 
+
+## The WLS disparity filter, and a smoother cv2 cannot reproduce either
+
+`image_kernels.smooth_globally` and `filter_disparity_wls` are
+`cv2.ximgproc.fastGlobalSmootherFilter` and `DisparityWLSFilter`, added because
+three shipped stereo configs set `use_wls_filter true` -- the last thing keeping
+the disparity computer on cv2 once all three SGBM modes were exact.
+
+With SGBM exact, **both matchers the filter needs come out bit identical**,
+including the right-view one: `createRightMatcher` is the same SGBM with
+`min_disparity` at `-(min + num) + 1` and uniqueness, `disp12MaxDiff` and
+speckles overridden -- and `createDisparityWLSFilter` **mutates the left
+matcher** to match, which a port has to do too.
+
+Three rules the filter turns on, all in 2.67. The one worth repeating here:
+**the confidence map starts as the left discontinuity map and the left-right
+check only overwrites pixels whose partner is in range**, so a pixel whose
+partner falls off the edge stays trusted. OpenCV gets that by leaving an `if`
+without an `else`; it reads like a bug and it is worth 1634 pixels of a 512 by
+512 frame.
+
+**And then the part that cannot be fixed.** `fastGlobalSmootherFilter` is not a
+function of its input: its horizontal pass uses a four-row vector block for
+groups of four rows and a scalar remainder for the rest, the two associate the
+tridiagonal denominator differently, and the grouping comes from
+`getNumThreads()`. Measured: cv2 gives a different answer on a 512 by 512 image
+at three threads than at one, two, four or eight, by up to 4.8e-04. So the
+choice is which of cv2's answers to give; ours takes the scalar association, is
+exact wherever OpenCV's split agrees, and is within 1.1e-05 relative elsewhere.
+
+**`ocv_stereo_disparity.py` still stays on cv2, for the third distinct reason it
+has had.** cv2's WLS *output* is stable because the ratio washes the smoother's
+difference out, and ours matches it exactly on one 512 by 512 fixture at every
+setting tried -- but differs on 50 to 128 pixels of 262144 on another, at pixels
+where the smoothed confidence has gone to nothing and the two saturate opposite
+ways. The caller turns a saturated disparity into either 0 or 2048 pixels, so
+that is a visible artifact on one pixel in two thousand of a depth map. The
+kernels are committed because they are correct and measured, not because the
+caller is ready.

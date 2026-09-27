@@ -42,6 +42,7 @@ set( image_kernels_headers
   pixel.h
   polygon.h
   resample.h
+  smoother.h
   stereo.h
   statistics.h
   stretch.h

@@ -4335,3 +4335,79 @@ edge-aware "fast global smoother", which is a separable recursive solve and a
 separate algorithm again. `StereoBM` is also still cv2's, though no config
 selects it.
 
+
+## 2.67 The WLS disparity filter, and a smoother that is not a function of its input
+
+`image_kernels.smooth_globally` and `filter_disparity_wls` are
+`cv2.ximgproc.fastGlobalSmootherFilter` and
+`cv2.ximgproc.DisparityWLSFilter`. They exist because **three shipped stereo
+configs set `use_wls_filter true`**, which was the only thing keeping the
+disparity computer on cv2 once all three SGBM aggregations were exact (2.65).
+
+The good part first: with SGBM exact, **both matchers the filter needs are
+exact**. `createRightMatcher` is the same SGBM with `min_disparity` set to
+`-(min + num) + 1`, uniqueness off, `disp12MaxDiff` at a million and speckles
+off -- and `createDisparityWLSFilter` **mutates the left matcher** to match,
+which a port has to do too or the two views disagree by construction. Both come
+out bit identical.
+
+Three rules of OpenCV's that the filter turns on:
+
+* **the confidence map starts as the left discontinuity map**, and the
+  left-right check then overwrites only the pixels whose partner in the right
+  map is inside the band. A pixel whose partner falls off the edge -- most of
+  the rightmost `num_disparities` columns -- keeps its discontinuity value and
+  is *trusted*. OpenCV gets this by assigning the map before the pass and
+  leaving the `if` without an `else`; it reads like a bug and it is load
+  bearing, worth 1634 pixels of a 512 by 512 frame.
+* the scale to 0..255 is applied to **the whole map afterwards**, not inside the
+  check, which is what puts the untouched pixels on the same scale.
+* `1 / (confidence + EPS)` is `cv::divide`, which yields **zero** where the
+  divisor is exactly zero rather than an infinity, and `EPS` is 1e-43 -- a
+  denormal, there to move an exact zero off zero and nothing else. Without both,
+  a vanishing confidence gives an infinity that multiplies to a saturated
+  +-32767, or a NaN where the numerator vanishes too.
+
+### And then the part that cannot be fixed
+
+**`fastGlobalSmootherFilter` is not a function of its input.** Its horizontal
+pass runs a **four-row vector block** for groups of four rows and a **scalar
+remainder** for the rest, and the two use different associations for the
+tridiagonal denominator -- `1 - (cur + prev)` against `(1 - prev) - cur`. The
+groups come from `ceil( rows / getNumThreads() )`, so which association a given
+row gets depends on **how many threads cv2 has**. Measured directly:
+`cv2.ximgproc.fastGlobalSmootherFilter` on a 512 by 512 image gives a different
+answer at three threads than at one, two, four or eight, by up to **4.8e-04**.
+Within a row the same split happens by column, four at a time with up to three
+left over.
+
+So this one is not reproducible even in principle, and the choice is which of
+cv2's answers to give. `smooth_globally` uses the scalar association
+throughout: it is exact wherever OpenCV's split happens to agree -- every image
+small enough that a stripe holds fewer than four rows -- and within 1.1e-05
+relative elsewhere. Neither the other association nor a fused multiply-add
+improves it; both make the sweep worse, 12 configurations differing out of 24
+becoming 22.
+
+What that costs the filter is small but not nothing. cv2's **WLS output** is
+stable across thread counts, because the numerator and the denominator are
+smoothed the same way and the ratio washes the difference out. Ours agrees with
+it exactly on one 512 by 512 fixture at every setting tried, and differs on 50
+to 128 pixels of 262144 on the other -- and those are pixels where the smoothed
+confidence has gone to nothing, so the ratio is ill-conditioned and the two
+implementations saturate opposite ways. The caller turns a saturated disparity
+into either zero or 2048 pixels, which is a visible artifact on one pixel in
+two thousand of a depth map.
+
+**So `ocv_stereo_disparity.py` still stays on cv2**, and this is the third
+distinct reason it has had: first the three-way aggregation, then the WLS filter
+not existing, now the WLS filter being as reproducible as it can be and that not
+being enough for a measurement product. The kernels are committed because they
+are correct, measured, and the remaining gap is documented -- not because the
+caller is ready.
+
+On pure-noise input the filter differs on about half its pixels, and that is
+expected rather than alarming: with no texture the confidence map is near zero
+everywhere and the division has nothing to divide. It is worth knowing that a
+random-noise fixture is the **wrong** test for this filter, which is the reverse
+of the usual advice.
