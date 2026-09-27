@@ -4249,87 +4249,89 @@ config never reaches** can be broken for two major versions without anything
 noticing, and porting it is when you find out. Two of the three branches of
 `compute_transform` were in that state.
 
-## 2.65 `MODE_SGBM_3WAY`, and the 0.56 percent left over
+## 2.65 `MODE_SGBM_3WAY`, and the four rules that made it exact
 
-`stereo_sgbm` grew a `mode` argument -- `"sgbm"`, `"hh"` and `"sgbm_3way"`, which
-replaced the `full_dp` boolean, because those are three different algorithms and
-not three settings of one. The first two are **bit exact** over 25
-configurations of five image sizes. **The third is not: it is exact on 17 of the
-25 and differs on at most 0.56 percent of a frame's pixels in the others, by up
-to 476 sixteenths of a disparity.** That is recorded rather than hidden, and the
-caller is **not** ported yet on the strength of it.
+**All three of `cv::StereoSGBM`'s aggregations are now bit identical to cv2** --
+`MODE_SGBM`, `MODE_HH` and `MODE_SGBM_3WAY`, over 149 configurations spanning
+eight images (including a colour pair and a seven-row one), block sizes 1 to 7,
+disparity counts 16, 32 and 48, a negative minimum disparity, four uniqueness
+ratios and the speckle filter. `stereo_sgbm` takes a `mode` in place of the old
+`full_dp` boolean, because those are three algorithms and not three settings of
+one.
 
-What `MODE_SGBM_3WAY` is: three directions -- left, the three above combined,
-and right -- over **four horizontal stripes** with an overlap, where the other
-two modes sweep the whole image. The stripe count is fixed at four rather than
-taken from the thread count, and OpenCV says why in a comment: "to make the
-results fully reproducible". The overlap is what makes it an approximation and
-not a reorganisation: each stripe's top-down recursion starts from nothing and
-needs a few rows to settle, so the rows it writes begin `overlap` rows below
-where it starts reading.
+Three-way is three directions -- left, the three above combined, and right --
+over **four horizontal stripes** with an overlap, where the other two sweep the
+whole image. The stripe count is fixed at four rather than taken from the thread
+count, and OpenCV's comment says why: "to make the results fully reproducible".
 
-Three things measured rather than assumed, two of them bugs that are now fixed:
+It took **four rules** that neither of the other modes needs, and all four were
+found by measurement rather than by reading:
 
-* **the vertical box clamps at each stripe's first row, not the image's.** Only
-  the scratch rows differ -- the overlap always exceeds half a block, so a row
-  that gets written has its whole box inside the stripe -- but the scratch rows
-  are what the recursion starts from, so it reaches the written rows anyway.
-  Fixing this took one configuration from 3297 differing pixels to 251 and made
-  two others exact.
-* **the winning disparity on a tie is the lowest.** Taking the highest moves
-  19605 pixels of a 512 by 512 frame rather than 1475, so this is settled.
-* and the scalar reference beside every vectorised loop in `stereosgbm.cpp` is
-  **not** the same arithmetic as the loop: `v_add` on a `v_int16` saturates,
-  where the scalar path promotes to `int`. Writing the recursion with saturating
-  steps in the vector body's order changed nothing measurable here -- these
-  costs never reach 32767 -- but it is the right reading and the wrong one would
-  bite on a larger block size.
+1. **the vertical box clamps at each stripe's first row**, not the image's. Only
+   the scratch rows differ -- the overlap always exceeds half a block, so a row
+   that gets written has its whole box inside the stripe -- but the scratch rows
+   are what the top-down recursion starts from. Worth 3297 differing pixels down
+   to 251 on one configuration.
+2. **the argmin is lane-wise.** `min_sum_cost_reg` carries a running minimum per
+   lane across blocks of **eight** disparities and `min_sum_pos_reg` the base of
+   the *last* block in which that lane matched it; `min_pos` then reduces to the
+   lowest `base + lane` among the lanes at the overall minimum. So a tie inside
+   one lane goes to the **later** disparity and a tie across lanes to the lower
+   one. This is why fitting "lowest wins" or "highest wins" looked right on one
+   image and wrong on another -- neither is the rule, and the apparent
+   contradiction *was* the clue.
+3. **the uniqueness test is a truncating threshold, not a ratio.** OpenCV
+   computes `thresh = 100 * min / (100 - ratio)` in int and compares
+   `total < (short)( thresh + 1 )`. That is `<=` against a floor where the ratio
+   form is a strict `<`, so they part on every pixel where
+   `total * (100 - ratio)` equals `100 * min` exactly -- **and the cast wraps**:
+   past a minimum of about 29490 the threshold leaves a signed short, comes back
+   negative, and nothing qualifies, so a pixel survives a test the ratio form
+   would have failed it on. This was the last 251 pixels of a 512 by 512 frame.
+4. **the four stripe buffers are assembled by an index that disagrees with where
+   the rows were written.** A stripe writes row `y` at buffer row
+   `(stripe == 0 ? overlap : 0) + (y - begin)`; the assembly reads
+   `overlap + y % stripe_size`. Those agree only while
+   `stripe * stripe_size >= overlap`, which holds for any frame taller than a few
+   dozen rows and fails for a very short one -- and there the assembly reads
+   buffer rows nothing ever wrote, which come back as "no disparity".
+   Reproduced rather than corrected, because it is what a caller gets from cv2.
 
-What is **not** known is the remaining 0.56 percent. It is spread evenly over
-rows and columns, 1302 of 1475 differing pixels are valid on both sides, and
-`MODE_SGBM` and `MODE_HH` over the same cost volume are exact -- so the cost
-volume is right and the difference is inside the three-way aggregation. The
-likeliest remaining candidate is the lane-wise `min` and argmin reductions in
-the vector body, which track a per-lane running minimum across blocks of `Da`
-and cannot be read off the scalar path. Settling it needs the aggregation
-instrumented rather than reasoned about.
+**Eight is the lane count, and it is not this host's.** `v_int16` is eight lanes
+at the SSE2 baseline and sixteen under AVX2, and `stereosgbm.cpp` is **not** one
+of OpenCV's dispatched files -- there is no `sgbm.simd.hpp`, so it compiles once
+at whatever baseline the wheel chose and never at AVX2's width. That makes this
+rule portable across x86-64 wheels, unlike 2.56's `HSV2RGB` tail, which *is* in
+a dispatched file and therefore is a property of the machine.
 
-**So `ocv_stereo_disparity.py` stays on cv2 for now**, and this is the honest
-reason: its shipped mode is `MODE_SGBM_3WAY`, five pipelines select it, and a
-port that differs on half a percent of a disparity map is not something to ship
-silently into a measurement pipeline. It also still needs `StereoBM`, which is a
-different algorithm, and the `ximgproc` WLS filter. The kernel has the mode so
-that the remaining work is the aggregation's last rule rather than the whole
-algorithm.
+### How it was found, which is the transferable part
 
-## 2.66 ORB is the one detector left, and the file around it did not need it
+Reading the source had already produced two wrong theories -- saturating int16
+arithmetic (true of the vector body, but these costs never reach 32767) and a
+simple tie-break direction (contradicted by two images). What settled it was
+**modelling the whole algorithm in python and validating the model against our
+own exact C++ before varying anything**:
 
-`homog_iou_tracker.py` reached for cv2 four times -- `SIFT_create`,
-`ORB_create`, `BFMatcher` and `findHomography` -- and three of the four are
-VIAME's now. The fourth, ORB, is not ported, and the file's `import cv2` moved
-**inside the ORB branch**: the default path and every shipped config, none of
-which sets `feature_type`, now need no cv2 at all.
+* transcribe the cost volume and the five-direction aggregation, and check that
+  the model reproduces our `MODE_HH` output **exactly**. That proves the cost
+  volume is right, so every later disagreement is in the aggregation.
+* transcribe the three-way aggregation and check it reproduces our C++ three-way
+  output exactly, including on a case where both are *wrong*. That proves the
+  model is faithful to the implementation being debugged.
+* then vary one rule at a time against cv2, on the smallest failing cases.
 
-That is deliberately not a refusal. Selecting `feature_type=orb` still works
-exactly as it did -- cv2's detector, and now VIAME's Hamming matcher and RANSAC
-homography around it -- so nothing a user could configure has been taken away.
-What has changed is that cv2 is no longer imported to reach a code path nobody
-takes.
+The lane count fell out of a three-value sweep in about a minute. Guessing at it
+from the source had already cost two rebuild-and-measure cycles, and a rebuild
+is minutes where a python sweep is seconds. **Build the model before the third
+theory, not after it.**
 
-Why ORB is left: it is the largest of the detectors, not the smallest.
-`orb.cpp` is 1279 lines and it does not stand alone -- it needs FAST with its
-512-entry threshold table, Harris responses, the intensity-centroid orientation
-with its `u_max` table, a pyramid with `copyMakeBorder`, a 7 by 7 blur per
-level, and rBRIEF's **1024-integer learned pattern**, which is data rather than
-algorithm and has to be transcribed exactly. SIFT was 1129 lines with none of
-those dependencies.
+### What this does and does not unblock
 
-And the value is the other way round from the cost: `git grep` finds **no config
-in the tree that sets `feature_type`**, so ORB is an option a user could reach
-rather than something VIAME ships.
+`ocv_stereo_disparity.py` **still stays on cv2**, and the reason has changed:
+SGBM is no longer the obstacle. Three shipped configs set
+`use_wls_filter true`, which is `cv::ximgproc::createDisparityWLSFilter` and
+`createRightMatcher` -- a confidence map from left-right consistency plus the
+edge-aware "fast global smoother", which is a separable recursive solve and a
+separate algorithm again. `StereoBM` is also still cv2's, though no config
+selects it.
 
-Worth recording for whoever does port it: the matcher and the estimator are
-already there. `matching.ratio_match( ..., binary=True )` is the Hamming
-distance over the bit strings -- the distinction `cv2.BFMatcher`'s `NORM_HAMMING`
-against `NORM_L2` made -- and `geometry.find_homography` is the RANSAC. What is
-missing is only the detector and its descriptor.

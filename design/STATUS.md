@@ -2100,61 +2100,40 @@ live cv2 calls** -- `ocv_segmenters.py` (grabCut), `ocv_stereo_disparity.py`
 before it can come off, since its SIFT path is ported but ORB is a documented
 option), `image_viewer.py` (highgui, no replacement) and `tools/calibrate.py`.
 
-## `MODE_SGBM_3WAY` in the kernel, and why its caller is not ported
+## All three SGBM aggregations are bit exact
 
-`stereo_sgbm` takes a `mode` -- `"sgbm"`, `"hh"`, `"sgbm_3way"` -- in place of
-the `full_dp` boolean, because those are three algorithms and not three settings
-of one. `MODE_SGBM` and `MODE_HH` are **bit exact** over 25 configurations of
-five image sizes each.
+`MODE_SGBM`, `MODE_HH` and `MODE_SGBM_3WAY` are each identical to cv2 over **149
+configurations** -- eight images including a colour pair and a seven-row one,
+block sizes 1 to 7, disparity counts 16, 32 and 48, a negative minimum, four
+uniqueness ratios and the speckle filter. `stereo_sgbm` takes a `mode` in place
+of `full_dp`, since those are three algorithms rather than three settings of one.
 
-**`MODE_SGBM_3WAY` is exact on 17 of those 25 and differs on at most 0.56
-percent of a frame's pixels in the rest.** Two real bugs were found and fixed on
-the way -- the vertical box clamps at each *stripe's* first row and not the
-image's, which took one configuration from 3297 differing pixels to 251; and the
-winning disparity on a tie is the lowest, where taking the highest moves 19605
-pixels of a 512 by 512 frame instead of 1475 -- and the remainder is not
-explained. It is spread evenly, it is inside the three-way aggregation rather
-than the cost volume (the other two modes share that volume and are exact), and
-the likeliest candidate is the lane-wise minimum and argmin reductions in
-OpenCV's vector body, which cannot be read off the scalar reference beside it.
+Three-way needed **four rules** that neither of the others does, and 2.65 has
+them in full: the vertical box clamps at each *stripe's* first row; the argmin is
+**lane-wise** over blocks of eight disparities, so a tie inside a lane goes to
+the later disparity and a tie across lanes to the lower one; the uniqueness test
+is a **truncating threshold** whose cast to a short wraps past a minimum of about
+29490; and the four stripe buffers are assembled by an index that disagrees with
+where the rows were written when the frame is short, which reads rows nothing
+wrote. Eight is the lane count because `stereosgbm.cpp` is not a dispatched
+file -- it compiles at the wheel's SSE2 baseline and never at AVX2's sixteen --
+so unlike 2.56's `HSV2RGB` tail this is portable rather than a property of this
+machine.
 
-**So `ocv_stereo_disparity.py` stays on cv2**, and that is a deliberate stop
-rather than an omission: its shipped mode is exactly `MODE_SGBM_3WAY`, five
-pipelines select it, and half a percent of a disparity map is not something to
-change silently under a measurement pipeline. It also still needs `StereoBM` and
-the `ximgproc` WLS filter. The kernel carries the mode so that what remains is
-the aggregation's last rule rather than the whole algorithm. See 2.65.
+**How it was found is the part worth keeping.** Reading the source had already
+produced two wrong theories. What settled it was modelling the whole algorithm in
+python and *validating the model against our own exact C++ before varying
+anything*: first that the model reproduces `MODE_HH` exactly, which proves the
+cost volume; then that it reproduces our three-way output exactly, including on a
+case where both are wrong, which proves the model is faithful to what is being
+debugged. Only then vary one rule at a time. The lane count fell out of a
+three-value sweep in a minute, where guessing at it from the source had cost two
+rebuild-and-measure cycles.
 
-Also of note from the same file: the scalar reference beside every vectorised
-loop in `stereosgbm.cpp` is **not** the same arithmetic as the loop, because
-`v_add` on a `v_int16` saturates where the scalar path promotes to `int`. It
-changes nothing at these cost magnitudes and would at a larger block size.
+**`ocv_stereo_disparity.py` still stays on cv2, and the reason has changed.**
+SGBM is no longer the obstacle: three shipped configs set `use_wls_filter true`,
+which is `cv::ximgproc::createDisparityWLSFilter` and `createRightMatcher` -- a
+confidence map from left-right consistency plus the edge-aware "fast global
+smoother", a separable recursive solve and a separate algorithm again. `StereoBM`
+is also still cv2's, though no config selects it.
 
-## The IOU tracker's default path off cv2, and where cv2 still is
-
-`homog_iou_tracker.py` reached for cv2 four times -- `SIFT_create`,
-`ORB_create`, `BFMatcher` and `findHomography` -- and three are VIAME's now.
-The `import cv2` moved **inside the ORB branch**, so the default path and every
-shipped config (none sets `feature_type`) need no cv2. Selecting
-`feature_type=orb` still works exactly as before, with cv2's detector and
-VIAME's matcher and RANSAC around it, so nothing configurable was taken away.
-
-ORB is left because it is the largest of the detectors, not the smallest:
-`orb.cpp` is 1279 lines and needs FAST with its 512-entry threshold table,
-Harris responses, the intensity-centroid orientation, a pyramid with
-`copyMakeBorder`, a blur per level, and rBRIEF's 1024-integer learned pattern.
-SIFT was 1129 lines with none of those. And no config in the tree selects it.
-See 2.66.
-
-**Where cv2 remains, and why each one is still there.** Five files:
-
-| file | what it needs | why not yet |
-|---|---|---|
-| `ocv_stereo_disparity.py` | `MODE_SGBM_3WAY`, `StereoBM`, ximgproc WLS | 3-way is 0.56% off on some frames (2.65); five pipelines select it, so it is not something to change silently |
-| `ocv_segmenters.py` | grabCut | a 5-component GMM plus a Boykov-Kolmogorov max-flow; **no config selects `ocv_grabcut`** |
-| `homog_iou_tracker.py` | ORB, in one branch | see above; the default path is already off cv2 |
-| `image_viewer.py` | highgui | no replacement exists and none is planned |
-| `tools/calibrate.py` | ORB, `findEssentialMat`, `recoverPose`, `stereoCalibrate`, `VideoCapture`, highgui | the widest remaining surface, and `stereoCalibrate` is a bundle adjustment |
-
-Everything else is either a `tests/golden` recorder that keeps cv2 on purpose, a
-committed review probe, or a comment.

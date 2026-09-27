@@ -341,19 +341,19 @@ def test_stereo_sgbm_reproduces_opencvs_matcher():
 
 
 def test_stereo_sgbm_three_way_and_full_modes():
-    """The other two of `cv::StereoSGBM`'s three aggregations.
+    """The other two of `cv::StereoSGBM`'s three aggregations, both bit exact.
 
-    `MODE_HH` is bit exact, like `MODE_SGBM`: 25 configurations of five image
-    sizes each, identical.
+    All three modes are identical to cv2 over **149 configurations**: eight
+    images including a colour pair and a seven-row one, block sizes 1 to 7,
+    disparity counts 16, 32 and 48, a negative minimum, four uniqueness ratios
+    and the speckle filter.
 
-    **`MODE_SGBM_3WAY` is not, and finding 2.65 says what is known about the
-    rest.** It is exact on 17 of those 25 and differs on at most 0.56 percent of
-    a frame's pixels in the others, this fixture being one of the exact ones.
-    Two things that were wrong before they were measured: the vertical box has to
-    clamp at each **stripe's** first row rather than the image's, which is what
-    the scratch rows are for; and the winning disparity on a tie is the
-    **lowest**, where taking the highest moves 19605 pixels of a 512 by 512
-    frame instead of 1475.
+    `MODE_SGBM_3WAY` took four rules that none of the others needed, and finding
+    2.65 has them: the vertical box clamps at each **stripe's** first row, the
+    argmin is **lane-wise** over blocks of eight disparities, the uniqueness test
+    is a **truncating threshold** whose cast to a short can wrap, and the four
+    stripe buffers are assembled by an index that disagrees with where the rows
+    were written when the frame is very short.
     """
     rng = np.random.default_rng(3)
     texture = (rng.random((12, 60)) * 255).astype(np.uint8)

@@ -92,6 +92,16 @@ constexpr int sgbm_disp_scale = 1 << sgbm_disp_shift;
 constexpr int sgbm_max_cost = 32767;
 constexpr int sgbm_tab_ofs = 256 * 4;
 
+/// How many disparities OpenCV's three-way aggregation handles per vector.
+///
+/// Eight, because a `v_int16` is eight lanes at the **SSE2 baseline** and
+/// `stereosgbm.cpp` is not one of OpenCV's dispatched files -- there is no
+/// `sgbm.simd.hpp`, so it compiles once at whatever baseline the build chose
+/// and never at AVX2's sixteen. That makes the lane-wise argmin in `three_way`
+/// portable across x86-64 wheels rather than a property of this host, unlike
+/// 2.56's `HSV2RGB` tail, which *is* in a dispatched file.
+constexpr int sgbm_lanes = 8;
+
 /// One row of the two matching "channels": a clipped Sobel and the row itself.
 ///
 /// The rows above and below are clamped, which is what OpenCV's `n1`/`s1`
@@ -340,6 +350,21 @@ three_way( std::vector< int > const& across, int width, int height, int first,
   std::vector< int > disp2( static_cast< size_t >( width ) );
   std::vector< int > disp2cost( static_cast< size_t >( width ) );
 
+  // Each stripe writes into its own buffer and the whole map is assembled from
+  // the four afterwards, exactly as OpenCV does it -- and the indexing is
+  // OpenCV's too, quirk included. A stripe writes row `y` at buffer row
+  // `(stripe == 0 ? overlap : 0) + (y - begin)`, while the assembly reads
+  // buffer row `overlap + i % stripe_size`. Those agree only while
+  // `stripe * stripe_size >= overlap`, which holds for any frame taller than a
+  // few dozen rows and fails for a very short one -- and there the assembly
+  // reads buffer rows nothing wrote, which come back as "no disparity".
+  // Reproduced rather than corrected: it is what a caller gets from cv2.
+  auto const buffer_rows = stripe_size + overlap;
+  std::vector< std::vector< int16_t > > buffers(
+    static_cast< size_t >( stripes ),
+    std::vector< int16_t >(
+      static_cast< size_t >( buffer_rows ) * width, invalid ) );
+
   for( int stripe = 0; stripe < stripes; ++stripe )
   {
     auto const begin = std::max(
@@ -356,9 +381,9 @@ three_way( std::vector< int > const& across, int width, int height, int first,
     std::fill( vertical.begin(), vertical.end(), 0 );
     std::fill( vertical_min.begin(), vertical_min.end(), 0 );
 
-    // The rows before `stripe * stripe_size` are scratch: they are processed so
-    // that the top-down recursion has settled, and then thrown away.
-    auto const keep_from = stripe == 0 ? 0 : stripe * stripe_size;
+    // Where this stripe's rows land in its own buffer.
+    auto const offset = ( stripe == 0 ) ? overlap : 0;
+    auto& buffer = buffers[ static_cast< size_t >( stripe ) ];
 
     // The vertical box, clamped at **this stripe's** first row rather than at
     // the image's. That only differs for the scratch rows -- the overlap is
@@ -383,15 +408,15 @@ three_way( std::vector< int > const& across, int width, int height, int first,
 
     for( int y = begin; y < end; ++y )
     {
-      auto const writing = y >= keep_from;
+      auto const row_in_buffer = offset + ( y - begin );
+      auto const writing = row_in_buffer < buffer_rows;
+      auto* disp_row = writing
+        ? &buffer[ static_cast< size_t >( row_in_buffer ) * width ] : nullptr;
 
-      if( writing )
+      for( int x = 0; x < width; ++x )
       {
-        for( int x = 0; x < width; ++x )
-        {
-          disp2[ static_cast< size_t >( x ) ] = invalid;
-          disp2cost[ static_cast< size_t >( x ) ] = sgbm_max_cost;
-        }
+        disp2[ static_cast< size_t >( x ) ] = invalid;
+        disp2cost[ static_cast< size_t >( x ) ] = sgbm_max_cost;
       }
 
       auto const* row_cost =
@@ -475,9 +500,6 @@ three_way( std::vector< int > const& across, int width, int height, int first,
         auto right_new = sgbm_max_cost;
         auto right_before = sgbm_max_cost;
 
-        auto lowest = sgbm_max_cost;
-        auto best = 0;
-
         for( int d = 0; d < count; ++d )
         {
           auto const value = saturate_cost( costs[ d ] + p2 );
@@ -502,14 +524,94 @@ three_way( std::vector< int > const& across, int width, int height, int first,
 
           horizontal[ at + static_cast< size_t >( d ) ] = total;
 
-          if( total < lowest )
-          {
-            lowest = total;
-            best = d;
-          }
         }
 
         right_min = right_new;
+
+        // The winning disparity, and **not** simply the lowest-cost one.
+        //
+        // OpenCV's argmin is lane-wise. `min_sum_cost_reg` carries a running
+        // minimum per lane across blocks of `sgbm_lanes` disparities, and
+        // `min_sum_pos_reg` carries the base of the **last** block in which
+        // that lane matched its minimum; `min_pos` then reduces to the lowest
+        // `base + lane` among the lanes holding the overall minimum. So a tie
+        // between two disparities in the same lane goes to the **later** one
+        // and a tie across lanes to the lower lane -- which is why neither
+        // "lowest wins" nor "highest wins" reproduces it, and why fitting one
+        // of those looked right on one image and wrong on another.
+        auto lowest = sgbm_max_cost;
+        auto best = 0;
+
+        {
+          auto const* totals_row = &horizontal[ at ];
+          auto const aligned =
+            ( ( count + sgbm_lanes - 1 ) / sgbm_lanes ) * sgbm_lanes;
+          // Where the vector body stops. It runs while `i < Da - lanes`, and
+          // the extra block that finishes the job exists only when `Da` is
+          // `count` exactly -- otherwise a scalar tail takes the remainder.
+          auto const vector_end =
+            ( count == aligned ) ? count : aligned - sgbm_lanes;
+
+          int lane_min[ sgbm_lanes ];
+          int lane_base[ sgbm_lanes ];
+          bool lane_used[ sgbm_lanes ];
+
+          for( int lane = 0; lane < sgbm_lanes; ++lane )
+          {
+            lane_min[ lane ] = sgbm_max_cost;
+            lane_base[ lane ] = 0;
+            lane_used[ lane ] = false;
+          }
+
+          for( int d = 0; d < vector_end; ++d )
+          {
+            auto const lane = d % sgbm_lanes;
+            auto const base = d - lane;
+            auto const total = totals_row[ d ];
+
+            if( !lane_used[ lane ] || total < lane_min[ lane ] )
+            {
+              lane_min[ lane ] = total;
+              lane_base[ lane ] = base;
+              lane_used[ lane ] = true;
+            }
+            else if( total == lane_min[ lane ] )
+            {
+              lane_base[ lane ] = base;
+            }
+          }
+
+          for( int lane = 0; lane < sgbm_lanes; ++lane )
+          {
+            if( lane_used[ lane ] && lane_min[ lane ] < lowest )
+            {
+              lowest = lane_min[ lane ];
+            }
+          }
+
+          auto found = sgbm_max_cost;
+
+          for( int lane = 0; lane < sgbm_lanes; ++lane )
+          {
+            if( lane_used[ lane ] && lane_min[ lane ] == lowest )
+            {
+              found = std::min( found, lane_base[ lane ] + lane );
+            }
+          }
+
+          best = ( found == sgbm_max_cost ) ? 0 : found;
+
+          // The scalar tail, strictly less, which only runs when `count` is
+          // not a whole number of lanes.
+          for( int d = vector_end; d < count; ++d )
+          {
+            if( totals_row[ d ] < lowest )
+            {
+              lowest = totals_row[ d ];
+              best = d;
+            }
+          }
+        }
 
         if( !writing )
         {
@@ -520,12 +622,24 @@ three_way( std::vector< int > const& across, int width, int height, int first,
 
         if( uniqueness > 0 )
         {
+          // A **truncating threshold**, not the ratio inequality the other two
+          // modes use. OpenCV computes `thresh = 100 * min / (100 - ratio)` in
+          // int and then compares `total < (short)( thresh + 1 )`, so the test
+          // is `total <= floor( ... )` where the ratio form is a strict `<` --
+          // they part company on every pixel where `total * (100 - ratio)`
+          // equals `100 * min` exactly. **And the cast wraps**: past a minimum
+          // of about 29490 the threshold exceeds a signed short, comes back
+          // negative, and no disparity qualifies, so the pixel survives a test
+          // the ratio form would have failed it on. Both together were the last
+          // 251 pixels of a 512 by 512 frame.
+          auto const limit = static_cast< int >( static_cast< int16_t >(
+            ( 100 * lowest ) / ( 100 - uniqueness ) + 1 ) );
+
           auto d = 0;
 
           for( ; d < count; ++d )
           {
-            if( totals_at[ d ] * ( 100 - uniqueness ) < lowest * 100 &&
-                std::abs( d - best ) > 1 )
+            if( totals_at[ d ] < limit && std::abs( d - best ) > 1 )
             {
               break;
             }
@@ -564,8 +678,8 @@ three_way( std::vector< int > const& across, int width, int height, int first,
           scaled = d * sgbm_disp_scale;
         }
 
-        out( static_cast< size_t >( x + first ), static_cast< size_t >( y ),
-             0 ) = static_cast< int16_t >( scaled + min_d * sgbm_disp_scale );
+        disp_row[ x + first ] =
+          static_cast< int16_t >( scaled + min_d * sgbm_disp_scale );
       }
 
       if( !writing )
@@ -575,8 +689,7 @@ three_way( std::vector< int > const& across, int width, int height, int first,
 
       for( int x = first; x < last; ++x )
       {
-        auto const value = static_cast< int >(
-          out( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) );
+        auto const value = static_cast< int >( disp_row[ x ] );
 
         if( value == invalid )
         {
@@ -595,10 +708,24 @@ three_way( std::vector< int > const& across, int width, int height, int first,
             disp2[ static_cast< size_t >( b ) ] >= min_d &&
             std::abs( disp2[ static_cast< size_t >( b ) ] - up ) > max_diff )
         {
-          out( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) =
-            invalid;
+          disp_row[ x ] = invalid;
         }
       }
+    }
+  }
+
+  // The assembly, by OpenCV's rule rather than by where each row was written.
+  for( int y = 0; y < height; ++y )
+  {
+    auto const stripe = std::min( y / stripe_size, stripes - 1 );
+    auto const row = overlap + ( y % stripe_size );
+    auto const& buffer = buffers[ static_cast< size_t >( stripe ) ];
+
+    for( int x = 0; x < width; ++x )
+    {
+      out( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) =
+        ( row < buffer_rows )
+        ? buffer[ static_cast< size_t >( row ) * width + x ] : invalid;
     }
   }
 }
