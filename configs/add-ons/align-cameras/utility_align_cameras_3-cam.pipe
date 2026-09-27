@@ -26,7 +26,7 @@ include common_three_cam_input.pipe
 
 # The align_cameras process reads the image files itself, so it needs settings
 # the shared input does not carry:
-#   no_path_in_name false -- the process opens these paths with cv2, and a bare
+#   no_path_in_name false -- the process opens these paths itself, and a bare
 #     basename only resolves when the working directory happens to be the image
 #     directory.
 #   disable_image_load true -- the decoded image ports are left unconnected on
