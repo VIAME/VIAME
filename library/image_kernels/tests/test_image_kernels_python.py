@@ -340,6 +340,45 @@ def test_stereo_sgbm_reproduces_opencvs_matcher():
     assert int((found == -16).sum()) == 213
 
 
+def test_stereo_sgbm_three_way_and_full_modes():
+    """The other two of `cv::StereoSGBM`'s three aggregations.
+
+    `MODE_HH` is bit exact, like `MODE_SGBM`: 25 configurations of five image
+    sizes each, identical.
+
+    **`MODE_SGBM_3WAY` is not, and finding 2.65 says what is known about the
+    rest.** It is exact on 17 of those 25 and differs on at most 0.56 percent of
+    a frame's pixels in the others, this fixture being one of the exact ones.
+    Two things that were wrong before they were measured: the vertical box has to
+    clamp at each **stripe's** first row rather than the image's, which is what
+    the scratch rows are for; and the winning disparity on a tie is the
+    **lowest**, where taking the highest moves 19605 pixels of a 512 by 512
+    frame instead of 1475.
+    """
+    rng = np.random.default_rng(3)
+    texture = (rng.random((12, 60)) * 255).astype(np.uint8)
+    left = np.ascontiguousarray(texture[:, 20:52])
+    right = np.ascontiguousarray(texture[:, 15:47])
+
+    settings = dict(num_disparities=16, block_size=3, p1=72, p2=288,
+                    uniqueness_ratio=10)
+
+    full = stereo_sgbm(left, right, mode="hh", **settings)
+    three = stereo_sgbm(left, right, mode="sgbm_3way", **settings)
+
+    assert full[5, 16:24].tolist() == [-16, -16, 224, 224, 32, 36, 54, 58]
+    assert int((full == -16).sum()) == 222
+
+    assert three[5, 16:24].tolist() == [-16, 46, 36, 32, 32, 32, 35, 36]
+    assert int((three == -16).sum()) == 215
+
+
+def test_stereo_sgbm_refuses_an_unknown_mode():
+    with pytest.raises(ValueError):
+        stereo_sgbm(np.zeros((8, 8), dtype=np.uint8),
+                    np.zeros((8, 8), dtype=np.uint8), mode="three_way")
+
+
 def test_stereo_sgbm_refuses_a_plane_count_opencv_has_no_cost_for():
     """One plane or three, which are the two `calcPixelCostBT` implements."""
     with pytest.raises(ValueError):

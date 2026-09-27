@@ -4248,3 +4248,56 @@ The lesson is narrower than "test your code": a cv2 call that a **shipped
 config never reaches** can be broken for two major versions without anything
 noticing, and porting it is when you find out. Two of the three branches of
 `compute_transform` were in that state.
+
+## 2.65 `MODE_SGBM_3WAY`, and the 0.56 percent left over
+
+`stereo_sgbm` grew a `mode` argument -- `"sgbm"`, `"hh"` and `"sgbm_3way"`, which
+replaced the `full_dp` boolean, because those are three different algorithms and
+not three settings of one. The first two are **bit exact** over 25
+configurations of five image sizes. **The third is not: it is exact on 17 of the
+25 and differs on at most 0.56 percent of a frame's pixels in the others, by up
+to 476 sixteenths of a disparity.** That is recorded rather than hidden, and the
+caller is **not** ported yet on the strength of it.
+
+What `MODE_SGBM_3WAY` is: three directions -- left, the three above combined,
+and right -- over **four horizontal stripes** with an overlap, where the other
+two modes sweep the whole image. The stripe count is fixed at four rather than
+taken from the thread count, and OpenCV says why in a comment: "to make the
+results fully reproducible". The overlap is what makes it an approximation and
+not a reorganisation: each stripe's top-down recursion starts from nothing and
+needs a few rows to settle, so the rows it writes begin `overlap` rows below
+where it starts reading.
+
+Three things measured rather than assumed, two of them bugs that are now fixed:
+
+* **the vertical box clamps at each stripe's first row, not the image's.** Only
+  the scratch rows differ -- the overlap always exceeds half a block, so a row
+  that gets written has its whole box inside the stripe -- but the scratch rows
+  are what the recursion starts from, so it reaches the written rows anyway.
+  Fixing this took one configuration from 3297 differing pixels to 251 and made
+  two others exact.
+* **the winning disparity on a tie is the lowest.** Taking the highest moves
+  19605 pixels of a 512 by 512 frame rather than 1475, so this is settled.
+* and the scalar reference beside every vectorised loop in `stereosgbm.cpp` is
+  **not** the same arithmetic as the loop: `v_add` on a `v_int16` saturates,
+  where the scalar path promotes to `int`. Writing the recursion with saturating
+  steps in the vector body's order changed nothing measurable here -- these
+  costs never reach 32767 -- but it is the right reading and the wrong one would
+  bite on a larger block size.
+
+What is **not** known is the remaining 0.56 percent. It is spread evenly over
+rows and columns, 1302 of 1475 differing pixels are valid on both sides, and
+`MODE_SGBM` and `MODE_HH` over the same cost volume are exact -- so the cost
+volume is right and the difference is inside the three-way aggregation. The
+likeliest remaining candidate is the lane-wise `min` and argmin reductions in
+the vector body, which track a per-lane running minimum across blocks of `Da`
+and cannot be read off the scalar path. Settling it needs the aggregation
+instrumented rather than reasoned about.
+
+**So `ocv_stereo_disparity.py` stays on cv2 for now**, and this is the honest
+reason: its shipped mode is `MODE_SGBM_3WAY`, five pipelines select it, and a
+port that differs on half a percent of a disparity map is not something to ship
+silently into a measurement pipeline. It also still needs `StereoBM`, which is a
+different algorithm, and the `ximgproc` WLS filter. The kernel has the mode so
+that the remaining work is the aggregation's last rule rather than the whole
+algorithm.

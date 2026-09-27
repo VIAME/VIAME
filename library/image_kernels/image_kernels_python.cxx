@@ -612,7 +612,7 @@ stereo_sgbm( array_of< uint8_t > const& left, array_of< uint8_t > const& right,
              int min_disparity, int num_disparities, int block_size, int p1,
              int p2, int disp12_max_diff, int pre_filter_cap,
              int uniqueness_ratio, int speckle_window_size, int speckle_range,
-             bool full_dp )
+             std::string const& mode )
 {
   auto const one = as_image( left );
   auto const two = as_image( right );
@@ -628,7 +628,24 @@ stereo_sgbm( array_of< uint8_t > const& left, array_of< uint8_t > const& right,
   params.uniqueness_ratio = uniqueness_ratio;
   params.speckle_window_size = speckle_window_size;
   params.speckle_range = speckle_range;
-  params.full_dp = full_dp;
+  if( mode == "sgbm" )
+  {
+    params.mode = viame::image_kernels::sgbm_mode::SGBM;
+  }
+  else if( mode == "hh" )
+  {
+    params.mode = viame::image_kernels::sgbm_mode::HH;
+  }
+  else if( mode == "sgbm_3way" )
+  {
+    params.mode = viame::image_kernels::sgbm_mode::SGBM_3WAY;
+  }
+  else
+  {
+    throw std::invalid_argument(
+      "stereo_sgbm: mode must be one of sgbm, hh, sgbm_3way; got '" + mode +
+      "'" );
+  }
 
   auto const found = VIAME_KERNEL_CALL( stereo_sgbm, one, two, params );
 
@@ -1748,10 +1765,12 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "disp12_max_diff" ) = 0, py::arg( "pre_filter_cap" ) = 0,
          py::arg( "uniqueness_ratio" ) = 0,
          py::arg( "speckle_window_size" ) = 0, py::arg( "speckle_range" ) = 0,
-         py::arg( "full_dp" ) = false,
+         py::arg( "mode" ) = "sgbm",
          "cv2.StereoSGBM.compute: a signed 16 bit disparity map in sixteenths "
          "of a pixel, with (min_disparity - 1) * 16 meaning no disparity. "
-         "`full_dp` is MODE_HH." );
+         "`mode` is one of \"sgbm\", \"hh\" and \"sgbm_3way\", which are "
+         "MODE_SGBM, MODE_HH and MODE_SGBM_3WAY -- three different "
+         "aggregations rather than three settings of one." );
 
   m.def( "hough_circles", &hough_circles, py::arg( "image" ),
          py::arg( "dp" ) = 1.0, py::arg( "min_dist" ) = 1.0,

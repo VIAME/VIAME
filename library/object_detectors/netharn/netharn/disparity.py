@@ -171,7 +171,7 @@ def multipass_disparity(img_left, img_right, outlier_percent=3,
 def compute_disparity_old(imgL, imgR, scale=0.5):
     imgL1 = kwimage.imresize(imgL, scale=scale)
     imgR1 = kwimage.imresize(imgR, scale=scale)
-    # `MODE_HH` is `full_dp`: both passes and all eight directions.
+    # `MODE_HH` is `mode="hh"`: both passes and all eight directions.
     disparity = image_kernels.stereo_sgbm(
         np.ascontiguousarray(
             kwimage.convert_colorspace(imgL1, 'rgb', 'gray')),
@@ -179,7 +179,7 @@ def compute_disparity_old(imgL, imgR, scale=0.5):
             kwimage.convert_colorspace(imgR1, 'rgb', 'gray')),
         min_disparity=0, num_disparities=16, block_size=15,
         p1=500, p2=2000, disp12_max_diff=1000, uniqueness_ratio=5,
-        speckle_window_size=50, speckle_range=2, full_dp=True)
+        speckle_window_size=50, speckle_range=2, mode="hh")
     disparity = disparity - disparity.min()
     disparity = disparity / disparity.max()
 

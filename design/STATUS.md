@@ -2099,3 +2099,33 @@ live cv2 calls** -- `ocv_segmenters.py` (grabCut), `ocv_stereo_disparity.py`
 (SGBM's remaining modes and StereoBM), `homog_iou_tracker.py` (which needs ORB
 before it can come off, since its SIFT path is ported but ORB is a documented
 option), `image_viewer.py` (highgui, no replacement) and `tools/calibrate.py`.
+
+## `MODE_SGBM_3WAY` in the kernel, and why its caller is not ported
+
+`stereo_sgbm` takes a `mode` -- `"sgbm"`, `"hh"`, `"sgbm_3way"` -- in place of
+the `full_dp` boolean, because those are three algorithms and not three settings
+of one. `MODE_SGBM` and `MODE_HH` are **bit exact** over 25 configurations of
+five image sizes each.
+
+**`MODE_SGBM_3WAY` is exact on 17 of those 25 and differs on at most 0.56
+percent of a frame's pixels in the rest.** Two real bugs were found and fixed on
+the way -- the vertical box clamps at each *stripe's* first row and not the
+image's, which took one configuration from 3297 differing pixels to 251; and the
+winning disparity on a tie is the lowest, where taking the highest moves 19605
+pixels of a 512 by 512 frame instead of 1475 -- and the remainder is not
+explained. It is spread evenly, it is inside the three-way aggregation rather
+than the cost volume (the other two modes share that volume and are exact), and
+the likeliest candidate is the lane-wise minimum and argmin reductions in
+OpenCV's vector body, which cannot be read off the scalar reference beside it.
+
+**So `ocv_stereo_disparity.py` stays on cv2**, and that is a deliberate stop
+rather than an omission: its shipped mode is exactly `MODE_SGBM_3WAY`, five
+pipelines select it, and half a percent of a disparity map is not something to
+change silently under a measurement pipeline. It also still needs `StereoBM` and
+the `ximgproc` WLS filter. The kernel carries the mode so that what remains is
+the aggregation's last rule rather than the whole algorithm. See 2.65.
+
+Also of note from the same file: the scalar reference beside every vectorised
+loop in `stereosgbm.cpp` is **not** the same arithmetic as the loop, because
+`v_add` on a `v_int16` saturates where the scalar path promotes to `int`. It
+changes nothing at these cost magnitudes and would at a larger block size.
