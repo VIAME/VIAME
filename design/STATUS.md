@@ -2039,3 +2039,29 @@ cv2 calls**, and after this the SIFT cluster is down to what sits *around* SIFT
 rather than SIFT itself: `BFMatcher`, `FlannBasedMatcher`, `findHomography`
 with its four robust estimators, `estimateAffine2D`, and ORB. Plus grabCut,
 SGBM's remaining modes, colmap, highgui and `tools/calibrate.py`.
+
+## `ocv_flann_based` off cv2, and exact instead of approximate
+
+The FLANN matcher is ported, and the index is gone rather than reproduced.
+`cv::FlannBasedMatcher` is approximate and seeded from the clock -- 45 or 46
+pairs out of 81 on the same input in one process -- and an exhaustive search
+over a frame pair's descriptors is a matrix multiply. The replacement
+reproduces the recordings **better than FLANN reproduces itself**: 100%, 98.8%
+and 100% of the recorded pairs against a 90% threshold that exists for FLANN's
+variability, and the same answer every run.
+
+`ocv_feature_types.py` is deleted with it: this matcher was the last thing
+importing it, and its keypoint conversions existed for the python SIFT and SURF
+that are now C++. `feature_runner.py` now prints the achieved agreement on every
+`matches` case, so the looseness is visible rather than implied.
+
+See 2.63, including why the cross-check rule was left weaker than mutual-best
+(it is the shipped behaviour) and why the squared distance is computed in
+float64 (in float32 the cancellation reorders near-identical descriptors).
+
+**`library/image_processing` has one file left with live cv2 calls**:
+`ocv_segmenters.py`, for grabCut. The rest of the tree: the two registration
+utilities and the IOU tracker want `BFMatcher`, `findHomography` and ORB;
+`ocv_stereo_disparity.py` wants SGBM's remaining modes and StereoBM;
+`image_viewer.py` wants highgui, which has no replacement; and colmap and
+`tools/calibrate.py` each want one thing.

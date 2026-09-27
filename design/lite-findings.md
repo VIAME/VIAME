@@ -4168,3 +4168,40 @@ Worth knowing for the next float kernel: **`cv2.resize`'s python signature has
 passes `dst=0, fx=0, fy=INTER_NEAREST`, leaves interpolation at its default, and
 silently does bilinear. That cost a round of diagnosis chasing a nearest-neighbour
 bug that did not exist.
+
+## 2.63 The FLANN matcher is better off exact
+
+`ocv_flann_based` is off cv2 and no longer uses an approximate index at all.
+`cv::FlannBasedMatcher` builds randomised KD-trees and searches a bounded
+number of leaves, so it is approximate *and* seeded from the clock: the same
+descriptors matched twice in one process gave 45 or 46 pairs out of 81. That is
+why `tests/golden/opencv` compares this matcher on agreement rather than on
+bytes, and why everything downstream of it -- the homography-guided matcher, the
+track sets -- inherited the same looseness.
+
+Searching every candidate instead is a matrix multiply, and the replacement
+reproduces the recordings **better than FLANN reproduces itself**: 100 percent,
+98.8 percent and 100 percent of the recorded pairs, against a threshold of 90
+that was set for FLANN's own variability. It is also the same answer every run.
+
+Two details worth keeping:
+
+* the squared distance is computed as `|a|^2 - 2ab + |b|^2` in **float64**.
+  In float32 that subtraction can cancel into a small negative number for two
+  nearly identical descriptors, and the order of the neighbours then depends on
+  the rounding rather than on the distance.
+* the cross-check rule is weaker than "mutual best" and was left that way: the
+  C++ kept a forward candidate if **any** of the backward candidates pointed
+  home, which with `cross_check_k` above one admits pairs a strict mutual-best
+  test would not. Reproduced because it is the shipped behaviour, not because
+  it is the better rule.
+
+`ocv_feature_types.py` went with it -- the last thing importing it was this
+matcher, and its `OCVFeatureSet` and keypoint conversions existed for the python
+SIFT and SURF that are now C++.
+
+**Where "port it in-house" leaves the feature cluster.** Of the seven files that
+reached for cv2's features, four now have nothing to do with SIFT itself: what
+is left across them is `BFMatcher`, `findHomography` with its four robust
+estimators, `estimateAffine2D`, `estimateRigidTransform` and ORB. The matching
+half of the cluster is smaller than the detector half was.

@@ -108,6 +108,8 @@ def _compare_pairs(got, want):
 
     if recorded:
         agreement = len(recorded & actual) / float(len(recorded))
+        print("    {} matches against {} recorded, {:.1%} of the recorded "
+              "pairs still matched".format(len(got), len(want), agreement))
         if agreement < feature_cases.MATCH_AGREEMENT:
             problems.append(
                 "{:.1%} of the recorded pairs are still matched, less than "

@@ -1297,7 +1297,6 @@ lib/python3.10/site-packages/viame/image_processing/multimodal_registration.py
 lib/python3.10/site-packages/viame/image_processing/ocv_color_correction.py
 lib/python3.10/site-packages/viame/image_processing/ocv_enhancer.py
 lib/python3.10/site-packages/viame/image_processing/ocv_estimators.py
-lib/python3.10/site-packages/viame/image_processing/ocv_feature_types.py
 lib/python3.10/site-packages/viame/image_processing/ocv_flann_matcher.py
 lib/python3.10/site-packages/viame/image_processing/ocv_segmenters.py
 lib/python3.10/site-packages/viame/image_processing/optical_flow.py
