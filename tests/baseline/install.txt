@@ -1038,6 +1038,7 @@ include/viame/image_kernels/filter.h
 include/viame/image_kernels/font_5x7.h
 include/viame/image_kernels/gaussian_kernel.h
 include/viame/image_kernels/gaussian_simd.h
+include/viame/image_kernels/grabcut.h
 include/viame/image_kernels/histogram.h
 include/viame/image_kernels/homography_overlap.h
 include/viame/image_kernels/hough.h

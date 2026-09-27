@@ -106,6 +106,16 @@ endif()
 
 if( VIAME_ENABLE_PYTHON )
   viame_add_test(
+    NAME    "unit:image_kernels:grabcut"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_grabcut.py"
+    LABELS  UNIT
+    TIMEOUT 120
+    SOURCE_SETUP
+  )
+endif()
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
     NAME "unit:image_kernels:streaming"
     TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_streaming_kernels.py"
     LABELS UNIT

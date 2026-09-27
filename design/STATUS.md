@@ -2327,3 +2327,51 @@ now select `auto` for fused motion preparation and classifier preprocessing.
 The optional backend/device is probed before use, with CPU fallback when it
 cannot initialize. Explicit `cpu` and `cuda` settings remain available. Removed
 all six `_cuda.pipe` files; tests cover selection, fallback and motion reset.
+
+## GrabCut off cv2, and `library/image_processing` clean
+
+`image_kernels.grab_cut` is `cv::grabCut`, identical over 300 configurations
+-- five scene kinds, four sizes, three generator states, one to three passes
+and both initialisation modes, comparing the masks **and** the fitted mixture
+models -- plus the fresh-process default on a 180 by 240 frame, where it is
+also slightly faster than cv2. `ocv_segmenters.py` runs on it, and with that
+**`library/image_processing` has no cv2 left at all**.
+
+It is one header, `library/image_kernels/grabcut.h`, because it needs three
+things cv2 spreads over three files: `cv::RNG`'s multiply-with-carry
+generator, `cv::kmeans` with `KMEANS_PP_CENTERS`, and `GCGraph`'s
+Boykov-Kolmogorov maximum flow. Finding 2.71 has the detail; two things from
+it belong here.
+
+**cv2's grabCut is not a function of its input**, and not by a count. Its
+k-means seeding draws from `cv::theRNG()`, a global mutable generator, so
+anything else in the process that drew from it first moves the segmentation --
+28 percent of one mask, measured. `grab_cut` starts from the state a fresh
+process has, which makes the result a function of the input and equal to what
+cv2 gives before anything else has touched the generator. The state is an
+optional parameter, because `cv2.setRNGSeed` cannot reach that value from
+python and a sweep has to be able to move both sides together.
+
+That also fixes something in the refiner. `cv::grabCut` left the generator
+advanced on every call, so **each detection's mask depended on how many
+detections preceded it in the same process**. Now each one depends on itself.
+The four recorded `ocv_grabcut` cases compare masks by digest and pass
+unchanged.
+
+`ocv_segmenters.py` also drops the BGR swap it carried for cv2. A permutation
+of the colour axes conjugates each mixture's covariance and leaves the
+Mahalanobis distance and the determinant alone, and the edge costs are sums of
+exactly representable integers -- so RGB gives the same mask, checked over 54
+configurations.
+
+**What is left.** Two files, and neither is an algorithm:
+
+| file | needs | why not yet |
+|---|---|---|
+| `ocv_stereo_disparity.py` | the WLS branch | the open decision above: `fastGlobalSmootherFilter` cannot be made exact, and swapping over means loosening a zero-tolerance recording of a measurement product |
+| `image_viewer.py` | highgui | no replacement exists, and one is not in scope |
+
+plus `tools/calibrate.py`, which needs `findEssentialMat`, `recoverPose`,
+`stereoCalibrate`, `VideoCapture` and highgui. Its detector and matcher are
+ours already; porting the solvers piecemeal would not remove its import,
+because the display block needs highgui either way.

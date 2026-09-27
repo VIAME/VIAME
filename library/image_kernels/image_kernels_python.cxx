@@ -36,6 +36,7 @@
 #include <viame/image_kernels/optical_flow.h>
 #include <viame/image_kernels/resample.h>
 #include <viame/image_kernels/warp.h>
+#include <viame/image_kernels/grabcut.h>
 #include <viame/image_kernels/watershed.h>
 
 #include <pybind11/numpy.h>
@@ -1674,6 +1675,82 @@ watershed( array_of< T > const& array,
   VIAME_KERNEL_CALL( watershed, as_image( array ), seeds );
 }
 
+py::tuple
+grab_cut( array_of< uint8_t > const& image,
+          py::array_t< uint8_t, py::array::c_style >& mask,
+          std::array< int, 4 > const& rect, int iterations,
+          std::string const& mode,
+          py::array_t< double, py::array::c_style >& background_model,
+          py::array_t< double, py::array::c_style >& foreground_model,
+          uint64_t rng_state )
+{
+  using viame::image_kernels::grabcut_mode;
+
+  auto const source = as_image( image );
+
+  grabcut_mode how;
+  if( mode == "rect" )            { how = grabcut_mode::WITH_RECT; }
+  else if( mode == "mask" )       { how = grabcut_mode::WITH_MASK; }
+  else if( mode == "eval" )       { how = grabcut_mode::EVAL; }
+  else if( mode == "eval_frozen" ) { how = grabcut_mode::EVAL_FREEZE_MODEL; }
+  else
+  {
+    throw std::invalid_argument(
+      "grab_cut: mode must be one of rect, mask, eval, eval_frozen; got '" +
+      mode + "'" );
+  }
+
+  // The mask is written in place when the caller supplied one, as
+  // `cv2.grabCut`'s is; `rect` mode replaces it and hands back a new array.
+  viame::image_of< uint8_t > labels;
+  if( how != grabcut_mode::WITH_RECT )
+  {
+    auto buffer = mask.request( true );
+    if( !( buffer.ndim == 2 ||
+           ( buffer.ndim == 3 && buffer.shape[ 2 ] == 1 ) ) )
+    {
+      throw std::invalid_argument( "grab_cut: the mask is a single plane" );
+    }
+    labels = viame::image_of< uint8_t >(
+      static_cast< uint8_t* >( buffer.ptr ),
+      static_cast< size_t >( buffer.shape[ 1 ] ),
+      static_cast< size_t >( buffer.shape[ 0 ] ), 1, 1,
+      static_cast< ptrdiff_t >( buffer.shape[ 1 ] ), 1 );
+  }
+
+  auto const as_model = []( py::array_t< double, py::array::c_style > const& a )
+  {
+    auto const buffer = a.request();
+    auto const count = static_cast< size_t >( buffer.size );
+    if( count != 0 && count != 65 )
+    {
+      throw std::invalid_argument(
+        "grab_cut: a model array holds 65 doubles or nothing" );
+    }
+    auto const* data = static_cast< double const* >( buffer.ptr );
+    return std::vector< double >( data, data + count );
+  };
+
+  auto background = as_model( background_model );
+  auto foreground = as_model( foreground_model );
+
+  {
+    py::gil_scoped_release release;
+    viame::image_kernels::grab_cut( source, labels, rect, iterations, how,
+                                    background, foreground, rng_state );
+  }
+
+  py::array_t< double > out_background( 65 );
+  py::array_t< double > out_foreground( 65 );
+  std::copy( background.begin(), background.end(),
+             out_background.mutable_data() );
+  std::copy( foreground.begin(), foreground.end(),
+             out_foreground.mutable_data() );
+
+  return py::make_tuple( as_array( labels, false ), out_background,
+                         out_foreground );
+}
+
 template < typename T >
 py::array_t< double >
 corner_subpix( array_of< T > const& array,
@@ -2226,6 +2303,27 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "H by W by 2 float32 array of the displacement from `first` to "
          "`second`, horizontal first, in pixels. Both images are a single "
          "plane." );
+
+  m.def( "grab_cut", &grab_cut, py::arg( "image" ),
+         py::arg( "mask" ), py::arg( "rect" ) = std::array< int, 4 >{ 0, 0, 0, 0 },
+         py::arg( "iterations" ) = 1, py::arg( "mode" ) = "mask",
+         py::arg( "background_model" ) =
+           py::array_t< double, py::array::c_style >( 0 ),
+         py::arg( "foreground_model" ) =
+           py::array_t< double, py::array::c_style >( 0 ),
+         py::arg( "rng_state" ) = 0xffffffffu,
+         "cv2.grabCut. Returns (mask, background_model, foreground_model); "
+         "the mask is written in place as well, except in `rect` mode which "
+         "replaces it. `mode` is one of \"rect\", \"mask\", \"eval\" and "
+         "\"eval_frozen\", which are GC_INIT_WITH_RECT, GC_INIT_WITH_MASK, "
+         "GC_EVAL and GC_EVAL_FREEZE_MODEL. Labels are 0 background, 1 "
+         "foreground, 2 probably background, 3 probably foreground, as cv2's "
+         "are. **cv2's own answer depends on `theRNG()`**, a global mutable "
+         "generator its k-means seeding draws from, so this starts from the "
+         "state a fresh process has -- which is what cv2 gives before "
+         "anything else has used it. `rng_state` is that state, so passing the "
+         "same number `cv2.setRNGSeed` was given reproduces cv2 at another "
+         "point." );
 
   for_both_pixel_types( m, "watershed", &watershed< uint8_t >,
          &watershed< uint16_t >, py::arg( "image" ), py::arg( "markers" ),

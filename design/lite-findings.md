@@ -4585,3 +4585,67 @@ Where the disparity range does not fit the image, cv2 returns its output
 buffer **uninitialised** -- `FindStereoCorrespInvoker` sees an empty valid
 rectangle and returns before writing anything -- so there is no answer to
 compare against. `stereo_bm` fills the sentinel.
+
+## 2.71 GrabCut, and an OpenCV function whose answer depends on process history
+
+The port is exact -- 300 configurations, masks and fitted mixture models
+both -- and the thing worth writing down is not in the algorithm at all.
+
+**`cv::grabCut` is not a function of its input, and not by a rounding.** Its
+two Gaussian mixtures are initialised by `cv::kmeans` with
+`KMEANS_PP_CENTERS`, whose first centre and whose three candidate draws per
+later centre come from `cv::theRNG()` -- a **global, mutable, thread-local**
+generator. Anything else in the process that drew from it first moves the
+seeding, and the seeding moves the segmentation: `setRNGSeed(1)` against a
+fresh state moved **2986 of 10800** mask pixels on one 90 by 120 image, 28
+percent. This is a different class from 2.56's and 2.69's vector-width
+artifacts and 2.70's stripe race: those move a count on an edge, this moves a
+quarter of the answer.
+
+It also means `refine_detections:ocv_grabcut` had a property nobody would have
+chosen: `cv::grabCut` advances the generator on every call, so **each
+detection's mask depended on how many detections came before it in the same
+process**. `grab_cut` starts each call from the state a fresh process has,
+`0xffffffff`, so a detection's mask depends on that detection alone -- and the
+four recorded `ocv_grabcut` golden cases, which compare masks by digest, pass
+unchanged. The state is a parameter, defaulted, because reproducing cv2 at
+more than one point is the only way to check the port at all: `cv2.setRNGSeed`
+cannot reach `0xffffffff` from python, so a sweep has to move both sides
+together.
+
+Reproducing the seeding meant reproducing `cv::RNG`: multiply-with-carry with
+`state = (uint32)state * 4164903690 + (state >> 32)`, where the conversion to
+`unsigned` consumes one draw and the conversion to `double` consumes **two**.
+That asymmetry is why the sequence cannot be recovered from the values alone,
+and getting it wrong shifts every centre.
+
+Three smaller things the port has to follow rather than improve:
+
+* **The max-flow's traversal order is the answer.** A minimum cut is unique
+  only up to ties, and which tie `GCGraph` lands on follows from the order the
+  active list is drained, each vertex's edges being visited most-recently-added
+  first, and the orphan list being a **stack**. So it is transcribed, down to
+  the unused first edge pair that lets `edge ^ 1` mean the reverse edge and
+  `edge == 0` mean none.
+* **k-means does not re-assign labels on its last iteration**, so the labels
+  it returns belong to the second-to-last centres; and an empty cluster is
+  refilled by moving the single farthest point out of the largest cluster,
+  with `<=` so the *last* farthest point wins a tie.
+* `1.f / sqrt(det)` and `gamma / sqrt(2.0f)` are float literals over doubles,
+  and `which_component` starts its search at component zero with a threshold
+  of **zero**, so a colour every component gives probability zero lands in
+  component zero rather than nowhere.
+
+**The plane order does not matter, and that is provable rather than measured
+into submission.** A permutation P of the colour axes sends each component's
+mean to `P m` and its covariance to `P C P^T`, so the inverse becomes
+`P C^-1 P^T`, the determinant is unchanged, and the Mahalanobis form
+`(P d)^T (P C^-1 P^T) (P d)` is `d^T C^-1 d`. The edge costs are sums of three
+squared byte differences, at most 195075, exactly representable in both float
+and double. Checked over 54 configurations anyway, and RGB and BGR give the
+same mask -- which is what let `ocv_segmenters.py` drop the BGR swap it had
+been carrying for cv2.
+
+Where cv2 asserts, so does this: a mask that leaves either side with no
+pixels has nothing to fit a mixture to, and "probably background" counts as
+background for that purpose.

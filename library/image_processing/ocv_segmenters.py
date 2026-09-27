@@ -5,13 +5,22 @@
 """Detection segmentation with GrabCut and watershed.
 
 the `opencv` plugin's `refine_detections_{grabcut,watershed}.cxx` in python, per
-`lite-removals.md` section 2.6, which sends both to python by name.
-`cv::grabCut` is a Gaussian mixture over the crop, iterated with a min-cut,
-and is still OpenCV's; the flood from labelled markers is now
+`lite-removals.md` section 2.6, which sends both to python by name. **Neither
+reaches for cv2 any more.** The flood from labelled markers is
 `image_kernels.watershed`, which is Meyer's algorithm written out with
 `cv::watershed`'s own details -- the per-channel maximum distance, the 256
 bucket queue that is allowed to run backwards, and the image border that is
-watershed line by definition.
+watershed line by definition. The Gaussian mixture over the crop, iterated
+with a min-cut, is `image_kernels.grab_cut`, identical to `cv::grabCut` over
+300 configurations.
+
+One thing changes with it, in our favour. `cv::grabCut` seeds its mixtures
+with k-means drawing from `cv::theRNG()`, a global mutable generator, so each
+call left it advanced and **every detection's mask depended on how many
+detections came before it in the same process**. `grab_cut` starts each call
+from the state a fresh process has, so a detection's mask now depends on that
+detection alone. The four recorded `ocv_grabcut` cases pass unchanged, masks
+compared by digest.
 
 Both set a mask on each detection and change nothing else about it. Both are
 held to `tests/golden/opencv`'s `refine` cases, which record the mask of
@@ -159,14 +168,26 @@ def standard_mask(detection):
     return out
 
 
-def _to_bgr(image_container):
-    """The BGR array `cv::grabCut` saw.
+# The four labels, which used to be read off cv2.
+_GC_BGD, _GC_FGD, _GC_PR_BGD, _GC_PR_FGD = 0, 1, 2, 3
 
-    The bridge was asked for a `BGR_COLOR` mat, and unlike most callers this
-    one never converts it back -- the output is a mask, not an image -- so
-    the swap does not cancel and has to happen here. `cv::grabCut` fits a
-    Gaussian mixture in whatever three dimensional space it is handed, and a
-    mixture over BGR is not the mixture over RGB, so it is not a formality.
+
+def _to_rgb(image_container):
+    """Three planes of bytes, in the order the rest of this branch uses.
+
+    The old code swapped to BGR here, because the bridge had been asked for a
+    `BGR_COLOR` mat and this caller never converts back -- the output is a
+    mask, not an image. The swap is gone, and dropping it is not a formality
+    waved through: `grab_cut` fits a Gaussian mixture in whatever three
+    dimensional space it is given, and a mixture over BGR is not the mixture
+    over RGB.
+
+    What makes it safe is that a permutation of the colour axes permutes each
+    component's mean and conjugates its covariance, which leaves the
+    Mahalanobis distance and the determinant alone, and the colour
+    differences the edge costs come from are sums of exactly representable
+    integers. Measured over 54 configurations rather than argued: the two
+    orders give the same mask.
     """
     array = image_container.asarray()
 
@@ -174,7 +195,7 @@ def _to_bgr(image_container):
         array = np.dstack([array] * 3)
 
     if array.shape[2] >= 3:
-        return np.ascontiguousarray(array[:, :, 2::-1])
+        return np.ascontiguousarray(array[:, :, :3])
 
     return np.ascontiguousarray(np.dstack([array[:, :, 0]] * 3))
 
@@ -208,7 +229,7 @@ def _with_mask(detection, mask):
 
 
 class RefineDetectionsGrabCut(RefineDetections):
-    """Set each detection's mask with `cv2.grabCut`."""
+    """Set each detection's mask with `image_kernels.grab_cut`."""
 
     def __init__(self):
         RefineDetections.__init__(self)
@@ -245,12 +266,10 @@ class RefineDetectionsGrabCut(RefineDetections):
         return True
 
     def refine(self, image_data, detections):
-        import cv2
-
         if image_data is None or detections is None:
             return detections
 
-        image = _to_bgr(image_data)
+        image = _to_rgb(image_data)
         image_rect = Rect(0, 0, image.shape[1], image.shape[0])
 
         result = DetectedObjectSet()
@@ -267,7 +286,7 @@ class RefineDetectionsGrabCut(RefineDetections):
 
             # Everything starts as background, the detection's own box as
             # probable foreground, and the seed as certain foreground.
-            mask = np.full((whole.height, whole.width), cv2.GC_BGD,
+            mask = np.full((whole.height, whole.width), _GC_BGD,
                            dtype=np.uint8)
 
             def local(target):
@@ -275,20 +294,20 @@ class RefineDetectionsGrabCut(RefineDetections):
 
             inner = rect.intersect(context)
             if not inner.empty:
-                mask[local(inner)] = cv2.GC_PR_FGD
+                mask[local(inner)] = _GC_PR_FGD
 
             seed = standard_mask(detection)
 
             if self._seed_with_existing_masks and seed is not None:
                 region = mask[local(rect)]
-                region[seed.astype(bool)] = cv2.GC_FGD
+                region[seed.astype(bool)] = _GC_FGD
             else:
                 foreground = mask_rect(
                     scale_about_center(box, self._foreground_scale_factor))
                 foreground = foreground.intersect(whole)
 
                 if not foreground.empty:
-                    mask[local(foreground)] = cv2.GC_FGD
+                    mask[local(foreground)] = _GC_FGD
 
             # Two cases make no sense to run: a box entirely outside the
             # image, which has no foreground, and a box that contains the
@@ -298,14 +317,14 @@ class RefineDetectionsGrabCut(RefineDetections):
 
             if runnable:
                 crop = mask[local(context)]
-                refined, _, _ = cv2.grabCut(
+                refined, _, _ = image_kernels.grab_cut(
                     np.ascontiguousarray(image[context.slice()]),
-                    np.ascontiguousarray(crop), None, None, None,
-                    self._iter_count, cv2.GC_INIT_WITH_MASK)
+                    np.ascontiguousarray(crop),
+                    iterations=self._iter_count, mode="mask")
                 mask[local(context)] = refined
 
             out = mask[local(rect)]
-            out = np.isin(out, (cv2.GC_FGD, cv2.GC_PR_FGD)).astype(np.uint8)
+            out = np.isin(out, (_GC_FGD, _GC_PR_FGD)).astype(np.uint8)
 
             result.add(_with_mask(detection, out))
 

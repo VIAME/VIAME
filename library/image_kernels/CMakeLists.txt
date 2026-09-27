@@ -35,6 +35,7 @@ set( image_kernels_headers
   filter.h
   gaussian_kernel.h
   gaussian_simd.h
+  grabcut.h
   parallel.h
   font_5x7.h
   histogram.h
