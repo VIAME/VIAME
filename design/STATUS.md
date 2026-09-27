@@ -2414,10 +2414,37 @@ Three call sites, each behind an import inside the function that needs it:
 |---|---|---|
 | `ocv_stereo_disparity._apply_wls` and `_cv_matcher` | `ximgproc.createDisparityWLSFilter`, `createRightMatcher`, and a `StereoMatcher` object for them to wrap | the decision above. `_cv_matcher` exists only to give `createRightMatcher` something to derive from; both matchers themselves are ours |
 | `image_viewer._display` and the annotation | `namedWindow`, `imshow`, `waitKey`, and `getTextSize`/`copyMakeBorder`/`putText` | highgui is a window toolkit rather than an algorithm and `image_kernels` should not grow one. The text **could** move to `draw_text`, and deliberately has not: it would change the on-screen glyphs from Hershey's to our 5x7 font without removing the dependency the window needs |
-| `calibrate.estimate_essential_from_stereo_frames` | `findEssentialMat`, `recoverPose` | Nister's five-point algorithm under RANSAC, and the cheirality check over its four decompositions. Not ported; and that function is one route to R and T among several rather than the calibration itself |
+| `calibrate.estimate_essential_from_stereo_frames` | `findEssentialMat` only | **`recoverPose` is ported** -- `geometry.recover_pose`, exact. `findEssentialMat` was attempted and measured as not good enough for this caller: finding 2.72 has the numbers, and the short answer is that eight points plus a projection onto the essential manifold has a 58 degree ninetieth-percentile translation error where OpenCV's five-point has 13, at the baseline a stereo rig presents. Closing it means the five-point solver, around a thousand lines, and it would remove no dependency |
 
 **Removing the `opencv-python-headless` declaration is still blocked on the
 vendored packages**, not on our code: `mmcv`, `mmdet`, `imgaug`, `mmdeploy` and
 `sam2` under `packages/pytorch-libs` import cv2 in 82 files and are installed
 into `site-packages` by a normal build. Port them, make them an optional extra,
 or drop them from lite -- the extra is the cheap one, and it needs a decision.
+
+## The essential matrix: two of three ported, and the third measured
+
+`viame.utilities.geometry` gains `decompose_essential`, `recover_pose` and
+`find_essential`. The first two are exact ports of
+`cv2.decomposeEssentialMat` and `cv2.recoverPose` -- on noiseless data they
+recover the pose to 1.2e-06 of a degree with every correspondence voting.
+
+`find_essential` is **not** a port, and finding 2.72 is the measurement rather
+than a claim. It samples eight points and projects onto the essential
+manifold, then refines non-linearly over `[t]_x R`; OpenCV samples five and
+solves Nister's problem. That makes ours **better where the baseline is a fair
+fraction of the depth or the features are well localised** -- 0.03 degrees of
+rotation error against OpenCV's 0.19 to 0.37 -- and **worse in the tail where
+the baseline is short**: a ninetieth percentile of 58 degrees of
+translation-direction error against 13, over forty scenes.
+
+So `tools/calibrate.py` was **not** switched over. It lives in the short
+baseline regime, and a calibration is the wrong place to accept a heavier
+tail. Its docstring and the finding both say which regime the function is for.
+
+Two things were tried against that tail and are recorded because the second is
+the tempting one: the non-linear refinement helps everywhere and is kept;
+re-collecting inliers and refitting -- LO-RANSAC -- improved the median again
+and introduced 180 degree failures on two scenes of forty, the twisted-pair
+ambiguity resolving the wrong way, and is reverted with a comment where
+someone would otherwise add it back.

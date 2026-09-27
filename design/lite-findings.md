@@ -4649,3 +4649,82 @@ been carrying for cv2.
 Where cv2 asserts, so does this: a mask that leaves either side with no
 pixels has nothing to fit a mixture to, and "probably background" counts as
 background for that purpose.
+
+## 2.72 The essential matrix, and why eight points is not five
+
+`cv2.findEssentialMat` and `cv2.recoverPose` are the last cv2 calls in
+`tools/calibrate.py` that are algorithms rather than a window. Two of the three
+pieces ported cleanly. The third did not, and this is the measurement that
+says so, so that nobody spends the week again.
+
+**`recoverPose` and `decomposeEssentialMat` are exact.**
+`geometry.decompose_essential` and `geometry.recover_pose` reproduce them on
+noiseless data to 1.2e-06 of a degree of rotation and exactly zero of
+translation direction, with every correspondence voting. Both are faithful
+transcriptions, and two details in them are not decoration: the decomposition
+negates `U` or `V` whose determinant is negative, because a decomposition is
+free to hand back either and using one unchanged gives a **reflection** whose
+"pose" triangulates a mirrored scene; and the chirality check bounds the depth
+as well as its sign, because a point near infinity has a depth whose sign is
+noise.
+
+**`findEssentialMat` did not port, and the reason is structural.** OpenCV
+samples five points and solves Nister's five-point problem: a 5 by 9 null
+space, a 10 by 20 constraint matrix built from **200 machine-generated
+polynomial expressions**, a tenth-degree polynomial through OpenCV's own
+`solvePoly`, and up to ten candidate matrices per sample -- every one of them a
+genuine essential matrix. The alternative, and what `geometry.find_essential`
+does, is to sample eight, take the fundamental matrix and project it onto the
+essential manifold by forcing its two non-zero singular values equal.
+
+Against ground truth on synthetic scenes, that alternative is **better than
+OpenCV in one regime and worse in another**:
+
+| configuration | cv2 rotation | ours | cv2 translation | ours |
+|---|---|---|---|---|
+| noiseless, any baseline | exact | exact | exact | exact |
+| 0.0002 noise, baseline 0.06 to 1.0 of depth | 0.19-0.37 deg | **0.03** | 0.08-2.5 deg | **0.01-0.22** |
+| 0.001 noise, baseline 1.0 | 0.39 | 0.32 | 0.21 | 0.17 |
+| 0.001 noise, baseline 0.06 | 0.36 | 0.54 | 2.5 | 3.4 |
+
+and the mean hides the thing that matters. Over forty scenes at a twentieth of
+the scene depth of baseline with 0.001 noise -- which is what a stereo rig
+looking at something several baselines away actually presents -- the
+translation-direction error has a **ninetieth percentile of 58 degrees against
+OpenCV's 13**. The median is fine; the tail is not.
+
+The cause is not the fit. An eight-point sample imposes the essential
+constraint only *after* the solve, and at a short baseline the constraint
+carries most of the information, so a sample can score well on Sampson error
+and still be the wrong matrix. Two things were tried:
+
+* **A non-linear refinement over `[t]_x R`**, five degrees of freedom, so no
+  step can leave the manifold. OpenCV refines nothing at all, and this
+  improves every configuration measured -- it halves the median translation
+  error at the short baseline, 16.1 degrees to 9.7, and is why the low-noise
+  rows above beat OpenCV. It does not touch the tail. **Kept.**
+* **Re-collecting inliers from the refined model and refitting**, which is what
+  LO-RANSAC does for exactly this shape of tail. It improved the median again,
+  9.7 to 6.2 degrees, and introduced **180 degree rotation failures on two
+  scenes of forty**: once the consensus set is allowed to move, the essential
+  matrix's twisted-pair ambiguity gets a chance to resolve the wrong way.
+  Strictly worse. **Reverted**, and the code says so where someone would
+  otherwise add it back.
+
+So `find_essential` ships as the better estimator where the baseline is a fair
+fraction of the depth or the features are well localised, with the regime
+stated in its docstring, and **`tools/calibrate.py` still calls
+`cv2.findEssentialMat`** -- because it lives in the regime where it must.
+Closing that means the five-point solver and nothing less: `five-point.cpp`'s
+generated algebra, `solvePoly`, and `ptsetreg.cpp`'s RANSAC, which is
+reproducible -- OpenCV's registrator seeds `RNG((uint64)-1)`, a fixed seed, so
+`findEssentialMat` is seed independent, verified over five seeds with 35
+percent gross outliers -- but is around a thousand lines, most of it
+transcription.
+
+**The judgement, since it is the kind that should be written down rather than
+re-argued:** that work removes no dependency. `calibrate.py` keeps its cv2
+import for highgui either way, and the `opencv-python-headless` declaration is
+blocked on the vendored packages, not on this. It is worth doing when someone
+wants five-point pose estimation for its own sake, and not to finish the
+removal.
