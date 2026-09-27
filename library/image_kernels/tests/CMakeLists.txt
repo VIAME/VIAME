@@ -124,3 +124,15 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 120
     SOURCE_SETUP )
 endif()
+
+if( VIAME_ENABLE_CUDA_KERNELS )
+  viame_discover_gtests( viame cuda
+    LIBRARIES viame_image_kernels_cuda GTest::gtest )
+endif()
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
+    NAME "unit:image_kernels:cuda"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_cuda.py"
+    LABELS UNIT TIMEOUT 300 SOURCE_SETUP )
+endif()

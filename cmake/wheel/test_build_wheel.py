@@ -318,5 +318,23 @@ def main():
     return 1 if failed else 0
 
 
+def test_optional_cuda_library_selected():
+    import tempfile
+    with tempfile.TemporaryDirectory() as directory:
+        prefix = Path(directory)
+        paths = ["lib/libviame_image_kernels_cuda.so.1",
+                 "lib/python3.10/site-packages/viame/image_kernels/_cuda.so"]
+        for path in paths:
+            file = prefix / path
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_bytes(b"test placeholder")
+        rules = bw.read_contents(Path(__file__).with_name("contents.txt"))
+        manifest = {str((prefix / path).resolve()) for path in paths}
+        selected = bw.select(prefix, rules, "viame-1.0.data/data", manifest=manifest)
+        destinations = set(selected)
+        assert "viame-1.0.data/data/lib/libviame_image_kernels_cuda.so.1" in destinations
+        assert "viame/image_kernels/_cuda.so" in destinations
+
+
 if __name__ == "__main__":
     sys.exit(main())

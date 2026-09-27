@@ -13,6 +13,7 @@
 ###
 # GPU utilization flags used across projects
 ##
+option( VIAME_ENABLE_CUDA_KERNELS   "Build optional native CUDA image kernels" OFF )
 option( VIAME_ENABLE_CUDA           "Enable CUDA-Dependent Code"    ON )
 option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   ON )
 

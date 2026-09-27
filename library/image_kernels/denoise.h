@@ -28,6 +28,7 @@
 #define VIAME_IMAGE_KERNELS_DENOISE_H
 
 #include <image_kernels/color.h>
+#include <image_kernels/denoise_weights.h>
 #include <image_kernels/filter.h>
 #include <image_kernels/pixel.h>
 
@@ -43,21 +44,6 @@
 
 namespace viame {
 namespace image_kernels {
-
-namespace detail {
-
-/// The smallest power of two at or above \p value, as an exponent.
-inline int
-nearest_power_of_two( int value )
-{
-  auto power = 0;
-
-  while( ( 1 << power ) < value ) { ++power; }
-
-  return power;
-}
-
-} // namespace detail
 
 // ----------------------------------------------------------------------------
 /// `cv::fastNlMeansDenoising` with `NORM_L2`, for one to three planes.
@@ -94,39 +80,10 @@ denoise_non_local_means_serial ( viame::image_of<uint8_t> const &image, double s
     return out;
   }
 
-  // The fixed-point scale is whatever keeps the weighted sum inside an int.
-  auto const ceiling =
-    static_cast< int64_t >( window_size ) * window_size * 255;
-  auto const scale = static_cast< int64_t >(
-    std::numeric_limits< int32_t >::max() / ceiling );
-
-  auto const area = patch_size * patch_size;
-  auto const shift = detail::nearest_power_of_two( area );
-  auto const step = static_cast< double >( 1 << shift ) / area;
-  auto const furthest = 255 * 255 * planes;
-  auto const levels = static_cast< int >( furthest / step ) + 1;
-
-  std::vector< int64_t > weight( static_cast< size_t >( levels ) );
-
-  for( int level = 0; level < levels; ++level )
-  {
-    auto const distance = level * step;
-    auto value = ( strength == 0.0 )
-                 ? ( distance == 0.0 ? 1.0 : 0.0 )
-                 : std::exp( -distance / ( strength * strength * planes ) );
-
-    if( std::isnan( value ) ) { value = 1.0; }
-
-    auto found = static_cast< int64_t >(
-      std::nearbyint( static_cast< double >( scale ) * value ) );
-
-    if( static_cast< double >( found ) < 0.001 * static_cast< double >( scale ) )
-    {
-      found = 0;
-    }
-
-    weight[ static_cast< size_t >( level ) ] = found;
-  }
+  auto const table = detail::make_nlm_weights( strength, planes, patch_size, window_size );
+  auto const shift = table.shift;
+  auto const& weight = table.values;
+  auto const levels = static_cast<int>( weight.size() );
 
   // The extended image, reflect-101 on every side.
   auto const wide = width + 2 * border;

@@ -47,6 +47,8 @@ include lib/python3.*/site-packages/viame/**  -> viame/
 # `.data/data/lib/`. Nothing has to be patched.
 # ----------------------------------------------------------------------------
 include lib/libviame.so*  -> {data}/lib/
+# Present only when VIAME_ENABLE_CUDA_KERNELS is enabled.
+include lib/libviame_image_kernels_cuda.so* -> {data}/lib/
 
 # ----------------------------------------------------------------------------
 # The tools

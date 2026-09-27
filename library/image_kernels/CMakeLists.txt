@@ -22,6 +22,7 @@ set( image_kernels_headers
   channels.h
   color.h
   denoise.h
+  denoise_weights.h
   edges.h
   hough.h
   commonality.h
@@ -32,6 +33,7 @@ set( image_kernels_headers
   distance.h
   draw.h
   filter.h
+  gaussian_kernel.h
   gaussian_simd.h
   parallel.h
   font_5x7.h
@@ -100,6 +102,10 @@ install( FILES       ${image_kernels_headers}
 install( FILES       ${CMAKE_CURRENT_BINARY_DIR}/viame_image_kernels_export.h
          DESTINATION include/viame/image_kernels )
 
+if( VIAME_ENABLE_CUDA_KERNELS )
+  include( "${CMAKE_CURRENT_SOURCE_DIR}/cuda.cmake" )
+endif()
+
 ###
 # Python bindings
 #
@@ -109,6 +115,8 @@ install( FILES       ${CMAKE_CURRENT_BINARY_DIR}/viame_image_kernels_export.h
 # Pillow's, whose resampling differs by a half pixel.
 ##
 if( VIAME_ENABLE_PYTHON )
+  viame_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cuda.py image_kernels cuda )
   viame_add_python_library( _image_kernels image_kernels
     SOURCES image_kernels_python.cxx
     PRIVATE viame_image_kernels
