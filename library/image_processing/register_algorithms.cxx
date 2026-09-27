@@ -35,6 +35,7 @@
 #include "convert_image.h"
 #include "equalize_via_percentiles.h"
 #include "morphology.h"
+#include "orb_features.h"
 #include "random_hue_shift.h"
 #include "split_image_habcam.h"
 #include "split_image_horizontally.h"
@@ -110,6 +111,17 @@ register_factories( kv::registry& vpm )
     detect_features_SURF >( vpm, module_name );
   register_algorithm< kv::algo::extract_descriptors,
     extract_descriptors_SURF >( vpm, module_name );
+
+  // ORB, restored in this task. It came out in P5-T04 with the rest of
+  // `arrows/ocv` because nothing selected it -- `removed.json` recorded that
+  // -- but five pipeline configs name it as an option and carry a config
+  // block for it, so a user following the comment got a name that would not
+  // resolve. It is VIAME's own ORB now (`orb.h`), identical to cv2 over 147
+  // configurations, keypoints and descriptors both.
+  register_algorithm< kv::algo::detect_features,
+    detect_features_ORB >( vpm, module_name );
+  register_algorithm< kv::algo::extract_descriptors,
+    extract_descriptors_ORB >( vpm, module_name );
 
   // From the `core` plugin in P2-T05. An image_filter like the five above, so
   // the same macro takes it.

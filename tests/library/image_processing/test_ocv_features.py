@@ -72,8 +72,10 @@ def frame():
 # The interface each name answers to, and the snake_case key `registry.json`
 # files it under.
 NAMES = [
+    ("DetectFeatures", "detect_features", "ocv_ORB"),
     ("DetectFeatures", "detect_features", "ocv_SIFT"),
     ("DetectFeatures", "detect_features", "ocv_SURF"),
+    ("ExtractDescriptors", "extract_descriptors", "ocv_ORB"),
     ("ExtractDescriptors", "extract_descriptors", "ocv_SIFT"),
     ("ExtractDescriptors", "extract_descriptors", "ocv_SURF"),
     ("MatchFeatures", "match_features", "ocv_flann_based"),
@@ -288,3 +290,105 @@ def test_the_fundamental_estimator_rejects_a_confidence_out_of_range():
         cfg = algorithm.get_configuration()
         cfg.set_value("confidence_threshold", value)
         assert algorithm.check_configuration(cfg) is valid, value
+
+# ----------------------------------------------------------------------------
+# ORB, restored in this task
+# ----------------------------------------------------------------------------
+#
+# The name came out in P5-T04 with the rest of `arrows/ocv`, and five pipeline
+# configs name it as an option and carry a config block for it, so selecting
+# it used to fail to resolve. These say it resolves, that its configuration is
+# applied -- the C++ wrapper's `constCast` bug meant the OpenCV one's was not
+# -- and that the two limits are refused at configure time rather than on the
+# first frame.
+
+def test_orb_descriptors_are_bytes_and_paired_with_their_keypoints():
+    detector = configured("DetectFeatures", "ocv_ORB", n_features=60)
+    describer = configured("ExtractDescriptors", "ocv_ORB", n_features=60)
+    image = frame()
+
+    features = detector.detect(image)
+    assert 0 < features.size() <= 60
+
+    # `extract` returns both, because an extractor may replace the feature
+    # set to keep it aligned with the descriptors -- ours does.
+    descriptors, described = describer.extract(image, features)
+    assert descriptors.size() == described.size()
+
+    rows = [np.asarray(d.todoublearray()) for d in descriptors.descriptors()]
+    assert all(len(r) == 32 for r in rows)
+    # A bit string, so every value is a whole byte.
+    assert all(np.all(r == np.floor(r)) and r.min() >= 0 and r.max() <= 255
+               for r in rows)
+
+
+def test_orb_n_features_is_applied():
+    # A ceiling rather than a count: ORB shares the budget out over the
+    # pyramid as a geometric series and culls each level to its own share, so
+    # a level that finds fewer corners than its share is not made up
+    # elsewhere. cv2 behaves the same way.
+    few = configured("DetectFeatures", "ocv_ORB", n_features=25)
+    default = create("DetectFeatures", "ocv_ORB")
+
+    assert 0 < few.detect(frame()).size() <= 25
+    assert default.detect(frame()).size() > 25
+
+
+def test_orb_fast_threshold_is_applied():
+    strict = configured("DetectFeatures", "ocv_ORB", fast_threshold=90,
+                        n_features=100000)
+    loose = configured("DetectFeatures", "ocv_ORB", fast_threshold=5,
+                       n_features=100000)
+
+    assert strict.detect(frame()).size() < loose.detect(frame()).size()
+
+
+def test_orb_describes_at_the_level_it_detected():
+    # The feature set carries the pyramid level, so describing a detected set
+    # samples the level it was found at. Describing the same keypoints after a
+    # round trip through a plain feature set would use the base level and give
+    # different descriptors; this only asserts the detected path is stable.
+    detector = configured("DetectFeatures", "ocv_ORB", n_features=40)
+    describer = configured("ExtractDescriptors", "ocv_ORB", n_features=40)
+    image = frame()
+
+    once, _ = describer.extract(image, detector.detect(image))
+    twice, _ = describer.extract(image, detector.detect(image))
+
+    a = [np.asarray(d.todoublearray()) for d in once.descriptors()]
+    b = [np.asarray(d.todoublearray()) for d in twice.descriptors()]
+    assert len(a) == len(b)
+    for x, y in zip(a, b):
+        np.testing.assert_array_equal(x, y)
+
+
+@pytest.mark.parametrize("interface", ["DetectFeatures", "ExtractDescriptors"])
+@pytest.mark.parametrize("values", [
+    {"wta_k": 3},       # draws its sampling pattern from cv::RNG
+    {"wta_k": 4},
+    {"patch_size": 41},  # likewise
+    {"score_type": 2},   # neither HARRIS_SCORE nor FAST_SCORE
+    {"n_levels": 0},
+])
+def test_orb_refuses_what_it_does_not_implement(interface, values):
+    key = ("detect_features" if interface == "DetectFeatures"
+           else "extract_descriptors")
+    assert recorded_config(key, "ocv_ORB")  # the name is in the contract
+    assert not configured(interface, "ocv_ORB",
+                          **values).check_configuration(None)
+
+
+def test_orb_fast_score_is_a_different_ranking():
+    harris = configured("DetectFeatures", "ocv_ORB", n_features=40,
+                        score_type=0)
+    fast = configured("DetectFeatures", "ocv_ORB", n_features=40,
+                      score_type=1)
+
+    def ranked(algorithm):
+        found = algorithm.detect(frame())
+        return sorted((f.location[0], f.location[1])
+                      for f in found.features())
+
+    assert harris.check_configuration(None)
+    assert fast.check_configuration(None)
+    assert ranked(harris) != ranked(fast)

@@ -2250,14 +2250,28 @@ either, and the two-bit descriptors would want a Hamming-2 matcher that
 
 plus `image_viewer.py`, which is highgui and has no replacement.
 
-**`ocv_ORB` is still not registered as an algorithm.** It was dropped on
-purpose in P5-T04 and `tests/baseline/removed.json` records why -- nothing
-selects it. Five pipeline configs name it in a comment and carry an inert
-`block feature_detector:ocv_ORB`, so a user who switched to it today would get
-an unresolved implementation. Registering it over `orb.h` is now a small piece
-of work, in the shape of `sift_features.{h,cxx}`; it is left undone because
-undoing a recorded removal is the user's call, not a side effect of porting
-the algorithm.
+**`ocv_ORB` is registered again**, over `orb.h`, in
+`library/image_processing/orb_features.{h,cxx}` and in the shape of
+`sift_features.{h,cxx}`. It was dropped on purpose in P5-T04 because nothing
+selected it, but five pipeline configs name it in the comment above
+`feature_detector:type` and carry an inert `block feature_detector:ocv_ORB`,
+so a user who followed the comment got a name that would not resolve. Its two
+`removed.json` entries are gone with it.
+
+The nine config keys, their defaults and their descriptions are the ones the
+OpenCV arrow registered and `registry.json` records, including the two places
+they differ from `cv::ORB::create`'s own defaults: `n_levels` is **9** rather
+than 8, and `score_type` is the integer of OpenCV's enumeration rather than a
+name. `scale_factor` is declared a double so that its default prints as
+`1.2`, and narrowed to float before use, because `cv::ORB::create` narrows it
+and the pyramid follows from the narrowed value.
+
+Descriptors come back as `descriptor_dynamic< uint8_t >` rather than widened
+to float: ORB's descriptor is a bit string, and a matcher configured with
+`binary_descriptors` needs the bytes the Hamming distance is defined over.
+`wta_k` of 3 or 4, a `patch_size` other than 31 and a `score_type` outside
+{0, 1} are refused by `check_configuration`, so a pipeline says so when it is
+built rather than on its first frame.
 
 ## StereoBM off cv2
 

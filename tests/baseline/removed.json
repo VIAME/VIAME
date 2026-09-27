@@ -506,20 +506,6 @@
   {
     "interface": "detect_features",
     "kind": "algorithm",
-    "name": "ocv_ORB",
-    "phase": "P5-T04",
-    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
-  },
-  {
-    "interface": "extract_descriptors",
-    "kind": "algorithm",
-    "name": "ocv_ORB",
-    "phase": "P5-T04",
-    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
-  },
-  {
-    "interface": "detect_features",
-    "kind": "algorithm",
     "name": "ocv_STAR",
     "phase": "P5-T04",
     "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
