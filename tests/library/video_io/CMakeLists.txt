@@ -37,3 +37,9 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
   )
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test( NAME "unit:video_io:vidl_color"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_vidl_color.py"
+    LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
+endif()

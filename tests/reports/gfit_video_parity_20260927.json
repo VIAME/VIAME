@@ -1,0 +1,501 @@
+{
+  "scope": "Local Linux CPython 3.10 test wheels, two approximately eight-second video excerpts, 5 Hz GFIT groups/species trackers; both include detection/classification outputs. CSV data compared exactly, export metadata ignored.",
+  "summary": [
+    {
+      "clip": "seamap",
+      "pipeline": "tracker_gfit_groups_v3.pipe",
+      "sampled_frames": 41,
+      "detections": 709,
+      "track_states": 369,
+      "tracks": 25
+    },
+    {
+      "clip": "seamap",
+      "pipeline": "tracker_gfit_species_v3.pipe",
+      "sampled_frames": 41,
+      "detections": 709,
+      "track_states": 369,
+      "tracks": 25
+    },
+    {
+      "clip": "tules",
+      "pipeline": "tracker_gfit_groups_v3.pipe",
+      "sampled_frames": 41,
+      "detections": 18,
+      "track_states": 8,
+      "tracks": 1
+    },
+    {
+      "clip": "tules",
+      "pipeline": "tracker_gfit_species_v3.pipe",
+      "sampled_frames": 41,
+      "detections": 18,
+      "track_states": 8,
+      "tracks": 1
+    }
+  ],
+  "inputs": {
+    "models": {
+      "models/fishtrack_motion_rf_detr_1728.pth": {
+        "bytes": 141652935,
+        "sha256": "fe5cda92c130d1f1474095e629cacce64e1a2737d8921be3971cf14dace52485"
+      },
+      "models/gfit_groupings.txt": {
+        "bytes": 5213,
+        "sha256": "e02c85174432c5df5853c8e4e5fb73f9e1cbf4e2050f4936bbeae9fa5a3dbc22"
+      },
+      "models/gfit_groups_enetv2m_all.zip": {
+        "bytes": 425199549,
+        "sha256": "54a7386b4d602c7c30f316d924eeabcc0e9afa3189594c40f10bb08fccd8e5ea"
+      },
+      "models/gfit_groups_enetv2s_large.zip": {
+        "bytes": 163013838,
+        "sha256": "569c2d10c190a0a14653fb4f6a3426ee87df5d8e8af9cdb910e2214f9bd5b4ab"
+      },
+      "models/gfit_groups_enetv2s_small.zip": {
+        "bytes": 163006318,
+        "sha256": "fa08f096464c8c06c0d50f3c49aca5287a7f93c50aea16683033f75d183dd3df"
+      },
+      "models/gfit_groups_rf_detr_1728.pth": {
+        "bytes": 142296687,
+        "sha256": "daf25afe6217aa707de4190885ef28a5392d27d3867ed3d811b3539e4aee1a10"
+      },
+      "models/gfit_species_enetv2m_large.zip": {
+        "bytes": 426771798,
+        "sha256": "95ad40936d0f04f4fe0533cf6e2d5638434e8048ab9a9b7b590a9fe512cc308f"
+      }
+    },
+    "videos": {
+      "tules.mp4": {
+        "sha256": "5cf159f99ee240432541fc9dfc4239a50bf8afd9be9827fa12e8cda98d136eae",
+        "probe": {
+          "programs": [],
+          "streams": [
+            {
+              "width": 1920,
+              "height": 1080,
+              "r_frame_rate": "30000/1001",
+              "nb_frames": "272"
+            }
+          ],
+          "format": {
+            "duration": "8.195000"
+          }
+        }
+      },
+      "seamap.mp4": {
+        "sha256": "ba15fcc55d79d9a2262597f490c738251050568cdd073ceeadb45cd31eb52e03",
+        "probe": {
+          "programs": [],
+          "streams": [
+            {
+              "width": 1920,
+              "height": 1080,
+              "r_frame_rate": "30/1",
+              "nb_frames": "242"
+            }
+          ],
+          "format": {
+            "duration": "8.134000"
+          }
+        }
+      }
+    },
+    "wheels": {
+      "viame-0.23.3+parity.main-cp310-cp310-manylinux_2_35_x86_64.whl": "d201680802d3f8911d734a6bfde8452bd6815132c81632e5af3ec64bf6afdb07",
+      "viame-0.23.3+parity.lite4-cp310-cp310-manylinux_2_35_x86_64.whl": "e3dd0d6ffee9fecd7a4411bdf12034b22f611f6aa6eb983307452ff019f0f8e0"
+    }
+  },
+  "comparisons": {
+    "seamap/groups/detections/main-auto vs lite-cpu": {
+      "left_rows": 709,
+      "right_rows": 709,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/groups/tracks/main-auto vs lite-cpu": {
+      "left_rows": 369,
+      "right_rows": 369,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/groups/detections/main-auto vs lite-auto": {
+      "left_rows": 709,
+      "right_rows": 709,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/groups/tracks/main-auto vs lite-auto": {
+      "left_rows": 369,
+      "right_rows": 369,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/groups/detections/lite-cpu vs lite-auto": {
+      "left_rows": 709,
+      "right_rows": 709,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/groups/tracks/lite-cpu vs lite-auto": {
+      "left_rows": 369,
+      "right_rows": 369,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/species/detections/main-auto vs lite-cpu": {
+      "left_rows": 709,
+      "right_rows": 709,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/species/tracks/main-auto vs lite-cpu": {
+      "left_rows": 369,
+      "right_rows": 369,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/species/detections/main-auto vs lite-auto": {
+      "left_rows": 709,
+      "right_rows": 709,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/species/tracks/main-auto vs lite-auto": {
+      "left_rows": 369,
+      "right_rows": 369,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/species/detections/lite-cpu vs lite-auto": {
+      "left_rows": 709,
+      "right_rows": 709,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "seamap/species/tracks/lite-cpu vs lite-auto": {
+      "left_rows": 369,
+      "right_rows": 369,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/groups/detections/main-auto vs lite-cpu": {
+      "left_rows": 18,
+      "right_rows": 18,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/groups/tracks/main-auto vs lite-cpu": {
+      "left_rows": 8,
+      "right_rows": 8,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/groups/detections/main-auto vs lite-auto": {
+      "left_rows": 18,
+      "right_rows": 18,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/groups/tracks/main-auto vs lite-auto": {
+      "left_rows": 8,
+      "right_rows": 8,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/groups/detections/lite-cpu vs lite-auto": {
+      "left_rows": 18,
+      "right_rows": 18,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/groups/tracks/lite-cpu vs lite-auto": {
+      "left_rows": 8,
+      "right_rows": 8,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/species/detections/main-auto vs lite-cpu": {
+      "left_rows": 18,
+      "right_rows": 18,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/species/tracks/main-auto vs lite-cpu": {
+      "left_rows": 8,
+      "right_rows": 8,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/species/detections/main-auto vs lite-auto": {
+      "left_rows": 18,
+      "right_rows": 18,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/species/tracks/main-auto vs lite-auto": {
+      "left_rows": 8,
+      "right_rows": 8,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/species/detections/lite-cpu vs lite-auto": {
+      "left_rows": 18,
+      "right_rows": 18,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    },
+    "tules/species/tracks/lite-cpu vs lite-auto": {
+      "left_rows": 8,
+      "right_rows": 8,
+      "exact_rows": true,
+      "mismatches_by_column": {},
+      "max_numeric_difference": {},
+      "examples": []
+    }
+  },
+  "runs": [
+    {
+      "branch": "lite",
+      "backend": "auto",
+      "clip": "seamap",
+      "level": "groups",
+      "seconds": 57.205587971024215,
+      "viame": "/tmp/gfit-video-parity/lite/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cuda"
+        ],
+        "classifier": [
+          "cuda"
+        ]
+      }
+    },
+    {
+      "branch": "lite",
+      "backend": "auto",
+      "clip": "seamap",
+      "level": "species",
+      "seconds": 60.84546929784119,
+      "viame": "/tmp/gfit-video-parity/lite/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cuda"
+        ],
+        "classifier": [
+          "cuda"
+        ]
+      }
+    },
+    {
+      "branch": "lite",
+      "backend": "auto",
+      "clip": "tules",
+      "level": "groups",
+      "seconds": 34.64792450144887,
+      "viame": "/tmp/gfit-video-parity/lite/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cuda"
+        ],
+        "classifier": [
+          "cuda"
+        ]
+      }
+    },
+    {
+      "branch": "lite",
+      "backend": "auto",
+      "clip": "tules",
+      "level": "species",
+      "seconds": 39.45766607392579,
+      "viame": "/tmp/gfit-video-parity/lite/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cuda"
+        ],
+        "classifier": [
+          "cuda"
+        ]
+      }
+    },
+    {
+      "branch": "lite",
+      "backend": "cpu",
+      "clip": "seamap",
+      "level": "groups",
+      "seconds": 50.909906768240035,
+      "viame": "/tmp/gfit-video-parity/lite/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cpu"
+        ],
+        "classifier": []
+      }
+    },
+    {
+      "branch": "lite",
+      "backend": "cpu",
+      "clip": "seamap",
+      "level": "species",
+      "seconds": 64.56693452782929,
+      "viame": "/tmp/gfit-video-parity/lite/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cpu"
+        ],
+        "classifier": []
+      }
+    },
+    {
+      "branch": "lite",
+      "backend": "cpu",
+      "clip": "tules",
+      "level": "groups",
+      "seconds": 53.31540666427463,
+      "viame": "/tmp/gfit-video-parity/lite/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cpu"
+        ],
+        "classifier": []
+      }
+    },
+    {
+      "branch": "lite",
+      "backend": "cpu",
+      "clip": "tules",
+      "level": "species",
+      "seconds": 53.46332580316812,
+      "viame": "/tmp/gfit-video-parity/lite/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cpu"
+        ],
+        "classifier": []
+      }
+    },
+    {
+      "branch": "main",
+      "backend": "auto",
+      "clip": "seamap",
+      "level": "groups",
+      "seconds": 73.40514975786209,
+      "viame": "/tmp/gfit-video-parity/main/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cpu"
+        ],
+        "classifier": [
+          "cpu"
+        ]
+      }
+    },
+    {
+      "branch": "main",
+      "backend": "auto",
+      "clip": "seamap",
+      "level": "species",
+      "seconds": 64.97070196922868,
+      "viame": "/tmp/gfit-video-parity/main/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cpu"
+        ],
+        "classifier": [
+          "cpu"
+        ]
+      }
+    },
+    {
+      "branch": "main",
+      "backend": "auto",
+      "clip": "tules",
+      "level": "groups",
+      "seconds": 42.541077758185565,
+      "viame": "/tmp/gfit-video-parity/main/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cpu"
+        ],
+        "classifier": [
+          "cpu"
+        ]
+      }
+    },
+    {
+      "branch": "main",
+      "backend": "auto",
+      "clip": "tules",
+      "level": "species",
+      "seconds": 48.39606821537018,
+      "viame": "/tmp/gfit-video-parity/main/venv/lib/python3.10/site-packages/viame",
+      "torch": "2.12.0+cu126",
+      "selected_backends": {
+        "motion": [
+          "cpu"
+        ],
+        "classifier": [
+          "cpu"
+        ]
+      }
+    }
+  ]
+}

@@ -94,6 +94,7 @@ class FFmpegCliVideoInput(VideoInput):
         # The same keys as `pyav_video_input`, so that a config written for
         # one reader works with the other
         self._filter_desc = "yadif=deint=1"
+        self._vidl_color = False
         self._format_name = ""
         self._real_time = False
         self._use_misp_timestamps = False
@@ -136,6 +137,7 @@ class FFmpegCliVideoInput(VideoInput):
         self._width = 0
         self._height = 0
         self._deep = False
+        self._source_pixel_format = ""
         self._rate = None
         self._duration = None
 
@@ -254,6 +256,7 @@ class FFmpegCliVideoInput(VideoInput):
         self._filename = ""
         self._width = self._height = 0
         self._deep = False
+        self._source_pixel_format = ""
         self._rate = None
         self._duration = None
         self._count = None
@@ -401,6 +404,12 @@ class FFmpegCliVideoInput(VideoInput):
         if self._mode == "none":
             return stamp
 
+        if self._vidl_color:
+            value = self._vidl_time_usec(self._pts)
+            if value is not None:
+                stamp.set_time_usec(value)
+            return stamp
+
         seconds = self._seconds_of(self._pts)
 
         if seconds is not None:
@@ -477,7 +486,8 @@ class FFmpegCliVideoInput(VideoInput):
                     video_name))
 
         self._width, self._height = int(size.group(1)), int(size.group(2))
-        self._deep = _bit_depth(source.group(1)) > 8
+        self._source_pixel_format = source.group(1)
+        self._deep = not self._vidl_color and _bit_depth(self._source_pixel_format) > 8
 
         duration = DURATION.search(result)
 
@@ -524,12 +534,24 @@ class FFmpegCliVideoInput(VideoInput):
 
         return args
 
+    def _use_vidl_color(self):
+        from viame.video_io.vidl_color import YUV_FORMATS
+        return self._vidl_color and self._source_pixel_format in YUV_FORMATS
+
     def _pixel_format(self):
+        if self._use_vidl_color():
+            return "yuv444p"
+        if self._vidl_color:
+            return "rgb24"
         return "gbrp16le" if self._deep else "gbrp"
 
     def _filters(self):
         chain = [part for part in (self._filter_desc.strip(),) if part]
         flags = APPROXIMATE_SCALE_FLAGS if self._approximate else SCALE_FLAGS
+        if self._use_vidl_color():
+            flags = "scale=flags=neighbor:in_range=full:out_range=full"
+        elif self._vidl_color:
+            flags = "scale=flags=bilinear:in_color_matrix=bt601"
         chain += [flags, "format=" + self._pixel_format(), "showinfo"]
         return ",".join(chain)
 
@@ -555,6 +577,13 @@ class FFmpegCliVideoInput(VideoInput):
             return None
 
         self._pts = self._next_pts()
+
+        if self._use_vidl_color():
+            from viame.video_io.vidl_color import planar_yuv_to_rgb
+            return planar_yuv_to_rgb(*planes)
+        if self._vidl_color:
+            rgb = planes.reshape(self._height, self._width, 3)
+            return np.ascontiguousarray(rgb.transpose(2, 0, 1)).transpose(1, 2, 0)
 
         # gbrp is green, blue, red; vital wants red, green, blue in its own
         # planar layout, which is what makes `Image` a memcpy
@@ -654,12 +683,23 @@ class FFmpegCliVideoInput(VideoInput):
                          self._number + 1, self._filename)
             return None
 
+    def _vidl_time_usec(self, pts):
+        base = self._state.get("time_base")
+        if pts is None or base is None:
+            return None
+        numerator, denominator = base
+        return int(self._origin + pts * (numerator / denominator) * MICROSECONDS)
+
     def _seconds_of(self, pts):
         """Presentation time from the first frame, in whole microseconds.
 
         The origin and the rounding are the C++ reader's, which reports time
         from zero rather than from the container's own start.
         """
+        if self._vidl_color:
+            value = self._vidl_time_usec(pts)
+            return None if value is None else value / MICROSECONDS
+
         base = self._state.get("time_base")
 
         if pts is None or base is None:

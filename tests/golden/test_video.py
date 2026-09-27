@@ -26,11 +26,10 @@ import video_runner                 # noqa: E402
 MANIFEST = os.path.join(HERE, "video", "manifest.json")
 INPUTS = os.path.join(HERE, "inputs")
 
-# Implementations that have to reproduce the recording. Since P4-T05 every
-# one of these is python: `ffmpeg` and `vidl_ffmpeg` are the names the C++
-# arrow and the VXL reader answered to, and they are now aliases of the PyAV
-# reader, which is the point of holding all of them to the C++ recording.
-IMPLEMENTATIONS = ("ffmpeg", "vidl_ffmpeg", "pyav", "ffmpeg_cli")
+# These implementations reproduce the FFmpeg arrow. VIDL has its own color
+# conversion and is checked against vidl_pixels.json in
+# tests/library/video_io/test_vidl_color.py.
+IMPLEMENTATIONS = ("ffmpeg", "pyav", "ffmpeg_cli")
 
 # A presentation time is a rational converted to seconds, so it is compared
 # with the microsecond tolerance the plan asks for rather than exactly.

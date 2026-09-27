@@ -268,6 +268,7 @@ class PyAVVideoInput(VideoInput):
         from viame.video_io.ffmpeg_cli_video_input import FFmpegCliVideoInput
 
         reader = FFmpegCliVideoInput()
+        reader._vidl_color = isinstance(self, VidlFFmpegVideoInput)
         reader.set_configuration(self.get_configuration())
         return reader
 
@@ -724,7 +725,85 @@ class FFmpegVideoInput(PyAVVideoInput):
 
 
 class VidlFFmpegVideoInput(PyAVVideoInput):
-    """The name `arrows/vxl` registered its reader under."""
+    """Keep VXL's byte YUV conversion for the legacy reader name.
+
+    VIDL uses full-range integer YUV arithmetic even for limited-range H.264.
+    The FFmpeg arrow uses a different conversion, so these cannot be aliases.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._filter_desc = ""
+        self._vidl_yuv = False
+
+    def _build_graph(self):
+        from viame.video_io.vidl_color import YUV_FORMATS
+        self._vidl_previous_pts = None
+        self._vidl_yuv = self._stream.codec_context.format.name in YUV_FORMATS
+        import av
+        graph = av.filter.Graph()
+        source = graph.add_buffer(template=self._stream)
+        head = _add_chain(graph, source, self._filter_desc) if self._filter_desc.strip() else source
+        sink = graph.add("buffersink")
+        head.link_to(sink)
+        graph.configure()
+        self._graph, self._graph_source, self._graph_sink = graph, source, sink
+        self._graph_deep = False
+
+    def _next_filtered(self):
+        frame = super()._next_filtered()
+        if frame is not None:
+            # VIDL advances one nominal frame for pictures drained at EOF,
+            # rather than using their stored presentation timestamps.
+            rate = self._stream.average_rate or self._stream.base_rate
+            base = frame.time_base or self._stream.time_base
+            if frame.dts is None and self._vidl_previous_pts is not None and rate:
+                frame.pts = self._vidl_previous_pts + int(1 / (base * rate))
+            self._vidl_previous_pts = frame.pts
+        return frame
+
+    def _vidl_time_usec(self, frame):
+        if frame.pts is None:
+            return None
+        base = frame.time_base or self._stream.time_base
+        # VIDL multiplies by the floating-point time base, then truncates.
+        # Rounding instead changes which frames a 5 Hz downsampler selects.
+        return int(self._origin + frame.pts * float(base) * MICROSECONDS)
+
+    def _seconds_of(self, frame):
+        self._start_ts = 0
+        value = self._vidl_time_usec(frame)
+        return None if value is None else value / MICROSECONDS
+
+    def frame_timestamp(self):
+        if self._delegate is not None:
+            return self._delegate.frame_timestamp()
+        stamp = Timestamp()
+        if self._frame is not None:
+            stamp.set_frame(self._number)
+            value = self._vidl_time_usec(self._frame)
+            if self._mode != "none" and value is not None:
+                stamp.set_time_usec(value)
+        return stamp
+
+    def frame_image(self):
+        if self._delegate is not None:
+            return self._delegate.frame_image()
+        if self._frame is None:
+            return None
+        if not self._vidl_yuv:
+            # VXL does not map YUVJ (full-range) formats to its YUV type.
+            # Its fallback is swscale's bilinear RGB24 conversion, not the
+            # integer conversion above or the FFmpeg arrow's planar path.
+            rgb = self._frame.reformat(format="rgb24", interpolation="BILINEAR",
+                                       src_colorspace="ITU601").to_ndarray()
+            planar = np.ascontiguousarray(rgb.transpose(2, 0, 1))
+            return ImageContainer(Image(planar.transpose(1, 2, 0)))
+        from viame.video_io.vidl_color import planar_yuv_to_rgb
+        frame = self._frame
+        planes = [np.frombuffer(p, dtype=np.uint8).reshape(p.height, p.line_size)[:, :p.width]
+                  for p in frame.planes[:3]]
+        return ImageContainer(Image(planar_yuv_to_rgb(*planes)))
 
 
 def __vital_algorithm_register__():

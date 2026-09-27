@@ -1,0 +1,123 @@
+{
+  "source": "main c0f004f40, vidl_ffmpeg, time_source=start_at_0; recorded 2026-09-27",
+  "clip": "clip.mp4",
+  "clip_sha256": "d2068c13a05422d68a976272dfd32644f4c04afc8ad656e3b2136e4d710b9b24",
+  "frames": [
+    {
+      "frame": 1,
+      "sha256": "04730f9d9f0f91d2"
+    },
+    {
+      "frame": 2,
+      "sha256": "a58bbb1d80449057"
+    },
+    {
+      "frame": 3,
+      "sha256": "14a21a74c8df8d48"
+    },
+    {
+      "frame": 4,
+      "sha256": "b6b20f6ecc07bde7"
+    },
+    {
+      "frame": 5,
+      "sha256": "29d268df85b3329d"
+    },
+    {
+      "frame": 6,
+      "sha256": "c5bda46a183c49f1"
+    }
+  ],
+  "flush_clip": {
+    "clip": "vidl_flush.mp4",
+    "clip_sha256": "6dd3a767de3d9052d7a571bbb2af2ed9a33c4c8cf8c0b8103aae88663279d719",
+    "frames": [
+      {
+        "frame": 1,
+        "time_usec": 0,
+        "sha256": "04730f9d9f0f91d2"
+      },
+      {
+        "frame": 2,
+        "time_usec": 100000,
+        "sha256": "a58bbb1d80449057"
+      },
+      {
+        "frame": 3,
+        "time_usec": 200000,
+        "sha256": "14a21a74c8df8d48"
+      },
+      {
+        "frame": 4,
+        "time_usec": 300000,
+        "sha256": "b6b20f6ecc07bde7"
+      },
+      {
+        "frame": 5,
+        "time_usec": 400000,
+        "sha256": "29d268df85b3329d"
+      },
+      {
+        "frame": 6,
+        "time_usec": 500000,
+        "sha256": "c5bda46a183c49f1"
+      },
+      {
+        "frame": 7,
+        "time_usec": 600000,
+        "sha256": "677d201942204553"
+      },
+      {
+        "frame": 8,
+        "time_usec": 700000,
+        "sha256": "458c0ca902e886ad"
+      }
+    ]
+  },
+  "full_range_clip": {
+    "clip": "vidl_full_range.mp4",
+    "clip_sha256": "84577c342b36c806c12595cbafbbf4dff39341e8df4b11677ce932cc09208449",
+    "frames": [
+      {
+        "frame": 1,
+        "time_usec": 0,
+        "sha256": "0488c7e13fd42d2d"
+      },
+      {
+        "frame": 2,
+        "time_usec": 100000,
+        "sha256": "46c35ed31e4f9f0c"
+      },
+      {
+        "frame": 3,
+        "time_usec": 200000,
+        "sha256": "dd23441eaa3b64c2"
+      },
+      {
+        "frame": 4,
+        "time_usec": 300000,
+        "sha256": "48dd6615846098a9"
+      },
+      {
+        "frame": 5,
+        "time_usec": 400000,
+        "sha256": "366de2d3e7bc6710"
+      },
+      {
+        "frame": 6,
+        "time_usec": 500000,
+        "sha256": "c3851b9267d934ff"
+      },
+      {
+        "frame": 7,
+        "time_usec": 600000,
+        "sha256": "afa3dd64e5bdd648"
+      },
+      {
+        "frame": 8,
+        "time_usec": 700000,
+        "sha256": "558f7596e8990be7"
+      }
+    ]
+  }
+}
