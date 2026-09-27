@@ -22,6 +22,14 @@ if( VIAME_ENABLE_PYTHON )
   )
 
   viame_add_test(
+    NAME    "unit:video_io:frames"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_frames.py"
+    LABELS  UNIT
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
+
+  viame_add_test(
     NAME    "unit:video_io:cli_reader"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_ffmpeg_cli_video_input.py"
     LABELS  UNIT

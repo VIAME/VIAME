@@ -9,10 +9,25 @@ Stereo camera calibration tool.
 
 Estimates intrinsic and extrinsic parameters for a stereo camera rig
 from images of a chessboard calibration target.
+
+**Nothing here imports cv2 at module scope.** Three places reach for it and
+each does so inside itself, so the default path needs none:
+
+* `_show` and `_close_windows` -- highgui is a window toolkit rather than an
+  algorithm and has no replacement here. `--gui` is off by default.
+* `estimate_essential_from_stereo_frames` -- `findEssentialMat` is Nister's
+  five-point algorithm under RANSAC and `recoverPose` is the cheirality check
+  over its four decompositions. Not ported, and this function is one route to
+  R and T among several rather than the calibration itself.
+
+Everything else is ours: the detector and matcher are `features.sift` and
+`matching`, the drawing is `image_kernels`, the projection and calibration
+maths is `viame.measurement.projection` and `viame.utilities.calibration`, and
+video reading is `viame.video_io.frames`, which is bit identical to the reader
+a pipeline uses.
 """
 
 import numpy as np
-import cv2
 import os
 import struct
 import sys
@@ -24,6 +39,7 @@ from viame.image_processing import features, matching
 from viame.measurement import projection
 from viame.utilities import (blobs, calibration, chessboard, geometry,
                              imageops, opencv_yaml)
+from viame.video_io import frames
 
 
 def parse_ptscal(filepath):
@@ -304,6 +320,73 @@ def filter_by_roi(corners, roi, sizes=None):
         print(f"    ROI filter removed {n_removed} points "
               f"({len(filtered_corners)} remaining)")
     return filtered_corners, filtered_sizes
+
+
+def _show(image):
+    """Put an RGB image on screen and wait for a key.
+
+    **The one thing in this file with no replacement.** highgui is a window
+    toolkit rather than an algorithm, so the `import` lives here instead of at
+    the top: `--gui` is off by default, and without it nothing in this file
+    needs cv2 except the two pose solvers below.
+    """
+    import cv2
+
+    cv2.imshow('img', np.ascontiguousarray(image[:, :, ::-1]))
+    cv2.waitKey(-1)
+
+
+def _close_windows():
+    import cv2
+
+    cv2.destroyAllWindows()
+
+
+# `cv2.drawChessboardCorners`' colour cycle, one per grid row, so a wrong
+# row ordering shows as a colour that jumps rather than as a tangle.
+ROW_COLOURS = (
+    (255, 0, 0), (255, 128, 0), (200, 200, 0), (0, 255, 0),
+    (0, 200, 200), (0, 0, 255), (255, 0, 255),
+)
+
+
+def draw_chessboard_corners(image, grid_size, corners):
+    """`cv2.drawChessboardCorners` for a found board, in our own kernels.
+
+    A polyline through the corners in detection order, coloured by row, with
+    a cross and a circle on each -- which is what makes a mis-ordered board
+    obvious at a glance. This is a **debug overlay**, so it is drawn with
+    plain lines where cv2 anti-aliases them; nothing is measured from it.
+
+    Args:
+        image: RGB image to draw on (modified in place)
+        grid_size: (columns, rows) of the board
+        corners: Nx1x2 float32 array in detection order
+    """
+    if corners is None or len(corners) == 0:
+        return
+
+    columns, rows = int(grid_size[0]), int(grid_size[1])
+    radius = 4
+    previous = None
+
+    for i in range(len(corners)):
+        colour = list(ROW_COLOURS[(i // max(columns, 1)) % len(ROW_COLOURS)])
+        x = int(round(float(corners[i, 0, 0])))
+        y = int(round(float(corners[i, 0, 1])))
+
+        if previous is not None:
+            image_kernels.draw_line(image, previous[0], previous[1], x, y,
+                                    colour, 1)
+
+        image_kernels.draw_line(image, x - radius, y - radius,
+                                x + radius, y + radius, colour, 1)
+        image_kernels.draw_line(image, x - radius, y + radius,
+                                x + radius, y - radius, colour, 1)
+        image_kernels.draw_circle(image, x, y, radius + 1, colour, 1)
+        previous = (x, y)
+
+    del rows
 
 
 def draw_dots(image, centers, color=(0, 255, 0), radius=8, thickness=2):
@@ -1122,28 +1205,44 @@ def image_frames(input_path, frame_step=1, image_extensions=None, show_progress=
 
 
 def video_frames(video_file, frame_step=1, show_progress=True):
-    """Yield frames from a video file"""
-    vf = cv2.VideoCapture(video_file)
-    if not vf.isOpened():
-        vf.release()
-        raise ValueError(f"Failed to open video file: {video_file}")
+    """Yield frames from a video file.
 
-    total_frames = int(vf.get(cv2.CAP_PROP_FRAME_COUNT))
+    **RGB**, where `cv2.VideoCapture` gave BGR -- which was an inconsistency
+    rather than a convention. `_read` above returns RGB and everything
+    downstream is documented as RGB, so a calibration from a video greyscaled
+    with red and blue swapped. `to_grayscale`'s BT.601 weights are 0.299 for
+    red and 0.114 for blue, so on a colour frame the swap moves the grey
+    image -- 98 percent of pixels by up to 46 counts, measured -- and with it
+    the sub-pixel corner refinement and the focal lengths.
+
+    It had never shown, and the shipped fixture says why: every calibration
+    image in `tests/golden/inputs` is neutral, R equal to G equal to B, so the
+    swap was a no-op on the only data anyone had run it against. Reading those
+    images and reading a lossless video of them now give byte-identical
+    calibrations, which they did before too; a coloured target is where the
+    difference would have surfaced.
+
+    The pixels are also `viame.video_io.frames`', which is bit identical to
+    the reader a pipeline uses and differs from `cv2.VideoCapture` by up to
+    three counts -- swscale's defaults interpolate chroma and write
+    limited-range RGB.
+    """
+    try:
+        total_frames = frames.count_frames(video_file)
+    except Exception as error:
+        raise ValueError(
+            f"Failed to open video file: {video_file} ({error})")
+
     print(f"opened video: {video_file} ({total_frames} frames)")
 
-    frame_number = 0
     frames_yielded = 0
-    while True:
-        ret, frame = vf.read()
-        if not ret:
-            break
-        frame_number += 1
+    frame_number = 0
+    for frame, frame_number in frames.read_frames(video_file):
         if (frame_number - 1) % frame_step == 0:
             frames_yielded += 1
             if show_progress and total_frames > 0:
                 print_progress(frame_number, total_frames, prefix='Reading video')
             yield frame, frame_number
-    vf.release()
 
     if show_progress and total_frames > 0:
         print_progress(total_frames, total_frames, prefix='Reading video')
@@ -1160,46 +1259,34 @@ def stereo_frames_separate(left_path, right_path, frame_step=1, show_progress=Tr
     right_is_video = os.path.isfile(right_path) and is_video_file(right_path)
 
     if left_is_video and right_is_video:
-        # Both are videos
-        left_cap = cv2.VideoCapture(left_path)
-        right_cap = cv2.VideoCapture(right_path)
-        if not left_cap.isOpened():
-            left_cap.release()
-            right_cap.release()
-            raise ValueError(f"Failed to open left video: {left_path}")
-        if not right_cap.isOpened():
-            left_cap.release()
-            right_cap.release()
-            raise ValueError(f"Failed to open right video: {right_path}")
+        # Both are videos. RGB, for the reason `video_frames` gives.
+        try:
+            total_frames = min(frames.count_frames(left_path),
+                               frames.count_frames(right_path))
+        except Exception as error:
+            raise ValueError(
+                f"Failed to open the stereo videos '{left_path}' and "
+                f"'{right_path}' ({error})")
 
-        total_frames = min(int(left_cap.get(cv2.CAP_PROP_FRAME_COUNT)),
-                           int(right_cap.get(cv2.CAP_PROP_FRAME_COUNT)))
         print(f"opened left video: {left_path}")
         print(f"opened right video: {right_path}")
         print(f"processing up to {total_frames} stereo frame(s)")
 
-        frame_number = 0
         size_validated = False
-        while True:
-            ret_l, left_frame = left_cap.read()
-            ret_r, right_frame = right_cap.read()
-            if not ret_l or not ret_r:
-                break
+        # `zip` stops at the shorter of the two, which is what reading both
+        # and breaking when either runs out amounted to.
+        for (left_frame, frame_number), (right_frame, _) in zip(
+                frames.read_frames(left_path), frames.read_frames(right_path)):
             # Validate image sizes match on first frame
             if not size_validated:
                 if left_frame.shape != right_frame.shape:
-                    left_cap.release()
-                    right_cap.release()
                     raise ValueError(f"Left and right video frame sizes do not match: "
                                      f"left={left_frame.shape[:2]}, right={right_frame.shape[:2]}")
                 size_validated = True
-            frame_number += 1
             if (frame_number - 1) % frame_step == 0:
                 if show_progress and total_frames > 0:
                     print_progress(frame_number, total_frames, prefix='Reading stereo video')
                 yield left_frame, right_frame, frame_number
-        left_cap.release()
-        right_cap.release()
 
         if show_progress and total_frames > 0:
             print_progress(total_frames, total_frames, prefix='Reading stereo video')
@@ -1374,9 +1461,11 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
                 draw_dots(right_color, right_corners)
             else:
                 if left_corners is not None:
-                    cv2.drawChessboardCorners(left_color, detected_grid_size, left_corners, True)
+                    draw_chessboard_corners(left_color, detected_grid_size,
+                                            left_corners)
                 if right_corners is not None:
-                    cv2.drawChessboardCorners(right_color, detected_grid_size, right_corners, True)
+                    draw_chessboard_corners(right_color, detected_grid_size,
+                                            right_corners)
             # Draw ROI rectangles if specified
             if left_roi is not None:
                 rx1, ry1, rx2, ry2 = left_roi
@@ -1388,12 +1477,11 @@ def detect_grid_stereo_separate(left_path, right_path, grid_size=(6,5),
                                         ry2 + 1, YELLOW, 2)
             # Stack images side by side for display
             combined = np.hstack([left_color, right_color])
-            cv2.imshow('img', combined)
-            cv2.waitKey(-1)
+            _show(combined)
 
     print("done")
     if gui:
-        cv2.destroyAllWindows()
+        _close_windows()
 
     if img_shape is None:
         raise ValueError(f"No frames were processed from left='{left_path}' and "
@@ -1545,14 +1633,14 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
                     draw_dots(color_frame, right_corners + offset)
             else:
                 if left_corners is not None:
-                    cv2.drawChessboardCorners(color_frame, detected_grid_size, left_corners, True)
+                    draw_chessboard_corners(color_frame, detected_grid_size,
+                                            left_corners)
                 if right_corners is not None:
                     offset = np.repeat(np.array([[[img_shape[0], 0]]],
                                                 dtype=right_corners.dtype),
                                        right_corners.shape[0], axis=0)
-                    shift_right_corners = right_corners + offset
-                    cv2.drawChessboardCorners(color_frame, detected_grid_size,
-                                              shift_right_corners, True)
+                    draw_chessboard_corners(color_frame, detected_grid_size,
+                                            right_corners + offset)
             # Draw ROI rectangles if specified
             x_off = img_shape[0]
             if left_roi is not None:
@@ -1563,11 +1651,10 @@ def detect_grid_video(input_path, grid_size=(6,5), frame_step=1, gui=False, baye
                 rx1, ry1, rx2, ry2 = right_roi
                 image_kernels.draw_rect(color_frame, rx1 + x_off, ry1,
                                         rx2 + x_off + 1, ry2 + 1, YELLOW, 2)
-            cv2.imshow('img', color_frame)
-            cv2.waitKey(-1)
+            _show(color_frame)
     print("done")
     if gui:
-        cv2.destroyAllWindows()
+        _close_windows()
 
     if img_shape is None:
         raise ValueError(f"No frames were processed from '{input_path}'. "
@@ -1788,6 +1875,14 @@ def estimate_essential_from_stereo_frames(left_path, right_path, input_path,
     Returns:
         List of dicts with 'R', 'T', 'n_inliers', 'n_pose' keys
     """
+    # **The last two cv2 calls in this file**, and the import is here rather
+    # than at the top so that nothing else in it needs cv2 at all.
+    # `findEssentialMat` is Nister's five-point algorithm under RANSAC and
+    # `recoverPose` is the cheirality check that picks one of its four
+    # decompositions; neither is ported, and this function is one route to R
+    # and T among several rather than the calibration itself.
+    import cv2
+
     # SIFT, with no fallback. The detector is VIAME's own now, so there is
     # no build of cv2 that could fail to carry it -- the `try` around
     # `cv2.SIFT_create` was guarding against a wheel without the patented
@@ -2273,7 +2368,10 @@ def feature_based_stereo_calibration(left_path, right_path, input_path,
                 K_right, dist_right = K_right_new, dist_right_new
         else:
             K_right, dist_right = K_right_new, dist_right_new
-    except (ValueError, cv2.error) as e:
+    # `cv2.error` was in this list for the calibration calls that are
+    # ours now; `Exception` keeps the pose solvers below covered without
+    # naming cv2 at module scope.
+    except Exception as e:
         print(f"  Right re-calibration failed ({e}), using initial estimate")
 
     return {

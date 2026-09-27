@@ -1988,6 +1988,7 @@ lib/python3.10/site-packages/viame/utilities/utils.py
 lib/python3.10/site-packages/viame/utilities/vital_registration.py
 lib/python3.10/site-packages/viame/video_io/__init__.py
 lib/python3.10/site-packages/viame/video_io/ffmpeg_cli_video_input.py
+lib/python3.10/site-packages/viame/video_io/frames.py
 lib/python3.10/site-packages/viame/video_io/pyav_video_input.py
 lib/python3.10/site-packages/viame/video_io/pyav_video_output.py
 setup_viame.sh
