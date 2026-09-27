@@ -2303,3 +2303,19 @@ User-requested layout: all 17 library test directories now live under
 standalone ReMax operator check mirrors its source path there as well. Root
 `tests/CMakeLists.txt` owns registration; production libraries no longer add
 test subdirectories. Source imports and pytest paths follow the new layout.
+
+## Optional GFIT CUDA preprocessing (2026-09-27)
+
+Added shared C++/Python CUDA motion preparation and uint8 letterbox resize,
+with `.cu` sources beside the CPU kernels. Four explicit GFIT v3 CUDA detector
+and tracker pipelines select the motion filter and Netharn CUDA preprocessing;
+existing CPU pipelines expand to the same graph as before. RF-DETR/classifier
+inference already supports CUDA; ByteTrack association remains on the CPU.
+
+Full-project CUDA targets build; 129 Python tests and three C++ tests pass.
+Compute Sanitizer reports zero errors. Hidden devices produce one passing lazy
+import test and 129 skips. A deployed GFIT groups classifier gives identical
+probabilities with CPU/CUDA preprocessing on four chips. All eight CPU/CUDA
+leaf pipelines parse and bake. Tests remain under `tests/library/`.
+See `library/image_kernels/GFIT_CUDA.md` for usage and stage measurements;
+full tracking throughput and Windows execution have not been tested.

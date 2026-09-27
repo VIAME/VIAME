@@ -29,6 +29,8 @@ public:
   int channels() const noexcept;
   pixel_type type() const;
   int device() const;
+  /// Borrowed device pointer; storage remains owned by this image.
+  void *device_data() const;
   std::size_t row_bytes() const noexcept;
 
 private:
@@ -68,6 +70,14 @@ public:
   image denoise_non_local_means(image const &source, double strength,
                                 int patch = 7, int window = 21,
                                 image const *output = nullptr);
+
+  /// GFIT v3 motion input: [variance5 * .5, grey, variance30 * .5].
+  /// Uint8, 1--4 channels. Preserves the CPU window update semantics.
+  /// One ordered sequence per context; dimensions changing reset history.
+  image gfit_motion(image const &source, image const *output = nullptr);
+  void reset_gfit_motion();
+  /// Uint8 letterbox resize: area reduction, Lanczos4 enlargement, black pad.
+  image resize_letterbox(image const &source, int width, int height);
 
 private:
   struct implementation;

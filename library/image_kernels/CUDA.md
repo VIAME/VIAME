@@ -6,7 +6,7 @@ It requires a 64-bit host, CMake 3.18+, a CUDA compiler supporting C++17, and th
 Set `CMAKE_CUDA_ARCHITECTURES` for the GPUs you distribute to, for example
 `-DCMAKE_CUDA_ARCHITECTURES="75;86"`. No OpenCV, NPP or cuDNN is required.
 
-`filter.cu` and `denoise.cu` sit beside the CPU headers. They build into
+`filter.cu`, `denoise.cu`, `temporal.cu` and `resample.cu` sit beside the CPU headers. They build into
 `viame_image_kernels_cuda`, a separate shared library. Neither `libviame` nor
 the ordinary Python image-kernel extension links CUDA. CPU calls and pipeline
 configuration remain unchanged. A build with the option off never enables the
@@ -64,7 +64,12 @@ before returning, including on exceptions, so host buffers need only remain
 valid during the call. A mutex serializes calls on one context; Python releases
 the GIL before taking it. Different contexts can run concurrently. Callers must
 coordinate concurrent access when sharing writable images between contexts.
-The API does not yet expose asynchronous operations or external device pointers.
+The API does not expose asynchronous operations. `image::device_data()` provides
+a borrowed device pointer, and Python images provide `__cuda_array_interface__`
+for `torch.as_tensor(image, device="cuda:0")`. Keep the image alive while using
+a borrowed pointer. Synchronize external writes (for example,
+`torch.cuda.synchronize()`) before passing the image back into this API;
+external libraries may use different streams.
 
 ## Supported operations and numerical behavior
 
@@ -112,3 +117,8 @@ hardware, driver and system load; measure the actual workload before selecting
 CUDA. NLM still launches two kernels per displacement and could benefit from
 launch batching for small images. Windows and CUDA 13 runtime execution have
 not been tested in this change.
+
+## GFIT tracking and classification
+
+See [GFIT CUDA preprocessing](GFIT_CUDA.md) for the optional pipeline variants,
+public motion/letterbox operations, parity checks and stage timings.

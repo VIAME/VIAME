@@ -10,7 +10,9 @@ include( GenerateExportHeader )
 add_library( viame_image_kernels_cuda SHARED
   ${CMAKE_CURRENT_SOURCE_DIR}/cuda.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/filter.cu
-  ${CMAKE_CURRENT_SOURCE_DIR}/denoise.cu )
+  ${CMAKE_CURRENT_SOURCE_DIR}/denoise.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/temporal.cu
+  ${CMAKE_CURRENT_SOURCE_DIR}/resample.cu )
 add_library( viame::image_kernels_cuda ALIAS viame_image_kernels_cuda )
 generate_export_header( viame_image_kernels_cuda )
 target_include_directories( viame_image_kernels_cuda PUBLIC
@@ -44,3 +46,6 @@ if( VIAME_ENABLE_PYTHON )
     target_link_libraries( python-image_kernels-_cuda PRIVATE ${PYTHON_LIBRARIES} )
   endif()
 endif()
+
+install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE_OpenCV_resize.txt
+  DESTINATION share/viame/licenses )

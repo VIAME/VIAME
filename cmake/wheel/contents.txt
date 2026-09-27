@@ -118,3 +118,6 @@ exclude **/*.pyo
 exclude **/tests/**
 exclude **/test/**
 exclude **/*.a
+
+# License for optional CUDA resize coefficient construction.
+include share/viame/licenses/LICENSE_OpenCV_resize.txt -> viame/licenses/

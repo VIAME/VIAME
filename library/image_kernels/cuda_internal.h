@@ -22,6 +22,16 @@ void gaussian(float const *, float *, float *, int, int, int, float const *,
 void nlm(unsigned char const *, unsigned char *, int, int, int, int, int,
          std::int64_t const *, int, int, std::uint64_t *, std::int64_t *,
          cudaStream_t);
+void gfit_motion(unsigned char const *, unsigned char *, double *, double *,
+                 unsigned char *, std::size_t, int, int, cudaStream_t);
+struct resize_entry {
+  int index;
+  float weight;
+  int fixed;
+};
+void letterbox(unsigned char const *, unsigned char *, int, int, int, int, int,
+               int, int, int, int, bool, int const *, int const *,
+               resize_entry const *, resize_entry const *, cudaStream_t);
 #ifdef __CUDACC__
 __device__ inline int reflect101(int x, int n) {
   if (n == 1)

@@ -1,6 +1,7 @@
 /* This file is part of VIAME. See LICENSE.txt for the BSD 3-Clause license. */
 #include "cuda.h"
 #include "cuda_internal.h"
+#include "cuda_resize_plan.h"
 #include "denoise_weights.h"
 #include "gaussian_kernel.h"
 #include <climits>
@@ -86,6 +87,11 @@ pixel_type image::type() const {
     throw std::invalid_argument("empty CUDA image");
   return data_->type;
 }
+void *image::device_data() const {
+  if (!data_)
+    throw std::invalid_argument("empty CUDA image");
+  return data_->pointer;
+}
 int image::device() const {
   if (!data_)
     throw std::invalid_argument("empty CUDA image");
@@ -118,6 +124,10 @@ struct context::implementation {
   // Destroy these while this context's device is selected.
   struct workspace {
     buffer gaussian_rows, taps, nlm_rows, nlm_sums, weights;
+    buffer mean5, mean30, previous, resize_x, resize_y, resize_xoff,
+        resize_yoff;
+    int motion_width = 0, motion_height = 0, motion_channels = 0,
+        motion_count = 0;
     int gaussian_size = 0, patch = 0, window = 0, channels = 0, shift = 0,
         levels = 0;
     double sigma = 0, strength = -1;
@@ -298,6 +308,92 @@ image context::denoise_non_local_means(image const &src, double strength,
               static_cast<std::int64_t const *>(ws.weights.pointer), ws.shift,
               ws.levels, static_cast<std::uint64_t *>(ws.nlm_rows.pointer),
               static_cast<std::int64_t *>(ws.nlm_sums.pointer), impl_->stream);
+  done.wait();
+  return dst;
+}
+
+image context::gfit_motion(image const &src, image const *output) {
+  std::lock_guard<std::mutex> lock(impl_->mutex);
+  impl_->validate(src);
+  if (src.type() != pixel_type::uint8)
+    throw std::invalid_argument("GFIT motion requires uint8");
+  validate_shape(src.width(), src.height(), 3);
+  device_scope scope(impl_->device);
+  implementation::completion done{impl_->stream};
+  image dst;
+  if (output) {
+    impl_->validate(*output);
+    if (output->width() != src.width() || output->height() != src.height() ||
+        output->channels() != 3 || output->type() != pixel_type::uint8)
+      throw std::invalid_argument("GFIT motion output must be uint8 HxWx3");
+    dst = *output;
+  } else
+    dst.data_ = std::make_shared<image::storage>(
+        src.width(), src.height(), 3, pixel_type::uint8, impl_->device);
+  auto &ws = *impl_->scratch;
+  if (ws.motion_width != src.width() || ws.motion_height != src.height() ||
+      ws.motion_channels != src.channels())
+    ws.motion_count = 0;
+  auto pixels = std::size_t(src.width()) * src.height();
+  ws.mean5.reserve(pixels * sizeof(double));
+  ws.mean30.reserve(pixels * sizeof(double));
+  ws.previous.reserve(pixels);
+  try {
+    detail::gfit_motion(static_cast<unsigned char const *>(src.data_->pointer),
+                        static_cast<unsigned char *>(dst.data_->pointer),
+                        static_cast<double *>(ws.mean5.pointer),
+                        static_cast<double *>(ws.mean30.pointer),
+                        static_cast<unsigned char *>(ws.previous.pointer),
+                        pixels, src.channels(), ws.motion_count, impl_->stream);
+    done.wait();
+  } catch (...) {
+    ws.motion_count = 0;
+    throw;
+  }
+  ws.motion_width = src.width();
+  ws.motion_height = src.height();
+  ws.motion_channels = src.channels();
+  ws.motion_count = std::min(30, ws.motion_count + 1);
+  return dst;
+}
+void context::reset_gfit_motion() {
+  std::lock_guard<std::mutex> lock(impl_->mutex);
+  impl_->scratch->motion_count = 0;
+}
+image context::resize_letterbox(image const &src, int width, int height) {
+  std::lock_guard<std::mutex> lock(impl_->mutex);
+  impl_->validate(src);
+  if (src.type() != pixel_type::uint8)
+    throw std::invalid_argument("letterbox requires uint8");
+  validate_shape(width, height, src.channels());
+  auto plan =
+      detail::make_letterbox_plan(src.width(), src.height(), width, height);
+  device_scope scope(impl_->device);
+  implementation::completion done{impl_->stream};
+  image dst;
+  dst.data_ = std::make_shared<image::storage>(width, height, src.channels(),
+                                               src.type(), impl_->device);
+  auto &ws = *impl_->scratch;
+  auto copy = [&](buffer &target, auto const &values) {
+    auto bytes = values.size() * sizeof(values[0]);
+    target.reserve(bytes);
+    check(cudaMemcpyAsync(target.pointer, values.data(), bytes,
+                          cudaMemcpyHostToDevice, impl_->stream));
+  };
+  copy(ws.resize_x, plan.x.entries);
+  copy(ws.resize_y, plan.y.entries);
+  copy(ws.resize_xoff, plan.x.offsets);
+  copy(ws.resize_yoff, plan.y.offsets);
+  detail::letterbox(
+      static_cast<unsigned char const *>(src.data_->pointer),
+      static_cast<unsigned char *>(dst.data_->pointer), src.width(),
+      src.height(), src.channels(), width, height, plan.width, plan.height,
+      plan.left, plan.top, plan.area,
+      static_cast<int const *>(ws.resize_xoff.pointer),
+      static_cast<int const *>(ws.resize_yoff.pointer),
+      static_cast<detail::resize_entry const *>(ws.resize_x.pointer),
+      static_cast<detail::resize_entry const *>(ws.resize_y.pointer),
+      impl_->stream);
   done.wait();
   return dst;
 }

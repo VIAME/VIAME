@@ -133,6 +133,6 @@ endif()
 if( VIAME_ENABLE_PYTHON )
   viame_add_test(
     NAME "unit:image_kernels:cuda"
-    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_cuda.py"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_cuda.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_cuda_gfit.py"
     LABELS UNIT TIMEOUT 300 SOURCE_SETUP )
 endif()

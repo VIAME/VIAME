@@ -1,4 +1,5 @@
 /* This file is part of VIAME. See LICENSE.txt for the BSD 3-Clause license. */
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <image_kernels/cuda.h>
 #include <stdexcept>
@@ -45,4 +46,38 @@ TEST(cuda, nlm_and_image_copy) {
   ctx.denoise_non_local_means(input, 3, 7, 21, &shared);
   ctx.download(input, host.data());
   EXPECT_EQ(host, source);
+}
+
+TEST(cuda, gfit_motion_reset_and_letterbox) {
+  if (!gpu::device_count())
+    GTEST_SKIP() << gpu::availability_error();
+  gpu::context ctx;
+  std::vector<unsigned char> source(6 * 4 * 3, 42), host(source.size());
+  auto input = ctx.allocate(6, 4, 3, gpu::pixel_type::uint8);
+  ctx.upload(input, source.data());
+  auto motion = ctx.gfit_motion(input);
+  ctx.download(motion, host.data());
+  for (std::size_t i = 0; i < host.size(); i += 3) {
+    EXPECT_EQ(host[i], 0);
+    EXPECT_EQ(host[i + 1], 42);
+    EXPECT_EQ(host[i + 2], 0);
+  }
+  std::fill(source.begin(), source.end(), 142);
+  ctx.upload(input, source.data());
+  ctx.gfit_motion(input, &motion);
+  ctx.download(motion, host.data());
+  EXPECT_EQ(host[0], 255);
+  ctx.reset_gfit_motion();
+  ctx.gfit_motion(input, &motion);
+  ctx.download(motion, host.data());
+  EXPECT_EQ(host[0], 0);
+  EXPECT_EQ(host[1], 142);
+  auto resized = ctx.resize_letterbox(input, 3, 4);
+  std::vector<unsigned char> padded(3 * 4 * 3);
+  ctx.download(resized, padded.data());
+  for (int y = 0; y < 4; ++y)
+    for (int x = 0; x < 9; ++x)
+      EXPECT_EQ(padded[y * 9 + x], (y == 1 || y == 2) ? 142 : 0);
+  EXPECT_NE(resized.device_data(), nullptr);
+  EXPECT_THROW(ctx.resize_letterbox(input, 0, 4), std::invalid_argument);
 }

@@ -1236,6 +1236,7 @@ lib/python3.10/site-packages/viame/applets/__init__.py
 lib/python3.10/site-packages/viame/applets/_applets.so
 lib/python3.10/site-packages/viame/applets/applet_utils.py
 lib/python3.10/site-packages/viame/classifiers/__init__.py
+lib/python3.10/site-packages/viame/classifiers/cuda_preprocess.py
 lib/python3.10/site-packages/viame/classifiers/detection_fusion_core.py
 lib/python3.10/site-packages/viame/classifiers/merge_detections_coverage_reinforce.py
 lib/python3.10/site-packages/viame/classifiers/merge_detections_nms_fusion.py
@@ -1302,6 +1303,7 @@ lib/python3.10/site-packages/viame/image_processing/colmap/colmap_registration.p
 lib/python3.10/site-packages/viame/image_processing/equalize_via_percentiles.py
 lib/python3.10/site-packages/viame/image_processing/features.py
 lib/python3.10/site-packages/viame/image_processing/fft_filter_based_on_ref.py
+lib/python3.10/site-packages/viame/image_processing/gfit_motion_cuda.py
 lib/python3.10/site-packages/viame/image_processing/matching.py
 lib/python3.10/site-packages/viame/image_processing/multicam_homog_blackout.py
 lib/python3.10/site-packages/viame/image_processing/multicam_homog_mosaic.py

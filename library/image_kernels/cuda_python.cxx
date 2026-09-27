@@ -1,6 +1,7 @@
 /* This file is part of VIAME. See LICENSE.txt for the BSD 3-Clause license. */
 #include "cuda.h"
 #include <climits>
+#include <cstdint>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <vector>
@@ -24,7 +25,20 @@ PYBIND11_MODULE(_cuda, m) {
   py::class_<gpu::image>(m, "Image")
       .def_property_readonly("shape", &shape)
       .def_property_readonly("dtype", &dtype)
-      .def_property_readonly("device", &gpu::image::device);
+      .def_property_readonly("device", &gpu::image::device)
+      .def_property_readonly(
+          "__cuda_array_interface__", [](gpu::image const &im) {
+            py::dict result;
+            result["shape"] = shape(im);
+            result["strides"] = py::none();
+            result["typestr"] =
+                im.type() == gpu::pixel_type::uint8 ? "|u1" : "<f4";
+            result["data"] = py::make_tuple(
+                reinterpret_cast<std::uintptr_t>(im.device_data()), false);
+            result["version"] = 3;
+            result["stream"] = py::none();
+            return result;
+          });
   py::class_<gpu::context>(m, "Context")
       .def(py::init<int>(), py::arg("device") = 0,
            py::call_guard<py::gil_scoped_release>())
@@ -77,6 +91,13 @@ PYBIND11_MODULE(_cuda, m) {
             return result;
           },
           py::arg("image"))
+      .def("gfit_motion", &gpu::context::gfit_motion, py::arg("image"),
+           py::arg("out") = nullptr, py::call_guard<py::gil_scoped_release>())
+      .def("reset_gfit_motion", &gpu::context::reset_gfit_motion,
+           py::call_guard<py::gil_scoped_release>())
+      .def("resize_letterbox", &gpu::context::resize_letterbox,
+           py::arg("image"), py::arg("width"), py::arg("height"),
+           py::call_guard<py::gil_scoped_release>())
       .def("gaussian_blur", &gpu::context::gaussian_blur, py::arg("image"),
            py::arg("size"), py::arg("sigma") = 0., py::arg("out") = nullptr,
            py::call_guard<py::gil_scoped_release>())

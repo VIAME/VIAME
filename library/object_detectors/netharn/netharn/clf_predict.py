@@ -17,6 +17,7 @@ class ClfPredictConfig(scfg.Config):
 
         'deployed': None,
         'batch_size': 4,
+        'preprocess_backend': 'cpu',
         'xpu': 'auto',
 
         'input_dims': scfg.Value('native', help='The size of the inputs to the network'),
@@ -193,13 +194,23 @@ class ClfPredictor(object):
             >>> kwplot.imshow(canvas)
         """
         native = predictor._infer_native(predictor.config)
-        dataset = ImageListDataset(images, input_dims=native['input_dims'],
-                                   min_dim=native['min_dim'])
-        loader = torch_data.DataLoader(dataset,
-                                       batch_size=predictor.config['batch_size'],
-                                       num_workers=predictor.config['workers'],
-                                       drop_last=False,
-                                       shuffle=False)
+        backend = predictor.config.get('preprocess_backend', 'cpu')
+        if backend == 'cuda':
+            from viame.classifiers.cuda_preprocess import CUDAClassifierBatches
+            predictor._ensure_mounted_model()
+            loader = CUDAClassifierBatches(images, native['input_dims'],
+                                           predictor.config['batch_size'],
+                                           predictor.xpu.main_device)
+        elif backend == 'cpu':
+            dataset = ImageListDataset(images, input_dims=native['input_dims'],
+                                       min_dim=native['min_dim'])
+            loader = torch_data.DataLoader(dataset,
+                                           batch_size=predictor.config['batch_size'],
+                                           num_workers=predictor.config['workers'],
+                                           drop_last=False,
+                                           shuffle=False)
+        else:
+            raise ValueError('preprocess_backend must be cpu or cuda')
         prog = ub.ProgIter(loader, desc='clf predict',
                            verbose=predictor.config['verbose'])
         predictor._ensure_mounted_model()

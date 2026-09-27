@@ -51,3 +51,9 @@ if( VIAME_ENABLE_PYTHON )
       SOURCE_SETUP )
   endforeach()
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test( NAME "unit:image_processing:gfit_motion_cuda"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_gfit_motion_cuda.py"
+    LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
+endif()
