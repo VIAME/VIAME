@@ -112,8 +112,13 @@ templates are removed on `close()` or context exit. A handle can run multiple
 inputs before closing. For in-memory processing, use `embedded=True` as described below, or the
 lower-level native `EmbeddedPipeline` interface.
 
-For the lower-level algorithm interfaces below, load the plugin modules
-before calling `create`:
+Algorithm `.create()` and native `EmbeddedPipeline()` automatically initialize
+plugins when first used. `viame.open` also initializes the readers it needs.
+The plugin manager remembers completed registration, so later calls do not
+repeat it. The examples below need no explicit initialization call.
+
+Explicit loading remains available for eager initialization or for inspecting
+the registry (for example, `registered_names()`) before creating anything:
 
     from viame.modules import modules
     modules.load_known_modules()
@@ -211,8 +216,6 @@ otherwise have a reader and a writer:
 Then drive it:
 
     import cv2, numpy as np
-    from viame.modules import modules
-    modules.load_known_modules()
 
     from viame.adapters import EmbeddedPipeline, AdapterDataSet
     from viame.types import Image, ImageContainer
@@ -266,8 +269,6 @@ object set. Any numpy array will do, so the imagery need not come from a
 file:
 
     import cv2, numpy as np
-    from viame.modules import modules
-    modules.load_known_modules()
 
     from viame.algo import ImageObjectDetector
     from viame.types import Image, ImageContainer

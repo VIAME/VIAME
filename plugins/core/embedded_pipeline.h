@@ -43,8 +43,8 @@ struct VIAME_EMBEDDED_PIPELINE_EXPORT embedded_pipeline_description
   std::map< std::string, std::string > output_ports;
 
   /// Build/configure a fresh native pipeline from memory, without starting it.
-  /// The caller must load the required native plugins before calling build,
-  /// then manage start/send/receive/end-of-input/wait as with a normal native
+  /// Native pipeline construction initializes plugins automatically. The
+  /// caller manages start/send/receive/end-of-input/wait as with a normal native
   /// embedded pipeline. Every mapped input port needs a correctly typed value.
   void build( kwiver::embedded_pipeline& pipeline ) const;
 };

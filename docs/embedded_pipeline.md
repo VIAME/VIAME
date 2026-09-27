@@ -15,7 +15,7 @@ On main, include `<viame/embedded_pipeline.h>` and link
 `viame_embedded_pipeline`. Inside a VIAME CMake build:
 
 ```cmake
-target_link_libraries(my_app PRIVATE viame_embedded_pipeline kwiver::vital_vpm)
+target_link_libraries(my_app PRIVATE viame_embedded_pipeline)
 ```
 
 On lite, include `<viame/utilities/embedded_pipeline.h>`. The in-tree target
@@ -27,9 +27,6 @@ Prepare and build
 ```cpp
 #include <viame/embedded_pipeline.h>
 #include <sprokit/processes/adapters/embedded_pipeline.h>
-#include <vital/plugin_management/plugin_manager.h>
-
-kwiver::vital::plugin_manager::instance().load_all_plugins();
 
 viame::embedded_pipeline_options options;
 options.search_paths = { "/opt/viame/configs/pipelines" };
@@ -42,6 +39,10 @@ kwiver::embedded_pipeline pipeline;
 description.build(pipeline);
 pipeline.start();
 ```
+
+Constructing the native `embedded_pipeline` automatically loads its plugins.
+The plugin manager skips registration already completed, including after an
+explicit `load_all_plugins()` call. No manual initialization call is needed.
 
 Preparation parses includes and resolves configuration and relative model
 paths. It does not instantiate algorithms or load models. `build` configures

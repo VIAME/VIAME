@@ -5,7 +5,6 @@
 #include <gtest/gtest.h>
 #include "embedded_pipeline.h"
 #include <sprokit/processes/adapters/embedded_pipeline.h>
-#include <vital/plugin_management/plugin_manager.h>
 #include <vital/types/image_container.h>
 
 #include <chrono>
@@ -50,9 +49,8 @@ protected:
 
 TEST_F( embedded_pipeline_api, native_round_trip_one_two_three_cameras )
 {
-  // Only native process/scheduler plugins: no Python registration module.
-  using manager = kwiver::vital::plugin_manager;
-  manager::instance().load_all_plugins( manager::plugin_type::PROCESSES );
+  // No explicit registration: native pipeline construction must initialize
+  // the process and scheduler plugins in this fresh test executable.
   for( int cameras : { 1, 2, 3 } )
   {
     auto const path = write( "normal.pipe", graph( cameras ) );

@@ -558,3 +558,51 @@ connect from downsampler.output_1 to result.image
         for rate in (-1, float('nan'), float('inf')):
             with pytest.raises(ValueError, match='timeout'):
                 pipe.receive(timeout=rate)
+
+
+@pytest.mark.parametrize('entry_point', ['create', 'embedded'])
+def test_automatic_registration_in_fresh_python_process(entry_point, tmp_path):
+    # Other tests initialize plugins in their interpreter. Use a fresh process
+    # to prove the lower-level entry points work without viame.open or a manual
+    # load_known_modules call first.
+    import subprocess
+    import sys
+    import textwrap
+    source = '''
+from kwiver.vital import algo
+from kwiver.vital.modules import modules
+from kwiver.sprokit.adapters import adapter_data_set, embedded_pipeline
+from pathlib import Path
+import sys
+
+if sys.argv[1] == 'create':
+    assert algo.ImageIO.create('ocv') is not None
+    assert algo.ReadObjectTrackSet.create('viame_csv') is not None
+else:
+    path = Path(sys.argv[2]) / 'automatic.pipe'
+    path.write_text('process input\\n :: input_adapter\\n'
+                    'process output\\n :: output_adapter\\n'
+                    'connect from input.value to output.value\\n')
+    pipeline = embedded_pipeline.EmbeddedPipeline()
+    pipeline.build_pipeline(str(path), str(path.parent))
+    pipeline.start()
+    data = adapter_data_set.AdapterDataSet.create()
+    data['value'] = 42
+    pipeline.send(data)
+    assert pipeline.receive()['value'] == 42
+    pipeline.send_end_of_input()
+    assert pipeline.receive().is_end_of_data()
+    pipeline.wait()
+
+before = list(algo.ReadObjectTrackSet.registered_names())
+assert 'viame_csv' in before
+for _ in range(3):
+    modules.load_known_modules()  # Explicit initialization remains supported.
+    assert algo.ImageIO.create('ocv') is not None
+    assert algo.ReadObjectTrackSet.create('viame_csv') is not None
+    assert list(algo.ReadObjectTrackSet.registered_names()) == before
+'''
+    result = subprocess.run([sys.executable, '-c', textwrap.dedent(source),
+                             entry_point, str(tmp_path)],
+                            capture_output=True, text=True, timeout=60)
+    assert result.returncode == 0, result.stdout + result.stderr
