@@ -24,32 +24,6 @@ class TrainHandler:
     self._process = None
     self._log_lines = []
     self._lock = threading.Lock()
-    self._cached_env = None
-
-  def _get_viame_env( self ):
-    """Capture environment from sourcing setup_viame.sh once and cache it."""
-    if self._cached_env is not None:
-      return self._cached_env
-
-    if not os.path.isfile( self.setup_script ):
-      raise RuntimeError( "VIAME setup script not found: {}".format( self.setup_script ) )
-
-    proc = subprocess.run(
-      [ "bash", "-c", 'source "$1" && env -0', "--", self.setup_script ],
-      capture_output=True,
-      text=True
-    )
-    if proc.returncode != 0:
-      raise RuntimeError( "Failed to source {}: {}".format( self.setup_script, proc.stderr.strip() ) )
-
-    env_dict = os.environ.copy()
-    for item in proc.stdout.split( "\0" ):
-      if item:
-        key, _, val = item.partition( "=" )
-        env_dict[ key ] = val
-
-    self._cached_env = env_dict
-    return self._cached_env
 
   def get_status( self ):
     with self._lock:
@@ -96,15 +70,25 @@ class TrainHandler:
 
       logger.info( "Running: %s", cmd )
 
-      env = self._get_viame_env()
+      if not os.path.isfile( self.setup_script ):
+        raise RuntimeError( "VIAME setup script not found: {}".format( self.setup_script ) )
+
+      # Only this fixed wrapper is parsed by bash. Request values stay in
+      # positional arguments, and quoted "$@" preserves them literally.
+      # Sourcing and exec in the same shell preserves exports and unsets,
+      # while setup output flows into the normal training log.
+      launcher = [
+        "bash", "-c", 'source "$1" && shift && exec "$@"',
+        "--", os.path.abspath( self.setup_script )
+      ] + cmd
 
       proc = subprocess.Popen(
-        cmd,
+        launcher,
+        shell=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        cwd=self.work_dir,
-        env=env
+        cwd=self.work_dir
       )
 
       self._process = proc
