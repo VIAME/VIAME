@@ -2,12 +2,30 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Stereo disparity and depth, on cv2.
+"""Stereo disparity and depth.
 
 the `opencv` plugin's `compute_stereo_disparity.cxx` in python, per
-`lite-removals.md` section 2.4: block matching, semi-global block matching,
-the WLS filter and `stereoRectify` are calib3d and ximgproc, not `image_kernels`
-primitives, so the algorithm stays OpenCV's and only the language changes.
+`lite-removals.md` section 2.4.
+
+**The shipped SGBM path is off cv2**: `image_kernels.stereo_sgbm` is identical
+to `cv::StereoSGBM` over 149 configurations of all three aggregations, the
+three-way one included, which is the mode this selects (2.65). Rectification
+went to `viame.measurement.projection` in P7-T06.
+
+Two branches still reach for cv2, each behind an import inside itself so the
+default path does not:
+
+* `algorithm=BM`, because block matching is a different algorithm rather than a
+  setting of this one and no shipped config selects it;
+* `use_wls_filter`, which three shipped configs *do* set.
+  `image_kernels.filter_disparity_wls` reproduces it closely and not exactly,
+  and 2.67 says why that cannot be fixed -- `fastGlobalSmootherFilter` is not a
+  function of its input, since cv2's own answer moves with `getNumThreads()`.
+  The residue is about one pixel in six thousand, where we emit a small
+  disparity and cv2 discards the pixel; the three `wls` golden variants are
+  recorded from the C++ reference build at **zero** tolerance, so swapping this
+  over is a decision about a measurement product rather than a rounding, and it
+  is left to be taken deliberately.
 
 The registered name, the sixteen config keys and their defaults are the C++
 ones, and `tests/golden/measurement` holds this to what that produced on
@@ -27,6 +45,7 @@ import logging
 
 import numpy as np
 
+from viame import image_kernels
 from viame.algo import ComputeStereoDepthMap
 from viame.types import Image, ImageContainer
 
@@ -112,10 +131,6 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
         self._output_rectified = True
         self._export_as_alpha = False
 
-        self._matcher = None
-        self._right_matcher = None
-        self._wls = None
-
         self._calibration = None
         self._rectification = None
 
@@ -167,9 +182,6 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
         self._output_rectified = _as_bool(cfg.get_value("output_rectified"))
         self._export_as_alpha = _as_bool(cfg.get_value("export_as_alpha"))
 
-        self._matcher = None
-        self._right_matcher = None
-        self._wls = None
         self._calibration = None
         self._rectification = None
 
@@ -193,11 +205,54 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
     # ------------------------------------------------------------------
     # The matchers
 
-    def _matchers(self):
-        import cv2
+    def _sgbm_settings(self):
+        """`cv::StereoSGBM_create`'s arguments, which are the C++'s.
 
-        if self._matcher is not None:
-            return self._matcher
+        P1 and P2 scale with the block area -- 8 and 32 times it -- which is
+        OpenCV's own documented suggestion and what the C++ passed.
+        """
+        block = self._block_size
+
+        return dict(min_disparity=self._min_disparity,
+                    num_disparities=self._num_disparities,
+                    block_size=block,
+                    p1=SGBM_P1_FACTOR * block * block,
+                    p2=SGBM_P2_FACTOR * block * block,
+                    disp12_max_diff=SGBM_DISP12_MAX_DIFF,
+                    pre_filter_cap=SGBM_PRE_FILTER_CAP,
+                    uniqueness_ratio=SGBM_UNIQUENESS_RATIO,
+                    speckle_window_size=self._speckle_window_size,
+                    speckle_range=self._speckle_range,
+                    mode="sgbm_3way")
+
+    def _compute_raw(self, left_rect, right_rect):
+        """The disparity map in sixteenths, before any filtering.
+
+        SGBM is `image_kernels.stereo_sgbm`, which is identical to cv2 over 149
+        configurations of all three aggregations -- see lite-findings.md 2.65.
+        **`algorithm=BM` is still cv2's**: block matching is a different
+        algorithm rather than a setting of this one, no shipped config selects
+        it, and the `bm` golden variant holds it to cv2's output exactly. The
+        import is inside that branch so the SGBM path needs no cv2.
+        """
+        if self._algorithm == "BM":
+            return self._cv_matcher().compute(left_rect, right_rect)
+
+        if self._algorithm != "SGBM":
+            raise RuntimeError(
+                "Invalid algorithm type: " + self._algorithm)
+
+        return image_kernels.stereo_sgbm(left_rect, right_rect,
+                                         **self._sgbm_settings())
+
+    def _cv_matcher(self):
+        """cv2's matcher for the configured algorithm.
+
+        Only the two branches that still need cv2 call this -- `algorithm=BM`
+        and the WLS filter, which needs a `cv::StereoMatcher` to derive its
+        right-view matcher from.
+        """
+        import cv2
 
         if self._algorithm == "BM":
             matcher = cv2.StereoBM_create(self._num_disparities,
@@ -205,40 +260,63 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
             matcher.setMinDisparity(self._min_disparity)
             matcher.setSpeckleWindowSize(self._speckle_window_size)
             matcher.setSpeckleRange(self._speckle_range)
-        elif self._algorithm == "SGBM":
-            block = self._block_size
-            matcher = cv2.StereoSGBM_create(
-                self._min_disparity, self._num_disparities, block,
-                SGBM_P1_FACTOR * block * block,
-                SGBM_P2_FACTOR * block * block,
-                SGBM_DISP12_MAX_DIFF,
-                SGBM_PRE_FILTER_CAP,
-                SGBM_UNIQUENESS_RATIO,
-                self._speckle_window_size,
-                self._speckle_range,
-                cv2.STEREO_SGBM_MODE_SGBM_3WAY)
-        else:
+
+            return matcher
+
+        if self._algorithm != "SGBM":
             raise RuntimeError(
                 "Invalid algorithm type: " + self._algorithm)
 
-        self._matcher = matcher
+        settings = self._sgbm_settings()
 
-        if self._use_wls_filter:
-            try:
-                self._wls = cv2.ximgproc.createDisparityWLSFilter(matcher)
-            except AttributeError:
-                raise RuntimeError(
-                    "use_wls_filter needs a cv2 built with ximgproc, and "
-                    "this one has no cv2.ximgproc")
+        return cv2.StereoSGBM_create(
+            settings["min_disparity"], settings["num_disparities"],
+            settings["block_size"], settings["p1"], settings["p2"],
+            settings["disp12_max_diff"], settings["pre_filter_cap"],
+            settings["uniqueness_ratio"], settings["speckle_window_size"],
+            settings["speckle_range"], cv2.STEREO_SGBM_MODE_SGBM_3WAY)
 
-            self._wls.setLambda(self._wls_lambda)
-            self._wls.setSigmaColor(self._wls_sigma)
-            self._right_matcher = cv2.ximgproc.createRightMatcher(matcher)
-        else:
-            self._wls = None
-            self._right_matcher = None
+    def _apply_wls(self, left_rect, right_rect):
+        """The WLS filter over the two views, which is **still cv2's**.
 
-        return matcher
+        `image_kernels.filter_disparity_wls` and `smooth_globally` exist and
+        reproduce this closely, but not exactly, and the reason is in
+        lite-findings.md 2.67: `fastGlobalSmootherFilter` is not a function of
+        its input -- cv2's own answer moves with `getNumThreads()` -- so the
+        remaining gap cannot be closed. It lands on about one pixel in six
+        thousand, where the smoothed confidence has gone to nothing and the two
+        implementations disagree about the sign of a quantity near zero; there
+        we emit a small disparity and cv2 discards the pixel.
+        
+        That is a decision about a measurement product, not a rounding, and the
+        three `wls` golden variants are recorded bit for bit from the C++
+        reference build at **zero** tolerance. So this branch stays on cv2 until
+        someone accepts a stated tolerance for it, and the kernels sit ready
+        beside it.
+        """
+        import cv2
+
+        matcher = self._cv_matcher()
+
+        try:
+            wls = cv2.ximgproc.createDisparityWLSFilter(matcher)
+        except AttributeError:
+            raise RuntimeError(
+                "use_wls_filter needs a cv2 built with ximgproc, and "
+                "this one has no cv2.ximgproc")
+
+        wls.setLambda(self._wls_lambda)
+        wls.setSigmaColor(self._wls_sigma)
+        right_matcher = cv2.ximgproc.createRightMatcher(matcher)
+
+        # `createDisparityWLSFilter` mutates the left matcher -- uniqueness off,
+        # `disp12MaxDiff` at a million, speckles off -- so the map it filters
+        # has to come from the matcher *after* that, not from `_compute_raw`.
+        left_raw = matcher.compute(left_rect, right_rect)
+        right_raw = right_matcher.compute(right_rect, left_rect)
+
+        return wls.filter(left_raw, left_rect, None, right_raw, None,
+                          right_rect)
 
     # ------------------------------------------------------------------
     # Rectification
@@ -372,13 +450,10 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
             if self._export_as_alpha:
                 left_colour_rectified = left
 
-        matcher = self._matchers()
-        raw = matcher.compute(left_rect, right_rect)
-
-        if self._use_wls_filter and self._right_matcher is not None:
-            right_raw = self._right_matcher.compute(right_rect, left_rect)
-            raw = self._wls.filter(raw, left_rect, None, right_raw, None,
-                                   right_rect)
+        if self._use_wls_filter:
+            raw = self._apply_wls(left_rect, right_rect)
+        else:
+            raw = self._compute_raw(left_rect, right_rect)
 
         # Sixteenths of a pixel to pixels, and an unmatched pixel -- which a
         # matcher marks with a negative value -- to zero.

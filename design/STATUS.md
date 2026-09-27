@@ -2176,3 +2176,37 @@ ways. The caller turns a saturated disparity into either 0 or 2048 pixels, so
 that is a visible artifact on one pixel in two thousand of a depth map. The
 kernels are committed because they are correct and measured, not because the
 caller is ready.
+
+## The disparity computer's SGBM path off cv2, and the WLS decision left open
+
+`ocv_stereo_disparity.py`'s shipped matcher is `image_kernels.stereo_sgbm` now.
+Two branches still reach for cv2, each behind an import inside itself so the
+default path does not:
+
+* **`algorithm=BM`** -- block matching is a different algorithm rather than a
+  setting of this one, no shipped config selects it, and the `bm` golden variant
+  holds it to cv2's output exactly.
+* **`use_wls_filter`**, which three shipped configs do set.
+
+**The WLS branch is a decision I have deliberately not taken.** The kernels for
+it exist and are committed, and 2.67 says why they cannot be made exact:
+`fastGlobalSmootherFilter` is not a function of its input, because cv2's own
+answer moves with `getNumThreads()`. What that leaves is about **one pixel in six
+thousand** where the smoothed confidence has gone to nothing, the two
+implementations disagree about the sign of a quantity near zero, and -- measured,
+and the opposite way round from what I first assumed -- **we emit a small
+disparity where cv2 discards the pixel**. On the seal fixture that is 42 of
+262144 pixels at `nd=16` and 96 at `nd=32`, mean 0.0006 px; on the fish fixture
+it is zero.
+
+Three things make that worth pausing over rather than absorbing into a
+tolerance. The three `wls` golden variants were recorded from the **C++ reference
+build of `main`** and verified bit identical -- `tests/golden/verify_wls_against_reference.py`
+is that check, kept runnable. The disparity cases compare at
+`ARRAY_TOLERANCE = 0.0`. And the product is a depth map that measurement reads
+at specific points, so a spurious depth is worse than a missing one. Swapping the
+branch over means loosening a zero-tolerance recording of a measurement product,
+which is the user's call and not a rounding to be waved through.
+
+Everything else here is settled: the golden passes in full, including every
+disparity variant, at the tolerances it already had.
