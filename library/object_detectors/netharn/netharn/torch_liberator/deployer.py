@@ -435,7 +435,14 @@ class DeployedModel(ub.NiceRepr):
             Tuple[type, dict]: (model_cls, initkw)
         """
         model_fpath = self.info['model_fpath']
-        module = ub.import_module_from_path(model_fpath)
+        from viame.utilities.model_imports import load_model_module
+        from .util import util_zip
+
+        def read_source(path):
+            with util_zip.zopen(path, 'r') as stream:
+                return stream.read()
+
+        module = load_model_module(model_fpath, read_source)
 
         export_version = getattr(module, '__pt_export_version__', '0')
         export_version = list(map(int, export_version.split('.')))

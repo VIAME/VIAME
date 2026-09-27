@@ -322,10 +322,11 @@ def _degrees_between(a, b):
     return float(np.degrees(np.arccos(np.clip(cosine, -1.0, 1.0))))
 
 
-def _direction_degrees(a, b):
+def _direction_degrees(a, b, unsigned=False):
     a = np.asarray(a).ravel() / np.linalg.norm(a)
     b = np.asarray(b).ravel() / np.linalg.norm(b)
-    return float(np.degrees(np.arccos(np.clip(abs(a @ b), -1.0, 1.0))))
+    cosine = a @ b
+    return float(np.degrees(np.arccos(np.clip(abs(cosine) if unsigned else cosine, -1.0, 1.0))))
 
 
 def test_decompose_essential_gives_two_rotations_and_a_unit_translation():
@@ -345,7 +346,7 @@ def test_decompose_essential_gives_two_rotations_and_a_unit_translation():
     # One of the two is the true rotation; the other is the twisted pair.
     assert min(_degrees_between(a, rotation),
                _degrees_between(b, rotation)) < 1e-3
-    assert _direction_degrees(offset, translation) < 1e-3
+    assert _direction_degrees(offset, translation, unsigned=True) < 1e-3
 
 
 def test_recover_pose_is_exact_on_noiseless_correspondences():
@@ -441,3 +442,70 @@ def test_find_essential_rejects_outliers():
     found, offset, _, _ = recover_pose(essential, first, second, mask=mask)
     assert _degrees_between(found, rotation) < 0.5
     assert _direction_degrees(offset, translation) < 0.5
+
+
+@pytest.mark.parametrize("kind", ["collinear", "repeated"])
+def test_find_essential_rejects_degenerate_correspondences(kind):
+    source = np.column_stack([np.arange(12) * 0.01, np.zeros(12)])
+    if kind == "repeated":
+        source[:] = source[0]
+    target = source + [0.1, 0.0]
+    assert find_essential(source, target, max_iterations=20) == (None, None)
+
+
+def test_pose_direction_error_detects_reversed_translation():
+    direction = np.array([1., 0., 0.])
+    assert _direction_degrees(direction, -direction) == 180.0
+    assert _direction_degrees(direction, -direction, unsigned=True) == 0.0
+
+
+def test_eight_point_large_fit_uses_thin_svd(monkeypatch):
+    from viame.utilities import geometry
+    source, target, _, _ = _normalised_pose_scene(count=2000)
+    original = np.linalg.svd
+    shapes = []
+
+    def recorded(array, *args, **kwargs):
+        result = original(array, *args, **kwargs)
+        if array.shape == (2000, 9):
+            shapes.append(result[0].shape)
+        return result
+
+    monkeypatch.setattr(np.linalg, "svd", recorded)
+    essential = geometry._essential_from(source, target)
+    assert essential is not None
+    assert shapes == [(2000, 9)]
+
+
+@pytest.mark.parametrize("seed", [0, 3, 8, 14, 19])
+@pytest.mark.parametrize("baseline,noise", [(0.25,0.001),(1.0,0.0002)])
+def test_five_point_pose_including_noisy_short_baseline(seed, baseline, noise):
+    from viame.utilities.geometry import find_essential_five_point
+    first,second,rotation,translation = _normalised_pose_scene(
+        seed=seed,count=200,baseline=baseline,noise=noise)
+    essential,mask = find_essential_five_point(first,second)
+    assert essential is not None
+    found,offset,voted,count = recover_pose(essential,first,second,mask=mask)
+    assert _degrees_between(found,rotation) < 1.1
+    assert _direction_degrees(offset,translation) < (10.0 if baseline < 1 else 1.0)
+    assert count > 80
+
+
+def test_five_point_candidates_include_true_pose():
+    from viame.utilities.geometry import five_point_candidates
+    first,second,rotation,translation = _normalised_pose_scene(count=100)
+    candidates = five_point_candidates(first[:5],second[:5])
+    assert 1 <= len(candidates) <= 10
+    errors = []
+    for essential in candidates:
+        values = np.linalg.svd(essential,compute_uv=False)
+        np.testing.assert_allclose(values,[2**-.5,2**-.5,0],atol=1e-5)
+        found,offset,_,_ = recover_pose(essential,first,second)
+        errors.append(_degrees_between(found,rotation)+_direction_degrees(offset,translation))
+    assert min(errors) < 1e-4
+
+
+def test_five_point_rejects_degenerate_data():
+    from viame.utilities.geometry import find_essential_five_point
+    points = np.column_stack([np.arange(12)*.01,np.zeros(12)])
+    assert find_essential_five_point(points,points+.1,max_iterations=20) == (None,None)

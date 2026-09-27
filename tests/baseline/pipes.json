@@ -417,7 +417,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "gfit_motion",
             "resolved": true
           }
         }
@@ -440,65 +440,12 @@
           }
         }
       },
-      "float_to_byte1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "float_to_byte2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "image_merger1": {
-        "type": "merge_images",
-        "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
-            "resolved": true
-          }
-        }
-      },
       "image_merger2": {
-        "type": "merge_images",
-        "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
-            "resolved": true
-          }
-        }
-      },
-      "motion_filter1": {
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_average",
+            "impl": "vxl_convert_image",
             "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
-          }
-        }
-      },
-      "motion_filter2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
           }
         }
       }
@@ -2312,7 +2259,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "gfit_motion",
             "resolved": true
           }
         }
@@ -2348,38 +2295,11 @@
         "type": "downsample",
         "algos": {}
       },
-      "float_to_byte1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "float_to_byte2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "image_merger1": {
-        "type": "merge_images",
-        "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
-            "resolved": true
-          }
-        }
-      },
       "image_merger2": {
-        "type": "merge_images",
+        "type": "image_filter",
         "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
+          "filter:type": {
+            "impl": "vxl_convert_image",
             "resolved": true
           }
         }
@@ -2398,32 +2318,6 @@
           "video_reader:type": {
             "impl": "image_list",
             "resolved": true
-          }
-        }
-      },
-      "motion_filter1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
-          }
-        }
-      },
-      "motion_filter2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
           }
         }
       }
@@ -2527,7 +2421,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "gfit_motion",
             "resolved": true
           }
         }
@@ -2563,38 +2457,11 @@
         "type": "downsample",
         "algos": {}
       },
-      "float_to_byte1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "float_to_byte2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "image_merger1": {
-        "type": "merge_images",
-        "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
-            "resolved": true
-          }
-        }
-      },
       "image_merger2": {
-        "type": "merge_images",
+        "type": "image_filter",
         "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
+          "filter:type": {
+            "impl": "vxl_convert_image",
             "resolved": true
           }
         }
@@ -2613,32 +2480,6 @@
           "video_reader:type": {
             "impl": "image_list",
             "resolved": true
-          }
-        }
-      },
-      "motion_filter1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
-          }
-        }
-      },
-      "motion_filter2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
           }
         }
       }
@@ -8235,7 +8076,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "gfit_motion",
             "resolved": true
           }
         }
@@ -8262,38 +8103,11 @@
         "type": "downsample",
         "algos": {}
       },
-      "float_to_byte1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "float_to_byte2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "image_merger1": {
-        "type": "merge_images",
-        "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
-            "resolved": true
-          }
-        }
-      },
       "image_merger2": {
-        "type": "merge_images",
+        "type": "image_filter",
         "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
+          "filter:type": {
+            "impl": "vxl_convert_image",
             "resolved": true
           }
         }
@@ -8335,32 +8149,6 @@
       "measurer": {
         "type": "compute_measurements",
         "algos": {}
-      },
-      "motion_filter1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
-          }
-        }
-      },
-      "motion_filter2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
-          }
-        }
       },
       "track_writer1": {
         "type": "write_object_track",
@@ -11896,7 +11684,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "gfit_motion",
             "resolved": true
           }
         }
@@ -11932,38 +11720,11 @@
         "type": "downsample",
         "algos": {}
       },
-      "float_to_byte1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "float_to_byte2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "image_merger1": {
-        "type": "merge_images",
-        "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
-            "resolved": true
-          }
-        }
-      },
       "image_merger2": {
-        "type": "merge_images",
+        "type": "image_filter",
         "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
+          "filter:type": {
+            "impl": "vxl_convert_image",
             "resolved": true
           }
         }
@@ -11982,32 +11743,6 @@
           "video_reader:type": {
             "impl": "image_list",
             "resolved": true
-          }
-        }
-      },
-      "motion_filter1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
-          }
-        }
-      },
-      "motion_filter2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
           }
         }
       },
@@ -12142,7 +11877,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "gfit_motion",
             "resolved": true
           }
         }
@@ -12178,38 +11913,11 @@
         "type": "downsample",
         "algos": {}
       },
-      "float_to_byte1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "float_to_byte2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_convert_image",
-            "resolved": true
-          }
-        }
-      },
-      "image_merger1": {
-        "type": "merge_images",
-        "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
-            "resolved": true
-          }
-        }
-      },
       "image_merger2": {
-        "type": "merge_images",
+        "type": "image_filter",
         "algos": {
-          "merge_images:type": {
-            "impl": "ocv",
+          "filter:type": {
+            "impl": "vxl_convert_image",
             "resolved": true
           }
         }
@@ -12228,32 +11936,6 @@
           "video_reader:type": {
             "impl": "image_list",
             "resolved": true
-          }
-        }
-      },
-      "motion_filter1": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
-          }
-        }
-      },
-      "motion_filter2": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
-            "impl": "window",
-            "resolved": false
           }
         }
       },

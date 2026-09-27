@@ -1,6 +1,7 @@
 /* This file is part of VIAME. See LICENSE.txt for the BSD 3-Clause license. */
 #ifndef VIAME_IMAGE_KERNELS_CUDA_INTERNAL_H
 #define VIAME_IMAGE_KERNELS_CUDA_INTERNAL_H
+#include "letterbox_plan.h"
 #include <cstddef>
 #include <cstdint>
 #include <cuda_runtime.h>
@@ -24,11 +25,7 @@ void nlm(unsigned char const *, unsigned char *, int, int, int, int, int,
          cudaStream_t);
 void gfit_motion(unsigned char const *, unsigned char *, double *, double *,
                  unsigned char *, std::size_t, int, int, cudaStream_t);
-struct resize_entry {
-  int index;
-  float weight;
-  int fixed;
-};
+using ::viame::image_kernels::detail::resize_entry;
 void letterbox(unsigned char const *, unsigned char *, int, int, int, int, int,
                int, int, int, int, bool, int const *, int const *,
                resize_entry const *, resize_entry const *, cudaStream_t);

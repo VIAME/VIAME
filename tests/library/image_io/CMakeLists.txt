@@ -10,3 +10,9 @@ viame_discover_gtests( viame codecs
   LIBRARIES viame_image_io
             kwiver::vital
             GTest::gtest )
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test( NAME "unit:image_io:display"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_display.py"
+    LABELS UNIT TIMEOUT 60 SOURCE_SETUP )
+endif()

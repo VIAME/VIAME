@@ -12,7 +12,9 @@ tolerances, which is what these are held to.
 
 import numpy as np
 
-__all__ = ["find_homography", "apply_homography"]
+__all__ = ["find_homography", "apply_homography", "find_essential",
+           "five_point_candidates", "find_essential_five_point",
+           "decompose_essential", "recover_pose"]
 
 
 def _normalise(points):
@@ -185,7 +187,12 @@ def _eight_point(source, target):
     rows = np.column_stack(
         [x2 * x1, x2 * y1, x2, y2 * x1, y2 * y1, y2, x1, y1, ones])
 
-    _, _, vt = np.linalg.svd(rows)
+    # Eight rows need the ninth right singular vector (the nullspace).
+    # Taller systems need only the thin factors; a full U costs O(N**2).
+    _, singular, vt = np.linalg.svd(rows, full_matrices=len(rows) < 9)
+    tolerance = np.finfo(rows.dtype).eps * max(rows.shape) * singular[0]
+    if np.count_nonzero(singular > tolerance) < 8:
+        raise np.linalg.LinAlgError("degenerate eight-point correspondences")
     fundamental = vt[-1].reshape(3, 3)
 
     # rank two
@@ -316,9 +323,8 @@ def find_essential(source, target, threshold=0.001, confidence=0.999,
     and still be wrong -- which no amount of refinement afterwards repairs.
     **So this is not a substitute for OpenCV where the baseline is short
     relative to the depth**, which is exactly what a stereo rig presents, and
-    it is why `tools/calibrate.py` still calls `cv2.findEssentialMat`.
-    Reproducing the five-point solver is the only way to close that, and it
-    means transcribing 200 machine-generated polynomial expressions.
+    it is why `tools/calibrate.py` uses `find_essential_five_point`.
+    The five-point solver is available separately as `find_essential_five_point`.
 
     Where the baseline is a fair fraction of the depth, or the features are
     well localised, this is the better estimator of the two.
@@ -505,6 +511,119 @@ def _refine_essential(essential, source, target):
         return essential
 
     return refined / norm
+
+
+def five_point_candidates(source, target):
+    """Return all real essential matrices satisfying five normalized pairs.
+
+    Nister's polynomial elimination, with LAPACK SVD and polynomial roots.
+    Each matrix is defined up to scale; no pose is selected here.
+    """
+    from viame.utilities._essential_coefficients import coefficients
+    source = np.asarray(source, dtype=np.float64).reshape(5, 2)
+    target = np.asarray(target, dtype=np.float64).reshape(5, 2)
+    if not np.isfinite(source).all() or not np.isfinite(target).all():
+        return []
+    x, y = source.T
+    u, v = target.T
+    rows = np.column_stack([u*x, u*y, u, v*x, v*y, v, x, y, np.ones(5)])
+    try:
+        _, singular, vt = np.linalg.svd(rows, full_matrices=True)
+        if singular[-1] <= singular[0] * np.finfo(float).eps * 9:
+            return []
+        basis = vt[5:]
+        coeff = coefficients(basis)
+        eliminated = np.linalg.solve(coeff[:, :10], coeff[:, 10:])
+        b = np.zeros((3, 13))
+        for i in range(3):
+            row1, row2 = eliminated[2*i+4:2*i+6]
+            b[i, 1:4] += row1[:3]
+            b[i, 5:8] += row1[3:6]
+            b[i, 9:13] += row1[6:10]
+            b[i, 0:3] -= row2[:3]
+            b[i, 4:7] -= row2[3:6]
+            b[i, 8:12] -= row2[6:10]
+        # det(B(z)), descending coefficient order. Its degree is ten.
+        from itertools import permutations
+        polynomial = np.zeros(11)
+        blocks = [b[:, :4], b[:, 4:8], b[:, 8:13]]
+        for perm in permutations(range(3)):
+            sign = (-1)**sum(perm[i] > perm[j] for i in range(3) for j in range(i+1,3))
+            product = np.convolve(np.convolve(blocks[0][perm[0]], blocks[1][perm[1]]), blocks[2][perm[2]])
+            polynomial += sign * product
+        roots = np.roots(polynomial)
+        result = []
+        for root in roots:
+            if abs(root.imag) > 1e-8 * max(1., abs(root.real)):
+                continue
+            z = root.real
+            bz = np.column_stack([block @ (z**np.arange(block.shape[1]-1,-1,-1)) for block in blocks])
+            _, _, null = np.linalg.svd(bz)
+            xy = null[-1]
+            if abs(xy[2]) < 1e-10:
+                continue
+            vector = np.array([xy[0]/xy[2],xy[1]/xy[2],z,1.]) @ basis
+            essential = vector.reshape(3,3) / np.linalg.norm(vector)
+            # Reject numerical roots that do not satisfy the essential constraint.
+            values = np.linalg.svd(essential,compute_uv=False)
+            if abs(values[0]-values[1]) < 1e-5 and values[2] < 1e-5:
+                result.append(essential)
+        return result
+    except np.linalg.LinAlgError:
+        return []
+
+
+def find_essential_five_point(source, target, threshold=0.001, confidence=0.999,
+                               max_iterations=1000, seed=0xffffffffffffffff):
+    """Robust essential matrix using five-point samples and Sampson scoring.
+
+    Coordinates must be undistorted normalized camera coordinates. Returns
+    (matrix, boolean inlier mask), or (None, None) without a valid consensus.
+    Uses the legacy OpenCV RANSAC random sequence; numerical root solvers may
+    order candidates differently, so this promises accuracy, not bit equality.
+    """
+    source = np.asarray(source,dtype=np.float64).reshape(-1,2)
+    target = np.asarray(target,dtype=np.float64).reshape(-1,2)
+    if len(source) != len(target):
+        raise ValueError('source and target must have the same length')
+    if not 0 < confidence < 1 or threshold <= 0 or max_iterations < 1:
+        raise ValueError('invalid RANSAC confidence, threshold or iteration limit')
+    valid = np.isfinite(source).all(axis=1) & np.isfinite(target).all(axis=1)
+    a,b = source[valid],target[valid]
+    count = len(a)
+    if count < 5:
+        return None,None
+    state = int(seed) & 0xffffffffffffffff
+    if not state:
+        state = 0xffffffff
+    best_total,best,best_mask = 0,None,None
+    limit = int(max_iterations)
+    step = 0
+    while step < limit:
+        step += 1
+        chosen = []
+        while len(chosen) < 5:
+            state = ((state & 0xffffffff)*4164903690+(state >> 32)) & 0xffffffffffffffff
+            index = (state & 0xffffffff) % count
+            if index not in chosen:
+                chosen.append(index)
+        for essential in five_point_candidates(a[chosen],b[chosen]):
+            inliers = _sampson_distance(essential,a,b) <= threshold**2
+            total = int(inliers.sum())
+            if total > max(best_total,4):
+                best_total,best,best_mask = total,essential,inliers
+                miss = 1-(total/count)**5
+                if miss <= np.finfo(float).eps:
+                    limit = 0
+                else:
+                    limit = min(limit,int(np.ceil(np.log1p(-confidence)/np.log(miss))))
+        if count == 5:
+            break
+    if best is None:
+        return None,None
+    mask = np.zeros(len(source),dtype=bool)
+    mask[valid] = best_mask
+    return best,mask
 
 
 def decompose_essential(essential):

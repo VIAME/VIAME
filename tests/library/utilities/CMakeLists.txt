@@ -98,3 +98,9 @@ endif()
 
 viame_discover_gtests( viame embedded_pipeline
   LIBRARIES viame_embedded_pipeline kwiver::vital_vpm GTest::gtest_main )
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test( NAME "unit:utilities:model_imports"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_model_imports.py"
+    LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
+endif()

@@ -13,29 +13,9 @@ three-way one included, which is the mode this selects (2.65), and
 `image_kernels.stereo_bm` is identical to `cv::StereoBM` over 294 (2.70).
 Rectification went to `viame.measurement.projection` in P7-T06.
 
-One branch still reaches for cv2, behind an import inside itself so the
-default path does not: `use_wls_filter`, which three shipped configs *do*
-set. `image_kernels.filter_disparity_wls` reproduces it closely and not
-exactly, and 2.67 says why that cannot be fixed -- `fastGlobalSmootherFilter`
-is not a function of its input, since cv2's own answer moves with
-`getNumThreads()`. The residue is about one pixel in six thousand, where we
-emit a small disparity and cv2 discards the pixel; the three `wls` golden
-variants are recorded from the C++ reference build at **zero** tolerance, so
-swapping this over is a decision about a measurement product rather than a
-rounding, and it is left to be taken deliberately.
-
-The registered name, the sixteen config keys and their defaults are the C++
-ones, and `tests/golden/measurement` holds this to what that produced on
-eight of them.
-
-Two conversions are reproduced rather than tidied, because the recording is
-of their results:
-
-* the C++ built a **BGR** `cv::Mat` and took `COLOR_BGR2GRAY` on it, which is
-  the correct luminance of the original RGB, so this takes `COLOR_RGB2GRAY`
-  on the array as it stands -- the two swaps cancel;
-* a single channel result goes back as a plain image and a four channel one
-  as colour, which the bridge wrote out as BGRA and so is RGBA here.
+WLS uses the local confidence and global smoothing kernels as well. Its
+floating-point smoothing is deterministic across worker counts; low-confidence
+pixels remain invalid instead of overflowing during normalization.
 """
 
 import logging
@@ -247,79 +227,46 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
         return image_kernels.stereo_sgbm(left_rect, right_rect,
                                          **self._sgbm_settings())
 
-    def _cv_matcher(self):
-        """cv2's matcher for the configured algorithm.
-
-        Only the WLS filter still calls this, and only because
-        `cv2.ximgproc.createRightMatcher` wants a `cv::StereoMatcher` object
-        to derive the right-view matcher from -- it is the filter's
-        dependency, not the matching's.
-        """
-        import cv2
-
-        if self._algorithm == "BM":
-            matcher = cv2.StereoBM_create(self._num_disparities,
-                                          self._sad_window_size)
-            matcher.setMinDisparity(self._min_disparity)
-            matcher.setSpeckleWindowSize(self._speckle_window_size)
-            matcher.setSpeckleRange(self._speckle_range)
-
-            return matcher
-
-        if self._algorithm != "SGBM":
-            raise RuntimeError(
-                "Invalid algorithm type: " + self._algorithm)
-
-        settings = self._sgbm_settings()
-
-        return cv2.StereoSGBM_create(
-            settings["min_disparity"], settings["num_disparities"],
-            settings["block_size"], settings["p1"], settings["p2"],
-            settings["disp12_max_diff"], settings["pre_filter_cap"],
-            settings["uniqueness_ratio"], settings["speckle_window_size"],
-            settings["speckle_range"], cv2.STEREO_SGBM_MODE_SGBM_3WAY)
-
     def _apply_wls(self, left_rect, right_rect):
-        """The WLS filter over the two views, which is **still cv2's**.
-
-        `image_kernels.filter_disparity_wls` and `smooth_globally` exist and
-        reproduce this closely, but not exactly, and the reason is in
-        lite-findings.md 2.67: `fastGlobalSmootherFilter` is not a function of
-        its input -- cv2's own answer moves with `getNumThreads()` -- so the
-        remaining gap cannot be closed. It lands on about one pixel in six
-        thousand, where the smoothed confidence has gone to nothing and the two
-        implementations disagree about the sign of a quantity near zero; there
-        we emit a small disparity and cv2 discards the pixel.
-        
-        That is a decision about a measurement product, not a rounding, and the
-        three `wls` golden variants are recorded bit for bit from the C++
-        reference build at **zero** tolerance. So this branch stays on cv2 until
-        someone accepts a stated tolerance for it, and the kernels sit ready
-        beside it.
-        """
-        import cv2
-
-        matcher = self._cv_matcher()
-
-        try:
-            wls = cv2.ximgproc.createDisparityWLSFilter(matcher)
-        except AttributeError:
-            raise RuntimeError(
-                "use_wls_filter needs a cv2 built with ximgproc, and "
-                "this one has no cv2.ximgproc")
-
-        wls.setLambda(self._wls_lambda)
-        wls.setSigmaColor(self._wls_sigma)
-        right_matcher = cv2.ximgproc.createRightMatcher(matcher)
-
-        # `createDisparityWLSFilter` mutates the left matcher -- uniqueness off,
-        # `disp12MaxDiff` at a million, speckles off -- so the map it filters
-        # has to come from the matcher *after* that, not from `_compute_raw`.
-        left_raw = matcher.compute(left_rect, right_rect)
-        right_raw = right_matcher.compute(right_rect, left_rect)
-
-        return wls.filter(left_raw, left_rect, None, right_raw, None,
-                          right_rect)
+        """Compute both disparity views and confidence-weighted WLS locally."""
+        minimum = self._min_disparity
+        count = self._num_disparities
+        if self._algorithm == "BM":
+            block = self._sad_window_size
+            options = dict(num_disparities=count, block_size=block,
+                           texture_threshold=0, uniqueness_ratio=0,
+                           disp12_max_diff=1000000, speckle_window_size=0)
+            matcher = image_kernels.stereo_bm
+            vertical = block // 2
+            radius = int(np.ceil(0.33 * block))
+        else:
+            block = self._block_size
+            options = self._sgbm_settings()
+            options.pop("min_disparity")
+            options.update(uniqueness_ratio=0, disp12_max_diff=1000000,
+                           speckle_window_size=0)
+            matcher = image_kernels.stereo_sgbm
+            vertical = 0
+            radius = int(np.ceil(0.5 * block))
+        left_raw = matcher(left_rect, right_rect, min_disparity=minimum, **options)
+        right_raw = matcher(right_rect, left_rect,
+                            min_disparity=-(minimum + count) + 1, **options)
+        output = np.full(left_raw.shape, (minimum - 1) * 16, dtype=np.int16)
+        stop = len(left_raw) - vertical
+        if stop <= vertical:
+            return output
+        # BM excludes its block radius vertically as well as horizontally.
+        region = slice(vertical, stop)
+        filtered = image_kernels.filter_disparity_wls(
+            np.ascontiguousarray(left_rect[region]),
+            np.ascontiguousarray(left_raw[region]),
+            np.ascontiguousarray(right_raw[region]),
+            lambda_=self._wls_lambda, sigma=self._wls_sigma,
+            left_offset=max(0, minimum + count) + vertical,
+            right_offset=max(0, -minimum) + vertical,
+            min_disparity=minimum, discontinuity_radius=radius)
+        output[region] = np.clip(np.rint(filtered), -32768, 32767).astype(np.int16)
+        return output
 
     # ------------------------------------------------------------------
     # Rectification

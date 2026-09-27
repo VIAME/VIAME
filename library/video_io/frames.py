@@ -93,7 +93,7 @@ def read_frames(path):
             while True:
                 try:
                     out = graph.pull()
-                except Exception:
+                except (av.error.BlockingIOError, av.error.EOFError):
                     return
                 number += 1
                 yield np.ascontiguousarray(out.to_ndarray()), number
@@ -106,7 +106,7 @@ def read_frames(path):
         # A filter may hold a frame back; flushing asks for the rest.
         try:
             graph.push(None)
-        except Exception:
+        except av.error.EOFError:
             pass
         for pair in drain():
             yield pair

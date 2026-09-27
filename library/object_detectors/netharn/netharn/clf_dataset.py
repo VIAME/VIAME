@@ -100,7 +100,8 @@ class ClfDataset(torch_data.Dataset):
         # Resize to input dimensinos
         if self.input_dims is not None:
             dsize = tuple(self.input_dims[::-1])
-            image = kwimage.imresize(image, dsize=dsize, letterbox=True)
+            from viame.image_kernels import resize_letterbox
+            image = resize_letterbox(image, *dsize)
 
         # if 'disparity' in self.channels:
         #     raise NotImplemented

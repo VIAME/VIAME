@@ -1043,6 +1043,7 @@ include/viame/image_kernels/histogram.h
 include/viame/image_kernels/homography_overlap.h
 include/viame/image_kernels/hough.h
 include/viame/image_kernels/layout.h
+include/viame/image_kernels/letterbox_plan.h
 include/viame/image_kernels/match.h
 include/viame/image_kernels/morphology.h
 include/viame/image_kernels/optical_flow.h
@@ -1237,6 +1238,7 @@ lib/python3.10/site-packages/viame/applets/__init__.py
 lib/python3.10/site-packages/viame/applets/_applets.so
 lib/python3.10/site-packages/viame/applets/applet_utils.py
 lib/python3.10/site-packages/viame/classifiers/__init__.py
+lib/python3.10/site-packages/viame/classifiers/category_tree.py
 lib/python3.10/site-packages/viame/classifiers/cuda_preprocess.py
 lib/python3.10/site-packages/viame/classifiers/detection_fusion_core.py
 lib/python3.10/site-packages/viame/classifiers/merge_detections_coverage_reinforce.py
@@ -1290,6 +1292,7 @@ lib/python3.10/site-packages/viame/file_io/utilities_coco.py
 lib/python3.10/site-packages/viame/file_io/write_detected_object_set_coco.py
 lib/python3.10/site-packages/viame/file_io/write_object_track_set_coco.py
 lib/python3.10/site-packages/viame/image_io/__init__.py
+lib/python3.10/site-packages/viame/image_io/display.py
 lib/python3.10/site-packages/viame/image_io/image_viewer.py
 lib/python3.10/site-packages/viame/image_io/pil_image_io.py
 lib/python3.10/site-packages/viame/image_kernels/__init__.py
@@ -1973,6 +1976,7 @@ lib/python3.10/site-packages/viame/util/env.py
 lib/python3.10/site-packages/viame/util/find_python_library.py
 lib/python3.10/site-packages/viame/util/pil.py
 lib/python3.10/site-packages/viame/utilities/__init__.py
+lib/python3.10/site-packages/viame/utilities/_essential_coefficients.py
 lib/python3.10/site-packages/viame/utilities/blobs.py
 lib/python3.10/site-packages/viame/utilities/calibration.py
 lib/python3.10/site-packages/viame/utilities/chessboard.py
@@ -1980,6 +1984,7 @@ lib/python3.10/site-packages/viame/utilities/compat.py
 lib/python3.10/site-packages/viame/utilities/embedded_pipeline.so
 lib/python3.10/site-packages/viame/utilities/geometry.py
 lib/python3.10/site-packages/viame/utilities/imageops.py
+lib/python3.10/site-packages/viame/utilities/model_imports.py
 lib/python3.10/site-packages/viame/utilities/model_wrap.py
 lib/python3.10/site-packages/viame/utilities/module_aliases.py
 lib/python3.10/site-packages/viame/utilities/opencv_yaml.py

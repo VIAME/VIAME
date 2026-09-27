@@ -1,0 +1,1094 @@
+[
+  {
+    "seed": 16,
+    "shape": [
+      7,
+      11
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256
+    ],
+    "sha256": "9c308c7bc7ab072bda371f08c91abf10fbe4d42719a56fc2f5d5679b70288f15"
+  },
+  {
+    "seed": 17,
+    "shape": [
+      7,
+      11,
+      3
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      3
+    ],
+    "sha256": "20ba2ab5ca23700791fcffcfd471fcaf2000a11bd34fe03d4c8c424026b166e8"
+  },
+  {
+    "seed": 18,
+    "shape": [
+      7,
+      11,
+      4
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      4
+    ],
+    "sha256": "2e1db1b1bf762c0bd852c47f57e2474eb05fc15ae55c12d42bf76047681b8524"
+  },
+  {
+    "seed": 19,
+    "shape": [
+      7,
+      11
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41
+    ],
+    "sha256": "901c1f17180640740464d100cff43e6b0f077a0dd6a496b5db1bc9364bef1e1f"
+  },
+  {
+    "seed": 20,
+    "shape": [
+      7,
+      11,
+      3
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      3
+    ],
+    "sha256": "0fd8b8775b8dda158596a474e91dbe785d834f4dfa62a1ac8e6f5c1f75e9b32b"
+  },
+  {
+    "seed": 21,
+    "shape": [
+      7,
+      11,
+      4
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      4
+    ],
+    "sha256": "2f0605a6efd3c46561677da7f7a16e80a9604bcbdeee5d67e5f91215ffe9a2db"
+  },
+  {
+    "seed": 22,
+    "shape": [
+      7,
+      11
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128
+    ],
+    "sha256": "934ede6e55cf010ac5f0d36abbeef48ab7907a22351366f385c1b550de43fefc"
+  },
+  {
+    "seed": 23,
+    "shape": [
+      7,
+      11,
+      3
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      3
+    ],
+    "sha256": "2b7cc147d9d2448f2da228eb659bfc2478e197a9a6dc4d0ff80c819fe4029f8f"
+  },
+  {
+    "seed": 24,
+    "shape": [
+      7,
+      11,
+      4
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      4
+    ],
+    "sha256": "6d954f73c689e879c3454cb8b16735afcdaf55d7b2a4627aeefa40f255772ceb"
+  },
+  {
+    "seed": 25,
+    "shape": [
+      200,
+      300
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256
+    ],
+    "sha256": "793e035e8711fa0ed112bacac60ac6e9ec04adb3ec2d6c9ad799c400b45bae92"
+  },
+  {
+    "seed": 26,
+    "shape": [
+      200,
+      300,
+      3
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      3
+    ],
+    "sha256": "a77051ae3547aeb76c20157acf99eedf61c255d385f7a4d296584714dcbbe49b"
+  },
+  {
+    "seed": 27,
+    "shape": [
+      200,
+      300,
+      4
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      4
+    ],
+    "sha256": "c91c58e4b739cbddad537a12e731c729357ba12794f90297460ce7ec7ba7fde5"
+  },
+  {
+    "seed": 28,
+    "shape": [
+      200,
+      300
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41
+    ],
+    "sha256": "8c3175906dae9f30b09e4acc838a25b99722fd262b0ee34b7657a1e7738ffabb"
+  },
+  {
+    "seed": 29,
+    "shape": [
+      200,
+      300,
+      3
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      3
+    ],
+    "sha256": "6e1dd1b5affe9974769c530e8cccba40e25d3ad8b537d2efcd1bf0a52f177f95"
+  },
+  {
+    "seed": 30,
+    "shape": [
+      200,
+      300,
+      4
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      4
+    ],
+    "sha256": "0b171f369de671559838e1357be06e11ae744ccd5c34a2660ac229ea4d900bf8"
+  },
+  {
+    "seed": 31,
+    "shape": [
+      200,
+      300
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128
+    ],
+    "sha256": "1fadf2549472e98fd57cc97b094258195301ff0efef339c382ab6d34576ca075"
+  },
+  {
+    "seed": 32,
+    "shape": [
+      200,
+      300,
+      3
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      3
+    ],
+    "sha256": "0c33bc991e36d2afbc9a78298bbb082adf0912a9dff0f5a113ed77d30ca4466f"
+  },
+  {
+    "seed": 33,
+    "shape": [
+      200,
+      300,
+      4
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      4
+    ],
+    "sha256": "2af99a39d9ca90931a3bc8983c4985ac64f1b216da1d4dcd5a411fe0251e5348"
+  },
+  {
+    "seed": 34,
+    "shape": [
+      257,
+      131
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256
+    ],
+    "sha256": "ff2ac0bd581cf4cac4d8087b5a0c0beb5eb2e6090c31f0151385c9183117ce38"
+  },
+  {
+    "seed": 35,
+    "shape": [
+      257,
+      131,
+      3
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      3
+    ],
+    "sha256": "c95aef27f691f89becbc2ff56b87df658dbd74ea73cddc531cbee92c29900ac6"
+  },
+  {
+    "seed": 36,
+    "shape": [
+      257,
+      131,
+      4
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      4
+    ],
+    "sha256": "3df6f5c864129297176a81a77e21a37ed03d1db2bd0681b8cea932294ff9acb3"
+  },
+  {
+    "seed": 37,
+    "shape": [
+      257,
+      131
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41
+    ],
+    "sha256": "379fd6f736f7d6d81b0a254d5cd9ea27ed0df4bc325f80e87f9c57ce00e994cc"
+  },
+  {
+    "seed": 38,
+    "shape": [
+      257,
+      131,
+      3
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      3
+    ],
+    "sha256": "cdaad68f3fb60280432fd6a119c76d72b311013b893a63943012b454f0bd9d9d"
+  },
+  {
+    "seed": 39,
+    "shape": [
+      257,
+      131,
+      4
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      4
+    ],
+    "sha256": "b524a4e51e0e05d802683119535a14b1785eaa49455de926f4833fd7310027f8"
+  },
+  {
+    "seed": 40,
+    "shape": [
+      257,
+      131
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128
+    ],
+    "sha256": "78df099f14666e94cac49b8a2da46bb305b53ea210249d873bbf0efe987adc00"
+  },
+  {
+    "seed": 41,
+    "shape": [
+      257,
+      131,
+      3
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      3
+    ],
+    "sha256": "e95cc0e39854cb7860363724fd1a98b59bd64637b56e9ea611ade48139c2a9a1"
+  },
+  {
+    "seed": 42,
+    "shape": [
+      257,
+      131,
+      4
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      4
+    ],
+    "sha256": "2ebef1944c622d96f26f051a5029f1ec0b82b1fe44e57896d813375a60af5618"
+  },
+  {
+    "seed": 43,
+    "shape": [
+      128,
+      128
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256
+    ],
+    "sha256": "f56587a35f7b5d270f1ae5b2c66181174609c5c970b5f43aefc53c43b7521649"
+  },
+  {
+    "seed": 44,
+    "shape": [
+      128,
+      128,
+      3
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      3
+    ],
+    "sha256": "4be52c93ce85a72d3204aba47f13af736e7687edd45d5b4373daa5d505af2627"
+  },
+  {
+    "seed": 45,
+    "shape": [
+      128,
+      128,
+      4
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      4
+    ],
+    "sha256": "c7f66f1312d80082998acb88ab890f319ae1918eef798b003fc97a8b91252f08"
+  },
+  {
+    "seed": 46,
+    "shape": [
+      128,
+      128
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41
+    ],
+    "sha256": "ca1b5b0f0475915da3b1d613403f8ec899038b4fb360927893c3ce3a540addae"
+  },
+  {
+    "seed": 47,
+    "shape": [
+      128,
+      128,
+      3
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      3
+    ],
+    "sha256": "7220cc2b4d1d5d6030509e704c0c6c3b3c850f9a88f639bafd31f335c90db06b"
+  },
+  {
+    "seed": 48,
+    "shape": [
+      128,
+      128,
+      4
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      4
+    ],
+    "sha256": "fc1c2923bed94b642ac56fca3299131f8e6d1097c7da7e5e459ef5408ec2ee6f"
+  },
+  {
+    "seed": 49,
+    "shape": [
+      128,
+      128
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128
+    ],
+    "sha256": "c60259cede069908cd758aca3ef3be7126c50c7b7e08a9c33c0172623c65ba97"
+  },
+  {
+    "seed": 50,
+    "shape": [
+      128,
+      128,
+      3
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      3
+    ],
+    "sha256": "c7ae7640d35ee04cb0ee83dacfd66289ee36cbb0e69e228e52393b401951b6bc"
+  },
+  {
+    "seed": 51,
+    "shape": [
+      128,
+      128,
+      4
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      4
+    ],
+    "sha256": "f621894a7046b67fd8b9a469499a35f6a427af71b27bf46c31acaa057e117eeb"
+  },
+  {
+    "seed": 52,
+    "shape": [
+      400,
+      200
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256
+    ],
+    "sha256": "0aede0d8c4ca74f7e6631578f5f0ed1161adf9bbf5a3f2813c79637c5faeb2e4"
+  },
+  {
+    "seed": 53,
+    "shape": [
+      400,
+      200,
+      3
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      3
+    ],
+    "sha256": "49f019e61659ef49392262a82228002cd47de2f52a7f171c02be92c43c4d6f0e"
+  },
+  {
+    "seed": 54,
+    "shape": [
+      400,
+      200,
+      4
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      4
+    ],
+    "sha256": "799934fbf03332a4bdefa0ddc01dbaa80b77a17afc9f0031cfb94d99ca5eb8aa"
+  },
+  {
+    "seed": 55,
+    "shape": [
+      400,
+      200
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41
+    ],
+    "sha256": "d86f166eba94e8eb055650a0e9fa61f4559a567ae24af32d0da20375cd5d46fb"
+  },
+  {
+    "seed": 56,
+    "shape": [
+      400,
+      200,
+      3
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      3
+    ],
+    "sha256": "7acfb4beca36bd8f9582f204e36b631a2c7f8f154e13ac5da764b590544d0ea6"
+  },
+  {
+    "seed": 57,
+    "shape": [
+      400,
+      200,
+      4
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      4
+    ],
+    "sha256": "7db7a071c7e101934ae1f4d02462cf94810c6a89767df8a2e615c348ce99aa29"
+  },
+  {
+    "seed": 58,
+    "shape": [
+      400,
+      200
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128
+    ],
+    "sha256": "e85c58acc317c968564211eaf407a168c2e0c1b3f6fe4083c80d296537998297"
+  },
+  {
+    "seed": 59,
+    "shape": [
+      400,
+      200,
+      3
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      3
+    ],
+    "sha256": "ee7854777e216dd8b4cdcf5862f1c49606ec83f4e0320597f7a810a46db7c31a"
+  },
+  {
+    "seed": 60,
+    "shape": [
+      400,
+      200,
+      4
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      4
+    ],
+    "sha256": "ad9b20cd9d0551b7851444c1b91cbd294a414b3582506ed031ae338d6437ce63"
+  },
+  {
+    "seed": 61,
+    "shape": [
+      21,
+      300
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256
+    ],
+    "sha256": "458907023d8ff0241f38463d039ad7a37d96e0b8e33196f4dfc3cc90a225df65"
+  },
+  {
+    "seed": 62,
+    "shape": [
+      21,
+      300,
+      3
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      3
+    ],
+    "sha256": "242c69495cfac9f78d0b781bb720bbe406b1dea03fabc6ec21ba21fce694d173"
+  },
+  {
+    "seed": 63,
+    "shape": [
+      21,
+      300,
+      4
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      4
+    ],
+    "sha256": "a5c403e9599ef12a3686ae6b8cfa7865c1117687b4702c06dcd2d87c4a24fbf5"
+  },
+  {
+    "seed": 64,
+    "shape": [
+      21,
+      300
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41
+    ],
+    "sha256": "cfe4b97be3d0bcaf57250359711c62bfaaf2bb4de34f8e7935496e2a9de07a57"
+  },
+  {
+    "seed": 65,
+    "shape": [
+      21,
+      300,
+      3
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      3
+    ],
+    "sha256": "0cbc1ad78b1c8f301e2469d9d6be83ac668c3f31b603606b3244bb0e5c8650a6"
+  },
+  {
+    "seed": 66,
+    "shape": [
+      21,
+      300,
+      4
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      4
+    ],
+    "sha256": "7e5e391e58f9e603e9a2f874760b1c42a46b56270b3b3c4184a6538b02649599"
+  },
+  {
+    "seed": 67,
+    "shape": [
+      21,
+      300
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128
+    ],
+    "sha256": "42da098024bdde10a92474c38e379494a15e399d2c62d6ca1480ca77d73e9688"
+  },
+  {
+    "seed": 68,
+    "shape": [
+      21,
+      300,
+      3
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      3
+    ],
+    "sha256": "4dd61992a8c11c6e93717477cf3568fb78bc33abece345aa3b4a744e9919c303"
+  },
+  {
+    "seed": 69,
+    "shape": [
+      21,
+      300,
+      4
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      4
+    ],
+    "sha256": "253ae44909e383cc21cd6a8ca5fcad5d8e0ed43b34fb60d0ff1b33e118ca2bf3"
+  },
+  {
+    "seed": 70,
+    "shape": [
+      1,
+      8
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256
+    ],
+    "sha256": "6871d0bc048ae5ddeb95a24af7ed78b664cc993e030a29e742a6315205e9bb61"
+  },
+  {
+    "seed": 71,
+    "shape": [
+      1,
+      8,
+      3
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      3
+    ],
+    "sha256": "a5ddd799a34109f46f29c93917267b6fd8b93f7de2a9d497f095f6bc01d96475"
+  },
+  {
+    "seed": 72,
+    "shape": [
+      1,
+      8,
+      4
+    ],
+    "size": [
+      256,
+      256
+    ],
+    "result_shape": [
+      256,
+      256,
+      4
+    ],
+    "sha256": "ebd2f30b78b0ff9c2888631172c47b920b92d0db25ab01217eae7b31447276e4"
+  },
+  {
+    "seed": 73,
+    "shape": [
+      1,
+      8
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41
+    ],
+    "sha256": "05da775406b62c89496a6d418982bca8cbcce376bcf9d92ef127fc3530876d57"
+  },
+  {
+    "seed": 74,
+    "shape": [
+      1,
+      8,
+      3
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      3
+    ],
+    "sha256": "327549ac8c6af98938dde2e2e089e05eb9ec65d996cd09439326168510f7a612"
+  },
+  {
+    "seed": 75,
+    "shape": [
+      1,
+      8,
+      4
+    ],
+    "size": [
+      41,
+      32
+    ],
+    "result_shape": [
+      32,
+      41,
+      4
+    ],
+    "sha256": "77da489de13b53415bf03a50cf8719bb7a36975a15a0626c99f65cfb65c3f3e8"
+  },
+  {
+    "seed": 76,
+    "shape": [
+      1,
+      8
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128
+    ],
+    "sha256": "4775d5d8e8e7c28f41d58e7ce3b7181c495e6a2db6c447d8dea23d90fec08b47"
+  },
+  {
+    "seed": 77,
+    "shape": [
+      1,
+      8,
+      3
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      3
+    ],
+    "sha256": "2bba9a8461123f61a556d45c018d44e680f0d3c8c9d438fae349c531ba39ffd0"
+  },
+  {
+    "seed": 78,
+    "shape": [
+      1,
+      8,
+      4
+    ],
+    "size": [
+      128,
+      128
+    ],
+    "result_shape": [
+      128,
+      128,
+      4
+    ],
+    "sha256": "8ea13a9495e9dba367b697c7e8db64e0d7071e4d89fac8d7015b778d45213e6e"
+  }
+]

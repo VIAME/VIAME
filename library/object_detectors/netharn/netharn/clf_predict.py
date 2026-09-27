@@ -418,9 +418,9 @@ class Classification(ub.NiceRepr):
         """
         if classes is None:
             classes = 3
-        import ndsampler
+        from viame.classifiers.category_tree import CategoryTree
         import kwarray
-        classes = ndsampler.CategoryTree.coerce(classes)
+        classes = CategoryTree.coerce(classes)
 
         rng = kwarray.ensure_rng(rng)
         logits = torch.from_numpy(rng.rand(1, len(classes))).float()
@@ -573,7 +573,8 @@ class ClfSamplerDataset(torch_data.Dataset, ub.NiceRepr):
         # Resize to input dimensinos
         if self.input_dims is not None:
             dsize = tuple(self.input_dims[::-1])
-            image = kwimage.imresize(image, dsize=dsize, letterbox=True)
+            from viame.image_kernels import resize_letterbox
+            image = resize_letterbox(image, *dsize)
 
         im_chw = image.transpose(2, 0, 1) / 255.0
         class_id_to_idx = self.sampler.classes.id_to_idx
@@ -614,7 +615,8 @@ class ImageListDataset(torch_data.Dataset):
             dsize = tuple(self.input_dims[::-1])
             if len(dsize) > 3:
                 dsize = 256, 256
-            image = kwimage.imresize(image, dsize=dsize, letterbox=True)
+            from viame.image_kernels import resize_letterbox
+            image = resize_letterbox(image, *dsize)
 
         im_chw = image.transpose(2, 0, 1) / 255.0
         inputs = {

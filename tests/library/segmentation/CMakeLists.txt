@@ -109,3 +109,9 @@ if( VIAME_ENABLE_PYTHON )
     )
   endforeach()
 endif()
+
+if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_PYTORCH-SAM2 )
+  viame_add_test( NAME "unit:segmentation:sam2_masks"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_sam2_mask_helpers.py"
+    LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
+endif()

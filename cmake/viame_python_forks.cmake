@@ -204,6 +204,14 @@ foreach( _fork IN LISTS _viame_forks )
          "${VIAME_PATCHES_DIR}/${_fork}" "${_source}" )
   endif()
 
+  if( _fork STREQUAL "sam2" AND NOT WIN32 )
+    # The module patches are portable; only setup.py is Windows-specific.
+    set( _patch_cmd COMMAND "${CMAKE_COMMAND}" -E copy_directory
+         "${VIAME_PATCHES_DIR}/sam2/sam2" "${_source}/sam2" )
+  endif()
+  file( GLOB_RECURSE _fork_patch_files CONFIGURE_DEPENDS
+    "${VIAME_PATCHES_DIR}/${_fork}/*" )
+
   add_custom_command(
     OUTPUT  "${_stamp}"
     ${_patch_cmd}
@@ -225,7 +233,7 @@ foreach( _fork IN LISTS _viame_forks )
             -DNO_DEPS=TRUE
             -P "${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake"
     COMMAND "${CMAKE_COMMAND}" -E touch "${_stamp}"
-    DEPENDS ${_viame_fork_extra_deps_${_fork}}
+    DEPENDS ${_viame_fork_extra_deps_${_fork}} ${_fork_patch_files}
     COMMENT "Building and installing ${_fork}"
     VERBATIM
     )

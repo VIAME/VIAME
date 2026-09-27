@@ -169,6 +169,13 @@ resize( array_of< T > const& array, size_t width, size_t height,
     array.ndim() == 3 );
 }
 
+template <typename T>
+py::array resize_letterbox(array_of<T> const& image, int width, int height)
+{
+  return as_array(VIAME_KERNEL_CALL(resize_letterbox, as_image(image), width, height),
+                  image.ndim() == 3);
+}
+
 template < typename T >
 py::array
 resize_area( array_of< T > const& array, size_t width, size_t height )
@@ -1806,6 +1813,11 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
       .def ( py::init<> (), "Reusable stereo cost rows; shared calls are serialized." );
   m.def ( "kernel_thread_count", &viame::image_kernels::kernel_thread_count,
           "Worker budget from VIAME_NUM_THREADS, read on first use." );
+
+  for_every_pixel_type(m, "resize_letterbox", &resize_letterbox<uint8_t>,
+    &resize_letterbox<uint16_t>, &resize_letterbox<float>,
+    py::arg("image"), py::arg("width"), py::arg("height"),
+    "Aspect-preserving area/Lanczos4 resize with black padding.");
 
   for_every_pixel_type( m, "resize", &resize< uint8_t >,
          &resize< uint16_t >, &resize< float >,

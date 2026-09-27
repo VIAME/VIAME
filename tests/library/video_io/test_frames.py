@@ -97,3 +97,21 @@ def test_a_file_with_no_video_stream_is_refused():
     # between this and an image reader cannot use "it failed" to tell them
     # apart.
     assert len(read(NOT_A_VIDEO)) >= 1
+
+
+def test_filter_errors_propagate(monkeypatch):
+    import av
+    from viame.video_io import frames
+    original = av.filter.Graph
+
+    class BrokenGraph:
+        def __init__(self):
+            self.inner = original()
+        def __getattr__(self,name):
+            return getattr(self.inner,name)
+        def pull(self):
+            raise av.error.InvalidDataError(1094995529, "injected filter failure")
+
+    monkeypatch.setattr(av.filter,"Graph",BrokenGraph)
+    with pytest.raises(av.error.InvalidDataError,match="injected filter failure"):
+        list(frames.read_frames(CLIP))

@@ -10,21 +10,8 @@ Stereo camera calibration tool.
 Estimates intrinsic and extrinsic parameters for a stereo camera rig
 from images of a chessboard calibration target.
 
-**Nothing here imports cv2 at module scope.** Three places reach for it and
-each does so inside itself, so the default path needs none:
-
-* `_show` and `_close_windows` -- highgui is a window toolkit rather than an
-  algorithm and has no replacement here. `--gui` is off by default.
-* `estimate_essential_from_stereo_frames` -- `findEssentialMat` is Nister's
-  five-point algorithm under RANSAC and `recoverPose` is the cheirality check
-  over its four decompositions. Not ported, and this function is one route to
-  R and T among several rather than the calibration itself.
-
-Everything else is ours: the detector and matcher are `features.sift` and
-`matching`, the drawing is `image_kernels`, the projection and calibration
-maths is `viame.measurement.projection` and `viame.utilities.calibration`, and
-video reading is `viame.video_io.frames`, which is bit identical to the reader
-a pipeline uses.
+Calibration uses VIAME's feature, projection and five-point pose algorithms.
+Optional image windows use Tk and Pillow via viame.image_io.display.
 """
 
 import numpy as np
@@ -323,23 +310,13 @@ def filter_by_roi(corners, roi, sizes=None):
 
 
 def _show(image):
-    """Put an RGB image on screen and wait for a key.
-
-    **The one thing in this file with no replacement.** highgui is a window
-    toolkit rather than an algorithm, so the `import` lives here instead of at
-    the top: `--gui` is off by default, and without it nothing in this file
-    needs cv2 except the two pose solvers below.
-    """
-    import cv2
-
-    cv2.imshow('img', np.ascontiguousarray(image[:, :, ::-1]))
-    cv2.waitKey(-1)
+    from viame.image_io.display import show
+    show(np.ascontiguousarray(image), title="Calibration")
 
 
 def _close_windows():
-    import cv2
-
-    cv2.destroyAllWindows()
+    from viame.image_io.display import close
+    close()
 
 
 # `cv2.drawChessboardCorners`' colour cycle, one per grid row, so a wrong
@@ -1875,14 +1852,6 @@ def estimate_essential_from_stereo_frames(left_path, right_path, input_path,
     Returns:
         List of dicts with 'R', 'T', 'n_inliers', 'n_pose' keys
     """
-    # **The last two cv2 calls in this file**, and the import is here rather
-    # than at the top so that nothing else in it needs cv2 at all.
-    # `findEssentialMat` is Nister's five-point algorithm under RANSAC and
-    # `recoverPose` is the cheirality check that picks one of its four
-    # decompositions; neither is ported, and this function is one route to R
-    # and T among several rather than the calibration itself.
-    import cv2
-
     # SIFT, with no fallback. The detector is VIAME's own now, so there is
     # no build of cv2 that could fail to carry it -- the `try` around
     # `cv2.SIFT_create` was guarding against a wheel without the patented
@@ -1921,9 +1890,8 @@ def estimate_essential_from_stereo_frames(left_path, right_path, input_path,
         pts1_ud = projection.undistort_points(pts1, K_left, dist_left)
         pts2_ud = projection.undistort_points(pts2, K_right, dist_right)
 
-        E, mask = cv2.findEssentialMat(
-            pts1_ud, pts2_ud, np.eye(3),
-            method=cv2.RANSAC, prob=0.999, threshold=0.001)
+        E, mask = geometry.find_essential_five_point(
+            pts1_ud, pts2_ud, confidence=0.999, threshold=0.001)
 
         if E is None or mask is None:
             return None
@@ -1932,8 +1900,8 @@ def estimate_essential_from_stereo_frames(left_path, right_path, input_path,
         if n_inliers < 15:
             return None
 
-        _, R, T, mask_pose = cv2.recoverPose(
-            E, pts1_ud, pts2_ud, np.eye(3), mask=mask)
+        R, T, mask_pose, _ = geometry.recover_pose(
+            E, pts1_ud, pts2_ud, mask=mask)
         n_pose = int(mask_pose.sum()) if mask_pose is not None else 0
 
         if n_pose < 10:

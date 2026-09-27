@@ -46,6 +46,7 @@ set( image_kernels_headers
   optical_flow.h
   pixel.h
   polygon.h
+  letterbox_plan.h
   resample.h
   smoother.h
   stereo.h
@@ -126,3 +127,7 @@ if( VIAME_ENABLE_PYTHON )
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/image_kernels_init.py image_kernels __init__ )
 endif()
+
+# Resize coefficients are shared by the CPU and optional CUDA implementations.
+install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE_OpenCV_resize.txt
+  DESTINATION share/viame/licenses )

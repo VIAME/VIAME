@@ -46,6 +46,3 @@ if( VIAME_ENABLE_PYTHON )
     target_link_libraries( python-image_kernels-_cuda PRIVATE ${PYTHON_LIBRARIES} )
   endif()
 endif()
-
-install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE_OpenCV_resize.txt
-  DESTINATION share/viame/licenses )

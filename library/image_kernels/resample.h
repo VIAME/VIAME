@@ -7,9 +7,12 @@
 
 #include <viame/core_types/image.h>
 #include <viame/image_kernels/warp.h>
+#include <viame/image_kernels/letterbox_plan.h>
 
 #include <algorithm>
 #include <cstddef>
+#include <type_traits>
+#include <limits>
 
 namespace viame {
 namespace image_kernels {
@@ -169,6 +172,71 @@ pad_or_crop( viame::image_of< T > const& image,
     }
   }
 
+  return result;
+}
+
+// Classifier preprocessing, sharing its coefficient plan with CUDA.
+template <typename T>
+viame::image_of< T >
+resize_letterbox( viame::image_of< T > const& input, int width, int height )
+{
+  if( width < 1 || height < 1 || input.width() == 0 || input.height() == 0 )
+    throw std::invalid_argument("letterbox dimensions must be positive");
+  auto const plan = detail::make_letterbox_plan(input.width(), input.height(), width, height);
+  auto const channels = input.depth();
+  viame::image_of< T > scaled;
+  if( plan.area || (plan.width == int(input.width()) && plan.height == int(input.height())) )
+    scaled = resize_area(input, plan.width, plan.height);
+  else
+  {
+    scaled = viame::image_of< T >(plan.width, plan.height, channels);
+    using accumulator = std::conditional_t<std::is_same_v<T,uint8_t>,int32_t,float>;
+    viame::image_of< accumulator > horizontal(plan.width, input.height(), channels);
+    for( size_t y = 0; y < input.height(); ++y )
+      for( int x = 0; x < plan.width; ++x )
+        for( size_t c = 0; c < channels; ++c )
+        {
+          accumulator value = 0;
+          for( int k = plan.x.offsets[x]; k < plan.x.offsets[x+1]; ++k )
+          {
+            auto const& tap = plan.x.entries[k];
+            if constexpr(std::is_same_v<T,uint8_t>)
+              value += int(input(tap.index,y,c))*tap.fixed;
+            else
+              value += float(input(tap.index,y,c))*tap.weight;
+          }
+          horizontal(x,y,c) = value;
+        }
+    for( int y = 0; y < plan.height; ++y )
+      for( int x = 0; x < plan.width; ++x )
+        for( size_t c = 0; c < channels; ++c )
+        {
+          if constexpr(std::is_same_v<T,uint8_t>)
+          {
+            int64_t value = 0;
+            for( int k = plan.y.offsets[y]; k < plan.y.offsets[y+1]; ++k )
+              value += int64_t(horizontal(x,plan.y.entries[k].index,c))*plan.y.entries[k].fixed;
+            scaled(x,y,c) = static_cast<T>(std::clamp<int64_t>((value+(1<<21))>>22,0,255));
+          }
+          else
+          {
+            float value = 0;
+            for( int k = plan.y.offsets[y]; k < plan.y.offsets[y+1]; ++k )
+              value += horizontal(x,plan.y.entries[k].index,c)*plan.y.entries[k].weight;
+            if constexpr(std::is_integral_v<T>)
+              scaled(x,y,c) = static_cast<T>(std::clamp<long>(std::lrint(value),0,std::numeric_limits<T>::max()));
+            else
+              scaled(x,y,c) = value;
+          }
+        }
+  }
+  viame::image_of< T > result(width,height,channels);
+  for( int y = 0; y < height; ++y )
+    for( int x = 0; x < width; ++x )
+      for( size_t c = 0; c < channels; ++c )
+        result(x,y,c) = x >= plan.left && x < plan.left+plan.width &&
+                         y >= plan.top && y < plan.top+plan.height
+          ? scaled(x-plan.left,y-plan.top,c) : 0;
   return result;
 }
 
