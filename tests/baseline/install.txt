@@ -1073,6 +1073,8 @@ include/viame/image_processing/merge_images.h
 include/viame/image_processing/morphology.h
 include/viame/image_processing/random_hue_shift.h
 include/viame/image_processing/refine_detections_write_to_disk.h
+include/viame/image_processing/sift.h
+include/viame/image_processing/sift_features.h
 include/viame/image_processing/split_image.h
 include/viame/image_processing/split_image_channels.h
 include/viame/image_processing/split_image_habcam.h
@@ -1298,7 +1300,6 @@ lib/python3.10/site-packages/viame/image_processing/ocv_estimators.py
 lib/python3.10/site-packages/viame/image_processing/ocv_feature_types.py
 lib/python3.10/site-packages/viame/image_processing/ocv_flann_matcher.py
 lib/python3.10/site-packages/viame/image_processing/ocv_segmenters.py
-lib/python3.10/site-packages/viame/image_processing/ocv_sift_surf.py
 lib/python3.10/site-packages/viame/image_processing/optical_flow.py
 lib/python3.10/site-packages/viame/image_processing/registration_utils.py
 lib/python3.10/site-packages/viame/image_processing/stabilize_many_images.py

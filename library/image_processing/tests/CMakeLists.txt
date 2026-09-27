@@ -17,6 +17,18 @@ if( VIAME_ENABLE_PYTHON )
   )
 endif()
 
+# The SIFT port against what OpenCV computes. Recorded under the install's own
+# cv2 -- SIFT is in every wheel -- on the tiles tests/golden/surf already
+# carries. See tests/golden/sift/record_from_opencv.py.
+viame_discover_gtests( viame sift
+  LIBRARIES viame_image_processing
+            viame_image_io
+            kwiver::vital
+            GTest::gtest )
+
+target_compile_definitions( test-viame-sift PRIVATE
+  "VIAME_GOLDEN_SIFT_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/sift\"" )
+
 # The SURF port against what OpenCV computes. The reference is recorded from a
 # cv2 built with the non-free modules, which this branch's wheel is not -- see
 # tests/golden/surf/record_from_opencv.py.

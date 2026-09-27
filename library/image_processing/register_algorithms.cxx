@@ -38,6 +38,7 @@
 #include "random_hue_shift.h"
 #include "split_image_habcam.h"
 #include "split_image_horizontally.h"
+#include "sift_features.h"
 #include "surf_features.h"
 #include "threshold.h"
 #include "warp_image_ocv.h"
@@ -88,6 +89,17 @@ register_factories( kv::registry& vpm )
   VIAME_REGISTER_IMAGE_FILTER( convert_image )
   VIAME_REGISTER_IMAGE_FILTER( morphology )
   VIAME_REGISTER_IMAGE_FILTER( threshold )
+
+  // SIFT, ported so that the seven files reaching for `cv2.SIFT_create` --
+  // the registration utilities, the multimodal registration, the homography
+  // IOU tracker and colmap's reconstruction -- can come off cv2. Unlike SURF
+  // this is in every wheel; the port is for the dependency, not the feature,
+  // and it agrees with cv2 on every keypoint of twelve recorded
+  // configurations. See tests/golden/sift.
+  register_algorithm< kv::algo::detect_features,
+    detect_features_SIFT >( vpm, module_name );
+  register_algorithm< kv::algo::extract_descriptors,
+    extract_descriptors_SIFT >( vpm, module_name );
 
   // SURF, ported into this branch because no opencv-python wheel carries it:
   // the algorithm is patented, so every wheel is built with
@@ -156,9 +168,8 @@ register_factories( kv::registry& vpm )
   }
 
   // `estimate_fundamental_matrix:ocv` and `estimate_homography:ocv` are
-  // `ocv_estimators.py` since P7-T04, and `ocv_flann_based`, `ocv_SIFT` and
-  // `ocv_SURF` are python beside them: RANSAC, FLANN and the two scale-space
-  // detectors are not image_kernels primitives, so they stay cv2's.
+  // `ocv_estimators.py` since P7-T04, and `ocv_flann_based` is python beside
+  // them. `ocv_SIFT` and `ocv_SURF` used to be too; both are ported above.
 
   VIAME_REGISTER_IMPORTED( kv::algo::draw_detected_object_set,
                            viame::ocv::draw_detected_object_set,

@@ -909,7 +909,7 @@ def skip_without_surf(case, impl):
     if "ocv_SURF" in (case["impl"], impl) or "ocv_SURF" in case["variant"]:
         pytest.skip(
             "this cv2 has no non-free SURF, so ocv_SURF cannot run; see "
-            "library/image_processing/ocv_sift_surf.py")
+            "library/image_processing/surf.h")
 
 
 def skip_without_model(case):

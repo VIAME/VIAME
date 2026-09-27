@@ -143,7 +143,7 @@ def _surf_is_available():
 
 needs_surf = pytest.mark.skipif(
     not _surf_is_available(),
-    reason="this cv2 has no non-free SURF; see ocv_sift_surf.py")
+    reason="this cv2 has no non-free SURF; see surf.h")
 
 
 @needs_surf

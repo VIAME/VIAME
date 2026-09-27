@@ -1980,3 +1980,62 @@ and 18 of those a border margin rather than a tolerance.
 **Why this matters beyond the two kernels.** SIFT's scale space is float
 `GaussianBlur`, and 2.44 was the standing reason a SIFT port could not be held
 to cv2. It no longer is.
+
+## SIFT ported, and `ocv_SIFT` is C++
+
+`library/image_processing/sift.{h,cxx}` is a port of OpenCV's
+`features/src/sift.dispatch.cpp` and `sift.simd.hpp`, registered as `ocv_SIFT`
+for `detect_features` and `extract_descriptors` by `sift_features.{h,cxx}`.
+`ocv_sift_surf.py` is **deleted** -- its SURF half had been dead since the SURF
+port, since nothing declared it -- and `baseline:registry` passes unchanged,
+which is the check that the C++ keys, defaults and descriptions are the ones the
+python wrapper registered.
+
+**It agrees with cv2 on every keypoint of twelve configurations.** The same
+count each time -- 39, 42, 6, 25, 25, 39, 1360, 1558, 991, 866, 736, 200 --
+every keypoint matched, positions within 3.0e-05 px, sizes within 1.9e-06,
+angles within 4.6e-05 degrees, responses within 4.7e-05 relative, and
+descriptor cosine similarity 0.999998 at worst. SURF's port was accepted at
+0.9964 similarity and a matched fraction of 0.98; this needed neither.
+
+**The reason it came out that well is the order the work was done in.** SIFT's
+scale space is a stack of float `GaussianBlur` calls, and until that blur was
+exact this was not worth attempting -- a 4.6e-05 perturbation of a DoG value
+moves any keypoint whose contrast sits near the threshold, and the counts would
+have drifted. Fixing 2.44 first made the pyramid exact and everything after it
+followed. See 2.61.
+
+Three details of OpenCV's that the port turns on, and one of mine:
+
+* `cv::solve( H, dD, DECOMP_LU )` on the 3x3 Hessian is **not** an LU solve.
+  `Matx::solve` has a three-by-three fast path and it is Cramer's rule in float.
+* the pyramid's blurs take their **width** from `sigma * 4`, not `sigma * 3`,
+  because the images are float and not `CV_8U`.
+* the descriptor is normalised, clipped at a fifth of its norm, and normalised
+  **again**. One pass is a different descriptor.
+* **`cv::SIFT` returns its keypoints sorted by x**, not in the order it finds
+  them -- `removeDuplicatedSorted` sorts them in place in OpenCV 5.0, where an
+  older one sorted an index and compacted in the original order. The port was
+  written from the older behaviour and the C++ test could not see it, because
+  it matches keypoints up rather than zipping them. `features:ocv_SIFT` caught
+  it (9223 of 10368 descriptor values over tolerance) and so did both FLANN
+  match cases, at 6.5 and 3.7 percent of their recorded pairs: a matcher pairs
+  row i with keypoint i, so an ordering difference is a different answer. With
+  it fixed, the FLANN and homography-guided recordings replay too.
+* and the first test run reported a 177 degree angle error that was the
+  harness, not the port: SIFT emits one keypoint per dominant orientation, so
+  matching records by position alone picks the wrong one of a pair. See 2.61
+  for that and for the recorder bug beside it.
+
+`resize` bilinear on a float image is left within one float32 ULP of cv2, which
+2.62 records along with the nine associations that did not account for it. It is
+the base-image doubling in SIFT's pyramid and four orders below the contrast
+threshold, so it is not what decides a keypoint.
+
+**What this leaves.** By `git ls-files '*.py'` outside `packages/`, 21 files
+import cv2, of which 6 are golden recorders that keep it on purpose, plus a
+committed review probe and a highgui-availability probe. **12 files have live
+cv2 calls**, and after this the SIFT cluster is down to what sits *around* SIFT
+rather than SIFT itself: `BFMatcher`, `FlannBasedMatcher`, `findHomography`
+with its four robust estimators, `estimateAffine2D`, and ORB. Plus grabCut,
+SGBM's remaining modes, colmap, highgui and `tools/calibrate.py`.

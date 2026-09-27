@@ -20,9 +20,6 @@ normalisation modules that came from `viame.core` in P2-T05.
 # implementation module at startup, which was the only way the classes came
 # to exist for the subclass walk that registers them. See P8-T10.
 __vital_algorithm_declarations__ = [
-    ( "detect_features", "ocv_SIFT",
-      "OpenCV feature detection via the SIFT algorithm",
-      "viame.image_processing.ocv_sift_surf:DetectFeaturesSIFT" ),
     ( "estimate_fundamental_matrix", "ocv",
       "Use OpenCV to estimate a fundamental matrix from feature matches.",
       "viame.image_processing.ocv_estimators:EstimateFundamentalMatrixOCV" ),
@@ -50,9 +47,6 @@ __vital_algorithm_declarations__ = [
     ( "estimate_homography", "core",
       "Estimate a homography from feature matches (the arrows/core name).",
       "viame.image_processing.ocv_estimators:EstimateHomographyOCV" ),
-    ( "extract_descriptors", "ocv_SIFT",
-      "OpenCV feature detection via the SIFT algorithm",
-      "viame.image_processing.ocv_sift_surf:ExtractDescriptorsSIFT" ),
     ( "image_filter", "equalize_via_percentiles_npy",
       "Numpy percentile normalization with configurable output format",
       "viame.image_processing.equalize_via_percentiles:EqualizeViaPercentiles" ),

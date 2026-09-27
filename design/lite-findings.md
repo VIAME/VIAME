@@ -4070,3 +4070,101 @@ evaluate the curve. So: exact for the input the enhancer actually produces,
 0.3 of an L unit for a float image genuinely in 0..1, and no shipped config or
 recording reaches the latter.
 
+
+## 2.61 SIFT, and why it came out exact when SURF did not
+
+`ocv_SIFT` is ported -- `library/image_processing/sift.{h,cxx}` -- and it
+agrees with `cv2.SIFT_create` on **every keypoint of twelve configurations**:
+the same count each time (39, 42, 6, 25, 25, 39, 1360, 1558, 991, 866, 736,
+200), every one matched, positions within 3.0e-05 px, sizes within 1.9e-06,
+angles within 4.6e-05 degrees, responses within 4.7e-05 relative, and
+descriptor cosine similarity of 0.999998 at worst. SURF's port, by comparison,
+was accepted at 0.9964 descriptor similarity.
+
+The difference is not care, it is 2.44. SIFT's scale space is a stack of float
+`GaussianBlur` calls, and while that blur was 4.6e-05 out there was no point
+attempting this: a perturbation of 4.6e-05 on a DoG value moves a keypoint
+whose contrast sits near the threshold, and the counts would have drifted. With
+the blur exact the whole pyramid is exact and everything downstream follows.
+**The order of work mattered more than the work.**
+
+**`cv::SIFT` returns its keypoints sorted by x, not in the order it finds
+them**, and that order is a contract. It is
+`KeyPointsFilter::removeDuplicatedSorted`, which in OpenCV 5.0 sorts the
+keypoints **in place** -- by x, then y, then size descending, angle, response
+descending, octave descending -- before compacting adjacent duplicates. An
+older OpenCV sorted an *index* and compacted in the original order, and this
+port was written from that memory: it emitted the same keypoints in detection
+order, and the C++ golden passed, because it matches keypoints up rather than
+zipping them.
+
+What caught it was everything downstream. `features:ocv_SIFT:defaults` compares
+an 81 by 128 descriptor matrix row by row and 9223 of its 10368 values were
+over tolerance; both `ocv_flann_based` cases fell to 6.5 and 3.7 percent of
+their recorded pairs, and the homography built on them went with them. **A
+matcher pairs row i with keypoint i**, so an ordering difference is not a
+presentation detail, it is a different answer. The lesson is that a
+well-designed order-insensitive test cannot see an ordering bug, and something
+in the suite has to be order-sensitive on purpose.
+
+Beside it, `KeyPointsFilter::retainBest` partitions on response **greater than
+or equal** to the boundary, so the `n_features` result can be longer than
+`n_features` when there is a tie. Strictly greater drops the boundary keypoints
+themselves.
+
+Three more things in the port are worth carrying:
+
+* `cv::solve( H, dD, DECOMP_LU )` on the 3x3 Hessian is **not an LU solve**.
+  `Matx::solve` has a fast path for three by three with a single right hand
+  side, and it is **Cramer's rule in float**. Getting that wrong moves the
+  sub-pixel offset, which decides both whether a keypoint survives the
+  contrast test and where it lands.
+* `getGaussianKernel`'s table matters here in a way it does not elsewhere. The
+  pyramid's blurs use sigmas like 1.226 and 1.545, well off the table, but the
+  **kernel width** is `cvRound( sigma * 4 * 2 + 1 ) | 1` and not the 3 a byte
+  image gets -- four sigmas either side, because the depth is not `CV_8U`.
+* the descriptor's normalisation is two passes with a **clip in between**:
+  normalise, clip at a fifth of the norm, normalise again, scale by 512. The
+  clip is what makes it robust to illumination and the second normalisation is
+  what stops the clip changing the magnitude. Doing it in one pass is a
+  different descriptor, not a rounding of the same one.
+
+And one thing about the **test** rather than the port. The first run reported a
+worst angle of 177 degrees and a descriptor similarity of 0.37, which read like
+an orientation convention error. It was the matcher: SIFT emits **one keypoint
+per dominant orientation**, so a corner with two strong gradients appears twice
+at the same position and the same scale, and matching on position alone picks
+whichever came first and then reports the other one's angle as the error.
+Matching on angle as well took the same run to 4.6e-05 degrees and 1.0. A
+comparison that matches records up by hand needs to key on everything that can
+distinguish them, and "the numbers look like a sign error" is worth one look at
+the harness before one look at the algorithm.
+
+A second harness bug, in the recorder: a case **named** `contrast` collided
+with its own `contrast` key, because `golden_json` finds a key by searching the
+object's text. `contrast_threshold` came back 0 and the variant silently tested
+the default with no threshold at all -- it found 1358 keypoints against 6 and
+that is what exposed it. Do not name a case after one of its own keys.
+
+## 2.62 Where the float bilinear resize stands
+
+`resize` with bilinear interpolation on a float image is within **one float32
+ULP** of cv2 -- 1.53e-05 on values to 255 -- and the association was not found.
+Nine combinations were tried: fused and unfused in each pass, either operand
+first, and the weights built as OpenCV builds them
+(`fx = (dx + 0.5) * scale - 0.5`, narrowed to float, with the clamped ends
+given a weight of exactly 1). The best of them reaches 6e-08 on 8 of 48 pixels,
+so the remaining difference is inside `HResizeLinear`'s own structure rather
+than in the model of it -- there is a four-destination-pixel vector path and an
+`HResizeLinearVec_X4` that this has not chased.
+
+Stopped there on purpose. The one caller that needs it is SIFT's doubling of
+the base image, and SIFT comes out exact anyway (2.61) -- a 1.5e-05 perturbation
+of the base is four orders below the 0.04 contrast threshold. `resize` nearest
+is exact, which is the other half of SIFT's pyramid.
+
+Worth knowing for the next float kernel: **`cv2.resize`'s python signature has
+`dst` between `dsize` and `fx`.** `cv2.resize(img, (w, h), 0, 0, INTER_NEAREST)`
+passes `dst=0, fx=0, fy=INTER_NEAREST`, leaves interpolation at its default, and
+silently does bilinear. That cost a round of diagnosis chasing a nearest-neighbour
+bug that did not exist.
