@@ -1187,6 +1187,27 @@ good_features( array_of< T > const& array, int max_corners,
   return out;
 }
 
+py::array_t< float >
+fast_corners( array_of< uint8_t > const& array, int threshold, bool suppress )
+{
+  auto const found = VIAME_KERNEL_CALL( fast_corners,
+    as_image( array ), threshold, suppress );
+
+  py::array_t< float > out( std::vector< Py_ssize_t >{
+    static_cast< Py_ssize_t >( found.size() ), 3 } );
+
+  auto* destination = out.mutable_data();
+
+  for( auto const& corner : found )
+  {
+    *destination++ = corner.x;
+    *destination++ = corner.y;
+    *destination++ = corner.response;
+  }
+
+  return out;
+}
+
 template < typename T >
 py::array
 min_eigen_value( array_of< T > const& array, int block_size, int aperture )
@@ -2067,6 +2088,13 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
           "Forget every frame seen so far." )
     .def_property_readonly( "frames", &mog2_wrapper::frames,
           "How many frames have been through it." );
+
+  m.def ( "fast_corners", &fast_corners,
+          py::arg( "image" ), py::arg( "threshold" ) = 10,
+          py::arg( "suppress" ) = true,
+          "cv2.FAST with TYPE_9_16 on one plane of bytes. Returns an N by 3 "
+          "float32 array of x, y and the suppression score, in raster order. "
+          "The score is zero when `suppress` is false, as cv2's is." );
 
   for_both_pixel_types( m, "good_features_to_track",
          &good_features< uint8_t >, &good_features< float >,

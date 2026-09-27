@@ -688,6 +688,216 @@ good_features_to_track( viame::image_of< T > const& image,
   return out;
 }
 
+
+// ----------------------------------------------------------------------------
+/// A corner from `fast_corners`, in the order `cv::KeyPoint` carries them.
+struct fast_corner
+{
+  float x = 0.0f;
+  float y = 0.0f;
+  /// The suppression score, which is zero when suppression was not asked for
+  /// -- `cv::FAST` does not compute it in that case either.
+  float response = 0.0f;
+};
+
+namespace detail {
+
+// ----------------------------------------------------------------------------
+/// The sixteen pixel ring, as dx, dy, in `makeOffsets`'s order: it starts
+/// three rows **below** the centre and turns clockwise.
+constexpr int fast_ring[16][2] = {
+  {  0,  3 }, {  1,  3 }, {  2,  2 }, {  3,  1 },
+  {  3,  0 }, {  3, -1 }, {  2, -2 }, {  1, -3 },
+  {  0, -3 }, { -1, -3 }, { -2, -2 }, { -3, -1 },
+  { -3,  0 }, { -3,  1 }, { -2,  2 }, { -1,  3 },
+};
+
+// ----------------------------------------------------------------------------
+/// `cornerScore< 16 >`: the largest threshold at which the point is still a
+/// corner, less one.
+///
+/// Over the sixteen arcs of nine consecutive ring pixels, take the smallest
+/// difference along each arc and the largest, and keep the best of the
+/// smallest and of the negated largest -- the first says how dark the
+/// brightest member of the most uniformly dark arc is, the second the same
+/// for a bright one. OpenCV writes this twice, once with early exits over
+/// pairs of arcs and once in vectors; the two agree, because an exit only
+/// skips an arc whose partial minimum is already beaten.
+inline int
+fast_corner_score( int const ( &difference )[ 16 ] )
+{
+  int best = -1000;
+  for( int k = 0; k < 16; ++k )
+  {
+    int low = difference[ k ];
+    int high = difference[ k ];
+    for( int m = 1; m < 9; ++m )
+    {
+      auto const value = difference[ ( k + m ) & 15 ];
+      low = std::min( low, value );
+      high = std::max( high, value );
+    }
+    best = std::max( best, std::max( low, -high ) );
+  }
+  return best - 1;
+}
+
+} // namespace detail
+
+// ----------------------------------------------------------------------------
+/// `cv::FAST` with `TYPE_9_16`, which is the only type anything here asks for.
+///
+/// A pixel is a corner when nine of the sixteen on a radius-three ring are
+/// consecutively darker than it by more than \p threshold, or consecutively
+/// brighter by the same. The ring is scanned as twenty-five entries rather
+/// than sixteen so that the wrap costs nothing, and the early rejections --
+/// the four compass points, then the four diagonals -- are OpenCV's, which
+/// change only the speed.
+///
+/// With \p suppress a corner keeps only if its score beats all eight of its
+/// neighbours **strictly**, so a plateau of equal scores yields nothing.
+/// Three rows and three columns at each edge carry no corners at all, since
+/// the ring would leave the image, and the outermost row that does carry
+/// them is suppressed against a row of zeros below it -- OpenCV stops its
+/// row scan one short of where its suppression reads, and this reproduces
+/// that rather than tidying it.
+///
+/// @param image one plane of bytes
+/// @param threshold the contrast a ring pixel needs, 0 to 255
+/// @param suppress whether to run non-maximum suppression
+inline std::vector< fast_corner >
+fast_corners( viame::image_of< uint8_t > const& image, int threshold,
+              bool suppress = true )
+{
+  if( image.depth() != 1 )
+  { throw std::invalid_argument( "fast_corners wants a single plane" ); }
+
+  threshold = std::min( std::max( threshold, 0 ), 255 );
+
+  auto const width = static_cast< ptrdiff_t >( image.width() );
+  auto const height = static_cast< ptrdiff_t >( image.height() );
+
+  std::vector< fast_corner > out;
+  if( width < 7 || height < 7 ) { return out; }
+
+  // `table[ x - v + 255 ]`: 1 where the ring pixel is darker than the centre
+  // by more than the threshold, 2 where it is brighter, 0 in between. Both
+  // bits are tested at once, which is why the rejections can be an `and` of
+  // `or`s -- a run of nine has to survive every opposed pair.
+  uint8_t table[ 511 ];
+  for( int i = -255; i <= 255; ++i )
+  {
+    table[ i + 255 ] =
+      static_cast< uint8_t >( i < -threshold ? 1 : i > threshold ? 2 : 0 );
+  }
+
+  auto const row_step = static_cast< ptrdiff_t >( image.h_step() );
+  auto const column_step = static_cast< ptrdiff_t >( image.w_step() );
+  auto const* base = image.first_pixel();
+
+  ptrdiff_t ring[ 16 ];
+  for( int k = 0; k < 16; ++k )
+  {
+    ring[ k ] = detail::fast_ring[ k ][ 0 ] * column_step +
+                detail::fast_ring[ k ][ 1 ] * row_step;
+  }
+
+  // Scores for the whole frame, zero outside the rows and columns the scan
+  // reaches, which is what OpenCV's three rolling row buffers amount to.
+  std::vector< uint8_t > scores(
+    static_cast< size_t >( width * height ), 0 );
+  std::vector< std::pair< ptrdiff_t, ptrdiff_t > > candidates;
+
+  for( ptrdiff_t y = 3; y + 3 < height; ++y )
+  {
+    for( ptrdiff_t x = 3; x + 3 < width; ++x )
+    {
+      auto const* centre = base + y * row_step + x * column_step;
+      int const value = *centre;
+      auto const* const tab = table + 255 - value;
+
+      int state = tab[ centre[ ring[ 0 ] ] ] | tab[ centre[ ring[ 8 ] ] ];
+      if( state == 0 ) { continue; }
+
+      state &= tab[ centre[ ring[ 2 ] ] ] | tab[ centre[ ring[ 10 ] ] ];
+      state &= tab[ centre[ ring[ 4 ] ] ] | tab[ centre[ ring[ 12 ] ] ];
+      state &= tab[ centre[ ring[ 6 ] ] ] | tab[ centre[ ring[ 14 ] ] ];
+      if( state == 0 ) { continue; }
+
+      state &= tab[ centre[ ring[ 1 ] ] ] | tab[ centre[ ring[ 9 ] ] ];
+      state &= tab[ centre[ ring[ 3 ] ] ] | tab[ centre[ ring[ 11 ] ] ];
+      state &= tab[ centre[ ring[ 5 ] ] ] | tab[ centre[ ring[ 13 ] ] ];
+      state &= tab[ centre[ ring[ 7 ] ] ] | tab[ centre[ ring[ 15 ] ] ];
+
+      bool corner = false;
+
+      // Twenty-five entries, not sixteen: the run may start anywhere and
+      // wrap, and nine past the sixteenth is as far as it can reach.
+      if( state & 1 )
+      {
+        auto const limit = value - threshold;
+        int count = 0;
+        for( int k = 0; k < 25 && !corner; ++k )
+        {
+          if( centre[ ring[ k & 15 ] ] < limit ) { corner = ++count > 8; }
+          else { count = 0; }
+        }
+      }
+
+      if( !corner && ( state & 2 ) )
+      {
+        auto const limit = value + threshold;
+        int count = 0;
+        for( int k = 0; k < 25 && !corner; ++k )
+        {
+          if( centre[ ring[ k & 15 ] ] > limit ) { corner = ++count > 8; }
+          else { count = 0; }
+        }
+      }
+
+      if( !corner ) { continue; }
+
+      candidates.emplace_back( y, x );
+      if( suppress )
+      {
+        int difference[ 16 ];
+        for( int k = 0; k < 16; ++k )
+        { difference[ k ] = value - centre[ ring[ k ] ]; }
+        scores[ static_cast< size_t >( y * width + x ) ] =
+          static_cast< uint8_t >( detail::fast_corner_score( difference ) );
+      }
+    }
+  }
+
+  for( auto const& one : candidates )
+  {
+    auto const y = one.first;
+    auto const x = one.second;
+    auto const score = scores[ static_cast< size_t >( y * width + x ) ];
+
+    if( suppress )
+    {
+      bool best = true;
+      for( ptrdiff_t dy = -1; dy <= 1 && best; ++dy )
+      {
+        for( ptrdiff_t dx = -1; dx <= 1; ++dx )
+        {
+          if( dx == 0 && dy == 0 ) { continue; }
+          if( score <=
+              scores[ static_cast< size_t >( ( y + dy ) * width + x + dx ) ] )
+          { best = false; break; }
+        }
+      }
+      if( !best ) { continue; }
+    }
+
+    out.push_back( { static_cast< float >( x ), static_cast< float >( y ),
+                     static_cast< float >( score ) } );
+  }
+
+  return out;
+}
+
 } // namespace image_kernels
 } // namespace viame
 

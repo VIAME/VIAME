@@ -14,6 +14,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  crop, distance_transform,
                                  intersect_convex, moments,
                                  demosaic, dilate, draw_circle, draw_line,
+                                 fast_corners,
                                  find_contours, good_features_to_track,
                                  label_components, lucas_kanade,
                                  min_eigen_value, Mog2Background,
@@ -1826,6 +1827,99 @@ def test_the_ellipse_element_is_opencvs_not_the_disk():
 def test_an_unknown_element_shape_is_refused():
     with pytest.raises(ValueError):
         dilate(np.zeros((8, 8), np.uint8), 'oval', 3, 3)
+
+
+# Recorded from cv2's FastFeatureDetector with TYPE_9_16 on a blurred
+# random binary field -- dense enough that suppression has plateaux to
+# resolve, small enough to read. The response is the suppression score,
+# which cv2 leaves at zero when suppression is off.
+_FAST_SOURCE = np.array([
+    [191, 197, 162, 131, 127, 131, 133, 162, 197, 160, 127, 160, 194,
+     185, 194, 160, 124, 122, 124, 128],
+    [124, 131, 107, 110, 113, 93, 107, 139, 145, 110, 113, 156, 209,
+     223, 209, 156, 145, 165, 145, 127],
+    [61, 46, 46, 84, 64, 46, 102, 131, 95, 43, 64, 145, 226, 241, 194,
+     145, 156, 177, 139, 131],
+    [102, 61, 46, 61, 61, 61, 75, 110, 113, 64, 43, 124, 209, 191, 139,
+     139, 191, 180, 122, 133],
+    [162, 124, 99, 95, 131, 133, 78, 99, 127, 113, 95, 145, 194, 156,
+     131, 148, 194, 180, 122, 133],
+    [194, 177, 142, 128, 142, 131, 61, 64, 113, 142, 145, 124, 148,
+     131, 78, 75, 139, 162, 107, 102],
+    [153, 180, 145, 95, 113, 110, 75, 75, 124, 177, 162, 93, 61, 61,
+     61, 78, 145, 165, 75, 32],
+    [124, 131, 78, 29, 64, 131, 180, 180, 162, 148, 124, 131, 93, 78,
+     131, 148, 124, 116, 61, 32],
+    [128, 110, 61, 29, 46, 93, 177, 209, 139, 61, 75, 165, 177, 162,
+     171, 162, 75, 46, 78, 99],
+    [127, 145, 148, 110, 84, 61, 110, 162, 131, 64, 61, 131, 156, 177,
+     194, 148, 61, 64, 99, 95],
+    [128, 156, 194, 160, 110, 107, 145, 124, 93, 99, 93, 124, 160, 156,
+     160, 110, 61, 84, 78, 61],
+    [127, 160, 194, 156, 131, 148, 180, 148, 75, 110, 162, 177, 197,
+     160, 142, 131, 75, 78, 93, 99],
+    [99, 110, 148, 145, 110, 75, 107, 148, 107, 148, 177, 156, 160,
+     156, 177, 162, 124, 148, 131, 95],
+    [32, 29, 61, 110, 113, 78, 107, 162, 153, 162, 139, 131, 110, 145,
+     180, 139, 162, 162, 93, 61],
+    [32, 14, 46, 131, 156, 177, 194, 194, 209, 180, 122, 133, 90, 110,
+     145, 124, 145, 124, 93, 99],
+    [131, 78, 61, 148, 194, 194, 177, 171, 209, 162, 107, 133, 107,
+     131, 142, 128, 142, 177, 177, 156],
+    [197, 145, 93, 124, 145, 107, 110, 145, 148, 78, 75, 148, 139, 148,
+     131, 95, 131, 180, 180, 162],
+    [131, 124, 162, 177, 124, 93, 113, 124, 107, 75, 93, 162, 177, 124,
+     61, 29, 46, 61, 75, 93],
+    [64, 75, 162, 212, 177, 148, 124, 148, 148, 133, 131, 156, 194,
+     145, 78, 46, 29, 46, 93, 131],
+    [70, 61, 124, 191, 185, 162, 122, 162, 153, 122, 124, 160, 194,
+     156, 131, 102, 64, 102, 162, 197]],
+    dtype=np.uint8)
+
+_FAST_SUPPRESSED = [
+    [10, 3, 83], [12, 3, 63], [16, 4, 45],
+    [7, 5, 48], [13, 6, 77], [3, 8, 94],
+    [6, 8, 45], [9, 9, 66], [14, 9, 69],
+    [3, 10, 31], [16, 10, 77], [12, 11, 31],
+    [12, 14, 48], [8, 15, 60], [10, 16, 46],
+]
+
+_FAST_UNSUPPRESSED = [
+    [9, 3], [10, 3], [12, 3], [13, 3],
+    [12, 4], [16, 4], [6, 5], [7, 5],
+    [14, 5], [15, 5], [13, 6], [14, 6],
+    [3, 7], [4, 7], [6, 7], [7, 7],
+    [8, 7], [3, 8], [4, 8], [5, 8],
+    [6, 8], [7, 8], [9, 8], [9, 9],
+    [10, 9], [14, 9], [16, 9], [3, 10],
+    [9, 10], [10, 10], [16, 10], [12, 11],
+    [16, 11], [5, 14], [6, 14], [7, 14],
+    [8, 14], [12, 14], [4, 15], [8, 15],
+    [9, 16], [10, 16],
+]
+
+
+def test_fast_corners_matches_opencv_with_suppression():
+    np.testing.assert_array_equal(
+        fast_corners(_FAST_SOURCE, 30), _FAST_SUPPRESSED)
+
+
+def test_fast_corners_without_suppression_keeps_the_plateaux():
+    found = fast_corners(_FAST_SOURCE, 30, suppress=False)
+    np.testing.assert_array_equal(found[:, :2], _FAST_UNSUPPRESSED)
+    # cv2 does not compute a score when it is not going to suppress, and
+    # reports zero rather than leaving the field unset.
+    assert np.all(found[:, 2] == 0)
+    # Every suppressed corner is one of the unsuppressed ones.
+    kept = {tuple(p) for p in np.asarray(_FAST_SUPPRESSED)[:, :2]}
+    assert kept <= {tuple(p) for p in found[:, :2]}
+
+
+def test_fast_corners_wants_one_plane():
+    with pytest.raises(ValueError):
+        fast_corners(np.zeros((20, 20, 3), np.uint8), 30)
+    # Too small for the ring to fit anywhere, rather than an error.
+    assert len(fast_corners(np.zeros((6, 6), np.uint8), 0)) == 0
 
 
 def test_resize_uses_opencv_pixel_centres():
