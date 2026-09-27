@@ -659,6 +659,15 @@ canny( array_of< uint8_t > const& array, double low, double high,
 
 template < typename T >
 py::array
+median_blur( array_of< T > const& array, size_t size )
+{
+  auto const source = as_image( array );
+  return as_array( VIAME_KERNEL_CALL( median_blur, source, size ),
+                   array.ndim() == 3 );
+}
+
+template < typename T >
+py::array
 clahe( array_of< T > const& array,
        double clip_limit, size_t tiles_x, size_t tiles_y )
 {
@@ -1712,6 +1721,13 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   // pixel and is right to. It equalises a histogram, which needs a bounded
   // range of discrete levels to build one over -- and `cv2.createCLAHE`
   // accepts 8 and 16 bit for the same reason.
+  for_every_pixel_type( m, "median_blur", &median_blur< uint8_t >,
+         &median_blur< uint16_t >, &median_blur< float >,
+         py::arg( "image" ), py::arg( "size" ),
+         "cv2.medianBlur. The size is odd and at least 3, and the border "
+         "replicates, as OpenCV's does. Exact by construction: an odd window "
+         "has a single middle sample." );
+
   for_both_pixel_types( m, "clahe", &clahe< uint8_t >, &clahe< uint16_t >,
          py::arg( "image" ), py::arg( "clip_limit" ) = 40.0,
          py::arg( "tiles_x" ) = 8, py::arg( "tiles_y" ) = 8,

@@ -656,6 +656,77 @@ gaussian_blur( viame::image_of< T > const& image, size_t size,
 }
 
 // ----------------------------------------------------------------------------
+/// `cv::medianBlur`: the median of a \p size by \p size window.
+///
+/// Exact by construction rather than by measurement, which is unusual here: an
+/// odd window holds an odd number of samples, so its median is a single sample
+/// and there is no rounding or tie to get wrong. Any correct implementation
+/// agrees with OpenCV's, whichever of its several it dispatched to.
+///
+/// The border replicates, which is what `medianBlur` does and does not let the
+/// caller change.
+template < typename T >
+viame::image_of< T >
+median_blur( viame::image_of< T > const& image, size_t size )
+{
+  if( size < 3 || size % 2 == 0 )
+  {
+    throw std::invalid_argument(
+      "median_blur: the size has to be odd and at least 3" );
+  }
+
+  auto const width = image.width();
+  auto const height = image.height();
+  auto const planes = image.depth();
+  auto const half = static_cast< long >( size / 2 );
+
+  viame::image_of< T > out( width, height, planes );
+
+  if( width == 0 || height == 0 )
+  {
+    return out;
+  }
+
+  std::vector< T > window( size * size );
+
+  for( size_t plane = 0; plane < planes; ++plane )
+  {
+    for( size_t j = 0; j < height; ++j )
+    {
+      for( size_t i = 0; i < width; ++i )
+      {
+        auto at = size_t{ 0 };
+
+        for( long dj = -half; dj <= half; ++dj )
+        {
+          for( long di = -half; di <= half; ++di )
+          {
+            auto const y = detail::border_index(
+              static_cast< long >( j ) + dj, static_cast< long >( height ),
+              border_mode::REPLICATE );
+            auto const x = detail::border_index(
+              static_cast< long >( i ) + di, static_cast< long >( width ),
+              border_mode::REPLICATE );
+
+            window[ at++ ] = image( static_cast< size_t >( x ),
+                                    static_cast< size_t >( y ), plane );
+          }
+        }
+
+        auto const middle = window.begin() +
+                            static_cast< ptrdiff_t >( window.size() / 2 );
+
+        std::nth_element( window.begin(), middle, window.end() );
+
+        out( i, j, plane ) = *middle;
+      }
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
 /// A box blur, which is `cv::blur`: the mean of a \p size by \p size window.
 template < typename T >
 viame::image_of< T >

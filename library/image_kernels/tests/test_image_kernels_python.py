@@ -24,7 +24,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  draw_rect, draw_text, equalize, erode,
                                  fill_ellipse, fill_polygon,
                                  from_hls, from_hsv, from_lab, gaussian_blur,
-                                 hough_circles,
+                                 hough_circles, median_blur,
                                  normalize, optical_flow, remap, resize,
                                  resize_area, stereo_sgbm,
                                  swap_channels, text_size, to_gray, to_hls,
@@ -114,6 +114,33 @@ def test_a_colour_space_round_trips(forward, inverse):
     # 8-bit L*a*b* is lossy enough that OpenCV loses as much; what is checked
     # is that nothing is grossly wrong, not that it is exact.
     assert np.abs(back.astype(int) - frame.astype(int)).max() <= 24
+
+
+def test_median_blur_is_opencvs_median():
+    """`cv2.medianBlur`, and exact for a reason rather than by measurement.
+
+    An odd window holds an odd number of samples, so its median is a single
+    sample -- there is no rounding and no tie, and any correct implementation
+    agrees with OpenCV's whichever of its several it dispatched to. Checked
+    against cv2 over 33 configurations anyway: five shapes including a single
+    row and a three-channel one, uint8/uint16/float32, sizes 3 and 5, and uint8
+    at 7, 9 and 15 where cv2 switches to a histogram.
+
+    The border replicates, which `medianBlur` does not let a caller change --
+    hence the corners below, where the window is three copies of two columns.
+    """
+    frame = np.array([[10, 200, 20, 30],
+                      [40, 50, 60, 70],
+                      [80, 5, 90, 100]], dtype=np.uint8)
+
+    assert median_blur(frame, 3).tolist() == [[40, 40, 50, 30],
+                                              [40, 50, 60, 70],
+                                              [50, 60, 70, 90]]
+
+    with pytest.raises(ValueError):
+        median_blur(frame, 4)
+    with pytest.raises(ValueError):
+        median_blur(frame, 1)
 
 
 def test_hsv_hue_follows_opencvs_integer_path_through_the_wrap():

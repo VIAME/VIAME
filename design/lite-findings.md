@@ -3750,3 +3750,43 @@ Not restored, and deliberately so: the same facts now live in the individual
 test docstrings, where a rewrite of one cannot take the others with it. Worth
 recording because the table read like a maintained index and its loss is
 invisible in the diff unless you were the one maintaining it.
+
+
+## 2.54 HLS in float, and a claim I had to walk back
+
+`to_hls` disagreed with `cv::cvtColor` on **2113124** of the 16777216 8-bit
+triples, every one of them by a single count of hue. Down to **1744** now, a
+factor of 1200, and the remaining ones are hue only.
+
+`cv::cvtColor` runs the 8 bit HLS conversion in **float**, not double, and two
+of the operations have to be the ones OpenCV chose rather than equivalent ones:
+
+* the byte is scaled by `src * (1.f / 255.f)`, a **multiply by the reciprocal**,
+  not a division by 255. In float those are different operations, and taking
+  the division cost about 200000 triples on its own -- measured, by building it
+  the wrong way first;
+* the hue is built in degrees and then **halved**, rather than scaled by
+  `180/360` in one step.
+
+1744 still differ by one count of hue. Not chased further: no tolerance can come
+down until it is exact, every golden passes either way, and the remaining gap is
+a thousandth of a percent.
+
+### The walk-back
+
+An earlier reading of this said **seven of the eight** `ocv_convert_color`
+recordings are the port's own output rather than cv2's. That came from comparing
+cv2 directly against each recording, and for the HLS variants the comparison was
+wrong: it predicted `bgr_to_hls` would move by one count on 661 pixels, and
+running the filter through the harness shows it still matches its recording
+**exactly**. So my model of how that filter orders channels for the `bgr`
+variants was wrong, and any conclusion resting on it is worthless.
+
+What the harness -- which is the authority, since it is what the test uses --
+actually supports is **three**: `rgb_to_lab` and `lab_to_rgb`, shown in 2.43 to
+be bit for bit what the real-valued formula produced, and now `rgb_to_hsv`,
+which moved to max 1 against its recording the moment the hue fix landed. A
+recording that does not follow the port is a recording of the port's past self.
+
+The other five measure 0, which is consistent with either provenance and
+therefore says nothing. Left as unknown rather than guessed at.

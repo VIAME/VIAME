@@ -29,6 +29,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <stdexcept>
 
 namespace viame {
@@ -390,6 +391,71 @@ rgb_to_hls( viame::image_of< T > const& image )
   auto const top = static_cast< double >( pixel_max< T >() );
 
   viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  // `cv::cvtColor` runs the 8 bit HLS conversion in **float**, not double, and
+  // the difference is not small: in double this disagreed with cv2 on 2113124
+  // of the 16777216 triples, all of them by one count of hue. In float, on
+  // 1744. The scalings are OpenCV's too -- the byte is divided by 255 going in,
+  // the hue is halved rather than scaled by 180/360 after being built in
+  // degrees, and lightness and saturation are multiplied by 255 on the way out.
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        // `src[i] * (1.f / 255.f)`, a multiply by the reciprocal rather than a
+        // division. In float those are not the same operation, and taking the
+        // division instead is worth 200000 triples.
+        constexpr float inverse = 1.0f / 255.0f;
+
+        auto const red = static_cast< float >( image( i, j, 0 ) ) * inverse;
+        auto const green = static_cast< float >( image( i, j, 1 ) ) * inverse;
+        auto const blue = static_cast< float >( image( i, j, 2 ) ) * inverse;
+
+        auto const high = std::max( { red, green, blue } );
+        auto const low = std::min( { red, green, blue } );
+        auto const span = high - low;
+        auto const lightness = ( high + low ) * 0.5f;
+
+        auto hue = 0.0f;
+        auto saturation = 0.0f;
+
+        if( span > std::numeric_limits< float >::epsilon() )
+        {
+          saturation = ( lightness < 0.5f )
+                       ? span / ( high + low )
+                       : span / ( 2.0f - high - low );
+
+          auto const rate = 60.0f / span;
+
+          if( high == red )
+          {
+            hue = ( green - blue ) * rate;
+          }
+          else if( high == green )
+          {
+            hue = ( blue - red ) * rate + 120.0f;
+          }
+          else
+          {
+            hue = ( red - green ) * rate + 240.0f;
+          }
+
+          if( hue < 0.0f )
+          {
+            hue += 360.0f;
+          }
+        }
+
+        out( i, j, 0 ) = saturate_pixel_even< T >( hue * 0.5f );
+        out( i, j, 1 ) = saturate_pixel_even< T >( lightness * 255.0f );
+        out( i, j, 2 ) = saturate_pixel_even< T >( saturation * 255.0f );
+      }
+    }
+
+    return out;
+  }
 
   for( size_t j = 0; j < image.height(); ++j )
   {
