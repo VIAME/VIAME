@@ -4,7 +4,7 @@
 
 # Download formatted example training data
 DownloadAndExtract(
-  https://data.kitware.com/api/v1/item/60b5489d2fa25629b9f84808/download
+  https://viame.kitware.com/api/v1/item/6ab572e92d17596fb9c5d3e8/download
   bce0f0ab345e1d10b720b1c3cb8799df
   ${VIAME_DOWNLOAD_DIR}/training_example_set2.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR} )

@@ -117,7 +117,9 @@ add_custom_target( wheel
           --contents   "${VIAME_WHEEL_DEFAULT_CONFIGS}"
           --output-dir "${VIAME_WHEEL_OUTPUT_DIR}"
           --version    "${VIAME_WHEEL_VERSION}"
-          --manifest   "${CMAKE_BINARY_DIR}/install_manifest.txt"
+          # Main installs dependencies through separate subprojects. Its
+          # top-level manifest omits KWIVER and those native dependencies;
+          # select the full installed runtime with main's contents rules.
           --top-level  viame
           # The tools go on the PATH as python launchers; the binaries they
           # exec live in {data}/libexec/viame. See contents.txt.

@@ -2,16 +2,15 @@
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
 
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence including
-object detection, object tracking, image/video annotation, query-based search, image mosaicing,
-image enhancement, size measurement, multi-camera data processing, rapid model generation,
-and tools for the evaluation of different algorithms. Originally targeting marine species
-analytics, VIAME now contains many common algorithms and libraries, and is also useful as a
-generic computer vision toolkit. It contains a number of standalone tools for accomplishing
-the above, a pipeline framework which can connect C/C++, python, and matlab nodes together
-in a multi-threaded fashion, and multiple algorithms resting on top of the pipeline infrastructure.
-Lastly, a portion of the algorithms have been integrated into both desktop and web user interfaces
-for deployments in different types of environments, with an open annotation archive and example
-of the web platform available at [viame.kitware.com](https://viame.kitware.com).
+object detection, tracking, data annotation, multi-camera data processing, size measurement,
+image enhancement, rapid model generation, query-based search, mosaicing, and tools for the
+evaluation of different algorithms. Originally targeting marine species analytics, VIAME now
+contains many common algorithms and libraries, and is also useful as a generic computer vision toolkit.
+It contains a number of standalone tools for accomplishing the above, a pipeline framework which can
+connect C/C++, python, and matlab nodes together in a multi-threaded fashion, and multiple algorithms
+resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been integrated
+into both desktop and web user interfaces for deployments in different types of environments, with an
+open annotation archive and example of the web platform available at [viame.kitware.com](https://viame.kitware.com).
 
 
 Documentation
@@ -28,20 +27,20 @@ but select entries are also listed below broken down by individual functionality
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
 [DIVE Interface](https://kitware.github.io/dive) <>
 [VIEW Interface](examples/annotation_and_visualization) <>
-[Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Object Detector CLI](examples/object_detection) <>
-[Object Tracker CLI](examples/object_tracking) <>
 [Detector Training CLI](examples/object_detector_training) <>
+[Object Tracker CLI](examples/object_tracking) <>
+[Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Evaluation of Detectors](examples/scoring_and_evaluation) <>
 [Detection File Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
-[Calibration and Image Enhancement](examples/image_enhancement) <>
+[Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/registration_and_mosaicing)  <>
 [Stereo Measurement and Depth Maps](examples/size_measurement) <>
 [Pipelining Overview](https://github.com/Kitware/kwiver) <>
-[Core Class and Pipeline Info](https://kwiver.readthedocs.io/en/latest) <>
+[Core Class Info](https://kwiver.readthedocs.io/en/latest) <>
 [Plugin Integration](examples/example_pipeline) <>
-[Example Plugin Templates](plugins/templates) <>
-[Embedding Algorithms in C++](examples/using_algorithms_in_code)
+[Example Templates](plugins/templates) <>
+[Embedding Algorithms](examples/using_algorithms_in_code)
 
 
 Installations
@@ -80,6 +79,7 @@ CentOS
 [\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)) <br>
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
+<!-- install-links:start -->
 **Windows Full Desktop Binaries:** <br>
 * [VIAME v0.23.2 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/149gURaPiIYic97St0-F1OlS4qBeGaNly/view?usp=sharing) <br>
 * [VIAME v0.23.2 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6ab3e49292470417fec95cff/download) <br>
@@ -91,6 +91,7 @@ CentOS
 * [VIAME v0.23.2 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6ab3f53492470417fec95d06/download) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1U2H-AE6IwGkClmNEDw-GAETtJTDfKUuR/view?usp=sharing) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fbc82dfcff796fee73d01/download)
+<!-- install-links:end -->
 
 **Web Applications**: <br>
 * [VIAME Online Web Annotator and Public Annotation Archive](https://viame.kitware.com/) <br>
@@ -126,15 +127,10 @@ wheels for Python 3.10 through 3.14:
 
 pip install viame
 
-This puts the `viame` tool described below onto your path, needing no
-environment set up afterwards, and installs the `viame` python package
-alongside it, so the same detectors, trackers, readers and measurement
-algorithms the pipelines use can be driven directly from python. See
-[Using VIAME as a Python Package](docs/python_package.md).
-
-The pipelines that ship are those whose models are small enough to travel
-with the code; larger models are fetched on demand with the viame add-ons
-tool, into the same environment.
+This puts the main `viame` tool described below onto your path, and installs
+the `viame` python package alongside it. See [VIAME as a Python Package](docs/python_package.md)
+for more information. Only a minimal number of pipelines are shipped by default
+with the library; larger models are fetched on demand with the `viame add-ons` command.
 
 Command Line Interface Basics
 -----------------------------
@@ -143,13 +139,12 @@ Every command line tool is a subcommand of the `viame` program. `viame help`
 lists them with a one line description each, and `viame help <tool>` prints
 that tool's own options.
 
-A desktop or docker installation needs its environment set up first, once
-per shell:
+A desktop or docker installation needs its environment set up first, via running
+the below before commands (pip package installs do not require this):
 
 source [viame-install-directory]/setup_viame.sh
 
-The pip package needs no such step: `pip install viame` puts `viame` on the
-path already configured, and the commands below work straight away.
+Example tool usage:
 
 ```
 viame help                                       # list every tool

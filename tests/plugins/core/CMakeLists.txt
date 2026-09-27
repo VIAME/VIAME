@@ -64,6 +64,18 @@ if( VIAME_ENABLE_PYTHON )
   )
 
   add_test(
+    NAME viame_plugins:core:query_service_layout
+    COMMAND bash -c "source ${VIAME_SETUP_SCRIPT} && \
+      python -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/test_query_service_layout.py -v --tb=short"
+    WORKING_DIRECTORY "${VIAME_BUILD_INSTALL_PREFIX}"
+  )
+  set_tests_properties( viame_plugins:core:query_service_layout
+    PROPERTIES
+      LABELS "UNIT;CORE"
+      TIMEOUT 300
+  )
+
+  add_test(
     NAME viame_plugins:core:model_wrap
     COMMAND bash -c "source ${VIAME_SETUP_SCRIPT} && \
       python -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/test_model_wrap.py -v --tb=short"
@@ -84,3 +96,6 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_OPENCV )
   set_tests_properties( viame_plugins:core:curved_measurement
     PROPERTIES LABELS "UNIT;CORE" TIMEOUT 300 )
 endif()
+
+kwiver_discover_gtests( viame_core embedded_pipeline
+  LIBRARIES viame_embedded_pipeline kwiver::vital_vpm GTest::gtest_main )

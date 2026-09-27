@@ -227,16 +227,15 @@ exceed a confidence threshold. A basic IOU algorithm prevents duplicate tracks o
 the same object. Unlike the MTT trackers above, SiamMask actively maintains a visual
 template for each tracked object and updates it frame-to-frame.
 
-Adaptive Tracker Training
--------------------------
+Default Tracker Training
+------------------------
 
-VIAME also provides an adaptive tracker training mode that automatically analyzes
-the statistics of groundtruth tracking data and selects the best tracker(s) to
-train. The adaptive trainer considers track count, length, density, motion patterns,
-fragmentation, and occlusion levels to pick up to 3 trackers from: ByteTrack,
-OC-SORT, DeepSORT, BoT-SORT, and SRNN. Run with::
+``train_tracker_default.conf`` trains ByteTrack, unless the groundtruth clearly
+needs frame registration: BoT-SORT with camera motion compensation for moving
+targets, or the ``homog_iou`` registration tracker for fixed ground targets.
+Run with::
 
-    viame train -i /path/to/training/data -c train_tracker_adaptive.conf
+    viame train -i /path/to/training/data -c train_tracker_default.conf
 
 
 *************************

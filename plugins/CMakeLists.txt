@@ -78,3 +78,13 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_KWIVER )
     .
     compat )
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  foreach( module IN ITEMS __init__ _io _file_formats _embedded )
+    kwiver_add_python_module(
+      "${CMAKE_CURRENT_SOURCE_DIR}/python/${module}.py" "" "${module}" )
+  endforeach()
+  kwiver_add_python_library( _io_native ""
+    SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/python/_io_native.cxx"
+    PRIVATE kwiver::vital_algo kwiver::vital kwiver::kwiver_adapter ${PYTHON_LIBRARIES} )
+endif()

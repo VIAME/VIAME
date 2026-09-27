@@ -332,7 +332,7 @@ def _ensure_upgraded_model(deployed_fpath):
         >>> # xdoctest: +REQUIRES(module:mmdet)
         >>> from .detect_predict import _ensure_upgraded_model
         >>> deployed_fpath = deployed_fpath1 = ub.grabdata(
-        >>>     'https://data.kitware.com/api/v1/file/5dd3eb8eaf2e2eed3508d604/download',
+        >>>     'https://viame.kitware.com/api/v1/item/6ab572de2d17596fb9c5d3cc/download',
         >>>     fname='deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix3.zip',
         >>>     appname='viame', hasher='sha512',
         >>>     hash_prefix='22a1eeb18c9e5706f6578e66abda1e97a88eee5', verbose=0)
@@ -421,14 +421,14 @@ class DetectPredictor(object):
         >>> import ubelt as ub
         >>> from .detect_predict import *  # NOQA
         >>> deployed_fpath = ub.grabdata(
-        >>>     'https://data.kitware.com/api/v1/file/5dd3eb8eaf2e2eed3508d604/download',
+        >>>     'https://viame.kitware.com/api/v1/item/6ab572de2d17596fb9c5d3cc/download',
         >>>     fname='deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix3.zip',
         >>>     appname='viame', hasher='sha512',
         >>>     hash_prefix='22a1eeb18c9e5706f6578e66abda1e97a88eee5')
         >>> image_fpath = ub.grabdata(
-        >>>     'https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download',
-        >>>     fname='scallop.jpg', appname='viame', hasher='sha512',
-        >>>     hash_prefix='3bd290526c76453bec7')
+        >>>     'https://viame.kitware.com/api/v1/item/6ab572e62d17596fb9c5d3e4/download',
+        >>>     fname='sealion2010.jpg', appname='viame', hasher='sha512',
+        >>>     hash_prefix='f016550faa2c96ef4fdca')
         >>> rgb = kwimage.imread(image_fpath)
         >>> inputs = {'rgb': rgb}
         >>> config = dict(
@@ -449,13 +449,7 @@ class DetectPredictor(object):
         >>>     fname='deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix3_mm2x.zip',
         >>>     appname='viame', hasher='sha512',
         >>>     hash_prefix='63b7c3981b3446b079c1d83541a5666c496f6148', verbose=3)
-
         >>> from .detect_predict import *  # NOQA
-        >>> deployed_fpath = ub.grabdata(
-        >>>     'https://data.kitware.com/api/v1/file/5f99c37c50a41e3d1918fdbe/download',
-        >>>     fname='trained_detector_for_jc.zip',
-        >>>     appname='viame', hasher='sha512',
-        >>>     hash_prefix='73250a9f2bdc4b746f1edf1baec1593403229c4d7972863', verbose=3)
         >>> config = dict(
         >>>     deployed=deployed_fpath,
         >>> )

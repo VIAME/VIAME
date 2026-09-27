@@ -83,6 +83,8 @@ def modules(monkeypatch):
     types = sys.modules['kwiver.vital.types']
     types.DetectedObjectSet, types.Point2d = DetectionSet, Point
     sys.modules['viame.pytorch.utilities'].register_vital_algorithm = lambda *args: None
+    # The launcher imports this helper; these tests request no loader workers.
+    sys.modules['viame.pytorch.utilities'].spawn_safe_worker_count = lambda *args, **kwargs: 0
     for name in ['sleap_common', 'sleap_trainer', 'sleap_refiner', 'sleap_launcher']:
         monkeypatch.delitem(sys.modules, 'viame.pytorch.' + name, raising=False)
     loaded = SimpleNamespace(**{name: importlib.import_module('viame.pytorch.' + name)

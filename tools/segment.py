@@ -443,6 +443,22 @@ def probe_video(path):
     return None
 
 
+def sam2_classes():
+    """Use the packaged SAM2 fork when available, or the desktop installation."""
+    import importlib
+    try:
+        importlib.import_module('viame.sam2')
+    except ModuleNotFoundError as exc:
+        if exc.name not in ('viame', 'viame.sam2'):
+            raise
+        package = 'sam2'
+    else:
+        package = 'viame.sam2'
+    builder = importlib.import_module(package + '.build_sam')
+    predictor = importlib.import_module(package + '.sam2_image_predictor')
+    return builder.build_sam2, predictor.SAM2ImagePredictor
+
+
 def find_ffmpeg():
     """VIAME's own ffmpeg, else a system one. None if there isn't one.
 
@@ -1039,7 +1055,15 @@ def find_viame_install(explicit=None):
 
 
 def is_viame_install(path):
-    return bool(path) and os.path.exists(os.path.join(path, 'setup_viame.sh'))
+    if not path:
+        return False
+    if any(os.path.isfile(os.path.join(path, name))
+           for name in ('setup_viame.sh', 'setup_viame.bat')):
+        return True
+    # Wheels have no setup script; tools and model packs share configs/.
+    return (os.path.isfile(os.path.join(path, 'configs', 'segment.py')) and
+            any(os.path.isdir(os.path.join(path, name))
+                for name in ('bin', 'Scripts')))
 
 
 def pipeline_candidates(pipeline, install=None):
@@ -1481,8 +1505,7 @@ def cmd_reseg(args):
     import cv2
     import numpy as np
     import torch
-    from sam2.build_sam import build_sam2
-    from sam2.sam2_image_predictor import SAM2ImagePredictor
+    build_sam2, SAM2ImagePredictor = sam2_classes()
 
     # The config is resolved by SAM2's own hydra search path, but the checkpoint is
     # a plain file we have to point at ourselves.
@@ -1969,7 +1992,7 @@ def cmd_gen_scripts(args):
     if not viame:
         sys.exit('No VIAME install found. Source setup_viame.sh, set VIAME_INSTALL, '
                  'or pass --viame-install.')
-    if not is_viame_install(viame):
+    if not os.path.isfile(os.path.join(viame, 'setup_viame.sh')):
         sys.exit('No setup_viame.sh under %s -- that is not a VIAME install.' % viame)
     tool = os.path.abspath(__file__)
 

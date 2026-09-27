@@ -12,7 +12,8 @@ Usage:
   viame add-ons install --all
   viame add-ons install NAME --from-file ARCHIVE.zip
 
-Add-ons come from download_viame_addons.csv in the install's bin folder. Its
+Add-ons come from download_viame_addons.csv in the install's bin folder
+(or configs folder in a Python wheel). Its
 last column names one file, relative to configs/pipelines, that only that
 add-on provides; the add-on counts as installed when the file is present.
 """
@@ -64,7 +65,9 @@ def find_install(explicit=None):
         candidates.append(Path(env))
     candidates.append(Path(__file__).resolve().parent.parent)
     for candidate in candidates:
-        if (candidate / 'bin').is_dir() and (candidate / 'configs').is_dir():
+        has_tools = any((candidate / name).is_dir()
+                        for name in ('bin', 'Scripts'))
+        if has_tools and (candidate / 'configs').is_dir():
             return candidate.resolve()
     return None
 
@@ -76,6 +79,8 @@ def find_csv(install, explicit=None):
     candidates = []
     if install:
         candidates.append(install / 'bin' / CSV_NAME)
+        # Wheels keep non-executable tool data beside their Python scripts.
+        candidates.append(install / 'configs' / CSV_NAME)
     candidates.append(here.parent / 'cmake' / CSV_NAME)
     for candidate in candidates:
         if candidate.is_file():
@@ -478,7 +483,8 @@ def build_parser():
                    help='VIAME install to inspect and modify '
                         '(default: $VIAME_INSTALL or the tree this tool lives in)')
     p.add_argument('--csv', metavar='FILE',
-                   help='add-on list to read (default: bin/%s in the install)' % CSV_NAME)
+                   help='add-on list to read (default: bin/%s or configs/%s in the install)'
+                        % (CSV_NAME, CSV_NAME))
 
     sub = p.add_subparsers(dest='command', metavar='<command>')
 

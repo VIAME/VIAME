@@ -40,7 +40,7 @@ endif()
 # GUI background context view
 if( VIAME_DOWNLOAD_MODELS AND VIAME_ENABLE_VIVIA )
   DownloadAndExtract(
-    https://data.kitware.com/api/v1/item/5afe6c018d777f15ebe1d6f2/download
+    https://viame.kitware.com/api/v1/item/6ab572df2d17596fb9c5d3d2/download
     7e8800cb11a1a491140e7f58e9053030
     ${VIAME_DOWNLOAD_DIR}/models-blue_marble_context-v1.0.0.tar.gz
     ${CMAKE_CURRENT_SOURCE_DIR}/gui-params )

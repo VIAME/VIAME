@@ -22,6 +22,7 @@ import pytest
 TRAINERS = [
     ('viame.core.bytetrack_trainer', 'ByteTrackTrainer'),
     ('viame.core.ocsort_trainer', 'OCSORTTrainer'),
+    ('viame.core.homog_iou_trainer', 'HomogIOUTrainer'),
     ('viame.pytorch.deepsort_trainer', 'DeepSORTTrainer'),
     ('viame.pytorch.botsort_trainer', 'BoTSORTTrainer'),
     ('viame.pytorch.srnn_trainer', 'SRNNTrainer'),

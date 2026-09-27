@@ -196,6 +196,116 @@ def test_library_is_packed_under_its_soname():
             f"packed as {list(chosen)}, wanted the SONAME {want}"
 
 
+
+def test_main_manifest_keeps_kwiver_and_native_plugins():
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        prefix = Path(tmp)
+        for manifest, paths in (
+            ('contents.txt', ('lib/python3.10/site-packages/kwiver/__init__.py',
+                              'lib/libvital_types.so',
+                              'lib/libviame_core.so',
+                              'lib/kwiver/plugins/processes/example.so')),
+            ('contents-windows.txt', ('Lib/site-packages/kwiver/__init__.py',
+                                      'bin/vital_types.dll',
+                                      'lib/kwiver/plugins/processes/example.dll')),
+        ):
+            for path in paths:
+                target = prefix / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text('fixture')
+            chosen = bw.select(prefix, bw.read_contents(
+                Path(__file__).parent / manifest), 'd.data/data', 'd.data/scripts')
+            assert 'kwiver/__init__.py' in chosen
+            for path in paths:
+                assert prefix / path in chosen.values(), path
+
+
+def test_windows_executable_does_not_get_a_linux_launcher():
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / 'bin').mkdir()
+        (root / 'bin/viame.exe').write_bytes(b'MZ fixture')
+        contents = root / 'contents.txt'
+        contents.write_text('include bin/viame.exe -> {scripts}/\n')
+        bw.main(['--prefix', str(root), '--contents', str(contents),
+                 '--output-dir', str(root / 'out'), '--version', '1.0',
+                 '--launcher', 'viame'])
+        with zipfile.ZipFile(next((root / 'out').glob('*.whl'))) as wheel:
+            assert any(p.endswith('/scripts/viame.exe') for p in wheel.namelist())
+            assert not any(p.endswith('/scripts/viame') for p in wheel.namelist())
+
+
+def test_launcher_keeps_child_tools_in_its_environment():
+    from unittest.mock import patch
+    code = bw.LAUNCHER.replace('{name}', 'viame')
+    # pip replaces this special shebang with the installing interpreter.
+    assert code.startswith('#!python\n')
+    namespace = {'__name__': 'launcher_test'}
+    exec(compile(code, '<launcher>', 'exec'), namespace)
+    with patch('sys.executable', '/venv/bin/python'), \
+         patch('sys.prefix', '/venv'), \
+         patch('os.path.exists', return_value=True), \
+         patch('os.path.isdir', side_effect=lambda p: p == '/venv/lib/viame/applets'), \
+         patch.dict('os.environ', {'PATH': '/other/bin'}), \
+         patch('os.execv') as execute:
+        namespace['main']()
+        import os
+        assert os.environ['PATH'].split(os.pathsep)[0] == '/venv/bin'
+        assert execute.call_args.args[0] == '/venv/libexec/viame'
+        assert os.environ['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == '/venv/lib/viame/applets'
+
+
+
+def test_windows_console_launcher_finds_runtime_and_preserves_arguments():
+    import configparser
+    import os
+    import tempfile
+    from unittest.mock import patch
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        prefix = root / 'build'
+        (prefix / 'bin').mkdir(parents=True)
+        (prefix / 'bin/viame.exe').write_bytes(b'MZ fixture')
+        (prefix / 'bin/viame.dll').write_bytes(b'MZ fixture')
+        entries = root / 'entries.txt'
+        entries.write_text('[other_plugins]\nexample = example:factory\n')
+        bw.main(['--prefix', str(prefix), '--contents',
+                 str(Path(__file__).parent / 'contents-windows.txt'),
+                 '--output-dir', str(root / 'out'), '--version', '1.0',
+                 '--launcher', 'viame', '--entry-points', str(entries)])
+        with zipfile.ZipFile(next((root / 'out').glob('*.whl'))) as wheel:
+            names = wheel.namelist()
+            assert any(n.endswith('/Library/bin/viame.exe') for n in names)
+            assert not any(n.endswith('/scripts/viame.exe') for n in names)
+            entry_text = wheel.read(next(n for n in names if n.endswith('/entry_points.txt'))).decode()
+            config = configparser.ConfigParser()
+            config.read_string(entry_text)
+            assert config['console_scripts']['viame'] == 'viame._wheel_tools:tool_0'
+            assert config['other_plugins']['example'] == 'example:factory'
+            namespace = {'__name__': 'launcher_test'}
+            exec(compile(wheel.read('viame/_wheel_tools.py'), '<launcher>', 'exec'), namespace)
+        env_root = root / 'environment with spaces'
+        native = env_root / 'Library/bin/viame.exe'
+        native.parent.mkdir(parents=True)
+        native.touch()
+        plugin_dir = env_root / 'lib/viame/applets'
+        plugin_dir.mkdir(parents=True)
+        python = str(env_root / 'Scripts/python.exe')
+        arguments = ['viame', 'run', 'a file.pipe', '-s', 'key=a b']
+        with patch('sys.prefix', str(env_root)), patch('sys.executable', python), \
+             patch('sys.argv', arguments), patch.dict(os.environ, {'VIAME_INSTALL': '/old'}), \
+             patch('subprocess.call', return_value=7) as call:
+            assert namespace['tool_0']() == 7
+            assert call.call_args.args[0] == [str(native)] + arguments[1:]
+            env = call.call_args.kwargs['env']
+            assert env['VIAME_INSTALL'] == str(env_root)
+            assert env['PATH'].split(os.pathsep)[:2] == [str(env_root / 'Scripts'), str(native.parent)]
+            assert env['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == str(plugin_dir)
+            assert os.environ['VIAME_INSTALL'] == '/old'
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0

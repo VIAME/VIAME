@@ -507,7 +507,7 @@ install_openssl() {
 # (Downloads locally instead of from notoriously failing opencv repo)
 download_opencv_extras() {
   echo "Downloading OpenCV extras..."
-  curl https://data.kitware.com/api/v1/item/682bf0110dcd2dfb445a5404/download --output tmp.tar.gz
+  curl https://viame.kitware.com/api/v1/item/6ab572e22d17596fb9c5d3d8/download --output tmp.tar.gz
   tar -xvf tmp.tar.gz
   rm tmp.tar.gz
   echo "OpenCV extras download complete"
