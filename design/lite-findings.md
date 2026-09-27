@@ -3735,8 +3735,29 @@ passes.
   multiply and then a round. Rounding a double product instead is worth 2599
   triples.
 
-With both, 473 triples still differ by 1. They share a signature worth
-starting from: **every channel of every one of them is odd.**
+With both, 473 triples still differ by 1, and tracing four of them says why
+the float model is the wrong model here as well.
+
+Those cases sit on **exact halves**. For `hsv = [1, 153, 25]` the value is
+`v * (1 - s * (1 - frac))`, and in rationals that is
+`25 * (1 - (3/5) * (29/30)) = 25 * 0.42 = 10.5` exactly -- cv2 rounds it
+half-to-even to **10**, while the float32 chain lands at 10.500001 and rounds to
+11. `[3, 187, 75]` is the same the other way: exactly 25.5, cv2 gives 26, float
+lands at 25.4999985 and gives 25.
+
+So cv2 is computing these **exactly**, which no float32 chain can, and it is
+rounding the resulting tie the way a correctly rounded implementation would.
+That is the same shape as the forward direction, where the answer turned out to
+be a dedicated integer path rather than the real-valued formula. The next
+attempt should look for the integer HSV-to-RGB path rather than refine the
+float one: `s` and the sector fraction are both ratios of small integers --
+`153/255` is `3/5` and `frac` is `6/180` -- so an exact fixed-point form exists
+and cv2 appears to be using it.
+
+Worth recording that the earlier signature -- "every channel of every one of
+them is odd" -- was a true observation and a useless one. Odd channels are
+where the exact halves live; the signature was a symptom of the cause rather
+than a clue to it.
 
 ## 2.53 A summary table was lost rather than superseded
 
@@ -3790,3 +3811,25 @@ recording that does not follow the port is a recording of the port's past self.
 
 The other five measure 0, which is consistent with either provenance and
 therefore says nothing. Left as unknown rather than guessed at.
+
+
+## 2.55 grabCut is deterministic, which was worth measuring before assuming
+
+`ocv_segmenters.py` is gated on one algorithm, `cv::grabCut`, and its four
+recorded cases are compared at **`ARRAY_TOLERANCE = 0.0`** -- exact masks.
+
+The obvious reason to expect that to be unportable is the GMM initialisation:
+OpenCV's `initGMMs` calls `kmeans` with `KMEANS_PP_CENTERS`, and k-means++ draws
+from `theRNG()`. A port would then have to reproduce OpenCV's RNG and its
+k-means++ seeding bit for bit before it got as far as the graph cut.
+
+Measured instead of assumed, and it is better than that. On a 60 by 80 fixture,
+three successive `grabCut` calls in one process give **identical** masks, and
+`setRNGSeed(12345)` gives the **same** mask as the default seed. So whatever the
+RNG does there, the result does not depend on it -- the clustering converges to
+the same GMM. That removes the RNG from the problem and leaves the graph cut,
+whose minimum is unique even when the cut achieving it need not be.
+
+Still a large job and not started. But "grabCut needs OpenCV's RNG" would have
+been the wrong reason to rule it out, and ruling it out for the wrong reason is
+how a tractable port gets abandoned.
