@@ -103,12 +103,8 @@ add_test(
 set_property( TEST "baseline:symbols" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:symbols" PROPERTY TIMEOUT 300 )
 
-# Importing VIAME must not import OpenCV. Every call site that still needs
-# cv2 -- highgui, the WLS disparity filter, two pose solvers -- keeps its
-# `import cv2` inside the function that needs it, so the module loads and only
-# the unportable branch pays. Moving one back to the top is an easy habit and
-# invisible on a machine that has cv2, so this reads the source rather than
-# waiting for a machine that does not.
+# Runtime VIAME modules must not import cv2, including inside functions.
+# Keep the historical test name so existing CI selectors continue to work.
 add_test(
   NAME "baseline:lazy_cv2"
   COMMAND "${Python3_EXECUTABLE}" "${baseline_dir}/check_lazy_cv2.py"

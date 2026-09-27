@@ -1,28 +1,13 @@
 #!/usr/bin/env python3
-"""No VIAME python module may import cv2 at module scope.
+"""Reject direct OpenCV imports in VIAME's runtime Python code.
 
-The whole point of the cv2 removal is that importing VIAME does not pull
-OpenCV in. Every call site that still needs it -- highgui, the WLS disparity
-filter, two pose solvers -- keeps its `import cv2` *inside* the function that
-needs it, so the module loads and only the branch that cannot be ported pays.
-That invariant is easy to break by habit and invisible when it is: the import
-succeeds on a machine that has cv2, and the suite is green.
+Calibration, display, and WLS now have local implementations, so deferring a
+cv2 import no longer makes it acceptable. The historical test name is retained
+for CI selectors. This source check does not cover transitive dependencies;
+see design/cv2-removal-status.md for the remaining package work.
 
-So this checks the source rather than the behaviour. A module-scope import is
-one that runs when the module is loaded -- at the top of the file, or inside a
-`try`, an `if`, or a class body -- as against one inside a function or method,
-which runs when that function is called.
-
-Caught by this and not by anything else: a lazy import moved back to the top
-during an unrelated edit, and a `from cv2 import ...` added where a grep for
-`import cv2` would not have found it.
-
-`tests/` is exempt on purpose. The golden recorders call cv2 to produce the
-reference a port is held to, and a review probe may import it directly;
-neither ships. `packages/` is exempt because it is submodules.
-
-Usage:
-  check_lazy_cv2.py <source directory> [<source directory> ...]
+Tests (including reference recorders), templates, and external submodules are
+excluded. Usage: check_lazy_cv2.py <source directory> [...]
 """
 import argparse
 import ast
@@ -32,49 +17,24 @@ import sys
 
 BANNED = "cv2"
 
-# Files allowed a module-scope import, with the reason. Empty, and meant to
+# Files allowed a cv2 import, with the reason. Empty, and meant to
 # stay that way: a new entry is a statement that a module cannot load without
 # OpenCV, which is what the port exists to prevent.
 ALLOWED = {}
 
 
 def offending_nodes(tree):
-    """Every cv2 import that runs when the module is loaded.
-
-    Walks the module body rather than the whole tree, descending only through
-    the statements that execute at import time. A function or class *body* is
-    not descended into -- a method's import is lazy -- but a class body is,
-    since it runs immediately.
-    """
+    """Find direct OpenCV imports at any depth, including deferred imports."""
     found = []
-
-    def visit(body):
-        for node in body:
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    if alias.name == BANNED or \
-                            alias.name.startswith(BANNED + "."):
-                        found.append((node.lineno, "import " + alias.name))
-            elif isinstance(node, ast.ImportFrom):
-                if node.module and (node.module == BANNED or
-                                    node.module.startswith(BANNED + ".")):
-                    found.append((node.lineno, "from %s import" % node.module))
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                # Lazy: runs when called.
-                continue
-            elif isinstance(node, ast.ClassDef):
-                visit(node.body)
-            elif isinstance(node, (ast.If, ast.Try, ast.With, ast.For,
-                                   ast.While)):
-                visit(node.body)
-                visit(getattr(node, "orelse", []))
-                visit(getattr(node, "finalbody", []))
-                for handler in getattr(node, "handlers", []):
-                    visit(handler.body)
-                for item in getattr(node, "items", []):
-                    del item
-
-    visit(tree.body)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == BANNED or alias.name.startswith(BANNED + "."):
+                    found.append((node.lineno, "import " + alias.name))
+        elif isinstance(node, ast.ImportFrom):
+            if node.module and (node.module == BANNED or
+                                node.module.startswith(BANNED + ".")):
+                found.append((node.lineno, "from %s import" % node.module))
     return found
 
 
@@ -102,7 +62,9 @@ def dynamic_imports(tree):
 
         for argument in node.args:
             if isinstance(argument, ast.Constant) and \
-                    argument.value == BANNED:
+                    isinstance(argument.value, str) and (
+                        argument.value == BANNED or
+                        argument.value.startswith(BANNED + ".")):
                 found.append((node.lineno, "%s(\"%s\")" % (name, BANNED)))
 
     return found
@@ -149,8 +111,8 @@ def main(argv=None):
 
             for line, what in offending_nodes(tree):
                 failures.append(
-                    "{}:{}: `{}` runs at import. Move it inside the function "
-                    "that needs it.".format(relative, line, what))
+                    "{}:{}: `{}` requires OpenCV; use a local implementation.".format(
+                        relative, line, what))
             for line, what in dynamic_imports(tree):
                 failures.append(
                     "{}:{}: `{}` reaches for OpenCV by name.".format(
@@ -161,9 +123,8 @@ def main(argv=None):
     if failures:
         for failure in failures:
             print("  " + failure)
-        print("{} module-scope cv2 import(s). Every remaining call site keeps "
-              "its import inside the function that needs it -- see "
-              "design/lite-findings.md.".format(len(failures)))
+        print("{} OpenCV import(s) or parse failure(s). See "
+              "design/cv2-removal-status.md.".format(len(failures)))
         return 1
 
     return 0
