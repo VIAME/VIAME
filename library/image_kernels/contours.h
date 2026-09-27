@@ -125,7 +125,8 @@ enum class connectivity
 /// `cv::connectedComponents`.
 ///
 /// Background is 0 and components are numbered from 1 in raster order of
-/// their first pixel, which is what OpenCV's default (SAUF) labelling gives.
+/// their first pixel, as SAUF labelling does. OpenCV's default 8-connected
+/// block labeller can assign different numeric labels to the same regions.
 ///
 /// @param mask one plane; anything non-zero is foreground
 /// @param how which neighbours join

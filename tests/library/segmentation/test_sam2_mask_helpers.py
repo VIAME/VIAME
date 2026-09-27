@@ -34,3 +34,14 @@ def test_center_point_without_boundary_chooses_first_pixel():
     point,label = sample_one_point_from_error_center(target,None,padding=False)
     assert point.tolist() == [[[0.,0.]]]
     assert label.tolist() == [[1]]
+
+
+def test_equal_small_islands_preserve_opencv_block_order():
+    from viame.sam2.utils.amg import remove_small_regions
+    mask = np.zeros((7, 9), dtype=bool)
+    mask[0, 4] = True
+    mask[1, 0] = True
+    result, changed = remove_small_regions(mask, 2, 'islands')
+    assert changed
+    assert result.sum() == 1
+    assert result[1, 0]

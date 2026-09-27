@@ -288,7 +288,17 @@ def remove_small_regions(
         fill_labels = [i for i in range(n_labels) if i not in fill_labels]
         # If every region is below threshold, keep largest
         if len(fill_labels) == 0:
-            fill_labels = [int(np.argmax(sizes)) + 1]
+            largest = np.flatnonzero(sizes == sizes.max()) + 1
+            if len(largest) == 1:
+                fill_labels = largest.tolist()
+            else:
+                # OpenCV's default 8-connected labels follow 2x2 block order;
+                # VIAME's SAUF labels follow pixel rows. Preserve the former
+                # tie break when every island is below the area threshold.
+                ys, xs = np.nonzero(np.isin(regions, largest))
+                block = (ys // 2) * ((regions.shape[1] + 1) // 2) + xs // 2
+                first = int(np.argmin(block))
+                fill_labels = [int(regions[ys[first], xs[first]])]
     mask = np.isin(regions, fill_labels)
     return mask, True
 
