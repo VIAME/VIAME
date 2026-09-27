@@ -589,6 +589,143 @@ gaussian_kernel_fixed( std::vector< double > const& line, int shift )
   return raw;
 }
 
+/// `cv::GaussianBlur`'s float path, in OpenCV's associations.
+///
+/// A float image is filtered in float32, and *which* float32 matters: the
+/// answer depends on the order the taps are combined, and OpenCV's order is
+/// not the obvious one. Three shapes, picked by kernel size, all of them
+/// fused:
+///
+/// * **across, any size above five** (`RowVec_32f`): the centre-most tap is a
+///   plain multiply and the rest accumulate in tap order,
+///   `s = fma( src[k], k[k], s )`. Left to right, not symmetric pairs;
+/// * **across, size three or five** (`SymmRowSmallVec_32f`): symmetric pairs,
+///   innermost first -- size five is
+///   `fma( s2 + s-2, k2, fma( s0, k0, ( s-1 + s1 ) * k1 ) )`, where the k1
+///   term is a plain multiply and the other two are fused;
+/// * **down** (`SymmColumnVec_32f`, or its size-three form): the centre tap
+///   first, then **each symmetric pair summed before one fused multiply**,
+///   `s = fma( row[k] + row[-k], k[k], s )`.
+///
+/// Reproducing all three takes the gap against cv2 from 4.6e-05 -- which
+/// finding 2.44 recorded as irreproducible accumulation order -- to **zero**,
+/// on every pixel the vectorised body covers. What is left is the same
+/// remainder as 2.56's: the last `width % lanes` columns of each row go
+/// through OpenCV's scalar loop, whose association is a third one, and they
+/// differ by about 1e-07. Zero when the width is a multiple of the lane count
+/// -- 8 floats with AVX2 -- and the kernels cannot chase it further without
+/// baking the host's vector width in.
+template < typename T >
+viame::image_of< T >
+gaussian_blur_float( viame::image_of< T > const& image,
+                     std::vector< double > const& line, border_mode mode )
+{
+  constexpr double constant = 0.0;
+
+  auto const n = line.size();
+  auto const half = static_cast< long >( n / 2 );
+
+  auto const width = image.width();
+  auto const height = image.height();
+  auto const planes = image.depth();
+
+  viame::image_of< T > out( width, height, planes );
+
+  if( width == 0 || height == 0 || planes == 0 )
+  {
+    return out;
+  }
+
+  std::vector< float > tap( n );
+
+  for( size_t k = 0; k < n; ++k )
+  {
+    tap[ k ] = static_cast< float >( line[ k ] );
+  }
+
+  // The centred half, as OpenCV indexes it: `centre[ 0 ]` is the middle tap.
+  auto const centre = [ & ]( long offset ) -> float
+  {
+    return tap[ static_cast< size_t >( half + offset ) ];
+  };
+
+  std::vector< float > across( width * height );
+
+  for( size_t plane = 0; plane < planes; ++plane )
+  {
+    for( size_t j = 0; j < height; ++j )
+    {
+      for( size_t i = 0; i < width; ++i )
+      {
+        auto const at = [ & ]( long offset ) -> float
+        {
+          return static_cast< float >( sample_with_border(
+            image, static_cast< long >( i ) + offset,
+            static_cast< long >( j ), plane, mode, constant ) );
+        };
+
+        float sum;
+
+        if( n == 1 )
+        {
+          sum = at( 0 ) * centre( 0 );
+        }
+        else if( n == 3 )
+        {
+          sum = std::fma( at( 0 ), centre( 0 ),
+                          ( at( -1 ) + at( 1 ) ) * centre( 1 ) );
+        }
+        else if( n == 5 )
+        {
+          sum = std::fma( at( 2 ) + at( -2 ), centre( 2 ),
+                          std::fma( at( 0 ), centre( 0 ),
+                                    ( at( -1 ) + at( 1 ) ) * centre( 1 ) ) );
+        }
+        else
+        {
+          sum = at( -half ) * tap[ 0 ];
+
+          for( size_t k = 1; k < n; ++k )
+          {
+            sum = std::fma( at( static_cast< long >( k ) - half ), tap[ k ],
+                            sum );
+          }
+        }
+
+        across[ j * width + i ] = sum;
+      }
+    }
+
+    for( size_t j = 0; j < height; ++j )
+    {
+      for( size_t i = 0; i < width; ++i )
+      {
+        auto const at = [ & ]( long offset ) -> float
+        {
+          auto const row = border_index(
+            static_cast< long >( j ) + offset,
+            static_cast< long >( height ), mode );
+
+          // Never negative: the caller keeps `CONSTANT` on the general
+          // path, since OpenCV's float filter has no constant to take.
+          return across[ static_cast< size_t >( row ) * width + i ];
+        };
+
+        auto sum = std::fma( at( 0 ), centre( 0 ), 0.0f );
+
+        for( long k = 1; k <= half; ++k )
+        {
+          sum = std::fma( at( k ) + at( -k ), centre( k ), sum );
+        }
+
+        out( i, j, plane ) = static_cast< T >( sum );
+      }
+    }
+  }
+
+  return out;
+}
+
 /// `cv::GaussianBlur`'s integer path: one fixed point width across, twice
 /// that down.
 ///
@@ -718,6 +855,16 @@ gaussian_blur( viame::image_of< T > const& image, size_t size,
     if( mode != border_mode::CONSTANT )
     {
       return detail::gaussian_blur_fixed( image, line, mode );
+    }
+  }
+  else if constexpr( std::is_floating_point< T >::value )
+  {
+    // And a float image is not filtered in double. `gaussian_blur_float`
+    // says which float32 associations OpenCV uses and what it costs to get
+    // them wrong.
+    if( mode != border_mode::CONSTANT )
+    {
+      return detail::gaussian_blur_float( image, line, mode );
     }
   }
 

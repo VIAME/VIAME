@@ -1101,12 +1101,22 @@ def test_float_erosion_keeps_the_minimum_of_the_window():
 
 
 def test_float_normalize_reaches_both_ends():
+    """Both ends, to within what the scale and shift leave behind.
+
+    Not exactly zero, and it is not supposed to be. `cv::normalize` sends
+    `convertTo` a scale and a shift and the shift does not cancel the minimum
+    exactly, so cv2's own answer for this frame is -7.9e-10 rather than 0 --
+    and `normalize` is identical to cv2 here, which is the property worth
+    holding. This assertion read `approx(0.0)`, whose default absolute
+    tolerance is 1e-12, and so was pinning an artifact of interpolating
+    between the two ends instead.
+    """
     frame = _float_frame()
 
     out = normalize(frame, 0.0, 1.0)
 
-    assert out.min() == pytest.approx(0.0)
-    assert out.max() == pytest.approx(1.0)
+    assert out.min() == pytest.approx(0.0, abs=1e-6)
+    assert out.max() == pytest.approx(1.0, abs=1e-6)
 
 
 def test_float_add_weighted_does_not_clamp():

@@ -3419,16 +3419,62 @@ Three of its steps agree with cv2 only to within a few float32 ULP:
 | `normalize` NORM_MINMAX on float32 | max 1.5e-05 |
 | `exp` on float32 against `np.exp` | max 3.8e-06, on 40% of values |
 
-The blur one is the instructive case. The obvious explanation is that this
-accumulates in double where OpenCV accumulates in float, so a separable pass
-was written **in float32, in tap order, with OpenCV's own kernel from
-`getGaussianKernel`** and compared: it differs from `cv2.GaussianBlur` by the
-same 4.6e-05. The gap is therefore not a precision choice that can be matched
-by making ours less precise -- it is the *order* in which OpenCV's vectorised
-filter accumulates its taps, which is a property of its SIMD structure rather
-than of the filter. Nothing short of reproducing that structure reproduces the
-number, and it is not something OpenCV guarantees across its own dispatch
-paths.
+The blur one is the instructive case, **and the conclusion this finding
+originally drew from it was wrong.** It read: a separable pass written in
+float32, in tap order, with OpenCV's own kernel differs by the same 4.6e-05,
+so the gap is OpenCV's vectorised accumulation order, a property of its SIMD
+structure, and "nothing short of reproducing that structure reproduces the
+number."
+
+The first half is right and the second half gave up one step too early.
+Reproducing that structure is about forty lines, because the structure is
+three associations rather than a vector width, and all three are readable in
+`filter.simd.hpp`:
+
+* **across, size above five** (`RowVec_32f`): the first tap is a plain
+  multiply and the rest accumulate **in tap order** with one fused
+  multiply-add each. Tap order was right.
+* **across, size three or five** (`SymmRowSmallVec_32f`): symmetric pairs,
+  innermost first, and the innermost term is *not* fused --
+  `fma( s2 + s-2, k2, fma( s0, k0, ( s-1 + s1 ) * k1 ) )`.
+* **down** (`SymmColumnVec_32f`): the centre tap first, then **each symmetric
+  pair summed before one fused multiply-add**. This is the one that makes tap
+  order wrong, and it is the whole of the 4.6e-05.
+
+The fused multiply-add is as load bearing as the association. GCC's default is
+`-ffp-contract=fast`, so `v_muladd` and even a plain
+`v_add( acc, v_mul( x, k ) )` become single `fnmadd`/`fmadd` instructions in
+cv2's build, and an implementation that rounds the product separately cannot
+match. See 2.56, where the same thing accounted for the last 1758 triples of
+`HSV2RGB`.
+
+With all three, `gaussian_blur` on a float image is **identical to cv2** --
+zero, not a few ULP -- on every image whose width is a multiple of the float
+lane count, which is 8 with AVX2, over 420 configurations of six images, ten
+sizes and seven sigmas. What is left is the same remainder as 2.56's: the last
+`width % lanes` columns take OpenCV's scalar loop, which is a fourth
+association, and differ by **1.19e-07** rather than 4.6e-05. A 7-pixel-wide
+image is all remainder and differs everywhere.
+
+So the honest form of the original claim is much narrower: *the last few
+columns of a row whose width is not a multiple of the vector width cannot be
+reproduced without baking that width in.* Everything else can. The two lessons
+are that a float gap is worth reading the SIMD source over rather than
+attributing to "accumulation order", and that "I wrote it in float32 in tap
+order and got the same gap" is evidence about one association, not about all
+of them.
+
+`normalize` went the same way, and its cause was not association at all.
+`cv::normalize` hands `convertTo` a **scale and a shift** -- `value * scale +
+shift`, with `scale` a reciprocal multiply rather than a division -- where this
+interpolated between the two ends, and `saturate_cast` rounds **half to
+even**. Writing it in OpenCV's form and rounding half to even makes it exact
+for uint8, uint16 **and float32**, where the recorded gap had been 1.5e-05.
+That is the third kernel in this file to have been rounding half away from zero
+where OpenCV rounds half to even; see 2.57.
+
+`exp` on float32 is the one left, and it does not matter: the only caller,
+`ocv_color_correction`, replays at zero tolerance without it.
 
 ### The uint16 call that is not refused
 

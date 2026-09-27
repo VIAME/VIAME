@@ -158,6 +158,15 @@ histogram_full( viame::image_of< T > const& image, size_t plane = 0 )
 ///
 /// A flat image has no range to stretch and comes back at \p low, which is
 /// what OpenCV does with it.
+///
+/// Written as OpenCV writes it -- a scale and a shift applied per pixel,
+/// `value * scale + shift`, rather than an interpolation between the two ends
+/// -- because that is the form `convertTo` receives and the two round
+/// differently. The rounding is **half to even**: `saturate_cast` is
+/// `cvRound`, and rounding half away from zero instead left this a count out
+/// on a recorded 32 by 24 window. A float result takes the scale and the
+/// shift in float32, which is also OpenCV's, since `normalize` narrows them
+/// before the convert when the destination is `CV_32F`.
 template < typename T >
 viame::image_of< T >
 normalize_min_max( viame::image_of< T > const& image, double low,
@@ -168,6 +177,24 @@ normalize_min_max( viame::image_of< T > const& image, double low,
   min_max( image, lowest, highest );
 
   auto const span = highest.value - lowest.value;
+  auto const bottom = std::min( low, high );
+  auto const top = std::max( low, high );
+
+  // A reciprocal multiply, not a division, and zero rather than infinity on a
+  // flat image -- `(dmax - dmin) * (smax - smin > DBL_EPSILON ? 1/(smax -
+  // smin) : 0)`.
+  auto scale = ( top - bottom ) *
+               ( span > std::numeric_limits< double >::epsilon()
+                 ? 1.0 / span : 0.0 );
+  auto shift = bottom - lowest.value * scale;
+
+  if constexpr( std::is_floating_point< T >::value )
+  {
+    scale = static_cast< float >( scale );
+    shift = static_cast< double >( static_cast< float >( bottom ) ) -
+            static_cast< double >(
+              static_cast< float >( lowest.value * scale ) );
+  }
 
   viame::image_of< T > out( image.width(), image.height(),
                                     image.depth() );
@@ -180,10 +207,18 @@ normalize_min_max( viame::image_of< T > const& image, double low,
       {
         auto const value = static_cast< double >( image( i, j, plane ) );
 
-        out( i, j, plane ) = saturate_pixel< T >(
-          ( span > 0.0 )
-            ? low + ( value - lowest.value ) * ( high - low ) / span
-            : low );
+        if constexpr( std::is_floating_point< T >::value )
+        {
+          out( i, j, plane ) = static_cast< T >(
+            std::fma( static_cast< float >( value ),
+                      static_cast< float >( scale ),
+                      static_cast< float >( shift ) ) );
+        }
+        else
+        {
+          out( i, j, plane ) =
+            saturate_pixel_even< T >( value * scale + shift );
+        }
       }
     }
   }

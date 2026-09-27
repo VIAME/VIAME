@@ -1940,3 +1940,43 @@ about NLM was not how it works but whether it is a function of its input at
 all: repeatable across calls, constant-preserving, interior-invariant when the
 frame is widened. It is, on all three. That check costs ten minutes and is now
 the first thing to do with any conversion before committing to reproducing it.
+
+## Float `GaussianBlur` is reproducible after all, and so is `normalize`
+
+Finding 2.44 said `cv2.GaussianBlur` on a float image could not be reproduced
+-- that the 4.6e-05 gap was OpenCV's vectorised accumulation order, "a
+property of its SIMD structure rather than of the filter", and that nothing
+short of reproducing that structure would reproduce the number. The second
+half was giving up one step early. **The structure is three associations and
+about forty lines**, all of them readable in `filter.simd.hpp`, and none of
+them the tap order that had been tried:
+
+* across, above size five: the first tap a plain multiply, the rest
+  accumulated in tap order with one **fused** multiply-add each;
+* across, size three or five: symmetric pairs innermost first, with the
+  innermost term *not* fused;
+* down: the centre tap, then **each symmetric pair summed before one fused
+  multiply-add** -- which is what makes tap order wrong, and is the whole of
+  the 4.6e-05.
+
+`gaussian_blur` on a float image is now **identical to cv2** over 420
+configurations of six images, ten sizes and seven sigmas, for every image whose
+width is a multiple of the float lane count. The remainder columns differ by
+1.19e-07 instead of 4.6e-05, for the same reason as 2.56's: OpenCV's scalar
+loop is a fourth association, and chasing it means baking the host's vector
+width in.
+
+`normalize` came with it, and its cause was not association. `cv::normalize`
+hands `convertTo` a **scale and a shift**, with the scale a reciprocal
+multiply, where this interpolated between the two ends -- and `saturate_cast`
+rounds **half to even**. In OpenCV's form it is exact for uint8, uint16 and
+float32 alike, closing 2.44's third row too. That is now three kernels found
+rounding half away from zero where OpenCV rounds half to even.
+
+Two more recordings came down to zero tolerance with it, `hsv_to_rgb` and
+`normalize_min_max`, leaving 20 of the 60 C++ recordings with any room at all
+and 18 of those a border margin rather than a tolerance.
+
+**Why this matters beyond the two kernels.** SIFT's scale space is float
+`GaussianBlur`, and 2.44 was the standing reason a SIFT port could not be held
+to cv2. It no longer is.
