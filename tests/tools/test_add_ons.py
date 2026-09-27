@@ -207,3 +207,41 @@ def test_google_drive_progress_and_cancellation(tmp_path, monkeypatch, capsys, c
                   if line.startswith('VIAME_ADDON_PROGRESS ')]
         assert events[-1] == {'phase': 'download', 'done': 14, 'total': 14}
         assert (tmp_path / 'pack.zip').read_bytes() == b'archivearchive'
+
+
+@pytest.mark.parametrize('contents,bindir,platform', [
+    ('contents.txt', 'bin', 'linux'),
+    ('contents-windows.txt', 'Scripts', 'win32'),
+])
+def test_addons_from_wheel_without_environment(tmp_path, monkeypatch, capsys,
+                                              contents, bindir, platform):
+    """Exercise the real wheel selection rules and the installed tool together."""
+    import json
+    import shutil
+    import sys
+    root = Path(__file__).resolve().parents[2]
+    monkeypatch.syspath_prepend(str(root / 'cmake/wheel'))
+    import build_wheel
+
+    prefix = tmp_path / 'build-install'
+    (prefix / 'configs').mkdir(parents=True)
+    (prefix / 'bin').mkdir()
+    shutil.copyfile(root / 'tools/add_ons.py', prefix / 'configs/add_ons.py')
+    shutil.copyfile(root / 'cmake/download_viame_addons.csv',
+                    prefix / 'bin' / m.CSV_NAME)
+    rules = build_wheel.read_contents(root / 'cmake/wheel' / contents)
+    selected = build_wheel.select(prefix, rules, 'data', 'scripts')
+    env = tmp_path / 'python-env'
+    (env / bindir).mkdir(parents=True)
+    for dest, source in selected.items():
+        assert dest.startswith('data/')
+        target = env / dest[len('data/'):]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    monkeypatch.delenv('VIAME_INSTALL', raising=False)
+    monkeypatch.setattr(m, '__file__', str(env / 'configs/add_ons.py'))
+    monkeypatch.setattr(sys, 'platform', platform)
+    assert m.find_install() == env
+    assert m.main(['list', '--json']) == 0
+    listing = json.loads(capsys.readouterr().out)
+    assert listing

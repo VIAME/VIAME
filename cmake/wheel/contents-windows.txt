@@ -50,6 +50,8 @@ include bin/kwiver.exe  -> {scripts}/
 # ----------------------------------------------------------------------------
 # The tool scripts and default configs -- identical to linux
 # ----------------------------------------------------------------------------
+# Add-on catalog: shared tool data, including in Windows Python environments.
+include bin/download_viame_addons.csv -> {data}/configs/
 include configs/*.py            -> {data}/configs/
 include configs/gui-params/**   -> {data}/configs/gui-params/
 include configs/prj-template/** -> {data}/configs/prj-template/
