@@ -26,6 +26,9 @@ set( PYTHON_SCRIPTS
 if( VIAME_ENABLE_OPENCV )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
+    analyze_match_failures.py
+    build_pixel_mosaic.py
+    evaluate_loop_closures.py
     calibrate.py
     depth.py
     disparity.py
