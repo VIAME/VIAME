@@ -206,8 +206,11 @@ foreach( _fork IN LISTS _viame_forks )
 
   if( _fork STREQUAL "sam2" AND NOT WIN32 )
     # The module patches are portable; only setup.py is Windows-specific.
-    set( _patch_cmd COMMAND "${CMAKE_COMMAND}" -E copy_directory
-         "${VIAME_PATCHES_DIR}/sam2/sam2" "${_source}/sam2" )
+    foreach( _sam2_portable_dir sam2 training sav_dataset )
+      list( APPEND _patch_cmd COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${VIAME_PATCHES_DIR}/sam2/${_sam2_portable_dir}"
+        "${_source}/${_sam2_portable_dir}" )
+    endforeach()
   endif()
   file( GLOB_RECURSE _fork_patch_files CONFIGURE_DEPENDS
     "${VIAME_PATCHES_DIR}/${_fork}/*" )
