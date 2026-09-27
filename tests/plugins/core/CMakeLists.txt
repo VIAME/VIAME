@@ -107,3 +107,6 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_VXL )
   set_tests_properties( viame_plugins:core:gfit_motion
     PROPERTIES LABELS "UNIT;CORE" TIMEOUT 120 )
 endif()
+
+kwiver_discover_gtests( viame_core utilities_target_clfr
+  LIBRARIES ${test_libraries} )
