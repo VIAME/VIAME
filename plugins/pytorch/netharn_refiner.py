@@ -51,6 +51,7 @@ class NetharnRefiner(RefineDetections):
             'deployed': "",
             'xpu': "0",
             'batch_size': "auto",
+            'preprocess_backend': "cpu",
             'area_pivot': "0",
             'area_lower_bound': "0",
             'area_upper_bound': "0",
@@ -116,6 +117,7 @@ class NetharnRefiner(RefineDetections):
         pred_config["batch_size"] = self._kwiver_config["batch_size"]
         pred_config["deployed"] = self._kwiver_config["deployed"]
         pred_config["xpu"] = self._kwiver_config["xpu"]
+        pred_config["preprocess_backend"] = self._kwiver_config["preprocess_backend"]
         pred_config["input_dims"] = "native"  # (256, 256)
 
         self.predictor = clf_predict.ClfPredictor(pred_config)
@@ -163,6 +165,8 @@ class NetharnRefiner(RefineDetections):
         return True
 
     def check_configuration(self, cfg):
+        if cfg.get_value("preprocess_backend", "cpu") not in ("auto", "cpu", "cuda"):
+            return False
         if not cfg.has_value("deployed"):
             print("A network deploy file must be specified!")
             return False

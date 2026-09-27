@@ -86,6 +86,8 @@ def __sprokit_register__():
 
 def __vital_algorithm_register__():
     """Register vital algorithm implementations."""
+    from viame.core import gfit_motion
+    gfit_motion.__vital_algorithm_register__()
     try:
         from viame.core import bytetrack_tracker
         bytetrack_tracker.__vital_algorithm_register__()

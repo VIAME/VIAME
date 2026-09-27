@@ -11,6 +11,7 @@ process classifier_groups_all
   :refiner:type                                netharn
 
   block refiner:netharn
+    :preprocess_backend                        auto
     relativepath deployed =                    models/gfit_groups_enetv2m_all.zip
     :batch_size                                auto
     :area_pivot                                0
@@ -27,6 +28,7 @@ process classifier_groups_es_lg
   :refiner:type                                netharn
 
   block refiner:netharn
+    :preprocess_backend                        auto
     relativepath deployed =                    models/gfit_groups_enetv2s_large.zip
     :batch_size                                auto
     :area_pivot                                7000
@@ -48,6 +50,7 @@ process classifier_groups_es_sm
   :refiner:type                                netharn
 
   block refiner:netharn
+    :preprocess_backend                        auto
     relativepath deployed =                    models/gfit_groups_enetv2s_small.zip
     :batch_size                                auto
     :area_pivot                                -7000

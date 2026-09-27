@@ -595,3 +595,7 @@ if( VIAME_ENABLE_PYTHON )
     SOURCES embedded_pipeline_python.cxx
     PRIVATE viame_embedded_pipeline ${PYTHON_LIBRARIES} )
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/gfit_motion.py core gfit_motion )
+endif()
