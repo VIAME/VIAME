@@ -519,30 +519,32 @@ filter_disparity_wls( viame::image_of< uint8_t > const& guide,
   auto const smoothed_alone =
     smooth_globally( band, alone, params.lambda, params.sigma );
 
-  // OpenCV writes this as `disp_mul_conf.mul( 1 / (conf_filtered + EPS) )`,
-  // and both halves of that matter. `EPS` is 1e-43, a **denormal**, so it does
-  // not meaningfully bias a real denominator -- it exists to move an exact zero
-  // off zero. And `1 / mat` is `cv::divide`, which yields **0** rather than
-  // infinity where the divisor is exactly zero: without that the smoothed
-  // confidence reaching zero gives an infinity, multiplying to a saturated
-  // +-32767 or, where the numerator is zero too, to a NaN. That was the last 64
-  // pixels of a 512 by 512 frame, at the full width of the type.
+  // Zero confidence contains no disparity information. Keep the invalid
+  // sentinel in that case rather than letting 0 * infinity produce a NaN.
+  // Preserve the normal float arithmetic; only use a double quotient when
+  // the confidence is positive but too small for a finite float reciprocal.
   constexpr float epsilon = 1e-43f;
-
   for( int y = 0; y < height; ++y )
   {
     for( int x = 0; x < left_span; ++x )
     {
-      auto const denominator =
-        smoothed_alone( static_cast< size_t >( x ),
-                        static_cast< size_t >( y ), 0 ) + epsilon;
-      auto const reciprocal = ( denominator != 0.0f )
-                              ? 1.0f / denominator : 0.0f;
-
-      out( static_cast< size_t >( left_x + x ), static_cast< size_t >( y ),
-           0 ) =
-        smoothed_weighted( static_cast< size_t >( x ),
-                           static_cast< size_t >( y ), 0 ) * reciprocal;
+      auto const confidence_value = smoothed_alone( x, y, 0 );
+      auto const numerator = smoothed_weighted( x, y, 0 );
+      if( !( confidence_value > 0.0f ) || !std::isfinite( confidence_value ) ||
+          !std::isfinite( numerator ) )
+      {
+        continue;
+      }
+      auto const denominator = confidence_value + epsilon;
+      auto const reciprocal = 1.0f / denominator;
+      auto const value = std::isfinite( reciprocal )
+        ? numerator * reciprocal
+        : static_cast< float >( static_cast< double >( numerator ) /
+                                 static_cast< double >( denominator ) );
+      if( std::isfinite( value ) )
+      {
+        out( left_x + x, y, 0 ) = value;
+      }
     }
   }
 

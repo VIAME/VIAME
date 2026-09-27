@@ -323,8 +323,9 @@ sub_cost( int a, int b )
 /// first row and needs a few rows to settle, so the rows it will actually write
 /// begin `overlap` rows later. A single stripe would give a different answer,
 /// and a different overlap would too.
+template < typename CostRows >
 inline void
-three_way( std::vector< int > const& across, int width, int height, int first,
+three_way( CostRows const& costs_for, int width, int height, int first,
            int last, int count, int min_d, int half, int p1, int p2,
            int uniqueness, int max_diff, int16_t invalid,
            viame::image_of< int16_t >& out )
@@ -390,22 +391,6 @@ three_way( std::vector< int > const& across, int width, int height, int first,
     // always more than half a block, so a row that gets written has its whole
     // box inside the stripe -- but the scratch rows are what the top-down
     // recursion starts from, so the difference reaches the written rows anyway.
-    std::vector< int > cost( static_cast< size_t >( end - begin ) * span *
-                             count, 0 );
-
-    for( int y = begin; y < end; ++y )
-    {
-      for( int k = -half; k <= half; ++k )
-      {
-        auto const at = std::min( std::max( y + k, begin ), height - 1 );
-        auto* into = &cost[ static_cast< size_t >( y - begin ) * span * count ];
-        auto const* from =
-          &across[ static_cast< size_t >( at ) * span * count ];
-
-        for( int i = 0; i < span * count; ++i ) { into[ i ] += from[ i ]; }
-      }
-    }
-
     for( int y = begin; y < end; ++y )
     {
       auto const row_in_buffer = offset + ( y - begin );
@@ -419,8 +404,7 @@ three_way( std::vector< int > const& across, int width, int height, int first,
         disp2cost[ static_cast< size_t >( x ) ] = sgbm_max_cost;
       }
 
-      auto const* row_cost =
-        &cost[ static_cast< size_t >( y - begin ) * span * count ];
+      auto const* row_cost = costs_for( y, begin ).data();
 
       // Left to right, and top to bottom in the same sweep.
       auto left_min = 0;
@@ -806,107 +790,96 @@ stereo_sgbm( viame::image_of< uint8_t > const& left,
     tab[ i ] = std::min( std::max( value, -ftzero ), ftzero ) + ftzero;
   }
 
-  // The per-pixel cost of every row, then the SAD box over it.
-  std::vector< int > raw_cost(
-    static_cast< size_t >( height ) * span * count, 0 );
-
+  // Cache only the horizontal SAD rows needed by the current vertical box.
+  // This supports forward/backward scans and stripe-local border clamping
+  // without retaining a height*width*disparities cost volume.
+  auto const row_size = static_cast< size_t >( span ) * count;
+  auto const cache_size = static_cast< size_t >( 2 * half + 1 );
+  std::vector< std::vector< int > > horizontal_cache(
+    cache_size, std::vector< int >( row_size ) );
+  std::vector< int > row_ids( cache_size, -1 );
+  std::vector< int > raw( row_size ), boxed( row_size );
+  std::vector< std::vector< int > > l_rows, r_rows;
+  std::vector< int > l_low, l_high, r_low, r_high;
+  auto const planes = static_cast< int >( left.depth() );
+  auto const horizontal_row = [ & ]( int y ) -> std::vector< int > const&
   {
-    auto const planes = static_cast< int >( left.depth() );
-    std::vector< std::vector< int > > l_rows, r_rows;
-    std::vector< int > l_low, l_high, r_low, r_high;
-
-    for( int y = 0; y < height; ++y )
+    auto const slot = static_cast< size_t >( y ) % cache_size;
+    auto& across = horizontal_cache[ slot ];
+    if( row_ids[ slot ] == y ) { return across; }
+    std::fill( raw.begin(), raw.end(), 0 );
+    sgbm_prepare( left, y, tab, ftzero, l_rows );
+    sgbm_prepare( right, y, tab, ftzero, r_rows );
+    for( int channel = 0; channel < planes * 2; ++channel )
     {
-      sgbm_prepare( left, static_cast< size_t >( y ), tab, ftzero, l_rows );
-      sgbm_prepare( right, static_cast< size_t >( y ), tab, ftzero, r_rows );
-
-      for( int channel = 0; channel < planes * 2; ++channel )
+      auto const& u_row = l_rows[ channel ];
+      auto const& v_row = r_rows[ channel ];
+      auto const shift = channel < planes ? 0 : 2;
+      sgbm_extremes( u_row, l_low, l_high );
+      sgbm_extremes( v_row, r_low, r_high );
+      for( int x = first; x < last; ++x )
       {
-        auto const& u_row = l_rows[ static_cast< size_t >( channel ) ];
-        auto const& v_row = r_rows[ static_cast< size_t >( channel ) ];
-        // The Sobels first at full weight, then the raw planes at a quarter.
-        auto const shift = ( channel < planes ) ? 0 : 2;
-
-        sgbm_extremes( u_row, l_low, l_high );
-        sgbm_extremes( v_row, r_low, r_high );
-
-        for( int x = first; x < last; ++x )
+        auto const u = u_row[ x ], u0 = l_low[ x ], u1 = l_high[ x ];
+        auto* into = raw.data() + static_cast< size_t >( x - first ) * count;
+        for( int d = 0; d < count; ++d )
         {
-          auto const u = u_row[ static_cast< size_t >( x ) ];
-          auto const u0 = l_low[ static_cast< size_t >( x ) ];
-          auto const u1 = l_high[ static_cast< size_t >( x ) ];
-
-          auto* into = &raw_cost[ ( static_cast< size_t >( y ) * span +
-                                    ( x - first ) ) * count ];
-
-          for( int d = 0; d < count; ++d )
-          {
-            auto const at = x - ( min_d + d );
-            auto const v = v_row[ static_cast< size_t >( at ) ];
-            auto const v0 = r_low[ static_cast< size_t >( at ) ];
-            auto const v1 = r_high[ static_cast< size_t >( at ) ];
-
-            auto const c0 = std::max( 0, std::max( u - v1, v0 - u ) );
-            auto const c1 = std::max( 0, std::max( v - u1, u0 - v ) );
-
-            into[ d ] += std::min( c0, c1 ) >> shift;
-          }
+          auto const at = x - min_d - d;
+          auto const v = v_row[ at ], v0 = r_low[ at ], v1 = r_high[ at ];
+          auto const c0 = std::max( 0, std::max( u - v1, v0 - u ) );
+          auto const c1 = std::max( 0, std::max( v - u1, u0 - v ) );
+          into[ d ] += std::min( c0, c1 ) >> shift;
         }
       }
     }
-  }
-
-  std::vector< int > cost( raw_cost.size(), 0 );
-  std::vector< int > across( raw_cost.size(), 0 );
-
+    std::fill( across.begin(), across.begin() + count, 0 );
+    for( int k = -half; k <= half; ++k )
+    {
+      auto const at = std::min( std::max( k, 0 ), span - 1 );
+      auto const* from = raw.data() + static_cast< size_t >( at ) * count;
+      for( int d = 0; d < count; ++d ) { across[ d ] += from[ d ]; }
+    }
+    for( int x = 1; x < span; ++x )
+    {
+      auto const add = std::min( x + half, span - 1 );
+      auto const remove = std::max( x - half - 1, 0 );
+      for( int d = 0; d < count; ++d )
+      {
+        across[ static_cast< size_t >( x ) * count + d ] =
+          across[ static_cast< size_t >( x - 1 ) * count + d ] +
+          raw[ static_cast< size_t >( add ) * count + d ] -
+          raw[ static_cast< size_t >( remove ) * count + d ];
+      }
+    }
+    row_ids[ slot ] = y;
+    return across;
+  };
+  auto const cost_row = [ & ]( int y, int lower ) -> std::vector< int > const&
   {
-    for( int y = 0; y < height; ++y )
+    std::fill( boxed.begin(), boxed.end(), 0 );
+    for( int k = -half; k <= half; ++k )
     {
-      for( int x = 0; x < span; ++x )
-      {
-        auto* into = &across[ ( static_cast< size_t >( y ) * span + x ) * count ];
-
-        for( int k = -half; k <= half; ++k )
-        {
-          auto const at = std::min( std::max( x + k, 0 ), span - 1 );
-          auto const* from = &raw_cost[ ( static_cast< size_t >( y ) * span +
-                                          at ) * count ];
-
-          for( int d = 0; d < count; ++d ) { into[ d ] += from[ d ]; }
-        }
-      }
+      auto const at = std::min( std::max( y + k, lower ), height - 1 );
+      auto const& across = horizontal_row( at );
+      for( size_t i = 0; i < row_size; ++i ) { boxed[ i ] += across[ i ]; }
     }
-
-    for( int y = 0; y < height; ++y )
-    {
-      for( int k = -half; k <= half; ++k )
-      {
-        auto const at = std::min( std::max( y + k, 0 ), height - 1 );
-
-        for( int x = 0; x < span; ++x )
-        {
-          auto* into = &cost[ ( static_cast< size_t >( y ) * span + x ) * count ];
-          auto const* from = &across[ ( static_cast< size_t >( at ) * span +
-                                        x ) * count ];
-
-          for( int d = 0; d < count; ++d ) { into[ d ] += from[ d ]; }
-        }
-      }
-    }
-  }
+    return boxed;
+  };
 
   if( params.mode == sgbm_mode::SGBM_3WAY )
   {
-    // `across` rather than `cost`: the vertical box is rebuilt per stripe,
+    // The vertical box is rebuilt per stripe,
     // because its top clamps at the stripe's first row and not at the image's.
-    three_way( across, width, height, first, last, count, min_d, half, p1, p2,
+    three_way( cost_row, width, height, first, last, count, min_d, half, p1, p2,
                uniqueness, max_diff, invalid, out );
   }
   else
   {
 
   auto const passes = ( params.mode == sgbm_mode::HH ) ? 2 : 1;
-  std::vector< int > totals( cost.size(), 0 );
+  // HH needs the first pass's accumulated costs for its reverse pass. The
+  // single-pass SGBM mode needs only one row. Accumulated costs are already
+  // saturated to signed 16 bits by the original recurrence.
+  std::vector< int16_t > totals( row_size * ( passes == 2 ? height : 1 ), 0 );
 
   // Lr is (index, direction, disparity), with the disparity padded by one at
   // each end so that d-1 and d+1 are always addressable, and the index padded
@@ -936,12 +909,14 @@ stereo_sgbm( viame::image_of< uint8_t > const& left,
     for( int n = 0; n < height; ++n )
     {
       auto const y = y_from + n * step;
+      auto const& cost = cost_row( y, 0 );
+      auto const total_row = passes == 2 ? y : 0;
 
       if( pass == 1 )
       {
         for( int x = 0; x < span; ++x )
         {
-          auto* into = &totals[ ( static_cast< size_t >( y ) * span + x ) * count ];
+          auto* into = &totals[ ( static_cast< size_t >( total_row ) * span + x ) * count ];
 
           for( int d = 0; d < count; ++d ) { into[ d ] = 0; }
         }
@@ -977,16 +952,15 @@ stereo_sgbm( viame::image_of< uint8_t > const& left,
           previous[ k ][ count + 1 ] = sgbm_max_cost;
         }
 
-        auto const* here = &cost[ ( static_cast< size_t >( y ) * span + x ) *
-                                  count ];
-        auto* into = &totals[ ( static_cast< size_t >( y ) * span + x ) * count ];
+        auto const* here = &cost[ static_cast< size_t >( x ) * count ];
+        auto* into = &totals[ ( static_cast< size_t >( total_row ) * span + x ) * count ];
 
         int best[ 4 ] = { sgbm_max_cost, sgbm_max_cost, sgbm_max_cost,
                           sgbm_max_cost };
 
         for( int d = 0; d < count; ++d )
         {
-          auto sum = into[ d ];
+          int sum = into[ d ];
 
           for( int k = 0; k < 4; ++k )
           {
@@ -1019,7 +993,7 @@ stereo_sgbm( viame::image_of< uint8_t > const& left,
 
         for( int x = span - 1; x >= 0; --x )
         {
-          auto* totals_at = &totals[ ( static_cast< size_t >( y ) * span + x ) *
+          auto* totals_at = &totals[ ( static_cast< size_t >( total_row ) * span + x ) *
                                      count ];
           auto lowest_total = sgbm_max_cost;
           auto winner = -1;
@@ -1031,8 +1005,7 @@ stereo_sgbm( viame::image_of< uint8_t > const& left,
 
             auto const floor_here = lowest( id, x + 1, 0 );
             auto const ceiling = floor_here + p2;
-            auto const* here = &cost[ ( static_cast< size_t >( y ) * span + x ) *
-                                      count ];
+            auto const* here = &cost[ static_cast< size_t >( x ) * count ];
             auto best_fifth = sgbm_max_cost;
 
             for( int d = 0; d < count; ++d )

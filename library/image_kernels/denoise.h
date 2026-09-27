@@ -160,65 +160,80 @@ denoise_non_local_means( viame::image_of< uint8_t > const& image,
                      plane ];
   };
 
-  std::vector< int64_t > estimate( static_cast< size_t >( planes ) );
+  // For each search displacement, maintain the vertical patch sums and slide
+  // their horizontal sum. Each squared pixel difference is evaluated only
+  // twice per output row, rather than patch_size^2 times per output pixel.
+  auto const pixels = static_cast< size_t >( width ) * height;
+  std::vector< int64_t > estimate( pixels * planes, 0 );
+  std::vector< int64_t > total( pixels, 0 );
+  auto const columns = width + 2 * patch_half;
+  std::vector< int > vertical( static_cast< size_t >( columns ) );
 
-  for( int i = 0; i < height; ++i )
+  for( int dy = -window_half; dy <= window_half; ++dy )
   {
-    for( int j = 0; j < width; ++j )
+    for( int dx = -window_half; dx <= window_half; ++dx )
     {
-      std::fill( estimate.begin(), estimate.end(), 0 );
-
-      int64_t total = 0;
-      auto const ay = border + i;
-      auto const ax = border + j;
-
-      for( int y = 0; y < window_size; ++y )
+      auto const squared = [ & ]( int y, int x )
       {
-        for( int x = 0; x < window_size; ++x )
+        auto distance = 0;
+        for( int plane = 0; plane < planes; ++plane )
         {
-          auto const by = border + i - window_half + y;
-          auto const bx = border + j - window_half + x;
-
-          auto distance = 0;
-
-          for( int ty = -patch_half; ty <= patch_half; ++ty )
-          {
-            for( int tx = -patch_half; tx <= patch_half; ++tx )
-            {
-              for( int plane = 0; plane < planes; ++plane )
-              {
-                auto const gap = at( ay + ty, ax + tx, plane ) -
-                                 at( by + ty, bx + tx, plane );
-
-                distance += gap * gap;
-              }
-            }
-          }
-
-          auto const found = weight[ static_cast< size_t >(
-            std::min( distance >> shift, levels - 1 ) ) ];
-
-          for( int plane = 0; plane < planes; ++plane )
-          {
-            estimate[ static_cast< size_t >( plane ) ] +=
-              found * at( by, bx, plane );
-          }
-
-          total += found;
+          auto const gap = at( y, x, plane ) - at( y + dy, x + dx, plane );
+          distance += gap * gap;
+        }
+        return distance;
+      };
+      std::fill( vertical.begin(), vertical.end(), 0 );
+      for( int y = -patch_half; y <= patch_half; ++y )
+      {
+        for( int x = 0; x < columns; ++x )
+        {
+          vertical[ x ] += squared( border + y, border - patch_half + x );
         }
       }
-
+      for( int y = 0; y < height; ++y )
+      {
+        auto distance = 0;
+        for( int x = 0; x < patch_size; ++x ) { distance += vertical[ x ]; }
+        for( int x = 0; x < width; ++x )
+        {
+          auto const found = weight[ static_cast< size_t >(
+            std::min( distance >> shift, levels - 1 ) ) ];
+          auto const pixel = static_cast< size_t >( y ) * width + x;
+          total[ pixel ] += found;
+          for( int plane = 0; plane < planes; ++plane )
+          {
+            estimate[ pixel * planes + plane ] +=
+              found * at( border + y + dy, border + x + dx, plane );
+          }
+          if( x + 1 < width )
+          {
+            distance += vertical[ x + patch_size ] - vertical[ x ];
+          }
+        }
+        if( y + 1 < height )
+        {
+          for( int x = 0; x < columns; ++x )
+          {
+            auto const sx = border - patch_half + x;
+            vertical[ x ] += squared( border + y + patch_half + 1, sx ) -
+                              squared( border + y - patch_half, sx );
+          }
+        }
+      }
+    }
+  }
+  for( int y = 0; y < height; ++y )
+  {
+    for( int x = 0; x < width; ++x )
+    {
+      auto const pixel = static_cast< size_t >( y ) * width + x;
       for( int plane = 0; plane < planes; ++plane )
       {
-        // The average is rounded by adding half the divisor, as OpenCV's
-        // `divByWeightsSum` does; `total` is never zero because the window
-        // always contains the pixel itself, whose distance is zero.
         auto const value =
-          ( estimate[ static_cast< size_t >( plane ) ] + total / 2 ) / total;
-
-        out( static_cast< size_t >( j ), static_cast< size_t >( i ),
-             static_cast< size_t >( plane ) ) = saturate_pixel< uint8_t >(
-          static_cast< double >( value ) );
+          ( estimate[ pixel * planes + plane ] + total[ pixel ] / 2 ) /
+          total[ pixel ];
+        out( x, y, plane ) = static_cast< uint8_t >( value );
       }
     }
   }
