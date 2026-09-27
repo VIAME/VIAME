@@ -160,6 +160,14 @@ smooth_globally( viame::image_of< uint8_t > const& guide,
       "smooth_globally: at least one iteration" );
   }
 
+  if( !std::isfinite( lambda ) || lambda < 0.0 ||
+      !std::isfinite( sigma ) || sigma <= 0.0 )
+  {
+    throw std::invalid_argument(
+      "smooth_globally: lambda must be finite and nonnegative, "
+      "sigma must be finite and positive" );
+  }
+
   auto const width = static_cast< int >( image.width() );
   auto const height = static_cast< int >( image.height() );
   auto const planes = image.depth();
@@ -517,10 +525,10 @@ filter_disparity_wls( viame::image_of< uint8_t > const& guide,
   viame::image_of< uint8_t > band( static_cast< size_t >( left_span ),
                                    static_cast< size_t >( height ),
                                    guide.depth() );
+  // Both planes use the same guide. One call builds its lookup table and
+  // edge weights once, while retaining the independent solve for each plane.
   viame::image_of< float > weighted( static_cast< size_t >( left_span ),
-                                     static_cast< size_t >( height ), 1 );
-  viame::image_of< float > alone( static_cast< size_t >( left_span ),
-                                  static_cast< size_t >( height ), 1 );
+                                     static_cast< size_t >( height ), 2 );
 
   for( int y = 0; y < height; ++y )
   {
@@ -536,17 +544,15 @@ filter_disparity_wls( viame::image_of< uint8_t > const& guide,
       auto const weight = confidence( static_cast< size_t >( left_x + x ),
                                       static_cast< size_t >( y ), 0 );
 
-      alone( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) =
+      weighted( static_cast< size_t >( x ), static_cast< size_t >( y ), 1 ) =
         weight;
       weighted( static_cast< size_t >( x ), static_cast< size_t >( y ), 0 ) =
         weight * left_at( left_x + x, y );
     }
   }
 
-  auto const smoothed_weighted =
+  auto const smoothed =
     smooth_globally( band, weighted, params.lambda, params.sigma );
-  auto const smoothed_alone =
-    smooth_globally( band, alone, params.lambda, params.sigma );
 
   // Zero confidence contains no disparity information. Keep the invalid
   // sentinel in that case rather than letting 0 * infinity produce a NaN.
@@ -557,8 +563,8 @@ filter_disparity_wls( viame::image_of< uint8_t > const& guide,
   {
     for( int x = 0; x < left_span; ++x )
     {
-      auto const confidence_value = smoothed_alone( x, y, 0 );
-      auto const numerator = smoothed_weighted( x, y, 0 );
+      auto const confidence_value = smoothed( x, y, 1 );
+      auto const numerator = smoothed( x, y, 0 );
       if( !( confidence_value > 0.0f ) || !std::isfinite( confidence_value ) ||
           !std::isfinite( numerator ) )
       {

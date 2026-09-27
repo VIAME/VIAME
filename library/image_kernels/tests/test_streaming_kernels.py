@@ -87,3 +87,25 @@ def test_wls_rolling_confidence_matches_opencv(radius, channels):
         guide, left, right, left_offset=16, discontinuity_radius=radius)
     # OpenCV rounds its result back into int16 disparity units.
     np.testing.assert_allclose(actual, expected, rtol=0, atol=0.501)
+
+
+@pytest.mark.parametrize('parameter,value', [
+    ('lambda_', -1), ('lambda_', np.nan), ('lambda_', np.inf),
+    ('sigma', -1), ('sigma', 0), ('sigma', np.nan), ('sigma', np.inf)])
+@pytest.mark.parametrize('wls', [False, True])
+def test_smoother_rejects_invalid_parameters(parameter, value, wls):
+    guide = np.zeros((8, 8), np.uint8)
+    kwargs = {'lambda_': 8000, 'sigma': 1, parameter: value}
+    with pytest.raises(ValueError, match='lambda.*sigma'):
+        if wls:
+            disparity = np.zeros(guide.shape, np.int16)
+            kernels.filter_disparity_wls(guide, disparity, disparity, **kwargs)
+        else:
+            kernels.smooth_globally(guide, np.ones(guide.shape, np.float32), **kwargs)
+
+
+def test_smoother_zero_lambda_is_identity():
+    rng = np.random.default_rng(87)
+    guide = rng.integers(0, 256, (9, 11), dtype=np.uint8)
+    image = rng.random((9, 11, 2), dtype=np.float32)
+    assert np.array_equal(kernels.smooth_globally(guide, image, 0, 1), image)
