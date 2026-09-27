@@ -1618,6 +1618,9 @@ train_applet
     ( "output-file", "Pack the whole output directory (pipelines, models, model "
       "card, evaluation) into this zip on success and remove the directory",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "skip-packaging", "Leave the trained output as a folder instead of packing "
+      "it into the output_file zip the config or --output-file requests",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "normalize-16bit", "Enable percentile normalization for 16-bit/float imagery",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "llm-assist", "Run training under claude supervision, which suggests config "
@@ -1780,6 +1783,7 @@ train_applet
   std::string opt_timeout = cmd_args[ "timeout" ].as< std::string >();
   std::string opt_init_weights = cmd_args[ "init-weights" ].as< std::string >();
   std::string opt_output_file = cmd_args[ "output-file" ].as< std::string >();
+  bool opt_skip_packaging = cmd_args[ "skip-packaging" ].as< bool >();
   std::string opt_settings_file = cmd_args[ "settings-file" ].as< std::string >();
   bool opt_normalize_16bit = cmd_args[ "normalize-16bit" ].as< bool >();
 
@@ -2401,6 +2405,12 @@ train_applet
     {
       output_directory = output_file + "_files";
     }
+  }
+
+  // Cleared after staging so the folder keeps the name the pack would have had
+  if( opt_skip_packaging )
+  {
+    output_file.clear();
   }
 
   if( !kv::check_nested_algo_configuration< kv::algo::image_io >( "image_reader", config ) )
