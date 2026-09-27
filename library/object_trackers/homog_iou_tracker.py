@@ -15,12 +15,14 @@ motion model: a target's apparent motion is entirely the camera's.
 
 import logging
 
-import cv2
 import numpy as np
 import scriptconfig as scfg
 
+from viame import image_kernels
 from viame.algo import TrackObjects
+from viame.image_processing import features, matching
 from viame.types import ObjectTrackSet, ObjectTrackState, Track
+from viame.utilities import geometry
 
 from viame.object_trackers.simple_homog_tracker import (
     ious, optimize_iou_based_assignment, transform_matrix_box,
@@ -110,13 +112,7 @@ class HomogIOUTracker(TrackObjects):
         self._feature_type = str(self._config.feature_type).lower()
         self._min_inliers = int(self._config.min_inliers)
 
-        if self._feature_type == 'sift':
-            self._detector = cv2.SIFT_create(nfeatures=self._max_features)
-            self._matcher = cv2.BFMatcher(cv2.NORM_L2)
-        elif self._feature_type == 'orb':
-            self._detector = cv2.ORB_create(nfeatures=self._max_features)
-            self._matcher = cv2.BFMatcher(cv2.NORM_HAMMING)
-        else:
+        if self._feature_type not in ('sift', 'orb'):
             raise ValueError("Unknown feature_type: " + self._feature_type)
 
         self.reset()
@@ -129,26 +125,49 @@ class HomogIOUTracker(TrackObjects):
     def _features(self, image):
         gray = _to_gray_uint8(image.asarray())
         scale = self._registration_scale
-        if 0 < scale != 1.0:
-            gray = cv2.resize(gray, None, fx=scale, fy=scale,
-                              interpolation=cv2.INTER_AREA)
-        return self._detector.detectAndCompute(gray, None)
 
-    def _estimate(self, prev, features):
-        (kp0, des0), (kp1, des1) = prev, features
+        if 0 < scale != 1.0:
+            height, width = gray.shape[:2]
+            gray = image_kernels.resize_area(gray, int(width * scale),
+                                             int(height * scale))
+
+        if self._feature_type == 'orb':
+            # ORB is the one detector this branch has not ported, and the
+            # `import` is here rather than at the top of the file so that the
+            # default path -- and every shipped config, none of which sets
+            # `feature_type` -- needs no cv2 at all. See lite-findings.md 2.66.
+            import cv2
+
+            detector = cv2.ORB_create(nfeatures=self._max_features)
+            keypoints, descriptors = detector.detectAndCompute(gray, None)
+
+            if descriptors is None or not len(keypoints):
+                return np.zeros((0, 6), np.float32), None
+
+            return (np.array([[k.pt[0], k.pt[1], k.size, k.angle, k.response,
+                               float(k.octave)] for k in keypoints],
+                             dtype=np.float32),
+                    descriptors)
+
+        return features.sift(gray, n_features=self._max_features)
+
+    def _estimate(self, prev, found):
+        (kp0, des0), (kp1, des1) = prev, found
         if des0 is None or des1 is None or len(kp0) < 2 or len(kp1) < 2:
             logger.warning("homog_iou: too few features for registration, "
                            "using identity")
             return None
 
-        good = [m[0] for m in self._matcher.knnMatch(des0, des1, k=2)
-                if len(m) == 2 and m[0].distance < 0.75 * m[1].distance]
+        # Hamming for ORB's bit strings, squared L2 for SIFT's histograms,
+        # which is the distinction `cv2.BFMatcher`'s norm argument made.
+        good = matching.ratio_match(des0, des1, 0.75,
+                                    binary=self._feature_type == 'orb')
 
         homog, inliers = None, 0
         if len(good) >= 4:
-            src = np.float32([kp0[m.queryIdx].pt for m in good])
-            dst = np.float32([kp1[m.trainIdx].pt for m in good])
-            homog, mask = cv2.findHomography(src, dst, cv2.RANSAC, 3.0)
+            src = np.float32([kp0[q, :2] for q, _ in good])
+            dst = np.float32([kp1[t, :2] for _, t in good])
+            homog, mask = geometry.find_homography(src, dst, threshold=3.0)
             inliers = int(mask.sum()) if mask is not None else 0
 
         if homog is None or inliers < self._min_inliers:
@@ -168,10 +187,10 @@ class HomogIOUTracker(TrackObjects):
             self._prev_features = None
             return np.eye(3)
 
-        features = self._features(image)
+        found = self._features(image)
         prev = self._prev_features
 
-        homog = self._estimate(prev, features) if prev is not None else None
+        homog = self._estimate(prev, found) if prev is not None else None
 
         if homog is None and prev is not None:
             self._failures += 1
@@ -181,7 +200,7 @@ class HomogIOUTracker(TrackObjects):
                 return np.eye(3)
 
         self._failures = 0
-        self._prev_features = features
+        self._prev_features = found
         return np.eye(3) if homog is None else homog
 
     def track(self, ts, image, detections):

@@ -2129,3 +2129,32 @@ Also of note from the same file: the scalar reference beside every vectorised
 loop in `stereosgbm.cpp` is **not** the same arithmetic as the loop, because
 `v_add` on a `v_int16` saturates where the scalar path promotes to `int`. It
 changes nothing at these cost magnitudes and would at a larger block size.
+
+## The IOU tracker's default path off cv2, and where cv2 still is
+
+`homog_iou_tracker.py` reached for cv2 four times -- `SIFT_create`,
+`ORB_create`, `BFMatcher` and `findHomography` -- and three are VIAME's now.
+The `import cv2` moved **inside the ORB branch**, so the default path and every
+shipped config (none sets `feature_type`) need no cv2. Selecting
+`feature_type=orb` still works exactly as before, with cv2's detector and
+VIAME's matcher and RANSAC around it, so nothing configurable was taken away.
+
+ORB is left because it is the largest of the detectors, not the smallest:
+`orb.cpp` is 1279 lines and needs FAST with its 512-entry threshold table,
+Harris responses, the intensity-centroid orientation, a pyramid with
+`copyMakeBorder`, a blur per level, and rBRIEF's 1024-integer learned pattern.
+SIFT was 1129 lines with none of those. And no config in the tree selects it.
+See 2.66.
+
+**Where cv2 remains, and why each one is still there.** Five files:
+
+| file | what it needs | why not yet |
+|---|---|---|
+| `ocv_stereo_disparity.py` | `MODE_SGBM_3WAY`, `StereoBM`, ximgproc WLS | 3-way is 0.56% off on some frames (2.65); five pipelines select it, so it is not something to change silently |
+| `ocv_segmenters.py` | grabCut | a 5-component GMM plus a Boykov-Kolmogorov max-flow; **no config selects `ocv_grabcut`** |
+| `homog_iou_tracker.py` | ORB, in one branch | see above; the default path is already off cv2 |
+| `image_viewer.py` | highgui | no replacement exists and none is planned |
+| `tools/calibrate.py` | ORB, `findEssentialMat`, `recoverPose`, `stereoCalibrate`, `VideoCapture`, highgui | the widest remaining surface, and `stereoCalibrate` is a bundle adjustment |
+
+Everything else is either a `tests/golden` recorder that keeps cv2 on purpose, a
+committed review probe, or a comment.

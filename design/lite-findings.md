@@ -4301,3 +4301,35 @@ silently into a measurement pipeline. It also still needs `StereoBM`, which is a
 different algorithm, and the `ximgproc` WLS filter. The kernel has the mode so
 that the remaining work is the aggregation's last rule rather than the whole
 algorithm.
+
+## 2.66 ORB is the one detector left, and the file around it did not need it
+
+`homog_iou_tracker.py` reached for cv2 four times -- `SIFT_create`,
+`ORB_create`, `BFMatcher` and `findHomography` -- and three of the four are
+VIAME's now. The fourth, ORB, is not ported, and the file's `import cv2` moved
+**inside the ORB branch**: the default path and every shipped config, none of
+which sets `feature_type`, now need no cv2 at all.
+
+That is deliberately not a refusal. Selecting `feature_type=orb` still works
+exactly as it did -- cv2's detector, and now VIAME's Hamming matcher and RANSAC
+homography around it -- so nothing a user could configure has been taken away.
+What has changed is that cv2 is no longer imported to reach a code path nobody
+takes.
+
+Why ORB is left: it is the largest of the detectors, not the smallest.
+`orb.cpp` is 1279 lines and it does not stand alone -- it needs FAST with its
+512-entry threshold table, Harris responses, the intensity-centroid orientation
+with its `u_max` table, a pyramid with `copyMakeBorder`, a 7 by 7 blur per
+level, and rBRIEF's **1024-integer learned pattern**, which is data rather than
+algorithm and has to be transcribed exactly. SIFT was 1129 lines with none of
+those dependencies.
+
+And the value is the other way round from the cost: `git grep` finds **no config
+in the tree that sets `feature_type`**, so ORB is an option a user could reach
+rather than something VIAME ships.
+
+Worth recording for whoever does port it: the matcher and the estimator are
+already there. `matching.ratio_match( ..., binary=True )` is the Hamming
+distance over the bit strings -- the distinction `cv2.BFMatcher`'s `NORM_HAMMING`
+against `NORM_L2` made -- and `geometry.find_homography` is the RANSAC. What is
+missing is only the detector and its descriptor.
