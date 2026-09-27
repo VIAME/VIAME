@@ -1296,4 +1296,285 @@ bool create_zip_file(
 #endif
 }
 
+bool create_zip_from_folder( const std::string& zip_path,
+                             const std::string& folder )
+{
+  std::vector< std::string > files;
+
+  if( !list_files_in_folder( folder, files, true ) )
+  {
+    std::cerr << "Unable to list " << folder << std::endl;
+    return false;
+  }
+
+  std::map< std::string, std::string > entries;
+  std::string prefix = folder;
+
+  while( !prefix.empty() && ( prefix.back() == '/' || prefix.back() == '\\' ) )
+  {
+    prefix.pop_back();
+  }
+
+  for( const auto& file : files )
+  {
+    std::string name = file;
+
+    if( name.compare( 0, prefix.size(), prefix ) == 0 )
+    {
+      name = name.substr( prefix.size() );
+    }
+    while( !name.empty() && ( name[0] == '/' || name[0] == '\\' ) )
+    {
+      name = name.substr( 1 );
+    }
+    std::replace( name.begin(), name.end(), '\\', '/' );
+
+    if( !name.empty() )
+    {
+      entries[ name ] = file;
+    }
+  }
+
+  return create_zip_file( zip_path, entries );
+}
+
+#ifdef VIAME_ENABLE_ZLIB
+
+namespace {
+
+uint16_t read_le16( const unsigned char* p )
+{
+  return static_cast< uint16_t >( p[0] | ( p[1] << 8 ) );
+}
+
+uint32_t read_le32( const unsigned char* p )
+{
+  return static_cast< uint32_t >( p[0] ) | ( static_cast< uint32_t >( p[1] ) << 8 ) |
+         ( static_cast< uint32_t >( p[2] ) << 16 ) | ( static_cast< uint32_t >( p[3] ) << 24 );
+}
+
+struct zip_central_entry
+{
+  std::string name;
+  uint16_t method;
+  uint32_t compressed_size;
+  uint32_t uncompressed_size;
+  uint32_t local_header_offset;
+};
+
+// Reads the central directory; entries are the only trustworthy record of
+// what a zip holds, and directories are dropped.
+bool read_central_directory( const std::string& zip_path,
+                             std::vector< unsigned char >& data,
+                             std::vector< zip_central_entry >& entries )
+{
+  std::ifstream in( zip_path, std::ios::binary );
+
+  if( !in )
+  {
+    return false;
+  }
+
+  data.assign( std::istreambuf_iterator< char >( in ), std::istreambuf_iterator< char >() );
+
+  if( data.size() < 22 )
+  {
+    return false;
+  }
+
+  // End of central directory record, searched backwards past any comment
+  size_t eocd = std::string::npos;
+
+  for( size_t i = data.size() - 22; ; --i )
+  {
+    if( read_le32( &data[i] ) == 0x06054b50 )
+    {
+      eocd = i;
+      break;
+    }
+    if( i == 0 || data.size() - i > 22 + 65535 )
+    {
+      break;
+    }
+  }
+
+  if( eocd == std::string::npos )
+  {
+    return false;
+  }
+
+  const uint16_t count = read_le16( &data[ eocd + 10 ] );
+  size_t offset = read_le32( &data[ eocd + 16 ] );
+
+  for( uint16_t i = 0; i < count; ++i )
+  {
+    if( offset + 46 > data.size() || read_le32( &data[ offset ] ) != 0x02014b50 )
+    {
+      return false;
+    }
+
+    zip_central_entry entry;
+    entry.method = read_le16( &data[ offset + 10 ] );
+    entry.compressed_size = read_le32( &data[ offset + 20 ] );
+    entry.uncompressed_size = read_le32( &data[ offset + 24 ] );
+    const uint16_t name_len = read_le16( &data[ offset + 28 ] );
+    const uint16_t extra_len = read_le16( &data[ offset + 30 ] );
+    const uint16_t comment_len = read_le16( &data[ offset + 32 ] );
+    entry.local_header_offset = read_le32( &data[ offset + 42 ] );
+
+    if( offset + 46 + name_len > data.size() )
+    {
+      return false;
+    }
+
+    entry.name.assign( reinterpret_cast< const char* >( &data[ offset + 46 ] ), name_len );
+    offset += 46 + name_len + extra_len + comment_len;
+
+    if( !entry.name.empty() && entry.name.back() != '/' )
+    {
+      entries.push_back( entry );
+    }
+  }
+
+  return true;
+}
+
+} // anonymous namespace
+
+#endif // VIAME_ENABLE_ZLIB
+
+bool list_zip_entries( const std::string& zip_path,
+                       std::vector< std::string >& entries )
+{
+  entries.clear();
+
+#ifdef VIAME_ENABLE_ZLIB
+  std::vector< unsigned char > data;
+  std::vector< zip_central_entry > central;
+
+  if( !read_central_directory( zip_path, data, central ) )
+  {
+    return false;
+  }
+
+  for( const auto& entry : central )
+  {
+    entries.push_back( entry.name );
+  }
+
+  return true;
+#else
+  std::cerr << "Zip file reading requires ZLIB support" << std::endl;
+  return false;
+#endif
+}
+
+bool extract_zip_file( const std::string& zip_path,
+                       const std::string& destination )
+{
+#ifdef VIAME_ENABLE_ZLIB
+  std::vector< unsigned char > data;
+  std::vector< zip_central_entry > central;
+
+  if( !read_central_directory( zip_path, data, central ) )
+  {
+    std::cerr << "Unable to read zip file: " << zip_path << std::endl;
+    return false;
+  }
+
+  for( const auto& entry : central )
+  {
+    // Entries may not escape the destination.
+    if( entry.name.find( ".." ) != std::string::npos || entry.name[0] == '/' )
+    {
+      std::cerr << "Refusing to extract " << entry.name << std::endl;
+      return false;
+    }
+
+    const size_t local = entry.local_header_offset;
+
+    if( local + 30 > data.size() || read_le32( &data[ local ] ) != 0x04034b50 )
+    {
+      std::cerr << "Corrupt entry " << entry.name << " in " << zip_path << std::endl;
+      return false;
+    }
+
+    const size_t begin = local + 30 + read_le16( &data[ local + 26 ] )
+                                    + read_le16( &data[ local + 28 ] );
+
+    if( begin + entry.compressed_size > data.size() )
+    {
+      std::cerr << "Truncated entry " << entry.name << " in " << zip_path << std::endl;
+      return false;
+    }
+
+    std::vector< unsigned char > content( entry.uncompressed_size );
+
+    if( entry.uncompressed_size == 0 )
+    {
+      // Nothing to decode; an empty file is written below.
+    }
+    else if( entry.method == 0 )
+    {
+      std::copy( data.begin() + begin, data.begin() + begin + entry.compressed_size,
+                 content.begin() );
+    }
+    else if( entry.method == 8 )
+    {
+      z_stream stream;
+      std::memset( &stream, 0, sizeof( stream ) );
+
+      if( inflateInit2( &stream, -MAX_WBITS ) != Z_OK )
+      {
+        return false;
+      }
+
+      stream.next_in = const_cast< Bytef* >( &data[ begin ] );
+      stream.avail_in = entry.compressed_size;
+      stream.next_out = content.data();
+      stream.avail_out = static_cast< uInt >( content.size() );
+
+      const int status = inflate( &stream, Z_FINISH );
+      inflateEnd( &stream );
+
+      if( status != Z_STREAM_END )
+      {
+        std::cerr << "Unable to inflate " << entry.name << " in " << zip_path << std::endl;
+        return false;
+      }
+    }
+    else
+    {
+      std::cerr << "Unsupported compression for " << entry.name << " in " << zip_path
+                << std::endl;
+      return false;
+    }
+
+    const std::string out_path = append_path( destination, entry.name );
+    const size_t last_sep = out_path.find_last_of( "/\\" );
+    const std::string out_dir =
+      last_sep == std::string::npos ? std::string() : out_path.substr( 0, last_sep );
+
+    if( !out_dir.empty() && !create_folder( out_dir ) )
+    {
+      std::cerr << "Unable to create " << out_dir << std::endl;
+      return false;
+    }
+
+    std::ofstream out( out_path, std::ios::binary );
+
+    if( !out || !out.write( reinterpret_cast< const char* >( content.data() ), content.size() ) )
+    {
+      std::cerr << "Unable to write " << out_path << std::endl;
+      return false;
+    }
+  }
+
+  return true;
+#else
+  std::cerr << "Zip file extraction requires ZLIB support" << std::endl;
+  return false;
+#endif
+}
+
 } // end namespace viame

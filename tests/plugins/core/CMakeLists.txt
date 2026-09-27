@@ -31,6 +31,9 @@ kwiver_discover_gtests( viame_core evaluate_models
 kwiver_discover_gtests( viame_core viame_csv_tot_once
   LIBRARIES ${test_libraries} )
 
+kwiver_discover_gtests( viame_core utilities_model_card
+  LIBRARIES ${test_libraries} )
+
 kwiver_discover_gtests( viame_core utilities_training
   LIBRARIES ${test_libraries} )
 

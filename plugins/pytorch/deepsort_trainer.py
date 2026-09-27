@@ -219,7 +219,7 @@ class DeepSORTTrainer(TrainTracker):
 
         self._identifier = "viame-deepsort-tracker"
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
+        self._output_directory = "trained_model"
         self._output_prefix = "deepsort_tracker"
         self._pipeline_template = ""
 

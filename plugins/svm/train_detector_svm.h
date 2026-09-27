@@ -48,7 +48,7 @@ public:
     PARAM_DEFAULT( \
       output_directory, std::string, \
       "Output directory for trained SVM model files", \
-      "category_models" ), \
+      "trained_model" ), \
     PARAM_DEFAULT( \
       background_category, std::string, \
       "Category name to skip (background class)", \

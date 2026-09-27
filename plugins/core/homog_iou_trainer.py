@@ -80,7 +80,7 @@ class HomogIOUTrainer( TrainTracker ):
 
         self._identifier = "viame-homog-iou-tracker"
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
+        self._output_directory = "trained_model"
         self._output_prefix = "homog_iou_tracker"
         self._threshold = "0.00"
         self._min_iou_floor = 0.05

@@ -18,6 +18,15 @@ export PROCESS_FRAME_RATE=1
 export TOTAL_GPU_COUNT=1
 export PIPES_PER_GPU=1
 
+# Trained model: the pack written by training, or an unpacked folder
+if [ -f trained_model.zip ]; then
+  export TRAINED_MODEL=trained_model.zip/detector.pipe
+elif [ -d trained_model ]; then
+  export TRAINED_MODEL=trained_model/detector.pipe
+else
+  export TRAINED_MODEL=category_models/detector.pipe
+fi
+
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
@@ -26,5 +35,5 @@ export VIAME_PROJECT_DIR="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
 
 viame run \
   -l ${INPUT_LIST} -ifrate ${INPUT_FRAME_RATE} -frate ${PROCESS_FRAME_RATE} \
-  -p category_models/detector.pipe -o ${OUTPUT_DIRECTORY} --no-reset-prompt \
+  -p ${TRAINED_MODEL} -o ${OUTPUT_DIRECTORY} --no-reset-prompt \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}

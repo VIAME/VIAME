@@ -167,7 +167,7 @@ class FrameDiffTrainer(TrainDetector):
 
         self._identifier = "viame-frame-diff-detector"
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
+        self._output_directory = "trained_model"
         self._output_prefix = "frame_diff"
         self._class_name = "motion"
 

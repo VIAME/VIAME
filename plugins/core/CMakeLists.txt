@@ -45,6 +45,7 @@ set( plugin_headers
   refine_tracks_average_tot.h
   utilities_file.h
   utilities_image.h
+  utilities_model_card.h
   utilities_segmentation.h
   utilities_tracks.h
   utilities_training.h
@@ -103,6 +104,7 @@ set( plugin_sources
   refine_tracks_average_tot.cxx
   utilities_file.cxx
   utilities_image.cxx
+  utilities_model_card.cxx
   utilities_segmentation.cxx
   utilities_tracks.cxx
   utilities_training.cxx

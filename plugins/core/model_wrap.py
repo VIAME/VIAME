@@ -70,6 +70,31 @@ def is_model_file(path):
     return path.lower().endswith(MODEL_EXTS) and os.path.isfile(path)
 
 
+def split_zip_path(path):
+    """Split "pack.zip/detector.pipe" into (pack.zip, "detector.pipe").
+
+    Returns (path, '') when no leading component is an existing zip file, so
+    plain paths pass through unchanged."""
+    parts = path.replace('\\', '/').split('/')
+    for i in range(1, len(parts)):
+        head = os.path.join(*parts[:i]) if i > 1 else parts[0]
+        if path.startswith('/') and not head.startswith('/'):
+            head = '/' + head
+        if head.lower().endswith('.zip') and os.path.isfile(head):
+            return head, '/'.join(parts[i:])
+    return path, ''
+
+
+def select_pipe(info, name):
+    """Narrow a multi-pipeline zip to the pipe called name (a full entry
+    name or just its basename)."""
+    matches = [p for p in info.pipes if p == name or os.path.basename(p) == name]
+    if not matches:
+        raise ValueError(os.path.basename(info.path) + ' has no pipeline ' + name +
+                         '; it holds ' + ', '.join(info.pipes))
+    info.pipes = matches[:1]
+
+
 # -----------------------------------------------------------------------------
 def _pickle_strings(path):
     """Every string constant and global reference in a torch checkpoint.

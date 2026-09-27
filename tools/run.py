@@ -322,7 +322,7 @@ def resolve_pipeline( name ):
 
 def is_pipeline_name( name ):
   return name.endswith( default_pipe_ext ) or resolve_pipeline( name ) != name \
-    or model_wrap.is_model_file( name )
+    or model_wrap.is_model_file( name ) or model_wrap.split_zip_path( name )[1] != ""
 
 def choose_pipe_in_zip( info ):
   choices = list( info.pipes )
@@ -346,7 +346,7 @@ def choose_pipe_in_zip( info ):
 def model_id_for( options ):
   return getattr( options, "model_file", options.pipeline )
 
-def wrap_model_as_pipeline( model_path, has_input ):
+def wrap_model_as_pipeline( model_path, has_input, pipe_in_zip="" ):
   work_dir = tempfile.mkdtemp( prefix="viame_run_" )
   atexit.register( shutil.rmtree, work_dir, True )
   info = model_wrap.identify( model_path, work_dir )
@@ -355,6 +355,11 @@ def wrap_model_as_pipeline( model_path, has_input ):
   if not has_input:
     log_info( info.describe() + lb )
     sys.exit( 0 )
+  if pipe_in_zip:
+    try:
+      model_wrap.select_pipe( info, pipe_in_zip )
+    except ValueError as e:
+      exit_with_error( str( e ) )
   if len( info.pipes ) > 1:
     choose_pipe_in_zip( info )
   pipeline_root = os.path.join( get_script_path(), pipeline_dir )
@@ -1263,10 +1268,14 @@ if __name__ == "__main__" :
 
   args.pipeline = resolve_pipeline( args.pipeline )
 
+  # "pack.zip/detector.pipe" names one pipeline inside a model pack
+  args.pipeline, pipe_in_zip = model_wrap.split_zip_path( args.pipeline )
+
   if model_wrap.is_model_file( args.pipeline ):
     args.model_file = os.path.abspath( args.pipeline )
     args.pipeline = wrap_model_as_pipeline( args.pipeline,
-      any( [ args.input, args.input_video, args.input_dir, args.input_list ] ) )
+      any( [ args.input, args.input_video, args.input_dir, args.input_list ] ),
+      pipe_in_zip )
 
   # Assorted error checking up front
   process_data = True
@@ -1413,24 +1422,24 @@ if __name__ == "__main__" :
     # Check for local pipelines and pre-reqs present
     normalized_pipe = args.pipeline.replace( "\\", "/" )
     if "_project_folder.pipe" in normalized_pipe or \
-       normalized_pipe.startswith( "category_models/" ):
+       normalized_pipe.startswith( "trained_model/" ):
       required_pipe = normalized_pipe if \
-        normalized_pipe.startswith( "category_models/" ) else \
-        "category_models/detector.pipe"
+        normalized_pipe.startswith( "trained_model/" ) else \
+        "trained_model/detector.pipe"
       if not os.path.exists( required_pipe ):
-        if has_file_with_extension( "category_models", "svm" ):
+        if has_file_with_extension( "trained_model", "svm" ):
           if normalized_pipe.endswith( "detector_project_folder.pipe" ) or \
-             normalized_pipe == "category_models/detector.pipe":
+             normalized_pipe == "trained_model/detector.pipe":
             args.pipeline = os.path.join( "pipelines", "detector_svm_over_generic_proposals.pipe" )
           elif normalized_pipe.endswith( "frame_classifier_project_folder.pipe" ):
             args.pipeline = os.path.join( "pipelines", "frame_classifier_svm.pipe" )
           elif normalized_pipe.endswith( "tracker_project_folder.pipe" ) or \
-               normalized_pipe == "category_models/tracker.pipe":
+               normalized_pipe == "trained_model/tracker.pipe":
             args.pipeline = os.path.join( "pipelines", "tracker_svm_models.pipe" )
           else:
             exit_with_error( "Use of this script requires training a detector first" )
-        elif normalized_pipe == "category_models/tracker.pipe" and \
-             os.path.exists( "category_models/detector.pipe" ):
+        elif normalized_pipe == "trained_model/tracker.pipe" and \
+             os.path.exists( "trained_model/detector.pipe" ):
           exit_with_error( "This project has no trained tracker; training only "
                            "produces one when the groundtruth contains tracks" )
         else:

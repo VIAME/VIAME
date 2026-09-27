@@ -7,6 +7,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 #include <vital/plugin_management/plugin_manager.h>
+#include <vital/applets/applet_context.h>
 #include <vital/plugin_management/plugin_factory.h>
 #include <vital/config/config_block.h>
 #include <vital/config/config_block_io.h>
@@ -21,6 +22,7 @@
 #include <vital/algo/image_io.h>
 #include <vital/types/image_container.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/category_hierarchy.h>
 #include <vital/logger/logger.h>
 #include <vital/util/get_paths.h>
 
@@ -28,6 +30,7 @@
 
 #include <plugins/core/utilities_file.h>
 #include <plugins/core/utilities_image.h>
+#include <plugins/core/utilities_model_card.h>
 #include <plugins/core/utilities_training.h>
 #include <plugins/core/manipulate_pipelines.h>
 #include <plugins/core/python_script_applet.h>
@@ -44,9 +47,9 @@
 #include <iterator>
 #include <cstdlib>
 #include <memory>
-#include <cctype>
 #include <regex>
 #include <thread>
+#include <ctime>
 #include <atomic>
 #include <algorithm>
 #include <cstdio>
@@ -193,10 +196,12 @@ static kv::config_block_sptr default_config()
     "Optional file for storing possible data errors and warning." );
   config->set_value( "output_directory", "",
     "Directory to store trained model files and generated pipelines. "
-    "If empty and output_file is not set, files are written to the current directory." );
+    "If empty, files are written to the current directory, or to a staging "
+    "folder named after output_file when that is set." );
   config->set_value( "output_file", "",
-    "If specified, create a zip file containing the model files and pipeline "
-    "instead of writing to output_directory. Takes precedence over output_directory." );
+    "If specified, everything written to output_directory (pipelines, models, "
+    "model card, evaluation) is packed into this zip file at the end of a "
+    "successful run and the directory is removed." );
   config->set_value( "pipeline_template", "",
     "Optional template file for generating output pipeline. Keywords in the "
     "template will be replaced with values from the trainer." );
@@ -1047,11 +1052,9 @@ static bool validate_trainer_output_keys(
 // Process the output map returned by a trainer's update_model() method.
 // - If the value is an existing file path, it's a file copy (key=output filename)
 // - Otherwise, it's a template replacement (key becomes [-KEY-] in template)
-// - If output_file is specified, creates a zip archive instead of writing to directory
 static void process_trainer_output(
     const std::map< std::string, std::string >& output_map,
     const std::string& output_directory,
-    const std::string& output_file,
     const std::string& pipeline_template,
     const std::string& output_pipeline_name,
     const std::string& algorithm_type = "",
@@ -1142,8 +1145,7 @@ static void process_trainer_output(
 
   // A tracker continues the pipeline the detector pass wrote, not the template
   const std::string source_template =
-    ( output_file.empty() && fill_into_existing_pipeline &&
-      does_file_exist( output_pipeline ) ) ? output_pipeline : pipeline_template;
+    ( fill_into_existing_pipeline && does_file_exist( output_pipeline ) ) ? output_pipeline : pipeline_template;
 
   // Each trainer fills only its own slot, so a shared template never gets
   // a tracker substituted in as the detector or vice versa.
@@ -1158,54 +1160,6 @@ static void process_trainer_output(
     template_replacements[ impl_marker ] = impl;
   }
 
-  // If output_file is specified, create a zip archive
-  if( !output_file.empty() )
-  {
-    std::map< std::string, std::string > zip_files;
-    std::map< std::string, std::string > zip_string_contents;
-
-    // Add all model files to be included in zip
-    for( const auto& pair : file_copies )
-    {
-      const std::string& dest_filename = pair.first;
-      const std::string& source_path = pair.second;
-      zip_files[ dest_filename ] = source_path;
-    }
-
-    // Generate pipeline content if template is configured
-    if( !pipeline_template.empty() && does_file_exist( pipeline_template ) )
-    {
-      std::string pipeline_content;
-      if( replace_keywords_in_template_to_string(
-            pipeline_template, template_replacements, pipeline_content ) )
-      {
-        zip_string_contents[ output_pipeline_name ] = pipeline_content;
-      }
-      else
-      {
-        std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
-      }
-    }
-
-    // Create the zip file
-    if( create_zip_file( output_file, zip_files, zip_string_contents ) )
-    {
-      std::cout << "Created output zip file: " << output_file << std::endl;
-      std::cout << "  - Contains " << zip_files.size() << " model file(s)" << std::endl;
-      if( !zip_string_contents.empty() )
-      {
-        std::cout << "  - Contains generated pipeline: " << output_pipeline_name << std::endl;
-      }
-    }
-    else
-    {
-      std::cerr << "Error: failed to create zip file: " << output_file << std::endl;
-    }
-
-    return;
-  }
-
-  // Otherwise, use output_directory (existing behavior)
   // Create output directory if needed
   if( !output_directory.empty() )
   {
@@ -1297,6 +1251,291 @@ train_applet
 {
 }
 
+
+// =======================================================================================
+namespace {
+
+// Runs an applet of this executable in-process, the way `viame <name>` would.
+int
+run_applet( const std::string& name, std::vector< std::string > args )
+{
+  using applet_factory =
+    kwiver::vital::implementation_factory_by_name< kwiver::tools::kwiver_applet >;
+
+  applet_factory app_fact;
+  kwiver::tools::kwiver_applet_sptr applet(
+    app_fact.create( name, kwiver::vital::config_block::empty_config() ) );
+
+  kwiver::tools::applet_context context;
+  context.m_applet_name = name;
+  context.m_argv = args;
+  context.m_wtb.set_indent_string( "      " );
+
+  applet->initialize( &context );
+  applet->add_command_options();
+
+  std::vector< char* > argv( args.size() + 1, nullptr );
+
+  for( size_t i = 0; i < args.size(); ++i )
+  {
+    argv[i] = &args[i][0];
+  }
+
+  int argc = static_cast< int >( args.size() );
+  char** argv_ptr = argv.data();
+
+  cxxopts::ParseResult result = applet->m_cmd_options->parse( argc, argv_ptr );
+  context.m_result = &result;
+
+  return applet->run();
+}
+
+struct test_evaluation_inputs
+{
+  std::vector< std::string > data;   // Folders, image lists, images, or videos
+  std::vector< std::string > truth;  // Parallel to data when not auto-detected
+  std::string pipeline;              // Trained detector pipeline to run
+  std::string output_directory;      // Where test_results lands
+  std::string labels_file;           // Class synonyms handed to the scorer
+  double default_frame_rate = 0.0;   // Video rate when the truth carries none
+  std::vector< std::string > image_exts;
+  std::vector< std::string > video_exts;
+  std::vector< std::string > groundtruth_exts;
+};
+
+// Runs the trained detector over every test item, then scores the results
+// against their truth with the score applet. Never fatal: training already
+// succeeded, so problems here are reported and the model is kept.
+std::string
+evaluate_on_test_set( const test_evaluation_inputs& in )
+{
+  std::cout << std::endl << "========================================" << std::endl;
+  std::cout << "Evaluating on " << in.data.size() << " test item(s)" << std::endl;
+  std::cout << "========================================" << std::endl;
+
+  if( !does_file_exist( in.pipeline ) )
+  {
+    std::cout << "No runnable pipeline at " << in.pipeline
+              << ", skipping test evaluation" << std::endl;
+    return std::string();
+  }
+
+  const std::string results_dir = append_path( in.output_directory, "test_results" );
+  const std::string computed_dir = append_path( results_dir, "computed" );
+  const std::string truth_dir = append_path( results_dir, "truth" );
+
+  if( !create_folder( computed_dir ) || !create_folder( truth_dir ) )
+  {
+    std::cout << "Unable to create " << results_dir << std::endl;
+    return std::string();
+  }
+
+  std::set< std::string > used_stems;
+  unsigned scored = 0;
+
+  for( size_t i = 0; i < in.data.size(); ++i )
+  {
+    const std::string& item = in.data[i];
+
+    std::string stem = kwiversys::SystemTools::GetFilenameWithoutLastExtension(
+      get_filename_no_path( item ) );
+
+    if( stem.empty() || used_stems.count( stem ) )
+    {
+      stem = stem + "_" + std::to_string( i );
+    }
+    used_stems.insert( stem );
+
+    // Resolve the truth first: an item without usable truth cannot be scored.
+    std::string truth = ( i < in.truth.size() ? in.truth[i] : std::string() );
+
+    if( truth.empty() )
+    {
+      auto found = find_files_in_folder_or_alongside( item, in.groundtruth_exts );
+
+      if( found.size() != 1 )
+      {
+        std::cout << "Skipping " << item << ": expected one truth file, found "
+                  << found.size() << std::endl;
+        continue;
+      }
+      truth = found[0];
+    }
+
+    if( !does_file_exist( truth ) || get_file_extension( truth ) != ".csv" )
+    {
+      std::cout << "Skipping " << item << ": truth must be an existing .csv, got "
+                << truth << std::endl;
+      continue;
+    }
+
+    // Work out how the pipeline reads this item and at what rate. Videos
+    // follow the truth's rate so frame ids line up; image lists keep every
+    // frame.
+    std::string video_filename, reader_type;
+    double rate = 1e9;
+    std::vector< std::string > images;
+
+    if( ends_with_extension( item, in.video_exts ) )
+    {
+      video_filename = item;
+      reader_type = "vidl_ffmpeg";
+    }
+    else if( does_folder_exist( item ) )
+    {
+      list_files_in_folder( item, images, false, in.image_exts );
+      std::sort( images.begin(), images.end() );
+
+      if( images.empty() )
+      {
+        std::vector< std::string > videos;
+        list_files_in_folder( item, videos, false, in.video_exts );
+
+        if( videos.size() == 1 )
+        {
+          video_filename = videos[0];
+          reader_type = "vidl_ffmpeg";
+        }
+      }
+    }
+    else if( ends_with_extension( item, in.image_exts ) )
+    {
+      images.push_back( item );
+    }
+    else if( does_file_exist( item ) )
+    {
+      video_filename = item; // An image list
+      reader_type = "image_list";
+    }
+
+    if( video_filename.empty() && !images.empty() )
+    {
+      video_filename = append_path( results_dir, stem + "_images.txt" );
+      reader_type = "image_list";
+
+      std::ofstream list_stream( video_filename );
+
+      for( const auto& image : images )
+      {
+        list_stream << image << std::endl;
+      }
+    }
+
+    if( video_filename.empty() )
+    {
+      std::cout << "Skipping " << item << ": no video or images found" << std::endl;
+      continue;
+    }
+
+    if( reader_type == "vidl_ffmpeg" )
+    {
+      const double truth_rate = get_file_frame_rate( truth );
+      rate = ( truth_rate > 0 ? truth_rate : in.default_frame_rate );
+    }
+
+    const std::string computed = append_path( computed_dir, stem + ".csv" );
+
+    std::string cmd = "kwiver";
+
+#ifdef WIN32
+    cmd = cmd + ".exe";
+#endif
+
+    cmd = cmd + " runner " + add_quotes( in.pipeline ) + " ";
+    cmd = cmd + "-s input:video_filename=" + add_quotes( video_filename ) + " ";
+    cmd = cmd + "-s input:video_reader:type=" + reader_type + " ";
+    cmd = cmd + "-s downsampler:target_frame_rate=" + std::to_string( rate ) + " ";
+    cmd = cmd + "-s detector_writer:file_name=" + add_quotes( computed );
+
+    std::cout << "Running trained detector on " << item << std::endl;
+
+    if( std::system( cmd.c_str() ) != 0 || !does_file_exist( computed ) )
+    {
+      std::cout << "Skipping " << item << ": the detector run produced no output"
+                << std::endl;
+      continue;
+    }
+
+    if( !copy_file( truth, append_path( truth_dir, stem + ".csv" ) ) )
+    {
+      std::cout << "Skipping " << item << ": unable to copy " << truth << std::endl;
+      continue;
+    }
+
+    ++scored;
+  }
+
+  if( scored == 0 )
+  {
+    std::cout << "No test item could be run, nothing to score" << std::endl;
+    return std::string();
+  }
+
+  std::vector< std::string > args = {
+    "score",
+    "--computed", computed_dir,
+    "--truth", truth_dir,
+    "--per-class",
+    "--output-metrics", append_path( results_dir, "test_metrics.json" ),
+    "--output-summary", append_path( results_dir, "test_summary.txt" ),
+    "--output-plots", append_path( results_dir, "plots" ) };
+
+  // The scorer takes "canonical: alias, alias" lines, not the training
+  // labels format, so the hierarchy's synonyms are rewritten for it.
+  if( !in.labels_file.empty() && does_file_exist( in.labels_file ) )
+  {
+    try
+    {
+      kv::category_hierarchy labels( in.labels_file );
+      const std::string synonyms_file = append_path( results_dir, "label_synonyms.txt" );
+      std::ofstream synonyms( synonyms_file );
+
+      for( const auto& name : labels.all_class_names() )
+      {
+        synonyms << name << ":";
+        std::string sep = " ";
+
+        for( const auto& alias : labels.get_class_synonyms( name ) )
+        {
+          synonyms << sep << alias;
+          sep = ", ";
+        }
+        synonyms << std::endl;
+      }
+
+      args.push_back( "--labels" );
+      args.push_back( synonyms_file );
+    }
+    catch( const std::exception& e )
+    {
+      std::cout << "Scoring without label synonyms: " << e.what() << std::endl;
+    }
+  }
+
+  int score_status = EXIT_FAILURE;
+
+  try
+  {
+    score_status = run_applet( "score", args );
+  }
+  catch( const std::exception& e )
+  {
+    std::cout << "Scoring failed: " << e.what() << std::endl;
+  }
+
+  if( score_status != EXIT_SUCCESS )
+  {
+    std::cout << "Test set scoring did not complete; detections are in "
+              << computed_dir << std::endl;
+    return std::string();
+  }
+
+  std::cout << "Test set metrics written to " << results_dir << std::endl;
+  return results_dir;
+}
+
+} // end anonymous namespace
+
 // =======================================================================================
 void
 train_applet
@@ -1336,6 +1575,18 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "input-truth", "Input list containing training truth",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "validation-list", "Optional list of data held out of training for "
+      "validation, in the same format as --input-list",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "validation-truth", "Truth for --validation-list, given the same way "
+      "as --input-truth",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "test-list", "Optional list of test data excluded from training and "
+      "validation; the trained detector is run on it and scored with the "
+      "score tool into <output_directory>/test_results",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "test-truth", "Truth for --test-list, given the same way as --input-truth",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "labels", "Input label file for train categories (.txt, .csv, or .json)",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "v,validation", "Optional validation input directory",
@@ -1364,7 +1615,8 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "seconds" )
     ( "init-weights", "Optional input seed weights over-ride",
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
-    ( "output-file", "Output zip file for model and pipeline (overrides output-dir)",
+    ( "output-file", "Pack the whole output directory (pipelines, models, model "
+      "card, evaluation) into this zip on success and remove the directory",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "normalize-16bit", "Enable percentile normalization for 16-bit/float imagery",
       ::cxxopts::value< bool >()->default_value( "false" ) )
@@ -1510,6 +1762,10 @@ train_applet
   }
   std::string opt_input_list = cmd_args[ "input-list" ].as< std::string >();
   std::string opt_input_truth = cmd_args[ "input-truth" ].as< std::string >();
+  std::string opt_validation_list = cmd_args[ "validation-list" ].as< std::string >();
+  std::string opt_validation_truth = cmd_args[ "validation-truth" ].as< std::string >();
+  std::string opt_test_list = cmd_args[ "test-list" ].as< std::string >();
+  std::string opt_test_truth = cmd_args[ "test-truth" ].as< std::string >();
   std::string opt_label_file = cmd_args[ "labels" ].as< std::string >();
   std::string opt_validation_dir = cmd_args[ "validation" ].as< std::string >();
   std::string opt_detector = cmd_args[ "detector" ].as< std::string >();
@@ -1810,14 +2066,39 @@ train_applet
     std::map< std::string, std::vector< std::string > > weight_ext =
       {
         { ".zip", { "seed_model" } },
-        { ".pth", { "backbone", "seed_weights" } },
-        { ".pt", { "backbone", "seed_weights" } },
+        { ".pth", { "backbone", "seed_weights", "rf_detr:seed_model" } },
+        { ".pt", { "backbone", "seed_weights", "rf_detr:seed_model" } },
         { ".py", { "config" } },
         { ".weights", { "seed_weights" } },
         { ".wt", { "seed_weights" } }
       };
 
     std::map< std::string, std::string > found_files;
+
+    // A model pack (a zip holding a .pipe) is unpacked so its model file can
+    // seed training like a folder of weights would.
+    if( does_file_exist( opt_init_weights ) && ends_with_extension( opt_init_weights, ".zip" ) )
+    {
+      std::vector< std::string > entries;
+
+      if( list_zip_entries( opt_init_weights, entries ) &&
+          std::any_of( entries.begin(), entries.end(),
+            []( const std::string& e ) { return ends_with_extension( e, ".pipe" ); } ) )
+      {
+        const std::string unpacked = append_path(
+          filesystem::temp_directory_path().string(),
+          "viame_seed_" + std::to_string( static_cast< long long >( std::time( nullptr ) ) ) );
+
+        if( !extract_zip_file( opt_init_weights, unpacked ) )
+        {
+          std::cout << "Unable to unpack seed model " << opt_init_weights << std::endl;
+          return EXIT_FAILURE;
+        }
+
+        std::cout << "Seeding from model pack " << opt_init_weights << std::endl;
+        opt_init_weights = unpacked;
+      }
+    }
 
     if( does_folder_exist( opt_init_weights ) )
     {
@@ -2076,7 +2357,7 @@ train_applet
     }
 
     // Report label: the last two components of the output location, e.g.
-    // "seals_2026/category_models", falling back to the detector type
+    // "seals_2026/trained_model", falling back to the detector type
     std::string monitor_name = opt_detector;
     {
       const std::string full =
@@ -2104,6 +2385,22 @@ train_applet
   if( !opt_output_file.empty() )
   {
     output_file = opt_output_file;
+  }
+
+  // A pack is assembled in a folder first; without one configured, stage it
+  // next to the zip under the zip's own name.
+  if( !output_file.empty() && output_directory.empty() )
+  {
+    output_directory = output_file;
+
+    if( ends_with_extension( output_directory, ".zip" ) )
+    {
+      output_directory = output_directory.substr( 0, output_directory.size() - 4 );
+    }
+    if( output_directory.empty() || output_directory == output_file )
+    {
+      output_directory = output_file + "_files";
+    }
   }
 
   if( !kv::check_nested_algo_configuration< kv::algo::image_io >( "image_reader", config ) )
@@ -2351,6 +2648,14 @@ train_applet
     {
       dataset << "Input list: " << opt_input_list << std::endl;
     }
+    if( !opt_validation_list.empty() )
+    {
+      dataset << "Validation list: " << opt_validation_list << std::endl;
+    }
+    if( !opt_test_list.empty() )
+    {
+      dataset << "Test list (excluded): " << opt_test_list << std::endl;
+    }
     if( !opt_validation_dir.empty() )
     {
       dataset << "Validation directory: " << opt_validation_dir << std::endl;
@@ -2380,6 +2685,8 @@ train_applet
 
   // Data regardless of source
   std::vector< std::string > all_data;  // List of folders, image lists, or videos
+  std::vector< std::string > test_data; // Held out entirely, scored after training
+  std::vector< std::string > test_truth;
   std::vector< std::string > all_truth; // Corresponding list of groundtruth files
   int validation_pivot = -1;            // Validation index start, if manually set
   bool auto_detect_truth = false;       // Auto-detect truth if not manually specified
@@ -2519,66 +2826,139 @@ train_applet
   }
   else if( !opt_input_list.empty() )
   {
-    if( !does_file_exist( opt_input_list ) ||
-        !load_file_list( opt_input_list, all_data ) )
+    // Loads a data list plus its truth, which is either a single groundtruth
+    // file used for every entry or a list matched line by line.
+    auto load_data_list = [&]( const std::string& list_fn,
+                               const std::string& truth_fn,
+                               const std::string& purpose,
+                               std::vector< std::string >& data,
+                               std::vector< std::string >& truth )
     {
-      std::cout << "Unable to load: " << opt_input_list << std::endl;
-      return EXIT_FAILURE;
-    }
+      if( !does_file_exist( list_fn ) || !load_file_list( list_fn, data ) )
+      {
+        std::cout << "Unable to load: " << list_fn << std::endl;
+        return false;
+      }
 
-    while( !all_data.empty() && all_data.back().empty() )
-    {
-      all_data.pop_back();
-    }
+      while( !data.empty() && data.back().empty() )
+      {
+        data.pop_back();
+      }
 
-    if( all_data.empty() )
+      if( data.empty() )
+      {
+        std::cout << "Input " << purpose << " data list contains no entries" << std::endl;
+        return false;
+      }
+
+      if( truth_fn.empty() )
+      {
+        return true;
+      }
+
+      if( !does_file_exist( truth_fn ) )
+      {
+        std::cout << "Unable to find: " << truth_fn << std::endl;
+        return false;
+      }
+
+      if( ends_with_extension( truth_fn, groundtruth_exts ) )
+      {
+        truth.resize( data.size(), truth_fn );
+        return true;
+      }
+
+      if( !load_file_list( truth_fn, truth ) )
+      {
+        std::cout << "Unable to load: " << truth_fn << std::endl;
+        return false;
+      }
+
+      while( truth.size() > data.size() && truth.back().empty() )
+      {
+        truth.pop_back();
+      }
+
+      if( data.size() != truth.size() )
+      {
+        std::cout << "Input " << purpose << " data and truth list lengths do not match"
+                  << std::endl;
+        return false;
+      }
+
+      return true;
+    };
+
+    if( !load_data_list( opt_input_list, opt_input_truth, "training", all_data, all_truth ) )
     {
-      std::cout << "Input training data list contains no entries" << std::endl;
       return EXIT_FAILURE;
     }
 
     auto_detect_truth = opt_input_truth.empty();
 
-    if( !auto_detect_truth )
+    if( !opt_validation_list.empty() )
     {
-      // Check if input_truth is a single file (CSV) or a list file
-      if( does_file_exist( opt_input_truth ) )
+      if( auto_detect_truth != opt_validation_truth.empty() )
       {
-        // Check if it's a groundtruth file directly (e.g., .csv) or a list file
-        bool is_truth_file = ends_with_extension( opt_input_truth, groundtruth_exts );
-
-        if( is_truth_file )
-        {
-          // Single truth file for all images - replicate it for each data entry
-          all_truth.resize( all_data.size(), opt_input_truth );
-        }
-        else
-        {
-          // It's a list file containing paths to truth files
-          if( !load_file_list( opt_input_truth, all_truth ) )
-          {
-            std::cout << "Unable to load: " << opt_input_truth << std::endl;
-            return EXIT_FAILURE;
-          }
-
-          while( all_truth.size() > all_data.size() && all_truth.back().empty() )
-          {
-            all_truth.pop_back();
-          }
-
-          if( all_data.size() != all_truth.size() )
-          {
-            std::cout << "Training data and truth list lengths do not match" << std::endl;
-            return EXIT_FAILURE;
-          }
-        }
-      }
-      else
-      {
-        std::cout << "Unable to find: " << opt_input_truth << std::endl;
+        std::cout << "--validation-truth must be given exactly when --input-truth is"
+                  << std::endl;
         return EXIT_FAILURE;
       }
+
+      std::vector< std::string > validation_data, validation_truth;
+
+      if( !load_data_list( opt_validation_list, opt_validation_truth, "validation",
+                           validation_data, validation_truth ) )
+      {
+        return EXIT_FAILURE;
+      }
+
+      validation_pivot = all_data.size();
+
+      all_data.insert( all_data.end(), validation_data.begin(), validation_data.end() );
+      all_truth.insert( all_truth.end(), validation_truth.begin(), validation_truth.end() );
     }
+
+    if( !opt_test_list.empty() )
+    {
+      if( auto_detect_truth != opt_test_truth.empty() )
+      {
+        std::cout << "--test-truth must be given exactly when --input-truth is"
+                  << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      if( !load_data_list( opt_test_list, opt_test_truth, "test", test_data, test_truth ) )
+      {
+        return EXIT_FAILURE;
+      }
+
+      const std::string test_dir =
+        output_directory.empty() ? std::string( "." ) : output_directory;
+
+      create_folder( test_dir );
+
+      std::ofstream test_list( append_path( test_dir, "test_list.txt" ) );
+      std::ofstream test_truth_list( append_path( test_dir, "test_truth_list.txt" ) );
+
+      for( unsigned i = 0; i < test_data.size(); ++i )
+      {
+        test_list << test_data[i] << std::endl;
+
+        if( i < test_truth.size() )
+        {
+          test_truth_list << test_truth[i] << std::endl;
+        }
+      }
+
+      std::cout << "Excluding " << test_data.size() << " test item(s) from training, "
+                << "recorded in " << test_dir << std::endl;
+    }
+  }
+  else if( !opt_validation_list.empty() || !opt_test_list.empty() )
+  {
+    std::cout << "--validation-list and --test-list require --input-list" << std::endl;
+    return EXIT_FAILURE;
   }
 
   // Load optional manual validation folder
@@ -3628,6 +4008,9 @@ train_applet
   // failures that took hours of GPU time to produce. The LLM supervisor relies
   // on this too, to know when to restart a run.
   bool training_failed = false;
+  bool training_interrupted = false;
+  std::vector< std::string > trained_detectors;
+  std::vector< std::string > trained_trackers;
 
   // Run training algorithm(s) - loop through all configs/detectors for multi-model training
   for( unsigned model_idx = 0; model_idx < model_count; ++model_idx )
@@ -3707,7 +4090,7 @@ train_applet
       std::map< std::string, std::string > trainer_output =
         detector_trainer->update_model();
 
-      process_trainer_output( trainer_output, output_directory, output_file,
+      process_trainer_output( trainer_output, output_directory,
         pipeline_template, output_pipeline_name, detector_type, true, false,
         train_trackers ? tracker_pipeline_template : "",
         train_trackers ? output_tracker_pipeline_name : "" );
@@ -3731,6 +4114,7 @@ train_applet
           error.find( "KeyboardInterrupt" ) != std::string::npos )
       {
         std::cout << "Finished spooling down run after interrupt" << std::endl << std::endl;
+        training_interrupted = true;
         break; // Exit loop on interrupt
       }
       else
@@ -3748,10 +4132,19 @@ train_applet
         }
       }
     }
-    else if( multi_model_training )
+    else
     {
-      std::cout << "Model " << ( model_idx + 1 ) << " training completed successfully"
-                << std::endl;
+      // Windowed trainers wrap the network trainer; name both.
+      const std::string inner_type = current_config->get_value< std::string >(
+        "detector_trainer:" + detector_type + ":trainer:type", "" );
+      trained_detectors.push_back(
+        inner_type.empty() ? detector_type : detector_type + " (" + inner_type + ")" );
+
+      if( multi_model_training )
+      {
+        std::cout << "Model " << ( model_idx + 1 ) << " training completed successfully"
+                  << std::endl;
+      }
     }
   }
 
@@ -4042,7 +4435,7 @@ train_applet
         std::map< std::string, std::string > trainer_output =
           tracker_trainer->update_model();
 
-        process_trainer_output( trainer_output, output_directory, output_file,
+        process_trainer_output( trainer_output, output_directory,
           tracker_pipeline_template, output_tracker_pipeline_name,
           current_tracker, false, true );
       }
@@ -4065,6 +4458,7 @@ train_applet
             error.find( "KeyboardInterrupt" ) != std::string::npos )
         {
           std::cout << "Finished spooling down run after interrupt" << std::endl << std::endl;
+          training_interrupted = true;
           break;
         }
         else
@@ -4076,6 +4470,7 @@ train_applet
       }
       else
       {
+        trained_trackers.push_back( current_tracker );
         std::cout << "Tracker training completed successfully" << std::endl;
       }
     }
@@ -4083,6 +4478,86 @@ train_applet
     std::cout << std::endl << "========================================" << std::endl;
     std::cout << "Tracker training complete" << std::endl;
     std::cout << "========================================" << std::endl;
+  }
+
+  std::string test_results_dir;
+
+  if( !test_data.empty() && !training_failed && !training_interrupted )
+  {
+    if( opt_emb_pipe || pipeline_template.empty() )
+    {
+      std::cout << "Test evaluation needs a runnable pipeline; skipping it" << std::endl;
+    }
+    else
+    {
+      test_evaluation_inputs eval;
+      eval.data = test_data;
+      eval.truth = test_truth;
+      eval.pipeline = output_directory.empty()
+        ? output_pipeline_name
+        : append_path( output_directory, output_pipeline_name );
+      eval.output_directory = output_directory.empty() ? std::string( "." ) : output_directory;
+      eval.labels_file = label_fn;
+      eval.default_frame_rate = frame_rate;
+      eval.image_exts = image_exts;
+      eval.video_exts = video_exts;
+      eval.groundtruth_exts = groundtruth_exts;
+
+      test_results_dir = evaluate_on_test_set( eval );
+    }
+  }
+
+  if( ( !trained_detectors.empty() || !trained_trackers.empty() ) &&
+      !training_interrupted )
+  {
+    model_card_inputs card;
+    card.output_directory = output_directory.empty() ? std::string( "." ) : output_directory;
+    card.detector_types = trained_detectors;
+    card.tracker_types = trained_trackers;
+    card.detector_pipeline = trained_detectors.empty() ? std::string() : output_pipeline_name;
+    card.tracker_pipeline = trained_trackers.empty() ? std::string() : output_tracker_pipeline_name;
+    card.config_file = opt_config;
+    card.init_weights = opt_init_weights;
+    card.gt_frames_only = opt_gt_only;
+    card.labels = model_labels;
+    card.items = all_data;
+    for( const auto& frames : item_frame_paths )
+    {
+      card.item_frame_counts.push_back( frames.size() );
+    }
+    if( validation_sequence_pivot >= 0 )
+    {
+      for( size_t i = validation_sequence_pivot; i < all_data.size(); ++i )
+      {
+        card.validation_items.insert( i );
+      }
+    }
+    card.test_items = test_data;
+    card.train_frames = train_image_fn;
+    card.train_truth = train_gt;
+    card.validation_frames = validation_image_fn;
+    card.validation_truth = validation_gt;
+    card.validation_auto_selected = validation_sequence_pivot < 0 && !validation_image_fn.empty();
+    card.validation_percent = percent_validation;
+    card.test_results_dir = test_results_dir;
+
+    write_model_card( card );
+  }
+
+  if( !output_file.empty() && !training_failed && !training_interrupted &&
+      ( !trained_detectors.empty() || !trained_trackers.empty() ) )
+  {
+    if( create_zip_from_folder( output_file, output_directory ) )
+    {
+      std::cout << "Created model pack " << output_file << std::endl;
+      filesystem::remove_all( output_directory );
+    }
+    else
+    {
+      std::cout << "Unable to create " << output_file << "; the trained files remain in "
+                << output_directory << std::endl;
+      training_failed = true;
+    }
   }
 
   return training_failed ? EXIT_FAILURE : EXIT_SUCCESS;

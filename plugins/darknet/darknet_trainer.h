@@ -35,7 +35,7 @@ public:
     PARAM_DEFAULT( \
       output_directory, std::string, \
       "Final directory to output all models to.", \
-      "category_models" ), \
+      "trained_model" ), \
     PARAM_DEFAULT( \
       output_model_name, std::string, \
       "Optional model name over-ride, if unspecified default used.", \
