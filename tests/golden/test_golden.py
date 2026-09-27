@@ -79,6 +79,25 @@ TOLERANCES = {
     "train_aug_add_optical_flow.pipe": (1.0, 0.001),
     "train_aug_add_optical_flow_adaptive.pipe": (1.0, 0.001),
     "train_aug_all_motion.pipe": (1.0, 0.001),
+    # `filter_split_and_debayer.pipe` since the enhancer came off cv2, and
+    # for one reason: **the frame is 240 wide**. The pipeline's saturation
+    # step ends in `cvtColor( ..., COLOR_HSV2BGR )`, whose vectorised body
+    # truncates `value * 255` while its scalar remainder rounds, so OpenCV
+    # gives two different answers for the same pixel depending on where in the
+    # row it sits. `from_hsv` reproduces the vector body -- it is identical to
+    # cv2 on all 11796480 legal 8-bit triples -- and the remainder is the last
+    # `width % 32` pixels of each row, which is 16 here and 0 for every other
+    # recorded frame. 240 is not a multiple of the vector block; 480 and 96
+    # are, and `filter_enhance.pipe`, `filter_debayer_and_enhance.pipe` and
+    # all 15 `ocv_enhancer` filter recordings replay exactly.
+    #
+    # Measured over the six recorded frames: **one count** at worst, 0.023
+    # mean, and 3160 of 64800 pixels moved -- 73 percent of the 4320 that fall
+    # in a row's remainder. Reproducing the remainder as well would mean
+    # baking the host's vector width into the kernel, since the block is 32
+    # floats with AVX2 and 16 with SSE2, so a recording made on one machine
+    # would not replay on another. See lite-findings.md 2.56.
+    "filter_split_and_debayer.pipe": (1.0, 0.03),
 }
 
 # The same, for a name that means different things in different kinds. `ocv`

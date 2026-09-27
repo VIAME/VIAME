@@ -70,6 +70,23 @@ gray_of( int red, int green, int blue )
            ( 1 << ( gray_shift - 1 ) ) ) >> gray_shift;
 }
 
+/// \p value, forced to a float and not carried on in wider precision.
+///
+/// The colour conversions that follow OpenCV's float paths depend on each
+/// multiply and each subtract rounding to float where OpenCV's does. GCC
+/// defaults to `-ffp-contract=fast`, which is free to fuse `1 - s * h` into a
+/// single multiply-add and skip the rounding in the middle, and the answers
+/// then differ by a count on a few pixels in ten thousand -- and differ with
+/// the build flags, which is worse than differing. Passing the product
+/// through a volatile blocks the fusion wherever it would happen.
+inline float
+exact( float value )
+{
+  volatile float held = value;
+
+  return held;
+}
+
 /// Whether \p image has at least \p wanted planes, and complain if not.
 template < typename T >
 void
@@ -606,6 +623,79 @@ hsv_to_rgb( viame::image_of< T > const& image )
 
   viame::image_of< T > out( image.width(), image.height(), 3 );
 
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    // OpenCV's `HSV2RGB_b`: hue scaled to sixths, the other two to 0..1, the
+    // six sector formula in **float**, and back to bytes by
+    // **truncation**. The truncation is the surprise and it is not a reading
+    // of `saturate_cast`, which rounds: the vectorised body finishes with
+    // `v_trunc`, and the scalar tail that rounds only ever sees the last few
+    // pixels of a buffer. Truncating is therefore what a recording of
+    // `cv2.cvtColor( ..., COLOR_HSV2RGB )` contains for all but a handful of
+    // its pixels, and rounding instead is a count low on 74 percent of them.
+    //
+    // Reproduced, not corrected, for that reason. What is left over is 1758
+    // of the 11796480 legal 8-bit triples, one count each, where OpenCV's
+    // float chain lands a hair either side of an integer that this one hits
+    // exactly; the arithmetic is written in OpenCV's own order and no
+    // reassociation tried gets closer.
+    static constexpr int sector_data[ 6 ][ 3 ] =
+      { { 1, 3, 0 }, { 1, 0, 2 }, { 3, 0, 1 },
+        { 0, 2, 1 }, { 0, 1, 3 }, { 2, 1, 0 } };
+
+    constexpr float hue_scale = 6.0f / 180.0f;
+    constexpr float inverse = 1.0f / 255.0f;
+
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        // Each of these three is a product that a subtract further down
+        // reads, so each is a fusion candidate in its own right -- `1 - s`
+        // where s is `byte * inverse` would become one fnmsub. OpenCV cannot
+        // fuse there, because it computes the scalings once into a vector
+        // register and reads them four times, so the rounding happens. The
+        // guard makes that true here too, and the `std::fma` below asks for
+        // the one fusion OpenCV does get.
+        auto hue = detail::exact(
+          static_cast< float >( image( i, j, 0 ) ) * hue_scale );
+        auto const saturation = detail::exact(
+          static_cast< float >( image( i, j, 1 ) ) * inverse );
+        auto const value = detail::exact(
+          static_cast< float >( image( i, j, 2 ) ) * inverse );
+
+        auto sector = static_cast< int >( hue );
+        hue = detail::exact( hue - static_cast< float >( sector ) );
+        sector %= 6;
+        if( sector < 0 ) { sector += 6; }
+
+        // `1 - s * h` is one **fused** multiply-add, not a multiply and a
+        // subtract. OpenCV writes it as two universal intrinsics, but GCC
+        // contracts `_mm256_sub_ps( one, _mm256_mul_ps( s, h ) )` into a
+        // single `fnmadd` on any host with FMA, and the rounding that is
+        // skipped in the middle is visible: unfused leaves 1758 of the
+        // 11796480 triples a count out, fused leaves **none**. `1 - s` is
+        // left alone, since there is no product inside it to fuse with.
+        float const tab[ 4 ] = {
+          value,
+          value * ( 1.0f - saturation ),
+          value * std::fma( -saturation, hue, 1.0f ),
+          value * std::fma( -saturation, 1.0f - hue, 1.0f ) };
+
+        for( int k = 0; k < 3; ++k )
+        {
+          // sector_data gives blue, green, red in that order
+          auto const scaled = tab[ sector_data[ sector ][ 2 - k ] ] * 255.0f;
+
+          out( i, j, static_cast< size_t >( k ) ) = static_cast< uint8_t >(
+            std::min( std::max( static_cast< int >( scaled ), 0 ), 255 ) );
+        }
+      }
+    }
+
+    return out;
+  }
+
   for( size_t j = 0; j < image.height(); ++j )
   {
     for( size_t i = 0; i < image.width(); ++i )
@@ -743,14 +833,19 @@ struct lab_tables
   std::array< int, cbrt_size > cbrt;
   std::array< int, 9 > coefficient;
 
-  lab_tables()
+  /// \p straight selects OpenCV's `linearGammaTab_b` over its sRGB one, which
+  /// is what `COLOR_LBGR2Lab` uses -- the input is already linear light, so the
+  /// transfer curve is the identity and the table is just the shift.
+  explicit lab_tables( bool straight = false )
   {
     for( int i = 0; i < 256; ++i )
     {
-      auto const linear = srgb_to_linear( static_cast< double >( i ) / 255.0 );
+      auto const value = straight
+                         ? static_cast< double >( i ) / 255.0
+                         : srgb_to_linear( static_cast< double >( i ) / 255.0 );
 
       gamma[ static_cast< size_t >( i ) ] = static_cast< int >(
-        std::nearbyint( 255.0 * ( 1 << gamma_shift ) * linear ) );
+        std::nearbyint( 255.0 * ( 1 << gamma_shift ) * value ) );
     }
 
     // CIE's own rationals rather than the truncated 0.008856 and 7.787 that
@@ -799,6 +894,13 @@ lab_table()
   return tables;
 }
 
+inline lab_tables const&
+lab_linear_table()
+{
+  static lab_tables const tables( true );
+  return tables;
+}
+
 // ----------------------------------------------------------------------------
 /// OpenCV's fixed-point tables for the 8 bit L*a*b* to RGB transfer.
 ///
@@ -830,9 +932,12 @@ struct lab_inverse_tables
   std::array< int, ab_size > transfer;
   std::array< int, gamma_size > gamma;
   std::array< int, 9 > coefficient;
+  bool m_straight = false;
 
-  lab_inverse_tables()
+  explicit lab_inverse_tables( bool straight = false )
   {
+    m_straight = straight;
+
     // Built in float, which is what OpenCV builds them in: i * 100 * 16384
     // passes 2^24 before L reaches 3, so the rounding is part of the table.
     for( int i = 0; i < 256; ++i )
@@ -877,8 +982,11 @@ struct lab_inverse_tables
     {
       auto const value = static_cast< double >( i ) / gamma_size;
 
-      gamma[ static_cast< size_t >( i ) ] = static_cast< int >(
-        std::nearbyint( 255.0 * linear_to_srgb( value ) ) );
+      // `linearInvGammaTab_b` **truncates** where the sRGB one rounds, which
+      // is OpenCV's `cvTrunc` against its `cvRound`.
+      gamma[ static_cast< size_t >( i ) ] = straight
+        ? static_cast< int >( 255.0 * value )
+        : static_cast< int >( std::nearbyint( 255.0 * linear_to_srgb( value ) ) );
     }
 
     constexpr double rows[ 9 ] = { 3.240479, -1.53715, -0.498535,
@@ -898,6 +1006,13 @@ inline lab_inverse_tables const&
 lab_inverse_table()
 {
   static lab_inverse_tables const tables;
+  return tables;
+}
+
+inline lab_inverse_tables const&
+lab_inverse_linear_table()
+{
+  static lab_inverse_tables const tables( true );
   return tables;
 }
 
@@ -922,7 +1037,7 @@ descale( int value, int bits )
 /// roughly -128..127, again as OpenCV does.
 template < typename T >
 viame::image_of< T >
-rgb_to_lab( viame::image_of< T > const& image )
+rgb_to_lab( viame::image_of< T > const& image, bool linear = false )
 {
   detail::require_planes( image, 3, "rgb_to_lab" );
 
@@ -933,7 +1048,8 @@ rgb_to_lab( viame::image_of< T > const& image )
 
   if constexpr( std::is_same< T, uint8_t >::value )
   {
-    auto const& table = detail::lab_table();
+    auto const& table = linear ? detail::lab_linear_table()
+                               : detail::lab_table();
     constexpr int shift = detail::lab_tables::lab_shift;
     constexpr int shift2 = detail::lab_tables::lab_shift2;
     constexpr int half = 128 * ( 1 << shift2 );
@@ -974,16 +1090,28 @@ rgb_to_lab( viame::image_of< T > const& image )
     return out;
   }
 
+  // A floating point channel is **clamped to [0, 1]** before anything else,
+  // which is what OpenCV does and is not an approximation of it: a float
+  // image holding 0..65535 -- which is what the enhancer produces when it
+  // casts a 16 bit image up -- converts to a uniform L=100, a=b=0, so the
+  // clamp is the whole of the answer there rather than a detail of it.
+  auto const channel = [ & ]( size_t i, size_t j, size_t plane )
+  {
+    auto const value =
+      static_cast< double >( image( i, j, plane ) ) / ( integral ? top : 1.0 );
+    auto const bounded = integral ? value
+                                  : std::min( std::max( value, 0.0 ), 1.0 );
+
+    return linear ? bounded : detail::srgb_to_linear( bounded );
+  };
+
   for( size_t j = 0; j < image.height(); ++j )
   {
     for( size_t i = 0; i < image.width(); ++i )
     {
-      auto const red = detail::srgb_to_linear(
-        static_cast< double >( image( i, j, 0 ) ) / ( integral ? top : 1.0 ) );
-      auto const green = detail::srgb_to_linear(
-        static_cast< double >( image( i, j, 1 ) ) / ( integral ? top : 1.0 ) );
-      auto const blue = detail::srgb_to_linear(
-        static_cast< double >( image( i, j, 2 ) ) / ( integral ? top : 1.0 ) );
+      auto const red = channel( i, j, 0 );
+      auto const green = channel( i, j, 1 );
+      auto const blue = channel( i, j, 2 );
 
       // sRGB to XYZ, D65
       auto const x = 0.412453 * red + 0.357580 * green + 0.180423 * blue;
@@ -1020,7 +1148,7 @@ rgb_to_lab( viame::image_of< T > const& image )
 /// L*a*b* back to RGB, undoing `rgb_to_lab` in the same scaling.
 template < typename T >
 viame::image_of< T >
-lab_to_rgb( viame::image_of< T > const& image )
+lab_to_rgb( viame::image_of< T > const& image, bool linear = false )
 {
   detail::require_planes( image, 3, "lab_to_rgb" );
 
@@ -1032,7 +1160,8 @@ lab_to_rgb( viame::image_of< T > const& image )
   if constexpr( std::is_same< T, uint8_t >::value )
   {
     using tables = detail::lab_inverse_tables;
-    auto const& table = detail::lab_inverse_table();
+    auto const& table = linear ? detail::lab_inverse_linear_table()
+                               : detail::lab_inverse_table();
     auto const& c = table.coefficient;
 
     for( size_t j = 0; j < image.height(); ++j )
@@ -1102,11 +1231,21 @@ lab_to_rgb( viame::image_of< T > const& image )
       auto const y = detail::lab_f_inverse( fy ) * detail::white_y;
       auto const z = detail::lab_f_inverse( fz ) * detail::white_z;
 
-      auto const red = detail::linear_to_srgb(
+      // OpenCV clamps the linear triple before the transfer, not after it,
+      // so an out of gamut L*a*b* triple comes back as a corner of the cube
+      // rather than as a channel that overshoots and then saturates.
+      auto const transfer = [ linear ]( double value )
+      {
+        auto const bounded = std::min( std::max( value, 0.0 ), 1.0 );
+
+        return linear ? bounded : detail::linear_to_srgb( bounded );
+      };
+
+      auto const red = transfer(
          3.240479 * x - 1.537150 * y - 0.498535 * z );
-      auto const green = detail::linear_to_srgb(
+      auto const green = transfer(
         -0.969256 * x + 1.875992 * y + 0.041556 * z );
-      auto const blue = detail::linear_to_srgb(
+      auto const blue = transfer(
          0.055648 * x - 0.204043 * y + 1.057311 * z );
 
       if constexpr( integral )

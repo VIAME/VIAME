@@ -3835,59 +3835,192 @@ been the wrong reason to rule it out, and ruling it out for the wrong reason is
 how a tractable port gets abandoned.
 
 
-## 2.56 `cv2.cvtColor`'s HSV to RGB is not a function of its input
+## 2.56 `cv2.cvtColor`'s HSV to RGB truncates, and where it does not
 
-The 473 triples `from_hsv` could not match turned out not to be a precision
-problem at all. **`cv::cvtColor`'s 8-bit HSV to RGB gives different answers for
-the same pixel depending on where that pixel sits in its row.**
+**This finding replaces an earlier version of itself that got the conclusion
+wrong.** The mechanism below was right; what I concluded from it -- that no
+implementation could reproduce `HSV2RGB` and that the enhancer's saturation
+path could never replay bit-exactly -- was not, and it cost a tolerance that
+turned out to be unnecessary. `from_hsv` now reproduces the recording exactly.
 
-The measurement is unambiguous. Take `hsv = [3, 187, 75]`, repeat it 200 times
-in one row, and convert:
+The mechanism. In `modules/imgproc/src/color_hsv.simd.hpp`, `HSV2RGB_b`'s
+vectorised body finishes with **`v_trunc`** on `value * 255`, while the scalar
+remainder loop finishes with `saturate_cast<uchar>`, which **rounds**. The two
+disagree wherever the product has any fractional part at all, which is most
+pixels, so the same HSV triple converts differently depending on where it sits.
+Take `hsv = [3, 187, 75]` repeated 200 times in one row: positions 0 to 191
+come back `[75, 25, 19]`, positions 192 to 199 come back `[75, 26, 20]`.
 
-* positions 0 to 191 come back `[75, 25, 19]`
-* positions 192 to 199 come back `[75, 26, 20]`
+What I missed is which of the two paths carries the image. **`cvtColor` calls
+the functor once per row**, and the vector body consumes pixels in blocks of
+four vectors -- 32 floats with AVX2, 16 with SSE2 -- so the scalar remainder
+sees the last `width % 32` pixels of each row and nothing else. Truncating is
+therefore right for every pixel of a row whose width is a multiple of that
+block, and `width % 32` pixels per row otherwise. Measured, on a 7-row frame:
 
-Same input, two outputs, one call. The cause is in
-`modules/imgproc/src/color_hsv.simd.hpp`: the vectorised body finishes with
-**`v_trunc`** on `value * 255`, while the scalar remainder loop finishes with
-**`saturate_cast<uchar>`**, which rounds. The two disagree on every value whose
-product lands on an exact half, and a row's trailing pixels take the scalar
-path.
+| width | pixels differing from cv2 | expected tail |
+| ---: | ---: | ---: |
+| 32, 64, 96, 128, 256 | **0** | 0 |
+| 640 | 0 | 0 |
+| 33 | 7 | 7 |
+| 97 | 6 | 7 |
+| 200 | 36 | 56 |
+| 31 | 161 | 217 |
 
-**It is only this one conversion.** Tested over 400 random values apiece, with
-the value repeated across a 200-pixel row:
+About three quarters of the tail pixels differ, since the rest land on products
+whose truncation and rounding agree.
 
-| conversion | position-dependent |
-| --- | ---: |
-| `HSV2RGB` | **284 of 400** |
-| `RGB2HSV` | 0 |
-| `RGB2HLS` | 0 |
-| `HLS2RGB` | 0 |
-| `RGB2Lab` | 0 |
-| `Lab2RGB` | 0 |
-| `RGB2GRAY` | 0 |
+So `hsv_to_rgb` is written as OpenCV's vector body: hue scaled to sixths, the
+other two channels to 0..1, the six sector formula in **float**, and back to
+bytes by truncation. That is **exact on all 11796480 legal 8-bit triples**.
+Rounding instead leaves 8718386 of them wrong, which is 73.9 percent, and is
+what the conversion did before.
 
-So every other exactness claim in this file stands -- those are pure functions
-of the pixel. This one cannot be, and **no implementation can reproduce it**,
-because cv2's own does not reproduce itself.
+Truncating alone left 1758 triples a count out, and the last of those was a
+**fused multiply-add**. `1 - s * h` is written in OpenCV as two universal
+intrinsics, `v_sub( v_one, v_mul( v_s, v_h ) )`, but GCC contracts that pair
+into a single `fnmadd` on any host with FMA, and the rounding skipped in the
+middle is visible in the byte. Writing it as `std::fma( -s, h, 1.0f )` takes
+the residue from 1758 to zero. `1 - s` next to it is **not** fused, because
+there is no product inside it; and the three scalings that feed the formula
+must not be fused into their readers either, since OpenCV computes them once
+into a register and reads them four times. So the rule is not "use FMA" or
+"avoid FMA" but "fuse exactly where the vector code's expression tree fuses",
+and on a compiler whose default is `-ffp-contract=fast` that means writing
+both halves explicitly -- `std::fma` where it fuses, a volatile-laundered
+local where it must not.
 
-What that costs, concretely. Modelling the scalar path -- round -- leaves 473 of
-16777216 differing when every row is one pixel wide, which is the layout an
-exhaustive sweep naturally uses. Modelling the vector path -- truncate -- leaves
-2 of 40320 on a 512-wide frame and **12395605** on the one-pixel-wide layout.
-Neither is right, because there is no right.
+The earlier version of this finding reached the opposite conclusion from the
+same evidence for one reason: it measured the truncating model on a
+**one-pixel-wide** frame. Every row of such a frame is pure remainder, so
+truncation looks catastrophically wrong there and rounding looks nearly right,
+which is the reverse of what a real image does. A sweep over an 8-bit
+conversion has to be run on a frame whose width is a multiple of 32 as well as
+on a narrow one, and the two numbers mean different things.
 
-Consequences worth carrying:
+What holds up from the first version:
 
-* `from_hsv` is left as it is. There is no target to hit, so the 11229 triples
-  it currently differs by are not a defect to fix but a choice of which of
-  cv2's two answers to give.
-* `ocv_enhancer`'s saturation path is `BGR2HSV`, a multiply, then `HSV2BGR`.
-  It **cannot** be ported to bit-exactness against its recording, and the
-  recording itself is width-dependent -- rerecord it at a different frame width
-  and the trailing pixels of every row change.
-* Any golden that stores an `HSV2RGB` result is storing a layout artifact in its
-  last few columns. `ocv_convert_color`'s `hsv_to_rgb` case is one.
-* An exhaustive sweep over an 8-bit conversion should be run on a **wide** frame
-  as well as on a tall one. A one-pixel-wide layout exercises only the scalar
-  remainder, which is the path real images almost never take.
+* **It is only this one conversion that truncates.** `v_round` is what
+  `HLS2RGB_b` uses, two hundred lines further down the same file, and
+  `from_hls` is exact on all 11796480 triples. `RGB2HSV`, `RGB2HLS`,
+  `RGB2Lab`, `Lab2RGB` and `RGB2GRAY` are all pure functions of the pixel.
+* A recording of an `HSV2RGB` result at a width that is not a multiple of the
+  vector block does store a layout artifact in its last few columns, and would
+  change if it were re-recorded at another width. Of the recordings that exist,
+  the `ocv_enhancer` fixtures are 96 wide and two of the three enhancer
+  pipelines are 480 -- both multiples -- and they replay exactly.
+  **`filter_split_and_debayer.pipe` is 240**, so 16 pixels of each row are
+  remainder, and it carries the one stated tolerance this work needed: max 1,
+  mean 0.023, 3160 of 64800 pixels. Reproducing the remainder too would mean
+  baking the host's vector width into the kernel.
+* The vector block width is the machine's, not OpenCV's. A recording taken on
+  an SSE2-only host has 16-pixel blocks and a different tail.
+
+## 2.57 `cv::addWeighted` rounds half to even, in float, and fuses
+
+Sharpening is `addWeighted( image, 1.5, blurred, -0.5, 0 )`, and those weights
+are the worst possible case for a rounding rule: `1.5 * a - 0.5 * b` over bytes
+lands on an exact half for half of all pairs. Our `add_weighted` rounded half
+away from zero and so differed from cv2 on **10922 of the 65536 byte pairs**,
+which is 24 percent of a sharpened image. It had been checked before against
+weights of 1 and -1 and of 2 and -1, neither of which produces a single half,
+which is why it looked exact.
+
+Fitting the model over every byte pair gives three details, all of which matter:
+
+1. it rounds **half to even** -- `cvRound` -- not half away from zero;
+2. an integral image accumulates in **float**, not double. On weights of 0.3
+   and 0.7, a double accumulation is wrong on 820 of the 65536 pairs;
+3. the two products are **fused**, nested as the vector body nests them:
+   `fma( first, alpha, fma( second, beta, gamma ) )`, one rounding each rather
+   than one per operation. Unfused float is wrong on 153 pairs; fused is wrong
+   on none.
+
+With all three, `add_weighted` is exact over 45 weight triples times all 65536
+pairs. The C++ recording for it carried `"tolerance": 2, "margin": 2` -- it had
+never been exact and the margin said so in the file. **A recorded margin above
+zero is a finding waiting to be read**, and this one sat there for weeks.
+
+## 2.58 The 16-bit Gaussian has a fixed-point path too, and two kernel details
+
+`gaussian_blur` was bit-exact on 8-bit for any sigma and a count out on **8
+percent** of a 16-bit frame. Writing the separable pass in float32 in tap order
+with OpenCV's own float kernel gave the same 8 percent, which ruled out
+accumulation order and pointed at the kernel or the path.
+
+The path. `smooth.dispatch.cpp` has a second fixed-point branch, 60 lines below
+the 8-bit one, for **CV_16U**: `ufixedpoint32` rather than `ufixedpoint16`, so
+Q16.16 taps, a uint32 row buffer and a Q32.32 uint64 column accumulator --
+every width doubled and otherwise the same shape. Float is where a reasonable
+reading expects a 16-bit image to land, and it does not.
+
+The kernel, two details that a Q8.8 quantisation hides and a Q16.16 one does
+not:
+
+* `getGaussianKernelBitExact`'s table of hand-written small kernels runs to
+  **size nine**, not seven. Size nine is `[4, 13, 30, 51, 60, 51, 30, 13, 4] /
+  256`, which is not a sample of any Gaussian, and no sigma reproduces it --
+  I searched 4000 doubles either side of 1.7 before going back to the source.
+* the sigma derived from a size is a **fused** `size * 0.15 + 0.35`. OpenCV's
+  own comment beside it still gives the old spelling,
+  `((n - 1) * 0.5 - 1) * 0.3 + 0.8`, which is the same number in exact
+  arithmetic and a different double at sizes 15, 19 and 51.
+
+Also: the kernel is normalised once, by `2 * sum(half) + 1`, and the
+fixed-point construction diffuses over the result as it stands. Normalising a
+second time -- dividing by a sum that is 0.9999999999999999 rather than 1 --
+moves a Q16.16 tap.
+
+With all of it, `gaussian_blur` is exact on 825 configurations spanning 15
+sizes, 11 sigmas and five images, uint8 and uint16, grey and colour.
+
+## 2.59 Non-local means, and the colour form's linear L*a*b*
+
+`fastNlMeansDenoising` is exactly reproducible and was worth the afternoon.
+Three things carry it, none of them the patch loop:
+
+* the distance between two template windows is **quantised** before it reaches
+  the weight table -- `dist >> ceil(log2(area))` -- and the table is built over
+  those quantised distances, so the weight is a step function and the steps
+  have to land in the same places;
+* a weight below a thousandth of the fixed-point scale is forced to **zero**
+  rather than kept small, which changes which neighbours contribute at all;
+* the border is `BORDER_DEFAULT`, reflect-101, and extends by
+  `search/2 + template/2` rather than by either alone.
+
+The coloured form is **not** the grey one applied three times, and the part
+worth carrying is which colour space it uses. `fastNlMeansDenoisingColored`
+calls `cvtColor` with **`COLOR_LBGR2Lab`**, not `COLOR_BGR2Lab`: the input is
+taken as linear light and the sRGB transfer curve is skipped on the way in and
+on the way out. Denoising in the sRGB-coded space instead is wrong everywhere
+the curve is steep, which is the whole of the shadows. L is denoised at `h`,
+the two chroma planes together at `hColor`, and the pair goes back the same
+way.
+
+`denoise` and `denoise_colour` are exact on 34 configurations, and the linear
+L*a*b* pair -- `to_lab( ..., linear=True )` and its inverse -- is exact on all
+16777216 triples in both directions.
+
+One thing measured before implementing, and the reason this was attempted at
+all after 2.56: NLM **is** a function of its input. It is repeatable across
+calls, constant-preserving, and interior-invariant when the frame is widened.
+Checking that first is cheap and would have saved the wrong conclusion in 2.56.
+
+## 2.60 `cvtColor`'s float L*a*b* clamps its input, which is the whole answer
+
+The enhancer's CLAHE path casts anything that is not `uint8` up to `float32`,
+so a 16-bit colour image reaches `cvtColor( ..., COLOR_BGR2Lab )` holding
+values up to 65535 where the conversion is defined on 0..1. OpenCV **clamps
+each channel to [0, 1]** before the transfer, so the answer is a uniform
+`L=100, a=0, b=0` -- white -- and the round trip comes back all ones. Garbage,
+reproduced rather than corrected, and reproduced *exactly* by the clamp alone:
+no gamma spline needed.
+
+That matters because the forward float conversion is otherwise **not** exactly
+reproducible. OpenCV interpolates the sRGB curve off a 1024-knot cubic spline
+(`splineBuild` over `sRGBGammaTab`), and evaluating the curve instead leaves
+0.325 of an L unit. The inverse direction agrees to 8e-05, because it does
+evaluate the curve. So: exact for the input the enhancer actually produces,
+0.3 of an L unit for a float image genuinely in 0..1, and no shipped config or
+recording reaches the latter.
+

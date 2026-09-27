@@ -2,24 +2,23 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-"""Image enhancement, on cv2.
+"""Image enhancement, on `viame.image_kernels`.
 
-the `opencv` plugin's `enhance_images.cxx` in python. Thirteen shipped pipelines
-select `ocv_enhancer`, which makes it the most-used OpenCV filter in the
-tree, and the reason it is python rather than `image_kernels` is one step of it:
-`cv::fastNlMeansDenoisingColored`. Non-local means is not an imgproc
-primitive -- it is a few hundred lines of patch comparison with its own
-lookup tables -- and reproducing it would be a large piece of work to keep a
-feature every shipped config currently disables. But `apply_denoising` is a
-DIVE toggle a user can flip, so dropping it is a visible regression.
-Keeping the whole filter in python costs neither.
+the `opencv` plugin's `enhance_images.cxx` in python. Thirteen shipped
+pipelines select `ocv_enhancer`, which makes it the most-used filter of its
+kind in the tree. It stayed python through phase 3 because of one step --
+`cv::fastNlMeansDenoisingColored`, a few hundred lines of patch comparison
+with its own lookup tables -- and it stays python now that
+`image_kernels.denoise_colour` exists, because python is where the six
+toggles read clearly and none of the steps is hot.
 
-Everything happens on a **BGR** array, which is what the C++ worked on and
-what the bridge handed it. Most of the steps are symmetric in the channel
-order and would give the same answer either way; the denoiser is not --
-`fastNlMeansDenoisingColored` converts to CIELAB internally and assumes BGR
--- so rather than reason about each step, this converts once on the way in
-and once on the way out, as the C++ did.
+Everything happens on an **RGB** array. The C++ worked in BGR, and so did
+this file until the denoiser was ours: `fastNlMeansDenoisingColored` converts
+to CIELAB internally and assumes BGR, so the channel order was load bearing
+for exactly one step. It is not any more -- `denoise_colour` takes RGB -- and
+every other step is either per channel or symmetric in the order, so the
+result is the same array it always was. The conversions that are *not*
+symmetric, L*a*b* and HSV, are simply asked for the RGB spelling.
 
 `vxl_enhancer` is registered as a second name for this class. The two were
 already the same code at runtime before phase 3: the `vxl` plugin and
@@ -32,6 +31,7 @@ import logging
 
 import numpy as np
 
+from viame import image_kernels as kernels
 from viame.algo import ImageFilter
 from viame.types import Image, ImageContainer
 
@@ -53,15 +53,48 @@ def _config_double(value):
     return "%g" % float(value)
 
 
-def _to_bgr(array):
-    """The array as the BGR the C++ worked on, and how to put it back."""
-    if array.ndim == 2:
-        return array, False
+def _planar(array):
+    """The array as the steps want it: two dimensions when it is grey."""
+    if array.ndim == 3 and array.shape[2] == 1:
+        return np.ascontiguousarray(array[:, :, 0])
 
-    if array.shape[2] == 1:
-        return array[:, :, 0], False
+    return np.ascontiguousarray(array)
 
-    return np.ascontiguousarray(array[:, :, ::-1]), True
+
+def _scale_abs(plane, alpha, beta):
+    """`cv2.convertScaleAbs`: scale, shift, absolute value, then a byte.
+
+    The absolute value comes *before* the rounding and the saturation, so a
+    negative result folds up rather than clamping to zero -- which is what
+    the shift in the CLAHE float path relies on not happening, since it is
+    built to land the minimum on zero exactly.
+    """
+    scaled = plane.astype(np.float32) * np.float32(alpha) + np.float32(beta)
+
+    return np.clip(np.rint(np.abs(scaled)), 0, 255).astype(np.uint8)
+
+
+def _scaled(plane, factor):
+    """`plane * factor` the way a `cv::Mat` does it: rounded and saturated."""
+    top = np.iinfo(plane.dtype).max if np.issubdtype(plane.dtype, np.integer) \
+        else None
+    scaled = plane.astype(np.float32) * np.float32(factor)
+
+    if top is None:
+        return scaled.astype(plane.dtype)
+
+    return np.clip(np.rint(scaled), 0, top).astype(plane.dtype)
+
+
+def _blur_size(sigma, eight_bit):
+    """The kernel `cv2.GaussianBlur` picks when it is given `(0, 0)`.
+
+    Three sigmas either side for a byte image and four for anything wider,
+    forced odd -- `cvRound( sigma * (depth == CV_8U ? 3 : 4) * 2 + 1 ) | 1`.
+    """
+    reach = 3 if eight_bit else 4
+
+    return int(round(sigma * reach * 2 + 1)) | 1
 
 
 class EnhanceImages(ImageFilter):
@@ -131,12 +164,19 @@ class EnhanceImages(ImageFilter):
     # ------------------------------------------------------------------
 
     def _denoise(self, image):
-        import cv2
+        """Non-local means, `fastNlMeansDenoisingColored`'s arguments and all.
 
-        return cv2.fastNlMeansDenoisingColored(
-            image, None, float(self._denoise_coeff),
-            float(self._denoise_coeff), self._denoise_kernel,
-            self._denoise_kernel * 3)
+        The C++ passed the same coefficient for luminance and for colour, and
+        a search window three times the template, so those are not defaults
+        being taken -- they are the configuration.
+
+        A single channel image reaches this and is refused, which is what
+        OpenCV did: `fastNlMeansDenoisingColored` wants three channels or
+        four. The refusal is part of the recorded contract.
+        """
+        return kernels.denoise_colour(
+            image, float(self._denoise_coeff), float(self._denoise_coeff),
+            self._denoise_kernel, self._denoise_kernel * 3)
 
     def _balance(self, image):
         """Scale each channel so all three have the mean of the three.
@@ -175,74 +215,91 @@ class EnhanceImages(ImageFilter):
         the shift is not undone. Reproduced, not corrected: no shipped
         config feeds this a float image.
         """
-        import cv2
-
         if image.dtype not in (np.uint8, np.float32):
             image = image.astype(np.float32)
 
         colour = image.ndim == 3 and image.shape[2] == 3
 
-        lab = cv2.cvtColor(image, cv2.COLOR_BGR2Lab) if colour else image
+        lab = kernels.to_lab(image) if colour else image
 
-        planes = list(cv2.split(lab)) if lab.ndim == 3 else [lab]
-
-        clahe = cv2.createCLAHE(clipLimit=float(self._clip_limit),
-                                tileGridSize=CLAHE_TILE_GRID)
+        planes = [np.ascontiguousarray(lab[..., k]) for k in range(3)] \
+            if lab.ndim == 3 else [lab]
 
         if image.dtype == np.float32:
-            low, high, _, _ = cv2.minMaxLoc(planes[0])
+            low = float(planes[0].min())
+            high = float(planes[0].max())
             scale1 = (255.0 / (high - low)) if high > 0.0 else 1.0
             shift1 = -(low * scale1)
             scale2 = (high / 255.0) if high > 0.0 else 1.0
 
-            as_bytes = cv2.convertScaleAbs(planes[0], alpha=scale1,
-                                           beta=shift1)
-            planes[0] = clahe.apply(as_bytes).astype(np.float32) * (
+            as_bytes = _scale_abs(planes[0], scale1, shift1)
+            planes[0] = self._equalise(as_bytes).astype(np.float32) * (
                 1.0 / scale2)
         else:
-            planes[0] = clahe.apply(planes[0])
+            planes[0] = self._equalise(planes[0])
 
         if not colour:
             return planes[0]
 
-        return cv2.cvtColor(cv2.merge(planes), cv2.COLOR_Lab2BGR)
+        return kernels.from_lab(np.ascontiguousarray(np.stack(planes, -1)))
+
+    def _equalise(self, plane):
+        return kernels.clahe(plane, float(self._clip_limit),
+                             CLAHE_TILE_GRID[0], CLAHE_TILE_GRID[1])
 
     def _saturate(self, image):
-        import cv2
+        """Scale the S of HSV, which is the one step that cannot be exact.
 
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        channels = list(cv2.split(hsv))
+        `cv2.cvtColor( ..., COLOR_HSV2RGB )` is not a function of its input:
+        the same HSV triple converts differently depending on where in the row
+        it sits, because the vectorised body and the scalar tail round the
+        sixth-of-a-hue interpolation differently. `from_hsv` is one answer, the
+        right one, and it differs from a recording of OpenCV's on a few pixels
+        by a single level. See lite-findings.md 2.56.
+        """
+        if image.dtype not in (np.uint8, np.float32):
+            # cvtColor has no 16 bit HSV, and refusing here keeps that rather
+            # than letting numpy widen a uint16 image into the float overload
+            # and quietly change both the dtype and the hue scale.
+            raise RuntimeError(
+                "Unable to adjust saturation on %s imagery" % image.dtype)
+
+        hsv = kernels.to_hsv(image)
+        channels = [np.ascontiguousarray(hsv[..., k]) for k in range(3)]
 
         # `sat *= c_saturation` on a `cv::Mat`: saturating, and rounding.
-        channels[1] = cv2.multiply(channels[1], self._saturation)
+        channels[1] = _scaled(channels[1], self._saturation)
 
-        return cv2.cvtColor(cv2.merge(channels), cv2.COLOR_HSV2BGR)
+        return kernels.from_hsv(np.ascontiguousarray(np.stack(channels, -1)))
 
     def _sharpen(self, image):
-        import cv2
-
         # `cv::Size( 0, 0 )`: the kernel size comes from the sigma, which is
         # `sharpening_kernel` -- misleadingly named, since it is a sigma and
         # not a size.
-        blurred = cv2.GaussianBlur(image, (0, 0),
-                                   float(self._sharpening_kernel))
+        sigma = float(self._sharpening_kernel)
+        blurred = kernels.gaussian_blur(
+            image, _blur_size(sigma, image.dtype == np.uint8), sigma)
 
-        return cv2.addWeighted(image, 1.0 + self._sharpening_weight,
-                               blurred, -self._sharpening_weight, 0)
+        return kernels.add_weighted(image, 1.0 + self._sharpening_weight,
+                                    blurred, -self._sharpening_weight, 0.0)
 
     def filter(self, image_data):
-        import cv2
-
         if image_data is None:
             return image_data
 
-        source, was_colour = _to_bgr(image_data.asarray())
-        image = source.copy()
+        image = _planar(image_data.asarray())
 
         eight_bit = image.dtype == np.uint8
 
         if self._apply_smoothing:
-            image = cv2.medianBlur(image, self._smoothing_kernel)
+            if not eight_bit and self._smoothing_kernel > 5:
+                # medianBlur's wide window is a byte only histogram, so
+                # OpenCV refuses anything else past five.
+                raise RuntimeError(
+                    "Unable to smooth %s imagery with a kernel wider than "
+                    "five" % image.dtype)
+
+            image = kernels.median_blur(image, self._smoothing_kernel)
 
         if self._apply_denoising and eight_bit:
             image = self._denoise(image)
@@ -253,8 +310,9 @@ class EnhanceImages(ImageFilter):
         if self._force_8bit and image.dtype != np.uint8:
             # `cv::normalize( ..., 255, 0, NORM_MINMAX )` stretches the range
             # across every channel together, and `convertTo( CV_8U )` then
-            # rounds.
-            normalised = cv2.normalize(image, None, 255, 0, cv2.NORM_MINMAX)
+            # rounds. The stretch keeps the input's own type, so the rounding
+            # is the second step's and not this one's.
+            normalised = kernels.normalize(image, 0.0, 255.0)
             image = np.clip(np.rint(normalised.astype(np.float64)),
                             0, 255).astype(np.uint8)
 
@@ -274,9 +332,6 @@ class EnhanceImages(ImageFilter):
 
         if self._apply_sharpening:
             image = self._sharpen(image)
-
-        if was_colour and image.ndim == 3:
-            image = np.ascontiguousarray(image[:, :, ::-1])
 
         return ImageContainer(Image(np.ascontiguousarray(image)))
 

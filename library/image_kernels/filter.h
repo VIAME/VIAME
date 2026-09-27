@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -439,16 +441,27 @@ separable_filter( viame::image_of< T > const& image,
 // ----------------------------------------------------------------------------
 /// A Gaussian of \p size samples with standard deviation \p sigma.
 ///
-/// When \p sigma is not positive, `cv::getGaussianKernel` does **not** simply
-/// derive one from the size for a small kernel: for an odd size of seven or
-/// less it returns a fixed table instead, and only falls back to
-/// `0.3 * ((size - 1) * 0.5 - 1) + 0.8` above that. The table's rows are not
-/// samples of any Gaussian -- (0.25, 0.5, 0.25) is a binomial -- so deriving
-/// the sigma and evaluating gives a visibly different blur at size three,
-/// which is the size the pipelines use most.
+/// `cv::getGaussianKernel`, whose three surprises are all in here:
 ///
-/// The table is reproduced here for that reason. An explicit \p sigma takes
-/// the evaluated path whatever the size, which is also what OpenCV does.
+/// * when \p sigma is not positive it does **not** simply derive one from the
+///   size for a small kernel. For an odd size of **nine** or less it returns a
+///   fixed table, and the table's rows are not samples of any Gaussian --
+///   (0.25, 0.5, 0.25) is a binomial -- so deriving the sigma and evaluating
+///   gives a visibly different blur at size three, which is the size the
+///   pipelines use most. Size nine is easy to stop one short of: the table
+///   used to end at seven, and a 16 bit image is where the extra row shows,
+///   because at Q16.16 the two kernels differ by more than the rounding;
+/// * the derived sigma is a **fused** `size * 0.15 + 0.35`. Written as
+///   `0.3 * ((size - 1) * 0.5 - 1) + 0.8` -- which is what OpenCV's own
+///   comment still says -- it is the same number in exact arithmetic and a
+///   different double at sizes 15, 19 and 51, again enough to move a Q16.16
+///   tap;
+/// * the samples are `exp( x * x * -0.125 / sigma^2 )` over the **doubled**
+///   offset `x = 2i - (size - 1)`, so the argument of the exponential is an
+///   exact integer times a constant, and the normalising sum is built from
+///   half the kernel doubled plus the centre's one rather than by adding up
+///   every sample. Both are followed here, since the association is what the
+///   last bit of each tap depends on.
 ///
 /// The result sums to one either way.
 inline std::vector< double >
@@ -460,14 +473,16 @@ gaussian_kernel_1d( size_t size, double sigma = 0.0 )
       "gaussian_kernel_1d: the size has to be odd and positive" );
   }
 
-  if( sigma <= 0.0 && size <= 7 )
+  if( sigma <= 0.0 && size <= 9 )
   {
-    // cv::getGaussianKernel's small_gaussian_tab, indexed by (size - 1) / 2
+    // cv::getGaussianKernelBitExact's tables, indexed by (size - 1) / 2
     static std::vector< double > const table[] = {
       { 1.0 },
       { 0.25, 0.5, 0.25 },
       { 0.0625, 0.25, 0.375, 0.25, 0.0625 },
       { 0.03125, 0.109375, 0.21875, 0.28125, 0.21875, 0.109375, 0.03125 },
+      { 4.0 / 256.0, 13.0 / 256.0, 30.0 / 256.0, 51.0 / 256.0, 60.0 / 256.0,
+        51.0 / 256.0, 30.0 / 256.0, 13.0 / 256.0, 4.0 / 256.0 },
     };
 
     return table[ ( size - 1 ) / 2 ];
@@ -475,24 +490,35 @@ gaussian_kernel_1d( size_t size, double sigma = 0.0 )
 
   if( sigma <= 0.0 )
   {
-    sigma = 0.3 * ( ( static_cast< double >( size ) - 1.0 ) * 0.5 - 1.0 ) + 0.8;
+    sigma = std::fma( static_cast< double >( size ), 0.15, 0.35 );
   }
 
-  auto const centre = static_cast< double >( size / 2 );
+  auto const scale = -0.125 / ( sigma * sigma );
+  auto const half = ( size - 1 ) / 2;
+
+  std::vector< double > values( half );
+  auto total = 0.0;
+
+  for( size_t i = 0; i < half; ++i )
+  {
+    auto const x = 2.0 * static_cast< double >( i ) -
+                   ( static_cast< double >( size ) - 1.0 );
+
+    values[ i ] = std::exp( x * x * scale );
+    total += values[ i ];
+  }
+
+  total = total * 2.0 + 1.0;
+
+  auto const inverse = 1.0 / total;
   std::vector< double > out( size );
-  double total = 0.0;
 
-  for( size_t i = 0; i < size; ++i )
+  for( size_t i = 0; i < half; ++i )
   {
-    auto const offset = static_cast< double >( i ) - centre;
-    out[ i ] = std::exp( -( offset * offset ) / ( 2.0 * sigma * sigma ) );
-    total += out[ i ];
+    out[ i ] = out[ size - 1 - i ] = values[ i ] * inverse;
   }
 
-  for( auto& weight : out )
-  {
-    weight /= total;
-  }
+  out[ half ] = inverse;
 
   return out;
 }
@@ -500,36 +526,60 @@ gaussian_kernel_1d( size_t size, double sigma = 0.0 )
 // ----------------------------------------------------------------------------
 namespace detail {
 
-/// OpenCV's Q8.8 kernel for an 8 bit Gaussian, which sums to exactly 256.
+/// How wide OpenCV's fixed point Gaussian is for each pixel type.
+///
+/// An 8 bit image is filtered with a Q8.8 kernel, a row buffer of Q8.8 in a
+/// uint16 and a column accumulator of Q16.16 in a uint32 -- `ufixedpoint16`
+/// and its `WT`. A 16 bit image doubles all three: Q16.16, uint32, and
+/// Q32.32 in a uint64. Nothing else has a fixed point path, and a float
+/// image is filtered in float.
+template < typename T > struct fixed_blur;
+
+template <> struct fixed_blur< uint8_t >
+{
+  static constexpr int shift = 8;
+  using row_type = uint16_t;
+  using column_type = uint32_t;
+};
+
+template <> struct fixed_blur< uint16_t >
+{
+  static constexpr int shift = 16;
+  using row_type = uint32_t;
+  using column_type = uint64_t;
+};
+
+/// OpenCV's fixed point kernel, which sums to exactly `1 << shift`.
 ///
 /// Rounding each tap independently does not: a 7-tap sigma 1.5 kernel comes to
-/// 253, and a blur three parts in 256 dark is three counts dark at the top of
-/// the range. OpenCV rounds the **running total** and takes differences, so
-/// the sum is 256 by construction and the rounding error is spread along the
-/// kernel rather than parked on one tap. Putting the shortfall on the centre
-/// tap instead is close but not the same: it leaves two counts on 209 pixels
-/// of a 20 by 28 frame.
-inline std::vector< int >
-gaussian_kernel_fixed( std::vector< double > const& line )
+/// 253 rather than 256, and a blur three parts in 256 dark is three counts
+/// dark at the top of the range. OpenCV rounds the **running total** and takes
+/// differences, so the sum is right by construction and the rounding error is
+/// spread along the kernel rather than parked on one tap. Putting the
+/// shortfall on the centre tap instead is close but not the same: it leaves
+/// two counts on 209 pixels of a 20 by 28 frame.
+///
+/// OpenCV writes this as error diffusion -- `getGaussianKernelFixedPoint_ED`
+/// carries the residue from tap to tap -- which is the same arithmetic:
+/// diffusing the residue *is* differencing the rounded running total.
+inline std::vector< int64_t >
+gaussian_kernel_fixed( std::vector< double > const& line, int shift )
 {
-  constexpr int one = 1 << 8;
+  auto const one = static_cast< int64_t >( 1 ) << shift;
 
-  auto total = 0.0;
-
-  for( auto const value : line )
-  {
-    total += value;
-  }
-
-  std::vector< int > raw( line.size() );
+  // The line arrives normalised and is not normalised again: OpenCV diffuses
+  // over `kernel_bitexact` as `getGaussianKernelBitExact` left it, and a
+  // second division by a sum that is 0.9999999999999999 rather than 1 moves
+  // a Q16.16 tap.
+  std::vector< int64_t > raw( line.size() );
   auto running = 0.0;
-  auto placed = 0;
+  int64_t placed = 0;
 
   for( size_t i = 0; i < line.size(); ++i )
   {
-    running += line[ i ] / total;
+    running += line[ i ];
 
-    auto const edge = static_cast< int >(
+    auto const edge = static_cast< int64_t >(
       std::nearbyint( running * static_cast< double >( one ) ) );
 
     raw[ i ] = edge - placed;
@@ -539,19 +589,31 @@ gaussian_kernel_fixed( std::vector< double > const& line )
   return raw;
 }
 
-/// `cv::GaussianBlur`'s 8 bit path: Q8.8 across, Q16.16 down.
+/// `cv::GaussianBlur`'s integer path: one fixed point width across, twice
+/// that down.
 ///
-/// The row pass accumulates `kernel * pixel` in a uint16, which is why the
-/// products and the sums both saturate at 0xFFFF -- 256 times 255 only just
-/// fits. The column pass multiplies two Q8.8 values into Q16.16 in a uint32
-/// and the byte comes off the top with a half added, which is
-/// `ufixedpoint16::saturate_cast` and `ufixedpoint32`'s in OpenCV's
+/// The row pass accumulates `kernel * pixel` in the narrow type, which is why
+/// the products and the sums both saturate there -- for a byte, 256 times 255
+/// only just fits a uint16. The column pass multiplies two of those into the
+/// double width type and the pixel comes off the top with a half added, which
+/// is `ufixedpoint16::saturate_cast` and `ufixedpoint32`'s in OpenCV's
 /// `fixedpoint.inl.hpp`.
-inline viame::image_of< uint8_t >
-gaussian_blur_fixed( viame::image_of< uint8_t > const& image,
+template < typename T >
+viame::image_of< T >
+gaussian_blur_fixed( viame::image_of< T > const& image,
                      std::vector< double > const& line, border_mode mode )
 {
-  auto const raw = gaussian_kernel_fixed( line );
+  using traits = fixed_blur< T >;
+  using row_type = typename traits::row_type;
+  using column_type = typename traits::column_type;
+
+  constexpr int shift = traits::shift;
+  constexpr auto row_ceiling =
+    static_cast< column_type >( std::numeric_limits< row_type >::max() );
+  constexpr auto half = static_cast< column_type >( 1 )
+                        << ( 2 * shift - 1 );
+
+  auto const raw = gaussian_kernel_fixed( line, shift );
   auto const n = raw.size();
   auto const anchor = static_cast< long >( n / 2 );
 
@@ -559,14 +621,14 @@ gaussian_blur_fixed( viame::image_of< uint8_t > const& image,
   auto const height = image.height();
   auto const planes = image.depth();
 
-  viame::image_of< uint8_t > out( width, height, planes );
+  viame::image_of< T > out( width, height, planes );
 
   if( width == 0 || height == 0 || planes == 0 )
   {
     return out;
   }
 
-  std::vector< uint16_t > across( width * height );
+  std::vector< row_type > across( width * height );
 
   for( size_t plane = 0; plane < planes; ++plane )
   {
@@ -574,7 +636,7 @@ gaussian_blur_fixed( viame::image_of< uint8_t > const& image,
     {
       for( size_t i = 0; i < width; ++i )
       {
-        uint32_t sum = 0;
+        column_type sum = 0;
 
         for( size_t k = 0; k < n; ++k )
         {
@@ -582,14 +644,14 @@ gaussian_blur_fixed( viame::image_of< uint8_t > const& image,
             image, static_cast< long >( i ) + static_cast< long >( k ) - anchor,
             static_cast< long >( j ), plane, mode, 0.0 );
 
-          auto const product = std::min< uint32_t >(
-            static_cast< uint32_t >( raw[ k ] ) *
-            static_cast< uint32_t >( sample ), 0xFFFFu );
+          auto const product = std::min< column_type >(
+            static_cast< column_type >( raw[ k ] ) *
+            static_cast< column_type >( sample ), row_ceiling );
 
-          sum = std::min< uint32_t >( sum + product, 0xFFFFu );
+          sum = std::min< column_type >( sum + product, row_ceiling );
         }
 
-        across[ j * width + i ] = static_cast< uint16_t >( sum );
+        across[ j * width + i ] = static_cast< row_type >( sum );
       }
     }
 
@@ -597,7 +659,7 @@ gaussian_blur_fixed( viame::image_of< uint8_t > const& image,
     {
       for( size_t i = 0; i < width; ++i )
       {
-        uint32_t sum = 0;
+        column_type sum = 0;
 
         for( size_t k = 0; k < n; ++k )
         {
@@ -605,13 +667,14 @@ gaussian_blur_fixed( viame::image_of< uint8_t > const& image,
             static_cast< long >( j ) + static_cast< long >( k ) - anchor,
             static_cast< long >( height ), mode );
 
-          sum += static_cast< uint32_t >( raw[ k ] ) *
-                 static_cast< uint32_t >( across[
+          sum += static_cast< column_type >( raw[ k ] ) *
+                 static_cast< column_type >( across[
                    static_cast< size_t >( row ) * width + i ] );
         }
 
-        out( i, j, plane ) = static_cast< uint8_t >(
-          std::min< uint32_t >( ( sum + ( 1u << 15 ) ) >> 16, 255u ) );
+        out( i, j, plane ) = static_cast< T >( std::min< column_type >(
+          ( sum + half ) >> ( 2 * shift ),
+          static_cast< column_type >( std::numeric_limits< T >::max() ) ) );
       }
     }
   }
@@ -635,16 +698,22 @@ gaussian_blur( viame::image_of< T > const& image, size_t size,
 {
   auto const line = gaussian_kernel_1d( size, sigma );
 
-  // `cv::GaussianBlur` does not filter an 8 bit image in floating point. It
-  // converts the kernel to Q8.8 and runs two integer passes, and the answers
-  // differ: identical where the kernel is dyadic -- which the sigma-derived
-  // small kernels are -- and a count apart on about a fifth of the pixels for
-  // any other sigma. `detail::gaussian_blur_fixed` is that path.
+  // `cv::GaussianBlur` does not filter an integer image in floating point. It
+  // converts the kernel to fixed point and runs two integer passes, and the
+  // answers differ: identical where the kernel is dyadic -- which the
+  // sigma-derived small kernels are -- and a count apart on about a fifth of
+  // the pixels for any other sigma. `detail::gaussian_blur_fixed` is that
+  // path, for 8 and for 16 bit alike. The 16 bit one is easy to miss, since
+  // the dispatch for it sits in a separate branch of `smooth.dispatch.cpp`
+  // and float is where a reasonable reading would expect it to land: it does
+  // not, and taking it for float leaves a count on 8 percent of a 16 bit
+  // frame however carefully the float accumulation is ordered.
   //
   // Not for a constant border: OpenCV's fixed-point row filter simply omits
   // the taps that fall outside, which is a constant of zero and nothing else,
   // where this kernel takes the constant as an argument.
-  if constexpr( std::is_same< T, uint8_t >::value )
+  if constexpr( std::is_same< T, uint8_t >::value ||
+                std::is_same< T, uint16_t >::value )
   {
     if( mode != border_mode::CONSTANT )
     {
@@ -860,6 +929,22 @@ sobel( viame::image_of< T > const& image, int dx, int dy,
 ///
 /// `cv::addWeighted`, which the enhancer's sharpening uses: an image plus a
 /// weighted difference from its own blur.
+///
+/// Three details of OpenCV's, all found by fitting the model to what
+/// `cv2.addWeighted` returns over every one of the 65536 byte pairs:
+///
+/// * it rounds **half to even**. With alpha 1.5 and beta -0.5 -- which is
+///   exactly what sharpening uses -- every second byte pair lands on an exact
+///   half, so rounding away from zero instead disagrees on a quarter of the
+///   image. Weights of 1 and -1, or 2 and -1, produce no halves at all,
+///   which is why this looked exact for as long as those were what it was
+///   tested on;
+/// * an integral image accumulates in **float**, not double. On 0.3 and 0.7
+///   a double accumulation is wrong on 820 of the 65536 pairs;
+/// * and the two products are **fused**, nested the way the vector body
+///   nests them: `fma( first, alpha, fma( second, beta, gamma ) )`, one
+///   rounding each rather than one per operation. Unfused float is wrong on
+///   153 pairs; fused is wrong on none, at any weights tried.
 template < typename T >
 viame::image_of< T >
 add_weighted( viame::image_of< T > const& first, double alpha,
@@ -882,9 +967,24 @@ add_weighted( viame::image_of< T > const& first, double alpha,
     {
       for( size_t i = 0; i < first.width(); ++i )
       {
-        out( i, j, plane ) = saturate_pixel< T >(
-          alpha * static_cast< double >( first( i, j, plane ) ) +
-          beta * static_cast< double >( second( i, j, plane ) ) + gamma );
+        if constexpr( std::is_integral< T >::value )
+        {
+          auto const value = std::fma(
+            static_cast< float >( first( i, j, plane ) ),
+            static_cast< float >( alpha ),
+            std::fma( static_cast< float >( second( i, j, plane ) ),
+                      static_cast< float >( beta ),
+                      static_cast< float >( gamma ) ) );
+
+          out( i, j, plane ) =
+            saturate_pixel_even< T >( static_cast< double >( value ) );
+        }
+        else
+        {
+          out( i, j, plane ) = saturate_pixel< T >(
+            alpha * static_cast< double >( first( i, j, plane ) ) +
+            beta * static_cast< double >( second( i, j, plane ) ) + gamma );
+        }
       }
     }
   }

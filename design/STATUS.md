@@ -1873,3 +1873,70 @@ exercises the shipped defaults is not covering them.
 
 **A tolerance-free result.** Nothing here needed one: 2.45's blur, 2.46's
 Canny and 2.47's transform are each compared at exactly zero.
+
+## The enhancer off cv2, and four exactness defects it exposed
+
+`ocv_enhancer.py` no longer imports cv2 -- the most-selected image filter in
+the tree, thirteen shipped pipelines, and the last one that was python
+*because* of a missing kernel rather than for its own sake. All 15 of its
+recordings replay at **zero tolerance**, ours and the `vxl_enhancer` alias's
+alike, and the file now works in **RGB**: the channel order was load bearing
+for exactly one step, and that step is ours now.
+
+`image_kernels.denoise` and `denoise_colour` are
+`cv::fastNlMeansDenoising` and `fastNlMeansDenoisingColored`, exact on 34
+configurations. The coloured form converts through **linear** L*a*b* --
+OpenCV asks `cvtColor` for `COLOR_LBGR2Lab`, not `COLOR_BGR2Lab` -- so
+`to_lab` and `from_lab` now take a `linear` flag, exact on all 16777216
+triples in both directions. See 2.59.
+
+**The enhancer was not the work. Four defects it uncovered were.** Each was a
+kernel that had been called exact on evidence that could not have found it:
+
+* **`add_weighted` was wrong on a quarter of every sharpened image.** It
+  rounded half away from zero; cv2 rounds half to even, accumulates an
+  integer image in float rather than double, and **fuses** the two products.
+  Sharpening's weights are 1.5 and -0.5, which put half of all byte pairs on
+  an exact half -- and it had only ever been checked against 1 and -1 and 2
+  and -1, which produce no halves at all. Now exact over 45 weight triples
+  times all 65536 pairs. **Its recording carried `"margin": 2` and I had not
+  read it**: a recorded margin above zero is an unexamined difference (2.57).
+* **`gaussian_blur` had no fixed-point path for 16 bit**, and was a count out
+  on 8 percent of a 16-bit frame. `smooth.dispatch.cpp` has a second
+  `ufixedpoint32` branch below the 8-bit one. Two kernel details came with
+  it: `getGaussianKernelBitExact`'s hand-written small kernels run to size
+  **nine**, not seven, and the sigma derived from a size is a **fused**
+  `size * 0.15 + 0.35`. Now exact on 825 configurations (2.58).
+* **`hsv_to_rgb` was a count low on 74 percent of its output**, and finding
+  2.56 had recorded that as unfixable. It is not: OpenCV's vector body
+  **truncates** and only the `width % 32` pixels at the end of each row round,
+  so truncating is right for every pixel of a frame whose width is a multiple
+  of the vector block. From 8718386 wrong triples to **none at all**: the last
+  1758 were a fused multiply-add, `1 - s * h` written as one `fnmadd` because
+  that is what GCC makes of OpenCV's two intrinsics. The saturation recording
+  that 2.56 said could never replay now replays at zero.
+* **the float L*a*b* path did not clamp its input**, where OpenCV clamps each
+  channel to [0, 1] before the transfer. That clamp is the whole of the answer
+  for the one non-uint8 colour image the enhancer can actually produce (2.60).
+
+**2.56 is rewritten, not amended.** Its mechanism was right and its conclusion
+-- "no implementation can reproduce it" -- was wrong, because the measurement
+behind it was taken on a one-pixel-wide frame, where every row is the scalar
+remainder and the vector body is never exercised. That is the reverse of what
+a real image does. It cost a tolerance the user had authorised and that turned
+out to be unnecessary; nothing in this section needs one.
+
+**One stated tolerance, and it is a frame width.**
+`filter_split_and_debayer.pipe` is 240 pixels wide, and 240 is not a multiple
+of the 32-float block OpenCV's vector body consumes, so 16 pixels of each row
+take its scalar remainder and round where the body truncates. That case is
+compared at max 1, mean 0.03 -- measured at 0.023, with 3160 of 64800 pixels
+moved -- and the alternative is baking this host's vector width into a kernel.
+Every other enhancer recording, 15 filter cases and two pipelines at 96 and
+480 wide, is exact.
+
+**What was measured before it was implemented.** After 2.56 the first question
+about NLM was not how it works but whether it is a function of its input at
+all: repeatable across calls, constant-preserving, interior-invariant when the
+frame is widened. It is, on all three. That check costs ten minutes and is now
+the first thing to do with any conversion before committing to reproducing it.

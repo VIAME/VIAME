@@ -25,6 +25,7 @@
 #include <viame/image_kernels/stereo.h>
 #include <viame/image_kernels/contours.h>
 #include <viame/image_kernels/corners.h>
+#include <viame/image_kernels/denoise.h>
 #include <viame/image_kernels/distance.h>
 #include <viame/image_kernels/draw.h>
 #include <viame/image_kernels/filter.h>
@@ -274,18 +275,44 @@ from_hls( array_of< T > const& array )
   return as_array( VIAME_KERNEL_CALL( hls_to_rgb, source ), true );
 }
 
+template < typename T >
 py::array
-to_lab( array_of< uint8_t > const& array )
+to_lab( array_of< T > const& array, bool linear )
 {
-  auto const source = as_image( three_channel< uint8_t >( array, "to_lab" ) );
-  return as_array( VIAME_KERNEL_CALL( rgb_to_lab, source ), true );
+  auto const source = as_image( three_channel< T >( array, "to_lab" ) );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_lab, source, linear ), true );
+}
+
+template < typename T >
+py::array
+from_lab( array_of< T > const& array, bool linear )
+{
+  auto const source = as_image( three_channel< T >( array, "from_lab" ) );
+  return as_array( VIAME_KERNEL_CALL( lab_to_rgb, source, linear ), true );
 }
 
 py::array
-from_lab( array_of< uint8_t > const& array )
+denoise( array_of< uint8_t > const& array,
+         double strength, int patch, int window )
 {
-  auto const source = as_image( three_channel< uint8_t >( array, "from_lab" ) );
-  return as_array( VIAME_KERNEL_CALL( lab_to_rgb, source ), true );
+  auto const source = as_image( array );
+  return as_array(
+    VIAME_KERNEL_CALL( denoise_non_local_means, source, strength, patch,
+                       window ),
+    array.ndim() == 3 );
+}
+
+py::array
+denoise_colour( array_of< uint8_t > const& array,
+                double strength, double colour_strength,
+                int patch, int window )
+{
+  auto const source =
+    as_image( three_channel< uint8_t >( array, "denoise_colour" ) );
+  return as_array(
+    VIAME_KERNEL_CALL( denoise_non_local_means_colour, source, strength,
+                       colour_strength, patch, window ),
+    true );
 }
 
 py::array
@@ -1580,12 +1607,42 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          &from_hls< float >, py::arg( "image" ),
          "HLS back to RGB." );
 
-  m.def( "to_lab", &to_lab, py::arg( "image" ),
+  for_both_pixel_types( m, "to_lab", &to_lab< uint8_t >, &to_lab< float >,
+         py::arg( "image" ),
+         py::arg( "linear" ) = false,
          "RGB to CIE L*a*b*, 8-bit: L scaled to 0..255 and a and b offset "
-         "by 128, again OpenCV's scaling." );
+         "by 128, again OpenCV's scaling. With linear set, the input is "
+         "taken as linear light and the sRGB transfer curve is skipped, "
+         "which is cv2.COLOR_LRGB2Lab rather than COLOR_RGB2Lab. A float32 "
+         "image gets the real ranges instead -- L 0..100, a and b about "
+         "-128..127 -- and is clamped to 0..1 on the way in, as OpenCV "
+         "clamps it, so anything at or above 1 is white." );
 
-  m.def( "from_lab", &from_lab, py::arg( "image" ),
-         "L*a*b* back to RGB, on the same 8-bit scaling as to_lab." );
+  for_both_pixel_types( m, "from_lab", &from_lab< uint8_t >,
+         &from_lab< float >, py::arg( "image" ),
+         py::arg( "linear" ) = false,
+         "L*a*b* back to RGB, on the same 8-bit scaling as to_lab. With "
+         "linear set, the result is linear light -- cv2.COLOR_Lab2LRGB. "
+         "float32 takes and returns the real ranges. The float pair is "
+         "within 8e-05 of cv2 in this direction and about 0.3 of an L unit "
+         "in the other, where OpenCV interpolates the sRGB curve off a "
+         "1024 knot spline instead of evaluating it." );
+
+  m.def( "denoise", &denoise, py::arg( "image" ),
+         py::arg( "strength" ) = 3.0, py::arg( "patch" ) = 7,
+         py::arg( "window" ) = 21,
+         "Non-local means denoising, cv2.fastNlMeansDenoising with NORM_L2, "
+         "for one to three planes. Exact: every weight is a fixed-point "
+         "integer over a quantised distance, so there is no float to "
+         "disagree about." );
+
+  m.def( "denoise_colour", &denoise_colour, py::arg( "image" ),
+         py::arg( "strength" ) = 3.0, py::arg( "colour_strength" ) = 3.0,
+         py::arg( "patch" ) = 7, py::arg( "window" ) = 21,
+         "cv2.fastNlMeansDenoisingColored: to L*a*b* through the **linear** "
+         "transfer, L denoised at strength and the chroma pair together at "
+         "colour_strength, then back. Note OpenCV converts with LBGR2Lab, "
+         "not BGR2Lab, so denoising happens in linear light." );
 
   m.def( "demosaic", &demosaic, py::arg( "image" ), py::arg( "pattern" ),
          "Bayer mosaic to RGB. The pattern names the **mosaic** -- \"BG\" is "
