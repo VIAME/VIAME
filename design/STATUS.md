@@ -2319,3 +2319,11 @@ probabilities with CPU/CUDA preprocessing on four chips. All eight CPU/CUDA
 leaf pipelines parse and bake. Tests remain under `tests/library/`.
 See `library/image_kernels/GFIT_CUDA.md` for usage and stage measurements;
 full tracking throughput and Windows execution have not been tested.
+
+## GFIT automatic backend selection (2026-09-27)
+
+Supersedes the separate CUDA pipeline variants above: existing GFIT v3 pipes
+now select `auto` for fused motion preparation and classifier preprocessing.
+The optional backend/device is probed before use, with CPU fallback when it
+cannot initialize. Explicit `cpu` and `cuda` settings remain available. Removed
+all six `_cuda.pipe` files; tests cover selection, fallback and motion reset.

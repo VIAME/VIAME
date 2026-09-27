@@ -195,13 +195,22 @@ class ClfPredictor(object):
         """
         native = predictor._infer_native(predictor.config)
         backend = predictor.config.get('preprocess_backend', 'cpu')
-        if backend == 'cuda':
+        loader = None
+        if backend == 'auto':
+            from viame.classifiers.cuda_preprocess import auto_batches
+            predictor._ensure_mounted_model()
+            loader = auto_batches(images, native['input_dims'],
+                                  predictor.config['batch_size'],
+                                  predictor.xpu.main_device)
+        elif backend == 'cuda':
             from viame.classifiers.cuda_preprocess import CUDAClassifierBatches
             predictor._ensure_mounted_model()
             loader = CUDAClassifierBatches(images, native['input_dims'],
                                            predictor.config['batch_size'],
                                            predictor.xpu.main_device)
-        elif backend == 'cpu':
+        elif backend != 'cpu':
+            raise ValueError('preprocess_backend must be auto, cpu or cuda')
+        if loader is None:
             dataset = ImageListDataset(images, input_dims=native['input_dims'],
                                        min_dim=native['min_dim'])
             loader = torch_data.DataLoader(dataset,
@@ -209,8 +218,6 @@ class ClfPredictor(object):
                                            num_workers=predictor.config['workers'],
                                            drop_last=False,
                                            shuffle=False)
-        else:
-            raise ValueError('preprocess_backend must be cpu or cuda')
         prog = ub.ProgIter(loader, desc='clf predict',
                            verbose=predictor.config['verbose'])
         predictor._ensure_mounted_model()

@@ -1,4 +1,0 @@
-# GFIT v3 fused detector; requires VIAME_ENABLE_CUDA_KERNELS and a CUDA device.
-include common_gfit_detector_rgb_v3.pipe
-include common_gfit_motion_v3_cuda.pipe
-include common_gfit_detector_fusion_v3.pipe

@@ -165,7 +165,7 @@ class NetharnRefiner(RefineDetections):
         return True
 
     def check_configuration(self, cfg):
-        if cfg.get_value("preprocess_backend", "cpu") not in ("cpu", "cuda"):
+        if cfg.get_value("preprocess_backend", "cpu") not in ("auto", "cpu", "cuda"):
             return False
         if not cfg.has_value("deployed"):
             print("A network deploy file must be specified!")

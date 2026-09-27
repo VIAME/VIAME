@@ -10,6 +10,7 @@ process classifier_species_large
   :refiner:type                                netharn
 
   block refiner:netharn
+    :preprocess_backend                        auto
     relativepath deployed =                    models/gfit_species_enetv2m_large.zip
     :batch_size                                auto
     :area_pivot                                0

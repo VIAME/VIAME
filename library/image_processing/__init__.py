@@ -20,9 +20,9 @@ normalisation modules that came from `viame.core` in P2-T05.
 # implementation module at startup, which was the only way the classes came
 # to exist for the subclass walk that registers them. See P8-T10.
 __vital_algorithm_declarations__ = [
-    ( "image_filter", "gfit_motion_cuda",
-      "GFIT v3 motion image preparation on CUDA (optional native backend).",
-      "viame.image_processing.gfit_motion_cuda:GFITMotionCUDA" ),
+    ( "image_filter", "gfit_motion",
+      "GFIT v3 motion image preparation with auto/CPU/CUDA backends.",
+      "viame.image_processing.gfit_motion:GFITMotion" ),
     ( "estimate_fundamental_matrix", "ocv",
       "Use OpenCV to estimate a fundamental matrix from feature matches.",
       "viame.image_processing.ocv_estimators:EstimateFundamentalMatrixOCV" ),

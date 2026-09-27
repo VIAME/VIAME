@@ -41,8 +41,27 @@ def test_gfit_checkpoint_predictions():
     images = [rng.integers(0, 256, (h, w, 3), dtype=np.uint8)
               for h, w in [(61, 75), (411, 519), (224, 224), (76, 300)]]
     expected = list(predictor.predict(images))
-    predictor.config["preprocess_backend"] = "cuda"
+    predictor.config["preprocess_backend"] = "auto"
     actual = list(predictor.predict(images))
     assert len(expected) == len(actual) == len(images)
     for left, right in zip(expected, actual):
         np.testing.assert_array_equal(left.data["prob"], right.data["prob"])
+
+
+def test_auto_classifier_selection(monkeypatch):
+    torch = pytest.importorskip("torch")
+    from viame.image_kernels import cuda
+    from viame.classifiers.cuda_preprocess import auto_batches, CUDAClassifierBatches
+    images = [np.zeros((11, 17, 3), np.uint8)]
+    assert auto_batches(images, (224, 224), 1, "cpu") is None
+    if cuda.available() and torch.cuda.is_available():
+        assert isinstance(auto_batches(images, (224, 224), 1, "cuda:0"), CUDAClassifierBatches)
+    monkeypatch.setattr(cuda, "available", lambda: False)
+    assert auto_batches(images, (224, 224), 1, "cuda:0") is None
+    monkeypatch.setattr(cuda, "available", lambda: True)
+    def unavailable(*args):
+        raise RuntimeError("unavailable device")
+    monkeypatch.setitem(cuda.__dict__, "Context", unavailable)
+    assert auto_batches(images, (224, 224), 1, "cuda:0") is None
+    with pytest.raises(RuntimeError, match="unavailable"):
+        CUDAClassifierBatches(images, (224, 224), 1, "cuda:0")

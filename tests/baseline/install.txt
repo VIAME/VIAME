@@ -1303,7 +1303,7 @@ lib/python3.10/site-packages/viame/image_processing/colmap/colmap_registration.p
 lib/python3.10/site-packages/viame/image_processing/equalize_via_percentiles.py
 lib/python3.10/site-packages/viame/image_processing/features.py
 lib/python3.10/site-packages/viame/image_processing/fft_filter_based_on_ref.py
-lib/python3.10/site-packages/viame/image_processing/gfit_motion_cuda.py
+lib/python3.10/site-packages/viame/image_processing/gfit_motion.py
 lib/python3.10/site-packages/viame/image_processing/matching.py
 lib/python3.10/site-packages/viame/image_processing/multicam_homog_blackout.py
 lib/python3.10/site-packages/viame/image_processing/multicam_homog_mosaic.py

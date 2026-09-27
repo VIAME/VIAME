@@ -1,73 +1,15 @@
+# Fused equivalent of the GFIT grayscale, window variance, scale and merge stages.
 process detector_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type gfit_motion
+  :filter:gfit_motion:device 0
+  :filter:gfit_motion:backend auto
 
-  block filter:vxl_convert_image
-    :format                                    byte
-    :single_channel                            true
-  endblock
-
-process motion_filter1
-  :: image_filter
-  :filter:type                                 vxl_average
-
-  block filter:vxl_average
-    :type                                      window
-    :window_size                               5
-    :round                                     false
-    :output_variance                           true
-  endblock
-
-process float_to_byte1
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :scale_factor                              0.50
-  endblock
-
-process motion_filter2
-  :: image_filter
-  :filter:type                                 vxl_average
-
-  block filter:vxl_average
-    :type                                      window
-    :window_size                               30
-    :round                                     false
-    :output_variance                           true
-  endblock
-
-process float_to_byte2
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :scale_factor                              0.50
-  endblock
-
-process image_merger1
-  :: merge_images
-  :merge_images:type                           ocv
-
+# Identity preserves the common detector endpoint without another GPU transfer.
 process image_merger2
-  :: merge_images
-  :merge_images:type                           ocv
+  :: image_filter
+  :filter:type vxl_convert_image
+  :filter:vxl_convert_image:format disable
 
 connect from detector_grey.image
-        to   motion_filter1.image
-connect from motion_filter1.image
-        to   float_to_byte1.image
-connect from detector_grey.image
-        to   motion_filter2.image
-connect from motion_filter2.image
-        to   float_to_byte2.image
-connect from float_to_byte1.image
-        to   image_merger1.image1
-connect from detector_grey.image
-        to   image_merger1.image2
-connect from image_merger1.image
-        to   image_merger2.image1
-connect from float_to_byte2.image
-        to   image_merger2.image2
+        to image_merger2.image

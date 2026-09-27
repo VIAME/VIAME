@@ -45,3 +45,25 @@ class CUDAClassifierBatches:
                 # ImageListDataset divides in numpy float64 before FloatTensor.
                 tensors.append((tensor.to(torch.float64) / 255.0).to(torch.float32))
             yield {"inputs": {"rgb": torch.stack(tensors)}}
+
+
+def auto_batches(images, input_dims, batch_size, device):
+    """Return CUDA batches if usable, otherwise let the predictor use its CPU loader.
+
+    Probe before processing any chips. Runtime execution failures remain errors.
+    """
+    import torch
+    try:
+        from viame.image_kernels import cuda
+    except ImportError:
+        return None
+    if torch.device(device).type != "cuda":
+        return None
+    if any(image.dtype != np.uint8 for image in images):
+        return None
+    if not cuda.available():
+        return None
+    try:
+        return CUDAClassifierBatches(images, input_dims, batch_size, device)
+    except (ImportError, RuntimeError):
+        return None

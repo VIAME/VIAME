@@ -1,22 +1,29 @@
 # GFIT CUDA preprocessing
 
-Build with `-DVIAME_ENABLE_CUDA_KERNELS=ON` and install the GFIT add-on and its
-models as usual. CUDA remains optional and off by default. Select one of:
+The existing GFIT v3 detector and tracker pipelines select `auto` preprocessing.
+There are no separate CUDA pipeline files. With the GFIT add-on installed, they
+use CUDA motion preparation and classifier resizing when the optional backend
+and selected device are usable, otherwise they use the existing CPU operations.
+Build with `-DVIAME_ENABLE_CUDA_KERNELS=ON` to make the native GPU kernels
+available; the build option remains off by default.
 
-- `detector_gfit_groups_v3_cuda.pipe`
-- `detector_gfit_species_v3_cuda.pipe`
-- `tracker_gfit_groups_v3_cuda.pipe`
-- `tracker_gfit_species_v3_cuda.pipe`
+Pipeline settings:
 
-These variants replace motion-image preparation and Netharn classifier chip
-preprocessing with CUDA operations. The existing GFIT pipelines keep their CPU
-preprocessing. RF-DETR and classifier inference already support CUDA; ByteTrack
-association, Kalman filtering and track averaging continue on the CPU.
+- `detector_grey:filter:gfit_motion:backend`: `auto`, `cpu`, or `cuda`.
+- `detector_grey:filter:gfit_motion:device`: GPU ordinal (default `0`).
+- Each Netharn classifier's `refiner:netharn:preprocess_backend`: `auto`, `cpu`,
+  or `cuda`. Auto uses the classifier's inference device and falls back for
+  CPU inference or unsupported chip dtypes.
 
-The motion filter uses device 0 by default. To use another GPU, change
-`detector_grey:filter:gfit_motion_cuda:device` and the inference stages' existing
-`xpu` settings together. Explicit CUDA selection reports an error when the
-optional backend or device is unavailable.
+Explicit `cuda` reports unavailable-backend/device errors; `cpu` avoids native
+CUDA initialization. Auto selects before processing. Execution errors propagate
+rather than changing backends mid-sequence and losing motion history. Changing
+motion configuration resets history for either backend.
+
+RF-DETR and classifier inference already support CUDA. These settings select
+preprocessing only; inference device selection still follows each stage's `xpu`
+configuration. ByteTrack association, Kalman filtering and track averaging
+continue on the CPU.
 
 ## Shared C++ and Python operations
 
@@ -38,8 +45,8 @@ with the optional backend. No OpenCV CUDA runtime is required.
 The Netharn refiner's `preprocess_backend=cuda` uploads CPU chip views, resizes
 on the GPU, and passes results into PyTorch through the CUDA array interface.
 Normalization preserves the CPU float64 division followed by float32 conversion.
-CUDA work runs in the calling process, outside DataLoader workers. The default
-is `preprocess_backend=cpu`. See [CUDA.md](CUDA.md) for ownership and external
+CUDA work runs in the calling process, outside DataLoader workers. The refiner default outside GFIT remains `preprocess_backend=cpu`; GFIT pipes
+set it to `auto`. See [CUDA.md](CUDA.md) for ownership and external
 stream synchronization requirements.
 
 ## Validation and timing

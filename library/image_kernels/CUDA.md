@@ -120,5 +120,6 @@ not been tested in this change.
 
 ## GFIT tracking and classification
 
-See [GFIT CUDA preprocessing](GFIT_CUDA.md) for the optional pipeline variants,
-public motion/letterbox operations, parity checks and stage timings.
+See [GFIT CUDA preprocessing](GFIT_CUDA.md) for
+automatic backend selection, public motion/letterbox operations, parity checks
+and stage timings.
