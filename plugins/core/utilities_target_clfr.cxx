@@ -133,10 +133,15 @@ ranked_class_names( const kv::detected_object_type_sptr& dot,
   // Class-map keys are interned string pointers. Sorting only by score makes
   // ties depend on allocations and module import order, including the last
   // class admitted by a top-N cutoff. Use names to break exact score ties.
-  std::vector< std::pair< std::string, double > > ranked;
+  std::vector< std::pair< const std::string*, double > > ranked;
   for( auto const& entry : *dot )
   {
-    ranked.emplace_back( *entry.first, entry.second );
+    // Retain class_names()' default threshold (strictly positive scores).
+    if( entry.second >= kv::detected_object_type::INVALID_SCORE ||
+        std::isnan( entry.second ) )
+    {
+      ranked.emplace_back( entry.first, entry.second );
+    }
   }
   std::sort( ranked.begin(), ranked.end(),
     []( auto const& a, auto const& b )
@@ -151,7 +156,7 @@ ranked_class_names( const kv::detected_object_type_sptr& dot,
       {
         return a.second > b.second;
       }
-      return a.first < b.first;
+      return *a.first < *b.first;
     } );
   if( top_n && ranked.size() > top_n )
   {
@@ -161,7 +166,7 @@ ranked_class_names( const kv::detected_object_type_sptr& dot,
   names.reserve( ranked.size() );
   for( auto const& entry : ranked )
   {
-    names.push_back( entry.first );
+    names.push_back( *entry.first );
   }
   return names;
 }
