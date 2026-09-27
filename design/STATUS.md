@@ -2244,7 +2244,7 @@ either, and the two-bit descriptors would want a Hamming-2 matcher that
 
 | file | needs | why not yet |
 |---|---|---|
-| `ocv_stereo_disparity.py` | WLS branch, BM branch | unchanged: the WLS branch is the open decision above, and BM is a different algorithm that no shipped config selects |
+| `ocv_stereo_disparity.py` | the WLS branch only | the open decision above. **BM is ported** -- `image_kernels.stereo_bm`, identical to cv2 over 294 configurations (2.70) -- so the `bm` and `min_disparity_16` golden variants now run on our matcher at zero tolerance |
 | `ocv_segmenters.py` | grabCut | GMM plus Boykov-Kolmogorov max-flow; no config selects `ocv_grabcut` |
 | `tools/calibrate.py` | `findEssentialMat`, `recoverPose`, `stereoCalibrate`, `VideoCapture`, highgui | its SIFT/ORB/`BFMatcher` use can come off now that ORB exists; the pose and calibration solvers cannot |
 
@@ -2258,3 +2258,26 @@ an unresolved implementation. Registering it over `orb.h` is now a small piece
 of work, in the shape of `sift_features.{h,cxx}`; it is left undone because
 undoing a recorded removal is the user's call, not a side effect of porting
 the algorithm.
+
+## StereoBM off cv2
+
+`image_kernels.stereo_bm` is `cv::StereoBM::compute`, identical over 294
+configurations, and `ocv_stereo_disparity.py`'s `algorithm=BM` branch runs on
+it. The `bm` golden variant -- recorded from cv2's output at zero tolerance --
+passes unchanged, as do `min_disparity_16` and `wls_bm`.
+
+Two findings came out of it and 2.70 has them. cv2 carries **two** block
+matchers that disagree at the ends of the disparity range, and takes the
+sixteen-bit one whenever `preFilterCap <= 31 && SADWindowSize <= 21`; a
+setting outside that window is refused here rather than approximated. And with
+a positive `min_disparity` the matcher writes past the end of every row into
+the start of the next, which is visible in the output and is reproduced --
+skipping it left six pixels of a small frame wrong. That spill also makes
+cv2's own answer thread dependent at stripe boundaries, six pixels of a 480 by
+640 frame between one thread and four, so the verification runs cv2 with one
+thread and `stereo_bm` reproduces the sequential answer.
+
+That leaves **two files** with live cv2 calls -- `ocv_stereo_disparity.py`'s
+WLS branch, which is the decision above, and `ocv_segmenters.py`'s grabCut --
+plus `tools/calibrate.py`'s pose and calibration solvers and
+`image_viewer.py`'s highgui, neither of which has a replacement here.

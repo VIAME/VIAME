@@ -44,6 +44,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <climits>
 #include <cstdint>
 #include <stdexcept>
 #include <vector>
@@ -1252,6 +1253,783 @@ inline viame::image_of<int16_t> stereo_sgbm ( viame::image_of<uint8_t> const &le
   }
 
   return smoothed;
+}
+
+
+// ----------------------------------------------------------------------------
+/// Which of `cv::StereoBM`'s two prefilters to run.
+enum class bm_prefilter
+{
+  NORMALIZED_RESPONSE,
+  XSOBEL,
+};
+
+/// What `cv::StereoBM_create` takes, with OpenCV's own defaults.
+struct bm_params
+{
+  int num_disparities = 64;
+  /// The SAD window, odd, from 5 to 255 and smaller than the image.
+  int block_size = 21;
+  int min_disparity = 0;
+  bm_prefilter pre_filter = bm_prefilter::XSOBEL;
+  /// `NORMALIZED_RESPONSE`'s window. `XSOBEL` ignores it, as cv2 does.
+  int pre_filter_size = 9;
+  /// Where the prefiltered gradient is clipped, 1 to 63.
+  int pre_filter_cap = 31;
+  int texture_threshold = 10;
+  int uniqueness_ratio = 15;
+  int speckle_window_size = 0;
+  int speckle_range = 0;
+  /// Left-right consistency, in whole pixels; negative turns it off, which
+  /// is `cv::StereoBM`'s default.
+  int disp12_max_diff = -1;
+};
+
+namespace detail {
+
+constexpr int bm_disp_shift = 4;
+
+// ----------------------------------------------------------------------------
+/// `dispDescale< short >`: whole disparity and sub-pixel term into 1/16.
+///
+/// The sub-pixel term is `(p - n) / (p + n - 2*best + |p - n|)`, a parabola
+/// through the three costs, and the `+ 15` before the shift is a rounding
+/// that lands on the same sixteenth OpenCV's does. Both divisions are integer
+/// and truncate toward zero.
+inline int16_t
+bm_descale( int whole, int numerator, int denominator )
+{
+  auto const fraction =
+    denominator != 0 ? numerator * 256 / denominator : 0;
+  return static_cast< int16_t >( ( whole * 256 + fraction + 15 ) >> 4 );
+}
+
+// ----------------------------------------------------------------------------
+/// `prefilterXSobel`: a horizontal gradient, clipped and biased into bytes.
+///
+/// Two output rows at a time from four input rows, which is where the
+/// weights come from: `d0 + 2*d1 + d2` for the upper and `d1 + 2*d2 + d3`
+/// for the lower, each `d` a central difference across three columns. The
+/// first and last column of each pair of rows, and every row of a final odd
+/// one, take `ftzero` -- the value a flat neighbourhood maps to -- rather
+/// than being computed.
+inline viame::image_of< uint8_t >
+prefilter_x_sobel( viame::image_of< uint8_t > const& image, int ftzero )
+{
+  auto const width = static_cast< long >( image.width() );
+  auto const height = static_cast< long >( image.height() );
+
+  viame::image_of< uint8_t > out(
+    image.width(), image.height(), 1 );
+
+  auto const clip = [ ftzero ]( int value ) -> uint8_t
+  {
+    return static_cast< uint8_t >(
+      value < -ftzero ? 0 : value > ftzero ? ftzero * 2 : value + ftzero );
+  };
+  auto const flat = clip( 0 );
+
+  auto const at = [&]( long y, long x ) -> int
+  { return image( static_cast< size_t >( x ), static_cast< size_t >( y ) ); };
+
+  long y = 0;
+  for( ; y < height - 1; y += 2 )
+  {
+    // The four rows this pair reads, with OpenCV's clamps: above the first
+    // row it reads the row **below**, not the row itself.
+    auto const row1 = y;
+    auto const row0 = y > 0 ? y - 1 : height > 1 ? y + 1 : y;
+    auto const row2 = y < height - 1 ? y + 1 : height > 1 ? y - 1 : y;
+    auto const row3 = y < height - 2 ? y + 2 : y;
+
+    out( 0, static_cast< size_t >( y ) ) = flat;
+    out( static_cast< size_t >( width - 1 ), static_cast< size_t >( y ) ) = flat;
+    out( 0, static_cast< size_t >( y + 1 ) ) = flat;
+    out( static_cast< size_t >( width - 1 ),
+         static_cast< size_t >( y + 1 ) ) = flat;
+
+    for( long x = 1; x < width - 1; ++x )
+    {
+      auto const d0 = at( row0, x + 1 ) - at( row0, x - 1 );
+      auto const d1 = at( row1, x + 1 ) - at( row1, x - 1 );
+      auto const d2 = at( row2, x + 1 ) - at( row2, x - 1 );
+      auto const d3 = at( row3, x + 1 ) - at( row3, x - 1 );
+      out( static_cast< size_t >( x ), static_cast< size_t >( y ) ) =
+        clip( d0 + d1 * 2 + d2 );
+      out( static_cast< size_t >( x ), static_cast< size_t >( y + 1 ) ) =
+        clip( d1 + d2 * 2 + d3 );
+    }
+  }
+
+  for( ; y < height; ++y )
+  {
+    for( long x = 0; x < width; ++x )
+    { out( static_cast< size_t >( x ), static_cast< size_t >( y ) ) = flat; }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// `prefilterNorm`: the pixel against the mean of its window, clipped.
+///
+/// A Laplacian-ish centre response minus a box mean, both in fixed point at
+/// ten bits, then through the same clipping table as the Sobel. The running
+/// column sums are carried in **unsigned 16 bit** and OpenCV casts them back
+/// to `ushort` at every step; that wraps for a window wide enough to overflow
+/// and is reproduced rather than widened, since the answer would differ.
+inline viame::image_of< uint8_t >
+prefilter_norm( viame::image_of< uint8_t > const& image, int winsize,
+                int ftzero )
+{
+  auto const width = static_cast< long >( image.width() );
+  auto const height = static_cast< long >( image.height() );
+  auto const half = winsize / 2;
+
+  auto scale_g = winsize * winsize / 8;
+  auto const scale_s = ( 1024 + scale_g ) / ( scale_g * 2 );
+  scale_g *= scale_s;
+
+  auto const clip = [ ftzero ]( int value ) -> uint8_t
+  {
+    return static_cast< uint8_t >(
+      value < -ftzero ? 0 : value > ftzero ? ftzero * 2 : value + ftzero );
+  };
+
+  auto const at = [&]( long y, long x ) -> int
+  { return image( static_cast< size_t >( x ), static_cast< size_t >( y ) ); };
+
+  viame::image_of< uint8_t > out( image.width(), image.height(), 1 );
+
+  // Indexed from -(half + 1) to width + half, which the offset covers.
+  std::vector< int > storage(
+    static_cast< size_t >( width + 2 * half + 2 ), 0 );
+  auto* column = storage.data() + half + 1;
+
+  for( long x = 0; x < width; ++x )
+  { column[x] = static_cast< uint16_t >( at( 0, x ) * ( half + 2 ) ); }
+  for( long y = 1; y < half; ++y )
+  {
+    for( long x = 0; x < width; ++x )
+    { column[x] = static_cast< uint16_t >( column[x] + at( y, x ) ); }
+  }
+
+  for( long y = 0; y < height; ++y )
+  {
+    auto const top = std::max( y - half - 1, 0L );
+    auto const bottom = std::min( y + half, height - 1 );
+    auto const previous = std::max( y - 1, 0L );
+    auto const next = std::min( y + 1, height - 1 );
+
+    for( long x = 0; x < width; ++x )
+    {
+      column[x] = static_cast< uint16_t >(
+        column[x] + at( bottom, x ) - at( top, x ) );
+    }
+    for( long x = 0; x <= half; ++x )
+    {
+      column[ -x - 1 ] = column[0];
+      column[ width + x ] = column[ width - 1 ];
+    }
+
+    int total = column[0] * ( half + 1 );
+    for( long x = 1; x <= half; ++x ) { total += column[x]; }
+
+    auto const centre = [&]( long x ) -> int
+    {
+      if( x == 0 )
+      {
+        return ( at( y, 0 ) * 5 + at( y, 1 ) + at( previous, 0 ) +
+                 at( next, 0 ) );
+      }
+      if( x == width - 1 )
+      {
+        return ( at( y, x ) * 5 + at( y, x - 1 ) + at( previous, x ) +
+                 at( next, x ) );
+      }
+      return ( at( y, x ) * 4 + at( y, x - 1 ) + at( y, x + 1 ) +
+               at( previous, x ) + at( next, x ) );
+    };
+
+    out( 0, static_cast< size_t >( y ) ) =
+      clip( ( centre( 0 ) * scale_g - total * scale_s ) >> 10 );
+
+    for( long x = 1; x < width; ++x )
+    {
+      total += column[ x + half ] - column[ x - half - 1 ];
+      out( static_cast< size_t >( x ), static_cast< size_t >( y ) ) =
+        clip( ( centre( x ) * scale_g - total * scale_s ) >> 10 );
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// One horizontal stripe of `findStereoCorrespondenceBM_SIMD`.
+///
+/// **The sixteen-bit variant, which is the one that runs.** `stereobm.cpp`
+/// carries two matchers: a scalar one accumulating in `int`, and a vector one
+/// accumulating in `ushort` that is taken whenever `preFilterCap <= 31 &&
+/// SADWindowSize <= 21` -- which the defaults satisfy. They are not the same
+/// function. At a disparity of zero or `ndisp - 1` the scalar one mirrors its
+/// cost array (`sad[-1] = sad[1]`) and interpolates; the vector one gives up
+/// on the sub-pixel term and returns the whole disparity. This is the vector
+/// one's arithmetic, in scalar form.
+///
+/// The disparity index runs **backwards**: index `d` means the disparity
+/// `ndisp - 1 - d + min_disparity`, because the right-hand window starts at
+/// the largest disparity and walks in.
+///
+/// Three running sums do the work. `hsad[y][d]` is the cost of one row of the
+/// window at disparity `d`, slid horizontally by adding the column entering
+/// and subtracting the one leaving -- `cbuf` is the ring of per-column costs
+/// that makes the subtraction possible. `sad[d]` is `hsad` summed vertically,
+/// slid the same way. `htext[y]` is the row's texture, summed the same way
+/// again. Every one of them is carried in the narrow type OpenCV carries it
+/// in: `hsad` and `sad` are **unsigned 16 bit and wrap**, which is safe only
+/// because `useShorts()` bounds the window and the clip.
+///
+/// The argmin keeps the **smallest** index at the minimum. OpenCV's vector
+/// form reaches that by a route that looks like it would not -- a lane-wise
+/// maximum of the block base where each lane last strictly improved, then a
+/// minimum over the lanes that tie -- but a lane's last strict improvement is
+/// where its minimum is first attained, so the result is the earliest index
+/// and does not depend on the lane count.
+inline void
+bm_stripe( viame::image_of< uint8_t > const& left,
+           viame::image_of< uint8_t > const& right,
+           viame::image_of< int16_t >& disp, std::vector< int16_t >& cost,
+           bm_params const& params, int row0, int row1, int full_height )
+{
+  auto const wsz = params.block_size;
+  auto const wsz2 = wsz / 2;
+  auto const dy0 = std::min( row0, wsz2 + 1 );
+  auto const dy1 = std::min( full_height - row1, wsz2 + 1 );
+  auto const ndisp = params.num_disparities;
+  auto const mindisp = params.min_disparity;
+  auto const lofs = std::max( ndisp - 1 + mindisp, 0 );
+  auto const rofs = -std::min( ndisp - 1 + mindisp, 0 );
+  auto const width = static_cast< int >( left.width() );
+  auto const height = row1 - row0;
+  auto const width1 = width - rofs - ndisp + 1;
+  auto const texture_threshold = params.texture_threshold;
+  auto const uniqueness_ratio = params.uniqueness_ratio;
+  auto const filtered =
+    static_cast< int16_t >( ( mindisp - 1 ) << bm_disp_shift );
+
+  // `tab[v] = |v - ftzero|`: how far a prefiltered byte is from flat, which
+  // is the texture measure.
+  std::vector< uint8_t > tab( 256 );
+  for( int v = 0; v < 256; ++v )
+  {
+    tab[v] = static_cast< uint8_t >(
+      std::abs( v - params.pre_filter_cap ) );
+  }
+
+  // The buffers, with OpenCV's offsets: `sad` is indexed from -1, and
+  // `hsad`, `htext` and `cbuf` from -(wsz2 + 1).
+  std::vector< uint16_t > sad_store( static_cast< size_t >( ndisp ) + 2, 0 );
+  auto* sad = sad_store.data() + 1;
+
+  auto const rows = static_cast< size_t >( height + wsz + 2 );
+  std::vector< uint16_t > hsad_store( rows * ndisp, 0 );
+  auto* hsad0 = hsad_store.data() +
+    static_cast< size_t >( wsz2 + 1 ) * ndisp;
+  std::vector< int > htext_store( rows, 0 );
+  auto* htext = htext_store.data() + ( wsz2 + 1 );
+
+  auto const cstep = static_cast< size_t >( height + dy0 + dy1 ) * ndisp;
+  std::vector< uint8_t > cbuf_store(
+    cstep * static_cast< size_t >( wsz + 1 ) +
+    static_cast< size_t >( wsz2 + 1 ) * ndisp, 0 );
+  auto* cbuf0 = cbuf_store.data() +
+    static_cast< size_t >( wsz2 + 1 ) * ndisp;
+
+  auto const left_column = [&]( int x ) -> size_t
+  {
+    return static_cast< size_t >(
+      lofs + std::min( std::max( x, -lofs ), width - lofs - 1 ) );
+  };
+  auto const right_column = [&]( int x ) -> size_t
+  {
+    return static_cast< size_t >(
+      rofs + std::min( std::max( x, -rofs ), width - rofs - ndisp ) );
+  };
+  auto const row_of = [&]( int y ) -> size_t
+  { return static_cast< size_t >( row0 + y ); };
+
+  // Where a disparity lands, **including off the end of its row**.
+  //
+  // `lofs + width1` exceeds the row when `min_disparity` is positive, and
+  // OpenCV walks a pointer rather than an (x, y) pair, so those columns wrap
+  // into the start of the next row and stay there: the rows below the valid
+  // rectangle are filled with the sentinel *before* the matcher runs, not
+  // after, so the wrapped values survive in the output. Reproduced rather
+  // than clipped, because the sentinel and the wrapped disparity differ by a
+  // whole step and a caller reading a depth map there sees a surface.
+  auto const place = [&]( int y, int column, int16_t value )
+  {
+    auto const index = row_of( y ) * static_cast< size_t >( width ) + column;
+    if( index >= static_cast< size_t >( width ) * full_height ) { return; }
+    disp( index % static_cast< size_t >( width ),
+          index / static_cast< size_t >( width ) ) = value;
+  };
+
+  // The first wsz - 1 columns of the window, accumulated into `hsad` and
+  // `htext` before the horizontal slide begins.
+  for( int x = -wsz2 - 1; x < wsz2; ++x )
+  {
+    // The slot's base, indexed by absolute y below. OpenCV writes this as
+    // `- dy0*ndisp` and then advances a pointer per row, which comes to the
+    // same place; subtracting it as well as indexing by y walks off the
+    // front of the buffer.
+    auto* cbuf = cbuf0 + static_cast< size_t >( x + wsz2 + 1 ) * cstep;
+    auto const lc = left_column( x );
+    auto const rc = right_column( x );
+
+    for( int y = -dy0; y < height + dy1; ++y )
+    {
+      auto* hsad = hsad0 + static_cast< ptrdiff_t >( y ) * ndisp;
+      auto* here = cbuf + static_cast< ptrdiff_t >( y ) * ndisp;
+      int const lval = left( lc, row_of( y ) );
+
+      for( int d = 0; d < ndisp; ++d )
+      {
+        auto const difference =
+          std::abs( lval - right( rc + d, row_of( y ) ) );
+        here[d] = static_cast< uint8_t >( difference );
+        hsad[d] = static_cast< uint16_t >( hsad[d] + difference );
+      }
+      htext[y] += tab[lval];
+    }
+  }
+
+  // The disparity is undefined where the window cannot reach.
+  for( int y = 0; y < height; ++y )
+  {
+    for( int x = 0; x < lofs; ++x )
+    { disp( static_cast< size_t >( x ), row_of( y ) ) = filtered; }
+    for( int x = lofs + width1; x < width; ++x )
+    { disp( static_cast< size_t >( x ), row_of( y ) ) = filtered; }
+  }
+
+  for( int x = 0; x < width1; ++x )
+  {
+    auto const x0 = x - wsz2 - 1;
+    auto const x1 = x + wsz2;
+    auto* leaving = cbuf0 +
+      static_cast< size_t >( ( x0 + wsz2 + 1 ) % ( wsz + 1 ) ) * cstep;
+    auto* entering = cbuf0 +
+      static_cast< size_t >( ( x1 + wsz2 + 1 ) % ( wsz + 1 ) ) * cstep;
+    auto const lc_sub = left_column( x0 );
+    auto const lc = left_column( x1 );
+    auto const rc = right_column( x1 );
+
+    for( int y = -dy0; y < height + dy1; ++y )
+    {
+      auto* hsad = hsad0 + static_cast< ptrdiff_t >( y ) * ndisp;
+      auto* here = entering + static_cast< ptrdiff_t >( y ) * ndisp;
+      auto const* gone = leaving + static_cast< ptrdiff_t >( y ) * ndisp;
+      int const lval = left( lc, row_of( y ) );
+
+      for( int d = 0; d < ndisp; ++d )
+      {
+        auto const difference =
+          std::abs( lval - right( rc + d, row_of( y ) ) );
+        here[d] = static_cast< uint8_t >( difference );
+        hsad[d] = static_cast< uint16_t >( hsad[d] + difference - gone[d] );
+      }
+      htext[y] += tab[lval] - tab[ left( lc_sub, row_of( y ) ) ];
+    }
+
+    // Rows the stripe cannot see repeat the nearest row it can.
+    for( int y = dy1; y <= wsz2; ++y )
+    { htext[height + y] = htext[height + dy1 - 1]; }
+    for( int y = -wsz2 - 1; y < -dy0; ++y ) { htext[y] = htext[-dy0]; }
+
+    // The vertical sums, seeded with the first row weighted by however many
+    // rows above it the stripe cannot see.
+    for( int d = 0; d < ndisp; ++d )
+    {
+      sad[d] = static_cast< uint16_t >(
+        hsad0[ static_cast< ptrdiff_t >( -dy0 ) * ndisp + d ] *
+        ( wsz2 + 2 - dy0 ) );
+    }
+    for( int y = 1 - dy0; y < wsz2; ++y )
+    {
+      auto const* hsad = hsad0 + static_cast< ptrdiff_t >( y ) * ndisp;
+      for( int d = 0; d < ndisp; ++d )
+      { sad[d] = static_cast< uint16_t >( sad[d] + hsad[d] ); }
+    }
+
+    int tsum = 0;
+    for( int y = -wsz2 - 1; y < wsz2; ++y ) { tsum += htext[y]; }
+
+    for( int y = 0; y < height; ++y )
+    {
+      auto const* hsad = hsad0 +
+        static_cast< ptrdiff_t >( std::min( y + wsz2, height + dy1 - 1 ) ) *
+        ndisp;
+      auto const* hsad_sub = hsad0 +
+        static_cast< ptrdiff_t >( std::max( y - wsz2 - 1, -dy0 ) ) * ndisp;
+
+      int minsad = INT_MAX;
+      int mind = -1;
+      for( int d = 0; d < ndisp; ++d )
+      {
+        // Signed, because that is the width OpenCV's vector compare works
+        // in; the values stay inside it for the window `useShorts` allows.
+        auto const here = static_cast< int16_t >(
+          static_cast< int16_t >( hsad[d] ) -
+          static_cast< int16_t >( hsad_sub[d] ) +
+          static_cast< int16_t >( sad[d] ) );
+        sad[d] = static_cast< uint16_t >( here );
+        if( here < minsad ) { minsad = here; mind = d; }
+      }
+
+      tsum += htext[y + wsz2] - htext[y - wsz2 - 1];
+      if( tsum < texture_threshold )
+      {
+        place( y, lofs + x, filtered );
+        continue;
+      }
+
+      if( uniqueness_ratio > 0 )
+      {
+        // A second minimum anywhere but immediately beside the first means
+        // the match is not distinctive enough to keep.
+        auto const thresh = minsad + ( minsad * uniqueness_ratio / 100 );
+        int d = 0;
+        for( ; d < ndisp; ++d )
+        {
+          if( ( d < mind - 1 || d > mind + 1 ) &&
+              static_cast< int16_t >( sad[d] ) <= thresh )
+          { break; }
+        }
+        if( d < ndisp )
+        {
+          place( y, lofs + x, filtered );
+          continue;
+        }
+      }
+
+      int const whole = ndisp - mind - 1 + mindisp;
+      int16_t value;
+      if( 0 < mind && mind < ndisp - 1 )
+      {
+        int const p = sad[mind + 1];
+        int const n = sad[mind - 1];
+        int const denominator = p + n - 2 * sad[mind] + std::abs( p - n );
+        value = bm_descale( whole, p - n, denominator );
+      }
+      else
+      {
+        value = bm_descale( whole, 0, 0 );
+      }
+
+      place( y, lofs + x, value );
+      if( !cost.empty() )
+      {
+        auto const index =
+          row_of( y ) * static_cast< size_t >( width ) + lofs + x;
+        if( index < cost.size() )
+        { cost[index] = static_cast< int16_t >( sad[mind] ); }
+      }
+    }
+  }
+}
+
+} // namespace detail
+
+// ----------------------------------------------------------------------------
+/// `cv::validateDisparity`: drop a disparity the right-hand view rejects.
+///
+/// Every left-hand disparity votes for a right-hand column, cheapest cost
+/// winning, and then a left-hand disparity is kept only if the winner at
+/// **either** of the two columns it rounds to agrees with it to within
+/// \p max_difference whole pixels. OpenCV's comment says why both: rounding
+/// one way only would fail a disparity that is in fact consistent.
+inline void
+validate_disparity( viame::image_of< int16_t >& disp,
+                    std::vector< int16_t > const& cost,
+                    int min_disparity, int num_disparities,
+                    int max_difference )
+{
+  constexpr int shift = detail::bm_disp_shift;
+  constexpr int scale = 1 << shift;
+
+  auto const cols = static_cast< int >( disp.width() );
+  auto const rows = static_cast< int >( disp.height() );
+  auto const highest = min_disparity + num_disparities;
+  auto const first = std::max( highest, 0 );
+  auto const last = cols + std::min( min_disparity, 0 );
+  auto const invalid = ( min_disparity - 1 ) * scale;
+  auto const tolerance = max_difference * scale;
+
+  std::vector< int > mirror( cols ), mirror_cost( cols );
+
+  for( int y = 0; y < rows; ++y )
+  {
+    std::fill( mirror.begin(), mirror.end(), invalid );
+    std::fill( mirror_cost.begin(), mirror_cost.end(), INT_MAX );
+
+    for( int x = first; x < last; ++x )
+    {
+      int const d = disp( static_cast< size_t >( x ),
+                          static_cast< size_t >( y ) );
+      if( d == invalid ) { continue; }
+
+      int const c = cost[ static_cast< size_t >( y ) * cols + x ];
+      int const x2 = x - ( ( d + scale / 2 ) >> shift );
+      if( x2 < 0 || x2 >= cols ) { continue; }
+      if( mirror_cost[x2] > c )
+      {
+        mirror_cost[x2] = c;
+        mirror[x2] = d;
+      }
+    }
+
+    for( int x = first; x < last; ++x )
+    {
+      int const d = disp( static_cast< size_t >( x ),
+                          static_cast< size_t >( y ) );
+      if( d == invalid ) { continue; }
+
+      auto const x0 = x - ( d >> shift );
+      auto const x1 = x - ( ( d + scale - 1 ) >> shift );
+      auto const disagrees = [&]( int at )
+      {
+        return 0 <= at && at < cols && mirror[at] > invalid &&
+               std::abs( mirror[at] - d ) > tolerance;
+      };
+      if( disagrees( x0 ) && disagrees( x1 ) )
+      {
+        disp( static_cast< size_t >( x ), static_cast< size_t >( y ) ) =
+          static_cast< int16_t >( invalid );
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+/// `cv::StereoBM::compute`: a disparity map in 1/16 of a pixel.
+///
+/// Block matching rather than semi-global: the sum of absolute differences
+/// over a square window, taken at every disparity and kept where it is both
+/// textured enough and distinctive enough. No smoothness term, which is why
+/// it is a different algorithm and not a setting of `stereo_sgbm`.
+///
+/// The result is signed 16 bit, as OpenCV's is, with
+/// `(min_disparity - 1) * 16` meaning "no disparity here".
+///
+/// **The stripe split is part of the answer, and it is not the thread count.**
+/// OpenCV divides the image into `nstripes` horizontal bands whose count comes
+/// from the image size and the window alone, and each band's vertical sums are
+/// seeded from only the rows it can see. That makes the result independent of
+/// how many threads run it -- measured, over one, four and eight -- and it is
+/// reproduced here exactly, including the arithmetic that picks the count.
+inline viame::image_of< int16_t >
+stereo_bm( viame::image_of< uint8_t > const& left,
+           viame::image_of< uint8_t > const& right,
+           bm_params const& params )
+{
+  using namespace detail;
+
+  if( left.depth() != 1 || right.depth() != 1 )
+  {
+    throw std::invalid_argument( "stereo_bm takes single plane images" );
+  }
+
+  if( left.width() != right.width() || left.height() != right.height() )
+  {
+    throw std::invalid_argument(
+      "stereo_bm needs the two views to be the same size" );
+  }
+
+  auto const width = static_cast< int >( left.width() );
+  auto const height = static_cast< int >( left.height() );
+
+  if( params.pre_filter_size < 5 || params.pre_filter_size > 255 ||
+      params.pre_filter_size % 2 == 0 )
+  {
+    throw std::invalid_argument(
+      "stereo_bm: pre_filter_size must be odd and within 5..255" );
+  }
+
+  if( params.pre_filter_cap < 1 || params.pre_filter_cap > 63 )
+  {
+    throw std::invalid_argument(
+      "stereo_bm: pre_filter_cap must be within 1..63" );
+  }
+
+  if( params.block_size < 5 || params.block_size > 255 ||
+      params.block_size % 2 == 0 ||
+      params.block_size >= std::min( width, height ) )
+  {
+    throw std::invalid_argument(
+      "stereo_bm: block_size must be odd, within 5..255, and smaller than "
+      "the image" );
+  }
+
+  if( params.num_disparities <= 0 || params.num_disparities % 16 != 0 )
+  {
+    throw std::invalid_argument(
+      "stereo_bm: num_disparities must be positive and a multiple of 16" );
+  }
+
+  if( params.texture_threshold < 0 || params.uniqueness_ratio < 0 )
+  {
+    throw std::invalid_argument(
+      "stereo_bm: the texture threshold and uniqueness ratio cannot be "
+      "negative" );
+  }
+
+  // The sixteen-bit matcher is the only one implemented, and this is the
+  // condition under which cv2 takes it. Outside it cv2 runs a different
+  // accumulation with a different sub-pixel rule at the ends of the
+  // disparity range; nothing on this branch leaves the condition, and
+  // approximating it would be a silent disagreement rather than a
+  // measurable one.
+  if( params.pre_filter_cap > 31 || params.block_size > 21 )
+  {
+    throw std::invalid_argument(
+      "stereo_bm: a pre_filter_cap above 31 or a block_size above 21 takes "
+      "cv2's other matcher, which is not implemented" );
+  }
+
+  auto const ndisp = params.num_disparities;
+  auto const mindisp = params.min_disparity;
+  auto const wsz2 = params.block_size / 2;
+  auto const lofs = std::max( ndisp - 1 + mindisp, 0 );
+  auto const rofs = -std::min( ndisp - 1 + mindisp, 0 );
+  auto const width1 = width - rofs - ndisp + 1;
+  auto const filtered =
+    static_cast< int16_t >( ( mindisp - 1 ) << bm_disp_shift );
+
+  viame::image_of< int16_t > disp( left.width(), left.height(), 1 );
+
+  if( lofs >= width || rofs >= width || width1 < 1 )
+  {
+    for( size_t y = 0; y < disp.height(); ++y )
+    {
+      for( size_t x = 0; x < disp.width(); ++x ) { disp( x, y ) = filtered; }
+    }
+    return disp;
+  }
+
+  auto const prefilter = [&]( viame::image_of< uint8_t > const& image )
+  {
+    return params.pre_filter == bm_prefilter::XSOBEL
+           ? prefilter_x_sobel( image, params.pre_filter_cap )
+           : prefilter_norm( image, params.pre_filter_size,
+                             params.pre_filter_cap );
+  };
+  auto const left_filtered = prefilter( left );
+  auto const right_filtered = prefilter( right );
+
+  // `getValidDisparityROI` with no caller-supplied rectangles: half a window
+  // in from every edge, and the largest disparity in from the left.
+  auto const valid_x0 = std::max( 0, mindisp + ndisp - 1 ) + wsz2;
+  auto const valid_x1 = width - wsz2;
+  auto const valid_y0 = wsz2;
+  auto const valid_y1 = height - wsz2;
+  auto const empty_valid = valid_x1 <= valid_x0 || valid_y1 <= valid_y0;
+
+  // How OpenCV picks the stripe count: enough instructions per stripe to be
+  // worth a thread, but never fewer rows than the window overlap costs.
+  constexpr double sad_overhead = 10.0;
+  constexpr double instructions = 8000000.0;
+  auto const stripe_rows = std::min(
+    std::max( instructions / ( static_cast< double >( width ) * ndisp ),
+              ( params.block_size - 1 ) * sad_overhead ),
+    static_cast< double >( height ) );
+  auto const stripes =
+    static_cast< int >( std::ceil( height / stripe_rows ) );
+
+  std::vector< int16_t > cost;
+  if( params.disp12_max_diff >= 0 )
+  {
+    cost.assign( static_cast< size_t >( width ) * height, 0 );
+  }
+
+  for( int stripe = 0; stripe < stripes; ++stripe )
+  {
+    // Integer division, not a rounding: `cvRound( range.start * rows /
+    // nstripes )` is handed an `int` already, so the truncation has happened
+    // before the round sees it.
+    auto const begin = std::min( stripe * height / stripes, height );
+    auto const end = std::min( ( stripe + 1 ) * height / stripes, height );
+
+    auto const row0 = empty_valid ? end : std::max( begin, valid_y0 );
+    auto const row1 = empty_valid ? end : std::min( end, valid_y1 );
+
+    // Rows of this stripe that the valid rectangle does not cover.
+    for( int y = begin; y < std::min( row0, end ); ++y )
+    {
+      for( int x = 0; x < width; ++x )
+      {
+        disp( static_cast< size_t >( x ),
+              static_cast< size_t >( y ) ) = filtered;
+      }
+    }
+    for( int y = std::max( row1, begin ); y < end; ++y )
+    {
+      for( int x = 0; x < width; ++x )
+      {
+        disp( static_cast< size_t >( x ),
+              static_cast< size_t >( y ) ) = filtered;
+      }
+    }
+
+    if( row1 <= row0 ) { continue; }
+
+    bm_stripe( left_filtered, right_filtered, disp, cost, params,
+               row0, row1, height );
+
+    if( params.disp12_max_diff >= 0 )
+    {
+      // Per stripe, as OpenCV does it -- the mirror vote is per row, so the
+      // split cannot change it, but the rows outside the stripe are not
+      // written yet and must not be read.
+      viame::image_of< int16_t > band(
+        disp.memory(), disp.first_pixel() + row0 * disp.h_step(),
+        disp.width(), static_cast< size_t >( row1 - row0 ), 1,
+        disp.w_step(), disp.h_step(), disp.d_step() );
+      std::vector< int16_t > band_cost(
+        cost.begin() + static_cast< ptrdiff_t >( row0 ) * width,
+        cost.begin() + static_cast< ptrdiff_t >( row1 ) * width );
+      validate_disparity( band, band_cost, mindisp, ndisp,
+                          params.disp12_max_diff );
+    }
+
+    // Columns outside the valid rectangle, which the matcher does not touch.
+    for( int y = row0; y < row1; ++y )
+    {
+      for( int x = 0; x < std::min( valid_x0, width ); ++x )
+      {
+        disp( static_cast< size_t >( x ),
+              static_cast< size_t >( y ) ) = filtered;
+      }
+      for( int x = std::max( valid_x1, 0 ); x < width; ++x )
+      {
+        disp( static_cast< size_t >( x ),
+              static_cast< size_t >( y ) ) = filtered;
+      }
+    }
+  }
+
+  if( params.speckle_window_size > 0 && params.speckle_range >= 0 )
+  {
+    // **Not** scaled by sixteen. `cv::StereoSGBM` passes
+    // `speckleRange * DISP_SCALE` and `cv::StereoBM` passes `speckleRange`
+    // raw, so the same number means a sixteenth of a pixel here and a whole
+    // pixel there. Reproduced, because the shipped configs set it.
+    filter_speckles( disp, filtered, params.speckle_window_size,
+                     params.speckle_range );
+  }
+
+  return disp;
 }
 
 } // namespace image_kernels

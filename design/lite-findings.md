@@ -4522,3 +4522,66 @@ largest, ties included, which is what the `partition` is there to keep -- so
 the set is reproducible and the order is not. The port returns detection
 order and says so; a matcher pairs row i of the descriptors with keypoint i
 and both are written the same way, so nothing downstream can tell.
+
+## 2.70 StereoBM, a matcher that writes past the end of its rows
+
+The port is exact -- 294 configurations, eleven image pairs against
+twenty-one settings -- and the two things that took the work were both about
+which of cv2's own answers to reproduce.
+
+**There are two block matchers in `stereobm.cpp`, and they are different
+functions.** `findStereoCorrespondenceBM` accumulates in `int`;
+`findStereoCorrespondenceBM_SIMD` accumulates in `ushort` and is taken
+whenever `preFilterCap <= 31 && SADWindowSize <= 21`, which the defaults
+satisfy. They disagree at the ends of the disparity range: the scalar one
+mirrors its cost array -- `sad[-1] = sad[1]`, `sad[ndisp] = sad[ndisp-2]` --
+and interpolates a sub-pixel term there, while the vector one gives up and
+returns the whole disparity. `stereo_bm` is the sixteen-bit one, and refuses a
+`pre_filter_cap` or `block_size` outside the window rather than approximating
+the other.
+
+The argmin looks like it cannot be right and is. OpenCV's vector form keeps,
+per lane, a running **maximum** of the block base at which that lane last
+strictly improved, then takes a minimum over the lanes that tie. A lane's
+last strict improvement is where its minimum is first attained, so the result
+is the earliest disparity index at the minimum -- the same as the scalar
+`if (currsad < minsad)` -- and it does not depend on the lane count. Same
+shape as SGBM's eight-lane argmin (2.65), and worth recognising rather than
+re-deriving.
+
+**With a positive `min_disparity` the matcher writes past the end of each
+row.** `lofs = ndisp - 1 + mindisp` and `width1 = width - rofs - ndisp + 1`,
+so `lofs + width1` exceeds the width by exactly `mindisp`, and OpenCV walks a
+pointer rather than an (x, y) pair: those columns land at the start of the
+**next** row. It gets away with it because the rows below the valid rectangle
+are filled with the sentinel *before* the matcher runs, not after, and
+because the valid rectangle keeps a window's worth of slack at the bottom
+edge so nothing leaves the buffer.
+
+The wrapped values are visible in the output, and they differ from the
+sentinel by a whole disparity step -- a caller reading a depth map there sees
+a surface where the sentinel would say nothing. So the spill is reproduced,
+as a write resolved through an absolute index rather than a column. Skipping
+it instead left six pixels of a 120 by 160 frame wrong.
+
+**A fourth function that is not a function of its input**, joining `HSV2RGB`
+(2.56), `fastGlobalSmootherFilter` (2.67) and `sepFilter2D`'s exact halves
+(2.69) -- and this one is a **race**, not a layout artifact. The stripes run
+in parallel, so one stripe's spill into the next stripe's first row races that
+stripe's own border fill. Six pixels of a 480 by 640 frame move between one
+thread and four. `stereo_bm` reproduces the sequential answer, which is what
+`cv2.setNumThreads(1)` gives; the verification runs cv2 that way and says so.
+
+Two smaller things. The stripe count is `ceil(height / min(max(8e6 /
+(width*ndisp), (wsz-1)*10), height))` -- from the image and the window, never
+from the thread count -- and `cvRound(range.start * rows / nstripes)` is
+handed an `int` already, so the division truncates before the round sees it.
+And **`cv::StereoBM` does not scale its speckle range** where
+`cv::StereoSGBM` does: SGBM passes `speckleRange * DISP_SCALE` to
+`filterSpeckles` and BM passes `speckleRange` raw, so the same config number
+means a sixteenth of a pixel in one and a whole pixel in the other.
+
+Where the disparity range does not fit the image, cv2 returns its output
+buffer **uninitialised** -- `FindStereoCorrespInvoker` sees an empty valid
+rectangle and returns before writing anything -- so there is no answer to
+compare against. `stereo_bm` fills the sentinel.

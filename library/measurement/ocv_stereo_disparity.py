@@ -7,25 +7,22 @@
 the `opencv` plugin's `compute_stereo_disparity.cxx` in python, per
 `lite-removals.md` section 2.4.
 
-**The shipped SGBM path is off cv2**: `image_kernels.stereo_sgbm` is identical
-to `cv::StereoSGBM` over 149 configurations of all three aggregations, the
-three-way one included, which is the mode this selects (2.65). Rectification
-went to `viame.measurement.projection` in P7-T06.
+**Both matchers are off cv2**: `image_kernels.stereo_sgbm` is identical to
+`cv::StereoSGBM` over 149 configurations of all three aggregations, the
+three-way one included, which is the mode this selects (2.65), and
+`image_kernels.stereo_bm` is identical to `cv::StereoBM` over 294 (2.70).
+Rectification went to `viame.measurement.projection` in P7-T06.
 
-Two branches still reach for cv2, each behind an import inside itself so the
-default path does not:
-
-* `algorithm=BM`, because block matching is a different algorithm rather than a
-  setting of this one and no shipped config selects it;
-* `use_wls_filter`, which three shipped configs *do* set.
-  `image_kernels.filter_disparity_wls` reproduces it closely and not exactly,
-  and 2.67 says why that cannot be fixed -- `fastGlobalSmootherFilter` is not a
-  function of its input, since cv2's own answer moves with `getNumThreads()`.
-  The residue is about one pixel in six thousand, where we emit a small
-  disparity and cv2 discards the pixel; the three `wls` golden variants are
-  recorded from the C++ reference build at **zero** tolerance, so swapping this
-  over is a decision about a measurement product rather than a rounding, and it
-  is left to be taken deliberately.
+One branch still reaches for cv2, behind an import inside itself so the
+default path does not: `use_wls_filter`, which three shipped configs *do*
+set. `image_kernels.filter_disparity_wls` reproduces it closely and not
+exactly, and 2.67 says why that cannot be fixed -- `fastGlobalSmootherFilter`
+is not a function of its input, since cv2's own answer moves with
+`getNumThreads()`. The residue is about one pixel in six thousand, where we
+emit a small disparity and cv2 discards the pixel; the three `wls` golden
+variants are recorded from the C++ reference build at **zero** tolerance, so
+swapping this over is a decision about a measurement product rather than a
+rounding, and it is left to be taken deliberately.
 
 The registered name, the sixteen config keys and their defaults are the C++
 ones, and `tests/golden/measurement` holds this to what that produced on
@@ -228,15 +225,20 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
     def _compute_raw(self, left_rect, right_rect):
         """The disparity map in sixteenths, before any filtering.
 
-        SGBM is `image_kernels.stereo_sgbm`, which is identical to cv2 over 149
-        configurations of all three aggregations -- see lite-findings.md 2.65.
-        **`algorithm=BM` is still cv2's**: block matching is a different
-        algorithm rather than a setting of this one, no shipped config selects
-        it, and the `bm` golden variant holds it to cv2's output exactly. The
-        import is inside that branch so the SGBM path needs no cv2.
+        Both matchers are ours now. SGBM is `image_kernels.stereo_sgbm`,
+        identical to cv2 over 149 configurations of all three aggregations
+        (lite-findings.md 2.65); BM is `image_kernels.stereo_bm`, identical
+        over 294 (2.70). Block matching is a different algorithm rather than
+        a setting of this one, which is why it is a separate kernel.
         """
         if self._algorithm == "BM":
-            return self._cv_matcher().compute(left_rect, right_rect)
+            return image_kernels.stereo_bm(
+                left_rect, right_rect,
+                num_disparities=self._num_disparities,
+                block_size=self._sad_window_size,
+                min_disparity=self._min_disparity,
+                speckle_window_size=self._speckle_window_size,
+                speckle_range=self._speckle_range)
 
         if self._algorithm != "SGBM":
             raise RuntimeError(
@@ -248,9 +250,10 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
     def _cv_matcher(self):
         """cv2's matcher for the configured algorithm.
 
-        Only the two branches that still need cv2 call this -- `algorithm=BM`
-        and the WLS filter, which needs a `cv::StereoMatcher` to derive its
-        right-view matcher from.
+        Only the WLS filter still calls this, and only because
+        `cv2.ximgproc.createRightMatcher` wants a `cv::StereoMatcher` object
+        to derive the right-view matcher from -- it is the filter's
+        dependency, not the matching's.
         """
         import cv2
 
@@ -411,7 +414,6 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
     # ------------------------------------------------------------------
 
     def compute(self, left_image, right_image):
-        import cv2
         from viame import image_kernels
 
         if left_image is None or right_image is None:

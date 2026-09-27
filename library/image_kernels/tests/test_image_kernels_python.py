@@ -29,6 +29,7 @@ from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  hough_circles, median_blur,
                                  normalize, optical_flow, remap, resize,
                                  resize_area, smooth_globally,
+                                 stereo_bm,
                                  stereo_sgbm,
                                  swap_channels, text_size, to_gray, to_hls,
                                  to_hsv, to_lab, to_rgb, warp_affine,
@@ -341,6 +342,108 @@ def test_stereo_sgbm_reproduces_opencvs_matcher():
     assert found[5, 16:24].tolist() == [48, 52, 48, 33, 35, 38, 41, 40]
     # (min_disparity - 1) * 16 is "no disparity here"
     assert int((found == -16).sum()) == 213
+
+
+def test_stereo_bm_reproduces_opencvs_block_matcher():
+    """`cv::StereoBM` bit for bit, in sixteenths of a pixel.
+
+    Identical to cv2 5.0.0 over 294 configurations when this landed: eleven
+    image pairs including a flat field, two uncorrelated views, a zero shift
+    and one wider than the disparity range, against twenty-one settings
+    spanning the disparity count, the block size, a non-zero minimum, both
+    prefilters, the texture and uniqueness thresholds, the speckle filter and
+    the left-right check.
+
+    **Against cv2 with one thread**, because cv2's own answer is not thread
+    independent here: with a positive `min_disparity` the matcher writes past
+    the end of each row, into the start of the next, and with more than one
+    stripe those writes race the neighbouring stripe's border fill. Six pixels
+    of a 480 by 640 frame move. Finding 2.70 has the detail; this reproduces
+    the sequential answer, spill included, because the spilled value and the
+    sentinel differ by a whole disparity step.
+
+    The sixteen-bit matcher, which is the one cv2 runs whenever
+    `pre_filter_cap <= 31 && block_size <= 21`. Its scalar sibling is a
+    different function at the ends of the disparity range, and a
+    `pre_filter_cap` or `block_size` outside that window is refused rather
+    than approximated.
+    """
+    rng = np.random.default_rng(3)
+    texture = (rng.random((40, 120)) * 255).astype(np.uint8)
+    left = np.ascontiguousarray(texture[:, 30:110])
+    right = np.ascontiguousarray(texture[:, 24:104])
+
+    found = stereo_bm(left, right, num_disparities=16, block_size=7)
+
+    assert found.shape == (40, 80)
+    assert found.dtype == np.int16
+    assert found[20, 22:34].tolist() == [-16, -16, -16, 175, 173, 171, 171,
+                                        168, -16, 165, 165, 164]
+    # (min_disparity - 1) * 16 is "no disparity here". Block matching keeps
+    # far less than the semi-global matcher does, having no smoothness term
+    # to carry a weak match.
+    assert int((found == -16).sum()) == 2505
+
+
+def test_stereo_bm_speckle_range_is_in_sixteenths():
+    """Unlike SGBM's, which cv2 scales for the caller.
+
+    `cv::StereoSGBM` passes `speckleRange * DISP_SCALE` to `filterSpeckles`
+    and `cv::StereoBM` passes `speckleRange` raw, so the same number means a
+    sixteenth of a pixel here and a whole pixel there.
+    """
+    rng = np.random.default_rng(3)
+    texture = (rng.random((40, 120)) * 255).astype(np.uint8)
+    left = np.ascontiguousarray(texture[:, 30:110])
+    right = np.ascontiguousarray(texture[:, 24:104])
+
+    plain = stereo_bm(left, right, num_disparities=16, block_size=7)
+    filtered = stereo_bm(left, right, num_disparities=16, block_size=7,
+                         speckle_window_size=20, speckle_range=16)
+
+    assert int((plain == -16).sum()) == 2505
+    assert int((filtered == -16).sum()) == 2921
+
+
+def test_stereo_bm_prefilters_are_two_different_answers():
+    rng = np.random.default_rng(3)
+    texture = (rng.random((40, 120)) * 255).astype(np.uint8)
+    left = np.ascontiguousarray(texture[:, 30:110])
+    right = np.ascontiguousarray(texture[:, 24:104])
+
+    sobel = stereo_bm(left, right, num_disparities=16, block_size=7)
+    norm = stereo_bm(left, right, num_disparities=16, block_size=7,
+                     pre_filter="normalized_response")
+    assert int((sobel != norm).sum()) == 1021
+
+
+def test_stereo_bm_refuses_what_it_does_not_implement():
+    left = np.zeros((60, 80), np.uint8)
+    right = np.zeros((60, 80), np.uint8)
+    # cv2 runs a different accumulation outside `useShorts()`.
+    with pytest.raises(ValueError):
+        stereo_bm(left, right, block_size=23)
+    with pytest.raises(ValueError):
+        stereo_bm(left, right, pre_filter_cap=40)
+    with pytest.raises(ValueError):
+        stereo_bm(left, right, pre_filter="none")
+    # And cv2's own bounds.
+    with pytest.raises(ValueError):
+        stereo_bm(left, right, num_disparities=24)
+    with pytest.raises(ValueError):
+        stereo_bm(left, right, block_size=8)
+    with pytest.raises(ValueError):
+        stereo_bm(left, right, num_disparities=16, block_size=61)
+
+
+def test_stereo_bm_fills_everything_when_it_cannot_search():
+    # The disparity range wider than the image leaves nowhere to match, and
+    # cv2 returns the buffer **uninitialised** there rather than filling it.
+    # This fills the sentinel, which is the only defensible answer.
+    found = stereo_bm(np.zeros((40, 20), np.uint8),
+                      np.zeros((40, 20), np.uint8),
+                      num_disparities=32, block_size=5)
+    assert int((found == -16).sum()) == found.size
 
 
 def test_stereo_sgbm_three_way_and_full_modes():

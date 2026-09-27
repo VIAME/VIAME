@@ -680,6 +680,49 @@ filter_disparity_wls( array_of< uint8_t > const& guide,
     false ).cast< py::array_t< float > >();
 }
 
+py::array_t< int16_t >
+stereo_bm( array_of< uint8_t > const& left, array_of< uint8_t > const& right,
+           int num_disparities, int block_size, int min_disparity,
+           std::string const& pre_filter, int pre_filter_size,
+           int pre_filter_cap, int texture_threshold, int uniqueness_ratio,
+           int speckle_window_size, int speckle_range, int disp12_max_diff )
+{
+  auto const one = as_image( left );
+  auto const two = as_image( right );
+
+  viame::image_kernels::bm_params params;
+  params.num_disparities = num_disparities;
+  params.block_size = block_size;
+  params.min_disparity = min_disparity;
+  params.pre_filter_size = pre_filter_size;
+  params.pre_filter_cap = pre_filter_cap;
+  params.texture_threshold = texture_threshold;
+  params.uniqueness_ratio = uniqueness_ratio;
+  params.speckle_window_size = speckle_window_size;
+  params.speckle_range = speckle_range;
+  params.disp12_max_diff = disp12_max_diff;
+
+  if( pre_filter == "xsobel" )
+  {
+    params.pre_filter = viame::image_kernels::bm_prefilter::XSOBEL;
+  }
+  else if( pre_filter == "normalized_response" )
+  {
+    params.pre_filter =
+      viame::image_kernels::bm_prefilter::NORMALIZED_RESPONSE;
+  }
+  else
+  {
+    throw std::invalid_argument(
+      "stereo_bm: pre_filter must be 'xsobel' or 'normalized_response'; got '" +
+      pre_filter + "'" );
+  }
+
+  return as_array(
+    VIAME_KERNEL_CALL( stereo_bm, one, two, params ),
+    false ).cast< py::array_t< int16_t > >();
+}
+
 py::array_t<int16_t> stereo_sgbm ( array_of<uint8_t> const &left,
                                    array_of<uint8_t> const &right, int min_disparity,
                                    int num_disparities, int block_size, int p1, int p2,
@@ -1909,6 +1952,23 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "left and right disparity maps in sixteenths, smoothed towards the "
          "guide's edges and weighted by how much each pixel can be trusted. "
          "The result is float, still in sixteenths." );
+
+  m.def( "stereo_bm", &stereo_bm, py::arg( "left" ), py::arg( "right" ),
+         py::arg( "num_disparities" ) = 64, py::arg( "block_size" ) = 21,
+         py::arg( "min_disparity" ) = 0, py::arg( "pre_filter" ) = "xsobel",
+         py::arg( "pre_filter_size" ) = 9, py::arg( "pre_filter_cap" ) = 31,
+         py::arg( "texture_threshold" ) = 10,
+         py::arg( "uniqueness_ratio" ) = 15,
+         py::arg( "speckle_window_size" ) = 0, py::arg( "speckle_range" ) = 0,
+         py::arg( "disp12_max_diff" ) = -1,
+         "cv2.StereoBM.compute: a signed 16 bit disparity map in sixteenths "
+         "of a pixel, with (min_disparity - 1) * 16 meaning no disparity. "
+         "Block matching rather than semi-global -- the sum of absolute "
+         "differences over a square window, with no smoothness term, which "
+         "is why it is a different algorithm and not a setting of "
+         "`stereo_sgbm`. A pre_filter_cap above 31 or a block_size above 21 "
+         "is refused: cv2 runs a different accumulation there, with a "
+         "different sub-pixel rule at the ends of the disparity range." );
 
   m.def ( "stereo_sgbm", &stereo_sgbm, py::arg ( "left" ), py::arg ( "right" ),
           py::arg ( "min_disparity" ) = 0, py::arg ( "num_disparities" ) = 16,
