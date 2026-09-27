@@ -44,13 +44,14 @@ def nearest(query, train, k, binary, with_distance=False):
     one -- which is what `cv2.BFMatcher` reports and therefore what a ratio
     test's threshold is written against.
 
-    Nearest by **squared** L2 for a float descriptor and by Hamming distance
-    for a binary one, which are the two metrics `cv::FlannBasedMatcher` chooses
-    between for the same reason. Squared rather than rooted because the order is
-    all that is used and the root does not change it.
+    The **ordering** is by squared L2 or by Hamming count, which are the two
+    metrics `cv::FlannBasedMatcher` chooses between; the root is taken only on
+    the distances that are returned, since it cannot change the order.
 
-    Ties go to the lower index, which is `argsort`'s stable order and matches
-    what a linear scan keeping a strict improvement would do.
+    Ties go to the lower index, which is what a linear scan keeping a strict
+    improvement would do. The blocked loop below preserves that by sorting the
+    carried indices ascending before each merge, so `argmin` -- which returns
+    the first minimum -- resolves a tie towards the earlier descriptor.
     """
     query, train = np.asarray(query), np.asarray(train)
     if query.ndim != 2 or train.ndim != 2 or query.shape[1] != train.shape[1]:

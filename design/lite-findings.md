@@ -4411,3 +4411,22 @@ expected rather than alarming: with no texture the confidence map is near zero
 everywhere and the division has nothing to divide. It is worth knowing that a
 random-noise fixture is the **wrong** test for this filter, which is the reverse
 of the usual advice.
+
+**One deliberate divergence, added in review.** Following `cv::divide`'s
+zero-divisor rule literally still leaves an infinity wherever the smoothed
+confidence is a small *negative* rather than an exact zero, and that multiplies
+to a saturated +-32767 or to a NaN. `filter_disparity_wls` leaves such a pixel at
+the invalid sentinel instead. The same 12860 pixels of 1608576 disagree with cv2
+either way, and this way disagrees less violently -- the worst difference falls
+from 65535 to 33174 -- and since the caller maps a negative disparity to zero,
+the sentinel reads as "no depth here" where cv2's saturated positive reads as a
+spuriously near point.
+
+**And one bug this file had, found by review rather than by me.** With
+`strength == 0` the weight table was filled with 1.0 at every distance, which
+makes non-local means a box average. cv2 arrives at weight 1 only at distance
+zero, and by a route that is easy to miss: `exp( -dist / 0 )` is `exp( -inf )`
+= 0 for any positive distance, and `exp( -0 / 0 )` is `exp( NaN )`, which its
+`if( cvIsNaN( w ) ) w = 1.0` then turns into one. So `h = 0` is "keep the pixel",
+not "average everything". My sweep had never passed `h = 0`, which is the kind of
+boundary a caller reaches for to mean "off".
