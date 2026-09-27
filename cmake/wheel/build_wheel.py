@@ -29,6 +29,7 @@ degrades to a note rather than a failure without it. See `add_cuda_rpath`.
 import argparse
 import base64
 import csv
+import configparser
 import hashlib
 import io
 import posixpath
@@ -728,6 +729,43 @@ def find_system_library(name):
 # and execs the real binary with that on LD_LIBRARY_PATH.
 # ----------------------------------------------------------------------------
 
+WINDOWS_LAUNCHER = '''"""Launch native VIAME tools from a Windows Python environment."""
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+
+def run(name):
+    prefix = Path(sys.prefix)
+    runtime = prefix / "Library" / "bin"
+    executable = runtime / (name + ".exe")
+    if not executable.is_file():
+        sys.exit(str(executable) + " is missing; the install is incomplete")
+    env = os.environ.copy()
+    paths = [str(Path(sys.executable).parent), str(runtime), sys.base_prefix,
+             str(Path(getattr(sys, "_base_executable", sys.executable)).parent)]
+    # CUDA wheels keep their runtime DLLs below site-packages/nvidia.
+    for entry in sys.path:
+        nvidia = Path(entry) / "nvidia"
+        if nvidia.is_dir():
+            paths.extend(str(p) for p in nvidia.glob("*/bin") if p.is_dir())
+    env["PATH"] = os.pathsep.join(paths + [env.get("PATH", "")])
+    env["VIAME_INSTALL"] = str(prefix)
+    plugins = [prefix / "lib" / family / category
+               for family, categories in (
+                   ("kwiver/plugins", ("algorithms", "modules", "processes", "applets")),
+                   ("viame", ("modules", "processes", "applets")))
+               for category in categories]
+    plugins = [str(p) for p in plugins if p.is_dir()]
+    if plugins:
+        env["KWIVER_PLUGIN_PATH"] = os.pathsep.join(
+            plugins + [env.get("KWIVER_PLUGIN_PATH", "")])
+        env.setdefault("KWIVER_PLUGIN_PATH_NO_DEFAULTS", "1")
+    return subprocess.call([str(executable)] + sys.argv[1:], env=env)
+'''
+
+
 LAUNCHER = '''#!python
 """Start the real `{name}`, with libpython findable.
 
@@ -1027,8 +1065,12 @@ def build(args):
 
             info = f"{dist}.dist-info"
             launchers = {}
+            windows_tools = []
             for name in (args.launcher or []):
                 dest = f"{dist}.data/scripts/{name}"
+                if f"{dist}.data/data/Library/bin/{name}.exe" in chosen:
+                    windows_tools.append(name)
+                    continue
                 # Windows keeps the native .exe in Scripts. A Linux launcher
                 # would point at a libexec binary that this wheel does not ship.
                 if dest + ".exe" in chosen:
@@ -1055,6 +1097,24 @@ def build(args):
             }
             if args.entry_points and Path(args.entry_points).is_file():
                 extras[f"{info}/entry_points.txt"] = Path(args.entry_points).read_text()
+            if windows_tools:
+                entries = configparser.ConfigParser(interpolation=None)
+                entries.optionxform = str
+                entries.read_string(extras.get(f"{info}/entry_points.txt", ""))
+                if not entries.has_section("console_scripts"):
+                    entries.add_section("console_scripts")
+                module = WINDOWS_LAUNCHER
+                for index, name in enumerate(windows_tools):
+                    function = f"tool_{index}"
+                    if entries.has_option("console_scripts", name):
+                        raise SystemExit(f"Duplicate console entry point: {name}")
+                    entries.set("console_scripts", name,
+                                f"viame._wheel_tools:{function}")
+                    module += f"\ndef {function}():\n    return run({name!r})\n"
+                extras["viame/_wheel_tools.py"] = module
+                stream = io.StringIO()
+                entries.write(stream)
+                extras[f"{info}/entry_points.txt"] = stream.getvalue()
             if args.license_file and Path(args.license_file).is_file():
                 extras[f"{info}/LICENSE"] = Path(args.license_file).read_text(errors="replace")
 

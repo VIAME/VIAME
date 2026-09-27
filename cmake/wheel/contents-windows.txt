@@ -37,15 +37,12 @@ include bin/*.dll       -> {data}/Library/bin/
 # ----------------------------------------------------------------------------
 # The tools
 #
-# `.exe` through the scripts scheme, as on linux: pip unpacks it into the
-# environment's `Scripts` directory, which is on the PATH of an activated
-# environment.
+# Keep native executables beside their DLLs. The builder generates Python
+# console entry points in Scripts; they configure PATH and VIAME_INSTALL
+# before launching these executables.
 # ----------------------------------------------------------------------------
-# Windows keeps the .exe directly on the PATH: python3X.dll sits beside
-# python.exe in the environment, which is already searched, so the
-# libpython problem the linux launcher solves does not arise.
-include bin/viame.exe   -> {scripts}/
-include bin/kwiver.exe  -> {scripts}/
+include bin/viame.exe   -> {data}/Library/bin/
+include bin/kwiver.exe  -> {data}/Library/bin/
 
 # ----------------------------------------------------------------------------
 # The tool scripts and default configs -- identical to linux
