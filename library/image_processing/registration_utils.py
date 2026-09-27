@@ -9,8 +9,8 @@ GPS geo-anchoring, shared by the standalone tools ``3d.py`` and
 ``register.py``. OpenCV-based; this module has NO COLMAP dependency
 (structure-from-motion lives in ``viame.colmap``).
 
-NOTE: ``numpy`` and ``cv2`` are imported lazily via :func:`import_dependencies`
-(set as module globals ``np`` / ``cv2``) so a tool can offer ``--install-deps``
+NOTE: ``numpy`` is imported lazily via :func:`import_dependencies`
+(set as the module global ``np``) so a tool can offer ``--install-deps``
 before the packages are present. Call ``import_dependencies()`` once at startup.
 """
 
@@ -24,11 +24,11 @@ import re
 import importlib
 import subprocess
 from viame import image_kernels
+from viame.image_processing import features, matching
 from viame.utilities import geometry, imageops
 
 # Populated by import_dependencies()
 np = None
-cv2 = None
 
 IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.tif', '.tiff', '.bmp'}
 
@@ -38,8 +38,10 @@ IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.tif', '.tiff', '.bmp'}
 # degenerate/rank-deficient match that must not be chained.
 _MAX_RELATIVE_ANISO = 6.0
 
-# numpy/cv2 are the only hard requirements of this engine.
-REQUIRED_PACKAGES = {'numpy': 'numpy', 'cv2': 'opencv-python'}
+# numpy is the only hard requirement of this engine now that the detector, the
+# matcher and the estimators are VIAME's own -- `viame.image_processing.features`
+# and `matching`, and `viame.utilities.geometry`.
+REQUIRED_PACKAGES = {'numpy': 'numpy'}
 
 
 def check_dependencies(packages=None):
@@ -79,8 +81,8 @@ def ensure_dependencies(install=False, target_dir=None, packages=None):
 
 
 def import_dependencies():
-    """Import numpy/cv2 into the module globals, with a clear error if missing."""
-    global np, cv2
+    """Import numpy into the module globals, with a clear error if missing."""
+    global np
     missing = check_dependencies()
     if missing:
         print("ERROR: missing required dependencies:")
@@ -88,9 +90,7 @@ def import_dependencies():
             print(f"  {pip_name} (import {import_name})")
         sys.exit(1)
     import numpy as np_
-    import cv2 as cv2_
     np = np_
-    cv2 = cv2_
 
 
 def get_image_files(folder):
@@ -358,9 +358,12 @@ def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
             if gray2.std() < 20:
                 gray2 = equalise(gray2)
 
-    sift = cv2.SIFT_create(nfeatures=nfeatures, contrastThreshold=sift_contrast)
-    kp1, des1 = sift.detectAndCompute(gray1, None)
-    kp2, des2 = sift.detectAndCompute(gray2, None)
+    kp1, des1 = features.sift(np.ascontiguousarray(gray1),
+                             n_features=nfeatures,
+                             contrast_threshold=sift_contrast)
+    kp2, des2 = features.sift(np.ascontiguousarray(gray2),
+                             n_features=nfeatures,
+                             contrast_threshold=sift_contrast)
 
     if des1 is None or des2 is None or len(kp1) < 10 or len(kp2) < 10:
         return None, None
@@ -372,54 +375,42 @@ def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
         des2 = des2 / (des2.sum(axis=1, keepdims=True) + 1e-7)
         des2 = np.sqrt(des2)
 
-    # Matcher selection
-    if matcher == 'flann':
-        FLANN_INDEX_KDTREE = 1
-        index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-        search_params = dict(checks=100)
-        fm = cv2.FlannBasedMatcher(index_params, search_params)
-    else:
-        fm = cv2.BFMatcher()
-
-    matches = fm.knnMatch(des1, des2, k=2)
-    good = []
-    for match_pair in matches:
-        if len(match_pair) == 2:
-            m, n = match_pair
-            if m.distance < match_ratio * n.distance:
-                good.append(m)
+    # The `matcher` argument is kept for callers that pass it and no longer
+    # selects anything: FLANN was an approximate index seeded from the clock
+    # and the brute force one was this search spelled differently, so both
+    # names now mean an exhaustive search. See `matching.py`.
+    good = matching.ratio_match(des1, des2, match_ratio)
 
     if len(good) < min_inliers:
         return None, None
 
-    src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-    dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
+    src_pts = np.float32([kp1[q, :2] for q, _ in good])
+    dst_pts = np.float32([kp2[t, :2] for _, t in good])
 
     # Homography/affine estimation method
     if use_affine:
-        H_small, mask = cv2.estimateAffine2D(
-            src_pts, dst_pts,
-            method=cv2.RANSAC, ransacReprojThreshold=ransac_thresh)
+        H_small, mask = geometry.estimate_affine_2d(
+            src_pts, dst_pts, threshold=ransac_thresh)
         if H_small is None:
             return None, None
         H = np.vstack([H_small, [0, 0, 1]])
     else:
         if homography_method == 'lmeds':
-            H, mask = cv2.findHomography(src_pts, dst_pts, cv2.LMEDS)
-        elif homography_method == 'usac':
-            try:
-                H, mask = cv2.findHomography(
-                    src_pts, dst_pts, cv2.USAC_MAGSAC, ransac_thresh)
-            except AttributeError:
-                H, mask = cv2.findHomography(
-                    src_pts, dst_pts, cv2.RANSAC, ransac_thresh)
+            H, mask = geometry.find_homography_lmeds(src_pts, dst_pts)
         else:
-            H, mask = cv2.findHomography(
-                src_pts, dst_pts, cv2.RANSAC, ransac_thresh)
+            # `usac` selected `cv2.USAC_MAGSAC`, which is MAGSAC++ -- a
+            # marginalisation over the inlier threshold rather than a choice of
+            # one. That is not reproduced: this is the plain RANSAC the same
+            # branch already fell back to when the cv2 in hand had no
+            # USAC_MAGSAC, so a caller asking for `usac` gets what the fallback
+            # gave rather than an error.
+            H, mask = geometry.find_homography(src_pts, dst_pts,
+                                               threshold=ransac_thresh)
 
     if H is None or mask is None:
         return None, None
 
+    mask = np.asarray(mask).astype(np.uint8).reshape(-1, 1)
     inliers = int(mask.ravel().sum())
     if inliers < min_inliers:
         return None, None
@@ -510,7 +501,6 @@ def _compute_camera_chain(image_folder, cam_images, label="",
                   f"[{(now - _t0) / 60.0:.1f} min elapsed]", flush=True)
 
     # Find the best anchor frame (highest SIFT features without CLAHE)
-    sift_quick = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.04)
     anchor_scores = []
     for i, fname in enumerate(cam_images):
         _progress(f"scoring anchor frames {i + 1}/{n}")
@@ -525,8 +515,9 @@ def _compute_camera_chain(image_folder, cam_images, label="",
         h, w = img.shape[:2]
         small = image_kernels.resize(img, int(w * 0.25), int(h * 0.25))
         gray = image_kernels.to_gray(small)
-        kp = sift_quick.detect(gray, None)
-        anchor_scores.append((len(kp) if kp else 0, i))
+        # Counting keypoints only, so the descriptors are not computed.
+        kp, _ = features.sift(np.ascontiguousarray(gray), describe=False)
+        anchor_scores.append((len(kp), i))
 
     # Sort by score descending to find best anchor
     anchor_scores.sort(key=lambda x: -x[0])
@@ -1626,7 +1617,6 @@ def _classify_with_bg_classifier(image_folder, image_list, model_path, svm_dir,
 
 def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500):
     """Fallback: classify using SIFT keypoint count."""
-    sift = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.04)
     results = {}
     for fname in image_list:
         img_path = os.path.join(image_folder, fname)
@@ -1639,8 +1629,8 @@ def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500)
         h, w = img.shape[:2]
         small = image_kernels.resize(img, int(w * scale), int(h * scale))
         gray = image_kernels.to_gray(small)
-        kp = sift.detect(gray, None)
-        n_kp = len(kp) if kp else 0
+        kp, _ = features.sift(np.ascontiguousarray(gray), describe=False)
+        n_kp = len(kp)
         is_water = n_kp < threshold
         results[fname] = {
             'is_water': is_water,

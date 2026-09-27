@@ -1285,12 +1285,15 @@ lib/python3.10/site-packages/viame/image_io/pil_image_io.py
 lib/python3.10/site-packages/viame/image_kernels/__init__.py
 lib/python3.10/site-packages/viame/image_kernels/_image_kernels.so
 lib/python3.10/site-packages/viame/image_processing/__init__.py
+lib/python3.10/site-packages/viame/image_processing/_features.so
 lib/python3.10/site-packages/viame/image_processing/align_cameras_process.py
 lib/python3.10/site-packages/viame/image_processing/alignment_core.py
 lib/python3.10/site-packages/viame/image_processing/colmap/__init__.py
 lib/python3.10/site-packages/viame/image_processing/colmap/colmap_registration.py
 lib/python3.10/site-packages/viame/image_processing/equalize_via_percentiles.py
+lib/python3.10/site-packages/viame/image_processing/features.py
 lib/python3.10/site-packages/viame/image_processing/fft_filter_based_on_ref.py
+lib/python3.10/site-packages/viame/image_processing/matching.py
 lib/python3.10/site-packages/viame/image_processing/multicam_homog_blackout.py
 lib/python3.10/site-packages/viame/image_processing/multicam_homog_mosaic.py
 lib/python3.10/site-packages/viame/image_processing/multimodal_registration.py

@@ -32,10 +32,10 @@ from viame.types import F2FHomography
 from PIL import Image as pil_image
 from viame.util.pil import get_pil_image, from_pil
 
-import cv2
+from viame import image_kernels
+from viame.image_processing import features, matching
+from viame.utilities import geometry
 
-from viame import image_kernels
-from viame import image_kernels
 import csv
 import logging
 import numpy as np
@@ -43,7 +43,16 @@ import scipy.spatial
 
 logger = logging.getLogger(__name__)
 
-def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
+# What `cv2.MOTION_HOMOGRAPHY`, `MOTION_AFFINE` and `MOTION_EUCLIDEAN` named.
+# The values are cv2's, so a caller that passed the cv2 constant still gets what
+# it asked for.
+MOTION_TRANSLATION = 0
+MOTION_EUCLIDEAN = 1
+MOTION_AFFINE = 2
+MOTION_HOMOGRAPHY = 3
+
+
+def compute_transform( optical, thermal, warp_mode = MOTION_HOMOGRAPHY,
   match_low_res=True, good_match_percent = 0.15, ratio_test = .85,
   match_height = 512, min_matches = 4, min_inliers = 4 ):
  
@@ -63,11 +72,11 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
         aspect = optical_gray.shape[1] / optical_gray.shape[0]
         optical_gray = image_kernels.resize(optical_gray, int( match_height*aspect ), match_height)
     
-    # Detect SIFT features and compute descriptors.
-    sift = cv2.xfeatures2d.SIFT_create()
-
-    keypoints1, descriptors1 = sift.detectAndCompute( thermal_gray, None )
-    keypoints2, descriptors2 = sift.detectAndCompute( optical_gray, None )
+    # Detect SIFT features and compute descriptors. `features.sift` is VIAME's
+    # own, and gives keypoints as an (n, 6) array rather than a list of
+    # objects -- so scaling the locations below is a slice rather than a loop.
+    keypoints1, descriptors1 = features.sift( thermal_gray )
+    keypoints2, descriptors2 = features.sift( optical_gray )
 
     if len( keypoints1 ) < 2:
         logger.warning("Not enough keypoints in thermal image")
@@ -80,34 +89,29 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
     # scale feature points back to original size
     if match_low_res:
         scale = optical.shape[0] / optical_gray.shape[0]
-        for i in range( 0, len( keypoints2 ) ):
-            keypoints2[i].pt = ( keypoints2[i].pt[0]*scale, keypoints2[i].pt[1]*scale )
-            
+        keypoints2 = keypoints2.copy()
+        keypoints2[:, :2] *= scale
+
     # Pick good features
     if ratio_test < 1:
-        # ratio test
-        matcher = cv2.BFMatcher( cv2.NORM_L2, crossCheck=False )
-        matches = matcher.knnMatch( descriptors1, descriptors2, k=2 )
-   
-        # Apply ratio test
-        good_matches = []
-        for m, n in matches:
-            if m.distance < ratio_test * n.distance:
-                good_matches.append( m )
-
-        matches = good_matches
+        matches = matching.ratio_match( descriptors1, descriptors2,
+                                        ratio_test )
     else:
-        # top percentage matches
-        matcher = cv2.BFMatcher( cv2.NORM_L2, crossCheck=True )
-        matches = matcher.match( descriptors1, descriptors2 )
-   
-        # Sort matches by score
-        matches.sort( key=lambda x: x.distance, reverse=False )
+        # The top percentage by distance, over the mutually nearest pairs.
+        pairs = matching.match( descriptors1, descriptors2, cross_check=True )
 
-        # Remove not so good matches
-        num_good_matches = int( len( matches ) * good_match_percent )
-        matches = matches[:num_good_matches]
-   
+        if pairs:
+            query = np.array( [ q for q, _ in pairs ] )
+            train = np.array( [ t for _, t in pairs ] )
+            distance = np.sqrt( ( ( descriptors1[ query ].astype( np.float64 )
+                                    - descriptors2[ train ] ) ** 2
+                                  ).sum( axis=1 ) )
+            order = np.argsort( distance, kind="stable" )
+            keep = int( len( pairs ) * good_match_percent )
+            matches = [ pairs[ i ] for i in order[ :keep ] ]
+        else:
+            matches = []
+
     logger.debug( "%d matches found", len(matches) )
 
     if len( matches ) < min_matches:
@@ -115,16 +119,20 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
         return False, np.identity( 3 ), 0
 
     # Extract location of good matches
-    points1 = np.zeros( ( len( matches ), 2 ), dtype=np.float32 )
-    points2 = np.zeros( ( len( matches ), 2 ), dtype=np.float32 )
- 
-    for i, match in enumerate( matches ):
-        points1[ i, : ] = keypoints1[ match.queryIdx ].pt
-        points2[ i, : ] = keypoints2[ match.trainIdx ].pt
+    points1 = np.array( [ keypoints1[ q, :2 ] for q, _ in matches ],
+                        dtype=np.float32 )
+    points2 = np.array( [ keypoints2[ t, :2 ] for _, t in matches ],
+                        dtype=np.float32 )
 
     # Find homography
-    h, mask = cv2.findHomography( points1, points2, cv2.RANSAC )
- 
+    h, mask = geometry.find_homography( points1, points2 )
+
+    if h is None:
+        logger.warning( "Homography estimation found no consensus" )
+        return False, np.identity( 3 ), 0
+
+    mask = mask.astype( np.uint8 ).reshape( -1, 1 )
+
     logger.debug( "%d inliers found", sum( mask ) )
 
     if sum( mask ) < min_inliers:
@@ -146,17 +154,19 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
         return False, np.identity(3), 0
 
     # if non homography requested, compute from inliers
-    if warp_mode != cv2.MOTION_HOMOGRAPHY:
-        points1_inliers = []
-        points2_inliers = []
+    if warp_mode != MOTION_HOMOGRAPHY:
+        inliers = np.isclose( mask.ravel(), 1 )
+        points1_inliers = points1[ inliers ]
+        points2_inliers = points2[ inliers ]
 
-        for i in range(0, len(mask)):
-            if ( int(mask[i]) == 1):
-                 points1_inliers.append( points1[i,:] )
-                 points2_inliers.append( points2[i,:] )
-             
-        a = cv2.estimateRigidTransform( np.asarray( points1_inliers ), \
-          np.asarray( points2_inliers ), ( warp_mode == cv2.MOTION_AFFINE ) )
+        # `geometry.estimate_affine_2d` where this called
+        # `cv2.estimateRigidTransform`, which **OpenCV removed in 4.x**: this
+        # branch had not run under a modern cv2 at all, it raised
+        # AttributeError. Its `fullAffine` flag is this one's `full`, which is
+        # the migration OpenCV's own deprecation notice names.
+        a, _ = geometry.estimate_affine_2d(
+            points1_inliers, points2_inliers,
+            full=( warp_mode == MOTION_AFFINE ) )
 
         if a is None:
             return False, np.identity(3), 0
@@ -257,7 +267,7 @@ class register_frames_process( ViameProcess ):
             ret, transform, _ = compute_transform(
                 optical_npy,
                 thermal_norm,
-                warp_mode = cv2.MOTION_HOMOGRAPHY,
+                warp_mode = MOTION_HOMOGRAPHY,
                 match_low_res = True,
                 good_match_percent = self._good_match_percent,
                 ratio_test = self._ratio_test,
@@ -271,10 +281,10 @@ class register_frames_process( ViameProcess ):
             # TODO: Make all of these computations conditional on port connection
             inv_transform = np.linalg.inv( transform )
 
-            thermal_warped = cv2.warpPerspective( thermal_npy, transform, \
-              ( optical_npy.shape[1], optical_npy.shape[0] ) )
-            optical_warped = cv2.warpPerspective( optical_npy, inv_transform, \
-              ( thermal_npy.shape[1], thermal_npy.shape[0] ) )
+            thermal_warped = image_kernels.warp_perspective( thermal_npy,
+              transform, optical_npy.shape[1], optical_npy.shape[0] )
+            optical_warped = image_kernels.warp_perspective( optical_npy,
+              inv_transform, thermal_npy.shape[1], thermal_npy.shape[0] )
 
             #self.push_to_port_using_trait( 'thermal_to_optical_homog',
             #   F2FHomography.from_matrix( transform, 'd' )

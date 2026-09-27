@@ -135,6 +135,17 @@ if( VIAME_ENABLE_PYTHON )
   # in P2-T05.
   viame_add_python_package( image_processing EXCLUDE "^colmap/" )
 
+  # SIFT and SURF as functions of an array. The algorithm framework is the
+  # right interface for a pipeline and the wrong one for a script, and the
+  # registration utilities, the IOU tracker and colmap's reconstruction are
+  # scripts -- they kept importing cv2 for a detector they could call.
+  viame_add_python_library( _features
+    image_processing
+    SOURCES features_python.cxx )
+  viame_target_link_libraries( python-image_processing-_features
+    PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11>
+            viame_image_processing )
+
   # COLMAP survey registration, from `colmap` in P2-T08: the
   # `colmap_registration` process, installed only with COLMAP.
   viame_add_python_package( image_processing/colmap

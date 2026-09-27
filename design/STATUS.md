@@ -2065,3 +2065,37 @@ utilities and the IOU tracker want `BFMatcher`, `findHomography` and ORB;
 `ocv_stereo_disparity.py` wants SGBM's remaining modes and StereoBM;
 `image_viewer.py` wants highgui, which has no replacement; and colmap and
 `tools/calibrate.py` each want one thing.
+
+## The registration cluster off cv2, on four new primitives
+
+`registration_utils.py`, `multimodal_registration.py` and
+`colmap/reconstruction.py` no longer import cv2. What they needed was not three
+ports but four primitives:
+
+* **`viame.image_processing.features`** -- a pybind module over the SIFT and
+  SURF already in C++. The algorithm framework is right for a pipeline and
+  wrong for a script, and these are scripts: they kept cv2 for a detector they
+  could *call*. Keypoints come back as one (n, 6) array, descriptors are **bit
+  identical** to cv2's, and re-describing detected keypoints reproduces them
+  exactly -- which is what checks the packed octave survives the round trip.
+* **`matching.ratio_match`** -- Lowe's ratio test over the exhaustive search,
+  returning the **identical pair set** to `cv2.BFMatcher.knnMatch( k=2 )`.
+* **`geometry.estimate_affine_2d`** -- `cv2.estimateAffine2D`, and
+  `estimateAffinePartial2D` with `full=False`. Within 5e-06 of cv2, same
+  inliers.
+* **`geometry.find_homography_lmeds`** -- `cv2.findHomography( ..., LMEDS )`.
+  Within 4e-06, same inliers.
+
+**Two of the calls being replaced did not exist.**
+`cv2.estimateRigidTransform` was removed in OpenCV 4.x, so the `MOTION_AFFINE`
+and `MOTION_EUCLIDEAN` branches of `compute_transform` raised `AttributeError`
+rather than computing anything -- two of its three branches were dead. Both work
+now. The `usac` homography method already fell back to plain RANSAC on any cv2
+without `USAC_MAGSAC`, so mapping it to RANSAC gives what the fallback gave;
+MAGSAC++ is not reproduced and is not pretended to be. See 2.64.
+
+**What is left.** By `git ls-files '*.py'` outside `packages/`: **5 files with
+live cv2 calls** -- `ocv_segmenters.py` (grabCut), `ocv_stereo_disparity.py`
+(SGBM's remaining modes and StereoBM), `homog_iou_tracker.py` (which needs ORB
+before it can come off, since its SIFT path is ported but ORB is a documented
+option), `image_viewer.py` (highgui, no replacement) and `tools/calibrate.py`.

@@ -363,3 +363,189 @@ def find_homography(source, target, threshold=3.0, confidence=0.995,
         return None, None
 
     return _dlt(source[best_inliers], target[best_inliers]), best_inliers
+
+
+def find_homography_lmeds(source, target, max_iterations=2000, seed=0):
+    """The homography mapping `source` onto `target` by least median of squares.
+
+    `cv2.findHomography( ..., cv2.LMEDS )`. Where RANSAC counts how many
+    correspondences fall inside a threshold the caller chose, this minimises the
+    **median** squared error and needs no threshold at all -- which is why a
+    caller reaches for it when it cannot say what a good reprojection is. The
+    price is that it tolerates at most half the correspondences being wrong,
+    where RANSAC with a generous threshold tolerates more.
+
+    The inlier mask comes from the robust scale of the winning model, the usual
+    `1.4826 * (1 + 5 / (n - 4)) * sqrt( median )` with a 2.5 sigma cut, and the
+    result is refit on it.
+
+    Returns `(homography, mask)`, or `(None, None)` when there are fewer than
+    four correspondences.
+    """
+    source = np.asarray(source, dtype=np.float64).reshape(-1, 2)
+    target = np.asarray(target, dtype=np.float64).reshape(-1, 2)
+
+    if len(source) != len(target):
+        raise ValueError("source and target must have the same length")
+    if len(source) < 4:
+        return None, None
+    if len(source) == 4:
+        return _dlt(source, target), np.ones(4, dtype=bool)
+
+    rng = np.random.default_rng(seed)
+    count = len(source)
+    best_median = np.inf
+    best = None
+
+    for _ in range(max_iterations):
+        sample = rng.choice(count, 4, replace=False)
+
+        try:
+            candidate = _dlt(source[sample], target[sample])
+        except np.linalg.LinAlgError:
+            continue
+
+        if not np.all(np.isfinite(candidate)):
+            continue
+
+        squared = ((apply_homography(candidate, source) - target) ** 2).sum(axis=1)
+        median = float(np.median(squared))
+
+        if median < best_median:
+            best_median, best = median, candidate
+
+    if best is None:
+        return None, None
+
+    scale = 1.4826 * (1.0 + 5.0 / max(1, count - 4)) * np.sqrt(best_median)
+    squared = ((apply_homography(best, source) - target) ** 2).sum(axis=1)
+    inliers = squared < (2.5 * scale) ** 2 if scale > 0 else np.ones(count, bool)
+
+    if int(inliers.sum()) < 4:
+        return best, inliers
+
+    return _dlt(source[inliers], target[inliers]), inliers
+
+
+def _affine_from(source, target):
+    """The least-squares affine taking `source` to `target`, as a 2 by 3.
+
+    Three correspondences determine it exactly and more over-determine it; both
+    are the same normal equations, so there is one path.
+    """
+    count = len(source)
+    design = np.hstack([source, np.ones((count, 1))])
+    solution, _, _, _ = np.linalg.lstsq(design, target, rcond=None)
+
+    return solution.T
+
+
+def estimate_affine_2d(source, target, threshold=3.0, confidence=0.99,
+                       max_iterations=2000, seed=0, full=True):
+    """The affine mapping `source` onto `target`, and its inlier mask.
+
+    `cv2.estimateAffine2D`, and with `full` false `cv2.estimateAffinePartial2D`
+    -- a similarity, four degrees of freedom rather than six. RANSAC over
+    three-point samples (two for the partial form), refit on the consensus by
+    least squares. `threshold` is the reprojection distance in pixels at which a
+    correspondence counts, as `ransacReprojThreshold` is.
+
+    Also what `cv2.estimateRigidTransform` was before OpenCV removed it in 4.x:
+    `estimateRigidTransform( a, b, fullAffine )` is this with `full=fullAffine`,
+    which is the migration OpenCV's own deprecation notice names. A caller still
+    invoking it on a modern cv2 is calling a function that is not there.
+
+    Returns `(matrix, mask)` with matrix 2 by 3, or `(None, None)` when there
+    are too few correspondences or no consensus.
+    """
+    source = np.asarray(source, dtype=np.float64).reshape(-1, 2)
+    target = np.asarray(target, dtype=np.float64).reshape(-1, 2)
+
+    if len(source) != len(target):
+        raise ValueError("source and target must have the same length")
+
+    needed = 3 if full else 2
+
+    if len(source) < needed:
+        return None, None
+
+    def fit(chosen):
+        if full:
+            return _affine_from(source[chosen], target[chosen])
+
+        # A similarity from two points: the complex number taking one
+        # difference to the other is the rotation and the scale together.
+        a, b = source[chosen[0]], source[chosen[1]]
+        c, d = target[chosen[0]], target[chosen[1]]
+        span = complex(*(b - a))
+
+        if span == 0:
+            raise np.linalg.LinAlgError("coincident points")
+
+        factor = complex(*(d - c)) / span
+        offset = complex(*c) - factor * complex(*a)
+
+        return np.array([[factor.real, -factor.imag, offset.real],
+                         [factor.imag, factor.real, offset.imag]])
+
+    def residual(matrix):
+        mapped = source @ matrix[:, :2].T + matrix[:, 2]
+
+        return np.sqrt(((mapped - target) ** 2).sum(axis=1))
+
+    if len(source) == needed:
+        try:
+            return fit(np.arange(needed)), np.ones(needed, dtype=bool)
+        except np.linalg.LinAlgError:
+            return None, None
+
+    rng = np.random.default_rng(seed)
+    count = len(source)
+    best_inliers = np.zeros(count, dtype=bool)
+    best_total = 0
+    iterations = max_iterations
+    step = 0
+
+    while step < min(iterations, max_iterations):
+        step += 1
+        sample = rng.choice(count, needed, replace=False)
+
+        try:
+            candidate = fit(sample)
+        except np.linalg.LinAlgError:
+            continue
+
+        if not np.all(np.isfinite(candidate)):
+            continue
+
+        inliers = residual(candidate) < threshold
+        total = int(inliers.sum())
+
+        if total > best_total:
+            best_total, best_inliers = total, inliers
+            ratio = total / count
+
+            if ratio > 0:
+                denominator = np.log(max(1e-12, 1.0 - ratio ** needed))
+                iterations = int(
+                    np.log(max(1e-12, 1.0 - confidence)) / denominator) + 1
+
+    if best_total < needed:
+        return None, None
+
+    if full:
+        return _affine_from(source[best_inliers], target[best_inliers]), \
+            best_inliers
+
+    # A similarity refit on the consensus: the same normal equations in the
+    # (a, b, tx, ty) parameterisation, where the matrix is [[a, -b], [b, a]].
+    chosen = np.flatnonzero(best_inliers)
+    x, y = source[chosen, 0], source[chosen, 1]
+    zero = np.zeros(len(chosen))
+    one = np.ones(len(chosen))
+    design = np.vstack([np.column_stack([x, -y, one, zero]),
+                        np.column_stack([y, x, zero, one])])
+    observed = np.concatenate([target[chosen, 0], target[chosen, 1]])
+    (a, b, tx, ty), _, _, _ = np.linalg.lstsq(design, observed, rcond=None)
+
+    return np.array([[a, -b, tx], [b, a, ty]]), best_inliers

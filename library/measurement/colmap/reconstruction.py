@@ -8,8 +8,8 @@ Extracted from the ``3d.py`` tool; used only for the non-planar SfM / dense
 (MVS) modes, which require COLMAP. Built only when VIAME is configured with
 ``VIAME_ENABLE_COLMAP=ON``. The planar registration path does NOT use this.
 
-``numpy`` / ``cv2`` / ``pycolmap`` / ``open3d`` are imported lazily via
-:func:`import_dependencies` (module globals ``np`` / ``cv2`` / ``pycolmap`` /
+``numpy`` / ``pycolmap`` / ``open3d`` are imported lazily via
+:func:`import_dependencies` (module globals ``np`` / ``pycolmap`` /
 ``o3d``). Call it once before using any function here.
 """
 
@@ -20,26 +20,24 @@ import re
 import subprocess
 import glob
 from viame import image_kernels
+from viame.image_processing import features, matching
 from viame.measurement import projection
 from viame.utilities import imageops
 from viame.utilities import geometry
 
 # Populated by import_dependencies()
 np = None
-cv2 = None
 pycolmap = None
 o3d = None
 
 
 def import_dependencies():
     """Import the SfM/dense dependencies into module globals."""
-    global np, cv2, pycolmap, o3d
+    global np, pycolmap, o3d
     import numpy as np_
-    import cv2 as cv2_
     import pycolmap as pycolmap_
     import open3d as o3d_
     np = np_
-    cv2 = cv2_
     pycolmap = pycolmap_
     o3d = o3d_
 
@@ -99,9 +97,14 @@ def image_pose(image):
 
 def triangulate_matches(kp1, kp2, matches, K, R1, t1, R2, t2):
     """Triangulate matched keypoints into 3D points.
+
+    `kp1` and `kp2` are (n, 6) keypoint arrays from `features.sift` and
+    `matches` a list of (query, train) index pairs, which is what replaced the
+    `cv::KeyPoint` lists and `cv::DMatch` objects.
+
     Returns (points3d_Nx3, valid_mask_N)."""
-    pts1 = np.float64([kp1[m.queryIdx].pt for m in matches])
-    pts2 = np.float64([kp2[m.trainIdx].pt for m in matches])
+    pts1 = np.float64([kp1[q, :2] for q, _ in matches])
+    pts2 = np.float64([kp2[t, :2] for _, t in matches])
 
     # Projection matrices: P = K @ [R | t]
     P1 = K @ np.hstack([R1, t1.reshape(3, 1)])
@@ -540,9 +543,10 @@ def run_dense(rec, image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
         images = rec.images
         cameras = rec.cameras
 
-        # Create SIFT detector for dense matching (more features than SfM)
-        sift = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.02, edgeThreshold=15)
-        bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+        # A looser contrast threshold and a more generous edge threshold than
+        # the SfM pass, because this wants density rather than repeatability.
+        sift_settings = dict(n_features=0, contrast_threshold=0.02,
+                             edge_threshold=15.0)
 
         for idx, (id_a, id_b, score) in enumerate(pairs):
             img_a = images[id_a]
@@ -574,20 +578,14 @@ def run_dense(rec, image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
             gray_b = image_kernels.to_gray(small_b)
 
             # Extract features
-            kp_a, des_a = sift.detectAndCompute(gray_a, None)
-            kp_b, des_b = sift.detectAndCompute(gray_b, None)
+            kp_a, des_a = features.sift(gray_a, **sift_settings)
+            kp_b, des_b = features.sift(gray_b, **sift_settings)
 
             if des_a is None or des_b is None or len(kp_a) < 100 or len(kp_b) < 100:
                 continue
 
             # Match with ratio test
-            raw_matches = bf.knnMatch(des_a, des_b, k=2)
-            good_matches = []
-            for m_pair in raw_matches:
-                if len(m_pair) == 2:
-                    m, n = m_pair
-                    if m.distance < 0.75 * n.distance:
-                        good_matches.append(m)
+            good_matches = matching.ratio_match(des_a, des_b, 0.75)
 
             if len(good_matches) < 50:
                 print(f"    Pair {idx+1}/{len(pairs)}: {img_a.name} <-> {img_b.name} "
@@ -600,8 +598,8 @@ def run_dense(rec, image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
             K[1, :] *= (h / h0)
 
             # Fundamental matrix filtering
-            pts1 = np.float64([kp_a[m.queryIdx].pt for m in good_matches])
-            pts2 = np.float64([kp_b[m.trainIdx].pt for m in good_matches])
+            pts1 = np.float64([kp_a[q, :2] for q, _ in good_matches])
+            pts2 = np.float64([kp_b[t, :2] for _, t in good_matches])
             F, inlier_mask = geometry.find_fundamental(pts1, pts2,
                                                        threshold=2.0)
             if inlier_mask is None:

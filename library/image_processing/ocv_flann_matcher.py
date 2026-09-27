@@ -34,6 +34,7 @@ import logging
 import numpy as np
 
 from viame.algo import MatchFeatures
+from viame.image_processing.matching import as_matrix, match
 from viame.types import MatchSet
 
 logger = logging.getLogger(__name__)
@@ -41,66 +42,6 @@ logger = logging.getLogger(__name__)
 
 def _as_bool(value):
     return str(value).strip().lower() in ("true", "yes", "on", "1")
-
-
-def _as_matrix(descriptor_set, binary):
-    """A `vital::descriptor_set` as one (n, d) matrix.
-
-    `binary` because a binary descriptor's bytes are a bit string rather than a
-    number: the C++ bridge chose `CV_8U` against `CV_32F` by the descriptor's
-    own type, which python cannot see, so the caller says instead.
-    """
-    if descriptor_set is None or descriptor_set.size() == 0:
-        return None
-
-    rows = [np.asarray(d.todoublearray())
-            for d in descriptor_set.descriptors()]
-
-    if not rows:
-        return None
-
-    return np.vstack(rows).astype(np.uint8 if binary else np.float32)
-
-
-def _nearest(query, train, k, binary):
-    """The indices of the `k` nearest rows of `train` for each row of `query`.
-
-    Nearest by **squared** L2 for a float descriptor and by Hamming distance
-    for a binary one, which are the two metrics `cv::FlannBasedMatcher` chooses
-    between for the same reason. Squared rather than rooted because the order is
-    all that is used and the root does not change it.
-
-    Ties go to the lower index, which is `argsort`'s stable order and matches
-    what a linear scan keeping a strict improvement would do.
-    """
-    count = train.shape[0]
-    k = min(max(1, int(k)), count)
-
-    if binary:
-        # A byte at a time, so the whole cross product is not held at once:
-        # unpacking 8 bits per byte makes the intermediate 8 times the input.
-        bits_query = np.unpackbits(query, axis=1).astype(np.uint16)
-        bits_train = np.unpackbits(train, axis=1).astype(np.uint16)
-        distance = (bits_query[:, None, :] != bits_train[None, :, :]).sum(
-            axis=2, dtype=np.int32)
-    else:
-        # |a - b|^2 = |a|^2 - 2ab + |b|^2, in float64 so that the subtraction
-        # cannot cancel into a negative distance and reorder the neighbours.
-        a = query.astype(np.float64)
-        b = train.astype(np.float64)
-        distance = ((a * a).sum(1)[:, None] - 2.0 * (a @ b.T) +
-                    (b * b).sum(1)[None, :])
-
-    if k == 1:
-        return np.argmin(distance, axis=1)[:, None]
-
-    # `argpartition` then sort just the k kept, rather than sorting every
-    # column: the cross product is the expensive part and k is 1 or 2 here.
-    partial = np.argpartition(distance, k - 1, axis=1)[:, :k]
-    rows = np.arange(distance.shape[0])[:, None]
-    order = np.argsort(distance[rows, partial], axis=1, kind="stable")
-
-    return partial[rows, order]
 
 
 class MatchFeaturesFlannBased(MatchFeatures):
@@ -154,19 +95,8 @@ class MatchFeaturesFlannBased(MatchFeatures):
         neighbour" -- with `cross_check_k` above one that is a much weaker test
         than a strict mutual best.
         """
-        k = max(1, int(self._cross_check_k))
-        forward = _nearest(first, second, k, self._binary_descriptors)
-        backward = _nearest(second, first, k, self._binary_descriptors)
-
-        kept = []
-
-        for query, candidates in enumerate(forward):
-            for train in candidates:
-                if query in backward[train]:
-                    kept.append((query, train))
-                    break
-
-        return kept
+        return match(first, second, cross_check=True,
+                     k=self._cross_check_k, binary=self._binary_descriptors)
 
     def match(self, feat1, desc1, feat2, desc2):
         if desc1 is None or desc2 is None:
@@ -175,8 +105,8 @@ class MatchFeaturesFlannBased(MatchFeatures):
         if desc1.size() == 0 or desc2.size() == 0:
             return None
 
-        first = _as_matrix(desc1, self._binary_descriptors)
-        second = _as_matrix(desc2, self._binary_descriptors)
+        first = as_matrix(desc1, self._binary_descriptors)
+        second = as_matrix(desc2, self._binary_descriptors)
 
         if first is None or second is None:
             logger.debug("Unable to read the descriptors as a matrix")
@@ -190,12 +120,7 @@ class MatchFeaturesFlannBased(MatchFeatures):
         if self._cross_check:
             matches = self._cross_check_match(first, second)
         else:
-            # One per query, the nearest, in query order -- which is what
-            # `DescriptorMatcher::match` returns.
-            matches = [(query, candidates[0])
-                       for query, candidates
-                       in enumerate(_nearest(first, second, 1,
-                                             self._binary_descriptors))]
+            matches = match(first, second, binary=self._binary_descriptors)
 
         return MatchSet([(int(q), int(t)) for q, t in matches])
 

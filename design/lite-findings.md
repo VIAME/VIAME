@@ -4205,3 +4205,46 @@ reached for cv2's features, four now have nothing to do with SIFT itself: what
 is left across them is `BFMatcher`, `findHomography` with its four robust
 estimators, `estimateAffine2D`, `estimateRigidTransform` and ORB. The matching
 half of the cluster is smaller than the detector half was.
+
+## 2.64 The registration cluster, and two functions that were not there
+
+Four files came off cv2 together -- `registration_utils.py`,
+`multimodal_registration.py`, `colmap/reconstruction.py` and, through them, the
+whole matching half of the feature cluster -- and doing so needed four
+primitives rather than four ports:
+
+* **`viame.image_processing.features`**, a pybind module over the SIFT and SURF
+  already in C++. The algorithm framework is the right interface for a pipeline
+  and the wrong one for a script, and these files are scripts; they kept cv2 for
+  a detector they could *call*. Keypoints come back as one (n, 6) array -- x, y,
+  size, angle, response, packed octave -- which also makes "scale the locations
+  back up" a slice rather than a loop over objects. Descriptors through the
+  binding are **bit identical** to cv2's, and re-describing detected keypoints
+  reproduces them exactly, which is what checks that the packed octave survives
+  the round trip.
+* **`matching.ratio_match`**, Lowe's ratio test over an exhaustive search. It
+  returns the **identical pair set** to `cv2.BFMatcher.knnMatch( k=2 )` with the
+  same ratio, which is the whole of what four of these call sites did. Note the
+  distances have to be **rooted** before the ratio: the ratio of two squares is
+  not the ratio of their roots, and every caller's 0.75 was written against
+  `cv::DMatch::distance`, which is rooted.
+* **`geometry.estimate_affine_2d`**, `cv2.estimateAffine2D` and, with
+  `full=False`, `estimateAffinePartial2D`. Within 5e-06 of cv2 with the same
+  inlier sets.
+* **`geometry.find_homography_lmeds`**, `cv2.findHomography( ..., LMEDS )`.
+  Within 4e-06 of cv2 with the same inlier set.
+
+**Two of the calls being replaced did not exist.**
+`multimodal_registration.py` called `cv2.estimateRigidTransform`, which OpenCV
+**removed in 4.x** -- it is not in the 5.0.0 this branch installs, so the
+`MOTION_AFFINE` and `MOTION_EUCLIDEAN` branches of `compute_transform` raised
+`AttributeError` rather than computing anything. Both work now. And the `usac`
+homography method already carried its own `except AttributeError` fallback to
+plain RANSAC for cv2 builds without `USAC_MAGSAC`, so mapping `usac` to RANSAC
+gives what that fallback gave rather than introducing a loss. MAGSAC++ is not
+reproduced and is not pretended to be.
+
+The lesson is narrower than "test your code": a cv2 call that a **shipped
+config never reaches** can be broken for two major versions without anything
+noticing, and porting it is when you find out. Two of the three branches of
+`compute_transform` were in that state.
