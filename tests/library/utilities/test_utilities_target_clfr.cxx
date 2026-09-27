@@ -27,3 +27,14 @@ TEST( target_classification, missing_and_nonfinite_scores )
   EXPECT_EQ( viame::core::ranked_class_names( dot, 20 ),
     ( std::vector< std::string >{ "infinity", "finite", "nan" } ) );
 }
+
+TEST( target_classification, retain_default_score_threshold )
+{
+  auto dot = std::make_shared< viame::detected_object_type >(
+    std::vector< std::string >{ "zero", "negative", "positive" },
+    std::vector< double >{ 0, -.1, .1 } );
+  EXPECT_EQ( viame::core::ranked_class_names( dot, 0 ),
+    ( std::vector< std::string >{ "positive" } ) );
+  EXPECT_EQ( viame::core::ranked_class_names( dot, 5 ),
+    ( std::vector< std::string >{ "positive" } ) );
+}
