@@ -96,7 +96,7 @@ CUDA Python tests with zero memory errors. With devices hidden, the optional
 import test passed and the 64 GPU cases skipped. An installed C++ consumer
 built and ran without CUDA headers in its include path.
 
-Run `tests/benchmark_cuda.py --repeats 10` from an installed build. It warms up
+Run `tests/library/image_kernels/benchmark_cuda.py --repeats 10` from an installed build. It warms up
 both paths, verifies results, and reports median wall time including stream
 completion. The transfer-inclusive case reuses device allocations but includes
 NumPy output allocation. Example measurements on this shared workstation:

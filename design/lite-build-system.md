@@ -206,6 +206,7 @@ uses it for both bindings and pip.
 ## 9. Tests
 
 `tests/` keeps the pytest helper (renamed `viame_add_test`) and ctest-time
-pipeline discovery. Unit and golden tests live in `library/<dir>/tests/`
-and are collected by `viame_add_library`. `setup_ctest.cmake` and the
+pipeline discovery. Library unit tests live in `tests/library/<dir>/` and
+are registered from `tests/CMakeLists.txt`; golden recordings remain in
+`tests/golden/`. `setup_ctest.cmake` and the
 `CTestTestfile.cmake` append hack go in P1.

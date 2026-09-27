@@ -61,7 +61,7 @@ install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../core_types/"
   DESTINATION "include/viame/core_types"
   FILES_MATCHING PATTERN "*.h" PATTERN "*.txx"
   PATTERN "CMakeLists.txt" EXCLUDE
-  # the unit tests beside the code since P2-T09; FILES_MATCHING would still
+  # Do not install test-only directories.; FILES_MATCHING would still
   # create the empty directory
   PATTERN "tests" EXCLUDE
   # `.py` sits beside `.h` since P11-T02b, so importing one of them
@@ -227,11 +227,4 @@ if( VIAME_ENABLE_PYTHON )
   # `viame.modules`, `viame.plugins`, `viame.plugin_management`,
   # `viame.applets`, `viame.exceptions` and `viame.test_interface`.
   include( "${CMAKE_CURRENT_SOURCE_DIR}/python.cmake" )
-endif()
-
-###
-# Tests
-##
-if( VIAME_ENABLE_TESTS )
-  add_subdirectory( tests )
 endif()

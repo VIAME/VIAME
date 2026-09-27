@@ -24,7 +24,7 @@ import pytest
 
 # Allow running from a source checkout, where this library is not installed
 # as the viame.image_processing package.
-_PLUGIN_DIR = Path(__file__).resolve().parents[1]
+_PLUGIN_DIR = Path(__file__).resolve().parents[3] / "library" / "image_processing"
 try:
     from viame.image_processing import alignment_core
 except ImportError:

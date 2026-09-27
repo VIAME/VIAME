@@ -44,7 +44,7 @@ def run_stereo_pipeline(pipeline, left_names, right_names, settings=()):
     The calibration pipelines write `intrinsics.yml`, `extrinsics.yml` and a
     JSON summary, so what comes back is those parsed rather than their bytes:
     a recording of the bytes would be a recording of the writer, which
-    `library/file_io/tests` already covers.
+    `tests/library/file_io` already covers.
     """
     from viame.file_io import _opencv_yaml
 

@@ -211,10 +211,3 @@ if( VIAME_ENABLE_PYTHON )
   viame_target_link_libraries( python-file_io-_opencv_yaml
     PRIVATE ${PYTHON_LIBRARIES} $<BUILD_INTERFACE:pybind11::pybind11> viame_file_io )
 endif()
-
-###
-# Tests
-##
-if( VIAME_ENABLE_TESTS )
-  add_subdirectory( tests )
-endif()

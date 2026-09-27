@@ -221,9 +221,9 @@ endfunction()
 # target, beside the copy in `libviame` -- two plugin managers, two loggers,
 # every factory registered twice. So the call is recorded on the target and
 # made by `viame_apply_folded_links` at the end of the configure, once every
-# library exists and it can be told which names were folded. Deferred rather
-# than resolved here because a test in `library/<dir>/tests` is defined
-# before the libraries added after its directory, the registry among them.
+# library exists and it can be told which names were folded. Deferred because
+# consumers can be declared before all libraries and the generated registry
+# exist.
 #-
 function( viame_target_link_libraries target )
   if( NOT VIAME_FOLD_LIBRARIES )

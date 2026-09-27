@@ -78,10 +78,3 @@ if( VIAME_ENABLE_PYTHON )
       CONDITION VIAME_ENABLE_PYTORCH VIAME_ENABLE_PYTORCH-${option} )
   endforeach()
 endif()
-
-###
-# Tests
-##
-if( VIAME_ENABLE_TESTS )
-  add_subdirectory( tests )
-endif()

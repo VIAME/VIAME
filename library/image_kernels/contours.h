@@ -901,7 +901,7 @@ struct border
 /// whose siblings are **prepended** and then flattens it depth first, so a
 /// top-level border comes out after the ones found later in the scan, and
 /// each border's holes follow it immediately. `blobs` in
-/// `library/file_io/tests/mask_polygon_csv.txt` is what pins the first half of
+/// `tests/library/file_io/mask_polygon_csv.txt` is what pins the first half of
 /// that and `ring` the second.
 template < typename T >
 std::vector< border >

@@ -2281,3 +2281,11 @@ That leaves **two files** with live cv2 calls -- `ocv_stereo_disparity.py`'s
 WLS branch, which is the decision above, and `ocv_segmenters.py`'s grabCut --
 plus `tools/calibrate.py`'s pose and calibration solvers and
 `image_viewer.py`'s highgui, neither of which has a replacement here.
+
+## Centralized library tests (2026-09-27)
+
+User-requested layout: all 17 library test directories now live under
+`tests/library/<component>/`, including nested Python fixtures and data. The
+standalone ReMax operator check mirrors its source path there as well. Root
+`tests/CMakeLists.txt` owns registration; production libraries no longer add
+test subdirectories. Source imports and pytest paths follow the new layout.

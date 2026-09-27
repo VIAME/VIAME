@@ -125,10 +125,3 @@ if( VIAME_ENABLE_PYTHON )
   viame_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/image_kernels_init.py image_kernels __init__ )
 endif()
-
-###
-# Tests
-##
-if( VIAME_ENABLE_TESTS )
-  add_subdirectory( tests )
-endif()

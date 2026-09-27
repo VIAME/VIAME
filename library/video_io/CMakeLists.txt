@@ -123,10 +123,3 @@ if( VIAME_ENABLE_PYTHON )
   # newer than the stub.
   viame_add_python_package( video_io )
 endif()
-
-###
-# Tests
-##
-if( VIAME_ENABLE_TESTS )
-  add_subdirectory( tests )
-endif()

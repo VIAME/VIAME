@@ -1,6 +1,6 @@
 # Python test helpers for the unbuilt kwiver test trees
 #
-# These drive the python test packages in `library/*/tests/python` and
+# These drive the python test packages in `tests/library/*/python` and
 # two more, all behind `KWIVER_ENABLE_PYTHON_TESTS`. **None of those trees
 # has ever been configured on this branch**, and turning the option on fails:
 # the vital tree names fixtures earlier phases pruned. See open question

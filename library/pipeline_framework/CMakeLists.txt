@@ -169,7 +169,7 @@ install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/"
   PATTERN "*.h"
   PATTERN "*.txx"
   PATTERN "CMakeLists.txt" EXCLUDE
-  # the unit tests beside the code since P2-T09
+  # Do not install test-only directories.
   PATTERN "tests" EXCLUDE
   # `.py` sits beside `.h` since P11-T02b, so importing one of them
   # leaves a `__pycache__` in the source tree that this would sweep
@@ -191,11 +191,4 @@ add_subdirectory( processes )
 ##
 if( VIAME_ENABLE_PYTHON )
   include( "${CMAKE_CURRENT_SOURCE_DIR}/python.cmake" )
-endif()
-
-###
-# Tests
-##
-if( VIAME_ENABLE_TESTS )
-  add_subdirectory( tests )
 endif()

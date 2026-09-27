@@ -88,6 +88,10 @@ git grep -n "libav\|avcodec"     -- library tools   # must be empty after P4
 
 ## Conventions
 
+- Keep tests under the root `tests/` tree. Library tests mirror their source
+  component at `tests/library/<component>/`, including fixtures and nested
+  Python suites. Register them from the root tests CMake tree.
+
 - C++17, format with `cmake/style.clang_format`. Comments only for
   non-obvious "why".
 - New C++ files carry the existing VIAME license header.

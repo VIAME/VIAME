@@ -142,10 +142,3 @@ if( VIAME_ENABLE_PYTHON )
   # to no factory and four `golden:replay` cases failed.
   viame_add_python_package( image_io )
 endif()
-
-###
-# Tests
-##
-if( VIAME_ENABLE_TESTS )
-  add_subdirectory( tests )
-endif()

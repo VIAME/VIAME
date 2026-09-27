@@ -95,10 +95,3 @@ if( VIAME_ENABLE_PYTHON )
     EXCLUDE ${_export_exclude}
     CONDITION VIAME_ENABLE_ONNX )
 endif()
-
-###
-# Tests
-##
-if( VIAME_ENABLE_TESTS )
-  add_subdirectory( tests )
-endif()

@@ -1,0 +1,20 @@
+# Unit tests mirror the functional libraries under library/.
+# Added after all production targets exist; nothing here is installed.
+
+add_subdirectory( algorithm_framework )
+add_subdirectory( classifiers )
+add_subdirectory( core_types )
+add_subdirectory( descriptors )
+add_subdirectory( evaluation )
+add_subdirectory( file_io )
+add_subdirectory( image_io )
+add_subdirectory( image_kernels )
+add_subdirectory( image_processing )
+add_subdirectory( measurement )
+add_subdirectory( object_detectors )
+add_subdirectory( object_trackers )
+add_subdirectory( pipeline_framework )
+add_subdirectory( segmentation )
+add_subdirectory( training )
+add_subdirectory( utilities )
+add_subdirectory( video_io )

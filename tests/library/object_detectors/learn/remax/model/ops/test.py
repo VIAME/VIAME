@@ -14,6 +14,13 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
+from pathlib import Path
+import sys
+
+# The optional extension is built beside its model sources.
+sys.path.insert(0, str(Path(__file__).resolve().parents[7] /
+                       "library/object_detectors/learn/remax/model/ops"))
+
 import time
 import torch
 import torch.nn as nn
