@@ -257,6 +257,55 @@ def test_launcher_keeps_child_tools_in_its_environment():
         assert os.environ['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == '/venv/lib/viame/applets'
 
 
+
+def test_windows_console_launcher_finds_runtime_and_preserves_arguments():
+    import configparser
+    import os
+    import tempfile
+    from unittest.mock import patch
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        prefix = root / 'build'
+        (prefix / 'bin').mkdir(parents=True)
+        (prefix / 'bin/viame.exe').write_bytes(b'MZ fixture')
+        (prefix / 'bin/viame.dll').write_bytes(b'MZ fixture')
+        entries = root / 'entries.txt'
+        entries.write_text('[other_plugins]\nexample = example:factory\n')
+        bw.main(['--prefix', str(prefix), '--contents',
+                 str(Path(__file__).parent / 'contents-windows.txt'),
+                 '--output-dir', str(root / 'out'), '--version', '1.0',
+                 '--launcher', 'viame', '--entry-points', str(entries)])
+        with zipfile.ZipFile(next((root / 'out').glob('*.whl'))) as wheel:
+            names = wheel.namelist()
+            assert any(n.endswith('/Library/bin/viame.exe') for n in names)
+            assert not any(n.endswith('/scripts/viame.exe') for n in names)
+            entry_text = wheel.read(next(n for n in names if n.endswith('/entry_points.txt'))).decode()
+            config = configparser.ConfigParser()
+            config.read_string(entry_text)
+            assert config['console_scripts']['viame'] == 'viame._wheel_tools:tool_0'
+            assert config['other_plugins']['example'] == 'example:factory'
+            namespace = {'__name__': 'launcher_test'}
+            exec(compile(wheel.read('viame/_wheel_tools.py'), '<launcher>', 'exec'), namespace)
+        env_root = root / 'environment with spaces'
+        native = env_root / 'Library/bin/viame.exe'
+        native.parent.mkdir(parents=True)
+        native.touch()
+        plugin_dir = env_root / 'lib/viame/applets'
+        plugin_dir.mkdir(parents=True)
+        python = str(env_root / 'Scripts/python.exe')
+        arguments = ['viame', 'run', 'a file.pipe', '-s', 'key=a b']
+        with patch('sys.prefix', str(env_root)), patch('sys.executable', python), \
+             patch('sys.argv', arguments), patch.dict(os.environ, {'VIAME_INSTALL': '/old'}), \
+             patch('subprocess.call', return_value=7) as call:
+            assert namespace['tool_0']() == 7
+            assert call.call_args.args[0] == [str(native)] + arguments[1:]
+            env = call.call_args.kwargs['env']
+            assert env['VIAME_INSTALL'] == str(env_root)
+            assert env['PATH'].split(os.pathsep)[:2] == [str(env_root / 'Scripts'), str(native.parent)]
+            assert env['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == str(plugin_dir)
+            assert os.environ['VIAME_INSTALL'] == '/old'
+
+
 def main():
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0

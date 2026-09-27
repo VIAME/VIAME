@@ -53,3 +53,26 @@ def test_find_install_without_linux_setup(tmp_path, monkeypatch, layout):
     source.mkdir()
     (source / 'segment.py').touch()
     assert not m.is_viame_install(str(source))
+
+
+@pytest.mark.parametrize('packaged', [True, False])
+def test_sam2_import_matches_install_layout(packaged):
+    import types
+    builder, predictor = object(), object()
+    calls = []
+    def load(name):
+        calls.append(name)
+        if name == 'viame.sam2' and not packaged:
+            raise ModuleNotFoundError("No module named 'viame.sam2'", name=name)
+        return types.SimpleNamespace(build_sam2=builder, SAM2ImagePredictor=predictor)
+    with patch('importlib.import_module', side_effect=load):
+        assert m.sam2_classes() == (builder, predictor)
+    prefix = 'viame.sam2' if packaged else 'sam2'
+    assert calls[-2:] == [prefix + '.build_sam', prefix + '.sam2_image_predictor']
+
+
+def test_sam2_dependency_errors_are_not_hidden():
+    with patch('importlib.import_module', side_effect=ModuleNotFoundError(
+            "No module named 'hydra'", name='hydra')):
+        with pytest.raises(ModuleNotFoundError, match='hydra'):
+            m.sam2_classes()

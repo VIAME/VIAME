@@ -443,6 +443,22 @@ def probe_video(path):
     return None
 
 
+def sam2_classes():
+    """Use the packaged SAM2 fork when available, or the desktop installation."""
+    import importlib
+    try:
+        importlib.import_module('viame.sam2')
+    except ModuleNotFoundError as exc:
+        if exc.name not in ('viame', 'viame.sam2'):
+            raise
+        package = 'sam2'
+    else:
+        package = 'viame.sam2'
+    builder = importlib.import_module(package + '.build_sam')
+    predictor = importlib.import_module(package + '.sam2_image_predictor')
+    return builder.build_sam2, predictor.SAM2ImagePredictor
+
+
 def find_ffmpeg():
     """VIAME's own ffmpeg, else a system one. None if there isn't one.
 
@@ -1489,8 +1505,7 @@ def cmd_reseg(args):
     import cv2
     import numpy as np
     import torch
-    from sam2.build_sam import build_sam2
-    from sam2.sam2_image_predictor import SAM2ImagePredictor
+    build_sam2, SAM2ImagePredictor = sam2_classes()
 
     # The config is resolved by SAM2's own hydra search path, but the checkpoint is
     # a plain file we have to point at ourselves.
