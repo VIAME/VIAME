@@ -2,7 +2,7 @@
 #       This script sets up all paths required for standard VIAME Usage       #
 ###############################################################################
 
-this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
+@SETUP_READLINK_CMD@
 
 # Setup VIAME install path
 export VIAME_INSTALL=$this_dir
