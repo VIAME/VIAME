@@ -393,13 +393,25 @@ def find_homography_lmeds(source, target, max_iterations=2000, seed=0):
     result is refit on it.
 
     Returns `(homography, mask)`, or `(None, None)` when there are fewer than
-    four correspondences.
+    four finite correspondences. Non-finite pairs are excluded and marked
+    false in the returned mask, which retains the original input length.
     """
     source = np.asarray(source, dtype=np.float64).reshape(-1, 2)
     target = np.asarray(target, dtype=np.float64).reshape(-1, 2)
 
     if len(source) != len(target):
         raise ValueError("source and target must have the same length")
+    # Discard invalid pairs before sampling: one non-finite sample would
+    # otherwise make the batched SVD fail for every candidate in that batch.
+    finite = np.isfinite(source).all(axis=1) & np.isfinite(target).all(axis=1)
+    if not finite.all():
+        matrix, mask = find_homography_lmeds(
+            source[finite], target[finite], max_iterations, seed)
+        if matrix is None:
+            return None, None
+        full_mask = np.zeros(len(source), dtype=bool)
+        full_mask[finite] = mask
+        return matrix, full_mask
     if len(source) < 4:
         return None, None
     if len(source) == 4:

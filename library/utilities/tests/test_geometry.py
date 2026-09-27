@@ -252,3 +252,22 @@ def test_homography_refit_does_not_allocate_quadratic_u(monkeypatch):
     _, source, target = _scene(count=500)
     geometry.fit_homography(source, target)
     assert (1000, 1000) not in shapes
+
+
+@pytest.mark.parametrize('valid_count', [0, 3, 4, 20])
+@pytest.mark.parametrize('invalid', [np.nan, np.inf, -np.inf])
+@pytest.mark.parametrize('endpoint', ['source', 'target'])
+def test_lmeds_excludes_nonfinite_pairs(valid_count, invalid, endpoint):
+    from viame.utilities.geometry import find_homography_lmeds
+    _, source, target = _scene(count=valid_count + 3)
+    bad = np.array([0, 1, valid_count + 2])
+    (source if endpoint == 'source' else target)[bad, 0] = invalid
+    matrix, mask = find_homography_lmeds(source, target)
+    if valid_count < 4:
+        assert matrix is None and mask is None
+    else:
+        expected = np.ones(len(source), dtype=bool)
+        expected[bad] = False
+        assert np.array_equal(mask, expected)
+        np.testing.assert_allclose(apply_homography(matrix, source[mask]),
+                                   target[mask], atol=1e-6)
