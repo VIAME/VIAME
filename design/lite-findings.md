@@ -3833,3 +3833,61 @@ whose minimum is unique even when the cut achieving it need not be.
 Still a large job and not started. But "grabCut needs OpenCV's RNG" would have
 been the wrong reason to rule it out, and ruling it out for the wrong reason is
 how a tractable port gets abandoned.
+
+
+## 2.56 `cv2.cvtColor`'s HSV to RGB is not a function of its input
+
+The 473 triples `from_hsv` could not match turned out not to be a precision
+problem at all. **`cv::cvtColor`'s 8-bit HSV to RGB gives different answers for
+the same pixel depending on where that pixel sits in its row.**
+
+The measurement is unambiguous. Take `hsv = [3, 187, 75]`, repeat it 200 times
+in one row, and convert:
+
+* positions 0 to 191 come back `[75, 25, 19]`
+* positions 192 to 199 come back `[75, 26, 20]`
+
+Same input, two outputs, one call. The cause is in
+`modules/imgproc/src/color_hsv.simd.hpp`: the vectorised body finishes with
+**`v_trunc`** on `value * 255`, while the scalar remainder loop finishes with
+**`saturate_cast<uchar>`**, which rounds. The two disagree on every value whose
+product lands on an exact half, and a row's trailing pixels take the scalar
+path.
+
+**It is only this one conversion.** Tested over 400 random values apiece, with
+the value repeated across a 200-pixel row:
+
+| conversion | position-dependent |
+| --- | ---: |
+| `HSV2RGB` | **284 of 400** |
+| `RGB2HSV` | 0 |
+| `RGB2HLS` | 0 |
+| `HLS2RGB` | 0 |
+| `RGB2Lab` | 0 |
+| `Lab2RGB` | 0 |
+| `RGB2GRAY` | 0 |
+
+So every other exactness claim in this file stands -- those are pure functions
+of the pixel. This one cannot be, and **no implementation can reproduce it**,
+because cv2's own does not reproduce itself.
+
+What that costs, concretely. Modelling the scalar path -- round -- leaves 473 of
+16777216 differing when every row is one pixel wide, which is the layout an
+exhaustive sweep naturally uses. Modelling the vector path -- truncate -- leaves
+2 of 40320 on a 512-wide frame and **12395605** on the one-pixel-wide layout.
+Neither is right, because there is no right.
+
+Consequences worth carrying:
+
+* `from_hsv` is left as it is. There is no target to hit, so the 11229 triples
+  it currently differs by are not a defect to fix but a choice of which of
+  cv2's two answers to give.
+* `ocv_enhancer`'s saturation path is `BGR2HSV`, a multiply, then `HSV2BGR`.
+  It **cannot** be ported to bit-exactness against its recording, and the
+  recording itself is width-dependent -- rerecord it at a different frame width
+  and the trailing pixels of every row change.
+* Any golden that stores an `HSV2RGB` result is storing a layout artifact in its
+  last few columns. `ocv_convert_color`'s `hsv_to_rgb` case is one.
+* An exhaustive sweep over an 8-bit conversion should be run on a **wide** frame
+  as well as on a tall one. A one-pixel-wide layout exercises only the scalar
+  remainder, which is the path real images almost never take.
