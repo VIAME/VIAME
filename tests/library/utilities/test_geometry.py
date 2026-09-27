@@ -509,3 +509,34 @@ def test_five_point_rejects_degenerate_data():
     from viame.utilities.geometry import find_essential_five_point
     points = np.column_stack([np.arange(12)*.01,np.zeros(12)])
     assert find_essential_five_point(points,points+.1,max_iterations=20) == (None,None)
+
+
+@pytest.mark.parametrize("seed", [2, 11, 23])
+def test_five_point_rejects_outliers_and_retains_mask_indices(seed):
+    from viame.utilities.geometry import find_essential_five_point
+    first, second, rotation, translation = _normalised_pose_scene(
+        seed=seed, count=160, noise=0.0002, baseline=1.)
+    rng = np.random.default_rng(seed)
+    bad = rng.choice(len(first), 40, replace=False)
+    second[bad] = rng.uniform(-.6, .6, (len(bad), 2))
+    # Filter nonfinite pairs without changing the indices of the returned mask.
+    first[bad[:2]] = np.nan
+    essential, mask = find_essential_five_point(first, second)
+    assert mask.shape == (len(first),)
+    assert not mask[bad[:2]].any()
+    assert mask[bad].sum() <= 2
+    assert mask.sum() > 105
+    finite = np.isfinite(first).all(axis=1)
+    found, offset, _, count = recover_pose(
+        essential, first[finite], second[finite], mask=mask[finite])
+    assert count > 100
+    assert _degrees_between(found, rotation) < 1
+    assert _direction_degrees(offset, translation) < 1
+
+
+@pytest.mark.parametrize("threshold", [0, -1, np.nan, np.inf])
+def test_five_point_rejects_invalid_threshold(threshold):
+    from viame.utilities.geometry import find_essential_five_point
+    first, second, _, _ = _normalised_pose_scene(count=8)
+    with pytest.raises(ValueError):
+        find_essential_five_point(first, second, threshold=threshold)

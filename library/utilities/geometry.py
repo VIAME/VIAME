@@ -586,7 +586,8 @@ def find_essential_five_point(source, target, threshold=0.001, confidence=0.999,
     target = np.asarray(target,dtype=np.float64).reshape(-1,2)
     if len(source) != len(target):
         raise ValueError('source and target must have the same length')
-    if not 0 < confidence < 1 or threshold <= 0 or max_iterations < 1:
+    if (not 0 < confidence < 1 or not np.isfinite(threshold) or
+            threshold <= 0 or max_iterations < 1):
         raise ValueError('invalid RANSAC confidence, threshold or iteration limit')
     valid = np.isfinite(source).all(axis=1) & np.isfinite(target).all(axis=1)
     a,b = source[valid],target[valid]
