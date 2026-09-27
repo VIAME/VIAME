@@ -52,45 +52,60 @@ def nearest(query, train, k, binary, with_distance=False):
     Ties go to the lower index, which is `argsort`'s stable order and matches
     what a linear scan keeping a strict improvement would do.
     """
+    query, train = np.asarray(query), np.asarray(train)
+    if query.ndim != 2 or train.ndim != 2 or query.shape[1] != train.shape[1]:
+        raise ValueError("descriptor matrices must have matching widths")
     count = train.shape[0]
     k = min(max(1, int(k)), count)
+    if not count or not len(query):
+        index = np.empty((len(query), k), dtype=np.int64)
+        distance = np.empty(index.shape, dtype=np.float64)
+        return (index, distance) if with_distance else index
 
     if binary:
-        # A byte at a time, so the whole cross product is not held at once:
-        # unpacking 8 bits per byte makes the intermediate 8 times the input.
-        bits_query = np.unpackbits(query, axis=1).astype(np.uint16)
-        bits_train = np.unpackbits(train, axis=1).astype(np.uint16)
-        distance = (bits_query[:, None, :] != bits_train[None, :, :]).sum(
-            axis=2, dtype=np.int32)
-    else:
-        # |a - b|^2 = |a|^2 - 2ab + |b|^2, in float64 so that the subtraction
-        # cannot cancel into a negative distance and reorder the neighbours.
-        a = query.astype(np.float64)
-        b = train.astype(np.float64)
-        distance = ((a * a).sum(1)[:, None] - 2.0 * (a @ b.T) +
-                    (b * b).sum(1)[None, :])
+        from viame.image_processing._features import nearest_binary
+        index, found = nearest_binary(np.ascontiguousarray(query, dtype=np.uint8),
+                                      np.ascontiguousarray(train, dtype=np.uint8), k)
+        return (index, found) if with_distance else index
 
-    rows = np.arange(distance.shape[0])[:, None]
-
-    if k == 1:
-        index = np.argmin(distance, axis=1)[:, None]
-    else:
-        # `argpartition` then sort just the k kept, rather than sorting every
-        # column: the cross product is the expensive part and k is 1 or 2 here.
-        partial = np.argpartition(distance, k - 1, axis=1)[:, :k]
-        order = np.argsort(distance[rows, partial], axis=1, kind="stable")
-        index = partial[rows, order]
-
-    if not with_distance:
-        return index
-
-    found = distance[rows, index]
-
-    # Rooted here and not before, because a ratio test compares distances and
-    # the ratio of two squares is not the ratio of their roots. `cv2.BFMatcher`
-    # reports the L2 distance, so a caller's 0.75 threshold means the rooted
-    # one.
-    return index, (found if binary else np.sqrt(found))
+    # Bound temporary memory independently of the number of descriptors.
+    # BLAS computes each block; only the best k distances survive it.
+    index = np.empty((len(query), k), dtype=np.int64)
+    found = np.empty((len(query), k), dtype=np.float64)
+    train = train.astype(np.float64)
+    train_norm = np.einsum('ij,ij->i', train, train)
+    for start in range(0, len(query), 128):
+        a = query[start:start + 128].astype(np.float64)
+        norm = np.einsum('ij,ij->i', a, a)[:, None]
+        best = np.full((len(a), k), np.inf)
+        ids = np.full((len(a), k), count, dtype=np.int64)
+        for offset in range(0, count, 1024):
+            b = train[offset:offset + 1024]
+            distance = norm - 2.0 * (a @ b.T) + train_norm[offset:offset + len(b)]
+            np.maximum(distance, 0.0, out=distance)
+            order = np.argsort(ids, axis=1, kind='stable')
+            ids = np.take_along_axis(ids, order, axis=1)
+            best = np.take_along_axis(best, order, axis=1)
+            candidates = np.broadcast_to(np.arange(offset, offset + len(b)), distance.shape)
+            candidates = np.concatenate((ids, candidates), axis=1)
+            distances = np.concatenate((best, distance), axis=1)
+            if k <= 4:
+                # All candidate indices are ascending, so argmin resolves
+                # ties by index without sorting the whole distance block.
+                rows = np.arange(len(a))
+                best, ids = np.empty((len(a), k)), np.empty((len(a), k), dtype=np.int64)
+                for column in range(k):
+                    chosen = np.argmin(distances, axis=1)
+                    best[:, column] = distances[rows, chosen]
+                    ids[:, column] = candidates[rows, chosen]
+                    distances[rows, chosen] = np.inf
+            else:
+                order = np.argsort(distances, axis=1, kind='stable')[:, :k]
+                best = np.take_along_axis(distances, order, axis=1)
+                ids = np.take_along_axis(candidates, order, axis=1)
+        index[start:start + len(a)] = ids
+        found[start:start + len(a)] = np.sqrt(best)
+    return (index, found) if with_distance else index
 
 
 def match(query, train, cross_check=False, k=1, binary=False):

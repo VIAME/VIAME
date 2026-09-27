@@ -30,6 +30,8 @@
 #include <pybind11/stl.h>
 
 #include <cstddef>
+#include <cstring>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -182,8 +184,11 @@ sift_detect_and_compute( array_u8 const& array, int n_features,
   std::vector< viame::sift::keypoint > keypoints;
   std::vector< float > descriptors;
 
-  viame::sift::detect_and_compute( image, settings, keypoints,
+  {
+    py::gil_scoped_release release;
+    viame::sift::detect_and_compute( image, settings, keypoints,
                                    describe ? &descriptors : nullptr );
+  }
 
   return py::make_tuple(
     as_keypoint_array( keypoints, true ),
@@ -205,8 +210,11 @@ sift_describe( array_u8 const& array, array_f const& keypoint_array,
   auto keypoints = as_sift_keypoints( keypoint_array );
   std::vector< float > descriptors;
 
-  viame::sift::detect_and_compute( image, settings, keypoints, &descriptors,
+  {
+    py::gil_scoped_release release;
+    viame::sift::detect_and_compute( image, settings, keypoints, &descriptors,
                                    true );
+  }
 
   return py::make_tuple(
     as_keypoint_array( keypoints, true ),
@@ -230,8 +238,11 @@ surf_detect_and_compute( array_u8 const& array, double hessian_threshold,
   std::vector< viame::surf::keypoint > keypoints;
   std::vector< float > descriptors;
 
-  viame::surf::detect_and_compute( image, settings, keypoints,
+  {
+    py::gil_scoped_release release;
+    viame::surf::detect_and_compute( image, settings, keypoints,
                                    describe ? &descriptors : nullptr );
+  }
 
   auto const width = viame::surf::descriptor_size( settings );
 
@@ -241,10 +252,84 @@ surf_detect_and_compute( array_u8 const& array, double hessian_threshold,
              : as_descriptor_array( {}, width ) );
 }
 
+// Exact Hamming search with O(query_count * k) output storage. Descriptors
+// remain packed; no query-by-train-by-bit comparison array is constructed.
+unsigned bit_count( uint64_t value )
+{
+#if defined(__GNUC__) || defined(__clang__)
+  return static_cast< unsigned >( __builtin_popcountll( value ) );
+#else
+  value -= ( value >> 1 ) & UINT64_C(0x5555555555555555);
+  value = ( value & UINT64_C(0x3333333333333333) ) +
+          ( ( value >> 2 ) & UINT64_C(0x3333333333333333) );
+  value = ( value + ( value >> 4 ) ) & UINT64_C(0x0f0f0f0f0f0f0f0f);
+  return static_cast< unsigned >(
+    ( value * UINT64_C(0x0101010101010101) ) >> 56 );
+#endif
+}
+
+py::tuple nearest_binary( array_u8 const& query, array_u8 const& train, int k )
+{
+  if( query.ndim() != 2 || train.ndim() != 2 ||
+      query.shape( 1 ) != train.shape( 1 ) || k < 1 || k > train.shape( 0 ) )
+  {
+    throw std::invalid_argument( "nearest_binary: invalid descriptor shapes or k" );
+  }
+  auto const nq = query.shape( 0 ), nt = train.shape( 0 );
+  auto const width = static_cast< size_t >( query.shape( 1 ) );
+  py::array_t< int64_t > indices( { nq, py::ssize_t{ k } } );
+  py::array_t< int > distances( { nq, py::ssize_t{ k } } );
+  auto* out_index = indices.mutable_data();
+  auto* out_distance = distances.mutable_data();
+  auto const* q = query.data();
+  auto const* t = train.data();
+  {
+    py::gil_scoped_release release;
+    for( py::ssize_t i = 0; i < nq; ++i )
+    {
+      auto* best = out_distance + i * k;
+      auto* found = out_index + i * k;
+      std::fill( best, best + k, std::numeric_limits< int >::max() );
+      std::fill( found, found + k, int64_t{ -1 } );
+      for( py::ssize_t j = 0; j < nt; ++j )
+      {
+        int distance = 0;
+        size_t b = 0;
+        for( ; b + sizeof( uint64_t ) <= width; b += sizeof( uint64_t ) )
+        {
+          uint64_t a, c;
+          std::memcpy( &a, q + i * width + b, sizeof( a ) );
+          std::memcpy( &c, t + j * width + b, sizeof( c ) );
+          distance += bit_count( a ^ c );
+        }
+        for( ; b < width; ++b )
+        {
+          distance += bit_count( q[ i * width + b ] ^ t[ j * width + b ] );
+        }
+        // Train rows are visited in ascending order; strict improvement
+        // preserves the lower train index on ties, including the kth tie.
+        if( distance >= best[ k - 1 ] ) { continue; }
+        int at = k - 1;
+        while( at > 0 && distance < best[ at - 1 ] )
+        {
+          best[ at ] = best[ at - 1 ];
+          found[ at ] = found[ at - 1 ];
+          --at;
+        }
+        best[ at ] = distance;
+        found[ at ] = j;
+      }
+    }
+  }
+  return py::make_tuple( indices, distances );
+}
+
 } // namespace
 
 PYBIND11_MODULE( _features, m )
 {
+  m.def( "nearest_binary", &nearest_binary );
+
   m.doc() = "VIAME's own SIFT and SURF, as arrays rather than as algorithms";
 
   m.def( "sift", &sift_detect_and_compute, py::arg( "image" ),

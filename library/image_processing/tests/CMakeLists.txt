@@ -40,3 +40,14 @@ viame_discover_gtests( viame surf
 
 target_compile_definitions( test-viame-surf PRIVATE
   "VIAME_GOLDEN_SURF_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/surf\"" )
+
+if( VIAME_ENABLE_PYTHON )
+  foreach( _test matching feature_arrays )
+    viame_add_test(
+      NAME "unit:image_processing:${_test}"
+      TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_${_test}.py"
+      LABELS UNIT
+      TIMEOUT 120
+      SOURCE_SETUP )
+  endforeach()
+endif()
