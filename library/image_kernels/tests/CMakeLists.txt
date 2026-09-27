@@ -112,3 +112,15 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 120
     SOURCE_SETUP )
 endif()
+
+viame_discover_gtests( viame parallel
+  LIBRARIES viame_image_kernels GTest::gtest )
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test(
+    NAME "unit:image_kernels:parallel"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_parallel_kernels.py"
+    LABELS UNIT
+    TIMEOUT 120
+    SOURCE_SETUP )
+endif()

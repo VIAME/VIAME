@@ -32,6 +32,8 @@ set( image_kernels_headers
   distance.h
   draw.h
   filter.h
+  gaussian_simd.h
+  parallel.h
   font_5x7.h
   histogram.h
   homography_overlap.h
@@ -44,6 +46,7 @@ set( image_kernels_headers
   resample.h
   smoother.h
   stereo.h
+  stereo_simd.h
   statistics.h
   stretch.h
   temporal.h
@@ -57,6 +60,7 @@ set( image_kernels_headers
 )
 
 set( image_kernels_sources
+  parallel.cxx
   convert_polygons_to_mask.cxx
   utilities_segmentation.cxx
   windowed_utils.cxx
@@ -76,8 +80,9 @@ target_include_directories( viame_image_kernels PUBLIC
   $<INSTALL_INTERFACE:include/viame>
 )
 
+find_package( Threads REQUIRED )
 target_link_libraries( viame_image_kernels
-  PUBLIC  kwiver::vital
+  PUBLIC Threads::Threads  kwiver::vital
           # `windowed_utils` names `image_object_detector` in its interface
           kwiver::vital_algo
           kwiver::vital_config

@@ -450,3 +450,24 @@ TEST ( filter, refuses_a_shapeless_kernel_or_a_mismatched_pair )
   EXPECT_THROW( io::add_weighted( image, 1.0, other, 1.0 ),
                 std::invalid_argument );
 }
+
+
+TEST(filter, float_gaussian_accepts_interleaved_and_reversed_rows)
+{
+  std::vector<float> pixels(7*5*3);
+  for(std::size_t i=0;i<pixels.size();++i) { pixels[i]=static_cast<float>(i)/7; }
+  kv::image_of<float> view(pixels.data()+7*4*3,7,5,3,3,-21,1);
+  kv::image_of<double> reference(7,5,3);
+  for(std::size_t y=0;y<5;++y) for(std::size_t x=0;x<7;++x)
+    for(std::size_t c=0;c<3;++c) { reference(x,y,c)=view(x,y,c); }
+  for(auto border : {io::border_mode::REFLECT_101,io::border_mode::WRAP})
+    for(std::size_t size : {1,3,5,21})
+    {
+      auto actual=io::gaussian_blur(view,size,2.5,border);
+      // The double image follows the original scalar float-arithmetic path.
+      auto expected=io::gaussian_blur(reference,size,2.5,border);
+      for(std::size_t y=0;y<5;++y) for(std::size_t x=0;x<7;++x)
+        for(std::size_t c=0;c<3;++c)
+          EXPECT_EQ(actual(x,y,c),expected(x,y,c));
+    }
+}

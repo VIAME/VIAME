@@ -6,6 +6,9 @@ reading and writing files; this is the pixel work.
 """
 
 from viame.image_kernels._image_kernels import (  # noqa: F401
+    GaussianWorkspace,
+    StereoWorkspace,
+    kernel_thread_count,
     add_weighted,
     approx_poly,
     arc_length,

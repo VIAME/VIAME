@@ -546,16 +546,35 @@ as_border( std::string const& name )
     "got '" + name + "'" );
 }
 
-template < typename T >
-py::array
-gaussian_blur( array_of< T > const& array,
-               size_t size, double sigma, std::string const& border )
+struct gaussian_buffer
+{
+  std::mutex mutex;
+  viame::image_kernels::gaussian_workspace scratch;
+};
+struct stereo_buffer
+{
+  std::mutex mutex;
+  viame::image_kernels::stereo_workspace scratch;
+};
+
+template <typename T>
+py::array gaussian_blur ( array_of<T> const &array, size_t size, double sigma,
+                          std::string const &border, gaussian_buffer *workspace )
 {
   auto const source = as_image( array );
-  return as_array(
-    VIAME_KERNEL_CALL( gaussian_blur, source, size, sigma,
-                                         as_border( border ) ),
-    array.ndim() == 3 );
+  auto const mode = as_border ( border );
+  auto const result = call_kernel (
+      [&]
+      {
+        std::unique_lock<std::mutex> lock;
+        if ( workspace )
+        {
+          lock = std::unique_lock<std::mutex> ( workspace->mutex );
+        }
+        return viame::image_kernels::gaussian_blur (
+            source, size, sigma, mode, workspace ? &workspace->scratch : nullptr );
+      } );
+  return as_array ( result, array.ndim () == 3 );
 }
 
 template < typename T >
@@ -649,12 +668,13 @@ filter_disparity_wls( array_of< uint8_t > const& guide,
     false ).cast< py::array_t< float > >();
 }
 
-py::array_t< int16_t >
-stereo_sgbm( array_of< uint8_t > const& left, array_of< uint8_t > const& right,
-             int min_disparity, int num_disparities, int block_size, int p1,
-             int p2, int disp12_max_diff, int pre_filter_cap,
-             int uniqueness_ratio, int speckle_window_size, int speckle_range,
-             std::string const& mode )
+py::array_t<int16_t> stereo_sgbm ( array_of<uint8_t> const &left,
+                                   array_of<uint8_t> const &right, int min_disparity,
+                                   int num_disparities, int block_size, int p1, int p2,
+                                   int disp12_max_diff, int pre_filter_cap,
+                                   int uniqueness_ratio, int speckle_window_size,
+                                   int speckle_range, std::string const &mode,
+                                   stereo_buffer *workspace )
 {
   auto const one = as_image( left );
   auto const two = as_image( right );
@@ -689,7 +709,17 @@ stereo_sgbm( array_of< uint8_t > const& left, array_of< uint8_t > const& right,
       "'" );
   }
 
-  auto const found = VIAME_KERNEL_CALL( stereo_sgbm, one, two, params );
+  auto const found = call_kernel (
+      [&]
+      {
+        std::unique_lock<std::mutex> lock;
+        if ( workspace )
+        {
+          lock = std::unique_lock<std::mutex> ( workspace->mutex );
+        }
+        return viame::image_kernels::stereo_sgbm (
+            one, two, params, workspace ? &workspace->scratch : nullptr );
+      } );
 
   py::array_t< int16_t > out( std::vector< Py_ssize_t >{
     static_cast< Py_ssize_t >( found.height() ),
@@ -1614,6 +1644,13 @@ corner_subpix( array_of< T > const& array,
 VIAME_PYTHON_MODULE( _image_kernels, m )
 {
   m.doc() = "VIAME's own image kernels, so python needs no OpenCV";
+  py::class_<gaussian_buffer> ( m, "GaussianWorkspace" )
+      .def ( py::init<> (),
+             "Reusable float Gaussian scratch; shared calls are serialized." );
+  py::class_<stereo_buffer> ( m, "StereoWorkspace" )
+      .def ( py::init<> (), "Reusable stereo cost rows; shared calls are serialized." );
+  m.def ( "kernel_thread_count", &viame::image_kernels::kernel_thread_count,
+          "Worker budget from VIAME_NUM_THREADS, read on first use." );
 
   for_every_pixel_type( m, "resize", &resize< uint8_t >,
          &resize< uint16_t >, &resize< float >,
@@ -1771,13 +1808,13 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   m.def( "text_size", &text_size, py::arg( "text" ), py::arg( "scale" ) = 1,
          "The (width, height) of text, as cv2.getTextSize reports it." );
 
-  for_every_pixel_type( m, "gaussian_blur", &gaussian_blur< uint8_t >,
-         &gaussian_blur< uint16_t >,
-         &gaussian_blur< float >, py::arg( "image" ),
-         py::arg( "size" ), py::arg( "sigma" ) = 0.0,
-         py::arg( "border" ) = "reflect_101",
-         "cv2.GaussianBlur. `size` is the odd kernel width and height, and "
-         "sigma is derived from it when left at zero." );
+  for_every_pixel_type (
+      m, "gaussian_blur", &gaussian_blur<uint8_t>, &gaussian_blur<uint16_t>,
+      &gaussian_blur<float>, py::arg ( "image" ), py::arg ( "size" ),
+      py::arg ( "sigma" ) = 0.0, py::arg ( "border" ) = "reflect_101",
+      py::arg ( "workspace" ) = nullptr,
+      "cv2.GaussianBlur. `size` is the odd kernel width and height, and "
+      "sigma is derived from it when left at zero." );
 
   for_every_pixel_type( m, "box_blur", &box_blur< uint8_t >,
          &box_blur< uint16_t >,
@@ -1820,18 +1857,18 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "guide's edges and weighted by how much each pixel can be trusted. "
          "The result is float, still in sixteenths." );
 
-  m.def( "stereo_sgbm", &stereo_sgbm, py::arg( "left" ), py::arg( "right" ),
-         py::arg( "min_disparity" ) = 0, py::arg( "num_disparities" ) = 16,
-         py::arg( "block_size" ) = 3, py::arg( "p1" ) = 0, py::arg( "p2" ) = 0,
-         py::arg( "disp12_max_diff" ) = 0, py::arg( "pre_filter_cap" ) = 0,
-         py::arg( "uniqueness_ratio" ) = 0,
-         py::arg( "speckle_window_size" ) = 0, py::arg( "speckle_range" ) = 0,
-         py::arg( "mode" ) = "sgbm",
-         "cv2.StereoSGBM.compute: a signed 16 bit disparity map in sixteenths "
-         "of a pixel, with (min_disparity - 1) * 16 meaning no disparity. "
-         "`mode` is one of \"sgbm\", \"hh\" and \"sgbm_3way\", which are "
-         "MODE_SGBM, MODE_HH and MODE_SGBM_3WAY -- three different "
-         "aggregations rather than three settings of one." );
+  m.def ( "stereo_sgbm", &stereo_sgbm, py::arg ( "left" ), py::arg ( "right" ),
+          py::arg ( "min_disparity" ) = 0, py::arg ( "num_disparities" ) = 16,
+          py::arg ( "block_size" ) = 3, py::arg ( "p1" ) = 0, py::arg ( "p2" ) = 0,
+          py::arg ( "disp12_max_diff" ) = 0, py::arg ( "pre_filter_cap" ) = 0,
+          py::arg ( "uniqueness_ratio" ) = 0, py::arg ( "speckle_window_size" ) = 0,
+          py::arg ( "speckle_range" ) = 0, py::arg ( "mode" ) = "sgbm",
+          py::arg ( "workspace" ) = nullptr,
+          "cv2.StereoSGBM.compute: a signed 16 bit disparity map in sixteenths "
+          "of a pixel, with (min_disparity - 1) * 16 meaning no disparity. "
+          "`mode` is one of \"sgbm\", \"hh\" and \"sgbm_3way\", which are "
+          "MODE_SGBM, MODE_HH and MODE_SGBM_3WAY -- three different "
+          "aggregations rather than three settings of one." );
 
   m.def( "hough_circles", &hough_circles, py::arg( "image" ),
          py::arg( "dp" ) = 1.0, py::arg( "min_dist" ) = 1.0,

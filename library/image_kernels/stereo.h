@@ -38,6 +38,9 @@
 
 #include <viame/core_types/image.h>
 
+#include <image_kernels/stereo_simd.h>
+#include <image_kernels/parallel.h>
+#include <array>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -83,6 +86,19 @@ struct sgbm_params
   int speckle_range = 0;
   /// Which of OpenCV's three aggregations. See `sgbm_mode`.
   sgbm_mode mode = sgbm_mode::SGBM;
+};
+
+/// Scratch buffers may be retained across frames. A workspace must not be
+/// shared by concurrent calls; each stripe has independent rolling cost rows.
+struct stereo_workspace
+{
+  struct cost_rows
+  {
+    std::vector<std::vector<int>> horizontal_cache, l_rows, r_rows;
+    std::vector<int> row_ids, raw, boxed, l_low, l_high, r_low, r_high;
+    int previous_y = -2, previous_lower = -1;
+  };
+  std::array<cost_rows, 4> stripes;
 };
 
 namespace detail {
@@ -323,12 +339,11 @@ sub_cost( int a, int b )
 /// first row and needs a few rows to settle, so the rows it will actually write
 /// begin `overlap` rows later. A single stripe would give a different answer,
 /// and a different overlap would too.
-template < typename CostRows >
-inline void
-three_way( CostRows const& costs_for, int width, int height, int first,
-           int last, int count, int min_d, int half, int p1, int p2,
-           int uniqueness, int max_diff, int16_t invalid,
-           viame::image_of< int16_t >& out )
+template <typename CostRows>
+inline void three_way ( CostRows const &make_costs, int width, int height, int first,
+                        int last, int count, int min_d, int half, int p1, int p2,
+                        int uniqueness, int max_diff, int16_t invalid,
+                        viame::image_of<int16_t> &out )
 {
   auto const span = last - first;
   auto const lanes = static_cast< size_t >( count );
@@ -344,12 +359,6 @@ three_way( CostRows const& costs_for, int width, int height, int first,
   // the recursion can read the previous column without a branch; the zeroth
   // slot stays zero for the whole run, which is what makes the first column's
   // `min` come out as P2 and cancel the `+ p2` on the cost below.
-  std::vector< int > horizontal( static_cast< size_t >( span + 2 ) * lanes, 0 );
-  std::vector< int > vertical( static_cast< size_t >( span + 2 ) * lanes, 0 );
-  std::vector< int > vertical_min( static_cast< size_t >( span + 2 ), 0 );
-  std::vector< int > right( lanes, 0 );
-  std::vector< int > disp2( static_cast< size_t >( width ) );
-  std::vector< int > disp2cost( static_cast< size_t >( width ) );
 
   // Each stripe writes into its own buffer and the whole map is assembled from
   // the four afterwards, exactly as OpenCV does it -- and the indexing is
@@ -366,337 +375,350 @@ three_way( CostRows const& costs_for, int width, int height, int first,
     std::vector< int16_t >(
       static_cast< size_t >( buffer_rows ) * width, invalid ) );
 
-  for( int stripe = 0; stripe < stripes; ++stripe )
-  {
-    auto const begin = std::max(
-      std::min( stripe * stripe_size - overlap, height ), 0 );
-    auto const end = std::min( ( stripe + 1 ) * stripe_size, height );
-
-    if( begin >= end )
-    {
-      continue;
-    }
-
-    // Everything the recursion carries starts fresh for each stripe.
-    std::fill( horizontal.begin(), horizontal.end(), 0 );
-    std::fill( vertical.begin(), vertical.end(), 0 );
-    std::fill( vertical_min.begin(), vertical_min.end(), 0 );
-
-    // Where this stripe's rows land in its own buffer.
-    auto const offset = ( stripe == 0 ) ? overlap : 0;
-    auto& buffer = buffers[ static_cast< size_t >( stripe ) ];
-
-    // The vertical box, clamped at **this stripe's** first row rather than at
-    // the image's. That only differs for the scratch rows -- the overlap is
-    // always more than half a block, so a row that gets written has its whole
-    // box inside the stripe -- but the scratch rows are what the top-down
-    // recursion starts from, so the difference reaches the written rows anyway.
-    for( int y = begin; y < end; ++y )
-    {
-      auto const row_in_buffer = offset + ( y - begin );
-      auto const writing = row_in_buffer < buffer_rows;
-      auto* disp_row = writing
-        ? &buffer[ static_cast< size_t >( row_in_buffer ) * width ] : nullptr;
-
-      for( int x = 0; x < width; ++x )
+  parallel_rows (
+      0, stripes, 1,
+      [&] ( std::size_t first_stripe, std::size_t last_stripe )
       {
-        disp2[ static_cast< size_t >( x ) ] = invalid;
-        disp2cost[ static_cast< size_t >( x ) ] = sgbm_max_cost;
-      }
-
-      auto const* row_cost = costs_for( y, begin ).data();
-
-      // Left to right, and top to bottom in the same sweep.
-      auto left_min = 0;
-
-      for( int x = 0; x < span; ++x )
-      {
-        auto const at = static_cast< size_t >( x + 1 ) * lanes;
-        auto const previous = static_cast< size_t >( x ) * lanes;
-        auto const* costs = row_cost + static_cast< size_t >( x ) * count;
-
-        auto& top_min = vertical_min[ static_cast< size_t >( x + 1 ) ];
-        auto const left_ceiling = saturate_cost( left_min + p2 );
-        auto const top_ceiling = saturate_cost( top_min + p2 );
-
-        auto left_new = sgbm_max_cost;
-        auto top_new = sgbm_max_cost;
-        auto left_before = sgbm_max_cost;
-        auto top_before = sgbm_max_cost;
-
-        for( int d = 0; d < count; ++d )
+        for ( int stripe = static_cast<int> ( first_stripe );
+              stripe < static_cast<int> ( last_stripe ); ++stripe )
         {
-          auto const last_one = d == count - 1;
-          // The cost carries a `+ p2` that the `- left_ceiling` below takes
-          // straight back off at the first column, where the previous row of
-          // the buffer is all zero. OpenCV gets the same by initialising its
-          // cost volume line to P2 rather than to nothing.
-          auto const value = saturate_cost( costs[ d ] + p2 );
+          std::vector<int> horizontal ( static_cast<size_t> ( span + 2 ) * lanes, 0 );
+          std::vector<int> vertical ( static_cast<size_t> ( span + 2 ) * lanes, 0 );
+          std::vector<int> vertical_min ( static_cast<size_t> ( span + 2 ), 0 );
+          std::vector<int> right ( lanes, 0 );
+          std::vector<int> disp2 ( static_cast<size_t> ( width ) );
+          std::vector<int> disp2cost ( static_cast<size_t> ( width ) );
 
-          // The order is the vector body's, one saturating step at a time:
-          // the two neighbours are reduced first and P1 added to the winner,
-          // rather than added to each.
-          auto const left_up = last_one ? sgbm_max_cost
-            : horizontal[ previous + static_cast< size_t >( d ) + 1 ];
-          auto const left_here = horizontal[ previous +
-                                             static_cast< size_t >( d ) ];
-          auto const left_found = add_cost(
-            value,
-            sub_cost(
-              std::min( add_cost( std::min( left_before, left_up ), p1 ),
-                        std::min( left_here, left_ceiling ) ),
-              left_ceiling ) );
+          auto costs_for = make_costs ( stripe );
+          auto const begin =
+              std::max ( std::min ( stripe * stripe_size - overlap, height ), 0 );
+          auto const end = std::min ( ( stripe + 1 ) * stripe_size, height );
 
-          left_before = left_here;
-          horizontal[ at + static_cast< size_t >( d ) ] = left_found;
-          left_new = std::min( left_new, left_found );
-
-          auto const top_here = vertical[ at + static_cast< size_t >( d ) ];
-          auto const top_up = last_one ? sgbm_max_cost
-            : vertical[ at + static_cast< size_t >( d ) + 1 ];
-          auto const top_found = add_cost(
-            value,
-            sub_cost(
-              std::min( add_cost( std::min( top_before, top_up ), p1 ),
-                        std::min( top_here, top_ceiling ) ),
-              top_ceiling ) );
-
-          top_before = top_here;
-          vertical[ at + static_cast< size_t >( d ) ] = top_found;
-          top_new = std::min( top_new, top_found );
-        }
-
-        left_min = left_new;
-        top_min = top_new;
-      }
-
-      // Right to left, summing the three and taking the winner.
-      std::fill( right.begin(), right.end(), 0 );
-
-      auto right_min = 0;
-
-      for( int x = span - 1; x >= 0; --x )
-      {
-        auto const at = static_cast< size_t >( x + 1 ) * lanes;
-        auto const* costs = row_cost + static_cast< size_t >( x ) * count;
-
-        auto const right_ceiling = saturate_cost( right_min + p2 );
-        auto right_new = sgbm_max_cost;
-        auto right_before = sgbm_max_cost;
-
-        for( int d = 0; d < count; ++d )
-        {
-          auto const value = saturate_cost( costs[ d ] + p2 );
-          auto const right_here = right[ static_cast< size_t >( d ) ];
-          auto const right_up = ( d == count - 1 ) ? sgbm_max_cost
-            : right[ static_cast< size_t >( d ) + 1 ];
-          auto const found = add_cost(
-            value,
-            sub_cost(
-              std::min( add_cost( std::min( right_before, right_up ), p1 ),
-                        std::min( right_here, right_ceiling ) ),
-              right_ceiling ) );
-
-          right_before = right_here;
-          right[ static_cast< size_t >( d ) ] = found;
-          right_new = std::min( right_new, found );
-
-          // Two saturating adds, left to right, as the vector body writes it.
-          auto const total = add_cost(
-            add_cost( found, horizontal[ at + static_cast< size_t >( d ) ] ),
-            vertical[ at + static_cast< size_t >( d ) ] );
-
-          horizontal[ at + static_cast< size_t >( d ) ] = total;
-
-        }
-
-        right_min = right_new;
-
-        // The winning disparity, and **not** simply the lowest-cost one.
-        //
-        // OpenCV's argmin is lane-wise. `min_sum_cost_reg` carries a running
-        // minimum per lane across blocks of `sgbm_lanes` disparities, and
-        // `min_sum_pos_reg` carries the base of the **last** block in which
-        // that lane matched its minimum; `min_pos` then reduces to the lowest
-        // `base + lane` among the lanes holding the overall minimum. So a tie
-        // between two disparities in the same lane goes to the **later** one
-        // and a tie across lanes to the lower lane -- which is why neither
-        // "lowest wins" nor "highest wins" reproduces it, and why fitting one
-        // of those looked right on one image and wrong on another.
-        auto lowest = sgbm_max_cost;
-        auto best = 0;
-
-        {
-          auto const* totals_row = &horizontal[ at ];
-          auto const aligned =
-            ( ( count + sgbm_lanes - 1 ) / sgbm_lanes ) * sgbm_lanes;
-          // Where the vector body stops. It runs while `i < Da - lanes`, and
-          // the extra block that finishes the job exists only when `Da` is
-          // `count` exactly -- otherwise a scalar tail takes the remainder.
-          auto const vector_end =
-            ( count == aligned ) ? count : aligned - sgbm_lanes;
-
-          int lane_min[ sgbm_lanes ];
-          int lane_base[ sgbm_lanes ];
-          bool lane_used[ sgbm_lanes ];
-
-          for( int lane = 0; lane < sgbm_lanes; ++lane )
-          {
-            lane_min[ lane ] = sgbm_max_cost;
-            lane_base[ lane ] = 0;
-            lane_used[ lane ] = false;
-          }
-
-          for( int d = 0; d < vector_end; ++d )
-          {
-            auto const lane = d % sgbm_lanes;
-            auto const base = d - lane;
-            auto const total = totals_row[ d ];
-
-            if( !lane_used[ lane ] || total < lane_min[ lane ] )
-            {
-              lane_min[ lane ] = total;
-              lane_base[ lane ] = base;
-              lane_used[ lane ] = true;
-            }
-            else if( total == lane_min[ lane ] )
-            {
-              lane_base[ lane ] = base;
-            }
-          }
-
-          for( int lane = 0; lane < sgbm_lanes; ++lane )
-          {
-            if( lane_used[ lane ] && lane_min[ lane ] < lowest )
-            {
-              lowest = lane_min[ lane ];
-            }
-          }
-
-          auto found = sgbm_max_cost;
-
-          for( int lane = 0; lane < sgbm_lanes; ++lane )
-          {
-            if( lane_used[ lane ] && lane_min[ lane ] == lowest )
-            {
-              found = std::min( found, lane_base[ lane ] + lane );
-            }
-          }
-
-          best = ( found == sgbm_max_cost ) ? 0 : found;
-
-          // The scalar tail, strictly less, which only runs when `count` is
-          // not a whole number of lanes.
-          for( int d = vector_end; d < count; ++d )
-          {
-            if( totals_row[ d ] < lowest )
-            {
-              lowest = totals_row[ d ];
-              best = d;
-            }
-          }
-        }
-
-        if( !writing )
-        {
-          continue;
-        }
-
-        auto const* totals_at = &horizontal[ at ];
-
-        if( uniqueness > 0 )
-        {
-          // A **truncating threshold**, not the ratio inequality the other two
-          // modes use. OpenCV computes `thresh = 100 * min / (100 - ratio)` in
-          // int and then compares `total < (short)( thresh + 1 )`, so the test
-          // is `total <= floor( ... )` where the ratio form is a strict `<` --
-          // they part company on every pixel where `total * (100 - ratio)`
-          // equals `100 * min` exactly. **And the cast wraps**: past a minimum
-          // of about 29490 the threshold exceeds a signed short, comes back
-          // negative, and no disparity qualifies, so the pixel survives a test
-          // the ratio form would have failed it on. Both together were the last
-          // 251 pixels of a 512 by 512 frame.
-          auto const limit = static_cast< int >( static_cast< int16_t >(
-            ( 100 * lowest ) / ( 100 - uniqueness ) + 1 ) );
-
-          auto d = 0;
-
-          for( ; d < count; ++d )
-          {
-            if( totals_at[ d ] < limit && std::abs( d - best ) > 1 )
-            {
-              break;
-            }
-          }
-
-          if( d < count )
+          if ( begin >= end )
           {
             continue;
           }
+
+          // Everything the recursion carries starts fresh for each stripe.
+          std::fill ( horizontal.begin (), horizontal.end (), 0 );
+          std::fill ( vertical.begin (), vertical.end (), 0 );
+          std::fill ( vertical_min.begin (), vertical_min.end (), 0 );
+
+          // Where this stripe's rows land in its own buffer.
+          auto const offset = ( stripe == 0 ) ? overlap : 0;
+          auto &buffer = buffers[static_cast<size_t> ( stripe )];
+
+          // The vertical box, clamped at **this stripe's** first row rather than at
+          // the image's. That only differs for the scratch rows -- the overlap is
+          // always more than half a block, so a row that gets written has its whole
+          // box inside the stripe -- but the scratch rows are what the top-down
+          // recursion starts from, so the difference reaches the written rows anyway.
+          for ( int y = begin; y < end; ++y )
+          {
+            auto const row_in_buffer = offset + ( y - begin );
+            auto const writing = row_in_buffer < buffer_rows;
+            auto *disp_row = writing
+                                 ? &buffer[static_cast<size_t> ( row_in_buffer ) * width]
+                                 : nullptr;
+
+            for ( int x = 0; x < width; ++x )
+            {
+              disp2[static_cast<size_t> ( x )] = invalid;
+              disp2cost[static_cast<size_t> ( x )] = sgbm_max_cost;
+            }
+
+            auto const *row_cost = costs_for ( y, begin ).data ();
+
+            // Left to right, and top to bottom in the same sweep.
+            auto left_min = 0;
+
+            for ( int x = 0; x < span; ++x )
+            {
+              auto const at = static_cast<size_t> ( x + 1 ) * lanes;
+              auto const previous = static_cast<size_t> ( x ) * lanes;
+              auto const *costs = row_cost + static_cast<size_t> ( x ) * count;
+
+              auto &top_min = vertical_min[static_cast<size_t> ( x + 1 )];
+              auto const left_ceiling = saturate_cost ( left_min + p2 );
+              auto const top_ceiling = saturate_cost ( top_min + p2 );
+
+              auto left_new = sgbm_max_cost;
+              auto top_new = sgbm_max_cost;
+              auto left_before = sgbm_max_cost;
+              auto top_before = sgbm_max_cost;
+
+              for ( int d = 0; d < count; ++d )
+              {
+                auto const last_one = d == count - 1;
+                // The cost carries a `+ p2` that the `- left_ceiling` below takes
+                // straight back off at the first column, where the previous row of
+                // the buffer is all zero. OpenCV gets the same by initialising its
+                // cost volume line to P2 rather than to nothing.
+                auto const value = saturate_cost ( costs[d] + p2 );
+
+                // The order is the vector body's, one saturating step at a time:
+                // the two neighbours are reduced first and P1 added to the winner,
+                // rather than added to each.
+                auto const left_up =
+                    last_one ? sgbm_max_cost
+                             : horizontal[previous + static_cast<size_t> ( d ) + 1];
+                auto const left_here = horizontal[previous + static_cast<size_t> ( d )];
+                auto const left_found = add_cost (
+                    value,
+                    sub_cost (
+                        std::min ( add_cost ( std::min ( left_before, left_up ), p1 ),
+                                   std::min ( left_here, left_ceiling ) ),
+                        left_ceiling ) );
+
+                left_before = left_here;
+                horizontal[at + static_cast<size_t> ( d )] = left_found;
+                left_new = std::min ( left_new, left_found );
+
+                auto const top_here = vertical[at + static_cast<size_t> ( d )];
+                auto const top_up = last_one
+                                        ? sgbm_max_cost
+                                        : vertical[at + static_cast<size_t> ( d ) + 1];
+                auto const top_found = add_cost (
+                    value,
+                    sub_cost (
+                        std::min ( add_cost ( std::min ( top_before, top_up ), p1 ),
+                                   std::min ( top_here, top_ceiling ) ),
+                        top_ceiling ) );
+
+                top_before = top_here;
+                vertical[at + static_cast<size_t> ( d )] = top_found;
+                top_new = std::min ( top_new, top_found );
+              }
+
+              left_min = left_new;
+              top_min = top_new;
+            }
+
+            // Right to left, summing the three and taking the winner.
+            std::fill ( right.begin (), right.end (), 0 );
+
+            auto right_min = 0;
+
+            for ( int x = span - 1; x >= 0; --x )
+            {
+              auto const at = static_cast<size_t> ( x + 1 ) * lanes;
+              auto const *costs = row_cost + static_cast<size_t> ( x ) * count;
+
+              auto const right_ceiling = saturate_cost ( right_min + p2 );
+              auto right_new = sgbm_max_cost;
+              auto right_before = sgbm_max_cost;
+
+              for ( int d = 0; d < count; ++d )
+              {
+                auto const value = saturate_cost ( costs[d] + p2 );
+                auto const right_here = right[static_cast<size_t> ( d )];
+                auto const right_up = ( d == count - 1 )
+                                          ? sgbm_max_cost
+                                          : right[static_cast<size_t> ( d ) + 1];
+                auto const found = add_cost (
+                    value,
+                    sub_cost (
+                        std::min ( add_cost ( std::min ( right_before, right_up ), p1 ),
+                                   std::min ( right_here, right_ceiling ) ),
+                        right_ceiling ) );
+
+                right_before = right_here;
+                right[static_cast<size_t> ( d )] = found;
+                right_new = std::min ( right_new, found );
+
+                // Two saturating adds, left to right, as the vector body writes it.
+                auto const total = add_cost (
+                    add_cost ( found, horizontal[at + static_cast<size_t> ( d )] ),
+                    vertical[at + static_cast<size_t> ( d )] );
+
+                horizontal[at + static_cast<size_t> ( d )] = total;
+              }
+
+              right_min = right_new;
+
+              // The winning disparity, and **not** simply the lowest-cost one.
+              //
+              // OpenCV's argmin is lane-wise. `min_sum_cost_reg` carries a running
+              // minimum per lane across blocks of `sgbm_lanes` disparities, and
+              // `min_sum_pos_reg` carries the base of the **last** block in which
+              // that lane matched its minimum; `min_pos` then reduces to the lowest
+              // `base + lane` among the lanes holding the overall minimum. So a tie
+              // between two disparities in the same lane goes to the **later** one
+              // and a tie across lanes to the lower lane -- which is why neither
+              // "lowest wins" nor "highest wins" reproduces it, and why fitting one
+              // of those looked right on one image and wrong on another.
+              auto lowest = sgbm_max_cost;
+              auto best = 0;
+
+              {
+                auto const *totals_row = &horizontal[at];
+                auto const aligned =
+                    ( ( count + sgbm_lanes - 1 ) / sgbm_lanes ) * sgbm_lanes;
+                // Where the vector body stops. It runs while `i < Da - lanes`, and
+                // the extra block that finishes the job exists only when `Da` is
+                // `count` exactly -- otherwise a scalar tail takes the remainder.
+                auto const vector_end =
+                    ( count == aligned ) ? count : aligned - sgbm_lanes;
+
+                int lane_min[sgbm_lanes];
+                int lane_base[sgbm_lanes];
+                bool lane_used[sgbm_lanes];
+
+                for ( int lane = 0; lane < sgbm_lanes; ++lane )
+                {
+                  lane_min[lane] = sgbm_max_cost;
+                  lane_base[lane] = 0;
+                  lane_used[lane] = false;
+                }
+
+                for ( int d = 0; d < vector_end; ++d )
+                {
+                  auto const lane = d % sgbm_lanes;
+                  auto const base = d - lane;
+                  auto const total = totals_row[d];
+
+                  if ( !lane_used[lane] || total < lane_min[lane] )
+                  {
+                    lane_min[lane] = total;
+                    lane_base[lane] = base;
+                    lane_used[lane] = true;
+                  }
+                  else if ( total == lane_min[lane] )
+                  {
+                    lane_base[lane] = base;
+                  }
+                }
+
+                for ( int lane = 0; lane < sgbm_lanes; ++lane )
+                {
+                  if ( lane_used[lane] && lane_min[lane] < lowest )
+                  {
+                    lowest = lane_min[lane];
+                  }
+                }
+
+                auto found = sgbm_max_cost;
+
+                for ( int lane = 0; lane < sgbm_lanes; ++lane )
+                {
+                  if ( lane_used[lane] && lane_min[lane] == lowest )
+                  {
+                    found = std::min ( found, lane_base[lane] + lane );
+                  }
+                }
+
+                best = ( found == sgbm_max_cost ) ? 0 : found;
+
+                // The scalar tail, strictly less, which only runs when `count` is
+                // not a whole number of lanes.
+                for ( int d = vector_end; d < count; ++d )
+                {
+                  if ( totals_row[d] < lowest )
+                  {
+                    lowest = totals_row[d];
+                    best = d;
+                  }
+                }
+              }
+
+              if ( !writing )
+              {
+                continue;
+              }
+
+              auto const *totals_at = &horizontal[at];
+
+              if ( uniqueness > 0 )
+              {
+                // A **truncating threshold**, not the ratio inequality the other two
+                // modes use. OpenCV computes `thresh = 100 * min / (100 - ratio)` in
+                // int and then compares `total < (short)( thresh + 1 )`, so the test
+                // is `total <= floor( ... )` where the ratio form is a strict `<` --
+                // they part company on every pixel where `total * (100 - ratio)`
+                // equals `100 * min` exactly. **And the cast wraps**: past a minimum
+                // of about 29490 the threshold exceeds a signed short, comes back
+                // negative, and no disparity qualifies, so the pixel survives a test
+                // the ratio form would have failed it on. Both together were the last
+                // 251 pixels of a 512 by 512 frame.
+                auto const limit = static_cast<int> ( static_cast<int16_t> (
+                    ( 100 * lowest ) / ( 100 - uniqueness ) + 1 ) );
+
+                auto d = 0;
+
+                for ( ; d < count; ++d )
+                {
+                  if ( totals_at[d] < limit && std::abs ( d - best ) > 1 )
+                  {
+                    break;
+                  }
+                }
+
+                if ( d < count )
+                {
+                  continue;
+                }
+              }
+
+              auto d = best;
+              auto const mirrored = x + first - d - min_d;
+
+              if ( mirrored >= 0 && mirrored < width &&
+                   disp2cost[static_cast<size_t> ( mirrored )] > lowest )
+              {
+                disp2cost[static_cast<size_t> ( mirrored )] = lowest;
+                disp2[static_cast<size_t> ( mirrored )] = d + min_d;
+              }
+
+              int scaled;
+
+              if ( d > 0 && d < count - 1 )
+              {
+                auto const denom = std::max (
+                    totals_at[d - 1] + totals_at[d + 1] - 2 * totals_at[d], 1 );
+                auto const numerator =
+                    ( totals_at[d - 1] - totals_at[d + 1] ) * sgbm_disp_scale + denom;
+
+                scaled = d * sgbm_disp_scale + numerator / ( denom * 2 );
+              }
+              else
+              {
+                scaled = d * sgbm_disp_scale;
+              }
+
+              disp_row[x + first] =
+                  static_cast<int16_t> ( scaled + min_d * sgbm_disp_scale );
+            }
+
+            if ( !writing )
+            {
+              continue;
+            }
+
+            for ( int x = first; x < last; ++x )
+            {
+              auto const value = static_cast<int> ( disp_row[x] );
+
+              if ( value == invalid )
+              {
+                continue;
+              }
+
+              auto const down = value >> sgbm_disp_shift;
+              auto const up = ( value + sgbm_disp_scale - 1 ) >> sgbm_disp_shift;
+              auto const a = x - down;
+              auto const b = x - up;
+
+              if ( a >= 0 && a < width && disp2[static_cast<size_t> ( a )] >= min_d &&
+                   std::abs ( disp2[static_cast<size_t> ( a )] - down ) > max_diff &&
+                   b >= 0 && b < width && disp2[static_cast<size_t> ( b )] >= min_d &&
+                   std::abs ( disp2[static_cast<size_t> ( b )] - up ) > max_diff )
+              {
+                disp_row[x] = invalid;
+              }
+            }
+          }
         }
-
-        auto d = best;
-        auto const mirrored = x + first - d - min_d;
-
-        if( mirrored >= 0 && mirrored < width &&
-            disp2cost[ static_cast< size_t >( mirrored ) ] > lowest )
-        {
-          disp2cost[ static_cast< size_t >( mirrored ) ] = lowest;
-          disp2[ static_cast< size_t >( mirrored ) ] = d + min_d;
-        }
-
-        int scaled;
-
-        if( d > 0 && d < count - 1 )
-        {
-          auto const denom = std::max(
-            totals_at[ d - 1 ] + totals_at[ d + 1 ] - 2 * totals_at[ d ], 1 );
-          auto const numerator =
-            ( totals_at[ d - 1 ] - totals_at[ d + 1 ] ) * sgbm_disp_scale +
-            denom;
-
-          scaled = d * sgbm_disp_scale + numerator / ( denom * 2 );
-        }
-        else
-        {
-          scaled = d * sgbm_disp_scale;
-        }
-
-        disp_row[ x + first ] =
-          static_cast< int16_t >( scaled + min_d * sgbm_disp_scale );
-      }
-
-      if( !writing )
-      {
-        continue;
-      }
-
-      for( int x = first; x < last; ++x )
-      {
-        auto const value = static_cast< int >( disp_row[ x ] );
-
-        if( value == invalid )
-        {
-          continue;
-        }
-
-        auto const down = value >> sgbm_disp_shift;
-        auto const up = ( value + sgbm_disp_scale - 1 ) >> sgbm_disp_shift;
-        auto const a = x - down;
-        auto const b = x - up;
-
-        if( a >= 0 && a < width &&
-            disp2[ static_cast< size_t >( a ) ] >= min_d &&
-            std::abs( disp2[ static_cast< size_t >( a ) ] - down ) > max_diff &&
-            b >= 0 && b < width &&
-            disp2[ static_cast< size_t >( b ) ] >= min_d &&
-            std::abs( disp2[ static_cast< size_t >( b ) ] - up ) > max_diff )
-        {
-          disp_row[ x ] = invalid;
-        }
-      }
-    }
-  }
+      } );
 
   // The assembly, by OpenCV's rule rather than by where each row was written.
   for( int y = 0; y < height; ++y )
@@ -721,10 +743,10 @@ three_way( CostRows const& costs_for, int width, int height, int first,
 ///
 /// The result is signed 16 bit, as OpenCV's is, with
 /// `(min_disparity - 1) * 16` meaning "no disparity here".
-inline viame::image_of< int16_t >
-stereo_sgbm( viame::image_of< uint8_t > const& left,
-             viame::image_of< uint8_t > const& right,
-             sgbm_params const& params )
+inline viame::image_of<int16_t> stereo_sgbm ( viame::image_of<uint8_t> const &left,
+                                              viame::image_of<uint8_t> const &right,
+                                              sgbm_params const &params,
+                                              stereo_workspace *workspace = nullptr )
 {
   using namespace detail;
 
@@ -790,90 +812,151 @@ stereo_sgbm( viame::image_of< uint8_t > const& left,
     tab[ i ] = std::min( std::max( value, -ftzero ), ftzero ) + ftzero;
   }
 
-  // Cache only the horizontal SAD rows needed by the current vertical box.
-  // This supports forward/backward scans and stripe-local border clamping
-  // without retaining a height*width*disparities cost volume.
-  auto const row_size = static_cast< size_t >( span ) * count;
-  auto const cache_size = static_cast< size_t >( 2 * half + 1 );
-  std::vector< std::vector< int > > horizontal_cache(
-    cache_size, std::vector< int >( row_size ) );
-  std::vector< int > row_ids( cache_size, -1 );
-  std::vector< int > raw( row_size ), boxed( row_size );
-  std::vector< std::vector< int > > l_rows, r_rows;
-  std::vector< int > l_low, l_high, r_low, r_high;
-  auto const planes = static_cast< int >( left.depth() );
-  auto const horizontal_row = [ & ]( int y ) -> std::vector< int > const&
+  stereo_workspace local;
+  auto &storage = workspace ? *workspace : local;
+  auto const row_size = static_cast<size_t> ( span ) * count;
+  auto const make_cost_rows = [&] ( int stripe )
   {
-    auto const slot = static_cast< size_t >( y ) % cache_size;
-    auto& across = horizontal_cache[ slot ];
-    if( row_ids[ slot ] == y ) { return across; }
-    std::fill( raw.begin(), raw.end(), 0 );
-    sgbm_prepare( left, y, tab, ftzero, l_rows );
-    sgbm_prepare( right, y, tab, ftzero, r_rows );
-    for( int channel = 0; channel < planes * 2; ++channel )
+    // Cache only the horizontal SAD rows needed by the current vertical box.
+    // This supports forward/backward scans and stripe-local border clamping
+    // without retaining a height*width*disparities cost volume.
+    auto const cache_size = static_cast<size_t> ( 2 * half + 1 );
+    auto &state = storage.stripes[stripe];
+    auto &horizontal_cache = state.horizontal_cache;
+    horizontal_cache.resize ( cache_size );
+    for ( auto &row : horizontal_cache )
     {
-      auto const& u_row = l_rows[ channel ];
-      auto const& v_row = r_rows[ channel ];
-      auto const shift = channel < planes ? 0 : 2;
-      sgbm_extremes( u_row, l_low, l_high );
-      sgbm_extremes( v_row, r_low, r_high );
-      for( int x = first; x < last; ++x )
+      row.resize ( row_size );
+    }
+    state.row_ids.assign ( cache_size, -1 );
+    state.raw.resize ( row_size );
+    state.boxed.resize ( row_size );
+    state.previous_y = -2;
+    state.previous_lower = -1;
+    return
+        [&, stripe, row_size, cache_size] ( int y, int lower ) -> std::vector<int> const &
+    {
+      auto &state = storage.stripes[stripe];
+      auto &horizontal_cache = state.horizontal_cache;
+      auto &row_ids = state.row_ids;
+      auto &raw = state.raw;
+      auto &boxed = state.boxed;
+      auto &l_rows = state.l_rows;
+      auto &r_rows = state.r_rows;
+      auto &l_low = state.l_low;
+      auto &l_high = state.l_high;
+      auto &r_low = state.r_low;
+      auto &r_high = state.r_high;
+      auto const planes = static_cast<int> ( left.depth () );
+      auto const horizontal_row = [&] ( int y ) -> std::vector<int> const &
       {
-        auto const u = u_row[ x ], u0 = l_low[ x ], u1 = l_high[ x ];
-        auto* into = raw.data() + static_cast< size_t >( x - first ) * count;
-        for( int d = 0; d < count; ++d )
+        auto const slot = static_cast<size_t> ( y ) % cache_size;
+        auto &across = horizontal_cache[slot];
+        if ( row_ids[slot] == y )
         {
-          auto const at = x - min_d - d;
-          auto const v = v_row[ at ], v0 = r_low[ at ], v1 = r_high[ at ];
-          auto const c0 = std::max( 0, std::max( u - v1, v0 - u ) );
-          auto const c1 = std::max( 0, std::max( v - u1, u0 - v ) );
-          into[ d ] += std::min( c0, c1 ) >> shift;
+          return across;
+        }
+        std::fill ( raw.begin (), raw.end (), 0 );
+        sgbm_prepare ( left, y, tab, ftzero, l_rows );
+        sgbm_prepare ( right, y, tab, ftzero, r_rows );
+        for ( int channel = 0; channel < planes * 2; ++channel )
+        {
+          auto const &u_row = l_rows[channel];
+          auto const &v_row = r_rows[channel];
+          auto const shift = channel < planes ? 0 : 2;
+          sgbm_extremes ( u_row, l_low, l_high );
+          sgbm_extremes ( v_row, r_low, r_high );
+          for ( int x = first; x < last; ++x )
+          {
+            auto const u = u_row[x], u0 = l_low[x], u1 = l_high[x];
+            auto *into = raw.data () + static_cast<size_t> ( x - first ) * count;
+            stereo_cost ( into, count, u, u0, u1, v_row.data (), r_low.data (),
+                          r_high.data (), x - min_d, shift );
+          }
+        }
+        std::fill ( across.begin (), across.begin () + count, 0 );
+        for ( int k = -half; k <= half; ++k )
+        {
+          auto const at = std::min ( std::max ( k, 0 ), span - 1 );
+          auto const *from = raw.data () + static_cast<size_t> ( at ) * count;
+          for ( int d = 0; d < count; ++d )
+          {
+            across[d] += from[d];
+          }
+        }
+        for ( int x = 1; x < span; ++x )
+        {
+          auto const add = std::min ( x + half, span - 1 );
+          auto const remove = std::max ( x - half - 1, 0 );
+          for ( int d = 0; d < count; ++d )
+          {
+            across[static_cast<size_t> ( x ) * count + d] =
+                across[static_cast<size_t> ( x - 1 ) * count + d] +
+                raw[static_cast<size_t> ( add ) * count + d] -
+                raw[static_cast<size_t> ( remove ) * count + d];
+          }
+        }
+        row_ids[slot] = y;
+        return across;
+      };
+      auto clamp_row = [&] ( int row )
+      { return std::min ( std::max ( row, lower ), height - 1 ); };
+      if ( state.previous_lower == lower && y == state.previous_y + 1 )
+      {
+        // Subtract before adding: the entering row can reuse the leaving row's
+        // ring slot. This preserves the row buffer while avoiding a whole box sum.
+        auto const &leaving = horizontal_row ( clamp_row ( y - half - 1 ) );
+        for ( std::size_t i = 0; i < row_size; ++i )
+        {
+          boxed[i] -= leaving[i];
+        }
+        auto const &entering = horizontal_row ( clamp_row ( y + half ) );
+        for ( std::size_t i = 0; i < row_size; ++i )
+        {
+          boxed[i] += entering[i];
         }
       }
-    }
-    std::fill( across.begin(), across.begin() + count, 0 );
-    for( int k = -half; k <= half; ++k )
-    {
-      auto const at = std::min( std::max( k, 0 ), span - 1 );
-      auto const* from = raw.data() + static_cast< size_t >( at ) * count;
-      for( int d = 0; d < count; ++d ) { across[ d ] += from[ d ]; }
-    }
-    for( int x = 1; x < span; ++x )
-    {
-      auto const add = std::min( x + half, span - 1 );
-      auto const remove = std::max( x - half - 1, 0 );
-      for( int d = 0; d < count; ++d )
+      else if ( state.previous_lower == lower && y == state.previous_y - 1 )
       {
-        across[ static_cast< size_t >( x ) * count + d ] =
-          across[ static_cast< size_t >( x - 1 ) * count + d ] +
-          raw[ static_cast< size_t >( add ) * count + d ] -
-          raw[ static_cast< size_t >( remove ) * count + d ];
+        auto const &leaving = horizontal_row ( clamp_row ( y + half + 1 ) );
+        for ( std::size_t i = 0; i < row_size; ++i )
+        {
+          boxed[i] -= leaving[i];
+        }
+        auto const &entering = horizontal_row ( clamp_row ( y - half ) );
+        for ( std::size_t i = 0; i < row_size; ++i )
+        {
+          boxed[i] += entering[i];
+        }
       }
-    }
-    row_ids[ slot ] = y;
-    return across;
-  };
-  auto const cost_row = [ & ]( int y, int lower ) -> std::vector< int > const&
-  {
-    std::fill( boxed.begin(), boxed.end(), 0 );
-    for( int k = -half; k <= half; ++k )
-    {
-      auto const at = std::min( std::max( y + k, lower ), height - 1 );
-      auto const& across = horizontal_row( at );
-      for( size_t i = 0; i < row_size; ++i ) { boxed[ i ] += across[ i ]; }
-    }
-    return boxed;
+      else
+      {
+        std::fill ( boxed.begin (), boxed.end (), 0 );
+        for ( int k = -half; k <= half; ++k )
+        {
+          auto const &row = horizontal_row ( clamp_row ( y + k ) );
+          for ( std::size_t i = 0; i < row_size; ++i )
+          {
+            boxed[i] += row[i];
+          }
+        }
+      }
+      state.previous_y = y;
+      state.previous_lower = lower;
+      return boxed;
+    };
   };
 
   if( params.mode == sgbm_mode::SGBM_3WAY )
   {
     // The vertical box is rebuilt per stripe,
     // because its top clamps at the stripe's first row and not at the image's.
-    three_way( cost_row, width, height, first, last, count, min_d, half, p1, p2,
-               uniqueness, max_diff, invalid, out );
+    three_way ( make_cost_rows, width, height, first, last, count, min_d, half, p1, p2,
+                uniqueness, max_diff, invalid, out );
   }
   else
   {
+    auto cost_row = make_cost_rows(0);
 
   auto const passes = ( params.mode == sgbm_mode::HH ) ? 2 : 1;
   // HH needs the first pass's accumulated costs for its reverse pass. The

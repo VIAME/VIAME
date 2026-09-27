@@ -211,9 +211,6 @@ smooth_globally( viame::image_of< uint8_t > const& guide,
   }
 
   auto const longest = static_cast< size_t >( std::max( width, height ) );
-  std::vector< float > line( longest );
-  std::vector< float > weights( longest );
-  std::vector< float > scratch( longest );
   std::vector< float > current(
     static_cast< size_t >( width ) * height );
 
@@ -233,46 +230,56 @@ smooth_globally( viame::image_of< uint8_t > const& guide,
 
     for( int pass = 0; pass < iterations; ++pass )
     {
-      for( int y = 0; y < height; ++y )
-      {
-        auto const row = static_cast< size_t >( y ) * width;
+      parallel_rows (
+          0, height, std::max ( 1, 131072 / width ),
+          [&] ( std::size_t begin, std::size_t end )
+          {
+            std::vector<float> line ( longest ), weights ( longest ), scratch ( longest );
+            for ( int y = static_cast<int> ( begin ); y < static_cast<int> ( end ); ++y )
+            {
+              auto const row = static_cast<size_t> ( y ) * width;
 
-        for( int x = 0; x < width; ++x )
-        {
-          line[ static_cast< size_t >( x ) ] =
-            current[ row + static_cast< size_t >( x ) ];
-          weights[ static_cast< size_t >( x ) ] =
-            horizontal[ row + static_cast< size_t >( x ) ];
-        }
+              for ( int x = 0; x < width; ++x )
+              {
+                line[static_cast<size_t> ( x )] =
+                    current[row + static_cast<size_t> ( x )];
+                weights[static_cast<size_t> ( x )] =
+                    horizontal[row + static_cast<size_t> ( x )];
+              }
 
-        detail::smoother_line( line, weights, scratch, strength, width );
+              detail::smoother_line ( line, weights, scratch, strength, width );
 
-        for( int x = 0; x < width; ++x )
-        {
-          current[ row + static_cast< size_t >( x ) ] =
-            line[ static_cast< size_t >( x ) ];
-        }
-      }
+              for ( int x = 0; x < width; ++x )
+              {
+                current[row + static_cast<size_t> ( x )] =
+                    line[static_cast<size_t> ( x )];
+              }
+            }
+          } );
+      parallel_rows (
+          0, width, std::max ( 1, 131072 / height ),
+          [&] ( std::size_t begin, std::size_t end )
+          {
+            std::vector<float> line ( longest ), weights ( longest ), scratch ( longest );
+            for ( int x = static_cast<int> ( begin ); x < static_cast<int> ( end ); ++x )
+            {
+              for ( int y = 0; y < height; ++y )
+              {
+                line[static_cast<size_t> ( y )] =
+                    current[static_cast<size_t> ( y ) * width + x];
+                weights[static_cast<size_t> ( y )] =
+                    vertical[static_cast<size_t> ( y ) * width + x];
+              }
 
-      for( int x = 0; x < width; ++x )
-      {
-        for( int y = 0; y < height; ++y )
-        {
-          line[ static_cast< size_t >( y ) ] =
-            current[ static_cast< size_t >( y ) * width + x ];
-          weights[ static_cast< size_t >( y ) ] =
-            vertical[ static_cast< size_t >( y ) * width + x ];
-        }
+              detail::smoother_line ( line, weights, scratch, strength, height );
 
-        detail::smoother_line( line, weights, scratch, strength, height );
-
-        for( int y = 0; y < height; ++y )
-        {
-          current[ static_cast< size_t >( y ) * width + x ] =
-            line[ static_cast< size_t >( y ) ];
-        }
-      }
-
+              for ( int y = 0; y < height; ++y )
+              {
+                current[static_cast<size_t> ( y ) * width + x] =
+                    line[static_cast<size_t> ( y )];
+              }
+            }
+          } );
       strength *= static_cast< float >( attenuation );
     }
 

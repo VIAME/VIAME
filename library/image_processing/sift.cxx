@@ -167,11 +167,12 @@ blur_size( double sigma )
   return static_cast< size_t >( std::max( width, 1 ) );
 }
 
-plane
-blurred( plane const& source, double sigma )
+plane blurred ( plane const &source, double sigma,
+                viame::image_kernels::gaussian_workspace *workspace = nullptr )
 {
-  return viame::image_kernels::gaussian_blur( source, blur_size( sigma ),
-                                              sigma );
+  return viame::image_kernels::gaussian_blur (
+      source, blur_size ( sigma ), sigma, viame::image_kernels::border_mode::REFLECT_101,
+      workspace );
 }
 
 /// `Matx33f::solve( b, DECOMP_LU )` for one right hand side, which OpenCV
@@ -277,6 +278,7 @@ gaussian_pyramid( plane const& base, int octaves, int layers, double sigma )
       std::sqrt( total * total - previous * previous );
   }
 
+  viame::image_kernels::gaussian_workspace workspace;
   std::vector< plane > pyramid(
     static_cast< size_t >( octaves * per_octave ) );
 
@@ -303,9 +305,8 @@ gaussian_pyramid( plane const& base, int octaves, int layers, double sigma )
       }
       else
       {
-        destination = blurred(
-          pyramid[ static_cast< size_t >( o * per_octave + i - 1 ) ],
-          step[ static_cast< size_t >( i ) ] );
+        destination = blurred ( pyramid[static_cast<size_t> ( o * per_octave + i - 1 )],
+                                step[static_cast<size_t> ( i )], &workspace );
       }
     }
   }
@@ -1085,29 +1086,34 @@ detect_and_compute( viame::image_of< uint8_t > const& image,
 
   descriptors->assign( keypoints.size() * width, 0.0f );
 
-  for( size_t k = 0; k < keypoints.size(); ++k )
-  {
-    auto const& kpt = keypoints[ k ];
+  viame::image_kernels::parallel_rows (
+      0, keypoints.size (), 32,
+      [&] ( std::size_t begin, std::size_t end )
+      {
+        for ( size_t k = begin; k < end; ++k )
+        {
+          auto const &kpt = keypoints[k];
 
-    int octave = 0;
-    int layer = 0;
-    float scale = 0.0f;
+          int octave = 0;
+          int layer = 0;
+          float scale = 0.0f;
 
-    unpack_octave( kpt.octave, octave, layer, scale );
+          unpack_octave ( kpt.octave, octave, layer, scale );
 
-    auto const index = static_cast< size_t >(
-      ( octave - first_octave ) * ( layers + 3 ) + layer );
+          auto const index =
+              static_cast<size_t> ( ( octave - first_octave ) * ( layers + 3 ) + layer );
 
-    auto angle = 360.0f - kpt.angle;
+          auto angle = 360.0f - kpt.angle;
 
-    if( std::abs( angle - 360.0f ) < FLT_EPSILON )
-    {
-      angle = 0.0f;
-    }
+          if ( std::abs ( angle - 360.0f ) < FLT_EPSILON )
+          {
+            angle = 0.0f;
+          }
 
-    describe( gaussian[ index ], kpt.x * scale, kpt.y * scale, angle,
-              kpt.size * scale * 0.5f, *descriptors, k );
-  }
+          describe ( gaussian[index], kpt.x * scale, kpt.y * scale, angle,
+                     kpt.size * scale * 0.5f, *descriptors, k );
+        }
+      } );
 }
 
 } // namespace sift

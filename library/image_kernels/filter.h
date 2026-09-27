@@ -19,6 +19,8 @@
 #define VIAME_IMAGE_KERNELS_FILTER_H
 
 #include <image_kernels/pixel.h>
+#include <image_kernels/gaussian_simd.h>
+#include <image_kernels/parallel.h>
 
 #include <viame/core_types/image.h>
 
@@ -32,6 +34,14 @@
 
 namespace viame {
 namespace image_kernels {
+
+/// Optional scratch storage for successive float Gaussian filters. One workspace
+/// per concurrent caller; output images own their pixels independently of it.
+struct gaussian_workspace
+{
+  std::vector<float> padded, across, taps;
+  std::vector<std::size_t> rows;
+};
 
 // ----------------------------------------------------------------------------
 /// What a filter reads where the image stops.
@@ -615,11 +625,83 @@ gaussian_kernel_fixed( std::vector< double > const& line, int shift )
 /// differ by about 1e-07. Zero when the width is a multiple of the lane count
 /// -- 8 floats with AVX2 -- and the kernels cannot chase it further without
 /// baking the host's vector width in.
-template < typename T >
-viame::image_of< T >
-gaussian_blur_float( viame::image_of< T > const& image,
-                     std::vector< double > const& line, border_mode mode )
+inline viame::image_of<float>
+gaussian_blur_float_fast ( viame::image_of<float> const &image,
+                           std::vector<double> const &line, border_mode mode,
+                           gaussian_workspace &work )
 {
+  auto const width = image.width (), height = image.height (), n = line.size ();
+  auto const half = n / 2, padded_width = width + 2 * half;
+  viame::image_of<float> out ( width, height, image.depth () );
+  if ( !width || !height || !image.depth () )
+  {
+    return out;
+  }
+  work.padded.resize ( padded_width * height );
+  work.across.resize ( width * height );
+  work.taps.assign ( line.begin (), line.end () );
+  work.rows.resize ( height * n );
+  for ( std::size_t y = 0; y < height; ++y )
+    for ( std::size_t k = 0; k < n; ++k )
+      work.rows[y * n + k] = border_index (
+          static_cast<long> ( y ) + static_cast<long> ( k ) - static_cast<long> ( half ),
+          height, mode );
+  auto const grain =
+      std::max<std::size_t> ( 1, 32768 / std::max<std::size_t> ( 1, width * n ) );
+  for ( std::size_t plane = 0; plane < image.depth (); ++plane )
+  {
+    parallel_rows (
+        0, height, grain,
+        [&] ( std::size_t begin, std::size_t end )
+        {
+          for ( auto y = begin; y < end; ++y )
+          {
+            auto *padded = work.padded.data () + y * padded_width;
+            auto const *input =
+                image.first_pixel () + static_cast<ptrdiff_t>(y) * image.h_step () + static_cast<ptrdiff_t>(plane) * image.d_step ();
+            for ( std::size_t x = 0; x < width; ++x )
+            {
+              padded[half + x] = input[static_cast<ptrdiff_t>(x) * image.w_step ()];
+            }
+            for ( std::size_t x = 0; x < half; ++x )
+            {
+              padded[x] = input[border_index ( static_cast<long> ( x ) -
+                                                   static_cast<long> ( half ),
+                                               width, mode ) *
+                                image.w_step ()];
+              padded[half + width + x] =
+                  input[border_index ( width + x, width, mode ) * image.w_step ()];
+            }
+            gaussian_row ( padded, work.across.data () + y * width, width,
+                           work.taps.data (), n );
+          }
+        } );
+    parallel_rows (
+        0, height, grain,
+        [&] ( std::size_t begin, std::size_t end )
+        {
+          for ( auto y = begin; y < end; ++y )
+          {
+            // image_of owns planar storage, so each output plane is contiguous.
+            auto *output = out.first_pixel () + y * out.h_step () + plane * out.d_step ();
+            gaussian_column ( work.across.data (), width, work.rows.data () + y * n,
+                              output, work.taps.data (), n );
+          }
+        } );
+  }
+  return out;
+}
+
+template <typename T>
+viame::image_of<T>
+gaussian_blur_float ( viame::image_of<T> const &image, std::vector<double> const &line,
+                      border_mode mode, gaussian_workspace *workspace = nullptr )
+{
+  if constexpr ( std::is_same<T, float>::value )
+  {
+    gaussian_workspace local;
+    return gaussian_blur_float_fast ( image, line, mode, workspace ? *workspace : local );
+  }
   constexpr double constant = 0.0;
 
   auto const n = line.size();
@@ -827,11 +909,11 @@ gaussian_blur_fixed( viame::image_of< T > const& image,
 /// @param image the image
 /// @param size the kernel width and height, odd
 /// @param sigma the standard deviation, derived from the size when not given
-template < typename T >
-viame::image_of< T >
-gaussian_blur( viame::image_of< T > const& image, size_t size,
-               double sigma = 0.0,
-               border_mode mode = border_mode::REFLECT_101 )
+template <typename T>
+viame::image_of<T> gaussian_blur ( viame::image_of<T> const &image, size_t size,
+                                   double sigma = 0.0,
+                                   border_mode mode = border_mode::REFLECT_101,
+                                   gaussian_workspace *workspace = nullptr )
 {
   auto const line = gaussian_kernel_1d( size, sigma );
 
@@ -864,7 +946,7 @@ gaussian_blur( viame::image_of< T > const& image, size_t size,
     // them wrong.
     if( mode != border_mode::CONSTANT )
     {
-      return detail::gaussian_blur_float( image, line, mode );
+      return detail::gaussian_blur_float ( image, line, mode, workspace );
     }
   }
 

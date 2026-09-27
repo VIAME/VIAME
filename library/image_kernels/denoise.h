@@ -65,9 +65,9 @@ nearest_power_of_two( int value )
 /// \p strength is OpenCV's `h`. \p patch and \p window are its
 /// `templateWindowSize` and `searchWindowSize`; both are forced odd the way it
 /// forces them, by halving and doubling back.
-inline viame::image_of< uint8_t >
-denoise_non_local_means( viame::image_of< uint8_t > const& image,
-                         double strength, int patch = 7, int window = 21 )
+inline viame::image_of<uint8_t>
+denoise_non_local_means_serial ( viame::image_of<uint8_t> const &image, double strength,
+                                 int patch = 7, int window = 21 )
 {
   auto const planes = static_cast< int >( image.depth() );
 
@@ -238,6 +238,35 @@ denoise_non_local_means( viame::image_of< uint8_t > const& image,
     }
   }
 
+  return out;
+}
+
+// Each output stripe includes the complete patch/search halo. Only its own
+// output rows are copied back, preserving the full image's border semantics.
+inline viame::image_of<uint8_t>
+denoise_non_local_means ( viame::image_of<uint8_t> const &image, double strength,
+                          int patch = 7, int window = 21 )
+{
+  if ( image.height () < 128 || kernel_thread_count () == 1 || patch < 1 || window < 1 )
+    return denoise_non_local_means_serial ( image, strength, patch, window );
+  auto const halo = static_cast<std::size_t> ( patch / 2 + window / 2 );
+  viame::image_of<uint8_t> out ( image.width (), image.height (), image.depth () );
+  parallel_rows ( 0, image.height (), 64,
+                  [&] ( std::size_t begin, std::size_t end )
+                  {
+                    auto const top = begin > halo ? begin - halo : 0;
+                    auto const bottom = std::min ( image.height (), end + halo );
+                    viame::image_of<uint8_t> part (
+                        image.first_pixel () + static_cast<ptrdiff_t>(top) * image.h_step (), image.width (),
+                        bottom - top, image.depth (), image.w_step (), image.h_step (),
+                        image.d_step () );
+                    auto const filtered =
+                        denoise_non_local_means_serial ( part, strength, patch, window );
+                    for ( auto y = begin; y < end; ++y )
+                      for ( std::size_t plane = 0; plane < image.depth (); ++plane )
+                        for ( std::size_t x = 0; x < image.width (); ++x )
+                          out ( x, y, plane ) = filtered ( x, y - top, plane );
+                  } );
   return out;
 }
 
