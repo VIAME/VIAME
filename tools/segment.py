@@ -1039,7 +1039,15 @@ def find_viame_install(explicit=None):
 
 
 def is_viame_install(path):
-    return bool(path) and os.path.exists(os.path.join(path, 'setup_viame.sh'))
+    if not path:
+        return False
+    if any(os.path.isfile(os.path.join(path, name))
+           for name in ('setup_viame.sh', 'setup_viame.bat')):
+        return True
+    # Wheels have no setup script; tools and model packs share configs/.
+    return (os.path.isfile(os.path.join(path, 'configs', 'segment.py')) and
+            any(os.path.isdir(os.path.join(path, name))
+                for name in ('bin', 'Scripts')))
 
 
 def pipeline_candidates(pipeline, install=None):
@@ -1969,7 +1977,7 @@ def cmd_gen_scripts(args):
     if not viame:
         sys.exit('No VIAME install found. Source setup_viame.sh, set VIAME_INSTALL, '
                  'or pass --viame-install.')
-    if not is_viame_install(viame):
+    if not os.path.isfile(os.path.join(viame, 'setup_viame.sh')):
         sys.exit('No setup_viame.sh under %s -- that is not a VIAME install.' % viame)
     tool = os.path.abspath(__file__)
 

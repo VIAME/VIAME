@@ -32,3 +32,24 @@ def test_atomic_write_failure_keeps_original(tmp_path):
     with pytest.raises(OSError):
         m.write_lines_atomic(p, broken())
     assert p.read_text() == 'original'
+
+
+@pytest.mark.parametrize('layout', ['bin', 'Scripts', 'desktop-windows'])
+def test_find_install_without_linux_setup(tmp_path, monkeypatch, layout):
+    root = tmp_path / 'install'
+    configs = root / 'configs'
+    configs.mkdir(parents=True)
+    script = configs / 'segment.py'
+    script.touch()
+    if layout == 'desktop-windows':
+        (root / 'setup_viame.bat').touch()
+    else:
+        (root / layout).mkdir()
+    monkeypatch.delenv('VIAME_INSTALL', raising=False)
+    monkeypatch.setattr(m, '__file__', str(script))
+    assert m.find_viame_install() == str(root)
+    # A source checkout containing tools alone must not count as an install.
+    source = tmp_path / 'source'
+    source.mkdir()
+    (source / 'segment.py').touch()
+    assert not m.is_viame_install(str(source))

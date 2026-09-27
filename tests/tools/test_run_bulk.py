@@ -29,3 +29,8 @@ def test_main_errors_fail():
     with pytest.raises(SystemExit) as exc:
         m.exit_with_error('bad input')
     assert exc.value.code == 1
+
+
+def test_child_python_uses_current_interpreter(monkeypatch):
+    monkeypatch.setattr(m.sys, 'executable', '/chosen environment/python')
+    assert m.get_python_cmd() == ['/chosen environment/python']

@@ -248,10 +248,7 @@ def get_pipeline_cmd( debug=False ):
       return [ 'kwiver', 'runner' ]
 
 def get_python_cmd():
-  if os.name == 'nt':
-    return [ 'python.exe' ]
-  else:
-    return [ 'python' ]
+  return [ sys.executable ]
 
 def exit_with_error( error_str, force=False ):
   log_info( lb1 + 'ERROR: ' + error_str + lb2 )
