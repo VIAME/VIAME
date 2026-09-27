@@ -854,9 +854,11 @@ as_interpolation( std::string const& name )
   if( name == "bilinear" ) { return interpolation::BILINEAR; }
   if( name == "bicubic" )  { return interpolation::BICUBIC; }
   if( name == "area" )     { return interpolation::AREA; }
+  if( name == "bilinear_exact" ) { return interpolation::BILINEAR_EXACT; }
 
   throw std::invalid_argument(
-    "interpolation must be one of nearest, bilinear, bicubic, area; got '" +
+    "interpolation must be one of nearest, bilinear, bilinear_exact, "
+    "bicubic, area; got '" +
     name + "'" );
 }
 
@@ -1656,7 +1658,8 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          &resize< uint16_t >, &resize< float >,
          py::arg( "image" ), py::arg( "width" ),
          py::arg( "height" ), py::arg( "interpolation" ) = "bilinear",
-         "Resize using nearest, bilinear, bicubic or area interpolation." );
+         "Resize using nearest, bilinear, bilinear_exact, bicubic or area "
+         "interpolation." );
 
   for_every_pixel_type( m, "resize_area", &resize_area< uint8_t >,
          &resize_area< uint16_t >,

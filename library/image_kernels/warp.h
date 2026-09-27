@@ -52,6 +52,12 @@ enum class interpolation
   BILINEAR,
   BICUBIC,
   AREA,
+  // `INTER_LINEAR_EXACT`: bilinear again, but carried in fixed point the
+  // whole way rather than through single-precision coefficients, so that
+  // the answer does not depend on the machine. It differs from BILINEAR
+  // by a count on a few percent of pixels, which matters to a caller
+  // whose next step thresholds the result -- ORB's pyramid, for one.
+  BILINEAR_EXACT,
 };
 
 // ----------------------------------------------------------------------------
@@ -377,6 +383,185 @@ resize_byte_linear( viame::image_of< uint8_t > const& image,
   return out;
 }
 
+// ----------------------------------------------------------------------------
+/// One axis of `INTER_LINEAR_EXACT`'s setup, in units of 1/256.
+///
+/// The coefficients are eight-bit rather than eleven, and they come from a
+/// `double` reciprocal rather than a `float` product, which is the whole
+/// point: `1/inv_scale` is not `src/dst` in the last bit for every pair of
+/// sizes, and OpenCV computes the former.
+///
+/// The two ends are not clamped here. A sample that falls off either edge
+/// instead widens \p first or narrows \p last, and the rows between those
+/// two bounds are the only ones that interpolate at all; outside them
+/// OpenCV copies an edge sample rather than weighting a pair. That is a
+/// different rule from `linear_axis`'s \c clamp_ends, which weights the
+/// pinned sample by one -- and on the vertical axis the two disagree,
+/// because the exact path rounds a copied sample once and the weighted
+/// path rounds it twice.
+struct linear_exact_axis
+{
+  std::vector< long > offset;
+  std::vector< uint16_t > alpha0;
+  std::vector< uint16_t > alpha1;
+  size_t first = 0;
+  size_t last = 0;
+};
+
+// ----------------------------------------------------------------------------
+/// `cvRound` on a double, which is round-half-to-even.
+inline long
+round_to_even( double value )
+{
+  return std::lrint( value );
+}
+
+// ----------------------------------------------------------------------------
+inline linear_exact_axis
+byte_linear_exact_axis( size_t dst_size, size_t src_size, double inverse_scale )
+{
+  constexpr int shift = 8;
+  constexpr uint16_t unit = 1 << shift;
+
+  linear_exact_axis axis;
+  axis.offset.assign( dst_size, 0 );
+  axis.alpha0.assign( dst_size, unit );
+  axis.alpha1.assign( dst_size, 0 );
+  axis.first = 0;
+  axis.last = dst_size;
+
+  auto const scale = 1.0 / inverse_scale;
+  auto const last_source = static_cast< long >( src_size ) - 1;
+
+  for( size_t d = 0; d < dst_size; ++d )
+  {
+    auto const position = scale * ( static_cast< double >( d ) + 0.5 ) - 0.5;
+    auto const source = static_cast< long >( std::floor( position ) );
+
+    if( source < 0 || src_size <= 1 )
+    {
+      // Falls off the left edge, so every output up to and including this
+      // one is a copy of the first sample.
+      axis.first = std::max( axis.first, d + 1 );
+      continue;
+    }
+
+    if( source >= last_source )
+    {
+      // Falls off the right edge. The offset is still written, because the
+      // right-hand copy reads the last entry of the table to find it.
+      axis.offset[d] = last_source;
+      axis.last = std::min( axis.last, d );
+      continue;
+    }
+
+    axis.offset[d] = source;
+    auto const fraction =
+      round_to_even( ( position - static_cast< double >( source ) ) *
+                     static_cast< double >( unit ) );
+    auto const high = static_cast< uint16_t >( fraction );
+    axis.alpha1[d] = high;
+    axis.alpha0[d] = high < unit ? static_cast< uint16_t >( unit - high ) : 0;
+  }
+
+  if( axis.last < axis.first ) { axis.last = axis.first; }
+
+  return axis;
+}
+
+// ----------------------------------------------------------------------------
+/// `cv::resize` with `INTER_LINEAR_EXACT` on an 8-bit image, to the count.
+///
+/// Horizontally into an unsigned Q8.8 line buffer, vertically into Q16.16
+/// and back down with a single round. Nothing here is wider than it has to
+/// be and nothing saturates for eight-bit input, since the two coefficients
+/// of an axis sum to exactly 256 by construction; the saturating operators
+/// OpenCV writes are there for the signed and sixteen-bit instantiations.
+inline viame::image_of< uint8_t >
+resize_byte_linear_exact( viame::image_of< uint8_t > const& image,
+                          size_t width, size_t height )
+{
+  auto const src_width = image.width();
+  auto const src_height = image.height();
+  auto const depth = image.depth();
+
+  auto const horizontal = byte_linear_exact_axis(
+    width, src_width,
+    static_cast< double >( width ) / static_cast< double >( src_width ) );
+  auto const vertical = byte_linear_exact_axis(
+    height, src_height,
+    static_cast< double >( height ) / static_cast< double >( src_height ) );
+
+  std::vector< ptrdiff_t > x0( width ), x1( width );
+  for( size_t x = 0; x < width; ++x )
+  {
+    x0[x] = horizontal.offset[x] * image.w_step();
+    x1[x] = ( horizontal.offset[x] + 1 ) * image.w_step();
+  }
+  auto const tail_x =
+    horizontal.offset[width - 1] * static_cast< ptrdiff_t >( image.w_step() );
+
+  std::vector< uint16_t > buffer( 2 * width );
+  viame::image_of< uint8_t > out( width, height, depth );
+  for( size_t plane = 0; plane < depth; ++plane )
+  {
+    size_t cached[2] = { src_height, src_height };
+    auto const row = [&]( size_t y ) -> uint16_t const*
+    {
+      size_t const slot = y % 2;
+      uint16_t* dst = buffer.data() + slot * width;
+      if( cached[slot] != y )
+      {
+        auto const* src =
+          image.first_pixel() + y * image.h_step() + plane * image.d_step();
+        for( size_t x = 0; x < horizontal.first; ++x )
+        { dst[x] = static_cast< uint16_t >( src[0] ) << 8; }
+        for( size_t x = horizontal.first; x < horizontal.last; ++x )
+        {
+          dst[x] = static_cast< uint16_t >(
+            horizontal.alpha0[x] * src[x0[x]] +
+            horizontal.alpha1[x] * src[x1[x]] );
+        }
+        for( size_t x = horizontal.last; x < width; ++x )
+        { dst[x] = static_cast< uint16_t >( src[tail_x] ) << 8; }
+        cached[slot] = y;
+      }
+      return dst;
+    };
+
+    // Above `first` and below `last` OpenCV does not interpolate: it takes
+    // the one filtered line and rounds it, which is a single round rather
+    // than the pair the interpolating path performs.
+    auto const copy_row = [&]( size_t j, uint16_t const* line )
+    {
+      auto* dst = out.first_pixel() + j * out.h_step() + plane * out.d_step();
+      for( size_t i = 0; i < width; ++i )
+      { dst[i] = static_cast< uint8_t >( ( line[i] + 128 ) >> 8 ); }
+    };
+
+    for( size_t j = 0; j < vertical.first; ++j ) { copy_row( j, row( 0 ) ); }
+    for( size_t j = vertical.first; j < vertical.last; ++j )
+    {
+      auto const* first = row( static_cast< size_t >( vertical.offset[j] ) );
+      auto const* second =
+        row( static_cast< size_t >( vertical.offset[j] ) + 1 );
+      uint32_t const beta0 = vertical.alpha0[j];
+      uint32_t const beta1 = vertical.alpha1[j];
+      auto* dst = out.first_pixel() + j * out.h_step() + plane * out.d_step();
+      for( size_t i = 0; i < width; ++i )
+      {
+        auto const value = beta0 * first[i] + beta1 * second[i];
+        dst[i] = static_cast< uint8_t >( ( value + ( 1u << 15 ) ) >> 16 );
+      }
+    }
+    auto const tail_y = static_cast< size_t >( vertical.offset[height - 1] );
+    for( size_t j = vertical.last; j < height; ++j )
+    { copy_row( j, row( tail_y ) ); }
+  }
+
+  return out;
+}
+
 // Precompute fractional coverage once, rather than recomputing a rectangle
 // and its weights for every output channel. Float weights match INTER_AREA.
 struct area_weight
@@ -462,6 +647,35 @@ resize( viame::image_of< T > const& image, size_t width,
   // noise to most callers and not to one feeding a network, so the exact
   // path is the one taken -- it is also what every caller replacing a
   // `cv::resize` on bytes was written against.
+  if( how == interpolation::BILINEAR_EXACT )
+  {
+    if( width == 0 || height == 0 || image.width() == 0 || image.height() == 0 )
+    { throw std::invalid_argument( "resize: the target has no area" ); }
+
+    if constexpr( std::is_same_v< T, uint8_t > )
+    {
+      // An exact halving in both axes is `INTER_AREA` instead -- the two
+      // agree there, and OpenCV takes the cheaper one. Two-channel images
+      // are excluded because its area path is not itself exact on them,
+      // which does not arise for a planar image.
+      if( image.width() == 2 * width && image.height() == 2 * height )
+      { return detail::resize_area_shrink( image, width, height ); }
+
+      return detail::resize_byte_linear_exact( image, width, height );
+    }
+    else if constexpr( std::is_same_v< T, float > )
+    {
+      // `cv::resize` demotes the request to `INTER_LINEAR` for floating
+      // point, there being no fixed-point form to be exact in.
+      how = interpolation::BILINEAR;
+    }
+    else
+    {
+      throw std::invalid_argument(
+        "resize: exact bilinear is implemented for 8-bit and float images" );
+    }
+  }
+
   if constexpr( std::is_same_v< T, uint8_t > )
   {
     if( how == interpolation::BILINEAR &&

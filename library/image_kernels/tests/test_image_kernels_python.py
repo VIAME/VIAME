@@ -1837,6 +1837,66 @@ def test_resize_uses_opencv_pixel_centres():
                                   image.repeat(2, 0).repeat(2, 1))
 
 
+# Recorded from cv2.INTER_LINEAR_EXACT. Both targets differ from plain
+# INTER_LINEAR on a handful of pixels, which is the point of the mode:
+# the coefficients come from a double reciprocal held in fixed point
+# rather than a single-precision product, so the answer does not move
+# with the machine. ORB's pyramid is built with it.
+_EXACT_SOURCE = np.array(
+    [[186, 187, 182, 250, 243, 254, 8, 250, 129],
+     [172, 233, 252, 247, 129, 84, 97, 180, 60],
+     [222, 43, 124, 221, 89, 236, 142, 62, 218],
+     [26, 82, 70, 254, 66, 132, 30, 135, 35],
+     [70, 88, 176, 81, 250, 118, 58, 137, 31],
+     [58, 59, 30, 135, 81, 189, 203, 82, 101],
+     [228, 61, 155, 242, 58, 201, 134, 112, 139]], dtype=np.uint8)
+
+
+@pytest.mark.parametrize("width,height,expected", [
+    (6, 5, [[186, 196, 242, 220, 78, 145],
+            [181, 161, 200, 158, 120, 144],
+            [40, 73, 207, 116, 56, 60],
+            [68, 107, 123, 155, 116, 73],
+            [161, 113, 181, 165, 137, 125]]),
+    (13, 4, [[181, 193, 205, 208, 233, 234, 200, 193, 133, 56, 182, 168, 103],
+             [198, 117, 64, 112, 184, 182, 86, 181, 187, 124, 84, 128, 195],
+             [65, 77, 105, 157, 126, 141, 227, 153, 95, 61, 118, 88, 32],
+             [164, 108, 71, 104, 166, 160, 67, 156, 182, 155, 114, 112, 125]]),
+])
+def test_exact_bilinear_resize_is_the_fixed_point_one(width, height, expected):
+    actual = resize(_EXACT_SOURCE, width, height,
+                    interpolation="bilinear_exact")
+    np.testing.assert_array_equal(actual, expected)
+    assert np.any(actual != resize(_EXACT_SOURCE, width, height))
+
+
+def test_exact_bilinear_resize_handles_degenerate_axes():
+    # An axis with a single sample never interpolates: every output copies
+    # it. An axis whose first or last output centre falls outside the
+    # source copies the edge rather than weighting a pinned pair, which is
+    # the one rule the eleven-bit path spells differently.
+    column = np.array([[5], [200]], dtype=np.uint8)
+    np.testing.assert_array_equal(
+        resize(column, 3, 2, interpolation="bilinear_exact"),
+        [[5, 5, 5], [200, 200, 200]])
+    np.testing.assert_array_equal(
+        resize(np.full((4, 4), 77, np.uint8), 9, 9,
+               interpolation="bilinear_exact"), np.full((9, 9), 77))
+
+
+def test_exact_bilinear_resize_is_eight_bit_or_float_only():
+    # cv2 demotes the request to INTER_LINEAR for floating point, there
+    # being no fixed-point form to be exact in; it has a 16-bit form we
+    # have not needed, and a silent fallback there would be a lie.
+    image = np.linspace(0, 1, 60, dtype=np.float32).reshape(6, 10)
+    np.testing.assert_array_equal(
+        resize(image, 5, 3, interpolation="bilinear_exact"),
+        resize(image, 5, 3, interpolation="bilinear"))
+    with pytest.raises(ValueError):
+        resize(np.zeros((6, 6), np.uint16), 3, 3,
+               interpolation="bilinear_exact")
+
+
 @pytest.mark.parametrize("dtype", [np.uint8, np.uint16, np.float32])
 def test_area_resize_weights_fractional_pixels(dtype):
     image = np.array([[0, 0, 255, 0, 0]], dtype=dtype)
