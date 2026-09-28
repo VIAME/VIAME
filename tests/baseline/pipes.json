@@ -7603,9 +7603,115 @@
     "algos": {}
   },
   "configs/pipelines/stereo_measure_current_annots_spline_fish.pipe": {
-    "status": "error",
-    "message": "There is no such process of type 'compute_curved_measurements' in the registry",
-    "processes": {},
+    "status": "ok",
+    "message": "",
+    "processes": {
+      "downsampler": {
+        "type": "downsample",
+        "algos": {}
+      },
+      "input1": {
+        "type": "video_input",
+        "algos": {
+          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:image_list:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:type": {
+            "impl": "image_list",
+            "resolved": true
+          }
+        }
+      },
+      "input2": {
+        "type": "video_input",
+        "algos": {
+          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:image_list:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:type": {
+            "impl": "image_list",
+            "resolved": true
+          }
+        }
+      },
+      "measurer": {
+        "type": "compute_curved_measurements",
+        "algos": {
+          "refiner:type": {
+            "impl": "rf_detr",
+            "resolved": true
+          },
+          "stereo_disparity:type": {
+            "impl": "fast_foundation_stereo_onnx",
+            "resolved": true
+          }
+        }
+      },
+      "track_classifier1": {
+        "type": "refine_tracks",
+        "algos": {
+          "refiner:type": {
+            "impl": "average_tot",
+            "resolved": true
+          }
+        }
+      },
+      "track_classifier2": {
+        "type": "refine_tracks",
+        "algos": {
+          "refiner:type": {
+            "impl": "average_tot",
+            "resolved": true
+          }
+        }
+      },
+      "track_reader1": {
+        "type": "read_object_track",
+        "algos": {
+          "reader:type": {
+            "impl": "viame_csv",
+            "resolved": true
+          }
+        }
+      },
+      "track_reader2": {
+        "type": "read_object_track",
+        "algos": {
+          "reader:type": {
+            "impl": "viame_csv",
+            "resolved": true
+          }
+        }
+      },
+      "track_writer1": {
+        "type": "write_object_track",
+        "algos": {
+          "writer:type": {
+            "impl": "viame_csv",
+            "resolved": true
+          }
+        }
+      },
+      "track_writer2": {
+        "type": "write_object_track",
+        "algos": {
+          "writer:type": {
+            "impl": "viame_csv",
+            "resolved": true
+          }
+        }
+      }
+    },
     "algos": {}
   },
   "configs/pipelines/stereo_measure_current_annots_template.pipe": {

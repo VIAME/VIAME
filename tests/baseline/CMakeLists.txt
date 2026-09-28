@@ -140,6 +140,17 @@ add_test(
 set_property( TEST "baseline:documented_flags" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:documented_flags" PROPERTY TIMEOUT 60 )
 
+# A python process that is defined but not declared does not exist here: a
+# package that declares anything is not scanned. Every merge from `main`,
+# where registration is by import, is a chance to lose one.
+add_test(
+  NAME "baseline:declared_processes"
+  COMMAND "${Python3_EXECUTABLE}"
+          "${baseline_dir}/check_declared_processes.py"
+)
+set_property( TEST "baseline:declared_processes" PROPERTY LABELS BASELINE )
+set_property( TEST "baseline:declared_processes" PROPERTY TIMEOUT 60 )
+
 add_test(
   NAME "baseline:fork_cv2_guard"
   COMMAND "${Python3_EXECUTABLE}"

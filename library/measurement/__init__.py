@@ -38,4 +38,13 @@ __sprokit_process_declarations__ = [
     ( "ocv_calibrate_single_camera",
       "Estimate one camera's intrinsics from a calibration target track set",
       "viame.measurement.ocv_calibrate_single_camera:CalibrateSingleCamera" ),
+    # Arrived in a merge from `main`, where a python process registers by
+    # being imported during the module scan. There is no scan here, so a
+    # process that is not declared does not exist: the class imported, its
+    # `__sprokit_register__` was never called, and the two add-on pipelines
+    # that select it -- default-fish and fast-fdn-stereo's spline
+    # measurement -- could not be built.
+    ( "compute_curved_measurements",
+      "Curved stereo length of annotated centerlines via dense disparity",
+      "viame.measurement.measure_curved_process:MeasureCurvedObjects" ),
 ]
