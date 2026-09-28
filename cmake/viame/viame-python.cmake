@@ -524,4 +524,58 @@ from ${package}.${module}.${name} import *  # noqa: F401,F403
 " )
     viame_add_python_module( "${shim}" "${modpath}" "${name}" )
   endforeach()
+
+  _viame_drop_prefolded_extensions( "${modpath}" "${fold_modules}" )
+endfunction()
+
+#+
+# Delete the per-module extensions a pre-fold build left behind.
+#
+# Before the fold each binding was its own `<name>.so`. After it each is a
+# submodule of `<module>` reached through a generated `<name>.py`. CMake does
+# not remove an output it has stopped producing, and neither does `install`,
+# so both the staging tree and the install prefix keep the old extension --
+# and python's finder prefers an extension to a source file, so the stale one
+# **wins over the shim**.
+#
+# Nothing fails at import. What fails is anything added to a binding after the
+# fold: the symbol is in `<module>` and the caller is reading a `.so` from
+# before it, so a new property simply is not there. That cost an afternoon
+# once, diagnosed as a build problem, and the file was three days older than
+# everything around it.
+#
+# Configure time rather than build time because it must happen before anything
+# imports, and idempotent because after the first run there is nothing to find.
+#-
+function( _viame_drop_prefolded_extensions modpath names )
+  _viame_python_package( package )
+
+  # `kwiver_python_install_path` is already absolute and already ends in
+  # site-packages; see the note beside it in `viame_project.cmake`.
+  set( directories
+    "${kwiver_python_output_path}/${python_sitename}/${package}/${modpath}"
+    "${kwiver_python_install_path}/${package}/${modpath}" )
+
+  set( dropped )
+  foreach( directory IN LISTS directories )
+    foreach( name IN LISTS names )
+      # `<name>.so`, and the interpreter-tagged spellings of it. Never
+      # `<module>` itself: these names are its submodules.
+      file( GLOB stale
+            "${directory}/${name}.so"
+            "${directory}/${name}.cpython-*.so"
+            "${directory}/${name}.pyd" )
+      foreach( file IN LISTS stale )
+        file( REMOVE "${file}" )
+        list( APPEND dropped "${file}" )
+      endforeach()
+    endforeach()
+  endforeach()
+
+  list( LENGTH dropped dropped_count )
+  if( dropped_count GREATER 0 )
+    message( STATUS
+      "${package}.${modpath}: removed ${dropped_count} extension(s) from "
+      "before the fold, which would have shadowed the generated shims" )
+  endif()
 endfunction()
