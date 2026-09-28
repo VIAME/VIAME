@@ -27,9 +27,9 @@ but select entries are also listed below broken down by individual functionality
 [Building](examples/building_from_source) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
 [DIVE Interface](https://kitware.github.io/dive) <>
-[Object Detector CLI](examples/object_detection) <>
-[Detector Training CLI](examples/object_detector_training) <>
-[Object Tracker CLI](examples/object_tracking) <>
+[Object Detection](examples/object_detection) <>
+[Detector Training](examples/object_detector_training) <>
+[Object Tracking](examples/object_tracking) <>
 [Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Model Evaluation](examples/scoring_and_evaluation) <>
 [Detection Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
@@ -39,7 +39,7 @@ but select entries are also listed below broken down by individual functionality
 [Pipelining Overview](https://github.com/Kitware/kwiver) <>
 [Core Classes](https://kwiver.readthedocs.io/en/latest) <>
 [Plugin Integration](examples/example_pipeline) <>
-[Templates](plugins/templates) <>
+[Example Templates](plugins/templates) <>
 [Embedding Algorithms](examples/using_algorithms_in_code)
 
 
