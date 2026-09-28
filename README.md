@@ -40,6 +40,7 @@ but select entries are also listed below broken down by individual functionality
 [Core Classes](https://kwiver.readthedocs.io/en/latest) <>
 [Plugin Integration](examples/example_pipeline) <>
 [Example Templates](plugins/templates) <>
+[Python Usage](https://github.com/VIAME/VIAME/blob/main/docs/python_package.md) <>
 [Embedding Algorithms](examples/using_algorithms_in_code)
 
 
