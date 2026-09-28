@@ -34,6 +34,10 @@ def _get_gui_cmd(debug=False):
 
 
 def _execute_command(cmd, stdout=None, stderr=None):
+    if shutil.which(cmd[0]) is None:
+        print(f"Unable to launch annotation GUI: {cmd[0]} is not installed "
+              "or is not on PATH.", file=sys.stderr)
+        return 1
     if os.name == 'nt' and stdout is None:
         with open(os.devnull, "w") as fnull:
             return subprocess.call(cmd, stdout=fnull, stderr=subprocess.STDOUT)
@@ -105,4 +109,4 @@ if __name__ == "__main__":
         print("Function not yet implemented")
         sys.exit(1)
     else:
-        _execute_command(_get_gui_cmd(args.debug) + _default_annotator_args(args))
+        sys.exit(_execute_command(_get_gui_cmd(args.debug) + _default_annotator_args(args)))

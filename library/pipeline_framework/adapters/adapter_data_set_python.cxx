@@ -14,6 +14,7 @@
 #include <viame/core_types/descriptor_request.h>
 #include <viame/core_types/descriptor_set.h>
 #include <viame/core_types/iqr_feedback.h>
+#include <viame/core_types/query_result_set.h>
 #include <viame/core_types/track_descriptor_set.h>
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/feature_track_set.h>
@@ -155,12 +156,48 @@ if( any.type() == typeid( TYPE ) )                           \
   ADS_GET_OBJECT( std::shared_ptr< std::vector< double > > )
   ADS_GET_OBJECT( std::shared_ptr< std::vector< std::string > > )
   ADS_GET_OBJECT( std::shared_ptr< std::vector< unsigned char > > )
+  ADS_GET_OBJECT( viame::descriptor_request_sptr )
+  ADS_GET_OBJECT( viame::database_query_sptr )
+  ADS_GET_OBJECT( viame::iqr_feedback_sptr )
   ADS_GET_OBJECT( viame::bounding_box_d )
   ADS_GET_OBJECT( viame::timestamp )
   ADS_GET_OBJECT( viame::geo_polygon )
   ADS_GET_OBJECT( viame::f2f_homography )
 
 #undef ADS_GET_OBJECT
+
+  // Sets of query results / track descriptors are typedef'd vectors of
+  // shared_ptrs (not distinct bound classes), so convert them to python
+  // lists of the already-bound element types.
+  if( any.type() == typeid( viame::query_result_set_sptr ) )
+  {
+    auto const set_sptr =
+      viame::any_cast< viame::query_result_set_sptr >( any );
+    py::list result;
+    if( set_sptr )
+    {
+      for( auto const& item : *set_sptr )
+      {
+        result.append( py::cast( item ) );
+      }
+    }
+    return result;
+  }
+  if( any.type() == typeid( viame::track_descriptor_set_sptr ) )
+  {
+    auto const set_sptr =
+      viame::any_cast< viame::track_descriptor_set_sptr >( any );
+    py::list result;
+    if( set_sptr )
+    {
+      for( auto const& item : *set_sptr )
+      {
+        result.append( py::cast( item ) );
+      }
+    }
+    return result;
+  }
+
 
   std::string msg(
     "Unable to convert object found at adapter data set port: " );

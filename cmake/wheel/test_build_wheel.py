@@ -246,12 +246,13 @@ def test_launcher_keeps_child_tools_in_its_environment():
          patch('sys.prefix', '/venv'), \
          patch('os.path.exists', return_value=True), \
          patch('os.path.isdir', side_effect=lambda p: p == '/venv/lib/viame/applets'), \
-         patch.dict('os.environ', {'PATH': '/other/bin'}), \
+         patch.dict('os.environ', {'PATH': '/other/bin'}, clear=True), \
          patch('os.execv') as execute:
         namespace['main']()
         import os
         assert os.environ['PATH'].split(os.pathsep)[0] == '/venv/bin'
         assert execute.call_args.args[0] == '/venv/libexec/viame'
+        assert os.environ['VIAME_INSTALL'] == '/venv'
         assert os.environ['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == '/venv/lib/viame/applets'
 
 

@@ -318,3 +318,14 @@ class TestVitalQueryResult(unittest.TestCase):
         with self.assertRaises(TypeError):
             qr = self._create_query_result()
             qr.image_data = "string, not image_data"
+
+
+def test_preference_score_is_independent_and_initialized():
+    result = QueryResult()
+    assert result.instance_id == 0
+    assert result.relevancy_score == 0.0
+    assert result.preference_score == 0.0
+    result.preference_score = 0.25
+    result.relevancy_score = 0.75
+    assert result.preference_score == 0.25
+    assert result.relevancy_score == 0.75

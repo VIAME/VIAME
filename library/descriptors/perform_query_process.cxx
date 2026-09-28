@@ -8,35 +8,25 @@
 
 #include <viame/pipeline_framework/process_exception.h>
 
-#include <viame/algorithm_framework/algo/read_object_track_set.h>
-#include <viame/algorithm_framework/algo/read_track_descriptor_set.h>
+#include <viame/algorithm_framework/algo/query_track_descriptor_set.h>
+#include <viame/algorithm_framework/logger/logger.h>
+
+#include <viame/pipeline_framework/adapters/embedded_pipeline.h>
 
 #include <filesystem>
+#include <fstream>
 #include <tuple>
 
 namespace viame {
 
 namespace algo = viame::algo;
 
-create_port_trait( external_descriptor_set, descriptor_set,
-  "Descriptor set to be processed by external query handler" );
-create_port_trait( external_exemplar_uids, string_vector,
-  "Descriptor set UIDs to be processed by external query handler" );
-create_port_trait( external_positive_uids, string_vector,
-  "Descriptor set positive IQR exemplars" );
-create_port_trait( external_negative_uids, string_vector,
-  "Descriptor set negative IQR exemplars" );
-create_port_trait( result_descriptor_uids, string_vector,
-  "Descriptor set response from external query handler" );
-create_port_trait( result_descriptor_scores, double_vector,
-  "Descriptor set scores from external query handler" );
-
-// -- config traits --
-create_algorithm_name_config_trait( descriptor_reader );
-create_algorithm_name_config_trait( track_reader );
-
 create_config_trait( external_handler, bool,
   "true", "Whether or not an external query handler is used" );
+create_config_trait( external_pipeline_file, std::string,
+  "", "External pipeline definition file location" );
+create_config_trait( augmentation_pipeline_file, std::string,
+  "", "Augmentation pipeline definition file location" );
 create_config_trait( database_folder, std::string,
   "", "Folder containing all track and descriptor files" );
 create_config_trait( max_result_count, unsigned,
@@ -47,6 +37,20 @@ create_config_trait( descriptor_postfix, std::string,
   "_descriptors.csv", "Postfix to add to basename for desc files" );
 create_config_trait( index_postfix, std::string,
   ".index", "Postfix to add to basename for reading index files" );
+create_config_trait( unused_descriptors_as_negative, bool,
+  "true", "Use un-marked user descriptors as negative exemplars" );
+create_config_trait( use_tracks_for_history, bool,
+  "false", "Use object track states for track descriptor history" );
+create_config_trait( merge_duplicate_results, bool,
+  "false", "If use_tracks_for_history is on, use the track with the "
+  "highest confidence, otherwise concatenate the history of all entries "
+  "with the same track" );
+
+create_algorithm_name_config_trait( descriptor_query );
+
+create_port_trait( feedback_request, query_result, "Feedback requests" );
+create_port_trait( iqr_model, uchar_vector, "Serialized IQR model bytes" );
+
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -59,17 +63,26 @@ public:
   perform_query_process* parent;
 
   bool external_handler;
+  std::string external_pipeline_file;
+  std::string augmentation_pipeline_file;
   std::string database_folder;
 
   std::string track_postfix;
   std::string descriptor_postfix;
   std::string index_postfix;
+  bool unused_descriptors_as_negative;
+  bool use_tracks_for_history;
+  bool merge_duplicate_results;
+
+  std::unique_ptr< embedded_pipeline > external_pipeline;
+  std::unique_ptr< embedded_pipeline > augmentation_pipeline;
 
   unsigned max_result_count;
 
   bool is_first;
   std::map< unsigned, viame::query_result_sptr > previous_results;
-  std::map< std::string, unsigned > instance_ids;
+  std::map< std::string, unsigned > result_instance_ids;
+  std::map< std::string, unsigned > feedback_instance_ids;
   std::map< unsigned, viame::query_result_sptr > forced_positives;
   std::map< unsigned, viame::query_result_sptr > forced_negatives;
   viame::uid active_uid;
@@ -77,20 +90,21 @@ public:
   unsigned result_counter;
   bool database_populated;
 
-  algo::read_track_descriptor_set_sptr descriptor_reader;
-  algo::read_object_track_set_sptr track_reader;
+  algo::query_track_descriptor_set_sptr descriptor_query;
 
-  // Video name <=> descriptor sptr <=> track sptr tuple
-  typedef std::tuple< std::string,
-                      viame::track_descriptor_sptr,
-                      std::vector< viame::track_sptr > > desc_tuple_t;
-
-  std::map< std::string, desc_tuple_t > uid_to_desc;
-
-  void populate_database();
+  viame::image_container_set_sptr query_images;
+  viame::track_descriptor_set_sptr all_descriptors;
 
   void reset_query( const viame::database_query_sptr& query );
-  unsigned get_instance_id( const std::string& uid );
+
+  unsigned get_instance_id( std::map< std::string, unsigned >& instance_ids,
+                            const std::string& uid );
+
+  void add_results_to_list( const viame::query_result_set_sptr& results,
+                            const std::vector<std::string>& uids,
+                            const std::vector<double>& scores,
+                            std::map< std::string, unsigned >& instance_ids,
+                            bool feedback_request );
 }; // end priv class
 
 // =============================================================================
@@ -100,8 +114,8 @@ perform_query_process
   : process( config ),
     d( new perform_query_process::priv( this ) )
 {
-  // Required for external feedback loop
-  set_data_checking_level( check_none );
+  // Attach our logger name to process logger
+  attach_logger( viame::get_logger( name() ) );
 
   make_ports();
   make_config();
@@ -110,6 +124,21 @@ perform_query_process
 perform_query_process
 ::~perform_query_process()
 {
+  if( d->external_pipeline )
+  {
+    d->external_pipeline->send_end_of_input();
+    d->external_pipeline->receive();
+    d->external_pipeline->wait();
+    d->external_pipeline.reset();
+  }
+
+  if( d->augmentation_pipeline )
+  {
+    d->augmentation_pipeline->send_end_of_input();
+    d->augmentation_pipeline->receive();
+    d->augmentation_pipeline->wait();
+    d->augmentation_pipeline.reset();
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -119,64 +148,211 @@ void perform_query_process
   viame::config_block_sptr algo_config = get_config();
 
   d->external_handler = config_value_using_trait( external_handler );
+  d->external_pipeline_file = config_value_using_trait( external_pipeline_file );
+  d->augmentation_pipeline_file = config_value_using_trait( augmentation_pipeline_file );
   d->database_folder = config_value_using_trait( database_folder );
   d->max_result_count = config_value_using_trait( max_result_count );
   d->track_postfix = config_value_using_trait( track_postfix );
   d->descriptor_postfix = config_value_using_trait( descriptor_postfix );
   d->index_postfix = config_value_using_trait( index_postfix );
+  d->unused_descriptors_as_negative = config_value_using_trait( unused_descriptors_as_negative );
+  d->use_tracks_for_history = config_value_using_trait( use_tracks_for_history );
+  d->merge_duplicate_results = config_value_using_trait( merge_duplicate_results );
 
   if( d->external_handler )
   {
     set_nested_algo_configuration_using_trait(
-      descriptor_reader,
+      descriptor_query,
       algo_config,
-      d->descriptor_reader );
+      d->descriptor_query );
 
-    if( !d->descriptor_reader )
+    if( !d->descriptor_query )
     {
-      VITAL_THROW( viame::pipeline::invalid_configuration_exception,
-        name(), "Unable to create descriptor reader" );
+      VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
+                   "Configuration check failed." );
     }
 
     get_nested_algo_configuration_using_trait(
-      descriptor_reader,
+      descriptor_query,
       algo_config,
-      d->descriptor_reader );
+      d->descriptor_query );
 
     if( !check_nested_algo_configuration_using_trait(
-          descriptor_reader,
+          descriptor_query,
           algo_config,
-          d->descriptor_reader ) )
+          d->descriptor_query ) )
     {
-      VITAL_THROW( viame::pipeline::invalid_configuration_exception,
-                   name(), "Configuration check failed." );
+      VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
+                   "Unable to create descriptor query." );
     }
 
-  set_nested_algo_configuration_using_trait(
-    track_reader,
-    algo_config,
-    d->track_reader );
+    d->descriptor_query->use_tracks_for_history( d->use_tracks_for_history );
+  }
+}
 
-    if( !d->track_reader )
+
+// -----------------------------------------------------------------------------
+void
+perform_query_process
+::_init()
+{
+  auto dir = std::filesystem::path( d->external_pipeline_file ).parent_path();
+
+  if( d->external_handler && !d->external_pipeline_file.empty() )
+  {
+    std::unique_ptr< embedded_pipeline > new_pipeline =
+      std::unique_ptr< embedded_pipeline >( new embedded_pipeline() );
+
+    std::ifstream pipe_stream;
+    pipe_stream.open( d->external_pipeline_file, std::ifstream::in );
+
+    if( !pipe_stream )
     {
-      VITAL_THROW( viame::pipeline::invalid_configuration_exception,
-                   name(), "Unable to create track reader" );
+      VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
+                   "Unable to open pipeline file: " + d->external_pipeline_file );
     }
 
-    get_nested_algo_configuration_using_trait(
-      track_reader,
-      algo_config,
-      d->track_reader );
-
-    if( !check_nested_algo_configuration_using_trait(
-          track_reader,
-          algo_config,
-          d->track_reader ) )
+    try
     {
-      VITAL_THROW( viame::pipeline::invalid_configuration_exception,
-                   name(), "Configuration check failed." );
+      new_pipeline->build_pipeline( pipe_stream, dir.string() );
+      new_pipeline->start();
+    }
+    catch( const std::exception& e )
+    {
+      throw viame::pipeline::invalid_configuration_exception( name(), e.what() );
+    }
+
+    d->external_pipeline = std::move( new_pipeline );
+    pipe_stream.close();
+  }
+
+  if( !d->augmentation_pipeline_file.empty() )
+  {
+    std::unique_ptr< embedded_pipeline > new_pipeline =
+      std::unique_ptr< embedded_pipeline >( new embedded_pipeline() );
+
+    std::ifstream pipe_stream;
+    pipe_stream.open( d->augmentation_pipeline_file, std::ifstream::in );
+
+    if( !pipe_stream )
+    {
+      VITAL_THROW( viame::pipeline::invalid_configuration_exception, name(),
+                   "Unable to open pipeline file: " + d->augmentation_pipeline_file );
+    }
+
+    try
+    {
+      new_pipeline->build_pipeline( pipe_stream, dir.string() );
+      new_pipeline->start();
+    }
+    catch( const std::exception& e )
+    {
+      throw viame::pipeline::invalid_configuration_exception( name(), e.what() );
+    }
+
+    d->augmentation_pipeline = std::move( new_pipeline );
+    pipe_stream.close();
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+static void
+merge_history( viame::track_descriptor::descriptor_history_t& dest,
+               viame::track_descriptor::descriptor_history_t const& src )
+{
+  auto dest_it = dest.begin();
+  auto src_it = src.begin();
+
+  while( true )
+  {
+    if( dest_it == dest.end() )
+    {
+      if( src_it == src.end() )
+      {
+        return;
+      }
+      else
+      {
+        dest.insert( dest_it, *src_it );
+        src_it++;
+        dest_it++;
+      }
+    }
+    else if( src_it == src.end() ||
+             src_it->get_timestamp().get_frame() > dest_it->get_timestamp().get_frame() )
+    {
+      dest_it++;
+    }
+    else if( src_it->get_timestamp().get_frame() == dest_it->get_timestamp().get_frame() )
+    {
+      src_it++;
+      dest_it++;
+    }
+    else
+    {
+      dest.insert( dest_it, *src_it );
+      src_it++;
+      dest_it++;
     }
   }
+}
+
+
+bool
+is_overlap( viame::track_descriptor_sptr p1, viame::track_descriptor_sptr p2 )
+{
+  // If uncertain return true, they might overlap
+  if( !p1 || !p2 )
+  {
+    return true;
+  }
+
+  auto h1 = p1->get_history();
+  auto h2 = p2->get_history();
+
+  // If uncertain return true, they might overlap
+  if( h1.empty() || h2.empty() )
+  {
+    return true;
+  }
+
+  for( auto e1 : h1 )
+  {
+    for( auto e2 : h2 )
+    {
+      if( e1.get_timestamp() == e2.get_timestamp() )
+      {
+        if( viame::intersection( e1.get_image_location(),
+                                 e2.get_image_location() ).area() > 0 )
+        {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+
+viame::detected_object_set_sptr
+desc_to_det( viame::track_descriptor_set_sptr descs )
+{
+  auto detected_set = std::make_shared< viame::detected_object_set>();
+
+  for( auto desc : *descs )
+  {
+    if( desc->get_history().size() == 1 )
+    {
+      detected_set->add(
+        std::make_shared< viame::detected_object >(
+          desc->get_history()[0].get_image_location(),
+          1.0 ) );
+    }
+  }
+
+  return detected_set;
 }
 
 // -----------------------------------------------------------------------------
@@ -185,43 +361,102 @@ perform_query_process
 ::_step()
 {
   // Check for termination since we are in manual mode
-  auto p_info = peek_at_port_using_trait( database_query );
+  // Need to check all connected input ports for completion signals
+  auto db_query_info = peek_at_port_using_trait( database_query );
 
-  if( p_info.datum->type() == viame::pipeline::datum::complete )
+  bool is_complete = ( db_query_info.datum->type() == viame::pipeline::datum::complete );
+
+  // Check optional ports for completion if they are connected
+  if( !is_complete && has_input_port_edge_using_trait( image_set ) )
+  {
+    auto img_set_info = peek_at_port_using_trait( image_set );
+    is_complete = ( img_set_info.datum->type() == viame::pipeline::datum::complete );
+  }
+  if( !is_complete && has_input_port_edge_using_trait( track_descriptor_set ) )
+  {
+    auto tds_info = peek_at_port_using_trait( track_descriptor_set );
+    is_complete = ( tds_info.datum->type() == viame::pipeline::datum::complete );
+  }
+
+  if( is_complete )
   {
     grab_edge_datum_using_trait( database_query );
-    grab_edge_datum_using_trait( iqr_feedback );
+
+    if ( has_input_port_edge_using_trait( iqr_feedback ) )
+    {
+      grab_edge_datum_using_trait( iqr_feedback );
+    }
+    if ( has_input_port_edge_using_trait( iqr_model ) )
+    {
+      grab_edge_datum_using_trait( iqr_model );
+    }
+    if( has_input_port_edge_using_trait( track_descriptor_set ) )
+    {
+      grab_edge_datum_using_trait( track_descriptor_set );
+    }
+    if( has_input_port_edge_using_trait( image_set ) )
+    {
+      grab_edge_datum_using_trait( image_set );
+    }
     mark_process_as_complete();
 
     const viame::pipeline::datum_t dat = viame::pipeline::datum::complete_datum();
 
     push_datum_to_port_using_trait( query_result, dat );
-
-    if( d->external_handler )
-    {
-      push_datum_to_port_using_trait( external_descriptor_set, dat );
-      push_datum_to_port_using_trait( external_exemplar_uids, dat );
-      push_datum_to_port_using_trait( external_positive_uids, dat );
-      push_datum_to_port_using_trait( external_negative_uids, dat );
-    }
-
+    push_datum_to_port_using_trait( feedback_request, dat );
+    push_datum_to_port_using_trait( iqr_model, dat );
     return;
   }
 
   // Retrieve inputs from ports
   viame::database_query_sptr query;
   viame::iqr_feedback_sptr feedback;
+  viame::uchar_vector_sptr model;
+  viame::track_descriptor_set_sptr query_descs;
+  viame::image_container_set_sptr query_images;
 
   query = grab_from_port_using_trait( database_query );
-  feedback = grab_from_port_using_trait( iqr_feedback );
+
+  if( has_input_port_edge_using_trait( iqr_feedback ) )
+  {
+    feedback = grab_from_port_using_trait( iqr_feedback );
+  }
+  if( has_input_port_edge_using_trait( iqr_model ) )
+  {
+    model = grab_from_port_using_trait( iqr_model );
+  }
+
+  // These ports are declared optional; only grab them when connected
+  // (e.g. reduced query pipelines have no descriptor formulation path)
+  if( has_input_port_edge_using_trait( track_descriptor_set ) )
+  {
+    query_descs = grab_from_port_using_trait( track_descriptor_set );
+  }
+  if( has_input_port_edge_using_trait( image_set ) )
+  {
+    query_images = grab_from_port_using_trait( image_set );
+  }
+
+  if( query_descs )
+  {
+    d->all_descriptors = query_descs;
+  }
+
+  if( query_images && !query_images->empty() )
+  {
+    d->query_images = query_images;
+  }
 
   // Declare output
-  viame::query_result_set_sptr output( new viame::query_result_set() );
+  viame::query_result_set_sptr results( new viame::query_result_set() );
+  viame::query_result_set_sptr feedback_requests( new viame::query_result_set() );
 
   // No query received, do nothing, return no results
-  if( !query && !feedback )
+  if( !query && !feedback && !model )
   {
-    push_to_port_using_trait( query_result, output );
+    push_to_port_using_trait( query_result, results );
+    push_to_port_using_trait( feedback_request, feedback_requests );
+    push_to_port_using_trait( iqr_model, model );
     return;
   }
 
@@ -237,10 +472,8 @@ perform_query_process
   // Call external feedback loop if enabled
   if( d->external_handler )
   {
-    d->populate_database();
-
-    viame::string_vector_sptr positive_uids( new viame::string_vector() );
-    viame::string_vector_sptr negative_uids( new viame::string_vector() );
+    viame::string_vector_sptr iqr_positive_uids( new viame::string_vector() );
+    viame::string_vector_sptr iqr_negative_uids( new viame::string_vector() );
 
     if( feedback &&
       ( !feedback->positive_ids().empty() ) )
@@ -249,7 +482,7 @@ perform_query_process
       {
         for( auto desc_sptr : *d->previous_results[id]->descriptors() )
         {
-          positive_uids->push_back( desc_sptr->get_uid().value() );
+          iqr_positive_uids->push_back( desc_sptr->get_uid().value() );
         }
 
         d->forced_positives[ id ] = d->previous_results[ id ];
@@ -270,7 +503,7 @@ perform_query_process
       {
         for( auto desc_sptr : *d->previous_results[id]->descriptors() )
         {
-          negative_uids->push_back( desc_sptr->get_uid().value() );
+          iqr_negative_uids->push_back( desc_sptr->get_uid().value() );
         }
 
         d->forced_negatives[ id ] = d->previous_results[ id ];
@@ -285,127 +518,209 @@ perform_query_process
     }
 
     // Format data to simplified format for external
-    std::vector< viame::descriptor_sptr > exemplar_raw_descs;
+    std::vector< viame::descriptor_sptr > exemplar_raw_pos_descs;
+    std::vector< viame::descriptor_sptr > exemplar_raw_neg_descs;
 
-    viame::string_vector_sptr exemplar_uids( new viame::string_vector() );
+    viame::string_vector_sptr exemplar_pos_uids( new viame::string_vector() );
+    viame::string_vector_sptr exemplar_neg_uids( new viame::string_vector() );
 
-    for( auto track_desc : *query->descriptors() )
+    if( query )
     {
-      exemplar_uids->push_back( track_desc->get_uid().value() );
-      exemplar_raw_descs.push_back( track_desc->get_descriptor() );
+      for( auto track_desc : *query->descriptors() )
+      {
+        auto raw_desc = track_desc->get_descriptor();
+        exemplar_pos_uids->push_back( track_desc->get_uid().value() );
+        exemplar_raw_pos_descs.push_back( raw_desc );
+      }
+
+      if( !feedback && d->augmentation_pipeline )
+      {
+        if( d->query_images->empty() )
+        {
+          throw std::runtime_error( "Must supply images for use with augmentation pipeline" );
+        }
+
+        // Run seperate augmentation pipeline to get more positives and negatives
+        for( auto query_image = d->query_images->begin();
+             query_image == d->query_images->end(); query_image++ )
+        {
+          auto ids = adapter::adapter_data_set::create();
+
+          viame::descriptor_set_sptr pos_descs(
+            new viame::simple_descriptor_set( exemplar_raw_pos_descs ) );
+
+          viame::detected_object_set_sptr pos_dets = desc_to_det( query->descriptors() );
+
+          ids->add_value( "image", *query_image );
+          ids->add_value( "positive_descriptors", pos_descs );
+          ids->add_value( "positive_detections", pos_dets );
+
+          d->augmentation_pipeline->send( ids );
+
+          auto const& ods = d->augmentation_pipeline->receive();
+
+          if( ods->is_end_of_data() )
+          {
+            throw std::runtime_error( "Pipeline terminated unexpectingly" );
+          }
+
+          // Grab result from pipeline output data set
+          auto const& iter1 = ods->find( "new_positive_descriptors" );
+          auto const& iter2 = ods->find( "new_positive_ids" );
+          auto const& iter3 = ods->find( "new_negative_descriptors" );
+          auto const& iter4 = ods->find( "new_negative_ids" );
+
+          if( iter1 == ods->end() || iter2 == ods->end() ||
+              iter3 == ods->end() || iter4 == ods->end() )
+          {
+            throw std::runtime_error( "Empty pipeline output" );
+          }
+
+          viame::descriptor_set_sptr new_positive_descriptors =
+            iter1->second->get_datum< viame::descriptor_set_sptr >();
+          viame::string_vector_sptr new_positive_ids =
+            iter2->second->get_datum< viame::string_vector_sptr >();
+          viame::descriptor_set_sptr new_negative_descriptors =
+            iter3->second->get_datum< viame::descriptor_set_sptr >();
+          viame::string_vector_sptr new_negative_ids =
+            iter4->second->get_datum< viame::string_vector_sptr >();
+
+          const auto& pos_iter = new_positive_descriptors->descriptors();
+          const auto& neg_iter = new_positive_descriptors->descriptors();
+
+          if( !pos_iter.empty() )
+          {
+            exemplar_raw_pos_descs.insert( exemplar_raw_pos_descs.end(),
+              pos_iter.begin(), pos_iter.end() );
+            exemplar_pos_uids->insert( exemplar_pos_uids->end(),
+              new_positive_ids->begin(), new_positive_ids->end() );
+          }
+
+          if( !neg_iter.empty() )
+          {
+            exemplar_raw_neg_descs.insert( exemplar_raw_neg_descs.end(),
+              neg_iter.begin(), neg_iter.end() );
+            exemplar_neg_uids->insert( exemplar_neg_uids->end(),
+              new_negative_ids->begin(), new_negative_ids->end() );
+          }
+        }
+      }
+
+      if( !feedback && d->unused_descriptors_as_negative )
+      {
+        if( !d->all_descriptors )
+        {
+          throw std::runtime_error( "Must supply descriptors to use with unused as negative option" );
+        }
+
+        // Use background descriptors as negative examples
+        for( auto desc : *( d->all_descriptors ) )
+        {
+          bool no_overlap = true;
+
+          for( auto comp : *( query->descriptors() ) )
+          {
+            if( is_overlap( desc, comp ) )
+            {
+              no_overlap = false;
+              break;
+            }
+          }
+
+          if( no_overlap )
+          {
+            exemplar_neg_uids->push_back( desc->get_uid().value() );
+            exemplar_raw_neg_descs.push_back( desc->get_descriptor() );
+          }
+        }
+      }
     }
 
-    viame::descriptor_set_sptr exemplar_descs(
-      new viame::simple_descriptor_set( exemplar_raw_descs ) );
+    viame::descriptor_set_sptr exemplar_pos_descs(
+      new viame::simple_descriptor_set( exemplar_raw_pos_descs ) );
+    viame::descriptor_set_sptr exemplar_neg_descs(
+      new viame::simple_descriptor_set( exemplar_raw_neg_descs ) );
 
-    viame::string_vector_sptr result_uids;
-    viame::double_vector_sptr result_scores;
+    // Set request on pipeline inputs
+    auto ids = adapter::adapter_data_set::create();
 
-    // Send data to external process
-    push_to_port_using_trait( external_descriptor_set, exemplar_descs );
-    push_to_port_using_trait( external_exemplar_uids, exemplar_uids );
-    push_to_port_using_trait( external_positive_uids, positive_uids );
-    push_to_port_using_trait( external_negative_uids, negative_uids );
+    ids->add_value( "positive_descriptor_set", exemplar_pos_descs );
+    ids->add_value( "positive_exemplar_uids", exemplar_pos_uids );
+    ids->add_value( "negative_descriptor_set", exemplar_neg_descs );
+    ids->add_value( "negative_exemplar_uids", exemplar_neg_uids );
+    ids->add_value( "iqr_positive_uids", iqr_positive_uids );
+    ids->add_value( "iqr_negative_uids", iqr_negative_uids );
+    ids->add_value( "iqr_query_model", model );
 
-    // Receive data from external process (halts until finished)
-    result_uids = grab_from_port_using_trait( result_descriptor_uids );
-    result_scores = grab_from_port_using_trait( result_descriptor_scores );
+    // Send the request through the pipeline and wait for a result
+    d->external_pipeline->send( ids );
+
+    auto const& ods = d->external_pipeline->receive();
+
+    if( ods->is_end_of_data() )
+    {
+      throw std::runtime_error( "Pipeline terminated unexpectingly" );
+    }
+
+    // Grab result from pipeline output data set
+    auto const& iter1 = ods->find( "result_uids" );
+    auto const& iter2 = ods->find( "result_scores" );
+    auto const& iter3 = ods->find( "result_model" );
+    auto const& iter4 = ods->find( "feedback_uids" );
+    auto const& iter5 = ods->find( "feedback_scores" );
+
+    if( iter1 == ods->end() || iter2 == ods->end() || iter3 == ods->end() )
+    {
+      throw std::runtime_error( "Empty pipeline output" );
+    }
+
+    viame::string_vector_sptr result_uids =
+      iter1->second->get_datum< viame::string_vector_sptr >();
+    viame::double_vector_sptr result_scores =
+      iter2->second->get_datum< viame::double_vector_sptr >();
+
+    viame::string_vector_sptr feedback_uids;
+    if( iter4 != ods->end() )
+    {
+      feedback_uids =
+        iter4->second->get_datum< viame::string_vector_sptr >();
+    }
+    else
+    {
+      feedback_uids.reset( new std::vector<std::string> );
+    }
+
+    viame::double_vector_sptr feedback_scores;
+    if( iter5 != ods->end() )
+    {
+      feedback_scores =
+        iter5->second->get_datum< viame::double_vector_sptr >();
+    }
+    else
+    {
+      feedback_scores.reset( new std::vector<double> );
+    }
+
+    model = iter3->second->get_datum< viame::uchar_vector_sptr >();
 
     // Handle forced positive examples, set score to 1, make sure at front
     for( auto itr = d->forced_positives.begin();
          itr != d->forced_positives.end(); itr++ )
     {
       itr->second->set_relevancy_score( 1.0 );
-      output->push_back( itr->second );
+      results->push_back( itr->second );
     }
 
     // Handle all new or unadjudacted results
-    for( unsigned i = 0; i < result_uids->size(); ++i )
-    {
-      if( i > d->max_result_count )
-      {
-        break;
-      }
-
-      auto result_uid = (*result_uids)[i];
-      auto result_score = (*result_scores)[i];
-
-      auto db_res = d->uid_to_desc.find( result_uid );
-
-      if( db_res == d->uid_to_desc.end() )
-      {
-        continue;
-      }
-
-      // Create result set and set relevant IDs
-      auto iid = d->get_instance_id( result_uid );
-
-      // Check if result is forced positive or negative (e.g. annotated by user)
-      if( d->forced_positives.find( iid ) != d->forced_positives.end() ||
-          d->forced_negatives.find( iid ) != d->forced_negatives.end() )
-      {
-        continue;
-      }
-
-      viame::query_result_sptr entry( new viame::query_result() );
-
-      entry->set_query_id( d->active_uid );
-      entry->set_stream_id( std::get<0>( db_res->second ) );
-      entry->set_instance_id( iid );
-      entry->set_relevancy_score( result_score );
-
-      // Assign track descriptor set to result
-      viame::track_descriptor_set_sptr desc_set(
-        new viame::track_descriptor_set() );
-
-      desc_set->push_back( std::get<1>( db_res->second ) );
-      entry->set_descriptors( desc_set );
-
-      // Assign temporal bounds to this query result
-      viame::timestamp ts1, ts2;
-      bool is_first = true;
-
-      for( auto desc : *desc_set )
-      {
-        for( auto hist : desc->get_history() )
-        {
-          if( is_first )
-          {
-            ts1 = hist.get_timestamp();
-            ts2 = hist.get_timestamp();
-
-            is_first = false;
-          }
-          else if( hist.get_timestamp().get_frame() < ts1.get_frame() )
-          {
-            ts1 = hist.get_timestamp();
-          }
-          else if( hist.get_timestamp().get_frame() > ts2.get_frame() )
-          {
-            ts2 = hist.get_timestamp();
-          }
-        }
-      }
-      entry->set_temporal_bounds( ts1, ts2 );
-
-      // Assign track set to result
-      viame::object_track_set_sptr trk_set(
-        new viame::object_track_set( std::get<2>( db_res->second ) ) );
-
-      entry->set_tracks( trk_set );
-
-      // Remember this descriptor result for future iterations
-      d->previous_results[ entry->instance_id() ] = entry;
-
-      output->push_back( entry );
-    }
+    d->add_results_to_list( results, *result_uids, *result_scores, d->result_instance_ids, false );
+    d->add_results_to_list( feedback_requests, *feedback_uids, *feedback_scores, d->feedback_instance_ids, true );
 
     // Handle forced negative examples, set score to 0, make sure at end of result set
     for( auto itr = d->forced_negatives.begin();
          itr != d->forced_negatives.end(); itr++ )
     {
       itr->second->set_relevancy_score( 0.0 );
-      output->push_back( itr->second );
+      results->push_back( itr->second );
     }
   }
   else
@@ -414,7 +729,9 @@ perform_query_process
   }
 
   // Push outputs downstream
-  push_to_port_using_trait( query_result, output );
+  push_to_port_using_trait( query_result, results );
+  push_to_port_using_trait( feedback_request, feedback_requests );
+  push_to_port_using_trait( iqr_model, model );
 }
 
 // -----------------------------------------------------------------------------
@@ -423,41 +740,38 @@ void perform_query_process
 {
   // Set up for required ports
   viame::pipeline::process::port_flags_t optional;
-  viame::pipeline::process::port_flags_t optional_no_dep;
   viame::pipeline::process::port_flags_t required;
 
   required.insert( flag_required );
-  optional_no_dep.insert( flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( database_query, required );
   declare_input_port_using_trait( iqr_feedback, optional );
+  declare_input_port_using_trait( iqr_model, optional );
+  declare_input_port_using_trait( track_descriptor_set, optional );
+  declare_input_port_using_trait( image_set, optional );
 
   // -- output --
   declare_output_port_using_trait( query_result, optional );
-
-  // -- feedback loop --
-  declare_output_port_using_trait( external_descriptor_set, optional );
-  declare_output_port_using_trait( external_exemplar_uids, optional );
-  declare_output_port_using_trait( external_positive_uids, optional );
-  declare_output_port_using_trait( external_negative_uids, optional );
-
-  declare_input_port_using_trait( result_descriptor_uids, optional_no_dep );
-  declare_input_port_using_trait( result_descriptor_scores, optional_no_dep );
+  declare_output_port_using_trait( feedback_request, optional );
+  declare_output_port_using_trait( iqr_model, optional );
 }
 
 // -----------------------------------------------------------------------------
 void perform_query_process
 ::make_config()
 {
-  declare_config_using_trait( descriptor_reader );
-  declare_config_using_trait( track_reader );
   declare_config_using_trait( external_handler );
+  declare_config_using_trait( external_pipeline_file );
+  declare_config_using_trait( augmentation_pipeline_file );
   declare_config_using_trait( database_folder );
   declare_config_using_trait( max_result_count );
   declare_config_using_trait( descriptor_postfix );
   declare_config_using_trait( track_postfix );
   declare_config_using_trait( index_postfix );
+  declare_config_using_trait( unused_descriptors_as_negative );
+  declare_config_using_trait( use_tracks_for_history );
+  declare_config_using_trait( merge_duplicate_results );
 }
 
 // =============================================================================
@@ -465,7 +779,12 @@ perform_query_process::priv
 ::priv( perform_query_process* p )
  : parent( p )
  , external_handler( true )
+ , external_pipeline_file( "" )
+ , augmentation_pipeline_file( "" )
  , database_folder( "" )
+ , unused_descriptors_as_negative( true )
+ , use_tracks_for_history( false )
+ , merge_duplicate_results( false )
  , max_result_count( 100 )
  , is_first( true )
  , database_populated( false )
@@ -478,82 +797,165 @@ perform_query_process::priv
 }
 
 void perform_query_process::priv
-::populate_database()
+::add_results_to_list( const viame::query_result_set_sptr& results,
+                       const std::vector<std::string>& uids,
+                       const std::vector<double>& scores,
+                       std::map< std::string, unsigned >& instance_ids,
+                       bool feedback_request )
 {
-  if( database_populated )
+  typedef std::pair< std::string, viame::track_id_t > unique_track_id_t;
+  std::map< unique_track_id_t, viame::query_result_sptr > top_results;
+
+  for( unsigned i = 0; i < uids.size(); ++i )
   {
-    return;
-  }
-
-  // List all files to check
-  std::vector< std::string > basenames;
-
-  std::filesystem::path dir( database_folder );
-
-  for( auto const& entry : std::filesystem::directory_iterator( dir ) )
-  {
-    if( std::filesystem::is_regular_file( entry ) &&
-        entry.path().extension().string() == index_postfix )
+    if( i > max_result_count || (feedback_request && i > 20) )
     {
-      basenames.push_back( entry.path().stem().string() );
+      break;
     }
-  }
 
-  // Load tracks for every base name
-  for( std::string name : basenames )
-  {
-    std::string track_file = database_folder + "/" + name + track_postfix;
-    std::string desc_file = database_folder + "/" + name + descriptor_postfix;
+    auto uid = uids[i];
+    auto score = scores[i];
 
-    descriptor_reader->open( desc_file );
-    track_reader->open( track_file );
-
-    viame::track_descriptor_set_sptr descs;
-    viame::object_track_set_sptr tracks;
-
-    if( !descriptor_reader->read_set( descs ) )
+    viame::algo::query_track_descriptor_set::desc_tuple_t result;
+    if( !descriptor_query->get_track_descriptor( uid, result ))
     {
-      LOG_ERROR( parent->logger(), "Unable to load desc set " << desc_file );
       continue;
     }
 
-    if( !track_reader->read_set( tracks ) )
+    // Create result set and set relevant IDs
+    auto iid = get_instance_id( instance_ids, uid );
+
+    // Check if result is forced positive or negative (e.g. annotated by user)
+    if( forced_positives.find( iid ) != forced_positives.end() ||
+        forced_negatives.find( iid ) != forced_negatives.end() )
     {
-      LOG_ERROR( parent->logger(), "Unable to load track set " << track_file );
       continue;
     }
 
-    std::map< unsigned, viame::track_sptr > id_to_track;
+    viame::query_result_sptr entry;
+    bool insert = true;
 
-    for( auto trk_sptr : tracks->tracks() )
+    // If there is more than one track for a descriptor, there's no point in
+    // trying to do any merging
+    if( merge_duplicate_results && std::get<2>( result ).size() == 1 )
     {
-      id_to_track[ trk_sptr->id() ] = trk_sptr;
-    }
+      viame::track_sptr track = std::get<2>( result )[0];
+      unique_track_id_t track_id;
+      track_id.first = std::get<0>( result );
+      track_id.second = track->id();
 
-    for( auto desc_sptr : *descs )
-    {
-      // Identify associated tracks
-      std::vector< viame::track_sptr > assc_trks;
-
-      for( auto id : desc_sptr->get_track_ids() )
+      auto it = top_results.find( track_id );
+      if( it != top_results.end() )
       {
-        assc_trks.push_back( id_to_track[ id ] );
-      }
+        if( use_tracks_for_history)
+        {
+          if( it->second->relevancy_score() >= score )
+          {
+            continue;
+          }
+          else
+          {
+            entry = it->second;
+            insert = false;
+          }
+        }
+        else
+        {
+          entry = it->second;
+          insert = false;
+          viame::track_descriptor_sptr entry_descriptor = (*entry->descriptors())[0];
+          auto hist = std::get<1>( result )->get_history();
+          auto entry_hist = entry_descriptor->get_history();
 
-      // Add to index
-      uid_to_desc[ desc_sptr->get_uid().value() ] =
-        desc_tuple_t( name, desc_sptr, assc_trks );
+          merge_history( entry_hist, hist );
+
+          entry_descriptor->set_history( entry_hist );
+        }
+      }
+      else
+      {
+        entry.reset( new viame::query_result() );
+        top_results[ track_id ] = entry;
+      }
+    }
+
+    if( ! entry )
+    {
+      entry.reset( new viame::query_result() );
+    }
+
+    entry->set_query_id( active_uid );
+    entry->set_stream_id( std::get<0>( result ) );
+    entry->set_instance_id( iid );
+    if( feedback_request )
+    {
+      entry->set_relevancy_score( 0.0 );
+      entry->set_preference_score( score );
+    }
+    else
+    {
+      entry->set_relevancy_score( score );
+    }
+
+    // Assign track descriptor set to result
+    viame::track_descriptor_set_sptr desc_set = entry->descriptors();
+    if( ! desc_set )
+    {
+      desc_set.reset( new viame::track_descriptor_set() );
+
+      desc_set->push_back( std::get<1>( result ) );
+      entry->set_descriptors( desc_set );
+    }
+
+    // Assign temporal bounds to this query result
+    viame::timestamp ts1, ts2;
+    bool is_first = true;
+
+    for( auto desc : *desc_set )
+    {
+      for( auto hist : desc->get_history() )
+      {
+        if( is_first )
+        {
+          ts1 = hist.get_timestamp();
+          ts2 = hist.get_timestamp();
+
+          is_first = false;
+        }
+        else if( hist.get_timestamp().get_frame() < ts1.get_frame() )
+        {
+          ts1 = hist.get_timestamp();
+        }
+        else if( hist.get_timestamp().get_frame() > ts2.get_frame() )
+        {
+          ts2 = hist.get_timestamp();
+        }
+      }
+    }
+    entry->set_temporal_bounds( ts1, ts2 );
+
+    // Assign track set to result
+    viame::object_track_set_sptr trk_set(
+      new viame::object_track_set( std::get<2>( result ) ) );
+
+    entry->set_tracks( trk_set );
+
+    // Remember this descriptor result for future iterations
+    previous_results[ entry->instance_id() ] = entry;
+
+    if( insert )
+    {
+      results->push_back( entry );
     }
   }
-
-  database_populated = true;
 }
 
 void perform_query_process::priv
 ::reset_query( const viame::database_query_sptr& query )
 {
   result_counter = 0;
-  instance_ids.clear();
+  result_instance_ids.clear();
+  feedback_instance_ids.clear();
   previous_results.clear();
   forced_positives.clear();
   forced_negatives.clear();
@@ -561,7 +963,7 @@ void perform_query_process::priv
 }
 
 unsigned perform_query_process::priv
-::get_instance_id( const std::string& uid )
+::get_instance_id( std::map< std::string, unsigned >& instance_ids, const std::string& uid )
 {
   auto itr = instance_ids.find( uid );
 
@@ -574,4 +976,4 @@ unsigned perform_query_process::priv
   return result_counter;
 }
 
-} // namespace viame
+} // end namespace

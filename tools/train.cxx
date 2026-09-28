@@ -1455,7 +1455,7 @@ train_applet
               << "  viame train data/ train_detector.conf\n"
               << "  viame train -i data/ -c train_detector.conf --threshold 0.0\n"
               << std::endl;
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
   }
 
   // Extract options
@@ -1593,7 +1593,7 @@ train_applet
         std::cout << name << std::endl;
       }
     }
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
   }
 
   // Test for presence of conflicting options

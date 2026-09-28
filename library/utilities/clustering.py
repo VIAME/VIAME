@@ -61,9 +61,8 @@ def kmeans(samples, clusters, seed=0, max_iterations=100, epsilon=0.0,
             if moved <= float(epsilon) ** 2:
                 break
 
-        labels = _assign(samples, centres)
-        distances = _distances(samples, centres)
-        compactness = float(distances[np.arange(len(samples)), labels].sum())
+        labels, nearest = _assign(samples, centres, with_distances=True)
+        compactness = float(nearest.sum())
 
         if best is None or compactness < best[0]:
             best = (compactness, labels, centres)
@@ -75,11 +74,22 @@ def kmeans(samples, clusters, seed=0, max_iterations=100, epsilon=0.0,
 
 def _distances(samples, centres):
     """Squared distance from every sample to every centre."""
-    return ((samples[:, None, :] - centres[None, :, :]) ** 2).sum(axis=2)
+    from scipy.spatial.distance import cdist
+    return cdist(samples, centres, metric="sqeuclidean")
 
 
-def _assign(samples, centres):
-    return np.argmin(_distances(samples, centres), axis=1).astype(np.int32)
+def _assign(samples, centres, with_distances=False):
+    # Bound the distance workspace to about 8 MiB, independent of image size.
+    chunk = max(1, (1024 * 1024) // len(centres))
+    labels = np.empty(len(samples), dtype=np.int32)
+    nearest = np.empty(len(samples), dtype=np.float64) if with_distances else None
+    for start in range(0, len(samples), chunk):
+        distances = _distances(samples[start:start + chunk], centres)
+        chosen = np.argmin(distances, axis=1)
+        labels[start:start + chunk] = chosen
+        if with_distances:
+            nearest[start:start + chunk] = distances[np.arange(len(chosen)), chosen]
+    return (labels, nearest) if with_distances else labels
 
 
 def _plus_plus(samples, clusters, generator):
@@ -87,8 +97,10 @@ def _plus_plus(samples, clusters, generator):
     centres = np.empty((clusters, samples.shape[1]), dtype=np.float64)
     centres[0] = samples[generator.integers(len(samples))]
 
+    nearest = np.full(len(samples), np.inf)
     for chosen in range(1, clusters):
-        nearest = _distances(samples, centres[:chosen]).min(axis=1)
+        np.minimum(nearest, _distances(samples, centres[chosen - 1:chosen])[:, 0],
+                   out=nearest)
         total = nearest.sum()
 
         if total <= 0.0:

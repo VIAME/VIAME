@@ -641,20 +641,9 @@ hsv_to_rgb( viame::image_of< T > const& image, bool full = false )
 
   if constexpr( std::is_same< T, uint8_t >::value )
   {
-    // OpenCV's `HSV2RGB_b`: hue scaled to sixths, the other two to 0..1, the
-    // six sector formula in **float**, and back to bytes by
-    // **truncation**. The truncation is the surprise and it is not a reading
-    // of `saturate_cast`, which rounds: the vectorised body finishes with
-    // `v_trunc`, and the scalar tail that rounds only ever sees the last few
-    // pixels of a buffer. Truncating is therefore what a recording of
-    // `cv2.cvtColor( ..., COLOR_HSV2RGB )` contains for all but a handful of
-    // its pixels, and rounding instead is a count low on 74 percent of them.
-    //
-    // Reproduced, not corrected, for that reason. What is left over is 1758
-    // of the 11796480 legal 8-bit triples, one count each, where OpenCV's
-    // float chain lands a hair either side of an integer that this one hits
-    // exactly; the arithmetic is written in OpenCV's own order and no
-    // reassociation tried gets closer.
+    // Match the byte conversion used by the main build: the SIMD body
+    // truncates groups of 32 pixels, and the remaining row tail rounds.
+    // FULL uses the scalar conversion throughout.
     static constexpr int sector_data[ 6 ][ 3 ] =
       { { 1, 3, 0 }, { 1, 0, 2 }, { 3, 0, 1 },
         { 0, 2, 1 }, { 0, 1, 3 }, { 2, 1, 0 } };
@@ -690,23 +679,11 @@ hsv_to_rgb( viame::image_of< T > const& image, bool full = false )
         sector %= 6;
         if( sector < 0 ) { sector += 6; }
 
-        // `1 - s * h` is one **fused** multiply-add, not a multiply and a
-        // subtract. OpenCV writes it as two universal intrinsics, but GCC
-        // contracts `_mm256_sub_ps( one, _mm256_mul_ps( s, h ) )` into a
-        // single `fnmadd` on any host with FMA, and the rounding that is
-        // skipped in the middle is visible: unfused leaves 1758 of the
-        // 11796480 triples a count out, fused leaves **none**. `1 - s` is
-        // left alone, since there is no product inside it to fuse with.
-        // Fused on the half-degree scale and unfused on the full one, for
-        // the same reason the store below truncates on one and rounds on the
-        // other: the two are different roads through OpenCV. Fusing costs 89
-        // of the 50331648 plane values on an exhaustive `_FULL` sweep and
-        // not fusing costs 1758 of the 11796480 legal triples on the other,
-        // so each road gets the form that is exact for it.
-        float const paired = full
+        bool const scalar = full || i >= ( image.width() / 32 ) * 32;
+        float const paired = scalar
           ? detail::exact( 1.0f - detail::exact( saturation * hue ) )
           : std::fma( -saturation, hue, 1.0f );
-        float const complement = full
+        float const complement = scalar
           ? detail::exact(
               1.0f - detail::exact( saturation * ( 1.0f - hue ) ) )
           : std::fma( -saturation, 1.0f - hue, 1.0f );
@@ -722,17 +699,7 @@ hsv_to_rgb( viame::image_of< T > const& image, bool full = false )
           // sector_data gives blue, green, red in that order
           auto const scaled = tab[ sector_data[ sector ][ 2 - k ] ] * 255.0f;
 
-          // Truncated on the half-degree scale and **rounded** on the full
-          // one. Not a choice: `COLOR_HSV2RGB` on a wide row finishes in the
-          // vectorised body, which truncates, and `COLOR_HSV2RGB_FULL` does
-          // not take that body at all -- its hue does not fit the fixed
-          // point the SIMD path is written for -- so it ends in the scalar
-          // `saturate_cast< uchar >`, which rounds. Over a 256 by 256 block
-          // of every legal triple, truncating is exact for the first and
-          // wrong on 34 percent of the second, and rounding is the other way
-          // round. This is the same split as finding 2.56, with the cause
-          // named: `_FULL` is the scalar road every time.
-          auto const quantised = full
+          auto const quantised = scalar
             ? static_cast< int >( std::nearbyint( scaled ) )
             : static_cast< int >( scaled );
 

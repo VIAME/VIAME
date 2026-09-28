@@ -18,17 +18,15 @@ namespace viame
 /**
  * \class handle_descriptor_request_process
  *
- * \brief Generates association matrix between old tracks and new detections
- *        for use in object tracking.
+ * \brief Compute descriptors and retain query images for an exemplar request.
  *
  * \iports
  * \iport{descriptor_request}
  *
  * \oports
  * \oport{track_descriptor_set}
- * \oport{image_container}
- * \oport{filename}
- * \oport{stream_id}
+ * \oport{image_set}
+ * \oport{boxes_provided}
  */
 class VIAME_PROCESSES_DESCRIPTORS_EXPORT handle_descriptor_request_process
   : public viame::pipeline::process
@@ -43,6 +41,7 @@ public:
 
 protected:
   virtual void _configure();
+  virtual void _init();
   virtual void _step();
 
 private:

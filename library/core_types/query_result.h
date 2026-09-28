@@ -42,6 +42,9 @@ public:
 
   unsigned instance_id() const;
   double relevancy_score() const;
+  /// Preference score of a feedback request: how much adjudicating this
+  /// result would help the model (0 when not a feedback request).
+  double preference_score() const;
 
   viame::timestamp start_time() const;
   viame::timestamp end_time() const;
@@ -58,6 +61,7 @@ public:
 
   void set_instance_id( unsigned );
   void set_relevancy_score( double );
+  void set_preference_score( double );
 
   void set_temporal_bounds( timestamp const&, timestamp const& );
 
@@ -74,6 +78,7 @@ protected:
 
   unsigned m_instance_id;
   double m_relevancy_score;
+  double m_preference_score;
 
   viame::timestamp m_start_time;
   viame::timestamp m_end_time;

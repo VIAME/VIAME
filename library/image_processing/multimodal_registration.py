@@ -23,7 +23,7 @@
 # SOFTWARE
 
 from viame.processes.base import ViameProcess
-from viame.pipeline import process
+from viame.pipeline import process, datum
 
 from viame.types import Image
 from viame.types import ImageContainer
@@ -181,20 +181,21 @@ def compute_transform( optical, thermal, warp_mode = MOTION_HOMOGRAPHY,
 
 # normlize thermal image
 def normalize_thermal( thermal_image, percent=0.01 ):
+    if thermal_image is None or not thermal_image.size:
+        return None
+    if thermal_image.dtype == np.uint8:
+        return thermal_image
+    low, high = np.percentile(thermal_image, [percent, 100 - percent])
+    if high <= low:
+        return np.zeros(thermal_image.shape, dtype=np.uint8)
+    scaled = np.floor((thermal_image.astype(np.float64) - low) *
+                      (256.0 / (high - low)))
+    return np.clip(scaled, 0, 255).astype(np.uint8)
 
-    if not thermal_image is None and thermal_image.dtype is not np.dtype('uint8'):
-        thermal_norm = np.floor( ( thermal_image -            \
-          np.percentile( thermal_image, percent) ) /          \
-            ( np.percentile( thermal_image, 100 - percent ) - \
-              np.percentile( thermal_image, percent ) ) * 256 )
-    else:
-        thermal_norm = thermal_image
-
-    return thermal_norm.astype( np.uint8 )
 
 class register_frames_process( ViameProcess ):
     """
-    This process blanks out images which don't have detections on them.
+    Register optical and thermal frames.
     """
     # -------------------------------------------------------------------------
     def __init__( self, conf ):
@@ -229,8 +230,8 @@ class register_frames_process( ViameProcess ):
 
         self.add_port_trait( "warped_optical_image", "image", "Output image" )
         self.add_port_trait( "warped_thermal_image", "image", "Output image" )
-        self.add_port_trait( "optical_to_thermal_homog", "homography", "Output homog" )
-        self.add_port_trait( "thermal_to_optical_homog", "homography", "Output homog" )
+        self.add_port_trait( "optical_to_thermal_homog", "homography_src_to_ref", "Output homog" )
+        self.add_port_trait( "thermal_to_optical_homog", "homography_src_to_ref", "Output homog" )
 
         self.declare_input_port_using_trait( 'optical_image', required )
         self.declare_input_port_using_trait( 'thermal_image', required )
@@ -286,10 +287,10 @@ class register_frames_process( ViameProcess ):
             optical_warped = image_kernels.warp_perspective( optical_npy,
               inv_transform, thermal_npy.shape[1], thermal_npy.shape[0] )
 
-            #self.push_to_port_using_trait( 'thermal_to_optical_homog',
-            #   F2FHomography.from_matrix( transform, 'd' )
-            #self.push_to_port_using_trait( 'optical_to_thermal_homog',
-            #   F2FHomography.from_matrix( inv_transform, 'd' )
+            self.push_to_port_using_trait( 'thermal_to_optical_homog',
+                F2FHomography.from_doubles( transform, 0, 0 ) )
+            self.push_to_port_using_trait( 'optical_to_thermal_homog',
+                F2FHomography.from_doubles( inv_transform, 0, 0 ) )
 
             self.push_to_port_using_trait( 'warped_thermal_image',
               ImageContainer.fromarray( thermal_warped ) )
@@ -298,10 +299,10 @@ class register_frames_process( ViameProcess ):
         else:
             logger.warning( "Frame alignment failed" )
 
-            #self.push_to_port_using_trait( "thermal_to_optical_homog", F2FHomography() )
-            #self.push_to_port_using_trait( "optical_to_thermal_homog", F2FHomography() )
+            self.push_datum_to_port( 'thermal_to_optical_homog', datum.empty() )
+            self.push_datum_to_port( 'optical_to_thermal_homog', datum.empty() )
 
-            self.push_to_port_using_trait( 'warped_optical_image', ImageContainer() )
-            self.push_to_port_using_trait( 'warped_thermal_image', ImageContainer() )
+            self.push_datum_to_port( 'warped_optical_image', datum.empty() )
+            self.push_datum_to_port( 'warped_thermal_image', datum.empty() )
 
         self._base_step()

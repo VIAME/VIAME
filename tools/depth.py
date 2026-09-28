@@ -70,11 +70,11 @@ def main():
     depths = pts3d[:, 2]
     print(f"depths: min={np.min(depths):.2f} median={np.median(depths):.2f} max={np.max(depths):.2f}")
 
-    bgr = left_img[valid]
+    rgb = left_img[valid]
     color = {
-        "red": bgr[:, 2],
-        "green": bgr[:, 1],
-        "blue": bgr[:, 0]
+        "red": rgb[:, 0],
+        "green": rgb[:, 1],
+        "blue": rgb[:, 2]
     }
 
     output_file = f"{basename}-points.ply"

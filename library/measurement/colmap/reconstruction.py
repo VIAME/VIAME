@@ -31,15 +31,16 @@ pycolmap = None
 o3d = None
 
 
-def import_dependencies():
+def import_dependencies(dense=True):
     """Import the SfM/dense dependencies into module globals."""
     global np, pycolmap, o3d
     import numpy as np_
     import pycolmap as pycolmap_
-    import open3d as o3d_
+    if dense:
+        import open3d as o3d_
+        o3d = o3d_
     np = np_
     pycolmap = pycolmap_
-    o3d = o3d_
 
 
 def timeit(msg):

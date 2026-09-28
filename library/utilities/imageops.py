@@ -334,7 +334,14 @@ def euclidean_distance(mask):
     """
     from scipy.ndimage import distance_transform_edt
 
-    return distance_transform_edt(np.asarray(mask) != 0).astype(np.float32)
+    foreground = np.asarray(mask) != 0
+    if foreground.all():
+        # With no background pixel the distance is unbounded. Match the
+        # finite sentinel used by the precise OpenCV transform; SciPy would
+        # instead measure from an implicit pixel outside the image.
+        return np.full(foreground.shape, np.sqrt(np.finfo(np.float32).max),
+                       dtype=np.float32)
+    return distance_transform_edt(foreground).astype(np.float32)
 
 
 def resize(array, width, height, interpolation=INTER_LINEAR):

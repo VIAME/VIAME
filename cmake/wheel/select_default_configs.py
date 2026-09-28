@@ -41,6 +41,8 @@ import sys
 from pathlib import Path
 
 
+PIPELINE = re.compile(r"relativepath\s+[\w:]+\s*=\s*(\S+\.pipe)\b")
+
 INCLUDE = re.compile(r"^\s*include\s+(\S+)", re.M)
 
 # A model reference, however the config spells it.
@@ -64,11 +66,19 @@ def _refuse_add_ons(path):
 def closure(entry, root, seen=None):
     """`entry` and everything it includes, transitively."""
     seen = seen if seen is not None else set()
-    if entry in seen or not entry.is_file():
+    if entry in seen:
         return seen
+    if not entry.is_file():
+        raise ValueError(f"missing configuration dependency: {entry}")
     _refuse_add_ons(entry)
     seen.add(entry)
-    for name in INCLUDE.findall(entry.read_text(errors="replace")):
+    text = "\n".join(line.split("#", 1)[0] for line in
+                     entry.read_text(errors="replace").splitlines())
+    if re.search(r"^\s*TODO\b", text, re.M):
+        raise ValueError(f"unfinished configuration: {entry}")
+    for name in INCLUDE.findall(text) + PIPELINE.findall(text):
+        name = name.strip('"\'')
+        name = name.replace("$ENV{VIAME_INSTALL}/configs/pipelines/", "")
         closure(root / name, root, seen)
     return seen
 
@@ -117,8 +127,21 @@ def main(argv=None):
     for entry in entries:
         if entry.name.startswith("common_") or not built(entry):
             continue        # an include, or not a pipeline this build makes
-        chain = closure(entry, root)
-        text = "".join(c.read_text(errors="replace") for c in chain)
+        try:
+            chain = closure(entry, root)
+        except ValueError as exc:
+            print(f"  note: skipping {entry.name}: {exc}", file=sys.stderr)
+            continue
+        if any(not built(path) for path in chain):
+            continue
+        # The adaptive default trainer handles a missing probe model and
+        # downloads its seed weights when selected. Its templates must still
+        # ship, even when pretrained inference models are not bundled.
+        if entry.name == "train_detector_default.conf":
+            selected |= chain
+            continue
+        text = "\n".join(line.split("#", 1)[0] for c in chain
+                         for line in c.read_text(errors="replace").splitlines())
 
         refs = {root / r for r in MODEL.findall(text)}
         if refs:
@@ -161,7 +184,7 @@ def main(argv=None):
     ]
     for path in sorted(selected):
         rel = path.relative_to(Path(args.prefix)).as_posix()
-        lines.append(f"include {rel} -> {args.destination}{path.name}")
+        lines.append(f"include {rel} -> {args.destination}{path.relative_to(root).as_posix()}")
     for path in sorted(models):
         rel = path.relative_to(Path(args.prefix)).as_posix()
         lines.append(f"include {rel} -> {args.destination}models/{path.name}")

@@ -126,3 +126,16 @@ def test_helper_resize_retains_rgba_channels():
     image = np.arange(16, dtype=np.uint8).reshape(2, 2, 4)
     out = imageops.resize(image, 4, 4, imageops.INTER_NEAREST)
     np.testing.assert_array_equal(out, image.repeat(2, 0).repeat(2, 1))
+
+
+def test_euclidean_distance_without_background_is_unbounded():
+    expected = np.sqrt(np.finfo(np.float32).max)
+    result = imageops.euclidean_distance(np.ones((5, 7), dtype=np.uint8))
+    assert result.dtype == np.float32
+    assert np.all(result == expected)
+    assert np.all(imageops.euclidean_distance(np.zeros((5, 7))) == 0)
+    mask = np.ones((5, 7), dtype=np.uint8)
+    mask[2, 3] = 0
+    y, x = np.indices(mask.shape)
+    np.testing.assert_allclose(imageops.euclidean_distance(mask),
+                               np.hypot(y - 2, x - 3), rtol=1e-7)

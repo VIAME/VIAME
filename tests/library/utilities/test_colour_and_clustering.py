@@ -238,3 +238,14 @@ def test_kmeans_refuses_more_clusters_than_samples():
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+@pytest.mark.parametrize("dimensions", [1, 3, 16])
+def test_kmeans_assignments_match_direct_distances(dimensions):
+    rng = np.random.default_rng(24)
+    samples = rng.normal(size=(500, dimensions))
+    centres = samples[:9]
+    expected = ((samples[:, None, :] - centres[None, :, :]) ** 2).sum(axis=2)
+    labels, nearest = clustering._assign(samples, centres, with_distances=True)
+    np.testing.assert_array_equal(labels, expected.argmin(axis=1))
+    np.testing.assert_allclose(nearest, expected.min(axis=1), rtol=1e-14)

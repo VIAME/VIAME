@@ -1,0 +1,2103 @@
+{
+  "date": "2026-09-28",
+  "source_head": "9343e51233913d4a65e643e4cc2a34d874ee5ee8",
+  "main_source_head": "b243e5d4d052f5714fdceb90310ead3ee8af4bd2",
+  "limitations": [
+    "PyPI DNS unavailable; local release wheel is not verified as latest published release",
+    "GPU driver unavailable; no fresh CUDA parity run",
+    "Python dependencies shared read-only from build install; not a clean-machine dependency audit",
+    "Main native installation lacks GFIT Python modules; GFIT reference is retained main test wheel"
+  ],
+  "runtimes": {
+    "main-build": {
+      "applet_count": 39,
+      "applets": {
+        "3d": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/3d",
+            "args": [
+              "viame",
+              "3d",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--no-dense",
+              "--output",
+              "reconstruction"
+            ],
+            "returncode": 1,
+            "seconds": 2.026,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/3d/output.log"
+          }
+        },
+        "add-ons": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/add-ons",
+            "args": [
+              "viame",
+              "add-ons",
+              "list"
+            ],
+            "returncode": 0,
+            "seconds": 0.151,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/add-ons/output.log"
+          }
+        },
+        "bundle-adjust-tool": {
+          "help_returncode": 0
+        },
+        "calibrate": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/calibrate",
+            "args": [
+              "viame",
+              "calibrate",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "-c",
+              "/tmp/viame-audit-20260928/inputs/corners.npz",
+              "-q",
+              "25",
+              "-o",
+              "calibration.json",
+              "-n",
+              "calibration.npz"
+            ],
+            "returncode": 1,
+            "seconds": 0.924,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/calibrate/output.log"
+          }
+        },
+        "compare-klv": {
+          "help_returncode": 0
+        },
+        "configs": {
+          "help_returncode": 0
+        },
+        "convert": {
+          "help_returncode": 0
+        },
+        "csv": {
+          "help_returncode": 0
+        },
+        "database": {
+          "help_returncode": 0
+        },
+        "depth": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/depth",
+            "args": [
+              "viame",
+              "depth",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "/tmp/viame-audit-20260928/inputs/extrinsics.yml"
+            ],
+            "returncode": 0,
+            "seconds": 1.39,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/depth/output.log"
+          }
+        },
+        "disparity": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/disparity",
+            "args": [
+              "viame",
+              "disparity",
+              "/tmp/viame-audit-20260928/inputs/left.png",
+              "/tmp/viame-audit-20260928/inputs/right.png",
+              "--numeric-output",
+              "disparity.npy"
+            ],
+            "returncode": 0,
+            "seconds": 0.478,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/disparity/output.log"
+          }
+        },
+        "dump-klv": {
+          "help_returncode": 0
+        },
+        "ensemble": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/ensemble",
+            "args": [
+              "viame",
+              "ensemble",
+              "-truth",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/groundtruth.csv",
+              "-computed",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/detections.csv",
+              "-computed",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/detections.csv",
+              "-methods",
+              "nms",
+              "-trials",
+              "1",
+              "-refine-iters",
+              "0",
+              "-iou-min",
+              "0.5",
+              "-iou-max",
+              "0.5",
+              "-output-json",
+              "ensemble.json"
+            ],
+            "returncode": 0,
+            "seconds": 5.786,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/ensemble/output.log"
+          }
+        },
+        "explore-config": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/explore-config",
+            "args": [
+              "viame",
+              "explore-config",
+              "/tmp/viame-audit-20260928/inputs/simple.conf"
+            ],
+            "returncode": 0,
+            "seconds": 2.839,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/explore-config/output.log"
+          }
+        },
+        "extract": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/extract",
+            "args": [
+              "viame",
+              "extract",
+              "-d",
+              "/tmp/viame-audit-20260928/inputs/videos",
+              "-o",
+              "frames",
+              "-m",
+              "ffmpeg",
+              "-r",
+              "1",
+              "-t",
+              "00:00:01.00"
+            ],
+            "returncode": 0,
+            "seconds": 0.725,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/extract/output.log"
+          }
+        },
+        "gpu": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/gpu",
+            "args": [
+              "viame",
+              "gpu"
+            ],
+            "returncode": 0,
+            "seconds": 3.151,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/gpu/output.log"
+          }
+        },
+        "index": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/index",
+            "args": [
+              "viame",
+              "index",
+              "list"
+            ],
+            "returncode": 0,
+            "seconds": 0.394,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/index/output.log"
+          }
+        },
+        "init-cameras-landmarks": {
+          "help_returncode": 0
+        },
+        "inspect": {
+          "help_returncode": 0
+        },
+        "json": {
+          "help_returncode": 0
+        },
+        "metadata": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/metadata",
+            "args": [
+              "viame",
+              "metadata",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--no-exif",
+              "--csv",
+              "metadata.csv"
+            ],
+            "returncode": 0,
+            "seconds": 0.148,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/metadata/output.log"
+          }
+        },
+        "monitor": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/monitor",
+            "args": [
+              "viame",
+              "monitor",
+              "status",
+              "/tmp/viame-audit-20260928/no-training-run"
+            ],
+            "returncode": 0,
+            "seconds": 0.157,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/monitor/output.log"
+          }
+        },
+        "mosaic": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/mosaic",
+            "args": [
+              "viame",
+              "mosaic",
+              "mosaic.png",
+              "/tmp/viame-audit-20260928/inputs/identity.txt",
+              "/tmp/viame-audit-20260928/inputs/mosaic-list.txt",
+              "--step",
+              "1"
+            ],
+            "returncode": 0,
+            "seconds": 7.155,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/mosaic/output.log"
+          }
+        },
+        "pipe-config": {
+          "help_returncode": 0
+        },
+        "pipe-to-dot": {
+          "help_returncode": 0
+        },
+        "pipeline": {
+          "help_returncode": 0
+        },
+        "plot": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/plot",
+            "args": [
+              "viame",
+              "plot",
+              "detections",
+              "unknown",
+              "0.1",
+              "1",
+              "-input",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/tests/pipelines/pipelines_test_data/labels/fish",
+              "-output",
+              "plots"
+            ],
+            "returncode": 0,
+            "seconds": 5.436,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/plot/output.log"
+          }
+        },
+        "rectify": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/rectify",
+            "args": [
+              "viame",
+              "rectify",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "rectified.png",
+              "/tmp/viame-audit-20260928/inputs/intrinsics.yml",
+              "/tmp/viame-audit-20260928/inputs/extrinsics.yml"
+            ],
+            "returncode": 0,
+            "seconds": 2.978,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/rectify/output.log"
+          }
+        },
+        "register": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/register",
+            "args": [
+              "viame",
+              "register",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--method",
+              "metadata",
+              "--output",
+              "registration",
+              "--no-thumbnails"
+            ],
+            "returncode": 0,
+            "seconds": 1.115,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/register/output.log"
+          }
+        },
+        "resample": {
+          "help_returncode": 0
+        },
+        "run": {
+          "help_returncode": 0
+        },
+        "runner": {
+          "help_returncode": 0
+        },
+        "score": {
+          "help_returncode": 0
+        },
+        "search": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/search",
+            "args": [
+              "viame",
+              "search"
+            ],
+            "returncode": 1,
+            "seconds": 0.124,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/search/output.log"
+          }
+        },
+        "segment": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/segment",
+            "args": [
+              "viame",
+              "segment",
+              "scan",
+              "-i",
+              "/tmp/viame-audit-20260928/inputs/segment-data",
+              "-r",
+              "seg-run"
+            ],
+            "returncode": 0,
+            "seconds": 0.181,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/segment/output.log"
+          }
+        },
+        "track-features": {
+          "help_returncode": 0
+        },
+        "train": {
+          "help_returncode": 1
+        },
+        "transcode": {
+          "help_returncode": 0
+        },
+        "view": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "main-build/extra/view",
+            "args": [
+              "viame",
+              "view"
+            ],
+            "returncode": 1,
+            "seconds": 0.291,
+            "log": "/tmp/viame-audit-20260928/main-build/extra/view/output.log"
+          }
+        }
+      },
+      "functional_tests": {
+        "errors": "0",
+        "failures": "2",
+        "skipped": "0",
+        "tests": "124",
+        "time": "245.674"
+      },
+      "functional_failures": [
+        {
+          "test": "test_viame_applets.TestPipelineApplet.test_check_asks_the_registry_about_names",
+          "message": "AssertionError: /tmp/viame-audit-20260928/main-build/pytest-tmp/test_check_asks_the_registry_a0/removed_process.pipe: ok, 0 error(s), 0 warning(s)\n  \nassert 0 != 0\n +  where 0 = CompletedProcess(args=['viame', 'pipeline', 'check', '/tmp/viame-audit-20260928/main-build/pytest-tmp/test_check_asks_... /home/local/KHQ/matt.dawkins/Dev/viame/build/install/bin/../lib64/kwiver/plugins/applets doesn\\'t exist. Ignoring.\\n').returncode"
+        },
+        {
+          "test": "test_viame_applets.TestPipelineApplet.test_flatten_inlines_includes",
+          "message": "AssertionError: \nassert 2 == 0\n +  where 2 = CompletedProcess(args=['viame', 'pipeline', 'check', '--ignore-missing-files', '--no-resolve', '/tmp/viame-audit-20260...t. Ignoring.\\nusage: viame pipeline [-h] <command> ...\\nviame pipeline: error: unrecognized arguments: --no-resolve\\n').returncode"
+        }
+      ],
+      "conversion_tests": {
+        "errors": "0",
+        "failures": "1",
+        "skipped": "0",
+        "tests": "11",
+        "time": "45.598"
+      },
+      "conversion_failures": [
+        {
+          "test": "test_convert.test_camcal_lone_positional_is_output",
+          "message": "ImportError: cannot import name 'projection' from 'viame.measurement' (/tmp/viame-audit-20260928/wheel-env/lib/python3.10/site-packages/viame/measurement/__init__.py)"
+        }
+      ],
+      "binary_sha256": "3b3464aaef646a13ea3ce221e5d04b3ad429d810442cea537e6e0d76c6578696"
+    },
+    "lite-build": {
+      "applet_count": 32,
+      "applets": {
+        "3d": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/3d",
+            "args": [
+              "viame",
+              "3d",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--no-dense",
+              "--output",
+              "reconstruction"
+            ],
+            "returncode": 1,
+            "seconds": 2.393,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/3d/output.log"
+          }
+        },
+        "add-ons": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/add-ons",
+            "args": [
+              "viame",
+              "add-ons",
+              "list"
+            ],
+            "returncode": 0,
+            "seconds": 0.175,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/add-ons/output.log"
+          }
+        },
+        "calibrate": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/calibrate",
+            "args": [
+              "viame",
+              "calibrate",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "-c",
+              "/tmp/viame-audit-20260928/inputs/corners.npz",
+              "-q",
+              "25",
+              "-o",
+              "calibration.json",
+              "-n",
+              "calibration.npz"
+            ],
+            "returncode": 1,
+            "seconds": 4.293,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/calibrate/output.log"
+          }
+        },
+        "configs": {
+          "help_returncode": 0
+        },
+        "convert": {
+          "help_returncode": 0
+        },
+        "csv": {
+          "help_returncode": 0
+        },
+        "depth": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/depth",
+            "args": [
+              "viame",
+              "depth",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "/tmp/viame-audit-20260928/inputs/extrinsics.yml"
+            ],
+            "returncode": 0,
+            "seconds": 0.382,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/depth/output.log"
+          }
+        },
+        "disparity": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/disparity",
+            "args": [
+              "viame",
+              "disparity",
+              "/tmp/viame-audit-20260928/inputs/left.png",
+              "/tmp/viame-audit-20260928/inputs/right.png",
+              "--numeric-output",
+              "disparity.npy"
+            ],
+            "returncode": 0,
+            "seconds": 0.32,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/disparity/output.log"
+          }
+        },
+        "ensemble": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/ensemble",
+            "args": [
+              "viame",
+              "ensemble",
+              "-truth",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/groundtruth.csv",
+              "-computed",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/detections.csv",
+              "-computed",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/detections.csv",
+              "-methods",
+              "nms",
+              "-trials",
+              "1",
+              "-refine-iters",
+              "0",
+              "-iou-min",
+              "0.5",
+              "-iou-max",
+              "0.5",
+              "-output-json",
+              "ensemble.json"
+            ],
+            "returncode": 0,
+            "seconds": 5.309,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/ensemble/output.log"
+          }
+        },
+        "explore-config": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/explore-config",
+            "args": [
+              "viame",
+              "explore-config",
+              "/tmp/viame-audit-20260928/inputs/simple.conf"
+            ],
+            "returncode": 0,
+            "seconds": 0.522,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/explore-config/output.log"
+          }
+        },
+        "extract": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/extract",
+            "args": [
+              "viame",
+              "extract",
+              "-d",
+              "/tmp/viame-audit-20260928/inputs/videos",
+              "-o",
+              "frames",
+              "-m",
+              "ffmpeg",
+              "-r",
+              "1",
+              "-t",
+              "00:00:01.00"
+            ],
+            "returncode": 0,
+            "seconds": 0.59,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/extract/output.log"
+          }
+        },
+        "gpu": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/gpu",
+            "args": [
+              "viame",
+              "gpu"
+            ],
+            "returncode": 0,
+            "seconds": 1.966,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/gpu/output.log"
+          }
+        },
+        "index": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/index",
+            "args": [
+              "viame",
+              "index",
+              "list"
+            ],
+            "returncode": 0,
+            "seconds": 0.218,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/index/output.log"
+          }
+        },
+        "inspect": {
+          "help_returncode": 0
+        },
+        "json": {
+          "help_returncode": 0
+        },
+        "metadata": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/metadata",
+            "args": [
+              "viame",
+              "metadata",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--no-exif",
+              "--csv",
+              "metadata.csv"
+            ],
+            "returncode": 0,
+            "seconds": 0.155,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/metadata/output.log"
+          }
+        },
+        "monitor": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/monitor",
+            "args": [
+              "viame",
+              "monitor",
+              "status",
+              "/tmp/viame-audit-20260928/no-training-run"
+            ],
+            "returncode": 0,
+            "seconds": 0.17,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/monitor/output.log"
+          }
+        },
+        "mosaic": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/mosaic",
+            "args": [
+              "viame",
+              "mosaic",
+              "mosaic.png",
+              "/tmp/viame-audit-20260928/inputs/identity.txt",
+              "/tmp/viame-audit-20260928/inputs/mosaic-list.txt",
+              "--step",
+              "1"
+            ],
+            "returncode": 0,
+            "seconds": 2.788,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/mosaic/output.log"
+          }
+        },
+        "pipe-check": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/pipe-check",
+            "args": [
+              "viame",
+              "pipe-check",
+              "--all"
+            ],
+            "returncode": 0,
+            "seconds": 4.152,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/pipe-check/output.log"
+          }
+        },
+        "pipeline": {
+          "help_returncode": 0
+        },
+        "plot": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/plot",
+            "args": [
+              "viame",
+              "plot",
+              "detections",
+              "unknown",
+              "0.1",
+              "1",
+              "-input",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/tests/pipelines/pipelines_test_data/labels/fish",
+              "-output",
+              "plots"
+            ],
+            "returncode": 0,
+            "seconds": 5.122,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/plot/output.log"
+          }
+        },
+        "rectify": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/rectify",
+            "args": [
+              "viame",
+              "rectify",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "rectified.png",
+              "/tmp/viame-audit-20260928/inputs/intrinsics.yml",
+              "/tmp/viame-audit-20260928/inputs/extrinsics.yml"
+            ],
+            "returncode": 0,
+            "seconds": 0.382,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/rectify/output.log"
+          }
+        },
+        "register": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/register",
+            "args": [
+              "viame",
+              "register",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--method",
+              "metadata",
+              "--output",
+              "registration",
+              "--no-thumbnails"
+            ],
+            "returncode": 0,
+            "seconds": 1.384,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/register/output.log"
+          }
+        },
+        "registry-dump": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/registry-dump",
+            "args": [
+              "viame",
+              "registry-dump"
+            ],
+            "returncode": 0,
+            "seconds": 0.808,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/registry-dump/output.log"
+          }
+        },
+        "resample": {
+          "help_returncode": 0
+        },
+        "run": {
+          "help_returncode": 0
+        },
+        "runner": {
+          "help_returncode": 0
+        },
+        "score": {
+          "help_returncode": 0
+        },
+        "search": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/search",
+            "args": [
+              "viame",
+              "search"
+            ],
+            "returncode": 1,
+            "seconds": 0.138,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/search/output.log"
+          }
+        },
+        "segment": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/segment",
+            "args": [
+              "viame",
+              "segment",
+              "scan",
+              "-i",
+              "/tmp/viame-audit-20260928/inputs/segment-data",
+              "-r",
+              "seg-run"
+            ],
+            "returncode": 0,
+            "seconds": 0.192,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/segment/output.log"
+          }
+        },
+        "train": {
+          "help_returncode": 1
+        },
+        "view": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "lite-build/extra/view",
+            "args": [
+              "viame",
+              "view"
+            ],
+            "returncode": 1,
+            "seconds": 0.32,
+            "log": "/tmp/viame-audit-20260928/lite-build/extra/view/output.log"
+          }
+        }
+      },
+      "functional_tests": {
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "124",
+        "time": "118.950"
+      },
+      "functional_failures": [],
+      "conversion_tests": {
+        "errors": "0",
+        "failures": "1",
+        "skipped": "0",
+        "tests": "11",
+        "time": "7.970"
+      },
+      "conversion_failures": [
+        {
+          "test": "test_convert.test_camcal_lone_positional_is_output",
+          "message": "ImportError: cannot import name 'projection' from 'viame.measurement' (/tmp/viame-audit-20260928/wheel-env/lib/python3.10/site-packages/viame/measurement/__init__.py)"
+        }
+      ],
+      "pipe_check": {
+        "total": 292,
+        "baked": 253,
+        "errors": {
+          "configs/pipelines/common_empty_tracker.pipe": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline",
+          "configs/pipelines/common_gfit_classifier_groups_v3.pipe": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline",
+          "configs/pipelines/common_gfit_detector_fusion_v3.pipe": "A process named 'image_merger2' was requested for a connection but it does not exist in the pipeline",
+          "configs/pipelines/common_sea_lion_fusion_seven_class_cam1.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam1.pipe:38",
+          "configs/pipelines/common_sea_lion_fusion_seven_class_cam2.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam2.pipe:38",
+          "configs/pipelines/common_sea_lion_fusion_seven_class_cam3.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam3.pipe:38",
+          "configs/pipelines/common_sea_lion_fusion_six_class_cam1.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam1.pipe:36",
+          "configs/pipelines/common_sea_lion_fusion_six_class_cam2.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam2.pipe:36",
+          "configs/pipelines/common_sea_lion_fusion_six_class_cam3.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam3.pipe:36",
+          "configs/pipelines/common_sea_lion_fusion_two_class_cam1.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam1.pipe:36",
+          "configs/pipelines/common_sea_lion_fusion_two_class_cam2.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam2.pipe:36",
+          "configs/pipelines/common_sea_lion_fusion_two_class_cam3.pipe": "Entry for provider \"CONFIG\" does not have an element \"global:scale\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam3.pipe:36",
+          "configs/pipelines/query_augment_image.pipe": "There is no such process of type 'pytorch_augmentation' in the registry",
+          "configs/pipelines/query_from_track.pipe": "The port 'track_descriptor_set' on process 'query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids",
+          "configs/pipelines/query_retrieval_and_iqr.pipe": "The port 'track_descriptor_set' on process 'database_query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids",
+          "configs/pipelines/register_multimodal_unsync_ocv.pipe": "There is no such process of type 'ocv_multimodal_registration' in the registry",
+          "configs/pipelines/stereo_measure_current_annots_spline_fish.pipe": "There is no such process of type 'compute_curved_measurements' in the registry",
+          "configs/pipelines/stereo_measure_gfit_groups_v3_seagis_dual.pipe": "There is no such process of type 'seagis_measurement' in the registry",
+          "configs/pipelines/stereo_measure_gfit_groups_v3_seagis_sing.pipe": "There is no such process of type 'seagis_measurement' in the registry",
+          "configs/pipelines/templates/detector_16bit.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_16bit.pipe:79",
+          "configs/pipelines/templates/detector_default.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_default.pipe:34",
+          "configs/pipelines/templates/detector_rf_detr_all_motion.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_all_motion.pipe:133",
+          "configs/pipelines/templates/detector_rf_detr_motion.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_motion.pipe:102",
+          "configs/pipelines/templates/detector_rf_detr_optical_flow.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow.pipe:54",
+          "configs/pipelines/templates/detector_rf_detr_optical_flow_adaptive.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow_adaptive.pipe:59",
+          "configs/pipelines/templates/embedded_16bit.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_16bit.pipe:23",
+          "configs/pipelines/templates/embedded_default.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_default.pipe:20",
+          "configs/pipelines/templates/embedded_generic_svm_tracker.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_generic_svm_tracker.pipe:94",
+          "configs/pipelines/templates/embedded_rf_detr_all_motion.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_all_motion.pipe:132",
+          "configs/pipelines/templates/embedded_rf_detr_motion.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_motion.pipe:95",
+          "configs/pipelines/templates/embedded_rf_detr_optical_flow.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow.pipe:47",
+          "configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe:56",
+          "configs/pipelines/templates/embedded_tracker.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_tracker.pipe:11",
+          "configs/pipelines/templates/tracker_default.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/tracker_default.pipe:36",
+          "configs/pipelines/templates/tracker_generic_svm.pipe": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/tracker_generic_svm.pipe:120",
+          "configs/pipelines/train_aug_add_motion_and_color_freq.pipe": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2",
+          "configs/pipelines/train_aug_intensity_hue_motion.pipe": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2",
+          "configs/pipelines/train_aug_warp_ir_to_eo.pipe": "Found unexpected token \"TODO\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/train_aug_warp_ir_to_eo.pipe:7",
+          "configs/pipelines/utility_link_detections_default.pipe": "The file does not exist: common_seamap_tracker_v2.5.pipe included from /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/utility_link_detections_default.pipe:28 could not be found in search path."
+        }
+      },
+      "binary_sha256": "64e073f5f5141effc44b354b6c8d19f75c2057c4dd00f05a16030157287a087f"
+    },
+    "wheel-0.23.3": {
+      "applet_count": 32,
+      "applets": {
+        "3d": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/3d",
+            "args": [
+              "viame",
+              "3d",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--no-dense",
+              "--output",
+              "reconstruction"
+            ],
+            "returncode": 1,
+            "seconds": 0.525,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/3d/output.log"
+          }
+        },
+        "add-ons": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/add-ons",
+            "args": [
+              "viame",
+              "add-ons",
+              "list"
+            ],
+            "returncode": 1,
+            "seconds": 0.226,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/add-ons/output.log"
+          }
+        },
+        "calibrate": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/calibrate",
+            "args": [
+              "viame",
+              "calibrate",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "-c",
+              "/tmp/viame-audit-20260928/inputs/corners.npz",
+              "-q",
+              "25",
+              "-o",
+              "calibration.json",
+              "-n",
+              "calibration.npz"
+            ],
+            "returncode": 1,
+            "seconds": 0.591,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/calibrate/output.log"
+          }
+        },
+        "configs": {
+          "help_returncode": 0
+        },
+        "convert": {
+          "help_returncode": 0
+        },
+        "csv": {
+          "help_returncode": 0
+        },
+        "depth": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/depth",
+            "args": [
+              "viame",
+              "depth",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "/tmp/viame-audit-20260928/inputs/extrinsics.yml"
+            ],
+            "returncode": 0,
+            "seconds": 0.373,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/depth/output.log"
+          }
+        },
+        "disparity": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/disparity",
+            "args": [
+              "viame",
+              "disparity",
+              "/tmp/viame-audit-20260928/inputs/left.png",
+              "/tmp/viame-audit-20260928/inputs/right.png",
+              "--numeric-output",
+              "disparity.npy"
+            ],
+            "returncode": 0,
+            "seconds": 0.278,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/disparity/output.log"
+          }
+        },
+        "ensemble": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/ensemble",
+            "args": [
+              "viame",
+              "ensemble",
+              "-truth",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/groundtruth.csv",
+              "-computed",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/detections.csv",
+              "-computed",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/examples/scoring_and_evaluation/detections.csv",
+              "-methods",
+              "nms",
+              "-trials",
+              "1",
+              "-refine-iters",
+              "0",
+              "-iou-min",
+              "0.5",
+              "-iou-max",
+              "0.5",
+              "-output-json",
+              "ensemble.json"
+            ],
+            "returncode": 0,
+            "seconds": 3.748,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/ensemble/output.log"
+          }
+        },
+        "explore-config": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/explore-config",
+            "args": [
+              "viame",
+              "explore-config",
+              "/tmp/viame-audit-20260928/inputs/simple.conf"
+            ],
+            "returncode": 0,
+            "seconds": 0.294,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/explore-config/output.log"
+          }
+        },
+        "extract": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/extract",
+            "args": [
+              "viame",
+              "extract",
+              "-d",
+              "/tmp/viame-audit-20260928/inputs/videos",
+              "-o",
+              "frames",
+              "-m",
+              "ffmpeg",
+              "-r",
+              "1",
+              "-t",
+              "00:00:01.00"
+            ],
+            "returncode": 0,
+            "seconds": 0.641,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/extract/output.log"
+          }
+        },
+        "gpu": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/gpu",
+            "args": [
+              "viame",
+              "gpu"
+            ],
+            "returncode": 0,
+            "seconds": 1.949,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/gpu/output.log"
+          }
+        },
+        "index": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/index",
+            "args": [
+              "viame",
+              "index",
+              "list"
+            ],
+            "returncode": 0,
+            "seconds": 0.241,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/index/output.log"
+          }
+        },
+        "inspect": {
+          "help_returncode": 0
+        },
+        "json": {
+          "help_returncode": 0
+        },
+        "metadata": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/metadata",
+            "args": [
+              "viame",
+              "metadata",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--no-exif",
+              "--csv",
+              "metadata.csv"
+            ],
+            "returncode": 0,
+            "seconds": 0.182,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/metadata/output.log"
+          }
+        },
+        "monitor": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/monitor",
+            "args": [
+              "viame",
+              "monitor",
+              "status",
+              "/tmp/viame-audit-20260928/no-training-run"
+            ],
+            "returncode": 0,
+            "seconds": 0.187,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/monitor/output.log"
+          }
+        },
+        "mosaic": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/mosaic",
+            "args": [
+              "viame",
+              "mosaic",
+              "mosaic.png",
+              "/tmp/viame-audit-20260928/inputs/identity.txt",
+              "/tmp/viame-audit-20260928/inputs/mosaic-list.txt",
+              "--step",
+              "1"
+            ],
+            "returncode": 0,
+            "seconds": 0.647,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/mosaic/output.log"
+          }
+        },
+        "pipe-check": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/pipe-check",
+            "args": [
+              "viame",
+              "pipe-check",
+              "--all"
+            ],
+            "returncode": 0,
+            "seconds": 1.267,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/pipe-check/output.log"
+          }
+        },
+        "pipeline": {
+          "help_returncode": 0
+        },
+        "plot": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/plot",
+            "args": [
+              "viame",
+              "plot",
+              "detections",
+              "unknown",
+              "0.1",
+              "1",
+              "-input",
+              "/home/local/KHQ/matt.dawkins/Dev/viame-lite/src/tests/pipelines/pipelines_test_data/labels/fish",
+              "-output",
+              "plots"
+            ],
+            "returncode": 0,
+            "seconds": 4.614,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/plot/output.log"
+          }
+        },
+        "rectify": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/rectify",
+            "args": [
+              "viame",
+              "rectify",
+              "/tmp/viame-audit-20260928/inputs/stereo.png",
+              "rectified.png",
+              "/tmp/viame-audit-20260928/inputs/intrinsics.yml",
+              "/tmp/viame-audit-20260928/inputs/extrinsics.yml"
+            ],
+            "returncode": 0,
+            "seconds": 0.371,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/rectify/output.log"
+          }
+        },
+        "register": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/register",
+            "args": [
+              "viame",
+              "register",
+              "/tmp/viame-audit-20260928/inputs/survey",
+              "--method",
+              "metadata",
+              "--output",
+              "registration",
+              "--no-thumbnails"
+            ],
+            "returncode": 0,
+            "seconds": 0.885,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/register/output.log"
+          }
+        },
+        "registry-dump": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/registry-dump",
+            "args": [
+              "viame",
+              "registry-dump"
+            ],
+            "returncode": 0,
+            "seconds": 0.806,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/registry-dump/output.log"
+          }
+        },
+        "resample": {
+          "help_returncode": 0
+        },
+        "run": {
+          "help_returncode": 0
+        },
+        "runner": {
+          "help_returncode": 0
+        },
+        "score": {
+          "help_returncode": 0
+        },
+        "search": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/search",
+            "args": [
+              "viame",
+              "search"
+            ],
+            "returncode": 1,
+            "seconds": 0.184,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/search/output.log"
+          }
+        },
+        "segment": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/segment",
+            "args": [
+              "viame",
+              "segment",
+              "scan",
+              "-i",
+              "/tmp/viame-audit-20260928/inputs/segment-data",
+              "-r",
+              "seg-run"
+            ],
+            "returncode": 0,
+            "seconds": 0.231,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/segment/output.log"
+          }
+        },
+        "train": {
+          "help_returncode": 1
+        },
+        "view": {
+          "help_returncode": 0,
+          "functional": {
+            "label": "wheel-0.23.3/extra/view",
+            "args": [
+              "viame",
+              "view"
+            ],
+            "returncode": 1,
+            "seconds": 0.177,
+            "log": "/tmp/viame-audit-20260928/wheel-0.23.3/extra/view/output.log"
+          }
+        }
+      },
+      "functional_tests": {
+        "errors": "0",
+        "failures": "2",
+        "skipped": "9",
+        "tests": "124",
+        "time": "59.750"
+      },
+      "functional_failures": [
+        {
+          "test": "test_viame_applets.TestTrainArguments.test_folder_alone_uses_the_default_config",
+          "message": "AssertionError: assert 'No config given, using' in ''\n +  where '' = CompletedProcess(args=['viame', 'train', '/tmp/viame-audit-20260928/wheel-0.23.3/pytest-tmp/test_folder_alone_uses_the...'', stderr='One of --config, --detector, or --tracker must be set, and no train_detector_default.conf is installed.\\n').stdout"
+        },
+        {
+          "test": "test_viame_applets.TestAddOnApplet.test_list_reads_the_install_csv",
+          "message": "AssertionError: error: add-on list download_viame_addons.csv not found\n  \nassert 1 == 0\n +  where 1 = CompletedProcess(args=['viame', 'add-ons', 'list'], returncode=1, stdout='', stderr='error: add-on list download_viame_addons.csv not found\\n').returncode"
+        }
+      ],
+      "conversion_tests": {
+        "errors": "0",
+        "failures": "1",
+        "skipped": "0",
+        "tests": "11",
+        "time": "6.292"
+      },
+      "conversion_failures": [
+        {
+          "test": "test_convert.test_camcal_lone_positional_is_output",
+          "message": "ImportError: cannot import name 'projection' from 'viame.measurement' (/tmp/viame-audit-20260928/wheel-env/lib/python3.10/site-packages/viame/measurement/__init__.py)"
+        }
+      ],
+      "pipe_check": {
+        "total": 106,
+        "baked": 100,
+        "errors": {
+          "configs/pipelines/query_retrieval_and_iqr.pipe": "The port 'track_descriptor_set' on process 'database_query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids",
+          "configs/pipelines/register_multimodal_unsync_ocv.pipe": "There is no such process of type 'ocv_multimodal_registration' in the registry",
+          "configs/pipelines/train_aug_add_motion_and_color_freq.pipe": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2",
+          "configs/pipelines/train_aug_intensity_hue_motion.pipe": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2",
+          "configs/pipelines/train_aug_warp_ir_to_eo.pipe": "Found unexpected token \"TODO\" at /tmp/viame-audit-20260928/wheel-env/configs/pipelines/train_aug_warp_ir_to_eo.pipe:7",
+          "configs/pipelines/utility_link_detections_default.pipe": "The file does not exist: common_seamap_tracker_v2.5.pipe included from /tmp/viame-audit-20260928/wheel-env/configs/pipelines/utility_link_detections_default.pipe:28 could not be found in search path."
+        }
+      }
+    }
+  },
+  "release_wheel": {
+    "path": "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/matrix/wheelhouse/viame-0.23.3-cp310-cp310-manylinux_2_35_x86_64.whl",
+    "sha256": "9d95e0e71f3556dda68bcff18bbfb77af148d1fe81b3c83b4955c73ddcdd020c",
+    "size": 15232919
+  },
+  "pipelines": [
+    {
+      "pipeline": "filter_enhance",
+      "target": "lite-build",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            1920,
+            3
+          ],
+          "shape_target": [
+            1080,
+            1920,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_enhance",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            1920,
+            3
+          ],
+          "shape_target": [
+            1080,
+            1920,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_default",
+      "target": "lite-build",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            1920,
+            3
+          ],
+          "shape_target": [
+            1080,
+            1920,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_default",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            1920,
+            3
+          ],
+          "shape_target": [
+            1080,
+            1920,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_split_left_side",
+      "target": "lite-build",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            960,
+            3
+          ],
+          "shape_target": [
+            1080,
+            960,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_split_left_side",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            960,
+            3
+          ],
+          "shape_target": [
+            1080,
+            960,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_split_right_side",
+      "target": "lite-build",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            960,
+            3
+          ],
+          "shape_target": [
+            1080,
+            960,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_split_right_side",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            960,
+            3
+          ],
+          "shape_target": [
+            1080,
+            960,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_debayer",
+      "target": "lite-build",
+      "reference_files": [
+        "bayer.png"
+      ],
+      "target_files": [
+        "bayer.png"
+      ],
+      "files": [
+        {
+          "file": "bayer.png",
+          "shape_main": [
+            160,
+            200,
+            3
+          ],
+          "shape_target": [
+            160,
+            200,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_debayer",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "bayer.png"
+      ],
+      "target_files": [
+        "bayer.png"
+      ],
+      "files": [
+        {
+          "file": "bayer.png",
+          "shape_main": [
+            160,
+            200,
+            3
+          ],
+          "shape_target": [
+            160,
+            200,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_debayer_and_enhance",
+      "target": "lite-build",
+      "reference_files": [
+        "bayer.png"
+      ],
+      "target_files": [
+        "bayer.png"
+      ],
+      "files": [
+        {
+          "file": "bayer.png",
+          "shape_main": [
+            160,
+            200,
+            3
+          ],
+          "shape_target": [
+            160,
+            200,
+            3
+          ],
+          "equal": false,
+          "max_abs": 1.0,
+          "mean_abs": 0.012479166666666666,
+          "different_values": 1198
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_debayer_and_enhance",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "bayer.png"
+      ],
+      "target_files": [
+        "bayer.png"
+      ],
+      "files": [
+        {
+          "file": "bayer.png",
+          "shape_main": [
+            160,
+            200,
+            3
+          ],
+          "shape_target": [
+            160,
+            200,
+            3
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_normalize_16bit",
+      "target": "lite-build",
+      "reference_files": [
+        "gray16.png"
+      ],
+      "target_files": [
+        "gray16.png"
+      ],
+      "files": [
+        {
+          "file": "gray16.png",
+          "shape_main": [
+            160,
+            200
+          ],
+          "shape_target": [
+            160,
+            200
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_normalize_16bit",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "gray16.png"
+      ],
+      "target_files": [
+        "gray16.png"
+      ],
+      "files": [
+        {
+          "file": "gray16.png",
+          "shape_main": [
+            160,
+            200
+          ],
+          "shape_target": [
+            160,
+            200
+          ],
+          "equal": true,
+          "max_abs": 0.0,
+          "mean_abs": 0.0,
+          "different_values": 0
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_draw_dets",
+      "target": "lite-build",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            1920,
+            3
+          ],
+          "shape_target": [
+            1080,
+            1920,
+            3
+          ],
+          "equal": false,
+          "max_abs": 104.0,
+          "mean_abs": 14.883277391975309,
+          "different_values": 4119588
+        }
+      ]
+    },
+    {
+      "pipeline": "filter_draw_dets",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "fish.png"
+      ],
+      "target_files": [
+        "fish.png"
+      ],
+      "files": [
+        {
+          "file": "fish.png",
+          "shape_main": [
+            1080,
+            1920,
+            3
+          ],
+          "shape_target": [
+            1080,
+            1920,
+            3
+          ],
+          "equal": false,
+          "max_abs": 104.0,
+          "mean_abs": 14.883277391975309,
+          "different_values": 4119588
+        }
+      ]
+    },
+    {
+      "pipeline": "detector_simple_hough",
+      "target": "lite-build",
+      "reference_files": [
+        "detections.csv"
+      ],
+      "target_files": [
+        "detections.csv"
+      ],
+      "files": [
+        {
+          "file": "detections.csv",
+          "equal": true,
+          "main_rows": 3,
+          "target_rows": 3,
+          "main_sample": [
+            "0,circles.png,0,35.9,44.9,75.1,84.1,1,0,circle,1",
+            "1,circles.png,0,67,4,98,35,1,0,circle,1",
+            "2,circles.png,0,11.9,-0.1,31.1,19.1,1,0,circle,1"
+          ],
+          "target_sample": [
+            "0,circles.png,0,35.9,44.9,75.1,84.1,1,0,circle,1",
+            "1,circles.png,0,67,4,98,35,1,0,circle,1",
+            "2,circles.png,0,11.9,-0.1,31.1,19.1,1,0,circle,1"
+          ]
+        }
+      ]
+    },
+    {
+      "pipeline": "detector_simple_hough",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "detections.csv"
+      ],
+      "target_files": [
+        "detections.csv"
+      ],
+      "files": [
+        {
+          "file": "detections.csv",
+          "equal": true,
+          "main_rows": 3,
+          "target_rows": 3,
+          "main_sample": [
+            "0,circles.png,0,35.9,44.9,75.1,84.1,1,0,circle,1",
+            "1,circles.png,0,67,4,98,35,1,0,circle,1",
+            "2,circles.png,0,11.9,-0.1,31.1,19.1,1,0,circle,1"
+          ],
+          "target_sample": [
+            "0,circles.png,0,35.9,44.9,75.1,84.1,1,0,circle,1",
+            "1,circles.png,0,67,4,98,35,1,0,circle,1",
+            "2,circles.png,0,11.9,-0.1,31.1,19.1,1,0,circle,1"
+          ]
+        }
+      ]
+    },
+    {
+      "pipeline": "detector_calibration_target",
+      "target": "lite-build",
+      "reference_files": [
+        "detections.csv"
+      ],
+      "target_files": [
+        "detections.csv"
+      ],
+      "files": [
+        {
+          "file": "detections.csv",
+          "equal": true,
+          "main_rows": 54,
+          "target_rows": 54,
+          "main_sample": [
+            "0,checker.png,0,17,17,22,22,1,0,\"corner\",1,(atr) stereo3d_x 0.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000",
+            "1,checker.png,0,37,17,42,22,1,0,\"corner\",1,(atr) stereo3d_x 1.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000",
+            "2,checker.png,0,57,17,62,22,1,0,\"corner\",1,(atr) stereo3d_x 2.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000"
+          ],
+          "target_sample": [
+            "0,checker.png,0,17,17,22,22,1,0,\"corner\",1,(atr) stereo3d_x 0.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000",
+            "1,checker.png,0,37,17,42,22,1,0,\"corner\",1,(atr) stereo3d_x 1.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000",
+            "2,checker.png,0,57,17,62,22,1,0,\"corner\",1,(atr) stereo3d_x 2.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000"
+          ]
+        }
+      ]
+    },
+    {
+      "pipeline": "detector_calibration_target",
+      "target": "wheel-0.23.3",
+      "reference_files": [
+        "detections.csv"
+      ],
+      "target_files": [
+        "detections.csv"
+      ],
+      "files": [
+        {
+          "file": "detections.csv",
+          "equal": true,
+          "main_rows": 54,
+          "target_rows": 54,
+          "main_sample": [
+            "0,checker.png,0,17,17,22,22,1,0,\"corner\",1,(atr) stereo3d_x 0.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000",
+            "1,checker.png,0,37,17,42,22,1,0,\"corner\",1,(atr) stereo3d_x 1.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000",
+            "2,checker.png,0,57,17,62,22,1,0,\"corner\",1,(atr) stereo3d_x 2.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000"
+          ],
+          "target_sample": [
+            "0,checker.png,0,17,17,22,22,1,0,\"corner\",1,(atr) stereo3d_x 0.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000",
+            "1,checker.png,0,37,17,42,22,1,0,\"corner\",1,(atr) stereo3d_x 1.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000",
+            "2,checker.png,0,57,17,62,22,1,0,\"corner\",1,(atr) stereo3d_x 2.000000,(atr) stereo3d_y 0.000000,(atr) stereo3d_z 0.000000"
+          ]
+        }
+      ]
+    }
+  ],
+  "gfit": {
+    "detections.csv": {
+      "main_rows": 18,
+      "lite_rows": 18,
+      "equal": true,
+      "first_difference": null
+    },
+    "tracks.csv": {
+      "main_rows": 8,
+      "lite_rows": 8,
+      "equal": true,
+      "first_difference": null
+    }
+  },
+  "performance_and_edt": {
+    "edt_no_zero": {
+      "viame_range": [
+        1.0,
+        7.8102498054504395
+      ],
+      "opencv_range": [
+        1.8446744073709552e+19,
+        1.8446744073709552e+19
+      ]
+    },
+    "first_seek_zero": {
+      "indexed_frames": 242,
+      "seconds": 0.8698742315173149
+    },
+    "kmeans_opencv_seconds": 0.08003817778080702,
+    "kmeans_viame_seconds": 1.0734359407797456
+  },
+  "enhancer_stages": {
+    "white_balance": {
+      "different": 0,
+      "max_abs": 0.0
+    },
+    "to_lab": {
+      "different": 0,
+      "max_abs": 0.0
+    },
+    "clahe": {
+      "different": 0,
+      "max_abs": 0.0
+    },
+    "from_lab": {
+      "different": 0,
+      "max_abs": 0.0
+    },
+    "to_hsv": {
+      "different": 0,
+      "max_abs": 0.0
+    },
+    "saturation_scale": {
+      "different": 0,
+      "max_abs": 0.0
+    },
+    "from_hsv": {
+      "different": 1198,
+      "max_abs": 1.0
+    }
+  },
+  "main_pipeline_bake": {
+    "query_retrieval_and_iqr.pipe": {
+      "status": "ok"
+    },
+    "register_multimodal_unsync_ocv.pipe": {
+      "status": "error",
+      "message": "There is no such process of type 'ocv_multimodal_registration' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125"
+    },
+    "train_aug_add_motion_and_color_freq.pipe": {
+      "status": "error",
+      "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765"
+    },
+    "train_aug_intensity_hue_motion.pipe": {
+      "status": "error",
+      "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765"
+    },
+    "train_aug_warp_ir_to_eo.pipe": {
+      "status": "error",
+      "message": "Found unexpected token \"TODO\" at /home/local/KHQ/matt.dawkins/Dev/viame/build/install/configs/pipelines/train_aug_warp_ir_to_eo.pipe:7, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146"
+    },
+    "utility_link_detections_default.pipe": {
+      "status": "error",
+      "message": "The file does not exist: common_seamap_tracker_v2.5.pipe included from /home/local/KHQ/matt.dawkins/Dev/viame/build/install/configs/pipelines/utility_link_detections_default.pipe:28 could not be found in search path., thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/lex_processor.cxx:503"
+    }
+  },
+  "stereo_output_comparison": {
+    "lite-build": {
+      "rectify": {
+        "shape_main": [
+          128,
+          768,
+          3
+        ],
+        "shape_target": [
+          128,
+          768,
+          3
+        ],
+        "equal": true,
+        "max_abs": 0.0,
+        "different_values": 0
+      },
+      "disparity": {
+        "shape_main": [
+          128,
+          384
+        ],
+        "shape_target": [
+          128,
+          384
+        ],
+        "equal": true,
+        "max_abs": 0.0,
+        "different_values": 0
+      },
+      "depth": {
+        "shape_main": [
+          44288,
+          6
+        ],
+        "shape_target": [
+          44288,
+          6
+        ],
+        "equal": false,
+        "max_abs": 193.0,
+        "different_values": 88576,
+        "geometry_equal": true,
+        "colour_equal": false,
+        "colour_equal_if_swapped": true
+      }
+    },
+    "wheel-0.23.3": {
+      "rectify": {
+        "shape_main": [
+          128,
+          768,
+          3
+        ],
+        "shape_target": [
+          128,
+          768,
+          3
+        ],
+        "equal": true,
+        "max_abs": 0.0,
+        "different_values": 0
+      },
+      "disparity": {
+        "shape_main": [
+          128,
+          384
+        ],
+        "shape_target": [
+          128,
+          384
+        ],
+        "equal": true,
+        "max_abs": 0.0,
+        "different_values": 0
+      },
+      "depth": {
+        "shape_main": [
+          44288,
+          6
+        ],
+        "shape_target": [
+          44288,
+          6
+        ],
+        "equal": true,
+        "max_abs": 0.0,
+        "different_values": 0,
+        "geometry_equal": true,
+        "colour_equal": true,
+        "colour_equal_if_swapped": false
+      }
+    }
+  },
+  "conversion_suite_note": "Each runtime passed 10 CLI conversion/config tests. The eleventh test imports current source into the old wheel interpreter, so its missing projection module is a harness mismatch, not an applet failure. Rerunning that source test with the current Lite interpreter passed.",
+  "artifacts": "/tmp/viame-audit-20260928"
+}

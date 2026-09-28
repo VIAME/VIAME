@@ -740,8 +740,8 @@ def render_coverage_map(path, observations, site_tag):
     plt.close(fig)
 
 
-CLASS_COLOR = {'sequential': (0, 165, 255),     # orange
-               'cross_camera': (255, 255, 0),   # cyan
+CLASS_COLOR = {'sequential': (255, 165, 0),     # orange
+               'cross_camera': (0, 255, 255),   # cyan
                'revisit': (255, 0, 255)}        # magenta
 CLASS_TAG = {'sequential': 'S', 'cross_camera': 'X', 'revisit': 'R'}
 CLASS_DRAW_ORDER = ['sequential', 'cross_camera', 'revisit']
@@ -898,11 +898,11 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
             if counts:
                 _put_text(thumb, counts, (8, 46), 0.5, (200, 200, 200))
             # Water/land classifier verdict: class label tinted cyan for
-            # water, green for land (BGR).
+            # water, green for land (RGB).
             cinfo = water_info.get(o.rel, {})
             clabel = cinfo.get('label')
             if clabel:
-                ccol = (255, 255, 0) if cinfo.get('is_water') else (0, 220, 0)
+                ccol = (0, 255, 255) if cinfo.get('is_water') else (0, 220, 0)
                 _put_text(thumb, clabel, (8, 68), 0.5, ccol)
             image_kernels.draw_rect(thumb, 0, 0, thumb_w, th, [60, 60, 60], 1)
             row_tiles.append(thumb)

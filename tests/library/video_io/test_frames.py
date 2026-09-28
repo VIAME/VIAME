@@ -115,3 +115,24 @@ def test_filter_errors_propagate(monkeypatch):
     monkeypatch.setattr(av.filter,"Graph",BrokenGraph)
     with pytest.raises(av.error.InvalidDataError,match="injected filter failure"):
         list(frames.read_frames(CLIP))
+
+
+def test_initial_and_zero_seeks_do_not_index_video(monkeypatch):
+    from viame.video_io import frames
+
+    def unexpected_index(*args):
+        raise AssertionError("sequential seeks must not scan timestamps")
+
+    monkeypatch.setattr(frames, "frame_timestamps", unexpected_index)
+    expected = [a for a, _ in frames.read_frames(CLIP)]
+    with frames.FrameReader(CLIP) as reader:
+        reader.seek(0)
+        np.testing.assert_array_equal(reader.read(), expected[0])
+        reader.seek(2)
+        np.testing.assert_array_equal(reader.read(), expected[2])
+        reader.seek(0)
+        assert reader.position == 0
+        np.testing.assert_array_equal(reader.read(), expected[0])
+        reader.close()
+        reader.seek(2)
+        np.testing.assert_array_equal(reader.read(), expected[2])

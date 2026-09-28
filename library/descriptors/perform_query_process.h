@@ -39,6 +39,7 @@ public:
 
 protected:
   virtual void _configure();
+  virtual void _init();
   virtual void _step();
 
 private:

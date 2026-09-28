@@ -21,6 +21,7 @@ import sys
 import glob
 import argparse
 import json
+import tempfile
 from viame import image_kernels
 from viame.image_processing import features, matching
 from viame.measurement import projection
@@ -370,9 +371,9 @@ def draw_dots(image, centers, color=(0, 255, 0), radius=8, thickness=2):
     """Draw detected dots on an image for visualization.
 
     Args:
-        image: BGR color image to draw on (modified in place)
+        image: RGB color image to draw on (modified in place)
         centers: Nx1x2 float32 array of dot centers
-        color: Drawing color (BGR)
+        color: Drawing color (RGB)
         radius: Circle radius
         thickness: Line thickness
     """
@@ -818,7 +819,7 @@ def draw_dot_matches(image, matched_pts, matched_labels, unmatched_dots=None,
     """Draw dot match results on an image for visualization.
 
     Args:
-        image: BGR color image to draw on (modified in place)
+        image: RGB color image to draw on (modified in place)
         matched_pts: Kx1x2 float32 array of matched dot centers
         matched_labels: list of K world-point label strings
         unmatched_dots: Nx1x2 float32 array of unmatched image dots (optional)
@@ -2354,6 +2355,22 @@ def feature_based_stereo_calibration(left_path, right_path, input_path,
     }
 
 
+def write_calibration_json(path, data):
+    """Replace the calibration only after serialization and writing succeed."""
+    text = json.dumps(data, indent=2)
+    directory = os.path.dirname(os.path.abspath(path))
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8",
+                                         dir=directory, delete=False) as stream:
+            temporary = stream.name
+            stream.write(text)
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None and os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def main():
     description = "Estimate stereo calibration from calibration target images."
     epilog = """
@@ -2460,12 +2477,12 @@ Input modes:
     if args.corners_file:
         if os.path.exists(args.corners_file):
             data = np.load(args.corners_file, allow_pickle=True)
-            img_shape = tuple(data["img_shape"])
+            img_shape = tuple(int(value) for value in data["img_shape"])
             left_data = data["left_data"].item()
             right_data = data["right_data"].item()
             # Load saved grid size if available (for auto-detection)
             if "grid_size" in data:
-                grid_size = tuple(data["grid_size"])
+                grid_size = tuple(int(value) for value in data["grid_size"])
 
     left_sizes_dict = {}
     right_sizes_dict = {}
@@ -2718,10 +2735,10 @@ Input modes:
     json_dict = dict()
 
     # Image dimensions and grid
-    json_dict['image_width'] = img_shape[0]
-    json_dict['image_height'] = img_shape[1]
-    json_dict['grid_width'] = grid_size[0]
-    json_dict['grid_height'] = grid_size[1]
+    json_dict['image_width'] = int(img_shape[0])
+    json_dict['image_height'] = int(img_shape[1])
+    json_dict['grid_width'] = int(grid_size[0])
+    json_dict['grid_height'] = int(grid_size[1])
     json_dict['square_size_mm'] = args.square_size
 
     # Calibration quality metrics
@@ -2754,8 +2771,7 @@ Input modes:
         json_dict[f'p2_{side}'] = float(d_flat[3]) if len(d_flat) > 3 else 0.0
         json_dict[f'k3_{side}'] = float(d_flat[4]) if len(d_flat) > 4 else 0.0
 
-    with open(args.json_file, 'w') as fh:
-        fh.write(json.dumps(json_dict, indent=2))
+    write_calibration_json(args.json_file, json_dict)
 
     # optionally write npz file
     if args.npz_file:

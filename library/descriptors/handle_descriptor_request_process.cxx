@@ -5,28 +5,39 @@
 #include "handle_descriptor_request_process.h"
 
 #include <viame/core_types/viame_core_types.h>
-#include <viame/core_types/timestamp.h>
-#include <viame/core_types/timestamp_config.h>
-#include <viame/core_types/image_container.h>
-#include <viame/core_types/object_track_set.h>
-#include <viame/core_types/matrix.h>
-
 #include <viame/algorithm_framework/algo/handle_descriptor_request.h>
+#include <viame/core_types/image_container_set_simple.h>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/detected_object_type.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <viame/pipeline_framework/type_traits.h>
 
 #include <viame/pipeline_framework/process_exception.h>
+#include <viame/pipeline_framework/adapters/embedded_pipeline.h>
 
+#include <algorithm>
 #include <filesystem>
+#include <memory>
+#include <fstream>
+#include <chrono>
 
-namespace viame {
+namespace viame
+{
 
 namespace algo = viame::algo;
 
-create_port_trait( filename, file_name, "KWA input filename" );
-create_port_trait( stream_id, string, "Stream ID to place in file" );
+create_config_trait( image_pipeline_file, std::string, "",
+  "Filename for the image processing pipeline. This pipeline should take, "
+  "as input, a filename and produce descriptors as output." );
 
-create_algorithm_name_config_trait( handler );
+create_config_trait( assign_uids, bool, "true",
+  "Whether or not this process should assign unique UIDs to each output "
+  "descriptor produced by this process" );
+
+create_port_trait( boxes_provided, bool,
+  "Flag indicating if bounding boxes were provided in the descriptor request" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -36,9 +47,12 @@ public:
   priv();
   ~priv();
 
-  unsigned track_read_delay;
+  std::string image_pipeline_file;
+  bool assign_uids;
 
-  algo::handle_descriptor_request_sptr m_handler;
+  std::unique_ptr< embedded_pipeline > image_pipeline;
+
+  std::string generate_uid();
 }; // end priv class
 
 // =============================================================================
@@ -55,36 +69,60 @@ handle_descriptor_request_process
 handle_descriptor_request_process
 ::~handle_descriptor_request_process()
 {
+  if( d->image_pipeline )
+  {
+    d->image_pipeline->send_end_of_input();
+    d->image_pipeline->receive();
+    d->image_pipeline->wait();
+    d->image_pipeline.reset();
+  }
 }
 
 // -----------------------------------------------------------------------------
-void handle_descriptor_request_process
+void
+handle_descriptor_request_process
 ::_configure()
 {
   viame::config_block_sptr algo_config = get_config();
 
-  set_nested_algo_configuration_using_trait(
-    handler,
-    algo_config,
-    d->m_handler );
+  d->image_pipeline_file = config_value_using_trait( image_pipeline_file );
+  d->assign_uids = config_value_using_trait( assign_uids );
+}
 
-  if( !d->m_handler )
+
+// -----------------------------------------------------------------------------
+void
+handle_descriptor_request_process
+::_init()
+{
+  auto dir = std::filesystem::path( d->image_pipeline_file ).parent_path();
+
+  if( !d->image_pipeline_file.empty() )
   {
-    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
-                 name(), "Unable to create handle_descriptor_request" );
-  }
+    std::unique_ptr< embedded_pipeline > new_pipeline =
+      std::unique_ptr< embedded_pipeline >( new embedded_pipeline() );
 
-  get_nested_algo_configuration_using_trait(
-    handler,
-    algo_config,
-    d->m_handler );
+    std::ifstream pipe_stream;
+    pipe_stream.open( d->image_pipeline_file, std::ifstream::in );
 
-  // Check config so it will give run-time diagnostic of config problems
-  if( !check_nested_algo_configuration_using_trait(
-    handler, algo_config, d->m_handler ) )
-  {
-    VITAL_THROW( viame::pipeline::invalid_configuration_exception,
-                 name(), "Configuration check failed." );
+    if( !pipe_stream )
+    {
+      throw viame::pipeline::invalid_configuration_exception(
+        name(), "Unable to open pipeline file: " + d->image_pipeline_file );
+    }
+
+    try
+    {
+      new_pipeline->build_pipeline( pipe_stream, dir.string() );
+      new_pipeline->start();
+    }
+    catch( const std::exception& e )
+    {
+      throw viame::pipeline::invalid_configuration_exception( name(), e.what() );
+    }
+
+    d->image_pipeline = std::move( new_pipeline );
+    pipe_stream.close();
   }
 }
 
@@ -98,50 +136,134 @@ handle_descriptor_request_process
 
   request = grab_from_port_using_trait( descriptor_request );
 
-  // Special case, output empty results
+  // Special case, output empty results and pass thru if not specified
   if( !request )
   {
     push_to_port_using_trait( track_descriptor_set, viame::track_descriptor_set_sptr() );
-
-    push_to_port_using_trait( image, viame::image_container_sptr() );
-    push_to_port_using_trait( timestamp, viame::timestamp() );
-    push_to_port_using_trait( filename, "" );
-    push_to_port_using_trait( stream_id, "" );
-    return;
+    push_to_port_using_trait( image_set, viame::image_container_set_sptr() );
+    push_to_port_using_trait( boxes_provided, false );
+    return; // Normal return, no failure
   }
 
-  // Get output matrix and detections
+  // Get output descriptors from internal pipeline
   viame::track_descriptor_set_sptr descriptors;
   std::vector< viame::image_container_sptr > images;
 
-  viame::string_t filename;
-  viame::string_t stream_id;
+  // Get filepaths
+  std::filesystem::path p( request->data_location() );
 
-  if( request && !d->m_handler->handle( request, descriptors, images ) )
+  viame::string_t filename = p.string();
+  viame::string_t stream_id = p.stem().string();
+
+  if( d->image_pipeline )
   {
-    LOG_ERROR( logger(), "Could not handle descriptor request" );
+    // Set request on pipeline inputs. Only populate ports the pipeline
+    // actually exposes; the input adapter rejects data packets containing
+    // entries for unconnected ports (e.g. pipelines with no stream_id
+    // consumer).
+    auto ids = adapter::adapter_data_set::create();
+
+    auto const& input_ports = d->image_pipeline->input_port_names();
+    auto const has_port = [&input_ports]( std::string const& name )
+    {
+      return std::find( input_ports.begin(), input_ports.end(), name )
+             != input_ports.end();
+    };
+
+    if( has_port( "filename" ) )
+    {
+      ids->add_value( "filename", filename );
+    }
+    if( has_port( "stream_id" ) )
+    {
+      ids->add_value( "stream_id", stream_id );
+    }
+
+    // Extract spatial regions (bounding boxes) from the request and convert
+    // to a detected_object_set for descriptor computation. Always send this
+    // value even if empty, so the pipeline can merge with detector output.
+    auto const& spatial_regions = request->spatial_regions();
+    auto dos = std::make_shared< viame::detected_object_set >();
+    bool boxes_provided = !spatial_regions.empty();
+
+    for( auto const& box : spatial_regions )
+    {
+      viame::bounding_box_d bbox(
+        static_cast< double >( box.min_x() ),
+        static_cast< double >( box.min_y() ),
+        static_cast< double >( box.max_x() ),
+        static_cast< double >( box.max_y() ) );
+
+      auto det = std::make_shared< viame::detected_object >( bbox );
+
+      // Set a type on the detection so it passes through class filters
+      // that require a detected_object_type to be present
+      auto dot = std::make_shared< viame::detected_object_type >();
+      dot->set_score( "query_region", 1.0 );
+      det->set_type( dot );
+
+      dos->add( det );
+    }
+
+    if( has_port( "detected_object_set" ) )
+    {
+      ids->add_value( "detected_object_set", dos );
+    }
+
+    // Send the request through the pipeline and wait for a result
+    d->image_pipeline->send( ids );
+
+    auto const& ods = d->image_pipeline->receive();
+
+    if( ods->is_end_of_data() )
+    {
+      throw std::runtime_error( "Pipeline terminated unexpectingly" );
+    }
+
+    // Grab result from pipeline output data set
+    auto const& iter = ods->find( "track_descriptor_set" );
+
+    if( iter == ods->end() )
+    {
+      throw std::runtime_error( "Empty pipeline output" );
+    }
+
+    descriptors = iter->second->get_datum< viame::track_descriptor_set_sptr >();
+
+    auto const& iter2 = ods->find( "image" );
+
+    if( iter2 == ods->end() )
+    {
+      throw std::runtime_error( "Empty pipeline output" );
+    }
+
+    images.push_back( iter2->second->get_datum< viame::image_container_sptr >() );
+
+    // Assign optional UID to descriptors
+    if( d->assign_uids )
+    {
+      for( auto track_desc : *descriptors )
+      {
+        track_desc->set_uid( d->generate_uid() );
+      }
+    }
+  }
+
+  viame::image_container_set_sptr image_set(
+    new viame::simple_image_container_set( images ) );
+
+  // Track if boxes were provided (set in the pipeline section above)
+  bool boxes_provided_flag = false;
+  if( d->image_pipeline )
+  {
+    auto const& spatial_regions = request->spatial_regions();
+    boxes_provided_flag = !spatial_regions.empty();
   }
 
   // Return all outputs
   push_to_port_using_trait( track_descriptor_set, descriptors );
-
-  if( request )
-  {
-    std::filesystem::path p( request->data_location() );
-    filename = p.stem().string();
-    stream_id = filename;
-  }
-
-  // Step image output pipeline if connected
-  for( auto image : images )
-  {
-    viame::timestamp ts;
-
-    push_to_port_using_trait( image, image );
-    push_to_port_using_trait( timestamp, ts );
-    push_to_port_using_trait( filename, filename );
-    push_to_port_using_trait( stream_id, stream_id );
-  }
+  push_to_port_using_trait( image_set, image_set );
+  push_to_port_using_trait( boxes_provided, boxes_provided_flag );
 }
 
 // -----------------------------------------------------------------------------
@@ -162,23 +284,24 @@ void handle_descriptor_request_process
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
-
-  declare_output_port_using_trait( image, shared );
-  declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( filename, optional );
-  declare_output_port_using_trait( stream_id, optional );
+  declare_output_port_using_trait( image_set, optional );
+  declare_output_port_using_trait( boxes_provided, optional );
 }
 
 // -----------------------------------------------------------------------------
 void handle_descriptor_request_process
 ::make_config()
 {
-  declare_config_using_trait( handler );
+  declare_config_using_trait( image_pipeline_file );
+  declare_config_using_trait( assign_uids );
 }
 
 // =============================================================================
 handle_descriptor_request_process::priv
 ::priv()
+  : image_pipeline_file("")
+  , assign_uids( true )
+  , image_pipeline()
 {
 }
 
@@ -187,4 +310,23 @@ handle_descriptor_request_process::priv
 {
 }
 
-} // namespace viame
+
+std::string
+handle_descriptor_request_process::priv
+::generate_uid()
+{
+  static unsigned query_id = 0;
+
+  auto current_time =
+    std::chrono::system_clock::to_time_t( std::chrono::system_clock::now() );
+
+  std::string uid =
+    "query_" + std::to_string( query_id ) + "_" +
+    "time_" + std::to_string( current_time );
+
+  query_id++;
+
+  return uid;
+}
+
+} // end namespace

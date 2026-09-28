@@ -231,7 +231,11 @@ class FrameReader:
         """Position the reader so that `read` returns frame `number`."""
         number = max(int(number), 0)
 
-        if self._frames is not None and number >= self._position:
+        if number == 0:
+            self.close()
+            return
+
+        if number >= self._position:
             while self._position < number:
                 if self.read() is None:
                     return
@@ -285,6 +289,7 @@ class FrameReader:
         if self._frames is not None:
             self._frames.close()
             self._frames = None
+        self._position = 0
 
     def __enter__(self):
         return self
