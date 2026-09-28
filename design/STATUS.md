@@ -2679,3 +2679,41 @@ takes it for and what `CoarseDropout` upscales its mask with.
 `opencv-python-headless` in an `ALT_INSTALL_REQUIRES` table keyed on a name
 that is not in `INSTALL_REQUIRES`, so the substitution never fires and the
 wheel's metadata has never asked for it.
+
+
+## mmdeploy, rf-detr, and a guard against the next submodule bump (2026-09-27)
+
+Two more forks, and the test that found one of them.
+
+**`baseline:fork_cv2`** asks of every vendored package what `baseline:lazy_cv2`
+asks of ours, but about the python a build *installs* rather than the python a
+submodule holds: a file may import cv2 in the submodule and be answered by
+`packages/patches/<fork>.patch` or by a whole replacement under
+`packages/patches/<fork>/`, which is what the sam2 overlay has always done. A
+file that imports cv2 and is replaced by nothing is the failure. That is the
+shape a submodule bump breaks -- upstream adds a cv2 call to a file nothing
+patches, the patch still applies, the wheel still builds, and the declaration
+can never come out -- and it is silent otherwise.
+
+It failed the moment it was written, on **`rf-detr`**, which was not in any of
+the surveys because nobody had looked past the four mm packages. Two files,
+`datasets/synthetic.py` and `datasets/yolo.py`, one `imwrite` and one `imread`,
+both of which the shim already had exactly. 37 lines of diff.
+
+**`mmdeploy`** is the last of the four: one file,
+`codebase/mmocr/deploy/text_detection_model.py`, wanting `minAreaRect` and
+`boxPoints`. 20 lines of diff. It cannot be imported in this install at all --
+it is an mmocr adapter and mmocr is not installed -- so the two functions were
+checked through the shim directly rather than through the module.
+
+**Where that leaves the count.** Across the six forks this checkout has
+populated, 2203 runtime python files, **none imports cv2 without a patch
+replacing it**. Eleven more forks are not checked out here and are skipped with
+their names printed; a full checkout checks them too.
+
+**One thing to know about this install.** `VIAME_INSTALL_PYTHON_DEPS` is OFF in
+this build tree, so its site-packages came from an older build, and the
+installed sam2 still has the two cv2 imports its overlay replaces -- the
+overlay itself is clean, verified file by file. A build with the option on
+produces the patched files. The `mmdetection` fork was rebuilt through the new
+patch step end to end to prove that path works.

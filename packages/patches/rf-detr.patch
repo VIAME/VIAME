@@ -1,0 +1,37 @@
+diff --git a/src/rfdetr/datasets/synthetic.py b/src/rfdetr/datasets/synthetic.py
+index 0394e2b..84d451c 100644
+--- a/src/rfdetr/datasets/synthetic.py
++++ b/src/rfdetr/datasets/synthetic.py
+@@ -15,12 +15,16 @@ from dataclasses import dataclass
+ from pathlib import Path
+ from typing import Dict, List, Tuple, Union
+ 
+-import cv2
+ import numpy as np
+ import supervision as sv
+ from tqdm.auto import tqdm
+ from typing_extensions import Literal
+ 
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's API this
++# file uses -- imwrite, which takes BGR as cv2's does -- over VIAME's own
++# image kernels.
++from viame.utilities import cv2_api as cv2
++
+ logger = logging.getLogger(__name__)
+ 
+ 
+diff --git a/src/rfdetr/datasets/yolo.py b/src/rfdetr/datasets/yolo.py
+index 5f679c1..ea26b1b 100644
+--- a/src/rfdetr/datasets/yolo.py
++++ b/src/rfdetr/datasets/yolo.py
+@@ -190,7 +190,9 @@ class _LazyYoloDetectionDataset:
+         return len(self._samples)
+ 
+     def __getitem__(self, idx: int) -> tuple[str, np.ndarray, "sv.Detections"]:
+-        import cv2
++        # VIAME: no OpenCV. `imread` here is VIAME's, and returns BGR as
++        # cv2's does, so what this hands back is unchanged.
++        from viame.utilities import cv2_api as cv2
+ 
+         sample = self._samples[idx]
+         image = cv2.imread(sample.image_path)

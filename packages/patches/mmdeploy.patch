@@ -1,0 +1,23 @@
+diff --git a/mmdeploy/codebase/mmocr/deploy/text_detection_model.py b/mmdeploy/codebase/mmocr/deploy/text_detection_model.py
+index de0c4076..28210aa5 100644
+--- a/mmdeploy/codebase/mmocr/deploy/text_detection_model.py
++++ b/mmdeploy/codebase/mmocr/deploy/text_detection_model.py
+@@ -1,7 +1,6 @@
+ # Copyright (c) OpenMMLab. All rights reserved.
+ from typing import List, Optional, Sequence, Union
+ 
+-import cv2
+ import mmengine
+ import torch
+ from mmengine.registry import Registry
+@@ -12,6 +11,10 @@ from mmdeploy.codebase.base import BaseBackendModel
+ from mmdeploy.utils import (Backend, get_backend, get_codebase_config,
+                             load_config)
+ 
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's API this
++# file uses -- minAreaRect and boxPoints -- over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
++
+ __BACKEND_MODEL = Registry('backend_text_detectors')
+ 
+ 

@@ -116,6 +116,20 @@ add_test(
 set_property( TEST "baseline:lazy_cv2" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:lazy_cv2" PROPERTY TIMEOUT 120 )
 
+# The other half of the same guarantee, for the packages `packages/patches`
+# patches rather than the modules VIAME writes. A submodule bump is where this
+# rots: upstream adds a cv2 call to a file nothing patches, the patch still
+# applies, the wheel still builds, and `opencv-python-headless` can never come
+# out again. This found two such files in rf-detr the moment it was written.
+add_test(
+  NAME "baseline:fork_cv2"
+  COMMAND "${Python3_EXECUTABLE}" "${baseline_dir}/check_fork_cv2.py"
+          "${VIAME_PACKAGES_DIR}"
+)
+
+set_property( TEST "baseline:fork_cv2" PROPERTY LABELS BASELINE )
+set_property( TEST "baseline:fork_cv2" PROPERTY TIMEOUT 300 )
+
 # What the CMake helpers put where. P8-T08 replaced those helpers, and a
 # build that installs a header one directory to the left compiles, links,
 # tests green and breaks the next person who includes it.
