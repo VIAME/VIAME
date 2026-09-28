@@ -194,7 +194,6 @@ configs/pipelines/train_aug_intensity_hue_motion.pipe
 configs/pipelines/train_aug_motion_only.pipe
 configs/pipelines/train_aug_split.pipe
 configs/pipelines/train_aug_split_and_stereo.pipe
-configs/pipelines/train_aug_warp_ir_to_eo.pipe
 configs/pipelines/train_detector_default.conf
 configs/pipelines/train_detector_mit_yolo_v9_c_640.conf
 configs/pipelines/train_detector_mit_yolo_v9_s_640.conf
@@ -246,11 +245,11 @@ configs/pipelines/utility_register_frames.pipe
 configs/pipelines/utility_register_frames_2-cam.pipe
 configs/pipelines/utility_register_frames_3-cam.pipe
 configs/pipelines/utility_remove_dets_in_ignore_regions.pipe
+configs/pipelines/utility_text_query_ollama_vlm_no_tracking.pipe
+configs/pipelines/utility_text_query_ollama_vlm_tracking.pipe
 configs/pipelines/utility_warp_annotations_2-cam.pipe
 configs/plot.py
 configs/prj-template
-configs/prj-template/category_models
-configs/prj-template/category_models/semantic_hierachy.txt
 configs/prj-template/classify_frames_using_trained_model.sh
 configs/prj-template/configure_gui_theme.sh
 configs/prj-template/continue_training_deep_cfrnn_detector.sh
@@ -1195,6 +1194,7 @@ include/viame/utilities/manipulate_pipelines.h
 include/viame/utilities/python_script_applet.h
 include/viame/utilities/utilities_file.h
 include/viame/utilities/utilities_image.h
+include/viame/utilities/utilities_model_card.h
 include/viame/utilities/utilities_target_clfr.h
 include/viame/utilities/utilities_tracks.h
 include/viame/utilities/viame_embedded_pipeline_export.h
@@ -1559,6 +1559,7 @@ lib/python3.10/site-packages/viame/object_detectors/netharn/netharn/util/util_zi
 lib/python3.10/site-packages/viame/object_detectors/netharn/netharn_detector.py
 lib/python3.10/site-packages/viame/object_detectors/netharn/netharn_mmdet_to_onnx.py
 lib/python3.10/site-packages/viame/object_detectors/netharn/netharn_trainer.py
+lib/python3.10/site-packages/viame/object_detectors/ollama_vlm.py
 lib/python3.10/site-packages/viame/object_detectors/onnx/__init__.py
 lib/python3.10/site-packages/viame/object_detectors/onnx/onnx_detector.py
 lib/python3.10/site-packages/viame/object_detectors/onnx/onnx_predictor.py
@@ -1891,6 +1892,7 @@ lib/python3.10/site-packages/viame/schedulers/pythread_per_process.py
 lib/python3.10/site-packages/viame/segmentation/__init__.py
 lib/python3.10/site-packages/viame/segmentation/interactive_segmentation.py
 lib/python3.10/site-packages/viame/segmentation/interactive_service.py
+lib/python3.10/site-packages/viame/segmentation/interactive_vlm.py
 lib/python3.10/site-packages/viame/segmentation/sam2/__init__.py
 lib/python3.10/site-packages/viame/segmentation/sam2/sam2_refiner.py
 lib/python3.10/site-packages/viame/segmentation/sam2/sam2_segmenter.py

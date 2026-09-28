@@ -7,14 +7,42 @@ held to: names may be added, renamed behind an alias, or removed on purpose
 through `removed.json`, but nothing may disappear or change its defaults by
 accident.
 
-## Regenerating
+## Recording a change
 
-Run against an install whose behaviour you want to become the new baseline:
+**Do not regenerate `registry.json` wholesale.** It is not a snapshot of the
+current build; it is `main`'s surface, and `removed.json` carries a reason for
+each of the 157 names this branch no longer registers. A fresh dump drops all
+157 and the reasons stop describing anything -- the contract's whole content
+is the difference between the two files.
+
+How to record a change depends on what changed:
+
+| what changed | where it goes |
+|---|---|
+| a whole implementation, gone on purpose | `removed.json`, `{kind, interface, name, phase, reason}` |
+| a name, config key or port gone until a later phase brings it back | `pending.json`, same shape plus `config_keys` / `ports` / `whole_name` |
+| a config key gone for good, or a **default changed** | that entry in `registry.json`, and only that entry -- there is no tolerance lane for a changed default |
+| a pipeline file gone | `removed_pipes.json` |
+| a pipeline's status, or what a process resolves to | that entry in `pipes.json` |
+| what the build installs | re-record `install.txt`; it is a flat manifest with no exceptions list |
+
+To update single entries, dump beside the baseline and copy across only the
+entries you mean to move:
 
 ```
 source <install>/setup_viame.sh
-viame registry-dump --json --output tests/baseline/registry.json
-viame pipe-check   --all --json --output tests/baseline/pipes.json
+viame registry-dump --json --introspect --output /tmp/registry.json
+viame pipe-check   --all --json --output /tmp/pipes.json
+```
+
+`--introspect` is not optional. It imports each python implementation so its
+defaults can be read, and it is what `baseline:registry` runs; a dump without
+it records an error for every python algorithm and the comparison then skips
+those entries.
+
+The install manifest is the one that is re-recorded whole:
+
+```
 cmake --install <build> > install.log
 python3 tests/baseline/install_manifest.py install.log \
         --prefix <install> --record tests/baseline/install.txt

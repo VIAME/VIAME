@@ -130,6 +130,16 @@ add_test(
 set_property( TEST "baseline:fork_cv2" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:fork_cv2" PROPERTY TIMEOUT 300 )
 
+# A flag the README advertises but the build never declares is one a user can
+# set and never notice doing nothing. Two had outlived their `option()`.
+add_test(
+  NAME "baseline:documented_flags"
+  COMMAND "${Python3_EXECUTABLE}"
+          "${baseline_dir}/check_documented_flags.py"
+)
+set_property( TEST "baseline:documented_flags" PROPERTY LABELS BASELINE )
+set_property( TEST "baseline:documented_flags" PROPERTY TIMEOUT 60 )
+
 add_test(
   NAME "baseline:fork_cv2_guard"
   COMMAND "${Python3_EXECUTABLE}"

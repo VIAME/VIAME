@@ -1166,7 +1166,7 @@
           },
           "learning_rate": {
             "default": "0.01",
-            "description": "determines how quickly features are “forgotten” from histograms (range 0-1)."
+            "description": "determines how quickly features are \u201cforgotten\u201d from histograms (range 0-1)."
           },
           "max_foreground_fract": {
             "default": "1",
@@ -4595,7 +4595,7 @@
             "description": "If true (default), L2-normalize descriptor vectors before training and scoring. This is recommended for most descriptor types."
           },
           "output_directory": {
-            "default": "category_models",
+            "default": "trained_model",
             "description": "Output directory for trained SVM model files"
           },
           "pos_seed_neighbors": {
@@ -5538,7 +5538,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame input image"
         }
       },
@@ -5550,7 +5552,9 @@
         },
         "vector": {
           "type": "kwiver:d_vector",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Output descriptor vector"
         }
       }
@@ -5577,7 +5581,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame input image"
         }
       },
@@ -5611,7 +5617,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -5665,12 +5673,16 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -5819,12 +5831,16 @@
       "input_ports": {
         "file_name1": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image file name #1"
         },
         "file_name2": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image file name #2"
         },
         "image1": {
@@ -5883,12 +5899,16 @@
         },
         "optical_image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Optical image"
         },
         "optical_timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Optical timestamp"
         },
         "thermal_file_name": {
@@ -5898,12 +5918,16 @@
         },
         "thermal_image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Thermal image"
         },
         "thermal_timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Thermal timestamp"
         }
       },
@@ -5988,7 +6012,9 @@
         },
         "data": {
           "type": "_any",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The data."
         }
       }
@@ -6015,7 +6041,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image": {
@@ -6025,12 +6053,16 @@
         },
         "matrix_d": {
           "type": "kwiver:matrix_d",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "2-dimensional double matrix."
         },
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks."
         },
         "timestamp": {
@@ -6104,22 +6136,30 @@
       "input_ports": {
         "image_height": {
           "type": "kwiver:integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Height of the input images."
         },
         "image_width": {
           "type": "kwiver:integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Width of the input images."
         },
         "tracks_left": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Object track set of camera1."
         },
         "tracks_right": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Object track set of camera2."
         }
       },
@@ -6158,17 +6198,23 @@
       "input_ports": {
         "loop_back_tracks": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "feature track set from last call to detect loops.  May include loops (joined track sets, split track sets)."
         },
         "next_tracks": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "feature track set for the next frame.  Features are not yet matched for any frames."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -6305,22 +6351,30 @@
       "input_ports": {
         "file_name1": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image path #1 (homography lookup key)"
         },
         "file_name2": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image path #2 (homography lookup key)"
         },
         "image1": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #1 (drives one step)"
         },
         "image2": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #2 (drives one step)"
         }
       },
@@ -6364,7 +6418,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image": {
@@ -6374,7 +6430,10 @@
         },
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_nodep", "_required"],
+          "flags": [
+            "_nodep",
+            "_required"
+          ],
           "description": "Set of object tracks."
         },
         "timestamp": {
@@ -6428,12 +6487,16 @@
       "input_ports": {
         "feature_track_set": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of feature tracks."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -6655,12 +6718,12 @@
         },
         "max_bbox_y_center_offset": {
           "default": "-1.0",
-          "description": "Maximum |y_center_left - y_center_right| (pixels) for a per-frame left/right track pairing to be recorded in the pairing accumulator. For a near-parallel stereo rig the y-center offset equals the epipolar residual, so this rejects pairs of unrelated fish at different image heights even when their triangulation rms happens to be small. Kept as absolute pixels because detection/keypoint noise is roughly constant per-pixel — it does not scale with bbox size, so normalizing by height over-rejects small targets. Set to <= 0 to disable. Typical value: 30.",
+          "description": "Maximum |y_center_left - y_center_right| (pixels) for a per-frame left/right track pairing to be recorded in the pairing accumulator. For a near-parallel stereo rig the y-center offset equals the epipolar residual, so this rejects pairs of unrelated fish at different image heights even when their triangulation rms happens to be small. Kept as absolute pixels because detection/keypoint noise is roughly constant per-pixel \u2014 it does not scale with bbox size, so normalizing by height over-rejects small targets. Set to <= 0 to disable. Typical value: 30.",
           "tunable": false
         },
         "max_stereo_rms": {
           "default": "-1.0",
-          "description": "Maximum acceptable stereo-triangulation RMS reprojection error (pixels) for a per-frame left/right track pairing to be recorded in the pairing accumulator. Pairs whose measurement rms exceeds this are dropped from the union-find at resolve time — this rejects false same-tracker-ID and keypoint-projection matches whose triangulation did not converge. Set to <= 0 to disable filtering. Typical value: 20.0.",
+          "description": "Maximum acceptable stereo-triangulation RMS reprojection error (pixels) for a per-frame left/right track pairing to be recorded in the pairing accumulator. Pairs whose measurement rms exceeds this are dropped from the union-find at resolve time \u2014 this rejects false same-tracker-ID and keypoint-projection matches whose triangulation did not converge. Set to <= 0 to disable filtering. Typical value: 20.0.",
           "tunable": false
         },
         "max_track_length": {
@@ -6814,7 +6877,9 @@
         },
         "object_track_set1": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The stereo filtered object tracks1."
         },
         "object_track_set2": {
@@ -6861,12 +6926,16 @@
       "input_ports": {
         "left_image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame left image."
         },
         "right_image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame right image."
         }
       },
@@ -6930,7 +6999,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "object_track_set": {
@@ -6995,7 +7066,10 @@
         },
         "const": {
           "type": "_none",
-          "flags": ["_const", "_required"],
+          "flags": [
+            "_const",
+            "_required"
+          ],
           "description": "The port with the const flag set."
         }
       }
@@ -7028,7 +7102,9 @@
         },
         "number": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Where the numbers will be available."
         }
       }
@@ -7142,7 +7218,9 @@
         },
         "track_descriptor_set": {
           "type": "kwiver:track_descriptor_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of track descriptors."
         }
       },
@@ -7274,12 +7352,16 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object detections"
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame input image"
         }
       },
@@ -7366,12 +7448,16 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -7410,22 +7496,30 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "loop_back_tracks": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_nodep"],
+          "flags": [
+            "_nodep"
+          ],
           "description": "tracks that were output during last call to detect_features_if_keyframe_process"
         },
         "next_tracks": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "tracks including results from later frames"
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -7437,7 +7531,9 @@
         },
         "feature_track_set": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of feature tracks."
         }
       }
@@ -7489,12 +7585,16 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -7543,7 +7643,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
@@ -7560,7 +7662,9 @@
         },
         "motion_heat_map": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Motion heat map."
         }
       }
@@ -7652,7 +7756,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image": {
@@ -7706,7 +7812,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         }
       },
@@ -7809,7 +7917,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image_file_name": {
@@ -8030,12 +8140,16 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -8047,7 +8161,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_shared"],
+          "flags": [
+            "_shared"
+          ],
           "description": "Single frame image."
         }
       }
@@ -8074,12 +8190,16 @@
       "input_ports": {
         "feature_track_set": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of feature tracks."
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -8118,7 +8238,9 @@
       "input_ports": {
         "input": {
           "type": "_flow_dependent/tag",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Arbitrary input data."
         }
       },
@@ -8130,7 +8252,10 @@
         },
         "duplicate": {
           "type": "_flow_dependent/tag",
-          "flags": ["_required", "_shared"],
+          "flags": [
+            "_required",
+            "_shared"
+          ],
           "description": "Duplicated input data."
         }
       }
@@ -8225,7 +8350,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "timestamp": {
@@ -8235,7 +8362,9 @@
         },
         "track_descriptor_set": {
           "type": "kwiver:track_descriptor_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of track descriptors."
         }
       },
@@ -8269,17 +8398,23 @@
       "input_ports": {
         "feature_set": {
           "type": "kwiver:feature_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected image features."
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -8323,22 +8458,30 @@
       "input_ports": {
         "descriptor_set": {
           "type": "kwiver:descriptor_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of descriptors."
         },
         "feature_set": {
           "type": "kwiver:feature_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected image features."
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -8377,17 +8520,23 @@
       "input_ports": {
         "feature_track_set": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_nodep"],
+          "flags": [
+            "_nodep"
+          ],
           "description": "Set of feature tracks."
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -8421,7 +8570,10 @@
       "input_ports": {
         "input": {
           "type": "__feedback",
-          "flags": ["_nodep", "_required"],
+          "flags": [
+            "_nodep",
+            "_required"
+          ],
           "description": "A port which accepts this process' output."
         }
       },
@@ -8433,7 +8585,9 @@
         },
         "output": {
           "type": "__feedback",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "A port which outputs data for this process' input."
         }
       }
@@ -8465,7 +8619,9 @@
       "input_ports": {
         "string_vector": {
           "type": "kwiver:string_vector",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Vector of strings."
         }
       },
@@ -8509,7 +8665,9 @@
       "input_ports": {
         "string_vector": {
           "type": "kwiver:string_vector",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Vector of strings."
         }
       },
@@ -8548,7 +8706,9 @@
       "input_ports": {
         "serialized_message": {
           "type": "kwiver:serialized_message",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "serialized data type"
         }
       },
@@ -8592,17 +8752,23 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "image_file_name": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Name of an image file."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -8661,7 +8827,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -8710,7 +8878,9 @@
         },
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks."
         },
         "timestamp": {
@@ -8833,7 +9003,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
@@ -8903,7 +9075,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_shared"],
+          "flags": [
+            "_shared"
+          ],
           "description": "Single frame image."
         },
         "image_file_name": {
@@ -8975,7 +9149,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame input image"
         }
       },
@@ -9005,16 +9181,23 @@
           "description": "The type of the process.",
           "tunable": false
         },
-        "handler": {
+        "assign_uids": {
+          "default": "true",
+          "description": "Whether or not this process should assign unique UIDs to each output descriptor produced by this process",
+          "tunable": false
+        },
+        "image_pipeline_file": {
           "default": "",
-          "description": "Algorithm configuration subblock to select and configure desired implementation.\n\nConfiguration example:\nblock handler\n    type = impl # desired implementation\n    impl:param = value # implementation specific config item\n    # etc\nendblock",
+          "description": "Filename for the image processing pipeline. This pipeline should take, as input, a filename and produce descriptors as output.",
           "tunable": false
         }
       },
       "input_ports": {
         "descriptor_request": {
           "type": "kwiver:descriptor_request",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "A request to compute descriptors."
         }
       },
@@ -9024,25 +9207,15 @@
           "flags": [],
           "description": "Outputs the heartbeat stamp with an empty datum."
         },
-        "filename": {
-          "type": "kwiver:file_name",
+        "boxes_provided": {
+          "type": "kwiver:bool",
           "flags": [],
-          "description": "KWA input filename"
+          "description": "Flag indicating if bounding boxes were provided in the descriptor request"
         },
-        "image": {
-          "type": "kwiver:image",
-          "flags": ["_shared"],
-          "description": "Single frame image."
-        },
-        "stream_id": {
-          "type": "kwiver:string",
+        "image_set": {
+          "type": "kwiver:image_set",
           "flags": [],
-          "description": "Stream ID to place in file"
-        },
-        "timestamp": {
-          "type": "kwiver:timestamp",
-          "flags": [],
-          "description": "Timestamp for input image."
+          "description": "A collection of images, typically sub images."
         },
         "track_descriptor_set": {
           "type": "kwiver:track_descriptor_set",
@@ -9073,7 +9246,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame input image"
         }
       },
@@ -9112,7 +9287,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame input image"
         }
       },
@@ -9166,7 +9343,9 @@
       "input_ports": {
         "image_file_name": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Name of an image file."
         }
       },
@@ -9178,7 +9357,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_shared"],
+          "flags": [
+            "_shared"
+          ],
           "description": "Single frame image."
         },
         "image_file_name": {
@@ -9215,7 +9396,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -9227,7 +9410,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_shared"],
+          "flags": [
+            "_shared"
+          ],
           "description": "Single frame image."
         }
       }
@@ -9254,7 +9439,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -9288,7 +9475,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -9347,7 +9536,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
@@ -9401,7 +9592,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "image_file_name": {
@@ -9475,12 +9668,16 @@
       "input_ports": {
         "descriptor_set": {
           "type": "kwiver:descriptor_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of descriptors."
         },
         "string_vector": {
           "type": "kwiver:string_vector",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Vector of strings."
         }
       },
@@ -9549,12 +9746,16 @@
       "input_ports": {
         "descriptor_set": {
           "type": "kwiver:descriptor_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of descriptors."
         },
         "string_vector": {
           "type": "kwiver:string_vector",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Vector of strings."
         }
       },
@@ -9598,7 +9799,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image": {
@@ -9675,27 +9878,37 @@
       "input_ports": {
         "loop_back_tracks": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_nodep"],
+          "flags": [
+            "_nodep"
+          ],
           "description": "feature track set from last call to keyframe_selection_process."
         },
         "next_tracks": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "feature track set for the next frame."
         },
         "only_frame_data_tracks": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "output track set with only frame data, no klt tracks."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         },
         "to_loop_back_tracks": {
           "type": "kwiver:feature_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "accumulated klt tracks"
         }
       },
@@ -9774,7 +9987,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "stream_id": {
@@ -9784,7 +9999,9 @@
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -9823,7 +10040,9 @@
       "input_ports": {
         "input": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Where numbers are read from."
         }
       },
@@ -9857,7 +10076,9 @@
       "input_ports": {
         "homography": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homographies"
         }
       },
@@ -9921,12 +10142,16 @@
       "input_ports": {
         "image1": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #1"
         },
         "image2": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #2"
         }
       },
@@ -9995,17 +10220,23 @@
       "input_ports": {
         "detected_object_set1": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Detections from camera 1 (left)"
         },
         "detected_object_set2": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Detections from camera 2 (right)"
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -10027,12 +10258,16 @@
         },
         "object_track_set1": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Output tracks for camera 1"
         },
         "object_track_set2": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Output tracks for camera 2"
         }
       }
@@ -10065,7 +10300,9 @@
         },
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         }
       }
@@ -10098,7 +10335,10 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required", "_shared"],
+          "flags": [
+            "_required",
+            "_shared"
+          ],
           "description": "Single frame image."
         }
       }
@@ -10126,7 +10366,9 @@
         },
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks."
         }
       }
@@ -10178,12 +10420,16 @@
       "input_ports": {
         "object_track_set1": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input object track set #1"
         },
         "object_track_set2": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input object track set #2"
         }
       },
@@ -10232,22 +10478,30 @@
       "input_ports": {
         "homog1": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homography (source-to-ref) #1"
         },
         "homog2": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homography (source-to-ref) #2"
         },
         "image1": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #1"
         },
         "image2": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #2"
         }
       },
@@ -10331,12 +10585,16 @@
       "input_ports": {
         "det_objs_1": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input detected object set #1"
         },
         "det_objs_2": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input detected object set #2"
         },
         "file_name1": {
@@ -10351,22 +10609,30 @@
         },
         "homog1": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homography (source-to-ref) #1"
         },
         "homog2": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homography (source-to-ref) #2"
         },
         "image1": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #1"
         },
         "image2": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #2"
         }
       },
@@ -10430,22 +10696,30 @@
         },
         "homog1": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homography (source-to-ref) #1"
         },
         "homog2": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homography (source-to-ref) #2"
         },
         "image1": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #1"
         },
         "image2": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input image #2"
         }
       },
@@ -10494,27 +10768,37 @@
       "input_ports": {
         "det_objs_1": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input detected object set #1"
         },
         "det_objs_2": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input detected object set #2"
         },
         "homog1": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homography (source-to-ref) #1"
         },
         "homog2": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Input homography (source-to-ref) #2"
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "time stamp."
         }
       },
@@ -10581,12 +10865,16 @@
       "input_ports": {
         "factor1": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The first factor to multiply."
         },
         "factor2": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The second factor to multiply."
         }
       },
@@ -10598,7 +10886,9 @@
         },
         "product": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Where the product will be available."
         }
       }
@@ -10625,7 +10915,9 @@
       "input_ports": {
         "factor": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The factor to multiply."
         }
       },
@@ -10637,7 +10929,9 @@
         },
         "product": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Where the product will be available."
         }
       }
@@ -10659,7 +10953,10 @@
       "input_ports": {
         "mutate": {
           "type": "_any",
-          "flags": ["_mutable", "_required"],
+          "flags": [
+            "_mutable",
+            "_required"
+          ],
           "description": "The port with the mutate flag set."
         }
       },
@@ -10704,7 +11001,9 @@
         },
         "number": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Where the numbers will be available."
         }
       }
@@ -10741,7 +11040,9 @@
       "input_ports": {
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks."
         }
       },
@@ -10785,7 +11086,9 @@
       "input_ports": {
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks."
         }
       },
@@ -10839,7 +11142,9 @@
       "input_ports": {
         "tracks": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Object track set with detected corners."
         }
       },
@@ -10888,17 +11193,23 @@
       "input_ports": {
         "depth_map": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Depth map stored in image form."
         },
         "detected_object_set1": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object detections1."
         },
         "detected_object_set2": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object detections2."
         }
       },
@@ -10987,7 +11298,9 @@
       "input_ports": {
         "depth_map": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Depth map stored in image form."
         },
         "image": {
@@ -10997,12 +11310,16 @@
         },
         "object_track_set1": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks1."
         },
         "object_track_set2": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks2."
         },
         "timestamp": {
@@ -11305,7 +11622,9 @@
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -11354,17 +11673,23 @@
       "input_ports": {
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks"
         },
         "object_track_set2": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Second (right) camera object track set"
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "time stamp."
         }
       },
@@ -11403,7 +11728,9 @@
       "input_ports": {
         "pass": {
           "type": "_flow_dependent/pass",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The datum to pass."
         }
       },
@@ -11415,7 +11742,9 @@
         },
         "pass": {
           "type": "_flow_dependent/pass",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The passed datum."
         }
       }
@@ -11433,6 +11762,11 @@
           "description": "The type of the process.",
           "tunable": false
         },
+        "augmentation_pipeline_file": {
+          "default": "",
+          "description": "Augmentation pipeline definition file location",
+          "tunable": false
+        },
         "database_folder": {
           "default": "",
           "description": "Folder containing all track and descriptor files",
@@ -11443,14 +11777,14 @@
           "description": "Postfix to add to basename for desc files",
           "tunable": false
         },
-        "descriptor_reader": {
-          "default": "",
-          "description": "Algorithm configuration subblock to select and configure desired implementation.\n\nConfiguration example:\nblock descriptor_reader\n    type = impl # desired implementation\n    impl:param = value # implementation specific config item\n    # etc\nendblock",
-          "tunable": false
-        },
         "external_handler": {
           "default": "true",
           "description": "Whether or not an external query handler is used",
+          "tunable": false
+        },
+        "external_pipeline_file": {
+          "default": "",
+          "description": "External pipeline definition file location",
           "tunable": false
         },
         "index_postfix": {
@@ -11463,37 +11797,54 @@
           "description": "Maximum number of results to return at once",
           "tunable": false
         },
+        "merge_duplicate_results": {
+          "default": "false",
+          "description": "If use_tracks_for_history is on, use the track with the highest confidence, otherwise concatenate the history of all entries with the same track",
+          "tunable": false
+        },
         "track_postfix": {
           "default": "_tracks.kw18",
           "description": "Postfix to add to basename for track files",
           "tunable": false
         },
-        "track_reader": {
-          "default": "",
-          "description": "Algorithm configuration subblock to select and configure desired implementation.\n\nConfiguration example:\nblock track_reader\n    type = impl # desired implementation\n    impl:param = value # implementation specific config item\n    # etc\nendblock",
+        "unused_descriptors_as_negative": {
+          "default": "true",
+          "description": "Use un-marked user descriptors as negative exemplars",
+          "tunable": false
+        },
+        "use_tracks_for_history": {
+          "default": "false",
+          "description": "Use object track states for track descriptor history",
           "tunable": false
         }
       },
       "input_ports": {
         "database_query": {
           "type": "kwiver:database_query",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "A database query."
+        },
+        "image_set": {
+          "type": "kwiver:image_set",
+          "flags": [],
+          "description": "A collection of images, typically sub images."
         },
         "iqr_feedback": {
           "type": "kwiver:iqr_feedback",
           "flags": [],
           "description": "IQR feedback."
         },
-        "result_descriptor_scores": {
-          "type": "kwiver:d_vector",
-          "flags": ["_nodep"],
-          "description": "Descriptor set scores from external query handler"
+        "iqr_model": {
+          "type": "kwiver:uchar_vector",
+          "flags": [],
+          "description": "Serialized IQR model bytes"
         },
-        "result_descriptor_uids": {
-          "type": "kwiver:string_vector",
-          "flags": ["_nodep"],
-          "description": "Descriptor set response from external query handler"
+        "track_descriptor_set": {
+          "type": "kwiver:track_descriptor_set",
+          "flags": [],
+          "description": "Set of track descriptors."
         }
       },
       "output_ports": {
@@ -11502,25 +11853,15 @@
           "flags": [],
           "description": "Outputs the heartbeat stamp with an empty datum."
         },
-        "external_descriptor_set": {
-          "type": "kwiver:descriptor_set",
+        "feedback_request": {
+          "type": "kwiver:query_result",
           "flags": [],
-          "description": "Descriptor set to be processed by external query handler"
+          "description": "Feedback requests"
         },
-        "external_exemplar_uids": {
-          "type": "kwiver:string_vector",
+        "iqr_model": {
+          "type": "kwiver:uchar_vector",
           "flags": [],
-          "description": "Descriptor set UIDs to be processed by external query handler"
-        },
-        "external_negative_uids": {
-          "type": "kwiver:string_vector",
-          "flags": [],
-          "description": "Descriptor set negative IQR exemplars"
-        },
-        "external_positive_uids": {
-          "type": "kwiver:string_vector",
-          "flags": [],
-          "description": "Descriptor set positive IQR exemplars"
+          "description": "Serialized IQR model bytes"
         },
         "query_result": {
           "type": "kwiver:query_result",
@@ -11574,7 +11915,9 @@
       "input_ports": {
         "number": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Where numbers are read from."
         }
       },
@@ -11743,12 +12086,16 @@
         },
         "positive_descriptor_set": {
           "type": "kwiver:descriptor_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Positive exemplar descriptor set"
         },
         "positive_exemplar_uids": {
           "type": "kwiver:string_vector",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Positive exemplar descriptor UIDs"
         }
       },
@@ -11947,12 +12294,16 @@
         },
         "positive_descriptor_set": {
           "type": "kwiver:descriptor_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Positive exemplar descriptor set"
         },
         "positive_exemplar_uids": {
           "type": "kwiver:string_vector",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Positive exemplar descriptor UIDs"
         }
       },
@@ -12041,12 +12392,16 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object detections"
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame input image"
         },
         "timestamp": {
@@ -12085,7 +12440,9 @@
       "input_ports": {
         "d_vector": {
           "type": "kwiver:d_vector",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Vector of doubles from descriptor"
         }
       },
@@ -12119,7 +12476,9 @@
       "input_ports": {
         "file_name": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Name of an arbitrary data file."
         }
       },
@@ -12487,7 +12846,9 @@
       "input_ports": {
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -12526,7 +12887,9 @@
         },
         "primary_query": {
           "type": "kwiver:database_query",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Primary database query input - used if non-null"
         },
         "use_primary": {
@@ -12604,7 +12967,10 @@
         },
         "shared": {
           "type": "_none",
-          "flags": ["_required", "_shared"],
+          "flags": [
+            "_required",
+            "_shared"
+          ],
           "description": "The port with the shared flag set."
         }
       }
@@ -12631,7 +12997,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         }
       },
@@ -12643,7 +13011,9 @@
         },
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         }
       }
@@ -12670,17 +13040,23 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object detections"
         },
         "homography_src_to_ref": {
           "type": "kwiver:s2r_homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Source image to ref image homography."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "time stamp."
         }
       },
@@ -12714,7 +13090,9 @@
       "input_ports": {
         "sink": {
           "type": "_any",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The data to ignore."
         }
       },
@@ -12753,7 +13131,9 @@
       "input_ports": {
         "input": {
           "type": "_flow_dependent/tag",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "A stream with extra data at regular intervals."
         }
       },
@@ -12765,7 +13145,9 @@
         },
         "output": {
           "type": "_flow_dependent/tag",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "The input stream sampled at regular intervals."
         }
       }
@@ -12792,7 +13174,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -12831,7 +13215,9 @@
       "input_ports": {
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks."
         }
       },
@@ -12880,12 +13266,16 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -12929,7 +13319,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
@@ -12946,7 +13338,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       }
@@ -13012,7 +13406,9 @@
       "input_ports": {
         "number": {
           "type": "integer",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Where numbers are read from."
         }
       },
@@ -13041,7 +13437,9 @@
       "input_ports": {
         "string": {
           "type": "string",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Where strings are read from."
         }
       },
@@ -13085,7 +13483,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
@@ -13102,7 +13502,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_shared"],
+          "flags": [
+            "_shared"
+          ],
           "description": "Single frame image."
         }
       }
@@ -13174,7 +13576,9 @@
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -13238,17 +13642,23 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -13287,12 +13697,16 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         }
       },
@@ -13334,12 +13748,12 @@
         },
         "conn_str": {
           "default": "",
-          "description": "Database connection string (e.g., postgresql:host=localhost;user=postgres). If set, descriptors are loaded from the DESCRIPTOR table instead of CSV file.",
+          "description": "Removed: the PostgreSQL backend is gone. Setting this is an error; use descriptor_index_file, which is what `viame index` writes.",
           "tunable": false
         },
         "descriptor_index_file": {
           "default": "",
-          "description": "Path to CSV file containing descriptor index (uid,v1,v2,...). Used if conn_str is empty.",
+          "description": "Path to CSV file containing descriptor index (uid,v1,v2,...).",
           "tunable": false
         },
         "distance_metric": {
@@ -13379,7 +13793,7 @@
         },
         "lsh_model_dir": {
           "default": "",
-          "description": "Directory containing ITQ model files from generate_nn_index.py.Required when nn_index_type is 'lsh'.",
+          "description": "Directory containing ITQ model files from viame index build.Required when nn_index_type is 'lsh'.",
           "tunable": false
         },
         "lsh_random_seed": {
@@ -13423,7 +13837,7 @@
           "tunable": false
         },
         "output_directory": {
-          "default": "category_models",
+          "default": "trained_model",
           "description": "Output directory for trained SVM model files",
           "tunable": false
         },
@@ -13547,7 +13961,9 @@
       "input_ports": {
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks."
         }
       },
@@ -13559,7 +13975,9 @@
         },
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         }
       }
@@ -13622,12 +14040,16 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_shared"],
+          "flags": [
+            "_shared"
+          ],
           "description": "Single frame image."
         },
         "metadata": {
           "type": "kwiver:metadata",
-          "flags": ["_shared"],
+          "flags": [
+            "_shared"
+          ],
           "description": "Video metadata vector for a frame."
         },
         "timestamp": {
@@ -13684,7 +14106,9 @@
         },
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "metadata": {
@@ -13694,7 +14118,9 @@
         },
         "timestamp": {
           "type": "kwiver:timestamp",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Timestamp for input image."
         }
       },
@@ -13733,7 +14159,9 @@
       "input_ports": {
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         }
       },
@@ -13745,7 +14173,9 @@
         },
         "detected_object_set": {
           "type": "kwiver:detected_object_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of detected objects."
         }
       }
@@ -13777,7 +14207,9 @@
       "input_ports": {
         "image": {
           "type": "kwiver:image",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Single frame image."
         },
         "size_image": {
@@ -13826,17 +14258,23 @@
       "input_ports": {
         "dest_file_name": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Destination file name"
         },
         "homography": {
           "type": "kwiver:homography",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Homography mapping Source to Dest"
         },
         "source_file_name": {
           "type": "kwiver:file_name",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Source file name"
         }
       },
@@ -13880,7 +14318,9 @@
         },
         "object_track_set": {
           "type": "kwiver:object_track_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of object tracks."
         },
         "timestamp": {
@@ -13934,7 +14374,9 @@
       "input_ports": {
         "query_result": {
           "type": "kwiver:query_result",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of query results."
         }
       },
@@ -13978,7 +14420,9 @@
         },
         "track_descriptor_set": {
           "type": "kwiver:track_descriptor_set",
-          "flags": ["_required"],
+          "flags": [
+            "_required"
+          ],
           "description": "Set of track descriptors."
         }
       },

@@ -6305,9 +6305,96 @@
     "algos": {}
   },
   "configs/pipelines/query_from_track.pipe": {
-    "status": "error",
-    "message": "The port 'track_descriptor_set' on process 'query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids",
-    "processes": {},
+    "status": "ok",
+    "message": "",
+    "processes": {
+      "create_query": {
+        "type": "create_database_query",
+        "algos": {}
+      },
+      "descriptor": {
+        "type": "pytorch_descriptors",
+        "algos": {}
+      },
+      "downsampler": {
+        "type": "downsample",
+        "algos": {}
+      },
+      "image_set_creator": {
+        "type": "image_to_image_set",
+        "algos": {}
+      },
+      "input": {
+        "type": "video_input",
+        "algos": {
+          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:image_list:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:type": {
+            "impl": "image_list",
+            "resolved": true
+          }
+        }
+      },
+      "query_handler": {
+        "type": "perform_query",
+        "algos": {
+          "descriptor_query:type": {
+            "impl": "csv",
+            "resolved": true
+          }
+        }
+      },
+      "track_descriptor": {
+        "type": "compute_track_descriptors",
+        "algos": {
+          "computer:type": {
+            "impl": "average",
+            "resolved": true
+          }
+        }
+      },
+      "track_initializer": {
+        "type": "initialize_object_tracks",
+        "algos": {
+          "track_initializer:threshold:filter:type": {
+            "impl": "class_probability_filter",
+            "resolved": true
+          },
+          "track_initializer:type": {
+            "impl": "threshold",
+            "resolved": true
+          }
+        }
+      },
+      "track_reader": {
+        "type": "read_object_track",
+        "algos": {
+          "reader:type": {
+            "impl": "viame_csv",
+            "resolved": true
+          }
+        }
+      },
+      "track_to_detection": {
+        "type": "convert_tracks_to_detections",
+        "algos": {}
+      },
+      "track_writer": {
+        "type": "write_query_results_as_tracks",
+        "algos": {
+          "writer:type": {
+            "impl": "viame_csv",
+            "resolved": true
+          }
+        }
+      }
+    },
     "algos": {}
   },
   "configs/pipelines/query_image_exemplar.pipe": {
@@ -6409,9 +6496,39 @@
     "algos": {}
   },
   "configs/pipelines/query_retrieval_and_iqr.pipe": {
-    "status": "error",
-    "message": "The port 'track_descriptor_set' on process 'database_query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids",
-    "processes": {},
+    "status": "ok",
+    "message": "",
+    "processes": {
+      "create_query": {
+        "type": "create_database_query",
+        "algos": {}
+      },
+      "database_query_handler": {
+        "type": "perform_query",
+        "algos": {
+          "descriptor_query:type": {
+            "impl": "csv",
+            "resolved": true
+          }
+        }
+      },
+      "descriptor_generator": {
+        "type": "handle_descriptor_request",
+        "algos": {}
+      },
+      "in_adapt": {
+        "type": "input_adapter",
+        "algos": {}
+      },
+      "out_adapt": {
+        "type": "output_adapter",
+        "algos": {}
+      },
+      "query_selector": {
+        "type": "select_database_query",
+        "algos": {}
+      }
+    },
     "algos": {}
   },
   "configs/pipelines/query_video_exemplar.pipe": {
@@ -6430,9 +6547,74 @@
     "algos": {}
   },
   "configs/pipelines/register_multimodal_unsync_ocv.pipe": {
-    "status": "error",
-    "message": "There is no such process of type 'ocv_multimodal_registration' in the registry",
-    "processes": {},
+    "status": "ok",
+    "message": "",
+    "processes": {
+      "align_images": {
+        "type": "align_multimodal_imagery",
+        "algos": {}
+      },
+      "fused_merger": {
+        "type": "merge_images",
+        "algos": {
+          "merge_images:type": {
+            "impl": "ocv",
+            "resolved": true
+          }
+        }
+      },
+      "fused_writer": {
+        "type": "image_writer",
+        "algos": {
+          "image_writer:type": {
+            "impl": "core",
+            "resolved": true
+          }
+        }
+      },
+      "optical_input": {
+        "type": "video_input",
+        "algos": {
+          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
+            "impl": "ocv",
+            "resolved": true
+          },
+          "video_reader:image_list:image_reader:type": {
+            "impl": "add_timestamp_from_filename",
+            "resolved": true
+          },
+          "video_reader:type": {
+            "impl": "image_list",
+            "resolved": true
+          }
+        }
+      },
+      "register_images": {
+        "type": "ocv_multimodal_registration",
+        "algos": {}
+      },
+      "scale_warped": {
+        "type": "percentile_norm_npy_16_to_8bit",
+        "algos": {}
+      },
+      "thermal_input": {
+        "type": "video_input",
+        "algos": {
+          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
+            "impl": "ocv",
+            "resolved": true
+          },
+          "video_reader:image_list:image_reader:type": {
+            "impl": "add_timestamp_from_filename",
+            "resolved": true
+          },
+          "video_reader:type": {
+            "impl": "image_list",
+            "resolved": true
+          }
+        }
+      }
+    },
     "algos": {}
   },
   "configs/pipelines/register_using_homographies.pipe": {
@@ -14229,9 +14411,112 @@
     "algos": {}
   },
   "configs/pipelines/train_aug_add_motion_and_color_freq.pipe": {
-    "status": "error",
-    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2",
-    "processes": {},
+    "status": "ok",
+    "message": "",
+    "processes": {
+      "color_freq_filter": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "color_commonality",
+            "resolved": true
+          }
+        }
+      },
+      "float_to_byte": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "convert_image",
+            "resolved": true
+          }
+        }
+      },
+      "image_merger": {
+        "type": "merge_images",
+        "algos": {
+          "merge_images:type": {
+            "impl": "ocv",
+            "resolved": true
+          }
+        }
+      },
+      "image_merger_first": {
+        "type": "merge_images",
+        "algos": {
+          "merge_images:type": {
+            "impl": "ocv",
+            "resolved": true
+          }
+        }
+      },
+      "image_reader": {
+        "type": "image_file_reader",
+        "algos": {
+          "image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          }
+        }
+      },
+      "image_writer": {
+        "type": "image_writer",
+        "algos": {
+          "image_writer:type": {
+            "impl": "core",
+            "resolved": true
+          }
+        }
+      },
+      "in_adapt": {
+        "type": "input_adapter",
+        "algos": {}
+      },
+      "motion_filter": {
+        "type": "image_filter",
+        "algos": {
+          "filter:average_frames:type": {
+            "impl": "window",
+            "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
+          }
+        }
+      },
+      "out_adapt": {
+        "type": "output_adapter",
+        "algos": {}
+      },
+      "random_grey": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "convert_image",
+            "resolved": true
+          }
+        }
+      },
+      "random_hue": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "ocv_random_hue_shift",
+            "resolved": true
+          }
+        }
+      },
+      "rgb_to_grey": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "convert_image",
+            "resolved": true
+          }
+        }
+      }
+    },
     "algos": {}
   },
   "configs/pipelines/train_aug_add_optical_flow.pipe": {
@@ -14810,9 +15095,116 @@
     "algos": {}
   },
   "configs/pipelines/train_aug_intensity_hue_motion.pipe": {
-    "status": "error",
-    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2",
-    "processes": {},
+    "status": "ok",
+    "message": "",
+    "processes": {
+      "color_convert": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "ocv_convert_color",
+            "resolved": true
+          }
+        }
+      },
+      "downsampler": {
+        "type": "downsample",
+        "algos": {}
+      },
+      "ensure_color": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "convert_image",
+            "resolved": true
+          }
+        }
+      },
+      "ensure_grey": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "convert_image",
+            "resolved": true
+          }
+        }
+      },
+      "float_to_byte": {
+        "type": "image_filter",
+        "algos": {
+          "filter:type": {
+            "impl": "convert_image",
+            "resolved": true
+          }
+        }
+      },
+      "image_merger": {
+        "type": "merge_images",
+        "algos": {
+          "merge_images:type": {
+            "impl": "ocv",
+            "resolved": true
+          }
+        }
+      },
+      "image_merger_first": {
+        "type": "merge_images",
+        "algos": {
+          "merge_images:type": {
+            "impl": "ocv",
+            "resolved": true
+          }
+        }
+      },
+      "image_writer": {
+        "type": "image_writer",
+        "algos": {
+          "image_writer:type": {
+            "impl": "core",
+            "resolved": true
+          }
+        }
+      },
+      "input": {
+        "type": "video_input",
+        "algos": {
+          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:image_list:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:type": {
+            "impl": "image_list",
+            "resolved": true
+          }
+        }
+      },
+      "motion_filter": {
+        "type": "image_filter",
+        "algos": {
+          "filter:average_frames:type": {
+            "impl": "window",
+            "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
+          }
+        }
+      },
+      "split_channels": {
+        "type": "split_image",
+        "algos": {
+          "split_image:type": {
+            "impl": "ocv_channels",
+            "resolved": true
+          }
+        }
+      }
+    },
     "algos": {}
   },
   "configs/pipelines/train_aug_motion_only.pipe": {
@@ -17430,9 +17822,58 @@
     "algos": {}
   },
   "configs/pipelines/utility_link_detections_default.pipe": {
-    "status": "error",
-    "message": "The file does not exist: common_seamap_tracker_v2.5.pipe included from /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/utility_link_detections_default.pipe:28 could not be found in search path.",
-    "processes": {},
+    "status": "ok",
+    "message": "",
+    "processes": {
+      "detection_reader": {
+        "type": "detected_object_input",
+        "algos": {
+          "reader:type": {
+            "impl": "viame_csv",
+            "resolved": true
+          }
+        }
+      },
+      "downsampler": {
+        "type": "downsample",
+        "algos": {}
+      },
+      "input": {
+        "type": "video_input",
+        "algos": {
+          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:image_list:image_reader:type": {
+            "impl": "core",
+            "resolved": true
+          },
+          "video_reader:type": {
+            "impl": "image_list",
+            "resolved": true
+          }
+        }
+      },
+      "track_writer": {
+        "type": "write_object_track",
+        "algos": {
+          "writer:type": {
+            "impl": "viame_csv",
+            "resolved": true
+          }
+        }
+      },
+      "tracker": {
+        "type": "track_objects",
+        "algos": {
+          "track_objects:type": {
+            "impl": "bytetrack",
+            "resolved": true
+          }
+        }
+      }
+    },
     "algos": {}
   },
   "configs/pipelines/utility_link_detections_gfit_v3.pipe": {
