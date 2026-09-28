@@ -33,6 +33,7 @@ but select entries are also listed below broken down by individual functionality
 [Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Model Evaluation](examples/scoring_and_evaluation) <>
 [Detection Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
+[Python Usage](https://github.com/VIAME/VIAME/blob/main/docs/python_package.md) <>
 [Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/registration_and_mosaicing)  <>
 [Size Measurement](examples/size_measurement) <>
@@ -40,7 +41,6 @@ but select entries are also listed below broken down by individual functionality
 [Core Classes](https://kwiver.readthedocs.io/en/latest) <>
 [Plugin Integration](examples/example_pipeline) <>
 [Example Templates](plugins/templates) <>
-[Python Usage](https://github.com/VIAME/VIAME/blob/main/docs/python_package.md) <>
 [Embedding Algorithms](examples/using_algorithms_in_code)
 
 
