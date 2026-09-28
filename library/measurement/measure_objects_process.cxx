@@ -291,9 +291,19 @@ measure_objects_process
 
   if( d->m_settings.refine_disparity_segment )
   {
-#ifndef VIAME_ENABLE_OPENCV
-    throw std::runtime_error( "Segment disparity refinement requires OpenCV rectification" );
-#endif
+    // No rectification guard here. On `main` this was `#ifndef
+    // VIAME_ENABLE_OPENCV`, and `plugins/core/CMakeLists.txt` put that name
+    // in `AUX_COMPILE_DEFINITIONS` so the throw fired only in a build
+    // without OpenCV. The file moved to `library/measurement` and nothing
+    // defines the macro here, so the `#ifndef` was **always** true and every
+    // pipeline that asks for segment refinement threw -- five shipped
+    // configs, `stereo_measure_current_annots_sgbm.pipe` and the four
+    // fdn-stereo ones, where DIVE exposes it as "Robust Segment Fit".
+    //
+    // `pipe-check` bakes names rather than configuring processes, so no
+    // baseline saw it. The rectification is `library/measurement/projection`
+    // now and needs nothing outside the tree, so the condition it guarded
+    // cannot arise.
     if( !d->m_settings.stereo_depth_map_algorithm )
     {
       throw std::runtime_error( "Segment disparity refinement requires stereo_disparity:type" );
