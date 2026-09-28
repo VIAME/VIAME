@@ -27,7 +27,6 @@ but select entries are also listed below broken down by individual functionality
 [Building](examples/building_from_source) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
 [DIVE Interface](https://kitware.github.io/dive) <>
-[VIEW Interface](examples/annotation_and_visualization) <>
 [Object Detector CLI](examples/object_detection) <>
 [Detector Training CLI](examples/object_detector_training) <>
 [Object Tracker CLI](examples/object_tracking) <>
