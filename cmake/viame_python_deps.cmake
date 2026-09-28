@@ -22,12 +22,8 @@ when it needs one (torch's CUDA builds are not on PyPI)" )
 
 mark_as_advanced( VIAME_PYTHON_INDEX_URL )
 
-# Three packages cannot be used as published and are edited in place after
-# they are installed -- `torch.load`'s `weights_only` default and ubelt's
-# removal of `ensure_unicode`. `cmake/packaging/patches/apply.py` carries what
-# `custom_install_viame.cmake` did, and unlike it says so when a patch stops
-# matching rather than doing nothing. P9 removes the step: the patched
-# packages become wheels the wheel CI builds.
+# Dependencies installed from package indexes remain unmodified.
+# Compatibility fixes belong in VIAME code or a compatible dependency version.
 
 # Defaulted ON, which `lite-build-system.md` section 2 asks for, after the
 # run that had to happen first. Against an install built the old way it
@@ -132,13 +128,8 @@ add_custom_command(
             "PYTHONNOUSERSITE="
           "${Python_EXECUTABLE}" -m pip install --user --no-deps
             --no-warn-script-location ${_viame_pip_args}
-  COMMAND "${Python_EXECUTABLE}"
-          "${VIAME_SOURCE_DIR}/cmake/packaging/patches/apply.py"
-          --site-packages
-            "${VIAME_BUILD_INSTALL_PREFIX}/${python_site_packages}"
   COMMAND "${CMAKE_COMMAND}" -E touch "${_viame_deps_stamp}"
   DEPENDS ${_viame_locks}
-          "${VIAME_SOURCE_DIR}/cmake/packaging/patches/apply.py"
   COMMENT "Installing VIAME's python dependencies from the lock files"
   VERBATIM
   )
