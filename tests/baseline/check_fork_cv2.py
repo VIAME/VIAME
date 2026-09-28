@@ -27,7 +27,10 @@ Usage: check_fork_cv2.py <packages directory>
 import argparse
 import ast
 import os
-import re
+import shutil
+import subprocess
+import tempfile
+from contextlib import contextmanager
 import sys
 
 
@@ -40,85 +43,61 @@ BANNED = "cv2"
 SKIP_DIRECTORIES = ("__pycache__", "tests", "test", "checks", "demo", "demos",
                     "docs", ".mim", ".git", "build", "dist")
 
-DIFF_TARGET = re.compile(r"^\+\+\+ b/(.+?)\s*$", re.M)
+@contextmanager
+def patched_tree(root, patches, fork):
+    """Yield the installed source view, without modifying the working tree.
 
-#: An import of OpenCV, as a diff line. `+` and `-` are stripped before this
-#: is tried, so it matches the line in either direction.
-IMPORT_LINE = re.compile(r"^\s*(?:import\s+cv2\b|from\s+cv2[\s.]|"
-                         r"from\s+cv2$)")
-
-
-def diff_verdicts(patches, fork):
-    """What a fork's unified diff does about OpenCV, per file it touches.
-
-    `True` for a file whose imports it **removes and does not add back**, and
-    `False` for one it touches without doing that. The distinction is the
-    point: exempting a file because *something* patches it would pass a diff
-    that changed an unrelated line and left the import where it was, which is
-    exactly the shape a careless rebase produces.
-    """
-    diff = os.path.join(patches, fork + ".patch")
-
-    if not os.path.isfile(diff):
-        return {}
-
-    with open(diff, encoding="utf-8", errors="replace") as handle:
-        lines = handle.read().splitlines()
-
-    verdicts = {}
-    path = None
-    removed = added = 0
-
-    def settle():
-        if path is not None:
-            verdicts[path] = removed > 0 and added == 0
-
-    for line in lines:
-        match = DIFF_TARGET.match(line)
-
-        if match:
-            settle()
-            path = match.group(1)
-            removed = added = 0
-            continue
-
-        if path is None or not line:
-            continue
-
-        if line[0] == "-" and not line.startswith("---"):
-            if IMPORT_LINE.match(line[1:]):
-                removed += 1
-        elif line[0] == "+" and not line.startswith("+++"):
-            if IMPORT_LINE.match(line[1:]):
-                added += 1
-
-    settle()
-
-    return verdicts
-
-
-def overlay_verdicts(patches, fork):
-    """The same question for whole replacement files: does the copy import it?
-
-    Easier than the diff case, because the overlay file **is** what ships, so
-    it can simply be read.
+    Match the build order: whole-file overlays, then the unified diff. The
+    source may already contain that diff from a previous build; reverse-check
+    it before applying. Always inspect the resulting files, including additions.
     """
     overlay = os.path.join(patches, fork)
-    verdicts = {}
+    diff = os.path.abspath(os.path.join(patches, fork + ".patch"))
+    if not os.path.isdir(overlay) and not os.path.isfile(diff):
+        yield root
+        return
 
-    if not os.path.isdir(overlay):
-        return verdicts
+    with tempfile.TemporaryDirectory(prefix="viame-fork-cv2-") as temporary:
+        staged = os.path.join(temporary, "source")
+        # Dereference symlinks while copying so an overlay cannot write through
+        # a symlink into the original checkout. Never copy git metadata.
+        excluded = shutil.ignore_patterns(".git", "__pycache__", "build", "dist")
 
-    for base, directories, names in os.walk(overlay):
-        directories[:] = [d for d in directories if d != "__pycache__"]
+        def ignored(directory, names):
+            omitted = excluded(directory, names)
+            # Some upstream documentation has dangling image links. They are
+            # not Python inputs; missing Python links still fail preparation.
+            for name in names:
+                path = os.path.join(directory, name)
+                if (not name.endswith(".py") and os.path.islink(path)
+                        and not os.path.exists(path)):
+                    omitted.add(name)
+            return omitted
 
-        for name in names:
-            path = os.path.join(base, name)
-            relative = os.path.relpath(path, overlay)
-            verdicts[relative] = not (name.endswith(".py")
-                                      and imports_cv2(path))
+        shutil.copytree(root, staged, ignore=ignored)
+        if os.path.isdir(overlay):
+            shutil.copytree(overlay, staged, dirs_exist_ok=True, ignore=ignored)
+        if os.path.isfile(diff):
+            env = {key: value for key, value in os.environ.items()
+                   if key not in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE",
+                                  "GIT_COMMON_DIR")}
 
-    return verdicts
+            def git(*args):
+                return subprocess.run(["git", *args], cwd=staged, env=env,
+                                      capture_output=True, text=True)
+
+            # Isolate discovery even when TMPDIR is inside a git checkout.
+            initialized = git("init", "--quiet")
+            if initialized.returncode:
+                raise RuntimeError(initialized.stderr.strip())
+            reverse = git("apply", "--reverse", "--check",
+                          "--ignore-whitespace", diff)
+            if reverse.returncode:
+                applied = git("apply", "--ignore-whitespace", diff)
+                if applied.returncode:
+                    raise RuntimeError("cannot apply {}: {}".format(
+                        diff, applied.stderr.strip()))
+        yield staged
 
 
 def imports_cv2(path):
@@ -177,7 +156,6 @@ def main(argv=None):
     failures = []
     checked = 0
     skipped = []
-    covered_total = 0
 
     for fork in sorted(os.listdir(forks)):
         root = os.path.join(forks, fork)
@@ -189,40 +167,20 @@ def main(argv=None):
             skipped.append(fork)
             continue
 
-        covered = dict(diff_verdicts(patches, fork))
-        covered.update(overlay_verdicts(patches, fork))
-
-        for path in runtime_files(root):
-            checked += 1
-            offences = imports_cv2(path)
-
-            if not offences:
-                continue
-
-            relative = os.path.relpath(path, root)
-            verdict = covered.get(relative)
-
-            if verdict is True:
-                covered_total += 1
-                continue
-
-            for line, what in offences:
-                if verdict is False:
-                    failures.append(
-                        "{}/{}:{}: `{}` survives the patch -- it touches this "
-                        "file without taking the import out".format(
-                            fork, relative, line, what))
-                else:
-                    failures.append(
-                        "{}/{}:{}: `{}` and no patch replaces this file"
-                        .format(fork, relative, line, what))
+        try:
+            with patched_tree(root, patches, fork) as installed:
+                for path in runtime_files(installed):
+                    checked += 1
+                    relative = os.path.relpath(path, installed)
+                    for line, what in imports_cv2(path):
+                        failures.append(
+                            "{}/{}:{}: `{}` remains after patching".format(
+                                fork, relative, line, what))
+        except (OSError, RuntimeError) as error:
+            failures.append("{}: {}".format(fork, error))
 
     print("fork cv2: checked {} runtime python files in {} forks".format(
         checked, len(os.listdir(forks)) - len(skipped)))
-
-    if covered_total:
-        print("  {} file(s) import cv2 in the submodule and are replaced by a "
-              "patch".format(covered_total))
 
     if skipped:
         print("  skipped, never checked out: {}".format(", ".join(skipped)))
@@ -230,7 +188,7 @@ def main(argv=None):
     if failures:
         for failure in failures:
             print("  " + failure)
-        print("{} vendored OpenCV import(s) with nothing to replace them. "
+        print("{} vendored OpenCV import(s) or patch preparation failure(s). "
               "Patch the file into packages/patches, or say in "
               "design/STATUS.md why the declaration has to stay.".format(
                   len(failures)))

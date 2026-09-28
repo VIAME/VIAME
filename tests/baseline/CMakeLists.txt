@@ -130,6 +130,14 @@ add_test(
 set_property( TEST "baseline:fork_cv2" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:fork_cv2" PROPERTY TIMEOUT 300 )
 
+add_test(
+  NAME "baseline:fork_cv2_guard"
+  COMMAND "${Python3_EXECUTABLE}"
+          "${baseline_dir}/test_check_fork_cv2.py"
+)
+set_property( TEST "baseline:fork_cv2_guard" PROPERTY LABELS BASELINE )
+set_property( TEST "baseline:fork_cv2_guard" PROPERTY TIMEOUT 120 )
+
 # What the CMake helpers put where. P8-T08 replaced those helpers, and a
 # build that installs a header one directory to the left compiles, links,
 # tests green and breaks the next person who includes it.
