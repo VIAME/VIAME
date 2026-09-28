@@ -114,9 +114,9 @@ TEST_F( utilities_model_card, automatic_validation_and_evaluation_summary )
   inputs.validation_percent = 0.05;
   inputs.validation_frames = { "held-out.png" };
   inputs.test_items = { "test-sequence" };
-  inputs.test_results_dir = inputs.output_directory + "/test_results";
-  std::filesystem::create_directory( inputs.test_results_dir );
-  std::ofstream( inputs.test_results_dir + "/test_summary.txt" ) << "mAP: 0.75\n";
+  inputs.test_results_dir = inputs.output_directory + "/model_evaluation/test";
+  std::filesystem::create_directories( inputs.test_results_dir );
+  std::ofstream( inputs.test_results_dir + "/summary.txt" ) << "mAP: 0.75\n";
 
   viame::write_model_card( inputs );
 
@@ -124,7 +124,7 @@ TEST_F( utilities_model_card, automatic_validation_and_evaluation_summary )
   contains( card, "| Validation | (from train) | 1 | 0 | 0 |" );
   contains( card, "held out 1 frame (target 5% of the training frames, in bursts)" );
   contains( card, "### Test\n\n- `test-sequence`" );
-  contains( card, "`test_results/`" );
+  contains( card, "`model_evaluation/test/`" );
   contains( card, "```\nmAP: 0.75\n```" );
   EXPECT_EQ( read( "splits/validation_frames.txt" ), "held-out.png\n" );
 }

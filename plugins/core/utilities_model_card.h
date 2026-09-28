@@ -50,7 +50,7 @@ struct model_card_inputs
 /// Write MODEL_CARD.md and the exact training/validation frame lists in splits/.
 ///
 /// The output directory must already exist. If test_results_dir contains
-/// test_summary.txt, its evaluation summary is included in the card.
+/// summary.txt, its evaluation summary is included in the card.
 /// Reports the output path or an inability to open the card on standard output.
 VIAME_CORE_EXPORT
 void write_model_card( const model_card_inputs& inputs );

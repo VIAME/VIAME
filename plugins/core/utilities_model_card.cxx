@@ -325,14 +325,16 @@ write_model_card( const model_card_inputs& in )
   std::ifstream summary;
   if( !in.test_results_dir.empty() )
   {
-    summary.open( append_path( in.test_results_dir, "test_summary.txt" ) );
+    summary.open( append_path( in.test_results_dir, "summary.txt" ) );
   }
 
   if( summary.is_open() )
   {
     card << "Scores of the trained detector on the test sequences, computed by "
-         << "`viame score`. Full metrics, plots and the per-sequence detections are in `"
-         << get_filename_no_path( in.test_results_dir ) << "/`." << std::endl << std::endl
+         << "`viame score`. Full metrics, plots, drawn frames and the per-sequence "
+         << "detections are in `model_evaluation/test/`, and in "
+         << "`model_evaluation/validation/` for the validation sequences when "
+         << "those were given." << std::endl << std::endl
          << "```" << std::endl;
     std::string line;
     while( std::getline( summary, line ) )
