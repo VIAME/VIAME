@@ -1701,7 +1701,7 @@ evaluate_split( const split_evaluation_inputs& in )
     "--per-class",
     "--output-metrics", append_path( results_dir, "metrics.json" ),
     "--output-summary", append_path( results_dir, "summary.txt" ),
-    "--output-plots", append_path( results_dir, "plots" ) };
+    "--output-plots", results_dir };
 
   // The scorer takes "canonical: alias, alias" lines, not the training
   // labels format, so the hierarchy's synonyms are rewritten for it.
