@@ -2,6 +2,24 @@
 
 References: lite-build-system.md §2, §6-8.
 
+## State 2026-09-28
+
+T01, T02 and T05 are done. T03 is in progress, T04 is not started, T06 is
+drafted and waiting on the user.
+
+Three things the tasks below did not anticipate:
+
+* **`setup_viame.sh` exports `VIAME_LOG_LEVEL`**, which takes precedence over
+  `KWIVER_DEFAULT_LOG_LEVEL`. A test that sets the second and sources the
+  first tests nothing.
+* **The runtime image needs `libgl1`.** With no imaging library named, pip
+  installs both OpenCV distributions and the full one needs `libGL.so.1`.
+* **The Windows scripts still describe `main`.** `build_server_windows_msi`
+  has stages for VIVIA and SEAL, removed in P1, and sets eight options
+  nothing reads. Two of those, the from-source torch flags, are wanted back
+  (P12-T06); the rest are decisions 11 and 12 in `lite-completion.md`. Do
+  not delete them as part of T03 without the user's say.
+
 ### P10-T01 Install layout and setup script
 Depends: P8-T09
 Do:

@@ -1,6 +1,29 @@
 Removing the OpenCV python dependency
 =====================================
 
+> **State, 2026-09-28: done for VIAME's own code, and for five forks.**
+>
+>     grep -r "import cv2" library/ tools/     no matches
+>     baseline:lazy_cv2                        passes; also rejects deferred imports
+>     requirements naming an imaging library   none
+>
+> Every one of the seven blockers listed under "Where it stands" is closed:
+> SIFT, SURF, ORB and FLANN are ported; SGBM, BM and WLS are bit exact;
+> the L*a*b* tables are reproduced; highgui is Tk and Pillow; grabCut, MOG2
+> and HoughCircles are in `image_kernels`.
+>
+> **The decision this document asked for was taken, and it was the first
+> option**: port the forks. Not as forks of forks -- as unified diffs in
+> `packages/patches/`, applied at build time, against VIAME's own
+> implementations called by name. There is no compatibility module.
+>
+> Phase 6 below, "delete the dependency", happened with one difference: the
+> `ocv_*` algorithm names were **kept**, so that a pipeline written against
+> `main` still runs. They name implementations that contain no OpenCV.
+>
+> What is not done: `sam3`, and the forks nobody has checked.
+> `lite-completion.md` section 4.3.
+
 Goal: no `opencv-python-headless`, anywhere, for anything. Not an optional
 extra -- gone.
 

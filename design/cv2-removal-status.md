@@ -1,5 +1,22 @@
 # OpenCV Python removal: implementation and remaining work
 
+> **Superseded in part, 2026-09-28.** This was written on 2026-09-27, before
+> the forks were ported. Three of its statements are no longer true:
+>
+> * "The package requirements still include OpenCV" -- they do not. No
+>   requirements file names an imaging library (`4bba550ab`).
+> * "Import checks with `cv2` blocked still fail for `imgaug`, `mmcv`,
+>   `mmdet`" -- all three import and run with `cv2` blocked, by
+>   `packages/patches/<fork>.patch`. `mmdeploy` and `rf-detr` likewise.
+> * "kwimage/kwcoco/ndsampler ... still reach OpenCV" -- true, and no longer
+>   a blocker: they are dependencies, they declare what they need, and
+>   `kwimage[headless]` is how VIAME asks for it.
+>
+> What remains open is in `lite-completion.md` section 4.3: `sam3` has eight
+> files on `cv2` and no patch, and thirteen of nineteen forks have not been
+> checked at all. The rest of this document stands as the record of what
+> was implemented and how it was verified.
+
 ## Scope and status
 
 The requested target is that every feature, including optional tools and models,

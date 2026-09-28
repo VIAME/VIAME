@@ -43,6 +43,16 @@ COLMAP,SEAGIS,DIVE,DOCS,TESTS,WEB_EXCLUDES,VERTEX_AI}`, `VIAME_ENABLE_PYTORCH-*`
 Temporary (deleted in the phase that removes the dependency):
 `VIAME_ENABLE_OPENCV` (P7), `VIAME_ENABLE_FFMPEG` (P4), `VIAME_ENABLE_VXL` (P3).
 
+**As built, 2026-09-28.** `VIAME_ENABLE_FFMPEG` and `VIAME_ENABLE_VXL` went
+as planned, though the README advertised the second until `622112918`.
+`VIAME_ENABLE_OPENCV` outlived P7, because by then it gated a feature set
+rather than a library; it is `VIAME_ENABLE_IMAGE_PROCESSING`, and the old
+spelling is honoured for one release. Of the list below,
+`VIAME_BUILD_PYTHON_FROM_SOURCE` was **not** removed -- it and
+`VIAME_PYTHON_STANDALONE` are the two ways to get an interpreter -- and
+`VIAME_BUILD_PYTORCH_FROM_SOURCE` was removed and is wanted back (P12-T06).
+`VIAME_ENABLE_POSTGRESQL` is gone with the feature.
+
 Removed in P1: `VIAME_ENABLE_{KWIVER,VIAME_PLUGINS,VIVIA,SEAL,KEYPOINT,MATLAB,
 TENSORFLOW,TENSORRT,WIN32GUI,GDAL}`, `VIAME_BUILD_{FLETCH_DIR,KWIVER_DIR,PLUGINS_DIR,
 FORCE_REBUILD,CORE_IMAGE_LIBS,PYTHON_FROM_SOURCE,PYTORCH_FROM_SOURCE,
@@ -208,5 +218,6 @@ uses it for both bindings and pip.
 `tests/` keeps the pytest helper (renamed `viame_add_test`) and ctest-time
 pipeline discovery. Library unit tests live in `tests/library/<dir>/` and
 are registered from `tests/CMakeLists.txt`; golden recordings remain in
-`tests/golden/`. `setup_ctest.cmake` and the
+`tests/golden/` (`tests/reference/` since 2026-09-28, beside the live
+comparisons against OpenCV). `setup_ctest.cmake` and the
 `CTestTestfile.cmake` append hack go in P1.

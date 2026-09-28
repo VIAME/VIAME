@@ -1,5 +1,10 @@
 # VIAME lite: dependency disposition
 
+> **State, 2026-09-28.** Section 1 is complete: every fletch package is
+> gone or vendored. `third_party/` is `library/tpl/` and
+> `python/requirements/` is `cmake/packaging/requirements/`. The OpenCV row
+> is superseded; see the note under the table.
+
 Legend: **vendor** = source copied into `third_party/` and built here;
 **pip** = python wheel from a lock file; **drop** = removed on `lite`;
 **temp** = present during early phases, removed in the named phase.
@@ -25,6 +30,19 @@ Legend: **vendor** = source copied into `third_party/` and built here;
 | CUDA / cuDNN | user-provided | darknet, torch wheels | `enable_language( CUDA )` and `find_package( CUDAToolkit )` in the main build now that `third_party/darknet` is compiled here; torch wheels carry their own. `CUDNN_HALF` is on for architectures from 70 up, as darknet's own build has it -- the goldens only reproduce with it |
 | OpenMP, Threads | | evaluate_models, sprokit | system, permanent (no library to ship) |
 | OpenSSL | | vertex-ai client | optional `find_package`, only with `VIAME_ENABLE_VERTEX_AI` |
+
+**OpenCV, as built.** The row above keeps `opencv-python-headless` as a pip
+dependency. It is not one: no requirements file names an imaging library,
+and nothing VIAME owns imports `cv2`. The lock still carries
+`opencv-python` and `opencv-python-headless`, both, because packages VIAME
+depends on require them -- `ultralytics` the first, and `albucore`,
+`albumentations` and `kwimage[headless]` the second.
+
+**CPython and torch.** CPython can be built from source
+(`VIAME_BUILD_PYTHON_FROM_SOURCE`) or downloaded
+(`VIAME_PYTHON_STANDALONE`). Torch cannot be built from source: that went
+with the superbuild in P1-T02, and with it OpenBLAS. It is wanted back for
+builds targeting a CUDA the index does not publish; P12-T06.
 
 ## 2. kwiver components
 
@@ -81,6 +99,14 @@ plan. Summary of what is never copied:
 | darknet (optional, temporary) | ~30k C/CUDA | until models are ONNX |
 | googletest (tests only, FetchContent) | | unit tests |
 
-Python runtime wheels are governed by `python/requirements/py3.X/*.lock` (one set per python version);
-`numpy`, `torch`, `opencv-python-headless`, `av`, `scipy`, `pillow` are the
-ones VIAME core code imports directly.
+Python runtime wheels are governed by
+`cmake/packaging/requirements/py3.X/*.lock` (one set per python version and
+accelerator); `numpy`, `torch`, `av`, `scipy` and `pillow` are the ones
+VIAME core code imports directly.
+
+**As built**, against the table above: `cppdb` and `cpp-httplib` are not
+vendored, PostgreSQL having been removed; `miniz` and `tinyxml` are, and
+both are permanent; `darknet` is inference only. One thing is in the tree
+that is on no list: `library/object_detectors/learn/pydensecrf`, a vendored
+python extension that wants Eigen, is excluded from the install and is
+imported by `cutler`. P9-T06.

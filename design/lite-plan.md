@@ -1,5 +1,10 @@
 # VIAME lite: plan
 
+> **State, 2026-09-28.** Goals 1 to 5 are met for VIAME's own code; phases
+> 0 to 8 and 11 are done. What follows is the plan as it was written, with
+> the places it was overtaken marked. `lite-completion.md` measures each
+> goal against the tree.
+
 ## 1. Goals
 
 1. One CMake project: `cmake -S . -B build && cmake --build build` builds
@@ -34,6 +39,23 @@ Vendored sources:   pybind11, rapidjson, stb_image + stb_image_write, a baseline
 Python runtime:     wheels from lock files: numpy, torch, opencv-python-headless,
                     av (PyAV), scipy, and the VIAME model-backend forks
 ```
+
+**As built**, where it differs:
+
+```
+Vendored sources:   under library/tpl, not third_party: pybind11, rapidjson, stb,
+                    libsvm, cxxopts, miniz, tinyxml, darknet (inference only),
+                    and the CPython recipe. cppdb and cpp-httplib are not there:
+                    PostgreSQL was removed
+Python runtime:     no imaging library is named. numpy, torch, av, scipy, pillow
+                    and kwimage[headless]; cv2 arrives because ultralytics,
+                    albumentations, albucore, mmengine and kwimage require it
+```
+
+**Open decision 1 went the other way for OpenCV.** The answer was "python
+too": nothing VIAME owns imports `cv2`, and the ports section 2.6 of
+`lite-removals.md` listed as the price were written. `av` stays. The
+paragraph below is the assumption as it stood.
 
 Assumption to confirm (open decision 1): "get rid of OpenCV/FFmpeg" means
 the C++ build. Python code may keep using the `cv2` and `av` wheels for
@@ -79,6 +101,7 @@ build and the full verification set green.
 | P9 | `phase-09-python-packaging.md` | Wheel CI, index, lock files final; vendored python moved out; patched wheels replace install-time patching | M |
 | P10 | `phase-10-install-platforms.md` | Install layout, setup script, presets, Windows/macOS/docker, packaging, CI | M |
 | P11 | `phase-11-rename.md` | `kwiver::vital` -> `viame`, `kwiver.*` -> `viame.*` with shim | L (mechanical) |
+| P12 | `phase-12-followups.md` | Added 2026-09-28. What the assessment found: configure every pipeline, install from the new locks, check every fork, finish the names, torch from source | M |
 
 Dependency graph between phases: P0 -> P1 -> P2 -> P3 -> P4 -> P5 -> {P6, P7}
 -> P8 -> P9 -> P10 -> P11. P6 and P7 are independent of each other; P9 and
@@ -109,6 +132,9 @@ P10 can start after P5 if needed.
 | Scope creep into algorithm rewrites | Registry baseline must stay identical; anything beyond a task's scope becomes a new task |
 
 ## 7. Open decisions
+
+All ten are settled; `lite-completion.md` section 6 has each answer and four
+new ones. The list below is as it was asked.
 
 1. Do python-side `cv2` and `av` wheels remain acceptable after OpenCV and
    FFmpeg are removed from the C++ build? (Assumed yes.)

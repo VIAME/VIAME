@@ -37,11 +37,21 @@ the compatibility checks green.
 
 - `cmake --build build` from the current configure succeeds, and a clean
   configure from scratch succeeds at every phase boundary.
-- Registry check passes: `viame registry-dump` matches
+- Registry check passes: `viame registry-dump --introspect` matches
   `tests/baseline/registry.json`, allowing only entries listed in
   `tests/baseline/removed.json`. A task that removes or renames a name must
   add it to `removed.json` (renames register an alias instead and stay out
-  of `removed.json`).
+  of `removed.json`). **`registry.json` is never regenerated whole.** It is
+  `main`'s surface, not this build's, and a fresh dump drops every name
+  `removed.json` gives a reason for; `tests/baseline/README.md` says where
+  each kind of change goes.
+- A python process is declared in its package's
+  `__sprokit_process_declarations__`. A package that declares anything is
+  not scanned, so after a merge from `main` a process that arrived with
+  only its `__sprokit_register__` hook does not exist.
+  `baseline:declared_processes` checks it.
+- No python that VIAME owns imports `cv2`, at import time or at call time,
+  outside `tests/reference/opencv/`. `baseline:lazy_cv2` checks it.
 - Pipe check passes: `viame pipe-check --all` matches
   `tests/baseline/pipes.json`.
 - `ctest -L CRITICAL` passes on the reference machine.
@@ -69,15 +79,18 @@ cmake --build build -j$(nproc) && cmake --install build
 
 # compatibility contract
 source build/install/setup_viame.sh
-viame registry-dump --json > /tmp/registry.json
+viame registry-dump --json --introspect --output /tmp/registry.json
 python3 tests/baseline/compare_registry.py tests/baseline/registry.json /tmp/registry.json \
-        --removed tests/baseline/removed.json
-viame pipe-check --all --json > /tmp/pipes.json
-python3 tests/baseline/compare_pipes.py tests/baseline/pipes.json /tmp/pipes.json
+        --removed tests/baseline/removed.json --pending tests/baseline/pending.json
+viame pipe-check --all --json --output /tmp/pipes.json
+python3 tests/baseline/compare_pipes.py tests/baseline/pipes.json /tmp/pipes.json \
+        --removed tests/baseline/removed_pipes.json
 
-# behaviour
-ctest --test-dir build -L CRITICAL --output-on-failure
-ctest --test-dir build -L GOLDEN   --output-on-failure   # exists from P3-T03
+# behaviour. -j2, not -j$(nproc): the reference machine is shared, and at
+# -j3 seven unit tests fail under load and pass on a rerun
+ctest --test-dir build -L "BASELINE|UNIT|CORE" -j2 --output-on-failure
+ctest --test-dir build -L "GOLDEN|CRITICAL"    -j1 --output-on-failure
+ctest --test-dir build -R '^tools:'            -j2 --output-on-failure
 
 # hygiene
 git grep -n "#include <vital/"   -- library tools   # must be empty after P5
@@ -100,11 +113,23 @@ git grep -n "libav\|avcodec"     -- library tools   # must be empty after P4
 - Registered names never disappear: a renamed implementation registers
   its old name as an alias (`lite-build-system.md` §4). A removal goes to
   `removed.json` and is called out in STATUS.md.
-- Golden tests: input from `pipelines_test_data`, expected output committed
-  under `tests/golden/<name>/`, tolerance stated in the test file. A
-  replacement implementation is not done until its golden test exists.
-- Python that needs OpenCV imports `cv2` from the `opencv-python-headless`
-  wheel. C++ never includes OpenCV after Phase 7.
+- Reference tests: input from `pipelines_test_data`, expected output
+  committed under `tests/reference/<group>/`, tolerance stated in the test
+  file. A replacement implementation is not done until its recording
+  exists. (`tests/golden` until 2026-09-28; the ctest names are still
+  `golden:*`.)
+- A test that **calls** the library being replaced lives in
+  `tests/reference/opencv/` and begins with `pytest.importorskip`. A test
+  that only cites it as where its expected values came from does not belong
+  there, and a skip is never conditioned on whether a reference library has
+  a feature that VIAME provides itself.
+- Neither C++ nor python uses OpenCV. What python needs is in
+  `viame.image_kernels`, `viame.utilities.imageops`,
+  `viame.utilities.geometry` and `viame.video_io.frames`; if a function is
+  missing, it is added there. There is no compatibility module and one is
+  not to be written.
+- Images are RGB, or RGBA, inside VIAME. A channel swap happens only at a
+  boundary that demands BGR, and is written at that boundary.
 - Every new python module lives in `library/<dir>/` alongside that
   library's C++ and is picked up by `viame_add_python_package`; no per-file
   CMake lines and no `python/` subdirectory.
@@ -118,14 +143,29 @@ git grep -n "libav\|avcodec"     -- library tools   # must be empty after P4
 
 ## Decisions you may not make alone
 
-The open decisions in `lite-plan.md` §7. If a task needs one, mark the task
-`blocked (decision N)` and stop. Do not pick a side to keep moving.
+The open decisions in `lite-plan.md` §7 and `lite-completion.md` §6. If a
+task needs one, mark the task `blocked (decision N)` and stop. Do not pick a
+side to keep moving.
+
+**Removing something is a decision.** A flag nothing reads, a submodule
+nothing builds, a comment that names a library that is gone: each has
+looked dead and been wanted. "Removed in P1" has meant deferred. Report it,
+with what reads it and what does not, and leave it where it is.
+
+## What is not yours to edit
+
+- `RELEASE_NOTES.md`. Drafts go in `design/drafts/`.
+- Anything under `packages/` other than `packages/patches/`. The forks are
+  submodules; a change to one is a diff in `packages/patches/<fork>.patch`
+  and the gitlink does not move.
+- DIVE. It is its own repository and the pipelines are its contract.
 
 ## Reading order for a fresh agent
 
 1. This file
 2. `STATUS.md`
-3. `lite-plan.md` §1 to §3 (goals, end state, decisions)
+3. `lite-completion.md` (what is done, what is wrong, what is next)
+3b. `lite-plan.md` §1 to §3 (goals, end state, decisions)
 4. The current phase's task file, fully
 5. The sections of `lite-removals.md`, `lite-library-layout.md`,
    `lite-build-system.md` that the task links

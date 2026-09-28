@@ -4880,3 +4880,161 @@ quietly absorbed.
 
 What would close it is OpenCV's `segmentation.cpp`, read rather than recalled.
 Nothing else is missing.
+
+## 2.76 A guard against a missing reference skipped tests of our own code
+
+`surf_is_available()` asked whether the installed `cv2` could build a SURF
+detector, and skipped when it could not. No wheel on PyPI is built with the
+non-free modules, so it could not, anywhere. But `ocv_SURF` had been VIAME's
+own C++ since the port that exists *because* no wheel ships it, and the
+tests behind the guard called that and nothing else. Four unit tests and the
+`ocv_SURF` golden cases had never run on any machine.
+
+Two more of the same kind fell out the same day: a highgui probe in front of
+a viewer that is Tk and Pillow, and an `importorskip( 'cv2' )` at the top of
+a test for a package that does not import it.
+
+**A skip has to be conditioned on what the test uses.** When an
+implementation moves from a library into the tree, every skip that named the
+library is now wrong in the direction nobody looks: it still says "skipped",
+which reads as "cannot be run here", and the suite is green.
+
+Un-skipping found what the skip had been hiding, which was small: the SURF
+descriptors differ from the recording by 1.9e-02 at worst, cosine similarity
+0.99941, against the 0.9964 the port was accepted at. The keypoints are
+exact to one float32 ULP. The tolerance is per member for that reason -- one
+number for the case would have been the loosest of them.
+
+## 2.77 A file that moves loses the compile definitions of where it was
+
+`measure_objects_process.cxx` guarded a feature with `#ifndef
+VIAME_ENABLE_OPENCV` and threw. On `main` that name is in
+`AUX_COMPILE_DEFINITIONS` for `plugins/core`, so the throw fires in a build
+without OpenCV. Phase 2 moved the file to `library/measurement`, where
+nothing defines it, and the `#ifndef` became unconditionally true. Five
+shipped configs ask for the feature. All five threw at configure time, from
+the day of the move.
+
+A CMake variable and a preprocessor macro of the same name are two things,
+and only the directory's `CMakeLists.txt` connects them. `git mv` does not
+carry it. **After a move, grep the moved file for `#if` and find each name's
+definition in the new directory.** A name with no definition is not an
+error to the compiler -- `#ifndef` of nothing is true.
+
+## 2.78 `pipe-check` resolves; it does not configure
+
+Already noted in 2.31 that "resolved" is weaker than it sounds. This is the
+other half: a pipeline whose every name resolves can still be one that
+cannot be built, because `_configure` has not run. 2.77 was invisible to
+every baseline for that reason, and so was 2.79.
+
+258 pipelines resolve and 16 are run end to end by the golden suite. The
+other 242 are checked for spelling. P12-T01.
+
+## 2.79 A package that declares is not scanned, so a merge can lose a process
+
+On `main` a python process registers by being imported during the module
+scan. Here a package that has a declaration list is not scanned at all --
+that is where the startup time went -- so a process that is defined, has its
+`__sprokit_register__`, and is not in the list, does not exist.
+
+`compute_curved_measurements` arrived in a merge with its class, its hook
+and two add-on pipelines that select it. `baseline:pipes` recorded the
+pipeline as failing, because it was, and from then on the comparison agreed
+with itself. **A baseline recorded after a regression protects the
+regression.**
+
+`baseline:declared_processes` reads the source and needs no install. It is
+scoped to packages that declare something, because a package that declares
+nothing -- `viame.processes` -- is still scanned, and its four processes
+were the false positives that said so.
+
+## 2.80 `registry.json` is `main`'s surface, and regenerating it erases the contract
+
+`tests/baseline/README.md` said to regenerate it. A fresh dump has 229 fewer
+names, every one of them covered by `removed.json` -- which holds a phase
+and a reason for each of the 157 implementations this branch no longer
+registers. The baseline is not what this build provides. It is what `main`
+provided, and the contract is the difference between the two files,
+explained. Regenerated, the reasons describe nothing.
+
+Nobody had followed the instructions, which is the only reason the file was
+intact.
+
+Two things to carry. A deliberate default change has **no tolerance lane**:
+`removed.json` takes whole names and `pending.json` takes what is coming
+back, so a changed default means editing that one entry. And
+`registry-dump` without `--introspect` records an error for every python
+algorithm, which the comparison then skips -- finding 1.35, which the
+README's commands reproduced.
+
+## 2.81 Spelled as segments, a path survives the substitution that was meant for it
+
+Moving `tests/golden` was a `git mv` and a substitution of the string. Six
+test modules build the path as `os.path.join( HERE, "..", "..", "tests",
+"golden" )`, which does not contain the string. They failed loudly, on a
+missing file, and were the easy ones.
+
+The one that did not fail loudly: `test_golden.py` loaded the removals list
+from `HERE/../baseline/removed.json` and **treated a missing file as an
+empty table**. One directory deeper, three cases that skip on purpose
+started failing with "could not find factory", which reads like a broken
+build.
+
+After a move: grep for the directory's *name* as a quoted word, not only
+for its path; and a loader that returns empty for a missing file is a
+loader whose file can go missing. That one raises now.
+
+## 2.82 CMake does not delete what it stopped producing, and python prefers the stale one
+
+The fold made 56 extension modules into one and gave each a one-line `.py`
+that re-exports its submodule. The 56 `.so` files stayed -- in the staging
+tree, because CMake does not remove an output it no longer has a rule for,
+and in the install, by 1.9. Python's finder tries an extension before a
+source file. So `import viame.types.query_result` reached a library from
+before the fold.
+
+Nothing failed at import. What failed was the first binding changed after
+the fold: the property was in `_types.so` and the caller was reading a file
+three days older than everything around it.
+
+`viame_fold_python_package` removes them at configure time, **only where
+the shim is already in place**. One of the directories is the install
+prefix, and deleting an extension whose replacement has not been installed
+yet would leave a configured, unbuilt tree with neither.
+
+## 2.83 With nothing named, pip installs both OpenCV distributions
+
+Removing the declaration and its two exclusions does not leave the lock
+without OpenCV. `ultralytics` requires `opencv-python`; `albucore`,
+`albumentations` and `kwimage[headless]` require `opencv-python-headless`.
+Both resolve, at the same version, and both write `cv2/`. Whichever pip
+installs last is what `import cv2` gets.
+
+The full build needs `libGL.so.1`. The runtime image installed `libsm6`,
+`libice6` and `libxext6` -- what the headless build wants -- and no
+`libgl1`, so an image where the full build landed last would have failed on
+`import ultralytics`. The exclusions had been what prevented that, and
+nothing said so.
+
+## 2.84 A flag nothing declares is not a flag nothing reads
+
+Three kinds, and the difference decided what happened to each:
+
+* **Documented, never declared, never read**: `VIAME_ENABLE_VXL`,
+  `VIAME_ENABLE_TENSORRT`. Setting them is silent. The second was named in
+  runtime error messages.
+* **Never declared, read**: `VIAME_BUILD_DIVE_FROM_SOURCE`. Read by
+  `viame_dive.cmake`, and a cache variable passed with `-D` works whether or
+  not an `option()` names it. A check that counted declarations called it
+  dead.
+* **Set by a build script, read by nothing**: eight, in the Windows
+  scripts. Two name building torch from source, which was removed in P1 and
+  is **wanted back** -- the index publishes `cu126` and `cu130`, and any
+  other CUDA has no wheel.
+
+The third is the one to carry. A removal recorded in the ledger as done
+read as a decision, and it had been a deferral: the capability went with
+the superbuild because the superbuild was going, not because nobody wanted
+it. **What a removal says about intent is nothing.** Report the flag, say
+what reads it, and leave it.
