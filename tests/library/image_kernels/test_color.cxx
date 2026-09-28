@@ -4,8 +4,9 @@
 
 /// The colour conversions, against what OpenCV computed for the same pixels.
 ///
-/// `tests/golden/image_kernels/opencv.json` was recorded by
-/// `record_from_opencv.py` while OpenCV was still on the path. Reading a file
+/// `tests/reference/image_kernels/opencv.json` was recorded by
+/// `tests/reference/opencv/recorders/record_image_kernels.py` while OpenCV
+/// was still on the path. Reading a file
 /// rather than calling OpenCV is what lets this test outlive it, which is the
 /// whole point: after phase 7 there is no second implementation to compare
 /// against, so the comparison has to have been made and written down.
@@ -324,4 +325,26 @@ TEST ( color, refuses_the_wrong_plane_count )
   EXPECT_THROW( io::swap_rb( one ), std::invalid_argument );
   EXPECT_THROW( io::demosaic( three, io::bayer_pattern::BG ),
                 std::invalid_argument );
+}
+
+TEST( color, hsv_byte_tail_rounding )
+{
+  // Main's byte SIMD conversion truncates complete 32-pixel blocks;
+  // scalar row endings round. Pin both with a fractional RGB result.
+  kv::image_of< uint8_t > hsv( 33, 2, 3 );
+  for( size_t y = 0; y < hsv.height(); ++y )
+    for( size_t x = 0; x < hsv.width(); ++x )
+    {
+      hsv( x, y, 0 ) = 10;
+      hsv( x, y, 1 ) = 100;
+      hsv( x, y, 2 ) = 200;
+    }
+  auto rgb = io::hsv_to_rgb( hsv );
+  for( size_t y = 0; y < hsv.height(); ++y )
+  {
+    EXPECT_EQ( 147, rgb( 0, y, 1 ) );
+    EXPECT_EQ( 148, rgb( 32, y, 1 ) );
+    EXPECT_EQ( 121, rgb( 0, y, 2 ) );
+    EXPECT_EQ( 122, rgb( 32, y, 2 ) );
+  }
 }

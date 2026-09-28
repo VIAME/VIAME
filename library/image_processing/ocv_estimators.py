@@ -13,7 +13,7 @@ loop with a refit over the consensus set.
 Neither reproduces OpenCV's numbers, and neither is meant to: a RANSAC
 draws different samples and converges on a different member of the set of
 models the data supports. What they are held to is accuracy against known
-answers, and `tests/golden/opencv`'s recordings for these two cases were
+answers, and `tests/reference/opencv`'s recordings for these two cases were
 re-made against them deliberately. On synthetic correspondences with a
 quarter corrupted, measured before the switch:
 

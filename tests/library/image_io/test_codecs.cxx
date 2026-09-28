@@ -6,7 +6,7 @@
 ///
 /// These check the codecs against what the formats say, on images small
 /// enough to reason about by hand. What they do not check is agreement with
-/// OpenCV on real files -- `tests/golden/codecs` does that, over eighteen
+/// OpenCV on real files -- `tests/reference/codecs` does that, over eighteen
 /// containers recorded from the reader being replaced, and it is the test
 /// that would catch a decoder that is self-consistent and wrong.
 
@@ -319,7 +319,7 @@ TEST ( codecs, refuses_a_float_image )
 
 // ----------------------------------------------------------------------------
 /// A 16 bit image narrowed for a container that cannot hold it saturates,
-/// which is what OpenCV's writer did -- see tests/golden/codecs, which round
+/// which is what OpenCV's writer did -- see tests/reference/codecs, which round
 /// trips a 16 bit gray through BMP.
 TEST ( codecs, narrowing_saturates_rather_than_shifting )
 {

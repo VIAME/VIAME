@@ -1,6 +1,6 @@
 """The PyAV writer, held to what a written video has to contain.
 
-Read back with the PyAV reader, which `tests/golden/test_video.py` holds to
+Read back with the PyAV reader, which `tests/reference/test_video.py` holds to
 the C++ reader's recording, so a round trip that comes back right means both
 ends agree with what the arrows did.
 
@@ -12,7 +12,7 @@ import pytest
 
 # The C++ ffmpeg reader deadlocks inside open() if PyAV has driven libav
 # earlier in the same process, so every video touched here goes through one
-# writer and one reader and nothing else; see tests/golden/video_runner.py
+# writer and one reader and nothing else; see tests/reference/video_runner.py
 # for the isolation the golden tests need for the same reason.
 
 WIDTH, HEIGHT, FRAMES, RATE = 64, 48, 30, 10.0

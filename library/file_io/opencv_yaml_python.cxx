@@ -5,7 +5,7 @@
 /// \file
 /// \brief Python bindings for the OpenCV FileStorage subset reader
 ///
-/// Small on purpose. They exist so that `tests/golden/calib` can replay its
+/// Small on purpose. They exist so that `tests/reference/calib` can replay its
 /// `nodes` recording -- taken through `cv2.FileStorage`, which is the
 /// definition of the format -- against the C++ reader that replaces it. A
 /// recording nothing replays is a specification, not a test.

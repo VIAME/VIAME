@@ -14,7 +14,7 @@ import codec_fixtures
 # Every container, by fixture name. The decode cases run all of them.
 CONTAINERS = tuple(name for name, _ in codec_fixtures.paths(""))
 
-# Where the committed containers live, relative to tests/golden/inputs.
+# Where the committed containers live, relative to tests/reference/inputs.
 INPUT_SUBDIR = "codecs"
 
 

@@ -1,6 +1,6 @@
 """What the python `hough_circle` guarantees beyond the golden replay.
 
-`tests/golden/test_golden.py` holds the detector to the recording made while
+`tests/reference/test_golden.py` holds the detector to the recording made while
 the implementation was C++: the same circles, in the same order, with the
 same boxes. What is here is the part of the contract the recording cannot
 reach.

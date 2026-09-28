@@ -74,7 +74,7 @@ register_factories( kv::registry& vpm )
     full_frame_detector >( vpm, module_name );
 
   // One chipper, two names. the `core` plugin and the `opencv` plugin each had an
-  // implementation of it, and P2-T05 kept this one; `tests/golden/opencv`
+  // implementation of it, and P2-T05 kept this one; `tests/reference/opencv`
   // holds the seven chipping variants of both, byte-identical. 276 config
   // lines select `ocv_windowed` and 17 select `windowed`, so both answer.
   register_algorithm< kv::algo::image_object_detector,

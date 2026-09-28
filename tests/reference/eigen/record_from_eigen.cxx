@@ -236,7 +236,7 @@ int main()
 {
   std::printf( "{\n" );
   std::printf( "  \"note\": \"Recorded from Eigen by "
-               "tests/golden/math/record_from_eigen.cxx, seed 20260910. "
+               "tests/reference/eigen/record_from_eigen.cxx, seed 20260910. "
                "Row-major.\",\n" );
 
   bool first = true;

@@ -4,7 +4,7 @@
 Run against an install that still has the reader being replaced:
 
     source <install>/setup_viame.sh
-    python3 tests/golden/record_video.py
+    python3 tests/reference/record_video.py
 
 Frames are recorded as digests rather than images: what matters for a reader
 is which frames it yields, in what order, and with what timestamps, and

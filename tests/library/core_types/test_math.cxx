@@ -5,8 +5,8 @@
 /// \file
 /// \brief `core_types/math` against the values Eigen gave for the same inputs
 ///
-/// `tests/golden/math/eigen.json` was recorded by
-/// `tests/golden/math/record_from_eigen.cxx` while phase 6 still had Eigen,
+/// `tests/reference/eigen/eigen.json` was recorded by
+/// `tests/reference/eigen/record_from_eigen.cxx` while phase 6 still had Eigen,
 /// which is the only moment those numbers can be obtained. Checking against
 /// the file rather than against Eigen is what lets this test outlive the
 /// dependency it is replacing.

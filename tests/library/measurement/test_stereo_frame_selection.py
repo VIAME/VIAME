@@ -1,6 +1,6 @@
 """What `stereo_frame_selection` guarantees beyond the golden replay.
 
-`tests/golden/measurement`'s `calibration_pipeline` cases run this inside the
+`tests/reference/measurement`'s `calibration_pipeline` cases run this inside the
 shipped pipeline and hold the calibration that comes out to the recording and
 to ground truth. What is here is the pieces on their own: the frame grouping,
 the correspondence filter, the extent matrix and the k-medians, on inputs

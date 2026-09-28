@@ -366,7 +366,7 @@ def test_the_full_hue_range_leaves_a_float_image_alone():
 # half-to-even, which is what OpenCV does; 192 configurations agree exactly,
 # over eight shapes including one that does not divide by its tile grid. Those
 # are strong enough agreements to assert shape and invariants here and leave
-# the pixel comparison to tests/golden.
+# the pixel comparison to tests/reference.
 
 def _gray(width=64, height=48):
     y, x = np.mgrid[0:height, 0:width]

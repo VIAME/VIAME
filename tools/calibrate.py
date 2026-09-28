@@ -1193,7 +1193,7 @@ def video_frames(video_file, frame_step=1, show_progress=True):
     the sub-pixel corner refinement and the focal lengths.
 
     It had never shown, and the shipped fixture says why: every calibration
-    image in `tests/golden/inputs` is neutral, R equal to G equal to B, so the
+    image in `tests/reference/inputs` is neutral, R equal to G equal to B, so the
     swap was a no-op on the only data anyone had run it against. Reading those
     images and reading a lossless video of them now give byte-identical
     calibrations, which they did before too; a coloured target is where the

@@ -154,7 +154,7 @@ color_commonality( viame::image_of< T > const& image,
 /// arrows/vxl's grid path builds its regions with the corners in the wrong
 /// order and leaves most of the output unwritten; there is nothing to be bit
 /// compatible with, so this computes what the option says it computes. No
-/// shipped pipeline uses it. See tests/golden/README.md.
+/// shipped pipeline uses it. See tests/reference/README.md.
 template < typename T >
 viame::image_of< T >
 color_commonality_grid( viame::image_of< T > const& image,

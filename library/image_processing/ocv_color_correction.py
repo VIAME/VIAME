@@ -9,7 +9,7 @@ the `opencv` plugin's `apply_color_correction.cxx` in python, beside
 an application built out of a dozen of them -- a lookup table, a masked
 mean, a morphological backscatter estimate, CLAHE in Lab, an exponential
 attenuation model and a three-way fusion. Keeping the chain in python keeps
-it one line per step and holds it to `tests/golden/opencv`'s thirteen
+it one line per step and holds it to `tests/reference/opencv`'s thirteen
 recorded cases exactly.
 
 No shipped pipeline selects this filter. It is kept rather than removed

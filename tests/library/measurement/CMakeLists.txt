@@ -13,14 +13,15 @@ viame_discover_gtests( viame triangulate
 
 # The calib3d replacement, against a recording of what OpenCV answered for
 # the same rigs. Regenerate with
-# `python tests/golden/projection/record_from_opencv.py`.
+# `python tests/reference/opencv/recorders/record_projection.py`.
 viame_discover_gtests( viame projection
   LIBRARIES viame_measurement
             kwiver::vital
             GTest::gtest )
 
 target_compile_definitions( test-viame-projection PRIVATE
-  "VIAME_GOLDEN_PROJECTION_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/projection\"" )
+  "VIAME_GOLDEN_PROJECTION_DIR=\"${VIAME_SOURCE_DIR}/tests/reference/projection\""
+  )
 
 # The stereo measurement utilities and core's detection pairing, from
 # `tests/plugins/core` in P2-T06 with the code they test -- the move P2-T06

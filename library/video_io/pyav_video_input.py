@@ -8,7 +8,7 @@ PyAV is a thin binding over the same libraries the arrow used, so decoding
 behaviour is unchanged; what moves is where the binding lives, from a
 compiled dependency of the C++ build to a wheel from PyPI.
 
-Behaviour held to `tests/golden/video/manifest.json`, recorded from the C++
+Behaviour held to `tests/reference/video/manifest.json`, recorded from the C++
 reader before it was replaced:
 
 * frames are numbered from one;

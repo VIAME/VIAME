@@ -6,7 +6,7 @@
 ///
 /// Every expected value here is computed by hand from the rule the kernel is
 /// supposed to follow, not read back out of an implementation. The recordings
-/// under tests/golden check the same kernels against what VXL actually did;
+/// under tests/reference check the same kernels against what VXL actually did;
 /// these check that what VXL did is what we think it did.
 
 #include <image_kernels/channels.h>

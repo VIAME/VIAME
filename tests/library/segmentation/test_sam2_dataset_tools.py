@@ -19,7 +19,7 @@ def load(relative):
 def test_dataset_and_extraction_colour_conventions(tmp_path):
     from viame.video_io.frames import read_frames
     from PIL import Image
-    clip = ROOT / 'tests/golden/inputs/clip.mp4'
+    clip = ROOT / 'tests/reference/inputs/clip.mp4'
     rgb = [frame for frame, _ in read_frames(str(clip))]
     visualizer = load('sav_dataset/utils/sav_utils.py')
     extractor = load('training/scripts/sav_frame_extraction_submitit.py')

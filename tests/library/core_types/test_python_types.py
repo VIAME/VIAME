@@ -11,7 +11,7 @@ runner -- and none of it is checked until it runs.
 Two halves, and they answer different questions.
 
 `test_the_api_surface_is_what_it_was` compares against
-`tests/golden/python_types.json`, which is every exported class and its
+`tests/reference/python_types.json`, which is every exported class and its
 members, recorded before the rewrite. It answers "is anything missing", which
 is the failure a rewrite actually makes: a method nobody thought to port,
 found six months later by a pipeline that uses it once.
@@ -41,7 +41,7 @@ from viame.types import (
 
 RECORDING = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "..", "..", "..", "tests", "golden", "python_types.json")
+    "..", "..", "..", "tests", "reference", "python_types.json")
 
 
 # ----------------------------------------------------------------------------

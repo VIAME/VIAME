@@ -6,7 +6,7 @@ replacement behaves the same: same shape, same dtype, and values within the
 tolerance stated for that implementation below.
 
 Run just these:  ctest -L GOLDEN
-Re-record:       see tests/golden/README.md
+Re-record:       see tests/reference/README.md
 """
 
 import json
@@ -116,7 +116,6 @@ TOLERANCES_BY_KIND = {
 }
 
 
-
 REMOVED_PATH = os.path.join(HERE, "..", "baseline", "removed.json")
 
 
@@ -159,8 +158,15 @@ def removed_names():
     registered and still has to reproduce its recording -- because a `vxl`
     bundle_adjust nobody used had been removed.
     """
+    # Not a tolerant lookup. An absent file used to mean an empty table,
+    # and when this directory moved under `tests/reference/` the relative
+    # path stopped resolving: three cases whose implementation was removed
+    # on purpose stopped skipping and started failing with "could not find
+    # factory", which reads like a broken build rather than a broken path.
+    # A missing file is a broken checkout, so say so.
     if not os.path.exists(REMOVED_PATH):
-        return {}
+        raise RuntimeError(
+            "the removals list is missing: {}".format(REMOVED_PATH))
 
     with open(REMOVED_PATH) as handle:
         return {(entry["name"], entry["interface"]): entry.get("reason", "")
@@ -592,6 +598,45 @@ ARRAY_TOLERANCES_BY_KIND = {
         ( 1e-02, 1e-04 ),
     ( "mono_calibration", "utility_calibrate_single_camera.pipe" ):
         ( 1e-03, 1e-05 ),
+
+    # SURF's keypoints, at the same ULP as SIFT's above and for the same
+    # reason. Measured 3.05e-05 on all three inputs, which is 2^-15.
+    ( "features", "ocv_SURF" ): ( 1e-04, 0.0 ),
+    ( "tracks",   "ocv_SURF" ): ( 1e-04, 0.0 ),
+    ( "matches",  "ocv_SURF" ): ( 1e-04, 0.0 ),
+}
+
+# Per (kind, implementation, member), where one member of a recording moves
+# further than the rest of it and a single number for the case would have to
+# be the loosest of them.
+#
+# One entry, and it is not version drift like the table above: `ocv_SURF` is
+# a **port**, `library/image_processing/surf.{h,cxx}`, rather than the same
+# code at a different version. It had to be written because SURF is patented
+# and no wheel on PyPI is built with the non-free modules -- see `surf.h` --
+# and seven shipped configs select it.
+#
+# What the port reproduces exactly is the detector: the same keypoint count
+# on every input, each within one float32 ULP, which the entry above holds
+# it to. The descriptor is where the arithmetic differs -- the Haar responses
+# and their Gaussian weighting accumulate in a different order -- and the
+# effect is largest where a raw descriptor bin is near zero before the vector
+# is normalised.
+#
+# Measured over the three recorded inputs: worst absolute 1.9e-02, mean
+# 2.5e-04, and **cosine similarity 0.99941 at worst**. `design/STATUS.md`
+# records the port as accepted at 0.9964 similarity and a matched fraction
+# of 0.98, so this is inside what was agreed by a factor of six. Rounded up
+# to 2e-02 for room.
+#
+# These cases had never run. They were gated on whether the installed cv2
+# could build a SURF detector, which no wheel can, so the gate skipped them
+# on every machine -- including the ones where VIAME provides SURF itself.
+# The gate is gone and the tolerance is what replaces it.
+ARRAY_TOLERANCES_BY_MEMBER = {
+    ( "features", "ocv_SURF", "descriptors" ): ( 2e-02, 0.0 ),
+    ( "tracks",   "ocv_SURF", "descriptors" ): ( 2e-02, 0.0 ),
+    ( "matches",  "ocv_SURF", "descriptors" ): ( 2e-02, 0.0 ),
 }
 
 
@@ -662,8 +707,10 @@ def check_array_case(item, case, outputs, group):
                         if case["kind"] in ("measurement", "pair_stereo")
                         else 0.0)
 
-            absolute, by_kind_relative = ARRAY_TOLERANCES_BY_KIND.get(
-                ( case["kind"], case["impl"] ), ( ARRAY_TOLERANCE, 0.0 ))
+            absolute, by_kind_relative = ARRAY_TOLERANCES_BY_MEMBER.get(
+                ( case["kind"], case["impl"], member ),
+                ARRAY_TOLERANCES_BY_KIND.get(
+                    ( case["kind"], case["impl"] ), ( ARRAY_TOLERANCE, 0.0 )))
             relative = max(relative, by_kind_relative)
 
             allowed = np.maximum(
@@ -868,50 +915,6 @@ def model_files(case):
             if isinstance(value, str) and "{models}" in value]
 
 
-_SURF_AVAILABLE = None
-
-
-def surf_is_available():
-    """Whether this build's cv2 can actually build a SURF detector.
-
-    SURF is patented and **no `opencv-python*` wheel on PyPI is built with
-    `OPENCV_ENABLE_NONFREE`**: the plain wheel has no `xfeatures2d` at all,
-    and the contrib wheel has a `SURF_create` that raises. VIAME carried a
-    cv2 built from source with the non-free modules until phase 1 made cv2 a
-    wheel.
-
-    These recordings are kept rather than deleted. A site that builds its own
-    OpenCV still has SURF, and these cases still hold it to what the C++
-    wrapper produced -- which is the whole point of having recorded them.
-    """
-    global _SURF_AVAILABLE
-
-    if _SURF_AVAILABLE is None:
-        try:
-            import cv2
-
-            cv2.xfeatures2d.SURF_create(100, 4, 3, False, False)
-            _SURF_AVAILABLE = True
-        except Exception:
-            _SURF_AVAILABLE = False
-
-    return _SURF_AVAILABLE
-
-
-def skip_without_surf(case, impl):
-    """Skip a case that needs SURF when this cv2 has not got it."""
-    if surf_is_available():
-        return
-
-    # `ocv_SURF` is the implementation under test in a `features` case and
-    # the *fixture* in a `matches` or `tracks` case, where the variant names
-    # the detector whose features are being matched.
-    if "ocv_SURF" in (case["impl"], impl) or "ocv_SURF" in case["variant"]:
-        pytest.skip(
-            "this cv2 has no non-free SURF, so ocv_SURF cannot run; see "
-            "library/image_processing/surf.h")
-
-
 def skip_without_model(case):
     """Skip rather than fail when the case's model or its GPU is absent.
 
@@ -963,7 +966,6 @@ def test_golden(item):
     group, case, impl = item
 
     skip_without_model(case)
-    skip_without_surf(case, impl)
 
     interface = INTERFACE_OF_KIND.get(case["kind"])
     removal = REMOVED.get((case["impl"], interface)) if interface else None

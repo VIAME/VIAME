@@ -4,7 +4,8 @@
 
 /// The convolution kernels, against what OpenCV computed for the same pixels.
 ///
-/// Same arrangement as `test_color.cxx`: `tests/golden/image_kernels/opencv.json`
+/// Same arrangement as `test_color.cxx`:
+/// `tests/reference/image_kernels/opencv.json`
 /// was recorded while OpenCV was still on the path, and each case carries its
 /// own tolerance and the margin of border the comparison skips because the
 /// recording is a window and a kernel reads outside it.
@@ -17,7 +18,7 @@
 
 #include <viame/core_types/image.h>
 
-#include "../../../tests/golden/golden_json.h"
+#include "../../../tests/reference/golden_json.h"
 #include "golden_image.h"
 
 #include <gtest/gtest.h>

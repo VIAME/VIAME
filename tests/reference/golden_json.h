@@ -5,7 +5,7 @@
 /// \file
 /// \brief Just enough JSON to read a recording, for the C++ golden tests
 ///
-/// The recordings under `tests/golden/` that a C++ test reads -- the Eigen
+/// The recordings under `tests/reference/` that a C++ test reads -- the Eigen
 /// one and the OpenCV one -- are objects of numbers and flat arrays of
 /// numbers, and nothing more. Pulling a parser in for that shape would be a
 /// dependency added to the tests of a branch whose point is removing them.

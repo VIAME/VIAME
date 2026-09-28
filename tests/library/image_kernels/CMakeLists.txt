@@ -56,7 +56,8 @@ viame_discover_gtests( viame draw
 
 foreach( test IN ITEMS color filter warp histogram contours draw )
   target_compile_definitions( test-viame-${test} PRIVATE
-    "VIAME_GOLDEN_IMAGE_KERNELS_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/image_kernels\"" )
+    "VIAME_GOLDEN_IMAGE_KERNELS_DIR=\"${VIAME_SOURCE_DIR}/tests/reference/image_kernels\""
+    )
 endforeach()
 
 # From `tests/plugins/core` in P2-T09. Linked as they were there, against the

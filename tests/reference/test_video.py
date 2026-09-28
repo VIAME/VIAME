@@ -1,13 +1,13 @@
 """Hold the video reader and writer to what the C++ ones did before they were
 replaced.
 
-`tests/golden/video/manifest.json` was recorded from `arrows/ffmpeg` while it
+`tests/reference/video/manifest.json` was recorded from `arrows/ffmpeg` while it
 was still the only reader. Every replacement has to reproduce it: the same
 frames, the same presentation times, the same pixels for the frames that were
 digested, and seeking that lands where it says it does.
 
 Run just these:  ctest -L GOLDEN
-Re-record:       see tests/golden/README.md
+Re-record:       see tests/reference/README.md
 """
 
 import json

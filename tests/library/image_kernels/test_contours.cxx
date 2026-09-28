@@ -20,7 +20,7 @@
 
 #include <viame/core_types/image.h>
 
-#include "../../../tests/golden/golden_json.h"
+#include "../../../tests/reference/golden_json.h"
 #include "golden_image.h"
 
 #include <gtest/gtest.h>

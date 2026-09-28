@@ -16,7 +16,7 @@ taken on trust.
 Run it under the reference install, not this one:
 
     source ~/Dev/viame/build/install/setup_viame.sh
-    python tests/golden/verify_wls_against_reference.py
+    python tests/reference/verify_wls_against_reference.py
 
 It exits zero when every variant is bit identical.
 """

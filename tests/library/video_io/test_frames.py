@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GOLDEN = os.path.abspath(os.path.join(HERE, "..", "..", "..", "tests", "golden"))
+GOLDEN = os.path.abspath(os.path.join(HERE, "..", "..", "..", "tests", "reference"))
 CLIP = os.path.join(GOLDEN, "inputs", "clip.mp4")
 VFR = os.path.join(GOLDEN, "inputs", "clip_vfr.mp4")
 NOT_A_VIDEO = os.path.join(GOLDEN, "inputs", "bayer_bg.png")

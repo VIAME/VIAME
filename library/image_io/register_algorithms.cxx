@@ -56,7 +56,7 @@ register_factories( kv::registry& vpm )
   // 1 first suggested, would have dropped all five of its config keys
   VIAME_REGISTER( kv::algo::image_io, core_image_io, "vxl" )
   // And the name arrows/ocv used, since P7-T02: `core_image_io` decodes
-  // through `codecs/` now, and `tests/golden/codecs` says it reproduces what
+  // through `codecs/` now, and `tests/reference/codecs` says it reproduces what
   // the OpenCV reader produced for all twenty containers -- exactly for
   // every lossless one, within the decoder tolerance for JPEG
   VIAME_REGISTER( kv::algo::image_io, core_image_io, "ocv" )

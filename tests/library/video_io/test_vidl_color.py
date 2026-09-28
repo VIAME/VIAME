@@ -5,7 +5,7 @@ import json
 import numpy as np
 import pytest
 
-ROOT = Path(__file__).resolve().parents[2] / "golden"
+ROOT = Path(__file__).resolve().parents[2] / "reference"
 
 
 @pytest.mark.parametrize("use_cli", [False, True])

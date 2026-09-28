@@ -187,7 +187,7 @@ target_include_directories( viame_processes_file_io PRIVATE
 #
 # Only `opencv_yaml`, and only so the golden recording of what
 # `cv::FileStorage` parsed can be replayed against the reader that replaced
-# it. See `tests/golden/calib_runner.py`.
+# it. See `tests/reference/calib_runner.py`.
 ##
 if( VIAME_ENABLE_PYTHON )
   # The COCO readers and writers, `utilities_coco` and the package's own

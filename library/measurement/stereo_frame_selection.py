@@ -21,7 +21,7 @@ What it does, in the order `select_frames` does it:
    is a spread of board poses rather than the first N.
 
 Step four is off by default (`frame_count_threshold` is 0), and
-`tests/golden/measurement`'s `frames_6` variant is what turns it on so this
+`tests/reference/measurement`'s `frames_6` variant is what turns it on so this
 is not untested code.
 """
 

@@ -8,7 +8,7 @@
 ///
 /// `read_stereo_rig_json` and `write_stereo_rig_json` were cereal's JSON
 /// archives, and cereal is what P8-T06 deletes. The reader has a golden case
-/// -- `stereo_fish_json` in `tests/golden/calib` -- which says what a real
+/// -- `stereo_fish_json` in `tests/reference/calib` -- which says what a real
 /// calibration file means. This says the things a golden through
 /// `load_stereo_calibration` cannot see:
 ///

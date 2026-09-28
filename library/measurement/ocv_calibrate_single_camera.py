@@ -9,7 +9,7 @@ files behind it, in python. Same reason as its stereo counterpart: the fit
 is `cv::calibrateCamera`, which is calib3d, so the numerics stay OpenCV's
 and only the language changes.
 
-`tests/golden/measurement`'s `mono_calibration` cases hold this to the
+`tests/reference/measurement`'s `mono_calibration` cases hold this to the
 matrices the C++ wrote and to the rig the fixture views were rendered
 through, the same pair of checks the stereo case gets.
 

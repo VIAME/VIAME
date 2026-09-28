@@ -354,28 +354,27 @@ def small_image_set(example_imagery):
     return small_set
 
 
-def require_opencv_window_support():
+def require_display_support():
     """
-    Skip the calling test unless OpenCV can actually open a window.
+    Skip the calling test unless a window can actually be opened.
 
-    highgui is an optional part of an OpenCV build: without a GTK, Qt, Cocoa or
-    Win32 backend, namedWindow raises "The function is not implemented" and any
-    pipeline containing an image_viewer dies with it. That is a property of how
-    OpenCV was configured, not a defect in the pipeline under test, so skip
-    rather than fail. A build that does have a backend still runs the test.
+    `viame.image_io.display` draws with Tk and Pillow, so a pipeline holding
+    an `image_viewer` needs tkinter present and a desktop display attached.
+    Neither is a defect in the pipeline under test -- headless CI has no
+    display and some distributions ship python without tkinter -- so skip
+    rather than fail. A machine that has both still runs the test.
     """
     try:
-        import cv2
+        import tkinter
     except ImportError:
-        pytest.skip("OpenCV python bindings not available")
+        pytest.skip("tkinter is not installed (python3-tk)")
 
-    window = "viame_highgui_probe"
     try:
-        cv2.namedWindow(window)
-    except cv2.error as exc:
-        pytest.skip(f"OpenCV built without a highgui window backend: {exc}")
+        root = tkinter.Tk()
+    except tkinter.TclError as exc:
+        pytest.skip(f"no display available for a window: {exc}")
     else:
-        cv2.destroyWindow(window)
+        root.destroy()
 
 
 def _terminate_process_group(proc, grace: float = 10.0):

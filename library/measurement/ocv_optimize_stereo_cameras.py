@@ -8,7 +8,7 @@ the `opencv` plugin's `optimize_stereo_cameras.cxx` in python, per
 `lite-removals.md` section 2.4: `calibrateCamera`, `stereoCalibrate` and
 `stereoRectify` are calib3d, so the numerics stay OpenCV's.
 
-`tests/golden/measurement`'s `calibration_pipeline` cases hold this to the
+`tests/reference/measurement`'s `calibration_pipeline` cases hold this to the
 matrices the C++ wrote **and** to the rig the fixture views were rendered
 through, so a port that reproduces the recording and a port that is right are
 the same thing here.

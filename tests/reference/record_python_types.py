@@ -14,7 +14,7 @@ static one. Not the docstrings, which are not a contract, and not the C++
 signatures, which pybind11 renders differently between versions.
 
     source <install>/setup_viame.sh
-    python3 tests/golden/record_python_types.py
+    python3 tests/reference/record_python_types.py
 
 It refuses to overwrite without --force, for the reason every recorder here
 does: a golden must not be quietly redefined by the code it checks.

@@ -5,10 +5,11 @@
 /// \file
 /// \brief The SIFT port against what OpenCV computes.
 ///
-/// `tests/golden/sift/opencv.json` is recorded by
-/// `tests/golden/sift/record_from_opencv.py` under the install's own cv2 --
+/// `tests/reference/sift/opencv.json` is recorded by
+/// `tests/reference/opencv/recorders/record_sift.py` under the install's
+/// own cv2 --
 /// SIFT is in every wheel, so unlike SURF no special build is needed. The
-/// tiles are the grayscale PNGs `tests/golden/surf/` already carries, so the
+/// tiles are the grayscale PNGs `tests/reference/surf/` already carries, so the
 /// colour conversion is not a variable.
 ///
 /// This is a port rather than a reimplementation, so the bar is agreement:
@@ -25,7 +26,7 @@
 #include <viame/image_io/codecs/image_codec.h>
 #include <viame/core_types/image.h>
 
-#include "../../../tests/golden/golden_json.h"
+#include "../../../tests/reference/golden_json.h"
 
 #include <gtest/gtest.h>
 

@@ -48,7 +48,7 @@
 ///   split the rows, and `removeDuplicatedSorted` does not re-sort, it only
 ///   masks duplicates and compacts in place. So a comparison against cv2 has
 ///   to match keypoints up rather than zip them, which is what
-///   `tests/golden/sift` does.
+///   `tests/reference/sift` does.
 /// - `cv::solve( ..., DECOMP_LU )` on the 3x3 Hessian is **not** an LU solve:
 ///   `Matx::solve` has a fast path for three by three with one right hand
 ///   side, and it is Cramer's rule in float. Reproduced as such below --

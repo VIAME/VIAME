@@ -19,7 +19,7 @@ It decodes by running
 
 and reading planes off the pipe. The filter chain and its swscale flags are
 the ones `pyav_video_input` uses, so the pixels are identical: the recorded
-digests in `tests/golden/video/manifest.json` match through this path too.
+digests in `tests/reference/video/manifest.json` match through this path too.
 
 Timestamps come from `showinfo`, which reports each frame's presentation
 time after the filters have run, and are computed from the integer pts and
@@ -33,7 +33,7 @@ Two things this cannot do as well as the PyAV reader:
 * stepping backwards means restarting the process, so a seek costs a
   process launch. It is exact -- `-ss` before `-i` with `-copyts` decodes to
   the frame asked for and keeps the original timestamps, which
-  `tests/golden/test_video.py` checks alongside the PyAV reader -- but it is
+  `tests/reference/test_video.py` checks alongside the PyAV reader -- but it is
   not cheap, and a pipeline that seeks per frame will feel it.
 """
 

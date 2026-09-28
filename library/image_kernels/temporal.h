@@ -41,7 +41,7 @@ enum class average_mode
 /// rather than the oldest, so a full window's average is not the mean of the
 /// last N frames. Changing it would change the output of every motion
 /// pipeline, so it is reproduced here and pinned by the recordings under
-/// `tests/golden/vxl`. Fixing it is a behaviour change and needs its own
+/// `tests/reference/vxl`. Fixing it is a behaviour change and needs its own
 /// task and a re-recorded golden.
 template < typename T >
 class frame_averager

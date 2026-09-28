@@ -4,7 +4,7 @@
 Run it against an install that still has the old implementation:
 
     source <install>/setup_viame.sh
-    python3 tests/golden/record.py vxl
+    python3 tests/reference/record.py vxl
 
 It writes the input fixtures (once, then never again: replay must not depend
 on regenerating them), every case in `cases.py`, and a manifest recording what
@@ -27,12 +27,17 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+# The recorders that reach for an outside reference implementation live
+# beside that implementation's own tests; see `tests/reference/README.md`.
+sys.path.insert(0, os.path.join(HERE, "opencv", "recorders"))
+
 import cases as case_spec           # noqa: E402
 import calib_cases                  # noqa: E402
 import calib_runner                 # noqa: E402
 import codec_cases                  # noqa: E402
 import codec_fixtures               # noqa: E402
 import feature_cases                # noqa: E402
+import file_storage_reference      # noqa: E402
 import feature_runner               # noqa: E402
 import fixtures                     # noqa: E402
 import opencv_cases                 # noqa: E402
@@ -116,7 +121,7 @@ def source_versions():
     """Record what produced the goldens, so a re-recording is comparable."""
     versions = {}
 
-    for name, path in (("viame", os.path.join(HERE, "..", "..")),
+    for name, path in (("viame", REPO_ROOT),
                        ("kwiver", os.environ.get("KWIVER_SOURCE_DIR", ""))):
         if not path or not os.path.isdir(path):
             continue
@@ -374,7 +379,7 @@ def record_documents(group_dir, manifest):
 
     files = {}
     for name, source in sorted(calib_cases.DOCUMENTS.items()):
-        payload = calib_runner.dump_document_reference(
+        payload = file_storage_reference.dump_document_reference(
             os.path.join(REPO_ROOT, source))
         written = _write_json(os.path.join(case_dir, name + ".json"), payload)
         files[name] = {
@@ -569,21 +574,12 @@ def _recordable(*items):
 def _feature_impl_available(impl):
     """Whether this build can construct the named feature implementation.
 
-    Only `ocv_SURF` can fail, and `test_golden.surf_is_available` says why at
-    length: SURF is patented and no `opencv-python` wheel is built with the
-    non-free modules. The check is repeated here rather than imported
-    because importing `test_golden` from the recorder would pull pytest into
-    a script that is run by hand.
+    Every one of them is VIAME's own now, `ocv_SURF` included -- see
+    `library/image_processing/surf.h` for why that one had to be written
+    rather than configured. Kept as a hook because a build with an option
+    turned off can still be missing an implementation.
     """
-    if impl != "ocv_SURF":
-        return True
-    try:
-        import cv2
-
-        cv2.xfeatures2d.SURF_create(100, 4, 3, False, False)
-        return True
-    except Exception:
-        return False
+    return runner.is_registered("features", impl)
 
 
 def record_opencv_features(group_dir, manifest):

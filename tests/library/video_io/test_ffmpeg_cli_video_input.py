@@ -1,7 +1,7 @@
 """The subprocess reader, and the fallback that reaches for it.
 
 The three recorded clips are replayed against `ffmpeg_cli` by
-`tests/golden/test_video.py`, which is where the frame counts, timestamps
+`tests/reference/test_video.py`, which is where the frame counts, timestamps
 and pixel digests are checked. What is here is the rest: that its config is
 the PyAV reader's config, that frame selection behaves the same, and that a
 build with no PyAV still reads video.
@@ -18,7 +18,7 @@ import textwrap
 import pytest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GOLDEN = os.path.abspath(os.path.join(HERE, "..", "..", "..", "tests", "golden"))
+GOLDEN = os.path.abspath(os.path.join(HERE, "..", "..", "..", "tests", "reference"))
 CLIP = os.path.join(GOLDEN, "inputs", "clip.mp4")
 MANIFEST = os.path.join(GOLDEN, "video", "manifest.json")
 

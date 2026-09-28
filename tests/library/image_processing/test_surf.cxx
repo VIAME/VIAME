@@ -5,8 +5,8 @@
 /// \file
 /// \brief The SURF port against what OpenCV computes.
 ///
-/// `tests/golden/surf/opencv.json` is recorded by
-/// `tests/golden/surf/record_from_opencv.py` under a cv2 built with the
+/// `tests/reference/surf/opencv.json` is recorded by
+/// `tests/reference/opencv/recorders/record_surf.py` under a cv2 built with the
 /// non-free modules -- this branch's wheel is not one, which is why the
 /// algorithm is ported at all. The tiles it was recorded on are saved beside
 /// it as PNGs and read here, so the grayscale conversion is not a variable.
@@ -20,7 +20,7 @@
 #include <viame/image_io/codecs/image_codec.h>
 #include <viame/core_types/image.h>
 
-#include "../../../tests/golden/golden_json.h"
+#include "../../../tests/reference/golden_json.h"
 
 #include <gtest/gtest.h>
 

@@ -13,7 +13,7 @@ number of leaves, so it is both *approximate* and *not deterministic*: OpenCV
 seeds the trees from the clock, and the same descriptors matched twice in one
 process gave different answers -- 45 or 46 pairs out of 81 descriptors, in the
 recording this was first ported against. Everything downstream inherited that,
-which is why `tests/golden/opencv` compares this matcher on agreement rather
+which is why `tests/reference/opencv` compares this matcher on agreement rather
 than on bytes.
 
 This searches every candidate instead. Exhaustive nearest neighbours over a few

@@ -6,7 +6,7 @@ one, so this is recorded from a build that is (VIAME `main` carries one
 through fletch)::
 
     source <a non-free install>/setup_viame.sh
-    python3 tests/golden/surf/record_from_opencv.py > opencv.json
+    python3 tests/reference/opencv/recorders/record_surf.py > opencv.json
 
 `ocv_SURF` is `cv::xfeatures2d::SURF`, which every opencv-python wheel
 excludes because the algorithm is patented. Seven shipped configs select it,
@@ -17,9 +17,12 @@ import json
 import sys
 import os
 
-HERE = os.path.dirname(os.path.abspath(__file__))            # tests/golden/surf
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
-IMAGES = os.path.join(ROOT, "tests", "pipelines", "pipelines_test_data", "images")
+# This file sits in tests/reference/opencv/recorders; what it writes lives
+# under tests/reference, beside the tests that replay it.
+HERE = os.path.dirname(os.path.abspath(__file__))
+RECORDINGS = os.path.dirname(os.path.dirname(HERE))
+TESTS = os.path.dirname(RECORDINGS)
+IMAGES = os.path.join(TESTS, "pipelines", "pipelines_test_data", "images")
 
 # The settings the shipped configs use, plus the defaults, plus the two flags
 # that change the descriptor and the orientation pass.
@@ -70,7 +73,7 @@ def main():
             raise SystemExit(f"tile {x},{y},{w},{h} does not fit {relative}")
         image = numpy_ascontiguous(whole[y:y + h, x:x + w])
 
-        written = os.path.join(HERE, tile + ".png")
+        written = os.path.join(RECORDINGS, "surf", tile + ".png")
         if not cv2.imwrite(written, image):
             raise SystemExit(f"could not write {written}")
 
@@ -81,7 +84,7 @@ def main():
             keypoints, descriptors = surf.detectAndCompute(image, None)
 
             # Strongest first, so a truncated comparison is still meaningful,
-            # and flat, because tests/golden/golden_json.h reads flat arrays.
+            # and flat, because tests/reference/golden_json.h reads flat arrays.
             # Strongest KEEP only: `seal_1` alone finds 65k at the shipped
             # threshold, and recording them all makes a 35 MB golden file. The
             # true total is kept in `count`, so a port that finds a different

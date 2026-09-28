@@ -1,6 +1,6 @@
 """What the PyAV reader guarantees beyond the golden replay.
 
-`tests/golden/test_video.py` holds this reader to the C++ one's recording:
+`tests/reference/test_video.py` holds this reader to the C++ one's recording:
 frame counts, numbering, timestamps, pixel digests and seek landings. What
 is here is the behaviour the recording does not reach, because the recording
 reads each clip straight through from the first frame.
@@ -14,7 +14,7 @@ import os
 import pytest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GOLDEN = os.path.abspath(os.path.join(HERE, "..", "..", "..", "tests", "golden"))
+GOLDEN = os.path.abspath(os.path.join(HERE, "..", "..", "..", "tests", "reference"))
 CLIP = os.path.join(GOLDEN, "inputs", "clip.mp4")
 MANIFEST = os.path.join(GOLDEN, "video", "manifest.json")
 

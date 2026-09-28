@@ -23,7 +23,7 @@ detection alone. The four recorded `ocv_grabcut` cases pass unchanged, masks
 compared by digest.
 
 Both set a mask on each detection and change nothing else about it. Both are
-held to `tests/golden/opencv`'s `refine` cases, which record the mask of
+held to `tests/reference/opencv`'s `refine` cases, which record the mask of
 every detection rather than a digest of it.
 
 The rectangle arithmetic is the C++'s `bbox_to_mask_rect`: floor the minimum

@@ -11,7 +11,7 @@ helpers it uses from `calibrate_stereo_cameras`, in python, per
 dot centres, and `image_kernels` for the refinement. No OpenCV at all.
 
 Three things here are reproduced rather than corrected, because
-`tests/golden/measurement` records what the C++ produced:
+`tests/reference/measurement` records what the C++ produced:
 
 * the grey conversion has **red and blue swapped**. The C++ asked the bridge
   for an `RGB_COLOR` mat -- not the `BGR_COLOR` every other caller asks for
@@ -108,7 +108,7 @@ def _to_gray(array):
     `BGR2GRAY` on it. Reproducing that means weighting the RGB array's red
     and blue the wrong way round, which is what the swap below does --
     `to_gray` uses the RGB weights, so the array is reversed going in.
-    Deliberate, and held in place by `tests/golden/measurement`.
+    Deliberate, and held in place by `tests/reference/measurement`.
     """
     from viame import image_kernels
 

@@ -5,12 +5,12 @@
 `cv::stereoRectify` and `cv::initUndistortRectifyMap` rewritten without
 OpenCV. This is the recording they are held to.
 
-Unlike `tests/golden/math/record_from_eigen.cxx`, the dependency this
+Unlike `tests/reference/eigen/record_from_eigen.cxx`, the dependency this
 records is not going away -- cv2 is a wheel and stays after P7-T09 -- so
 this can be re-run at any time:
 
     source .../setup_viame.sh
-    python tests/golden/projection/record_from_opencv.py > opencv.json
+    python tests/reference/opencv/recorders/record_projection.py > opencv.json
 
 The rigs are the ones VIAME actually meets: a near-parallel pair with no
 distortion (the golden measurement scene), the camtrawl rig shipped in
@@ -179,7 +179,7 @@ def main():
                     k, d, r, p, size, cv2.CV_32FC1)
 
                 # Flat, four numbers per sample: x, y, and where they come
-                # from. `tests/golden/golden_json.h` reads flat arrays only.
+                # from. `tests/reference/golden_json.h` reads flat arrays only.
                 samples = []
                 for x, y in MAP_SAMPLES:
                     if x >= rig["width"] or y >= rig["height"]:

@@ -18,8 +18,8 @@ if( VIAME_ENABLE_PYTHON )
 endif()
 
 # The SIFT port against what OpenCV computes. Recorded under the install's own
-# cv2 -- SIFT is in every wheel -- on the tiles tests/golden/surf already
-# carries. See tests/golden/sift/record_from_opencv.py.
+# cv2 -- SIFT is in every wheel -- on the tiles tests/reference/surf already
+# carries. See tests/reference/opencv/recorders/record_sift.py.
 viame_discover_gtests( viame sift
   LIBRARIES viame_image_processing
             viame_image_io
@@ -27,11 +27,11 @@ viame_discover_gtests( viame sift
             GTest::gtest )
 
 target_compile_definitions( test-viame-sift PRIVATE
-  "VIAME_GOLDEN_SIFT_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/sift\"" )
+  "VIAME_GOLDEN_SIFT_DIR=\"${VIAME_SOURCE_DIR}/tests/reference/sift\"" )
 
 # The SURF port against what OpenCV computes. The reference is recorded from a
 # cv2 built with the non-free modules, which this branch's wheel is not -- see
-# tests/golden/surf/record_from_opencv.py.
+# tests/reference/opencv/recorders/record_surf.py.
 viame_discover_gtests( viame surf
   LIBRARIES viame_image_processing
             viame_image_io
@@ -39,10 +39,10 @@ viame_discover_gtests( viame surf
             GTest::gtest )
 
 target_compile_definitions( test-viame-surf PRIVATE
-  "VIAME_GOLDEN_SURF_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/surf\"" )
+  "VIAME_GOLDEN_SURF_DIR=\"${VIAME_SOURCE_DIR}/tests/reference/surf\"" )
 
 if( VIAME_ENABLE_PYTHON )
-  foreach( _test matching feature_arrays orb )
+  foreach( _test matching feature_arrays orb multimodal_registration )
     viame_add_test(
       NAME "unit:image_processing:${_test}"
       TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_${_test}.py"

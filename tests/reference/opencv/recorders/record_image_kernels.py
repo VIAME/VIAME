@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Record what OpenCV computes, so `image_kernels` can be checked after it is gone.
 
-The counterpart of `tests/golden/math/record_from_eigen.cxx`: run once, by
+The counterpart of `tests/reference/eigen/record_from_eigen.cxx`: run once, by
 hand, while OpenCV is still on the path, and commit the result. The C++ test
 `tests/library/image_kernels/test_color.cxx` reads it and holds the in-house
 kernels to it, at the tolerances `design/tasks/phase-07-drop-opencv.md`
 states per function.
 
     source <install>/setup_viame.sh
-    python3 tests/golden/image_kernels/record_from_opencv.py
+    python3 tests/reference/opencv/recorders/record_image_kernels.py
 
 It refuses to overwrite an existing recording without --force, for the same
 reason the other recorders do: a golden must not be quietly redefined by the
@@ -31,8 +31,14 @@ import sys
 
 import numpy as np
 
+# The recorders live here; what they write lives under `tests/reference`, next
+# to the tests that read it. The fixtures come from there too.
+# This file sits in tests/reference/opencv/recorders; what it writes lives
+# under tests/reference, beside the tests that replay it.
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(HERE))
+RECORDINGS = os.path.dirname(os.path.dirname(HERE))
+TESTS = os.path.dirname(RECORDINGS)
+sys.path.insert(0, RECORDINGS)
 
 import fixtures            # noqa: E402
 import opencv_fixtures     # noqa: E402
@@ -495,8 +501,8 @@ def record():
         "recorded": datetime.datetime.now(datetime.timezone.utc)
                             .strftime("%Y-%m-%dT%H:%M:%SZ"),
         "opencv": cv2.__version__,
-        "note": "Recorded from OpenCV by tests/golden/image_kernels/"
-                "record_from_opencv.py. Tolerances are per case, in counts.",
+        "note": "Recorded from OpenCV by tests/reference/image_kernels/"
+                "record_image_kernels.py. Tolerances are per case, in counts.",
         "cases": cases,
     }
 
@@ -507,7 +513,7 @@ def main():
                         help="overwrite an existing recording")
     args = parser.parse_args()
 
-    target = os.path.join(HERE, "opencv.json")
+    target = os.path.join(RECORDINGS, "image_kernels", "opencv.json")
 
     if os.path.exists(target) and not args.force:
         print("{} already recorded; pass --force to re-record".format(target))

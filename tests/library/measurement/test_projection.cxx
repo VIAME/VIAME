@@ -5,8 +5,9 @@
 /// \file
 /// \brief `library/measurement/projection` against what OpenCV's calib3d says
 ///
-/// `tests/golden/projection/opencv.json` is written by
-/// `record_from_opencv.py`, which calls `cv::projectPoints`,
+/// `tests/reference/projection/opencv.json` is written by
+/// `tests/reference/opencv/recorders/record_projection.py`, which calls
+/// `cv::projectPoints`,
 /// `cv::undistortPoints`, `cv::stereoRectify` and
 /// `cv::initUndistortRectifyMap` on four rigs: the golden measurement scene,
 /// the camtrawl rig shipped in `examples/size_measurement`, a strongly
@@ -19,7 +20,7 @@
 
 #include <viame/measurement/projection.h>
 
-#include "../../../tests/golden/golden_json.h"
+#include "../../../tests/reference/golden_json.h"
 
 #include <gtest/gtest.h>
 

@@ -25,7 +25,7 @@ namespace image_kernels {
 /// * `round` adds a half away from zero and then truncates, still without
 ///   clamping. That is `vil_convert_round_pixel`.
 ///
-/// Both are kept honest by the recordings under `tests/golden/vxl`.
+/// Both are kept honest by the recordings under `tests/reference/vxl`.
 
 // ----------------------------------------------------------------------------
 /// Convert without rounding or clamping, as a C++ cast would.

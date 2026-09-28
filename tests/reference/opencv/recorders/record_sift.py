@@ -6,12 +6,13 @@ and OpenCV moved it out of `xfeatures2d` -- so this records under the install's
 own cv2::
 
     source build/install/setup_viame.sh
-    python3 tests/golden/sift/record_from_opencv.py > tests/golden/sift/opencv.json
+    python3 tests/reference/opencv/recorders/record_sift.py \
+        > tests/reference/sift/opencv.json
 
 **Record under the install's cv2, not the system's.** They are different
 versions here (5.0.0 against 4.12.0) and the recordings are the contract.
 
-The tiles come from `tests/golden/surf/`, which already carries them as
+The tiles come from `tests/reference/surf/`, which already carries them as
 lossless PNGs of the grayscale a reader produced, so the colour conversion is
 not a variable and there are no new fixtures to commit.
 """
@@ -19,8 +20,14 @@ import json
 import os
 import sys
 
+# The recorders live here; the tiles and the recordings live under
+# `tests/reference`, next to the tests that read them.
+# This file sits in tests/reference/opencv/recorders; what it writes lives
+# under tests/reference, beside the tests that replay it.
 HERE = os.path.dirname(os.path.abspath(__file__))
-TILES = os.path.join(os.path.dirname(HERE), "surf")
+RECORDINGS = os.path.dirname(os.path.dirname(HERE))
+TESTS = os.path.dirname(RECORDINGS)
+TILES = os.path.join(RECORDINGS, "surf")
 
 # The defaults `cv2.SIFT_create()` takes, plus one variant per knob. The
 # feature count is last because `retainBest` reorders as well as truncates.

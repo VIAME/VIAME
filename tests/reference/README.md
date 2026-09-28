@@ -1,23 +1,67 @@
-# Golden behaviour recordings
+# Reference tests
 
-A recording is what an implementation does *before* it is replaced. It is the
-evidence that a replacement behaves the same, which registry and pipeline
-checks cannot give: those say a name still resolves, not that it still
-computes the same pixels.
+A reference test holds a VIAME implementation to something outside itself.
+Everywhere else in `tests/` a test states what the code should do; here a
+test states that the code still does what something else did.
 
-Each group under this directory belongs to one dependency removal:
+They come in two forms, and the difference is whether the reference has to be
+installed to run them.
+
+**Recorded.** What an implementation produced *before* it was replaced,
+committed as a file. This is the evidence that a replacement behaves the
+same, which registry and pipeline checks cannot give: those say a name still
+resolves, not that it still computes the same pixels. A recording needs
+nothing installed, which is why it has outlived three dependencies already --
+VXL, fletch's FFmpeg arrows and OpenCV's C++.
+
+**Live.** A call into the reference and a call into VIAME on the same input,
+compared. Only `opencv/` has these, and only where committing the
+configurations would be unreasonable -- a rolling sum and a thread pool have
+too many. They skip when the package is absent, which is the ordinary case.
+
+## The groups
+
+Each group is one recording session, which is to say one dependency removal:
 
 | Group | Recorded from | Replaced by |
 |---|---|---|
 | `vxl` | `arrows/vxl` filters and image_io, `plugins/vxl` filters | phase 3 |
 | `video` | `arrows/ffmpeg` `video_input` and `video_output` | phase 4 |
 | `codecs` | the `ocv` image_io, decoding and writing every container | phase 7 |
-
-| `calib` | `viame::read_stereo_rig`, and `cv::FileStorage` on every calibration document | phase 7 |
+| `calib` | `viame::read_stereo_rig`, and the FileStorage parser on every calibration document | phase 7 |
 | `opencv` | the `ocv_*` filters, splits, motion detector and detectors, the SIFT/SURF/FLANN feature chain, and the pipelines that use them | phase 7 |
 | `measurement` | the stereo disparity matcher, the calibration target detector, and the stereo calibration pipeline end to end | phase 7 |
+| `detection` | the darknet detector | -- |
+| `training` | the windowed chip writers | -- |
 
-The video group is replayed against every reader and writer registered under it, not just the replacement: `ffmpeg` and `pyav` and `ffmpeg_cli` all have to reproduce the same recording.
+The video group is replayed against every reader and writer registered under
+it, not just the replacement: `ffmpeg` and `pyav` and `ffmpeg_cli` all have
+to reproduce the same recording.
+
+`opencv/` carries its recordings **and** the live comparisons **and** the
+recorders that write into the other groups, because all three are the same
+subject; it has its own README. `eigen/` is a recording with no group of its
+own -- `tests/library/core_types/test_math.cxx` reads it directly.
+
+Two baseline tests keep the rest of the tree clear of `cv2`, which is what
+lets a reference test be the only place that names it:
+
+  - `baseline:lazy_cv2` -- no module VIAME ships imports it, at import time
+    or at call time.
+  - `baseline:fork_cv2` -- no vendored fork does either, after its patch.
+
+## What a recording is not
+
+It is what the code used to do, not what is right. Four cases have a true
+answer instead: `calibration_pipeline` and `mono_calibration` are held to the
+rig their fixtures were rendered through, so a failure there can say not
+merely "this differs from the recording" but "and the recording was correct".
+
+## Running them
+
+    ctest -L REFERENCE      every reference test
+    ctest -LE REFERENCE     everything else
+    ctest -L GOLDEN         just the recorded replays
 
 ## Kinds of case
 
@@ -66,7 +110,7 @@ Against an install that still has the old implementation:
 
 ```
 source <install>/setup_viame.sh
-python3 tests/golden/record.py vxl
+python3 tests/reference/viame/record.py vxl
 ```
 
 The video group is recorded separately, because a decoded 1080p frame is not
@@ -74,7 +118,7 @@ worth committing and would mostly be measuring the codec:
 
 ```
 source <install>/setup_viame.sh
-python3 tests/golden/record_video.py
+python3 tests/reference/viame/record_video.py
 ```
 
 `video/manifest.json` holds, per clip, the frame count, every presentation
@@ -160,7 +204,7 @@ or directly:
 
 ```
 source <install>/setup_viame.sh
-python3 -m pytest tests/golden/test_golden.py -v
+python3 -m pytest tests/reference/viame/test_golden.py -v
 ```
 
 Shape and dtype always have to match. Values have to match within the

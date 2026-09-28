@@ -82,7 +82,7 @@ is_tiff_extension( std::string const& extension )
 /// A gray BMP is stored as 8 bits per pixel indexing a 256 entry palette in
 /// which every entry has R == G == B. stb expands any palette to RGB, so a
 /// gray BMP decodes to three identical planes; OpenCV's reader gives one
-/// plane, and `tests/golden/codecs` records that. Rather than guess from the
+/// plane, and `tests/reference/codecs` records that. Rather than guess from the
 /// decoded pixels -- an RGB image whose channels happen to agree is not the
 /// same thing -- this reads the palette, which is what actually distinguishes
 /// them.
@@ -255,7 +255,7 @@ image_to_interleaved( kv::image const& image )
 ///
 /// Saturated, not shifted and not rescaled: a value above 255 becomes 255
 /// and everything below is kept as it is. That is what OpenCV's `imwrite`
-/// does -- `tests/golden/codecs` round trips a 16 bit gray through BMP and
+/// does -- `tests/reference/codecs` round trips a 16 bit gray through BMP and
 /// the recording is saturated, not shifted -- and it is the only one of the
 /// three that leaves an already-8-bit-ranged image alone.
 ///
@@ -290,7 +290,7 @@ narrow_to_byte( kv::image const& image )
 ///
 /// stb's BMP writer replicates a single channel into 24 bit BGR, so a gray
 /// image written through it reads back as three planes. OpenCV wrote a
-/// palettised one and `tests/golden/codecs` records that, so this writes one
+/// palettised one and `tests/reference/codecs` records that, so this writes one
 /// too. The format is small enough that borrowing a whole encoder for it
 /// would be the larger cost.
 std::vector< uint8_t >

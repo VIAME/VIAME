@@ -5,7 +5,8 @@
 /// \file
 /// \brief Reading the image_kernels recording, and comparing against it
 ///
-/// `tests/golden/image_kernels/opencv.json` holds, per case, an input image, the
+/// `tests/reference/image_kernels/opencv.json` holds, per case, an input
+/// image, the
 /// image OpenCV produced from it, a tolerance in counts, and a margin of
 /// border the comparison skips. Every `image_kernels` test that checks against
 /// OpenCV goes through this rather than repeating the walk.
@@ -13,7 +14,7 @@
 #ifndef VIAME_TESTS_IMAGE_KERNELS_GOLDEN_IMAGE_H
 #define VIAME_TESTS_IMAGE_KERNELS_GOLDEN_IMAGE_H
 
-#include "../../../tests/golden/golden_json.h"
+#include "../../../tests/reference/golden_json.h"
 
 #include <viame/core_types/image.h>
 

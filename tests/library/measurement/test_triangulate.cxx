@@ -54,7 +54,8 @@ rodrigues( double x, double y, double z )
 }
 
 // ----------------------------------------------------------------------------
-/// The rig `tests/golden/measurement`'s synthetic views are rendered through.
+/// The rig `tests/reference/measurement`'s synthetic views are rendered
+/// through.
 struct stereo_rig
 {
   stereo_rig()

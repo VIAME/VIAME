@@ -13,7 +13,7 @@ coefficients (-0.21, 0.05, 0.001, -0.002, 0):
     stereo_rectify      max difference 1e-12
     rectification_maps  max difference 1e-5  -- the maps are float32
 
-`tests/golden/projection` records the same functions against OpenCV; this
+`tests/reference/projection` records the same functions against OpenCV; this
 is the fast unit half.
 """
 import numpy as np

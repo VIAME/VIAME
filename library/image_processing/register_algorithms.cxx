@@ -96,7 +96,7 @@ register_factories( kv::registry& vpm )
   // IOU tracker and colmap's reconstruction -- can come off cv2. Unlike SURF
   // this is in every wheel; the port is for the dependency, not the feature,
   // and it agrees with cv2 on every keypoint of twelve recorded
-  // configurations. See tests/golden/sift.
+  // configurations. See tests/reference/sift.
   register_algorithm< kv::algo::detect_features,
     detect_features_SIFT >( vpm, module_name );
   register_algorithm< kv::algo::extract_descriptors,
@@ -129,7 +129,7 @@ register_factories( kv::registry& vpm )
 
   // The names arrows/vxl used to register, kept working now that it is gone.
   // Every one is checked against a recording of what the VXL implementation
-  // produced; see tests/golden/vxl
+  // produced; see tests/reference/vxl
 #define VIAME_REGISTER_ALIAS( impl, alias )                              \
   {                                                                      \
     auto fact = vpm.add_factory< kv::algo::image_filter, impl >( alias ); \

@@ -33,5 +33,5 @@ split.
 
 Fetch both headers and `LICENSE` at one commit, replace all three, update the
 version numbers, the commit and the digests above, and re-run
-`ctest -R golden:replay` -- `tests/golden/codecs` is 18 containers recorded
+`ctest -R golden:replay` -- `tests/reference/codecs` is 18 containers recorded
 from OpenCV and is what says a decoder change is visible.

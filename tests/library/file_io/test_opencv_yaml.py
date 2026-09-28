@@ -1,6 +1,6 @@
 """What `library/file_io/opencv_yaml` guarantees beyond the golden replay.
 
-`tests/golden/test_golden.py`'s `nodes` case holds the reader to what
+`tests/reference/test_golden.py`'s `nodes` case holds the reader to what
 `cv::FileStorage` parsed out of every calibration document VIAME ships. What
 is here is the rest of the contract:
 
@@ -21,7 +21,7 @@ import pytest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-GOLDEN = os.path.abspath(os.path.join(HERE, "..", "..", "..", "tests", "golden"))
+GOLDEN = os.path.abspath(os.path.join(HERE, "..", "..", "..", "tests", "reference"))
 
 sys.path.insert(0, GOLDEN)
 

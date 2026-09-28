@@ -9,14 +9,14 @@ viame_discover_gtests( viame math
             GTest::gtest )
 
 # The recording the math tests read. The source tree rather than a copy, so
-# that regenerating it with tests/golden/math/record_from_eigen.cxx takes
+# that regenerating it with tests/reference/eigen/record_from_eigen.cxx takes
 # effect without a reconfigure.
 target_compile_definitions( test-viame-math PRIVATE
-  "VIAME_GOLDEN_MATH_DIR=\"${VIAME_SOURCE_DIR}/tests/golden/math\"" )
+  "VIAME_GOLDEN_MATH_DIR=\"${VIAME_SOURCE_DIR}/tests/reference/eigen\"" )
 
 if( VIAME_ENABLE_PYTHON )
   # The python API `viame.types` presents, which P8-T01 rewrites: what
-  # it exposes, held against `tests/golden/python_types.json`, and what it
+  # it exposes, held against `tests/reference/python_types.json`, and what it
   # does. See the test file's own note for why it needs both halves.
   add_test(
     NAME viame_library:core_types:python_types

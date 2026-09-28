@@ -20,7 +20,7 @@ namespace kv = viame;
 /// camera's 16 bit or float frames into the 8 bit three channel images the
 /// detectors expect. Config keys, defaults and per-pixel results match the
 /// `vxl_convert_image` implementation it replaces; see
-/// `tests/golden/vxl` for what that means precisely.
+/// `tests/reference/vxl` for what that means precisely.
 class VIAME_IMAGE_PROCESSING_EXPORT convert_image
   : public kv::algo::image_filter
 {
