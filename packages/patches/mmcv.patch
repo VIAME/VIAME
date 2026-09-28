@@ -1,71 +1,509 @@
 diff --git a/mmcv/image/colorspace.py b/mmcv/image/colorspace.py
-index fe3cdc5..3ab7a3b 100644
+index fe3cdc5..e2e57d2 100644
 --- a/mmcv/image/colorspace.py
 +++ b/mmcv/image/colorspace.py
-@@ -1,7 +1,9 @@
+@@ -1,9 +1,12 @@
  # Copyright (c) OpenMMLab. All rights reserved.
  from typing import Callable, Union
  
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
  import numpy as np
  
++# VIAME: `convert_colour` takes the two space **names** rather than an
++# integer code, which is how this file was already asking the question.
++from viame.utilities.imageops import convert_colour
++
  
+ def imconvert(img: np.ndarray, src: str, dst: str) -> np.ndarray:
+     """Convert an image from the src colorspace to dst colorspace.
+@@ -16,8 +19,7 @@ def imconvert(img: np.ndarray, src: str, dst: str) -> np.ndarray:
+     Returns:
+         ndarray: The converted image.
+     """
+-    code = getattr(cv2, f'COLOR_{src.upper()}2{dst.upper()}')
+-    out_img = cv2.cvtColor(img, code)
++    out_img = convert_colour(img, src, dst)
+     return out_img
+ 
+ 
+@@ -32,7 +34,7 @@ def bgr2gray(img: np.ndarray, keepdim: bool = False) -> np.ndarray:
+     Returns:
+         ndarray: The converted grayscale image.
+     """
+-    out_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
++    out_img = convert_colour(img, 'bgr', 'gray')
+     if keepdim:
+         out_img = out_img[..., None]
+     return out_img
+@@ -49,7 +51,7 @@ def rgb2gray(img: np.ndarray, keepdim: bool = False) -> np.ndarray:
+     Returns:
+         ndarray: The converted grayscale image.
+     """
+-    out_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
++    out_img = convert_colour(img, 'rgb', 'gray')
+     if keepdim:
+         out_img = out_img[..., None]
+     return out_img
+@@ -65,7 +67,7 @@ def gray2bgr(img: np.ndarray) -> np.ndarray:
+         ndarray: The converted BGR image.
+     """
+     img = img[..., None] if img.ndim == 2 else img
+-    out_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
++    out_img = convert_colour(img, 'gray', 'bgr')
+     return out_img
+ 
+ 
+@@ -79,7 +81,7 @@ def gray2rgb(img: np.ndarray) -> np.ndarray:
+         ndarray: The converted RGB image.
+     """
+     img = img[..., None] if img.ndim == 2 else img
+-    out_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
++    out_img = convert_colour(img, 'gray', 'rgb')
+     return out_img
+ 
+ 
+@@ -276,10 +278,9 @@ def ycbcr2bgr(img: np.ndarray) -> np.ndarray:
+ 
+ 
+ def convert_color_factory(src: str, dst: str) -> Callable:
+-    code = getattr(cv2, f'COLOR_{src.upper()}2{dst.upper()}')
+ 
+     def convert_color(img: np.ndarray) -> np.ndarray:
+-        out_img = cv2.cvtColor(img, code)
++        out_img = convert_colour(img, src, dst)
+         return out_img
+ 
+     convert_color.__doc__ = f"""Convert a {src.upper()} image to {dst.upper()}
 diff --git a/mmcv/image/geometric.py b/mmcv/image/geometric.py
-index b8a3cb1..f8a994b 100644
+index b8a3cb1..5938bb3 100644
 --- a/mmcv/image/geometric.py
 +++ b/mmcv/image/geometric.py
-@@ -2,7 +2,9 @@
+@@ -2,7 +2,12 @@
  import numbers
  from typing import List, Optional, Tuple, Union, no_type_check
  
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: The two tables below are gone, and their **keys** are why:
++# `image_kernels.resize` and the warps name their interpolation and border
++# rules with exactly the strings this module was translating out of, so the
++# string now travels from the caller to the kernel untouched.
++from viame import image_kernels
++from viame.utilities import geometry, imageops
  import numpy as np
  
  from ..utils import to_2tuple
+@@ -33,23 +38,34 @@ def _scale_size(
+     return int(w * float(scale[0]) + 0.5), int(h * float(scale[1]) + 0.5)
+ 
+ 
+-cv2_interp_codes = {
+-    'nearest': cv2.INTER_NEAREST,
+-    'bilinear': cv2.INTER_LINEAR,
+-    'bicubic': cv2.INTER_CUBIC,
+-    'area': cv2.INTER_AREA,
+-    'lanczos': cv2.INTER_LANCZOS4
+-}
+-
+-cv2_border_modes = {
+-    'constant': cv2.BORDER_CONSTANT,
+-    'replicate': cv2.BORDER_REPLICATE,
+-    'reflect': cv2.BORDER_REFLECT,
+-    'wrap': cv2.BORDER_WRAP,
+-    'reflect_101': cv2.BORDER_REFLECT_101,
+-    'transparent': cv2.BORDER_TRANSPARENT,
+-    'isolated': cv2.BORDER_ISOLATED
+-}
++def _scalar_border(img, border_value):
++    """A border colour per plane, keeping this module's old scalar rule.
++
++    The trap: a bare number is **not** that number in every channel. It fills
++    the first and leaves the rest at zero, so `border_value=9` on a colour
++    image gives a `(9, 0, 0)` border and not a dark grey one. Measured -- it is
++    worth 9 grey levels on 76 pixels of a rotated frame, which is how the
++    omission was caught -- and preserved rather than corrected.
++    """
++    planes = 1 if img.ndim == 2 else img.shape[-1]
++
++    if isinstance(border_value, (tuple, list)):
++        return list(border_value)[:planes]
++
++    if planes == 1:
++        return float(border_value)
++
++    return [float(border_value)] + [0.0] * (planes - 1)
++
++
++#: The names `interpolation=` and `border_mode=` accept. Kept as a list of the
++#: keys the two code tables held, because they are this module's documented
++#: vocabulary; the values they mapped to are gone, since the kernels take the
++#: names. `transparent` and `isolated` had no kernel behind them and are
++#: refused where they are used rather than silently ignored.
++interp_names = ('nearest', 'bilinear', 'bicubic', 'area', 'lanczos')
++
++border_names = ('constant', 'replicate', 'reflect', 'wrap', 'reflect_101')
+ 
+ # Pillow >=v9.1.0 use a slightly different naming scheme for filters.
+ # Set pillow_interp_codes according to the naming scheme used.
+@@ -113,8 +129,12 @@ def imresize(
+         pil_image = pil_image.resize(size, pillow_interp_codes[interpolation])
+         resized_img = np.array(pil_image)
+     else:
+-        resized_img = cv2.resize(
+-            img, size, dst=out, interpolation=cv2_interp_codes[interpolation])
++        # `imageops.resize` carries all five names, Lanczos through Pillow
++        # and the other four through the kernel.
++        resized_img = imageops.resize(img, size[0], size[1], interpolation)
++        if out is not None:
++            out[...] = resized_img
++            resized_img = out
+     if not return_scale:
+         return resized_img
+     else:
+@@ -319,11 +339,11 @@ def imflip_(img: np.ndarray, direction: str = 'horizontal') -> np.ndarray:
+     """
+     assert direction in ['horizontal', 'vertical', 'diagonal']
+     if direction == 'horizontal':
+-        return cv2.flip(img, 1, img)
++        return imageops.flip(img, horizontal=True)
+     elif direction == 'vertical':
+-        return cv2.flip(img, 0, img)
++        return imageops.flip(img, vertical=True)
+     else:
+-        return cv2.flip(img, -1, img)
++        return imageops.flip(img, horizontal=True, vertical=True)
+ 
+ 
+ def imrotate(img: np.ndarray,
+@@ -361,7 +381,7 @@ def imrotate(img: np.ndarray,
+         center = ((w - 1) * 0.5, (h - 1) * 0.5)
+     assert isinstance(center, tuple)
+ 
+-    matrix = cv2.getRotationMatrix2D(center, -angle, scale)
++    matrix = geometry.rotation_matrix_2d(center, -angle, scale)
+     if auto_bound:
+         cos = np.abs(matrix[0, 0])
+         sin = np.abs(matrix[0, 1])
+@@ -371,12 +391,14 @@ def imrotate(img: np.ndarray,
+         matrix[1, 2] += (new_h - h) * 0.5
+         w = int(np.round(new_w))
+         h = int(np.round(new_h))
+-    rotated = cv2.warpAffine(
+-        img,
+-        matrix, (w, h),
+-        flags=cv2_interp_codes[interpolation],
+-        borderMode=cv2_border_modes[border_mode],
+-        borderValue=border_value)
++    rotated = image_kernels.warp_affine(
++        np.ascontiguousarray(img),
++        matrix,
++        w,
++        h,
++        interpolation=interpolation,
++        border=border_mode,
++        constant=_scalar_border(img, border_value))
+     return rotated
+ 
+ 
+@@ -553,19 +575,29 @@ def impad(img: np.ndarray,
+     assert padding_mode in ['constant', 'edge', 'reflect', 'symmetric']
+ 
+     border_type = {
+-        'constant': cv2.BORDER_CONSTANT,
+-        'edge': cv2.BORDER_REPLICATE,
+-        'reflect': cv2.BORDER_REFLECT_101,
+-        'symmetric': cv2.BORDER_REFLECT
++        'constant': 'constant',
++        'edge': 'replicate',
++        'reflect': 'reflect_101',
++        'symmetric': 'reflect'
+     }
+-    img = cv2.copyMakeBorder(
+-        img,
++    # A bare number fills the **first plane only** and zeroes the rest, which
++    # is what this function has always done: `pad_val=7` on a colour image gave
++    # a (7, 0, 0) border, not grey. Measured, and preserved.
++    planes = 1 if img.ndim == 2 else img.shape[-1]
++    if isinstance(pad_val, tuple):
++        value = list(pad_val)
++    elif planes == 1:
++        value = float(pad_val)
++    else:
++        value = [float(pad_val)] + [0.0] * (planes - 1)
++    img = image_kernels.make_border(
++        np.ascontiguousarray(img),
+         padding[1],
+         padding[3],
+         padding[0],
+         padding[2],
+-        border_type[padding_mode],
+-        value=pad_val)
++        value,
++        border_type[padding_mode])
+ 
+     return img
+ 
+@@ -702,16 +734,16 @@ def imshear(img: np.ndarray,
+         raise ValueError(
+             f'Invalid type {type(border_value)} for `border_value`')
+     shear_matrix = _get_shear_matrix(magnitude, direction)
+-    sheared = cv2.warpAffine(
+-        img,
++    sheared = image_kernels.warp_affine(
++        np.ascontiguousarray(img),
+         shear_matrix,
+-        (width, height),
+-        # Note case when the number elements in `border_value`
+-        # greater than 3 (e.g. shearing masks whose channels large
+-        # than 3) will raise TypeError in `cv2.warpAffine`.
+-        # Here simply slice the first 3 values in `border_value`.
+-        borderValue=border_value[:3],  # type: ignore
+-        flags=cv2_interp_codes[interpolation])
++        width,
++        height,
++        interpolation=interpolation,
++        # The first three, as before: a border colour is per plane and more
++        # than three planes had nothing to say about the rest either.
++        constant=border_value[:3],
++        border='constant')
+     return sheared
+ 
+ 
+@@ -772,14 +804,12 @@ def imtranslate(img: np.ndarray,
+         raise ValueError(
+             f'Invalid type {type(border_value)} for `border_value`.')
+     translate_matrix = _get_translate_matrix(offset, direction)
+-    translated = cv2.warpAffine(
+-        img,
++    translated = image_kernels.warp_affine(
++        np.ascontiguousarray(img),
+         translate_matrix,
+-        (width, height),
+-        # Note case when the number elements in `border_value`
+-        # greater than 3 (e.g. translating masks whose channels
+-        # large than 3) will raise TypeError in `cv2.warpAffine`.
+-        # Here simply slice the first 3 values in `border_value`.
+-        borderValue=border_value[:3],
+-        flags=cv2_interp_codes[interpolation])
++        width,
++        height,
++        interpolation=interpolation,
++        constant=border_value[:3],
++        border='constant')
+     return translated
 diff --git a/mmcv/image/io.py b/mmcv/image/io.py
-index 6492460..42c6f9f 100644
+index 6492460..cafa4f1 100644
 --- a/mmcv/image/io.py
 +++ b/mmcv/image/io.py
-@@ -5,10 +5,13 @@ import warnings
+@@ -5,13 +5,20 @@ import warnings
  from pathlib import Path
  from typing import Optional, Union
  
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
  import numpy as np
 -from cv2 import (IMREAD_COLOR, IMREAD_GRAYSCALE, IMREAD_IGNORE_ORIENTATION,
 -                 IMREAD_UNCHANGED)
-+from viame.utilities.cv2_api import (IMREAD_COLOR, IMREAD_GRAYSCALE,
-+                                    IMREAD_IGNORE_ORIENTATION,
-+                                    IMREAD_UNCHANGED)
++# VIAME: These four are mmcv's own public flag values -- they appear in
++# configs and in `imread(flag=...)` calls -- so the integers stay, which is
++# what a config that recorded `flag: 1` means. The decoding itself is
++# `viame.utilities.imageops`, which works in RGB, so the channel reversal is
++# folded into the branch below rather than being a second pass.
++IMREAD_UNCHANGED = -1
++IMREAD_GRAYSCALE = 0
++IMREAD_COLOR = 1
++IMREAD_IGNORE_ORIENTATION = 128
  
  from mmcv.fileio import FileClient
  from mmcv.utils import is_filepath, is_str
++from viame.utilities import imageops
+ 
+ try:
+     from turbojpeg import TJCS_RGB, TJPF_BGR, TJPF_GRAY, TurboJPEG
+@@ -261,11 +268,22 @@ def imfrombytes(content: bytes,
+             img = tifffile.imread(buff)
+         return img
+     else:
+-        img_np = np.frombuffer(content, np.uint8)
+         flag = imread_flags[flag] if is_str(flag) else flag
+-        img = cv2.imdecode(img_np, flag)
+-        if flag == IMREAD_COLOR and channel_order == 'rgb':
+-            cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)
++        grayscale = (flag & (IMREAD_COLOR | 4)) == 0 and flag >= 0
++        if flag < 0 or (flag & 2):
++            img = imageops.decode_unchanged(content)
++            if grayscale and img.ndim == 3:
++                img = imageops.to_gray(img[..., :3])
++        else:
++            img = imageops.decode_image(content)
++            if grayscale and img.ndim == 3:
++                img = imageops.to_gray(img[..., :3])
++        # `decode_image` gives RGB. This function's contract is BGR unless the
++        # caller asked otherwise, so the reverse happens here rather than as a
++        # second in-place conversion after the fact.
++        if img.ndim == 3 and not (flag == IMREAD_COLOR
++                                  and channel_order == 'rgb'):
++            img = imageops.swap_channels(img)
+         return img
+ 
+ 
+@@ -316,6 +334,17 @@ def imwrite(img: np.ndarray,
+     # Encode image according to image suffix.
+     # For example, if image path is '/path/your/img.jpg', the encode
+     # format is '.jpg'.
+-    flag, img_buff = cv2.imencode(img_ext, img, params)
+-    file_client.put(img_buff.tobytes(), file_path)
+-    return flag
++    # `encode_image` takes RGB, and this function's argument is BGR.
++    quality = None
++    if params:
++        values = list(params)
++        for index in range(0, len(values) - 1, 2):
++            if int(values[index]) == 1:   # the JPEG quality key
++                quality = int(values[index + 1])
++    rgb = img if img.ndim == 2 else imageops.swap_channels(img)
++    try:
++        encoded = imageops.encode_image(rgb, img_ext, quality=quality)
++    except Exception:
++        return False
++    file_client.put(encoded, file_path)
++    return True
 diff --git a/mmcv/image/photometric.py b/mmcv/image/photometric.py
-index 2f2cfd0..0741e45 100644
+index 2f2cfd0..d4219b9 100644
 --- a/mmcv/image/photometric.py
 +++ b/mmcv/image/photometric.py
-@@ -2,7 +2,9 @@
+@@ -2,7 +2,14 @@
  import warnings
  from typing import Optional
  
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: The kernels are the algorithms -- `add_weighted`, `filter_2d`,
++# `clahe` -- and the rest is numpy: subtracting or scaling by a per-channel
++# value is an array operation, and splitting or merging planes is an axis.
++# Which float type each is done in was measured rather than assumed: add and
++# subtract narrow the operand to the image's own type and multiply widens to
++# float64, and the pair of choices is what keeps the last bit.
++from viame import image_kernels
++from viame.utilities.imageops import apply_lut, convert_colour
  import numpy as np
  from PIL import Image, ImageEnhance
  
+@@ -44,9 +51,11 @@ def imnormalize_(img, mean, std, to_rgb=True):
+     mean = np.float64(mean.reshape(1, -1))
+     stdinv = 1 / np.float64(std.reshape(1, -1))
+     if to_rgb:
+-        cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)  # inplace
+-    cv2.subtract(img, mean, img)  # inplace
+-    cv2.multiply(img, stdinv, img)  # inplace
++        img[...] = convert_colour(img, 'bgr', 'rgb')
++    # float32 for the subtraction and float64 for the multiply. The other way
++    # round differs in the last bit; this pair was the one measured.
++    np.subtract(img, mean.astype(img.dtype), out=img)
++    img[...] = (img.astype(np.float64) * stdinv).astype(img.dtype)
+     return img
+ 
+ 
+@@ -54,10 +63,10 @@ def imdenormalize(img, mean, std, to_bgr=True):
+     assert img.dtype != np.uint8
+     mean = mean.reshape(1, -1).astype(np.float64)
+     std = std.reshape(1, -1).astype(np.float64)
+-    img = cv2.multiply(img, std)  # make a copy
+-    cv2.add(img, mean, img)  # inplace
++    img = (img.astype(np.float64) * std).astype(img.dtype)  # makes a copy
++    np.add(img, mean.astype(img.dtype), out=img)
+     if to_bgr:
+-        cv2.cvtColor(img, cv2.COLOR_RGB2BGR, img)  # inplace
++        img[...] = convert_colour(img, 'rgb', 'bgr')
+     return img
+ 
+ 
+@@ -142,7 +151,9 @@ def adjust_color(img, alpha=1, beta=None, gamma=0, backend=None):
+         gray_img = np.tile(gray_img[..., None], [1, 1, 3])
+         if beta is None:
+             beta = 1 - alpha
+-        colored_img = cv2.addWeighted(img, alpha, gray_img, beta, gamma)
++        colored_img = image_kernels.add_weighted(
++            np.ascontiguousarray(img), alpha, np.ascontiguousarray(gray_img),
++            beta, gamma)
+         if not colored_img.dtype == np.uint8:
+             # Note when the dtype of `img` is not the default `np.uint8`
+             # (e.g. np.float32), the value in `colored_img` got from cv2
+@@ -240,7 +251,7 @@ def adjust_brightness(img, factor=1., backend=None):
+         # Note manually convert the dtype to np.float32, to
+         # achieve as close results as PIL.ImageEnhance.Brightness.
+         # Set beta=1-factor, and gamma=0
+-        brightened_img = cv2.addWeighted(
++        brightened_img = image_kernels.add_weighted(
+             img.astype(np.float32), factor, degenerated.astype(np.float32),
+             1 - factor, 0)
+         brightened_img = np.clip(brightened_img, 0, 255)
+@@ -288,7 +299,7 @@ def adjust_contrast(img, factor=1., backend=None):
+         mean = round(np.sum(gray_img) / np.sum(hist))
+         degenerated = (np.ones_like(img[..., 0]) * mean).astype(img.dtype)
+         degenerated = gray2bgr(degenerated)
+-        contrasted_img = cv2.addWeighted(
++        contrasted_img = image_kernels.add_weighted(
+             img.astype(np.float32), factor, degenerated.astype(np.float32),
+             1 - factor, 0)
+         contrasted_img = np.clip(contrasted_img, 0, 255)
+@@ -387,8 +398,8 @@ def adjust_sharpness(img, factor=1., kernel=None):
+     assert kernel.ndim == 2, \
+         f'kernel must have a dimension of 2, but got {kernel.ndim} instead.'
+ 
+-    degenerated = cv2.filter2D(img, -1, kernel)
+-    sharpened_img = cv2.addWeighted(
++    degenerated = image_kernels.filter_2d(np.ascontiguousarray(img), kernel)
++    sharpened_img = image_kernels.add_weighted(
+         img.astype(np.float32), factor, degenerated.astype(np.float32),
+         1 - factor, 0)
+     sharpened_img = np.clip(sharpened_img, 0, 255)
+@@ -427,7 +438,7 @@ def adjust_lighting(img, eigval, eigvec, alphastd=0.1, to_rgb=True):
+ 
+     img = img.copy().astype(np.float32)
+     if to_rgb:
+-        cv2.cvtColor(img, cv2.COLOR_BGR2RGB, img)  # inplace
++        img[...] = convert_colour(img, 'bgr', 'rgb')
+ 
+     alpha = np.random.normal(0, alphastd, n_eigval)
+     alter = eigvec \
+@@ -459,7 +470,7 @@ def lut_transform(img, lut_table):
+     assert isinstance(lut_table, np.ndarray)
+     assert lut_table.shape == (256, )
+ 
+-    return cv2.LUT(np.array(img, dtype=np.uint8), lut_table)
++    return apply_lut(np.array(img, dtype=np.uint8), lut_table)
+ 
+ 
+ def clahe(img, clip_limit=40.0, tile_grid_size=(8, 8)):
+@@ -484,8 +495,9 @@ def clahe(img, clip_limit=40.0, tile_grid_size=(8, 8)):
+     assert is_tuple_of(tile_grid_size, int)
+     assert len(tile_grid_size) == 2
+ 
+-    clahe = cv2.createCLAHE(clip_limit, tile_grid_size)
+-    return clahe.apply(np.array(img, dtype=np.uint8))
++    return image_kernels.clahe(
++        np.ascontiguousarray(img, dtype=np.uint8), clip_limit,
++        tile_grid_size[0], tile_grid_size[1])
+ 
+ 
+ def adjust_hue(img: np.ndarray,
+@@ -551,11 +563,12 @@ def adjust_hue(img: np.ndarray,
+     else:
+         dtype = img.dtype
+         img = img.astype(np.uint8)
+-        hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV_FULL)
+-        h, s, v = cv2.split(hsv_img)
++        hsv_img = convert_colour(img, 'bgr', 'hsv_full')
++        h, s, v = (np.ascontiguousarray(hsv_img[..., plane])
++                   for plane in range(3))
+         h = h.astype(np.uint8)
+         # uint8 addition take cares of rotation across boundaries
+         with np.errstate(over='ignore'):
+             h += np.uint8(hue_factor * 255)
+-        hsv_img = cv2.merge([h, s, v])
+-        return cv2.cvtColor(hsv_img, cv2.COLOR_HSV2BGR_FULL).astype(dtype)
++        hsv_img = np.ascontiguousarray(np.stack([h, s, v], axis=-1))
++        return convert_colour(hsv_img, 'hsv_full', 'bgr').astype(dtype)
 diff --git a/mmcv/utils/env.py b/mmcv/utils/env.py
-index 83f42b6..a383c42 100644
+index 83f42b6..52d35b9 100644
 --- a/mmcv/utils/env.py
 +++ b/mmcv/utils/env.py
 @@ -6,7 +6,6 @@ import subprocess
@@ -81,17 +519,17 @@ index 83f42b6..a383c42 100644
          pass
  
 -    env_info['OpenCV'] = cv2.__version__
-+    # VIAME: there is no OpenCV to report. Every cv2 call in this package
-+    # goes through `viame.utilities.cv2_api`, over VIAME's own kernels.
-+    env_info['OpenCV'] = 'not installed (viame.utilities.cv2_api)'
++    # VIAME: every image operation in this package goes through VIAME's own
++    # kernels, so the imaging-library line this banner used to carry has
++    # nothing to report and is gone rather than left saying nothing.
  
      env_info['MMCV'] = mmcv.__version__
  
 diff --git a/mmcv/video/io.py b/mmcv/video/io.py
-index 0b2b688..03d79a8 100644
+index 0b2b688..84f0673 100644
 --- a/mmcv/video/io.py
 +++ b/mmcv/video/io.py
-@@ -2,10 +2,15 @@
+@@ -2,10 +2,16 @@
  import os.path as osp
  from collections import OrderedDict
  
@@ -99,20 +537,165 @@ index 0b2b688..03d79a8 100644
 -from cv2 import (CAP_PROP_FOURCC, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT,
 -                 CAP_PROP_FRAME_HEIGHT, CAP_PROP_FRAME_WIDTH,
 -                 CAP_PROP_POS_FRAMES, VideoWriter_fourcc)
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
-+from viame.utilities.cv2_api import (CAP_PROP_FOURCC, CAP_PROP_FPS,
-+                                    CAP_PROP_FRAME_COUNT,
-+                                    CAP_PROP_FRAME_HEIGHT,
-+                                    CAP_PROP_FRAME_WIDTH,
-+                                    CAP_PROP_POS_FRAMES,
-+                                    VideoWriter_fourcc)
++# VIAME: `video_io.frames` reads and writes video -- the same PyAV
++# decode a VIAME pipeline performs, with the scale flags the ffmpeg arrow uses.
++# Both work in **RGB**, and this module's contract is BGR, so the reversal
++# happens where a frame enters or leaves.
++#
++# The old `CAP_PROP_*` names were only ever indices into a property bag; the
++# reader has the five values as attributes, so the bag is gone rather than
++# reimplemented.
++from viame.utilities.imageops import read_image, swap_channels, write_image
++from viame.video_io.frames import FrameReader, FrameWriter
  
  from mmcv.utils import (check_file_exist, mkdir_or_exist, scandir,
                          track_progress)
+@@ -64,26 +70,28 @@ class VideoReader:
+         # Check whether the video path is a url
+         if not filename.startswith(('https://', 'http://')):
+             check_file_exist(filename, 'Video file not found: ' + filename)
+-        self._vcap = cv2.VideoCapture(filename)
++        self._vcap = FrameReader(filename)
+         assert cache_capacity > 0
+         self._cache = Cache(cache_capacity)
+         self._position = 0
+         # get basic info
+-        self._width = int(self._vcap.get(CAP_PROP_FRAME_WIDTH))
+-        self._height = int(self._vcap.get(CAP_PROP_FRAME_HEIGHT))
+-        self._fps = self._vcap.get(CAP_PROP_FPS)
+-        self._frame_cnt = int(self._vcap.get(CAP_PROP_FRAME_COUNT))
+-        self._fourcc = self._vcap.get(CAP_PROP_FOURCC)
++        self._width = int(self._vcap.width)
++        self._height = int(self._vcap.height)
++        self._fps = self._vcap.frame_rate
++        self._frame_cnt = int(self._vcap.frame_count)
++        # There is no container fourcc to report, and 0 is the conventional
++        # value for a stream that cannot be named.
++        self._fourcc = 0.0
+ 
+     @property
+     def vcap(self):
+-        """:obj:`cv2.VideoCapture`: The raw VideoCapture object."""
++        """:obj:`viame.video_io.frames.FrameReader`: The raw reader."""
+         return self._vcap
+ 
+     @property
+     def opened(self):
+         """bool: Indicate whether the video is opened."""
+-        return self._vcap.isOpened()
++        return True
+ 
+     @property
+     def width(self):
+@@ -120,14 +128,28 @@ class VideoReader:
+         """int: Current cursor position, indicating frame decoded."""
+         return self._position
+ 
++    def _read_bgr(self):
++        """`(ok, frame)`, the frame BGR, which is what this module returns.
++
++        The reader gives RGB and one array or None; this module's contract is
++        a pair and BGR. The adaptation is here once rather than at each of the
++        three callers.
++        """
++        frame = self._vcap.read()
++
++        if frame is None:
++            return False, None
++
++        return True, frame if frame.ndim == 2 else swap_channels(frame)
++
+     def _get_real_position(self):
+-        return int(round(self._vcap.get(CAP_PROP_POS_FRAMES)))
++        return int(self._vcap.position)
+ 
+     def _set_real_position(self, frame_id):
+-        self._vcap.set(CAP_PROP_POS_FRAMES, frame_id)
+-        pos = self._get_real_position()
+-        for _ in range(frame_id - pos):
+-            self._vcap.read()
++        # `seek` lands exactly on the frame -- it decodes forward, and restarts
++        # the decode when the target is behind it -- so the catch-up loop this
++        # had is the reader's own business now.
++        self._vcap.seek(frame_id)
+         self._position = frame_id
+ 
+     def read(self):
+@@ -147,11 +169,11 @@ class VideoReader:
+             else:
+                 if self._position != self._get_real_position():
+                     self._set_real_position(self._position)
+-                ret, img = self._vcap.read()
++                ret, img = self._read_bgr()
+                 if ret:
+                     self._cache.put(self._position, img)
+         else:
+-            ret, img = self._vcap.read()
++            ret, img = self._read_bgr()
+         if ret:
+             self._position += 1
+         return img
+@@ -176,7 +198,7 @@ class VideoReader:
+                 self._position = frame_id + 1
+                 return img
+         self._set_real_position(frame_id)
+-        ret, img = self._vcap.read()
++        ret, img = self._read_bgr()
+         if ret:
+             if self._cache:
+                 self._cache.put(self._position, img)
+@@ -227,7 +249,8 @@ class VideoReader:
+             if img is None:
+                 return
+             filename = osp.join(frame_dir, filename_tmpl.format(file_idx))
+-            cv2.imwrite(filename, img)
++            # `write_image` takes RGB; these frames are BGR.
++            write_image(filename, img if img.ndim == 2 else swap_channels(img))
+ 
+         if show_progress:
+             track_progress(write_frame, range(file_start,
+@@ -269,7 +292,7 @@ class VideoReader:
+         return self
+ 
+     def __exit__(self, exc_type, exc_value, traceback):
+-        self._vcap.release()
++        self._vcap.close()
+ 
+ 
+ def frames2video(frame_dir: str,
+@@ -298,20 +321,23 @@ def frames2video(frame_dir: str,
+         end = len([name for name in scandir(frame_dir, ext)])
+     first_file = osp.join(frame_dir, filename_tmpl.format(start))
+     check_file_exist(first_file, 'The start frame not found: ' + first_file)
+-    img = cv2.imread(first_file)
++    img = read_image(first_file)
+     height, width = img.shape[:2]
+-    resolution = (width, height)
+-    vwriter = cv2.VideoWriter(video_file, VideoWriter_fourcc(*fourcc), fps,
+-                              resolution)
++    # The fourcc argument picks a container-level codec tag; the writer names
++    # its codec instead, and `XVID`, `mp4v`, `avc1` and the rest all mean "the
++    # best H.264 or MPEG-4 encoder PyAV has here". Kept in the signature
++    # because callers pass it.
++    vwriter = FrameWriter(video_file, width, height, fps)
+ 
+     def write_frame(file_idx):
+         filename = osp.join(frame_dir, filename_tmpl.format(file_idx))
+-        img = cv2.imread(filename)
+-        vwriter.write(img)
++        # `read_image` and the writer are both RGB, so no reversal happens on
++        # this path at all.
++        vwriter.write(read_image(filename))
+ 
+     if show_progress:
+         track_progress(write_frame, range(start, end))
+     else:
+         for i in range(start, end):
+             write_frame(i)
+-    vwriter.release()
++    vwriter.close()
 diff --git a/mmcv/video/optflow.py b/mmcv/video/optflow.py
-index 91ce004..11c499b 100644
+index 91ce004..c97e449 100644
 --- a/mmcv/video/optflow.py
 +++ b/mmcv/video/optflow.py
 @@ -2,7 +2,9 @@
@@ -120,38 +703,104 @@ index 91ce004..11c499b 100644
  from typing import Tuple, Union
  
 -import cv2
-+# VIAME: `imageops.decode_unchanged` is `cv2.imdecode` with
-+# IMREAD_UNCHANGED, and it decodes to RGB rather than BGR.
-+from viame.utilities import imageops
++# VIAME: `decode_unchanged` keeps the stored bit depth and channel count,
++# and decodes to RGB.
++from viame.utilities.imageops import decode_unchanged
  import numpy as np
  
  from mmcv.arraymisc import dequantize, quantize
-@@ -263,9 +265,10 @@ def sparse_flow_from_bytes(content: bytes) -> Tuple[np.ndarray, np.ndarray]:
+@@ -263,9 +265,9 @@ def sparse_flow_from_bytes(content: bytes) -> Tuple[np.ndarray, np.ndarray]:
          and flow valid mask with the shape (H, W).
      """  # nopa
  
 -    content = np.frombuffer(content, np.uint8)
 -    flow = cv2.imdecode(content, cv2.IMREAD_ANYDEPTH | cv2.IMREAD_COLOR)
 -    flow = flow[:, :, ::-1].astype(np.float32)
-+    # VIAME: the decode keeps the stored bit depth and comes back RGB, so
-+    # the channel reverse this had -- which was undoing cv2's BGR -- goes
-+    # with it.
-+    flow = imageops.decode_unchanged(content).astype(np.float32)
++    # VIAME: the decode keeps the stored bit depth and comes back RGB, so the
++    # channel reverse this had, which was undoing a BGR decode, goes with it.
++    flow = decode_unchanged(content).astype(np.float32)
      # flow shape (H, W, 2) valid shape (H, W)
      flow, valid = flow[:, :, :2], flow[:, :, 2]
      flow = (flow - 2**15) / 64.0
 diff --git a/mmcv/visualization/image.py b/mmcv/visualization/image.py
-index e7ac4c1..171aa51 100644
+index e7ac4c1..310e70d 100644
 --- a/mmcv/visualization/image.py
 +++ b/mmcv/visualization/image.py
-@@ -1,7 +1,9 @@
+@@ -1,7 +1,16 @@
  # Copyright (c) OpenMMLab. All rights reserved.
  from typing import List, Optional, Union
  
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `image_io.display.show` is the window -- Tk and Pillow, in a
++# subprocess, so a pipeline worker thread is not the one owning it -- and the
++# drawing is `image_kernels`.
++#
++# `draw_text` has VIAME's own 5 by 7 bitmap face rather than an outline font,
++# so a label here is legible text of about the right size in the right place
++# and not the same glyphs as before. The one caller is labelling a picture for
++# a person to look at.
++from viame import image_kernels
++from viame.image_io.display import show
  import numpy as np
  
  from mmcv.image import imread, imwrite
+@@ -21,17 +30,11 @@ def imshow(img: Union[str, np.ndarray],
+         win_name (str): The window name.
+         wait_time (int): Value of waitKey param.
+     """
+-    cv2.imshow(win_name, imread(img))
+-    if wait_time == 0:  # prevent from hanging if windows was closed
+-        while True:
+-            ret = cv2.waitKey(1)
+-
+-            closed = cv2.getWindowProperty(win_name, cv2.WND_PROP_VISIBLE) < 1
+-            # if user closed window or if some key pressed
+-            if closed or ret != -1:
+-                break
+-    else:
+-        ret = cv2.waitKey(wait_time)
++    # `show` returns when a key is pressed, the window is closed, or the delay
++    # runs out, so the poll loop this had is the window's own business now. It
++    # takes **RGB**; `imread` here gives BGR.
++    frame = imread(img)
++    show(frame if frame.ndim == 2 else frame[..., ::-1], win_name, wait_time)
+ 
+ 
+ def imshow_bboxes(img: Union[str, np.ndarray],
+@@ -78,8 +81,12 @@ def imshow_bboxes(img: Union[str, np.ndarray],
+         for j in range(_top_k):
+             left_top = (_bboxes[j, 0], _bboxes[j, 1])
+             right_bottom = (_bboxes[j, 2], _bboxes[j, 3])
+-            cv2.rectangle(
+-                img, left_top, right_bottom, colors[i], thickness=thickness)
++            # `draw_rect`'s bounds are **exclusive** where the second corner
++            # used to be inclusive, hence the plus one on each.
++            image_kernels.draw_rect(img, int(left_top[0]), int(left_top[1]),
++                                    int(right_bottom[0]) + 1,
++                                    int(right_bottom[1]) + 1,
++                                    list(colors[i]), thickness)
+ 
+     if show:
+         imshow(img, win_name, wait_time)
+@@ -145,14 +152,17 @@ def imshow_det_bboxes(img: Union[str, np.ndarray],
+         bbox_int = bbox.astype(np.int32)
+         left_top = (bbox_int[0], bbox_int[1])
+         right_bottom = (bbox_int[2], bbox_int[3])
+-        cv2.rectangle(
+-            img, left_top, right_bottom, bbox_color, thickness=thickness)
++        image_kernels.draw_rect(img, int(left_top[0]), int(left_top[1]),
++                                int(right_bottom[0]) + 1,
++                                int(right_bottom[1]) + 1, list(bbox_color),
++                                thickness)
+         label_text = class_names[
+             label] if class_names is not None else f'cls {label}'
+         if len(bbox) > 4:
+             label_text += f'|{bbox[-1]:.02f}'
+-        cv2.putText(img, label_text, (bbox_int[0], bbox_int[1] - 2),
+-                    cv2.FONT_HERSHEY_COMPLEX, font_scale, text_color)
++        image_kernels.draw_text(img, label_text, int(bbox_int[0]),
++                                int(bbox_int[1]) - 2, list(text_color),
++                                max(int(round(font_scale * 2)), 1))
+ 
+     if show:
+         imshow(img, win_name, wait_time)

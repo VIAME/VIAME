@@ -1,5 +1,5 @@
 diff --git a/imgaug/augmentables/lines.py b/imgaug/augmentables/lines.py
-index 7549e4b6..a50c9598 100644
+index 7549e4b6..34c26844 100644
 --- a/imgaug/augmentables/lines.py
 +++ b/imgaug/augmentables/lines.py
 @@ -6,7 +6,9 @@ import copy as copylib
@@ -7,242 +7,1602 @@ index 7549e4b6..a50c9598 100644
  import skimage.draw
  import skimage.measure
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `dilate` takes the structuring element as a name and a size
++# rather than as an array of ones.
++from viame.image_kernels import dilate as _dilate
  
  from .. import imgaug as ia
  from .base import IAugmentable
+@@ -1036,8 +1038,8 @@ class LineString(object):
+                 heatmap[rr, cc] = val * alpha
+ 
+         if size > 1:
+-            kernel = np.ones((size, size), dtype=np.uint8)
+-            heatmap = cv2.dilate(heatmap, kernel)
++            heatmap = _dilate(np.ascontiguousarray(heatmap), "rect", size,
++                              size)
+ 
+         if image_was_empty:
+             image_blend = image + heatmap * color
 diff --git a/imgaug/augmenters/artistic.py b/imgaug/augmenters/artistic.py
-index 0a84d473..2bbe6755 100644
+index 0a84d473..2ff23afa 100644
 --- a/imgaug/augmenters/artistic.py
 +++ b/imgaug/augmenters/artistic.py
-@@ -12,7 +12,9 @@ Added in 0.4.0.
+@@ -12,9 +12,11 @@ Added in 0.4.0.
  from __future__ import print_function, division, absolute_import
  
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: image work goes through VIAME's own kernels.
++from viame.image_kernels import (canny, filter_2d, laplacian,
++                                 mean_shift_blur, median_blur)
  
- from imgaug.imgaug import _normalize_cv2_input_arr_
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
  from . import meta
-@@ -128,10 +130,15 @@ def stylize_cartoon(image, blur_ksize=3, segmentation_size=1.0,
+ from . import color as colorlib
+ from .. import dtypes as iadt
+@@ -128,10 +130,11 @@ def stylize_cartoon(image, blur_ksize=3, segmentation_size=1.0,
      if segmentation_size <= 0:
          image_seg = image
      else:
-+        # VIAME: maxLevel=0, for the reason the same call in `blur.py`
-+        # carries -- cv2's default combines a pyramid whose combination rule
-+        # VIAME's kernel does not reproduce, and this level it reproduces
-+        # exactly.
-         cv2.pyrMeanShiftFiltering(_normalize_cv2_input_arr_(image),
-                                   sp=spatial_window_radius,
-                                   sr=color_window_radius,
+-        cv2.pyrMeanShiftFiltering(_normalize_cv2_input_arr_(image),
+-                                  sp=spatial_window_radius,
+-                                  sr=color_window_radius,
 -                                  dst=image_seg)
-+                                  dst=image_seg,
-+                                  maxLevel=0)
++        # One level; see the same call in `blur.py`.
++        image_seg[...] = mean_shift_blur(
++            _normalize_input_arr_(image),
++            spatial_window_radius,
++            color_window_radius)
  
      if is_small_image:
          edges_raw = _find_edges_canny(image_seg,
+@@ -166,7 +169,7 @@ def _find_edges_canny(image, edge_multiplier, from_colorspace):
+                                              from_colorspace=from_colorspace)
+     image_gray = image_gray[..., 0]
+     thresh = min(int(200 * (1/edge_multiplier)), 254)
+-    edges = cv2.Canny(_normalize_cv2_input_arr_(image_gray), thresh, thresh)
++    edges = canny(_normalize_input_arr_(image_gray), thresh, thresh)
+     return edges
+ 
+ 
+@@ -176,8 +179,11 @@ def _find_edges_laplacian(image, edge_multiplier, from_colorspace):
+                                              to_colorspace=colorlib.CSPACE_GRAY,
+                                              from_colorspace=from_colorspace)
+     image_gray = image_gray[..., 0]
+-    edges_f = cv2.Laplacian(_normalize_cv2_input_arr_(image_gray / 255.0),
+-                            cv2.CV_64F)
++    # float32 rather than float64: the result is squared, clipped to a
++    # percentile and rescaled to bytes two lines down, so the extra digits
++    # never reach the output.
++    edges_f = laplacian(
++        np.ascontiguousarray(image_gray / 255.0, dtype=np.float32))
+     edges_f = np.abs(edges_f)
+     edges_f = edges_f ** 2
+     vmax = np.percentile(edges_f, min(int(90 * (1/edge_multiplier)), 99))
+@@ -195,7 +201,7 @@ def _blur_median(image, ksize):
+         ksize += 1
+     if ksize <= 1:
+         return image
+-    return cv2.medianBlur(_normalize_cv2_input_arr_(image), ksize)
++    return median_blur(_normalize_input_arr_(image), ksize)
+ 
+ 
+ # Added in 0.4.0.
+@@ -209,7 +215,9 @@ def _threshold(image, thresh):
+ # Added in 0.4.0.
+ def _suppress_edge_blobs(edges, size, thresh, inverse):
+     kernel = np.ones((size, size), dtype=np.float32)
+-    counts = cv2.filter2D(_normalize_cv2_input_arr_(edges / 255.0), -1, kernel)
++    counts = filter_2d(
++        np.ascontiguousarray(edges / 255.0, dtype=np.float32),
++        np.asarray(kernel, dtype=np.float64))
+ 
+     if inverse:
+         mask = (counts < thresh)
 diff --git a/imgaug/augmenters/blend.py b/imgaug/augmenters/blend.py
-index 468059da..ef3260de 100644
+index 468059da..7a24eb12 100644
 --- a/imgaug/augmenters/blend.py
 +++ b/imgaug/augmenters/blend.py
-@@ -23,7 +23,9 @@ from abc import ABCMeta, abstractmethod
+@@ -23,10 +23,11 @@ from abc import ABCMeta, abstractmethod
  
  import numpy as np
  import six
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `gaussian_blur`'s border rule is a name rather than a flag.
++from viame.image_kernels import gaussian_blur
  
  import imgaug as ia
- from imgaug.imgaug import _normalize_cv2_input_arr_
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from .. import parameters as iap
+ from .. import dtypes as iadt
+@@ -2722,11 +2723,16 @@ class SomeColorsMaskGen(IBatchwiseMaskGenerator):
+             alphas[:ksize_x],
+         ])
+ 
+-        alphas = cv2.GaussianBlur(
+-            _normalize_cv2_input_arr_(alphas[np.newaxis, :]),
+-            ksize=(ksize_x, ksize_y),
+-            sigmaX=sigma, sigmaY=sigma,
+-            borderType=cv2.BORDER_REPLICATE
++        # This asked for a (ksize_x, 1) kernel -- horizontal only -- and the
++        # kernels take one size for both axes. On a **one row** image with a
++        # replicating border those are the same blur: every vertical tap reads
++        # the same row and the weights sum to one, so the y pass is the
++        # identity. `alphas[np.newaxis, :]` is that one row.
++        alphas = gaussian_blur(
++            _normalize_input_arr_(alphas[np.newaxis, :]),
++            ksize_x,
++            sigma,
++            border="replicate"
+         )[0, :]
+ 
+         # revert fake BORDER_WRAP
 diff --git a/imgaug/augmenters/blur.py b/imgaug/augmenters/blur.py
-index 8ab25b54..6a516f59 100644
+index 8ab25b54..34b32867 100644
 --- a/imgaug/augmenters/blur.py
 +++ b/imgaug/augmenters/blur.py
-@@ -15,7 +15,9 @@ from __future__ import print_function, division, absolute_import
+@@ -15,11 +15,13 @@ from __future__ import print_function, division, absolute_import
  
  import numpy as np
  from scipy import ndimage
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: image work goes through VIAME's own kernels.
++from viame.image_kernels import (bilateral_blur, box_blur, gaussian_blur,
++                                 mean_shift_blur, median_blur)
  import six.moves as sm
  
  import imgaug as ia
-@@ -353,11 +355,19 @@ def blur_mean_shift_(image, spatial_window_radius, color_window_radius):
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from . import convolutional as iaa_convolutional
+ from .. import parameters as iap
+@@ -246,14 +248,13 @@ def blur_gaussian_(image, sigma, ksize=None, backend="auto", eps=1e-3):
+             ksize = ksize + 1 if ksize % 2 == 0 else ksize
+ 
+             if ksize > 0:
+-                image_warped = cv2.GaussianBlur(
+-                    _normalize_cv2_input_arr_(image),
+-                    (ksize, ksize),
+-                    sigmaX=sigma,
+-                    sigmaY=sigma,
+-                    borderType=cv2.BORDER_REFLECT_101)
+-
+-                # re-add channel axis removed by cv2 if input was (H, W, 1)
++                image_warped = gaussian_blur(
++                    _normalize_input_arr_(image),
++                    ksize,
++                    sigma,
++                    border="reflect_101")
++
++                # re-add the channel axis if the input was (H, W, 1)
+                 image = (
+                     image_warped[..., np.newaxis]
+                     if image.ndim == 3 and image_warped.ndim == 2
+@@ -352,12 +353,16 @@ def blur_mean_shift_(image, spatial_window_radius, color_window_radius):
+     spatial_window_radius = max(spatial_window_radius, 0)
      color_window_radius = max(color_window_radius, 0)
  
-     image = _normalize_cv2_input_arr_(image)
-+    # VIAME: maxLevel=0, explicitly. cv2's default is 1, which combines a
-+    # two-level pyramid through a mask whose rule VIAME's kernel does not
-+    # reproduce (finding 2.75); maxLevel=0 it reproduces exactly, on a real
-+    # frame as well as on random blocks. On a photograph the two differ by
-+    # 0.6 of a grey level on average, with a 99.9th percentile of 15 and a
-+    # worst case around 50, so this is a real difference and not a rounding
-+    # one -- it is stated rather than hidden.
-     image = cv2.pyrMeanShiftFiltering(
-         image,
-         sp=spatial_window_radius,
-         sr=color_window_radius,
+-    image = _normalize_cv2_input_arr_(image)
+-    image = cv2.pyrMeanShiftFiltering(
+-        image,
+-        sp=spatial_window_radius,
+-        sr=color_window_radius,
 -        dst=image)
-+        dst=image,
-+        maxLevel=0)
++    # One level. The pyramid form combines a half-size pass with the full one
++    # through a mask, and `mean_shift_blur` does the single-level walk: each
++    # pixel moves to the mean of the neighbours near it in both position and
++    # colour, so a flat region collapses and an edge survives. On a photograph
++    # the two levels differ by 0.6 of a grey level on average and about 50 at
++    # worst; `design/lite-findings.md` 2.75 has the measurement.
++    image = mean_shift_blur(
++        _normalize_input_arr_(image),
++        spatial_window_radius,
++        color_window_radius)
  
      if shape_is_hw:
          image = image[..., 0]
+@@ -660,19 +665,20 @@ class AverageBlur(meta.Augmenter):
+                     image = image.astype(np.int16, copy=False)
+ 
+                 if image.ndim == 2 or image.shape[-1] <= 512:
+-                    image_aug = cv2.blur(
+-                        _normalize_cv2_input_arr_(image),
+-                        (ksize_h, ksize_w))
+-                    # cv2.blur() removes channel axis for single-channel images
++                    # The pair is passed in the order this augmenter has
++                    # always passed it, `ksize_h` first.
++                    image_aug = box_blur(
++                        _normalize_input_arr_(image),
++                        ksize_h, height=ksize_w)
+                     if image_aug.ndim == 2:
+                         image_aug = image_aug[..., np.newaxis]
+                 else:
+                     # TODO this is quite inefficient
+-                    # handling more than 512 channels in cv2.blur()
++                    # handling more than 512 channels
+                     channels = [
+-                        cv2.blur(
+-                            _normalize_cv2_input_arr_(image[..., c]),
+-                            (ksize_h, ksize_w))
++                        box_blur(
++                            _normalize_input_arr_(image[..., c]),
++                            ksize_h, height=ksize_w)
+                         for c in sm.xrange(image.shape[-1])
+                     ]
+                     image_aug = np.stack(channels, axis=-1)
+@@ -795,18 +801,16 @@ class MedianBlur(meta.Augmenter):
+             if ksize > 1 and not has_zero_sized_axes:
+                 ksize = ksize + 1 if ksize % 2 == 0 else ksize
+                 if image.ndim == 2 or image.shape[-1] <= 512:
+-                    image_aug = cv2.medianBlur(
+-                        _normalize_cv2_input_arr_(image), ksize)
+-                    # cv2.medianBlur() removes channel axis for single-channel
+-                    # images
++                    image_aug = median_blur(
++                        _normalize_input_arr_(image), ksize)
+                     if image_aug.ndim == 2:
+                         image_aug = image_aug[..., np.newaxis]
+                 else:
+                     # TODO this is quite inefficient
+-                    # handling more than 512 channels in cv2.medainBlur()
++                    # handling more than 512 channels
+                     channels = [
+-                        cv2.medianBlur(
+-                            _normalize_cv2_input_arr_(image[..., c]), ksize)
++                        median_blur(
++                            _normalize_input_arr_(image[..., c]), ksize)
+                         for c in sm.xrange(image.shape[-1])
+                     ]
+                     image_aug = np.stack(channels, axis=-1)
+@@ -969,8 +973,8 @@ class BilateralBlur(meta.Augmenter):
+         for i, (image, di, sigma_color_i, sigma_space_i) in gen:
+             has_zero_sized_axes = (image.size == 0)
+             if di != 1 and not has_zero_sized_axes:
+-                batch.images[i] = cv2.bilateralFilter(
+-                    _normalize_cv2_input_arr_(image),
++                batch.images[i] = bilateral_blur(
++                    _normalize_input_arr_(image),
+                     di, sigma_color_i, sigma_space_i)
+         return batch
+ 
 diff --git a/imgaug/augmenters/color.py b/imgaug/augmenters/color.py
-index 2adc0346..9bffa937 100644
+index 2adc0346..eed32947 100644
 --- a/imgaug/augmenters/color.py
 +++ b/imgaug/augmenters/color.py
-@@ -30,7 +30,9 @@ from __future__ import print_function, division, absolute_import
+@@ -30,12 +30,17 @@ from __future__ import print_function, division, absolute_import
  from abc import ABCMeta, abstractmethod
  
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: colour work goes through VIAME's own kernels. `convert_colour` takes
++# the two space **names**, which is how this module already asks the question --
++# `CSPACE_*` are strings -- so the table of integer codes below collapsed to the
++# set of pairs that have a direct route.
++from viame.utilities.clustering import kmeans as _kmeans
++from viame.utilities.imageops import convert_colour
  import six
  import six.moves as sm
  
+ import imgaug as ia
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from . import blend
+ from . import arithmetic
+@@ -62,69 +67,29 @@ CSPACE_ALL = {CSPACE_RGB, CSPACE_BGR, CSPACE_GRAY, CSPACE_YCrCb,
+ # pylint: enable=invalid-name
+ 
+ 
+-def _get_opencv_attr(attr_names):
+-    for attr_name in attr_names:
+-        if hasattr(cv2, attr_name):
+-            return getattr(cv2, attr_name)
+-    ia.warn("Could not find any of the following attributes in cv2: %s. "
+-            "This can cause issues with colorspace transformations." % (
+-                attr_names))
+-    return None
++#: The pairs `convert_colour` has a one-pass route for. Anything else goes
++#: through RGB in two, which is what this module already did for them.
++_CSPACE_DIRECT = frozenset([
++    (CSPACE_RGB, CSPACE_BGR), (CSPACE_RGB, CSPACE_GRAY),
++    (CSPACE_RGB, CSPACE_YCrCb), (CSPACE_RGB, CSPACE_HSV),
++    (CSPACE_RGB, CSPACE_HLS), (CSPACE_RGB, CSPACE_Lab),
++    (CSPACE_RGB, CSPACE_Luv), (CSPACE_RGB, CSPACE_YUV),
++    (CSPACE_RGB, CSPACE_CIE),
++    (CSPACE_BGR, CSPACE_RGB), (CSPACE_BGR, CSPACE_GRAY),
++    (CSPACE_BGR, CSPACE_YCrCb), (CSPACE_BGR, CSPACE_HSV),
++    (CSPACE_BGR, CSPACE_HLS), (CSPACE_BGR, CSPACE_Lab),
++    (CSPACE_BGR, CSPACE_Luv), (CSPACE_BGR, CSPACE_YUV),
++    (CSPACE_BGR, CSPACE_CIE),
++    (CSPACE_YCrCb, CSPACE_RGB), (CSPACE_YCrCb, CSPACE_BGR),
++    (CSPACE_HSV, CSPACE_RGB), (CSPACE_HSV, CSPACE_BGR),
++    (CSPACE_HLS, CSPACE_RGB), (CSPACE_HLS, CSPACE_BGR),
++    (CSPACE_Lab, CSPACE_RGB), (CSPACE_Lab, CSPACE_BGR),
++    (CSPACE_Luv, CSPACE_RGB), (CSPACE_Luv, CSPACE_BGR),
++    (CSPACE_YUV, CSPACE_RGB), (CSPACE_YUV, CSPACE_BGR),
++    (CSPACE_CIE, CSPACE_RGB), (CSPACE_CIE, CSPACE_BGR),
++])
+ 
+ 
+-_CSPACE_OPENCV_CONV_VARS = {
+-    # RGB
+-    (CSPACE_RGB, CSPACE_BGR): cv2.COLOR_RGB2BGR,
+-    (CSPACE_RGB, CSPACE_GRAY): cv2.COLOR_RGB2GRAY,
+-    (CSPACE_RGB, CSPACE_YCrCb): _get_opencv_attr(["COLOR_RGB2YCR_CB"]),
+-    (CSPACE_RGB, CSPACE_HSV): cv2.COLOR_RGB2HSV,
+-    (CSPACE_RGB, CSPACE_HLS): cv2.COLOR_RGB2HLS,
+-    (CSPACE_RGB, CSPACE_Lab): _get_opencv_attr(["COLOR_RGB2LAB",
+-                                                "COLOR_RGB2Lab"]),
+-    (CSPACE_RGB, CSPACE_Luv): cv2.COLOR_RGB2LUV,
+-    (CSPACE_RGB, CSPACE_YUV): cv2.COLOR_RGB2YUV,
+-    (CSPACE_RGB, CSPACE_CIE): cv2.COLOR_RGB2XYZ,
+-    # BGR
+-    (CSPACE_BGR, CSPACE_RGB): cv2.COLOR_BGR2RGB,
+-    (CSPACE_BGR, CSPACE_GRAY): cv2.COLOR_BGR2GRAY,
+-    (CSPACE_BGR, CSPACE_YCrCb): _get_opencv_attr(["COLOR_BGR2YCR_CB"]),
+-    (CSPACE_BGR, CSPACE_HSV): cv2.COLOR_BGR2HSV,
+-    (CSPACE_BGR, CSPACE_HLS): cv2.COLOR_BGR2HLS,
+-    (CSPACE_BGR, CSPACE_Lab): _get_opencv_attr(["COLOR_BGR2LAB",
+-                                                "COLOR_BGR2Lab"]),
+-    (CSPACE_BGR, CSPACE_Luv): cv2.COLOR_BGR2LUV,
+-    (CSPACE_BGR, CSPACE_YUV): cv2.COLOR_BGR2YUV,
+-    (CSPACE_BGR, CSPACE_CIE): cv2.COLOR_BGR2XYZ,
+-    # GRAY
+-    # YCrCb
+-    (CSPACE_YCrCb, CSPACE_RGB): _get_opencv_attr(["COLOR_YCrCb2RGB",
+-                                                  "COLOR_YCR_CB2RGB"]),
+-    (CSPACE_YCrCb, CSPACE_BGR): _get_opencv_attr(["COLOR_YCrCb2BGR",
+-                                                  "COLOR_YCR_CB2BGR"]),
+-    # HSV
+-    (CSPACE_HSV, CSPACE_RGB): cv2.COLOR_HSV2RGB,
+-    (CSPACE_HSV, CSPACE_BGR): cv2.COLOR_HSV2BGR,
+-    # HLS
+-    (CSPACE_HLS, CSPACE_RGB): cv2.COLOR_HLS2RGB,
+-    (CSPACE_HLS, CSPACE_BGR): cv2.COLOR_HLS2BGR,
+-    # Lab
+-    (CSPACE_Lab, CSPACE_RGB): _get_opencv_attr(["COLOR_Lab2RGB",
+-                                                "COLOR_LAB2RGB"]),
+-    (CSPACE_Lab, CSPACE_BGR): _get_opencv_attr(["COLOR_Lab2BGR",
+-                                                "COLOR_LAB2BGR"]),
+-    # Luv
+-    (CSPACE_Luv, CSPACE_RGB): _get_opencv_attr(["COLOR_Luv2RGB",
+-                                                "COLOR_LUV2RGB"]),
+-    (CSPACE_Luv, CSPACE_BGR): _get_opencv_attr(["COLOR_Luv2BGR",
+-                                                "COLOR_LUV2BGR"]),
+-    # YUV
+-    (CSPACE_YUV, CSPACE_RGB): cv2.COLOR_YUV2RGB,
+-    (CSPACE_YUV, CSPACE_BGR): cv2.COLOR_YUV2BGR,
+-    # CIE
+-    (CSPACE_CIE, CSPACE_RGB): cv2.COLOR_XYZ2RGB,
+-    (CSPACE_CIE, CSPACE_BGR): cv2.COLOR_XYZ2BGR,
+-}
+-
+ # This defines which colorspace pairs will be converted in-place in
+ # change_colorspace_(). Currently, all colorspaces seem to work fine with
+ # in-place transformations, which is why they are all set to True.
+@@ -284,21 +249,13 @@ def change_colorspace_(image, to_colorspace, from_colorspace=CSPACE_RGB):
+         (CSPACE_RGB, to_colorspace)
+     ]
+ 
+-    image = _normalize_cv2_input_arr_(image)
++    image = _normalize_input_arr_(image)
+     image_aug = image
+-    if from_to_direct in _CSPACE_OPENCV_CONV_VARS:
+-        from2to_var = _CSPACE_OPENCV_CONV_VARS[from_to_direct]
+-        dst = _get_dst(image_aug, from_to_direct)
+-        image_aug = cv2.cvtColor(image_aug, from2to_var, dst=dst)
++    if from_to_direct in _CSPACE_DIRECT:
++        image_aug = convert_colour(image_aug, from_colorspace, to_colorspace)
+     else:
+-        from2rgb_var = _CSPACE_OPENCV_CONV_VARS[from_to_indirect[0]]
+-        rgb2to_var = _CSPACE_OPENCV_CONV_VARS[from_to_indirect[1]]
+-
+-        dst1 = _get_dst(image_aug, from_to_indirect[0])
+-        dst2 = _get_dst(image_aug, from_to_indirect[1])
+-
+-        image_aug = cv2.cvtColor(image_aug, from2rgb_var, dst=dst1)
+-        image_aug = cv2.cvtColor(image_aug, rgb2to_var, dst=dst2)
++        image_aug = convert_colour(image_aug, from_colorspace, CSPACE_RGB)
++        image_aug = convert_colour(image_aug, CSPACE_RGB, to_colorspace)
+ 
+     assert image_aug.dtype.name == "uint8"
+ 
+@@ -2816,42 +2773,6 @@ class ChangeColorspace(meta.Augmenter):
+     Lab = CSPACE_Lab
+     Luv = CSPACE_Luv
+     COLORSPACES = {RGB, BGR, GRAY, CIE, YCrCb, HSV, HLS, Lab, Luv}
+-    # TODO access cv2 COLOR_ variables directly instead of indirectly via
+-    #      dictionary mapping
+-    CV_VARS = {
+-        # RGB
+-        "RGB2BGR": cv2.COLOR_RGB2BGR,
+-        "RGB2GRAY": cv2.COLOR_RGB2GRAY,
+-        "RGB2CIE": cv2.COLOR_RGB2XYZ,
+-        "RGB2YCrCb": cv2.COLOR_RGB2YCR_CB,
+-        "RGB2HSV": cv2.COLOR_RGB2HSV,
+-        "RGB2HLS": cv2.COLOR_RGB2HLS,
+-        "RGB2Lab": cv2.COLOR_RGB2LAB,
+-        "RGB2Luv": cv2.COLOR_RGB2LUV,
+-        # BGR
+-        "BGR2RGB": cv2.COLOR_BGR2RGB,
+-        "BGR2GRAY": cv2.COLOR_BGR2GRAY,
+-        "BGR2CIE": cv2.COLOR_BGR2XYZ,
+-        "BGR2YCrCb": cv2.COLOR_BGR2YCR_CB,
+-        "BGR2HSV": cv2.COLOR_BGR2HSV,
+-        "BGR2HLS": cv2.COLOR_BGR2HLS,
+-        "BGR2Lab": cv2.COLOR_BGR2LAB,
+-        "BGR2Luv": cv2.COLOR_BGR2LUV,
+-        # HSV
+-        "HSV2RGB": cv2.COLOR_HSV2RGB,
+-        "HSV2BGR": cv2.COLOR_HSV2BGR,
+-        # HLS
+-        "HLS2RGB": cv2.COLOR_HLS2RGB,
+-        "HLS2BGR": cv2.COLOR_HLS2BGR,
+-        # Lab
+-        "Lab2RGB": (
+-            cv2.COLOR_Lab2RGB
+-            if hasattr(cv2, "COLOR_Lab2RGB") else cv2.COLOR_LAB2RGB),
+-        "Lab2BGR": (
+-            cv2.COLOR_Lab2BGR
+-            if hasattr(cv2, "COLOR_Lab2BGR") else cv2.COLOR_LAB2BGR)
+-    }
+-
+     def __init__(self, to_colorspace, from_colorspace=CSPACE_RGB, alpha=1.0,
+                  seed=None, name=None,
+                  random_state="deprecated", deterministic="deprecated"):
+@@ -3498,26 +3419,13 @@ def quantize_kmeans(arr, nb_clusters, nb_max_iter=10, eps=1.0):
+     nb_channels = 1 if arr.ndim == 2 else arr.shape[-1]
+     pixel_vectors = arr.reshape((-1, nb_channels)).astype(np.float32)
+ 
+-    criteria = (cv2.TERM_CRITERIA_MAX_ITER + cv2.TERM_CRITERIA_EPS,
+-                nb_max_iter, eps)
+-    attempts = 1
+-
+-    # We want our quantization function to be deterministic (so that the
+-    # augmenter using it can also be executed deterministically). Hence we
+-    # set the RGN seed here.
+-    # This is fairly ugly, but in cv2 there seems to be no other way to
+-    # achieve determinism. Using cv2.KMEANS_PP_CENTERS does not help, as it
+-    # is non-deterministic (tested). In C++ the function has an rgn argument,
+-    # but not in python. In python there also seems to be no way to read out
+-    # cv2's RNG state, so we can't set it back after executing this function.
+-    # TODO this is quite hacky
+-    cv2.setRNGSeed(1)
+-    _compactness, labels, centers = cv2.kmeans(
+-        pixel_vectors, nb_clusters, None, criteria, attempts,
+-        cv2.KMEANS_RANDOM_CENTERS)
+-    # TODO replace by sample_seed function
+-    # cv2 seems to be able to handle SEED_MAX_VALUE (tested) but not floats
+-    cv2.setRNGSeed(iarandom.get_global_rng().generate_seed_())
++    # The quantization has to be deterministic, so that the augmenter using it
++    # can be too. `kmeans` takes the seed as an argument, so the global-state
++    # dance this used to need -- set a seed, run, set another one back -- is
++    # one keyword.
++    _compactness, labels, centers = _kmeans(
++        pixel_vectors, nb_clusters, seed=1, max_iterations=nb_max_iter,
++        epsilon=eps)
+ 
+     # Convert back to uint8 (or whatever the image dtype was) and to input
+     # image shape
 diff --git a/imgaug/augmenters/contrast.py b/imgaug/augmenters/contrast.py
-index e49299e6..9b42b1f3 100644
+index e49299e6..2955ea6d 100644
 --- a/imgaug/augmenters/contrast.py
 +++ b/imgaug/augmenters/contrast.py
-@@ -18,7 +18,9 @@ from __future__ import print_function, division, absolute_import
+@@ -18,10 +18,12 @@ from __future__ import print_function, division, absolute_import
  import numpy as np
  import six.moves as sm
  import skimage.exposure as ski_exposure
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `clahe` takes its clip limit and tile counts as arguments rather
++# than through an object, and `equalize` is the plain histogram equalisation.
++from viame.image_kernels import clahe as _clahe, equalize as _equalize
  
  import imgaug as ia
- from imgaug.imgaug import _normalize_cv2_input_arr_
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from . import color as color_lib
+ from .. import parameters as iap
+@@ -1062,12 +1064,11 @@ class AllChannelsCLAHE(meta.Augmenter):
+             image_warped = []
+             for c in sm.xrange(nb_channels):
+                 if tgs_px_w_i[c_param] > 1 or tgs_px_h_i[c_param] > 1:
+-                    clahe = cv2.createCLAHE(
+-                        clipLimit=clip_limit_i[c_param],
+-                        tileGridSize=(tgs_px_w_i[c_param], tgs_px_h_i[c_param])
+-                    )
+-                    channel_warped = clahe.apply(
+-                        _normalize_cv2_input_arr_(image[..., c])
++                    channel_warped = _clahe(
++                        _normalize_input_arr_(image[..., c]),
++                        float(clip_limit_i[c_param]),
++                        int(tgs_px_w_i[c_param]),
++                        int(tgs_px_h_i[c_param])
+                     )
+                     image_warped.append(channel_warped)
+                 else:
+@@ -1411,7 +1412,7 @@ class AllChannelsHistogramEqualization(meta.Augmenter):
+                 continue
+ 
+             image_warped = [
+-                cv2.equalizeHist(_normalize_cv2_input_arr_(image[..., c]))
++                _equalize(_normalize_input_arr_(image[..., c]))
+                 for c in sm.xrange(image.shape[2])]
+             image_warped = np.array(image_warped, dtype=image_warped[0].dtype)
+             image_warped = image_warped.transpose((1, 2, 0))
 diff --git a/imgaug/augmenters/convolutional.py b/imgaug/augmenters/convolutional.py
-index 30cacc11..ab594cb8 100644
+index 30cacc11..c7557308 100644
 --- a/imgaug/augmenters/convolutional.py
 +++ b/imgaug/augmenters/convolutional.py
-@@ -17,7 +17,9 @@ from __future__ import print_function, division, absolute_import
+@@ -17,11 +17,13 @@ from __future__ import print_function, division, absolute_import
  import itertools
  
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `filter_2d` is a correlation, not a convolution, and keeps the
++# input's dtype -- which is the property the comment below relies on.
++from viame.image_kernels import filter_2d
  import six.moves as sm
  
  import imgaug as ia
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from .. import parameters as iap
+ from .. import dtypes as iadt
+@@ -218,10 +220,9 @@ class Convolve(meta.Augmenter):
+                 if matrices[channel] is not None:
+                     # ndimage.convolve caused problems here cv2.filter2D()
+                     # always returns same output dtype as input dtype
+-                    image_aug[..., channel] = cv2.filter2D(
+-                        _normalize_cv2_input_arr_(image_aug[..., channel]),
+-                        -1,
+-                        matrices[channel]
++                    image_aug[..., channel] = filter_2d(
++                        _normalize_input_arr_(image_aug[..., channel]),
++                        np.asarray(matrices[channel], dtype=np.float64)
+                     )
+ 
+             if input_dtype.name == "bool":
 diff --git a/imgaug/augmenters/edges.py b/imgaug/augmenters/edges.py
-index d692a549..4e92aa64 100644
+index d692a549..4a76351b 100644
 --- a/imgaug/augmenters/edges.py
 +++ b/imgaug/augmenters/edges.py
-@@ -15,7 +15,9 @@ from __future__ import print_function, division, absolute_import
+@@ -15,11 +15,13 @@ from __future__ import print_function, division, absolute_import
  from abc import ABCMeta, abstractmethod
  
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `canny` handles a colour image by taking the strongest plane at
++# each pixel, and returns one plane.
++from viame.image_kernels import canny
  import six
  
  import imgaug as ia
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from . import blend
+ from .. import parameters as iap
+@@ -449,12 +451,12 @@ class Canny(meta.Augmenter):
+ 
+             has_zero_sized_axes = (0 in image.shape[0:2])
+             if alpha > 0 and sobel > 1 and not has_zero_sized_axes:
+-                image_canny = cv2.Canny(
+-                    _normalize_cv2_input_arr_(image[:, :, 0:3]),
+-                    threshold1=hthreshs[0],
+-                    threshold2=hthreshs[1],
+-                    apertureSize=sobel,
+-                    L2gradient=True)
++                image_canny = canny(
++                    _normalize_input_arr_(image[:, :, 0:3]),
++                    float(hthreshs[0]),
++                    float(hthreshs[1]),
++                    int(sobel),
++                    True)
+                 image_canny = (image_canny > 0)
+ 
+                 # canny returns a boolean (H,W) image, so we change it to
 diff --git a/imgaug/augmenters/flip.py b/imgaug/augmenters/flip.py
-index 4403f22c..07dfb487 100644
+index 4403f22c..377754b2 100644
 --- a/imgaug/augmenters/flip.py
 +++ b/imgaug/augmenters/flip.py
-@@ -10,7 +10,9 @@ List of augmenters:
+@@ -10,10 +10,12 @@ List of augmenters:
  from __future__ import print_function, division, absolute_import
  
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `flip` takes two booleans instead of a signed integer, which says
++# which axis without a table; this file only ever wanted the horizontal one.
++from viame.utilities.imageops import flip as _flip
  import six.moves as sm
  
- from imgaug.imgaug import _normalize_cv2_input_arr_
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from .. import parameters as iap
+ 
+@@ -738,13 +740,13 @@ def _fliplr_cv2(arr):
+     if arr.ndim == 3 and arr.shape[-1] > 512:
+         # TODO this is quite inefficient right now
+         channels = [
+-            cv2.flip(_normalize_cv2_input_arr_(arr[..., c]), 1)
++            _flip(_normalize_input_arr_(arr[..., c]), horizontal=True)
+             for c
+             in sm.xrange(arr.shape[-1])
+         ]
+         result = np.stack(channels, axis=-1)
+     else:
+-        # Normalization from imgaug.imgaug._normalize_cv2_input_arr_().
++        # Normalization from imgaug.imgaug._normalize_input_arr_().
+         # Moved here for performance reasons. Keep this aligned.
+         # TODO recalculate timings, they were computed without this.
+         flags = arr.flags
+@@ -754,7 +756,7 @@ def _fliplr_cv2(arr):
+         if not flags["C_CONTIGUOUS"]:
+             arr = np.ascontiguousarray(arr)
+ 
+-        result = cv2.flip(_normalize_cv2_input_arr_(arr), 1)
++        result = _flip(_normalize_input_arr_(arr), horizontal=True)
+ 
+     if result.ndim == 2 and arr.ndim == 3:
+         return result[..., np.newaxis]
 diff --git a/imgaug/augmenters/geometric.py b/imgaug/augmenters/geometric.py
-index 7bac1260..a809331e 100644
+index 7bac1260..f67005ee 100644
 --- a/imgaug/augmenters/geometric.py
 +++ b/imgaug/augmenters/geometric.py
-@@ -27,7 +27,9 @@ import functools
+@@ -27,11 +27,94 @@ import functools
  import numpy as np
  from scipy import ndimage
  from skimage import transform as tf
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: geometry goes through VIAME's own kernels and `viame.utilities`. The
++# integer spellings below are this module's own public vocabulary -- they are
++# the default values of `order=` and `mode=` in several signatures and the
++# members of the `available_*` assertion lists -- so they stay, and the two
++# name tables translate them for the kernels, which take a string.
++from viame.image_kernels import remap, warp_affine, warp_perspective, warp_polar
++from viame.utilities import geometry
++
++INTER_NEAREST = 0
++INTER_LINEAR = 1
++INTER_CUBIC = 2
++INTER_LANCZOS4 = 4
++
++BORDER_CONSTANT = 0
++BORDER_REPLICATE = 1
++BORDER_REFLECT = 2
++BORDER_WRAP = 3
++BORDER_REFLECT_101 = 4
++
++#: Added to a flags word to say that a transform already maps the destination
++#: back to the source, and to say that pixels outside the source are filled.
++WARP_INVERSE_MAP = 16
++WARP_FILL_OUTLIERS = 8
++
++WARP_POLAR_LINEAR = 0
++WARP_POLAR_LOG = 256
++
++def _border_constant(arr, cval):
++    """A border colour with exactly one value per plane of `arr`.
++
++    The warps want one constant for each plane. A caller here may hand over a
++    triple for a single-plane array, or one number for a colour one, and the
++    old behaviour for each is kept: extra components are dropped, and a bare
++    number fills the first plane and leaves the rest at zero.
++    """
++    planes = 1 if arr.ndim == 2 else arr.shape[-1]
++
++    if np.isscalar(cval):
++        if planes == 1:
++            return float(cval)
++        return [float(cval)] + [0.0] * (planes - 1)
++
++    values = [float(v) for v in np.asarray(cval).reshape(-1)]
++    values = (values + [0.0] * planes)[:planes]
++
++    return values[0] if planes == 1 else values
++
++
++def _warp_polar(arr, dest_size, centre_xy, max_radius, flags):
++    """A polar warp, forward or inverse, from a flags word.
++
++    The flags word is this module's own: an interpolation order, optionally
++    plus `WARP_INVERSE_MAP`. A destination size of zero means "the size the
++    radius implies", which the kernel derives.
++    """
++    inverse = bool(int(flags) & WARP_INVERSE_MAP)
++    order = int(flags) & ~(WARP_INVERSE_MAP | WARP_FILL_OUTLIERS
++                           | WARP_POLAR_LOG)
++
++    return warp_polar(
++        arr,
++        int(dest_size[0]),
++        int(dest_size[1]),
++        float(centre_xy[0]),
++        float(centre_xy[1]),
++        float(max_radius),
++        interpolation=_ORDER_NAMES[order],
++        inverse=inverse)
++
++
++_ORDER_NAMES = {
++    INTER_NEAREST: "nearest",
++    INTER_LINEAR: "bilinear",
++    INTER_CUBIC: "bicubic",
++    INTER_LANCZOS4: "lanczos",
++}
++
++_BORDER_NAMES = {
++    BORDER_CONSTANT: "constant",
++    BORDER_REPLICATE: "replicate",
++    BORDER_REFLECT: "reflect",
++    BORDER_WRAP: "wrap",
++    BORDER_REFLECT_101: "reflect_101",
++}
  import six.moves as sm
  
  import imgaug as ia
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from imgaug.augmentables.polys import _ConcavePolygonRecoverer
+ from . import meta
+ from . import blur as blur_lib
+@@ -49,32 +132,32 @@ _VALID_DTYPES_CV2_ORDER_NOT_0 = {"uint8", "uint16", "int8", "int16",
+                                  "bool"}
+ 
+ # skimage | cv2
+-# 0       | cv2.INTER_NEAREST
+-# 1       | cv2.INTER_LINEAR
++# 0       | INTER_NEAREST
++# 1       | INTER_LINEAR
+ # 2       | -
+-# 3       | cv2.INTER_CUBIC
++# 3       | INTER_CUBIC
+ # 4       | -
+ _AFFINE_INTERPOLATION_ORDER_SKIMAGE_TO_CV2 = {
+-    0: cv2.INTER_NEAREST,
+-    1: cv2.INTER_LINEAR,
+-    2: cv2.INTER_CUBIC,
+-    3: cv2.INTER_CUBIC,
+-    4: cv2.INTER_CUBIC
++    0: INTER_NEAREST,
++    1: INTER_LINEAR,
++    2: INTER_CUBIC,
++    3: INTER_CUBIC,
++    4: INTER_CUBIC
+ }
+ 
+ # constant, edge, symmetric, reflect, wrap
+ # skimage   | cv2
+-# constant  | cv2.BORDER_CONSTANT
+-# edge      | cv2.BORDER_REPLICATE
+-# symmetric | cv2.BORDER_REFLECT
+-# reflect   | cv2.BORDER_REFLECT_101
+-# wrap      | cv2.BORDER_WRAP
++# constant  | BORDER_CONSTANT
++# edge      | BORDER_REPLICATE
++# symmetric | BORDER_REFLECT
++# reflect   | BORDER_REFLECT_101
++# wrap      | BORDER_WRAP
+ _AFFINE_MODE_SKIMAGE_TO_CV2 = {
+-    "constant": cv2.BORDER_CONSTANT,
+-    "edge": cv2.BORDER_REPLICATE,
+-    "symmetric": cv2.BORDER_REFLECT,
+-    "reflect": cv2.BORDER_REFLECT_101,
+-    "wrap": cv2.BORDER_WRAP
++    "constant": BORDER_CONSTANT,
++    "edge": BORDER_REPLICATE,
++    "symmetric": BORDER_REFLECT,
++    "reflect": BORDER_REFLECT_101,
++    "wrap": BORDER_WRAP
+ }
+ 
+ 
+@@ -284,29 +367,31 @@ def _warp_affine_arr_cv2(arr, matrix, cval, mode, order, output_shape):
+         # TODO this block can also be when order==0 for any nb_channels,
+         #      but was deactivated for now, because cval would always
+         #      contain 3 values and not nb_channels values
+-        image_warped = cv2.warpAffine(
+-            _normalize_cv2_input_arr_(arr),
++        image_warped = warp_affine(
++            _normalize_input_arr_(arr),
+             matrix.params[:2],
+-            dsize=dsize,
+-            flags=order,
+-            borderMode=mode,
+-            borderValue=cval
++            dsize[0],
++            dsize[1],
++            interpolation=_ORDER_NAMES[order],
++            border=_BORDER_NAMES[mode],
++            constant=_border_constant(arr, cval)
+         )
+ 
+-        # cv2 warp drops last axis if shape is (H, W, 1)
++        # the warp drops the last axis if the shape was (H, W, 1)
+         if image_warped.ndim == 2:
+             image_warped = image_warped[..., np.newaxis]
+     else:
+         # warp each channel on its own, re-add channel axis, then stack
+         # the result from a list of [H, W, 1] to (H, W, C).
+         image_warped = [
+-            cv2.warpAffine(
+-                _normalize_cv2_input_arr_(arr[:, :, c]),
++            warp_affine(
++                _normalize_input_arr_(arr[:, :, c]),
+                 matrix.params[:2],
+-                dsize=dsize,
+-                flags=order,
+-                borderMode=mode,
+-                borderValue=tuple([cval[0]])
++                dsize[0],
++                dsize[1],
++                interpolation=_ORDER_NAMES[order],
++                border=_BORDER_NAMES[mode],
++                constant=float(cval[0])
+             )
+             for c in sm.xrange(nb_channels)]
+         image_warped = np.stack(image_warped, axis=-1)
+@@ -2257,8 +2342,8 @@ class AffineCv2(meta.Augmenter):
+             * If an iterable of ``int``/``str``, then for each image a random
+               value will be sampled from that iterable (i.e. list of allowed
+               order values).
+-            * If ``imgaug.ALL``, then equivalant to list ``[cv2.INTER_NEAREST,
+-              cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4]``.
++            * If ``imgaug.ALL``, then equivalant to list ``[INTER_NEAREST,
++              INTER_LINEAR, INTER_CUBIC, INTER_LANCZOS4]``.
+             * If ``StochasticParameter``, then that parameter is queried per
+               image to sample the order value to use.
+ 
+@@ -2398,8 +2483,8 @@ class AffineCv2(meta.Augmenter):
+     """
+ 
+     def __init__(self, scale=1.0, translate_percent=None, translate_px=None,
+-                 rotate=0.0, shear=0.0, order=cv2.INTER_LINEAR, cval=0,
+-                 mode=cv2.BORDER_CONSTANT,
++                 rotate=0.0, shear=0.0, order=INTER_LINEAR, cval=0,
++                 mode=BORDER_CONSTANT,
+                  seed=None, name=None,
+                  random_state="deprecated", deterministic="deprecated"):
+         super(AffineCv2, self).__init__(
+@@ -2413,8 +2498,8 @@ class AffineCv2(meta.Augmenter):
+             "Use imgaug.augmenters.geometric.Affine(..., backend='cv2') "
+             "instead.", stacklevel=4)
+ 
+-        available_orders = [cv2.INTER_NEAREST, cv2.INTER_LINEAR,
+-                            cv2.INTER_CUBIC, cv2.INTER_LANCZOS4]
++        available_orders = [INTER_NEAREST, INTER_LINEAR,
++                            INTER_CUBIC, INTER_LANCZOS4]
+         available_orders_str = ["nearest", "linear", "cubic", "lanczos4"]
+ 
+         if order == ia.ALL:
+@@ -2457,9 +2542,9 @@ class AffineCv2(meta.Augmenter):
+                 cval, "cval", value_range=(0, 255), tuple_to_uniform=True,
+                 list_to_choice=True, allow_floats=True)
+ 
+-        available_modes = [cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT,
+-                           cv2.BORDER_REFLECT_101, cv2.BORDER_WRAP,
+-                           cv2.BORDER_CONSTANT]
++        available_modes = [BORDER_REPLICATE, BORDER_REFLECT,
++                           BORDER_REFLECT_101, BORDER_WRAP,
++                           BORDER_CONSTANT]
+         available_modes_str = ["replicate", "reflect", "reflect_101",
+                                "wrap", "constant"]
+         if mode == ia.ALL:
+@@ -2589,17 +2674,17 @@ class AffineCv2(meta.Augmenter):
+                                    order_samples):
+         # TODO change these to class attributes
+         order_str_to_int = {
+-            "nearest": cv2.INTER_NEAREST,
+-            "linear": cv2.INTER_LINEAR,
+-            "cubic": cv2.INTER_CUBIC,
+-            "lanczos4": cv2.INTER_LANCZOS4
++            "nearest": INTER_NEAREST,
++            "linear": INTER_LINEAR,
++            "cubic": INTER_CUBIC,
++            "lanczos4": INTER_LANCZOS4
+         }
+         mode_str_to_int = {
+-            "replicate": cv2.BORDER_REPLICATE,
+-            "reflect": cv2.BORDER_REFLECT,
+-            "reflect_101": cv2.BORDER_REFLECT_101,
+-            "wrap": cv2.BORDER_WRAP,
+-            "constant": cv2.BORDER_CONSTANT
++            "replicate": BORDER_REPLICATE,
++            "reflect": BORDER_REFLECT,
++            "reflect_101": BORDER_REFLECT_101,
++            "wrap": BORDER_WRAP,
++            "constant": BORDER_CONSTANT
+         }
+ 
+         nb_images = len(images)
+@@ -2655,16 +2740,18 @@ class AffineCv2(meta.Augmenter):
+                           + matrix_transforms
+                           + matrix_to_center)
+ 
+-                image_warped = cv2.warpAffine(
+-                    _normalize_cv2_input_arr_(images[i]),
++                image_warped = warp_affine(
++                    _normalize_input_arr_(images[i]),
+                     matrix.params[:2],
+-                    dsize=(width, height),
+-                    flags=order,
+-                    borderMode=mode,
+-                    borderValue=tuple([int(v) for v in cval])
++                    width,
++                    height,
++                    interpolation=_ORDER_NAMES[order],
++                    border=_BORDER_NAMES[mode],
++                    constant=_border_constant(images[i],
++                                              [int(v) for v in cval])
+                 )
+ 
+-                # cv2 warp drops last axis if shape is (H, W, 1)
++                # the warp drops the last axis if the shape was (H, W, 1)
+                 if image_warped.ndim == 2:
+                     image_warped = image_warped[..., np.newaxis]
+ 
+@@ -3540,8 +3627,8 @@ class PerspectiveTransform(meta.Augmenter):
+     """
+ 
+     _BORDER_MODE_STR_TO_INT = {
+-        "replicate": cv2.BORDER_REPLICATE,
+-        "constant": cv2.BORDER_CONSTANT
++        "replicate": BORDER_REPLICATE,
++        "constant": BORDER_CONSTANT
+     }
+ 
+     def __init__(self, scale=(0.0, 0.06), cval=0, mode="constant",
+@@ -3578,10 +3665,10 @@ class PerspectiveTransform(meta.Augmenter):
+         # Stochastic parameters are currently *not* supported.
+         # If set to None, the same values as for images will be used.
+         # That is really not recommended for the cval parameter.
+-        self._order_heatmaps = cv2.INTER_LINEAR
+-        self._order_segmentation_maps = cv2.INTER_NEAREST
+-        self._mode_heatmaps = cv2.BORDER_CONSTANT
+-        self._mode_segmentation_maps = cv2.BORDER_CONSTANT
++        self._order_heatmaps = INTER_LINEAR
++        self._order_segmentation_maps = INTER_NEAREST
++        self._mode_heatmaps = BORDER_CONSTANT
++        self._mode_segmentation_maps = BORDER_CONSTANT
+         self._cval_heatmaps = 0
+         self._cval_segmentation_maps = 0
+ 
+@@ -3589,7 +3676,7 @@ class PerspectiveTransform(meta.Augmenter):
+     #      currently used for Affine and PiecewiseAffine
+     @classmethod
+     def _handle_mode_arg(cls, mode):
+-        available_modes = [cv2.BORDER_REPLICATE, cv2.BORDER_CONSTANT]
++        available_modes = [BORDER_REPLICATE, BORDER_CONSTANT]
+         available_modes_str = ["replicate", "constant"]
+         if mode == ia.ALL:
+             return iap.Choice(available_modes)
+@@ -3714,26 +3801,27 @@ class PerspectiveTransform(meta.Augmenter):
+             if has_zero_sized_axis:
+                 warped = image
+             elif nb_channels <= 4:
+-                warped = cv2.warpPerspective(
+-                    _normalize_cv2_input_arr_(image),
++                warped = warp_perspective(
++                    _normalize_input_arr_(image),
+                     matrix,
+-                    (max_width, max_height),
+-                    borderValue=cval,
+-                    borderMode=mode)
++                    max_width,
++                    max_height,
++                    border=_BORDER_NAMES[mode],
++                    constant=_border_constant(image, cval))
+                 if warped.ndim == 2 and images[i].ndim == 3:
+                     warped = np.expand_dims(warped, 2)
+             else:
+-                # warp each channel on its own
+-                # note that cv2 removes the channel axis in case of (H,W,1)
+-                # inputs
++                # warp each channel on its own; the warp removes the channel
++                # axis for an (H, W, 1) input
+                 warped = [
+-                    cv2.warpPerspective(
+-                        _normalize_cv2_input_arr_(image[..., c]),
++                    warp_perspective(
++                        _normalize_input_arr_(image[..., c]),
+                         matrix,
+-                        (max_width, max_height),
+-                        borderValue=cval[min(c, len(cval)-1)],
+-                        borderMode=mode,
+-                        flags=cv2.INTER_LINEAR
++                        max_width,
++                        max_height,
++                        border=_BORDER_NAMES[mode],
++                        constant=float(cval[min(c, len(cval)-1)]),
++                        interpolation="bilinear"
+                     )
+                     for c in sm.xrange(nb_channels)
+                 ]
+@@ -3789,13 +3877,14 @@ class PerspectiveTransform(meta.Augmenter):
+             if not image_has_zero_sized_axis:
+                 if not map_has_zero_sized_axis:
+                     warped = [
+-                        cv2.warpPerspective(
+-                            _normalize_cv2_input_arr_(arr[..., c]),
++                        warp_perspective(
++                            _normalize_input_arr_(arr[..., c]),
+                             matrix,
+-                            (max_width, max_height),
+-                            borderValue=cval_i,
+-                            borderMode=mode_i,
+-                            flags=flags
++                            max_width,
++                            max_height,
++                            border=_BORDER_NAMES[mode_i],
++                            constant=float(cval_i),
++                            interpolation=_ORDER_NAMES[flags]
+                         )
+                         for c in sm.xrange(nb_channels)
+                     ]
+@@ -3834,8 +3923,8 @@ class PerspectiveTransform(meta.Augmenter):
+                 kpsoi.shape = shape_new
+                 if not kpsoi.empty:
+                     kps_arr = kpsoi.to_xy_array()
+-                    warped = cv2.perspectiveTransform(
+-                        np.array([kps_arr], dtype=np.float32), matrix)
++                    warped = geometry.apply_homography(
++                        matrix, kps_arr.astype(np.float64))[np.newaxis]
+                     warped = warped[0]
+                     for kp, coords in zip(kpsoi.keypoints, warped):
+                         kp.x = coords[0]
+@@ -3949,7 +4038,7 @@ class PerspectiveTransform(meta.Augmenter):
+             ], dtype=np.float32)
+ 
+             # compute the perspective transform matrix and then apply it
+-            m = cv2.getPerspectiveTransform(points_i, dst)
++            m = geometry.four_point_homography(points_i, dst)
+ 
+             if self.fit_output:
+                 m, max_width, max_height = self._expand_transform(m, (h, w))
+@@ -3998,7 +4087,7 @@ class PerspectiveTransform(meta.Augmenter):
+             [width, 0],
+             [width, height],
+             [0, height]], dtype=np.float32)
+-        dst = cv2.perspectiveTransform(np.array([rect]), matrix)[0]
++        dst = geometry.apply_homography(matrix, np.asarray(rect, dtype=np.float64))
+ 
+         # get min x, y over transformed 4 points
+         # then modify target points by subtracting these minima
+@@ -4006,7 +4095,7 @@ class PerspectiveTransform(meta.Augmenter):
+         dst -= dst.min(axis=0, keepdims=True)
+         dst = np.around(dst, decimals=0)
+ 
+-        matrix_expanded = cv2.getPerspectiveTransform(rect, dst)
++        matrix_expanded = geometry.four_point_homography(rect, dst)
+         max_width, max_height = dst.max(axis=0)
+         return matrix_expanded, int(max_width), int(max_height)
+ 
+@@ -4216,19 +4305,19 @@ class ElasticTransformation(meta.Augmenter):
+     KEYPOINT_AUG_SIGMA_THRESH = 1.0
+ 
+     _MAPPING_MODE_SCIPY_CV2 = {
+-        "constant": cv2.BORDER_CONSTANT,
+-        "nearest": cv2.BORDER_REPLICATE,
+-        "reflect": cv2.BORDER_REFLECT_101,
+-        "wrap": cv2.BORDER_WRAP
++        "constant": BORDER_CONSTANT,
++        "nearest": BORDER_REPLICATE,
++        "reflect": BORDER_REFLECT_101,
++        "wrap": BORDER_WRAP
+     }
+ 
+     _MAPPING_ORDER_SCIPY_CV2 = {
+-        0: cv2.INTER_NEAREST,
+-        1: cv2.INTER_LINEAR,
+-        2: cv2.INTER_CUBIC,
+-        3: cv2.INTER_CUBIC,
+-        4: cv2.INTER_CUBIC,
+-        5: cv2.INTER_CUBIC
++        0: INTER_NEAREST,
++        1: INTER_LINEAR,
++        2: INTER_CUBIC,
++        3: INTER_CUBIC,
++        4: INTER_CUBIC,
++        5: INTER_CUBIC
+     }
+ 
+     def __init__(self, alpha=(0.0, 40.0), sigma=(4.0, 8.0), order=3, cval=0,
+@@ -4760,16 +4849,18 @@ class ElasticTransformation(meta.Augmenter):
+             border_mode = cls._MAPPING_MODE_SCIPY_CV2[mode]
+             interpolation = cls._MAPPING_ORDER_SCIPY_CV2[order]
+ 
+-            is_nearest_neighbour = (interpolation == cv2.INTER_NEAREST)
+-            map1, map2 = cv2.convertMaps(
+-                x_shifted, y_shifted, cv2.CV_16SC2,
+-                nninterpolation=is_nearest_neighbour)
++            # The maps stay in float. Packing them into a fixed point pair
++            # first -- which is what this did -- quantises a source coordinate
++            # to a thirty-second of a pixel before interpolating, and sampling
++            # at full precision is both simpler and closer to the intent.
++            map1 = np.ascontiguousarray(x_shifted, dtype=np.float32)
++            map2 = np.ascontiguousarray(y_shifted, dtype=np.float32)
+             # remap only supports up to 4 channels
+             if nb_channels <= 4:
+-                result = cv2.remap(
+-                    _normalize_cv2_input_arr_(image),
+-                    map1, map2, interpolation=interpolation,
+-                    borderMode=border_mode, borderValue=(cval, cval, cval))
++                result = remap(
++                    _normalize_input_arr_(image),
++                    map1, map2, interpolation=_ORDER_NAMES[interpolation],
++                    border=_BORDER_NAMES[border_mode], constant=float(cval))
+                 if image.ndim == 3 and result.ndim == 2:
+                     result = result[..., np.newaxis]
+             else:
+@@ -4777,10 +4868,11 @@ class ElasticTransformation(meta.Augmenter):
+                 result = []
+                 while current_chan_idx < nb_channels:
+                     channels = image[..., current_chan_idx:current_chan_idx+4]
+-                    result_c = cv2.remap(
+-                        _normalize_cv2_input_arr_(channels),
+-                        map1, map2, interpolation=interpolation,
+-                        borderMode=border_mode, borderValue=(cval, cval, cval))
++                    result_c = remap(
++                        _normalize_input_arr_(channels),
++                        map1, map2, interpolation=_ORDER_NAMES[interpolation],
++                        border=_BORDER_NAMES[border_mode],
++                        constant=float(cval))
+                     if result_c.ndim == 2:
+                         result_c = result_c[..., np.newaxis]
+                     result.append(result_c)
+@@ -5360,9 +5452,9 @@ class WithPolarWarping(meta.Augmenter):
+         if arrays is None:
+             return None, None
+ 
+-        flags = cv2.WARP_FILL_OUTLIERS + cv2.WARP_POLAR_LINEAR
++        flags = WARP_FILL_OUTLIERS + WARP_POLAR_LINEAR
+         if interpolation_nearest:
+-            flags += cv2.INTER_NEAREST
++            flags += INTER_NEAREST
+ 
+         arrays_warped = []
+         shapes_orig = []
+@@ -5392,14 +5484,14 @@ class WithPolarWarping(meta.Augmenter):
+ 
+             if arr.ndim == 3 and arr.shape[-1] > 512:
+                 arr_warped = np.stack(
+-                    [cv2.warpPolar(_normalize_cv2_input_arr_(arr[..., c_idx]),
+-                                   dest_size, center_xy, max_radius, flags)
++                    [_warp_polar(_normalize_input_arr_(arr[..., c_idx]),
++                                 dest_size, center_xy, max_radius, flags)
+                      for c_idx in np.arange(arr.shape[-1])],
+                     axis=-1)
+             else:
+-                arr_warped = cv2.warpPolar(_normalize_cv2_input_arr_(arr),
+-                                           dest_size, center_xy, max_radius,
+-                                           flags)
++                arr_warped = _warp_polar(_normalize_input_arr_(arr),
++                                         dest_size, center_xy, max_radius,
++                                         flags)
+                 if arr_warped.ndim == 2 and arr.ndim == 3:
+                     arr_warped = arr_warped[:, :, np.newaxis]
+ 
+@@ -5420,10 +5512,10 @@ class WithPolarWarping(meta.Augmenter):
+         if arrays_warped is None:
+             return None
+ 
+-        flags = (cv2.WARP_FILL_OUTLIERS + cv2.WARP_POLAR_LINEAR
+-                 + cv2.WARP_INVERSE_MAP)
++        flags = (WARP_FILL_OUTLIERS + WARP_POLAR_LINEAR
++                 + WARP_INVERSE_MAP)
+         if interpolation_nearest:
+-            flags += cv2.INTER_NEAREST
++            flags += INTER_NEAREST
+ 
+         # TODO this does per iteration almost the same as _warp_arrays()
+         #      make DRY
+@@ -5455,14 +5547,14 @@ class WithPolarWarping(meta.Augmenter):
+ 
+             if arr_warped.ndim == 3 and arr_warped.shape[-1] > 512:
+                 arr_inv = np.stack(
+-                    [cv2.warpPolar(
+-                        _normalize_cv2_input_arr_(arr_warped[..., c_idx]),
++                    [_warp_polar(
++                        _normalize_input_arr_(arr_warped[..., c_idx]),
+                         dest_size, center_xy, max_radius, flags)
+                      for c_idx in np.arange(arr_warped.shape[-1])],
+                     axis=-1)
+             else:
+-                arr_inv = cv2.warpPolar(
+-                    _normalize_cv2_input_arr_(arr_warped),
++                arr_inv = _warp_polar(
++                    _normalize_input_arr_(arr_warped),
+                     dest_size, center_xy, max_radius, flags)
+                 if arr_inv.ndim == 2 and arr_warped.ndim == 3:
+                     arr_inv = arr_inv[:, :, np.newaxis]
+@@ -5539,7 +5631,7 @@ class WithPolarWarping(meta.Augmenter):
+ 
+         image_shapes_warped = cls._warp_shape_tuples(image_shapes)
+ 
+-        flags = cv2.WARP_POLAR_LINEAR
++        flags = WARP_POLAR_LINEAR
+ 
+         coords_warped = []
+         for coords_i, shape, shape_warped in zip(coords, image_shapes,
+@@ -5567,7 +5659,7 @@ class WithPolarWarping(meta.Augmenter):
+         if coords_warped is None:
+             return None
+ 
+-        flags = cv2.WARP_POLAR_LINEAR + cv2.WARP_INVERSE_MAP
++        flags = WARP_POLAR_LINEAR + WARP_INVERSE_MAP
+         coords_inv = []
+         gen = enumerate(zip(coords_warped, image_shapes_orig))
+         for i, (coords_i_warped, shape_orig) in gen:
+@@ -5673,12 +5765,12 @@ class WithPolarWarping(meta.Augmenter):
+         center_x = center[0]
+         center_y = center[1]
+ 
+-        if np.logical_and(flags, cv2.WARP_INVERSE_MAP):
++        if np.logical_and(flags, WARP_INVERSE_MAP):
+             rho = src[:, 0]
+             phi = src[:, 1]
+             Kangle = dsize_height / (2*np.pi)
+             angleRad = phi / Kangle
+-            if np.bitwise_and(flags, cv2.WARP_POLAR_LOG):
++            if np.bitwise_and(flags, WARP_POLAR_LOG):
+                 Klog = dsize_width / np.log(maxRadius)
+                 magnitude = np.exp(rho / Klog)
+             else:
+@@ -5699,7 +5791,11 @@ class WithPolarWarping(meta.Augmenter):
+             Klin = dsize_width / maxRadius
+ 
+             I_x, I_y = (x - center_x, y - center_y)
+-            magnitude_I, angle_I = cv2.cartToPolar(I_x, I_y)
++            # The same angle the polar warp built its map with, so a point
++            # lands where the pixel under it went.
++            magnitude_I, angle_I = geometry.cartesian_to_polar(I_x, I_y)
++            magnitude_I = magnitude_I.reshape(-1, 1)
++            angle_I = angle_I.reshape(-1, 1)
+             phi = Kangle * angle_I
+             # TODO add semilog support here
+             rho = Klin * magnitude_I
 diff --git a/imgaug/augmenters/pillike.py b/imgaug/augmenters/pillike.py
-index ba88505f..eacf5996 100644
+index ba88505f..ccf0b6ad 100644
 --- a/imgaug/augmenters/pillike.py
 +++ b/imgaug/augmenters/pillike.py
-@@ -51,7 +51,9 @@ from __future__ import print_function, division, absolute_import
+@@ -51,14 +51,17 @@ from __future__ import print_function, division, absolute_import
  
  import six.moves as sm
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `histogram` is one bin per level over the whole range, which is
++# the only shape this file asked for; it returns a plain list of counts rather
++# than a float32 column.
++from viame.image_kernels import histogram as _histogram
  import PIL.Image
  import PIL.ImageOps
  import PIL.ImageEnhance
+ import PIL.ImageFilter
+ 
+ import imgaug as ia
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from . import arithmetic
+ from . import color as colorlib
+@@ -326,8 +329,9 @@ def _equalize_no_pil_(image, mask=None):
+             image_c = image[:, :, np.newaxis]
+         else:
+             image_c = image[:, :, c_idx:c_idx+1]
+-        histo = cv2.calcHist(
+-            [_normalize_cv2_input_arr_(image_c)], [0], mask, [256], [0, 256])
++        histo = np.asarray(
++            _histogram(_normalize_input_arr_(image_c[:, :, 0])),
++            dtype=np.float32)
+         if len(histo.nonzero()[0]) <= 1:
+             lut[0, :, c_idx] = np.arange(256).astype(np.int32)
+             continue
+@@ -457,8 +461,9 @@ def _autocontrast_no_pil(image, cutoff, ignore):  # noqa: C901
+             image_c = image[:, :, np.newaxis]
+         else:
+             image_c = image[:, :, c_idx:c_idx+1]
+-        h = cv2.calcHist(
+-            [_normalize_cv2_input_arr_(image_c)], [0], None, [256], [0, 256])
++        h = np.asarray(
++            _histogram(_normalize_input_arr_(image_c[:, :, 0])),
++            dtype=np.float32)
+         if ignore is not None:
+             h[ignore] = 0
+ 
 diff --git a/imgaug/augmenters/size.py b/imgaug/augmenters/size.py
-index b95c0352..85c2cff6 100644
+index b95c0352..2255b691 100644
 --- a/imgaug/augmenters/size.py
 +++ b/imgaug/augmenters/size.py
-@@ -36,7 +36,9 @@ import re
+@@ -36,10 +36,12 @@ import re
  import functools
  
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `make_border` names its border rule with a string, so the table
++# below maps straight to those names.
++from viame.image_kernels import make_border
  
  import imgaug as ia
- from imgaug.imgaug import _normalize_cv2_input_arr_
+-from imgaug.imgaug import _normalize_cv2_input_arr_
++from imgaug.imgaug import _normalize_input_arr_
+ from . import meta
+ from .. import parameters as iap
+ 
+@@ -452,36 +454,42 @@ def pad(arr, top=0, right=0, bottom=0, left=0, mode="constant", cval=0):
+         if has_zero_sized_axis:
+             mode = "constant"
+ 
+-        mapping_mode_np_to_cv2 = {
+-            "constant": cv2.BORDER_CONSTANT,
+-            "edge": cv2.BORDER_REPLICATE,
++        mapping_mode_np_to_border = {
++            "constant": "constant",
++            "edge": "replicate",
+             "linear_ramp": None,
+             "maximum": None,
+             "mean": None,
+             "median": None,
+             "minimum": None,
+-            "reflect": cv2.BORDER_REFLECT_101,
+-            "symmetric": cv2.BORDER_REFLECT,
++            "reflect": "reflect_101",
++            "symmetric": "reflect",
++            # `wrap` stays on the numpy path it was already on, although the
++            # kernel has it: routing it here would change this augmenter's
++            # output, which is not what this change is for.
+             "wrap": None,
+-            cv2.BORDER_CONSTANT: cv2.BORDER_CONSTANT,
+-            cv2.BORDER_REPLICATE: cv2.BORDER_REPLICATE,
+-            cv2.BORDER_REFLECT_101: cv2.BORDER_REFLECT_101,
+-            cv2.BORDER_REFLECT: cv2.BORDER_REFLECT
++            # The integer spellings this augmenter's documented interface
++            # accepts and a saved configuration may hold: 0 constant,
++            # 1 replicate, 2 reflect and 4 reflect_101.
++            0: "constant",
++            1: "replicate",
++            2: "reflect",
++            4: "reflect_101",
+         }
+-        bad_mode_cv2 = mapping_mode_np_to_cv2.get(mode, None) is None
++        bad_mode_fast = mapping_mode_np_to_border.get(mode, None) is None
+ 
+         # these datatypes all simply generate a "TypeError: src data type = X
+         # is not supported" error
+-        bad_datatype_cv2 = (
++        bad_datatype_fast = (
+             arr.dtype.name
+             in ["uint32", "uint64", "int64", "float16", "float128", "bool"]
+         )
+ 
+         # OpenCV turns the channel axis for arrays with 0 channels to 512
+         # TODO add direct test for this. indirectly tested via Pad
+-        bad_shape_cv2 = (arr.ndim == 3 and arr.shape[-1] == 0)
++        bad_shape_fast = (arr.ndim == 3 and arr.shape[-1] == 0)
+ 
+-        if not bad_datatype_cv2 and not bad_mode_cv2 and not bad_shape_cv2:
++        if not bad_datatype_fast and not bad_mode_fast and not bad_shape_fast:
+             # convert cval to expected type, as otherwise we get TypeError
+             # for np inputs
+             kind = arr.dtype.kind
+@@ -497,10 +505,10 @@ def pad(arr, top=0, right=0, bottom=0, left=0, mode="constant", cval=0):
+                 if arr.ndim == 3 and not is_multi_cval:
+                     cval = tuple([cval] * arr.shape[2])
+ 
+-                arr_pad = cv2.copyMakeBorder(
+-                    _normalize_cv2_input_arr_(arr),
+-                    top=top, bottom=bottom, left=left, right=right,
+-                    borderType=mapping_mode_np_to_cv2[mode], value=cval)
++                arr_pad = make_border(
++                    _normalize_input_arr_(arr),
++                    top, bottom, left, right,
++                    cval, mapping_mode_np_to_border[mode])
+                 if arr.ndim == 3 and arr_pad.ndim == 2:
+                     arr_pad = arr_pad[..., np.newaxis]
+             else:
+@@ -510,10 +518,10 @@ def pad(arr, top=0, right=0, bottom=0, left=0, mode="constant", cval=0):
+                 while channel_start_idx < arr.shape[2]:
+                     arr_c = arr[..., channel_start_idx:channel_start_idx+4]
+                     cval_c = cval[channel_start_idx:channel_start_idx+4]
+-                    arr_pad_c = cv2.copyMakeBorder(
+-                        _normalize_cv2_input_arr_(arr_c),
+-                        top=top, bottom=bottom, left=left, right=right,
+-                        borderType=mapping_mode_np_to_cv2[mode], value=cval_c)
++                    arr_pad_c = make_border(
++                        _normalize_input_arr_(arr_c),
++                        top, bottom, left, right,
++                        cval_c, mapping_mode_np_to_border[mode])
+                     arr_pad_c = np.atleast_3d(arr_pad_c)
+                     result.append(arr_pad_c)
+                     channel_start_idx += 4
 diff --git a/imgaug/imgaug.py b/imgaug/imgaug.py
-index 19e6dd05..300030e1 100644
+index 19e6dd05..8450cd40 100644
 --- a/imgaug/imgaug.py
 +++ b/imgaug/imgaug.py
-@@ -15,7 +15,9 @@ except ImportError:
+@@ -15,7 +15,17 @@ except ImportError:
      from collections import Iterable
  
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: image work goes through VIAME's own kernels. The interpolation names
++# below are the names `imageops.resize` takes, so a caller's string travels
++# straight through; the integers are kept beside them because this module's
++# documented interface accepts them and a saved configuration may hold one.
++from viame.image_kernels import resize as _resize_kernel
++# `apply_lut` is imported under a private name: this module defines its own
++# `apply_lut` further down, and the plain name would make the call below
++# recurse into it.
++from viame.utilities.imageops import apply_lut as _apply_lut
++from viame.utilities.imageops import resize as _resize
++from viame.image_io.display import show as _show
  import imageio
  import six
  import six.moves as sm
+@@ -49,9 +59,24 @@ NP_UINT_TYPES = {np.uint8, np.uint16, np.uint32, np.uint64}
+ 
+ IMSHOW_BACKEND_DEFAULT = "matplotlib"
+ 
++#: 0, 1, 3 and 2 are this module's long-standing integer spellings of the four
++#: names beside them, in that order.
++INTER_NEAREST = 0
++INTER_LINEAR = 1
++INTER_AREA = 3
++INTER_CUBIC = 2
++
++#: Each accepted spelling, mapped to the name a resize takes.
++_INTERPOLATION_NAMES = {
++    "nearest": "nearest", INTER_NEAREST: "nearest",
++    "linear": "bilinear", INTER_LINEAR: "bilinear",
++    "area": "area", INTER_AREA: "area",
++    "cubic": "bicubic", INTER_CUBIC: "bicubic",
++}
++
+ IMRESIZE_VALID_INTERPOLATIONS = [
+     "nearest", "linear", "area", "cubic",
+-    cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_AREA, cv2.INTER_CUBIC]
++    INTER_NEAREST, INTER_LINEAR, INTER_AREA, INTER_CUBIC]
+ 
+ 
+ ###############################################################################
+@@ -1484,22 +1509,16 @@ def imresize_many_images(images, sizes=None, interpolation=None):
+         )
+     )
+     if inter is None:
+-        if height_target > height_image or width_target > width_image:
+-            inter = cv2.INTER_AREA
+-        else:
+-            inter = cv2.INTER_LINEAR
+-    elif inter in ["nearest", cv2.INTER_NEAREST]:
+-        inter = cv2.INTER_NEAREST
+-    elif inter in ["linear", cv2.INTER_LINEAR]:
+-        inter = cv2.INTER_LINEAR
+-    elif inter in ["area", cv2.INTER_AREA]:
+-        inter = cv2.INTER_AREA
+-    else:  # if ip in ["cubic", cv2.INTER_CUBIC]:
+-        inter = cv2.INTER_CUBIC
++        # Shrinking averages the footprint and growing interpolates, which is
++        # the choice this made before and the right one either way.
++        inter = "area" if (height_target > height_image
++                           or width_target > width_image) else "bilinear"
++    else:
++        inter = _INTERPOLATION_NAMES[inter]
+ 
+     # TODO find more beautiful way to avoid circular imports
+     from . import dtypes as iadt
+-    if inter == cv2.INTER_NEAREST:
++    if inter == "nearest":
+         iadt.gate_dtypes(
+             images,
+             allowed=["bool",
+@@ -1532,22 +1551,21 @@ def imresize_many_images(images, sizes=None, interpolation=None):
+ 
+         if input_dtype_name == "bool":
+             image = image.astype(np.uint8) * 255
+-        elif input_dtype_name == "int8" and inter != cv2.INTER_NEAREST:
++        elif input_dtype_name == "int8" and inter != "nearest":
+             image = image.astype(np.int16)
+         elif input_dtype_name == "float16":
+             image = image.astype(np.float32)
+ 
+         if nb_channels is not None and nb_channels > 512:
+             channels = [
+-                cv2.resize(image[..., c], (width_target, height_target),
+-                           interpolation=inter) for c in sm.xrange(nb_channels)]
++                _resize(image[..., c], width_target, height_target, inter)
++                for c in sm.xrange(nb_channels)]
+             result_img = np.stack(channels, axis=-1)
+         else:
+-            result_img = cv2.resize(
+-                image, (width_target, height_target), interpolation=inter)
++            result_img = _resize(image, width_target, height_target, inter)
+ 
+         assert result_img.dtype.name == image.dtype.name, (
+-            "Expected cv2.resize() to keep the input dtype '%s', but got "
++            "Expected the resize to keep the input dtype '%s', but got "
+             "'%s'. This is an internal error. Please report." % (
+                 image.dtype.name, result_img.dtype.name
+             )
+@@ -1561,7 +1579,7 @@ def imresize_many_images(images, sizes=None, interpolation=None):
+ 
+         if input_dtype_name == "bool":
+             result_img = result_img > 127
+-        elif input_dtype_name == "int8" and inter != cv2.INTER_NEAREST:
++        elif input_dtype_name == "int8" and inter != "nearest":
+             # TODO somehow better avoid circular imports here
+             from . import dtypes as iadt
+             result_img = iadt.restore_dtypes_(result_img, np.int8)
+@@ -2101,11 +2119,11 @@ def imshow(image, backend=IMSHOW_BACKEND_DEFAULT):
+         if image.ndim == 3 and image.shape[2] in [3, 4]:
+             image_bgr = image[..., 0:3][..., ::-1]
+ 
++        # The window takes RGB and returns when a key is pressed or it is
++        # closed, so the name-create-show-wait-destroy sequence is one call.
+         win_name = "imgaug-default-window"
+-        cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+-        cv2.imshow(win_name, image_bgr)
+-        cv2.waitKey(0)
+-        cv2.destroyWindow(win_name)
++        _show(image_bgr if image_bgr.ndim == 2 else image_bgr[..., ::-1],
++              win_name, 0)
+     else:
+         # import only when necessary (faster startup; optional dependency;
+         # less fragile -- see issue #225)
+@@ -2145,7 +2163,7 @@ def do_assert(condition, message="Assertion failed."):
+ 
+ 
+ # Added in 0.4.0.
+-def _normalize_cv2_input_arr_(arr):
++def _normalize_input_arr_(arr):
+     flags = arr.flags
+     if not flags["OWNDATA"]:
+         arr = np.copy(arr)
+@@ -2231,7 +2249,7 @@ def apply_lut_(image, table):
+     if 0 in image_shape_orig:
+         return image
+ 
+-    image = _normalize_cv2_input_arr_(image)
++    image = _normalize_input_arr_(image)
+ 
+     # [(256,), (256,), ...] => (256, C)
+     if isinstance(table, list):
+@@ -2270,7 +2288,7 @@ def apply_lut_(image, table):
+     assert table.dtype.name == "uint8", (
+         "Expected uint8 table, got dtype %s." % (table.dtype.name,))
+ 
+-    image = cv2.LUT(image, table, dst=image)
++    image = _apply_lut(image, table)
+     return image
+ 
+ 
 diff --git a/imgaug/multicore.py b/imgaug/multicore.py
-index a42e87aa..3dbb5c32 100644
+index a42e87aa..37403f99 100644
 --- a/imgaug/multicore.py
 +++ b/imgaug/multicore.py
-@@ -9,7 +9,9 @@ import random
+@@ -9,7 +9,8 @@ import random
  import platform
  
  import numpy as np
 -import cv2
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
-+# API this file uses, over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: The kernels have the worker budget this was turning down.
++from viame.image_kernels import set_kernel_thread_count
  
  import imgaug.imgaug as ia
  import imgaug.random as iarandom
+@@ -472,7 +473,10 @@ def _Pool_initialize_worker(augseq, seed_start):
+     # of gaussian blur on at least MacOSX.
+     # It is also in most cases probably not sensible to use multiple
+     # threads while already running augmentation in multiple processes.
+-    cv2.setNumThreads(0)
++    # 0 meant "run on the calling thread" and the kernels spell that 1. It is
++    # a ceiling on VIAME_NUM_THREADS rather than a request, so it can only turn
++    # the budget down -- which is all this wanted.
++    set_kernel_thread_count(1)
+ 
+     if seed_start is None:
+         # pylint falsely thinks in older versions that

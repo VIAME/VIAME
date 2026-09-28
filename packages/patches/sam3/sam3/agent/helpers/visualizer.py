@@ -8,7 +8,6 @@ import math
 import random
 from enum import Enum, unique
 
-import cv2
 import matplotlib as mpl
 import matplotlib.colors as mplc
 import matplotlib.figure as mplfigure
@@ -18,6 +17,15 @@ import torch
 from iopath.common.file_io import PathManager
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from PIL import Image
+
+# VIAME: `find_borders` traces every border of every component, outer ones
+# and holes, every point of each, and reports each one's place in the two-level
+# tree as a flag -- a border with a parent is a hole, which is the hierarchy
+# column this file read. `label_components` and `component_stats` number and
+# measure the components, and `euclidean_distance` is the exact distance
+# transform rather than the chamfer approximation.
+from viame.image_kernels import component_stats, find_borders, label_components
+from viame.utilities.imageops import euclidean_distance
 
 from .boxes import Boxes, BoxMode
 from .color_map import random_color
@@ -128,23 +136,18 @@ class GenericMask:
         return self._has_holes
 
     def mask_to_polygons(self, mask):
-        # cv2.RETR_CCOMP flag retrieves all the contours and arranges them to a 2-level
-        # hierarchy. External contours (boundary) of the object are placed in hierarchy-1.
-        # Internal contours (holes) are placed in hierarchy-2.
-        # cv2.CHAIN_APPROX_NONE flag gets vertices of polygons from contours.
-        mask = np.ascontiguousarray(
-            mask
-        )  # some versions of cv2 does not support incontiguous arr
-        res = cv2.findContours(
-            mask.astype("uint8"), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE
-        )
-        hierarchy = res[-1]
-        if hierarchy is None:  # empty mask
+        # Every border of every component, outer ones and the boundaries of
+        # holes, every point of each -- which is what RETR_CCOMP with
+        # CHAIN_APPROX_NONE gave. A border with a parent is a hole, which is
+        # the hierarchy column this used to reduce to a boolean.
+        mask = np.ascontiguousarray(mask)
+        borders = find_borders(mask.astype("uint8"))
+        if not borders:  # empty mask
             return [], False
-        has_holes = (hierarchy.reshape(-1, 4)[:, 3] >= 0).sum() > 0
-        res = res[-2]
+        has_holes = any(is_hole for _points, is_hole in borders)
+        res = [points.astype("int32") for points, _is_hole in borders]
         res = [x.flatten() for x in res]
-        # These coordinates from OpenCV are integers in range [0, W-1 or H-1].
+        # These coordinates are integers in range [0, W-1 or H-1].
         # We add 0.5 to turn them into real-value coordinate space. A better solution
         # would be to first +0.5 and then dilate the returned polygon by 0.5.
         res = [x + 0.5 for x in res if len(x) >= 6]
@@ -1588,7 +1591,7 @@ class Visualizer:
         Find proper places to draw text given a binary mask.
         """
         binary_mask = np.pad(binary_mask, ((1, 1), (1, 1)), "constant")
-        mask_dt = cv2.distanceTransform(binary_mask, cv2.DIST_L2, 0)
+        mask_dt = euclidean_distance(binary_mask)
         mask_dt = mask_dt[1:-1, 1:-1]
         max_dist = np.max(mask_dt)
         coords_y, coords_x = np.where(mask_dt == max_dist)  # coords is [y, x]
@@ -1612,7 +1615,6 @@ class Visualizer:
 
         return str(text), text_position
 
-        # _num_cc, cc_labels, stats, centroids = cv2.connectedComponentsWithStats(binary_mask, 8)
         # if stats[1:, -1].size == 0:
         #     return
         # largest_component_id = np.argmax(stats[1:, -1]) + 1
@@ -1631,9 +1633,10 @@ class Visualizer:
         """
         Find proper places to draw text given a binary mask.
         """
-        _num_cc, cc_labels, stats, centroids = cv2.connectedComponentsWithStats(
-            binary_mask, 8
+        _num_cc, cc_labels = label_components(
+            np.ascontiguousarray(binary_mask, dtype=np.uint8), 8
         )
+        stats, centroids = component_stats(cc_labels, _num_cc)
         if stats[1:, -1].size == 0:
             return
         largest_component_id = np.argmax(stats[1:, -1]) + 1

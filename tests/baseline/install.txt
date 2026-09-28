@@ -1980,8 +1980,8 @@ lib/python3.10/site-packages/viame/utilities/_essential_coefficients.py
 lib/python3.10/site-packages/viame/utilities/blobs.py
 lib/python3.10/site-packages/viame/utilities/calibration.py
 lib/python3.10/site-packages/viame/utilities/chessboard.py
+lib/python3.10/site-packages/viame/utilities/clustering.py
 lib/python3.10/site-packages/viame/utilities/compat.py
-lib/python3.10/site-packages/viame/utilities/cv2_api.py
 lib/python3.10/site-packages/viame/utilities/embedded_pipeline.so
 lib/python3.10/site-packages/viame/utilities/geometry.py
 lib/python3.10/site-packages/viame/utilities/imageops.py

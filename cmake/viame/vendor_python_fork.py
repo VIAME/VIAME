@@ -17,6 +17,7 @@ fails at model construction.
 import argparse
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -98,6 +99,10 @@ def main(argv=None):
     p.add_argument("--patches",
                    help="a directory of whole-file replacements to overlay on "
                         "the source before rewriting; `packages/patches/<fork>`")
+    p.add_argument("--diff",
+                   help="a unified diff to apply to the source before "
+                        "rewriting; `packages/patches/<fork>.patch`. Applied "
+                        "to the staged copy, so the submodule is not touched")
     p.add_argument("--name", required=True, help="the fork's own package name, e.g. sam2")
     p.add_argument("--target", required=True, help="where it lands, e.g. viame.sam2")
     p.add_argument("--licence", help="LICENSE to copy beside the vendored code")
@@ -129,8 +134,54 @@ def main(argv=None):
                 continue
             patched.add(src.relative_to(patches))
 
+    diff = Path(args.diff) if args.diff else None
+
+    if diff is not None and not diff.is_file():
+        raise SystemExit(f"vendor_python_fork: no such diff: {diff}")
+
     leftover = leftover_re(args.name)
     files = imports = others = 0
+    # A unified diff needs the *whole* fork on disk to apply against, because
+    # its paths are relative to the fork root and this vendors a subdirectory
+    # of it. So the fork is copied to a scratch tree, patched there, and the
+    # rewrite reads the subdirectory out of that -- the submodule is never
+    # touched, which is the same promise the overlay makes.
+    if diff is not None:
+        root = source
+        while root.parent != root and not (root / ".git").exists():
+            root = root.parent
+        if root == root.parent:
+            raise SystemExit(
+                f"vendor_python_fork: cannot find the fork root above {source}")
+
+        scratch = output.with_name(output.name + ".patched")
+        shutil.rmtree(scratch, ignore_errors=True)
+        shutil.copytree(root, scratch, symlinks=True,
+                        ignore=shutil.ignore_patterns("__pycache__", ".git"))
+
+        # Already in? The copy came from a working tree the build may have
+        # patched in place for the wheel, so the diff is often applied
+        # already. `--reverse --check` is the question "would undoing this
+        # work", which is only true when it is.
+        already = subprocess.run(
+            ["git", "apply", "--reverse", "--check", "--ignore-whitespace",
+             str(diff.resolve())],
+            cwd=scratch, capture_output=True, text=True)
+
+        if already.returncode != 0:
+            applied = subprocess.run(
+                ["git", "apply", "--ignore-whitespace", str(diff.resolve())],
+                cwd=scratch, capture_output=True, text=True)
+
+            if applied.returncode != 0:
+                raise SystemExit(
+                    f"vendor_python_fork: could not apply {diff} to a copy of "
+                    f"{root}.\n"
+                    f"  The submodule has probably moved and the diff needs "
+                    f"rebuilding.\n{applied.stderr}")
+
+        source = scratch / source.relative_to(root)
+
     for src in sorted(source.rglob("*")):
         if "__pycache__" in src.parts:
             continue
@@ -164,13 +215,22 @@ def main(argv=None):
     if args.licence and Path(args.licence).is_file():
         shutil.copy2(args.licence, staged / "LICENSE")
 
+    def _clean_scratch():
+        if diff is not None:
+            shutil.rmtree(output.with_name(output.name + ".patched"),
+                          ignore_errors=True)
+
     if output.is_dir() and _same(staged, output):
         shutil.rmtree(staged)
+        _clean_scratch()
         print(f"  {args.target}: unchanged ({files} files)")
         return 0
     shutil.rmtree(output, ignore_errors=True)
     staged.rename(output)
+    _clean_scratch()
     extra = f", {len(patched)} patched" if patched else ""
+    if diff is not None:
+        extra += f", {diff.name} applied"
     print(f"  {args.target}: vendored {files} files{extra}, "
           f"{imports} imports and {others} module paths rewritten")
     return 0

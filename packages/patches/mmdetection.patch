@@ -1,8 +1,8 @@
 diff --git a/mmdet/core/mask/structures.py b/mmdet/core/mask/structures.py
-index 7e730dc5..6d13d5a0 100644
+index 7e730dc5..c167fb00 100644
 --- a/mmdet/core/mask/structures.py
 +++ b/mmdet/core/mask/structures.py
-@@ -1,13 +1,18 @@
+@@ -1,13 +1,17 @@
  # Copyright (c) OpenMMLab. All rights reserved.
  from abc import ABCMeta, abstractmethod
  
@@ -13,16 +13,15 @@ index 7e730dc5..6d13d5a0 100644
  import torch
  from mmcv.ops.roi_align import roi_align
  
-+# VIAME: no OpenCV. `find_borders` is cv2.findContours under RETR_CCOMP
-+# and CHAIN_APPROX_NONE, and `rotation_matrix_2d` is
-+# cv2.getRotationMatrix2D.
++# VIAME: `find_borders` traces every border of every component, and
++# `rotation_matrix_2d` is the affine that rotates about a point.
 +from viame.image_kernels import find_borders
 +from viame.utilities.geometry import rotation_matrix_2d
 +
  
  class BaseInstanceMasks(metaclass=ABCMeta):
      """Base class for instance masks."""
-@@ -834,7 +839,7 @@ class PolygonMasks(BaseInstanceMasks):
+@@ -834,7 +838,7 @@ class PolygonMasks(BaseInstanceMasks):
              rotated_masks = PolygonMasks([], *out_shape)
          else:
              rotated_masks = []
@@ -31,7 +30,7 @@ index 7e730dc5..6d13d5a0 100644
              for poly_per_obj in self.masks:
                  rotated_poly = []
                  for p in poly_per_obj:
-@@ -1083,20 +1088,20 @@ def bitmap_to_polygon(bitmap):
+@@ -1083,20 +1087,19 @@ def bitmap_to_polygon(bitmap):
          bool: whether the mask has holes.
      """
      bitmap = np.ascontiguousarray(bitmap).astype(np.uint8)
@@ -45,16 +44,15 @@ index 7e730dc5..6d13d5a0 100644
 -    contours = outs[-2]
 -    hierarchy = outs[-1]
 -    if hierarchy is None:
-+    # `find_borders` is Suzuki and Abe's border following, which is what
-+    # cv2.RETR_CCOMP with cv2.CHAIN_APPROX_NONE gives: every border of every
-+    # component, outer ones and the boundaries of holes, every point of each.
-+    # It reports each border's place in the two-level tree as a flag rather
-+    # than as cv2's four-column hierarchy, and the flag is the column this
++    # `find_borders` is Suzuki and Abe's border following: every border of
++    # every component, outer ones and the boundaries of holes, every point of
++    # each. It reports each border's place in the two-level tree as a flag
++    # rather than as a four-column hierarchy, and the flag is the column this
 +    # function read -- a border with a parent is a hole.
 +    #
-+    # The order the borders come out in is OpenCV 4's and not OpenCV 5's when
-+    # a component has more than one hole; the borders themselves and their
-+    # flags are identical either way. This function draws the whole list and
++    # The order the borders come out in is the one the flattening produces and
++    # is not guaranteed when a component has more than one hole; the borders
++    # themselves and their flags are. This function draws the whole list and
 +    # asks only whether any hole exists, so the order does not reach it.
 +    borders = find_borders(bitmap)
 +    if not borders:
@@ -68,7 +66,7 @@ index 7e730dc5..6d13d5a0 100644
 +    contours = [points.astype(np.int32) for points, _is_hole in borders]
      return contours, with_hole
 diff --git a/mmdet/core/visualization/image.py b/mmdet/core/visualization/image.py
-index 63eae8a2..b482c918 100644
+index 63eae8a2..b4b2bd51 100644
 --- a/mmdet/core/visualization/image.py
 +++ b/mmdet/core/visualization/image.py
 @@ -1,11 +1,13 @@
@@ -80,8 +78,8 @@ index 63eae8a2..b482c918 100644
  import mmcv
  import numpy as np
  import pycocotools.mask as mask_util
-+# VIAME: no OpenCV. `label_components` is cv2.connectedComponents; the
-+# areas and centroids cv2 returned beside it are counted here.
++# VIAME: `label_components` numbers the connected components and
++# `component_stats` measures them.
 +from viame import image_kernels
  from matplotlib.collections import PatchCollection
  from matplotlib.patches import Polygon
@@ -95,9 +93,9 @@ index 63eae8a2..b482c918 100644
 -                largest_id = np.argmax(stats[1:, -1]) + 1
 -                positions.append(centroids[largest_id])
 -                areas.append(stats[largest_id, -1])
-+                # The partition is cv2's; the numbering is not, so which
-+                # island wins a tie on area can differ. It decides where a
-+                # label is drawn, and only among equal-sized islands.
++                # Which island wins a tie on area depends on the numbering,
++                # which depends on the scan. It decides where a label is drawn,
++                # and only among equal-sized islands.
 +                count, labels = image_kernels.label_components(
 +                    np.ascontiguousarray(mask.astype(np.uint8)), 8)
 +                sizes = np.bincount(labels.reshape(-1), minlength=count)
@@ -110,7 +108,7 @@ index 63eae8a2..b482c918 100644
              scales = _get_adaptive_scales(areas)
              draw_labels(
 diff --git a/mmdet/datasets/pipelines/auto_augment.py b/mmdet/datasets/pipelines/auto_augment.py
-index b0ff67db..51bfdd0c 100644
+index b0ff67db..ae648db9 100644
 --- a/mmdet/datasets/pipelines/auto_augment.py
 +++ b/mmdet/datasets/pipelines/auto_augment.py
 @@ -1,10 +1,13 @@
@@ -121,8 +119,8 @@ index b0ff67db..51bfdd0c 100644
  import mmcv
  import numpy as np
  
-+# VIAME: no OpenCV. `rotation_matrix_2d` is cv2.getRotationMatrix2D,
-+# float32 centre and all.
++# VIAME: `rotation_matrix_2d` is the affine that rotates about a point,
++# and narrows the centre to float32 as the convention here has always done.
 +from viame.utilities.geometry import rotation_matrix_2d
 +
  from ..builder import PIPELINES
@@ -138,10 +136,10 @@ index b0ff67db..51bfdd0c 100644
          self._rotate_masks(results, angle, center, self.scale, fill_val=0)
          self._rotate_seg(
 diff --git a/mmdet/datasets/pipelines/transforms.py b/mmdet/datasets/pipelines/transforms.py
-index 4c9ef72c..c2bf9415 100644
+index 4c9ef72c..9b5e6e86 100644
 --- a/mmdet/datasets/pipelines/transforms.py
 +++ b/mmdet/datasets/pipelines/transforms.py
-@@ -4,11 +4,17 @@ import inspect
+@@ -4,11 +4,16 @@ import inspect
  import math
  import warnings
  
@@ -150,17 +148,16 @@ index 4c9ef72c..c2bf9415 100644
  import numpy as np
  from numpy import random
  
-+# VIAME: no OpenCV. `warp_perspective` is cv2.warpPerspective with the
-+# same source-to-destination convention, and `to_hsv`/`from_hsv` are
-+# cv2.cvtColor's 8-bit HSV pair -- on RGB, so the channel swap that
-+# cv2.COLOR_BGR2HSV folded in is explicit here.
++# VIAME: `warp_perspective` takes the transform source to destination, and
++# `to_hsv`/`from_hsv` are the 8-bit HSV pair -- on RGB, so the channel swap
++# that the old BGR conversion folded in is explicit here.
 +from viame.image_kernels import (from_hsv, swap_channels, to_hsv,
 +                                warp_perspective)
 +
  from mmdet.core import BitmapMasks, PolygonMasks, find_inside_bboxes
  from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
  from mmdet.utils import log_img_scale
-@@ -2595,11 +2601,12 @@ class RandomAffine:
+@@ -2595,11 +2600,12 @@ class RandomAffine:
          warp_matrix = (
              translate_matrix @ shear_matrix @ rotation_matrix @ scaling_matrix)
  
@@ -176,7 +173,7 @@ index 4c9ef72c..c2bf9415 100644
          results['img'] = img
          results['img_shape'] = img.shape
  
-@@ -2740,12 +2747,13 @@ class YOLOXHSVRandomAug:
+@@ -2740,12 +2746,13 @@ class YOLOXHSVRandomAug:
          hsv_gains *= np.random.randint(0, 2, 3)
          # prevent overflow
          hsv_gains = hsv_gains.astype(np.int16)
@@ -193,24 +190,23 @@ index 4c9ef72c..c2bf9415 100644
          results['img'] = img
          return results
 diff --git a/mmdet/utils/setup_env.py b/mmdet/utils/setup_env.py
-index 6637cf87..7ddfd400 100644
+index 6637cf87..2871f1bb 100644
 --- a/mmdet/utils/setup_env.py
 +++ b/mmdet/utils/setup_env.py
-@@ -3,9 +3,12 @@ import os
+@@ -3,9 +3,11 @@ import os
  import platform
  import warnings
  
 -import cv2
  import torch.multiprocessing as mp
  
-+# VIAME: no OpenCV. The kernels have the worker budget cv2.setNumThreads
-+# was turning down here.
++# VIAME: The kernels have the worker budget this was turning down.
 +from viame import image_kernels
 +
  
  def setup_multi_processes(cfg):
      """Setup multi-processing environment variables."""
-@@ -21,9 +24,13 @@ def setup_multi_processes(cfg):
+@@ -21,9 +23,13 @@ def setup_multi_processes(cfg):
                  f'this behavior by changing `mp_start_method` in your config.')
          mp.set_start_method(mp_start_method, force=True)
  
@@ -218,10 +214,10 @@ index 6637cf87..7ddfd400 100644
 +    # disable image kernel multithreading to avoid system being overloaded
      opencv_num_threads = cfg.get('opencv_num_threads', 0)
 -    cv2.setNumThreads(opencv_num_threads)
-+    # 0 means "run on the calling thread" to cv2.setNumThreads, and the
-+    # kernels spell that 1. A count above what VIAME_NUM_THREADS asked
-+    # for is a ceiling, not a request, so this can only turn it down --
-+    # which is all the config key was ever for.
++    # 0 meant "run on the calling thread" and the kernels spell that 1. The
++    # count is a ceiling on VIAME_NUM_THREADS rather than a request, so this
++    # can only turn the budget down -- which is all the config key was for.
++    # The config key keeps its name, because a user's config holds it.
 +    image_kernels.set_kernel_thread_count(max(opencv_num_threads, 1))
  
      # setup OMP threads

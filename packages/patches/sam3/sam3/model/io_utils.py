@@ -296,33 +296,27 @@ def load_video_frames_from_video_file_using_cv2(
     Returns:
         torch.Tensor: Preprocessed video tensor in shape (T, C, H, W) with float16 dtype
     """
-    import cv2  # delay OpenCV import to avoid unnecessary dependency
+    # VIAME: `frames.read_frames` is the decode a VIAME pipeline
+    # performs -- PyAV with the scale flags the ffmpeg arrow uses -- and it
+    # yields **RGB**, so the BGR conversion this had is gone rather than
+    # inverted.
+    from viame.image_kernels import resize
+    from viame.video_io import frames as video_frames
 
-    # Initialize video capture
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        raise ValueError(f"Could not open video: {video_path}")
+    try:
+        original_width, original_height = video_frames.video_size(video_path)
+    except Exception as error:
+        raise ValueError(f"Could not open video: {video_path}") from error
 
-    original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    num_frames = num_frames if num_frames > 0 else None
+    num_frames = video_frames.count_frames(video_path) or None
 
     frames = []
-    pbar = tqdm(desc=f"frame loading (OpenCV) [rank={RANK}]", total=num_frames)
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        # Convert BGR to RGB and resize
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_resized = cv2.resize(
-            frame_rgb, (image_size, image_size), interpolation=cv2.INTER_CUBIC
+    pbar = tqdm(desc=f"frame loading (PyAV) [rank={RANK}]", total=num_frames)
+    for frame_rgb, _number in video_frames.read_frames(video_path):
+        frames.append(
+            resize(frame_rgb, image_size, image_size, interpolation="bicubic")
         )
-        frames.append(frame_resized)
         pbar.update(1)
-    cap.release()
     pbar.close()
 
     if len(frames) == 0:

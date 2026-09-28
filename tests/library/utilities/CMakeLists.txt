@@ -63,12 +63,12 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
   )
 
-  # The cv2 API the vendored packages import instead of OpenCV. UNIT rather
-  # than CORE: no VIAME pipeline goes through it, mmcv and mmdet do, and
-  # `baseline:lazy_cv2` is what guards the rest of the tree.
+  # The colour conversions, array helpers and clustering the vendored packages
+  # call. UNIT rather than CORE: no VIAME pipeline goes through them, and
+  # `baseline:fork_cv2` is what holds the packages to using them.
   viame_add_test(
-    NAME    "unit:utilities:cv2_api"
-    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_cv2_api.py"
+    NAME    "unit:utilities:colour_and_clustering"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_colour_and_clustering.py"
     LABELS  UNIT
     TIMEOUT 300
     SOURCE_SETUP

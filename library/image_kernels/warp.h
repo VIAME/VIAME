@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
@@ -1014,6 +1015,178 @@ remap( viame::image_of< T > const& image,
   }
 
   return out;
+}
+
+
+namespace detail {
+
+// ----------------------------------------------------------------------------
+/// A polynomial approximation to `atan2`, in degrees over [0, 360).
+///
+/// Used in preference to `std::atan2`, which is more accurate, for one reason:
+/// `warp_polar` builds its map with this angle, and a caller mapping
+/// **coordinates** into the same polar image has to use the same one or its
+/// points land a fraction of a pixel from the pixels they belong to. Good to
+/// about a third of a degree.
+inline float
+fast_atan2( float down, float across )
+{
+  constexpr float degrees = 57.2957795130823208768f;   // 180 / pi
+  constexpr float p1 = 0.9997878412794807f * degrees;
+  constexpr float p3 = -0.3258083974640975f * degrees;
+  constexpr float p5 = 0.1555786518463281f * degrees;
+  constexpr float p7 = -0.04432655554792128f * degrees;
+
+  auto const guard = static_cast< float >(
+    std::numeric_limits< double >::epsilon() );
+
+  auto const flat = std::abs( across );
+  auto const steep = std::abs( down );
+  auto const shallow = flat >= steep;
+
+  auto const ratio = shallow ? steep / ( flat + guard )
+                             : flat / ( steep + guard );
+  auto const squared = ratio * ratio;
+
+  auto angle = ( ( ( p7 * squared + p5 ) * squared + p3 ) * squared + p1 ) *
+               ratio;
+
+  if( !shallow ) { angle = 90.0f - angle; }
+  if( across < 0.0f ) { angle = 180.0f - angle; }
+  if( down < 0.0f ) { angle = 360.0f - angle; }
+
+  return angle;
+}
+
+} // namespace detail
+
+// ----------------------------------------------------------------------------
+/// The size `cv::warpPolar` derives when it is given none.
+inline void
+polar_size( double max_radius, size_t& width, size_t& height )
+{
+  if( width == 0 )
+  {
+    width = static_cast< size_t >( std::max( std::nearbyint( max_radius ),
+                                             1.0 ) );
+  }
+
+  if( height == 0 )
+  {
+    height = static_cast< size_t >(
+      std::max( std::nearbyint( max_radius * 3.14159265358979323846 ), 1.0 ) );
+  }
+}
+
+// ----------------------------------------------------------------------------
+/// Remap between cartesian and polar, which is `cv::warpPolar` (linear only).
+///
+/// Forward, the output's columns are radius and its rows are angle, sampled at
+/// `column * max_radius / width` and `row * 2pi / height`. **No half-pixel
+/// offset**, which is the surprise here and is what a search over the four
+/// placements settled: with the offsets the mapping is wrong everywhere.
+///
+/// Inverse, each output pixel's radius and angle index the polar image. The
+/// angle axis is a circle, so the source is extended by one row top and bottom
+/// with **wrap** before sampling, because a sample between the last row and
+/// the first has to see both.
+///
+/// `cv::WARP_POLAR_LOG` is a different mapping and is not implemented.
+template < typename T >
+viame::image_of< T >
+warp_polar( viame::image_of< T > const& image, size_t width, size_t height,
+            double centre_x, double centre_y, double max_radius,
+            interpolation how = interpolation::BILINEAR,
+            bool inverse = false )
+{
+  if( max_radius <= 0.0 )
+  {
+    throw std::invalid_argument( "warp_polar: the radius must be positive" );
+  }
+
+  auto const planes = image.depth();
+
+  if( !inverse )
+  {
+    polar_size( max_radius, width, height );
+
+    viame::image_of< float > map_x( width, height, 1 );
+    viame::image_of< float > map_y( width, height, 1 );
+
+    auto const angle_step = 2.0 * 3.14159265358979323846 /
+                            static_cast< double >( height );
+    auto const radius_step = max_radius / static_cast< double >( width );
+
+    for( size_t j = 0; j < height; ++j )
+    {
+      auto const angle = static_cast< double >( j ) * angle_step;
+      auto const across = std::cos( angle );
+      auto const down = std::sin( angle );
+
+      for( size_t i = 0; i < width; ++i )
+      {
+        auto const radius = static_cast< double >( i ) * radius_step;
+
+        map_x( i, j, 0 ) = static_cast< float >( radius * across + centre_x );
+        map_y( i, j, 0 ) = static_cast< float >( radius * down + centre_y );
+      }
+    }
+
+    return remap( image, map_x, map_y, how, border_mode::CONSTANT, 0.0 );
+  }
+
+  if( width == 0 || height == 0 )
+  {
+    throw std::invalid_argument(
+      "warp_polar: the inverse needs a target size" );
+  }
+
+  // One row of wrap at each end of the angle axis.
+  auto const polar_width = image.width();
+  auto const polar_height = image.height();
+
+  viame::image_of< T > bordered( polar_width, polar_height + 2, planes );
+
+  for( size_t j = 0; j < polar_height + 2; ++j )
+  {
+    auto const from = ( j == 0 ) ? polar_height - 1
+                                 : ( j > polar_height ? 0 : j - 1 );
+
+    for( size_t i = 0; i < polar_width; ++i )
+    {
+      for( size_t plane = 0; plane < planes; ++plane )
+      {
+        bordered( i, j, plane ) = image( i, from, plane );
+      }
+    }
+  }
+
+  viame::image_of< float > map_x( width, height, 1 );
+  viame::image_of< float > map_y( width, height, 1 );
+
+  auto const radius_scale = static_cast< double >( polar_width ) / max_radius;
+  auto const angle_scale = static_cast< double >( polar_height ) /
+                           ( 2.0 * 3.14159265358979323846 );
+  constexpr double radians = 3.14159265358979323846 / 180.0;
+
+  for( size_t j = 0; j < height; ++j )
+  {
+    auto const down = static_cast< double >( j ) - centre_y;
+
+    for( size_t i = 0; i < width; ++i )
+    {
+      auto const across = static_cast< double >( i ) - centre_x;
+      auto const radius = std::sqrt( across * across + down * down );
+      auto const angle = static_cast< double >( detail::fast_atan2(
+        static_cast< float >( down ), static_cast< float >( across ) ) );
+
+      map_x( i, j, 0 ) = static_cast< float >( radius * radius_scale );
+      map_y( i, j, 0 ) =
+        static_cast< float >( angle * radians * angle_scale + 1.0 );
+    }
+  }
+
+  return remap( bordered, map_x, map_y, how, border_mode::CONSTANT, 0.0 );
 }
 
 } // namespace image_kernels

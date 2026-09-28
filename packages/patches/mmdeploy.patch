@@ -1,23 +1,42 @@
 diff --git a/mmdeploy/codebase/mmocr/deploy/text_detection_model.py b/mmdeploy/codebase/mmocr/deploy/text_detection_model.py
-index de0c4076..28210aa5 100644
+index de0c4076..01de8dc5 100644
 --- a/mmdeploy/codebase/mmocr/deploy/text_detection_model.py
 +++ b/mmdeploy/codebase/mmocr/deploy/text_detection_model.py
-@@ -1,7 +1,6 @@
+@@ -1,8 +1,8 @@
  # Copyright (c) OpenMMLab. All rights reserved.
  from typing import List, Optional, Sequence, Union
  
 -import cv2
  import mmengine
++import numpy as np
  import torch
  from mmengine.registry import Registry
-@@ -12,6 +11,10 @@ from mmdeploy.codebase.base import BaseBackendModel
+ from mmengine.structures import BaseDataElement, InstanceData
+@@ -12,6 +12,13 @@ from mmdeploy.codebase.base import BaseBackendModel
  from mmdeploy.utils import (Backend, get_backend, get_codebase_config,
                              load_config)
  
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's API this
-+# file uses -- minAreaRect and boxPoints -- over VIAME's own image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `min_area_rect` returns the four corners beside the rectangle, so
++# finding the box and its corners is one call. The run of corners may start at
++# a different one than before or go the other way round -- the kernel keeps the
++# edge it found rather than normalising the angle -- which describes the same
++# quadrilateral, and a quadrilateral is what this builds.
++from viame.image_kernels import min_area_rect
 +
  __BACKEND_MODEL = Registry('backend_text_detectors')
  
  
+@@ -163,9 +170,10 @@ class End2EndModel(BaseBackendModel):
+                 # convert by text_repr_type
+                 if self.text_repr_type == 'quad':
+                     for j, poly in enumerate(filterd_polygons):
+-                        rect = cv2.minAreaRect(poly)
+-                        vertices = cv2.boxPoints(rect)
+-                        poly = vertices.flatten()
++                        rect = min_area_rect(
++                            np.asarray(poly, dtype=np.float64).reshape(-1, 2))
++                        poly = np.asarray(rect['corners'],
++                                          dtype=np.float32).flatten()
+                         filterd_polygons[j] = poly
+                 pred_instances = InstanceData()
+                 pred_instances.polygons = filterd_polygons

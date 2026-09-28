@@ -12,7 +12,9 @@ import numpy as np
 
 __all__ = [
     "read_image", "write_image", "to_gray", "to_rgb",
-    "swap_channels", "resize", "INTER_NEAREST", "INTER_LINEAR",
+    "swap_channels", "resize", "flip", "apply_lut", "euclidean_distance",
+    "convert_colour",
+    "INTER_NEAREST", "INTER_LINEAR",
     "INTER_CUBIC", "INTER_AREA", "INTER_LANCZOS",
 ]
 
@@ -154,11 +156,185 @@ def to_rgb(array):
 
 
 def swap_channels(array):
-    """RGB to BGR, or back. The same operation either way."""
+    """Reverse the first three planes, leaving a fourth alone.
+
+    **The fourth plane is the point.** Reversing all of them turns RGBA into
+    ABGR -- alpha where red should be -- which is not a channel order anything
+    holds. Only the colour triple reverses; alpha, or a fourth band of any
+    kind, stays where it is. The C++ `image_kernels.swap_channels` has always
+    done this and the array version did not, which corrupted every four
+    channel image that went through it.
+    """
     array = np.asarray(array)
-    if array.ndim != 3:
+
+    if array.ndim != 3 or array.shape[2] < 3:
         return array
-    return array[..., ::-1]
+
+    out = array.copy()
+    out[..., :3] = array[..., 2::-1]
+
+    return out
+
+
+#: The colour spaces `convert_colour` knows, and how each reaches RGB.
+#:
+#: Keyed by name because that is how a caller thinks about it, and because a
+#: pair of names cannot be ambiguous the way a single code can: reversing the
+#: channel order is its own inverse, so one number would have to mean both
+#: directions.
+#:
+#: Each entry is the pair of kernels that leave and enter RGB. `None` means the
+#: space *is* RGB.
+_COLOUR_SPACES = {
+    "rgb": (None, None),
+    "gray": ("to_gray", "to_rgb"),
+    "grey": ("to_gray", "to_rgb"),
+    "hsv": ("to_hsv", "from_hsv"),
+    "hsv_full": ("to_hsv", "from_hsv"),
+    "hls": ("to_hls", "from_hls"),
+    "lab": ("to_lab", "from_lab"),
+    "luv": ("to_luv", "from_luv"),
+    "xyz": ("to_xyz", "from_xyz"),
+    "cie": ("to_xyz", "from_xyz"),
+    "ycrcb": ("to_ycrcb", "from_ycrcb"),
+    "ycr_cb": ("to_ycrcb", "from_ycrcb"),
+    "yuv": ("to_ycrcb", "from_ycrcb"),
+}
+
+#: The two spaces that are a channel order rather than a colour space.
+_SWAPPED = ("bgr",)
+
+
+def convert_colour(array, source, destination):
+    """One colour space to another, by name.
+
+    `source` and `destination` are names -- `rgb`, `bgr`, `gray`, `hsv`,
+    `hsv_full`, `hls`, `lab`, `luv`, `xyz`/`cie`, `ycrcb`, `yuv` -- and the
+    route between any two goes through RGB, which is the one the kernels work
+    in. A conversion between two non-RGB spaces therefore costs two passes,
+    which is the cost of not privileging one pair over another.
+
+    **`bgr` is a channel order, not a colour space**, and naming it here is
+    what lets a caller holding BGR say so once instead of reversing the array
+    at each call.
+
+    `hsv_full` spreads the hue over 0..255 instead of 0..179, and `yuv` and
+    `ycrcb` are the same two kernels with different chroma scalings; see
+    `image_kernels.to_ycrcb`.
+    """
+    from viame import image_kernels
+
+    source = str(source).lower()
+    destination = str(destination).lower()
+
+    for name in (source, destination):
+        if name not in _COLOUR_SPACES and name not in _SWAPPED:
+            raise ValueError("no colour space named {!r}".format(name))
+
+    if source == destination:
+        return np.asarray(array)
+
+    array = np.asarray(array)
+
+    # Into RGB.
+    if source in _SWAPPED:
+        rgb = swap_channels(array)
+    else:
+        leave = _COLOUR_SPACES[source][1]
+        rgb = array if leave is None else _run(image_kernels, leave, source,
+                                              array)
+
+    # And out of it.
+    if destination in _SWAPPED:
+        return swap_channels(rgb)
+
+    enter = _COLOUR_SPACES[destination][0]
+
+    return rgb if enter is None else _run(image_kernels, enter, destination,
+                                          rgb)
+
+
+def _run(image_kernels, name, space, array):
+    """One conversion kernel, with the flags the space name implies."""
+    array = np.ascontiguousarray(array)
+    kernel = getattr(image_kernels, name)
+
+    if space in ("hsv_full",):
+        return kernel(array, True)
+
+    if space in ("yuv",):
+        return kernel(array, True)
+
+    return kernel(array)
+
+
+def flip(array, horizontal=False, vertical=False):
+    """A mirrored copy, about either axis or both.
+
+    Two booleans rather than one signed integer, so that a call says which axis
+    it means without a table to look it up in.
+    """
+    array = np.asarray(array)
+
+    if vertical:
+        array = array[::-1]
+    if horizontal:
+        array = array[:, ::-1]
+
+    return np.ascontiguousarray(array)
+
+
+def apply_lut(array, table):
+    """Each byte looked up in a 256 entry table.
+
+    The table may hold one entry per level, or one per level per plane, which
+    is how a per-channel curve is applied in one pass.
+    """
+    array = np.asarray(array)
+
+    if array.dtype != np.dtype(np.uint8):
+        raise TypeError("apply_lut takes 8-bit input, got {}".format(
+            array.dtype))
+
+    table = np.asarray(table)
+
+    if table.size % 256:
+        raise ValueError("a lookup table has 256 entries, got {}".format(
+            table.size))
+
+    if table.size == 256:
+        return table.reshape(256)[array]
+
+    table = table.reshape(256, -1)
+    planes = 1 if array.ndim == 2 else array.shape[2]
+
+    if table.shape[1] != planes:
+        raise ValueError("{} tables for {} planes".format(table.shape[1],
+                                                         planes))
+
+    out = np.empty(array.shape, dtype=table.dtype)
+
+    for plane in range(planes):
+        out[..., plane] = table[array[..., plane], plane]
+
+    return out
+
+
+def euclidean_distance(mask):
+    """The true distance from each set pixel to the nearest zero, float32.
+
+    Distinct from `image_kernels.distance_transform`, which is the **chamfer
+    approximation** a three-by-three chamfer window gives, which is not
+    Euclidean despite being the usual thing called an L2 distance transform --
+    the two differ by up to 0.22 of a pixel. This one is exact.
+
+    `scipy.ndimage` rather than a kernel of our own because the exact
+    transform is a solved problem with a good implementation already in a
+    declared dependency.
+    """
+    from scipy.ndimage import distance_transform_edt
+
+    return distance_transform_edt(np.asarray(mask) != 0).astype(np.float32)
 
 
 def resize(array, width, height, interpolation=INTER_LINEAR):
@@ -168,12 +344,43 @@ def resize(array, width, height, interpolation=INTER_LINEAR):
     native kernels implement nearest, bilinear, bicubic and area.
     """
     array = np.asarray(array)
-    if array.dtype not in (np.dtype(np.uint8), np.dtype(np.uint16), np.dtype(np.float32)):
-        raise TypeError("resize expects uint8, uint16 or float32")
+    native = (np.dtype(np.uint8), np.dtype(np.uint16), np.dtype(np.int16),
+              np.dtype(np.float32), np.dtype(np.float64))
+
     if interpolation in (INTER_NEAREST, INTER_LINEAR, INTER_CUBIC, INTER_AREA):
         from viame import image_kernels
-        return image_kernels.resize(np.ascontiguousarray(array), int(width),
-                                    int(height), interpolation=interpolation)
+
+        if array.dtype in native:
+            return image_kernels.resize(np.ascontiguousarray(array),
+                                        int(width), int(height),
+                                        interpolation=interpolation)
+
+        # Everything else -- int32 labels, booleans -- nearest neighbour only,
+        # which is the one filter that never mixes two samples and so never
+        # needs to know how to average them. The mapping comes from the kernel
+        # rather than being rewritten here: two planes of indices go through
+        # the same nearest resize and come back as the indices to gather, so
+        # there is one nearest-neighbour rule in the tree and not two.
+        if interpolation != INTER_NEAREST:
+            raise TypeError(
+                "resize of {} is nearest neighbour only; uint8, uint16, "
+                "int16, float32 and float64 take every "
+                "filter".format(array.dtype))
+
+        height_in, width_in = array.shape[:2]
+        columns = np.broadcast_to(np.arange(width_in, dtype=np.float32),
+                                  (height_in, width_in))
+        rows = np.broadcast_to(
+            np.arange(height_in, dtype=np.float32).reshape(-1, 1),
+            (height_in, width_in))
+        take_x = image_kernels.resize(np.ascontiguousarray(columns),
+                                      int(width), int(height),
+                                      interpolation=INTER_NEAREST)
+        take_y = image_kernels.resize(np.ascontiguousarray(rows), int(width),
+                                      int(height),
+                                      interpolation=INTER_NEAREST)
+
+        return array[take_y.astype(np.intp), take_x.astype(np.intp)]
     if interpolation != INTER_LANCZOS:
         raise ValueError(f"unknown interpolation: {interpolation!r}")
 

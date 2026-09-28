@@ -2717,3 +2717,95 @@ installed sam2 still has the two cv2 imports its overlay replaces -- the
 overlay itself is clean, verified file by file. A build with the option on
 produces the patched files. The `mmdetection` fork was rebuilt through the new
 patch step end to end to prove that path works.
+
+
+## No compatibility surface: the packages call VIAME by name (2026-09-28)
+
+The first cut of this work put a module at `viame/utilities/cv2_api.py` -- the
+API shape the vendored packages expected, over VIAME's own kernels. It held no
+OpenCV and no VIAME module imported it, but it put a foreign API inside
+`viame/utilities/`, which is the opposite of the point. **It is deleted.** The
+algorithms live under VIAME names and each patched call site calls them
+directly, which is what the sam2 patch has always done.
+
+**What moved into the tree to make that possible**, each measured against the
+recordings before anything used it:
+
+| function | home |
+|---|---|
+| `laplacian`, at apertures 1, 3 and 5 | `image_kernels` |
+| `warp_polar`, forward and inverse | `image_kernels` |
+| `histogram`, one bin per level | `image_kernels` |
+| `component_stats`, beside `label_components` | `image_kernels` |
+| `convert_colour( image, from, to )` | `imageops` |
+| `flip`, `apply_lut`, `euclidean_distance` | `imageops` |
+| `cartesian_to_polar`, `polar_to_cartesian`, `box_corners` | `geometry` |
+| `kmeans` | `utilities.clustering` (new) |
+
+**`convert_colour` is the one worth naming.** It takes the two space *names* --
+`convert_colour( image, "bgr", "hsv" )` -- and that is how three of the patched
+files were already asking the question: `mmcv.imconvert` has a
+`(src, dst)` signature, `mmcv.colorspace` built its codes by *formatting the
+two names into a string*, and `imgaug`'s `CSPACE_*` are strings. A pair of
+names also cannot be ambiguous the way a single integer is, where one number
+has to mean both directions of a channel swap. It replaced two tables of
+thirty-odd codes with two calls.
+
+**The same thing happened to the flag tables.** `mmcv.image.geometric` kept
+`cv2_interp_codes` and `cv2_border_modes` to turn `"bilinear"` and
+`"reflect_101"` into integers -- and those strings are exactly what
+`image_kernels.resize` and the warps take, so both tables are **gone** and the
+string travels from the caller to the kernel untouched. Where a package's own
+public signature exposes an integer -- `imgaug`'s `Affine(order=..., mode=...)`
+defaults, its `available_*` assertion lists -- the integers are defined in that
+package, which is whose interface they are, and translated to names at the call.
+
+**Verified identical to the version with the shim**, on the same probes:
+
+| | calls | exact | within one | different |
+|---|---|---|---|---|
+| mmcv | 66 | 61 | 5 | 0 |
+| mmdetection | 54 | 53 | 1 | 0 |
+| imgaug | 62 | 52 | 5 | 5 |
+
+The five imgaug differences are the five already recorded: the mean-shift
+level, the seeded k-means, the full-precision remap, and the polar round trip.
+
+**Six findings from a review of the previous three commits, all addressed:**
+
+1. **Reversing four planes turned RGBA into ABGR** -- alpha where red belongs.
+   `imageops.swap_channels` reversed every plane; the C++ kernel had always
+   reversed only the colour triple, and the array version now does too. It was
+   worth an alpha channel on every four-channel image that went through it.
+2. **The vendored `viame.rfdetr` copy came from the unpatched submodule.**
+   `viame_vendor_fork` runs at configure time and understood only a whole-file
+   overlay, so a unified diff never reached it and the wheel shipped code the
+   fork's own build did not have. `vendor_python_fork.py` takes `--diff` now,
+   applies it to a scratch copy of the fork -- so the submodule is still never
+   touched -- and skips it when it is already in. Checked from a clean
+   submodule: the vendored copy comes out patched and the submodule comes out
+   clean.
+3. **The blurs and the resize took three pixel types where their callers pass
+   five.** int16 and float64 were being *quietly widened to float32* by numpy's
+   own "safe" cast rule and handed back as float32, which a caller asserting on
+   its dtype would fail on. `box_blur`, `median_blur`, `gaussian_blur` and
+   `resize` now bind both, **registered first and only for their own dtype** so
+   a uint8 image is not widened into one of them; int16 is exact against the
+   recordings for all three blurs, and `box_blur` grew a separate `height` so a
+   rectangular window is exact too. int32 stays refused for everything but
+   nearest neighbour, which is what it was always supported for.
+4. **The dependency guard could pass on a patch that left the import in.**
+   `baseline:fork_cv2` exempted a file whenever *any* hunk touched it. It now
+   asks whether the patch **removes** the import and adds none back, and says
+   "survives the patch" when it does not -- checked against a patch built to do
+   exactly that.
+5. **Backward video seeking restarted the decode**, which makes reverse
+   traversal quadratic. `FrameReader` builds a table of every frame's
+   presentation timestamp on the first backward seek -- one decode pass, no
+   scaling -- and then seeks to the keyframe at or before the target and
+   decodes forward, matching on the timestamp. Exact: forward, reverse and
+   random access all recover the full decode's frames on every frame of the
+   golden clip.
+6. **The window functions always raised.** They are the display backend now:
+   `mmcv.visualization.imshow` and `imgaug.imshow` both go to
+   `image_io.display.show`, which is a real Tk window in a subprocess.

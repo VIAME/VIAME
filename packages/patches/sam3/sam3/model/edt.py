@@ -4,7 +4,7 @@
 
 """Triton kernel for euclidean distance transform (EDT)
 
-On Windows, Triton is not available, so we fall back to an OpenCV-based
+On Windows, Triton is not available, so we fall back to a CPU
 CPU implementation of the distance transform.
 """
 
@@ -23,13 +23,17 @@ if platform.system() != "Windows":
 
 def _edt_opencv_fallback(data: torch.Tensor) -> torch.Tensor:
     """
-    Fallback EDT using OpenCV's distanceTransform (CPU).
+    Fallback EDT on the CPU.
 
-    Equivalent to edt_triton but runs on CPU via OpenCV when Triton
-    is unavailable (e.g. on Windows).
+    Equivalent to edt_triton but runs on the CPU when Triton is unavailable
+    (e.g. on Windows).
     """
-    import cv2
+    # VIAME: `euclidean_distance` is the exact Euclidean transform, which is
+    # what this needed; the approximation a three-by-three chamfer window gives
+    # is a fifth of a pixel out. The same substitution the sam2 patch makes.
     import numpy as np
+
+    from viame.utilities.imageops import euclidean_distance
 
     assert data.dim() == 3
     B, H, W = data.shape
@@ -38,9 +42,9 @@ def _edt_opencv_fallback(data: torch.Tensor) -> torch.Tensor:
 
     data_cpu = data.cpu().numpy()
     for i in range(B):
-        # cv2.distanceTransform expects 8-bit single-channel, 0 = foreground
+        # 0 marks the foreground, which is the convention here.
         mask = (data_cpu[i] == 0).astype(np.uint8)
-        dist = cv2.distanceTransform(mask, cv2.DIST_L2, 0)
+        dist = euclidean_distance(mask)
         result[i] = torch.from_numpy(dist)
 
     return result.to(device)
@@ -120,7 +124,7 @@ if _TRITON_AVAILABLE:
 
         Returns:
             A tensor of the same shape as data containing the EDT.
-            It should be equivalent to a batched version of cv2.distanceTransform(input, cv2.DIST_L2, 0)
+            It should be equivalent to a batched exact Euclidean distance transform
         """
         assert data.dim() == 3
         assert data.is_cuda
@@ -172,5 +176,5 @@ if _TRITON_AVAILABLE:
 else:
     # Windows / no-Triton fallback
     def edt_triton(data: torch.Tensor):
-        """EDT fallback using OpenCV when Triton is unavailable."""
+        """EDT fallback on the CPU when Triton is unavailable."""
         return _edt_opencv_fallback(data)

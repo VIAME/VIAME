@@ -1121,10 +1121,18 @@ def test_drawing_takes_the_frame_types(dtype):
 
 
 def test_an_unsupported_pixel_type_is_refused_not_cast():
-    with pytest.raises(TypeError):
-        resize(np.zeros((8, 8), np.float64), 4, 4)
+    """int32 has no overload and is refused rather than widened.
+
+    float64 used to be refused beside it and is bound now -- `imgaug` resizes
+    float64 masks -- and the binding takes it **without converting**, which is
+    the half that matters: a silent widening to float32 would hand a float32
+    array back to a caller that asserted on its dtype.
+    """
     with pytest.raises(TypeError):
         resize(np.zeros((8, 8), np.int32), 4, 4)
+
+    assert resize(np.zeros((8, 8), np.float64), 4, 4).dtype == np.float64
+    assert resize(np.zeros((8, 8), np.int16), 4, 4).dtype == np.int16
 
 
 # ---------------------------------------------------------------------------

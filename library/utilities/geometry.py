@@ -12,7 +12,8 @@ tolerances, which is what these are held to.
 
 import numpy as np
 
-__all__ = ["find_homography", "apply_homography", "find_essential",
+__all__ = ["box_corners", "cartesian_to_polar", "polar_to_cartesian",
+           "find_homography", "apply_homography", "find_essential",
            "five_point_candidates", "find_essential_five_point",
            "decompose_essential", "recover_pose"]
 
@@ -103,6 +104,101 @@ def rotation_matrix_2d(centre, angle, scale=1.0):
         [alpha, beta, (1.0 - alpha) * x - beta * y],
         [-beta, alpha, beta * x + (1.0 - alpha) * y],
     ], dtype=np.float64)
+
+
+#: A polynomial approximation to `atan2`, in degrees per term.
+#:
+#: Used in preference to `numpy.arctan2`, which is more accurate, for one
+#: reason: `image_kernels.warp_polar` builds its map with this angle, and a
+#: caller putting **coordinates** into the same polar image has to use the same
+#: one or its points land a fraction of a pixel from the pixels they belong to.
+#: Good to about a third of a degree.
+_ATAN_TERMS = (np.float32(-0.04432655554792128) * np.float32(180.0 / np.pi),
+               np.float32(0.1555786518463281) * np.float32(180.0 / np.pi),
+               np.float32(-0.3258083974640975) * np.float32(180.0 / np.pi),
+               np.float32(0.9997878412794807) * np.float32(180.0 / np.pi))
+
+#: Double precision epsilon narrowed to float: the guard the ratio below is
+#: divided by, so that a zero denominator does not produce an infinity.
+_ATAN_GUARD = np.float32(np.finfo(np.float64).eps)
+
+
+def _fast_angle(down, across):
+    """The angle of (across, down) in degrees over [0, 360)."""
+    down = np.asarray(down, dtype=np.float32)
+    across = np.asarray(across, dtype=np.float32)
+
+    flat = np.abs(across)
+    steep = np.abs(down)
+    shallow = flat >= steep
+
+    ratio = np.where(shallow, steep / (flat + _ATAN_GUARD),
+                     flat / (steep + _ATAN_GUARD)).astype(np.float32)
+    squared = (ratio * ratio).astype(np.float32)
+
+    seventh, fifth, third, first = _ATAN_TERMS
+    degrees = ((((seventh * squared + fifth) * squared + third) * squared +
+                first) * ratio).astype(np.float32)
+
+    degrees = np.where(shallow, degrees,
+                       np.float32(90.0) - degrees).astype(np.float32)
+    degrees = np.where(across < 0.0, np.float32(180.0) - degrees,
+                       degrees).astype(np.float32)
+
+    return np.where(down < 0.0, np.float32(360.0) - degrees,
+                    degrees).astype(np.float32)
+
+
+def cartesian_to_polar(across, down, in_degrees=False):
+    """`(radius, angle)` of each point, the angle over `[0, 2pi)`.
+
+    The angle is the polynomial rather than `arctan2`, so that a point mapped
+    here lands where `image_kernels.warp_polar` put the pixel under it;
+    `_fast_angle` says why.
+    """
+    radius = np.hypot(np.asarray(across, dtype=np.float32),
+                      np.asarray(down, dtype=np.float32)).astype(np.float32)
+    angle = _fast_angle(down, across)
+
+    if not in_degrees:
+        angle = np.deg2rad(angle).astype(np.float32)
+
+    return radius, angle
+
+
+def polar_to_cartesian(radius, angle, in_degrees=False):
+    """`(across, down)` from a radius and an angle."""
+    radius = np.asarray(radius, dtype=np.float32)
+    angle = np.asarray(angle, dtype=np.float32)
+
+    if in_degrees:
+        angle = np.deg2rad(angle).astype(np.float32)
+
+    return ((radius * np.cos(angle)).astype(np.float32),
+            (radius * np.sin(angle)).astype(np.float32))
+
+
+def box_corners(centre, size, angle):
+    """The four corners of a rotated rectangle, as float32.
+
+    In the conventional order: bottom left, top left, top right, bottom right
+    in the image's own axes, with y running down.
+    `image_kernels.min_area_rect` already returns the corners of the rectangle
+    it found; this is for a rectangle assembled by hand.
+    """
+    radians = np.deg2rad(float(angle))
+    cosine, sine = np.cos(radians), np.sin(radians)
+    half_across, half_down = float(size[0]) / 2.0, float(size[1]) / 2.0
+
+    corners = np.array([[-half_across, half_down], [-half_across, -half_down],
+                        [half_across, -half_down], [half_across, half_down]],
+                       dtype=np.float64)
+    rotation = np.array([[cosine, -sine], [sine, cosine]], dtype=np.float64)
+
+    moved = corners @ rotation.T + np.array([float(centre[0]),
+                                             float(centre[1])])
+
+    return moved.astype(np.float32)
 
 
 def invert_affine(affine):

@@ -251,7 +251,7 @@ if( VIAME_ENABLE_PYTHON )
   # sam2 is built entirely from 13 YAML files.
   # ---------------------------------------------------------------------------
   function( viame_vendor_fork name target fork_dir package_subdir )
-    set( oneValueArgs PATCHES )
+    set( oneValueArgs PATCHES DIFF )
     cmake_parse_arguments( VF "" "${oneValueArgs}" "" ${ARGN} )
 
     _viame_python_package( vf_package )
@@ -261,6 +261,14 @@ if( VIAME_ENABLE_PYTHON )
     set( patch_arg )
     if( VF_PATCHES AND EXISTS "${VF_PATCHES}" )
       set( patch_arg --patches "${VF_PATCHES}" )
+    endif()
+
+    # A fork whose changes are carried as a unified diff rather than as whole
+    # replacement files. Without this the vendored copy came from the
+    # **unpatched** submodule, so `viame.rfdetr` shipped code the fork's own
+    # wheel did not have.
+    if( VF_DIFF AND EXISTS "${VF_DIFF}" )
+      list( APPEND patch_arg --diff "${VF_DIFF}" )
     endif()
 
     execute_process(
@@ -294,7 +302,8 @@ if( VIAME_ENABLE_PYTHON )
   if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_PYTORCH )
     if( VIAME_ENABLE_PYTORCH-RF-DETR )
       viame_vendor_fork( rfdetr rfdetr
-        "${CMAKE_SOURCE_DIR}/packages/pytorch-libs/rf-detr" "src/rfdetr" )
+        "${CMAKE_SOURCE_DIR}/packages/pytorch-libs/rf-detr" "src/rfdetr"
+        DIFF "${CMAKE_SOURCE_DIR}/packages/patches/rf-detr.patch" )
     endif()
     if( VIAME_ENABLE_PYTORCH-SAM2 )
       viame_vendor_fork( sam2 sam2

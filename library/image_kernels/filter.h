@@ -1096,17 +1096,26 @@ median_blur( viame::image_of< T > const& image, size_t size )
 template < typename T >
 viame::image_of< T >
 box_blur( viame::image_of< T > const& image, size_t size,
-          border_mode mode = border_mode::REFLECT_101 )
+          border_mode mode = border_mode::REFLECT_101, size_t height = 0 )
 {
-  if( size == 0 )
+  if( height == 0 )
+  {
+    height = size;
+  }
+
+  if( size == 0 || height == 0 )
   {
     throw std::invalid_argument( "box_blur: the size has to be positive" );
   }
 
-  std::vector< double > const line(
+  // Separable, and the two sides need not match: a rectangular window is a
+  // mean over `size` columns and then over `height` rows.
+  std::vector< double > const across(
     size, 1.0 / static_cast< double >( size ) );
+  std::vector< double > const down(
+    height, 1.0 / static_cast< double >( height ) );
 
-  return separable_filter< T, T >( image, line, line, mode );
+  return separable_filter< T, T >( image, across, down, mode );
 }
 
 // ----------------------------------------------------------------------------
@@ -1734,6 +1743,91 @@ mean_shift_blur( viame::image_of< T > const& image, double space_radius,
       {
         out( static_cast< size_t >( i ), static_cast< size_t >( j ), plane ) =
           saturate_pixel< T >( static_cast< double >( colour[ plane ] ) );
+      }
+    }
+  }
+
+  return out;
+}
+
+
+// ----------------------------------------------------------------------------
+/// The discrete Laplacian, which is `cv::Laplacian`.
+///
+/// \p aperture picks the kernel, and the three are **not** three precisions
+/// of one operator -- 1 is the five-point stencil, and 3 and 5 come from the
+/// separable Sobel pair, which puts the
+/// weight on the **corners** at 3 rather than on the edges. Measured off a
+/// delta image rather than derived, and exact for all three.
+///
+/// The result is signed, so a `float` image is the useful one; an integer
+/// image saturates the way `cv::Laplacian` does when it is asked for the same
+/// depth it was given.
+template < typename T >
+viame::image_of< T >
+laplacian( viame::image_of< T > const& image, size_t aperture = 1,
+           double scale = 1.0, double delta = 0.0,
+           border_mode mode = border_mode::REFLECT_101 )
+{
+  static constexpr double five_point[ 9 ] = {
+    0.0, 1.0, 0.0,
+    1.0, -4.0, 1.0,
+    0.0, 1.0, 0.0 };
+
+  static constexpr double corners[ 9 ] = {
+    2.0, 0.0, 2.0,
+    0.0, -8.0, 0.0,
+    2.0, 0.0, 2.0 };
+
+  static constexpr double wide[ 25 ] = {
+    2.0, 4.0, 4.0, 4.0, 2.0,
+    4.0, 0.0, -8.0, 0.0, 4.0,
+    4.0, -8.0, -24.0, -8.0, 4.0,
+    4.0, 0.0, -8.0, 0.0, 4.0,
+    2.0, 4.0, 4.0, 4.0, 2.0 };
+
+  double const* taps = nullptr;
+  long radius = 1;
+
+  switch( aperture )
+  {
+    case 1: taps = five_point; break;
+    case 3: taps = corners; break;
+    case 5: taps = wide; radius = 2; break;
+    default:
+      throw std::invalid_argument(
+        "laplacian: the aperture is 1, 3 or 5, got " +
+        std::to_string( aperture ) );
+  }
+
+  auto const side = 2 * radius + 1;
+
+  viame::image_of< T > out( image.width(), image.height(), image.depth() );
+
+  for( size_t plane = 0; plane < image.depth(); ++plane )
+  {
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        double total = 0.0;
+
+        for( long dj = -radius; dj <= radius; ++dj )
+        {
+          for( long di = -radius; di <= radius; ++di )
+          {
+            auto const weight =
+              taps[ ( dj + radius ) * side + ( di + radius ) ];
+
+            if( weight == 0.0 ) { continue; }
+
+            total += weight * sample_with_border(
+              image, static_cast< long >( i ) + di,
+              static_cast< long >( j ) + dj, plane, mode, 0.0 );
+          }
+        }
+
+        out( i, j, plane ) = saturate_pixel_even< T >( total * scale + delta );
       }
     }
   }

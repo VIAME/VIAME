@@ -689,12 +689,55 @@ mean_shift_blur( array_of< T > const& array, double space_radius,
 
 template < typename T >
 py::array
-box_blur( array_of< T > const& array,
-          size_t size, std::string const& border )
+laplacian( array_of< T > const& array, size_t aperture, double scale,
+           double delta, std::string const& border )
 {
   auto const source = as_image( array );
   return as_array(
-    VIAME_KERNEL_CALL( box_blur, source, size, as_border( border ) ),
+    VIAME_KERNEL_CALL( laplacian, source, aperture, scale, delta,
+      as_border( border ) ),
+    array.ndim() == 3 );
+}
+
+template < typename T >
+py::array
+warp_polar( array_of< T > const& array, size_t width, size_t height,
+            double centre_x, double centre_y, double max_radius,
+            std::string const& interpolation, bool inverse )
+{
+  auto const source = as_image( array );
+  return as_array(
+    VIAME_KERNEL_CALL( warp_polar, source, width, height, centre_x, centre_y,
+      max_radius, as_interpolation( interpolation ), inverse ),
+    array.ndim() == 3 );
+}
+
+template < typename T >
+py::list
+histogram_full( array_of< T > const& array, size_t plane )
+{
+  auto const source = as_image( array );
+  auto const counts =
+    VIAME_KERNEL_CALL( histogram_full, source, plane );
+
+  py::list out;
+
+  for( auto const count : counts )
+  {
+    out.append( count );
+  }
+
+  return out;
+}
+
+template < typename T >
+py::array
+box_blur( array_of< T > const& array,
+          size_t size, std::string const& border, size_t height )
+{
+  auto const source = as_image( array );
+  return as_array(
+    VIAME_KERNEL_CALL( box_blur, source, size, as_border( border ), height ),
     array.ndim() == 3 );
 }
 
@@ -1163,6 +1206,20 @@ warp_affine( array_of< T > const& array,
       source, affine, width, height, as_interpolation( interpolation ),
       as_border( border ), constant ),
     array.ndim() == 3 );
+}
+
+/// Bind one name to two further pixel types, beside the usual three.
+///
+/// For a kernel whose callers pass something else -- `imgaug`'s blurs take
+/// int16 and float64 -- and only for those. Registering every type everywhere
+/// would hide the narrowing guard that `array_of< T >` exists to give.
+template < typename First, typename Second, typename... Extra >
+void
+for_extra_pixel_types( py::module& m, char const* name, First first,
+                       Second second, Extra... extra )
+{
+  m.def( name, first, extra... );
+  m.def( name, second, extra... );
 }
 
 /// Bind one name to the uint8, uint16 and float32 overloads.
@@ -1955,6 +2012,15 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
     py::arg("image"), py::arg("width"), py::arg("height"),
     "Aspect-preserving area/Lanczos4 resize with black padding.");
 
+  // 16-bit signed and double first, and only for their own dtype, so that a
+  // uint8 image is not quietly widened into one of them. `imgaug` resizes
+  // int16 -- it maps int8 onto it -- and float64 masks, and numpy's own "safe"
+  // widening was turning both into float32 and handing float32 back.
+  for_extra_pixel_types( m, "resize", &resize< int16_t >, &resize< double >,
+         py::arg( "image" ).noconvert(), py::arg( "width" ),
+         py::arg( "height" ), py::arg( "interpolation" ) = "bilinear",
+         "Resize 16-bit signed or double pixels." );
+
   for_every_pixel_type( m, "resize", &resize< uint8_t >,
          &resize< uint16_t >, &resize< float >,
          py::arg( "image" ), py::arg( "width" ),
@@ -2153,13 +2219,24 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   m.def( "text_size", &text_size, py::arg( "text" ), py::arg( "scale" ) = 1,
          "The (width, height) of text, as cv2.getTextSize reports it." );
 
+  for_extra_pixel_types( m, "gaussian_blur", &gaussian_blur< int16_t >,
+      &gaussian_blur< double >, py::arg ( "image" ).noconvert(),
+      py::arg ( "size" ), py::arg ( "sigma" ) = 0.0,
+      py::arg ( "border" ) = "reflect_101",
+      py::arg ( "workspace" ) = nullptr,
+      "A separable Gaussian over 16-bit signed or double pixels. The 8- and "
+      "16-bit unsigned overloads take a fixed-point path; these take the "
+      "general one. Registered first, and only for its own dtype, so that a "
+      "uint8 image is not quietly widened into it." );
+
   for_every_pixel_type (
       m, "gaussian_blur", &gaussian_blur<uint8_t>, &gaussian_blur<uint16_t>,
       &gaussian_blur<float>, py::arg ( "image" ), py::arg ( "size" ),
       py::arg ( "sigma" ) = 0.0, py::arg ( "border" ) = "reflect_101",
       py::arg ( "workspace" ) = nullptr,
-      "cv2.GaussianBlur. `size` is the odd kernel width and height, and "
+      "A separable Gaussian. `size` is the odd kernel width and height, and "
       "sigma is derived from it when left at zero." );
+
 
   for_every_pixel_type( m, "gaussian_blur_float_taps",
          &gaussian_blur_float_taps< uint8_t >,
@@ -2178,10 +2255,33 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "scalar remainder, so its own answer moves with the vector "
          "width. This takes the vector body." );
 
+  // Two more pixel types for the three blurs, and only for those: `imgaug`
+  // documents int16 and float64 as supported for its average, median and
+  // Gaussian blurs, and numpy's own "safe" widening was quietly turning an
+  // int16 image into float32 on the way in and handing float32 back -- which
+  // the caller then asserted against. An overload that takes the type is the
+  // fix; a cast would have been the bug with a comment on it.
+  for_extra_pixel_types( m, "box_blur", &box_blur< int16_t >,
+         &box_blur< double >, py::arg( "image" ).noconvert(),
+         py::arg( "size" ),
+         py::arg( "border" ) = "reflect_101", py::arg( "height" ) = 0,
+         "The mean of a rectangular window, for 16-bit signed and double "
+         "pixels." );
+
+  for_extra_pixel_types( m, "median_blur", &median_blur< int16_t >,
+         &median_blur< double >, py::arg( "image" ).noconvert(),
+         py::arg( "size" ),
+         "The middle sample of an odd window, for 16-bit signed and double "
+         "pixels." );
+
   for_every_pixel_type( m, "box_blur", &box_blur< uint8_t >,
          &box_blur< uint16_t >,
          &box_blur< float >, py::arg( "image" ), py::arg( "size" ),
-         py::arg( "border" ) = "reflect_101", "cv2.blur." );
+         py::arg( "border" ) = "reflect_101", py::arg( "height" ) = 0,
+         "The mean of a rectangular window. `size` is the width and `height` "
+         "the other side, which defaults to the same -- a square window is "
+         "what almost every caller wants and a rectangular one is separable "
+         "just the same." );
 
   for_every_pixel_type( m, "add_weighted", &add_weighted< uint8_t >,
          &add_weighted< uint16_t >,
@@ -2299,6 +2399,35 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "image" ), py::arg( "shape" ) = "rect",
          py::arg( "width" ) = 3, py::arg( "height" ) = 3,
          "Grey dilation. cv2.dilate." );
+
+  for_every_pixel_type( m, "laplacian", &laplacian< uint8_t >,
+         &laplacian< uint16_t >, &laplacian< float >, py::arg( "image" ),
+         py::arg( "aperture" ) = 1, py::arg( "scale" ) = 1.0,
+         py::arg( "delta" ) = 0.0, py::arg( "border" ) = "reflect_101",
+         "The discrete Laplacian. The three apertures are three different "
+         "operators "
+         "rather than three precisions of one: 1 is the five-point stencil, "
+         "and 3 and 5 are the Sobel-derived pair, which puts the weight on "
+         "the corners at 3 and not on the edges. Exact for all three." );
+
+  for_every_pixel_type( m, "warp_polar", &warp_polar< uint8_t >,
+         &warp_polar< uint16_t >, &warp_polar< float >, py::arg( "image" ),
+         py::arg( "width" ) = 0, py::arg( "height" ) = 0,
+         py::arg( "centre_x" ) = 0.0, py::arg( "centre_y" ) = 0.0,
+         py::arg( "max_radius" ) = 0.0,
+         py::arg( "interpolation" ) = "bilinear", py::arg( "inverse" ) = false,
+         "Between cartesian and polar, linear. Forward, the output's columns are "
+         "radius and "
+         "its rows are angle; a zero width or height derives the size from the "
+         "radius. Inverse maps back, wrapping the angle axis by a row at each "
+         "end. The angle is the same polynomial "
+         "geometry.cartesian_to_polar uses, so a caller mapping coordinates "
+         "agrees with where the pixels went." );
+
+  for_both_pixel_types( m, "histogram", &histogram_full< uint8_t >,
+         &histogram_full< uint16_t >, py::arg( "image" ),
+         py::arg( "plane" ) = 0,
+         "One count per level of one plane: the whole range, one bin each." );
 
   for_every_pixel_type( m, "pyramid_down", &pyramid_down< uint8_t >,
          &pyramid_down< uint16_t >, &pyramid_down< float >,

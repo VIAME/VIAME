@@ -42,27 +42,83 @@ SKIP_DIRECTORIES = ("__pycache__", "tests", "test", "checks", "demo", "demos",
 
 DIFF_TARGET = re.compile(r"^\+\+\+ b/(.+?)\s*$", re.M)
 
+#: An import of OpenCV, as a diff line. `+` and `-` are stripped before this
+#: is tried, so it matches the line in either direction.
+IMPORT_LINE = re.compile(r"^\s*(?:import\s+cv2\b|from\s+cv2[\s.]|"
+                         r"from\s+cv2$)")
 
-def patched_paths(patches, fork):
-    """Every path a fork's patch or overlay replaces, fork-relative."""
-    covered = set()
 
+def diff_verdicts(patches, fork):
+    """What a fork's unified diff does about OpenCV, per file it touches.
+
+    `True` for a file whose imports it **removes and does not add back**, and
+    `False` for one it touches without doing that. The distinction is the
+    point: exempting a file because *something* patches it would pass a diff
+    that changed an unrelated line and left the import where it was, which is
+    exactly the shape a careless rebase produces.
+    """
     diff = os.path.join(patches, fork + ".patch")
 
-    if os.path.isfile(diff):
-        with open(diff, encoding="utf-8", errors="replace") as handle:
-            for match in DIFF_TARGET.finditer(handle.read()):
-                covered.add(match.group(1))
+    if not os.path.isfile(diff):
+        return {}
 
+    with open(diff, encoding="utf-8", errors="replace") as handle:
+        lines = handle.read().splitlines()
+
+    verdicts = {}
+    path = None
+    removed = added = 0
+
+    def settle():
+        if path is not None:
+            verdicts[path] = removed > 0 and added == 0
+
+    for line in lines:
+        match = DIFF_TARGET.match(line)
+
+        if match:
+            settle()
+            path = match.group(1)
+            removed = added = 0
+            continue
+
+        if path is None or not line:
+            continue
+
+        if line[0] == "-" and not line.startswith("---"):
+            if IMPORT_LINE.match(line[1:]):
+                removed += 1
+        elif line[0] == "+" and not line.startswith("+++"):
+            if IMPORT_LINE.match(line[1:]):
+                added += 1
+
+    settle()
+
+    return verdicts
+
+
+def overlay_verdicts(patches, fork):
+    """The same question for whole replacement files: does the copy import it?
+
+    Easier than the diff case, because the overlay file **is** what ships, so
+    it can simply be read.
+    """
     overlay = os.path.join(patches, fork)
+    verdicts = {}
 
-    if os.path.isdir(overlay):
-        for base, directories, names in os.walk(overlay):
-            directories[:] = [d for d in directories if d != "__pycache__"]
-            for name in names:
-                covered.add(os.path.relpath(os.path.join(base, name), overlay))
+    if not os.path.isdir(overlay):
+        return verdicts
 
-    return covered
+    for base, directories, names in os.walk(overlay):
+        directories[:] = [d for d in directories if d != "__pycache__"]
+
+        for name in names:
+            path = os.path.join(base, name)
+            relative = os.path.relpath(path, overlay)
+            verdicts[relative] = not (name.endswith(".py")
+                                      and imports_cv2(path))
+
+    return verdicts
 
 
 def imports_cv2(path):
@@ -133,7 +189,8 @@ def main(argv=None):
             skipped.append(fork)
             continue
 
-        covered = patched_paths(patches, fork)
+        covered = dict(diff_verdicts(patches, fork))
+        covered.update(overlay_verdicts(patches, fork))
 
         for path in runtime_files(root):
             checked += 1
@@ -143,15 +200,22 @@ def main(argv=None):
                 continue
 
             relative = os.path.relpath(path, root)
+            verdict = covered.get(relative)
 
-            if relative in covered:
+            if verdict is True:
                 covered_total += 1
                 continue
 
             for line, what in offences:
-                failures.append(
-                    "{}/{}:{}: `{}` and no patch replaces this file".format(
-                        fork, relative, line, what))
+                if verdict is False:
+                    failures.append(
+                        "{}/{}:{}: `{}` survives the patch -- it touches this "
+                        "file without taking the import out".format(
+                            fork, relative, line, what))
+                else:
+                    failures.append(
+                        "{}/{}:{}: `{}` and no patch replaces this file"
+                        .format(fork, relative, line, what))
 
     print("fork cv2: checked {} runtime python files in {} forks".format(
         checked, len(os.listdir(forks)) - len(skipped)))

@@ -1,8 +1,8 @@
 diff --git a/src/rfdetr/datasets/synthetic.py b/src/rfdetr/datasets/synthetic.py
-index 0394e2b..84d451c 100644
+index 0394e2b..57df3e2 100644
 --- a/src/rfdetr/datasets/synthetic.py
 +++ b/src/rfdetr/datasets/synthetic.py
-@@ -15,12 +15,16 @@ from dataclasses import dataclass
+@@ -15,12 +15,15 @@ from dataclasses import dataclass
  from pathlib import Path
  from typing import Dict, List, Tuple, Union
  
@@ -12,26 +12,45 @@ index 0394e2b..84d451c 100644
  from tqdm.auto import tqdm
  from typing_extensions import Literal
  
-+# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's API this
-+# file uses -- imwrite, which takes BGR as cv2's does -- over VIAME's own
-+# image kernels.
-+from viame.utilities import cv2_api as cv2
++# VIAME: `write_image` takes **RGB**, where this held BGR -- so the array is
++# reversed on the way in below.
++from viame.utilities.imageops import write_image
 +
  logger = logging.getLogger(__name__)
  
  
+@@ -498,7 +501,7 @@ def generate_coco_dataset(
+ 
+             file_name = f"{i:06d}.jpg"
+             file_path = str(split_dir / file_name)
+-            cv2.imwrite(file_path, img)
++            write_image(file_path, img[..., ::-1])
+ 
+             file_paths_ordered.append(file_path)
+             detections_ordered.append(detections)
 diff --git a/src/rfdetr/datasets/yolo.py b/src/rfdetr/datasets/yolo.py
-index 5f679c1..ea26b1b 100644
+index 5f679c1..cbc9071 100644
 --- a/src/rfdetr/datasets/yolo.py
 +++ b/src/rfdetr/datasets/yolo.py
-@@ -190,7 +190,9 @@ class _LazyYoloDetectionDataset:
+@@ -190,12 +190,17 @@ class _LazyYoloDetectionDataset:
          return len(self._samples)
  
      def __getitem__(self, idx: int) -> tuple[str, np.ndarray, "sv.Detections"]:
 -        import cv2
-+        # VIAME: no OpenCV. `imread` here is VIAME's, and returns BGR as
-+        # cv2's does, so what this hands back is unchanged.
-+        from viame.utilities import cv2_api as cv2
++        # VIAME: `read_image` gives **RGB**; this returned BGR, and the caller
++        # below reverses it again, so the reversal stays at both ends.
++        from viame.utilities.imageops import read_image
  
          sample = self._samples[idx]
-         image = cv2.imread(sample.image_path)
+-        image = cv2.imread(sample.image_path)
+-        if image is None:
+-            raise ValueError(f"Could not read image from path: {sample.image_path}")
++        try:
++            image = read_image(sample.image_path)[..., ::-1]
++        except Exception as error:
++            raise ValueError(
++                f"Could not read image from path: {sample.image_path}"
++            ) from error
+         return sample.image_path, image, sample.to_detections()
+ 
+     def get_image_info(self, idx: int) -> _LazyYoloSample:

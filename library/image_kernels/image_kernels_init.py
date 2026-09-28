@@ -49,11 +49,13 @@ from viame.image_kernels._image_kernels import (  # noqa: F401
     from_lab,
     gaussian_blur,
     gaussian_blur_float_taps,
+    histogram,
     hough_circles,
     good_features_to_track,
     grab_cut,
     intersect_convex,
     label_components,
+    laplacian,
     lucas_kanade,
     make_border,
     match_template,
@@ -86,6 +88,7 @@ from viame.image_kernels._image_kernels import (  # noqa: F401
     to_lab,
     to_rgb,
     warp_affine as _warp_affine,
+    warp_polar,
     warp_perspective as _warp_perspective,
     watershed,
 )
@@ -130,11 +133,14 @@ __all__ = [
     "from_lab",
     "gaussian_blur",
     "gaussian_blur_float_taps",
+    "histogram",
     "hough_circles",
     "good_features_to_track",
     "grab_cut",
     "intersect_convex",
+    "component_stats",
     "label_components",
+    "laplacian",
     "lucas_kanade",
     "make_border",
     "match_template",
@@ -168,6 +174,7 @@ __all__ = [
     "to_lab",
     "to_rgb",
     "warp_affine",
+    "warp_polar",
     "warp_perspective",
     "watershed",
 ]
@@ -210,6 +217,58 @@ def _per_plane(kernel, image, constant, *args, **kwargs):
               for plane, value in enumerate(constants)]
 
     return _np.stack(planes, axis=-1)
+
+
+def component_stats(labels, count):
+    """`(stats, centroids)` for a `label_components` labelling.
+
+    `stats` is one row per label of `left, top, width, height, area`, and
+    `centroids` the mean x and y of each. Label 0 is the background.
+
+    **Do not read meaning into a label's number.** `label_components`
+    partitions a mask the same way every time, but which component gets which
+    number depends on the scan, so a caller holding a recorded label value
+    would be disappointed; one asking which component is the largest is safe.
+    """
+    labels = _np.asarray(labels)
+    height, width = labels.shape[:2]
+    flat = labels.reshape(-1)
+
+    rows = _np.repeat(_np.arange(height), width)
+    columns = _np.tile(_np.arange(width), height)
+
+    areas = _np.bincount(flat, minlength=count)
+    sums_x = _np.bincount(flat, weights=columns.astype(_np.float64),
+                          minlength=count)
+    sums_y = _np.bincount(flat, weights=rows.astype(_np.float64),
+                          minlength=count)
+
+    # One pass for each extreme rather than one pass per label: a mask can
+    # hold thousands of components and `labels == n` in a loop is quadratic.
+    left = _np.full(count, width, dtype=_np.int64)
+    top = _np.full(count, height, dtype=_np.int64)
+    right = _np.full(count, -1, dtype=_np.int64)
+    bottom = _np.full(count, -1, dtype=_np.int64)
+    _np.minimum.at(left, flat, columns)
+    _np.minimum.at(top, flat, rows)
+    _np.maximum.at(right, flat, columns)
+    _np.maximum.at(bottom, flat, rows)
+
+    present = areas > 0
+    stats = _np.zeros((count, 5), dtype=_np.int32)
+    stats[present, 0] = left[present]
+    stats[present, 1] = top[present]
+    stats[present, 2] = (right - left + 1)[present]
+    stats[present, 3] = (bottom - top + 1)[present]
+    stats[:, 4] = areas
+
+    centroids = _np.zeros((count, 2), dtype=_np.float64)
+
+    with _np.errstate(invalid="ignore", divide="ignore"):
+        centroids[:, 0] = _np.where(present, sums_x / areas, 0.0)
+        centroids[:, 1] = _np.where(present, sums_y / areas, 0.0)
+
+    return stats, centroids
 
 
 def remap(image, map_x, map_y, interpolation="bilinear", border="constant",

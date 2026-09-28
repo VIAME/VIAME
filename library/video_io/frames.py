@@ -62,17 +62,28 @@ def count_frames(path):
         container.close()
 
 
-def read_frames(path):
+def read_frames(path, from_pts=None, with_pts=False):
     """Yield `(rgb_array, frame_number)` for every frame of a video.
 
     The array is (h, w, 3) uint8, C contiguous, and freshly owned -- a caller
     may keep or modify it.
+
+    `from_pts` starts at the **keyframe at or before** that presentation
+    timestamp rather than at the beginning, which is what lets `FrameReader`
+    seek backwards without decoding the whole file again. The numbering then
+    counts from that keyframe rather than from the start of the video, so a
+    caller that wants absolute numbers matches on the timestamp instead --
+    which is what `frame_timestamps` is for.
     """
     import av
 
     container, stream = _decoder(path)
 
     try:
+        if from_pts is not None:
+            container.seek(int(from_pts), stream=stream, any_frame=False,
+                           backward=True)
+
         graph = av.filter.Graph()
         source = graph.add_buffer(template=stream)
         scale = graph.add("scale", SCALE_FLAGS)
@@ -96,20 +107,20 @@ def read_frames(path):
                 except (av.error.BlockingIOError, av.error.EOFError):
                     return
                 number += 1
-                yield np.ascontiguousarray(out.to_ndarray()), number
+                yield np.ascontiguousarray(out.to_ndarray()), number, out.pts
 
         for frame in container.decode(stream):
             graph.push(frame)
-            for pair in drain():
-                yield pair
+            for array, index, pts in drain():
+                yield (array, index, pts) if with_pts else (array, index)
 
         # A filter may hold a frame back; flushing asks for the rest.
         try:
             graph.push(None)
         except av.error.EOFError:
             pass
-        for pair in drain():
-            yield pair
+        for array, index, pts in drain():
+            yield (array, index, pts) if with_pts else (array, index)
     finally:
         container.close()
 
@@ -149,18 +160,24 @@ class FrameReader:
     it is deliberately the same decode: the frames are `read_frames`' frames,
     RGB and bit identical to the ones a pipeline sees.
 
-    **Seeking backwards restarts the decode.** PyAV can seek to a keyframe
-    cheaply, but landing on the requested frame from there means decoding
-    forward anyway and the keyframe interval is the container's business, not
-    ours. Restarting is exact, it is what a caller stepping backwards through
-    a video is really asking for, and it is O(position). Seeking forwards
-    decodes and discards, which is what OpenCV does too.
+    **Seeking backwards goes to a keyframe, not to the beginning.** Restarting
+    the decode is exact and simple, and it is O(position), which makes walking
+    a video in reverse quadratic. So the first backward seek builds a table of
+    every frame's presentation timestamp -- one decode pass, no scaling, no
+    conversion to numpy -- and after that a seek lands on the keyframe at or
+    before the target and decodes forward to it, matching on the timestamp
+    rather than on a count. Exact either way: the frames a keyframe seek
+    produces are the frames a full decode produces, which is verified against
+    one in `tests/library/video_io`.
+
+    Seeking forwards decodes and discards without any of that.
     """
 
     def __init__(self, path):
         self._path = str(path)
         self._frames = None
         self._position = 0
+        self._timestamps = None
         self._width, self._height = video_size(self._path)
         self._rate = frame_rate(self._path)
         self._count = count_frames(self._path)
@@ -198,18 +215,71 @@ class FrameReader:
 
         return None
 
+    def timestamps(self):
+        """Every frame's presentation timestamp, in stream units.
+
+        One decode pass, built on demand and kept. The frames are decoded but
+        not scaled or converted, so this costs a fraction of what reading them
+        costs.
+        """
+        if self._timestamps is None:
+            self._timestamps = frame_timestamps(self._path)
+
+        return self._timestamps
+
     def seek(self, number):
         """Position the reader so that `read` returns frame `number`."""
         number = max(int(number), 0)
 
-        if number < self._position or self._frames is None:
+        if self._frames is not None and number >= self._position:
+            while self._position < number:
+                if self.read() is None:
+                    return
+            return
+
+        stamps = self.timestamps()
+
+        if number >= len(stamps):
+            # Past the end: leave the reader where a read will say so.
             self.close()
             self._frames = read_frames(self._path)
             self._position = 0
+            while self.read() is not None:
+                pass
+            return
 
-        while self._position < number:
-            if self.read() is None:
-                return
+        wanted = stamps[number]
+
+        if wanted is None:
+            # A stream with no timestamps cannot be seeked into; decode from
+            # the beginning, which is what this did for everything before.
+            self.close()
+            self._frames = read_frames(self._path)
+            self._position = 0
+            while self._position < number:
+                if self.read() is None:
+                    return
+            return
+
+        self.close()
+        self._frames = self._from(wanted)
+        self._position = number
+
+    def _from(self, wanted):
+        """A generator positioned at the frame whose timestamp is `wanted`.
+
+        The keyframe seek lands at or before it, so the frames between are
+        decoded and dropped -- at most one group of pictures' worth.
+        """
+        frames = read_frames(self._path, from_pts=wanted, with_pts=True)
+
+        for array, _number, pts in frames:
+            if pts is not None and pts >= wanted:
+                yield array, 0
+                break
+
+        for array, _number, _pts in frames:
+            yield array, 0
 
     def close(self):
         if self._frames is not None:
@@ -221,6 +291,22 @@ class FrameReader:
 
     def __exit__(self, *_exception):
         self.close()
+
+
+def frame_timestamps(path):
+    """Every frame's presentation timestamp, in the stream's own units.
+
+    The decode happens but the scaling and the conversion to numpy do not, so
+    this is much cheaper than reading the frames. `None` for a frame the
+    container gives no timestamp for, which is a stream that cannot be seeked
+    into by timestamp at all.
+    """
+    container, stream = _decoder(path)
+
+    try:
+        return [frame.pts for frame in container.decode(stream)]
+    finally:
+        container.close()
 
 
 class FrameWriter:
