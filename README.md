@@ -10,7 +10,7 @@ toolkit. It contains a number of tools for accomplishing the above, a pipeline f
 which can connect C++/Python nodes in a multi-threaded fashion, and multiple algorithms
 resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been
 integrated into both desktop and web user interfaces for deployments in different environments,
-with annopen annotation archive and example of the web platform available at
+with an open annotation archive and example of the web platform available at
 [viame.kitware.com](https://viame.kitware.com).
 
 
