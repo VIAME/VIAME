@@ -43,9 +43,10 @@ _IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
 def _import_tensorrt():
     """
-    The full ``tensorrt`` package (VIAME_ENABLE_TENSORRT) can build and
-    run engines; the lean runtime (VIAME_ENABLE_TENSORRT with VIAME_TENSORRT_RUNTIME_ONLY) can only run
-    prebuilt ones. Returns (module, can_build).
+    The full ``tensorrt`` package can build and run engines; the lean
+    ``tensorrt_lean`` runtime can only run prebuilt ones. Neither is in
+    VIAME's requirements, so both are the caller's to install. Returns
+    (module, can_build).
     """
     try:
         import tensorrt as trt
@@ -59,8 +60,9 @@ def _import_tensorrt():
         return trt, False
     except ImportError as exc:
         raise RuntimeError(
-            "backend 'tensorrt' needs the tensorrt (VIAME_ENABLE_TENSORRT) or "
-            "tensorrt_lean (VIAME_ENABLE_TENSORRT with VIAME_TENSORRT_RUNTIME_ONLY) python package"
+            "backend 'tensorrt' needs the tensorrt or tensorrt_lean python "
+            "package; neither is installed, and VIAME does not declare them -- "
+            "`pip install tensorrt`, or use backend 'onnxruntime'"
         ) from exc
 
 
@@ -359,8 +361,8 @@ class FastFoundationStereoOnnx(ComputeStereoDepthMap):
         if not can_build:
             raise RuntimeError(
                 f"No TensorRT engine for {onnx_path}: expected {shipped} (or {engine_path}), "
-                "and the lean runtime cannot build one; install full TensorRT "
-                "(VIAME_ENABLE_TENSORRT) or use backend 'onnxruntime'"
+                "and the lean runtime cannot build one; `pip install tensorrt` "
+                "for the full package, or use backend 'onnxruntime'"
             )
         precision = self._config["trt_precision"]
         if precision not in ("fp32", "fp16"):

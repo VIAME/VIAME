@@ -17,8 +17,7 @@ These are the build flags required to run this example, if building from the sou
 
 In the pre-built binaries they are all enabled by default.
 
-| VIAME_ENABLE_OPENCV set to ON (required)
-| VIAME_ENABLE_VXL set to ON (optional)
+| VIAME_ENABLE_IMAGE_PROCESSING set to ON (required)
 
 ***********************
 Running the Examples
@@ -289,10 +288,10 @@ HSV, HLS, Lab, Luv, grayscale).
 **ocv_random_hue_shift** -- Applies random hue, saturation, and intensity shifts for
 data augmentation during training. Configurable trigger probability and shift ranges.
 
-**vxl_enhancer** -- VXL-based image enhancement with smoothing, automatic white
+**vxl_enhancer** -- image enhancement with smoothing, automatic white
 balancing (with spatial and temporal correction matrices), and illumination
-normalization. Supports 8-bit, 16-bit, and floating-point imagery. Requires
-VIAME_ENABLE_VXL.
+normalization. Supports 8-bit, 16-bit, and floating-point imagery. The name is
+the implementation it reproduces; the code is VIAME's own and is always built.
 
 **ocv_horizontally (split_image)** -- Splits a single image horizontally into left
 and right halves. Used for stereo camera pairs (e.g. HabCam).

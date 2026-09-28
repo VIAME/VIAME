@@ -185,7 +185,7 @@ if( VIAME_ENABLE_SVM )
   )
 endif()
 
-if( VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_IMAGE_PROCESSING )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     detector_calibration_target.pipe
     stereo_calibrate_cameras_default.pipe

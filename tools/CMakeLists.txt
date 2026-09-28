@@ -22,7 +22,7 @@ set( PYTHON_SCRIPTS
   monitor.py
 )
 
-if( VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_IMAGE_PROCESSING )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
     calibrate.py
@@ -154,12 +154,15 @@ if( VIAME_ENABLE_PYTHON )
     PRIVATE VIAME_TOOLS_ENABLE_PYTHON )
 endif()
 
-# The applets this gates are python scripts that import cv2, a wheel; nothing
-# on the C++ side of the tools links OpenCV any more, since `viame score`
-# handed its plot rendering to matplotlib in P7-T07
-if( VIAME_ENABLE_OPENCV )
+# What this gates is the camera-geometry side of the tools: the calibrate,
+# depth, disparity, mosaic, register, 3d and rectify applets, and the
+# evaluation frames `viame train` draws with `viame::image_kernels`. None of
+# it reaches outside the tree -- the applets came off cv2 in P7 and the
+# drawing was written against the kernels -- so this decides which features
+# are built, not which library they need.
+if( VIAME_ENABLE_IMAGE_PROCESSING )
   target_compile_definitions( viame_tools_applets
-    PRIVATE VIAME_TOOLS_HAVE_OPENCV )
+    PRIVATE VIAME_TOOLS_HAVE_IMAGE_PROCESSING )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )

@@ -63,7 +63,7 @@ endif()
 # From `tests/plugins/core` in P2-T09: curved measurement and the interactive
 # stereo points, run together as they were. `test_interactive_stereo.py` and
 # `test_tracks_pairing_from_stereo.cxx` came too, unregistered as they were.
-if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_IMAGE_PROCESSING )
   viame_add_test(
     NAME    "unit:measurement:curved_measurement"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_curved_measurement.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_interactive_stereo_points.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_stereo_line_readiness.py" "${CMAKE_CURRENT_SOURCE_DIR}/test_dense_stereo_grid.py"

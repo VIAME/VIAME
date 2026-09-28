@@ -76,7 +76,7 @@ VIAME_PYTHON_SCRIPT_APPLET( monitor_applet, "monitor",
   "monitor.py",
   "Monitor a training run and report progress by log or email" )
 
-#ifdef VIAME_TOOLS_HAVE_OPENCV
+#ifdef VIAME_TOOLS_HAVE_IMAGE_PROCESSING
 
 VIAME_PYTHON_SCRIPT_APPLET( calibrate_applet, "calibrate", "calibrate.py",
   "Estimate stereo calibration from calibration target images." )
@@ -170,7 +170,7 @@ register_factories( viame::registry& vpm )
   register_script_tool< ensemble_applet >( reg );
   register_script_tool< monitor_applet >( reg );
 
-#ifdef VIAME_TOOLS_HAVE_OPENCV
+#ifdef VIAME_TOOLS_HAVE_IMAGE_PROCESSING
   register_script_tool< calibrate_applet >( reg );
   register_script_tool< depth_applet >( reg );
   register_script_tool< disparity_applet >( reg );

@@ -214,8 +214,7 @@ on, it's best to just leave the default enable and disable flags which will buil
 
 | Flag                         | Description                                                                    |
 |------------------------------|--------------------------------------------------------------------------------|
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)          |
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)              |
+| VIAME_ENABLE_IMAGE_PROCESSING | Builds the image filters, registration, stereo calibration and measurement features |
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)              |
 | VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)              |
 
@@ -248,7 +247,6 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 |------------------------------|--------------------------------------------------------------------------------|
 | VIAME_ENABLE_PYTORCH-*       | Builds a number of PyTorch plugins with different functions                    |
 | VIAME_ENABLE_ONNX            | Builds support for ONNX methods (detectors/stereo)                             |
-| VIAME_ENABLE_TENSORRT        | Builds support for TensorRT methods (detectors/stereo)                         |
 | VIAME_ENABLE_DARKNET         | Builds deprecated Darknet (YOLO) object detector plugin                        |
 
 </center>

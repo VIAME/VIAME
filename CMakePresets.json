@@ -10,7 +10,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "VIAME_ENABLE_DOCS": "OFF",
-        "VIAME_ENABLE_OPENCV": "ON",
+        "VIAME_ENABLE_IMAGE_PROCESSING": "ON",
         "VIAME_ENABLE_PYTHON": "ON",
         "VIAME_ENABLE_PYTORCH": "ON",
         "VIAME_PYTORCH_VERSION": "2.12.0",
@@ -151,7 +151,7 @@
         "VIAME_ENABLE_CUDNN": "OFF",
         "VIAME_ENABLE_DIVE": "ON",
         "VIAME_ENABLE_DOCS": "OFF",
-        "VIAME_ENABLE_OPENCV": "ON",
+        "VIAME_ENABLE_IMAGE_PROCESSING": "ON",
         "VIAME_ENABLE_PYTHON": "ON",
         "VIAME_BUILD_PYTHON_FROM_SOURCE": "OFF",
         "VIAME_ENABLE_PYTORCH": "ON",

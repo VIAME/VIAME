@@ -8,7 +8,7 @@ set( example_files
 
 # The viame score applet, which computes detection, MOT, HOTA and
 # KWANT-style metrics in one pass, is built alongside the OpenCV plugins
-if( VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_IMAGE_PROCESSING )
   if( WIN32 )
     set( example_files
          ${example_files}

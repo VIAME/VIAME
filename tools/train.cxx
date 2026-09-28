@@ -36,7 +36,7 @@
 #include <viame/utilities/python_script_applet.h>
 #include <viame/training/train_supervisor.h>
 
-#ifdef VIAME_TOOLS_HAVE_OPENCV
+#ifdef VIAME_TOOLS_HAVE_IMAGE_PROCESSING
 #include <viame/algorithm_framework/algo/video_input.h>
 #include <viame/core_types/bounding_box.h>
 #include <viame/image_kernels/draw.h>
@@ -1324,7 +1324,7 @@ struct evaluated_item
   double frame_rate = 0.0;
 };
 
-#ifdef VIAME_TOOLS_HAVE_OPENCV
+#ifdef VIAME_TOOLS_HAVE_IMAGE_PROCESSING
 struct drawn_box
 {
   kv::bounding_box_d box;
@@ -1780,7 +1780,7 @@ evaluate_split( const split_evaluation_inputs& in )
 
   std::cout << "Metrics for the " << in.split << " set written to " << results_dir << std::endl;
 
-#ifdef VIAME_TOOLS_HAVE_OPENCV
+#ifdef VIAME_TOOLS_HAVE_IMAGE_PROCESSING
   if( in.frame_count > 0 )
   {
     try

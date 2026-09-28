@@ -34,7 +34,21 @@ option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_ONNX           "Enable ONNX runtime plugins"   ON )
-option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
+option( VIAME_ENABLE_IMAGE_PROCESSING
+  "Enable the image processing, registration and stereo geometry features" ON )
+
+# Deprecated spelling, honoured for one release so an existing preset, CI job
+# or build script does not silently turn the feature set back on. Delete this
+# block and the option is gone by that name; nothing in the tree reads it.
+if( DEFINED VIAME_ENABLE_OPENCV )
+  message( DEPRECATION
+    "VIAME_ENABLE_OPENCV is now VIAME_ENABLE_IMAGE_PROCESSING; the features "
+    "it gates need no OpenCV. Using VIAME_ENABLE_OPENCV=${VIAME_ENABLE_OPENCV}." )
+  set( VIAME_ENABLE_IMAGE_PROCESSING "${VIAME_ENABLE_OPENCV}" CACHE BOOL
+       "Enable the image processing, registration and stereo geometry features"
+       FORCE )
+  unset( VIAME_ENABLE_OPENCV CACHE )
+endif()
 option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
 option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
 
@@ -149,6 +163,25 @@ if( VIAME_ENABLE_PYTORCH )
   # index the accelerator lock names, which publishes matching `+cuXXX`
   # builds of each; neither is built from source any more.
   #
+  # **Wanted back, not abandoned.** The index publishes a handful of CUDA
+  # variants -- `cu126` and `cu130` are what `cuda12.in` and `cuda13.in`
+  # name -- so a build targeting any other CUDA has no matching wheel and
+  # has to compile its own. `cmake/build_server_windows_msi.cmake` still
+  # sets both flags, and nothing reads them, so that build silently gets an
+  # index wheel today.
+  #
+  # Three things it would need:
+  #   * a build recipe. `main` has one in `cmake/add_project_pytorch.cmake`,
+  #     745 lines of `ExternalProject_Add` around `setup.py` with `USE_CUDA`
+  #     and `TORCH_CUDA_ARCH_LIST`; the arch list maps straight onto this
+  #     tree's `CUDA_ARCHITECTURES`.
+  #   * OpenBLAS. `main` got it from fletch, which is gone.
+  #   * torch out of the installed lock while the flag is on, or pip will
+  #     put an index wheel over the build. `main` did this by leaving
+  #     `torch==` out of its dependency list; here the lock is installed
+  #     whole by `viame_python_deps.cmake`, so it needs a filter or an
+  #     accelerator `.in` without torch in it.
+  #
   # `VIAME_BUILD_LIMIT_NINJA` stood here too: cap ninja's parallelism on the
   # subprojects that exhausted memory. There are no subprojects.
 endif()
@@ -233,7 +266,8 @@ mark_as_advanced( VIAME_ENABLE_TESTS )
 # Add logic and error checking relating to enable flags
 ##
 if( VIAME_ENABLE_DARKNET )
-  set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
+  set( VIAME_ENABLE_IMAGE_PROCESSING ON CACHE BOOL
+       "Image processing required for other projects" FORCE )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )

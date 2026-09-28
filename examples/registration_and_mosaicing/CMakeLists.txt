@@ -4,14 +4,14 @@
 set( EXAMPLE_INSTALL_FILES
      README.rst )
 
-if( VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_IMAGE_PROCESSING )
   set( EXAMPLE_INSTALL_FILES
     ${EXAMPLE_INSTALL_FILES}
     input_optical_images.txt
     input_thermal_images.txt )
 endif()
 
-if( VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_IMAGE_PROCESSING )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}
@@ -35,7 +35,7 @@ if( VIAME_ENABLE_OPENCV )
   endif()
 endif()
 
-if( VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_IMAGE_PROCESSING )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}

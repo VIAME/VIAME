@@ -59,7 +59,7 @@ Setup:
 ------
 
 Make sure you build VIAME with `VIAME_ENABLE_PYTHON=True` and
-`VIAME_ENABLE_OPENCV=True`.
+`VIAME_ENABLE_IMAGE_PROCESSING=True`.
 
 For simplicity this tutorial will assume that the VIAME source directory is
 `[viame-source]` and the build directory is `[viame-build]`. Please modify

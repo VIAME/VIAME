@@ -41,12 +41,13 @@ include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
 # in VIAME's C++ includes an OpenCV header any more, and that macro has no
 # readers left.
 #
-# `VIAME_ENABLE_OPENCV` stays, and now means what it had quietly come to
-# mean: cv2 in python. It gates the `viame` applets that import it --
-# calibrate, depth, disparity, mosaic, register, 3d, rectify -- the
-# pipelines and examples that use them, and the wheel in the python
-# requirements. The user's call, recorded in `design/STATUS.md`: a wheel is
-# not a build dependency.
+# `VIAME_ENABLE_OPENCV` is `VIAME_ENABLE_IMAGE_PROCESSING` now. The option
+# outlived what it described twice over: first OpenCV's C++, which P7
+# deleted, then cv2 in python, which the applets came off in the same phase.
+# What it has always really gated is a feature set -- the calibrate, depth,
+# disparity, mosaic, register, 3d and rectify applets, the stereo and
+# registration pipelines, and the examples that drive them -- so it is named
+# for that. `viame_options.cmake` honours the old spelling for one release.
 ##
 
 ###

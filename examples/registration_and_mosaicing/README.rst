@@ -213,7 +213,7 @@ These are the build flags required to run this example, if building from the sou
 
 In the pre-built binaries OpenCV is enabled by default.
 
-| VIAME_ENABLE_OPENCV set to ON (optional - for default operation)
+| VIAME_ENABLE_IMAGE_PROCESSING set to ON (optional - for default operation)
 
 ********************
 Code Used in Example
