@@ -254,18 +254,18 @@ three_channel(
 // handing their 0..360 hue to the 8-bit form silently halves it.
 template < typename T >
 py::array
-to_hsv( array_of< T > const& array )
+to_hsv( array_of< T > const& array, bool full )
 {
   auto const source = as_image( three_channel( array, "to_hsv" ) );
-  return as_array( VIAME_KERNEL_CALL( rgb_to_hsv, source ), true );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_hsv, source, full ), true );
 }
 
 template < typename T >
 py::array
-from_hsv( array_of< T > const& array )
+from_hsv( array_of< T > const& array, bool full )
 {
   auto const source = as_image( three_channel( array, "from_hsv" ) );
-  return as_array( VIAME_KERNEL_CALL( hsv_to_rgb, source ), true );
+  return as_array( VIAME_KERNEL_CALL( hsv_to_rgb, source, full ), true );
 }
 
 template < typename T >
@@ -993,9 +993,20 @@ warp_perspective( array_of< T > const& array,
                   py::array_t< double, py::array::c_style | py::array::forcecast > const& transform,
                   size_t width, size_t height,
                   std::string const& interpolation, std::string const& border,
-                  double constant )
+                  double constant, bool inverse )
 {
   auto const source = as_image( array );
+
+  if( inverse )
+  {
+    return as_array(
+      VIAME_KERNEL_CALL( warp_perspective_inverse,
+        source, as_matrix_3x3( transform ),
+        width ? width : source.width(), height ? height : source.height(),
+        as_interpolation( interpolation ), as_border( border ), constant ),
+      array.ndim() == 3 );
+  }
+
   return as_array(
     VIAME_KERNEL_CALL( warp_perspective,
       source, as_matrix_3x3( transform ), width, height,
@@ -1009,7 +1020,7 @@ warp_affine( array_of< T > const& array,
              py::array_t< double, py::array::c_style | py::array::forcecast > const& transform,
              size_t width, size_t height,
              std::string const& interpolation, std::string const& border,
-             double constant )
+             double constant, bool inverse )
 {
   auto const buffer = transform.request();
 
@@ -1030,6 +1041,31 @@ warp_affine( array_of< T > const& array,
   }
 
   auto const source = as_image( array );
+
+  if( inverse )
+  {
+    viame::matrix_3x3d full;
+
+    for( unsigned row = 0; row < 2; ++row )
+    {
+      for( unsigned column = 0; column < 3; ++column )
+      {
+        full( row, column ) = affine( row, column );
+      }
+    }
+
+    full( 2, 0 ) = 0.0;
+    full( 2, 1 ) = 0.0;
+    full( 2, 2 ) = 1.0;
+
+    return as_array(
+      VIAME_KERNEL_CALL( warp_perspective_inverse,
+        source, full,
+        width ? width : source.width(), height ? height : source.height(),
+        as_interpolation( interpolation ), as_border( border ), constant ),
+      array.ndim() == 3 );
+  }
+
   return as_array(
     VIAME_KERNEL_CALL( warp_affine,
       source, affine, width, height, as_interpolation( interpolation ),
@@ -1814,6 +1850,14 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
   m.def ( "kernel_thread_count", &viame::image_kernels::kernel_thread_count,
           "Worker budget from VIAME_NUM_THREADS, read on first use." );
 
+  m.def ( "set_kernel_thread_count",
+          &viame::image_kernels::set_kernel_thread_count, py::arg( "count" ),
+          "Lower the worker budget for the rest of the process, or restore "
+          "the environment's with 0. This is what cv2.setNumThreads was for: "
+          "a dataloader worker turns it down so that eight workers do not "
+          "each spawn a thread per core. It cannot raise the budget above "
+          "what the pool was built with." );
+
   for_every_pixel_type(m, "resize_letterbox", &resize_letterbox<uint8_t>,
     &resize_letterbox<uint16_t>, &resize_letterbox<float>,
     py::arg("image"), py::arg("width"), py::arg("height"),
@@ -1853,15 +1897,20 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "RGB to BGR, or back." );
 
   for_both_pixel_types( m, "to_hsv", &to_hsv< uint8_t >, &to_hsv< float >,
-         py::arg( "image" ),
+         py::arg( "image" ), py::arg( "full" ) = false,
          "RGB to HSV, in the scaling the input type chooses -- as "
          "cv2.cvtColor does. uint8 gives hue 0..179 with saturation and "
          "value 0..255, OpenCV's 8-bit convention rather than a textbook's; "
-         "float32 gives hue 0..360 with the other two over 0..1." );
+         "float32 gives hue 0..360 with the other two over 0..1. With `full` "
+         "an 8-bit hue covers 0..255 instead, which is "
+         "cv2.COLOR_RGB2HSV_FULL; a float image is unchanged by it, as "
+         "OpenCV's is." );
 
   for_both_pixel_types( m, "from_hsv", &from_hsv< uint8_t >,
          &from_hsv< float >, py::arg( "image" ),
-         "HSV back to RGB, on whichever scale to_hsv gives that type." );
+         py::arg( "full" ) = false,
+         "HSV back to RGB, on whichever scale to_hsv gives that type. "
+         "`full` is the same flag, cv2.COLOR_HSV2RGB_FULL." );
 
   for_both_pixel_types( m, "to_hls", &to_hls< uint8_t >, &to_hls< float >,
          py::arg( "image" ),
@@ -2139,8 +2188,13 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "transform" ), py::arg( "width" ) = 0,
          py::arg( "height" ) = 0, py::arg( "interpolation" ) = "bilinear",
          py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,
+         py::arg( "inverse" ) = false,
          "cv2.warpPerspective. The transform maps source to destination; "
-         "a zero width or height keeps the source's." );
+         "a zero width or height keeps the source's. With `inverse` the "
+         "transform is taken as already mapping destination to source, which "
+         "is cv2.WARP_INVERSE_MAP -- and is not the same answer as inverting "
+         "it first and letting this invert it back, which costs a grey level "
+         "here and there." );
 
   for_every_pixel_type( m, "warp_affine", &warp_affine< uint8_t >,
          &warp_affine< uint16_t >,
@@ -2148,7 +2202,9 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "transform" ), py::arg( "width" ) = 0,
          py::arg( "height" ) = 0, py::arg( "interpolation" ) = "bilinear",
          py::arg( "border" ) = "constant", py::arg( "constant" ) = 0.0,
-         "cv2.warpAffine, by a two by three matrix." );
+         py::arg( "inverse" ) = false,
+         "cv2.warpAffine, by a two by three matrix. `inverse` is the flag "
+         "warp_perspective takes, cv2.WARP_INVERSE_MAP." );
 
   for_both_pixel_types( m, "find_contours", &find_contours< uint8_t >,
          &find_contours< uint16_t >, py::arg( "mask" ),

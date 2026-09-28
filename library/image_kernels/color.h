@@ -112,12 +112,13 @@ require_planes( viame::image_of< T > const& image, size_t wanted,
 struct hsv_tables
 {
   static constexpr int shift = 12;
-  static constexpr int range = 180;
 
+  int range;
   std::array< int, 256 > saturation;
   std::array< int, 256 > hue;
 
-  hsv_tables()
+  explicit hsv_tables( int hue_range )
+    : range( hue_range )
   {
     saturation[ 0 ] = 0;
     hue[ 0 ] = 0;
@@ -134,11 +135,19 @@ struct hsv_tables
   }
 };
 
+/// The half-degree tables, or the full-byte ones OpenCV's `_FULL` codes use.
+///
+/// `cv::COLOR_RGB2HSV_FULL` is the same integer path with the circle spread
+/// over the whole byte instead of over 180, which in OpenCV is one `hrange`
+/// threaded through the table and the wrap. It is threaded through here the
+/// same way rather than being a second copy of the loop.
 inline hsv_tables const&
-hsv_table()
+hsv_table( bool full = false )
 {
-  static hsv_tables const tables;
-  return tables;
+  static hsv_tables const halved( 180 );
+  static hsv_tables const whole( 256 );
+
+  return full ? whole : halved;
 }
 
 // ----------------------------------------------------------------------------
@@ -270,9 +279,13 @@ swap_rb( viame::image_of< T > const& image )
 ///
 /// For a floating point pixel type the ranges are the conventional ones:
 /// hue 0..360, saturation and value 0..1, which is also what OpenCV does.
+///
+/// With `full` set, an 8 bit hue covers 0..255 instead of 0..179 --
+/// `cv::COLOR_RGB2HSV_FULL`. A float image is unaffected, as OpenCV's `_FULL`
+/// code is, since 0..360 is already the whole circle.
 template < typename T >
 viame::image_of< T >
-rgb_to_hsv( viame::image_of< T > const& image )
+rgb_to_hsv( viame::image_of< T > const& image, bool full = false )
 {
   detail::require_planes( image, 3, "rgb_to_hsv" );
 
@@ -283,7 +296,7 @@ rgb_to_hsv( viame::image_of< T > const& image )
 
   if constexpr( std::is_same< T, uint8_t >::value )
   {
-    auto const& table = detail::hsv_table();
+    auto const& table = detail::hsv_table( full );
     constexpr int shift = detail::hsv_tables::shift;
     constexpr int half = 1 << ( shift - 1 );
 
@@ -314,7 +327,7 @@ rgb_to_hsv( viame::image_of< T > const& image )
 
         if( hue < 0 )
         {
-          hue += detail::hsv_tables::range;
+          hue += table.range;
         }
 
         auto const saturation =
@@ -612,9 +625,12 @@ hls_to_rgb( viame::image_of< T > const& image )
 
 // ----------------------------------------------------------------------------
 /// HSV back to RGB, undoing `rgb_to_hsv` in the same scaling.
+///
+/// `full` is the flag `rgb_to_hsv` takes: an 8 bit hue over 0..255 rather
+/// than 0..179, which is `cv::COLOR_HSV2RGB_FULL`.
 template < typename T >
 viame::image_of< T >
-hsv_to_rgb( viame::image_of< T > const& image )
+hsv_to_rgb( viame::image_of< T > const& image, bool full = false )
 {
   detail::require_planes( image, 3, "hsv_to_rgb" );
 
@@ -643,7 +659,12 @@ hsv_to_rgb( viame::image_of< T > const& image )
       { { 1, 3, 0 }, { 1, 0, 2 }, { 3, 0, 1 },
         { 0, 2, 1 }, { 0, 1, 3 }, { 2, 1, 0 } };
 
-    constexpr float hue_scale = 6.0f / 180.0f;
+    // 255, not the 256 the forward table uses. OpenCV's two `hrange`
+    // choices are not each other's inverse: `RGB2HSV_FULL` spreads the
+    // circle over 256 and `HSV2RGB_FULL` reads it back over 255, so a
+    // round trip through the pair is not the identity even in principle.
+    // Both halves are reproduced as they are.
+    float const hue_scale = full ? 6.0f / 255.0f : 6.0f / 180.0f;
     constexpr float inverse = 1.0f / 255.0f;
 
     for( size_t j = 0; j < image.height(); ++j )
@@ -676,19 +697,47 @@ hsv_to_rgb( viame::image_of< T > const& image )
         // skipped in the middle is visible: unfused leaves 1758 of the
         // 11796480 triples a count out, fused leaves **none**. `1 - s` is
         // left alone, since there is no product inside it to fuse with.
+        // Fused on the half-degree scale and unfused on the full one, for
+        // the same reason the store below truncates on one and rounds on the
+        // other: the two are different roads through OpenCV. Fusing costs 89
+        // of the 50331648 plane values on an exhaustive `_FULL` sweep and
+        // not fusing costs 1758 of the 11796480 legal triples on the other,
+        // so each road gets the form that is exact for it.
+        float const paired = full
+          ? detail::exact( 1.0f - detail::exact( saturation * hue ) )
+          : std::fma( -saturation, hue, 1.0f );
+        float const complement = full
+          ? detail::exact(
+              1.0f - detail::exact( saturation * ( 1.0f - hue ) ) )
+          : std::fma( -saturation, 1.0f - hue, 1.0f );
+
         float const tab[ 4 ] = {
           value,
           value * ( 1.0f - saturation ),
-          value * std::fma( -saturation, hue, 1.0f ),
-          value * std::fma( -saturation, 1.0f - hue, 1.0f ) };
+          value * paired,
+          value * complement };
 
         for( int k = 0; k < 3; ++k )
         {
           // sector_data gives blue, green, red in that order
           auto const scaled = tab[ sector_data[ sector ][ 2 - k ] ] * 255.0f;
 
+          // Truncated on the half-degree scale and **rounded** on the full
+          // one. Not a choice: `COLOR_HSV2RGB` on a wide row finishes in the
+          // vectorised body, which truncates, and `COLOR_HSV2RGB_FULL` does
+          // not take that body at all -- its hue does not fit the fixed
+          // point the SIMD path is written for -- so it ends in the scalar
+          // `saturate_cast< uchar >`, which rounds. Over a 256 by 256 block
+          // of every legal triple, truncating is exact for the first and
+          // wrong on 34 percent of the second, and rounding is the other way
+          // round. This is the same split as finding 2.56, with the cause
+          // named: `_FULL` is the scalar road every time.
+          auto const quantised = full
+            ? static_cast< int >( std::nearbyint( scaled ) )
+            : static_cast< int >( scaled );
+
           out( i, j, static_cast< size_t >( k ) ) = static_cast< uint8_t >(
-            std::min( std::max( static_cast< int >( scaled ), 0 ), 255 ) );
+            std::min( std::max( quantised, 0 ), 255 ) );
         }
       }
     }

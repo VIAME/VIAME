@@ -26,6 +26,19 @@ set_target_properties( viame_test_external_plugin PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   )
 
+###
+# A real shared library that is not a plugin
+#
+# Deliberately not libviame, which is what this was: see `not_a_plugin.cxx`.
+##
+add_library( viame_test_not_a_plugin MODULE
+  not_a_plugin.cxx
+  )
+
+set_target_properties( viame_test_not_a_plugin PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+  )
+
 viame_discover_gtests( viame external_plugins
   LIBRARIES kwiver::vital
             kwiver::vital_vpm
@@ -33,14 +46,17 @@ viame_discover_gtests( viame external_plugins
             viame_registry
             GTest::gtest )
 
-add_dependencies( test-viame-external_plugins viame_test_external_plugin )
+add_dependencies( test-viame-external_plugins viame_test_external_plugin
+                                               viame_test_not_a_plugin )
 
 target_compile_definitions( test-viame-external_plugins PRIVATE
   "VIAME_TEST_EXTERNAL_PLUGIN=\"$<TARGET_FILE:viame_test_external_plugin>\""
-  # A real shared library that is not a plugin: libviame itself, which
-  # exports no `viame_register_plugin`. It was `viame_config` until that was
-  # folded into it.
-  "VIAME_TEST_NOT_A_PLUGIN=\"$<TARGET_FILE:viame_library>\"" )
+  # A real shared library that is not a plugin, built here for the purpose.
+  # It was libviame itself, which the test binary already links -- so under
+  # `setup_viame.sh` the dlopen loaded a *second* copy of it from the build
+  # tree beside the install one the process had, and the heap corrupted at
+  # exit. `not_a_plugin.cxx` has the account.
+  "VIAME_TEST_NOT_A_PLUGIN=\"$<TARGET_FILE:viame_test_not_a_plugin>\"" )
 
 ###
 # The logger

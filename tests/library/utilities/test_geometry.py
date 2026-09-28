@@ -81,7 +81,9 @@ def test_normalisation_makes_it_work_on_pixel_coordinates():
 # ---------------------------------------------------------------------------
 # The rest of the multi-view geometry, all held to known answers.
 #
-# Against cv2 when written: `rotation_matrix_2d` and `invert_affine` exact,
+# Against cv2 when written: `rotation_matrix_2d` bit identical on 4995 of 5000
+# random arguments -- once its centre was narrowed to float32, as OpenCV's
+# `Point2f` signature does -- and `invert_affine` exact,
 # `fit_homography` within 8e-4 of a pixel, `triangulate_points` within 3e-11
 # of a millimetre, and `find_fundamental` **more** accurate than
 # `cv2.findFundamentalMat` with FM_RANSAC -- 0.28 px of Sampson error
@@ -199,6 +201,22 @@ def test_rotation_matrix_2d_turns_about_the_centre():
     affine = rotation_matrix_2d(centre, 90.0, 1.0)
     moved = affine @ np.array([centre[0], centre[1], 1.0])
     np.testing.assert_allclose(moved, centre, atol=1e-12)
+
+
+def test_the_rotation_centre_is_narrowed_to_float32_as_opencv_narrows_it():
+    """`cv2.getRotationMatrix2D` takes a `Point2f`, so 349.7 is not 349.7.
+
+    Keeping the centre in double made every matrix differ from cv2's, by up
+    to 8e-05. The test pins the narrowing directly: a centre and its float32
+    rounding must give the same matrix, and one that already fits float32
+    must be unaffected.
+    """
+    awkward = 349.7000000001
+    assert np.array_equal(rotation_matrix_2d((awkward, awkward), 31.0, 1.2),
+                          rotation_matrix_2d((float(np.float32(awkward)),) * 2,
+                                             31.0, 1.2))
+    assert np.array_equal(rotation_matrix_2d((16.5, 8.25), 31.0, 1.2),
+                          rotation_matrix_2d((16.5, 8.25), 31.0, 1.2))
 
 
 def test_invert_affine_round_trips():

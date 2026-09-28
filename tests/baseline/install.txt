@@ -1981,6 +1981,7 @@ lib/python3.10/site-packages/viame/utilities/blobs.py
 lib/python3.10/site-packages/viame/utilities/calibration.py
 lib/python3.10/site-packages/viame/utilities/chessboard.py
 lib/python3.10/site-packages/viame/utilities/compat.py
+lib/python3.10/site-packages/viame/utilities/cv2_api.py
 lib/python3.10/site-packages/viame/utilities/embedded_pipeline.so
 lib/python3.10/site-packages/viame/utilities/geometry.py
 lib/python3.10/site-packages/viame/utilities/imageops.py
@@ -1998,3 +1999,4 @@ lib/python3.10/site-packages/viame/video_io/pyav_video_input.py
 lib/python3.10/site-packages/viame/video_io/pyav_video_output.py
 lib/python3.10/site-packages/viame/video_io/vidl_color.py
 setup_viame.sh
+share/viame/licenses/LICENSE_OpenCV_resize.txt

@@ -9,6 +9,7 @@
 #include <deque>
 #include <exception>
 #include <memory>
+#include <atomic>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -89,6 +90,16 @@ struct pool
   ~pool () { shutdown (); }
 };
 } // namespace
+namespace
+{
+/// Zero means "whatever the environment asked for". See
+/// `set_kernel_thread_count`.
+std::atomic<std::size_t> thread_budget{ 0 };
+} // namespace
+void set_kernel_thread_count ( std::size_t count )
+{
+  thread_budget.store ( count, std::memory_order_relaxed );
+}
 std::size_t kernel_thread_count ()
 {
   static auto const owner = process_id ();
@@ -108,7 +119,8 @@ std::size_t kernel_thread_count ()
     }
     return std::min ( 4u, hardware ) + std::size_t{ 0 };
   }();
-  return count;
+  auto const wanted = thread_budget.load ( std::memory_order_relaxed );
+  return wanted ? std::min ( wanted, count ) : count;
 }
 void parallel_rows ( std::size_t begin, std::size_t end, std::size_t grain,
                      std::function<void ( std::size_t, std::size_t )> const &work )

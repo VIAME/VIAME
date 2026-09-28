@@ -9,6 +9,7 @@ from viame.image_kernels._image_kernels import (  # noqa: F401
     GaussianWorkspace,
     StereoWorkspace,
     kernel_thread_count,
+    set_kernel_thread_count,
     add_weighted,
     approx_poly,
     arc_length,
@@ -133,6 +134,7 @@ __all__ = [
     "optical_flow",
     "remap",
     "resize",
+    "set_kernel_thread_count",
     "resize_area",
     "resize_letterbox",
     "smooth_globally",
@@ -198,17 +200,24 @@ def remap(image, map_x, map_y, interpolation="bilinear", border="constant",
 
 
 def warp_affine(image, transform, width=0, height=0,
-                interpolation="bilinear", border="constant", constant=0.0):
-    """cv2.warpAffine. `constant` may be a scalar or one value per plane."""
+                interpolation="bilinear", border="constant", constant=0.0,
+                inverse=False):
+    """cv2.warpAffine. `constant` may be a scalar or one value per plane.
+
+    `inverse` takes the transform as already mapping destination to source,
+    which is cv2.WARP_INVERSE_MAP.
+    """
     return _per_plane(_warp_affine, image, constant, transform,
                       width=width, height=height,
-                      interpolation=interpolation, border=border)
+                      interpolation=interpolation, border=border,
+                      inverse=inverse)
 
 
 def warp_perspective(image, transform, width=0, height=0,
                      interpolation="bilinear", border="constant",
-                     constant=0.0):
+                     constant=0.0, inverse=False):
     """cv2.warpPerspective. `constant` may be a scalar or one per plane."""
     return _per_plane(_warp_perspective, image, constant, transform,
                       width=width, height=height,
-                      interpolation=interpolation, border=border)
+                      interpolation=interpolation, border=border,
+                      inverse=inverse)

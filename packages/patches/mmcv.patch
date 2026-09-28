@@ -1,0 +1,157 @@
+diff --git a/mmcv/image/colorspace.py b/mmcv/image/colorspace.py
+index fe3cdc5..3ab7a3b 100644
+--- a/mmcv/image/colorspace.py
++++ b/mmcv/image/colorspace.py
+@@ -1,7 +1,9 @@
+ # Copyright (c) OpenMMLab. All rights reserved.
+ from typing import Callable, Union
+ 
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import numpy as np
+ 
+ 
+diff --git a/mmcv/image/geometric.py b/mmcv/image/geometric.py
+index b8a3cb1..f8a994b 100644
+--- a/mmcv/image/geometric.py
++++ b/mmcv/image/geometric.py
+@@ -2,7 +2,9 @@
+ import numbers
+ from typing import List, Optional, Tuple, Union, no_type_check
+ 
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import numpy as np
+ 
+ from ..utils import to_2tuple
+diff --git a/mmcv/image/io.py b/mmcv/image/io.py
+index 6492460..42c6f9f 100644
+--- a/mmcv/image/io.py
++++ b/mmcv/image/io.py
+@@ -5,10 +5,13 @@ import warnings
+ from pathlib import Path
+ from typing import Optional, Union
+ 
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import numpy as np
+-from cv2 import (IMREAD_COLOR, IMREAD_GRAYSCALE, IMREAD_IGNORE_ORIENTATION,
+-                 IMREAD_UNCHANGED)
++from viame.utilities.cv2_api import (IMREAD_COLOR, IMREAD_GRAYSCALE,
++                                    IMREAD_IGNORE_ORIENTATION,
++                                    IMREAD_UNCHANGED)
+ 
+ from mmcv.fileio import FileClient
+ from mmcv.utils import is_filepath, is_str
+diff --git a/mmcv/image/photometric.py b/mmcv/image/photometric.py
+index 2f2cfd0..0741e45 100644
+--- a/mmcv/image/photometric.py
++++ b/mmcv/image/photometric.py
+@@ -2,7 +2,9 @@
+ import warnings
+ from typing import Optional
+ 
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import numpy as np
+ from PIL import Image, ImageEnhance
+ 
+diff --git a/mmcv/utils/env.py b/mmcv/utils/env.py
+index 83f42b6..a383c42 100644
+--- a/mmcv/utils/env.py
++++ b/mmcv/utils/env.py
+@@ -6,7 +6,6 @@ import subprocess
+ import sys
+ from collections import defaultdict
+ 
+-import cv2
+ import torch
+ 
+ import mmcv
+@@ -116,7 +115,9 @@ def collect_env():
+     except ModuleNotFoundError:
+         pass
+ 
+-    env_info['OpenCV'] = cv2.__version__
++    # VIAME: there is no OpenCV to report. Every cv2 call in this package
++    # goes through `viame.utilities.cv2_api`, over VIAME's own kernels.
++    env_info['OpenCV'] = 'not installed (viame.utilities.cv2_api)'
+ 
+     env_info['MMCV'] = mmcv.__version__
+ 
+diff --git a/mmcv/video/io.py b/mmcv/video/io.py
+index 0b2b688..03d79a8 100644
+--- a/mmcv/video/io.py
++++ b/mmcv/video/io.py
+@@ -2,10 +2,15 @@
+ import os.path as osp
+ from collections import OrderedDict
+ 
+-import cv2
+-from cv2 import (CAP_PROP_FOURCC, CAP_PROP_FPS, CAP_PROP_FRAME_COUNT,
+-                 CAP_PROP_FRAME_HEIGHT, CAP_PROP_FRAME_WIDTH,
+-                 CAP_PROP_POS_FRAMES, VideoWriter_fourcc)
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
++from viame.utilities.cv2_api import (CAP_PROP_FOURCC, CAP_PROP_FPS,
++                                    CAP_PROP_FRAME_COUNT,
++                                    CAP_PROP_FRAME_HEIGHT,
++                                    CAP_PROP_FRAME_WIDTH,
++                                    CAP_PROP_POS_FRAMES,
++                                    VideoWriter_fourcc)
+ 
+ from mmcv.utils import (check_file_exist, mkdir_or_exist, scandir,
+                         track_progress)
+diff --git a/mmcv/video/optflow.py b/mmcv/video/optflow.py
+index 91ce004..11c499b 100644
+--- a/mmcv/video/optflow.py
++++ b/mmcv/video/optflow.py
+@@ -2,7 +2,9 @@
+ import warnings
+ from typing import Tuple, Union
+ 
+-import cv2
++# VIAME: `imageops.decode_unchanged` is `cv2.imdecode` with
++# IMREAD_UNCHANGED, and it decodes to RGB rather than BGR.
++from viame.utilities import imageops
+ import numpy as np
+ 
+ from mmcv.arraymisc import dequantize, quantize
+@@ -263,9 +265,10 @@ def sparse_flow_from_bytes(content: bytes) -> Tuple[np.ndarray, np.ndarray]:
+         and flow valid mask with the shape (H, W).
+     """  # nopa
+ 
+-    content = np.frombuffer(content, np.uint8)
+-    flow = cv2.imdecode(content, cv2.IMREAD_ANYDEPTH | cv2.IMREAD_COLOR)
+-    flow = flow[:, :, ::-1].astype(np.float32)
++    # VIAME: the decode keeps the stored bit depth and comes back RGB, so
++    # the channel reverse this had -- which was undoing cv2's BGR -- goes
++    # with it.
++    flow = imageops.decode_unchanged(content).astype(np.float32)
+     # flow shape (H, W, 2) valid shape (H, W)
+     flow, valid = flow[:, :, :2], flow[:, :, 2]
+     flow = (flow - 2**15) / 64.0
+diff --git a/mmcv/visualization/image.py b/mmcv/visualization/image.py
+index e7ac4c1..171aa51 100644
+--- a/mmcv/visualization/image.py
++++ b/mmcv/visualization/image.py
+@@ -1,7 +1,9 @@
+ # Copyright (c) OpenMMLab. All rights reserved.
+ from typing import List, Optional, Union
+ 
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import numpy as np
+ 
+ from mmcv.image import imread, imwrite

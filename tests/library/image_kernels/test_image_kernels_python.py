@@ -7,6 +7,8 @@ classifier preprocessing were trained against that convention.
 import numpy as np
 import pytest
 
+from viame import image_kernels
+
 from viame.image_kernels import (add_weighted, approx_poly, arc_length,
                                  bounding_rect,
                                  box_blur, canny, clahe, contour_area,
@@ -241,6 +243,39 @@ def test_grey_has_no_saturation():
     grey = np.full((4, 4, 3), 128, dtype=np.uint8)
     assert to_hsv(grey)[..., 1].max() == 0
     assert to_hls(grey)[..., 2].max() == 0
+
+
+def test_the_full_hue_range_spreads_the_circle_over_the_whole_byte():
+    """`cv2.COLOR_RGB2HSV_FULL`: red 0, green 85, blue 170, not 0, 60, 120.
+
+    `mmcv.image.adjust_hue` is the caller that wants this, and it wants the
+    inverse too.
+    """
+    primaries = np.array([[[255, 0, 0], [0, 255, 0], [0, 0, 255]]],
+                         dtype=np.uint8)
+    assert list(to_hsv(primaries, full=True)[0, :, 0]) == [0, 85, 171]
+    assert list(to_hsv(primaries)[0, :, 0]) == [0, 60, 120]
+
+
+def test_the_full_hue_range_inverse_reads_the_circle_back_over_255():
+    """Not 256 -- OpenCV's two directions disagree, and finding 2.73 says so.
+
+    Hue 85 of 255 is two sixths of the way round, which is pure green; over
+    256 it would fall a hair short and leak a count of red.
+    """
+    hue = np.array([[[0, 255, 255], [85, 255, 255], [170, 255, 255],
+                     [255, 255, 255]]], dtype=np.uint8)
+    assert from_hsv(hue, full=True)[0].tolist() == [[255, 0, 0], [0, 255, 0],
+                                                    [0, 0, 255], [255, 0, 0]]
+
+
+def test_the_full_hue_range_leaves_a_float_image_alone():
+    """A float hue is already 0..360, so `_FULL` has nothing to change --
+    which is what OpenCV's own dispatch does with it."""
+    frame = np.random.default_rng(4).random((8, 12, 3)).astype(np.float32)
+    assert np.array_equal(to_hsv(frame, full=True), to_hsv(frame))
+    hsv = to_hsv(frame)
+    assert np.array_equal(from_hsv(hsv, full=True), from_hsv(hsv))
 
 
 # ---------------------------------------------------------------------------
@@ -1050,6 +1085,79 @@ def test_contour_area_and_bounding_rect_match_the_shape():
 
 def test_an_empty_mask_traces_nothing():
     assert find_contours(np.zeros((10, 10), dtype=np.uint8)) == []
+
+
+def test_a_hole_after_a_gap_still_belongs_to_its_component():
+    """Finding 2.74: the border number survives a run of background.
+
+    Suzuki and Abe clear `LNBD` at the start of a scan line, not at every
+    background pixel. A mask whose row crosses the component, leaves it, and
+    re-enters at a hole is the case that tells the two apart: clearing it
+    orphaned the hole into a second top-level border, and the flattening then
+    put the hole **before** the component it belongs to.
+    """
+    mask = np.zeros((9, 14), dtype=np.uint8)
+    mask[1:8, 1:6] = 1                    # a solid block on the left
+    mask[2:7, 7:13] = 1                   # a ring on the right
+    mask[4, 9:11] = 0                     # its hole, past a gap of background
+    borders = image_kernels.find_borders(mask)
+    holes = [is_hole for _points, is_hole in borders]
+    assert holes.count(True) == 1
+    assert holes.index(True) > 0, "a hole cannot precede every outer border"
+
+
+def test_every_border_of_a_ring_comes_out_outer_then_hole():
+    mask = np.zeros((20, 20), dtype=np.uint8)
+    mask[3:17, 3:17] = 1
+    mask[7:13, 7:13] = 0
+    borders = image_kernels.find_borders(mask)
+    assert [is_hole for _points, is_hole in borders] == [False, True]
+    outer, hole = (points for points, _ in borders)
+    assert len(outer) == 52 and len(hole) == 24
+
+
+def test_an_island_inside_a_hole_is_a_border_of_its_own():
+    """Finding 2.74: it was traced and then dropped by the flattening.
+
+    `RETR_CCOMP` is a two-level tree by definition, so an island inside a
+    ring's hole belongs at the **top** level -- an outer border, not a child
+    of the hole it sits in. Filing it under the hole meant the flattening,
+    which walks one level of children, never emitted it, and this mask gave
+    two borders where cv2 gives three.
+    """
+    mask = np.zeros((40, 40), dtype=np.uint8)
+    mask[2:38, 2:38] = 1
+    mask[8:32, 8:32] = 0
+    mask[14:26, 14:26] = 1
+    borders = image_kernels.find_borders(mask)
+    assert len(borders) == 3
+    assert sorted(is_hole for _points, is_hole in borders) == [False, False,
+                                                              True]
+    island = min((points for points, is_hole in borders if not is_hole),
+                 key=len)
+    assert island[:, 0].min() == 14 and island[:, 0].max() == 25
+
+
+def test_a_ring_inside_a_ring_gives_all_four_borders():
+    mask = np.zeros((40, 40), dtype=np.uint8)
+    mask[2:38, 2:38] = 1
+    mask[6:34, 6:34] = 0
+    mask[10:30, 10:30] = 1
+    mask[14:26, 14:26] = 0
+    borders = image_kernels.find_borders(mask)
+    assert sorted(is_hole for _points, is_hole in borders) == [False, False,
+                                                              True, True]
+
+
+def test_a_single_pixel_island_is_not_lost():
+    mask = np.zeros((9, 9), dtype=np.uint8)
+    mask[1:8, 1:8] = 1
+    mask[3:6, 3:6] = 0
+    mask[4, 4] = 1
+    borders = image_kernels.find_borders(mask)
+    assert len(borders) == 3
+    assert [len(points) for points, is_hole in borders
+            if not is_hole and len(points) == 1] == [1]
 
 
 def test_convex_hull_drops_the_interior_point():

@@ -2416,11 +2416,9 @@ Three call sites, each behind an import inside the function that needs it:
 | `image_viewer._display` and the annotation | `namedWindow`, `imshow`, `waitKey`, and `getTextSize`/`copyMakeBorder`/`putText` | highgui is a window toolkit rather than an algorithm and `image_kernels` should not grow one. The text **could** move to `draw_text`, and deliberately has not: it would change the on-screen glyphs from Hershey's to our 5x7 font without removing the dependency the window needs |
 | `calibrate.estimate_essential_from_stereo_frames` | `findEssentialMat` only | **`recoverPose` is ported** -- `geometry.recover_pose`, exact. `findEssentialMat` was attempted and measured as not good enough for this caller: finding 2.72 has the numbers, and the short answer is that eight points plus a projection onto the essential manifold has a 58 degree ninetieth-percentile translation error where OpenCV's five-point has 13, at the baseline a stereo rig presents. Closing it means the five-point solver, around a thousand lines, and it would remove no dependency |
 
-**Removing the `opencv-python-headless` declaration is still blocked on the
-vendored packages**, not on our code: `mmcv`, `mmdet`, `imgaug`, `mmdeploy` and
-`sam2` under `packages/pytorch-libs` import cv2 in 82 files and are installed
-into `site-packages` by a normal build. Port them, make them an optional extra,
-or drop them from lite -- the extra is the cheap one, and it needs a decision.
+**Removing the `opencv-python-headless` declaration is blocked on the vendored
+packages**, not on our code. `mmcv` and `mmdetection` are done -- the section
+below -- and `imgaug` is what is left of the ones a default build installs.
 
 ## The essential matrix: two of three ported, and the third measured
 
@@ -2448,3 +2446,153 @@ re-collecting inliers and refitting -- LO-RANSAC -- improved the median again
 and introduced 180 degree failures on two scenes of forty, the twisted-pair
 ambiguity resolving the wrong way, and is reverted with a comment where
 someone would otherwise add it back.
+
+
+## mmcv and mmdetection off cv2 (2026-09-27)
+
+`import mmdet` now works with no OpenCV installed. That was the whole of the
+remaining blocker on the mmdet side, and it took a compatibility module, two
+small diffs, and a mechanism for carrying diffs to a vendored package.
+
+**What the packages actually use, measured rather than guessed.** Reading
+every call site: `mmcv` reaches cv2 from 8 modules, `mmdetection` from 5,
+`imgaug` from 14 and `mmdeploy` from 1. Two files that `grep` flags in
+mmdetection -- `solo_head.py` and `solov2_head.py` -- turned out to contain
+the words "different from cv2" in a comment and no import at all.
+
+**`viame.utilities.cv2_api`** is the slice of cv2's Python API those packages
+use, over `image_kernels`, `imageops`, `geometry` and `video_io.frames`. A
+name OpenCV has and nothing here wants is **absent**, so a new call site fails
+at the attribute rather than quietly on the result. The flag values are
+OpenCV's own integers, because mmcv stores them in configuration dictionaries.
+Channel order is handled in the module rather than at the call sites: each
+`cvtColor` code carries the swap it needs, and `imread`/`imdecode`/`imencode`/
+`imwrite` keep cv2's BGR, because mmcv's own contract with mmdet is BGR
+arrays. That is the one boundary where the tree's normalise-to-RGB rule gives
+way, and it says so.
+
+**Verified against cv2, 96 calls of it, before a line of either package was
+touched.** Every one of `cvtColor` (19 codes), `resize` (4 interpolations),
+`flip`, `LUT`, `split`/`merge`, `add`/`subtract`/`multiply`, `addWeighted`,
+`copyMakeBorder` (5 border rules), `getRotationMatrix2D`,
+`getPerspectiveTransform`, `perspectiveTransform`, `warpAffine`,
+`warpPerspective`, `remap`, `filter2D`, `blur`, `GaussianBlur`, `medianBlur`,
+`Canny`, `equalizeHist`, `CLAHE`, `dilate`/`erode`/`morphologyEx`,
+`normalize`, `connectedComponentsWithStats`, `findContours`, `minAreaRect`,
+`boxPoints`, `contourArea`, `arcLength`, `boundingRect`, `imread`, `imwrite`,
+`imencode` and `imdecode` agrees with cv2, at the tolerance each one's
+underlying kernel is already recorded at.
+
+**Then end to end, which is the test that matters.** 66 calls of mmcv's image
+API and 54 of mmdet's, run twice in the same install -- once with the pristine
+files and real cv2, once with the patched files and cv2 blocked out of
+`sys.modules` -- and diffed:
+
+| | exact | within one count | different |
+|---|---|---|---|
+| mmcv, 66 calls | 61 | 5 | 0 |
+| mmdetection, 54 calls | 53 | 1 | 0 |
+
+`imnormalize_`, every `imresize` interpolation, `imrescale`, `impad` in every
+mode, `imcrop`, all four `adjust_*`, `adjust_hue` (which is the `_FULL` HSV
+pair, finding 2.73), `clahe`, `imequalize`, `lut_transform`, `imtranslate`,
+`imconvert`, `imread`/`imwrite`/`imfrombytes` on PNG and JPEG,
+`bitmap_to_polygon` on nine masks, `PolygonMasks.rotate`, `YOLOXHSVRandomAug`
+and the `Rotate` augmentation are **bit identical**. The six that are not are
+each one count: three `imrotate` calls and one `RandomAffine` differ on one to
+three pixels of nine thousand, where cv2 interpolates on a five-bit fixed
+point and the kernels use doubles; `imshear` differs on 4 percent of pixels
+for the same reason; and a **grayscale** `imread` differs on about half,
+because `cv2.imread(..., IMREAD_GRAYSCALE)` converts inside libpng with
+`png_set_rgb_to_gray` and disagrees with OpenCV's own
+`cvtColor(imread(path), COLOR_BGR2GRAY)` by a count on just as many. What we
+give is that second answer, exactly.
+
+**Four bugs in our own kernels came out of doing this**, which is the usual
+result of comparing rather than assuming:
+
+* `find_borders` reset Suzuki and Abe's `LNBD` on every background pixel
+  instead of at the start of a row; it gave a hole the wrong parent.
+* A hole beginning on an already-numbered pixel at the left of its line had no
+  parent at all, so cv2 found four holes in an 8 by 8 mask where this found
+  one.
+* The flattening walked one level of children, so **an island inside a ring's
+  hole was traced and then never returned**. A ring with an island gave two
+  borders against cv2's three.
+* `geometry.rotation_matrix_2d` kept the centre in double where
+  `cv2.getRotationMatrix2D` takes a `Point2f`. Every matrix differed, by up to
+  8e-05 -- a tenth of a pixel at the corner of a 4K frame.
+
+All four are fixed, with tests, and findings 2.73 and 2.74 have the
+measurements. `find_borders` now agrees with cv2 on the borders, their points
+and their hole flags on **every one of 2500 random masks** and every built
+case; what differs on 1041 of them is the order, which is OpenCV 5's
+reflattening and is recorded rather than chased.
+
+**How the change is carried.** `packages/patches/<fork>/` copies whole files
+over a fork's source, which is right when a file is replaced and wrong when
+three lines of a nine hundred line module change: it puts somebody else's file
+in our repository and the copy goes stale in silence. The two packages would
+have cost about **ten thousand lines of copied upstream source**. So
+`packages/patches/<fork>.patch` is applied with `git apply` after any overlay
+-- `cmake/apply_fork_patch.cmake`, idempotent because a fork's source is a
+checked-out submodule that the build may see twice, and fatal with the
+submodule named when upstream has moved under it. mmcv and mmdetection are
+**385 lines of diff**.
+
+**Where the shim is and where the port is.** A file with one or two cv2 calls
+is ported to the kernels directly, as the sam2 patch was: `mmdet`'s
+`setup_env` calls `set_kernel_thread_count`, its visualisation counts
+components with `label_components`, `structures.py` traces with
+`find_borders` and rotates with `rotation_matrix_2d`, `transforms.py` warps
+and converts with the kernels, and `mmcv.video.optflow` decodes with
+`imageops`. The thick consumers -- `mmcv/image/{colorspace,geometric,io,
+photometric}.py`, `mmcv/video/io.py` and `mmcv/visualization/image.py` --
+import the shim as `cv2`, because rewriting seventeen call sites in
+`geometric.py` would be a port of mmcv rather than a removal of OpenCV.
+
+**Two kernels grew what this needed**, and both are useful on their own:
+`to_hsv`/`from_hsv` take a `full` flag (`COLOR_RGB2HSV_FULL`, finding 2.73),
+and `warp_affine`/`warp_perspective` take an `inverse` flag
+(`WARP_INVERSE_MAP`) so that a caller holding a destination-to-source matrix
+does not pay for a round trip through two inversions. `image_kernels` also
+gains `set_kernel_thread_count`, which is what `cv2.setNumThreads` was for,
+and `video_io.frames` gains `FrameReader` and `FrameWriter` --
+`cv2.VideoCapture` and `cv2.VideoWriter` over the same PyAV decode a pipeline
+uses.
+
+**What is left for the declaration to go**: `imgaug`, 14 modules, and it needs
+four things the kernels do not have -- `bilateralFilter`,
+`pyrMeanShiftFiltering`, `warpPolar`, and a float64 `Laplacian` -- plus the
+XYZ, LUV, YUV and YCrCb conversions, and its `setup.py` declares
+`opencv-python-headless` outright. `mmdeploy` is one file and only under
+`VIAME_ENABLE_ONNX`.
+
+## Two red tests that had nothing to do with cv2 (2026-09-27)
+
+Both had been failing for the whole of this session's runs and were put down
+to load contention. They are not that; they fail in isolation, and each has one
+cause.
+
+**Six `viame:logger` cases.** `logger_at` in the test sets
+`KWIVER_DEFAULT_LOG_LEVEL` and `level_from_environment` reads
+**`VIAME_LOG_LEVEL` first** -- which `setup_viame.sh` exports,
+`VIAME_LOG_LEVEL=${VIAME_LOG_LEVEL:-${KWIVER_DEFAULT_LOG_LEVEL:-debug}}`. So
+any run through the install's environment had `debug` already set and every
+level the helper asked for was ignored. The helper clears the newer name too
+now, and the seventeen cases pass.
+
+**`external_plugins.a_library_without_the_entry_point_is_skipped`.** The test
+passed and the process then died with `malloc_consolidate(): invalid chunk
+size`. `VIAME_TEST_NOT_A_PLUGIN` pointed at **libviame itself**: the test
+binary links it, and under `setup_viame.sh` it links the *install* copy while
+the test `dlopen`s the *build* copy by path, so the process carried two
+distinct loads of the same library, two sets of its globals, and a heap that
+corrupted on the way out. The loader never closes a handle, deliberately, so
+nothing undid it. The case wants "a real library that is not a plugin", and
+there is now a three-line one built for it.
+
+The install baseline is re-recorded for two intended additions:
+`viame/utilities/cv2_api.py`, and `share/viame/licenses/LICENSE_OpenCV_resize.txt`,
+which `library/image_kernels/CMakeLists.txt` has installed since the exact
+resize work and the manifest had never caught up with.

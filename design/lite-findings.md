@@ -4728,3 +4728,101 @@ import for highgui either way, and the `opencv-python-headless` declaration is
 blocked on the vendored packages, not on this. It is worth doing when someone
 wants five-point pose estimation for its own sake, and not to finish the
 removal.
+
+## 2.73 `_FULL` is a different road through `cvtColor`, not a rescaling
+
+`mmcv.image.adjust_hue` is the one caller in the vendored packages that asks
+for `cv2.COLOR_BGR2HSV_FULL` -- the same HSV conversion with the circle spread
+over the whole byte, 0..255, rather than over 0..179. The obvious reading is
+that `_FULL` is the ordinary conversion with one constant changed, so
+`rgb_to_hsv` and `hsv_to_rgb` took a `full` flag and the constant was changed.
+
+Three things came out of measuring that, and none of them is a rescaling.
+
+**The two directions do not use the same range.** `COLOR_RGB2HSV_FULL` spreads
+the circle over **256** and `COLOR_HSV2RGB_FULL` reads it back over **255**.
+Both are in OpenCV's own `cvtColor` dispatch, a line apart. So the pair is not
+an involution even in principle: hue 255 forward is unreachable and hue 255
+back is red, the same as hue 0. Reproduced as it is, in both halves. The
+forward table is exact over every one of the 16777216 triples; substituting 256
+in the inverse is wrong on 34 percent of the pixels of a random block, which is
+how the asymmetry was found rather than guessed.
+
+**The inverse rounds where the half-degree one truncates.** Finding 2.56
+recorded that `COLOR_HSV2RGB` truncates in its vectorised body and rounds in
+the scalar tail, so its answer depends on the width of the row. `_FULL` does
+not have that split: it rounds everywhere, on a 256-wide row as on a 1-wide
+one. The cause is now nameable -- the SIMD body is written for a hue that fits
+the fixed point 180 allows, `_FULL`'s does not fit it, and so `_FULL` takes the
+scalar road every time. Over a 256 by 256 block of reachable triples,
+truncating is exact for the half-degree code and wrong on 34 percent of the
+plane values for `_FULL`; rounding is exactly the other way round. Each branch
+therefore gets the store that is right for it, and the comment in `color.h`
+says which and why.
+
+**What is left is 88 of the 50331648 plane values** on an exhaustive sweep of
+every legal `_FULL` triple, every one of them a count either side, and every
+one of them a value landing within a millionth of a half. `42.50001907`
+rounding to 43 here and 42 there is a last-bit disagreement in a float that
+reaches a tie, not a difference in the algorithm. Fusing the `1 - s*h` product
+(which is what the half-degree path needs, finding 2.56 again) moves it from 88
+to 89, `v - v*s*h` does not move it, and neither does any other association
+tried. Recorded rather than chased: the half-degree pair, which is what every
+VIAME caller uses, stays exact over all 16777216 triples, and the one consumer
+of `_FULL` is a training-time hue jitter.
+
+## 2.74 Three bugs under `RETR_CCOMP`, and one difference that is OpenCV's
+
+`mmdet.core.mask.bitmap_to_polygon` is the one caller in the vendored packages
+that asks `findContours` for a hierarchy: it wants `RETR_CCOMP`, every border
+of every component, and then reads one column of the hierarchy to decide
+whether the mask has holes. `find_borders` has done `RETR_CCOMP` since the
+contour work, so wiring it up looked like a wrapper. Comparing it against cv2
+over two and a half thousand random masks and a handful of built ones said
+otherwise, three times over.
+
+**LNBD does not reset on background.** Suzuki and Abe carry `LNBD`, the last
+border number seen on the current scan line, and use it to decide a new
+border's parent. `find_borders` reset it to 1 at every background pixel. It is
+cleared at the **start of a row** and nowhere else: a run of background in the
+middle of a line leaves it alone, so a hole that begins after a gap still finds
+the outer border that claimed a pixel earlier on that line. Resetting it
+orphaned such a hole, and the symptom was a hole coming out before the
+component it belongs to.
+
+**A hole can begin on a pixel a border has already numbered**, and if that
+pixel is the first foreground one on its line there is no "last" border to ask
+-- the line opened with background, which carries no number. The pixel's own
+label is the answer: the border that wrote it is the one the hole is inside.
+Without that, cv2 found four holes in an 8 by 8 noise mask where this found
+one.
+
+**The flattening walked one level of children and dropped the rest.** This is
+the one that mattered. `RETR_CCOMP` is a two-level tree *by definition* --
+OpenCV's own documentation says a contour inside a hole of a component is put
+back at the top level -- so an outer border is a root however deep the nesting
+goes. `find_borders` filed every border under the parent Suzuki and Abe gave
+it, which for an island inside a ring's hole is the hole border, and then
+emitted only roots and their children. The island was traced and silently never
+returned. A ring with a solid island in it gave two borders where cv2 gives
+three; a ring inside a ring gave two where cv2 gives four.
+
+With all three fixed, over 2500 random masks at four sizes plus the built
+cases -- a ring, a ring in a ring, an island in a ring, a single pixel island,
+and separated blobs -- **the borders, their points and their hole flags are
+identical to cv2 on every mask**. Nothing differs in content or count.
+
+**What is left is the order, and it is OpenCV's own doing.** The sequence
+differs on 1041 of the 2500 when a component has more than one hole. The order
+`find_borders` produces is OpenCV 4's, and OpenCV 4's source says why:
+`cvInsertNodeIntoTree` prepends each new node to its parent's child list and
+`cvTreeToNodeSeq` then walks the tree depth first, so roots come out in reverse
+discovery order and each root's holes follow it, also reversed. OpenCV 5.0
+reimplemented `findContours`, and its order is none of the three arrangements
+tried: reversing both levels matches it on 1459 of 2500, reversing only the
+roots on 425, and reversing nothing on 275. Reversing both is kept and the
+difference recorded, because pinning our output to one OpenCV minor version is
+the opposite of the point of the exercise.
+
+`bitmap_to_polygon` reads the flag and draws the whole list, so the order does
+not reach it; `blobs.py` and `mask_contours` iterate without caring.

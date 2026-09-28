@@ -63,6 +63,17 @@ if( VIAME_ENABLE_PYTHON )
     SOURCE_SETUP
   )
 
+  # The cv2 API the vendored packages import instead of OpenCV. UNIT rather
+  # than CORE: no VIAME pipeline goes through it, mmcv and mmdet do, and
+  # `baseline:lazy_cv2` is what guards the rest of the tree.
+  viame_add_test(
+    NAME    "unit:utilities:cv2_api"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_cv2_api.py"
+    LABELS  UNIT
+    TIMEOUT 300
+    SOURCE_SETUP
+  )
+
   # Zhang's calibration, which replaces cv::calibrateCamera. CORE because
   # the stereo measurement chain stands on it.
   viame_add_test(

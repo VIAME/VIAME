@@ -83,11 +83,21 @@ def rotation_matrix_2d(centre, angle, scale=1.0):
     `cv2.getRotationMatrix2D`, including its sign convention: a positive
     `angle` is **counter-clockwise** in a coordinate system whose y runs
     down the image, which looks clockwise on screen.
+
+    **The centre is narrowed to float32**, because OpenCV's is: the signature
+    takes a `Point2f`, so a centre of 349.7 is not the centre the matrix is
+    built around. Keeping it in double made every matrix differ -- 5000 of
+    5000 random ones, by up to 8e-05, which is a tenth of a pixel at the far
+    corner of a 4K frame and quite enough to move a resampled edge. With the
+    narrowing, 4995 of 5000 are bit identical and the five that are not differ
+    in the last bit of a sine. The same trap as ORB's float `scale_factor`,
+    finding 2.69.
     """
     radians = np.deg2rad(angle)
     alpha = scale * np.cos(radians)
     beta = scale * np.sin(radians)
-    x, y = float(centre[0]), float(centre[1])
+    x = float(np.float32(centre[0]))
+    y = float(np.float32(centre[1]))
 
     return np.array([
         [alpha, beta, (1.0 - alpha) * x - beta * y],

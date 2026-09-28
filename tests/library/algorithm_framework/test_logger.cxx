@@ -85,6 +85,14 @@ private:
 kv::logger_handle_t
 logger_at( char const* level, std::string const& name )
 {
+  // `VIAME_LOG_LEVEL` is cleared first and always. It is the **newer** of the
+  // two names and the one `level_from_environment` reads first, and
+  // `setup_viame.sh` exports it -- `VIAME_LOG_LEVEL=${...:-debug}` -- so any
+  // test run through the install's environment had debug already set, and
+  // every level this helper asked for through the older name was ignored.
+  // Six of these tests failed for that and for nothing else.
+  unsetenv( "VIAME_LOG_LEVEL" );
+
   if( level )
   {
     setenv( "KWIVER_DEFAULT_LOG_LEVEL", level, 1 );

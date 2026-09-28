@@ -976,7 +976,13 @@ find_borders( viame::image_of< T > const& mask )
 
       if( here == 0 )
       {
-        last_label = 1;
+        // No reset. Suzuki and Abe's LNBD is cleared at the **start of a
+        // row** and nowhere else; a run of background in the middle of one
+        // leaves it alone, so a hole that begins after a gap still finds the
+        // outer border that claimed a pixel earlier on the line. Clearing it
+        // here instead orphaned such a hole into a second root, which
+        // reversed OpenCV's order -- outer then hole became hole then outer
+        // -- on 8 by 8 masks with about one component in six.
         continue;
       }
 
@@ -1006,7 +1012,18 @@ find_borders( viame::image_of< T > const& mask )
       // The parent, by Suzuki and Abe's table: an outer border's parent is
       // the hole border that last claimed a pixel on this line, and a hole
       // border's parent is the outer border that did.
-      int const previous = last_label;
+      //
+      // With one addition. A hole can begin at a pixel that a border has
+      // already labelled, and if that pixel is the first foreground one on
+      // its line there is no "last" border to ask -- the line began with
+      // background, which carries no number. The pixel's own label is the
+      // answer in that case: the border that wrote it is the one this hole is
+      // inside. Without it such a hole came out parentless, and every
+      // parentless hole was either a spurious root or, once the flattening
+      // was fixed, dropped: cv2 found four holes in an 8 by 8 noise mask
+      // where this found one.
+      int const previous =
+        ( hole && last_label <= 1 && here > 1 ) ? here : last_label;
       int previous_index =
         ( previous >= 2 && previous < static_cast< int >( border_of.size() ) )
           ? border_of[ static_cast< size_t >( previous ) ] : -1;
@@ -1135,7 +1152,16 @@ find_borders( viame::image_of< T > const& mask )
       children.emplace_back();
       border_of.push_back( static_cast< int >( found.size() ) - 1 );
 
-      if( my_parent >= 0 )
+      // Only a hole is filed under its parent. `RETR_CCOMP` is a **two
+      // level** tree by definition -- OpenCV's own documentation says a
+      // contour inside a hole of a component is put back at the top level --
+      // so an outer border is a root however deep the nesting goes, and the
+      // parent Suzuki and Abe gave it (a hole border) is dropped here. Not
+      // dropping it lost the border entirely: the flattening below walks one
+      // level of children, so an island inside a ring's hole was traced and
+      // then never emitted, which is the third contour cv2 returns for that
+      // mask and this returned two of.
+      if( hole && my_parent >= 0 )
       {
         children[ static_cast< size_t >( my_parent ) ].insert(
           children[ static_cast< size_t >( my_parent ) ].begin(),
@@ -1146,13 +1172,16 @@ find_borders( viame::image_of< T > const& mask )
     }
   }
 
-  // Flatten: top-level borders in reverse discovery order, each followed by
-  // its children, which were prepended as they were found.
+  // Flatten: every outer border in reverse discovery order, each followed by
+  // its own holes, which were prepended as they were found.
   std::vector< int > roots;
 
   for( size_t index = 0; index < found.size(); ++index )
   {
-    if( parent_of[ index ] < 0 )
+    // An outer border is a root at any depth, because `RETR_CCOMP` is a two
+    // level tree by definition. A hole with no parent should not happen and
+    // is a root rather than a border silently lost.
+    if( !found[ index ].is_hole || parent_of[ index ] < 0 )
     {
       roots.insert( roots.begin(), static_cast< int >( index ) );
     }

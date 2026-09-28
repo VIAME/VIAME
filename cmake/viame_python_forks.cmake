@@ -29,6 +29,16 @@ if( NOT VIAME_ENABLE_PYTHON OR NOT VIAME_ENABLE_PYTORCH )
   return()
 endif()
 
+# `apply_fork_patch.cmake` applies a fork's diff with `git apply`, so a git
+# is needed before the first fork is built. The fallback matches
+# `custom_fetch_git_package.cmake`: a bare name, resolved on PATH, which is
+# what a checkout with submodules already relies on.
+find_package( Git QUIET )
+
+if( NOT GIT_EXECUTABLE )
+  set( GIT_EXECUTABLE git )
+endif()
+
 set( _viame_forks_dir "${VIAME_BINARY_DIR}/python-forks" )
 set( _viame_forks )
 
@@ -212,6 +222,20 @@ foreach( _fork IN LISTS _viame_forks )
         "${_source}/${_sam2_portable_dir}" )
     endforeach()
   endif()
+  # The other route: a unified diff at `packages/patches/<fork>.patch`,
+  # applied after any whole-file overlay. Three lines of a nine hundred line
+  # module is a diff, not a copy -- see `apply_fork_patch.cmake`.
+  set( _fork_diff "${VIAME_PATCHES_DIR}/${_fork}.patch" )
+  if( EXISTS "${_fork_diff}" )
+    list( APPEND _patch_cmd COMMAND "${CMAKE_COMMAND}"
+          -DPATCH_FILE=${_fork_diff}
+          -DSOURCE_DIR=${_source}
+          -DGIT_EXECUTABLE=${GIT_EXECUTABLE}
+          -P "${VIAME_CMAKE_DIR}/apply_fork_patch.cmake" )
+  else()
+    set( _fork_diff )
+  endif()
+
   file( GLOB_RECURSE _fork_patch_files CONFIGURE_DEPENDS
     "${VIAME_PATCHES_DIR}/${_fork}/*" )
 
@@ -237,6 +261,7 @@ foreach( _fork IN LISTS _viame_forks )
             -P "${VIAME_CMAKE_DIR}/custom_build_python_dep.cmake"
     COMMAND "${CMAKE_COMMAND}" -E touch "${_stamp}"
     DEPENDS ${_viame_fork_extra_deps_${_fork}} ${_fork_patch_files}
+            ${_fork_diff}
     COMMENT "Building and installing ${_fork}"
     VERBATIM
     )
