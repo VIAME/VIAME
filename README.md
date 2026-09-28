@@ -1,16 +1,17 @@
 
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
 
-VIAME is a computer vision application designed for do-it-yourself artificial intelligence including
-object detection, tracking, data annotation, multi-camera data processing, size measurement,
-image enhancement, rapid model generation, query-based search, mosaicing, and tools for the
-evaluation of different algorithms. Originally targeting marine species analytics, VIAME now
-contains many common algorithms and libraries, and is also useful as a generic computer vision toolkit.
-It contains a number of standalone tools for accomplishing the above, a pipeline framework which can
-connect C/C++, python, and matlab nodes together in a multi-threaded fashion, and multiple algorithms
-resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been integrated
-into both desktop and web user interfaces for deployments in different types of environments, with an
-open annotation archive and example of the web platform available at [viame.kitware.com](https://viame.kitware.com).
+VIAME is a computer vision application designed for do-it-yourself artificial intelligence
+includingnobject detection, object tracking, data annotation, multi-camera processing,
+size measurement, image enhancement, rapid model generation, query-based search, mosaicing,
+and tools for the evaluation of algorithms. Originally targeting marine species analytics,
+VIAME nowbcontains many algorithms and libraries, and is useful as a generic computer vision
+toolkit. It contains a number of tools for accomplishing the above, a pipeline framework
+which can connect C++/Python nodes in a multi-threaded fashion, and multiple algorithms
+resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been
+integrated into both desktop and web user interfaces for deployments in different environments,
+with annopen annotation archive and example of the web platform available at
+[viame.kitware.com](https://viame.kitware.com).
 
 
 Documentation
