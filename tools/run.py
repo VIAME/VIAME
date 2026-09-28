@@ -236,16 +236,11 @@ def get_viame_cmd():
   return [ 'viame.exe' ] if os.name == 'nt' else [ 'viame' ]
 
 def get_pipeline_cmd( debug=False ):
-  if os.name == 'nt':
-    if debug:
-      return [ 'kwiver.exe', 'runner' ]
-    else:
-      return [ 'kwiver.exe', 'runner' ]
-  else:
-    if debug:
-      return [ 'gdb', '--args', 'kwiver', 'runner' ]
-    else:
-      return [ 'kwiver', 'runner' ]
+  command = get_viame_cmd() + [ 'runner' ]
+  if debug and os.name != 'nt':
+    return [ 'gdb', '--args' ] + command
+  return command
+
 
 def get_python_cmd():
   return [ sys.executable ]

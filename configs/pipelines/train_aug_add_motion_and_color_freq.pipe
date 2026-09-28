@@ -102,16 +102,22 @@ connect from motion_filter.image
 
 # =============================================================================
 
-process image_merger
+process image_merger_first
   :: merge_images
   :merge_images:type                           ocv
 
 connect from random_hue.image
-        to   image_merger.image1
+        to   image_merger_first.image1
 connect from color_freq_filter.image
-        to   image_merger.image2
+        to   image_merger_first.image2
+process image_merger
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from image_merger_first.image
+        to   image_merger.image1
 connect from float_to_byte.image
-        to   image_merger.image3
+        to   image_merger.image2
 
 # =============================================================================
 

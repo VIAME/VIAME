@@ -68,9 +68,11 @@ def check_dependencies(packages=None):
     return missing
 
 
-def require_colmap():
+def require_colmap(dense=True):
     """Raise a clear error if pycolmap/open3d (COLMAP mode) are unavailable."""
-    missing = check_dependencies(OPTIONAL_PACKAGES)
+    packages = OPTIONAL_PACKAGES if dense else {name: package for name, package in OPTIONAL_PACKAGES.items()
+                                               if name != "open3d"}
+    missing = check_dependencies(packages)
     if missing:
         print("ERROR: COLMAP 3D-reconstruction mode requires:")
         for import_name, pip_name in missing:
@@ -262,9 +264,9 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
         multicam = True
 
     # The SfM implementation lives in the (optional) viame.colmap plugin.
-    require_colmap()
+    require_colmap(dense=dense)
     from viame.colmap import reconstruction as _cr
-    _cr.import_dependencies()
+    _cr.import_dependencies(dense=dense)
 
     print(f"\n{'#'*70}")
     print(f"  Processing: {folder_name} {'[MULTICAM]' if multicam else ''}")
@@ -299,11 +301,11 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
     if rec is None:
         return False
 
-    # Save sparse point cloud
-    sparse_pcd = _cr.reconstruction_to_pointcloud(rec)
+    # COLMAP can export sparse RGB points without the dense/GUI dependency.
     sparse_ply = os.path.join(output_dir, "sparse_cloud.ply")
-    o3d.io.write_point_cloud(sparse_ply, sparse_pcd)
-    print(f"  Saved sparse cloud ({len(sparse_pcd.points)} pts) -> {sparse_ply}")
+    rec.export_PLY(sparse_ply)
+    sparse_pcd = _cr.reconstruction_to_pointcloud(rec) if dense else None
+    print(f"  Saved sparse cloud ({len(rec.points3D)} pts) -> {sparse_ply}")
 
     # ---- Dense feature matching + triangulation (steps 4-6, optional) ----
     dense_ply = None

@@ -787,6 +787,10 @@ def main():
     # environment even when this launcher is called by its absolute path.
     os.environ["PATH"] = os.path.dirname(sys.executable) + os.pathsep + os.environ.get("PATH", "")
 
+    # Pipeline templates can refer to $ENV{VIAME_INSTALL}. Resolve that
+    # against this environment when no explicit installation was selected.
+    os.environ.setdefault("VIAME_INSTALL", sys.prefix)
+
     # Main uses dynamic plugins; lite registers its built-in plugins. Locate
     # any packaged plugin directories instead of relying on build-machine paths.
     plugin_dirs = []

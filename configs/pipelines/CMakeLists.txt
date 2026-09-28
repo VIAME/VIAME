@@ -132,7 +132,6 @@ set( CORE_PIPELINE_FILES
   train_aug_equalize_via_percentiles_npy.pipe
   train_aug_split_and_stereo.pipe
   train_aug_split.pipe
-  train_aug_warp_ir_to_eo.pipe
   transcode_compress.pipe
   transcode_default.pipe
   transcode_draw_dets.pipe

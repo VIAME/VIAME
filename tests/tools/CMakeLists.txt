@@ -27,6 +27,7 @@ if( VIAME_ENABLE_PYTHON )
   )
 
   foreach( tool IN ITEMS
+    runtime_fixes
     3d
     add_ons
     configs

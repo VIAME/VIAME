@@ -13,11 +13,7 @@ def __sprokit_register__():
     from viame.opencv import multimodal_registration
     from viame.opencv import fft_filter_based_on_ref
 
-    process_factory.add_process(
-        'ocv_multimodal_registration',
-        'Register optical and thermal frames',
-        multimodal_registration.register_frames_process
-    )
+    multimodal_registration.__sprokit_register__()
 
     process_factory.add_process(
         'ocv_fft_filter_based_on_ref',

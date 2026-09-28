@@ -90,16 +90,22 @@ connect from motion_filter.image
 
 # =============================================================================
 
-process image_merger
+process image_merger_first
   :: merge_images
   :merge_images:type                           ocv
 
 connect from split_channels.right_image
-        to   image_merger.image1
+        to   image_merger_first.image1
 connect from split_channels.left_image
-        to   image_merger.image2
+        to   image_merger_first.image2
+process image_merger
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from image_merger_first.image
+        to   image_merger.image1
 connect from float_to_byte.image
-        to   image_merger.image3
+        to   image_merger.image2
 
 # =============================================================================
 

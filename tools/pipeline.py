@@ -19,6 +19,7 @@ Keys use the same form as 'viame run -s', e.g. detector:netharn:deployed.
 
 import argparse
 import json
+import subprocess
 import os
 import re
 import sys
@@ -412,11 +413,33 @@ def check_document(doc, missing_files_fatal=True):
     return errors, warnings
 
 
+def check_runtime(pipe):
+    """Bake in a child process so plugin state cannot leak between files."""
+    code = """
+import sys
+from kwiver.vital.modules import modules
+from kwiver.sprokit.pipeline_util import load, bake
+modules.load_known_modules()
+try:
+    bake.bake_pipe_blocks(load.load_pipe_file(sys.argv[1]))
+except Exception as exc:
+    print(str(exc), file=sys.stderr)
+    sys.exit(1)
+"""
+    result = subprocess.run([sys.executable, '-c', code, str(pipe)],
+                            capture_output=True, text=True)
+    if result.returncode:
+        return [f'{pipe}: {(result.stderr or result.stdout).strip()}']
+    return []
+
+
 def cmd_check(args):
     failed = 0
     for pipe in args.pipes:
         doc = load(pipe)
         errors, warnings = check_document(doc, not args.ignore_missing_files)
+        if not args.no_resolve and not errors:
+            errors.extend(check_runtime(pipe))
         for w in warnings:
             print(f'warning: {w}')
         for e in errors:
@@ -642,6 +665,8 @@ def build_parser():
     s.add_argument('--ignore-missing-files', action='store_true',
                    help='Report missing relativepath targets (e.g. models '
                         'not yet downloaded) as warnings instead of errors')
+    s.add_argument('--no-resolve', action='store_true',
+                   help='check syntax and paths without loading process plugins')
     s.set_defaults(func=cmd_check)
 
     s = sub.add_parser('multicam',
