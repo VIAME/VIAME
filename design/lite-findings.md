@@ -4826,3 +4826,57 @@ the opposite of the point of the exercise.
 
 `bitmap_to_polygon` reads the flag and draws the whole list, so the order does
 not reach it; `blobs.py` and `mask_contours` iterate without caring.
+
+## 2.75 The mean shift's pyramid, and four exact pieces that do not close it
+
+`imgaug`'s `MeanShiftBlur` and `Cartoon` call `cv2.pyrMeanShiftFiltering`, the
+last function standing between imgaug and no OpenCV. Four separable pieces of
+it were reproduced **exactly** and the fifth was not, and the honest place to
+stop is worth recording because the fifth is the only one left.
+
+**The mean-shift core is exact.** Each pixel walks to the mean of the
+neighbours within `sp` of its position and `sr` of its colour and repeats; the
+integer window, the squared-distance test against `round(sr*sr)`, the rounded
+centroid, OpenCV's two-part stopping rule -- either nothing moved, or the
+spatial step plus the squared colour step is within epsilon -- and its
+clamping of the iteration count to `[1, 100]`. Against `cv2` at
+`maxLevel = 0`: **0 of 388800 values differ on a real 270 by 480 frame**, and
+0 on four random blocks at four `sp`/`sr` pairs.
+
+**`pyrDown` is exact**, the separable `1 4 6 4 1` at a gain of 256 with the
+reflecting border and a half added before the shift, on every size measured
+including odd ones.
+
+**`pyrUp` is exact, once the grid is right.** The rule is not the obvious one:
+the filter runs on the **full `2n` grid** and the result is then cropped to the
+requested size, which may be `2n` or `2n - 1`. Reflecting inside an odd grid
+instead -- which is what "filter at the output size" means -- disagrees with
+cv2 on about four percent of the pixels by up to nine counts. Seven shapes,
+even and odd on each axis, agree exactly under the cropping rule and three of
+the seven disagree under the other.
+
+**The combination does not come out.** OpenCV's default is `maxLevel = 1`: it
+mean-shifts the half-size image, upsamples that result as an initial guess,
+builds a mask of where the guess disagrees with itself, dilates it, and
+re-shifts only the masked pixels. The top level reproduces exactly -- checked
+directly against `cv2` at that size -- and `pyrDown` feeds it exactly, so the
+missing piece is the combination rule alone. More than forty arrangements were
+tried over the free choices: which image the window reads, which colour the
+walk starts from, the mask threshold (`16`, `round(sr*sr)`, four times it),
+its sense, a one-pixel offset in the mask's indexing that OpenCV's pointer
+arithmetic suggests, and what an unmasked pixel keeps. **The best of them
+still differs on 24 percent of the values**, and cv2's own `maxLevel` 0, 1 and
+2 differ from each other by up to 143 on the same input, so there is no
+arrangement that is nearly right.
+
+So `mean_shift_blur` is `maxLevel = 0`, exactly, and refuses anything else
+rather than approximating it. The two imgaug call sites are patched to ask for
+`maxLevel = 0` explicitly, with a comment saying why. **The cost, measured on a
+photograph rather than on noise**: cv2's level 0 and level 1 differ by 0.6 of a
+grey level on average, with a 99.9th percentile of 15 and a worst case near
+50. That is a real difference in an augmenter's output and not a rounding one,
+which is why it is written down here and at both call sites rather than
+quietly absorbed.
+
+What would close it is OpenCV's `segmentation.cpp`, read rather than recalled.
+Nothing else is missing.

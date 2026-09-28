@@ -330,14 +330,24 @@ def _restore(result, like):
 
 
 def _out(result, dst):
-    """OpenCV's out parameter: write into `dst` and hand it back.
+    """OpenCV's out parameter: write into `dst` when it fits, else replace it.
 
-    Not cosmetic. `mmcv.image.imnormalize_` is on the path of every mmdet
-    inference and normalises **in place** -- `cv2.subtract(img, mean, img)` --
-    so a shim that returned a fresh array would leave the caller's image
-    untouched.
+    Both halves matter. `mmcv.image.imnormalize_` is on the path of every
+    mmdet inference and normalises **in place** --
+    `cv2.subtract(img, mean, img)` -- so a shim that always returned a fresh
+    array would leave the caller's image untouched. And OpenCV's `dst` is an
+    `OutputArray`, which is a *hint*: `imgaug` hands `cvtColor` a
+    three-channel buffer and asks for grey, and cv2 quietly reallocates and
+    returns the new shape rather than failing. Writing unconditionally turned
+    that into a broadcast error.
     """
     if dst is None:
+        return result
+
+    target = np.asarray(dst)
+    fresh = np.asarray(result)
+
+    if target.shape != fresh.shape or target.dtype != fresh.dtype:
         return result
 
     dst[...] = result
@@ -443,12 +453,47 @@ def _lab(array, inverse, swap_in, swap_out):
     return _swap(out) if swap_out else out
 
 
+def _xyz(array, inverse, swap_in, swap_out):
+    kernels = _kernels()
+    source = _native(array, "cvtColor", planes=(3,))
+
+    if swap_in:
+        source = _swap(source)
+
+    out = kernels.from_xyz(source) if inverse else kernels.to_xyz(source)
+
+    return _swap(out) if swap_out else out
+
+
+def _luma_chroma(array, yuv, inverse, swap_in, swap_out):
+    kernels = _kernels()
+    source = _native(array, "cvtColor", planes=(3,))
+
+    if swap_in:
+        source = _swap(source)
+
+    out = (kernels.from_ycrcb(source, yuv) if inverse
+           else kernels.to_ycrcb(source, yuv))
+
+    return _swap(out) if swap_out else out
+
+
+def _luv(array, inverse, swap_in, swap_out):
+    kernels = _kernels()
+    source = _native(array, "cvtColor", planes=(3,))
+
+    if swap_in:
+        source = _swap(source)
+
+    out = kernels.from_luv(source) if inverse else kernels.to_luv(source)
+
+    return _swap(out) if swap_out else out
+
+
 def _unimplemented_colour(name):
     def convert(_array):
         raise error(
-            "cvtColor: {} is not implemented; viame.image_kernels has RGB, "
-            "grey, HSV, HLS and L*a*b* and no colour space beyond "
-            "them".format(name))
+            "cvtColor: {} is not implemented".format(name))
 
     return convert
 
@@ -478,22 +523,22 @@ _CONVERSIONS = {
     COLOR_RGB2LAB: lambda a: _lab(a, False, False, False),
     COLOR_LAB2BGR: lambda a: _lab(a, True, False, True),
     COLOR_LAB2RGB: lambda a: _lab(a, True, False, False),
-    COLOR_BGR2XYZ: _unimplemented_colour("COLOR_BGR2XYZ"),
-    COLOR_RGB2XYZ: _unimplemented_colour("COLOR_RGB2XYZ"),
-    COLOR_XYZ2BGR: _unimplemented_colour("COLOR_XYZ2BGR"),
-    COLOR_XYZ2RGB: _unimplemented_colour("COLOR_XYZ2RGB"),
-    COLOR_BGR2LUV: _unimplemented_colour("COLOR_BGR2LUV"),
-    COLOR_RGB2LUV: _unimplemented_colour("COLOR_RGB2LUV"),
-    COLOR_LUV2BGR: _unimplemented_colour("COLOR_LUV2BGR"),
-    COLOR_LUV2RGB: _unimplemented_colour("COLOR_LUV2RGB"),
-    COLOR_BGR2YUV: _unimplemented_colour("COLOR_BGR2YUV"),
-    COLOR_RGB2YUV: _unimplemented_colour("COLOR_RGB2YUV"),
-    COLOR_YUV2BGR: _unimplemented_colour("COLOR_YUV2BGR"),
-    COLOR_YUV2RGB: _unimplemented_colour("COLOR_YUV2RGB"),
-    COLOR_BGR2YCR_CB: _unimplemented_colour("COLOR_BGR2YCrCb"),
-    COLOR_RGB2YCR_CB: _unimplemented_colour("COLOR_RGB2YCrCb"),
-    COLOR_YCR_CB2BGR: _unimplemented_colour("COLOR_YCrCb2BGR"),
-    COLOR_YCR_CB2RGB: _unimplemented_colour("COLOR_YCrCb2RGB"),
+    COLOR_BGR2XYZ: lambda a: _xyz(a, False, True, False),
+    COLOR_RGB2XYZ: lambda a: _xyz(a, False, False, False),
+    COLOR_XYZ2BGR: lambda a: _xyz(a, True, False, True),
+    COLOR_XYZ2RGB: lambda a: _xyz(a, True, False, False),
+    COLOR_BGR2LUV: lambda a: _luv(a, False, True, False),
+    COLOR_RGB2LUV: lambda a: _luv(a, False, False, False),
+    COLOR_LUV2BGR: lambda a: _luv(a, True, False, True),
+    COLOR_LUV2RGB: lambda a: _luv(a, True, False, False),
+    COLOR_BGR2YUV: lambda a: _luma_chroma(a, True, False, True, False),
+    COLOR_RGB2YUV: lambda a: _luma_chroma(a, True, False, False, False),
+    COLOR_YUV2BGR: lambda a: _luma_chroma(a, True, True, False, True),
+    COLOR_YUV2RGB: lambda a: _luma_chroma(a, True, True, False, False),
+    COLOR_BGR2YCR_CB: lambda a: _luma_chroma(a, False, False, True, False),
+    COLOR_RGB2YCR_CB: lambda a: _luma_chroma(a, False, False, False, False),
+    COLOR_YCR_CB2BGR: lambda a: _luma_chroma(a, False, True, False, True),
+    COLOR_YCR_CB2RGB: lambda a: _luma_chroma(a, False, True, False, False),
     COLOR_BGR2HLS_FULL: _unimplemented_colour("COLOR_BGR2HLS_FULL"),
     COLOR_RGB2HLS_FULL: _unimplemented_colour("COLOR_RGB2HLS_FULL"),
     COLOR_HLS2BGR_FULL: _unimplemented_colour("COLOR_HLS2BGR_FULL"),
@@ -733,9 +778,36 @@ def resize(src, dsize, dst=None, fx=0.0, fy=0.0, interpolation=INTER_LINEAR):
         raise error("resize: empty target size {}".format(
             (out_width, out_height)))
 
+    how = _interpolation(interpolation, "resize")
+
+    # int32 and the like: OpenCV supports them for **nearest neighbour only**,
+    # and so does this. `imgaug` upscales a coarse int32 dropout mask that
+    # way. The mapping is taken from the kernel rather than rewritten -- two
+    # index planes go through the same nearest resize and come back as the
+    # indices to gather -- so there is one nearest-neighbour rule in the tree
+    # and not two that can drift.
+    if source.dtype not in _NATIVE and source.dtype != np.dtype(np.float64):
+        if how != "nearest":
+            raise error(
+                "resize: {} pixels are supported for nearest neighbour only, "
+                "as cv2 supports them".format(source.dtype))
+
+        kernels = _kernels()
+        columns = np.broadcast_to(
+            np.arange(width, dtype=np.float32), (height, width))
+        rows = np.broadcast_to(
+            np.arange(height, dtype=np.float32).reshape(-1, 1),
+            (height, width))
+        take_x = kernels.resize(np.ascontiguousarray(columns), out_width,
+                                out_height, interpolation="nearest")
+        take_y = kernels.resize(np.ascontiguousarray(rows), out_width,
+                                out_height, interpolation="nearest")
+
+        return _out(source[take_y.astype(np.intp), take_x.astype(np.intp)],
+                    dst)
+
     result = _kernels().resize(
-        _native(source, "resize"), out_width, out_height,
-        interpolation=_interpolation(interpolation, "resize"))
+        _native(source, "resize"), out_width, out_height, interpolation=how)
 
     return _out(_restore(result, source), dst)
 
@@ -973,6 +1045,84 @@ def GaussianBlur(src, ksize, sigmaX, dst=None, sigmaY=None,
     return _out(_restore(result, source), dst)
 
 
+def bilateralFilter(src, d, sigmaColor, sigmaSpace, dst=None,
+                    borderType=BORDER_DEFAULT):
+    """`cv2.bilateralFilter`: a blur that does not cross an edge.
+
+    Exact for three planes. A single plane is within a count on about half its
+    pixels, where OpenCV's one-channel body adds the same twenty-odd floats in
+    a different order.
+    """
+    source = np.asarray(src)
+    result = _kernels().bilateral_blur(
+        _native(source, "bilateralFilter"), int(d), float(sigmaColor),
+        float(sigmaSpace), _border(borderType, "bilateralFilter"))
+
+    return _out(_restore(result, source), dst)
+
+
+def pyrDown(src, dst=None, dstsize=None, borderType=BORDER_DEFAULT):
+    """`cv2.pyrDown`. Exact, including at odd sizes."""
+    source = np.asarray(src)
+    result = _kernels().pyramid_down(_native(source, "pyrDown"))
+
+    if dstsize is not None and tuple(dstsize) not in (
+            (0, 0), (result.shape[1], result.shape[0])):
+        raise error(
+            "pyrDown: only the derived size {} is implemented, not "
+            "{}".format((result.shape[1], result.shape[0]), tuple(dstsize)))
+
+    return _out(_restore(result, source), dst)
+
+
+def pyrUp(src, dst=None, dstsize=None, borderType=BORDER_DEFAULT):
+    """`cv2.pyrUp`. Exact, including where the target is one short of double."""
+    source = np.asarray(src)
+    width, height = (0, 0) if dstsize is None else (int(dstsize[0]),
+                                                   int(dstsize[1]))
+    result = _kernels().pyramid_up(_native(source, "pyrUp"), width, height)
+
+    return _out(_restore(result, source), dst)
+
+
+def pyrMeanShiftFiltering(src, sp, sr, dst=None, maxLevel=0,
+                          termcrit=None):
+    """`cv2.pyrMeanShiftFiltering`, **one level only**.
+
+    Exact at `maxLevel=0`, over a real 270 by 480 frame as well as random
+    blocks. A higher level is refused rather than approximated: OpenCV
+    combines the pyramid's levels through a mask whose rule this does not
+    reproduce, and `design/lite-findings.md` 2.75 records what was
+    established -- `pyrDown`, `pyrUp` and the mean-shift core are each exact,
+    so what is missing is the combination and not the arithmetic.
+
+    Note that `maxLevel` **defaults to 0 here and to 1 in cv2**. A caller that
+    wants OpenCV's default is asking for the level combination and gets told.
+    """
+    if int(maxLevel) != 0:
+        raise error(
+            "pyrMeanShiftFiltering: only maxLevel=0 is implemented. The "
+            "pyramid combination is not reproduced -- finding 2.75 -- and "
+            "guessing at it would be a different filter wearing the same "
+            "name")
+
+    iterations, epsilon = 5, 1.0
+
+    if termcrit is not None:
+        kind, count, precision = termcrit
+        if int(kind) & TERM_CRITERIA_MAX_ITER:
+            iterations = int(count)
+        if int(kind) & TERM_CRITERIA_EPS:
+            epsilon = float(precision)
+
+    source = np.asarray(src)
+    result = _kernels().mean_shift_blur(
+        _native(source, "pyrMeanShiftFiltering", planes=(3,)), float(sp),
+        float(sr), iterations, epsilon)
+
+    return _out(_restore(result, source), dst)
+
+
 def medianBlur(src, ksize, dst=None):
     """`cv2.medianBlur`."""
     source = np.asarray(src)
@@ -983,9 +1133,15 @@ def medianBlur(src, ksize, dst=None):
 
 def Canny(image, threshold1, threshold2, edges=None, apertureSize=3,
           L2gradient=False):
-    """`cv2.Canny`: a single plane edge map, 0 or 255."""
+    """`cv2.Canny`: a single plane edge map, 0 or 255.
+
+    A multi-plane input is handled OpenCV's way, which is worth knowing: each
+    pixel independently takes the plane whose gradient is strongest. A colour
+    edge map is therefore neither the union of three grey ones nor the edge
+    map of the luma.
+    """
     return _out(_kernels().canny(
-        _native(image, "Canny", planes=(1,)), float(threshold1),
+        _native(image, "Canny", planes=(1, 2, 3, 4)), float(threshold1),
         float(threshold2), int(apertureSize), bool(L2gradient)), edges)
 
 
@@ -1122,6 +1278,355 @@ class _CLAHE:
 
     def collectGarbage(self):
         """Nothing is cached, so there is nothing to collect."""
+
+
+def calcHist(images, channels, mask, histSize, ranges, hist=None,
+             accumulate=False):
+    """`cv2.calcHist`, for the one-channel 256-bin case its callers use.
+
+    `imgaug.augmenters.pillike`'s `Equalize` and `Autocontrast` are the
+    callers, and both ask the same question -- how many of each byte value
+    are in this plane -- which is a `bincount`. A general N-dimensional
+    histogram is not implemented, and says so rather than answering a
+    different question.
+    """
+    if len(channels) != 1 or len(histSize) != 1:
+        raise error("calcHist: only a one dimensional histogram is implemented")
+
+    if int(histSize[0]) != 256 or tuple(ranges) != (0, 256):
+        raise error(
+            "calcHist: only 256 bins over [0, 256) is implemented, not {} "
+            "bins over {}".format(histSize[0], tuple(ranges)))
+
+    array = np.asarray(images[0])
+
+    if array.dtype != np.dtype(np.uint8):
+        raise error("calcHist: takes 8-bit input, got {}".format(array.dtype))
+
+    plane = array if array.ndim == 2 else array[..., int(channels[0])]
+
+    if mask is not None:
+        plane = plane[np.asarray(mask).astype(bool)]
+
+    counts = np.bincount(np.asarray(plane).reshape(-1), minlength=256)
+
+    # A flat 256, which is what cv2 5.0 returns. OpenCV 4 gave a 256 by 1
+    # column; every caller here indexes or sums it, so either works, and this
+    # is the one the comparison was made against.
+    return counts.astype(np.float32)
+
+
+#: `cv2.Laplacian`'s kernels, read out of cv2 by filtering a delta rather
+#: than derived: aperture 1 is the five-point stencil, and 3 and 5 are the
+#: ones `getDerivKernels` builds from the separable Sobel pair, which put the
+#: weight on the **corners** at 3 and not on the edges.
+_LAPLACIAN = {
+    1: np.array([[0.0, 1.0, 0.0],
+                 [1.0, -4.0, 1.0],
+                 [0.0, 1.0, 0.0]]),
+    3: np.array([[2.0, 0.0, 2.0],
+                 [0.0, -8.0, 0.0],
+                 [2.0, 0.0, 2.0]]),
+    5: np.array([[2.0, 4.0, 4.0, 4.0, 2.0],
+                 [4.0, 0.0, -8.0, 0.0, 4.0],
+                 [4.0, -8.0, -24.0, -8.0, 4.0],
+                 [4.0, 0.0, -8.0, 0.0, 4.0],
+                 [2.0, 4.0, 4.0, 4.0, 2.0]]),
+}
+
+
+def Laplacian(src, ddepth, dst=None, ksize=1, scale=1, delta=0,
+              borderType=BORDER_DEFAULT):
+    """`cv2.Laplacian`, for a 3 by 3 aperture.
+
+    Done in numpy rather than through `filter_2d`, because its one caller --
+    `imgaug.augmenters.artistic`'s Laplacian edge finder -- asks for
+    `CV_64F` on a float64 image, and the kernels are uint8, uint16 and
+    float32. A 3 by 3 correlation over a reflected border is small enough
+    that doing it here costs nothing and keeps the precision the caller
+    asked for.
+    """
+    if int(ksize) not in _LAPLACIAN:
+        raise error(
+            "Laplacian: only apertures 1, 3 and 5 are implemented, not "
+            "{}".format(ksize))
+
+    source = np.asarray(src)
+
+    if source.ndim not in (2, 3):
+        raise error("Laplacian: wants a 2-D or 3-D image")
+
+    target = (np.float64 if ddepth in (CV_64F, None)
+              else _depth_dtype(ddepth, "Laplacian"))
+    kernel = _LAPLACIAN[int(ksize)] * float(scale)
+    radius = kernel.shape[0] // 2
+    border = _border(borderType, "Laplacian")
+    padded = _pad_for_kernel(source.astype(np.float64), radius, border)
+
+    values = np.zeros(source.shape, dtype=np.float64)
+
+    for row in range(kernel.shape[0]):
+        for column in range(kernel.shape[1]):
+            weight = kernel[row, column]
+            if weight == 0.0:
+                continue
+            window = padded[row:row + source.shape[0],
+                            column:column + source.shape[1]]
+            values += weight * window
+
+    return _out(_saturate(values + float(delta), target), dst)
+
+
+def _pad_for_kernel(array, radius, border):
+    """One border rule's padding, as `np.pad` spells it."""
+    modes = {"constant": "constant", "replicate": "edge",
+             "reflect": "symmetric", "reflect_101": "reflect",
+             "wrap": "wrap"}
+    width = [(radius, radius), (radius, radius)] + \
+            [(0, 0)] * (array.ndim - 2)
+
+    return np.pad(array, width, mode=modes[border])
+
+
+#: OpenCV's `fastAtan2` polynomial, in degrees per term.
+#:
+#: Reproduced rather than replaced with `numpy.arctan2`, and the reason is
+#: consistency rather than fidelity for its own sake. `warpPolar` uses this
+#: angle to build its map, and `imgaug`'s `WithPolarWarping` then puts
+#: **keypoints** through `cartToPolar` and expects them to land where the
+#: pixels went. An accurate `arctan2` in one and OpenCV's third-of-a-degree
+#: approximation in the other would pull the two apart by a fraction of a
+#: pixel everywhere, which is exactly the class of bug a coordinate
+#: transform should not have.
+_ATAN_P1 = np.float32(0.9997878412794807) * np.float32(180.0 / np.pi)
+_ATAN_P3 = np.float32(-0.3258083974640975) * np.float32(180.0 / np.pi)
+_ATAN_P5 = np.float32(0.1555786518463281) * np.float32(180.0 / np.pi)
+_ATAN_P7 = np.float32(-0.04432655554792128) * np.float32(180.0 / np.pi)
+
+#: `DBL_EPSILON` narrowed to float, which is the guard OpenCV divides by.
+_ATAN_GUARD = np.float32(np.finfo(np.float64).eps)
+
+
+def _fast_atan2(y, x):
+    """OpenCV's `fastAtan2`, in degrees over `[0, 360)`."""
+    down = np.asarray(y, dtype=np.float32)
+    across = np.asarray(x, dtype=np.float32)
+
+    flat = np.abs(across)
+    steep = np.abs(down)
+    shallow = flat >= steep
+
+    ratio = np.where(shallow, steep / (flat + _ATAN_GUARD),
+                     flat / (steep + _ATAN_GUARD)).astype(np.float32)
+    squared = (ratio * ratio).astype(np.float32)
+
+    degrees = ((((_ATAN_P7 * squared + _ATAN_P5) * squared + _ATAN_P3) *
+                squared + _ATAN_P1) * ratio).astype(np.float32)
+    degrees = np.where(shallow, degrees,
+                       np.float32(90.0) - degrees).astype(np.float32)
+    degrees = np.where(across < 0.0, np.float32(180.0) - degrees,
+                       degrees).astype(np.float32)
+    degrees = np.where(down < 0.0, np.float32(360.0) - degrees,
+                       degrees).astype(np.float32)
+
+    return degrees
+
+
+def cartToPolar(x, y, magnitude=None, angle=None, angleInDegrees=False):
+    """`cv2.cartToPolar`: `(magnitude, angle)`, the angle in `[0, 2pi)`.
+
+    The angle is OpenCV's polynomial rather than `numpy.arctan2`, because
+    `warpPolar` below is built on the same one -- see `_fast_atan2`.
+    """
+    first = np.asarray(x, dtype=np.float32)
+    second = np.asarray(y, dtype=np.float32)
+
+    radius = np.hypot(first, second).astype(np.float32)
+    theta = _fast_atan2(second, first)
+
+    if not angleInDegrees:
+        theta = np.deg2rad(theta).astype(np.float32)
+
+    return _out(radius, magnitude), _out(theta, angle)
+
+
+def warpPolar(src, dsize, center, maxRadius, flags):
+    """`cv2.warpPolar`, linear only, forward and inverse.
+
+    Forward: the output's columns are radius and its rows are angle, sampled
+    at `rho * maxRadius / width` and `phi * 2pi / height` -- **no half-pixel
+    offset**, which is not what the obvious reading of OpenCV's source
+    suggests and is what a search over the four placements found. A `dsize` of
+    zero takes OpenCV's derived size, `round(maxRadius)` by
+    `round(maxRadius * pi)`.
+
+    Inverse: the polar image is padded by one row top and bottom with
+    **wrap**, because the angle axis is a circle and a sample between the last
+    row and the first has to see both. That padding is OpenCV's too.
+
+    Semi-log (`WARP_POLAR_LOG`) is not implemented and says so.
+    """
+    if int(flags) & WARP_POLAR_LOG:
+        raise error("warpPolar: the semi-log mapping is not implemented")
+
+    source = np.asarray(src)
+    inverse = bool(int(flags) & WARP_INVERSE_MAP)
+    interpolation = _interpolation(flags, "warpPolar")
+    radius_limit = float(maxRadius)
+    centre_x, centre_y = float(center[0]), float(center[1])
+
+    if not inverse:
+        width, height = (int(dsize[0]), int(dsize[1])) if dsize else (0, 0)
+
+        if width <= 0:
+            width = int(np.rint(radius_limit))
+        if height <= 0:
+            height = int(np.rint(radius_limit * np.pi))
+
+        rho = np.arange(width, dtype=np.float64) * (radius_limit / width)
+        phi = np.arange(height, dtype=np.float64) * (2.0 * np.pi / height)
+
+        map_x = (rho[None, :] * np.cos(phi)[:, None] + centre_x)
+        map_y = (rho[None, :] * np.sin(phi)[:, None] + centre_y)
+
+        return remap(source, map_x.astype(np.float32),
+                     map_y.astype(np.float32), interpolation=int(flags),
+                     borderMode=BORDER_CONSTANT)
+
+    width, height = int(dsize[0]), int(dsize[1])
+
+    if width <= 0 or height <= 0:
+        raise error("warpPolar: the inverse map needs a target size")
+
+    polar_height, polar_width = source.shape[:2]
+    bordered = copyMakeBorder(source, 1, 1, 0, 0, BORDER_WRAP)
+
+    rows, columns = np.mgrid[0:height, 0:width].astype(np.float64)
+    across = columns - centre_x
+    down = rows - centre_y
+
+    map_x = np.hypot(across, down) * (polar_width / radius_limit)
+    map_y = np.deg2rad(_fast_atan2(down, across).astype(np.float64)) * \
+        (polar_height / (2.0 * np.pi)) + 1.0
+
+    return remap(bordered, map_x.astype(np.float32), map_y.astype(np.float32),
+                 interpolation=int(flags), borderMode=BORDER_CONSTANT)
+
+
+def polarToCart(magnitude, angle, x=None, y=None, angleInDegrees=False):
+    """`cv2.polarToCart`."""
+    radius = np.asarray(magnitude, dtype=np.float32)
+    theta = np.asarray(angle, dtype=np.float32)
+
+    if angleInDegrees:
+        theta = np.deg2rad(theta)
+
+    return (_out((radius * np.cos(theta)).astype(np.float32), x),
+            _out((radius * np.sin(theta)).astype(np.float32), y))
+
+
+def convertMaps(map1, map2, dstmap1type, dstmap2=None, nninterpolation=False):
+    """`cv2.convertMaps`, which here converts nothing.
+
+    OpenCV packs a pair of float maps into a fixed-point `CV_16SC2` pair so
+    that `remap` can index a precomputed weight table -- whole pixels in one
+    map, a fifth of a bit of fraction in the other. `remap` here takes the
+    float maps directly, so the pair is handed back as it came and the
+    sampling is done at full precision.
+
+    That is a **difference, not an optimisation removed**: OpenCV's fixed
+    point quantises a source coordinate to 1/32 of a pixel before it
+    interpolates, so a remap through converted maps is not the same image as
+    a remap through the float ones. Ours is the float one.
+    """
+    if int(dstmap1type) not in (CV_16SC2, CV_32FC1, CV_32FC2):
+        raise error("convertMaps: no map type {}".format(dstmap1type))
+
+    return (np.ascontiguousarray(map1, dtype=np.float32),
+            np.ascontiguousarray(map2, dtype=np.float32))
+
+
+#: What `setRNGSeed` last set, for `kmeans` to draw from. OpenCV has a global
+#: RNG and `imgaug` sets it precisely to make `kmeans` reproducible; this is
+#: the same contract without the global state anything else could reach.
+_rng_seed = 0
+
+
+def kmeans(data, K, bestLabels, criteria, attempts, flags, centers=None):
+    """`cv2.kmeans`: `(compactness, labels, centres)`.
+
+    **Not a port, and cannot be one.** `imgaug`'s own comment at the call
+    site says why: cv2's k-means draws from OpenCV's global RNG, is not
+    deterministic without `setRNGSeed`, and gives no way to read the state
+    back. What it asks for is a *reproducible* quantisation, and this gives
+    exactly that -- k-means++ seeding from `setRNGSeed`'s value, then Lloyd's
+    algorithm to the same termination criteria.
+    """
+    samples = np.asarray(data, dtype=np.float64).reshape(len(data), -1)
+    clusters = int(K)
+
+    if clusters < 1 or clusters > len(samples):
+        raise error(
+            "kmeans: {} clusters for {} samples".format(clusters,
+                                                        len(samples)))
+
+    kind, max_iterations, epsilon = criteria
+    max_iterations = (int(max_iterations) if int(kind) & TERM_CRITERIA_MAX_ITER
+                      else 100)
+    epsilon = float(epsilon) if int(kind) & TERM_CRITERIA_EPS else 0.0
+
+    best = None
+
+    for attempt in range(max(int(attempts), 1)):
+        rng = np.random.default_rng(_rng_seed + attempt)
+        middles = _kmeans_pp(samples, clusters, rng)
+        labels = np.zeros(len(samples), dtype=np.int32)
+
+        for _step in range(max(max_iterations, 1)):
+            distances = ((samples[:, None, :] - middles[None, :, :]) ** 2
+                         ).sum(axis=2)
+            labels = np.argmin(distances, axis=1).astype(np.int32)
+            moved = 0.0
+            for cluster in range(clusters):
+                members = samples[labels == cluster]
+                if not len(members):
+                    continue
+                centre = members.mean(axis=0)
+                moved = max(moved,
+                            float(((centre - middles[cluster]) ** 2).sum()))
+                middles[cluster] = centre
+            if moved <= epsilon * epsilon:
+                break
+
+        distances = ((samples[:, None, :] - middles[None, :, :]) ** 2
+                     ).sum(axis=2)
+        labels = np.argmin(distances, axis=1).astype(np.int32)
+        compactness = float(distances[np.arange(len(samples)), labels].sum())
+
+        if best is None or compactness < best[0]:
+            best = (compactness, labels, middles)
+
+    compactness, labels, middles = best
+
+    return (compactness, labels.reshape(-1, 1),
+            _out(middles.astype(np.float32), centers))
+
+
+def _kmeans_pp(samples, clusters, rng):
+    """k-means++ seeding: each centre drawn in proportion to its distance."""
+    middles = np.empty((clusters, samples.shape[1]), dtype=np.float64)
+    middles[0] = samples[rng.integers(len(samples))]
+
+    for chosen in range(1, clusters):
+        distances = ((samples[:, None, :] - middles[None, :chosen, :]) ** 2
+                     ).sum(axis=2).min(axis=1)
+        total = distances.sum()
+        if total <= 0.0:
+            middles[chosen] = samples[rng.integers(len(samples))]
+            continue
+        middles[chosen] = samples[rng.choice(len(samples), p=distances / total)]
+
+    return middles
 
 
 # ---------------------------------------------------------------------------
@@ -1787,13 +2292,17 @@ def getNumThreads():
 
 
 def setRNGSeed(seed):
-    """`cv2.setRNGSeed`.
+    """`cv2.setRNGSeed`, for the one function here that draws at all.
 
     OpenCV's global RNG is the reason `grabCut` is not a function of its own
-    input (finding 2.71). Nothing here draws from a global stream -- every
-    kernel that needs randomness takes its seed -- so there is no state to
-    set, and a caller reaching for determinism already has it.
+    input (finding 2.71), and every kernel here that needs randomness takes
+    its seed instead. `kmeans` is the exception, because its caller reaches
+    for this to make it reproducible -- so this records the seed and `kmeans`
+    uses it. Nothing else in this module has state to set.
     """
+    global _rng_seed
+
+    _rng_seed = int(seed) & 0xFFFFFFFF
 
 
 def _no_windows(name):

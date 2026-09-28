@@ -270,6 +270,54 @@ from_hsv( array_of< T > const& array, bool full )
 
 template < typename T >
 py::array
+to_xyz( array_of< T > const& array )
+{
+  auto const source = as_image( three_channel( array, "to_xyz" ) );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_xyz, source ), true );
+}
+
+template < typename T >
+py::array
+from_xyz( array_of< T > const& array )
+{
+  auto const source = as_image( three_channel( array, "from_xyz" ) );
+  return as_array( VIAME_KERNEL_CALL( xyz_to_rgb, source ), true );
+}
+
+template < typename T >
+py::array
+to_ycrcb( array_of< T > const& array, bool yuv )
+{
+  auto const source = as_image( three_channel( array, "to_ycrcb" ) );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_luma_chroma, source, yuv ), true );
+}
+
+template < typename T >
+py::array
+from_ycrcb( array_of< T > const& array, bool yuv )
+{
+  auto const source = as_image( three_channel( array, "from_ycrcb" ) );
+  return as_array( VIAME_KERNEL_CALL( luma_chroma_to_rgb, source, yuv ), true );
+}
+
+template < typename T >
+py::array
+to_luv( array_of< T > const& array )
+{
+  auto const source = as_image( three_channel( array, "to_luv" ) );
+  return as_array( VIAME_KERNEL_CALL( rgb_to_luv, source ), true );
+}
+
+template < typename T >
+py::array
+from_luv( array_of< T > const& array )
+{
+  auto const source = as_image( three_channel( array, "from_luv" ) );
+  return as_array( VIAME_KERNEL_CALL( luv_to_rgb, source ), true );
+}
+
+template < typename T >
+py::array
 to_hls( array_of< T > const& array )
 {
   auto const source = as_image( three_channel( array, "to_hls" ) );
@@ -599,6 +647,48 @@ gaussian_blur_float_taps( array_of< T > const& array, size_t size,
 
 template < typename T >
 py::array
+bilateral_blur( array_of< T > const& array, int diameter, double colour_sigma,
+                double space_sigma, std::string const& border )
+{
+  auto const source = as_image( array );
+  return as_array(
+    VIAME_KERNEL_CALL( bilateral_blur, source, diameter, colour_sigma,
+      space_sigma, as_border( border ) ),
+    array.ndim() == 3 );
+}
+
+template < typename T >
+py::array
+pyramid_down( array_of< T > const& array )
+{
+  auto const source = as_image( array );
+  return as_array( VIAME_KERNEL_CALL( pyramid_down, source ),
+                   array.ndim() == 3 );
+}
+
+template < typename T >
+py::array
+pyramid_up( array_of< T > const& array, size_t width, size_t height )
+{
+  auto const source = as_image( array );
+  return as_array( VIAME_KERNEL_CALL( pyramid_up, source, width, height ),
+                   array.ndim() == 3 );
+}
+
+template < typename T >
+py::array
+mean_shift_blur( array_of< T > const& array, double space_radius,
+                 double colour_radius, int max_iterations, double epsilon )
+{
+  auto const source = as_image( three_channel( array, "mean_shift_blur" ) );
+  return as_array(
+    VIAME_KERNEL_CALL( mean_shift_blur, source, space_radius, colour_radius,
+      max_iterations, epsilon ),
+    true );
+}
+
+template < typename T >
+py::array
 box_blur( array_of< T > const& array,
           size_t size, std::string const& border )
 {
@@ -831,9 +921,11 @@ canny( array_of< uint8_t > const& array, double low, double high,
        size_t aperture, bool l2_gradient )
 {
   auto const source = as_image( array );
+  // Always two dimensional, whatever went in: an edge map is one plane, and
+  // cv2.Canny on a colour image returns a single channel too.
   return as_array(
     VIAME_KERNEL_CALL( canny, source, low, high, aperture, l2_gradient ),
-    array.ndim() == 3 );
+    false );
 }
 
 template < typename T >
@@ -1912,6 +2004,42 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          "HSV back to RGB, on whichever scale to_hsv gives that type. "
          "`full` is the same flag, cv2.COLOR_HSV2RGB_FULL." );
 
+  for_both_pixel_types( m, "to_xyz", &to_xyz< uint8_t >, &to_xyz< float >,
+         py::arg( "image" ),
+         "RGB to CIE XYZ, which is cv2.COLOR_RGB2XYZ -- and note what that "
+         "is not: OpenCV applies the matrix to the **encoded** sRGB value "
+         "without linearising it, so the result is a combination of "
+         "gamma-encoded numbers. to_lab and to_luv do linearise. Reproduced "
+         "as OpenCV has it." );
+
+  for_both_pixel_types( m, "from_xyz", &from_xyz< uint8_t >,
+         &from_xyz< float >, py::arg( "image" ),
+         "CIE XYZ back to RGB, cv2.COLOR_XYZ2RGB." );
+
+  for_both_pixel_types( m, "to_ycrcb", &to_ycrcb< uint8_t >,
+         &to_ycrcb< float >, py::arg( "image" ), py::arg( "yuv" ) = false,
+         "RGB to luma and two chroma planes. Without `yuv` this is "
+         "cv2.COLOR_RGB2YCrCb -- Y, Cr, Cb, chroma scaled by 0.713 and "
+         "0.564 -- and with it cv2.COLOR_RGB2YUV, which is Y, U, V with 0.492 "
+         "and 0.877 and the blue-carrying plane first. Same luma either way." );
+
+  for_both_pixel_types( m, "from_ycrcb", &from_ycrcb< uint8_t >,
+         &from_ycrcb< float >, py::arg( "image" ), py::arg( "yuv" ) = false,
+         "Luma and chroma back to RGB: cv2.COLOR_YCrCb2RGB, or "
+         "cv2.COLOR_YUV2RGB with `yuv`." );
+
+  for_both_pixel_types( m, "to_luv", &to_luv< uint8_t >, &to_luv< float >,
+         py::arg( "image" ),
+         "RGB to CIE L*u*v*, cv2.COLOR_RGB2Luv. 8 bit carries OpenCV's "
+         "scaling -- L over 0..255, u offset by 134 and v by 140 -- and "
+         "float32 the real ranges. Within a count of cv2 on 8 bit and 0.13 "
+         "of a u unit in float, for the reason finding 2.60 gives: OpenCV "
+         "evaluates the sRGB curve off a spline rather than calling pow." );
+
+  for_both_pixel_types( m, "from_luv", &from_luv< uint8_t >,
+         &from_luv< float >, py::arg( "image" ),
+         "CIE L*u*v* back to RGB, cv2.COLOR_Luv2RGB." );
+
   for_both_pixel_types( m, "to_hls", &to_hls< uint8_t >, &to_hls< float >,
          py::arg( "image" ),
          "RGB to HLS, on the same two scales as to_hsv." );
@@ -2171,6 +2299,42 @@ VIAME_PYTHON_MODULE( _image_kernels, m )
          py::arg( "image" ), py::arg( "shape" ) = "rect",
          py::arg( "width" ) = 3, py::arg( "height" ) = 3,
          "Grey dilation. cv2.dilate." );
+
+  for_every_pixel_type( m, "pyramid_down", &pyramid_down< uint8_t >,
+         &pyramid_down< uint16_t >, &pyramid_down< float >,
+         py::arg( "image" ),
+         "cv2.pyrDown: halve the image with the separable 1 4 6 4 1 filter. "
+         "Exact against cv2 on every size measured, odd ones included." );
+
+  for_every_pixel_type( m, "pyramid_up", &pyramid_up< uint8_t >,
+         &pyramid_up< uint16_t >, &pyramid_up< float >,
+         py::arg( "image" ), py::arg( "width" ) = 0, py::arg( "height" ) = 0,
+         "cv2.pyrUp. The target may be twice the source or one less on "
+         "either axis; the filter runs on the full doubled grid and the "
+         "result is cropped, which is what agrees with cv2 at odd sizes." );
+
+  for_both_pixel_types( m, "mean_shift_blur", &mean_shift_blur< uint8_t >,
+         &mean_shift_blur< uint16_t >, py::arg( "image" ),
+         py::arg( "space_radius" ), py::arg( "colour_radius" ),
+         py::arg( "max_iterations" ) = 5, py::arg( "epsilon" ) = 1.0,
+         "cv2.pyrMeanShiftFiltering at maxLevel=0, exact. Each pixel walks "
+         "to the mean of the neighbours near it in both position and colour, "
+         "so a flat region collapses and an edge survives. OpenCV's default "
+         "combines a two-level pyramid through a mask and that combination "
+         "is not reproduced; finding 2.75 says what is and is not." );
+
+  for_both_pixel_types( m, "bilateral_blur", &bilateral_blur< uint8_t >,
+         &bilateral_blur< uint16_t >, py::arg( "image" ),
+         py::arg( "diameter" ) = 0, py::arg( "colour_sigma" ) = 1.0,
+         py::arg( "space_sigma" ) = 1.0, py::arg( "border" ) = "reflect_101",
+         "cv2.bilateralFilter: an edge-preserving blur whose weight is a "
+         "Gaussian on distance times a Gaussian on colour difference. A "
+         "diameter of 0 derives the radius from the space sigma, as "
+         "OpenCV's does, and the neighbourhood is the disk rather than the "
+         "square. Exact against cv2 for three planes; a single plane is "
+         "within a count on about half its pixels, where OpenCV's "
+         "one-channel body adds the same twenty-odd floats in a different "
+         "order." );
 
   for_every_pixel_type( m, "remap", &remap< uint8_t >,
          &remap< uint16_t >, &remap< float >,

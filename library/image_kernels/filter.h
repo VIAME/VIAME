@@ -1288,6 +1288,459 @@ add_weighted( viame::image_of< T > const& first, double alpha,
   return out;
 }
 
+
+// ----------------------------------------------------------------------------
+/// Edge-preserving blur, which is `cv::bilateralFilter`.
+///
+/// Each output pixel is a weighted mean of its neighbourhood where the weight
+/// is the product of two Gaussians: one on the distance and one on the
+/// **colour** difference. That second factor is what preserves an edge --
+/// across it the colour difference is large, the weight small, and the two
+/// sides do not mix.
+///
+/// The weights are OpenCV's, table for table. \p diameter of zero derives the
+/// radius from \p space_sigma, the round neighbourhood is the disk OpenCV
+/// uses rather than the square it sits in, and the colour table is indexed by
+/// the **sum** of the absolute per-plane differences, which is why it has one
+/// entry per plane per grey level.
+///
+/// Three-plane images are exact against cv2 over every configuration
+/// measured. A single-plane one is within a count on about half its pixels:
+/// OpenCV's one-channel 8-bit body accumulates in a different order and the
+/// twenty-odd float additions do not land on the same value.
+template < typename T >
+viame::image_of< T >
+bilateral_blur( viame::image_of< T > const& image, int diameter,
+                double colour_sigma, double space_sigma,
+                border_mode mode = border_mode::REFLECT_101 )
+{
+  if( colour_sigma <= 0.0 ) { colour_sigma = 1.0; }
+  if( space_sigma <= 0.0 ) { space_sigma = 1.0; }
+
+  auto const colour_coefficient = -0.5 / ( colour_sigma * colour_sigma );
+  auto const space_coefficient = -0.5 / ( space_sigma * space_sigma );
+
+  auto radius = ( diameter <= 0 )
+    ? static_cast< int >( std::nearbyint( space_sigma * 1.5 ) )
+    : diameter / 2;
+  radius = std::max( radius, 1 );
+
+  auto const planes = image.depth();
+  auto const levels = static_cast< size_t >( pixel_max< T >() ) + 1;
+
+  // One entry per plane per level, because the index is the sum over planes.
+  std::vector< float > colour_weight( levels * planes );
+
+  for( size_t at = 0; at < colour_weight.size(); ++at )
+  {
+    colour_weight[ at ] = static_cast< float >( std::exp(
+      static_cast< double >( at ) * static_cast< double >( at ) *
+      colour_coefficient ) );
+  }
+
+  // The disk, not the square: OpenCV skips an offset whose distance exceeds
+  // the radius, so a diameter of five is twenty-one taps and not twenty-five.
+  std::vector< float > space_weight;
+  std::vector< std::pair< int, int > > offsets;
+
+  for( int dj = -radius; dj <= radius; ++dj )
+  {
+    for( int di = -radius; di <= radius; ++di )
+    {
+      auto const distance = std::sqrt( static_cast< double >( di * di + dj * dj ) );
+
+      if( distance > static_cast< double >( radius ) ) { continue; }
+
+      space_weight.push_back( static_cast< float >(
+        std::exp( distance * distance * space_coefficient ) ) );
+      offsets.emplace_back( di, dj );
+    }
+  }
+
+  viame::image_of< T > out( image.width(), image.height(), planes );
+
+  std::vector< float > total( planes );
+  std::vector< double > centre( planes );
+  std::vector< double > neighbour( planes );
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      for( size_t plane = 0; plane < planes; ++plane )
+      {
+        centre[ plane ] = static_cast< double >( image( i, j, plane ) );
+      }
+
+      std::fill( total.begin(), total.end(), 0.0f );
+      float weight_total = 0.0f;
+
+      for( size_t tap = 0; tap < offsets.size(); ++tap )
+      {
+        auto const at_i = static_cast< long >( i ) + offsets[ tap ].first;
+        auto const at_j = static_cast< long >( j ) + offsets[ tap ].second;
+
+        long difference = 0;
+
+        for( size_t plane = 0; plane < planes; ++plane )
+        {
+          neighbour[ plane ] = sample_with_border(
+            image, at_i, at_j, plane, mode, 0.0 );
+          difference += std::abs(
+            static_cast< long >( neighbour[ plane ] ) -
+            static_cast< long >( centre[ plane ] ) );
+        }
+
+        auto const weight =
+          space_weight[ tap ] *
+          colour_weight[ static_cast< size_t >( difference ) ];
+
+        weight_total += weight;
+
+        for( size_t plane = 0; plane < planes; ++plane )
+        {
+          total[ plane ] +=
+            weight * static_cast< float >( neighbour[ plane ] );
+        }
+      }
+
+      for( size_t plane = 0; plane < planes; ++plane )
+      {
+        out( i, j, plane ) =
+          saturate_pixel_even< T >( total[ plane ] / weight_total );
+      }
+    }
+  }
+
+  return out;
+}
+
+
+namespace detail {
+
+/// The five-tap binomial kernel both pyramid operations use, unnormalised.
+constexpr long pyramid_taps[ 5 ] = { 1, 4, 6, 4, 1 };
+
+} // namespace detail
+
+// ----------------------------------------------------------------------------
+/// Halve an image with the binomial filter, which is `cv::pyrDown`.
+///
+/// The output is `(width + 1) / 2` by `(height + 1) / 2`, the filter is the
+/// separable `1 4 6 4 1` at a total gain of 256, the border reflects without
+/// repeating the edge, and the rounding adds 128 before the shift. Exact
+/// against cv2 on every size measured, odd ones included.
+template < typename T >
+viame::image_of< T >
+pyramid_down( viame::image_of< T > const& image )
+{
+  auto const width = static_cast< long >( image.width() );
+  auto const height = static_cast< long >( image.height() );
+  auto const planes = image.depth();
+
+  auto const out_width = ( image.width() + 1 ) / 2;
+  auto const out_height = ( image.height() + 1 ) / 2;
+
+  if( out_width == 0 || out_height == 0 )
+  {
+    throw std::invalid_argument( "pyramid_down: the source has no area" );
+  }
+
+  // The horizontal pass, kept for every source row and every output column.
+  std::vector< long > across( image.height() * out_width * planes, 0 );
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < out_width; ++i )
+    {
+      for( int tap = 0; tap < 5; ++tap )
+      {
+        auto const at = detail::border_index(
+          static_cast< long >( i ) * 2 + tap - 2, width,
+          border_mode::REFLECT_101 );
+
+        for( size_t plane = 0; plane < planes; ++plane )
+        {
+          across[ ( j * out_width + i ) * planes + plane ] +=
+            detail::pyramid_taps[ tap ] *
+            static_cast< long >( image( static_cast< size_t >( at ), j,
+                                        plane ) );
+        }
+      }
+    }
+  }
+
+  viame::image_of< T > out( out_width, out_height, planes );
+
+  for( size_t j = 0; j < out_height; ++j )
+  {
+    for( size_t i = 0; i < out_width; ++i )
+    {
+      for( size_t plane = 0; plane < planes; ++plane )
+      {
+        long total = 0;
+
+        for( int tap = 0; tap < 5; ++tap )
+        {
+          auto const at = detail::border_index(
+            static_cast< long >( j ) * 2 + tap - 2, height,
+            border_mode::REFLECT_101 );
+
+          total += detail::pyramid_taps[ tap ] *
+                   across[ ( static_cast< size_t >( at ) * out_width + i ) *
+                           planes + plane ];
+        }
+
+        out( i, j, plane ) = saturate_pixel< T >(
+          static_cast< double >( ( total + 128 ) >> 8 ) );
+      }
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// Double an image with the binomial filter, which is `cv::pyrUp`.
+///
+/// The requested size may be `2n` or `2n - 1` on either axis, which is what
+/// OpenCV allows. **The filter runs on the full `2n` grid and the result is
+/// then cropped**, rather than on a grid of the requested size: reflecting
+/// inside an odd grid instead disagrees with cv2 on about four percent of the
+/// pixels by up to nine counts, and cropping a `2n` grid agrees on every one
+/// of the seven shapes measured.
+template < typename T >
+viame::image_of< T >
+pyramid_up( viame::image_of< T > const& image, size_t width, size_t height )
+{
+  auto const planes = image.depth();
+  auto const grid_width = image.width() * 2;
+  auto const grid_height = image.height() * 2;
+
+  if( width == 0 ) { width = grid_width; }
+  if( height == 0 ) { height = grid_height; }
+
+  if( width > grid_width || height > grid_height ||
+      width + 1 < grid_width || height + 1 < grid_height )
+  {
+    throw std::invalid_argument(
+      "pyramid_up: the target must be twice the source, or one less" );
+  }
+
+  // The zero-filled grid, only the even positions carrying a sample.
+  auto const sample = [ & ]( long i, long j, size_t plane ) -> long
+  {
+    if( ( i & 1 ) || ( j & 1 ) ) { return 0; }
+
+    return static_cast< long >(
+      image( static_cast< size_t >( i / 2 ), static_cast< size_t >( j / 2 ),
+             plane ) );
+  };
+
+  std::vector< long > across( grid_height * width * planes, 0 );
+
+  for( size_t j = 0; j < grid_height; ++j )
+  {
+    for( size_t i = 0; i < width; ++i )
+    {
+      for( int tap = 0; tap < 5; ++tap )
+      {
+        auto const at = detail::border_index(
+          static_cast< long >( i ) + tap - 2,
+          static_cast< long >( grid_width ), border_mode::REFLECT_101 );
+
+        for( size_t plane = 0; plane < planes; ++plane )
+        {
+          across[ ( j * width + i ) * planes + plane ] +=
+            detail::pyramid_taps[ tap ] *
+            sample( at, static_cast< long >( j ), plane );
+        }
+      }
+    }
+  }
+
+  viame::image_of< T > out( width, height, planes );
+
+  for( size_t j = 0; j < height; ++j )
+  {
+    for( size_t i = 0; i < width; ++i )
+    {
+      for( size_t plane = 0; plane < planes; ++plane )
+      {
+        long total = 0;
+
+        for( int tap = 0; tap < 5; ++tap )
+        {
+          auto const at = detail::border_index(
+            static_cast< long >( j ) + tap - 2,
+            static_cast< long >( grid_height ), border_mode::REFLECT_101 );
+
+          total += detail::pyramid_taps[ tap ] *
+                   across[ ( static_cast< size_t >( at ) * width + i ) *
+                           planes + plane ];
+        }
+
+        // Four times the gain of the halving pass, because three quarters of
+        // the grid is zero.
+        out( i, j, plane ) = saturate_pixel< T >(
+          static_cast< double >( ( total * 4 + 128 ) >> 8 ) );
+      }
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// Mean-shift filtering in space and colour, one level.
+///
+/// Each pixel walks to the mean of the neighbours within \p space_radius of
+/// its position **and** within \p colour_radius of its colour, and repeats
+/// until it stops moving or the iteration budget runs out; the colour it ends
+/// on is the output. Flat regions collapse to one colour and an edge survives,
+/// which is what makes it a segmentation pre-filter rather than a blur.
+///
+/// This is `cv::pyrMeanShiftFiltering` **at `maxLevel = 0`**, exact: the
+/// integer window, the squared-distance test against `round(sr*sr)`, the
+/// rounded centroid, OpenCV's two-part stopping rule and its iteration
+/// clamping. OpenCV's default builds a pyramid and combines the levels
+/// through a mask, and that combination is **not** reproduced here -- see
+/// `design/lite-findings.md` 2.75 for what was established and what was not.
+/// `pyramid_down` and `pyramid_up` above are exact, so the missing piece is
+/// the combination rule and not the arithmetic.
+template < typename T >
+viame::image_of< T >
+mean_shift_blur( viame::image_of< T > const& image, double space_radius,
+                 double colour_radius, int max_iterations = 5,
+                 double epsilon = 1.0 )
+{
+  if( image.depth() != 3 )
+  {
+    throw std::invalid_argument( "mean_shift_blur takes a three plane image" );
+  }
+
+  auto const width = static_cast< long >( image.width() );
+  auto const height = static_cast< long >( image.height() );
+
+  auto const radius = std::max(
+    static_cast< long >( std::nearbyint( space_radius ) ), 1L );
+  auto const colour_limit = static_cast< long long >(
+    std::nearbyint( colour_radius * colour_radius ) );
+
+  max_iterations = std::min( std::max( max_iterations, 1 ), 100 );
+  epsilon = std::max( epsilon, 0.0 );
+
+  viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  for( long j = 0; j < height; ++j )
+  {
+    for( long i = 0; i < width; ++i )
+    {
+      auto x = i;
+      auto y = j;
+      long colour[ 3 ] = {
+        static_cast< long >( image( static_cast< size_t >( i ),
+                                    static_cast< size_t >( j ), 0 ) ),
+        static_cast< long >( image( static_cast< size_t >( i ),
+                                    static_cast< size_t >( j ), 1 ) ),
+        static_cast< long >( image( static_cast< size_t >( i ),
+                                    static_cast< size_t >( j ), 2 ) ) };
+
+      for( int iteration = 0; iteration < max_iterations; ++iteration )
+      {
+        auto const low_x = std::max( x - radius, 0L );
+        auto const low_y = std::max( y - radius, 0L );
+        auto const high_x = std::min( x + radius, width - 1 );
+        auto const high_y = std::min( y + radius, height - 1 );
+
+        long long sum[ 3 ] = { 0, 0, 0 };
+        long long sum_x = 0;
+        long long sum_y = 0;
+        long long count = 0;
+
+        for( auto at_y = low_y; at_y <= high_y; ++at_y )
+        {
+          long long row_count = 0;
+
+          for( auto at_x = low_x; at_x <= high_x; ++at_x )
+          {
+            long long distance = 0;
+            long value[ 3 ];
+
+            for( size_t plane = 0; plane < 3; ++plane )
+            {
+              value[ plane ] = static_cast< long >(
+                image( static_cast< size_t >( at_x ),
+                       static_cast< size_t >( at_y ), plane ) );
+              auto const difference = value[ plane ] - colour[ plane ];
+              distance += static_cast< long long >( difference ) * difference;
+            }
+
+            if( distance > colour_limit ) { continue; }
+
+            for( size_t plane = 0; plane < 3; ++plane )
+            {
+              sum[ plane ] += value[ plane ];
+            }
+
+            sum_x += at_x;
+            ++row_count;
+          }
+
+          count += row_count;
+          sum_y += at_y * row_count;
+        }
+
+        if( count == 0 ) { break; }
+
+        auto const inverse = 1.0 / static_cast< double >( count );
+
+        auto const next_x = static_cast< long >( std::nearbyint(
+          static_cast< double >( sum_x ) * inverse ) );
+        auto const next_y = static_cast< long >( std::nearbyint(
+          static_cast< double >( sum_y ) * inverse ) );
+
+        long next[ 3 ];
+
+        for( size_t plane = 0; plane < 3; ++plane )
+        {
+          next[ plane ] = static_cast< long >( std::nearbyint(
+            static_cast< double >( sum[ plane ] ) * inverse ) );
+        }
+
+        // OpenCV's rule, both halves: either nothing moved, or the total of
+        // the spatial step and the squared colour step is within epsilon.
+        long long moved = std::abs( next_x - x ) + std::abs( next_y - y );
+
+        for( size_t plane = 0; plane < 3; ++plane )
+        {
+          auto const difference = next[ plane ] - colour[ plane ];
+          moved += static_cast< long long >( difference ) * difference;
+        }
+
+        auto const settled = ( x == next_x && y == next_y ) ||
+                             static_cast< double >( moved ) <= epsilon;
+
+        x = next_x;
+        y = next_y;
+        colour[ 0 ] = next[ 0 ];
+        colour[ 1 ] = next[ 1 ];
+        colour[ 2 ] = next[ 2 ];
+
+        if( settled ) { break; }
+      }
+
+      for( size_t plane = 0; plane < 3; ++plane )
+      {
+        out( static_cast< size_t >( i ), static_cast< size_t >( j ), plane ) =
+          saturate_pixel< T >( static_cast< double >( colour[ plane ] ) );
+      }
+    }
+  }
+
+  return out;
+}
+
 } // namespace image_kernels
 } // namespace viame
 

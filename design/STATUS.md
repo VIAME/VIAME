@@ -2561,12 +2561,8 @@ and `video_io.frames` gains `FrameReader` and `FrameWriter` --
 `cv2.VideoCapture` and `cv2.VideoWriter` over the same PyAV decode a pipeline
 uses.
 
-**What is left for the declaration to go**: `imgaug`, 14 modules, and it needs
-four things the kernels do not have -- `bilateralFilter`,
-`pyrMeanShiftFiltering`, `warpPolar`, and a float64 `Laplacian` -- plus the
-XYZ, LUV, YUV and YCrCb conversions, and its `setup.py` declares
-`opencv-python-headless` outright. `mmdeploy` is one file and only under
-`VIAME_ENABLE_ONNX`.
+**What was left for the declaration to go** was `imgaug`, and the section
+below is that. `mmdeploy` is one file and only under `VIAME_ENABLE_ONNX`.
 
 ## Two red tests that had nothing to do with cv2 (2026-09-27)
 
@@ -2596,3 +2592,90 @@ The install baseline is re-recorded for two intended additions:
 `viame/utilities/cv2_api.py`, and `share/viame/licenses/LICENSE_OpenCV_resize.txt`,
 which `library/image_kernels/CMakeLists.txt` has installed since the exact
 resize work and the manifest had never caught up with.
+
+
+## imgaug off cv2 (2026-09-27)
+
+`import imgaug` now works with no OpenCV installed, and so does every one of
+its fourteen runtime modules. With `mmcv` and `mmdetection` already done, that
+is the whole of what a default build installs.
+
+**Verified the same way, end to end.** 62 augmenter calls run twice in the
+same install -- once with the pristine files and real cv2, once with the
+patched files and cv2 blocked out of `sys.modules` -- and diffed:
+
+| | count |
+|---|---|
+| bit identical | 52 |
+| within one count | 5 |
+| genuinely different | 5 |
+
+**Every augmenter VIAME's netharn configs instantiate is bit identical**:
+`Fliplr`, `Flipud`, `Rot90`, `CropAndPad` (positive and negative), `Crop`,
+`Affine` in four forms including nearest-neighbour order, `Grayscale`,
+`GammaContrast`, `LinearContrast`, `Multiply`, `Add`, `AddElementwise`,
+`MedianBlur`, `GaussianBlur`, `AverageBlur`, `Dropout`, `CoarseDropout`,
+`AdditiveGaussianNoise`, `Sharpen`, `Emboss`, `EdgeDetect`,
+`DirectedEdgeDetect`, `AddToHueAndSaturation` and a `Sequential` of three.
+So are `Canny`, `BilateralBlur`, `CLAHE`, `HistogramEqualization`,
+`pillike.Equalize`, `pillike.Autocontrast`, `MotionBlur`, `Posterize`,
+`Invert`, `Solarize`, `PerspectiveTransform`, `PiecewiseAffine` and six of
+the seven `ChangeColorspace` targets, plus the keypoint and bounding-box paths
+through `Affine` and `PerspectiveTransform`.
+
+**The five that differ, each for a reason that is written down:**
+
+* `MeanShiftBlur` and `Cartoon` -- the `maxLevel` pin, finding 2.75. Both call
+  sites are patched to ask for level 0, which the kernel reproduces exactly,
+  where cv2 defaults to the pyramid it does not. On a photograph the two
+  levels differ by 0.6 of a grey level on average and about 50 at worst.
+* `KMeansColorQuantization` -- cv2's k-means draws from OpenCV's global RNG
+  and `imgaug`'s own comment at the call site says it is not deterministic
+  without `setRNGSeed` and gives no way to read the state back. Ours is
+  k-means++ seeded from that same call, and on the measured data its
+  compactness came out 0.2 percent **lower** than cv2's.
+* `ElasticTransformation` -- `convertMaps`. OpenCV packs float maps into a
+  `CV_16SC2` fixed point and quantises a source coordinate to 1/32 of a pixel
+  before interpolating; `remap` here takes the float maps. 59 percent of
+  values differ by one or two counts and none by more than six, and ours is
+  the more accurate sampling.
+* `WithPolarWarping` -- 19 pixels of 3072 after a forward and inverse polar
+  warp, which is a transform that is lossy by construction. The forward map
+  itself is exact and the inverse is within a count.
+
+Separately, `WithPolarWarping` on **coordinates** is broken in imgaug 0.4.0
+against any modern OpenCV, ours included: it passes a 1-D array to
+`cartToPolar` and concatenates the result on axis 1. That is upstream's bug
+and is left alone.
+
+**Six things the kernels grew, all measured against cv2 before use:**
+
+| kernel | agreement |
+|---|---|
+| `to_xyz` / `from_xyz` | exact, 8 bit; 1 ULP in float |
+| `to_ycrcb` / `from_ycrcb`, both scalings | exact, 8 bit; 1 ULP in float |
+| `to_luv` / `from_luv` | within a count on 82 percent of an 8-bit block, and the round trip is **more** faithful than cv2's own -- mean error 0.73 against 0.97 |
+| `bilateral_blur` | exact for three planes; a single plane is within a count on about half its pixels, where OpenCV's one-channel body sums the same floats in a different order |
+| `pyramid_down` / `pyramid_up` | exact, including at odd sizes |
+| `mean_shift_blur` | exact at `maxLevel = 0`, over a real frame as well as random blocks |
+
+`canny` also grew multi-plane support -- OpenCV takes the **strongest plane at
+each pixel**, which is neither the union of three grey edge maps nor the edge
+map of the luma -- exact over four shapes, both apertures and both gradient
+norms. It used to refuse a colour image, and the comment saying why is now the
+comment saying how.
+
+**And in the shim**: `calcHist`, `Laplacian` at apertures 1, 3 and 5,
+`cartToPolar` (OpenCV's `fastAtan2` polynomial, so that `warpPolar` and the
+keypoint mapping agree with each other), `convertMaps`, `kmeans`, `warpPolar`,
+`bilateralFilter`, `pyrDown`, `pyrUp` and `pyrMeanShiftFiltering`. Two
+existing pieces were corrected by the exercise: `_out` now treats `dst` as
+OpenCV's `OutputArray` does -- a hint, reallocated when the shape changes,
+which is what `cvtColor(colour_buffer, RGB2GRAY, dst=buffer)` needs -- and
+`resize` takes int32 for nearest neighbour, which is the one interpolation cv2
+takes it for and what `CoarseDropout` upscales its mask with.
+
+**imgaug declares no OpenCV dependency to remove.** Its `setup.py` lists
+`opencv-python-headless` in an `ALT_INSTALL_REQUIRES` table keyed on a name
+that is not in `INSTALL_REQUIRES`, so the substitution never fires and the
+wheel's metadata has never asked for it.

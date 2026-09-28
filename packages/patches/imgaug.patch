@@ -1,0 +1,248 @@
+diff --git a/imgaug/augmentables/lines.py b/imgaug/augmentables/lines.py
+index 7549e4b6..a50c9598 100644
+--- a/imgaug/augmentables/lines.py
++++ b/imgaug/augmentables/lines.py
+@@ -6,7 +6,9 @@ import copy as copylib
+ import numpy as np
+ import skimage.draw
+ import skimage.measure
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ 
+ from .. import imgaug as ia
+ from .base import IAugmentable
+diff --git a/imgaug/augmenters/artistic.py b/imgaug/augmenters/artistic.py
+index 0a84d473..2bbe6755 100644
+--- a/imgaug/augmenters/artistic.py
++++ b/imgaug/augmenters/artistic.py
+@@ -12,7 +12,9 @@ Added in 0.4.0.
+ from __future__ import print_function, division, absolute_import
+ 
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ 
+ from imgaug.imgaug import _normalize_cv2_input_arr_
+ from . import meta
+@@ -128,10 +130,15 @@ def stylize_cartoon(image, blur_ksize=3, segmentation_size=1.0,
+     if segmentation_size <= 0:
+         image_seg = image
+     else:
++        # VIAME: maxLevel=0, for the reason the same call in `blur.py`
++        # carries -- cv2's default combines a pyramid whose combination rule
++        # VIAME's kernel does not reproduce, and this level it reproduces
++        # exactly.
+         cv2.pyrMeanShiftFiltering(_normalize_cv2_input_arr_(image),
+                                   sp=spatial_window_radius,
+                                   sr=color_window_radius,
+-                                  dst=image_seg)
++                                  dst=image_seg,
++                                  maxLevel=0)
+ 
+     if is_small_image:
+         edges_raw = _find_edges_canny(image_seg,
+diff --git a/imgaug/augmenters/blend.py b/imgaug/augmenters/blend.py
+index 468059da..ef3260de 100644
+--- a/imgaug/augmenters/blend.py
++++ b/imgaug/augmenters/blend.py
+@@ -23,7 +23,9 @@ from abc import ABCMeta, abstractmethod
+ 
+ import numpy as np
+ import six
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ 
+ import imgaug as ia
+ from imgaug.imgaug import _normalize_cv2_input_arr_
+diff --git a/imgaug/augmenters/blur.py b/imgaug/augmenters/blur.py
+index 8ab25b54..6a516f59 100644
+--- a/imgaug/augmenters/blur.py
++++ b/imgaug/augmenters/blur.py
+@@ -15,7 +15,9 @@ from __future__ import print_function, division, absolute_import
+ 
+ import numpy as np
+ from scipy import ndimage
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import six.moves as sm
+ 
+ import imgaug as ia
+@@ -353,11 +355,19 @@ def blur_mean_shift_(image, spatial_window_radius, color_window_radius):
+     color_window_radius = max(color_window_radius, 0)
+ 
+     image = _normalize_cv2_input_arr_(image)
++    # VIAME: maxLevel=0, explicitly. cv2's default is 1, which combines a
++    # two-level pyramid through a mask whose rule VIAME's kernel does not
++    # reproduce (finding 2.75); maxLevel=0 it reproduces exactly, on a real
++    # frame as well as on random blocks. On a photograph the two differ by
++    # 0.6 of a grey level on average, with a 99.9th percentile of 15 and a
++    # worst case around 50, so this is a real difference and not a rounding
++    # one -- it is stated rather than hidden.
+     image = cv2.pyrMeanShiftFiltering(
+         image,
+         sp=spatial_window_radius,
+         sr=color_window_radius,
+-        dst=image)
++        dst=image,
++        maxLevel=0)
+ 
+     if shape_is_hw:
+         image = image[..., 0]
+diff --git a/imgaug/augmenters/color.py b/imgaug/augmenters/color.py
+index 2adc0346..9bffa937 100644
+--- a/imgaug/augmenters/color.py
++++ b/imgaug/augmenters/color.py
+@@ -30,7 +30,9 @@ from __future__ import print_function, division, absolute_import
+ from abc import ABCMeta, abstractmethod
+ 
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import six
+ import six.moves as sm
+ 
+diff --git a/imgaug/augmenters/contrast.py b/imgaug/augmenters/contrast.py
+index e49299e6..9b42b1f3 100644
+--- a/imgaug/augmenters/contrast.py
++++ b/imgaug/augmenters/contrast.py
+@@ -18,7 +18,9 @@ from __future__ import print_function, division, absolute_import
+ import numpy as np
+ import six.moves as sm
+ import skimage.exposure as ski_exposure
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ 
+ import imgaug as ia
+ from imgaug.imgaug import _normalize_cv2_input_arr_
+diff --git a/imgaug/augmenters/convolutional.py b/imgaug/augmenters/convolutional.py
+index 30cacc11..ab594cb8 100644
+--- a/imgaug/augmenters/convolutional.py
++++ b/imgaug/augmenters/convolutional.py
+@@ -17,7 +17,9 @@ from __future__ import print_function, division, absolute_import
+ import itertools
+ 
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import six.moves as sm
+ 
+ import imgaug as ia
+diff --git a/imgaug/augmenters/edges.py b/imgaug/augmenters/edges.py
+index d692a549..4e92aa64 100644
+--- a/imgaug/augmenters/edges.py
++++ b/imgaug/augmenters/edges.py
+@@ -15,7 +15,9 @@ from __future__ import print_function, division, absolute_import
+ from abc import ABCMeta, abstractmethod
+ 
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import six
+ 
+ import imgaug as ia
+diff --git a/imgaug/augmenters/flip.py b/imgaug/augmenters/flip.py
+index 4403f22c..07dfb487 100644
+--- a/imgaug/augmenters/flip.py
++++ b/imgaug/augmenters/flip.py
+@@ -10,7 +10,9 @@ List of augmenters:
+ from __future__ import print_function, division, absolute_import
+ 
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import six.moves as sm
+ 
+ from imgaug.imgaug import _normalize_cv2_input_arr_
+diff --git a/imgaug/augmenters/geometric.py b/imgaug/augmenters/geometric.py
+index 7bac1260..a809331e 100644
+--- a/imgaug/augmenters/geometric.py
++++ b/imgaug/augmenters/geometric.py
+@@ -27,7 +27,9 @@ import functools
+ import numpy as np
+ from scipy import ndimage
+ from skimage import transform as tf
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import six.moves as sm
+ 
+ import imgaug as ia
+diff --git a/imgaug/augmenters/pillike.py b/imgaug/augmenters/pillike.py
+index ba88505f..eacf5996 100644
+--- a/imgaug/augmenters/pillike.py
++++ b/imgaug/augmenters/pillike.py
+@@ -51,7 +51,9 @@ from __future__ import print_function, division, absolute_import
+ 
+ import six.moves as sm
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import PIL.Image
+ import PIL.ImageOps
+ import PIL.ImageEnhance
+diff --git a/imgaug/augmenters/size.py b/imgaug/augmenters/size.py
+index b95c0352..85c2cff6 100644
+--- a/imgaug/augmenters/size.py
++++ b/imgaug/augmenters/size.py
+@@ -36,7 +36,9 @@ import re
+ import functools
+ 
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ 
+ import imgaug as ia
+ from imgaug.imgaug import _normalize_cv2_input_arr_
+diff --git a/imgaug/imgaug.py b/imgaug/imgaug.py
+index 19e6dd05..300030e1 100644
+--- a/imgaug/imgaug.py
++++ b/imgaug/imgaug.py
+@@ -15,7 +15,9 @@ except ImportError:
+     from collections import Iterable
+ 
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ import imageio
+ import six
+ import six.moves as sm
+diff --git a/imgaug/multicore.py b/imgaug/multicore.py
+index a42e87aa..3dbb5c32 100644
+--- a/imgaug/multicore.py
++++ b/imgaug/multicore.py
+@@ -9,7 +9,9 @@ import random
+ import platform
+ 
+ import numpy as np
+-import cv2
++# VIAME: no OpenCV. `viame.utilities.cv2_api` is the slice of cv2's
++# API this file uses, over VIAME's own image kernels.
++from viame.utilities import cv2_api as cv2
+ 
+ import imgaug.imgaug as ia
+ import imgaug.random as iarandom

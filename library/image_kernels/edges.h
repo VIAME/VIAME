@@ -121,17 +121,15 @@ inline viame::image_of< uint8_t >
 canny( viame::image_of< uint8_t > const& image, double low, double high,
        size_t aperture = 3, bool l2_gradient = false )
 {
-  // `require_planes` means "at least", which is the wrong test here: with
-  // three planes it would pass and this would quietly read plane 0, where
-  // `cv::Canny` takes the strongest channel of the three per pixel. Refused
-  // rather than half-implemented -- a caller wanting the OpenCV behaviour
-  // should say which channel it meant, or convert first, as the circle
-  // detector does.
-  if( image.depth() != 1 )
+  // Multiple planes are handled the way `cv::Canny` handles them, which is
+  // worth stating because it is not the obvious way: the Sobel runs on every
+  // plane, and then **each pixel independently** takes the plane whose
+  // gradient magnitude is largest and uses that plane's dx and dy for the
+  // suppression and the hysteresis. So a colour edge map is not the union of
+  // three grey ones, and it is not the edge map of the luma either.
+  if( image.depth() == 0 )
   {
-    throw std::invalid_argument(
-      "canny needs a single plane, got " + std::to_string( image.depth() ) +
-      "; cv2 takes the strongest channel and this does not" );
+    throw std::invalid_argument( "canny needs at least one plane" );
   }
 
   // 7 is refused rather than approximated. `cv::Canny` accepts it, and at
@@ -163,8 +161,59 @@ canny( viame::image_of< uint8_t > const& image, double low, double high,
     return out;
   }
 
-  auto const dx = detail::sobel_plane( image, 1, 0, aperture );
-  auto const dy = detail::sobel_plane( image, 0, 1, aperture );
+  auto const planes = image.depth();
+
+  std::vector< int > dx;
+  std::vector< int > dy;
+  std::vector< long > magnitude( width * height );
+
+  auto const magnitude_of = [ l2_gradient ]( long x, long y )
+  {
+    return l2_gradient ? x * x + y * y : std::abs( x ) + std::abs( y );
+  };
+
+  if( planes == 1 )
+  {
+    dx = detail::sobel_plane( image, 1, 0, aperture );
+    dy = detail::sobel_plane( image, 0, 1, aperture );
+  }
+  else
+  {
+    dx.assign( width * height, 0 );
+    dy.assign( width * height, 0 );
+    std::fill( magnitude.begin(), magnitude.end(), -1L );
+
+    for( size_t plane = 0; plane < planes; ++plane )
+    {
+      viame::image_of< uint8_t > single( width, height, 1 );
+
+      for( size_t j = 0; j < height; ++j )
+      {
+        for( size_t i = 0; i < width; ++i )
+        {
+          single( i, j, 0 ) = image( i, j, plane );
+        }
+      }
+
+      auto const plane_dx = detail::sobel_plane( single, 1, 0, aperture );
+      auto const plane_dy = detail::sobel_plane( single, 0, 1, aperture );
+
+      for( size_t at = 0; at < magnitude.size(); ++at )
+      {
+        auto const here = magnitude_of( static_cast< long >( plane_dx[ at ] ),
+                                        static_cast< long >( plane_dy[ at ] ) );
+
+        // Strictly greater, so the first plane wins a tie -- which is what
+        // OpenCV's `if( mag[k] > mag[maxIdx] )` scan does.
+        if( here > magnitude[ at ] )
+        {
+          magnitude[ at ] = here;
+          dx[ at ] = plane_dx[ at ];
+          dy[ at ] = plane_dy[ at ];
+        }
+      }
+    }
+  }
 
   if( l2_gradient )
   {
@@ -178,15 +227,13 @@ canny( viame::image_of< uint8_t > const& image, double low, double high,
   auto const low_at = static_cast< long >( std::floor( low ) );
   auto const high_at = static_cast< long >( std::floor( high ) );
 
-  std::vector< long > magnitude( width * height );
-
-  for( size_t at = 0; at < magnitude.size(); ++at )
+  if( planes == 1 )
   {
-    auto const x = static_cast< long >( dx[ at ] );
-    auto const y = static_cast< long >( dy[ at ] );
-
-    magnitude[ at ] = l2_gradient ? x * x + y * y
-                                  : std::abs( x ) + std::abs( y );
+    for( size_t at = 0; at < magnitude.size(); ++at )
+    {
+      magnitude[ at ] = magnitude_of( static_cast< long >( dx[ at ] ),
+                                      static_cast< long >( dy[ at ] ) );
+    }
   }
 
   // 0 is a candidate the flood may still claim, 1 is decided against, 2 is an

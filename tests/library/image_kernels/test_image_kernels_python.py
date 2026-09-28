@@ -239,6 +239,84 @@ def test_hue_of_the_primaries_is_on_the_opencv_scale():
     assert list(to_hsv(primaries)[0, :, 0]) == [0, 60, 120]
 
 
+def test_xyz_is_opencvs_xyz_and_not_a_colour_scientists():
+    """`cv2.COLOR_RGB2XYZ` applies the matrix to the **encoded** sRGB value.
+
+    It does not linearise first, so the result is a combination of
+    gamma-encoded numbers -- unlike `to_lab` and `to_luv`, which do. That
+    inconsistency is OpenCV's and is reproduced.
+
+    Note the second half: **white does not survive the round trip**, because
+    X comes out at 242 while Y and Z saturate at 255 and the clipping is not
+    invertible. cv2 loses it the same way. A mid grey, which is nowhere near
+    the ceiling, comes back exactly.
+    """
+    white = np.full((4, 4, 3), 255, dtype=np.uint8)
+    assert image_kernels.to_xyz(white)[0, 0].tolist() == [242, 255, 255]
+
+    grey = np.full((4, 4, 3), 128, dtype=np.uint8)
+    assert np.abs(
+        image_kernels.from_xyz(image_kernels.to_xyz(grey)).astype(int)
+        - grey.astype(int)).max() <= 1
+
+
+def test_a_luma_chroma_round_trip_keeps_a_grey_ramp():
+    ramp = np.repeat(np.arange(0, 256, 8, dtype=np.uint8)[None, :, None],
+                     3, axis=2)
+    ramp = np.repeat(ramp, 4, axis=0)
+    for yuv in (False, True):
+        there = image_kernels.to_ycrcb(ramp, yuv)
+        # Grey has no chroma, on either scaling.
+        assert set(np.unique(there[..., 1])) <= {128}
+        assert set(np.unique(there[..., 2])) <= {128}
+        back = image_kernels.from_ycrcb(there, yuv)
+        assert np.abs(back.astype(int) - ramp.astype(int)).max() <= 1
+
+
+def test_ycrcb_and_yuv_differ_in_their_chroma_and_their_order():
+    """Same luma, different scalings, and the planes are the other way round.
+
+    `COLOR_RGB2YCrCb` puts the red-carrying plane second and
+    `COLOR_RGB2YUV` puts the blue-carrying one there, which is the kind of
+    thing a shared implementation has to get right once rather than twice.
+    """
+    red = np.zeros((4, 4, 3), dtype=np.uint8)
+    red[..., 0] = 255
+    ycrcb = image_kernels.to_ycrcb(red)
+    yuv = image_kernels.to_ycrcb(red, True)
+    assert ycrcb[0, 0, 0] == yuv[0, 0, 0], "the luma is the same"
+    assert ycrcb[0, 0, 1] > 200, "Cr carries red and it is saturated"
+    assert yuv[0, 0, 2] > 200, "V carries red, in the third plane"
+    assert yuv[0, 0, 1] < 100, "U carries blue, of which there is none"
+
+
+def test_luv_lightness_tracks_grey_and_chroma_stays_neutral():
+    ramp = np.repeat(np.arange(0, 256, 16, dtype=np.uint8)[None, :, None],
+                     3, axis=2)
+    ramp = np.repeat(ramp, 4, axis=0)
+    luv = image_kernels.to_luv(ramp)
+    assert (np.diff(luv[0, :, 0].astype(int)) >= 0).all()
+    # u and v are OpenCV's offset bytes, so neutral is 134*255/354 and
+    # 140*255/262 rather than 128.
+    assert np.abs(luv[..., 1].astype(int) - 96).max() <= 2
+    assert np.abs(luv[..., 2].astype(int) - 136).max() <= 2
+
+
+def test_luv_is_not_bit_exact_and_the_round_trip_is_the_better_one():
+    """Finding 2.60's cause, again: OpenCV reads the sRGB curve off a spline.
+
+    What is pinned here is the property that matters -- the round trip is
+    faithful to within what 8-bit L*u*v* can carry, which measured better
+    than cv2's own round trip.
+    """
+    frame = np.random.default_rng(5).integers(0, 256, (64, 64, 3),
+                                              dtype=np.uint8)
+    back = image_kernels.from_luv(image_kernels.to_luv(frame))
+    error = np.abs(back.astype(int) - frame.astype(int))
+    assert error.mean() < 1.0
+    assert error.max() <= 20
+
+
 def test_grey_has_no_saturation():
     grey = np.full((4, 4, 3), 128, dtype=np.uint8)
     assert to_hsv(grey)[..., 1].max() == 0
@@ -609,22 +687,23 @@ def test_hough_circles_reproduces_opencvs_transform():
         hough_circles(frame, max_radius=-1)
 
 
-def test_canny_refuses_what_it_would_get_wrong():
-    """Two refusals, both deliberate.
+def test_canny_refuses_the_aperture_that_saturates():
+    """Aperture 7 is one cv2 accepts and this does not.
 
-    Aperture 7 is one cv2 accepts: at that size the 16-bit gradient saturates
-    and the two answers part company, and feeding cv2's own Sobel through this
-    suppression differs on 113 pixels of 2240, so the difference is inside
-    cv2's Canny rather than in the derivative.
+    At that size the 16-bit gradient saturates and the two answers part
+    company; feeding cv2's own Sobel through this suppression differs on 113
+    pixels of 2240, so the difference is inside cv2's Canny rather than in
+    the derivative.
 
-    A three-plane image is the other. `cv::Canny` takes the strongest of the
-    three channels per pixel; this would have read plane 0 and said nothing.
+    A three-plane image used to be refused beside it. It is implemented now,
+    OpenCV's way -- the strongest plane at each pixel -- and exact over four
+    shapes, both apertures and both gradient norms.
     """
     frame = _gray(16, 12)
     with pytest.raises(ValueError):
         canny(frame, 50.0, 150.0, aperture=7)
-    with pytest.raises(ValueError):
-        canny(np.zeros((8, 8, 3), dtype=np.uint8), 50.0, 150.0)
+    assert canny(np.zeros((8, 8, 3), dtype=np.uint8), 50.0, 150.0).shape == (
+        8, 8)
 
 
 def test_gaussian_blur_takes_opencvs_fixed_point_path_for_a_real_sigma():
@@ -1081,6 +1160,89 @@ def test_contour_area_and_bounding_rect_match_the_shape():
     contour = max(find_contours(_two_shapes()), key=len)
     assert contour_area(contour) == pytest.approx(513.0)
     assert bounding_rect(contour) == (12, 10, 28, 20)
+
+
+def test_a_bilateral_blur_keeps_an_edge_a_box_blur_would_smear():
+    """The whole point of it: the colour term stops the two sides mixing."""
+    frame = np.zeros((32, 32, 3), dtype=np.uint8)
+    frame[:, 16:] = 200
+    noisy = np.clip(frame.astype(int) +
+                    np.random.default_rng(2).integers(-12, 13, frame.shape),
+                    0, 255).astype(np.uint8)
+
+    bilateral = image_kernels.bilateral_blur(noisy, 7, 30.0, 7.0)
+    box = image_kernels.box_blur(noisy, 7)
+
+    # Both quieten the flat sides.
+    assert bilateral[:, :12].std() < noisy[:, :12].std()
+    # Only one of them keeps the step.
+    step = int(bilateral[16, 17]. mean()) - int(bilateral[16, 14].mean())
+    smeared = int(box[16, 17].mean()) - int(box[16, 14].mean())
+    assert step > smeared + 50
+
+
+def test_a_bilateral_blur_of_a_flat_image_is_flat():
+    flat = np.full((16, 16, 3), 77, dtype=np.uint8)
+    assert np.array_equal(image_kernels.bilateral_blur(flat, 5, 30.0, 30.0),
+                          flat)
+
+
+def test_the_pyramid_halves_and_doubles_at_odd_sizes_too():
+    """`pyramid_up` filters on the full doubled grid and crops.
+
+    Reflecting inside an odd grid instead disagrees with cv2 on about four
+    percent of the pixels; this is the shape rule that does not.
+    """
+    frame = np.random.default_rng(3).integers(0, 256, (31, 41, 3),
+                                              dtype=np.uint8)
+    smaller = image_kernels.pyramid_down(frame)
+    assert smaller.shape == (16, 21, 3)
+    assert image_kernels.pyramid_up(smaller, 41, 31).shape == (31, 41, 3)
+    assert image_kernels.pyramid_up(smaller).shape == (32, 42, 3)
+
+
+def test_the_pyramid_refuses_a_size_that_is_not_about_double():
+    smaller = image_kernels.pyramid_down(
+        np.zeros((32, 32, 3), dtype=np.uint8))
+    with pytest.raises(ValueError):
+        image_kernels.pyramid_up(smaller, 64, 40)
+
+
+def test_mean_shift_collapses_a_flat_region_and_keeps_a_step():
+    frame = np.zeros((32, 32, 3), dtype=np.uint8)
+    frame[:, 16:] = 200
+    noisy = np.clip(frame.astype(int) +
+                    np.random.default_rng(4).integers(-10, 11, frame.shape),
+                    0, 255).astype(np.uint8)
+
+    shifted = image_kernels.mean_shift_blur(noisy, 5.0, 25.0)
+
+    # Each side collapses towards one colour.
+    assert shifted[:, :12].std() < 4.0
+    assert shifted[:, 20:].std() < 4.0
+    # And the step survives.
+    assert int(shifted[16, 20].mean()) - int(shifted[16, 11].mean()) > 150
+
+
+def test_mean_shift_needs_three_planes():
+    with pytest.raises(ValueError):
+        image_kernels.mean_shift_blur(np.zeros((8, 8), dtype=np.uint8),
+                                      3.0, 10.0)
+
+
+def test_canny_takes_the_strongest_plane_at_each_pixel():
+    """OpenCV's rule, and not one of the obvious alternatives.
+
+    A frame whose edge is in one channel only must give the same edge map as
+    that channel alone, which rules out "the edges of the luma"; and the
+    output is one plane whatever went in.
+    """
+    frame = np.zeros((40, 40, 3), dtype=np.uint8)
+    frame[:, 20:, 1] = 255
+    together = image_kernels.canny(frame, 50, 150)
+    alone = image_kernels.canny(np.ascontiguousarray(frame[..., 1]), 50, 150)
+    assert together.ndim == 2
+    assert np.array_equal(together, alone)
 
 
 def test_an_empty_mask_traces_nothing():

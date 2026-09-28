@@ -246,6 +246,116 @@ def test_boxpoints_turns_a_rectangle_back_into_corners():
                                            (13.0, 6.0), (13.0, 10.0)]
 
 
+def test_calchist_counts_bytes():
+    plane = np.array([[0, 0, 7], [255, 7, 7]], dtype=np.uint8)
+    histogram = cv2.calcHist([plane], [0], None, [256], [0, 256])
+    assert histogram.shape == (256,) and histogram.dtype == np.float32
+    assert histogram[0] == 2 and histogram[7] == 3 and histogram[255] == 1
+    assert histogram.sum() == plane.size
+
+
+def test_calchist_says_what_it_does_not_do():
+    plane = np.zeros((4, 4), dtype=np.uint8)
+    with pytest.raises(cv2.error):
+        cv2.calcHist([plane], [0], None, [64], [0, 256])
+
+
+def test_cart_to_polar_is_opencvs_polynomial_not_arctan2():
+    """They agree to a third of a degree and that is the point.
+
+    `warpPolar` builds its map with the same approximation, and `imgaug` then
+    puts keypoints through `cartToPolar` expecting them to land where the
+    pixels went. Using an accurate `arctan2` in one and OpenCV's polynomial
+    in the other would pull the two apart.
+    """
+    across = np.array([[1.0], [0.0], [-1.0], [0.0]], dtype=np.float32)
+    down = np.array([[0.0], [1.0], [0.0], [-1.0]], dtype=np.float32)
+    radius, angle = cv2.cartToPolar(across, down)
+    assert np.allclose(radius.reshape(-1), [1.0, 1.0, 1.0, 1.0], atol=1e-6)
+    assert np.allclose(angle.reshape(-1),
+                       [0.0, np.pi / 2, np.pi, 3 * np.pi / 2], atol=6e-3)
+    # Never negative, which is what the [0, 2pi) range means.
+    assert (angle >= 0).all()
+
+
+def test_convert_maps_hands_the_float_maps_back():
+    """It converts nothing, and that is a difference rather than a saving:
+    OpenCV quantises to a fifth of a bit of a pixel and this does not."""
+    across = np.random.default_rng(1).random((4, 5)).astype(np.float32) * 10
+    down = np.random.default_rng(2).random((4, 5)).astype(np.float32) * 10
+    first, second = cv2.convertMaps(across, down, cv2.CV_16SC2)
+    assert np.array_equal(first, across) and np.array_equal(second, down)
+
+
+def test_laplacian_is_the_five_point_stencil_at_aperture_one():
+    frame = np.zeros((7, 7), dtype=np.float64)
+    frame[3, 3] = 1.0
+    response = cv2.Laplacian(frame, cv2.CV_64F)
+    assert response[3, 3] == -4.0
+    assert response[2, 3] == response[4, 3] == 1.0
+    assert response[3, 2] == response[3, 4] == 1.0
+    # Aperture 3 puts the weight on the corners instead, which is not what
+    # deriving it from the five-point stencil would give.
+    corners = cv2.Laplacian(frame, cv2.CV_64F, ksize=3)
+    assert corners[3, 3] == -8.0
+    assert corners[2, 2] == 2.0 and corners[2, 3] == 0.0
+
+
+def test_kmeans_is_reproducible_from_the_rng_seed():
+    """Which is the whole contract. `imgaug`'s own comment at the call site
+    says cv2's is not deterministic without `setRNGSeed` and gives no way to
+    read the state back."""
+    data = (np.random.default_rng(3).random((200, 3)) * 255).astype(np.float32)
+    criteria = (cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS, 20, 1.0)
+
+    cv2.setRNGSeed(1)
+    first = cv2.kmeans(data, 5, None, criteria, 1, cv2.KMEANS_PP_CENTERS)
+    cv2.setRNGSeed(1)
+    again = cv2.kmeans(data, 5, None, criteria, 1, cv2.KMEANS_PP_CENTERS)
+
+    assert np.array_equal(first[1], again[1])
+    assert first[1].shape == (200, 1) and first[2].shape == (5, 3)
+
+    cv2.setRNGSeed(9)
+    other = cv2.kmeans(data, 5, None, criteria, 1, cv2.KMEANS_PP_CENTERS)
+    assert first[0] > 0.0 and other[0] > 0.0
+
+
+def test_resize_takes_int32_for_nearest_neighbour_only():
+    """As cv2 does: it refuses int32 for every other interpolation too."""
+    labels = np.arange(48 * 64, dtype=np.int32).reshape(48, 64)
+    assert cv2.resize(labels, (32, 24),
+                      interpolation=cv2.INTER_NEAREST).dtype == np.int32
+    with pytest.raises(cv2.error):
+        cv2.resize(labels, (32, 24), interpolation=cv2.INTER_LINEAR)
+
+
+def test_the_pyramid_mean_shift_refuses_the_level_it_cannot_reproduce():
+    """And its default differs from cv2's, deliberately: cv2 defaults to 1."""
+    frame = _frame(shape=(16, 16, 3))
+    assert cv2.pyrMeanShiftFiltering(frame, 3, 20).shape == frame.shape
+    with pytest.raises(cv2.error):
+        cv2.pyrMeanShiftFiltering(frame, 3, 20, maxLevel=1)
+
+
+def test_warp_polar_refuses_the_semi_log_mapping():
+    frame = _frame(shape=(16, 16, 3))
+    with pytest.raises(cv2.error):
+        cv2.warpPolar(frame, (0, 0), (8.0, 8.0), 11.0,
+                      cv2.WARP_POLAR_LOG | cv2.INTER_LINEAR)
+
+
+def test_the_out_parameter_is_a_hint_when_the_shape_changes():
+    """OpenCV's `dst` is an `OutputArray`: `imgaug` hands `cvtColor` a three
+    channel buffer and asks for grey, and cv2 reallocates rather than
+    failing."""
+    frame = _frame(shape=(8, 8, 3))
+    buffer = np.zeros((8, 8, 3), dtype=np.uint8)
+    result = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY, buffer)
+    assert result.shape == (8, 8)
+    assert result is not buffer
+
+
 # ---------------------------------------------------------------------------
 # What it refuses
 # ---------------------------------------------------------------------------
@@ -268,10 +378,25 @@ def test_umat_is_never_an_instance_and_cannot_be_made():
         cv2.UMat(np.zeros((2, 2), dtype=np.uint8))
 
 
+def test_every_colour_space_the_vendored_packages_ask_for_is_there():
+    """`imgaug.augmenters.color` builds a table of all ten at import time and
+    a `ChangeColorspace` can reach any of them."""
+    frame = _frame()
+    for code in (cv2.COLOR_RGB2XYZ, cv2.COLOR_RGB2LUV, cv2.COLOR_RGB2YUV,
+                 cv2.COLOR_RGB2YCR_CB, cv2.COLOR_RGB2LAB, cv2.COLOR_RGB2HLS,
+                 cv2.COLOR_RGB2HSV, cv2.COLOR_BGR2XYZ, cv2.COLOR_BGR2LUV,
+                 cv2.COLOR_BGR2YUV, cv2.COLOR_BGR2YCR_CB):
+        assert cv2.cvtColor(frame, code).shape == frame.shape
+    for code in (cv2.COLOR_XYZ2RGB, cv2.COLOR_LUV2RGB, cv2.COLOR_YUV2RGB,
+                 cv2.COLOR_YCR_CB2RGB, cv2.COLOR_LAB2RGB, cv2.COLOR_HLS2RGB,
+                 cv2.COLOR_HSV2RGB):
+        assert cv2.cvtColor(frame, code).shape == frame.shape
+
+
 def test_an_unimplemented_colour_space_names_itself():
     with pytest.raises(cv2.error) as raised:
-        cv2.cvtColor(_frame(), cv2.COLOR_RGB2LUV)
-    assert "COLOR_RGB2LUV" in str(raised.value)
+        cv2.cvtColor(_frame(), cv2.COLOR_RGB2HLS_FULL)
+    assert "COLOR_RGB2HLS_FULL" in str(raised.value)
 
 
 def test_setnumthreads_can_lower_the_budget_and_put_it_back():

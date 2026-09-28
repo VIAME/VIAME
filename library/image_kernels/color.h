@@ -1523,6 +1523,576 @@ demosaic( viame::image_of< T > const& image, bayer_pattern pattern )
   return out;
 }
 
+
+namespace detail {
+
+// ----------------------------------------------------------------------------
+/// The two shifts OpenCV's linear colour conversions use.
+///
+/// Both are `cvtColor`'s own: XYZ is a 3 by 3 matrix in 12 bit fixed point
+/// and the luma-chroma pair is 14 bit. Rounding is OpenCV's `CV_DESCALE`,
+/// which adds half before the shift, so a negative product rounds **towards
+/// positive infinity** rather than away from zero -- an arithmetic right
+/// shift, not a division. That matters for chroma, which is signed.
+constexpr int xyz_shift = 12;
+constexpr int yuv_shift = 14;
+
+inline int
+descale( long long value, int shift )
+{
+  return static_cast< int >( ( value + ( 1LL << ( shift - 1 ) ) ) >> shift );
+}
+
+/// sRGB to CIE XYZ, D65, and back. OpenCV's numbers to six decimals.
+constexpr double rgb_to_xyz_matrix[ 9 ] = {
+  0.412453, 0.357580, 0.180423,
+  0.212671, 0.715160, 0.072169,
+  0.019334, 0.119193, 0.950227 };
+
+constexpr double xyz_to_rgb_matrix[ 9 ] = {
+   3.240479, -1.537150, -0.498535,
+  -0.969256,  1.875991,  0.041556,
+   0.055648, -0.204043,  1.057311 };
+
+/// The luma weights, and the four chroma scalings OpenCV rounds them to.
+///
+/// `COLOR_RGB2YCrCb` and `COLOR_RGB2YUV` are the same luma and two different
+/// chroma pairs -- 0.713 and 0.564 against 0.492 and 0.877 -- which is why
+/// they are one function here with a flag rather than two that would drift.
+constexpr int luma_red = 4899;      // 0.299 << 14
+constexpr int luma_green = 9617;    // 0.587 << 14
+constexpr int luma_blue = 1868;     // 0.114 << 14
+
+constexpr int ycrcb_cr = 11682;     // 0.713 << 14
+constexpr int ycrcb_cb = 9241;      // 0.564 << 14
+constexpr int yuv_u = 8061;         // 0.492 << 14
+constexpr int yuv_v = 14369;        // 0.877 << 14
+
+constexpr int ycrcb_to_red = 22987;
+constexpr int ycrcb_to_green_cr = -11698;
+constexpr int ycrcb_to_green_cb = -5636;
+constexpr int ycrcb_to_blue = 29049;
+
+constexpr int yuv_to_blue = 33292;
+constexpr int yuv_to_green_u = -6472;
+constexpr int yuv_to_green_v = -9519;
+constexpr int yuv_to_red = 18678;
+
+/// The same eight numbers **unrounded**, which is what OpenCV's float path
+/// uses. Dividing the fixed-point forms back by 1 << 14 is not the same
+/// thing: 11682 / 16384 is 0.7130127, and the difference from 0.713 shows up
+/// at 2e-05 in a float conversion, which is two hundred times the ULP.
+constexpr float ycrcb_cr_f = 0.713f;
+constexpr float ycrcb_cb_f = 0.564f;
+constexpr float yuv_u_f = 0.492f;
+constexpr float yuv_v_f = 0.877f;
+
+constexpr float ycrcb_to_red_f = 1.403f;
+constexpr float ycrcb_to_green_cr_f = -0.714f;
+constexpr float ycrcb_to_green_cb_f = -0.344f;
+constexpr float ycrcb_to_blue_f = 1.773f;
+
+constexpr float yuv_to_blue_f = 2.032f;
+constexpr float yuv_to_green_u_f = -0.395f;
+constexpr float yuv_to_green_v_f = -0.581f;
+constexpr float yuv_to_red_f = 1.140f;
+
+/// A fixed-point copy of one of the 3 by 3 matrices above.
+inline std::array< int, 9 > const&
+scaled_matrix( double const ( &source )[ 9 ], std::array< int, 9 >& store )
+{
+  for( size_t at = 0; at < 9; ++at )
+  {
+    store[ at ] = static_cast< int >(
+      std::nearbyint( source[ at ] * ( 1 << xyz_shift ) ) );
+  }
+
+  return store;
+}
+
+inline std::array< int, 9 > const&
+rgb_to_xyz_fixed()
+{
+  static std::array< int, 9 > store;
+  static auto const& built = scaled_matrix( rgb_to_xyz_matrix, store );
+
+  return built;
+}
+
+inline std::array< int, 9 > const&
+xyz_to_rgb_fixed()
+{
+  static std::array< int, 9 > store;
+  static auto const& built = scaled_matrix( xyz_to_rgb_matrix, store );
+
+  return built;
+}
+
+/// The u' and v' of the white point, which `L*u*v*` measures chroma from.
+constexpr double luv_white_u = 0.19793943;
+constexpr double luv_white_v = 0.46831096;
+
+} // namespace detail
+
+// ----------------------------------------------------------------------------
+/// RGB to CIE XYZ, which is `cv::COLOR_RGB2XYZ`.
+///
+/// Note what this is **not**: the XYZ a colour scientist means. OpenCV
+/// applies the matrix to the encoded sRGB value without linearising it
+/// first, so the result is a linear combination of gamma-encoded numbers.
+/// Reproduced as OpenCV has it, because a caller converting back expects to
+/// get its image again. `rgb_to_lab` and `rgb_to_luv` do linearise, which is
+/// the inconsistency OpenCV carries and not one introduced here.
+///
+/// 8 bit goes through OpenCV's 12 bit fixed point and is exact over a random
+/// 256 by 256 block; float32 is the matrix in float and is within one ULP.
+template < typename T >
+viame::image_of< T >
+rgb_to_xyz( viame::image_of< T > const& image )
+{
+  detail::require_planes( image, 3, "rgb_to_xyz" );
+
+  viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    auto const& matrix = detail::rgb_to_xyz_fixed();
+
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        long long const red = image( i, j, 0 );
+        long long const green = image( i, j, 1 );
+        long long const blue = image( i, j, 2 );
+
+        for( size_t plane = 0; plane < 3; ++plane )
+        {
+          auto const value = detail::descale(
+            red * matrix[ plane * 3 ] + green * matrix[ plane * 3 + 1 ] +
+            blue * matrix[ plane * 3 + 2 ], detail::xyz_shift );
+
+          out( i, j, plane ) = saturate_pixel< T >( value );
+        }
+      }
+    }
+
+    return out;
+  }
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      auto const red = static_cast< float >( image( i, j, 0 ) );
+      auto const green = static_cast< float >( image( i, j, 1 ) );
+      auto const blue = static_cast< float >( image( i, j, 2 ) );
+
+      for( size_t plane = 0; plane < 3; ++plane )
+      {
+        auto const value =
+          red * static_cast< float >( detail::rgb_to_xyz_matrix[ plane * 3 ] ) +
+          green *
+            static_cast< float >( detail::rgb_to_xyz_matrix[ plane * 3 + 1 ] ) +
+          blue *
+            static_cast< float >( detail::rgb_to_xyz_matrix[ plane * 3 + 2 ] );
+
+        out( i, j, plane ) = static_cast< T >( value );
+      }
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// CIE XYZ back to RGB, `cv::COLOR_XYZ2RGB`.
+template < typename T >
+viame::image_of< T >
+xyz_to_rgb( viame::image_of< T > const& image )
+{
+  detail::require_planes( image, 3, "xyz_to_rgb" );
+
+  viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    auto const& matrix = detail::xyz_to_rgb_fixed();
+
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        long long const x = image( i, j, 0 );
+        long long const y = image( i, j, 1 );
+        long long const z = image( i, j, 2 );
+
+        for( size_t plane = 0; plane < 3; ++plane )
+        {
+          auto const value = detail::descale(
+            x * matrix[ plane * 3 ] + y * matrix[ plane * 3 + 1 ] +
+            z * matrix[ plane * 3 + 2 ], detail::xyz_shift );
+
+          out( i, j, plane ) = saturate_pixel< T >( value );
+        }
+      }
+    }
+
+    return out;
+  }
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      auto const x = static_cast< float >( image( i, j, 0 ) );
+      auto const y = static_cast< float >( image( i, j, 1 ) );
+      auto const z = static_cast< float >( image( i, j, 2 ) );
+
+      for( size_t plane = 0; plane < 3; ++plane )
+      {
+        auto const value =
+          x * static_cast< float >( detail::xyz_to_rgb_matrix[ plane * 3 ] ) +
+          y *
+            static_cast< float >( detail::xyz_to_rgb_matrix[ plane * 3 + 1 ] ) +
+          z *
+            static_cast< float >( detail::xyz_to_rgb_matrix[ plane * 3 + 2 ] );
+
+        out( i, j, plane ) = static_cast< T >( value );
+      }
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// RGB to a luma-chroma space: `COLOR_RGB2YCrCb`, or `COLOR_RGB2YUV`.
+///
+/// One function for both because that is what they are -- the same luma and
+/// a different pair of chroma scalings. The plane order differs too, and it
+/// is OpenCV's: Y, Cr, Cb for the first and Y, U, V for the second, where
+/// Cr and V both carry red and Cb and U both carry blue.
+///
+/// 8 bit is exact over a random 256 by 256 block, in both directions and
+/// both spaces.
+template < typename T >
+viame::image_of< T >
+rgb_to_luma_chroma( viame::image_of< T > const& image, bool yuv )
+{
+  detail::require_planes( image, 3, "rgb_to_luma_chroma" );
+
+  viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  auto const first = yuv ? detail::yuv_u : detail::ycrcb_cr;
+  auto const second = yuv ? detail::yuv_v : detail::ycrcb_cb;
+
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    constexpr int delta = 128;
+
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        long long const red = image( i, j, 0 );
+        long long const green = image( i, j, 1 );
+        long long const blue = image( i, j, 2 );
+
+        auto const luma = detail::descale(
+          red * detail::luma_red + green * detail::luma_green +
+          blue * detail::luma_blue, detail::yuv_shift );
+
+        // YCrCb carries red first and YUV carries blue first, and the
+        // scalings go with the channel rather than with the position.
+        auto const red_chroma = detail::descale(
+          ( red - luma ) * ( yuv ? detail::yuv_v : detail::ycrcb_cr ),
+          detail::yuv_shift ) + delta;
+        auto const blue_chroma = detail::descale(
+          ( blue - luma ) * ( yuv ? detail::yuv_u : detail::ycrcb_cb ),
+          detail::yuv_shift ) + delta;
+
+        out( i, j, 0 ) = saturate_pixel< T >( luma );
+        out( i, j, 1 ) = saturate_pixel< T >( yuv ? blue_chroma : red_chroma );
+        out( i, j, 2 ) = saturate_pixel< T >( yuv ? red_chroma : blue_chroma );
+      }
+    }
+
+    return out;
+  }
+
+  auto const red_scale = yuv ? detail::yuv_v_f : detail::ycrcb_cr_f;
+  auto const blue_scale = yuv ? detail::yuv_u_f : detail::ycrcb_cb_f;
+  ( void ) first;
+  ( void ) second;
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      auto const red = static_cast< float >( image( i, j, 0 ) );
+      auto const green = static_cast< float >( image( i, j, 1 ) );
+      auto const blue = static_cast< float >( image( i, j, 2 ) );
+
+      auto const luma = red * 0.299f + green * 0.587f + blue * 0.114f;
+      auto const red_chroma = ( red - luma ) * red_scale + 0.5f;
+      auto const blue_chroma = ( blue - luma ) * blue_scale + 0.5f;
+
+      out( i, j, 0 ) = static_cast< T >( luma );
+      out( i, j, 1 ) = static_cast< T >( yuv ? blue_chroma : red_chroma );
+      out( i, j, 2 ) = static_cast< T >( yuv ? red_chroma : blue_chroma );
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// A luma-chroma space back to RGB: `COLOR_YCrCb2RGB`, or `COLOR_YUV2RGB`.
+template < typename T >
+viame::image_of< T >
+luma_chroma_to_rgb( viame::image_of< T > const& image, bool yuv )
+{
+  detail::require_planes( image, 3, "luma_chroma_to_rgb" );
+
+  viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  if constexpr( std::is_same< T, uint8_t >::value )
+  {
+    constexpr int delta = 128;
+
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        long long const luma = image( i, j, 0 );
+        long long const first = static_cast< long long >(
+          image( i, j, 1 ) ) - delta;
+        long long const second = static_cast< long long >(
+          image( i, j, 2 ) ) - delta;
+
+        long long const red_chroma = yuv ? second : first;
+        long long const blue_chroma = yuv ? first : second;
+
+        int red, green, blue;
+
+        if( yuv )
+        {
+          red = static_cast< int >( luma ) + detail::descale(
+            red_chroma * detail::yuv_to_red, detail::yuv_shift );
+          green = static_cast< int >( luma ) + detail::descale(
+            blue_chroma * detail::yuv_to_green_u +
+            red_chroma * detail::yuv_to_green_v, detail::yuv_shift );
+          blue = static_cast< int >( luma ) + detail::descale(
+            blue_chroma * detail::yuv_to_blue, detail::yuv_shift );
+        }
+        else
+        {
+          red = static_cast< int >( luma ) + detail::descale(
+            red_chroma * detail::ycrcb_to_red, detail::yuv_shift );
+          green = static_cast< int >( luma ) + detail::descale(
+            blue_chroma * detail::ycrcb_to_green_cb +
+            red_chroma * detail::ycrcb_to_green_cr, detail::yuv_shift );
+          blue = static_cast< int >( luma ) + detail::descale(
+            blue_chroma * detail::ycrcb_to_blue, detail::yuv_shift );
+        }
+
+        out( i, j, 0 ) = saturate_pixel< T >( red );
+        out( i, j, 1 ) = saturate_pixel< T >( green );
+        out( i, j, 2 ) = saturate_pixel< T >( blue );
+      }
+    }
+
+    return out;
+  }
+
+  auto const to_red = yuv ? detail::yuv_to_red_f : detail::ycrcb_to_red_f;
+  auto const to_green_red =
+    yuv ? detail::yuv_to_green_v_f : detail::ycrcb_to_green_cr_f;
+  auto const to_green_blue =
+    yuv ? detail::yuv_to_green_u_f : detail::ycrcb_to_green_cb_f;
+  auto const to_blue = yuv ? detail::yuv_to_blue_f : detail::ycrcb_to_blue_f;
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      auto const luma = static_cast< float >( image( i, j, 0 ) );
+      auto const first = static_cast< float >( image( i, j, 1 ) ) - 0.5f;
+      auto const second = static_cast< float >( image( i, j, 2 ) ) - 0.5f;
+
+      auto const red_chroma = yuv ? second : first;
+      auto const blue_chroma = yuv ? first : second;
+
+      out( i, j, 0 ) = static_cast< T >( luma + red_chroma * to_red );
+      out( i, j, 1 ) = static_cast< T >(
+        luma + blue_chroma * to_green_blue + red_chroma * to_green_red );
+      out( i, j, 2 ) = static_cast< T >( luma + blue_chroma * to_blue );
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// RGB to CIE L*u*v*, which is `cv::COLOR_RGB2Luv`.
+///
+/// Unlike `rgb_to_xyz` above, this **does** linearise first, as OpenCV's
+/// does: L*u*v* is a perceptual space and applying it to gamma-encoded
+/// numbers would mean nothing. 8 bit carries OpenCV's scaling -- L over
+/// 0..255, u offset by 134 and scaled by 255/354, v offset by 140 and scaled
+/// by 255/262 -- and float32 the real ranges, L 0..100 and the chroma pair
+/// about -134..220 and -140..122.
+///
+/// **Not bit exact, and the reason is the one finding 2.60 records for
+/// L*a*b*.** OpenCV evaluates the sRGB transfer off an interpolated spline
+/// rather than calling `pow`, so a float conversion here is within 0.13 of a
+/// u unit and an 8-bit one is a count out on about eighteen percent of
+/// pixels, never more than one. Reproducing the spline is what `lab_tables`
+/// does for L*a*b*, where the goldens demanded it; nothing records L*u*v*.
+template < typename T >
+viame::image_of< T >
+rgb_to_luv( viame::image_of< T > const& image )
+{
+  detail::require_planes( image, 3, "rgb_to_luv" );
+
+  constexpr bool integral = std::is_integral< T >::value;
+  auto const top = static_cast< double >( pixel_max< T >() );
+
+  viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      auto const red = detail::srgb_to_linear(
+        static_cast< double >( image( i, j, 0 ) ) / ( integral ? top : 1.0 ) );
+      auto const green = detail::srgb_to_linear(
+        static_cast< double >( image( i, j, 1 ) ) / ( integral ? top : 1.0 ) );
+      auto const blue = detail::srgb_to_linear(
+        static_cast< double >( image( i, j, 2 ) ) / ( integral ? top : 1.0 ) );
+
+      auto const x = detail::rgb_to_xyz_matrix[ 0 ] * red +
+                     detail::rgb_to_xyz_matrix[ 1 ] * green +
+                     detail::rgb_to_xyz_matrix[ 2 ] * blue;
+      auto const y = detail::rgb_to_xyz_matrix[ 3 ] * red +
+                     detail::rgb_to_xyz_matrix[ 4 ] * green +
+                     detail::rgb_to_xyz_matrix[ 5 ] * blue;
+      auto const z = detail::rgb_to_xyz_matrix[ 6 ] * red +
+                     detail::rgb_to_xyz_matrix[ 7 ] * green +
+                     detail::rgb_to_xyz_matrix[ 8 ] * blue;
+
+      // OpenCV's own constants, not the CIE ones: 903.3 and 0.008856 are
+      // rounded forms of 24389/27 and 216/24389, and using the exact pair
+      // moves the answer where the two disagree.
+      auto const lightness = ( y > 0.008856 ) ? 116.0 * std::cbrt( y ) - 16.0
+                                              : 903.3 * y;
+
+      auto const denominator = x + 15.0 * y + 3.0 * z;
+      auto const u_prime = ( denominator > 0.0 ) ? 4.0 * x / denominator : 0.0;
+      auto const v_prime = ( denominator > 0.0 ) ? 9.0 * y / denominator : 0.0;
+
+      auto const u = 13.0 * lightness * ( u_prime - detail::luv_white_u );
+      auto const v = 13.0 * lightness * ( v_prime - detail::luv_white_v );
+
+      if constexpr( integral )
+      {
+        out( i, j, 0 ) = saturate_pixel_even< T >( lightness * 255.0 / 100.0 );
+        out( i, j, 1 ) =
+          saturate_pixel_even< T >( ( u + 134.0 ) * 255.0 / 354.0 );
+        out( i, j, 2 ) =
+          saturate_pixel_even< T >( ( v + 140.0 ) * 255.0 / 262.0 );
+      }
+      else
+      {
+        out( i, j, 0 ) = static_cast< T >( lightness );
+        out( i, j, 1 ) = static_cast< T >( u );
+        out( i, j, 2 ) = static_cast< T >( v );
+      }
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// CIE L*u*v* back to RGB, `cv::COLOR_Luv2RGB`, on the same scalings.
+template < typename T >
+viame::image_of< T >
+luv_to_rgb( viame::image_of< T > const& image )
+{
+  detail::require_planes( image, 3, "luv_to_rgb" );
+
+  constexpr bool integral = std::is_integral< T >::value;
+  auto const top = static_cast< double >( pixel_max< T >() );
+
+  viame::image_of< T > out( image.width(), image.height(), 3 );
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      double lightness, u, v;
+
+      if constexpr( integral )
+      {
+        lightness = static_cast< double >( image( i, j, 0 ) ) * 100.0 / 255.0;
+        u = static_cast< double >( image( i, j, 1 ) ) * 354.0 / 255.0 - 134.0;
+        v = static_cast< double >( image( i, j, 2 ) ) * 262.0 / 255.0 - 140.0;
+      }
+      else
+      {
+        lightness = static_cast< double >( image( i, j, 0 ) );
+        u = static_cast< double >( image( i, j, 1 ) );
+        v = static_cast< double >( image( i, j, 2 ) );
+      }
+
+      auto const y = ( lightness > 8.0 )
+        ? std::pow( ( lightness + 16.0 ) / 116.0, 3.0 )
+        : lightness / 903.3;
+
+      double x = 0.0, z = 0.0;
+
+      if( lightness > 0.0 )
+      {
+        auto const u_prime = u / ( 13.0 * lightness ) + detail::luv_white_u;
+        auto const v_prime = v / ( 13.0 * lightness ) + detail::luv_white_v;
+
+        if( v_prime != 0.0 )
+        {
+          x = 2.25 * y * u_prime / v_prime;
+          z = y * ( 3.0 - 0.75 * u_prime - 5.0 * v_prime ) / v_prime;
+        }
+      }
+
+      auto const red = detail::linear_to_srgb(
+        detail::xyz_to_rgb_matrix[ 0 ] * x + detail::xyz_to_rgb_matrix[ 1 ] * y +
+        detail::xyz_to_rgb_matrix[ 2 ] * z );
+      auto const green = detail::linear_to_srgb(
+        detail::xyz_to_rgb_matrix[ 3 ] * x + detail::xyz_to_rgb_matrix[ 4 ] * y +
+        detail::xyz_to_rgb_matrix[ 5 ] * z );
+      auto const blue = detail::linear_to_srgb(
+        detail::xyz_to_rgb_matrix[ 6 ] * x + detail::xyz_to_rgb_matrix[ 7 ] * y +
+        detail::xyz_to_rgb_matrix[ 8 ] * z );
+
+      if constexpr( integral )
+      {
+        out( i, j, 0 ) = saturate_pixel_even< T >( red * top );
+        out( i, j, 1 ) = saturate_pixel_even< T >( green * top );
+        out( i, j, 2 ) = saturate_pixel_even< T >( blue * top );
+      }
+      else
+      {
+        out( i, j, 0 ) = static_cast< T >( red );
+        out( i, j, 1 ) = static_cast< T >( green );
+        out( i, j, 2 ) = static_cast< T >( blue );
+      }
+    }
+  }
+
+  return out;
+}
+
 } // namespace image_kernels
 } // namespace viame
 
