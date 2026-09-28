@@ -264,6 +264,19 @@ IF NOT "!VIAME_CRITICAL_TEST_RESULT!"=="0" (
     ECHO All CRITICAL tests PASSED
 )
 
+REM --------------------------------------------------------------------------
+REM Publish the package to its permanent Girder and Google Drive locations and
+REM refresh the version text in README.md. Work in progress: the uploads have
+REM not been exercised against either service yet (they need GIRDER_API_KEY and
+REM a configured rclone remote), so the call stays commented out. Enable it
+REM once publish_release.py has been tested; it is additionally gated on
+REM VIAME_PUBLISH=1 and refuses a zip renamed VIAME-BROKEN.zip.
+REM --------------------------------------------------------------------------
+
+REM IF "!VIAME_CRITICAL_TEST_RESULT!"=="0" (
+REM     CALL %~dp0publish_release.bat "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" windows gpu
+REM )
+
 ECHO.
 ECHO ========================================
 ECHO Build Completed [%DATE% %TIME%]

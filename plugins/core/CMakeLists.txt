@@ -548,6 +548,16 @@ if( VIAME_ENABLE_PYTHON )
     interactive_service )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_vlm.py
+    core
+    interactive_vlm )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ollama_vlm.py
+    core
+    ollama_vlm )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/query_service.py
     core
     query_service )

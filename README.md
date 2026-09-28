@@ -1,16 +1,17 @@
 
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
 
-VIAME is a computer vision application designed for do-it-yourself artificial intelligence including
-object detection, tracking, data annotation, multi-camera data processing, size measurement,
-image enhancement, rapid model generation, query-based search, mosaicing, and tools for the
-evaluation of different algorithms. Originally targeting marine species analytics, VIAME now
-contains many common algorithms and libraries, and is also useful as a generic computer vision toolkit.
-It contains a number of standalone tools for accomplishing the above, a pipeline framework which can
-connect C/C++, python, and matlab nodes together in a multi-threaded fashion, and multiple algorithms
-resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been integrated
-into both desktop and web user interfaces for deployments in different types of environments, with an
-open annotation archive and example of the web platform available at [viame.kitware.com](https://viame.kitware.com).
+VIAME is a computer vision application designed for do-it-yourself artificial intelligence
+including object detection, object tracking, data annotation, multi-camera processing,
+size measurement, image enhancement, rapid model generation, query-based search, mosaicing,
+and tools for the evaluation of algorithms. Originally targeting marine species analytics,
+VIAME now contains many algorithms and libraries, and is useful as a generic computer vision
+toolkit. It contains a number of tools for accomplishing the above, a pipeline framework
+which can connect C++/Python nodes in a multi-threaded fashion, and multiple algorithms
+resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been
+integrated into both desktop and web user interfaces for deployments in different environments,
+with an open annotation archive and example of the web platform available at
+[viame.kitware.com](https://viame.kitware.com).
 
 
 Documentation
@@ -26,18 +27,18 @@ but select entries are also listed below broken down by individual functionality
 [Building](examples/building_from_source) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
 [DIVE Interface](https://kitware.github.io/dive) <>
-[VIEW Interface](examples/annotation_and_visualization) <>
-[Object Detector CLI](examples/object_detection) <>
-[Detector Training CLI](examples/object_detector_training) <>
-[Object Tracker CLI](examples/object_tracking) <>
+[Object Detection](examples/object_detection) <>
+[Detector Training](examples/object_detector_training) <>
+[Object Tracking](examples/object_tracking) <>
 [Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
-[Evaluation of Detectors](examples/scoring_and_evaluation) <>
-[Detection File Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
+[Model Evaluation](examples/scoring_and_evaluation) <>
+[Detection Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
+[Python Usage](https://github.com/VIAME/VIAME/blob/main/docs/python_package.md) <>
 [Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/registration_and_mosaicing)  <>
-[Stereo Measurement and Depth Maps](examples/size_measurement) <>
+[Size Measurement](examples/size_measurement) <>
 [Pipelining Overview](https://github.com/Kitware/kwiver) <>
-[Core Class Info](https://kwiver.readthedocs.io/en/latest) <>
+[Core Classes](https://kwiver.readthedocs.io/en/latest) <>
 [Plugin Integration](examples/example_pipeline) <>
 [Example Templates](plugins/templates) <>
 [Embedding Algorithms](examples/using_algorithms_in_code)

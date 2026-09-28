@@ -36,6 +36,12 @@
 #include <plugins/core/python_script_applet.h>
 #include <plugins/claude/train_supervisor.h>
 
+#ifdef VIAME_TOOLS_HAVE_OPENCV
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
+#endif
+
 #include <vector>
 #include <unordered_set>
 #include <string>
@@ -54,6 +60,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cmath>
+#include <random>
 
 #ifdef _WIN32
 #include <io.h>
@@ -202,6 +209,9 @@ static kv::config_block_sptr default_config()
     "If specified, everything written to output_directory (pipelines, models, "
     "model card, evaluation) is packed into this zip file at the end of a "
     "successful run and the directory is removed." );
+  config->set_value( "evaluation_frame_count", "20",
+    "Frames drawn with truth and computed boxes for each evaluated split under "
+    "model_evaluation/, sampled at random from frames with any box. 0 draws none." );
   config->set_value( "pipeline_template", "",
     "Optional template file for generating output pipeline. Keywords in the "
     "template will be replaced with values from the trainer." );
@@ -1290,37 +1300,231 @@ run_applet( const std::string& name, std::vector< std::string > args )
   return applet->run();
 }
 
-struct test_evaluation_inputs
+struct split_evaluation_inputs
 {
+  std::string split;                 // "validation" or "test"
   std::vector< std::string > data;   // Folders, image lists, images, or videos
   std::vector< std::string > truth;  // Parallel to data when not auto-detected
   std::string pipeline;              // Trained detector pipeline to run
-  std::string output_directory;      // Where test_results lands
+  std::string output_directory;      // Holds model_evaluation/<split>
   std::string labels_file;           // Class synonyms handed to the scorer
   double default_frame_rate = 0.0;   // Video rate when the truth carries none
+  unsigned frame_count = 0;          // Frames drawn with truth and computed boxes
   std::vector< std::string > image_exts;
   std::vector< std::string > video_exts;
   std::vector< std::string > groundtruth_exts;
 };
 
-// Runs the trained detector over every test item, then scores the results
-// against their truth with the score applet. Never fatal: training already
-// succeeded, so problems here are reported and the model is kept.
+// One scored item and where its frames come from, for drawing
+struct evaluated_item
+{
+  std::string stem;
+  std::vector< std::string > images; // Frame id indexes this when non-empty
+  std::string video;
+  double frame_rate = 0.0;
+};
+
+#ifdef VIAME_TOOLS_HAVE_OPENCV
+struct drawn_box
+{
+  cv::Rect2d box;
+  std::string label;
+  double score = -1.0;
+};
+
+// Boxes per frame id from a viame_csv file, labeled with each row's top class
+std::map< int, std::vector< drawn_box > >
+read_csv_boxes( const std::string& file )
+{
+  std::map< int, std::vector< drawn_box > > boxes;
+  std::ifstream input( file );
+  std::string line;
+
+  while( std::getline( input, line ) )
+  {
+    if( line.empty() || line[0] == '#' )
+    {
+      continue;
+    }
+
+    std::vector< std::string > cols;
+    std::stringstream row( line );
+    std::string col;
+
+    while( std::getline( row, col, ',' ) )
+    {
+      cols.push_back( col );
+    }
+
+    if( cols.size() < 7 )
+    {
+      continue;
+    }
+
+    try
+    {
+      drawn_box b;
+      const double x1 = std::stod( cols[3] ), y1 = std::stod( cols[4] );
+      b.box = cv::Rect2d( x1, y1, std::stod( cols[5] ) - x1, std::stod( cols[6] ) - y1 );
+
+      for( size_t i = 9; i + 1 < cols.size() && cols[i].rfind( "(", 0 ) != 0; i += 2 )
+      {
+        const double score = std::stod( cols[i + 1] );
+
+        if( score > b.score )
+        {
+          b.label = cols[i];
+          b.score = score;
+        }
+      }
+      boxes[ std::stoi( cols[2] ) ].push_back( b );
+    }
+    catch( const std::exception& )
+    {
+      continue;
+    }
+  }
+  return boxes;
+}
+
+cv::Mat
+load_evaluation_frame( const evaluated_item& item, int frame, cv::VideoCapture& video )
+{
+  if( !item.images.empty() )
+  {
+    return frame >= 0 && frame < static_cast< int >( item.images.size() )
+      ? cv::imread( item.images[frame], cv::IMREAD_COLOR ) : cv::Mat();
+  }
+
+  if( !video.isOpened() && !video.open( item.video ) )
+  {
+    return cv::Mat();
+  }
+
+  cv::Mat image;
+  video.set( cv::CAP_PROP_POS_MSEC, 1000.0 * frame / item.frame_rate );
+  video.read( image );
+  return image;
+}
+
+void
+draw_boxes( cv::Mat& image, const std::vector< drawn_box >& boxes,
+            const cv::Scalar& color, bool label_above )
+{
+  for( const auto& b : boxes )
+  {
+    cv::rectangle( image, b.box, color, 2 );
+
+    std::string text = b.label;
+    if( b.score >= 0.0 )
+    {
+      char score[16];
+      std::snprintf( score, sizeof( score ), " %.2f", b.score );
+      text += score;
+    }
+
+    if( !text.empty() )
+    {
+      const cv::Point at( static_cast< int >( b.box.x ), label_above
+        ? static_cast< int >( b.box.y ) - 4
+        : static_cast< int >( b.box.y + b.box.height ) + 14 );
+      cv::putText( image, text, at, cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1, cv::LINE_AA );
+    }
+  }
+}
+
+// Draws truth (green) and computed (red) boxes on a random sample of the
+// frames that have either, so results can be judged at a glance
+void
+draw_evaluation_frames( const std::vector< evaluated_item >& items,
+                        const std::string& computed_dir,
+                        const std::string& truth_dir,
+                        const std::string& frames_dir,
+                        unsigned frame_count )
+{
+  std::vector< std::map< int, std::vector< drawn_box > > > truth, computed;
+  std::vector< std::pair< size_t, int > > candidates;
+
+  for( size_t i = 0; i < items.size(); ++i )
+  {
+    truth.push_back( read_csv_boxes( append_path( truth_dir, items[i].stem + ".csv" ) ) );
+    computed.push_back( read_csv_boxes( append_path( computed_dir, items[i].stem + ".csv" ) ) );
+
+    std::set< int > frames;
+    for( const auto& f : truth.back() ) frames.insert( f.first );
+    for( const auto& f : computed.back() ) frames.insert( f.first );
+    for( int f : frames ) candidates.emplace_back( i, f );
+  }
+
+  // Seeded so a rerun draws the same frames
+  std::mt19937 rng( 0 );
+  std::shuffle( candidates.begin(), candidates.end(), rng );
+  if( candidates.size() > frame_count )
+  {
+    candidates.resize( frame_count );
+  }
+  std::sort( candidates.begin(), candidates.end() );
+
+  if( candidates.empty() || !create_folder( frames_dir ) )
+  {
+    return;
+  }
+
+  const cv::Scalar truth_color( 0, 200, 0 ), computed_color( 0, 0, 255 );
+  std::map< size_t, cv::VideoCapture > videos;
+  unsigned drawn = 0;
+
+  for( const auto& candidate : candidates )
+  {
+    const evaluated_item& item = items[ candidate.first ];
+    const int frame = candidate.second;
+    cv::Mat image = load_evaluation_frame( item, frame, videos[ candidate.first ] );
+
+    if( image.empty() )
+    {
+      continue;
+    }
+
+    draw_boxes( image, truth[ candidate.first ][ frame ], truth_color, false );
+    draw_boxes( image, computed[ candidate.first ][ frame ], computed_color, true );
+    cv::putText( image, "truth", cv::Point( 8, 20 ),
+                 cv::FONT_HERSHEY_SIMPLEX, 0.6, truth_color, 2, cv::LINE_AA );
+    cv::putText( image, "computed", cv::Point( 8, 42 ),
+                 cv::FONT_HERSHEY_SIMPLEX, 0.6, computed_color, 2, cv::LINE_AA );
+
+    char name[32];
+    std::snprintf( name, sizeof( name ), "_frame%06d.jpg", frame );
+
+    if( cv::imwrite( append_path( frames_dir, item.stem + name ), image ) )
+    {
+      ++drawn;
+    }
+  }
+
+  std::cout << "Drew " << drawn << " evaluation frame(s) in " << frames_dir << std::endl;
+}
+#endif
+
+// Runs the trained detector over every item of one split, scores the results
+// against their truth with the score applet, and draws a sample of frames.
+// Never fatal: training already succeeded, so problems here are reported and
+// the model is kept.
 std::string
-evaluate_on_test_set( const test_evaluation_inputs& in )
+evaluate_split( const split_evaluation_inputs& in )
 {
   std::cout << std::endl << "========================================" << std::endl;
-  std::cout << "Evaluating on " << in.data.size() << " test item(s)" << std::endl;
+  std::cout << "Evaluating on " << in.data.size() << " " << in.split << " item(s)" << std::endl;
   std::cout << "========================================" << std::endl;
 
   if( !does_file_exist( in.pipeline ) )
   {
     std::cout << "No runnable pipeline at " << in.pipeline
-              << ", skipping test evaluation" << std::endl;
+              << ", skipping " << in.split << " evaluation" << std::endl;
     return std::string();
   }
 
-  const std::string results_dir = append_path( in.output_directory, "test_results" );
+  const std::string results_dir = append_path(
+    append_path( in.output_directory, "model_evaluation" ), in.split );
   const std::string computed_dir = append_path( results_dir, "computed" );
   const std::string truth_dir = append_path( results_dir, "truth" );
 
@@ -1331,7 +1535,7 @@ evaluate_on_test_set( const test_evaluation_inputs& in )
   }
 
   std::set< std::string > used_stems;
-  unsigned scored = 0;
+  std::vector< evaluated_item > evaluated;
 
   for( size_t i = 0; i < in.data.size(); ++i )
   {
@@ -1462,12 +1666,31 @@ evaluate_on_test_set( const test_evaluation_inputs& in )
       continue;
     }
 
-    ++scored;
+    evaluated_item scored;
+    scored.stem = stem;
+    scored.images = images;
+
+    if( scored.images.empty() && reader_type == "image_list" )
+    {
+      std::ifstream list( video_filename );
+      std::string image;
+
+      while( std::getline( list, image ) )
+      {
+        if( !image.empty() )
+        {
+          scored.images.push_back( image );
+        }
+      }
+    }
+    scored.video = ( reader_type == "vidl_ffmpeg" ? video_filename : std::string() );
+    scored.frame_rate = rate;
+    evaluated.push_back( scored );
   }
 
-  if( scored == 0 )
+  if( evaluated.empty() )
   {
-    std::cout << "No test item could be run, nothing to score" << std::endl;
+    std::cout << "No " << in.split << " item could be run, nothing to score" << std::endl;
     return std::string();
   }
 
@@ -1476,9 +1699,9 @@ evaluate_on_test_set( const test_evaluation_inputs& in )
     "--computed", computed_dir,
     "--truth", truth_dir,
     "--per-class",
-    "--output-metrics", append_path( results_dir, "test_metrics.json" ),
-    "--output-summary", append_path( results_dir, "test_summary.txt" ),
-    "--output-plots", append_path( results_dir, "plots" ) };
+    "--output-metrics", append_path( results_dir, "metrics.json" ),
+    "--output-summary", append_path( results_dir, "summary.txt" ),
+    "--output-plots", results_dir };
 
   // The scorer takes "canonical: alias, alias" lines, not the training
   // labels format, so the hierarchy's synonyms are rewritten for it.
@@ -1525,12 +1748,21 @@ evaluate_on_test_set( const test_evaluation_inputs& in )
 
   if( score_status != EXIT_SUCCESS )
   {
-    std::cout << "Test set scoring did not complete; detections are in "
+    std::cout << "Scoring the " << in.split << " set did not complete; detections are in "
               << computed_dir << std::endl;
     return std::string();
   }
 
-  std::cout << "Test set metrics written to " << results_dir << std::endl;
+  std::cout << "Metrics for the " << in.split << " set written to " << results_dir << std::endl;
+
+#ifdef VIAME_TOOLS_HAVE_OPENCV
+  if( in.frame_count > 0 )
+  {
+    draw_evaluation_frames( evaluated, computed_dir, truth_dir,
+                            append_path( results_dir, "frames" ), in.frame_count );
+  }
+#endif
+
   return results_dir;
 }
 
@@ -1583,7 +1815,7 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "test-list", "Optional list of test data excluded from training and "
       "validation; the trained detector is run on it and scored with the "
-      "score tool into <output_directory>/test_results",
+      "score tool into <output_directory>/model_evaluation/test",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "test-truth", "Truth for --test-list, given the same way as --input-truth",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
@@ -1618,6 +1850,9 @@ train_applet
     ( "output-file", "Pack the whole output directory (pipelines, models, model "
       "card, evaluation) into this zip on success and remove the directory",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "skip-packaging", "Leave the trained output as a folder instead of packing "
+      "it into the output_file zip the config or --output-file requests",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "normalize-16bit", "Enable percentile normalization for 16-bit/float imagery",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "llm-assist", "Run training under claude supervision, which suggests config "
@@ -1780,6 +2015,7 @@ train_applet
   std::string opt_timeout = cmd_args[ "timeout" ].as< std::string >();
   std::string opt_init_weights = cmd_args[ "init-weights" ].as< std::string >();
   std::string opt_output_file = cmd_args[ "output-file" ].as< std::string >();
+  bool opt_skip_packaging = cmd_args[ "skip-packaging" ].as< bool >();
   std::string opt_settings_file = cmd_args[ "settings-file" ].as< std::string >();
   bool opt_normalize_16bit = cmd_args[ "normalize-16bit" ].as< bool >();
 
@@ -2315,6 +2551,8 @@ train_applet
     config->get_value< std::string >( "output_directory" );
   std::string output_file =
     config->get_value< std::string >( "output_file" );
+  const unsigned evaluation_frame_count =
+    config->get_value< unsigned >( "evaluation_frame_count" );
   std::string pipeline_template =
     config->get_value< std::string >( "pipeline_template" );
   std::string tracker_pipeline_template =
@@ -2401,6 +2639,12 @@ train_applet
     {
       output_directory = output_file + "_files";
     }
+  }
+
+  // Cleared after staging so the folder keeps the name the pack would have had
+  if( opt_skip_packaging )
+  {
+    output_file.clear();
   }
 
   if( !kv::check_nested_algo_configuration< kv::algo::image_io >( "image_reader", config ) )
@@ -4482,28 +4726,55 @@ train_applet
 
   std::string test_results_dir;
 
-  if( !test_data.empty() && !training_failed && !training_interrupted )
+  // Validation items are the tail of all_data from the manual pivot; frames
+  // auto-split from training data are not held out as whole items.
+  std::vector< std::string > validation_data, validation_truth;
+
+  if( validation_sequence_pivot >= 0 )
+  {
+    for( size_t i = validation_sequence_pivot; i < all_data.size(); ++i )
+    {
+      validation_data.push_back( all_data[i] );
+      validation_truth.push_back( i < all_truth.size() ? all_truth[i] : std::string() );
+    }
+  }
+
+  if( ( !validation_data.empty() || !test_data.empty() ) &&
+      !training_failed && !training_interrupted )
   {
     if( opt_emb_pipe || pipeline_template.empty() )
     {
-      std::cout << "Test evaluation needs a runnable pipeline; skipping it" << std::endl;
+      std::cout << "Model evaluation needs a runnable pipeline; skipping it" << std::endl;
     }
     else
     {
-      test_evaluation_inputs eval;
-      eval.data = test_data;
-      eval.truth = test_truth;
+      split_evaluation_inputs eval;
       eval.pipeline = output_directory.empty()
         ? output_pipeline_name
         : append_path( output_directory, output_pipeline_name );
       eval.output_directory = output_directory.empty() ? std::string( "." ) : output_directory;
       eval.labels_file = label_fn;
       eval.default_frame_rate = frame_rate;
+      eval.frame_count = evaluation_frame_count;
       eval.image_exts = image_exts;
       eval.video_exts = video_exts;
       eval.groundtruth_exts = groundtruth_exts;
 
-      test_results_dir = evaluate_on_test_set( eval );
+      if( !validation_data.empty() )
+      {
+        eval.split = "validation";
+        eval.data = validation_data;
+        eval.truth = validation_truth;
+        evaluate_split( eval );
+      }
+
+      if( !test_data.empty() )
+      {
+        eval.split = "test";
+        eval.data = test_data;
+        eval.truth = test_truth;
+        test_results_dir = evaluate_split( eval );
+      }
     }
   }
 
