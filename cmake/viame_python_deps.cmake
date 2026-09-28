@@ -123,8 +123,8 @@ set( _viame_deps_stamp
 #
 # `--no-deps` is the point of the exercise -- everything the install needs
 # is named in a lock, so pip is a fetcher here and not a resolver. It is
-# also what keeps `opencv-python` and `wandb` out: two of the forks require
-# them, and a resolving install would put a second cv2 beside VIAME's.
+# also what keeps the excluded packages out: forks require `wandb` and
+# `triton`, and a resolving install would fetch both.
 add_custom_command(
   OUTPUT  "${_viame_deps_stamp}"
   COMMAND "${CMAKE_COMMAND}" -E env

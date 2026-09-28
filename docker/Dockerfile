@@ -90,9 +90,15 @@ FROM ${CUDA_IMAGE}-runtime-${BASE_OS} AS web
 # question, tzdata's time zone, waits for an answer that never comes.
 ARG DEBIAN_FRONTEND=noninteractive
 
+# `libgl1` is for the packages that bring their own cv2. VIAME declares no
+# imaging library, so pip resolves whatever `ultralytics`, `albumentations`
+# and `mmengine` ask for -- the full build and the headless one both, at the
+# same version, into the same `cv2/` directory. The full build wants
+# `libGL.so.1`; installing it here means the image works whichever of the two
+# pip wrote last.
 RUN apt-get update -y \
   && apt-get install -y wget unzip tar openssl curl bzip2 gfortran \
-       libharfbuzz0b libxcb-shm0 libsm6 libice6 libxext6 \
+       libharfbuzz0b libxcb-shm0 libsm6 libice6 libxext6 libgl1 \
        python3-pip python-is-python3 \
   && rm -rf /var/lib/apt/lists/* \
   && ( python -m pip install --break-system-packages numpy==2.0.2 \

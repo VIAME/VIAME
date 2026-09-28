@@ -42,12 +42,12 @@ numba>=0.61.0 ; python_version >= "3.12"
 # --- imaging and video -------------------------------------------------------
 # `av` and `imageio-ffmpeg` are core, not optional: library/video_io decodes
 # and encodes through PyAV, and imageio-ffmpeg carries the ffmpeg binary the
-# `ffmpeg_cli` reader falls back to. `opencv-contrib-python-headless` is cv2,
-# which came from a source build of OpenCV carried by fletch until phase 1;
-# contrib because `ximgproc` and `xfeatures2d` are used.
+# `ffmpeg_cli` reader falls back to. Nothing else here is an imaging library:
+# `library/image_kernels` and `library/utilities` are the implementation VIAME
+# filters, warps, matches and measures with, so this file declares no
+# third-party one to sit beside them.
 av
 imageio-ffmpeg
-opencv-contrib-python-headless
 imageio>=2.34.0 ; python_version < "3.12"
 imageio>=2.36.0 ; python_version >= "3.12"
 scikit-image>=0.22.0,<=0.24.0 ; python_version < "3.12"
@@ -73,11 +73,16 @@ faster-coco-eval>=1.7.2
 tensorboard>=2.13.0
 
 # --- the kitware python stack ------------------------------------------------
+# `kwimage[headless]` rather than `kwimage`: kwimage's warp, resize and mask
+# paths are cv2-backed with no fallback, and kwimage does not declare cv2
+# outside that extra. VIAME's own code does not import cv2 -- `baseline:
+# lazy_cv2` is the test -- so the extra is where the dependency belongs,
+# named by the package that has it rather than by this file.
 ubelt
 ndsampler
 kwutil
 kwarray
-kwimage
+kwimage[headless]
 kwplot
 kwconf
 kwcoco>=0.8.0 ; python_version < "3.12"

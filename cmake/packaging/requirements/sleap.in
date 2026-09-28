@@ -6,8 +6,8 @@
 # Upstream's list carries `wandb<=0.25.0`, which is on this tree's exclusion
 # list -- 86 MB of telemetry client that the trainers use only if configured
 # -- so it is not here. Its list also says "OpenCV is supplied by fletch; do
-# not install a competing wheel"; cv2 is `opencv-contrib-python-headless` in
-# `base.in` since P1-T07, and there is no fletch.
+# not install a competing wheel"; there is no fletch, and this tree declares
+# no imaging library for one to compete with.
 #
 # Compiled with the accelerator's lock as a constraint. Its own file rather
 # than `base.in` because the option is off by default and this is thirty

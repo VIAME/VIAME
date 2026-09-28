@@ -10,11 +10,9 @@
 # pinned in the lock with everything else, and the forks themselves install
 # `--no-deps`.
 #
-# It also closes a hole. `mmengine` requires `opencv-python` and `mit-yolo`
-# requires `wandb`, so installing either fork with dependencies pulled a
-# second cv2 into the same site-packages as VIAME's, and 86 MB of telemetry
-# client nothing configures. Both are on the exclusion list, and with
-# `--no-deps` they stay off.
+# It also closes a hole. `mit-yolo` requires `wandb`, so installing that fork
+# with dependencies pulled 86 MB of telemetry client nothing configures. It is
+# on the exclusion list, and with `--no-deps` it stays off.
 #
 # Taken from each fork's own metadata rather than by reading its setup.py:
 # `pip show <fork>` on a working install, which is what pip actually acts on.

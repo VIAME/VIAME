@@ -85,12 +85,17 @@ was discovered.
 **To import `viame` at all:** `numpy`, which the wheel declares.
 
 **To run the GFIT detector and classifier:** `torch`, `torchvision`,
-`scriptconfig`, `ubelt`, `pillow`, `opencv-python-headless`, then the Kitware
-stack `kwimage`, `kwcoco`, `kwarray`, `ndsampler`, and then `astunparse`,
+`scriptconfig`, `ubelt`, `pillow`, then the Kitware stack `kwimage`, `kwcoco`,
+`kwarray`, `ndsampler`, and then `astunparse`,
 `pygtrie`, `networkx_algo_common_subtree`, `torch_liberator` and `liberator`,
 which the vendored netharn reaches through several layers of lazy import.
 
 None of these are in the wheel, and none need to be: they are all on PyPI.
+
+`kwimage` is declared as `kwimage[headless]`. The wheel names no imaging
+library of its own -- nothing under `viame`, including the vendored `rfdetr`
+and `sam2`, imports cv2 -- but kwimage's warp, resize and mask paths are
+cv2-backed with no fallback, and kwimage declares that only in its extra.
 
 **`rfdetr` is the exception, and it is the interesting one.** `pip install
 rfdetr` gets 1.10.1 from PyPI, and the pipeline fails on it:

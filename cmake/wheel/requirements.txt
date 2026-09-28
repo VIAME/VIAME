@@ -37,7 +37,6 @@ av
 scriptconfig
 ubelt
 pillow>=9.4.0
-opencv-python-headless
 
 # Five modules imported it already and none declared it; `opencv_yaml`, which
 # reads the calibration files `cv::FileStorage` writes, makes six. Undeclared
@@ -54,7 +53,9 @@ onnxruntime
 ensemble_boxes
 
 # --- the Kitware stack the netharn classifiers use ------------------------
-kwimage
+# The `headless` extra is how kwimage declares the cv2 its warp, resize and
+# mask paths need; nothing this wheel owns imports cv2 itself.
+kwimage[headless]
 kwcoco
 kwarray
 ndsampler

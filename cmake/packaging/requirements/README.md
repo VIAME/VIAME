@@ -36,9 +36,8 @@ python -m pip install pip-tools
 cd cmake/packaging/requirements
 PY=py$(python -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
-EXCLUDE="--unsafe-package=triton --unsafe-package=opencv-python \
-         --unsafe-package=opencv-python-headless \
-         --unsafe-package=wandb --unsafe-package=decord"
+EXCLUDE="--unsafe-package=triton --unsafe-package=wandb \
+         --unsafe-package=decord"
 
 for variant in cuda12 cuda13 cpu; do
     python -m piptools compile --strip-extras $EXCLUDE -o $PY/$variant.lock $variant.in
@@ -58,15 +57,32 @@ that every set is produced the same way.
 ## What is deliberately excluded
 
 `--unsafe-package` keeps a package out of the lock even when something in
-the graph asks for it. Five are excluded, and each one is a decision:
+the graph asks for it. Three are excluded, and each one is a decision:
 
 | package | why |
 |---|---|
-| `opencv-python`, `opencv-python-headless` | **a second and third cv2.** `ultralytics` requires one, `albumentations` and `mmengine` the other, and `pylabel` a third; each installs a `cv2` module into the same directory as VIAME's `opencv-contrib-python-headless`, and whichever lands last wins. contrib is a superset of both |
 | `triton` | 697 MB. sam3's `edt.py` is the only user: it takes a Triton kernel for its euclidean distance transform when one is present and an OpenCV CPU implementation when it is not, which is the path Windows already takes |
 | `wandb` | 86 MB of telemetry client that the trainers use only if configured, and nothing configures it. `mit-yolo` requires it |
 | `decord` | 26 MB of video reader. Nothing in VIAME, and nothing in any submodule this build compiles, imports it -- VIAME feeds frames itself |
 
-The first two rows of that table are the reason the install grew a
-`linux-remove-duplicate-cvs.cmake` that deleted the cv2 wheel behind pip's
-back. Excluding them is the same fix made where the problem is.
+## OpenCV
+
+VIAME declares none. `library/image_kernels` and `library/utilities` are the
+implementation, and no module VIAME owns imports cv2 -- `baseline:lazy_cv2`
+is the test that keeps it that way.
+
+It still arrives. `ultralytics`, `albumentations`, `albucore`, `mmengine`,
+`pylabel` and `bbox_visualizer` all require it unconditionally -- three of
+them cannot be imported without it -- and `kwimage` is declared here as
+`kwimage[headless]` because its warp, resize and mask paths are cv2-backed
+with no fallback and it declares that only in the extra. Naming the extra
+puts the dependency on the package that has it.
+
+With no distribution named here the resolution carries *both* of them at the
+same version: `opencv-python` for what asks for the full build,
+`opencv-python-headless` for what asks for headless. They write the same
+`cv2/` directory and whichever pip installs last wins, so the runtime image
+installs `libgl1` (`docker/Dockerfile`) -- the full build needs `libGL.so.1`
+and the headless one does not -- and works either way. Nothing here uses
+`highgui`, and nothing uses a `contrib` module outside a test that skips when
+it is absent.
