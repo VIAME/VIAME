@@ -1,3 +1,23 @@
+v0.23.4 - 9/29/2026
+===================
+
+
+- Fixes to python whl
+
+
+- Additional DIVE updates
+
+
+- Additional VLM pipeline integration (e.g. qwen through ollama)
+
+
+- Additional training pipeline outputs, normalize validation/test stats
+
+
+- Change default output folder for all trained models to trained_models.zip
+
+
+
 v0.23.3 - 9/25/2026
 ===================
 
