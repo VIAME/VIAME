@@ -19,6 +19,7 @@ Keys use the same form as 'viame run -s', e.g. detector:netharn:deployed.
 
 import argparse
 import json
+import subprocess
 import os
 import re
 import shutil

@@ -15,6 +15,12 @@
 # implementation module at startup, which was the only way the classes came
 # to exist for the subclass walk that registers them. See P8-T10.
 __vital_algorithm_declarations__ = [
+    ( "image_object_detector", "ollama_vlm",
+      "Detect objects from text prompts using an Ollama vision model",
+      "viame.object_detectors.ollama_vlm:OllamaVlmDetector" ),
+    ( "refine_tracks", "ollama_vlm",
+      "Refine tracks from text prompts using an Ollama vision model",
+      "viame.object_detectors.ollama_vlm:OllamaVlmRefiner" ),
     ( "image_object_detector", "hough_circle",
       "Hough circle detector",
       "viame.object_detectors.hough_circle_detector:HoughCircleDetector" ),

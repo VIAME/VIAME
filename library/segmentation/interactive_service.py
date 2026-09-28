@@ -60,6 +60,7 @@ from viame.segmentation.interactive_segmentation import (  # noqa: E402
     find_viame_config as find_segmentation_config,
     suppress_stdout,
 )
+from viame.segmentation.interactive_vlm import VlmService  # noqa: E402
 from viame.measurement.interactive_stereo import (  # noqa: E402
     InteractiveStereoService,
     load_algorithm_from_config,
@@ -67,9 +68,9 @@ from viame.measurement.interactive_stereo import (  # noqa: E402
 )
 
 
-# Commands routed to the interactive-stereo backend. Everything else
-# (predict, set_image, clear_image, text_query, refine, stereo_segment) is
-# routed to the segmentation backend.
+# Commands routed to the interactive-stereo backend. Everything else apart from
+# the VLM commands (predict, set_image, clear_image, text_query, refine,
+# stereo_segment) is routed to the segmentation backend.
 STEREO_COMMANDS = {
     "enable", "disable", "set_calibration", "set_frame", "cancel",
     "get_status", "transfer_line", "transfer_points", "measure_line",
@@ -105,6 +106,7 @@ class InteractiveService:
         self._seg_service: Optional[InteractiveSegmentationService] = None
         self._stereo_service: Optional[InteractiveStereoService] = None
         self._stereo_loaded_config: Optional[str] = None
+        self._vlm_service = VlmService()
 
         self._build_lock = threading.Lock()  # guards lazy construction
         self._send_lock = threading.Lock()   # serializes stdout writes
@@ -207,6 +209,9 @@ class InteractiveService:
         commands that defer their response to a background thread (which sends
         it later via the shared writer)."""
         command = request.get("command")
+
+        if command in VlmService.COMMANDS:
+            return self._vlm_service.handle_request(request)
 
         if command in STEREO_COMMANDS:
             # Don't spin up the stereo backend just to answer a status/lifecycle

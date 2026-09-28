@@ -17,6 +17,7 @@ set( plugin_headers
   manipulate_pipelines.h
   python_script_applet.h
   utilities_file.h
+  utilities_model_card.h
   utilities_image.h
   utilities_target_clfr.h
   utilities_tracks.h
@@ -26,6 +27,7 @@ set( plugin_sources
   manipulate_pipelines.cxx
   python_script_applet.cxx
   utilities_file.cxx
+  utilities_model_card.cxx
   utilities_image.cxx
   utilities_target_clfr.cxx
   utilities_tracks.cxx

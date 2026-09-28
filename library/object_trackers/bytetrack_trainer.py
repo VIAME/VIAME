@@ -52,7 +52,7 @@ class ByteTrackTrainer( TrainTracker ):
 
         self._identifier = "viame-bytetrack-tracker"
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
+        self._output_directory = "trained_model"
         self._output_prefix = "bytetrack_tracker"
         self._pipeline_template = ""
         self._threshold = "0.00"

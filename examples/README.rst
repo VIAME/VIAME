@@ -178,7 +178,14 @@ Project Folders
 
 The "examples" folder is one of two core entry points into running VIAME functionality. The other is
 to copy project folders to a working drive outside of the installation. Project folders (Windows, Linux)
-are located in the "configs/templates" folder of a desktop installation
+are located in the "configs/prj-template" folder of a desktop installation
+
+Training writes the trained model as a single pack, "trained_model.zip", holding the generated
+pipelines, model files, a model card and any evaluation results. The "*_using_trained_model",
+"run_trained_model" and "continue_training" scripts use that pack when present and otherwise fall
+back to an unpacked "trained_model" folder (or "category_models" from older releases). Run one
+pipeline from a pack with "viame run -p trained_model.zip/detector.pipe". SVM training still writes
+its models to a "trained_model" folder, which the SVM pipelines read directly.
 
 Not all functionality is in the default project file scripts, however, but it is a good entry point
 if you just want to get started on object detection and/or tracking.

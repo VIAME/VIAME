@@ -25,7 +25,7 @@ include ../common_default_descriptor.pipe
 process svm_refiner
   :: refine_detections
   :refiner:type                                svm
-  :refiner:svm:model_dir                       category_models
+  :refiner:svm:model_dir                       trained_model
 
 process nms_refiner
   :: refine_detections

@@ -306,3 +306,15 @@ class register_frames_process( ViameProcess ):
             self.push_datum_to_port( 'warped_thermal_image', datum.empty() )
 
         self._base_step()
+
+
+def __sprokit_register__():
+    """Register when the module loader discovers this file directly."""
+    from viame.pipeline import process_factory
+    module_name = 'python:opencv.multimodal_registration'
+    if process_factory.is_process_module_loaded(module_name):
+        return
+    process_factory.add_process('ocv_multimodal_registration',
+                                'Register optical and thermal frames',
+                                register_frames_process)
+    process_factory.mark_process_module_as_loaded(module_name)

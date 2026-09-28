@@ -36,3 +36,12 @@ endif()
 
 target_compile_definitions( test-viame-iqr_session_adaboost PRIVATE
   "VIAME_IQR_ADABOOST_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test( NAME "unit:descriptors:query_service_exemplars"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_query_service_exemplars.py"
+    LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
+  viame_add_test( NAME "unit:descriptors:query_service_layout"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_query_service_layout.py"
+    LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
+endif()

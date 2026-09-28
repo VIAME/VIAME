@@ -61,3 +61,9 @@ if( VIAME_ENABLE_PYTHON )
     )
   endforeach()
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test( NAME "unit:tools:vertex_ai_train"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_vertex_ai_train.py"
+    LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
+endif()

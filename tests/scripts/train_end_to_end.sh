@@ -220,7 +220,7 @@ groundtruth_style=one_per_folder
 groundtruth_extensions=.csv;.json;.kw18
 track_reader:type=viame_csv
 track_reader:viame_csv:batch_load=true
-output_directory=category_models
+output_directory=trained_model
 detector_trainer:type=svm
 detector_trainer:svm:ingest_pipeline=pipelines/index_fish.svm.pipe
 EOF

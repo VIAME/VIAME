@@ -16,7 +16,7 @@ process out_adapt
 
 # =============================================================================
 
-include category_models/detector.pipe
+include trained_model/detector.pipe
 
 connect from in_adapt.image
         to   detector_input.image

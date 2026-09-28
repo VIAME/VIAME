@@ -146,6 +146,8 @@ set( CORE_PIPELINE_FILES
   utility_register_frames.pipe
   utility_register_frames_2-cam.pipe
   utility_register_frames_3-cam.pipe
+  utility_text_query_ollama_vlm_no_tracking.pipe
+  utility_text_query_ollama_vlm_tracking.pipe
 )
 
 # Configs which differ based on CPU vs GPU

@@ -277,6 +277,21 @@ class TestIdentifyZips:
         assert info.pipes == ["detector.pipe"]
         assert info.pipe_in_zip == "detector.pipe"
 
+    def test_pipe_inside_zip_is_addressable(self, tmp_path):
+        path = tmp_path / "trained_model.zip"
+        with zipfile.ZipFile(path, "w") as zf:
+            zf.writestr("detector.pipe", "")
+            zf.writestr("tracker.pipe", "")
+        zip_path, inner = model_wrap.split_zip_path(str(path / "tracker.pipe"))
+        assert zip_path == str(path)
+        assert inner == "tracker.pipe"
+        assert model_wrap.split_zip_path(str(tmp_path / "x.pipe")) == (str(tmp_path / "x.pipe"), "")
+        info = model_wrap.identify(str(path))
+        model_wrap.select_pipe(info, inner)
+        assert info.pipes == ["tracker.pipe"]
+        with pytest.raises(ValueError):
+            model_wrap.select_pipe(info, "generate.pipe")
+
     def test_several_pipelines_are_all_listed(self, tmp_path):
         path = tmp_path / "addon.zip"
         with zipfile.ZipFile(path, "w") as zf:

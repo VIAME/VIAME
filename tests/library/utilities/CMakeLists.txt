@@ -118,3 +118,6 @@ endif()
 
 viame_discover_gtests( viame utilities_target_clfr
   LIBRARIES viame_utilities kwiver::vital GTest::gtest_main )
+
+viame_discover_gtests( viame utilities_model_card
+  LIBRARIES viame_utilities kwiver::vital GTest::gtest_main )

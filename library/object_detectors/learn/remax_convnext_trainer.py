@@ -59,6 +59,7 @@ class ReMaxConvNextTrainer(TrainDetector):
         self._config_file = ""
         self._seed_weights = ""
         self._train_directory = "deep_training"
+        self._output_directory = "trained_model"
         self._output_prefix = "custom_cfrnn"
         self._gpu_count = -1
         self._random_seed = "none"

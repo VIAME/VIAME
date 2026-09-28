@@ -559,6 +559,14 @@ function( _viame_drop_prefolded_extensions modpath names )
   set( dropped )
   foreach( directory IN LISTS directories )
     foreach( name IN LISTS names )
+      # Only where the shim is already in place. This runs at configure time
+      # and one of these directories is the **install prefix**, so deleting an
+      # extension whose replacement has not been installed yet would leave a
+      # configured-but-unbuilt tree with neither.
+      if( NOT EXISTS "${directory}/${name}.py" )
+        continue()
+      endif()
+
       # `<name>.so`, and the interpreter-tagged spellings of it. Never
       # `<module>` itself: these names are its submodules.
       file( GLOB stale

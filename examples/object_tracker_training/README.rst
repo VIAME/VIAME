@@ -35,7 +35,7 @@ Or using a configuration file directly::
     viame train -i /path/to/training/data -c train_tracker_config.conf --threshold 0.0
 
 After training completes, the resulting model or parameters are saved to the
-``category_models`` directory.
+``trained_model.zip`` pack.
 
 
 ***************************

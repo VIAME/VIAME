@@ -73,3 +73,9 @@ if( VIAME_ENABLE_PYTHON )
     TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_rfdetr_seed_weights.py"
     LABELS UNIT TIMEOUT 300 SOURCE_SETUP )
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  viame_add_test( NAME "unit:object_detectors:ollama_vlm"
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_ollama_vlm.py"
+    LABELS UNIT TIMEOUT 120 SOURCE_SETUP )
+endif()

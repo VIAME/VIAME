@@ -58,3 +58,7 @@ The original main checkout and both original Git metadata directories are read-o
 - Transfer artifacts: `main-fixes.bundle`, `kwiver-fixes.bundle`, `lite-fixes.bundle`, and `lite-fixes.patch` in that temporary directory.
 
 The other thread's requirement, dependency, and test-recorder work was left intact and excluded from these isolated commits. Detailed build logs, wheel, environment descriptions and output comparisons are in the same temporary directory. Earlier audit fixtures/results remain under `/tmp/viame-audit-20260928`.
+
+## Integration completed
+
+The isolated fixes have now been integrated into the original main and main-lite branches. KWIVER fixes were pushed to its `viame/main`. See [branch_integration_20260928.md](branch_integration_20260928.md) for merge resolutions and current validation; the integration-state section above records the original handoff.

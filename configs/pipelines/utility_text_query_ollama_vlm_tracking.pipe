@@ -1,0 +1,72 @@
+# =============================================================================
+# Title: Text query via an Ollama vision-language model (with tracking)
+#
+# Description: Utility pipeline for detecting objects with text-based queries
+#              on every frame using a vision-language model served locally by
+#              Ollama (e.g. ollama pull qwen3-vl:8b), linked into tracks by
+#              the default tracker. Replaces existing annotations.
+#
+# Input: TEXT
+# Output: TRACK
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+include common_default_input_with_downsampler.pipe
+
+process ensure_rgb
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_rgb.image
+
+# ================================= DETECTOR ==================================
+process detector
+  :: image_object_detector
+  :detector:type                               ollama_vlm
+
+  block detector:ollama_vlm
+    :model                                     qwen3-vl:8b  # DIVE_PARAM["Model", string]
+    :text_query                                object  # DIVE_PARAM["Text Query", string, required]
+    :think                                     false
+    :max_new_objects                           50  # DIVE_PARAM["Max new objects", strictly_positive_int]
+  endblock
+
+connect from ensure_rgb.image
+        to   detector.image
+
+# ================================== TRACKER ==================================
+include common_default_tracker.pipe
+
+connect from downsampler.output_1
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from detector.detected_object_set
+        to   tracker.detected_object_set
+
+# =============================== OUTPUT WRITER ===============================
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+
+connect from downsampler.output_2
+        to   track_writer.image_file_name
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+connect from tracker.object_track_set
+        to   track_writer.object_track_set
+
+# -- end of file --

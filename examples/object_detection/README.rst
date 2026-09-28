@@ -288,7 +288,7 @@ Key properties:
 - Low data requirements (50+ annotations per class can be sufficient)
 - No GPU required -- runs entirely on CPU
 - Good as a quick baseline or for rapid prototyping
-- Requires ``.svm`` model files in a ``category_models`` directory
+- Requires ``.svm`` model files in a ``trained_model`` directory
 
 
 **********************************
