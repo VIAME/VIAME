@@ -137,6 +137,7 @@ nav:
   - Python Interface: sections/python_interface.md
   - sections/project_folders.md
   - sections/examples_overview.md
+  - sections/detection_file_formats.md
   - sections/detection_file_conversions.md
   - sections/object_detection.md
   - sections/object_detector_training.md
@@ -145,7 +146,6 @@ nav:
   - sections/object_tracking.md
   - sections/image_enhancement.md
   - sections/search_and_rapid_model_generation.md
-  - sections/rapid_model_generation.md
   - sections/text_query_and_vlm.md
   - sections/scoring_and_evaluation.md
   - sections/registration_and_mosaicing.md

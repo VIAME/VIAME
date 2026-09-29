@@ -1,0 +1,5 @@
+# 1: Detection or Track-id,  2: Video or Image Identifier,  3: Unique Frame Identifier,  4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y),  8: Detection or Length Confidence,  9: Target Length (0 or -1 if invalid),  10-11+: Repeated Species, Confidence Pairs or Attributes
+0,frame000000.png,0,104,265,189,390,0.92,-1,flounder,0.92,(kp) head 120 320,(kp) tail 180 340
+0,frame000001.png,1,110,268,196,392,0.90,-1,flounder,0.90,(kp) head 126 322,(kp) tail 187 343
+1,frame000000.png,0,412,88,470,131,0.71,-1,scallop,0.71,skate,0.12,(poly) 412 88 470 88 470 131 412 131
+2,frame000001.png,1,250,300,322,351,0.64,152.4,cod,0.64,(atr) is_diseased false,(note) partially occluded

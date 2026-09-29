@@ -14,7 +14,7 @@ The workflows apply regardless of the type of annotation: detection boxes, masks
 |----|----|----|----|
 | Deep learning from scratch | Highest, every object is drawn by hand | Hundreds of examples per class | Best, given enough data |
 | Deep learning with partial automation | Moderate, the user corrects what a detector proposes | Hundreds of examples per class | Same as above, reached sooner |
-| IQR (video search with adjudication) | Low, the user accepts or rejects results | A few examples to start | Good for the amount of data, below a well trained deep model |
+| Video search with feedback | Low, the user accepts or rejects results | A few examples to start | Good for the amount of data, below a well trained deep model |
 | Text queries (extension) | Low, the user types a description and corrects the results | None to begin | Initial annotations rather than a model |
 
 ## Workflow 1: Deep Learning from Scratch
@@ -44,7 +44,7 @@ Use this when accuracy matters most and annotation time is available, or when no
 ## Workflow 2: Deep Learning with Partial Automation
 
 1. Load up imagery in annotator
-2. Run an automated detector (can be IQR based, default model, other pre-trained detector, or user generated deep detector)
+2. Run an automated detector (can be one made by video search, default model, other pre-trained detector, or user generated deep detector)
 3. Correct and export detection or tracks files
 4. Repeat for as many sequences as desired in diverse backgrounds
 5. Run model training
@@ -65,13 +65,13 @@ Use this when accuracy matters most and annotation time is available, or when no
 
 Use this once any detector finds most of the objects of interest, including a generic one that only proposes boxes without naming the species. See [object detection](https://viame.github.io/VIAME/sections/object_detection.html).
 
-## Workflow 3: IQR for Rapid Model Generation
+## Workflow 3: Video Search with Feedback
 
-IQR (iterative query refinement) is video search with adjudication. The user gives an example of what they are looking for, and then accepts or rejects the results the system returns. A simple model is trained from those answers.
+Video search with feedback starts from an example of what the user is looking for. The user then accepts or rejects the results the system returns. A simple model is trained from those answers.
 
 1. Create searchable index for a video archive (either at full frame level, detection level on top of pre-trained detectors, or track level)
 2. Launch search GUI
-3. Use search GUI to generate IQR (.svm) models
+3. Use search GUI to generate (.svm) models from the accepted and rejected results
 4. Save models to category directory
 5. Evaluate models
 
@@ -118,16 +118,16 @@ Try this at the start of a project, or for a new class that no detector covers, 
 
 ## Choosing a Workflow
 
-Before annotating anything, run the existing models in the [model zoo and add-ons](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons) on a sample of the imagery, and try a text query on it as well. If correcting the output of either is quicker than drawing the annotations by hand, continue with partial automation. If neither saves time, fall back to manual annotation or IQR, depending on how much time there is to devote to the problem: manual annotation takes the most and gives the best model, IQR takes little and gives a model that is good for the effort.
+Before annotating anything, run the existing models in the [model zoo and add-ons](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons) on a sample of the imagery, and try a text query on it as well. If correcting the output of either is quicker than drawing the annotations by hand, continue with partial automation. If neither saves time, fall back to manual annotation or video search with feedback, depending on how much time there is to devote to the problem: manual annotation takes the most and gives the best model, video search with feedback takes little and gives a model that is good for the effort.
 
 | Situation | Suggested start |
 |----|----|
 | New imagery, nothing annotated yet | Try existing models and text queries on a sample, and keep whichever saves annotation time |
 | An existing model or text query finds most of the objects | Partial automation |
 | Neither helps, and annotation time is available | Deep learning from scratch |
-| Neither helps, and time is short | IQR |
-| A rare object in a large archive | IQR |
-| A handful of examples of a new class | IQR, or the SVM trainer |
+| Neither helps, and time is short | Video search with feedback |
+| A rare object in a large archive | Video search with feedback |
+| A handful of examples of a new class | Video search with feedback, or the SVM trainer |
 | Hundreds of annotations per class available | Deep learning, from scratch or with partial automation |
 
 Whichever route is taken first, the corrected annotations it produces can be fed into detector training. As the number of annotations per class grows, retraining with a deep detector gives the largest gain in accuracy.

@@ -11,9 +11,9 @@ be used to bootstrap annotation for training more accurate models:
 | (b) Quickly training up detection models for new categories of objects on the same ingest
 | (c) Performing text-based queries to detect, segment, and track high-level object categories
 
-Rapid model generation can be performed either via image or video queries using the
-IQR (Iterative Query Refinement) method described in the sections below, or via textual
-queries using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts
+Rapid model generation can be performed either via image or video queries using iterative query
+refinement (IQR), the search with feedback described in the sections below, or via textual queries
+using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts
 to detect, segment, and track objects without requiring any pre-existing annotations or
 an ingested database. See the `text query and VLM <https://viame.github.io/VIAME/sections/text_query_and_vlm.html>`__ page
 for more details on using SAM3.
@@ -215,8 +215,12 @@ default VIAME csv format and others. You can show multiple entries at the same t
 them all (hold shift, press the first entry then the last), right-clicking on them, and going
 to 'Show Selected Entries'.
 
-Train a IQR Model
-=================
+Rapid Model Generation
+======================
+
+Rapid model generation uses the same method as image and video search (above), saving out the
+detection model that is trained while the results of a query are refined. These models can then be
+used in detection pipelines, or further refined or used in future video searches.
 
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_12_adjudacation.jpg
    :width: 40%

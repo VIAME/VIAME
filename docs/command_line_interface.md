@@ -145,4 +145,4 @@ The output format is taken from the file extension:
 viame convert annotations.csv annotations.json
 ```
 
-See [detection file formats and conversions](https://viame.github.io/VIAME/sections/detection_file_conversions.html).
+See [detection file conversions](https://viame.github.io/VIAME/sections/detection_file_conversions.html).

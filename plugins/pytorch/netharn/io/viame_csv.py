@@ -8,7 +8,7 @@ class ViameCSV(ub.NiceRepr):
     Basic script to convert VIAME-CSV to kwcoco
 
     References:
-        https://viame.github.io/VIAME/sections/detection_file_conversions.html
+        https://viame.github.io/VIAME/sections/detection_file_formats.html
 
     TODO:
         implement load

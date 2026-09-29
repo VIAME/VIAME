@@ -60,6 +60,7 @@ Contents
    Python Interface <sections/python_interface>
    sections/project_folders
    sections/examples_overview
+   sections/detection_file_formats
    sections/detection_file_conversions
    sections/object_detection
    sections/object_detector_training
@@ -141,7 +142,7 @@ Measuring Animal Lengths Using Metadata or Stereo
 Text, Image, Video Search for Rapid Model Generation
 
 .. image:: _static/images/iqr_11_initial_results.jpg
-   :alt: Iqr 11 initial results
+   :alt: Video search initial results
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search
 

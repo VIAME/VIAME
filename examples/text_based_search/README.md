@@ -16,7 +16,7 @@ Results from any of them can be corrected in DIVE and used to train a standard d
 
 ## SAM3 Text Queries
 
-Text-prompted detection provides an alternative approach to rapid model generation that uses open-vocabulary text prompts instead of image or video exemplars. Rather than ingesting data into a search database and performing iterative query refinement, you can simply describe the objects you are looking for using natural language (e.g., "fish", "sea turtle", "bird"). Text queries are currently performed using [Meta's SAM3 model](https://github.com/facebookresearch/sam3), which can be installed from the [VIAME Add-Ons wiki](https://github.com/VIAME/VIAME/wiki/Installing-Add-Ons). The model combines Grounding DINO for text-prompted detection with a SAM-based segmentation and tracking architecture, producing polygon masks and multi-frame tracks.
+Text-prompted detection provides an alternative approach to rapid model generation that uses open-vocabulary text prompts instead of image or video exemplars. Rather than ingesting data into a search database and refining a search with feedback, you can simply describe the objects you are looking for using natural language (e.g., "fish", "sea turtle", "bird"). Text queries are currently performed using [Meta's SAM3 model](https://github.com/facebookresearch/sam3), which can be installed from the [VIAME Add-Ons wiki](https://github.com/VIAME/VIAME/wiki/Installing-Add-Ons). The model combines Grounding DINO for text-prompted detection with a SAM-based segmentation and tracking architecture, producing polygon masks and multi-frame tracks.
 
 ### Running Pipelines from the Command Line
 

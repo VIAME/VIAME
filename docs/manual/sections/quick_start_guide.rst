@@ -88,7 +88,7 @@ Three older desktop tools remain in the installers for a few specialized cases, 
 longer developed now that DIVE covers what they do:
 
 - **VIEW:** the original C++ annotator for boxes and polygons, still quick on very high resolution imagery
-- **SEARCH:** standalone image and video search with iterative query refinement
+- **SEARCH:** standalone image and video search, refined by feedback on the results
 - **SEAL:** box annotation across 2 to 4 camera views side by side
 
 *****************************
@@ -237,7 +237,7 @@ Annotation Formats
 *************************************
 
 For details on annotation file formats, see the
-`Detection File Conversions <https://viame.github.io/VIAME/sections/detection_file_conversions.html>`_
+`Detection File Formats <https://viame.github.io/VIAME/sections/detection_file_formats.html>`_
 section.
 
 **VIAME-CSV** is the primary input/output format supported by default, with a single line

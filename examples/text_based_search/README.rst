@@ -42,7 +42,7 @@ SAM3 Text Queries
 
 Text-prompted detection provides an alternative approach to rapid model generation that
 uses open-vocabulary text prompts instead of image or video exemplars. Rather than
-ingesting data into a search database and performing iterative query refinement, you can
+ingesting data into a search database and refining a search with feedback, you can
 simply describe the objects you are looking for using natural language (e.g., "fish",
 "sea turtle", "bird"). Text queries are currently performed using `Meta's SAM3
 model <https://github.com/facebookresearch/sam3>`__, which can be installed from the

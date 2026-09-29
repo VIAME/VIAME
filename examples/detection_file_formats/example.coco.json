@@ -1,0 +1,235 @@
+{
+  "info": {
+    "year": 2026,
+    "description": "Created by WriteObjectTrackSetCoco",
+    "date_created": "2026-09-29 10:28:13-04:00"
+  },
+  "licenses": [],
+  "annotations": [
+    {
+      "image_id": 1,
+      "bbox": [
+        104.0,
+        265.0,
+        85.0,
+        125.0
+      ],
+      "score": 0.92,
+      "iscrowd": 0,
+      "area": 10625.0,
+      "keypoints": [
+        {
+          "xy": [
+            120.0,
+            320.0
+          ],
+          "keypoint_category": "head",
+          "visible": 2,
+          "keypoint_category_id": 1
+        },
+        {
+          "xy": [
+            180.0,
+            340.0
+          ],
+          "keypoint_category": "tail",
+          "visible": 2,
+          "keypoint_category_id": 2
+        }
+      ],
+      "category_id": 1,
+      "confidence_pairs": [
+        [
+          "flounder",
+          0.92
+        ]
+      ],
+      "track_id": 0,
+      "prob": [
+        0.92,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "id": 1
+    },
+    {
+      "image_id": 2,
+      "bbox": [
+        110.0,
+        268.0,
+        86.0,
+        124.0
+      ],
+      "score": 0.9,
+      "iscrowd": 0,
+      "area": 10664.0,
+      "keypoints": [
+        {
+          "xy": [
+            126.0,
+            322.0
+          ],
+          "keypoint_category": "head",
+          "visible": 2,
+          "keypoint_category_id": 1
+        },
+        {
+          "xy": [
+            187.0,
+            343.0
+          ],
+          "keypoint_category": "tail",
+          "visible": 2,
+          "keypoint_category_id": 2
+        }
+      ],
+      "category_id": 1,
+      "confidence_pairs": [
+        [
+          "flounder",
+          0.9
+        ]
+      ],
+      "track_id": 0,
+      "prob": [
+        0.9,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "id": 2
+    },
+    {
+      "image_id": 1,
+      "bbox": [
+        412.0,
+        88.0,
+        58.0,
+        43.0
+      ],
+      "score": 0.71,
+      "iscrowd": 0,
+      "segmentation": [
+        [
+          412,
+          88,
+          470,
+          88,
+          470,
+          131,
+          412,
+          131
+        ]
+      ],
+      "area": 2494.0,
+      "category_id": 2,
+      "confidence_pairs": [
+        [
+          "scallop",
+          0.71
+        ],
+        [
+          "skate",
+          0.12
+        ]
+      ],
+      "track_id": 1,
+      "prob": [
+        0.0,
+        0.71,
+        0.12,
+        0.0
+      ],
+      "id": 3
+    },
+    {
+      "image_id": 2,
+      "bbox": [
+        250.0,
+        300.0,
+        72.0,
+        51.0
+      ],
+      "score": 0.64,
+      "iscrowd": 0,
+      "area": 3672.0,
+      "category_id": 4,
+      "confidence_pairs": [
+        [
+          "cod",
+          0.64
+        ]
+      ],
+      "notes": [
+        ":is_diseased=false",
+        "partially occluded"
+      ],
+      "track_id": 2,
+      "prob": [
+        0.0,
+        0.0,
+        0.0,
+        0.64
+      ],
+      "id": 4
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "name": "flounder"
+    },
+    {
+      "id": 2,
+      "name": "scallop"
+    },
+    {
+      "id": 3,
+      "name": "skate"
+    },
+    {
+      "id": 4,
+      "name": "cod"
+    }
+  ],
+  "images": [
+    {
+      "id": 1,
+      "frame_index": 0,
+      "file_name": "frame000000.png",
+      "name": "frame000000"
+    },
+    {
+      "id": 2,
+      "frame_index": 1,
+      "file_name": "frame000001.png",
+      "timestamp": "1970-01-01T00:00:00.000001+00:00",
+      "name": "frame000001"
+    }
+  ],
+  "tracks": [
+    {
+      "id": 0,
+      "name": "0"
+    },
+    {
+      "id": 1,
+      "name": "1"
+    },
+    {
+      "id": 2,
+      "name": "2"
+    }
+  ],
+  "keypoint_categories": [
+    {
+      "id": 1,
+      "name": "head"
+    },
+    {
+      "id": 2,
+      "name": "tail"
+    }
+  ]
+}

@@ -6,7 +6,7 @@ This document corresponds to the [video and image search](https://github.com/VIA
 2. Quickly training up detection models for new categories of objects on the same ingest
 3. Performing text-based queries to detect, segment, and track high-level object categories
 
-Rapid model generation can be performed either via image or video queries using the IQR (Iterative Query Refinement) method described in the sections below, or via textual queries using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts to detect, segment, and track objects without requiring any pre-existing annotations or an ingested database. See the [text query and VLM](https://viame.github.io/VIAME/sections/text_query_and_vlm.html) page for more details on using SAM3.
+Rapid model generation can be performed either via image or video queries using iterative query refinement (IQR), the search with feedback described in the sections below, or via textual queries using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts to detect, segment, and track objects without requiring any pre-existing annotations or an ingested database. See the [text query and VLM](https://viame.github.io/VIAME/sections/text_query_and_vlm.html) page for more details on using SAM3.
 
 ## Video and Image Archive Search
 
@@ -113,7 +113,9 @@ Regardless which method you use, when you get new results they should look like 
 
 Results can be exported by highlighting entries and selecting Query -\> Export Results in the default VIAME csv format and others. You can show multiple entries at the same time by highlighting them all (hold shift, press the first entry then the last), right-clicking on them, and going to 'Show Selected Entries'.
 
-## Train a IQR Model
+## Rapid Model Generation
+
+Rapid model generation uses the same method as image and video search (above), saving out the detection model that is trained while the results of a query are refined. These models can then be used in detection pipelines, or further refined or used in future video searches.
 
 <p align="center">
 <a href="../../docs/manual/_static/images/iqr_12_adjudacation.jpg"><img src="../../docs/manual/_static/images/iqr_12_adjudacation.jpg" alt="image" width="40%"></a>
@@ -180,10 +182,6 @@ Objects can also be found by describing them in words, with no index or example 
 ## Tuning Algorithms (Advanced)
 
 Coming Soon....
-
-## Rapid Model Generation
-
-Rapid model generation can be performed using the same method as image and video search (above), just saving out the resultant trained detection models after performing iterative query refinement. These models can then be used in detection pipelines, or further refined or used in future video searches.
 
 ## DIVE Documentation
 

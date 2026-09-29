@@ -26,7 +26,8 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 - [Python Interface](sections/python_interface.md)
 - [Project Folders](sections/project_folders.md)
 - [Scripts and Example Folders](sections/examples_overview.md)
-- [Detection File Formats and Conversions](sections/detection_file_conversions.md)
+- [Detection File Formats](sections/detection_file_formats.md)
+- [Detection File Conversions](sections/detection_file_conversions.md)
 - [Object Detection](sections/object_detection.md)
 - [Detector Training](sections/object_detector_training.md)
 - [Stereo Measurement](sections/stereo_measurement.md)
@@ -34,7 +35,6 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 - [Object Tracking](sections/object_tracking.md)
 - [Image Enhancement and Filtering](sections/image_enhancement.md)
 - [Video and Image Search](sections/search_and_rapid_model_generation.md)
-- [Rapid Model Generation](sections/rapid_model_generation.md)
 - [Text Query and VLM](sections/text_query_and_vlm.md)
 - [Scoring Detectors and Trackers](sections/scoring_and_evaluation.md)
 - [Registration and Mosaicing](sections/registration_and_mosaicing.md)
@@ -80,7 +80,7 @@ Measuring Animal Lengths Using Metadata or Stereo
 Text, Image, Video Search for Rapid Model Generation
 
 <p align="center">
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/iqr_11_initial_results.jpg" alt="Iqr 11 initial results" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/iqr_11_initial_results.jpg" alt="Video search initial results" width="29%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/Perform-Text-Query.jpg" alt="Perform text query" width="29%"></a>
 </p>
 
