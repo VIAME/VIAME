@@ -14,7 +14,12 @@
 #include <string.h>
 #include <stdint.h>
 #include <assert.h>
+#ifdef _WIN32
+/* MSVC has no <pthread.h>; see the header for what is mapped. */
+#include "darknet_pthread_win32.h"
+#else
 #include <pthread.h>
+#endif
 
 #ifndef LIB_API
 #ifdef LIB_EXPORTS

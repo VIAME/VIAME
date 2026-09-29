@@ -1,6 +1,11 @@
 #ifndef DATA_H
 #define DATA_H
+#ifdef _WIN32
+/* MSVC has no <pthread.h>; see the header for what is mapped. */
+#include "../include/darknet_pthread_win32.h"
+#else
 #include <pthread.h>
+#endif
 
 #include "darknet.h"
 #include "darknet.h"

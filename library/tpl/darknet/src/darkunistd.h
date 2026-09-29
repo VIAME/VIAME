@@ -9,7 +9,9 @@
 
 #include <winsock2.h>
 #include <direct.h> /* for _getcwd() and _chdir() */
-#include <getopt.h>
+/* <getopt.h> was here. MSVC has none, and darknet calls no getopt,
+ * optarg or optind -- upstream carried the include for tools this
+ * vendoring did not take. */
 #include <io.h>
 #include <process.h> /* for getpid() and the exec..() family */
 #include <stdlib.h>
