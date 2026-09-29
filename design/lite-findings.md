@@ -5404,3 +5404,73 @@ in every case and that means nothing: the encoders are not the same code.
 Comparing them as pixels is the only comparison worth making, and a lossless
 format -- `filter_split_left_side` writes PNG -- is what tells you where the
 floor is.
+
+## 2.102 A threshold that was right on drawn boards and wrong on photographed ones
+
+`detect_chessboard` found two of six standard `checkerboard_8_5`
+photographs where OpenCV finds all six (2.98). The cause was one constant:
+`MEETING_TOLERANCE`, how close two squares' corners have to be before they
+are taken to meet, at 0.3 of a square's size.
+
+The diagnosis is worth the method. Counting quads, links, placements and
+corners per image separates four candidate failures into one: on the boards
+that failed, *all 27 squares of the polarity were found* and only the links
+between them were short -- 37 of 40 on one, 33 on another. Measuring the
+gap of every rejected pair as a multiple of the tolerance then said which
+way to move it: every miss was at 1.01 to 1.6 times, and **none was
+ambiguous** -- not one pair had two candidate corners inside the tolerance
+at any setting tried. A too-tight threshold, not a wrong rule.
+
+At 0.6 the boards go 2 of 6 to 6 of 6. The value is not tuned to the edge:
+the mono set is flat at 6 of 6 from 0.6 to 1.0, and the stereo set -- which
+did not choose it -- is flat from 0.3 to 0.8 and falls off above 1.0. 0.6
+sits inside both plateaus.
+
+**Why the synthetic suite never caught it.** `test_chessboard.py` renders
+boards through a known homography and finds 30 of 30, matching cv2. A drawn
+board's corners land where the arithmetic puts them; a photographed one's
+are moved by blur, noise and JPEG, which is exactly the error this
+tolerance absorbs. The suite is unchanged at 19 of 19 at the new value --
+it could not have failed at either. **A generated fixture tests the
+algorithm and not the constant that makes it work on real data.**
+
+What it fixed, beyond the detection count:
+* `utility_calibrate_single_camera` writes `calibration.json` and
+  `intrinsics.yml` again instead of exiting 0 with neither.
+* the corner agreement with the release improved from 89.6% within 0.01 px
+  with outliers at 1.07 and 3.27 px, to 98.8% within 0.01 px and a worst
+  case of 0.69 px -- the outliers *were* the fallback, not sub-pixel noise.
+
+## 2.103 What is still different, and why each one is left
+
+**The stereo boards, 3 of 8.** Not the same cause: there the quad detection
+itself is noisy -- 78 to 94 quads where 35 are expected, and the lattice
+recovers 45 to 53 corners of 54. The tolerance does nothing for it, in
+either direction. Fixing it means improving `_quadrilaterals` against
+low-contrast photographs, and the honest way is to extend the synthetic
+generator in `test_chessboard.py` with noise and blur until it reproduces
+the failure, then work against that. Tuning the filter against eight
+photographs would fit those eight. `stereo_calibrate_cameras_{default,fast}`
+stay down until then, with `LinAlgError: SVD did not converge`.
+
+**Single-camera intrinsics, about 3%.** fx 245.2 here against 253.4 on the
+release. It is not noise: this implementation's fx equals its fy exactly and
+its principal point is the image centre to two decimal places, so the
+progressive fit has fixed the aspect ratio and the principal point, and the
+release's has not. That progression -- full model, then aspect if within one
+per cent, then principal point if within five -- is deliberately reproduced
+from `calibrate_stereo_cameras.cxx`, and whether the single-camera path in
+the release runs it is not answerable from this tree. Left alone rather than
+changed to match an output whose derivation is not visible.
+
+**Image pixels.** The ±3 floor is two JPEG decoders, measured on a crop,
+which is the cheapest operation in the chain. CLAHE at 40 and 16-bit
+normalisation at 84 are that floor amplified. There is nothing to fix short
+of shipping OpenCV's decoder, which is the thing the branch exists to
+remove.
+
+**Contour polygonisation.** The GMM contour at one vertex of 21 out by a
+pixel, and the watershed mask at 0.53% of its area with 38 vertices against
+34. Same family: the masks agree, the simplification differs. Within the
+tolerance the port was accepted at.
+
