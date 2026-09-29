@@ -79,6 +79,13 @@ target_link_libraries( viame_util
                   viame_logger
   )
 
+# `token_type_sysenv.cxx` asks winsock for the host name. PUBLIC because
+# viame_util is an OBJECT library under the fold: its code ends up in
+# libviame, so the import library has to reach whatever links it.
+if( WIN32 )
+  target_link_libraries( viame_util PUBLIC ws2_32 )
+endif()
+
 
 # Republished under the prefix the imported sources use.
 viame_lite_generated( viame_util_export.h algorithm_framework/util )

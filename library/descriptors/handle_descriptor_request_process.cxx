@@ -26,8 +26,6 @@
 namespace viame
 {
 
-namespace algo = viame::algo;
-
 create_config_trait( image_pipeline_file, std::string, "",
   "Filename for the image processing pipeline. This pipeline should take, "
   "as input, a filename and produce descriptors as output." );

@@ -38,7 +38,7 @@ void resection_camera(py::module& m)
    initial guess on intrinsic parameters of the camera
  \param [out] inliers estimated inlier status for the point pairs
  \return estimated camera parameters)"), py::arg("image_points"), py::arg("world_points"), py::arg("initial_calibration"), py::arg("inliers"))
-    .def("resection", (viame::camera_perspective_sptr (viame::algo::resection_camera::*)(::viame::frame_id_t, ::viame::landmark_map_sptr, ::viame::feature_track_set_sptr, ::size_t, ::size_t, ::std::unordered_set<long> *) const) &viame::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters for a frame from landmarks and tracks.
+    .def("resection", (viame::camera_perspective_sptr (viame::algo::resection_camera::*)(::viame::frame_id_t, ::viame::landmark_map_sptr, ::viame::feature_track_set_sptr, ::size_t, ::size_t, ::std::unordered_set< ::viame::landmark_id_t > *) const) &viame::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters for a frame from landmarks and tracks.
 
  This is a convenience function for resectioning a camera for a particular
  frame number in a collection of tracks with corresponding landmarks.
@@ -54,7 +54,7 @@ void resection_camera(py::module& m)
  \param [in] height image size in the y dimension in pixels
  \param [out] inliers landmark identifiers of inliers
  \return estimated camera parameters)"), py::arg("frame_id"), py::arg("landmarks"), py::arg("tracks"), py::arg("width"), py::arg("height"), py::arg("inliers"))
-    .def("resection", (viame::camera_perspective_sptr (viame::algo::resection_camera::*)(::viame::frame_id_t, ::viame::landmark_map_sptr, ::viame::feature_track_set_sptr, ::viame::camera_intrinsics_sptr, ::std::unordered_set<long> *) const) &viame::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters for a frame from landmarks and tracks.
+    .def("resection", (viame::camera_perspective_sptr (viame::algo::resection_camera::*)(::viame::frame_id_t, ::viame::landmark_map_sptr, ::viame::feature_track_set_sptr, ::viame::camera_intrinsics_sptr, ::std::unordered_set< ::viame::landmark_id_t > *) const) &viame::algo::resection_camera::resection, py::doc(R"( Estimate camera parameters for a frame from landmarks and tracks.
 
  This is a convenience function for resectioning a camera for a particular
  frame number in a collection of tracks with corresponding landmarks.

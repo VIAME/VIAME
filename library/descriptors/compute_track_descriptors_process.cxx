@@ -20,8 +20,6 @@
 
 namespace viame {
 
-namespace algo = viame::algo;
-
 create_algorithm_name_config_trait( computer );
 
 create_config_trait( inject_to_detections, bool, "false",

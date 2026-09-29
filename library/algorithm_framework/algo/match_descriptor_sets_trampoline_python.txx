@@ -32,22 +32,22 @@ class match_descriptor_sets_trampoline
       );
   }
 
-  std::vector<long>
+  std::vector< ::viame::frame_id_t >
   query(::viame::descriptor_set_sptr const desc) override
   {
     PYBIND11_OVERLOAD_PURE(
-      std::vector<long>,
+      std::vector< ::viame::frame_id_t >,
       viame::algo::match_descriptor_sets,
       query,
       desc
       );
   }
 
-  std::vector<long>
+  std::vector< ::viame::frame_id_t >
   query_and_append(::viame::descriptor_set_sptr const desc, ::viame::frame_id_t frame) override
   {
     PYBIND11_OVERLOAD(
-      std::vector<long>,
+      std::vector< ::viame::frame_id_t >,
       viame::algo::match_descriptor_sets,
       query_and_append,
       desc, frame

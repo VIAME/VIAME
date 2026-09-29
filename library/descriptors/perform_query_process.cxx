@@ -19,8 +19,6 @@
 
 namespace viame {
 
-namespace algo = viame::algo;
-
 create_config_trait( external_handler, bool,
   "true", "Whether or not an external query handler is used" );
 create_config_trait( external_pipeline_file, std::string,

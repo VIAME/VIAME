@@ -33,7 +33,7 @@ class resection_camera_trampoline
   }
 
   viame::camera_perspective_sptr
-  resection(::viame::frame_id_t frame_id, ::viame::landmark_map_sptr landmarks, ::viame::feature_track_set_sptr tracks, ::size_t width, ::size_t height, ::std::unordered_set<long> * inliers) const override
+  resection(::viame::frame_id_t frame_id, ::viame::landmark_map_sptr landmarks, ::viame::feature_track_set_sptr tracks, ::size_t width, ::size_t height, ::std::unordered_set< ::viame::landmark_id_t > * inliers) const override
   {
     PYBIND11_OVERLOAD(
       viame::camera_perspective_sptr,
@@ -44,7 +44,7 @@ class resection_camera_trampoline
   }
 
   viame::camera_perspective_sptr
-  resection(::viame::frame_id_t frame_id, ::viame::landmark_map_sptr landmarks, ::viame::feature_track_set_sptr tracks, ::viame::camera_intrinsics_sptr initial_calibration, ::std::unordered_set<long> * inliers) const override
+  resection(::viame::frame_id_t frame_id, ::viame::landmark_map_sptr landmarks, ::viame::feature_track_set_sptr tracks, ::viame::camera_intrinsics_sptr initial_calibration, ::std::unordered_set< ::viame::landmark_id_t > * inliers) const override
   {
     PYBIND11_OVERLOAD(
       viame::camera_perspective_sptr,

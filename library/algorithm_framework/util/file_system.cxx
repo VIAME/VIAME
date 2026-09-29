@@ -21,7 +21,12 @@
 
 #include <viame/algorithm_framework/logger/logger.h>
 
+#ifdef _WIN32
+// MSVC has no <unistd.h>; the access check below lives in <io.h> there.
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 
 #include <algorithm>
 #include <cstdlib>
@@ -464,7 +469,12 @@ file_is_readable( std::string const& path )
   // `access` rather than the permission bits: what matters is whether this
   // process can read it, which depends on its user, its groups, and on
   // whatever the file system decides -- none of which the mode alone says.
+#ifdef _WIN32
+  // MSVC spells it `_access` and defines no `R_OK`; its read mode is 4.
+  return ::_access( path.c_str(), 4 ) == 0;
+#else
   return ::access( path.c_str(), R_OK ) == 0;
+#endif
 }
 
 // ----------------------------------------------------------------------------

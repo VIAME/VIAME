@@ -90,12 +90,12 @@ sample_and_sort( viame::image_of< T > const& image,
 
     auto const first =
       std::find_if( samples.begin(), samples.end(),
-                    []( T value ){ return value != low; } );
+                    [ low ]( T value ){ return value != low; } );
     samples.erase( samples.begin(), first );
 
     auto const last =
       std::find_if( samples.rbegin(), samples.rend(),
-                    []( T value ){ return value != high; } );
+                    [ high ]( T value ){ return value != high; } );
     samples.erase( last.base(), samples.end() );
   }
 

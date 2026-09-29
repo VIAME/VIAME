@@ -22,7 +22,7 @@ class filter_features_trampoline
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
   viame::feature_set_sptr
-  filter(::viame::feature_set_sptr feat, ::std::vector<unsigned long> & indices) const override
+  filter(::viame::feature_set_sptr feat, ::std::vector< ::std::size_t > & indices) const override
   {
     PYBIND11_OVERLOAD_PURE(
       viame::feature_set_sptr,

@@ -18,8 +18,6 @@
 
 namespace viame {
 
-namespace algo = viame::algo;
-
 create_algorithm_name_config_trait( track_initializer );
 
 //------------------------------------------------------------------------------

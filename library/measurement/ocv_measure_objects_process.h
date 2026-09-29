@@ -12,7 +12,7 @@
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_measurement_export.h"
+#include "viame_processes_measurement_export.h"
 
 #include <memory>
 
@@ -29,7 +29,7 @@ namespace viame
  * and computes length measurements. Output includes detection sets with length
  * annotations and track sets for matched/unmatched detections.
  */
-class VIAME_MEASUREMENT_EXPORT measure_objects_process
+class VIAME_PROCESSES_MEASUREMENT_EXPORT measure_objects_process
   : public viame::pipeline::process
 {
 public:

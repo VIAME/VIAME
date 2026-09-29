@@ -20,6 +20,11 @@ if (MSVC_VERSION GREATER 1400 OR
   add_definitions(-D_SCL_SECURE_NO_DEPRECATE)
 endif()
 
+# M_PI and the rest of the math constants. They are not in the C or C++
+# standard, and MSVC declares them only behind this; the ports in
+# library/image_processing use them the way the originals did.
+add_definitions(-D_USE_MATH_DEFINES)
+
 # Prevent namespace pollution
 add_definitions(-DWIN32_LEAN_AND_MEAN)
 add_definitions(-DNOMINMAX)
