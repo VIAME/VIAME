@@ -254,7 +254,7 @@ def test_launcher_keeps_child_tools_in_its_environment():
     with patch('sys.executable', os.path.join(bin_dir, 'python')), \
          patch('sys.prefix', '/venv'), \
          patch('os.path.exists', return_value=True), \
-         patch('os.path.isdir', side_effect=lambda p: p == applets), \
+         patch('os.path.isdir', side_effect=lambda p: p in (applets, os.path.join('/venv', 'configs', 'pipelines'), os.path.join('/venv', 'configs'))), \
          patch.dict('os.environ', {'PATH': '/other/bin'}, clear=True), \
          patch('os.execv') as execute:
         namespace['main']()
@@ -262,6 +262,8 @@ def test_launcher_keeps_child_tools_in_its_environment():
         assert execute.call_args.args[0] == os.path.join('/venv', 'libexec', 'viame')
         assert os.environ['VIAME_INSTALL'] == '/venv'
         assert os.environ['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == applets
+        assert os.environ['KWIVER_CONFIG_PATH'].split(os.pathsep)[0] == \
+            os.path.join('/venv', 'configs', 'pipelines')
         import sysconfig
         assert os.environ['PYTHONPATH'].split(os.pathsep)[0] == \
             sysconfig.get_path('purelib')
@@ -301,6 +303,7 @@ def test_windows_console_launcher_finds_runtime_and_preserves_arguments():
         native.parent.mkdir(parents=True)
         native.touch()
         plugin_dir = env_root / 'lib/viame/applets'
+        (env_root / 'configs' / 'pipelines').mkdir(parents=True)
         plugin_dir.mkdir(parents=True)
         python = str(env_root / 'Scripts/python.exe')
         arguments = ['viame', 'run', 'a file.pipe', '-s', 'key=a b']
@@ -313,6 +316,11 @@ def test_windows_console_launcher_finds_runtime_and_preserves_arguments():
             assert env['VIAME_INSTALL'] == str(env_root)
             assert env['PATH'].split(os.pathsep)[:2] == [str(env_root / 'Scripts'), str(native.parent)]
             assert env['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == str(plugin_dir)
+            # An `include` in a .pipe resolves against the working
+            # directory, this variable, and locations under the exe's
+            # parent -- which for a wheel misses its own configs.
+            assert env['KWIVER_CONFIG_PATH'].split(os.pathsep)[0] == \
+                str(env_root / 'configs' / 'pipelines')
             assert os.environ['VIAME_INSTALL'] == '/old'
             # The embedded interpreter would otherwise build sys.path from
             # the python it links, not this environment, and every
