@@ -50,9 +50,10 @@ pip install breathe
 Generating Documentation with MkDocs
 ------------------------------------
 
-The manual can also be built with MkDocs from the same sources. Nothing is
-converted on disk: mkdocs_hooks.py turns the RST pages into Markdown in memory
-on every build and reads the navigation from the toctree in index.rst.
+The manual can also be built with MkDocs. It reads Markdown only: the pages in
+the mkdocs folder here, the README.md beside each example README.rst, and the
+DIVE manual. Until the Sphinx build is retired a change to a page has to be
+made in both its .rst and .md copy.
 
 pip install -r requirements-mkdocs.txt
 

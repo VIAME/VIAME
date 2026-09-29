@@ -1,10 +1,8 @@
 site_name: VIAME
 site_description: Video and Image Analytics for Multiple Environments
-site_author: Kitware, Inc.
-copyright: Copyright &copy; 2017, Kitware, Inc.
+site_author: Kitware
 
 repo_url: https://github.com/VIAME/VIAME
-repo_name: VIAME/VIAME
 
 docs_dir: mkdocs
 site_dir: _build/mkdocs
@@ -12,12 +10,11 @@ site_dir: _build/mkdocs
 # Pages keep the sections/<name>.html addresses the Sphinx manual uses
 use_directory_urls: false
 
-# Pages and navigation are generated from the RST sources by the hook
+# Adds the example READMEs and the DIVE manual to the pages in docs_dir
 hooks:
   - mkdocs_hooks.py
 
 watch:
-  - index.rst
   - sections
   - _static
   - dive_docs.py
@@ -26,24 +23,24 @@ watch:
 
 theme:
   name: material
+  logo: logo.png
   favicon: favicon.ico
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
+      primary: black
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
+      primary: black
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
   features:
     - navigation.indexes
     - navigation.top
-    - navigation.footer
     - content.code.copy
     - search.highlight
 
@@ -69,6 +66,17 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/VIAME/VIAME
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/kitware/viame
+    - icon: fontawesome/brands/discourse
+      link: https://discourse.kitware.com/c/viame-dive/17
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
+
 validation:
   nav:
     omitted_files: info
@@ -76,3 +84,66 @@ validation:
     not_found: warn
     anchors: warn
     unrecognized_links: info
+
+nav:
+  - Documentation Overview: index.md
+  - sections/quick_start_guide.md
+  - sections/installing_from_binaries.md
+  - sections/building_from_source.md
+  - User Interfaces and Visualizations:
+    - Overview: sections/annotation_and_visualization.md
+    - DIVE Interface:
+      - sections/dive/index.md
+      - Getting Started:
+        - Web Version: sections/dive/Web-Version.md
+        - Desktop Version: sections/dive/Dive-Desktop.md
+        - Annotation Quickstart: sections/dive/Annotation-QuickStart.md
+      - Annotation Interface:
+        - Interface Introduction: sections/dive/Annotation-User-Interface-Overview.md
+        - Navigation and Editing Bar: sections/dive/UI-Navigation-Editing-Bar.md
+        - Annotation Window: sections/dive/UI-Annotation-View.md
+        - Type List: sections/dive/UI-Type-List.md
+        - Track List: sections/dive/UI-Track-List.md
+        - Timeline: sections/dive/UI-Timeline.md
+        - Attributes: sections/dive/UI-Attributes.md
+        - Attribute Configuration: sections/dive/UI-AttributeConfiguration.md
+        - Attribute Details: sections/dive/UI-AttributeDetails.md
+        - Attribute Track Filtering: sections/dive/UI-AttributeTrackFiltering.md
+        - Group Manager: sections/dive/UI-Group-Manager.md
+        - Suppression: sections/dive/UI-Suppression.md
+        - Dataset Info: sections/dive/UI-DatasetInfo.md
+        - Image Enhancements: sections/dive/UI-Image-Enhancements.md
+        - Annotation Sets: sections/dive/Annotation-Sets.md
+        - Interactive Annotation (Desktop): sections/dive/Interactive-Annotation.md
+      - Running VIAME from DIVE:
+        - Pipelines and Training: sections/dive/Pipeline-Documentation.md
+        - Pipeline Import and Export: sections/dive/Pipeline-Import-Export.md
+        - Command Line Tools: sections/dive/Command-Line-Tools.md
+        - Scoring: sections/dive/Scoring.md
+        - Query: sections/dive/Query.md
+        - Review: sections/dive/Review.md
+      - Data and Reference:
+        - Data Formats: sections/dive/DataFormats.md
+        - Frame Metadata: sections/dive/Frame-Metadata.md
+        - Large Image Support: sections/dive/Large-Image-Support.md
+        - Multicamera and Stereo Data: sections/dive/Multicamera-data.md
+        - Mouse and Keyboard Shortcuts: sections/dive/Mouse-Keyboard-Shortcuts.md
+        - Frequently Asked Questions: sections/dive/FAQ.md
+  - sections/examples_overview.md
+  - sections/detection_file_conversions.md
+  - sections/object_detection.md
+  - sections/object_detector_training.md
+  - sections/size_measurement.md
+  - sections/object_tracking.md
+  - sections/image_enhancement.md
+  - sections/search_and_rapid_model_generation.md
+  - sections/scoring_and_evaluation.md
+  - sections/registration_and_mosaicing.md
+  - sections/frame_level_classification.md
+  - sections/archive_summarization.md
+  - Core C++/Python Object Types: http://kwiver.readthedocs.io/en/latest/vital/architecture.html
+  - Core Pipelining Architecture: http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html
+  - Basic Pipeline Nodes: http://kwiver.readthedocs.io/en/latest/arrows/architecture.html
+  - sections/example_pipeline.md
+  - sections/plugin_creation.md
+  - KWIVER Full Manual: http://kwiver.readthedocs.io/en/latest/

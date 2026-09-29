@@ -1,3 +1,2 @@
 mkdocs
 mkdocs-material
-pypandoc_binary

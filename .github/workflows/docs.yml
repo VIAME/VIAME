@@ -1,0 +1,63 @@
+name: Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'examples/README.md'
+      - 'examples/**/README.md'
+      - 'packages/dive'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'examples/README.md'
+      - 'examples/**/README.md'
+      - '.github/workflows/docs.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build MkDocs manual
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      # Submodules are not needed, the build fetches only the DIVE docs folder
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install MkDocs
+        run: pip install -r docs/manual/requirements-mkdocs.txt
+
+      - name: Build manual
+        run: mkdocs build --strict -f docs/manual/mkdocs.yml
+
+      - name: Upload built site
+        uses: actions/upload-artifact@v4
+        with:
+          name: viame-manual
+          path: docs/manual/_build/mkdocs
+          retention-days: 7
+
+      - name: Publish to GitHub Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdocs gh-deploy --force -f docs/manual/mkdocs.yml
