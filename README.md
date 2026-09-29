@@ -121,24 +121,20 @@ in the bin folder, or by using the viame add-ons tool.
 Python Package
 --------------
 
-A headless, command-line installation is available on PyPI for Linux, with
-wheels for Python 3.10 through 3.14:
+A headless, command-line installation is available on PyPI for Linux and
+Windows, with wheels for Python 3.10 through 3.14:
 
 pip install viame
 
-Windows wheels are built for CUDA 12 and carry a `+cu12` local version, which
-PyPI does not accept, so they are installed from the `.whl` directly. Install
-VIAME and a CUDA torch in one command, with the torch version pinned -- VIAME
-asks for a torch that PyPI answers with the CPU build on Windows, so a
-separate `pip install torch` afterwards either replaces the CUDA one or is
-skipped as already satisfied:
+On Windows, pin torch in that same command to get a CUDA build. VIAME's torch
+requirement resolves to the CPU wheel on Windows otherwise, and a separate
+`pip install torch` afterwards is skipped as already satisfied:
 
-pip install viame-<version>+cu12-cp312-cp312-win_amd64.whl \
-            torch==2.9.1+cu128 torchvision==0.24.1+cu128 \
+pip install viame torch==2.9.1+cu128 torchvision==0.24.1+cu128 \
             --extra-index-url https://download.pytorch.org/whl/cu128
 
-See [VIAME as a Python Package](docs/python_package.md) for why each part of
-that is needed, and for the GPU requirement.
+See [VIAME as a Python Package](docs/python_package.md) for why that has to be
+one command, and for the GPU requirement.
 
 This puts the main `viame` tool described below onto your path, and installs
 the `viame` python package alongside it. See [VIAME as a Python Package](docs/python_package.md)
