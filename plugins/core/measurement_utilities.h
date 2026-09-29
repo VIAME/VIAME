@@ -62,19 +62,25 @@ struct VIAME_CORE_EXPORT stereo_measurement_result
 {
   double length;         // distance between head and tail in 3D
   double x, y, z;        // midpoint 3D position (real-world location)
+  double head_x, head_y, head_z; // head 3D position
+  double tail_x, tail_y, tail_z; // tail 3D position
   double range;          // distance from midpoint to camera
   double rms;            // RMS error
   bool valid;
 
   stereo_measurement_result()
     : length( 0.0 ), x( 0.0 ), y( 0.0 ), z( 0.0 )
+    , head_x( 0.0 ), head_y( 0.0 ), head_z( 0.0 )
+    , tail_x( 0.0 ), tail_y( 0.0 ), tail_z( 0.0 )
     , range( 0.0 ), rms( 0.0 ), valid( false ) {}
 };
 
-/// Add measurement attributes (length, midpoint, range, rms) to a detection
+/// Add measurement attributes (length, midpoint, range, rms) to a detection,
+/// and optionally the head and tail 3D locations
 VIAME_CORE_EXPORT void add_measurement_attributes(
   kv::detected_object_sptr det,
-  const stereo_measurement_result& measurement );
+  const stereo_measurement_result& measurement,
+  bool record_head_tail_locations = false );
 
 /// Parse a comma-separated list of matching methods
 VIAME_CORE_EXPORT std::vector< std::string > parse_matching_methods(
@@ -331,6 +337,9 @@ public:
 
   /// Whether to record stereo measurement method as detection attribute
   bool record_stereo_method;
+
+  /// Whether to record the head and tail 3D locations as detection attributes
+  bool record_head_tail_locations;
 
   /// Whether to refine right keypoints of already-paired tracks using a
   /// full-image disparity map. When enabled and a stereo_disparity

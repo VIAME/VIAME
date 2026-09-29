@@ -105,6 +105,7 @@ process measurer
   :epipolar_max_depth                          10000
   :template_size                               25
   :template_matching_threshold                 0.1
+  :record_head_tail_locations                  false    # DIVE_PARAM["Record Head/Tail 3D Locations", bool]
 
   # Epipolar matching descriptor type: 'ncc' (default), 'ncc_strip', or 'dino'
   :epipolar_descriptor_type                    dino

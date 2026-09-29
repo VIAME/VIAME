@@ -5,8 +5,9 @@
 # camera only. SAM2 segmentation and head/tail keypoint identification are
 # applied to left-camera detections. The tracked result is fed to the left
 # input of the core measurement process along with both stereo images. The
-# measurement process uses epipolar NCC template matching to find
+# measurement process computes a Fast-Foundation-Stereo disparity map to find
 # corresponding right-camera keypoints and triangulates for 3D measurements.
+# Uses model: fast_foundation_stereo_l.onnx.
 #
 # Requires Calibration: True
 # =============================================================================
@@ -95,33 +96,34 @@ process measurer
   :: compute_measurements
   relativepath calibration_file =              models/gfit_example_cal.json
   :min_track_states                            6
-  :matching_methods                            input_pairs_only,epipolar_template_matching
+  :matching_methods                            input_pairs_only,compute_disparity
+  :record_head_tail_locations                  false    # DIVE_PARAM["Record Head/Tail 3D Locations", bool]
 
-  # Epipolar template matching parameters
-  :template_size                               25
-  :epipolar_min_disparity                      7
-  :epipolar_max_disparity                      724
-  :epipolar_num_samples                        5000
+  stereo_disparity:type                        = fast_foundation_stereo_onnx
 
-  # Two-stage DINO + NCC matching: DINO semantic filtering narrows candidates
-  # to top-K, then NCC refines to pixel precision. Epipolar-region cropping
-  # runs DINO on a small subimage (typically 1-4% of frame) for speed.
-  # Requires Python/PyTorch with CUDA. Set to 'ncc' for NCC-only fallback.
-  :epipolar_descriptor_type                    dino
-  :dino_top_k                                  25
-  :dino_crop_max_area_ratio                    0.05
+  block stereo_disparity:fast_foundation_stereo_onnx
+    relativepath model_path                    = models/fast_foundation_stereo_l.onnx
+    relativepath config_path                   = models/fast_foundation_stereo_l.yaml
+    backend                                    = auto
+    device                                     = auto
+    output_mode                                = disparity
+    remove_invisible                           = true
+  endblock
 
-  # Template and search parameters
-  :search_range                                200
-  :template_matching_threshold                 0.1
+  # The baseline has a large vertical component, so keep every source pixel
+  # in the rectified frame rather than cropping to the valid region.
+  :rectification_alpha                         -1.0
+
+  # Right keypoints come from a robust fit of disparity along the whole
+  # head-tail segment, since the endpoints sit on the silhouette edge.
+  :refine_disparity_segment                    true
+  :refine_keypoints_disparity_percentile       0.9
+  :disparity_segment_samples                   11
+  :disparity_segment_max_outliers              3
+  :disparity_segment_max_error                 10.0
+
   :box_scale_factor                            1.10
   :box_min_aspect_ratio                        0.10
-
-  # Uniqueness ratio test to reject ambiguous NCC matches on repetitive textures
-  :uniqueness_ratio                            0.85
-
-  # Depth consistency check
-  :depth_consistency_max_ratio                 1.5
 
   # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true

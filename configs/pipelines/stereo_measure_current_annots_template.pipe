@@ -25,6 +25,7 @@ process measurer
   :: compute_measurements
   :calibration_file                            ./calibration_matrices.npz
   :matching_methods                            input_pairs_only,epipolar_template_matching
+  :record_head_tail_locations                  false    # DIVE_PARAM["Record Head/Tail 3D Locations", bool]
 
   # ---------------------------------------------------------------------------
   # Depth projection parameters

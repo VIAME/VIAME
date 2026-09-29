@@ -914,8 +914,10 @@ measure_objects_process
       det2->add_note( ":stereo_method=" + method_tag );
     }
 
-    add_measurement_attributes( det1, measurement );
-    add_measurement_attributes( det2, measurement );
+    add_measurement_attributes( det1, measurement,
+      d->m_settings.record_head_tail_locations );
+    add_measurement_attributes( det2, measurement,
+      d->m_settings.record_head_tail_locations );
   }
 
   // Combine left-only IDs and matched IDs missing right keypoints
@@ -1083,7 +1085,8 @@ measure_objects_process
           det1->add_note( ":stereo_method=" + result.method_used );
         }
 
-        add_measurement_attributes( det1, measurement );
+        add_measurement_attributes( det1, measurement,
+          d->m_settings.record_head_tail_locations );
       }
       else
       {
@@ -1150,7 +1153,8 @@ measure_objects_process
             left_cam, right_cam,
             result.left_head, result.right_head,
             result.left_tail, result.right_tail );
-          add_measurement_attributes( det2, measurement );
+          add_measurement_attributes( det2, measurement,
+            d->m_settings.record_head_tail_locations );
         }
 
         // Look up or create a persistent right track for this left-only ID
@@ -1200,7 +1204,8 @@ measure_objects_process
             left_cam, right_cam,
             result.left_head, result.right_head,
             result.left_tail, result.right_tail );
-          add_measurement_attributes( det2, measurement );
+          add_measurement_attributes( det2, measurement,
+            d->m_settings.record_head_tail_locations );
         }
       }
     }

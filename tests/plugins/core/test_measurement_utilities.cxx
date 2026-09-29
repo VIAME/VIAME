@@ -138,6 +138,7 @@ TEST( measurement_settings, default_values )
   EXPECT_EQ( settings.min_ransac_inliers, 10 );
   EXPECT_NEAR( settings.box_scale_factor, 1.10, 0.001 );
   EXPECT_TRUE( settings.record_stereo_method );
+  EXPECT_FALSE( settings.record_head_tail_locations );
 }
 
 TEST( measurement_settings, validate_matching_methods_valid )
@@ -724,11 +725,47 @@ TEST_F( measurement_utilities_test, compute_stereo_measurement_full )
   EXPECT_NEAR( m.y, 0.0, 0.01 );
   EXPECT_NEAR( m.z, 1.0, 0.01 );
 
+  EXPECT_NEAR( m.head_x, 0.0, 0.01 );
+  EXPECT_NEAR( m.head_y, 0.0, 0.01 );
+  EXPECT_NEAR( m.head_z, 1.0, 0.01 );
+  EXPECT_NEAR( m.tail_x, 0.1, 0.01 );
+  EXPECT_NEAR( m.tail_y, 0.0, 0.01 );
+  EXPECT_NEAR( m.tail_z, 1.0, 0.01 );
+
   // Range = distance from the midpoint to the left camera center (origin)
   EXPECT_NEAR( m.range, std::sqrt( 0.05 * 0.05 + 1.0 ), 0.01 );
 
   // Exact correspondences => near-zero reprojection error
   EXPECT_LT( m.rms, 0.5 );
+}
+
+TEST( measurement_utilities_static, add_measurement_attributes_head_tail )
+{
+  viame::core::stereo_measurement_result m;
+  m.head_x = 1.5;
+  m.tail_z = -2.5;
+
+  auto has_note = []( kv::detected_object_sptr det, const std::string& prefix )
+  {
+    for( const auto& note : det->notes() )
+    {
+      if( note.rfind( prefix, 0 ) == 0 )
+      {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  auto without = std::make_shared< kv::detected_object >( kv::bounding_box_d( 0, 0, 1, 1 ) );
+  viame::core::add_measurement_attributes( without, m );
+  EXPECT_TRUE( has_note( without, ":midpoint_x=" ) );
+  EXPECT_FALSE( has_note( without, ":head_x=" ) );
+
+  auto with = std::make_shared< kv::detected_object >( kv::bounding_box_d( 0, 0, 1, 1 ) );
+  viame::core::add_measurement_attributes( with, m, true );
+  EXPECT_TRUE( has_note( with, ":head_x=1.5" ) );
+  EXPECT_TRUE( has_note( with, ":tail_z=-2.5" ) );
 }
 
 TEST_F( measurement_utilities_test, compute_stereo_measurement_rms_flags_bad_match )

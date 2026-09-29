@@ -149,6 +149,10 @@ create_config_trait( detection_pairing_threshold, double, "0.1",
   "threshold (default 0.1). For 'keypoint_distance' method, this is the maximum "
   "average keypoint pixel distance (default 50.0)." );
 
+create_config_trait( record_head_tail_locations, bool, "false",
+  "If true, record the head and tail 3D locations on each measured detection as "
+  "the attributes head_x, head_y, head_z, tail_x, tail_y and tail_z." );
+
 create_config_trait( min_track_states, unsigned, "0",
   "Minimum number of track states (summed across all cameras) required before "
   "a track is included in the output. A detection in one camera counts as 1, "
@@ -189,6 +193,7 @@ public:
 
   // Detection pairing configuration
   bool m_assume_inputs_paired;
+  bool m_record_head_tail_locations;
   std::string m_detection_pairing_method;
   double m_detection_pairing_threshold;
 
@@ -240,6 +245,7 @@ seagis_measurement_process::priv
   , m_epipolar_min_disparity( 0.0 )
   , m_epipolar_max_disparity( 0.0 )
   , m_assume_inputs_paired( true )
+  , m_record_head_tail_locations( false )
   , m_detection_pairing_method( "" )
   , m_detection_pairing_threshold( 0.1 )
   , m_min_track_states( 0 )
@@ -295,6 +301,13 @@ seagis_measurement_process::priv
   // Compute length (distance between head and tail)
   double dSD;
   result.length = CStereoInt::Distance( pt3DHead, pt3DHeadSD, pt3DTail, pt3DTailSD, dSD );
+
+  result.head_x = pt3DHead.X();
+  result.head_y = pt3DHead.Y();
+  result.head_z = pt3DHead.Z();
+  result.tail_x = pt3DTail.X();
+  result.tail_y = pt3DTail.Y();
+  result.tail_z = pt3DTail.Z();
 
   // Compute midpoint of head-tail line (real-world location)
   result.x = ( pt3DHead.X() + pt3DTail.X() ) / 2.0;
@@ -419,6 +432,7 @@ seagis_measurement_process
   declare_config_using_trait( assume_inputs_paired );
   declare_config_using_trait( detection_pairing_method );
   declare_config_using_trait( detection_pairing_threshold );
+  declare_config_using_trait( record_head_tail_locations );
   declare_config_using_trait( min_track_states );
 
   // Merge in stereo track pairer configuration
@@ -450,6 +464,8 @@ seagis_measurement_process
   d->m_epipolar_min_disparity = config_value_using_trait( epipolar_min_disparity );
   d->m_epipolar_max_disparity = config_value_using_trait( epipolar_max_disparity );
   d->m_assume_inputs_paired = config_value_using_trait( assume_inputs_paired );
+  d->m_record_head_tail_locations =
+    config_value_using_trait( record_head_tail_locations );
   d->m_detection_pairing_method = config_value_using_trait( detection_pairing_method );
   d->m_detection_pairing_threshold = config_value_using_trait( detection_pairing_threshold );
   d->m_min_track_states = config_value_using_trait( min_track_states );
@@ -945,8 +961,10 @@ seagis_measurement_process
     det1->add_note( ":stereo_method=seagis" );
     det2->add_note( ":stereo_method=seagis" );
 
-    core::add_measurement_attributes( det1, measurement );
-    core::add_measurement_attributes( det2, measurement );
+    core::add_measurement_attributes( det1, measurement,
+      d->m_record_head_tail_locations );
+    core::add_measurement_attributes( det2, measurement,
+      d->m_record_head_tail_locations );
   }
 
 #ifdef VIAME_ENABLE_OPENCV
@@ -1046,8 +1064,10 @@ seagis_measurement_process
           det1->add_note( ":stereo_method=seagis_epipolar" );
           det2->add_note( ":stereo_method=seagis_epipolar" );
 
-          core::add_measurement_attributes( det1, measurement );
-          core::add_measurement_attributes( det2, measurement );
+          core::add_measurement_attributes( det1, measurement,
+            d->m_record_head_tail_locations );
+          core::add_measurement_attributes( det2, measurement,
+            d->m_record_head_tail_locations );
         }
       }
     }

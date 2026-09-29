@@ -440,6 +440,7 @@ map_keypoints_to_camera_settings
   , depth_consistency_max_ratio( 1.5 )
   , uniqueness_ratio( 0.85 )
   , record_stereo_method( true )
+  , record_head_tail_locations( false )
   , refine_keypoints_with_disparity( false )
   , refine_disparity_segment( false )
   , disparity_keypoint_policy( "keep_existing" )
@@ -636,6 +637,11 @@ map_keypoints_to_camera_settings
     "Set to 0 to disable. Default is 0.85. "
     "Lower values are more strict (reject more ambiguous matches)." );
 
+  config->set_value( "record_head_tail_locations", record_head_tail_locations,
+    "If true, record the triangulated head and tail 3D locations on each measured "
+    "detection as the attributes head_x, head_y, head_z, tail_x, tail_y and tail_z, "
+    "in the same coordinate frame and units as the midpoint." );
+
   config->set_value( "record_stereo_method", record_stereo_method,
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
@@ -820,6 +826,7 @@ map_keypoints_to_camera_settings
   depth_consistency_max_ratio = config->get_value< double >( "depth_consistency_max_ratio", depth_consistency_max_ratio );
   uniqueness_ratio = config->get_value< double >( "uniqueness_ratio", uniqueness_ratio );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
+  record_head_tail_locations = config->get_value< bool >( "record_head_tail_locations", record_head_tail_locations );
   refine_keypoints_with_disparity = config->get_value< bool >( "refine_keypoints_with_disparity", refine_keypoints_with_disparity );
   refine_disparity_segment = config->get_value< bool >( "refine_disparity_segment", refine_disparity_segment );
   disparity_keypoint_policy = config->get_value< std::string >( "disparity_keypoint_policy", disparity_keypoint_policy );
@@ -1744,7 +1751,8 @@ map_keypoints_to_camera
 void
 add_measurement_attributes(
   kv::detected_object_sptr det,
-  const stereo_measurement_result& measurement )
+  const stereo_measurement_result& measurement,
+  bool record_head_tail_locations )
 {
   det->add_note( ":length=" + std::to_string( measurement.length ) );
   det->add_note( ":midpoint_x=" + std::to_string( measurement.x ) );
@@ -1752,6 +1760,16 @@ add_measurement_attributes(
   det->add_note( ":midpoint_z=" + std::to_string( measurement.z ) );
   det->add_note( ":midpoint_range=" + std::to_string( measurement.range ) );
   det->add_note( ":stereo_rms=" + std::to_string( measurement.rms ) );
+
+  if( record_head_tail_locations )
+  {
+    det->add_note( ":head_x=" + std::to_string( measurement.head_x ) );
+    det->add_note( ":head_y=" + std::to_string( measurement.head_y ) );
+    det->add_note( ":head_z=" + std::to_string( measurement.head_z ) );
+    det->add_note( ":tail_x=" + std::to_string( measurement.tail_x ) );
+    det->add_note( ":tail_y=" + std::to_string( measurement.tail_y ) );
+    det->add_note( ":tail_z=" + std::to_string( measurement.tail_z ) );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -1841,6 +1859,13 @@ compute_stereo_measurement(
 
   // Compute length
   result.length = ( tail_3d - head_3d ).norm();
+
+  result.head_x = head_3d.x();
+  result.head_y = head_3d.y();
+  result.head_z = head_3d.z();
+  result.tail_x = tail_3d.x();
+  result.tail_y = tail_3d.y();
+  result.tail_z = tail_3d.z();
 
   // Compute midpoint (real-world 3D location)
   kv::vector_3d midpoint_3d = ( head_3d + tail_3d ) / 2.0;

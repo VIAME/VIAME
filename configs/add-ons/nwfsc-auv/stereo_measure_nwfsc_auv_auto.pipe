@@ -338,6 +338,7 @@ process measurer
   :: compute_measurements
   relativepath calibration_file =              models/nwfsc-cal.json
   :min_track_states                            0
+  :record_head_tail_locations                  false    # DIVE_PARAM["Record Head/Tail 3D Locations", bool]
 
   # Detection pairing for unmatched left/right tracks
   :detection_pairing_method                    keypoint_projection

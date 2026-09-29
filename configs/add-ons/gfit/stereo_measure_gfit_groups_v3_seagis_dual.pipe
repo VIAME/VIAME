@@ -485,9 +485,9 @@ process detector_fused_r
 connect from detector_merger_r.detected_object_set
         to   detector_fused_r.detected_object_set
 
-connect from downsampler.output_1
+connect from downsampler.output_3
         to   detector_rgb_input_r.image
-connect from downsampler.output_1
+connect from downsampler.output_3
         to   detector_grey_r.image
 
 # ======================== RIGHT CAMERA CLASSIFIER ============================
@@ -611,6 +611,7 @@ process measurer
   :detection_pairing_method                    keypoint_distance
   :detection_pairing_threshold                 50.0
   :min_track_states                            6
+  :record_head_tail_locations                  false    # DIVE_PARAM["Record Head/Tail 3D Locations", bool]
 
   # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true
