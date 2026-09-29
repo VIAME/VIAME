@@ -75,21 +75,21 @@ Three older desktop tools remain in the installers for a few specialized cases, 
 <tr><th>Detection and tracking pipelines</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
 <tr><th>Stereo measurement pipelines</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
 <tr><th>Interactive stereo measurement</th><td class="n">N</td><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="p">P³</td></tr>
-<tr><th>Image and video search with refinement</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="n">N</td></tr>
+<tr><th>Image and video search with refinement</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="p">P⁴</td></tr>
 <tr><th>Text query</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="n">N</td></tr>
 <tr><th>Image enhancement output</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
-<tr><th>Registration and mosaicing</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="p">P⁴</td><td class="p">P⁴</td></tr>
+<tr><th>Registration and mosaicing</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="p">P⁵</td><td class="p">P⁵</td></tr>
 <tr><th>Scoring and evaluation</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
 <tr><th>Annotation format conversion</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
 <tr class="group"><th colspan="6">Training</th></tr>
 <tr><th>Detector training over multiple sequences</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
 <tr><th>Frame classifier training</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
 <tr><th>Tracker training</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
-<tr><th>Add-on model pack downloads</th><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="p">P⁵</td></tr>
+<tr><th>Add-on model pack downloads</th><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="p">P⁶</td></tr>
 </tbody>
 </table>
 
-<p class="cap-notes">¹ Through the REST API<br>² Launches DIVE<br>³ Smaller models, run in the browser<br>⁴ Registration only, no mosaic output<br>⁵ Server administrators only</p>
+<p class="cap-notes">¹ Through the REST API<br>² Launches DIVE<br>³ Smaller models, run in the browser<br>⁴ Image queries only, models cannot be saved<br>⁵ Registration only, no mosaic output<br>⁶ Server administrators only</p>
 
 ## GPU vs CPU Installations
 

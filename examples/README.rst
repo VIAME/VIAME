@@ -19,7 +19,7 @@ running CLI tools, is to run algorithms through graphical user interfaces within
 within scripts and examples. Lastly, `Project Folders <https://viame.github.io/VIAME/sections/project_folders.html>`__ provide multiple scripts in one location
 for different stages of an object-detector-training lifecycle for users who prefer using them.
 
-.. _User Interfaces: https://viame.github.io/VIAME/sections/annotation_and_visualization.html
+.. _User Interfaces: https://viame.github.io/VIAME/sections/user_interfaces.html
 
 To run the examples on Windows, you need to be able to run (double click) the .bat scripts in the given
 directories (see image below). Additionally, knowing how to make a list of files, e.g. "dir > filename.txt"
@@ -32,8 +32,8 @@ To run the examples on Linux, there are 3 core commands you need to know:
 "ls" - for making file lists of images to process, e.g. "ls \*.png > input_list.txt" to list all
 png image files in a folder
 
-"cd" - go into an example directory, e.g. "cd annotation_and_visualization" to move down into the
-annotation_and_visualization example directory. "cd .." is another useful command which moves one
+"cd" - go into an example directory, e.g. "cd user_interfaces" to move down into the
+user_interfaces example directory. "cd .." is another useful command which moves one
 directory up, alongside a lone "ls" command to list all files in the current directory.
 
 In all of the documentation for each example, the ".bat" or ".sh" extension is omitted, as the
@@ -182,7 +182,7 @@ to copy project folders to a working drive outside of the installation. Project 
 are located in the "configs/prj-template" folder of a desktop installation
 
 Training writes the trained model as a single pack, "trained_model.zip", holding the generated
-pipelines, model files, a model card and any evaluation results. The "*_using_trained_model",
+pipelines, model files, a model card and any evaluation results. The "\*_using_trained_model",
 "run_trained_model" and "continue_training" scripts use that pack when present and otherwise fall
 back to an unpacked "trained_model" folder (or "category_models" from older releases). Run one
 pipeline from a pack with "viame run -p trained_model.zip/detector.pipe". SVM training still writes

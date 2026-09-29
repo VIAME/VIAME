@@ -93,3 +93,7 @@
 .rst-content .cap-legend span:first-child {
     margin-left: 0;
 }
+
+.rst-content .hidden-title > h1 {
+    display: none;
+}

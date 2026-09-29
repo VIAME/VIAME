@@ -3,7 +3,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Tests for annotation_and_visualization example scripts.
+Tests for user_interfaces example scripts.
 """
 
 import pytest
@@ -13,7 +13,7 @@ from test_utilities import (
     require_opencv_window_support,
 )
 
-CATEGORY = "annotation_and_visualization"
+CATEGORY = "user_interfaces"
 
 
 class TestDrawDetectionsOnFrames:

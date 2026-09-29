@@ -3,10 +3,6 @@
 Stereo Measurement
 ==================
 
-.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/fish_measurement_example.jpg
-   :width: 70%
-   :align: center
-
 Overview
 ========
 
@@ -19,7 +15,7 @@ pair of cameras.
 Stereo measurement triangulates 3D positions from the two views and computes real-world
 distances between them. It is the most accurate approach and works at varying depths and
 distances. It requires a stereo calibration file containing camera intrinsic and extrinsic
-parameters (see the `Calibration Pipelines`_ section). Stereo measurement pipelines detect
+parameters (see `Calibration`_). Stereo measurement pipelines detect
 or accept annotated objects in both left and right camera views, establish correspondences
 between them, and triangulate keypoints (e.g., head and tail) to compute lengths.
 
@@ -27,163 +23,47 @@ When only one camera is available, see `monocular measurement
 <https://viame.github.io/VIAME/sections/monocular_measurement.html>`__, which measures from the camera's height above
 the scene instead.
 
-Running the Demo
-================
+Calibration
+===========
 
-Run CMake to automatically download the demo data into this example folder.
-Alternatively you can download the demo data `directly`_.
+Every stereo measurement pipeline requires a calibration file describing the camera pair:
+the intrinsics and lens distortion of each camera, and the rotation and translation between
+the two. Lengths are reported in the units the calibration was made in, so a target measured
+in millimeters gives lengths in millimeters.
 
-.. _directly: https://viame.kitware.com/girder/#item/6ab572d52d17596fb9c5d3c8
+A calibration can be read from any of the following formats:
 
-Setup:
-------
+* JSON (``.json``), as written by the VIAME calibration pipelines and ``viame calibrate``
+* OpenCV YAML (``.yml`` or ``.yaml``), or a folder holding ``intrinsics.yml`` and
+  ``extrinsics.yml``
+* NumPy archive (``.npz``)
+* MATLAB (``.mat``)
+* SEAGIS ``.CamCAL``, with the SEAGIS add-on
 
-For simplicity this tutorial will assume that the VIAME source directory is
-`[viame-source]` and the build directory is `[viame-build]`. Please modify
-these as needed to match your system setup. We also assume that you have built
-VIAME.
+A calibration made in another tool (e.g., OpenCV, the MATLAB Camera Calibrator or SEAGIS) can
+therefore be used as it is; the contents expected of each format are listed under
+`Calibration File Format`_. Otherwise one is generated within VIAME from images or video of a
+calibration target, as below.
 
-Additionally this example requires an extra python dependency to be installed.
-On Linux or Windows, 'pip install ubelt'.
+Generating a Calibration
+------------------------
 
+Two kinds of calibration target are supported:
 
-Available Scripts
------------------
+* A checkerboard (chessboard) pattern
+* Any target made up of bright points on a dark background, such as a grid of white dots or
+  the markers on a calibration frame
 
-This example folder contains several scripts for different measurement workflows.
-Each script is available in both Linux (.sh) and Windows (.bat) versions.
+By default a checkerboard is looked for first, and bright points if none is found. Bright
+points are located as blobs and refined to sub-pixel centers, and isolated ones away from the
+target, such as labels and reflections, are discarded. Detected corners or centers are
+accumulated across frames and used to solve for the camera intrinsics, distortion
+coefficients, and (for stereo) extrinsic parameters.
 
-**calibrate_cameras**
-  Runs the camera calibration tool to compute stereo camera calibration parameters
-  from a video or set of images containing a chessboard calibration pattern. Outputs
-  a JSON file (calibration_matrices.json) compatible with the VIAME measurement pipelines.
-  Usage: ``./calibrate_cameras.sh <video_file_or_image_glob>``
-
-**measure_via_gmm_oriented_boxes**
-  Runs the automatic GMM (Gaussian Mixture Model) motion-based measurement pipeline.
-  This pipeline uses background subtraction to detect moving objects and computes
-  oriented bounding boxes for measurement. Best suited for scenarios with stationary
-  cameras and moving fish.
-
-**measure_via_default_fish**
-  Runs the default automatic fish measurement pipeline using a neural network-based
-  fish detector. This pipeline detects fish using a trained model and performs
-  stereo measurement on the detected objects.
-
-**measure_over_manual_annotations**
-  Runs measurement on user-provided annotations. Use this when you have manually
-  annotated fish locations and want to compute measurements from those annotations
-  rather than using automatic detection.
-
-**gmm_standalone_tool**
-  A standalone tool for GMM-based measurement that includes disparity computation.
-  This script provides more control over the measurement process and can be used
-  for debugging or custom workflows.
-
-**compute_depth_maps**
-  Computes stereo disparity/depth maps from the calibrated stereo camera imagery.
-  Useful for visualizing the depth information or for custom processing workflows.
-
-
-Running via the pipeline runner
--------------------------------
-
-To run the process using the sprokit C++ pipeline we use the the pipeline
-runner:
-
-::
-
-    # First move to the example directory
-    cd [viame-build]/install/examples/stereo_measurement
-
-    # The below script runs pipeline runner on the GMM motion-based measurement
-    bash measure_via_gmm_oriented_boxes.sh
-
-
-This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017
-i7 2.8Ghz Dell laptop.
-
-
-Running via installed opencv python module 
---------------------------------------------
-
-The above pipeline can alternatively be run as a python script.
-
-::
-
-    # move to your VIAME build directory
-    cd [viame-build]
-    # Run the setup script to setup the proper paths and environment variables
-    source install/setup_viame.sh
-
-    # you may also want to set these environment variables
-    # export KWIVER_DEFAULT_LOG_LEVEL=debug
-    export KWIVER_DEFAULT_LOG_LEVEL=info
-    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
-
-
-You should be able to run the help command
-
-:: 
-
-    python -m viame.opencv.stereo_demo --help
-
-The script can be run on the demodata via
-
-::
-
-    python -m viame.opencv.stereo_demo \
-        --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
-        --cal=camtrawl_demodata/cal.npz \
-        --out=out --draw -f
-
-
-Running via the standalone script
----------------------------------
-
-Alternatively you can run by specifying the path to opencv module (if you
-have a python environment you should be able to run this without even building
-VIAME)
-
-
-::
-
-    # First move to the example directory
-    cd [viame-source]/examples/stereo_measurement
-
-    # Run the stereo_demo module directly via the path
-    python ../../plugins/opencv/stereo_demo.py \
-        --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
-        --cal=camtrawl_demodata/cal.npz \
-        --out=out --draw -f
-
-Without the `--draw` flag the above example, this example runs at about 2.5Hz,
-and takes 20 seconds to complete on a 2017 i7 2.8Ghz Dell laptop.
-
-With `--draw` it takes significantly longer (it runs at 0.81 Hz and takes over
-a minute to complete), but will output images like the one at the top of this
-readme as well as a CSV file.
-
-Note that the KWIVER C++ Sprokit pipeline offers a significant speedup (4Hz vs
-2.5Hz), although it currently does not have the ability to output the algorithm
-visualization.
-
-.. _Calibration Pipelines:
-
-Calibration Pipelines
----------------------
-
-VIAME provides several calibration pipelines for computing camera parameters from
-images or video of a calibration target. The pipelines first attempt to detect a
-checkerboard (chessboard) pattern, and if that fails, fall back to detecting a grid
-of bright dots (circle grid). Detected corners or centers are accumulated across
-frames and used to solve for the camera intrinsics, distortion coefficients, and
-(for stereo) extrinsic parameters. The ``square_size`` parameter must be set to the
-real-world size of a checkerboard square (or dot spacing) in your chosen unit (e.g.,
-millimeters) -- this value determines the scale of all subsequent measurements. When
-running from the DIVE interface, the pipeline will prompt for the checkerboard square
-size in real units before running. The output calibration file can then be used by the
-measurement pipelines.
+The ``square_size`` parameter must be set to the real-world size of a checkerboard square (or
+the spacing of the points) in your chosen unit (e.g., millimeters) -- this value determines
+the scale of all subsequent measurements. When running from the DIVE interface, the pipeline
+will prompt for the checkerboard square size in real units before running.
 
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Calibration-Query-User.jpg
    :width: 80%
@@ -202,6 +82,11 @@ the calibration pipeline.*
 and right camera views.*
 
 |
+
+.. _Calibration Pipelines:
+
+Calibration Pipelines
+---------------------
 
 **stereo_calibrate_cameras_default.pipe**
   Stereo camera calibration from separate left and right camera inputs. Detects
@@ -235,6 +120,67 @@ inputs::
     -s input2:video_filename=cam2_images.txt \
     -s global:square_size=25.0
 
+The ``viame calibrate`` tool runs the same calibration without a pipeline::
+
+  viame calibrate --left left_video.mp4 --right right_video.mp4 \
+    -a -q 25 -o calibration_matrices.json
+
+Here ``-a`` detects the grid size and ``-q`` is the square size. For a target whose bright
+points do not lie on a regular grid, ``--dots --pts <file>`` takes the 3D position of each
+point from a PtsCAL file in place of the square size.
+
+.. _Calibration File Format:
+
+Calibration File Format
+-----------------------
+
+A JSON file holds ``fx``, ``fy``, ``cx``, ``cy``, ``k1``, ``k2``, ``p1``, ``p2`` and ``k3``
+for each camera, suffixed ``_left`` or ``_right`` (e.g., ``fx_left``), along with the
+rotation matrix ``R`` and translation vector ``T``.
+
+An OpenCV YAML file, or folder of ``intrinsics.yml`` and ``extrinsics.yml``, holds the camera
+matrices ``M1`` and ``M2``, the distortion coefficients ``D1`` and ``D2``, and ``R`` and ``T``.
+
+
+For the npz file format the root object should be a python dict with the
+following keys and values:
+
+|
+|    R: extrinsic rotation matrix
+|    T: extrinsic translation
+|    cameraMatrixL: dict of intrinsic parameters for the left camera
+|        fc: focal length
+|        cc: principal point
+|        alpha_c: skew
+|    cameraMatrixR: dict of intrinsic parameters for the right camera
+|        fc: focal length
+|        cc: principal point
+|        alpha_c: skew
+|    distCoeffsL: distortion coefficients for the left camera
+|    distCoeffsR: distortion coefficients for the right camera
+|
+
+For the mat file, format the root structure should be a dict with the key
+`Cal` whose value is a dict with the following items:
+
+|
+|    om: extrinsic rotation vector (note rotation matrix is rodrigues(om))
+|    T: extrinsic translation
+|    fc_left: focal length of the left camera
+|    cc_left: principal point
+|    alpha_c_left: skew
+|    kc_left: distortion coefficients for the left camera
+|    fc_right: focal length of the right camera
+|    cc_right: principal point
+|    alpha_c_right: skew
+|    kc_right: distortion coefficients for the right camera
+|
+
+Measurement Pipelines
+=====================
+
+Measurement can be run on annotations that already exist, or fully automatically from
+detection through to length.
 
 Stereo Disparity and Depth Pipelines
 -------------------------------------
@@ -250,14 +196,7 @@ its correspondence in the right camera (green/red) using epipolar geometry.*
 
 VIAME includes several methods for computing stereo disparity and depth maps, which
 are used internally by the measurement pipelines and can also be run standalone for
-visualization or custom processing. Stereo measurement requires a calibration file
-containing the camera intrinsic and extrinsic parameters. This calibration file can
-either be computed within VIAME using one of the calibration pipelines described above,
-or imported from an external source (e.g., OpenCV, MATLAB Camera Calibrator, or other
-third-party calibration tools). Supported calibration file formats include JSON (as
-output by the VIAME calibration pipelines), NPZ (numpy archive), MAT (MATLAB), and
-``.CamCAL`` (SEAGIS) files. See the `Calibration File Format`_ section below for
-details on the expected contents of each format.
+visualization or custom processing. Each requires a calibration file, see `Calibration`_.
 
 **stereo_compute_rectified_disparity.pipe**
   Computes rectified stereo disparity maps using the SGBM (Semi-Global Block Matching)
@@ -396,8 +335,6 @@ replaces tracker keypoints but keeps hand-placed lines (``stereo_user_line``);
 back to the existing keypoints. The same policy, sampling and fit keys apply
 to the Foundation Stereo add-on pipelines.
 
-
-.. _Calibration File Format:
 
 Stereo Measurement Settings
 ---------------------------
@@ -582,45 +519,8 @@ What is recorded
        to compute the length.
 
 
-Calibration File Format
------------------------
-
-For the npz file format the root object should be a python dict with the
-following keys and values:
-
-|
-|    R: extrinsic rotation matrix
-|    T: extrinsic translation
-|    cameraMatrixL: dict of intrinsict parameters for the left camera
-|        fc: focal length
-|        cc: principle point
-|        alpha_c: skew
-|    cameraMatrixR: dict of intrinsict parameters for the right camera
-|        fc: focal length
-|        cc: principle point
-|        alpha_c: skew
-|    distCoeffsL: distortion coefficients for the left camera
-|    distCoeffsR: distortion coefficients for the right camera
-|
-
-For the mat file, format the root structure should be a dict with the key
-`Cal` whose value is a dict with the following items:
-
-|
-|    om: extrinsic rotation vector (note rotation matrix is rodrigues(om))
-|    T: extrinsic translation
-|    fc_left: focal length of the left camera
-|    cc_left: principle point
-|    alpha_c_left: skew
-|    kc_left: distortion coefficients for the left camera
-|    fc_right: focal length of the right camera
-|    cc_right: principle point
-|    alpha_c_right: skew
-|    kc_right: distortion coefficients for the right camera
-|
-
 Curved fish measurement (opt-in)
--------------------------------
+--------------------------------
 
 The Python stereo service supports a separate ``measure_curve`` command. It
 uses dense disparity from FoundationStereo, Fast FoundationStereo, or another
@@ -752,7 +652,7 @@ heads inside the measurer first, so boxes alone are enough there.
 ``centerline_source`` restricts the choice to ``keypoints`` or ``mask``.
 
 Editable DIVE centerlines
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The matching DIVE ``feature/curved-headtail-lines`` branch extends the existing
 line editor with segment midpoint handles. Interior vertices use named keypoints
@@ -769,6 +669,152 @@ indices across independently edited camera views are never assumed to match.
 The original two-endpoint request keeps its existing behavior. The editor path
 uses a polyline (no spline smoothing), while ``measure_curve`` retains its
 configurable smoothing and bidirectional options.
+
+
+Running the Example Scripts
+===========================
+
+Run CMake to automatically download the demo data into this example folder.
+Alternatively you can download the demo data `directly`_.
+
+.. _directly: https://viame.kitware.com/girder/#item/6ab572d52d17596fb9c5d3c8
+
+Setup:
+------
+
+For simplicity this tutorial will assume that the VIAME source directory is
+`[viame-source]` and the build directory is `[viame-build]`. Please modify
+these as needed to match your system setup. We also assume that you have built
+VIAME.
+
+Additionally this example requires an extra python dependency to be installed.
+On Linux or Windows, 'pip install ubelt'.
+
+
+Available Scripts
+-----------------
+
+This example folder contains several scripts for different measurement workflows.
+Each script is available in both Linux (.sh) and Windows (.bat) versions.
+
+**calibrate_cameras**
+  Runs the camera calibration tool to compute stereo camera calibration parameters
+  from a video or set of images containing a chessboard calibration pattern. Outputs
+  a JSON file (calibration_matrices.json) compatible with the VIAME measurement pipelines.
+  Usage: ``./calibrate_cameras.sh <video_file_or_image_glob>``
+
+**measure_via_gmm_oriented_boxes**
+  Runs the automatic GMM (Gaussian Mixture Model) motion-based measurement pipeline.
+  This pipeline uses background subtraction to detect moving objects and computes
+  oriented bounding boxes for measurement. Best suited for scenarios with stationary
+  cameras and moving fish.
+
+**measure_via_default_fish**
+  Runs the default automatic fish measurement pipeline using a neural network-based
+  fish detector. This pipeline detects fish using a trained model and performs
+  stereo measurement on the detected objects.
+
+**measure_over_manual_annotations**
+  Runs measurement on user-provided annotations. Use this when you have manually
+  annotated fish locations and want to compute measurements from those annotations
+  rather than using automatic detection.
+
+**gmm_standalone_tool**
+  A standalone tool for GMM-based measurement that includes disparity computation.
+  This script provides more control over the measurement process and can be used
+  for debugging or custom workflows.
+
+**compute_depth_maps**
+  Computes stereo disparity/depth maps from the calibrated stereo camera imagery.
+  Useful for visualizing the depth information or for custom processing workflows.
+
+
+Running via the pipeline runner
+-------------------------------
+
+To run the process using the sprokit C++ pipeline we use the the pipeline
+runner:
+
+::
+
+    # First move to the example directory
+    cd [viame-build]/install/examples/stereo_measurement
+
+    # The below script runs pipeline runner on the GMM motion-based measurement
+    bash measure_via_gmm_oriented_boxes.sh
+
+
+This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017
+i7 2.8Ghz Dell laptop.
+
+
+Running via installed opencv python module 
+--------------------------------------------
+
+The above pipeline can alternatively be run as a python script.
+
+::
+
+    # move to your VIAME build directory
+    cd [viame-build]
+    # Run the setup script to setup the proper paths and environment variables
+    source install/setup_viame.sh
+
+    # you may also want to set these environment variables
+    # export KWIVER_DEFAULT_LOG_LEVEL=debug
+    export KWIVER_DEFAULT_LOG_LEVEL=info
+    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
+
+
+You should be able to run the help command
+
+:: 
+
+    python -m viame.opencv.stereo_demo --help
+
+The script can be run on the demodata via
+
+::
+
+    python -m viame.opencv.stereo_demo \
+        --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
+        --cal=camtrawl_demodata/cal.npz \
+        --out=out --draw -f
+
+
+Running via the standalone script
+---------------------------------
+
+Alternatively you can run by specifying the path to opencv module (if you
+have a python environment you should be able to run this without even building
+VIAME)
+
+
+::
+
+    # First move to the example directory
+    cd [viame-source]/examples/stereo_measurement
+
+    # Run the stereo_demo module directly via the path
+    python ../../plugins/opencv/stereo_demo.py \
+        --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
+        --cal=camtrawl_demodata/cal.npz \
+        --out=out --draw -f
+
+Without the `--draw` flag the above example, this example runs at about 2.5Hz,
+and takes 20 seconds to complete on a 2017 i7 2.8Ghz Dell laptop.
+
+With `--draw` it takes significantly longer (it runs at 0.81 Hz and takes over
+a minute to complete), but will output images like the one below as well as a
+CSV file.
+
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/fish_measurement_example.jpg
+   :width: 70%
+   :align: center
+
+Note that the KWIVER C++ Sprokit pipeline offers a significant speedup (4Hz vs
+2.5Hz), although it currently does not have the ability to output the algorithm
+visualization.
 
 
 .. dive-crosslink

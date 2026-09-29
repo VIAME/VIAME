@@ -43,7 +43,7 @@ polygon to each one. They read ``detections.csv`` and write ``computed_detection
 
 Masks can also be drawn interactively in DIVE by clicking on an object, or produced from
 a text prompt. See `interactive segmentation in
-DIVE <https://viame.github.io/VIAME/sections/annotation_and_visualization.html>`__
+DIVE <https://viame.github.io/VIAME/sections/interactive_annotation.html>`__
 and `text-prompted detection and
 tracking <https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html>`__.
 

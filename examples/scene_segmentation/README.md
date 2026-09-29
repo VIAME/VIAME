@@ -21,7 +21,7 @@ The `utility_add_segmentations` pipelines take a file of box detections and add 
 | `utility_add_segmentations_sam3.pipe` | SAM3, from the SAM3 add-on |
 | `utility_add_segmentations_default.pipe` | Installed by the SAM2 add-on, runs the SAM2 pipeline |
 
-Masks can also be drawn interactively in DIVE by clicking on an object, or produced from a text prompt. See [interactive segmentation in DIVE](https://viame.github.io/VIAME/sections/annotation_and_visualization.html) and [text-prompted detection and tracking](https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html).
+Masks can also be drawn interactively in DIVE by clicking on an object, or produced from a text prompt. See [interactive segmentation in DIVE](https://viame.github.io/VIAME/sections/interactive_annotation.html) and [text-prompted detection and tracking](https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html).
 
 Detectors that output masks directly are trained like any other detector, from annotations that include polygons. See the RF-DETR segmentation configurations in [detector training](https://viame.github.io/VIAME/sections/object_detector_training.html).
 

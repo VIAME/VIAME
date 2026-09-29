@@ -16,7 +16,10 @@ This is useful for processing large video archives from underwater cameras (MOUS
 
 | Script | Description |
 |----|----|
-| summarize_and_index_videos summarize_videos launch_timeline_interface launch_search_interface | Full processing: detection, plots, and index Detection and plots only (no search index) View detection timeline plots Query the indexed database visually |
+| summarize_and_index_videos | Full processing: detection, plots, and index |
+| summarize_videos | Detection and plots only (no search index) |
+| launch_timeline_interface | View detection timeline plots |
+| launch_search_interface | Query the indexed database visually |
 
 ## Quick Start
 

@@ -38,6 +38,7 @@ that is the below directory structure (where '...' indicates a subdirectory):
 | ......image002.png
 | ......groundtruth.csv
 |
+
 where groundtruth can be in any file format for which a
 "detected_object_set_input" implementation exists (e.g. viame_csv, kw18, habcam),
 and labels.txt contains a list of output categories (one per line) for

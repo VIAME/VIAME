@@ -57,6 +57,7 @@ Automatic Multi-Target Trackers
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Banner.jpg
    :width: 60%
    :align: center
+
 |
 
 Most multi-target trackers (MTT) link detections (produced by a separate detection
@@ -406,7 +407,7 @@ into a stabilized coordinate system for IOU-based matching.
 There are a number of pieces of code used in the approach, including:
 
 * packages/kwiver/python/kwiver/sprokit/processes/multicam_homog_tracker.py
-* configs/add-ons/sea-lion/tracker_\(multiple\).pipe
+* configs/add-ons/sea-lion/tracker\_\(multiple\).pipe
 * configs/pipelines/common_stabilized_iou_tracker.pipe
 * configs/pipelines/common_image_stabilizer.pipe
 

@@ -266,8 +266,8 @@ Build Tips 'n Tricks
 When VIAME is built as a super-build, multiple solutions or makefiles are generated
 for each individual project in the super-build. These can be opened up if you want
 to experiment with changes in one and not rebuild the entire superbuild. VIAME
-places these projects in [build-directory]/build/src/* and fletch in
-[build-directory]/build/src/fletch-build/build/src/*. You can also run ccmake or
+places these projects in [build-directory]/build/src/\* and fletch in
+[build-directory]/build/src/fletch-build/build/src/\*. You can also run ccmake or
 the cmake GUI in these locations, which can let you manually change the build settings
 for sub-projects (say, for example, if one doesn't build).
 
@@ -307,7 +307,7 @@ file should contain just a single line:
 
 **Issue:**
 
-Boost fails to build early with error in *_out.txt:
+Boost fails to build early with error in \*_out.txt:
 
 .. code-block:: console
 

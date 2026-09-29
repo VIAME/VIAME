@@ -135,9 +135,10 @@ def promote_headings(markdown):
     return "\n".join(lines) + "\n"
 
 
-def dive_index(ref):
-    readme = included(dive_docs.README_INCLUDE + "\n", HERE / DIVE_DIR)
-    return readme + "\n".join([
+def dive_index(ref, source):
+    if source is None:
+        return "# " + dive_docs.ENTRY_TITLE + "\n\nSee the [DIVE manual](" + dive_docs.DIVE_SITE + ").\n"
+    return dive_page(dive_docs.entry_text(source)) + "\n".join([
         "",
         "The pages below are vendored from the [DIVE manual](" + dive_docs.DIVE_SITE +
         ") at the revision VIAME currently ships (`" + ref[:12] + "`). The upstream "
@@ -157,10 +158,13 @@ def collect_dive(pages, assets):
     """DIVE writes for mkdocs-material already, so its pages are used as they are."""
     ref = dive_docs.dive_ref()
     source = dive_docs.source_docs(ref)
-    pages[DIVE_DIR + "/index"] = dive_index(ref)
+    pages[DIVE_DIR + "/index"] = dive_index(ref, source)
     if source is None:
         log.warning("DIVE manual unavailable, building without it")
         return
+    for asset in set(dive_docs.ASSET.findall(dive_docs.entry_text(source))):
+        if (source / asset).is_file():
+            assets[DIVE_DIR + "/" + asset] = source / asset
     for name in dive_docs.PAGES:
         origin = source / name
         if not origin.is_file():

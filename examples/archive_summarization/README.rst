@@ -25,14 +25,17 @@ analyze species distributions over time.
 Available Scripts
 -----------------
 
-+-------------------------------+-----------------------------------------------+
-| Script                        | Description                                   |
-+===============================+===============================================+
-| summarize_and_index_videos    | Full processing: detection, plots, and index  |
-| summarize_videos              | Detection and plots only (no search index)    |
-| launch_timeline_interface     | View detection timeline plots                 |
-| launch_search_interface       | Query the indexed database visually           |
-+-------------------------------+-----------------------------------------------+
++----------------------------+----------------------------------------------+
+| Script                     | Description                                  |
++============================+==============================================+
+| summarize_and_index_videos | Full processing: detection, plots, and index |
++----------------------------+----------------------------------------------+
+| summarize_videos           | Detection and plots only (no search index)   |
++----------------------------+----------------------------------------------+
+| launch_timeline_interface  | View detection timeline plots                |
++----------------------------+----------------------------------------------+
+| launch_search_interface    | Query the indexed database visually          |
++----------------------------+----------------------------------------------+
 
 
 Quick Start

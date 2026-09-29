@@ -105,6 +105,7 @@ Capabilities Breakdown
 .. |P3| replace:: :p:`P³`
 .. |P4| replace:: :p:`P⁴`
 .. |P5| replace:: :p:`P⁵`
+.. |P6| replace:: :p:`P⁶`
 .. |N| replace:: :n:`N`
 
 .. rst-class:: cap-legend
@@ -131,17 +132,17 @@ Review grid across datasets                    |N|      |N|           |N|       
 Detection and tracking pipelines               |Y|      |Y|           |Y|          |Y|          |Y|
 Stereo measurement pipelines                   |Y|      |N|           |Y|          |Y|          |Y|
 Interactive stereo measurement                 |N|      |N|           |N|          |Y|          |P3|
-Image and video search with refinement         |Y|      |Y|           |Y|          |Y|          |N|
+Image and video search with refinement         |Y|      |Y|           |Y|          |Y|          |P4|
 Text query                                     |Y|      |N|           |Y|          |Y|          |N|
 Image enhancement output                       |Y|      |N|           |Y|          |Y|          |Y|
-Registration and mosaicing                     |Y|      |Y|           |Y|          |P4|         |P4|
+Registration and mosaicing                     |Y|      |Y|           |Y|          |P5|         |P5|
 Scoring and evaluation                         |Y|      |N|           |Y|          |Y|          |Y|
 Annotation format conversion                   |Y|      |N|           |Y|          |Y|          |Y|
 **Training**
 Detector training over multiple sequences      |Y|      |Y|           |Y|          |Y|          |Y|
 Frame classifier training                      |Y|      |N|           |Y|          |Y|          |Y|
 Tracker training                               |Y|      |N|           |Y|          |Y|          |Y|
-Add-on model pack downloads                    |N|      |N|           |Y|          |Y|          |P5|
+Add-on model pack downloads                    |N|      |N|           |Y|          |Y|          |P6|
 ============================================== ======== ============= ============ ============ ========
 
 .. rst-class:: cap-notes
@@ -149,8 +150,9 @@ Add-on model pack downloads                    |N|      |N|           |Y|       
 | ¹ Through the REST API
 | ² Launches DIVE
 | ³ Smaller models, run in the browser
-| ⁴ Registration only, no mosaic output
-| ⁵ Server administrators only
+| ⁴ Image queries only, models cannot be saved
+| ⁵ Registration only, no mosaic output
+| ⁶ Server administrators only
 
 *************************************
 GPU vs CPU Installations
@@ -181,9 +183,9 @@ on the motherboard, then a 2nd in a plugin slot). Next, search for the card to k
 specifications. On Linux, many terminal commands can tell you which GPU you have (e.g.
 ``nvidia-smi``, ``lspci | grep -i nvidia``).
 
-*************************************
+****************************************
 Types of Annotation and Detection Models
-*************************************
+****************************************
 
 There are four main types of annotations and detection models:
 
@@ -191,22 +193,22 @@ There are four main types of annotations and detection models:
    :widths: 50 50
 
    * - .. image:: ../_static/images/quickstart_annotation_box_level.jpg
-    :alt: Annotation box level
+          :alt: Annotation box level
           :width: 100%
 
        **Box-Level:** A bounding box around the object of interest.
      - .. image:: ../_static/images/quickstart_annotation_frame_level.jpg
-    :alt: Annotation frame level
+          :alt: Annotation frame level
           :width: 100%
 
        **Frame-Level:** The entire frame is classified (e.g. the whole image has a label).
    * - .. image:: ../_static/images/quickstart_annotation_pixel_level.jpg
-    :alt: Annotation pixel level
+          :alt: Annotation pixel level
           :width: 100%
 
        **Pixel-Level:** Pixel masks or polygons tracing the exact outline of objects.
      - .. image:: ../_static/images/quickstart_annotation_keypoints.jpg
-    :alt: Annotation keypoints
+          :alt: Annotation keypoints
           :width: 100%
 
        **Keypoints:** Specific points of interest on objects (e.g. head, tail).
@@ -222,12 +224,12 @@ track with just a single state.
    :widths: 50 50
 
    * - .. image:: ../_static/images/quickstart_detection_example.jpg
-    :alt: Detection example
+          :alt: Detection example
           :width: 100%
 
        Detection
      - .. image:: ../_static/images/quickstart_track_example.jpg
-    :alt: Track example
+          :alt: Track example
           :width: 100%
 
        Track

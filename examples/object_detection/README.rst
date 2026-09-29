@@ -11,6 +11,7 @@ Overview
    :width: 40%
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/main/examples/object_detection
+
 |
 
 This document corresponds to the `object detection`_ example folder within a VIAME desktop
@@ -41,9 +42,9 @@ VIAME detectors fall into three broad categories:
 #. **Motion / heuristic detectors** -- detect objects via motion, shape, or other cues (no training)
 
 
-**********************
+***********************
 Deep Learning Detectors
-**********************
+***********************
 
 Deep learning detectors are the most common choice for production use. They learn to
 recognize objects from annotated training data and typically require a GPU for both
@@ -329,35 +330,35 @@ applications with circular targets.
 Choosing a Detection Method
 ***************************
 
-+----------------------------------+----------------------------------------------------+
-| Scenario                         | Recommended Approach                               |
-+==================================+====================================================+
-| No training data available       | HuggingFace zero-shot, MaskCut, or GMM motion      |
-+----------------------------------+----------------------------------------------------+
-| Very small dataset (50--200)     | SVM classifier or adaptive trainer                 |
-+----------------------------------+----------------------------------------------------+
-| Medium dataset (200--500)        | MIT-YOLO v9 or Darknet YOLO                        |
-+----------------------------------+----------------------------------------------------+
-| Large dataset (500+)             | Netharn CFRNN (default) or RF-DETR                 |
-+----------------------------------+----------------------------------------------------+
-| Dense scenes with occlusion      | RF-DETR or Netharn CFRNN Grid                      |
-+----------------------------------+----------------------------------------------------+
-| Small objects in large images    | Netharn CFRNN Grid (tiling mode)                   |
-+----------------------------------+----------------------------------------------------+
-| Large or tall objects            | LitDet Faster R-CNN                                |
-+----------------------------------+----------------------------------------------------+
-| Real-time inference needed       | MIT-YOLO v9, LitDet SSD, or Darknet YOLO          |
-+----------------------------------+----------------------------------------------------+
-| Instance segmentation needed     | Netharn Mask R-CNN                                 |
-+----------------------------------+----------------------------------------------------+
-| Detect unknown/novel species     | ReMax DINO or ReMax ConvNeXt                       |
-+----------------------------------+----------------------------------------------------+
-| CPU only (no GPU)                | SVM, GMM motion, or classical CV detectors         |
-+----------------------------------+----------------------------------------------------+
-| Moving objects, static camera    | GMM motion detector                                |
-+----------------------------------+----------------------------------------------------+
-| Unsure what to use               | Adaptive trainer (auto-selects best)               |
-+----------------------------------+----------------------------------------------------+
++-------------------------------+-----------------------------------------------+
+| Scenario                      | Recommended Approach                          |
++===============================+===============================================+
+| No training data available    | HuggingFace zero-shot, MaskCut, or GMM motion |
++-------------------------------+-----------------------------------------------+
+| Very small dataset (50--200)  | SVM classifier or adaptive trainer            |
++-------------------------------+-----------------------------------------------+
+| Medium dataset (200--500)     | MIT-YOLO v9 or Darknet YOLO                   |
++-------------------------------+-----------------------------------------------+
+| Large dataset (500+)          | Netharn CFRNN (default) or RF-DETR            |
++-------------------------------+-----------------------------------------------+
+| Dense scenes with occlusion   | RF-DETR or Netharn CFRNN Grid                 |
++-------------------------------+-----------------------------------------------+
+| Small objects in large images | Netharn CFRNN Grid (tiling mode)              |
++-------------------------------+-----------------------------------------------+
+| Large or tall objects         | LitDet Faster R-CNN                           |
++-------------------------------+-----------------------------------------------+
+| Real-time inference needed    | MIT-YOLO v9, LitDet SSD, or Darknet YOLO      |
++-------------------------------+-----------------------------------------------+
+| Instance segmentation needed  | Netharn Mask R-CNN                            |
++-------------------------------+-----------------------------------------------+
+| Detect unknown/novel species  | ReMax DINO or ReMax ConvNeXt                  |
++-------------------------------+-----------------------------------------------+
+| CPU only (no GPU)             | SVM, GMM motion, or classical CV detectors    |
++-------------------------------+-----------------------------------------------+
+| Moving objects, static camera | GMM motion detector                           |
++-------------------------------+-----------------------------------------------+
+| Unsure what to use            | Adaptive trainer (auto-selects best)          |
++-------------------------------+-----------------------------------------------+
 
 
 *********************************

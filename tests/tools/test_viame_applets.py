@@ -99,7 +99,7 @@ def detections_csv():
     path = (
         get_viame_source()
         / "examples"
-        / "annotation_and_visualization"
+        / "user_interfaces"
         / "example_detections.csv"
     )
     if not path.exists():

@@ -1,7 +1,7 @@
 
-==============
+===============
 Example Imagery
-==============
+===============
 
 This folder contains sample image datasets used by the other examples in
 this directory. Each subfolder contains images from a specific camera

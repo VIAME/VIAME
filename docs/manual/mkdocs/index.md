@@ -1,6 +1,6 @@
-# VIAME
+# VIAME { .hidden-title }
 
-Video and Image Analytics for Multiple Environments ([VIAME](https://www.viametoolkit.org)) is a computer vision application designed for do-it-yourself artificial intelligence including object detection, object tracking, image/video annotation, image/video search, image mosaicing, image enhancement, size measurement, multi-camera data processing, rapid model generation, and tools for the evaluation of different algorithms. Originally targeting marine species analytics, VIAME now contains many common algorithms and libraries, and is also useful as a generic computer vision toolkit. It contains a number of standalone tools for accomplishing the above, a pipeline framework which can connect C/C++, python, and matlab nodes together in a multi-threaded fashion, and multiple algorithms resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been integrated into both desktop and web user interfaces for deployments in different types of environments, with an open annotation archive and example of the web platform available at [viame.kitware.com](https://viame.kitware.com).
+[VIAME](https://www.viametoolkit.org) is a computer vision application designed for do-it-yourself artificial intelligence including object detection, object tracking, data annotation, multi-camera processing, size measurement, image enhancement, rapid model generation, query-based search, mosaicing, and tools for the evaluation of algorithms. Originally targeting marine species analytics, VIAME now contains many algorithms and libraries, and is useful as a generic computer vision toolkit. It contains a number of tools for accomplishing the above, a pipeline framework which can connect C++/Python nodes in a multi-threaded fashion, and multiple algorithms resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been integrated into both desktop and web user interfaces for deployments in different environments, with an open annotation archive and example of the web platform available at [viame.kitware.com](https://viame.kitware.com).
 
 ## Documentation Overview
 
@@ -11,6 +11,57 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 3.  The [VIAME Web and DIVE Desktop docs](https://kitware.github.io/dive) and in-GUI help menu
 4.  Our [YouTube video channel](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw) (work in progress)
 
+## Example Capabilities
+
+There are a number of core capabilities within the software, click on each of the below images to learn more.
+
+Object Detection and Tracking
+
+<p align="center">
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/object_tracking"><img src="_static/images/Text-Query-Result1.jpg" alt="Text query result" width="27.5%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/object_detection"><img src="_static/images/Capabilities_Object_Detection.jpg" alt="Capabilities object detection" width="27.5%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/object_detection"><img src="_static/images/many_scallop_detections_gui.jpg" alt="Many scallop detections gui" width="30%"></a>
+</p>
+
+User Interfaces for Annotation, Visualization, and Detector Model Training
+
+<p align="center">
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/user_interfaces"><img src="_static/images/dive_banner.jpg" alt="DIVE annotator" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/user_interfaces"><img src="_static/images/Point-Segmentation.jpg" alt="Point segmentation" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/user_interfaces"><img src="_static/images/Train_From_Dive.png" alt="Train from dive" width="29%"></a>
+</p>
+
+Measuring Animal Lengths Using Metadata or Stereo
+
+<p align="center">
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/Calibration-Show-Features-On-Success1.jpg" alt="Calibration show features on success" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/Stereo-Seamap-Short1.jpg" alt="Stereo seamap short" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/fish_measurement_example.jpg" alt="Fish measurement example" width="29%"></a>
+</p>
+
+Text, Image, Video Search for Rapid Model Generation
+
+<p align="center">
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/Perform-Text-Query.jpg" alt="Perform text query" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/iqr_11_initial_results.jpg" alt="Video search initial results" width="29%"></a>
+</p>
+
+Illumination Normalization and Color Correction
+
+<p align="center">
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/image_enhancement"><img src="_static/images/color_correct.jpg" alt="Color correct" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/image_enhancement"><img src="_static/images/Image_Filter_in_DIVE.jpg" alt="Image filter in dive" width="29%"></a>
+</p>
+
+Detector and Tracker Evaluation
+
+<p align="center">
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_PRC.png" alt="Score prc" width="20%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_Confusion_Matrix.jpg" alt="Score confusion matrix" width="17.5%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_ROC.png" alt="Score roc" width="20%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_MAP_Table.png" alt="Score map table" width="20%"></a>
+</p>
+
 ## Contents
 
 - [Documentation Overview](index.md)
@@ -19,9 +70,9 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 - [Building VIAME From Source](sections/building_from_source.md)
 - [Model Generation Workflows](sections/model_generation_workflows.md)
 - [Model Zoo and Add-Ons](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons)
-- [Config File Guide](https://github.com/VIAME/VIAME/wiki/Config-Layout-and-Frameworks)
-- [User Interfaces](sections/annotation_and_visualization.md)
+- [User Interfaces](sections/user_interfaces.md)
 - [DIVE Interface](sections/dive/index.md)
+- [Interactive Annotation](sections/interactive_annotation.md)
 - [Command Line Interface](sections/command_line_interface.md)
 - [Python Interface](sections/python_interface.md)
 - [Project Folders](sections/project_folders.md)
@@ -30,6 +81,7 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 - [Detection File Conversions](sections/detection_file_conversions.md)
 - [Object Detection](sections/object_detection.md)
 - [Detector Training](sections/object_detector_training.md)
+- [Config File Guide](https://github.com/VIAME/VIAME/wiki/Config-Layout-and-Frameworks)
 - [Stereo Measurement](sections/stereo_measurement.md)
 - [Monocular Measurement](sections/monocular_measurement.md)
 - [Object Tracking](sections/object_tracking.md)
@@ -48,54 +100,4 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 - [Plugin Creation](sections/plugin_creation.md)
 - [Using Algorithms in Code](sections/using_algorithms_in_code.md)
 - [KWIVER Full Manual](https://kwiver.readthedocs.io/en/latest/)
-
-## Example Capabilities
-
-There are a number of core capabilities within the software, click on each of the below images to learn more.
-
-Object Detection and Tracking
-
-<p align="center">
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/object_detection"><img src="_static/images/many_scallop_detections_gui.jpg" alt="Many scallop detections gui" width="30%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/object_detection"><img src="_static/images/Capabilities_Object_Detection.jpg" alt="Capabilities object detection" width="27.5%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/object_tracking"><img src="_static/images/Text-Query-Result1.jpg" alt="Text query result" width="27.5%"></a>
-</p>
-
-User Interfaces for Annotation, Visualization, and Detector Model Training
-
-<p align="center">
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization"><img src="_static/images/dive_banner.jpg" alt="DIVE annotator" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization"><img src="_static/images/Point-Segmentation.jpg" alt="Point segmentation" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization"><img src="_static/images/Train_From_Dive.png" alt="Train from dive" width="29%"></a>
-</p>
-
-Measuring Animal Lengths Using Metadata or Stereo
-
-<p align="center">
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/fish_measurement_example.jpg" alt="Fish measurement example" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/Calibration-Show-Features-On-Success1.jpg" alt="Calibration show features on success" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/Stereo-Seamap-Short1.jpg" alt="Stereo seamap short" width="29%"></a>
-</p>
-
-Text, Image, Video Search for Rapid Model Generation
-
-<p align="center">
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/iqr_11_initial_results.jpg" alt="Video search initial results" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/Perform-Text-Query.jpg" alt="Perform text query" width="29%"></a>
-</p>
-
-Illumination Normalization and Color Correction
-
-<p align="center">
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/image_enhancement"><img src="_static/images/color_correct.jpg" alt="Color correct" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/image_enhancement"><img src="_static/images/Image_Filter_in_DIVE.jpg" alt="Image filter in dive" width="29%"></a>
-</p>
-
-Detector and Tracker Evaluation
-
-<p align="center">
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_PRC.png" alt="Score prc" width="20%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_Confusion_Matrix.jpg" alt="Score confusion matrix" width="17.5%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_ROC.png" alt="Score roc" width="20%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_MAP_Table.png" alt="Score map table" width="20%"></a>
-</p>
+- [VIEW Interface](sections/view_interface.md)

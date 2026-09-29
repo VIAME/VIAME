@@ -94,8 +94,7 @@ nav:
   - sections/building_from_source.md
   - sections/model_generation_workflows.md
   - Model Zoo and Add-Ons: https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons
-  - Config File Guide: https://github.com/VIAME/VIAME/wiki/Config-Layout-and-Frameworks
-  - sections/annotation_and_visualization.md
+  - sections/user_interfaces.md
   - DIVE Interface:
     - sections/dive/index.md
     - Getting Started:
@@ -133,6 +132,7 @@ nav:
       - Multicamera and Stereo Data: sections/dive/Multicamera-data.md
       - Mouse and Keyboard Shortcuts: sections/dive/Mouse-Keyboard-Shortcuts.md
       - Frequently Asked Questions: sections/dive/FAQ.md
+  - sections/interactive_annotation.md
   - sections/command_line_interface.md
   - Python Interface: sections/python_interface.md
   - sections/project_folders.md
@@ -141,6 +141,7 @@ nav:
   - sections/detection_file_conversions.md
   - sections/object_detection.md
   - sections/object_detector_training.md
+  - Config File Guide: https://github.com/VIAME/VIAME/wiki/Config-Layout-and-Frameworks
   - sections/stereo_measurement.md
   - sections/monocular_measurement.md
   - sections/object_tracking.md
@@ -159,3 +160,4 @@ nav:
   - sections/plugin_creation.md
   - sections/using_algorithms_in_code.md
   - KWIVER Full Manual: https://kwiver.readthedocs.io/en/latest/
+  - sections/view_interface.md

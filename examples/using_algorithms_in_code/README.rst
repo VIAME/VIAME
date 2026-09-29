@@ -11,9 +11,9 @@ This document corresponds to the `using algorithms in
 code <https://github.com/VIAME/VIAME/tree/main/examples/using_algorithms_in_code>`__
 example folder within a VIAME desktop installation.
 
-Any algorithm available to a pipeline can also be called directly from C++. This example
-uses a Hough circle detector to show the steps involved. The folder contains three
-programs:
+Any algorithm available to a pipeline can also be called directly from C++ or python. This
+example uses a Hough circle detector to show the steps involved in each. The folder contains
+these programs:
 
 .. list-table::
    :header-rows: 1
@@ -26,12 +26,20 @@ programs:
      - Choosing the detector at run time from a configuration file
    * - ``detector4.cxx``
      - The same as ``detector3.cxx``, written against the older KWIVER interface
+   * - ``detector1.py``
+     - ``detector1.cxx`` in python
+   * - ``detector3.py``
+     - ``detector3.cxx`` in python
 
-``detector1`` and ``detector3`` are built along with VIAME.
+The C++ programs ``detector1`` and ``detector3`` are built along with VIAME. The python ones
+run as they are.
 
-*************************
+***
+C++
+***
+
 Running a Single Detector
-*************************
+=========================
 
 Detectors accept an image and return detections. The types used to pass data in and out
 come from the vital part of KWIVER: an ``image_container`` holds the input image, and a
@@ -83,9 +91,8 @@ Put together, a complete program is short:
      return 0;
    }
 
-*******
 Logging
-*******
+=======
 
 Vital provides logging through macros that format and report messages:
 
@@ -102,9 +109,8 @@ a macro for each severity: error, warning, info, debug and trace. The message is
 as an output stream expression, so any type with an output operator can be logged, and
 no end of line is needed.
 
-*********************
 Configuration Support
-*********************
+=====================
 
 The program above runs the detector with its default settings. Most algorithms need
 adjusting for good results, which is done through configuration.
@@ -168,13 +174,11 @@ defaults.
 
 ::
 
-   dp = 2
    min_dist = 120
    param1 = 100
 
-*********************************
 Choosing the Detector at Run Time
-*********************************
+=================================
 
 ``detector3.cxx`` goes a step further and reads which detector to use from the
 configuration file, so the program no longer names one:
@@ -239,15 +243,15 @@ from the configuration. This file selects and configures the Hough circle detect
 ::
 
    # select detector type
-   detector:type = hough_circle_detector
+   detector:type = hough_circle
 
    # specify configuration for selected detector
-   detector:hough_circle_detector:dp = 1
-   detector:hough_circle_detector:min_dist = 100
-   detector:hough_circle_detector:param1 = 200
-   detector:hough_circle_detector:param2 = 100
-   detector:hough_circle_detector:min_radius = 0
-   detector:hough_circle_detector:max_radius = 0
+   detector:hough_circle:dp = 1
+   detector:hough_circle:min_dist = 100
+   detector:hough_circle:param1 = 200
+   detector:hough_circle:param2 = 100
+   detector:hough_circle:min_radius = 0
+   detector:hough_circle:max_radius = 0
 
 The ``:`` character separates levels in a key. The first level, ``detector``, matches
 the name passed to ``set_nested_algo_configuration`` in the program. ``detector:type``
@@ -262,6 +266,129 @@ Selecting a different detector called ``foo`` would look like this:
 
 Because each algorithm's settings sit under its own name, settings for several
 algorithms can share one file. This is how larger applications are configured.
+
+******
+Python
+******
+
+The same interfaces are available from python through the ``viame`` package, installed with
+``pip install viame``. The steps below mirror the C++ ones above; see the `python
+interface <https://viame.github.io/VIAME/sections/python_interface.html>`__ for the package as a whole.
+
+Running a Single Detector
+=========================
+
+``viame.open`` loads an image from a file as an ``ImageContainer``. A detector is created by
+name, and returns a ``DetectedObjectSet``:
+
+.. code-block:: python
+
+   import sys
+
+   import viame
+   from viame.algo import ImageObjectDetector
+
+   # Read the image
+   image = viame.open(sys.argv[1])
+
+   # Create the detector
+   detector = ImageObjectDetector.create("hough_circle")
+
+   # Send image to detector and get detections
+   detections = detector.detect(image)
+
+   # See what was detected
+   print("There were", len(detections), "detections in the image.")
+
+   for detection in detections:
+       box = detection.bounding_box
+       print(box.min_x(), box.min_y(), box.max_x(), box.max_y(), detection.confidence)
+
+Plugins are loaded the first time an algorithm is created, so no explicit call is needed. An
+image already held in memory as a numpy array is passed as ``ImageContainer(Image(array))``,
+with both types coming from ``viame.types``.
+
+Logging
+=======
+
+Python code reports through the standard ``logging`` module:
+
+.. code-block:: python
+
+   import logging
+
+   logging.basicConfig(level=logging.INFO)
+   logger = logging.getLogger("detector_test")
+
+   logger.info("There were %d detections in the image.", len(detections))
+
+Messages from the algorithms themselves come from the C++ logger, whose level is set by the
+``KWIVER_DEFAULT_LOG_LEVEL`` environment variable.
+
+Configuration Support
+=====================
+
+``get_configuration()`` and ``set_configuration()`` work as they do in C++. The settings of an
+algorithm can be listed, changed and applied in code:
+
+.. code-block:: python
+
+   config = detector.get_configuration()
+
+   for key in config.available_values():
+       print(key, "=", config.get_value(key))
+
+   config.set_value("min_dist", "120")
+   config.set_value("param1", "100")
+
+   detector.set_configuration(config)
+
+``detector1.py`` instead takes a configuration file as an optional second argument, in the
+same format as the C++ program, and merges it over the defaults:
+
+.. code-block:: python
+
+   from viame.config import read_config_file
+
+   config = detector.get_configuration()
+   if len(sys.argv) > 2:
+       config.merge_config(read_config_file(sys.argv[2]))
+   detector.set_configuration(config)
+
+Choosing the Detector at Run Time
+=================================
+
+``detector3.py`` reads which detector to use from the configuration file, which is the same
+file ``detector3.cxx`` takes:
+
+.. code-block:: python
+
+   import sys
+
+   import viame
+   from viame.algo import ImageObjectDetector
+   from viame.config import read_config_file
+
+   image = viame.open(sys.argv[1])
+   config = read_config_file(sys.argv[2])
+
+   # Report configuration problems before running
+   if not ImageObjectDetector.check_nested_algo_configuration("detector", config):
+       sys.exit("Configuration check failed.")
+
+   # Create the detector named in the configuration
+   detector = ImageObjectDetector.set_nested_algo_configuration("detector", config)
+
+   if detector is None:
+       sys.exit("Unable to create detector")
+
+   detections = detector.detect(image)
+
+   print("There were", len(detections), "detections in the image.")
+
+``ImageObjectDetector.registered_names()`` lists the detectors that can be named in the file.
+Trackers, readers, writers and the other algorithm types in ``viame.algo`` are created and
+configured the same way.
 
 *****************************
 Connecting Several Algorithms
@@ -301,6 +428,8 @@ Flags to enable when building VIAME from source for this example:
 Source code:
 
 * examples/using_algorithms_in_code/detector1.cxx
+* examples/using_algorithms_in_code/detector1.py
 * examples/using_algorithms_in_code/detector3.cxx
+* examples/using_algorithms_in_code/detector3.py
 * examples/using_algorithms_in_code/detector4.cxx
 * packages/kwiver/arrows/ocv/algo/hough_circle_detector.cxx

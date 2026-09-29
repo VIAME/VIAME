@@ -149,9 +149,9 @@ category records. Duplicate category/synonym names and cyclic hierarchies are
 rejected.
 
 
-***********************
+************************
 Monitoring Training Runs
-***********************
+************************
 
 Long training runs can report their progress by email. Adding ``--monitor-email``
 to ``viame train`` starts a background monitor next to the run::
@@ -201,33 +201,33 @@ Available Trainers
 The table below summarizes the available detector training frameworks. Choose based
 on your data size, object characteristics, and compute resources.
 
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| Framework           | Min Data | GPU Req.  | Speed    | Best For                                   |
-+=====================+==========+===========+==========+============================================+
-| Netharn CFRNN       | 500+     | Yes       | Moderate | General purpose (default), mixed objects    |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| Netharn CFRNN Grid  | 300+     | Yes       | Moderate | Small objects, dense scenes (20+ obj/frame) |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| RF-DETR             | 400+     | Yes       | Moderate | Dense scenes with occlusion, multi-scale   |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| MIT-YOLO v9         | 200+     | Yes       | Fast     | Multi-scale objects, real-time inference    |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| Darknet YOLO        | 200+     | Yes       | Fast     | Production, well-tested                    |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| Detectron2 FRCNN    | 300+     | Yes       | Moderate | General purpose                            |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| LitDet FRCNN        | 300+     | Yes       | Moderate | Large/tall objects, sparse scenes           |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| LitDet SSD          | 300+     | Yes       | Fast     | Lightweight / fast inference                |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| Netharn Mask R-CNN   | 500+     | Yes       | Slow     | Instance segmentation with masks           |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| MMDetection         | 500+     | Yes       | Moderate | Advanced configs, distributed training     |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| SVM                 | 50+      | No        | Fast     | Small datasets, CPU-only, quick baseline   |
-+---------------------+----------+-----------+----------+--------------------------------------------+
-| Adaptive            | 50+      | Varies    | Varies   | Auto-selects best trainer(s)               |
-+---------------------+----------+-----------+----------+--------------------------------------------+
++--------------------+----------+----------+----------+---------------------------------------------+
+| Framework          | Min Data | GPU Req. | Speed    | Best For                                    |
++====================+==========+==========+==========+=============================================+
+| Netharn CFRNN      | 500+     | Yes      | Moderate | General purpose (default), mixed objects    |
++--------------------+----------+----------+----------+---------------------------------------------+
+| Netharn CFRNN Grid | 300+     | Yes      | Moderate | Small objects, dense scenes (20+ obj/frame) |
++--------------------+----------+----------+----------+---------------------------------------------+
+| RF-DETR            | 400+     | Yes      | Moderate | Dense scenes with occlusion, multi-scale    |
++--------------------+----------+----------+----------+---------------------------------------------+
+| MIT-YOLO v9        | 200+     | Yes      | Fast     | Multi-scale objects, real-time inference    |
++--------------------+----------+----------+----------+---------------------------------------------+
+| Darknet YOLO       | 200+     | Yes      | Fast     | Production, well-tested                     |
++--------------------+----------+----------+----------+---------------------------------------------+
+| Detectron2 FRCNN   | 300+     | Yes      | Moderate | General purpose                             |
++--------------------+----------+----------+----------+---------------------------------------------+
+| LitDet FRCNN       | 300+     | Yes      | Moderate | Large/tall objects, sparse scenes           |
++--------------------+----------+----------+----------+---------------------------------------------+
+| LitDet SSD         | 300+     | Yes      | Fast     | Lightweight / fast inference                |
++--------------------+----------+----------+----------+---------------------------------------------+
+| Netharn Mask R-CNN | 500+     | Yes      | Slow     | Instance segmentation with masks            |
++--------------------+----------+----------+----------+---------------------------------------------+
+| MMDetection        | 500+     | Yes      | Moderate | Advanced configs, distributed training      |
++--------------------+----------+----------+----------+---------------------------------------------+
+| SVM                | 50+      | No       | Fast     | Small datasets, CPU-only, quick baseline    |
++--------------------+----------+----------+----------+---------------------------------------------+
+| Adaptive           | 50+      | Varies   | Varies   | Auto-selects best trainer(s)                |
++--------------------+----------+----------+----------+---------------------------------------------+
 
 The "Min Data" column indicates the recommended minimum number of annotations per
 class for reasonable results. More data generally improves performance.
@@ -255,7 +255,7 @@ Continue training from a checkpoint::
         --threshold 0.0
 
 SLEAP-NN head/tail keypoints on existing detections
---------------------------------------------------
+---------------------------------------------------
 
 ``train_reclassifier_sleap_head_tail.conf`` trains a small SLEAP-NN U-Net to
 predict head/tail points inside each supplied detection box. Inference runs as
@@ -338,7 +338,7 @@ wrapper's current scope.
 
 
 Netharn RF-DETR masks, keypoints, and native checkpoints
-------------------------------------------------------
+--------------------------------------------------------
 
 Use ``train_detector_netharn_rf_detr_l_seg_kp_1728.conf`` for boxes, masks,
 and head/tail keypoints. It uses 1728x960 network inputs and inherits the

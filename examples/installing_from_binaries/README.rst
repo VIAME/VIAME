@@ -3,9 +3,9 @@
 Installing VIAME from Binaries
 ==============================
 
-*******************
+********************
 Installation Methods
-*******************
+********************
 
 There are several ways to install VIAME depending on your platform and use case.
 
@@ -47,9 +47,9 @@ on local or remote servers. See the GitHub page for more information. An example
 is hosted at https://viame.kitware.com. In this case users don't need GPUs, rather just
 one central server does.
 
-*************************************
+***************************************
 Desktop Installation from ZIP/TAR Files
-*************************************
+***************************************
 
 Windows 7/8/10/11, 64-Bit
 ===========================

@@ -23,10 +23,8 @@ DIVE_REMOTE = "https://github.com/Kitware/dive.git"
 DIVE_SITE = "https://kitware.github.io/dive"
 SUBMODULE = "packages/dive"
 
-README_INCLUDE = (
-    ".. include:: ../../../../examples/annotation_and_visualization/README.rst\n"
-    "   :start-after: .. dive-manual-toctree\n"
-    "   :end-before: .. dive-section-end")
+ENTRY = "index.md"
+ENTRY_TITLE = "DIVE Interface"
 
 PAGE_GROUPS = [
     ("Getting Started", [
@@ -96,6 +94,8 @@ FA_STYLES = ("solid-", "regular-", "brands-", "light-")
 MARK = re.compile(r"==\s*([^=\n]+?)\s*==")
 ATTR_LIST = re.compile(r"\{\s*[.#][^}\n]*\}")
 MD_LINK = re.compile(r"\]\((?!https?:|/|#)([A-Za-z0-9._/-]+\.md)(#[A-Za-z0-9._-]+)?\)")
+LOGOS = re.compile(r"<p>\s*(?:<img[^>]*>\s*)+</p>\n*")
+BUTTON = "{ .md-button }"
 ASSET = re.compile(r"(?:\]\(|src=[\"'])((?:images|videos)/[^)\"'\s]+)")
 
 
@@ -178,7 +178,7 @@ def convert_inline(line):
 
 def rewrite_link(match):
     target, anchor = match.group(1), match.group(2) or ""
-    if target in PAGES:
+    if target in PAGES or target == ENTRY:
         return "](" + target + anchor + ")"
     return "](" + DIVE_SITE + "/" + target[:-3] + "/" + anchor + ")"
 
@@ -242,6 +242,13 @@ def convert(text, title):
     return body + "\n"
 
 
+def entry_text(source):
+    """The opening page of the DIVE manual, worded for its place in this one."""
+    text = (source / ENTRY).read_text(encoding="utf-8")
+    text = re.sub(r"^# .*$", "# " + ENTRY_TITLE, text, count=1, flags=re.M)
+    return text.replace("This is the documentation site for DIVE, a", "DIVE is a", 1)
+
+
 def copy_assets(text, source, dest):
     for path in set(ASSET.findall(text)):
         origin = source / path
@@ -252,28 +259,28 @@ def copy_assets(text, source, dest):
         shutil.copyfile(origin, target)
 
 
-def write_index(ref):
+def write_index(ref, source):
+    entry = ICON.sub("", entry_text(source))
+    entry = LOGOS.sub("", entry).replace(BUTTON + " [", BUTTON + " | [")
+    copy_assets(entry, source, OUTPUT)
     lines = [
-        README_INCLUDE,
-        "",
-        "The pages below are vendored from the `DIVE manual`_ at the revision VIAME",
-        "currently ships (``" + ref[:12] + "``). The upstream site is authoritative for",
-        "anything newer.",
-        "",
-        ".. _DIVE manual: " + DIVE_SITE,
+        convert(entry, ENTRY_TITLE),
+        "The pages below are vendored from the [DIVE manual](" + DIVE_SITE + ") at the",
+        "revision VIAME currently ships (`" + ref[:12] + "`). The upstream site is",
+        "authoritative for anything newer.",
         "",
     ]
     for caption, pages in PAGE_GROUPS:
-        lines += [".. toctree::", "   :maxdepth: 1", "   :caption: " + caption, ""]
-        lines += ["   " + name[:-3] for name, _ in pages]
-        lines.append("")
-    (OUTPUT / "index.rst").write_text("\n".join(lines), encoding="utf-8")
+        lines += ["```{toctree}", ":maxdepth: 1", ":caption: " + caption, ""]
+        lines += [name[:-3] for name, _ in pages]
+        lines += ["```", ""]
+    (OUTPUT / "index.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def write_placeholder(reason):
     OUTPUT.mkdir(parents=True, exist_ok=True)
     (OUTPUT / "index.rst").write_text(
-        README_INCLUDE + "\n\n"
+        ENTRY_TITLE + "\n" + "=" * len(ENTRY_TITLE) + "\n\n"
         "The DIVE manual could not be retrieved for this build (" + reason + ").\n"
         "See `the DIVE documentation site <" + DIVE_SITE + ">`_.\n",
         encoding="utf-8")
@@ -308,7 +315,7 @@ def generate(force=False):
         (OUTPUT / name).write_text(text, encoding="utf-8")
         copy_assets(text, source, OUTPUT)
         count += 1
-    write_index(ref)
+    write_index(ref, source)
     STAMP.write_text(stamp, encoding="utf-8")
     log("converted {0} pages into {1}".format(count, OUTPUT))
     return True

@@ -126,3 +126,7 @@
 .md-typeset .cap-legend span:first-child {
   margin-left: 0;
 }
+
+.md-typeset h1.hidden-title {
+  display: none;
+}

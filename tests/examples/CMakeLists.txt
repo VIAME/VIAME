@@ -53,37 +53,37 @@ if( VIAME_ENABLE_PYTHON )
   endfunction()
 
   # ============================================================================
-  # Annotation and Visualization Tests
+  # User Interfaces Tests
   # ============================================================================
   add_example_script_test(
     viame_examples:draw_detections_on_frames
-    test_annotation_and_visualization.py
+    test_user_interfaces.py
     TestDrawDetectionsOnFrames
-    annotation_and_visualization
+    user_interfaces
   )
   add_example_script_test(
     viame_examples:extract_chips_from_detections
-    test_annotation_and_visualization.py
+    test_user_interfaces.py
     TestExtractChipsFromDetections
-    annotation_and_visualization
+    user_interfaces
   )
   add_example_script_test(
     viame_examples:extract_frames
-    test_annotation_and_visualization.py
+    test_user_interfaces.py
     TestExtractFrames
-    annotation_and_visualization
+    user_interfaces
   )
   add_example_script_test(
     viame_examples:extract_frames_with_dets_only
-    test_annotation_and_visualization.py
+    test_user_interfaces.py
     TestExtractFramesWithDetsOnly
-    annotation_and_visualization
+    user_interfaces
   )
   add_example_script_test(
     viame_examples:simple_pipeline_display
-    test_annotation_and_visualization.py
+    test_user_interfaces.py
     TestSimplePipelineDisplay
-    annotation_and_visualization
+    user_interfaces
   )
 
   # ============================================================================

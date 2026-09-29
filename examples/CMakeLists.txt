@@ -18,7 +18,6 @@ install( CODE "
 
 if( VIAME_INSTALL_EXAMPLES )
 
-  add_subdirectory( annotation_and_visualization )
   add_subdirectory( archive_summarization )
   add_subdirectory( detection_file_conversions )
   add_subdirectory( detection_file_formats )
@@ -37,6 +36,7 @@ if( VIAME_INSTALL_EXAMPLES )
   add_subdirectory( scoring_and_evaluation )
   add_subdirectory( stereo_measurement )
   add_subdirectory( text_based_search )
+  add_subdirectory( user_interfaces )
   add_subdirectory( using_algorithms_in_code )
   add_subdirectory( video_and_image_search )
 

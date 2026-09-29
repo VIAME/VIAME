@@ -2,7 +2,7 @@
 
 In the [examples](https://github.com/VIAME/VIAME/tree/main/examples) folder of a desktop installation there are a number of subfolders, with each folder corresponding to a different major functionality of VIAME. The scripts in each of these folders can be run as-is in each folder, or alternatively copied, edited, and run from any directory on your computer. Generally speaking, for just getting familiar with the tools it is okay to run them from the installation folders, but for performing any real work it is best to copy them outside of the installers to another location, as some operations (e.g. model training) generate a lot of additional temporary files and you might forget they are there if calling them from within the installers.
 
-Each script calls a command line interface (CLI) executable to perform some function. The alternative to running CLI tools, is to run algorithms through graphical user interfaces within VIAME, such as DIVE (see [User Interfaces](https://viame.github.io/VIAME/sections/annotation_and_visualization.html)). User interfaces support a large number of algorithms, though not everything found within scripts and examples. Lastly, [Project Folders](https://viame.github.io/VIAME/sections/project_folders.html) provide multiple scripts in one location for different stages of an object-detector-training lifecycle for users who prefer using them.
+Each script calls a command line interface (CLI) executable to perform some function. The alternative to running CLI tools, is to run algorithms through graphical user interfaces within VIAME, such as DIVE (see [User Interfaces](https://viame.github.io/VIAME/sections/user_interfaces.html)). User interfaces support a large number of algorithms, though not everything found within scripts and examples. Lastly, [Project Folders](https://viame.github.io/VIAME/sections/project_folders.html) provide multiple scripts in one location for different stages of an object-detector-training lifecycle for users who prefer using them.
 
 To run the examples on Windows, you need to be able to run (double click) the .bat scripts in the given directories (see image below). Additionally, knowing how to make a list of files, e.g. "dir \> filename.txt" on the windows command line can possibly be useful for processing custom image lists.
 
@@ -12,7 +12,7 @@ To run the examples on Linux, there are 3 core commands you need to know:
 
 "ls" - for making file lists of images to process, e.g. "ls \*.png \> input_list.txt" to list all png image files in a folder
 
-"cd" - go into an example directory, e.g. "cd annotation_and_visualization" to move down into the annotation_and_visualization example directory. "cd .." is another useful command which moves one directory up, alongside a lone "ls" command to list all files in the current directory.
+"cd" - go into an example directory, e.g. "cd user_interfaces" to move down into the user_interfaces example directory. "cd .." is another useful command which moves one directory up, alongside a lone "ls" command to list all files in the current directory.
 
 In all of the documentation for each example, the ".bat" or ".sh" extension is omitted, as the extension is operating system (OS) dependent. The functionality and scripts are nearly identical across different OSes, however.
 

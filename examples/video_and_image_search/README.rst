@@ -4,46 +4,94 @@ Video and Image Search
 ======================
 
 This document corresponds to the `video and image search`_ folder contained within a VIAME
-desktop installation. This directory contains methods to accomplish three tasks, all of which can
-be used to bootstrap annotation for training more accurate models:
+desktop installation. Search finds objects in an archive of unannotated imagery or video from an
+example of what is being looked for, and can turn the results into a detection model for a new
+category of object. Both are used to bootstrap annotation for training more accurate models.
 
-| (a) Performing exemplar-based searches on an archive of unannotated imagery or videos
-| (b) Quickly training up detection models for new categories of objects on the same ingest
-| (c) Performing text-based queries to detect, segment, and track high-level object categories
-
-Rapid model generation can be performed either via image or video queries using iterative query
-refinement (IQR), the search with feedback described in the sections below, or via textual queries
-using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts
-to detect, segment, and track objects without requiring any pre-existing annotations or
-an ingested database. See the `text query and VLM <https://viame.github.io/VIAME/sections/text_query_and_vlm.html>`__ page
-for more details on using SAM3.
+Search can be run three ways, covered in this order below: from the Query page of DIVE, which is
+the recommended route; from the command line; and from the older standalone SEARCH interface,
+which is deprecated. To find objects from a description in words instead, with no index or
+example image needed, see `text query and VLM`_.
 
 .. _video and image search: https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search
+.. _text query and VLM: https://viame.github.io/VIAME/sections/text_query_and_vlm.html
 
-Video and Image Archive Search
-==============================
+How Search Works
+================
 
-Video archive search can be performed via a few methods. The default includes
-a pipeline which generates object detections, tracks, and lastly temporal
-descriptors around each track. The descriptors get indexed into an arbitrary
-data store (typically a nearest neighbor index, locality-sensitive hashing
-table, or other). At query time, descriptors on a query image or video are
-matched against the entries in this database. A default GUI (provided via
-the VIVIA toolkit) is provided which allows performing iterative refinement
-of the results, by annotating which were correct or incorrect, in order
-to build up a better model for the input query. This model can be for
-a new object category (or sub-category attribute) and saved to an output file
-to be reused again in future pipelines or query requests. Input regions to
-query against can either be full frame descriptors, around just object detections,
-or, lastly, object tracks.
+Searching takes two steps. The archive is first indexed: a pipeline describes regions of each
+image or video with a descriptor, and the descriptors are stored in an index. The regions
+described can be whole frames, object detections, or object tracks. At query time a descriptor
+is computed for the query image or video, and the entries of the index closest to it are
+returned.
 
+The results can then be refined by marking which are correct and which are not, a procedure
+called iterative query refinement (IQR). Each round of feedback trains a model for the query and
+re-ranks the results with it. Saving that model out is rapid model generation: the model can be
+for a new object category, or an attribute of an existing one, and can be run in detection
+pipelines or used to start later searches.
+
+Searching in DIVE
+=================
+
+The Query page of DIVE Desktop searches many datasets at once, from an image, a frame of a
+video, an existing annotation or a text description. It needs no scripts or project folder. The
+`DIVE query`_ page documents it in full.
+
+Building an Index
+-----------------
+
+Open the Query tab, or select datasets in the Library and click Index. Add the datasets to be
+searched, choose how they are described, and press Build index:
+
+* Around generic detections - runs the generic object detector and describes its boxes
+* Detection and tracking - detects and tracks, then describes the tracks
+* Around existing annotations - describes the annotations a dataset already has
+* Whole frames - describes each frame as a whole, with no detector
+
+Builds run as jobs on the Jobs page. Every indexed dataset shares one index, which datasets can
+be added to or removed from later.
+
+Running a Query
+---------------
+
+A query starts from one of:
+
+* Image - choose an image file, and drag a box around one object or leave the whole image as the
+  example
+* Video - choose a dataset or video file and a frame, and optionally drag a box on it
+* Annotation - in the annotation viewer, the Image Query panel searches from the selected
+  annotation or track
+* Text - type what to find, which is searched for with the SAM3 add-on
+
+Results come back as a grid of cropped images, ranked by similarity. Mark results correct or
+incorrect and press Refine to re-rank them, repeating until the results are as wanted.
+
+Saving a Model and Annotations
+------------------------------
+
+Save model keeps the refined model as a trained pipeline, which is then run on other datasets
+like any other detector. A saved model can also start a new search. Accepted results are written
+to their datasets as annotations with Save on the results toolbar, without leaving the page.
+
+On the Web
+----------
+
+The web version has a Query tab for image and video frame queries with refinement. Saving
+models, text queries and saving results as annotations are in the desktop version only.
+
+Searching from the Command Line
+===============================
+
+The same index and queries are available from a terminal through ``viame index`` and the scripts
+in this folder, which suits large archives, machines without a display and scripted workflows.
 
 Initial Setup
-=============
+-------------
 
 Building and running this example requires either a VIAME install or a build from source,
 along with the python packages numpy, pymongo, torch, torchvision, matplotlib, and python-tk.
-|
+
 First, you should decide where you want to run this example from. Doing it in the example folder
 tree is fine as a first pass, but if it is something you plan on running a few times or on multiple
 datasets, you probably want to select a different place in your user space to store generated
@@ -61,8 +109,10 @@ be '.bat' scripts that you should be able to just double-click to run.
    :align: center
    :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_0_new_project.jpg
 
+.. _Building an Index:
+
 Ingest Image or Video Data
-==========================
+--------------------------
 
 First, create_index.[type].sh should be called to initialize a new database, and populate it
 with descriptors generated around generic objects to be queried upon. Here, [type] can either
@@ -70,7 +120,7 @@ be 'around_detections', 'detection_and_tracking', or 'full_frame_only', dependin
 to run matching on spatio-temporal object tracks, object detections, or full frames respectively
 (see VIAME quick start guide). If you want to run it on a custom selection of images, make a file
 list of images called 'ingest_list.txt' containing your images, one per line. For example, if you
-have a folder containing png images, run 'ls [folder]/*.png > ingest_list.txt' on the command line
+have a folder containing png images, run 'ls [folder]/\*.png > ingest_list.txt' on the command line
 to make this list. Alternatively, if ingesting videos, make a directory called 'videos' which contains
 all of your .mpg, .avi, .etc videos. If you look in the ingest scripts, you can see links to these
 sources if you wish to change them. Next run the ingest script, as below.
@@ -122,9 +172,74 @@ The earlier embedded PostgreSQL store is still available: pass '--backend postgr
 but a folder holds one or the other, not a mix; commands on an existing index detect
 its backend.
 
+Perform a Query
+---------------
+
+``perform_cli_query`` searches the index from the command line. It takes a track file holding a
+box around each object to search for (``query_box.csv``) and a list of the images those boxes
+are on (``query_list.txt``), and writes the matches to ``query_results.csv`` as tracks, with the
+similarity of each as its confidence:::
+
+  bash perform_cli_query.sh query_box.csv query_list.txt query_results.csv
+
+Re-Run Models on Additional Data
+--------------------------------
+
+If you have one or more .svm model files in your trained_model folder, they can be run with the
+scripts in this folder: ``generate_detections_using_svm_model`` runs the generic detector over
+ingest_list.txt and scores its detections, ``process_full_frames_using_svm_model`` scores whole
+frames, and ``process_database_using_svm_model`` scores what is already in the index. This can
+either be on the same data you just processed, or new data. Each produces a detection file
+called 'svm_detections.csv' containing a probability for each input model in the trained_model
+directory per detection. Alternatively, this can be run from `within the annotation GUI`_.
+
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_18_produced_detections.png
+   :width: 40%
+   :align: center
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_18_produced_detections.png
+
+The resultant detection .csv file is in the same common format that most other examples in VIAME
+take. You can load this detection file up in the annotation GUI and select a detection threshold
+for your newly-trained detector, `see here`_. You can use these models on any imagery, it doesn't
+need to be the same imagery you trained it on.
+
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_19_edited_detections.jpg
+   :width: 15%
+   :align: center
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_19_edited_detections.jpg
+
+.. _within the annotation GUI: https://github.com/VIAME/VIAME/tree/main/examples/object_detection
+.. _see here: https://github.com/VIAME/VIAME/tree/main/examples/user_interfaces
+
+Correct Results and Train a Better Model
+----------------------------------------
+
+If you have a detection .csv file for corresponding imagery, and want to train a better (deep)
+model for the data, you can first correct any mistakes (either mis-classifications,
+grossly incorrect boxes, or missed detections) in the annotation GUI. To do this, set a detection
+threshold you want to annotate at, do not change it, and make the boxes as perfect as possible
+at this threshold. Over-ride any incorrectly computed classification types, and create new
+detections for objects which were missed by the initial model. Export a new detection csv
+(File->Export Tracks) after correcting as many boxes as you can. Lastly, feed this into the
+ground-up `detector training example`_. Make sure to set whatever threshold you set for annotation
+in the [train].sh script you use for new model training.
+
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_20_edited_detections.jpg
+   :width: 40%
+   :align: center
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_20_edited_detections.jpg
+
+.. _detector training example: https://github.com/VIAME/VIAME/tree/main/examples/object_detector_training
+
+SEARCH Interface (Deprecated)
+=============================
+
+The standalone SEARCH interface predates the Query page of DIVE. It is deprecated: it remains
+available but is no longer developed, and DIVE or the command line tools above are recommended
+for new work. It searches an index built from the command line, as in `Building an Index`_.
 
 Perform an Image Query
-======================
+----------------------
 
 After performing an ingest 'bash launch_search_interface.sh' should be called to launch the GUI.
 
@@ -139,6 +254,7 @@ After performing an ingest 'bash launch_search_interface.sh' should be called to
 |
 | From the Query Type drop down, select Image Exemplar
 |
+
 Next select an image to use as an exemplar of what you are looking for. This image can
 take one of two forms, either a large image containing many objects including your
 object of interest, or a cropped out version of your object.
@@ -215,12 +331,8 @@ default VIAME csv format and others. You can show multiple entries at the same t
 them all (hold shift, press the first entry then the last), right-clicking on them, and going
 to 'Show Selected Entries'.
 
-Rapid Model Generation
-======================
-
-Rapid model generation uses the same method as image and video search (above), saving out the
-detection model that is trained while the results of a query are refined. These models can then be
-used in detection pipelines, or further refined or used in future video searches.
+Refine Results and Save a Model
+-------------------------------
 
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_12_adjudacation.jpg
    :width: 40%
@@ -270,67 +382,6 @@ datasets.
    :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_17_saved_models.jpg
 
 The category models directory should contain only .svm model files.
-
-Re-Run Models on Additional Data
-================================
-
-If you have one or more .svm model files in your trained_model folder, you can run the
-'bash process_list_using_models.sh' script in your project folder. This can either be on
-the same data you just processed, or new data. By default, this script consumes the supplied
-ingest_list.txt and produces a detection file called 'svm_detections.csv' containing a probability
-for each input model in the trained_model directory per detection. Alternatively this pipeline,
-this can be run from `within the annotation GUI`_.
-
-.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_18_produced_detections.png
-   :width: 40%
-   :align: center
-   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_18_produced_detections.png
-
-The resultant detection .csv file is in the same common format that most other examples in VIAME
-take. You can load this detection file up in the annotation GUI and select a detection threshold
-for your newly-trained detector, `see here`_. You can use these models on any imagery, it doesn't
-need to be the same imagery you trained it on.
-
-.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_19_edited_detections.jpg
-   :width: 15%
-   :align: center
-   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_19_edited_detections.jpg
-
-.. _within the annotation GUI: https://github.com/VIAME/VIAME/tree/main/examples/object_detection
-.. _see here: https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization
-
-Correct Results and Train a Better Model
-========================================
-
-If you have a detection .csv file for corresponding imagery, and want to train a better (deep)
-model for the data, you can first correct any mistakes (either mis-classifications,
-grossly incorrect boxes, or missed detections) in the annotation GUI. To do this, set a detection
-threshold you want to annotate at, do not change it, and make the boxes as perfect as possible
-at this threshold. Over-ride any incorrectly computed classification types, and create new
-detections for objects which were missed by the initial model. Export a new detection csv
-(File->Export Tracks) after correcting as many boxes as you can. Lastly, feed this into the
-ground-up `detector training example`_. Make sure to set whatever threshold you set for annotation
-in the [train].sh script you use for new model training.
-
-.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_20_edited_detections.jpg
-   :width: 40%
-   :align: center
-   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_20_edited_detections.jpg
-
-.. _detector training example: https://github.com/VIAME/VIAME/tree/main/examples/object_detector_training
-
-Text-Prompted Detection and Tracking
-=====================================
-
-Objects can also be found by describing them in words, with no index or example image needed.
-See `text query and VLM <https://viame.github.io/VIAME/sections/text_query_and_vlm.html>`__.
-
-
-Tuning Algorithms (Advanced)
-============================
-
-Coming Soon....
- 
 
 
 .. dive-crosslink

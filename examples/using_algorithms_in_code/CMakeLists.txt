@@ -8,6 +8,8 @@
 install( FILES       detector1.cxx
                      detector3.cxx
                      detector4.cxx
+                     detector1.py
+                     detector3.py
                      CMakeLists.txt
          DESTINATION examples/using_algorithms_in_code )
 

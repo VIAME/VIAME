@@ -62,7 +62,7 @@ required if just using manual annotators or you don't care much about algorithm 
 **Installation Requirements:** <br>
 * Up to 8 Gb of Disk Space for the Full Installation <br>
 * Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
-  * Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764). <br>
+  * Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://support.microsoft.com/kb/2533623). <br>
   * MacOS is currently supported running web and standalone annotation tools, but not full desktop.
 
 **Installation Recommendations:** <br>

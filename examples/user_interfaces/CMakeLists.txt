@@ -73,4 +73,4 @@ if( VIAME_ENABLE_SEAL )
 endif()
 
 install( FILES        ${example_files}
-         DESTINATION  examples/annotation_and_visualization )
+         DESTINATION  examples/user_interfaces )
