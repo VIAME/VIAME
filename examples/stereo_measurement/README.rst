@@ -1,7 +1,7 @@
 
-================
-Size Measurement
-================
+==================
+Stereo Measurement
+==================
 
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/fish_measurement_example.jpg
    :width: 70%
@@ -22,33 +22,22 @@ quickstart`_ covers drawing the head/tail lines that carry length.
 Running the Demo
 ================
 
-This section corresponds to the `size measurement
-<https://github.com/VIAME/VIAME/tree/main/examples/size_measurement>`_ example folder
+This section corresponds to the `stereo measurement
+<https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement>`_ example folder
 within a VIAME desktop installation. This folder contains examples and pipelines for
-computing real-world size measurements of objects (e.g., fish length) from imagery.
+computing real-world size measurements of objects (e.g., fish length) from a calibrated
+pair of cameras.
 
-VIAME supports two primary approaches to size measurement:
+Stereo measurement triangulates 3D positions from the two views and computes real-world
+distances between them. It is the most accurate approach and works at varying depths and
+distances. It requires a stereo calibration file containing camera intrinsic and extrinsic
+parameters (see the `Calibration Pipelines`_ section). Stereo measurement pipelines detect
+or accept annotated objects in both left and right camera views, establish correspondences
+between them, and triangulate keypoints (e.g., head and tail) to compute lengths.
 
-**Stereo-Based Measurement**
-  Uses a calibrated pair of stereo cameras to triangulate 3D positions and compute
-  real-world distances. This is the most accurate approach and works at varying depths
-  and distances. It requires a stereo calibration file containing camera intrinsic and
-  extrinsic parameters (see the `Calibration Pipelines`_ section). Stereo measurement
-  pipelines detect or accept annotated objects in both left and right camera views,
-  establish correspondences between them, and triangulate keypoints (e.g., head and
-  tail) to compute lengths. The demo data and scripts in this folder use stereo-based
-  measurement.
-
-**Metadata-Based Measurement**
-  Uses camera metadata -- such as altitude above the seafloor, camera intrinsics, and
-  orientation angles (yaw, pitch, roll) -- to compute a ground sample distance (GSD)
-  and convert pixel measurements to real-world units. This approach requires only a
-  single camera but depends on accurate metadata being available for each frame. It is
-  well-suited for downward-looking survey cameras at a known or measured altitude, such
-  as the HabCam benthic survey system. Examples of metadata-based measurement can be
-  found in the HabCam add-on (e.g., ``detector_habcam_measure_scallops_one_class_metadata.pipe``),
-  which reads altitude and orientation from image metadata and applies a GSD calculation
-  using the camera intrinsics matrix.
+When only one camera is available, see `monocular measurement
+<https://viame.readthedocs.io/en/latest/sections/monocular_measurement.html>`__, which measures from the camera's height above
+the scene instead.
 
 Run CMake to automatically download the demo data into this example folder.
 Alternatively you can download the demo data `directly`_.
@@ -117,7 +106,7 @@ runner:
 ::
 
     # First move to the example directory
-    cd [viame-build]/install/examples/size_measurement
+    cd [viame-build]/install/examples/stereo_measurement
 
     # The below script runs pipeline runner on the GMM motion-based measurement
     bash measure_via_gmm_oriented_boxes.sh
@@ -173,7 +162,7 @@ VIAME)
 ::
 
     # First move to the example directory
-    cd [viame-source]/examples/size_measurement
+    cd [viame-source]/examples/stereo_measurement
 
     # Run the stereo_demo module directly via the path
     python ../../plugins/opencv/stereo_demo.py \
@@ -239,10 +228,9 @@ and right camera views.*
   calibration frames and want quicker results at the cost of slightly reduced accuracy.
 
 **utility_calibrate_single_camera.pipe**
-  Monocular (single camera) calibration from images of a chessboard target. Computes
-  intrinsic parameters and distortion coefficients for a single camera. Outputs
-  ``calibration.json``. Useful when you only need to undistort imagery from one camera
-  or as a preliminary step before stereo calibration.
+  Monocular (single camera) calibration from images of a chessboard target. Outputs
+  ``calibration.json``. Useful as a preliminary step before stereo calibration; see
+  `monocular measurement <https://viame.readthedocs.io/en/latest/sections/monocular_measurement.html>`__ for its use on its own.
 
 **utility_calibrate_stitched_stereo_pair.pipe**
   Calibrates a stereo pair from a single video or image input where left and right
@@ -251,15 +239,10 @@ and right camera views.*
   Outputs ``calibration_matrices.json``. Useful for cameras that record both views into
   a single file.
 
-To run a calibration pipeline from the command line, for example::
+To run a calibration pipeline from the command line, for example with separate camera
+inputs::
 
   source /path/to/VIAME/install/setup_viame.sh
-  kwiver runner configs/pipelines/utility_calibrate_single_camera.pipe \
-    -s downsampler:input_file_name=calibration_images.txt \
-    -s global:square_size=25.0
-
-For stereo calibration with separate camera inputs::
-
   kwiver runner configs/pipelines/stereo_calibrate_cameras_default.pipe \
     -s input1:video_filename=cam1_images.txt \
     -s input2:video_filename=cam2_images.txt \

@@ -138,7 +138,8 @@ nav:
   - sections/detection_file_conversions.md
   - sections/object_detection.md
   - sections/object_detector_training.md
-  - sections/size_measurement.md
+  - sections/stereo_measurement.md
+  - sections/monocular_measurement.md
   - sections/object_tracking.md
   - sections/image_enhancement.md
   - sections/search_and_rapid_model_generation.md

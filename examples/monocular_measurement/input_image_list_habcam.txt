@@ -1,0 +1,3 @@
+../example_imagery/habcam_example_image_set1/201503.20150517.105551974.76450.png
+../example_imagery/habcam_example_image_set1/201503.20150517.105822594.77350.png
+../example_imagery/habcam_example_image_set1/201503.20150517.110649681.80300.png

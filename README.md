@@ -36,7 +36,7 @@ but select entries are also listed below broken down by individual functionality
 [Python Usage](https://github.com/VIAME/VIAME/blob/main/docs/python_package.md) <>
 [Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/registration_and_mosaicing)  <>
-[Size Measurement](examples/size_measurement) <>
+[Size Measurement](examples/stereo_measurement) <>
 [Pipelining Overview](https://github.com/Kitware/kwiver) <>
 [Core Classes](https://kwiver.readthedocs.io/en/latest) <>
 [Plugin Integration](examples/example_pipeline) <>

@@ -470,44 +470,44 @@ if( VIAME_ENABLE_PYTHON )
   )
 
   # ============================================================================
-  # Size Measurement Tests
+  # Stereo Measurement Tests
   # ============================================================================
   add_example_script_test(
     viame_examples:calibrate_cameras
-    test_size_measurement.py
+    test_stereo_measurement.py
     TestCalibrateCameras
-    size_measurement
+    stereo_measurement
   )
   add_example_script_test(
     viame_examples:compute_depth_maps_measurement
-    test_size_measurement.py
+    test_stereo_measurement.py
     TestComputeDepthMaps
-    size_measurement
+    stereo_measurement
   )
   add_example_script_test(
     viame_examples:gmm_standalone_tool
-    test_size_measurement.py
+    test_stereo_measurement.py
     TestGmmStandaloneTool
-    size_measurement
+    stereo_measurement
   )
   add_example_script_test(
     viame_examples:measure_over_manual_annotations
-    test_size_measurement.py
+    test_stereo_measurement.py
     TestMeasureOverManualAnnotations
-    size_measurement
+    stereo_measurement
   )
   # CRITICAL: viame_examples:measure_via_default_fish
   add_critical_example_test(
     viame_examples:measure_via_default_fish
-    test_size_measurement.py
+    test_stereo_measurement.py
     TestMeasureViaDefaultFish
-    size_measurement
+    stereo_measurement
   )
   add_example_script_test(
     viame_examples:measure_via_gmm_oriented_boxes
-    test_size_measurement.py
+    test_stereo_measurement.py
     TestMeasureViaGmmOrientedBoxes
-    size_measurement
+    stereo_measurement
   )
 
 endif()

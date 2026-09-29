@@ -13,7 +13,7 @@ There are several routes from raw imagery to a working model in VIAME. They diff
 | Deep learning from scratch | Highest, every object is drawn by hand | Hundreds of examples per class | Best, given enough data |
 | Deep learning with partial automation | Moderate, the user corrects what a detector proposes | Hundreds of examples per class | Same as above, reached sooner |
 | IQR (video search with adjudication) | Low, the user accepts or rejects results | A few examples to start | Good for the amount of data, below a well trained deep model |
-| Text search | Low, the user types a description and corrects the results | None to begin | Initial annotations rather than a model |
+| Text queries | Low, the user types a description and corrects the results | None to begin | Initial annotations rather than a model |
 
 ## Workflow 1: Deep Learning from Scratch
 
@@ -88,9 +88,9 @@ IQR (iterative query refinement) is video search with adjudication. The user giv
 
 Use this for a new class with few examples, or to find rare objects in a large archive. Its results can also be corrected and used as annotations for the first two workflows. See [video and image search](https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html).
 
-## Text Searches for Rapid Annotation
+## Workflow 4: Text Queries for Rapid Annotation
 
-A text search finds objects from a description in words, such as "fish" or "sea turtle". It needs no annotations, no index and no trained model, so it is the quickest way to get a first set of annotations on new imagery. It is best seen as a faster start to the second workflow than as a way to produce a final model.
+A text query finds objects from a description in words, such as "fish" or "sea turtle". It needs no annotations, no index and no trained model, so it is the quickest way to get a first set of annotations on new imagery. It is best seen as a faster start to the second workflow than as a way to produce a final model.
 
 1. Load up imagery in annotator
 2. Run a text query pipeline, giving a description of the objects
@@ -118,7 +118,7 @@ Use this at the start of a project, or for a new class that no detector covers. 
 
 | Situation | Suggested start |
 |----|----|
-| New imagery, nothing annotated yet | Text search, then correct and train |
+| New imagery, nothing annotated yet | Text queries, then correct and train |
 | A detector already finds most of the objects | Partial automation |
 | A rare object in a large archive | IQR |
 | A handful of examples of a new class | IQR, or the SVM trainer |

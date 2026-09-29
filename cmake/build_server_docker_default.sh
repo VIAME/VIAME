@@ -52,7 +52,7 @@ CRITICAL_TESTS=(
   "test_object_detection.py|TestFishDetectorExample|object_detection"
   "test_object_tracking.py|TestRunFishTracker|object_tracking"
   "test_object_tracking.py|TestRunGenericTracker|object_tracking"
-  "test_size_measurement.py|TestMeasureViaDefaultFish|size_measurement"
+  "test_stereo_measurement.py|TestMeasureViaDefaultFish|stereo_measurement"
   "test_object_detector_training.py|TestTrainNetharnCfrnnFromViameCsv|object_detector_training"
 )
 

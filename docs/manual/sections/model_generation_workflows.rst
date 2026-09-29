@@ -36,7 +36,7 @@ Comparison
      - Low, the user accepts or rejects results
      - A few examples to start
      - Good for the amount of data, below a well trained deep model
-   * - Text search
+   * - Text queries
      - Low, the user types a description and corrects the results
      - None to begin
      - Initial annotations rather than a model
@@ -141,11 +141,11 @@ Its results can also be corrected and used as annotations for the first two work
 See `video and image
 search <https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html>`__.
 
-**********************************
-Text Searches for Rapid Annotation
-**********************************
+*********************************************
+Workflow 4: Text Queries for Rapid Annotation
+*********************************************
 
-A text search finds objects from a description in words, such as "fish" or "sea turtle".
+A text query finds objects from a description in words, such as "fish" or "sea turtle".
 It needs no annotations, no index and no trained model, so it is the quickest way to get
 a first set of annotations on new imagery. It is best seen as a faster start to the
 second workflow than as a way to produce a final model.
@@ -189,7 +189,7 @@ Choosing a Workflow
    * - Situation
      - Suggested start
    * - New imagery, nothing annotated yet
-     - Text search, then correct and train
+     - Text queries, then correct and train
    * - A detector already finds most of the objects
      - Partial automation
    * - A rare object in a large archive

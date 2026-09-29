@@ -3,13 +3,13 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Tests for size_measurement example scripts.
+Tests for stereo_measurement example scripts.
 """
 
 import pytest
 from test_utilities import get_script_path, assert_script_runs_successfully
 
-CATEGORY = "size_measurement"
+CATEGORY = "stereo_measurement"
 
 
 class TestCalibrateCameras:

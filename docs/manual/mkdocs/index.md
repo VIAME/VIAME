@@ -27,7 +27,8 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 - [Detection File Formats and Conversions](sections/detection_file_conversions.md)
 - [Object Detection](sections/object_detection.md)
 - [Detector Training](sections/object_detector_training.md)
-- [Size Measurement](sections/size_measurement.md)
+- [Stereo Measurement](sections/stereo_measurement.md)
+- [Monocular Measurement](sections/monocular_measurement.md)
 - [Object Tracking](sections/object_tracking.md)
 - [Image Enhancement and Filtering](sections/image_enhancement.md)
 - [Video and Image Search](sections/search_and_rapid_model_generation.md)
@@ -64,9 +65,9 @@ User Interfaces for Annotation, Visualization, and Detector Model Training
 
 Measuring Animal Lengths Using Metadata or Stereo
 
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/size_measurement"><img src="_static/images/fish_measurement_example.jpg" alt="Fish measurement example" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/size_measurement"><img src="_static/images/Calibration-Show-Features-On-Success1.jpg" alt="Calibration show features on success" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/size_measurement"><img src="_static/images/Stereo-Seamap-Short1.jpg" alt="Stereo seamap short" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/fish_measurement_example.jpg" alt="Fish measurement example" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/Calibration-Show-Features-On-Success1.jpg" alt="Calibration show features on success" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/Stereo-Seamap-Short1.jpg" alt="Stereo seamap short" width="29%"></a>
 
 Text, Image, Video Search for Rapid Model Generation
 

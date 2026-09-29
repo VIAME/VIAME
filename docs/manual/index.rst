@@ -61,7 +61,8 @@ Contents
    sections/detection_file_conversions
    sections/object_detection
    sections/object_detector_training
-   sections/size_measurement
+   sections/stereo_measurement
+   sections/monocular_measurement
    sections/object_tracking
    sections/image_enhancement
    sections/search_and_rapid_model_generation
@@ -123,17 +124,17 @@ Measuring Animal Lengths Using Metadata or Stereo
 .. image:: _static/images/fish_measurement_example.jpg
    :alt: Fish measurement example
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/main/examples/size_measurement
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement
 
 .. image:: _static/images/Calibration-Show-Features-On-Success1.jpg
    :alt: Calibration show features on success
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/main/examples/size_measurement
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement
 
 .. image:: _static/images/Stereo-Seamap-Short1.jpg
    :alt: Stereo seamap short
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/main/examples/size_measurement
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement
 
 Text, Image, Video Search for Rapid Model Generation
 
