@@ -50,24 +50,20 @@ Installations
 -------------
 
 For a full installation guide and description of the various flavors of VIAME, see the
-quick-start guide, above. The full desktop version is provided as either a .msi, .zip or
-.tar file. Alternatively, standalone annotators (without any processing algorithms)
-are available via smaller installers (see DIVE standalone, below). Lastly, docker files
-are available for both VIAME Desktop and Web (below). For full desktop installs, extract
+quick-start guide, above. The full desktop version is provided as either a .zip or
+.tar.gz file. Alternatively, .msi installers are available via the DIVE standalone tool,
+which can then install VIAME from the 'add-ons' page. Lastly, docker files are available
+for both VIAME Desktop and Web (below). For full desktop installs, extract
 the binaries and place them in a directory of your choosing, for example /opt/noaa/viame
 on Linux or C:\Program Files\VIAME on Windows. If using packages built with GPU support,
-make sure to have sufficient video drivers installed, version 570.65 or higher. The best
-way to install drivers depends on your operating system. This isn't required if just
-using manual annotators (or frame classifiers only). The binaries are quite large,
-in terms of disk space, due to the inclusion of multiple default model files and
-programs, but if just building your desired features from source (e.g. for embedded
-apps) they are much smaller.
+make sure to have sufficient video drivers installed, version 570.65 or higher. This isn't
+required if just using manual annotators or you don't care much about algorithm speed.
 
 **Installation Requirements:** <br>
 * Up to 8 Gb of Disk Space for the Full Installation <br>
 * Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
   * Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764). <br>
-  * MacOS is currently only supported running standalone annotation tools, see below.
+  * MacOS is currently supported running web and standalone annotation tools, but not full desktop.
 
 **Installation Recommendations:** <br>
 * NVIDIA Drivers (Version 570.65 or above,
