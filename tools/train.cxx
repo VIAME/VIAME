@@ -1402,7 +1402,22 @@ load_evaluation_frame( const evaluated_item& item, int frame, cv::VideoCapture& 
   }
 
   cv::Mat image;
-  video.set( cv::CAP_PROP_POS_MSEC, 1000.0 * frame / item.frame_rate );
+
+  // The rate is the truth file's, or default_frame_rate when it carries
+  // none, and that defaults to zero. Dividing by it asked for a position of
+  // NaN on frame 0 and infinity on every other, so the seek failed or landed
+  // on the first frame and the boxes were drawn on the wrong picture with
+  // nothing to say so. With no rate the video was not resampled, so a frame
+  // id is a frame index and can be sought as one.
+  if( item.frame_rate > 0.0 )
+  {
+    video.set( cv::CAP_PROP_POS_MSEC, 1000.0 * frame / item.frame_rate );
+  }
+  else
+  {
+    video.set( cv::CAP_PROP_POS_FRAMES, frame );
+  }
+
   video.read( image );
   return image;
 }
