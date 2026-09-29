@@ -54,6 +54,19 @@ WEIGHTS = re.compile(
     r"\.(?:pth|pt|zip|onnx|weights|caffemodel|safetensors|engine|cfg)\b"
     r"|relativepath\s+(?:deployed|weight|net_config|model)", re.I)
 
+# What a config *writes* is not something it needs. `common_train_detector.conf`
+# says `output_file = trained_model.zip`, and `.zip` reads as weights to the
+# pattern above -- so every config that includes it, which is every tracker
+# and detector trainer, was classed as naming a model in an unknown spelling
+# and left out of 0.23.4.
+OUTPUT = re.compile(r"^\s*:?[\w:.\-]*output[\w:.\-]*\s*(?:=|\s)", re.I)
+
+
+def _needs(text):
+    """The text with the lines that only say where output goes removed."""
+    return "\n".join(line for line in text.splitlines()
+                     if not OUTPUT.match(line))
+
 
 def _refuse_add_ons(path):
     """Add-on content must never reach the wheel."""
@@ -124,34 +137,52 @@ def main(argv=None):
     entries = sorted(list(root.glob("*.pipe")) + list(root.glob("*.conf")))
 
     selected, models, needs_model, mismatched = set(), set(), 0, []
+    training = 0
+    # Every entry that is left out, with why. A count alone is how twenty
+    # training configs left a release without anyone being told which.
+    left_out = []
     for entry in entries:
         if entry.name.startswith("common_") or not built(entry):
             continue        # an include, or not a pipeline this build makes
         try:
             chain = closure(entry, root)
         except ValueError as exc:
-            print(f"  note: skipping {entry.name}: {exc}", file=sys.stderr)
+            reason = str(exc).replace(str(root) + "/", "")
+            left_out.append((entry.name, reason))
             continue
         if any(not built(path) for path in chain):
+            left_out.append((entry.name, "includes a file this build did not install"))
             continue
-        # The adaptive default trainer handles a missing probe model and
-        # downloads its seed weights when selected. Its templates must still
-        # ship, even when pretrained inference models are not bundled.
-        if entry.name == "train_detector_default.conf":
+        # A training config ships, with everything it includes. The rule
+        # below -- leave out what names a model the build did not install --
+        # is about pipelines that *run* a pretrained model, where a missing
+        # one means the pipeline cannot start. A trainer's `models/` path is
+        # a seed: RF-DETR's configs set `seed_model_url_fallback` and fetch
+        # it, the default trainer downloads what it selects, and the rest say
+        # which file they want when it is absent. Leaving the config out
+        # instead means `viame train` cannot be asked for it at all, even by
+        # someone who has the seed.
+        if entry.suffix == ".conf" and entry.name.startswith("train_"):
             selected |= chain
+            training += 1
             continue
-        text = "\n".join(line.split("#", 1)[0] for c in chain
-                         for line in c.read_text(errors="replace").splitlines())
+        text = _needs("\n".join(
+            line.split("#", 1)[0] for c in chain
+            for line in c.read_text(errors="replace").splitlines()))
 
         refs = {root / r for r in MODEL.findall(text)}
         if refs:
             # A model the build did not install is an add-on that was not
             # downloaded. Its size is unknowable, so it is not ours to ship.
-            if any(not f.is_file() or not built(f) for f in refs):
+            absent = sorted(f.name for f in refs
+                            if not f.is_file() or not built(f))
+            if absent:
                 needs_model += 1
+                left_out.append((entry.name, "needs " + ", ".join(absent)))
                 continue
             if sum(f.stat().st_size for f in refs) > args.max_model_bytes:
                 needs_model += 1
+                left_out.append((entry.name, "its models are over the size cut"))
                 continue
             models |= refs
             selected |= chain
@@ -161,6 +192,8 @@ def main(argv=None):
             # is referenced in a spelling `MODEL` does not know. Report it
             # rather than ship a pipeline that cannot run.
             mismatched.append(entry.name)
+            left_out.append((entry.name,
+                             "mentions weights in a spelling not recognised"))
             continue
         selected |= chain
 
@@ -198,8 +231,11 @@ def main(argv=None):
     size = sum(p.stat().st_size for p in selected)
     msize = sum(p.stat().st_size for p in models)
     extra = f" and {len(models)} model(s), {msize / 1024:.0f} KB" if models else ""
-    print(f"  default configs: {len(selected)} files, {size / 1024:.0f} KB{extra} "
+    print(f"  default configs: {len(selected)} files, {size / 1024:.0f} KB{extra}, "
+          f"{training} training config(s) among them "
           f"({needs_model} pipelines left out as needing add-on models)")
+    for name, reason in sorted(left_out):
+        print(f"    left out: {name} -- {reason}")
     return 0
 
 
