@@ -121,23 +121,21 @@ in the bin folder, or by using the viame add-ons tool.
 Python Package
 --------------
 
-A headless, command-line installation is available on PyPI for Linux and
-Windows, with wheels for Python 3.10 through 3.14:
+A headless, command-line installation on PyPI, for Python 3.10 through 3.14.
+
+Linux:
 
 pip install viame
 
-On Windows, install a CUDA torch first, capped below 2.11:
+Windows, taking a CUDA torch first and capping it below 2.11:
 
 pip install "torch<2.11" torchvision --index-url https://download.pytorch.org/whl/cu128
 pip install viame
 
-See [VIAME as a Python Package](docs/python_package.md) for why the cap is
-there, and for the GPU requirement.
-
-This puts the main `viame` tool described below onto your path, and installs
-the `viame` python package alongside it. See [VIAME as a Python Package](docs/python_package.md)
-for more information. Only a minimal number of pipelines are shipped by default
-with the library; larger models are fetched on demand with the `viame add-ons` command.
+This puts the `viame` tool described below on your path. Only a minimal set
+of pipelines ships with it; larger models come from `viame add-ons`. See
+[VIAME as a Python Package](docs/python_package.md) for the rest, including
+why Windows needs the cap.
 
 Command Line Interface Basics
 -----------------------------
