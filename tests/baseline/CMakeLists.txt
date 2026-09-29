@@ -151,6 +151,17 @@ add_test(
 set_property( TEST "baseline:declared_processes" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:declared_processes" PROPERTY TIMEOUT 60 )
 
+# Which configs a wheel carries. 0.23.4 was published without twenty training
+# configs because an output file name read as a model; the selector's tests
+# existed nowhere and ran nowhere.
+add_test(
+  NAME "baseline:wheel_configs"
+  COMMAND "${Python3_EXECUTABLE}"
+          "${VIAME_SOURCE_DIR}/cmake/wheel/test_select_default_configs.py"
+)
+set_property( TEST "baseline:wheel_configs" PROPERTY LABELS BASELINE )
+set_property( TEST "baseline:wheel_configs" PROPERTY TIMEOUT 60 )
+
 add_test(
   NAME "baseline:fork_cv2_guard"
   COMMAND "${Python3_EXECUTABLE}"
