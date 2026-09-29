@@ -121,15 +121,17 @@ in the bin folder, or by using the viame add-ons tool.
 Python Package
 --------------
 
-A headless, command-line installation on PyPI, for Python 3.10 through 3.14.
+VIAME is available on pypi (for Python 3.10 through 3.14), with wrappers around both
+its main command line tool and libraries for running different algorithms.
 
-Linux:
+To install on Linux run:
 
 pip install viame
 
-Windows, taking a CUDA torch first and capping it below 2.11:
+To install on Windows, first install torch <2.11 with CUDA 12 support, then VIAME:
 
 pip install "torch<2.11" torchvision --index-url https://download.pytorch.org/whl/cu128
+
 pip install viame
 
 This puts the `viame` tool described below on your path. Only a minimal set
