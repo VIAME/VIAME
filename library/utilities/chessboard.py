@@ -58,7 +58,7 @@ MAX_AREA_FRACTION = 0.25
 
 # Two squares are taken to meet when their nearest corners are within this
 # fraction of the smaller square's size.
-MEETING_TOLERANCE = 0.30
+MEETING_TOLERANCE = 0.60
 
 # A corner one step beyond a grid's edge counts as really being there when a
 # traced corner sits within this fraction of the grid's spacing of it.
