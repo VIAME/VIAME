@@ -52,6 +52,16 @@ namespace {
 // The plugin built beside this test; see `external_plugin.cxx`.
 std::string const plugin_library( VIAME_TEST_EXTERNAL_PLUGIN );
 
+// What separates entries in the plugin path. The variable is a path list,
+// so it is `;` on Windows and `:` elsewhere -- `viame::environment_path`
+// splits on exactly this. Spelling it `:` here made three of these tests
+// hand Windows one long path with a drive letter in the middle of it.
+#ifdef _WIN32
+std::string const list_separator( ";" );
+#else
+std::string const list_separator( ":" );
+#endif
+
 // ----------------------------------------------------------------------------
 void
 set_plugin_path( std::string const& value )
@@ -203,7 +213,8 @@ TEST_F( external_plugins, the_factory_records_where_it_came_from )
 // an empty path means the current directory.
 TEST_F( external_plugins, empty_entries_are_skipped )
 {
-  set_plugin_path( ":" + plugin_library + "::" );
+  set_plugin_path( list_separator + plugin_library +
+                   list_separator + list_separator );
 
   auto const loaded = viame::register_external_plugins( loader );
 
@@ -216,7 +227,7 @@ TEST_F( external_plugins, empty_entries_are_skipped )
 // second registration finds the factory already there and keeps the first.
 TEST_F( external_plugins, naming_a_library_twice_is_harmless )
 {
-  set_plugin_path( plugin_library + ":" + plugin_library );
+  set_plugin_path( plugin_library + list_separator + plugin_library );
 
   EXPECT_EQ( 2u, viame::register_external_plugins( loader ).size() );
   EXPECT_TRUE( has_say( loader, "external" ) );
@@ -245,7 +256,8 @@ TEST_F( external_plugins, a_library_without_the_entry_point_is_skipped )
 // One bad entry costs the caller that entry, not the list.
 TEST_F( external_plugins, a_bad_entry_does_not_stop_the_good_ones )
 {
-  set_plugin_path( "/nonexistent/libnothing.so:" + plugin_library );
+  set_plugin_path( "/nonexistent/libnothing.so" + list_separator +
+                   plugin_library );
 
   auto const loaded = viame::register_external_plugins( loader );
 
