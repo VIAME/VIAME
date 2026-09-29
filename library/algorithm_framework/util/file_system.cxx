@@ -146,7 +146,31 @@ file_is_regular( std::string const& path )
 bool
 file_is_full_path( std::string const& path )
 {
-  return fs::path( path ).is_absolute();
+  // Rooted, which is kwiversys's question and not
+  // `std::filesystem::path::is_absolute`'s. They differ on Windows, where
+  // `is_absolute` wants a drive and so calls `/a/b` relative -- and the two
+  // hundred call sites here were written where those are the same answer.
+  //
+  // A drive letter counts on Windows, and only there: on POSIX `C:/x` is a
+  // directory called `C:` and naming it does not root the path.
+  if( path.empty() )
+  {
+    return false;
+  }
+
+  if( is_separator( path.front() ) )
+  {
+    return true;
+  }
+
+#ifdef _WIN32
+  if( path.size() >= 2 && path[ 1 ] == ':' )
+  {
+    return true;
+  }
+#endif
+
+  return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -285,7 +309,10 @@ collapse_full_path( std::string const& path, std::string const& base )
 {
   fs::path whole( path );
 
-  if( whole.is_relative() )
+  // `file_is_full_path`, not `fs::path::is_relative`: see above. Asking the
+  // other question here put the working directory's drive in front of
+  // `/a/../b`.
+  if( !file_is_full_path( path ) )
   {
     whole = fs::path( base ) / whole;
   }
