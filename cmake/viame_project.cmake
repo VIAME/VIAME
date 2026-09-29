@@ -134,8 +134,17 @@ if( VIAME_ENABLE_PYTHON )
   # They were the same before, which put every VIAME python module one
   # directory above site-packages, where nothing imports it. It worked
   # only because an older install had left a copy in the right place.
-  set( viame_python_install_path
-    "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
+  # Windows python has no version level in its layout, and its `Lib` is
+  # the `python_lib_subdir` the interpreter itself reported. Spelling it
+  # `lib/python3.X` there put the package in a directory that merged with
+  # `Lib/` by case and that nothing imports from without PYTHONPATH.
+  if( WIN32 )
+    set( viame_python_install_path
+      "${VIAME_BUILD_INSTALL_PREFIX}/${python_lib_subdir}" )
+  else()
+    set( viame_python_install_path
+      "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
+  endif()
   set( kwiver_python_install_path
     "${viame_python_install_path}/${python_sitename}" )
 endif()
@@ -328,6 +337,12 @@ if( WIN32 )
 
   install( PROGRAMS      ${VIAME_SETUP_SCRIPT}
            DESTINATION   . )
+
+  # The add-on catalog is data, not a shell script: the tools read it to know
+  # which packs exist, and the wheel ships it. Only the `.sh` fetchers beside
+  # it in the branch below are POSIX.
+  install( PROGRAMS      ${VIAME_CMAKE_DIR}/download_viame_addons.csv
+           DESTINATION   bin )
 
   if( VIAME_ENABLE_DIVE )
     install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_dive_interface.bat"

@@ -23,7 +23,34 @@ file( MAKE_DIRECTORY "${VIAME_LITE_GENERATED_DIR}" )
 # CMake. Generated headers go to their own root beside it.
 if( NOT EXISTS "${VIAME_LITE_SOURCE_INCLUDE_DIR}/viame" )
   file( CREATE_LINK "${VIAME_LITE_LIBRARY_DIR}"
-                    "${VIAME_LITE_SOURCE_INCLUDE_DIR}/viame" SYMBOLIC )
+                    "${VIAME_LITE_SOURCE_INCLUDE_DIR}/viame" SYMBOLIC
+        RESULT _viame_lite_link )
+
+  # Windows grants the symlink privilege to an administrator or a machine in
+  # developer mode and to nobody else, so the call above fails on an ordinary
+  # account. A directory junction needs no privilege and the compiler follows
+  # it the same way, so it keeps the property the symlink was chosen for.
+  if( NOT "${_viame_lite_link}" STREQUAL "0" AND WIN32 )
+    file( TO_NATIVE_PATH "${VIAME_LITE_LIBRARY_DIR}" _viame_lite_target )
+    file( TO_NATIVE_PATH "${VIAME_LITE_SOURCE_INCLUDE_DIR}/viame"
+          _viame_lite_junction )
+    execute_process(
+      COMMAND cmd /c mklink /J "${_viame_lite_junction}" "${_viame_lite_target}"
+      RESULT_VARIABLE _viame_lite_link
+      OUTPUT_QUIET ERROR_QUIET )
+  endif()
+
+  # Last resort. It builds, but a header edited under `library/` is not seen
+  # until CMake runs again, so say so -- a stale header otherwise reads as a
+  # compiler that has lost its mind.
+  if( NOT "${_viame_lite_link}" STREQUAL "0" )
+    message( WARNING
+      "Could not link ${VIAME_LITE_SOURCE_INCLUDE_DIR}/viame to "
+      "${VIAME_LITE_LIBRARY_DIR}; copying instead. A header edited under "
+      "library/ will need CMake to be re-run before the build sees it." )
+    file( COPY "${VIAME_LITE_LIBRARY_DIR}/"
+          DESTINATION "${VIAME_LITE_SOURCE_INCLUDE_DIR}/viame" )
+  endif()
 endif()
 
 # The bindings include each other as `<python/kwiver/...>`, which used to

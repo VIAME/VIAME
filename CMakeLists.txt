@@ -133,7 +133,14 @@ include( viame_dependencies )
 set( VIAME_FIRST_CONFIGURATION TRUE CACHE BOOL "Has this project been configured." )
 mark_as_advanced( VIAME_FIRST_CONFIGURATION )
 
-if( MSVC AND VIAME_FIRST_CONFIGURATION )
+# Multi-config generators only. `MSVC` is true for Ninja with the MSVC
+# toolchain too, and setting this there is not harmless: the per-config
+# output directories in `viame_add_library` key on it, so the libraries
+# went to `bin/Release` while the executables stayed in `bin/`, and no
+# test executable could find `viame.dll` beside it.
+get_property( VIAME_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG )
+
+if( MSVC AND VIAME_MULTI_CONFIG AND VIAME_FIRST_CONFIGURATION )
   set( CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "This specifies what \
     build types (configurations) will be available for selection within \
 	  Visual Studio. Options are: Release, RelWithDebInfo, Debug etc. in a \
