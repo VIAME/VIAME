@@ -19,4 +19,4 @@ else()
 endif()
 
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/text_query_and_vlm )
+         DESTINATION examples/text_based_search )

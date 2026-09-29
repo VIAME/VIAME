@@ -90,6 +90,7 @@ validation:
 nav:
   - Documentation Overview: index.md
   - sections/quick_start_guide.md
+  - sections/model_generation_workflows.md
   - sections/installing_from_binaries.md
   - sections/building_from_source.md
   - sections/annotation_and_visualization.md

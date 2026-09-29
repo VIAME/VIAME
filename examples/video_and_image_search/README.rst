@@ -3,7 +3,7 @@
 Video and Image Search
 ======================
 
-This document corresponds to the `search and rapid model generation`_ folder contained within a VIAME
+This document corresponds to the `video and image search`_ folder contained within a VIAME
 desktop installation. This directory contains methods to accomplish three tasks, all of which can
 be used to bootstrap annotation for training more accurate models:
 
@@ -18,7 +18,7 @@ to detect, segment, and track objects without requiring any pre-existing annotat
 an ingested database. See the `text query and VLM <https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html>`__ page
 for more details on using SAM3.
 
-.. _search and rapid model generation: https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation
+.. _video and image search: https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search
 
 Video and Image Archive Search
 ==============================

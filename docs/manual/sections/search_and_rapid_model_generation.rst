@@ -1,4 +1,4 @@
-.. include:: ../../../examples/search_and_rapid_model_generation/README.rst
+.. include:: ../../../examples/video_and_image_search/README.rst
 
 ======================
 Rapid Model Generation

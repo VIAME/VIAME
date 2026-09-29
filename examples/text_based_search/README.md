@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document corresponds to the [text query and VLM](https://github.com/VIAME/VIAME/tree/main/examples/text_query_and_vlm) example folder within a VIAME desktop installation.
+This document corresponds to the [text query and VLM](https://github.com/VIAME/VIAME/tree/main/examples/text_based_search) example folder within a VIAME desktop installation.
 
 A text query finds objects from a description in words, such as "fish" or "sea turtle", instead of from a trained detector or an example image. Nothing has to be annotated or indexed first, which makes it a quick way to get initial detections on new imagery. Three methods are available:
 

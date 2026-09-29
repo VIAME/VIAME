@@ -1,6 +1,6 @@
 # Video and Image Search
 
-This document corresponds to the [search and rapid model generation](https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation) folder contained within a VIAME desktop installation. This directory contains methods to accomplish three tasks, all of which can be used to bootstrap annotation for training more accurate models:
+This document corresponds to the [video and image search](https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search) folder contained within a VIAME desktop installation. This directory contains methods to accomplish three tasks, all of which can be used to bootstrap annotation for training more accurate models:
 
 1. Performing exemplar-based searches on an archive of unannotated imagery or videos
 2. Quickly training up detection models for new categories of objects on the same ingest

@@ -8,7 +8,7 @@ Overview
 ********
 
 This document corresponds to the `text query and
-VLM <https://github.com/VIAME/VIAME/tree/main/examples/text_query_and_vlm>`__ example
+VLM <https://github.com/VIAME/VIAME/tree/main/examples/text_based_search>`__ example
 folder within a VIAME desktop installation.
 
 A text query finds objects from a description in words, such as "fish" or "sea turtle",

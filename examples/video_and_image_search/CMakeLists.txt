@@ -40,4 +40,4 @@ endif()
 # Install configuration files to examples directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/search_and_rapid_model_generation )
+         DESTINATION examples/video_and_image_search )

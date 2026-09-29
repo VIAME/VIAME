@@ -3,13 +3,13 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Tests for search_and_rapid_model_generation example scripts.
+Tests for video_and_image_search example scripts.
 """
 
 import pytest
 from test_utilities import get_script_path, assert_script_runs_successfully
 
-CATEGORY = "search_and_rapid_model_generation"
+CATEGORY = "video_and_image_search"
 
 
 class TestCreateIndexAroundDetections:

@@ -30,7 +30,7 @@ but select entries are also listed below broken down by individual functionality
 [Object Detection](examples/object_detection) <>
 [Detector Training](examples/object_detector_training) <>
 [Object Tracking](examples/object_tracking) <>
-[Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
+[Search and Rapid Model Generation](examples/video_and_image_search) <>
 [Model Evaluation](examples/scoring_and_evaluation) <>
 [Detection Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
 [Python Usage](https://github.com/VIAME/VIAME/blob/main/docs/python_package.md) <>

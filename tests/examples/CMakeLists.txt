@@ -422,51 +422,51 @@ if( VIAME_ENABLE_PYTHON )
   # ============================================================================
   add_example_script_test(
     viame_examples:create_index_around_detections
-    test_search_and_rapid_model_generation.py
+    test_video_and_image_search.py
     TestCreateIndexAroundDetections
-    search_and_rapid_model_generation
+    video_and_image_search
   )
   add_example_script_test(
     viame_examples:create_index_around_existing_detections
-    test_search_and_rapid_model_generation.py
+    test_video_and_image_search.py
     TestCreateIndexAroundExistingDetections
-    search_and_rapid_model_generation
+    video_and_image_search
   )
   add_example_script_test(
     viame_examples:create_index_detection_and_tracking
-    test_search_and_rapid_model_generation.py
+    test_video_and_image_search.py
     TestCreateIndexDetectionAndTracking
-    search_and_rapid_model_generation
+    video_and_image_search
   )
   add_example_script_test(
     viame_examples:create_index_full_frame_only
-    test_search_and_rapid_model_generation.py
+    test_video_and_image_search.py
     TestCreateIndexFullFrameOnly
-    search_and_rapid_model_generation
+    video_and_image_search
   )
   add_example_script_test(
     viame_examples:generate_detections_using_svm_model
-    test_search_and_rapid_model_generation.py
+    test_video_and_image_search.py
     TestGenerateDetectionsUsingSvmModel
-    search_and_rapid_model_generation
+    video_and_image_search
   )
   add_example_script_test(
     viame_examples:perform_cli_query
-    test_search_and_rapid_model_generation.py
+    test_video_and_image_search.py
     TestPerformCliQuery
-    search_and_rapid_model_generation
+    video_and_image_search
   )
   add_example_script_test(
     viame_examples:process_database_using_svm_model
-    test_search_and_rapid_model_generation.py
+    test_video_and_image_search.py
     TestProcessDatabaseUsingSvmModel
-    search_and_rapid_model_generation
+    video_and_image_search
   )
   add_example_script_test(
     viame_examples:process_full_frames_using_svm_model
-    test_search_and_rapid_model_generation.py
+    test_video_and_image_search.py
     TestProcessFullFramesUsingSvmModel
-    search_and_rapid_model_generation
+    video_and_image_search
   )
 
   # ============================================================================

@@ -173,46 +173,6 @@ When creating bounding box annotations:
 - Attempt to avoid dramatic box size changes that aren't associated with an object's movement or overly large boxes
 - Need to consider efficiency (time) vs quality tradeoffs when deciding to do boxes vs pixel masks, box quality, keypoints + boxes, etc.
 
-## 3 Core Model Training Workflows
+## Model Generation Workflows
 
-<img src="../_static/images/quickstart_training_workflows_diagram.png" alt="Training workflows diagram" width="80%">
-
-### Workflow \#1: Traditional Deep Learning from Scratch
-
-1. Load up imagery in annotator
-2. Annotate imagery manually
-3. Export detection or tracks files
-4. Repeat for as many sequences as possible in diverse backgrounds
-5. Run model training
-6. Evaluate model performance
-7. Repeat steps 4 thru 6 as desired on detector fail cases, focusing additional annotation on sequences with the most errors
-
-**Pros:** Models perform better than most other solutions when trained with enough training data.
-
-**Cons:** Requires a large amount of training data and user time to generate it.
-
-### Workflow \#2: Deep Learning with Partial Automation
-
-1. Load up imagery in annotator
-2. Run an automated detector (can be IQR based, default model, other pre-trained detector, or user generated deep detector)
-3. Correct and export detection or tracks files
-4. Repeat for as many sequences as desired in diverse backgrounds
-5. Run model training
-6. Evaluate model performance
-7. Repeat steps 2 thru 6 as desired on detector fail cases
-
-**Pros:** Can speed up annotation if automated detector is decent enough.
-
-**Cons:** If automated detector is poor it can take more effort to correct automated outputs instead of doing annotations from scratch.
-
-### Workflow \#3: IQR (Video Search with Adjudication) for Rapid Model Generation
-
-1. Create searchable index for a video archive (either at full frame level, detection level on top of pre-trained detectors, or track level)
-2. Launch search GUI
-3. Use search GUI to generate IQR (.svm) models
-4. Save models to category directory
-5. Evaluate models
-
-**Pros:** Can be done with very little user effort, mostly computer runtime. Can be used to rapidly generate models for new classes.
-
-**Cons:** GUI generally crashes after about 6 iterations due to memory issues. Models generally not as good as deep models trained on enough training data (but can be better for cases with not a lot of training data).
+There are several routes from raw imagery to a working model, from annotating everything by hand to searching by text or example. See [model generation workflows](https://viame.readthedocs.io/en/latest/sections/model_generation_workflows.html) for the steps of each and how they compare.

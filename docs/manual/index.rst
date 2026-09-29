@@ -49,6 +49,7 @@ Contents
 
    Documentation Overview <https://viame.readthedocs.io/en/latest/index.html>
    sections/quick_start_guide
+   sections/model_generation_workflows
    sections/installing_from_binaries
    sections/building_from_source
    sections/annotation_and_visualization
@@ -139,12 +140,12 @@ Text, Image, Video Search for Rapid Model Generation
 .. image:: _static/images/iqr_11_initial_results.jpg
    :alt: Iqr 11 initial results
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search
 
 .. image:: _static/images/Perform-Text-Query.jpg
    :alt: Perform text query
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search
 
 Illumination Normalization and Color Correction
 

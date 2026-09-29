@@ -15,6 +15,7 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 
 - [Documentation Overview](index.md)
 - [Quick-Start Guide](sections/quick_start_guide.md)
+- [Model Generation Workflows](sections/model_generation_workflows.md)
 - [Installing VIAME from Binaries](sections/installing_from_binaries.md)
 - [Building VIAME From Source](sections/building_from_source.md)
 - [User Interfaces](sections/annotation_and_visualization.md)
@@ -69,8 +70,8 @@ Measuring Animal Lengths Using Metadata or Stereo
 
 Text, Image, Video Search for Rapid Model Generation
 
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation"><img src="_static/images/iqr_11_initial_results.jpg" alt="Iqr 11 initial results" width="29%"></a>
-<a href="https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation"><img src="_static/images/Perform-Text-Query.jpg" alt="Perform text query" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/iqr_11_initial_results.jpg" alt="Iqr 11 initial results" width="29%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/Perform-Text-Query.jpg" alt="Perform text query" width="29%"></a>
 
 Illumination Normalization and Color Correction
 

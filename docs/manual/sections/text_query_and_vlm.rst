@@ -1,1 +1,1 @@
-.. include:: ../../../examples/text_query_and_vlm/README.rst
+.. include:: ../../../examples/text_based_search/README.rst
