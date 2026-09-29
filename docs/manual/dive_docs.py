@@ -7,11 +7,14 @@ syntax into MyST so the pages build as part of the VIAME manual.
 
 import hashlib
 import os
+import posixpath
 import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+import yaml
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
@@ -26,49 +29,11 @@ SUBMODULE = "packages/dive"
 ENTRY = "index.md"
 ENTRY_TITLE = "DIVE Interface"
 
-PAGE_GROUPS = [
-    ("Getting Started", [
-        ("Web-Version.md", "Web Version"),
-        ("Dive-Desktop.md", "Desktop Version"),
-        ("Annotation-QuickStart.md", "Annotation Quickstart"),
-    ]),
-    ("Annotation Interface", [
-        ("Annotation-User-Interface-Overview.md", "Interface Introduction"),
-        ("UI-Navigation-Editing-Bar.md", "Navigation and Editing Bar"),
-        ("UI-Annotation-View.md", "Annotation Window"),
-        ("UI-Type-List.md", "Type List"),
-        ("UI-Track-List.md", "Track List"),
-        ("UI-Timeline.md", "Timeline"),
-        ("UI-Attributes.md", "Attributes"),
-        ("UI-AttributeConfiguration.md", "Attribute Configuration"),
-        ("UI-AttributeDetails.md", "Attribute Details"),
-        ("UI-AttributeTrackFiltering.md", "Attribute Track Filtering"),
-        ("UI-Group-Manager.md", "Group Manager"),
-        ("UI-Suppression.md", "Suppression"),
-        ("UI-DatasetInfo.md", "Dataset Info"),
-        ("UI-Image-Enhancements.md", "Image Enhancements"),
-        ("Annotation-Sets.md", "Annotation Sets"),
-        ("Interactive-Annotation.md", "Interactive Annotation (Desktop)"),
-    ]),
-    ("Running VIAME from DIVE", [
-        ("Pipeline-Documentation.md", "Pipelines and Training"),
-        ("Pipeline-Import-Export.md", "Pipeline Import and Export"),
-        ("Command-Line-Tools.md", "Command Line Tools"),
-        ("Scoring.md", "Scoring"),
-        ("Query.md", "Query"),
-        ("Review.md", "Review"),
-    ]),
-    ("Data and Reference", [
-        ("DataFormats.md", "Data Formats"),
-        ("Frame-Metadata.md", "Frame Metadata"),
-        ("Large-Image-Support.md", "Large Image Support"),
-        ("Multicamera-data.md", "Multicamera and Stereo Data"),
-        ("Mouse-Keyboard-Shortcuts.md", "Mouse and Keyboard Shortcuts"),
-        ("FAQ.md", "Frequently Asked Questions"),
-    ]),
-]
+NAV_FILE = "mkdocs.yml"
+GROUP_PREFIX = "menu-"
 
-PAGES = {name: title for _, pages in PAGE_GROUPS for name, title in pages}
+NAV = []
+PAGES = {}
 
 ADMONITION_CLASS = {
     "note": "note",
@@ -96,7 +61,15 @@ ATTR_LIST = re.compile(r"\{\s*[.#][^}\n]*\}")
 MD_LINK = re.compile(r"\]\((?!https?:|/|#)([A-Za-z0-9._/-]+\.md)(#[A-Za-z0-9._-]+)?\)")
 LOGOS = re.compile(r"<p>\s*(?:<img[^>]*>\s*)+</p>\n*")
 BUTTON = "{ .md-button }"
-ASSET = re.compile(r"(?:\]\(|src=[\"'])((?:images|videos)/[^)\"'\s]+)")
+ASSET = re.compile(r"(?:\]\(|src=[\"'])((?:\.\./)*(?:images|videos)/[^)\"'\s]+)")
+
+
+class NavLoader(yaml.SafeLoader):
+    pass
+
+
+NavLoader.add_multi_constructor(
+    "tag:yaml.org,2002:python/", lambda loader, suffix, node: None)
 
 
 def log(message):
@@ -148,6 +121,36 @@ def source_docs(ref):
     return fetch(ref)
 
 
+def nav_entries(items):
+    entries = []
+    for item in items:
+        title, target = (None, item) if isinstance(item, str) else next(iter(item.items()))
+        if isinstance(target, list):
+            entries.append((title, nav_entries(target)))
+        elif target != ENTRY:
+            entries.append((title or Path(target).stem, target))
+    return entries
+
+
+def nav_pages(entries):
+    pages = {}
+    for title, target in entries:
+        if isinstance(target, list):
+            pages.update(nav_pages(target))
+        elif target.endswith(".md") and "://" not in target:
+            pages[target] = title
+    return pages
+
+
+def load_nav(source):
+    """The menu is DIVE's own, so this section is laid out like the DIVE site."""
+    config = yaml.load(
+        (source.parent / NAV_FILE).read_text(encoding="utf-8"), Loader=NavLoader)
+    NAV[:] = nav_entries(config.get("nav") or [])
+    PAGES.clear()
+    PAGES.update(nav_pages(NAV))
+
+
 def capitalize_key(token):
     if token.startswith("arrow-"):
         return token[len("arrow-"):].capitalize() + " Arrow"
@@ -165,22 +168,26 @@ def icon_text(match):
     return name if name.endswith("icon") else name + " icon"
 
 
-def convert_inline(line):
+def convert_inline(line, page):
     line = ICON.sub(icon_text, line)
     line = ATTR_LIST.sub("", line)
     line = KEYS.sub(lambda m: "`" + "+".join(
         capitalize_key(t) for t in m.group(1).split("+")) + "`", line)
     line = MARK.sub(r"**\1**", line)
-    line = MD_LINK.sub(rewrite_link, line)
+    line = MD_LINK.sub(lambda match: rewrite_link(match, page), line)
     line = re.sub(r"\[\s+", "[", line)
     return line.rstrip()
 
 
-def rewrite_link(match):
+def rewrite_link(match, page):
     target, anchor = match.group(1), match.group(2) or ""
-    if target in PAGES or target == ENTRY:
-        return "](" + target + anchor + ")"
-    return "](" + DIVE_SITE + "/" + target[:-3] + "/" + anchor + ")"
+    folder = posixpath.dirname(page)
+    resolved = posixpath.normpath(posixpath.join(folder, target))
+    # Pages in subfolders link some top-level pages as if they sat beside them
+    for name in (resolved, posixpath.basename(target)):
+        if name in PAGES or name == ENTRY:
+            return "](" + posixpath.relpath(name, folder or ".") + anchor + ")"
+    return "](" + DIVE_SITE + "/" + resolved[:-3] + "/" + anchor + ")"
 
 
 def strip_front_matter(lines):
@@ -226,7 +233,7 @@ def expand_admonitions(lines):
     return out
 
 
-def convert(text, title):
+def convert(text, title, page):
     lines = strip_front_matter(text.splitlines())
     lines = expand_admonitions(lines)
     out, in_fence = [], False
@@ -235,7 +242,7 @@ def convert(text, title):
             in_fence = not in_fence
             out.append(line.replace("```mermaid", "```text"))
             continue
-        out.append(line if in_fence else convert_inline(line))
+        out.append(line if in_fence else convert_inline(line, page))
     body = "\n".join(out).strip("\n")
     if not re.search(r"^# ", body, re.M):
         body = "# " + title + "\n\n" + body
@@ -249,31 +256,49 @@ def entry_text(source):
     return text.replace("This is the documentation site for DIVE, a", "DIVE is a", 1)
 
 
-def copy_assets(text, source, dest):
-    for path in set(ASSET.findall(text)):
+def page_assets(text, page, source):
+    folder = posixpath.dirname(page)
+    paths = {posixpath.normpath(posixpath.join(folder, path)) for path in ASSET.findall(text)}
+    return sorted(path for path in paths if (source / path).is_file())
+
+
+def copy_assets(text, page, source, dest):
+    for path in page_assets(text, page, source):
         origin = source / path
-        if not origin.is_file():
-            continue
         target = dest / path
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(origin, target)
 
 
+def toctree(entries):
+    lines = ["```{toctree}", ":maxdepth: 1", ""]
+    for title, target in entries:
+        if isinstance(target, list):
+            target = write_group(title, target)
+        elif target.endswith(".md"):
+            target = target[:-3]
+        lines.append(title + " <" + target + ">")
+    return lines + ["```", ""]
+
+
+def write_group(title, entries):
+    name = GROUP_PREFIX + re.sub(r"[^A-Za-z0-9]+", "-", title).strip("-")
+    lines = ["# " + title, ""] + toctree(entries)
+    (OUTPUT / (name + ".md")).write_text("\n".join(lines), encoding="utf-8")
+    return name
+
+
 def write_index(ref, source):
     entry = ICON.sub("", entry_text(source))
     entry = LOGOS.sub("", entry).replace(BUTTON + " [", BUTTON + " | [")
-    copy_assets(entry, source, OUTPUT)
+    copy_assets(entry, ENTRY, source, OUTPUT)
     lines = [
-        convert(entry, ENTRY_TITLE),
+        convert(entry, ENTRY_TITLE, ENTRY),
         "The pages below are vendored from the [DIVE manual](" + DIVE_SITE + ") at the",
         "revision VIAME currently ships (`" + ref[:12] + "`). The upstream site is",
         "authoritative for anything newer.",
         "",
-    ]
-    for caption, pages in PAGE_GROUPS:
-        lines += ["```{toctree}", ":maxdepth: 1", ":caption: " + caption, ""]
-        lines += [name[:-3] for name, _ in pages]
-        lines += ["```", ""]
+    ] + toctree(NAV)
     (OUTPUT / "index.md").write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -302,6 +327,7 @@ def generate(force=False):
     if source is None:
         write_placeholder("DIVE checkout unavailable")
         return False
+    load_nav(source)
     if OUTPUT.exists():
         shutil.rmtree(OUTPUT)
     OUTPUT.mkdir(parents=True)
@@ -311,9 +337,10 @@ def generate(force=False):
         if not origin.is_file():
             log("skipping missing page " + name)
             continue
-        text = convert(origin.read_text(encoding="utf-8"), title)
+        text = convert(origin.read_text(encoding="utf-8"), title, name)
+        (OUTPUT / name).parent.mkdir(parents=True, exist_ok=True)
         (OUTPUT / name).write_text(text, encoding="utf-8")
-        copy_assets(text, source, OUTPUT)
+        copy_assets(text, name, source, OUTPUT)
         count += 1
     write_index(ref, source)
     STAMP.write_text(stamp, encoding="utf-8")

@@ -122,7 +122,7 @@ Before annotating anything, run the existing models in the [model zoo and add-on
 
 | Situation | Suggested start |
 |----|----|
-| New imagery, nothing annotated yet | Try existing models and text queries on a sample, and keep whichever saves annotation time |
+| New imagery, nothing annotated yet | Try existing models and text queries on a sample, and keep whichever saves annotation time; falling back to manual annotation or video search depending on how much time you have to annotate |
 | An existing model or text query finds most of the objects | Partial automation |
 | Neither helps, and annotation time is available | Deep learning from scratch |
 | Neither helps, and time is short | Video search with feedback |

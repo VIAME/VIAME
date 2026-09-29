@@ -2,3 +2,4 @@ breathe
 sphinx-rtd-theme
 sphinx-rtd-dark-mode
 myst-parser
+pyyaml

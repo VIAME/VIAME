@@ -34,6 +34,8 @@ HEADING = re.compile(r"^(#+) +(.*)$")
 ALERT = re.compile(r"^> \[!(\w+)\] *$")
 REPO_IMAGE = re.compile(r"(?:\.\./)+docs/manual/(_static/images/)")
 
+DIVE = (None, None)
+
 
 def included(text, directory):
     """Markdown twin of what the include directives of a Sphinx page pull in."""
@@ -138,7 +140,7 @@ def promote_headings(markdown):
 def dive_index(ref, source):
     if source is None:
         return "# " + dive_docs.ENTRY_TITLE + "\n\nSee the [DIVE manual](" + dive_docs.DIVE_SITE + ").\n"
-    return dive_page(dive_docs.entry_text(source)) + "\n".join([
+    return dive_page(dive_docs.entry_text(source), dive_docs.ENTRY) + "\n".join([
         "",
         "The pages below are vendored from the [DIVE manual](" + dive_docs.DIVE_SITE +
         ") at the revision VIAME currently ships (`" + ref[:12] + "`). The upstream "
@@ -147,34 +149,53 @@ def dive_index(ref, source):
     ])
 
 
-def dive_page(text):
+def dive_page(text, page):
     lines = text.splitlines()
     for index, line in outside_fences(lines):
-        lines[index] = dive_docs.MD_LINK.sub(dive_docs.rewrite_link, line)
+        lines[index] = dive_docs.MD_LINK.sub(
+            lambda match: dive_docs.rewrite_link(match, page), line)
     return "\n".join(lines) + "\n"
+
+
+def dive_source():
+    ref = dive_docs.dive_ref()
+    source = dive_docs.source_docs(ref)
+    if source is not None:
+        dive_docs.load_nav(source)
+    return ref, source
+
+
+def dive_menu(entries):
+    menu = []
+    for title, target in entries:
+        if isinstance(target, list):
+            menu.append({title: dive_menu(target)})
+        elif "://" in target:
+            menu.append({title: target})
+        else:
+            menu.append({title: DIVE_DIR + "/" + target})
+    return menu
 
 
 def collect_dive(pages, assets):
     """DIVE writes for mkdocs-material already, so its pages are used as they are."""
-    ref = dive_docs.dive_ref()
-    source = dive_docs.source_docs(ref)
+    ref, source = DIVE
     pages[DIVE_DIR + "/index"] = dive_index(ref, source)
     if source is None:
         log.warning("DIVE manual unavailable, building without it")
         return
-    for asset in set(dive_docs.ASSET.findall(dive_docs.entry_text(source))):
-        if (source / asset).is_file():
-            assets[DIVE_DIR + "/" + asset] = source / asset
+    entry = dive_docs.entry_text(source)
+    for asset in dive_docs.page_assets(entry, dive_docs.ENTRY, source):
+        assets[DIVE_DIR + "/" + asset] = source / asset
     for name in dive_docs.PAGES:
         origin = source / name
         if not origin.is_file():
             log.warning("skipping missing DIVE page %s", name)
             continue
         text = origin.read_text(encoding="utf-8")
-        pages[DIVE_DIR + "/" + name[:-3]] = dive_page(text)
-        for asset in set(dive_docs.ASSET.findall(text)):
-            if (source / asset).is_file():
-                assets[DIVE_DIR + "/" + asset] = source / asset
+        pages[DIVE_DIR + "/" + name[:-3]] = dive_page(text, name)
+        for asset in dive_docs.page_assets(text, name, source):
+            assets[DIVE_DIR + "/" + asset] = source / asset
 
 
 def generate():
@@ -197,6 +218,15 @@ def generate():
         assets["_static/images/" + path.name] = path
     assets["favicon.ico"] = HERE.parent / "favicon.ico"
     return pages, assets
+
+
+def on_config(config):
+    global DIVE
+    DIVE = dive_source()
+    for item in config["nav"]:
+        if isinstance(item, dict) and dive_docs.ENTRY_TITLE in item:
+            item[dive_docs.ENTRY_TITLE] = [DIVE_DIR + "/index.md"] + dive_menu(dive_docs.NAV)
+    return config
 
 
 def on_files(files, config):

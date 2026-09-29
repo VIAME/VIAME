@@ -178,8 +178,91 @@ Project Folders
 ===============
 
 The "examples" folder is one of two core entry points into running VIAME functionality. The other is
-to copy project folders to a working drive outside of the installation. Project folders (Windows, Linux)
-are located in the "configs/prj-template" folder of a desktop installation
+a project folder: a folder of scripts which is copied to a working drive outside of the installation,
+kept beside your own data, and run from there. A template project folder is located in the
+"configs/prj-template" folder of a desktop installation, holding .bat scripts on Windows and .sh
+scripts on Linux.
+
+**************************
+Running VIAME from Scripts
+**************************
+
+Each script is a short text file which sets a few options and then makes a single call to the
+``viame`` command line tool, so running a script does the same thing as typing that command out
+by hand. To run one:
+
+1) Copy "configs/prj-template" to a folder of your own, on a drive with room for your data and
+   the outputs
+2) Open the script in a text editor and check the options at its top, which are listed below.
+   ``VIAME_INSTALL`` has to point to your installation, and is set to "/opt/noaa/viame" on Linux
+   and "C:\\Program Files\\VIAME" on Windows by default
+3) Put your data where the script looks for it, inside of the project folder. This is a "videos"
+   folder for the processing scripts and a "training_data" folder for the training ones. See
+   `scripts and example folders <https://viame.github.io/VIAME/sections/examples_overview.html>`__
+   for how these folders are laid out
+4) Run the script from within the project folder, as the folders named in it are relative to
+   where it is run. On Windows, double click the .bat file. On Linux, open a terminal in the
+   project folder and run, for example, ``bash generate_detections_using_default_model.sh``
+
+Results are written into the project folder, in the "output" folder unless the script says
+otherwise.
+
+The options at the top of the scripts are:
+
++---------------------+-----------------------------------------------------------------------------+
+| Option              | Description                                                                 |
++=====================+=============================================================================+
+| ``VIAME_INSTALL``   | Location of the VIAME installation                                          |
++---------------------+-----------------------------------------------------------------------------+
+| ``INPUT``           | Folder of videos, or of folders of images, to process ("videos" by default) |
++---------------------+-----------------------------------------------------------------------------+
+| ``OUTPUT``          | Folder the results are written into ("output" by default)                   |
++---------------------+-----------------------------------------------------------------------------+
+| ``INPUT_DIRECTORY`` | Folder of annotated data to train on ("training_data" by default)           |
++---------------------+-----------------------------------------------------------------------------+
+| ``FRAME_RATE``      | Frames per second to process videos at                                      |
++---------------------+-----------------------------------------------------------------------------+
+| ``PIPELINE``        | Pipeline to run over each input, for the scripts which use a default model  |
++---------------------+-----------------------------------------------------------------------------+
+| ``TOTAL_GPU_COUNT`` | Number of GPUs to spread the processing over                                |
++---------------------+-----------------------------------------------------------------------------+
+| ``PIPES_PER_GPU``   | Number of inputs to process at once on each GPU                             |
++---------------------+-----------------------------------------------------------------------------+
+
+Not every script has every option, and anything else the ``viame`` tool accepts can be added to
+the command at the bottom of a script, see the
+`command line interface <https://viame.github.io/VIAME/sections/command_line_interface.html>`__ page.
+
+***************************
+Scripts in a Project Folder
+***************************
+
++-----------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
+| Task                              | Scripts                                                                                                                                   |
++===================================+===========================================================================================================================================+
+| Annotate data                     | launch_dive_interface                                                                                                                     |
++-----------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
+| Prepare video                     | extract_video_frames, extract_video_clips, make_image_list                                                                                |
++-----------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
+| Run a model shipped with VIAME    | generate_detections_using_default_model, generate_tracks_using_default_model                                                              |
++-----------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
+| Train a model on your annotations | train_deep_cfrnn_detector_from_csv, train_deep_yolo_detector_from_csv, train_svm_detector_from_csv, continue_training_deep_cfrnn_detector |
++-----------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
+| Run a model you trained           | generate_detections_using_trained_model, generate_tracks_using_trained_model, classify_frames_using_trained_model                         |
++-----------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
+| Search an archive                 | create_index.around_detections, create_index.detection_and_tracking, launch_search_interface, process_database_using_svm_model            |
++-----------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
+| Build mosaics                     | generate_mosaics_using_default_model                                                                                                      |
++-----------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------+
+
+A few of the scripts differ between Windows and Linux. A common order to use them in is to
+annotate a few videos in `DIVE <https://viame.github.io/VIAME/sections/dive/index.html>`__,
+export the annotations into "training_data" beside their videos, train a detector, and then run
+the trained model over the rest of the videos.
+
+**************
+Trained Models
+**************
 
 Training writes the trained model as a single pack, "trained_model.zip", holding the generated
 pipelines, model files, a model card and any evaluation results. The "\*_using_trained_model",

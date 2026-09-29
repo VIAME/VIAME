@@ -1,6 +1,6 @@
 # VIAME { .hidden-title }
 
-[VIAME](https://www.viametoolkit.org) is a computer vision application designed for do-it-yourself artificial intelligence including object detection, object tracking, data annotation, multi-camera processing, size measurement, image enhancement, rapid model generation, query-based search, mosaicing, and tools for the evaluation of algorithms. Originally targeting marine species analytics, VIAME now contains many algorithms and libraries, and is useful as a generic computer vision toolkit. It contains a number of tools for accomplishing the above, a pipeline framework which can connect C++/Python nodes in a multi-threaded fashion, and multiple algorithms resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been integrated into both desktop and web user interfaces for deployments in different environments, with an open annotation archive and example of the web platform available at [viame.kitware.com](https://viame.kitware.com).
+Video and Image Analytics for Multiple Environments ([VIAME](https://www.viametoolkit.org)) is a computer vision application designed for do-it-yourself artificial intelligence including object detection, object tracking, data annotation, multi-camera processing, size measurement, image enhancement, rapid model generation, query-based search, mosaicing, and tools for the evaluation of algorithms. Originally targeting marine species analytics, VIAME now contains many algorithms and libraries, and is useful as a generic computer vision toolkit. It contains a number of tools for accomplishing the above, a pipeline framework which can connect C++/Python nodes in a multi-threaded fashion, and multiple algorithms resting on top of the pipeline infrastructure. Lastly, a portion of the algorithms have been integrated into both desktop and web user interfaces for deployments in different environments, with an open annotation archive and example of the web platform available at [viame.kitware.com](https://viame.kitware.com).
 
 ## Documentation Overview
 
@@ -73,10 +73,10 @@ Detector and Tracker Evaluation
 - [User Interfaces](sections/user_interfaces.md)
 - [DIVE Interface](sections/dive/index.md)
 - [Interactive Annotation](sections/interactive_annotation.md)
-- [Command Line Interface](sections/command_line_interface.md)
 - [Python Interface](sections/python_interface.md)
 - [Project Folders](sections/project_folders.md)
 - [Scripts and Example Folders](sections/examples_overview.md)
+- [Command Line Interface](sections/command_line_interface.md)
 - [Detection File Formats](sections/detection_file_formats.md)
 - [Detection File Conversions](sections/detection_file_conversions.md)
 - [Object Detection](sections/object_detection.md)

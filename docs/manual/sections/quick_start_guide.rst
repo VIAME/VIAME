@@ -18,6 +18,7 @@ Important Links
 .. rst-class:: link-list
 
 - **Main website:** https://www.viametoolkit.org/
+- **Public Web Instance:** https://viame.kitware.com
 - **Manual:** https://viame.github.io/VIAME/
 - **GitHub:** https://github.com/VIAME/VIAME
 - **Bug reporting:** https://github.com/VIAME/VIAME/issues |br|
@@ -56,21 +57,16 @@ is also available in both Windows .msi installers and .zip release formats.
 
 This tool is currently the most general purpose annotator, and supports polygons, lines,
 points, or boxes, and can train models over multiple videos or image sequences using
-standard models.
-
-Command Line Interface
-=======================
-
-Everything VIAME does can be run from a terminal through the ``viame`` command, which suits
-batch processing, scripted workflows and machines without a display. See the `command line
-interface <https://viame.github.io/VIAME/sections/command_line_interface.html>`__ page for
-its commands.
+standard models. See the `DIVE interface <https://viame.github.io/VIAME/sections/dive/index.html>`__
+pages for how to use it, and `user interfaces <https://viame.github.io/VIAME/sections/user_interfaces.html>`__
+for the ways of launching it.
 
 Project Files
 ==============
 
 Project files are a collection of scripts targeting either groups of images or videos. They
-are documented later on in this guide. Project files are also used to launch some of the
+are documented on the `project folders <https://viame.github.io/VIAME/sections/project_folders.html>`__
+page. Project files are also used to launch some of the
 annotation GUIs in the desktop version of the software, or to train models across multiple
 sequences headless (without a GUI) to prevent the GUI from using any system resources while
 training, e.g. VRAM, reserving more for the training process.
@@ -80,6 +76,16 @@ Example Folders
 
 In the "examples" folder of a VIAME install are a series of standalone .bat (Windows) or
 .sh (Linux) launchers broken down based on functionality covering all aspects of the system.
+See `scripts and example folders <https://viame.github.io/VIAME/sections/examples_overview.html>`__
+for what each folder contains.
+
+Command Line Interface
+=======================
+
+Everything VIAME does can be run from a terminal through the ``viame`` command, which suits
+batch processing, scripted workflows and machines without a display. See the `command line
+interface <https://viame.github.io/VIAME/sections/command_line_interface.html>`__ page for
+its commands.
 
 Deprecated Interfaces
 ======================
@@ -87,7 +93,8 @@ Deprecated Interfaces
 Three older desktop tools remain in the installers for a few specialized cases, but are no
 longer developed now that DIVE covers what they do:
 
-- **VIEW:** the original C++ annotator for boxes and polygons, still quick on very high resolution imagery
+- **VIEW:** the original C++ annotator for boxes and polygons, still quick on very high resolution
+  imagery, see `VIEW interface <https://viame.github.io/VIAME/sections/view_interface.html>`__
 - **SEARCH:** standalone image and video search, refined by feedback on the results
 - **SEAL:** box annotation across 2 to 4 camera views side by side
 
@@ -163,6 +170,8 @@ VIAME is designed to run on 8 Gb+ VRAM NVIDIA Graphics cards (1 or more), but:
 - Many algorithms can run with less and a generic 4 Gb patch is available on the install page
 - Also depends on if talking about just inference (pre-trained model running, uses less) or training
 - This is just for algorithms and processing pipelines; annotation GUIs can be run on CPU
+- The GPU and CPU installers are both listed in
+  `installing VIAME from binaries <https://viame.github.io/VIAME/sections/installing_from_binaries.html>`__
 
 Additionally:
 
@@ -213,12 +222,20 @@ There are four main types of annotations and detection models:
 
        **Keypoints:** Specific points of interest on objects (e.g. head, tail).
 
+Each type has a page of its own, see
+`object detection <https://viame.github.io/VIAME/sections/object_detection.html>`__,
+`frame level classification <https://viame.github.io/VIAME/sections/frame_level_classification.html>`__ and
+`scene segmentation <https://viame.github.io/VIAME/sections/scene_segmentation.html>`__, alongside
+`detector training <https://viame.github.io/VIAME/sections/object_detector_training.html>`__
+for training models of each.
+
 Detections vs Tracks
 ======================
 
 Detections and tracks are synonymous across examples and user interfaces. A track is a
 (temporal) sequence of single-frame detections, but a detection can also be viewed as a
-track with just a single state.
+track with just a single state. See `object tracking <https://viame.github.io/VIAME/sections/object_tracking.html>`__
+for the tracking pipelines.
 
 .. list-table::
    :widths: 50 50
@@ -265,6 +282,9 @@ When creating bounding box annotations:
 - The goal is for the center of bounding box to remain over the center of the tracked object without clipping too many extremity pixels
 - Attempt to avoid dramatic box size changes that aren't associated with an object's movement or overly large boxes
 - Need to consider efficiency (time) vs quality tradeoffs when deciding to do boxes vs pixel masks, box quality, keypoints + boxes, etc.
+
+The `DIVE annotation quickstart <https://viame.github.io/VIAME/sections/dive/Annotation-QuickStart.html>`__
+covers drawing each of these in the interface.
 
 ****************************
 Model Generation Workflows

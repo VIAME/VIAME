@@ -2,62 +2,83 @@
 
 See the platform-specific guides below, though the process is similar for each. This document corresponds to the example [located online here](https://github.com/VIAME/VIAME/tree/main/examples/building_from_source) and also to the building_from_source example folder in a VIAME installation.
 
+## VIAME Versions
+
+There are 2 versions of VIAME, each kept on its own branch of the repository:
+
+| Branch | Description |
+|----|----|
+| main | The full version of VIAME, which the desktop installers and docker images are built from |
+| main-lite | A reduced version of VIAME with fewer dependencies, used for the PyPI packages and for embedded systems |
+
+The instructions below were written for `main`. To get the reduced version instead, add `-b main-lite` to the clone command.
+
 ## Building on Linux
 
-These instructions are designed to help build VIAME on a fresh machine. They were written for and tested on Ubuntu 16.04. Other Linux machines will have similar directions, but some steps (particularly the dependency install) may not be exactly identical. VIAME has also been built on: CentOS/RHEL 6+, Fedora 19+, and Ubuntu 16.04+ at a minimum.
+These instructions are designed to help build VIAME on a fresh machine. They were written for and tested on Ubuntu 24.04. Other Linux machines will have similar directions, but some steps (particularly the dependency install) may not be exactly identical. VIAME is also built on Ubuntu 22.04 and Rocky Linux 9.
 
 ### Install Dependencies
 
 Different Linux distributions may have different packages already installed, or may use a different package manager than apt, but on Ubuntu this should help to provide a starting point:
 
 ```bash
-sudo apt-get install git zip git wget curl libcurl4-openssl-dev libgl1-mesa-dev libexpat1-dev \
-  libgtk2.0-dev libxt-dev libxml2-dev libssl-dev liblapack-dev openssl libssl-dev g++ zlib1g-dev 
+sudo apt-get update
+sudo apt-get install -y git zip wget tar curl bzip2 gcc g++ gfortran libgl1-mesa-dev \
+  libexpat1-dev libgtk2.0-dev libxt-dev libxml2-dev liblapack-dev openssl libssl-dev \
+  libcurl4-openssl-dev zlib1g-dev libbz2-dev liblzma-dev
 ```
 
-And on CentOS 7:
+And on Rocky Linux 9:
 
 ```bash
-sudo yum -y groupinstall 'Development Tools'
-sudo yum install -y zip git wget openssl openssl-devel zlib zlib-devel freeglut-devel \
-  mesa-libGLU-devel lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel \
-  curl curl-devel atlas-devel file which
+sudo dnf -y groupinstall 'Development Tools'
+sudo dnf install -y zip git wget zlib zlib-devel zstd freeglut-devel freetype-devel \
+  mesa-libGLU-devel libffi-devel libXt-devel libXmu-devel libXi-devel expat-devel \
+  readline-devel curl-devel atlas-devel file which bzip2 bzip2-devel xz-devel perl perl-IPC-Cmd
 ```
 
-If using VIAME_ENABLE_PYTHON, versions 3.10 or above is recommended. Development packages, pip, and numpy are also required. [Anaconda3](https://repo.anaconda.com/archive/) could be used, though you can also try using native python, e.g. install python3, python3-dev, and python3-numpy (or alternatively whatever python distribution you want to use), e.g.:
+If using VIAME_ENABLE_PYTHON, Python 3.10 or above is required, along with its development packages, pip, and numpy. Ubuntu 24.04 provides Python 3.12, which can be installed with:
 
 ```bash
-sudo apt-get install python3 python3-dev python3-numpy python3-pip
+sudo apt-get install -y python3 python3-dev python3-pip python3-numpy python-is-python3
 ```
 
-If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 12.6 is preferred; version 11.0 or above is required). Other versions may work depending on your build settings but are not officially supported yet. Link to NVIDIA's site:
+Ubuntu 24.04 marks its system Python as externally managed, so pip refuses to install packages into it. The VIAME build installs the Python packages it needs into its own install tree and accounts for this by itself. Only packages you add to the system Python by hand need either a virtual environment or the `--break-system-packages` option of pip. Other Python distributions, such as [Anaconda3](https://repo.anaconda.com/archive/), can be used in place of the system one.
+
+If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA and cuDNN (CUDA 12.6 with cuDNN 9 is preferred; CUDA 11.0 or above is required). Other versions may work depending on your build settings but are not officially supported yet. Link to NVIDIA's site:
 
 ```bash
 https://developer.nvidia.com/cuda-toolkit-archive
 ```
 
-### Install CMAKE
+### Install CMake
 
-Depending on the OS, the version of cmake you get with your local package manager (apt/yum/dnf) is sometimes too old to use for building VIAME (you currently need at least CMake 3.13) so you may or may not need to do a manual install of CMake. First you could try using the package manager then running 'cmake --version' to see if it's appropriate. If a manual install is required, go to the cmake website, `https://cmake.org/download`, and download the appropriate binary distribution (for Ubuntu, this would be something like cmake-3.27.1-Linux-x86_64.sh, though newer versions will be out by the time you read this). Alternatively, download the appropriate binary distribution (for Ubuntu, this would be something like cmake-3.27.1-Linux-x86_64.sh, though newer versions will be out by the time you read this), or for windows the .msi or .zip installer. Lastly the source version could be built using the below instructions, though this is usually not necessary if a binary version is available for your platform.
+Building VIAME requires CMake 3.16 or above. Ubuntu 24.04 provides CMake 3.28, so installing it with the package manager is enough:
 
 ```bash
-cd ~/Downloads
-tar zxfv cmake-3.27.1.tar.gz
-cd cmake-3.27.1
-./bootstrap --system-curl --no-system-libs
-make
-sudo make install
-sudo ln -s /usr/local/bin/cmake /bin/cmake
+sudo apt-get install -y cmake
+cmake --version
 ```
 
-These instructions build the source code into a working executable, installs the executable into a personal system directory, and then lets the operating system know where that directory is so it can find cmake in the future in case /usr/local/bin isn't in your PATH variable by default.
+On a distribution whose CMake is too old, or to use the latest release (4.4.3 at the time of writing), go to the cmake website, `https://cmake.org/download`, and download the appropriate binary distribution (for Linux, cmake-4.4.3-linux-x86_64.sh), or for windows the .msi or .zip installer. Lastly the source version could be built using the below instructions, though this is usually not necessary if a binary version is available for your platform.
+
+```bash
+wget https://cmake.org/files/v4.4/cmake-4.4.3.tar.gz
+tar zxfv cmake-4.4.3.tar.gz
+cd cmake-4.4.3
+./bootstrap --system-curl
+make -j8
+sudo make install
+```
+
+These instructions build the source code into a working executable and install it into /usr/local/bin, which comes before the package manager's version in the default PATH on Ubuntu.
 
 ### Clone the Source Code
 
-With all our dependencies installed, we need to build the environment for VIAME itself. VIAME uses git submodules rather than requiring the user to grab each repository totally separately. To prepare the environment and obtain all the necessary source code, use the following commands. Note that you can change `src` o whatever you want to name your VIAME source directory.
+With all our dependencies installed, we need to build the environment for VIAME itself. VIAME uses git submodules rather than requiring the user to grab each repository totally separately. To prepare the environment and obtain all the necessary source code, use the following commands. Note that you can change `src` to whatever you want to name your VIAME source directory.
 
 ```bash
-git clone git@github.com:Kitware/VIAME.git src
+git clone https://github.com/VIAME/VIAME.git src
 cd src
 git submodule update --init --recursive
 ```
@@ -104,7 +125,7 @@ cmake [build_flags] [path_to_source_tree]
 make -j8 # or just make for a unthreaded build
 ```
 
-Depending on which enable flags you have set and your system configuration, you may need to set additional cmake variables to point to dependency locations. An example is below for a system with CUDA, Python, and Matlab enabled, though the versions are old. Please do not use CUDA \<10 or python 2.7 anymore.
+Depending on which enable flags you have set and your system configuration, you may need to set additional cmake variables to point to dependency locations. An example is below for a system with CUDA, Python, and Matlab enabled, though the versions are old. Please do not use CUDA below 11.0 or Python below 3.10 anymore.
 
 <p align="center">
 <img src="../../docs/manual/_static/images/cmake-options.jpg" alt="image" width="40%">
@@ -112,17 +133,17 @@ Depending on which enable flags you have set and your system configuration, you 
 
 ## Building on Mac OSX
 
-Building on Mac is very similar to Linux, minus the dependency install stage. Currently, we have only tested VIAME with OSX 10.11.5 and Clang 7.3.0, but other versions may also work. Make sure you have a C/C++ development environment set up, install git, install cmake either from the source or a using a binary installer, and lastly, follow the same Linux build instructions above.
+Building on Mac is very similar to Linux, minus the dependency install stage. Mac builds are CPU-only, as CUDA is not available there, and the release builds use a Miniconda Python environment. Make sure you have a C/C++ development environment set up, install git, install cmake either from the source or a using a binary installer, and lastly, follow the same Linux build instructions above.
 
 ## Building on Windows
 
-Building on windows can be very similar to Linux if using a shell like cygwin (`https://www.cygwin.com/`), though if not you may want to go grab the GUI ersions of CMake (`https://cmake.org/`) and TortoiseGit (`https://tortoisegit.org/`). Currently Visual Studio 2019 is supported and the most tested version.
+Building on windows can be very similar to Linux if using a shell like cygwin (`https://www.cygwin.com/`), though if not you may want to go grab the GUI ersions of CMake (`https://cmake.org/`) and TortoiseGit (`https://tortoisegit.org/`). Currently Visual Studio 2026 is used for the release builds and is the most tested version.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this involves right clicking in your folder of choice, selecting Git Clone, and then entering the URL to VIAME (`https://github.com/VIAME/VIAME.git`) and the location of where you want to put the downloaded source code.
 
 Next, do a git submodule update to pull down all required packages. In TortoiseGit right click on the folder you checked out the source into, move to the TortoiseGit menu section, and select `Submodule Update`.
 
-Next, install any required dependencies for items you want to build. If using CUDA, version 12.6 is preferred (version 11.0 or above is required), along with Python 3.6+. Other versions have yet to be tested extensively, though may work. On Windows it can also be beneficial to use Anaconda to get multiple python packages. Boost Python (turned on by default when Python is enabled) requires Numpy and a few other dependencies.
+Next, install any required dependencies for items you want to build. If using CUDA, version 12.6 is preferred (version 11.0 or above is required), along with Python 3.10+. Other versions have yet to be tested extensively, though may work. On Windows it can also be beneficial to use Anaconda to get multiple python packages. Boost Python (turned on by default when Python is enabled) requires Numpy and a few other dependencies.
 
 Finally, create a build folder and run the CMake GUI (`https://cmake.org/runningcmake/`). Point it to your source and build directories, select your compiler of choice, and setup and build flags you want.
 
@@ -151,7 +172,7 @@ When VIAME is built as a super-build, multiple solutions or makefiles are genera
 
 **Python:**
 
-The default Python used is 3.10, though other versions may work as well. It depends on your build settings, operating system, and which dependency projects are turned on.
+The system Python is used by default, which is 3.12 on Ubuntu 24.04, and versions 3.10 and above are supported. Alternatively, `VIAME_BUILD_PYTHON_FROM_SOURCE` builds Python inside of VIAME, version 3.12 by default. Which versions work depends on your build settings, operating system, and which dependency projects are turned on.
 
 ## Known Build Issues
 
@@ -186,7 +207,7 @@ You are likely running out of memory and your C++ compiler is crashing (common o
 
 **Issue:**
 
-On VS2015 with Python enabled: `error LNK1104: cannot open file 'python27_d.lib'`
+On Windows with Python enabled: `error LNK1104: cannot open file 'python312_d.lib'`
 
 **Solution:**
 
