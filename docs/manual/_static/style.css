@@ -1,3 +1,95 @@
 .wy-nav-content {
     max-width: none;
 }
+
+.rst-content .link-list li {
+    padding-left: 11.5em;
+}
+
+.rst-content .link-list li strong {
+    float: left;
+    width: 11.5em;
+    margin-left: -11.5em;
+}
+
+@media screen and (max-width: 768px) {
+    .rst-content .link-list li {
+        padding-left: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .rst-content .link-list li strong {
+        float: none;
+        margin-left: 0;
+        display: block;
+    }
+}
+
+.rst-content table.cap-table {
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.rst-content table.cap-table th,
+.rst-content table.cap-table td {
+    padding: 2px 8px;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.rst-content table.cap-table td p {
+    margin: 0;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.rst-content table.cap-table td {
+    background-color: transparent !important;
+}
+
+.rst-content table.cap-table th:not(:first-child),
+.rst-content table.cap-table td:not(:first-child) {
+    min-width: 5em;
+    text-align: center;
+    font-weight: bold;
+}
+
+.rst-content table.cap-table tr:has(td:first-child strong) td {
+    background-color: rgba(128, 128, 128, 0.2) !important;
+}
+
+.rst-content table.cap-table td:has(.y),
+.rst-content .cap-legend .y {
+    color: #1b5e20;
+    background-color: #a5d6a7 !important;
+}
+
+.rst-content table.cap-table td:has(.p),
+.rst-content .cap-legend .p {
+    color: #5f4300;
+    background-color: #ffe082 !important;
+}
+
+.rst-content table.cap-table td:has(.n),
+.rst-content .cap-legend .n {
+    color: #8e1b1b;
+    background-color: #ef9a9a !important;
+}
+
+.rst-content .cap-legend,
+.rst-content .cap-notes {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.rst-content .cap-legend span {
+    display: inline-block;
+    min-width: 1.8em;
+    margin-left: 0.8em;
+    font-weight: bold;
+    text-align: center;
+}
+
+.rst-content .cap-legend span:first-child {
+    margin-left: 0;
+}

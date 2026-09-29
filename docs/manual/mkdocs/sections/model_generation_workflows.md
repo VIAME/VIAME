@@ -2,6 +2,8 @@
 
 There are several routes from raw imagery to a working model in VIAME. They differ mainly in how much annotation the user does by hand, and in how good the resulting model can become. They are not exclusive: most projects start with a quick route and move towards the first workflow as annotations accumulate.
 
+The workflows apply regardless of the type of annotation: detection boxes, masks, tracks, keypoints and so on. Only what is drawn, and the model trained from it, changes.
+
 <p align="center">
 <img src="../_static/images/quickstart_training_workflows_diagram.png" alt="Training workflows diagram" width="80%">
 </p>
@@ -13,7 +15,7 @@ There are several routes from raw imagery to a working model in VIAME. They diff
 | Deep learning from scratch | Highest, every object is drawn by hand | Hundreds of examples per class | Best, given enough data |
 | Deep learning with partial automation | Moderate, the user corrects what a detector proposes | Hundreds of examples per class | Same as above, reached sooner |
 | IQR (video search with adjudication) | Low, the user accepts or rejects results | A few examples to start | Good for the amount of data, below a well trained deep model |
-| Text queries | Low, the user types a description and corrects the results | None to begin | Initial annotations rather than a model |
+| Text queries (extension) | Low, the user types a description and corrects the results | None to begin | Initial annotations rather than a model |
 
 ## Workflow 1: Deep Learning from Scratch
 
@@ -88,7 +90,7 @@ IQR (iterative query refinement) is video search with adjudication. The user giv
 
 Use this for a new class with few examples, or to find rare objects in a large archive. Its results can also be corrected and used as annotations for the first two workflows. See [video and image search](https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html).
 
-## Workflow 4: Text Queries for Rapid Annotation
+## Extension: Text Queries for Rapid Annotation
 
 A text query finds objects from a description in words, such as "fish" or "sea turtle". It needs no annotations, no index and no trained model, so it is the quickest way to get a first set of annotations on new imagery. It is best seen as a faster start to the second workflow than as a way to produce a final model.
 
@@ -112,17 +114,20 @@ A text query finds objects from a description in words, such as "fish" or "sea t
 - Vision-language model results carry no confidence, so they cannot be filtered by a threshold and all need review.
 - Depends on an add-on or a separately served model being installed.
 
-Use this at the start of a project, or for a new class that no detector covers. Once the corrected annotations are trained into a standard detector, that detector is faster and more accurate on the same imagery than the text query that started it. See [text query and VLM](https://viame.github.io/VIAME/sections/text_query_and_vlm.html).
+Try this at the start of a project, or for a new class that no detector covers, and keep it when correcting its results is quicker than annotating by hand. Once the corrected annotations are trained into a standard detector, that detector is faster and more accurate on the same imagery than the text query that started it. See [text query and VLM](https://viame.github.io/VIAME/sections/text_query_and_vlm.html).
 
 ## Choosing a Workflow
 
+Before annotating anything, run the existing models in the [model zoo and add-ons](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons) on a sample of the imagery, and try a text query on it as well. If correcting the output of either is quicker than drawing the annotations by hand, continue with partial automation. If neither saves time, fall back to manual annotation or IQR, depending on how much time there is to devote to the problem: manual annotation takes the most and gives the best model, IQR takes little and gives a model that is good for the effort.
+
 | Situation | Suggested start |
 |----|----|
-| New imagery, nothing annotated yet | Text queries, then correct and train |
-| A detector already finds most of the objects | Partial automation |
+| New imagery, nothing annotated yet | Try existing models and text queries on a sample, and keep whichever saves annotation time |
+| An existing model or text query finds most of the objects | Partial automation |
+| Neither helps, and annotation time is available | Deep learning from scratch |
+| Neither helps, and time is short | IQR |
 | A rare object in a large archive | IQR |
 | A handful of examples of a new class | IQR, or the SVM trainer |
 | Hundreds of annotations per class available | Deep learning, from scratch or with partial automation |
-| Existing detectors find nothing useful | Deep learning from scratch |
 
 Whichever route is taken first, the corrected annotations it produces can be fed into detector training. As the number of annotations per class grows, retraining with a deep detector gives the largest gain in accuracy.

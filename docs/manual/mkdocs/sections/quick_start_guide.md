@@ -4,19 +4,23 @@ VIAME (Video and Image Analytics for Multiple Environments) is a do-it-yourself 
 
 ## Important Links
 
+<div class="link-list" markdown>
+
 - **Main website:** <https://www.viametoolkit.org/>
-- **Manual:** <https://viame.github.io/VIAME/>
+- **Manual:** [https://viame.github.io/VIAME/](https://viame.github.io/VIAME/)
 - **GitHub:** <https://github.com/VIAME/VIAME>
-- **Bug reporting:** <https://github.com/VIAME/VIAME/issues>, <https://github.com/Kitware/DIVE/issues>
+- **Bug reporting:** <https://github.com/VIAME/VIAME/issues><br><https://github.com/Kitware/DIVE/issues>
 - **Additional Discussion:** <https://discourse.kitware.com/c/viame-dive>
 - **Tutorial videos:** <https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw>
 - **Additional Help Contact:** <viame-web@kitware.com>
+
+</div>
 
 There are 5 types of documentation: this quick-start guide, tutorial videos, user forums, example readmes, and the full manual. Installers (pre-built binaries), docker images, and source code are hosted on GitHub. Pre-built binaries are for users, while the source code and build instructions are for developers.
 
 ## VIAME Flavors
 
-VIAME comes in a few different interfaces with slightly different capabilities. Some interfaces are deprecated (e.g. VIEW) in favor of newer replacements (DIVE), though will still remain as an option for a few specialized cases, just not developed significantly further. Not listed in this document thoroughly are programming APIs for developers.
+VIAME comes in a few different interfaces with slightly different capabilities. Not listed in this document thoroughly are programming APIs for developers.
 
 ### DIVE -- Web and Desktop Annotator
 
@@ -29,17 +33,9 @@ Originally created as the VIAME-Web interface (with a public server hosted at <h
 
 This tool is currently the most general purpose annotator, and supports polygons, lines, points, or boxes, and can train models over multiple videos or image sequences using standard models.
 
-### SEAL -- Multi-Model Desktop Annotator
+### Command Line Interface
 
-Supports annotating detection or track boxes in multiple camera views simultaneously. If a transformation is loaded mapping pixels from one view to the other (e.g. boxes created in one camera view will show up in the other). Supports 2-4 cameras side-by-side in the viewer. Can only train models on one sequence from one camera at a time.
-
-### SEARCH -- Standalone Search Tool
-
-An older tool, used explicitly for image/video search and rapid model generation through a procedure called iterative query refinement (IQR), wherein the user provides an exemplar of what they're looking for then the system provides new results for the user to accept or reject. While this is happening, a simple model is trained for the query which can be saved out and re-used in annotators.
-
-### VIEW -- Original Desktop Annotator
-
-Original VIAME desktop annotator for generating either detection or track-level annotations (boxes or polygons). Contains many optimizations for annotating and running pipelines on large (high resolution) imagery. Coded in C++ for efficiency. Can only train models over a single video or image sequence, with limited model selection. Some users prefer its style of track annotation or use it on high resolution clips.
+Everything VIAME does can be run from a terminal through the `viame` command, which suits batch processing, scripted workflows and machines without a display. See the [command line interface](https://viame.github.io/VIAME/sections/command_line_interface.html) page for its commands.
 
 ### Project Files
 
@@ -49,48 +45,51 @@ Project files are a collection of scripts targeting either groups of images or v
 
 In the "examples" folder of a VIAME install are a series of standalone .bat (Windows) or .sh (Linux) launchers broken down based on functionality covering all aspects of the system.
 
+### Deprecated Interfaces
+
+Three older desktop tools remain in the installers for a few specialized cases, but are no longer developed now that DIVE covers what they do:
+
+- **VIEW:** the original C++ annotator for boxes and polygons, still quick on very high resolution imagery
+- **SEARCH:** standalone image and video search with iterative query refinement
+- **SEAL:** box annotation across 2 to 4 camera views side by side
+
 ## Capabilities Breakdown
 
-Legend: **Y** = Full Support, **P** = Partial Support, **~** = Planned, **N** = No Support, **via** = Available through Example/Project Files
+<p class="cap-legend"><span class="y">Y</span> Supported <span class="p">P</span> Partial <span class="n">N</span> Not supported</p>
 
-| Feature | Example Files | Project Files | VIEW | SEARCH | SEAL | DIVE |
-|----|----|----|----|----|----|----|
-| Runnable from Desktop Installers on Local Desktop | Y | Y | Y | Y | Y | Y |
-| Runnable Remotely over RDP (Windows) or VNC (Linux) | Y | Y | Y | Y | Y | Y |
-| Runnable in Web Browser using Remote Server | N | N | N | N | N | Y |
-| Windows .zip / Linux .tar.gz Installations Provided | Y | Y | Y | Y | Y | Y |
-| Windows .exe / .msi Installers Provided | Y | Y | Y | Y | Y | ~ |
-| Docker Instances Provided | Y | Y | N | N | N | Y |
+<table class="cap-table">
+<thead><tr><th>Feature</th><th>Examples</th><th>Project Files</th><th>Command Line</th><th>DIVE Desktop</th><th>DIVE Web</th></tr></thead>
+<tbody>
+<tr class="group"><th colspan="6">Platform</th></tr>
+<tr><th>Included in the desktop installers</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="n">N</td></tr>
+<tr><th>Runs in a web browser from a remote server</th><td class="n">N</td><td class="n">N</td><td class="n">N</td><td class="n">N</td><td class="y">Y</td></tr>
+<tr><th>Runs without a display, for batch scripts</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="n">N</td><td class="p">P¹</td></tr>
+<tr><th>Docker images provided</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="n">N</td><td class="y">Y</td></tr>
+<tr class="group"><th colspan="6">Annotation</th></tr>
+<tr><th>Boxes, polygons, keypoints and lines</th><td class="p">P²</td><td class="p">P²</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Point-click segmentation</th><td class="n">N</td><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="p">P³</td></tr>
+<tr><th>Multi-camera and stereo annotation</th><td class="n">N</td><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Tiled large images (GeoTIFF)</th><td class="n">N</td><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Review grid across datasets</th><td class="n">N</td><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr class="group"><th colspan="6">Processing</th></tr>
+<tr><th>Detection and tracking pipelines</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Stereo measurement pipelines</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Interactive stereo measurement</th><td class="n">N</td><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="p">P³</td></tr>
+<tr><th>Image and video search with refinement</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="n">N</td></tr>
+<tr><th>Text query</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="n">N</td></tr>
+<tr><th>Image enhancement output</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Registration and mosaicing</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="p">P⁴</td><td class="p">P⁴</td></tr>
+<tr><th>Scoring and evaluation</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Annotation format conversion</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr class="group"><th colspan="6">Training</th></tr>
+<tr><th>Detector training over multiple sequences</th><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Frame classifier training</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Tracker training</th><td class="y">Y</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="y">Y</td></tr>
+<tr><th>Add-on model pack downloads</th><td class="n">N</td><td class="n">N</td><td class="y">Y</td><td class="y">Y</td><td class="p">P⁵</td></tr>
+</tbody>
+</table>
 
-Platform & Installation Support
-
-| Feature | Example Files | Project Files | VIEW | SEARCH | SEAL | DIVE |
-|----|----|----|----|----|----|----|
-| Standard box-level annotation support in GUI | via | via | Y | P <sup>1</sup> | Y | Y |
-| Polygon-level annotation support in GUI | via | via | N | N | N | Y |
-| Pixel-mask annotation support in GUI | N | N | N | N | N | Y |
-| Key-point annotation support in GUI | via | via | P <sup>2</sup> | N | N | Y |
-| Joint annotation across 2 to 4 cameras simultaneously | N | N | N | N | Y | ~ |
-| Detection model training on single sequence or video | N | Y | Y | P <sup>3</sup> | Y | Y |
-| Detection model training on multiple sequences or video | N | Y | N | P <sup>3</sup> | N | Y |
-| Ability to run arbitrary detection or tracking pipelines | Y | Y | Y | N | Y | Y |
-| Ability to run detection pipelines on multiple cameras | P | Y | N | N | Y | N |
-| Ability to perform image search and iterative refinement | via | via | N | Y | N | ~ |
-| Annotation support on very large images in GUI | via | via | Y | N | P <sup>4</sup> | P <sup>4</sup> |
-| Annotation support on images of varying resolutions | via | via | Y | N | N | Y |
-| Ability to run stereo measurement pipelines | Y | Y | N | N | P <sup>5</sup> | Y |
-| Ability to run image enhancement under the hood | Y | Y | Y | Y | Y | Y |
-| Ability to output enhanced images | via | Y | N | N | N | Y |
-| Ability to output mosaiced images | Y | Y | N | N | N | N |
-| Automatic scoring and evaluation of detections | Y | P | N | N | N | ~ |
-
-Feature Support by Interface
-
-- <sup>1</sup> Can only confirm or reject boxes
-- <sup>2</sup> Via drawing small boxes
-- <sup>3</sup> SVM models only
-- <sup>4</sup> Basic support, longer load time
-- <sup>5</sup> Poor visualization of results
+<p class="cap-notes">¹ Through the REST API<br>² Launches DIVE<br>³ Smaller models, run in the browser<br>⁴ Registration only, no mosaic output<br>⁵ Server administrators only</p>
 
 ## GPU vs CPU Installations
 

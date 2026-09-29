@@ -11,10 +11,17 @@ useful as a general computer vision toolkit.
 Important Links
 ***************
 
+.. |br| raw:: html
+
+   <br>
+
+.. rst-class:: link-list
+
 - **Main website:** https://www.viametoolkit.org/
 - **Manual:** https://viame.github.io/VIAME/
 - **GitHub:** https://github.com/VIAME/VIAME
-- **Bug reporting:** https://github.com/VIAME/VIAME/issues, https://github.com/Kitware/DIVE/issues
+- **Bug reporting:** https://github.com/VIAME/VIAME/issues |br|
+  https://github.com/Kitware/DIVE/issues
 - **Additional Discussion:** https://discourse.kitware.com/c/viame-dive
 - **Tutorial videos:** https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
 - **Additional Help Contact:** viame-web@kitware.com
@@ -29,10 +36,8 @@ and build instructions are for developers.
 VIAME Flavors
 ***************
 
-VIAME comes in a few different interfaces with slightly different capabilities. Some
-interfaces are deprecated (e.g. VIEW) in favor of newer replacements (DIVE), though will
-still remain as an option for a few specialized cases, just not developed significantly
-further. Not listed in this document thoroughly are programming APIs for developers.
+VIAME comes in a few different interfaces with slightly different capabilities. Not listed
+in this document thoroughly are programming APIs for developers.
 
 DIVE -- Web and Desktop Annotator
 ==================================
@@ -53,31 +58,13 @@ This tool is currently the most general purpose annotator, and supports polygons
 points, or boxes, and can train models over multiple videos or image sequences using
 standard models.
 
-SEAL -- Multi-Model Desktop Annotator
-======================================
+Command Line Interface
+=======================
 
-Supports annotating detection or track boxes in multiple camera views simultaneously.
-If a transformation is loaded mapping pixels from one view to the other (e.g. boxes
-created in one camera view will show up in the other). Supports 2-4 cameras side-by-side
-in the viewer. Can only train models on one sequence from one camera at a time.
-
-SEARCH -- Standalone Search Tool
-==================================
-
-An older tool, used explicitly for image/video search and rapid model generation through
-a procedure called iterative query refinement (IQR), wherein the user provides an exemplar
-of what they're looking for then the system provides new results for the user to accept or
-reject. While this is happening, a simple model is trained for the query which can be saved
-out and re-used in annotators.
-
-VIEW -- Original Desktop Annotator
-====================================
-
-Original VIAME desktop annotator for generating either detection or track-level annotations
-(boxes or polygons). Contains many optimizations for annotating and running pipelines on
-large (high resolution) imagery. Coded in C++ for efficiency. Can only train models over a
-single video or image sequence, with limited model selection. Some users prefer its style of
-track annotation or use it on high resolution clips.
+Everything VIAME does can be run from a terminal through the ``viame`` command, which suits
+batch processing, scripted workflows and machines without a display. See the `command line
+interface <https://viame.github.io/VIAME/sections/command_line_interface.html>`__ page for
+its commands.
 
 Project Files
 ==============
@@ -94,203 +81,76 @@ Example Folders
 In the "examples" folder of a VIAME install are a series of standalone .bat (Windows) or
 .sh (Linux) launchers broken down based on functionality covering all aspects of the system.
 
+Deprecated Interfaces
+======================
+
+Three older desktop tools remain in the installers for a few specialized cases, but are no
+longer developed now that DIVE covers what they do:
+
+- **VIEW:** the original C++ annotator for boxes and polygons, still quick on very high resolution imagery
+- **SEARCH:** standalone image and video search with iterative query refinement
+- **SEAL:** box annotation across 2 to 4 camera views side by side
+
 *****************************
 Capabilities Breakdown
 *****************************
 
-Legend: **Y** = Full Support, **P** = Partial Support, **~** = Planned, **N** = No Support,
-**via** = Available through Example/Project Files
+.. role:: y
+.. role:: p
+.. role:: n
 
-.. list-table:: Platform & Installation Support
-   :header-rows: 1
-   :widths: 40 10 10 10 10 10 10
+.. |Y| replace:: :y:`Y`
+.. |P1| replace:: :p:`P¹`
+.. |P2| replace:: :p:`P²`
+.. |P3| replace:: :p:`P³`
+.. |P4| replace:: :p:`P⁴`
+.. |P5| replace:: :p:`P⁵`
+.. |N| replace:: :n:`N`
 
-   * - Feature
-     - Example Files
-     - Project Files
-     - VIEW
-     - SEARCH
-     - SEAL
-     - DIVE
-   * - Runnable from Desktop Installers on Local Desktop
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-   * - Runnable Remotely over RDP (Windows) or VNC (Linux)
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-   * - Runnable in Web Browser using Remote Server
-     - N
-     - N
-     - N
-     - N
-     - N
-     - Y
-   * - Windows .zip / Linux .tar.gz Installations Provided
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-   * - Windows .exe / .msi Installers Provided
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-     - ~
-   * - Docker Instances Provided
-     - Y
-     - Y
-     - N
-     - N
-     - N
-     - Y
+.. rst-class:: cap-legend
 
-.. list-table:: Feature Support by Interface
-   :header-rows: 1
-   :widths: 40 10 10 10 10 10 10
+:y:`Y` Supported :p:`P` Partial :n:`N` Not supported
 
-   * - Feature
-     - Example Files
-     - Project Files
-     - VIEW
-     - SEARCH
-     - SEAL
-     - DIVE
-   * - Standard box-level annotation support in GUI
-     - via
-     - via
-     - Y
-     - P :sup:`1`
-     - Y
-     - Y
-   * - Polygon-level annotation support in GUI
-     - via
-     - via
-     - N
-     - N
-     - N
-     - Y
-   * - Pixel-mask annotation support in GUI
-     - N
-     - N
-     - N
-     - N
-     - N
-     - Y
-   * - Key-point annotation support in GUI
-     - via
-     - via
-     - P :sup:`2`
-     - N
-     - N
-     - Y
-   * - Joint annotation across 2 to 4 cameras simultaneously
-     - N
-     - N
-     - N
-     - N
-     - Y
-     - ~
-   * - Detection model training on single sequence or video
-     - N
-     - Y
-     - Y
-     - P :sup:`3`
-     - Y
-     - Y
-   * - Detection model training on multiple sequences or video
-     - N
-     - Y
-     - N
-     - P :sup:`3`
-     - N
-     - Y
-   * - Ability to run arbitrary detection or tracking pipelines
-     - Y
-     - Y
-     - Y
-     - N
-     - Y
-     - Y
-   * - Ability to run detection pipelines on multiple cameras
-     - P
-     - Y
-     - N
-     - N
-     - Y
-     - N
-   * - Ability to perform image search and iterative refinement
-     - via
-     - via
-     - N
-     - Y
-     - N
-     - ~
-   * - Annotation support on very large images in GUI
-     - via
-     - via
-     - Y
-     - N
-     - P :sup:`4`
-     - P :sup:`4`
-   * - Annotation support on images of varying resolutions
-     - via
-     - via
-     - Y
-     - N
-     - N
-     - Y
-   * - Ability to run stereo measurement pipelines
-     - Y
-     - Y
-     - N
-     - N
-     - P :sup:`5`
-     - Y
-   * - Ability to run image enhancement under the hood
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-     - Y
-   * - Ability to output enhanced images
-     - via
-     - Y
-     - N
-     - N
-     - N
-     - Y
-   * - Ability to output mosaiced images
-     - Y
-     - Y
-     - N
-     - N
-     - N
-     - N
-   * - Automatic scoring and evaluation of detections
-     - Y
-     - P
-     - N
-     - N
-     - N
-     - ~
+.. rst-class:: cap-table
 
-| :sup:`1` Can only confirm or reject boxes
-| :sup:`2` Via drawing small boxes
-| :sup:`3` SVM models only
-| :sup:`4` Basic support, longer load time
-| :sup:`5` Poor visualization of results
+============================================== ======== ============= ============ ============ ========
+Feature                                        Examples Project Files Command Line DIVE Desktop DIVE Web
+============================================== ======== ============= ============ ============ ========
+**Platform**
+Included in the desktop installers             |Y|      |Y|           |Y|          |Y|          |N|
+Runs in a web browser from a remote server     |N|      |N|           |N|          |N|          |Y|
+Runs without a display, for batch scripts      |Y|      |Y|           |Y|          |N|          |P1|
+Docker images provided                         |Y|      |Y|           |Y|          |N|          |Y|
+**Annotation**
+Boxes, polygons, keypoints and lines           |P2|     |P2|          |N|          |Y|          |Y|
+Point-click segmentation                       |N|      |N|           |N|          |Y|          |P3|
+Multi-camera and stereo annotation             |N|      |N|           |N|          |Y|          |Y|
+Tiled large images (GeoTIFF)                   |N|      |N|           |N|          |Y|          |Y|
+Review grid across datasets                    |N|      |N|           |N|          |Y|          |Y|
+**Processing**
+Detection and tracking pipelines               |Y|      |Y|           |Y|          |Y|          |Y|
+Stereo measurement pipelines                   |Y|      |N|           |Y|          |Y|          |Y|
+Interactive stereo measurement                 |N|      |N|           |N|          |Y|          |P3|
+Image and video search with refinement         |Y|      |Y|           |Y|          |Y|          |N|
+Text query                                     |Y|      |N|           |Y|          |Y|          |N|
+Image enhancement output                       |Y|      |N|           |Y|          |Y|          |Y|
+Registration and mosaicing                     |Y|      |Y|           |Y|          |P4|         |P4|
+Scoring and evaluation                         |Y|      |N|           |Y|          |Y|          |Y|
+Annotation format conversion                   |Y|      |N|           |Y|          |Y|          |Y|
+**Training**
+Detector training over multiple sequences      |Y|      |Y|           |Y|          |Y|          |Y|
+Frame classifier training                      |Y|      |N|           |Y|          |Y|          |Y|
+Tracker training                               |Y|      |N|           |Y|          |Y|          |Y|
+Add-on model pack downloads                    |N|      |N|           |Y|          |Y|          |P5|
+============================================== ======== ============= ============ ============ ========
+
+.. rst-class:: cap-notes
+
+| ¹ Through the REST API
+| ² Launches DIVE
+| ³ Smaller models, run in the browser
+| ⁴ Registration only, no mosaic output
+| ⁵ Server administrators only
 
 *************************************
 GPU vs CPU Installations
