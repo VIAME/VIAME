@@ -9,8 +9,10 @@
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/util/get_paths.h>
 
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #if defined( _WIN32 ) || defined( _WIN64 )
@@ -98,16 +100,39 @@ run_command( const std::vector< std::string >& args )
       continue;
     }
 
+    // Only a backslash run that reaches the closing quote is an escape. The
+    // parser on the other side collapses such a run and leaves every other
+    // backslash alone, so escaping all of them turns `C:\Users\A B\x.py`
+    // into a path with doubled separators -- and quoting only happens for
+    // an argument with a space in it, which is exactly when a path is most
+    // likely to be the argument.
     command_line.push_back( '"' );
 
-    for( char const c : arg )
+    for( std::size_t i = 0; i < arg.size(); )
     {
-      if( c == '"' || c == '\\' )
+      std::size_t slashes = 0;
+
+      while( i < arg.size() && arg[ i ] == '\\' )
       {
-        command_line.push_back( '\\' );
+        ++slashes;
+        ++i;
       }
 
-      command_line.push_back( c );
+      if( i == arg.size() )
+      {
+        // They meet the quote this adds.
+        command_line.append( slashes * 2, '\\' );
+      }
+      else if( arg[ i ] == '"' )
+      {
+        command_line.append( slashes * 2 + 1, '\\' );
+        command_line.push_back( arg[ i++ ] );
+      }
+      else
+      {
+        command_line.append( slashes, '\\' );
+        command_line.push_back( arg[ i++ ] );
+      }
     }
 
     command_line.push_back( '"' );
