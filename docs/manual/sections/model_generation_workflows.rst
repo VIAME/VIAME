@@ -71,7 +71,7 @@ Workflow 1: Deep Learning from Scratch
 
 Use this when accuracy matters most and annotation time is available, or when no
 existing detector finds the objects at all. See `detector
-training <https://viame.readthedocs.io/en/latest/sections/object_detector_training.html>`__.
+training <https://viame.github.io/VIAME/sections/object_detector_training.html>`__.
 
 *************************************************
 Workflow 2: Deep Learning with Partial Automation
@@ -105,7 +105,7 @@ Workflow 2: Deep Learning with Partial Automation
 
 Use this once any detector finds most of the objects of interest, including a generic
 one that only proposes boxes without naming the species. See `object
-detection <https://viame.readthedocs.io/en/latest/sections/object_detection.html>`__.
+detection <https://viame.github.io/VIAME/sections/object_detection.html>`__.
 
 ******************************************
 Workflow 3: IQR for Rapid Model Generation
@@ -139,7 +139,7 @@ returns. A simple model is trained from those answers.
 Use this for a new class with few examples, or to find rare objects in a large archive.
 Its results can also be corrected and used as annotations for the first two workflows.
 See `video and image
-search <https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html>`__.
+search <https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html>`__.
 
 *********************************************
 Workflow 4: Text Queries for Rapid Annotation
@@ -177,7 +177,7 @@ second workflow than as a way to produce a final model.
 Use this at the start of a project, or for a new class that no detector covers. Once the
 corrected annotations are trained into a standard detector, that detector is faster and
 more accurate on the same imagery than the text query that started it. See `text query
-and VLM <https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html>`__.
+and VLM <https://viame.github.io/VIAME/sections/text_query_and_vlm.html>`__.
 
 *******************
 Choosing a Workflow

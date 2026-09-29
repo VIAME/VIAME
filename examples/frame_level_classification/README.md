@@ -26,6 +26,31 @@ Training data must be supplied in a similar format to object detector training, 
 
 where groundtruth can be in any file format for which a "detected_object_set_input" implementation exists (e.g. viame_csv, kw18, habcam), and labels.txt contains a list of output categories (one per line) for the trained detection model. "labels.txt" can also contain any alternative names in the groundtruth which map back to the same output category label. For example, see training_data/labels.txt for the corresponding groundtruth file in training_data/seq1. The "labels.txt" file allows the user to selectively train models for certain sub-categories or super-categories of object by specifying only the categories of interest to train a model for, and any synonyms for the same category on the same line.
 
-### Full-Frame Classification in DIVE
+## DIVE Documentation
 
-DIVE trains full-frame classifiers from the same annotations; see [DIVE pipelines and training](https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html). The `empty frame lbls` utility pipeline adds a whole-frame box every N frames so that frame-level labels can be applied to it.
+DIVE trains full-frame classifiers from the same annotations; see [DIVE pipelines and training](https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html). The `empty frame lbls` utility pipeline adds a whole-frame box every N frames so that frame-level labels can be applied to it.
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_OPENCV`
+- `VIAME_ENABLE_PYTHON`
+- `VIAME_ENABLE_PYTORCH`
+- `VIAME_ENABLE_PYTORCH-NETHARN`
+- `VIAME_ENABLE_VXL`
+
+Command line tools:
+
+- tools/run.py -- `viame run`
+- tools/train.cxx -- `viame train`
+
+Pipeline and configuration files:
+
+- configs/pipelines/train_frame_classifier_netharn_efficientnet.conf
+- configs/pipelines/train_frame_classifier_libsvm_svm.conf
+
+Source code:
+
+- plugins/opencv/random_hue_shift.cxx
+- plugins/pytorch/netharn_trainer.py

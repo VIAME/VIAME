@@ -6,22 +6,15 @@ This document corresponds to the [video and image search](https://github.com/VIA
 2. Quickly training up detection models for new categories of objects on the same ingest
 3. Performing text-based queries to detect, segment, and track high-level object categories
 
-Rapid model generation can be performed either via image or video queries using the IQR (Iterative Query Refinement) method described in the sections below, or via textual queries using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts to detect, segment, and track objects without requiring any pre-existing annotations or an ingested database. See the [text query and VLM](https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html) page for more details on using SAM3.
+Rapid model generation can be performed either via image or video queries using the IQR (Iterative Query Refinement) method described in the sections below, or via textual queries using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts to detect, segment, and track objects without requiring any pre-existing annotations or an ingested database. See the [text query and VLM](https://viame.github.io/VIAME/sections/text_query_and_vlm.html) page for more details on using SAM3.
 
 ## Video and Image Archive Search
 
 Video archive search can be performed via a few methods. The default includes a pipeline which generates object detections, tracks, and lastly temporal descriptors around each track. The descriptors get indexed into an arbitrary data store (typically a nearest neighbor index, locality-sensitive hashing table, or other). At query time, descriptors on a query image or video are matched against the entries in this database. A default GUI (provided via the VIVIA toolkit) is provided which allows performing iterative refinement of the results, by annotating which were correct or incorrect, in order to build up a better model for the input query. This model can be for a new object category (or sub-category attribute) and saved to an output file to be reused again in future pipelines or query requests. Input regions to query against can either be full frame descriptors, around just object detections, or, lastly, object tracks.
 
-### Searching from DIVE
-
-[DIVE query](https://viame.readthedocs.io/en/latest/sections/dive/Query.html) covers running video and image search from the interface, along with managing the search index for individual sequences.
-
 ## Initial Setup
 
-Building and running this example requires either a VIAME install or a build from source with:
-
-1. The python packages: numpy, pymongo, torch, torchvision, matplotlib, and python-tk
-2. A VIAME build with VIAME_ENABLE_SVM, YOLO, OPENCV, PYTORCH, VXL, and VIVIA enabled.
+Building and running this example requires either a VIAME install or a build from source, along with the python packages numpy, pymongo, torch, torchvision, matplotlib, and python-tk.
 
 First, you should decide where you want to run this example from. Doing it in the example folder tree is fine as a first pass, but if it is something you plan on running a few times or on multiple datasets, you probably want to select a different place in your user space to store generated databases and model files. This can be accomplished by making a new folder in your directory and either copying the scripts (.sh, .bat) from this example into this new directory, or via copying the project files located in \[VIAME-INSTALL\]/configs/prj-linux (or prj-windows) to this new directory. After copying these scripts to the directory you want to run them from, you may need to make sure the first line in the top, "VIAME_INSTALL", points to the location of your VIAME installation (as shown below) if your installation is in a non-default directory, or you copied the example files elsewhere. If using windows, all '.sh' scripts in the below will be '.bat' scripts that you should be able to just double-click to run.
 
@@ -182,7 +175,7 @@ If you have a detection .csv file for corresponding imagery, and want to train a
 
 ## Text-Prompted Detection and Tracking
 
-Objects can also be found by describing them in words, with no index or example image needed. See [text query and VLM](https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html).
+Objects can also be found by describing them in words, with no index or example image needed. See [text query and VLM](https://viame.github.io/VIAME/sections/text_query_and_vlm.html).
 
 ## Tuning Algorithms (Advanced)
 
@@ -191,3 +184,56 @@ Coming Soon....
 ## Rapid Model Generation
 
 Rapid model generation can be performed using the same method as image and video search (above), just saving out the resultant trained detection models after performing iterative query refinement. These models can then be used in detection pipelines, or further refined or used in future video searches.
+
+## DIVE Documentation
+
+[DIVE query](https://viame.github.io/VIAME/sections/dive/Query.html) covers running video and image search from the interface, along with managing the search index for individual sequences.
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_DARKNET`
+- `VIAME_ENABLE_POSTGRESQL`
+- `VIAME_ENABLE_PYTHON`
+- `VIAME_ENABLE_PYTORCH`
+- `VIAME_ENABLE_PYTORCH-RF-DETR`
+- `VIAME_ENABLE_PYTORCH-VISION`
+- `VIAME_ENABLE_SVM`
+- `VIAME_ENABLE_VIVIA`
+- `VIAME_ENABLE_VXL`
+
+Add-ons providing the pipelines or models used: `generic`.
+
+Command line tools:
+
+- tools/database.py -- `viame database`
+- tools/index.py -- `viame index`
+- tools/search.py -- `viame search`
+- tools/view.py -- `viame view`
+
+Pipeline and configuration files:
+
+- configs/add-ons/generic/detector_svm_over_generic_proposals.pipe
+- configs/pipelines/query_retrieval_and_iqr.pipe
+- configs/pipelines/query_from_track.pipe
+- configs/pipelines/database_apply_svm_models.pipe
+- configs/pipelines/frame_classifier_svm.pipe
+
+Source code:
+
+- plugins/core/average_track_descriptors.cxx
+- plugins/core/create_database_query_process.cxx
+- plugins/core/filter_frame_process.cxx
+- plugins/core/full_frame_detector.cxx
+- plugins/core/image_to_image_set_process.cxx
+- plugins/core/query_track_descriptor_set_csv.cxx
+- plugins/core/refine_detections_add_fixed.cxx
+- plugins/core/refine_detections_nms.cxx
+- plugins/core/select_database_query_process.cxx
+- plugins/core/windowed_detector.cxx
+- plugins/core/write_query_results_as_tracks_process.cxx
+- plugins/cppdb/object_track_descriptors_db_process.cxx
+- plugins/pytorch/rf_detr_detector.py
+- plugins/pytorch/torchvision_descriptors.py
+- plugins/svm/process_query_process.cxx

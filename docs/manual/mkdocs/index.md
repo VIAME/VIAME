@@ -6,7 +6,7 @@ Video and Image Analytics for Multiple Environments ([VIAME](https://www.viameto
 
 This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) branch and is updated frequently, though you may have to press ctrl-F5 to see the latest updates to avoid using your browser cache of this webpage if you have used it previously. In addition to this manual, there are 4 useful types of documentation:
 
-1.  A [quick-start guide](https://viame.readthedocs.io/en/latest/sections/quick_start_guide.html) meant for first time users using the desktop version
+1.  A [quick-start guide](https://viame.github.io/VIAME/sections/quick_start_guide.html) meant for first time users using the desktop version
 2.  An [overview presentation](https://www.viametoolkit.org/wp-content/uploads/2020/09/VIAME-AI-Workshop-Aug2020.pdf) covering the basic design of VIAME
 3.  The [VIAME Web and DIVE Desktop docs](https://kitware.github.io/dive) and in-GUI help menu
 4.  Our [YouTube video channel](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw) (work in progress)
@@ -53,35 +53,47 @@ There are a number of core capabilities within the software, click on each of th
 
 Object Detection and Tracking
 
+<p align="center">
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/object_detection"><img src="_static/images/many_scallop_detections_gui.jpg" alt="Many scallop detections gui" width="30%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/object_detection"><img src="_static/images/Capabilities_Object_Detection.jpg" alt="Capabilities object detection" width="27.5%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/object_tracking"><img src="_static/images/Text-Query-Result1.jpg" alt="Text query result" width="27.5%"></a>
+</p>
 
 User Interfaces for Annotation, Visualization, and Detector Model Training
 
+<p align="center">
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization"><img src="_static/images/dive_banner.jpg" alt="DIVE annotator" width="29%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization"><img src="_static/images/Point-Segmentation.jpg" alt="Point segmentation" width="29%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization"><img src="_static/images/Train_From_Dive.png" alt="Train from dive" width="29%"></a>
+</p>
 
 Measuring Animal Lengths Using Metadata or Stereo
 
+<p align="center">
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/fish_measurement_example.jpg" alt="Fish measurement example" width="29%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/Calibration-Show-Features-On-Success1.jpg" alt="Calibration show features on success" width="29%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement"><img src="_static/images/Stereo-Seamap-Short1.jpg" alt="Stereo seamap short" width="29%"></a>
+</p>
 
 Text, Image, Video Search for Rapid Model Generation
 
+<p align="center">
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/iqr_11_initial_results.jpg" alt="Iqr 11 initial results" width="29%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search"><img src="_static/images/Perform-Text-Query.jpg" alt="Perform text query" width="29%"></a>
+</p>
 
 Illumination Normalization and Color Correction
 
+<p align="center">
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/image_enhancement"><img src="_static/images/color_correct.jpg" alt="Color correct" width="29%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/image_enhancement"><img src="_static/images/Image_Filter_in_DIVE.jpg" alt="Image filter in dive" width="29%"></a>
+</p>
 
 Detector and Tracker Evaluation
 
+<p align="center">
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_PRC.png" alt="Score prc" width="20%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_Confusion_Matrix.jpg" alt="Score confusion matrix" width="17.5%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_ROC.png" alt="Score roc" width="20%"></a>
 <a href="https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation"><img src="_static/images/Score_MAP_Table.png" alt="Score map table" width="20%"></a>
+</p>

@@ -24,7 +24,8 @@ SECTIONS = "sections"
 DIVE_DIR = SECTIONS + "/dive"
 
 INCLUDE = re.compile(r"^\.\. include:: *(\S+) *\n((?:[ \t]+:[\w-]+:.*\n)*)", re.M)
-RTD = r"https?://viame\.readthedocs\.io/en/latest/?([^\s)#\"'>]*)(#[^\s)\"'>]*)?"
+SITE = r"https?://(?:viame\.github\.io/VIAME|viame\.readthedocs\.io/en/latest)/?"
+RTD = SITE + r"([^\s)#\"'>]*)(#[^\s)\"'>]*)?"
 RTD_AUTOLINK = re.compile("<" + RTD + ">")
 RTD_TARGET = re.compile(r"\]\(" + RTD + r"\)")
 RTD_HREF = re.compile('href="' + RTD + '"')
@@ -125,7 +126,7 @@ def split_section(markdown, title):
 
 
 def relink(text, page, pages):
-    """Point links at the hosted Sphinx manual to the matching local page."""
+    """Point links at the hosted manual to the matching local page."""
     def local(match, suffix):
         name = (match.group(1) or "index.html")[:-5]
         if not (match.group(1) or ".html").endswith(".html") or name not in pages:

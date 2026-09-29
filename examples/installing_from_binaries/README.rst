@@ -9,18 +9,6 @@ Installation Methods
 
 There are several ways to install VIAME depending on your platform and use case.
 
-.. dive-crosslink
-
-DIVE Install Notes
-==================
-
-`DIVE desktop version`_ covers the standalone desktop annotator, and `DIVE web version`_
-covers account setup for viame.kitware.com.
-
-.. _DIVE desktop version: https://viame.readthedocs.io/en/latest/sections/dive/Dive-Desktop.html
-.. _DIVE web version: https://viame.readthedocs.io/en/latest/sections/dive/Web-Version.html
-
-
 .zip files (Windows) or .tar.gz files (Linux) -- Desktop or RDP/VNC
 =====================================================================
 
@@ -165,11 +153,13 @@ default Windows "Extract All" option.
 
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/quickstart_windows_extract.jpg
    :width: 40%
+   :align: center
 
 The contents of the folder should look like the below.
 
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/quickstart_windows_install_contents.jpg
    :width: 40%
+   :align: center
 
 **Linux:**
 
@@ -192,6 +182,7 @@ The contents of the folder should look like the below.
 
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/quickstart_linux_install_contents.jpg
    :width: 40%
+   :align: center
 
 Depending on your system, you may need to get permission to modify your install directory
 (e.g. /opt/noaa/viame).
@@ -205,4 +196,17 @@ VIAME Web
 For web-based installations, refer to the `VIAME Web / DIVE documentation`_ and the
 Docker setup instructions on the main GitHub page.
 
-.. _VIAME Web / DIVE documentation: https://viame.readthedocs.io/en/latest/sections/dive/index.html
+.. _VIAME Web / DIVE documentation: https://viame.github.io/VIAME/sections/dive/index.html
+
+
+.. dive-crosslink
+
+******************
+DIVE Documentation
+******************
+
+`DIVE desktop version`_ covers the standalone desktop annotator, and `DIVE web version`_
+covers account setup for viame.kitware.com.
+
+.. _DIVE desktop version: https://viame.github.io/VIAME/sections/dive/Dive-Desktop.html
+.. _DIVE web version: https://viame.github.io/VIAME/sections/dive/Web-Version.html

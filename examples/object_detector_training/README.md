@@ -14,10 +14,6 @@ viame train -i /path/to/training/data -c train_config.conf --threshold 0.0
 
 After training completes, the resulting model is saved as a `trained_model.zip` pack holding the generated pipeline, model files, a model card and any evaluation results. The trained model can then be run using `run_trained_model` scripts or loaded in DIVE.
 
-### Training Detectors from DIVE
-
-DIVE runs these same training configurations from its training menu on both web and desktop. See [DIVE pipelines and training](https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html) for the available configurations, the optional `labels.txt` behavior, and the option to train on annotated frames only.
-
 ## Training Data Format
 
 Training data should be organized in the following directory structure:
@@ -457,3 +453,57 @@ Continue training a Netharn CFRNN model from an existing checkpoint.
 
 `run_trained_model.sh` / `.bat`  
 Run a trained detector model on new imagery. Uses `detector.pipe` inside the `trained_model.zip` pack produced by training, or an unpacked `trained_model` folder. Supports multi-GPU processing via the `TOTAL_GPU_COUNT` and `PIPES_PER_GPU` options.
+
+## DIVE Documentation
+
+DIVE runs these same training configurations from its training menu on both web and desktop. See [DIVE pipelines and training](https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html) for the available configurations, the optional `labels.txt` behavior, and the option to train on annotated frames only.
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_OPENCV`
+- `VIAME_ENABLE_PYTHON`
+- `VIAME_ENABLE_PYTORCH`
+- `VIAME_ENABLE_PYTORCH-RF-DETR`
+- `VIAME_ENABLE_VXL`
+
+Add-ons providing the pipelines or models used: `darknet`, `default-fish`, `generic`, `habcam`.
+
+Command line tools:
+
+- tools/run.py -- `viame run`
+- tools/train.cxx -- `viame train`
+
+Pipeline and configuration files:
+
+- configs/pipelines/train_detector_netharn_cfrnn.conf
+- configs/add-ons/darknet/train_detector_darknet_yolo_640.conf
+- configs/add-ons/darknet/train_detector_darknet_yolo_704.habcam.conf
+- configs/pipelines/train_detector_default.conf
+- configs/pipelines/train_detector_detectron2_frcnn.conf
+- configs/pipelines/train_detector_litdet_frcnn.conf
+- configs/pipelines/train_detector_litdet_ssd.conf
+- configs/pipelines/train_detector_mit_yolo_v9_c_640.conf
+- configs/add-ons/habcam/train_detector_netharn_cfrnn.habcam.conf
+- configs/pipelines/train_detector_rf_detr_default.conf
+- configs/pipelines/train_detector_rf_detr_n_384.conf
+- configs/pipelines/train_reclassifier_sleap_head_tail.conf
+- configs/add-ons/default-fish/train_detector_svm_over_fish_detections.conf
+- configs/add-ons/generic/train_detector_svm_over_generic_detections.conf
+- configs/pipelines/train_detector_netharn_rf_detr_l_seg_kp_1728.conf
+- configs/pipelines/train_detector_netharn_cfrnn.grid_only.conf
+
+Source code:
+
+- plugins/core/adaptive_detector_trainer.cxx
+- plugins/core/adaptive_tracker_trainer.cxx
+- plugins/core/auto_detect_transform.cxx
+- plugins/opencv/random_hue_shift.cxx
+- plugins/opencv/split_image_habcam.cxx
+- plugins/opencv/split_image_horizontally.cxx
+- plugins/opencv/warp_image_ocv.cxx
+- plugins/opencv/windowed_trainer.cxx
+- plugins/pytorch/rf_detr_detector.py
+- plugins/pytorch/rf_detr_trainer.py
+- plugins/pytorch/sleap_trainer.py

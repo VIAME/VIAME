@@ -21,7 +21,7 @@ used to annotate multiple image sequences or videos, train models across them, a
 trained models on new data. It is launched with the ``launch_dive_interface`` script, in this
 folder or at the top level of the installation.
 
-See the `DIVE interface guide <https://viame.readthedocs.io/en/latest/sections/dive/index.html>`__.
+See the `DIVE interface guide <https://viame.github.io/VIAME/sections/dive/index.html>`__.
 
 **********************
 Command-Line Interface
@@ -31,7 +31,7 @@ The ``viame`` command runs pipelines, trains and scores models, converts files a
 search indexes, without a graphical interface. It suits batch processing, remote machines and
 scripted workflows.
 
-See the `command line interface <https://viame.readthedocs.io/en/latest/sections/command_line_interface.html>`__.
+See the `command line interface <https://viame.github.io/VIAME/sections/command_line_interface.html>`__.
 
 Scripts in this folder
 ======================
@@ -40,7 +40,7 @@ Standalone utility scripts in this folder include the following. Each of these i
 to take in a folder of videos, folder of images, or a folder of folders of images, see
 default `input folder structure`_.
 
-.. _input folder structure: https://viame.readthedocs.io/en/latest/sections/examples_overview.html#bulk-processing-scripts
+.. _input folder structure: https://viame.github.io/VIAME/sections/examples_overview.html#bulk-processing-scripts
 
 * draw_detections_on_frames - Draw detections stored in some detection file onto frames
 * extract_chips_from_detections - Extract image chips around detections or truth boxes
@@ -68,7 +68,7 @@ Python Interface
 itself built on. Images, videos, annotations and pipelines can be loaded and run directly from
 python.
 
-See the `python interface <https://viame.readthedocs.io/en/latest/sections/python_interface.html>`__.
+See the `python interface <https://viame.github.io/VIAME/sections/python_interface.html>`__.
 
 ***************
 Project Folders
@@ -79,7 +79,7 @@ annotating, running detectors and trackers, and training models. One is copied t
 drive outside the installation, the input data is placed in it, and the scripts are run from
 there.
 
-See `project folders <https://viame.readthedocs.io/en/latest/sections/project_folders.html>`__.
+See `project folders <https://viame.github.io/VIAME/sections/project_folders.html>`__.
 
 **********************
 Deprecated Desktop UIs
@@ -226,7 +226,7 @@ the problem).
 
 For additional information, see the dedicated `example`_ for it.
 
-.. _example: https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html
+.. _example: https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html
 
 SEAL
 ====
@@ -314,7 +314,7 @@ and track across the video.*
 *Results of a SAM3 text query showing automatically detected and tracked fish with
 segmentation outlines.*
 
-.. _SAM3 Text-Prompted Detection and Tracking: https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html
+.. _SAM3 Text-Prompted Detection and Tracking: https://viame.github.io/VIAME/sections/text_query_and_vlm.html
 
 To manually start the interactive segmentation service outside of DIVE (e.g., for
 scripting or integration with other tools)::

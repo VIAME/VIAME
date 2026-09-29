@@ -41,22 +41,6 @@ VIAME detectors fall into three broad categories:
 #. **Motion / heuristic detectors** -- detect objects via motion, shape, or other cues (no training)
 
 
-.. dive-crosslink
-
-Running Detectors in DIVE
--------------------------
-
-Detection pipelines are grouped in the DIVE menus by the first word of the pipeline file
-name, and the canned detectors available on web and desktop are listed in `DIVE pipelines
-and training`_. Detector output lands as editable annotations; see the `DIVE annotation
-quickstart`_ for correcting it and `DIVE scoring`_ for comparing a detector against
-ground truth.
-
-.. _DIVE pipelines and training: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html
-.. _DIVE annotation quickstart: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html
-.. _DIVE scoring: https://viame.readthedocs.io/en/latest/sections/dive/Scoring.html
-
-
 **********************
 Deep Learning Detectors
 **********************
@@ -450,3 +434,53 @@ Example add-ons include:
 
 These add-ons can be installed via the VIAME add-on manager. Once installed, their
 detection pipelines become available both on the command line and in the GUI.
+
+
+.. dive-crosslink
+
+******************
+DIVE Documentation
+******************
+
+Detection pipelines are grouped in the DIVE menus by the first word of the pipeline file
+name, and the canned detectors available on web and desktop are listed in `DIVE pipelines
+and training`_. Detector output lands as editable annotations; see the `DIVE annotation
+quickstart`_ for correcting it and `DIVE scoring`_ for comparing a detector against
+ground truth.
+
+.. _DIVE pipelines and training: https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html
+.. _DIVE annotation quickstart: https://viame.github.io/VIAME/sections/dive/Annotation-QuickStart.html
+.. _DIVE scoring: https://viame.github.io/VIAME/sections/dive/Scoring.html
+
+
+********************
+Code and Build Flags
+********************
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_ONNX``
+* ``VIAME_ENABLE_OPENCV``
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_PYTORCH``
+* ``VIAME_ENABLE_PYTORCH-HUGGINGFACE``
+* ``VIAME_ENABLE_PYTORCH-RF-DETR``
+* ``VIAME_ENABLE_VXL``
+
+Add-ons providing the pipelines or models used: ``default-fish``, ``generic``.
+
+Pipeline and configuration files:
+
+* configs/add-ons/default-fish/detector_default_fish_no_motion.pipe
+* configs/add-ons/generic/detector_generic_proposals.pipe
+* configs/pipelines/detector_gmm_motion.pipe
+* configs/pipelines/detector_huggingface_zeroshot.pipe
+
+Source code:
+
+* plugins/core/refine_detections_nms.cxx
+* plugins/core/windowed_detector.cxx
+* plugins/onnx/onnx_detector.py
+* plugins/opencv/windowed_detector.cxx
+* plugins/pytorch/huggingface_zeroshot_detector.py
+* plugins/pytorch/rf_detr_detector.py

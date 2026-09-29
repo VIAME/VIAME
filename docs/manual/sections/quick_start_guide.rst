@@ -12,7 +12,7 @@ Important Links
 ***************
 
 - **Main website:** https://www.viametoolkit.org/
-- **Manual:** https://viame.readthedocs.io/en/latest/
+- **Manual:** https://viame.github.io/VIAME/
 - **GitHub:** https://github.com/VIAME/VIAME
 - **Bug reporting:** https://github.com/VIAME/VIAME/issues, https://github.com/Kitware/DIVE/issues
 - **Additional Discussion:** https://discourse.kitware.com/c/viame-dive
@@ -314,6 +314,7 @@ How do I know if I have a GPU?
 .. image:: ../_static/images/quickstart_device_manager_gpu.png
    :alt: Device manager gpu
    :width: 60%
+   :align: center
 
 On Windows, look in Device Manager. Sometimes computers have more than one card (one embedded
 on the motherboard, then a 2nd in a plugin slot). Next, search for the card to know its
@@ -376,7 +377,7 @@ Annotation Formats
 *************************************
 
 For details on annotation file formats, see the
-`Detection File Conversions <https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html>`_
+`Detection File Conversions <https://viame.github.io/VIAME/sections/detection_file_conversions.html>`_
 section.
 
 **VIAME-CSV** is the primary input/output format supported by default, with a single line
@@ -409,4 +410,4 @@ Model Generation Workflows
 
 There are several routes from raw imagery to a working model, from annotating everything by
 hand to searching by text or example. See `model generation workflows
-<https://viame.readthedocs.io/en/latest/sections/model_generation_workflows.html>`__ for the steps of each and how they compare.
+<https://viame.github.io/VIAME/sections/model_generation_workflows.html>`__ for the steps of each and how they compare.

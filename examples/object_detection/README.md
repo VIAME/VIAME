@@ -18,10 +18,6 @@ VIAME detectors fall into three broad categories:
 2.  **Classical ML detectors** -- SVM classifiers applied over proposal regions or features
 3.  **Motion / heuristic detectors** -- detect objects via motion, shape, or other cues (no training)
 
-### Running Detectors in DIVE
-
-Detection pipelines are grouped in the DIVE menus by the first word of the pipeline file name, and the canned detectors available on web and desktop are listed in [DIVE pipelines and training](https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html). Detector output lands as editable annotations; see the [DIVE annotation quickstart](https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html) for correcting it and [DIVE scoring](https://viame.readthedocs.io/en/latest/sections/dive/Scoring.html) for comparing a detector against ground truth.
-
 ## Deep Learning Detectors
 
 Deep learning detectors are the most common choice for production use. They learn to recognize objects from annotated training data and typically require a GPU for both training and inference. VIAME supports several deep learning detection frameworks. For details on training these detectors, see the [object detector training examples](https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training).
@@ -311,3 +307,37 @@ Example add-ons include:
 - **Additional Darknet YOLO Architectures** -- extra YOLO framework options for training
 
 These add-ons can be installed via the VIAME add-on manager. Once installed, their detection pipelines become available both on the command line and in the GUI.
+
+## DIVE Documentation
+
+Detection pipelines are grouped in the DIVE menus by the first word of the pipeline file name, and the canned detectors available on web and desktop are listed in [DIVE pipelines and training](https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html). Detector output lands as editable annotations; see the [DIVE annotation quickstart](https://viame.github.io/VIAME/sections/dive/Annotation-QuickStart.html) for correcting it and [DIVE scoring](https://viame.github.io/VIAME/sections/dive/Scoring.html) for comparing a detector against ground truth.
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_ONNX`
+- `VIAME_ENABLE_OPENCV`
+- `VIAME_ENABLE_PYTHON`
+- `VIAME_ENABLE_PYTORCH`
+- `VIAME_ENABLE_PYTORCH-HUGGINGFACE`
+- `VIAME_ENABLE_PYTORCH-RF-DETR`
+- `VIAME_ENABLE_VXL`
+
+Add-ons providing the pipelines or models used: `default-fish`, `generic`.
+
+Pipeline and configuration files:
+
+- configs/add-ons/default-fish/detector_default_fish_no_motion.pipe
+- configs/add-ons/generic/detector_generic_proposals.pipe
+- configs/pipelines/detector_gmm_motion.pipe
+- configs/pipelines/detector_huggingface_zeroshot.pipe
+
+Source code:
+
+- plugins/core/refine_detections_nms.cxx
+- plugins/core/windowed_detector.cxx
+- plugins/onnx/onnx_detector.py
+- plugins/opencv/windowed_detector.cxx
+- plugins/pytorch/huggingface_zeroshot_detector.py
+- plugins/pytorch/rf_detr_detector.py

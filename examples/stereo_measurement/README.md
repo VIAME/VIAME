@@ -4,23 +4,19 @@
 <img src="../../docs/manual/_static/images/fish_measurement_example.jpg" alt="image" width="70%">
 </p>
 
-## Measuring in DIVE
+## Overview
 
-[DIVE multicamera and stereo data](https://viame.readthedocs.io/en/latest/sections/dive/Multicamera-data.html) covers loading stereo pairs, and the [DIVE annotation quickstart](https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html) covers drawing the head/tail lines that carry length.
-
-## Running the Demo
-
-This section corresponds to the [stereo measurement](https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement) example folder within a VIAME desktop installation. This folder contains examples and pipelines for computing real-world size measurements of objects (e.g., fish length) from a calibrated pair of cameras.
+This document corresponds to the [stereo measurement](https://github.com/VIAME/VIAME/tree/main/examples/stereo_measurement) example folder within a VIAME desktop installation. This folder contains examples and pipelines for computing real-world size measurements of objects (e.g., fish length) from a calibrated pair of cameras.
 
 Stereo measurement triangulates 3D positions from the two views and computes real-world distances between them. It is the most accurate approach and works at varying depths and distances. It requires a stereo calibration file containing camera intrinsic and extrinsic parameters (see the [Calibration Pipelines](#calibration-pipelines) section). Stereo measurement pipelines detect or accept annotated objects in both left and right camera views, establish correspondences between them, and triangulate keypoints (e.g., head and tail) to compute lengths.
 
-When only one camera is available, see [monocular measurement](https://viame.readthedocs.io/en/latest/sections/monocular_measurement.html), which measures from the camera's height above the scene instead.
+When only one camera is available, see [monocular measurement](https://viame.github.io/VIAME/sections/monocular_measurement.html), which measures from the camera's height above the scene instead.
+
+## Running the Demo
 
 Run CMake to automatically download the demo data into this example folder. Alternatively you can download the demo data [directly](https://viame.kitware.com/girder/#item/6ab572d52d17596fb9c5d3c8).
 
 ### Setup:
-
-Make sure you build VIAME with `VIAME_ENABLE_PYTHON=True` and `VIAME_ENABLE_OPENCV=True`.
 
 For simplicity this tutorial will assume that the VIAME source directory is `[viame-source]` and the build directory is `[viame-build]`. Please modify these as needed to match your system setup. We also assume that you have built VIAME.
 
@@ -137,7 +133,7 @@ Stereo camera calibration from separate left and right camera inputs. Detects ch
 A faster variant of the stereo calibration pipeline that uses fewer frames (threshold of 25 vs. the default). Use this when you have a large number of calibration frames and want quicker results at the cost of slightly reduced accuracy.
 
 **utility_calibrate_single_camera.pipe**  
-Monocular (single camera) calibration from images of a chessboard target. Outputs `calibration.json`. Useful as a preliminary step before stereo calibration; see [monocular measurement](https://viame.readthedocs.io/en/latest/sections/monocular_measurement.html) for its use on its own.
+Monocular (single camera) calibration from images of a chessboard target. Outputs `calibration.json`. Useful as a preliminary step before stereo calibration; see [monocular measurement](https://viame.github.io/VIAME/sections/monocular_measurement.html) for its use on its own.
 
 **utility_calibrate_stitched_stereo_pair.pipe**  
 Calibrates a stereo pair from a single video or image input where left and right frames are horizontally concatenated (stitched side-by-side). The pipeline splits each frame, detects chessboard corners in both halves, and computes stereo calibration. Outputs `calibration_matrices.json`. Useful for cameras that record both views into a single file.
@@ -398,3 +394,55 @@ A detection without drawn spine vertices gets its centerline from its mask (poly
 The matching DIVE `feature/curved-headtail-lines` branch extends the existing line editor with segment midpoint handles. Interior vertices use named keypoints `spine_001`, `spine_002`, etc., between `head` and `tail`. VIAME's CSV and DIVE JSON readers/writers preserve these markers and subpixel coordinates; JSON uses the existing `HeadTails` LineString. No new KWIVER geometry type is required.
 
 `measure_curve` responses also provide `left_keypoints` and `right_keypoints` dictionaries containing named points for export through these writers. In DIVE, editing a multi-point line invokes `measure_line` with an ordered array of vertices per camera. The service detects this form and rematches samples along the polyline before summing triangulated segment lengths. Vertex indices across independently edited camera views are never assumed to match. The original two-endpoint request keeps its existing behavior. The editor path uses a polyline (no spline smoothing), while `measure_curve` retains its configurable smoothing and bidirectional options.
+
+## DIVE Documentation
+
+[DIVE multicamera and stereo data](https://viame.github.io/VIAME/sections/dive/Multicamera-data.html) covers loading stereo pairs, and the [DIVE annotation quickstart](https://viame.github.io/VIAME/sections/dive/Annotation-QuickStart.html) covers drawing the head/tail lines that carry length.
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_OPENCV`
+- `VIAME_ENABLE_PYTHON`
+- `VIAME_ENABLE_PYTORCH`
+- `VIAME_ENABLE_PYTORCH-RF-DETR`
+- `VIAME_ENABLE_VXL`
+
+Add-ons providing the pipelines or models used: `default-fish`.
+
+Command line tools:
+
+- tools/calibrate.py -- `viame calibrate`
+
+Pipeline and configuration files:
+
+- configs/pipelines/filter_stereo_depth_map.pipe
+- configs/pipelines/stereo_measure_current_annots_default.pipe
+- configs/add-ons/default-fish/stereo_track_and_measure_default_fish.pipe
+- configs/pipelines/stereo_detect_and_measure_gmm_motion.pipe
+- configs/pipelines/stereo_calibrate_cameras_default.pipe
+- configs/pipelines/stereo_calibrate_cameras_fast.pipe
+- configs/pipelines/utility_calibrate_single_camera.pipe
+- configs/pipelines/utility_calibrate_stitched_stereo_pair.pipe
+- configs/pipelines/stereo_compute_rectified_disparity.pipe
+- configs/add-ons/fdn-stereo/stereo_measure_current_annots_fdn_stereo_s.pipe
+- configs/add-ons/dino3/stereo_measure_current_annots_ncc_dino.pipe
+- configs/add-ons/seagis/stereo_measure_current_annots_seagis.pipe
+- configs/add-ons/default-fish/stereo_detect_and_measure_default_fish.pipe
+- configs/pipelines/stereo_measure_current_annots_sgbm.pipe
+- configs/add-ons/fast-fdn-stereo/stereo_measure_current_annots_spline_generic.pipe
+- configs/add-ons/default-fish/stereo_measure_current_annots_spline_fish.pipe
+
+Source code:
+
+- plugins/core/bytetrack_tracker.py
+- plugins/core/measure_objects_process.cxx
+- plugins/core/refine_detections_nms.cxx
+- plugins/core/refine_tracks_average_tot.cxx
+- plugins/opencv/compute_stereo_disparity.cxx
+- plugins/opencv/enhance_images.cxx
+- plugins/opencv/measure_objects_process.cxx
+- plugins/opencv/split_image_horizontally.cxx
+- plugins/opencv/warp_image_ocv.cxx
+- plugins/pytorch/rf_detr_detector.py

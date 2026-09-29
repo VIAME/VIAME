@@ -4,10 +4,6 @@
 
 There are several ways to install VIAME depending on your platform and use case.
 
-### DIVE Install Notes
-
-[DIVE desktop version](https://viame.readthedocs.io/en/latest/sections/dive/Dive-Desktop.html) covers the standalone desktop annotator, and [DIVE web version](https://viame.readthedocs.io/en/latest/sections/dive/Web-Version.html) covers account setup for viame.kitware.com.
-
 ### .zip files (Windows) or .tar.gz files (Linux) -- Desktop or RDP/VNC
 
 Installers provided are provided in compressed .zip or .tar.gz format for full desktop installations. Using these types of installers are documented in the following sections. This format of installer is also useful for when users do not have admin privileges on their machines.
@@ -115,11 +111,15 @@ We recommend `C:\Program Files\VIAME`, from here on out this will be known as \[
 
 Extract the binaries from step A, for example if using WinRAR select "Extract All" or use the default Windows "Extract All" option.
 
+<p align="center">
 <img src="../../docs/manual/_static/images/quickstart_windows_extract.jpg" alt="image" width="40%">
+</p>
 
 The contents of the folder should look like the below.
 
+<p align="center">
 <img src="../../docs/manual/_static/images/quickstart_windows_install_contents.jpg" alt="image" width="40%">
+</p>
 
 **Linux:**
 
@@ -142,7 +142,9 @@ mv viame /opt/noaa
 
 The contents of the folder should look like the below.
 
+<p align="center">
 <img src="../../docs/manual/_static/images/quickstart_linux_install_contents.jpg" alt="image" width="40%">
+</p>
 
 Depending on your system, you may need to get permission to modify your install directory (e.g. /opt/noaa/viame).
 
@@ -150,4 +152,8 @@ Depending on your system, you may need to get permission to modify your install 
 
 ## VIAME Web
 
-For web-based installations, refer to the [VIAME Web / DIVE documentation](https://viame.readthedocs.io/en/latest/sections/dive/index.html) and the Docker setup instructions on the main GitHub page.
+For web-based installations, refer to the [VIAME Web / DIVE documentation](https://viame.github.io/VIAME/sections/dive/index.html) and the Docker setup instructions on the main GitHub page.
+
+## DIVE Documentation
+
+[DIVE desktop version](https://viame.github.io/VIAME/sections/dive/Dive-Desktop.html) covers the standalone desktop annotator, and [DIVE web version](https://viame.github.io/VIAME/sections/dive/Web-Version.html) covers account setup for viame.kitware.com.

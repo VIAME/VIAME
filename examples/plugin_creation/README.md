@@ -67,3 +67,24 @@ return detected_set;
 ```
 
 Here `results` stands for whatever the detector produced. Once built, the detector is selected in a pipeline file by the name given to `@template@`.
+
+## DIVE Documentation
+
+- [DIVE pipeline import and export](https://viame.github.io/VIAME/sections/dive/Pipeline-Import-Export.html) covers loading a custom pipeline into the interface, which is how a new plugin is run from DIVE
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_PYTHON`
+
+Source code:
+
+- examples/plugin_creation/cxx/example_detector.cxx
+- examples/plugin_creation/cxx/example_detector.h
+- examples/plugin_creation/cxx/register_algorithms.cxx
+- examples/plugin_creation/python/example_filter.py
+- examples/plugin_creation/python/example_filter_process.py
+- plugins/templates/cxx/template_detector.cxx
+- plugins/templates/cxx/template_detector.h
+- plugins/templates/python/template_detector.py

@@ -306,3 +306,43 @@ Training Scripts
 
 ``train_st_tracker_viame_csv.sh`` / ``.bat``
     Legacy SiamMask training script (calls trainer directly).
+
+
+.. dive-crosslink
+
+******************
+DIVE Documentation
+******************
+
+* `DIVE pipelines and training <https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html>`__ covers launching training from the interface
+* `DIVE annotation quickstart <https://viame.github.io/VIAME/sections/dive/Annotation-QuickStart.html>`__ covers creating the track annotations used for training
+
+
+********************
+Code and Build Flags
+********************
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_OPENCV``
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_PYTORCH``
+* ``VIAME_ENABLE_VXL``
+
+Command line tools:
+
+* tools/train.cxx -- ``viame train``
+
+Pipeline and configuration files:
+
+* configs/pipelines/train_tracker_default.conf
+
+Source code:
+
+* plugins/core/adaptive_detector_trainer.cxx
+* plugins/core/adaptive_tracker_trainer.cxx
+* plugins/core/auto_detect_transform.cxx
+* plugins/core/bytetrack_trainer.py
+* plugins/core/homog_iou_trainer.py
+* plugins/opencv/warp_image_ocv.cxx
+* plugins/pytorch/botsort_trainer.py

@@ -109,3 +109,35 @@ Python Detector Plugin
 Similarly to the above C++ object detector, the python templates in the above directory
 can be copied into a new plugin module, and the template keywords replaced with a module
 name of your choosing.
+
+
+.. dive-crosslink
+
+******************
+DIVE Documentation
+******************
+
+* `DIVE pipeline import and export <https://viame.github.io/VIAME/sections/dive/Pipeline-Import-Export.html>`__ covers loading a custom pipeline into the interface, which is how a new module is run from DIVE
+
+
+********************
+Code and Build Flags
+********************
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_PYTHON``
+
+Pipeline and configuration files:
+
+* examples/example_pipeline/hello_world_detector.pipe
+* examples/example_pipeline/hello_world_python.pipe
+
+Source code:
+
+* plugins/examples/hello_world_detector.cxx
+* plugins/examples/hello_world_detector.h
+* plugins/examples/hello_world_detector.py
+* plugins/examples/hello_world_filter.cxx
+* plugins/examples/hello_world_filter.h
+* plugins/examples/hello_world_filter.py

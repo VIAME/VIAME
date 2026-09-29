@@ -39,13 +39,11 @@ Common options accepted by all scripts:
 
 With `--sweep-thresholds` the metrics JSON also carries a `sweep` section holding, per class and for the aggregate, every swept threshold with the precision, recall, F1, MOTA, MOTP, IDF1, HOTA and count metrics at each one, and `sweep_curves.csv` is written beside `class_metrics.csv`. DIVE's scoring panel plots these to pick an operating point; the aggregate curve never feeds the written DIVE filter.
 
-### Scoring from DIVE
-
-[DIVE scoring](https://viame.readthedocs.io/en/latest/sections/dive/Scoring.html) compares computed annotations against ground truth from within the interface. On web, keep truth and model output in separate [DIVE annotation sets](https://viame.readthedocs.io/en/latest/sections/dive/Annotation-Sets.html) (for example `groundTruth` versus `default`) and score them from the Scoring tab.
-
 ## PRC and Confusion Matrices
 
+<p align="center">
 <a href="../../docs/manual/_static/images/Score_PRC.png"><img src="../../docs/manual/_static/images/Score_PRC.png" alt="prc_img" width="30%"></a> <a href="../../docs/manual/_static/images/Score_Confusion_Matrix.jpg"><img src="../../docs/manual/_static/images/Score_Confusion_Matrix.jpg" alt="conf_img" width="21%"></a>
+</p>
 
 Scripts:
 
@@ -69,7 +67,9 @@ These scripts produce Precision-Recall Curves (PRC), confusion matrices, and a s
 - **Top-2, Top-3, Top-5 Accuracy** -- Fraction where the correct class is among the top N predictions.
 - **MCC** (Matthews Correlation Coefficient) -- A balanced measure of classification quality that accounts for class imbalance, ranging from -1 (total disagreement) to +1 (perfect prediction).
 
+<p align="center">
 <a href="../../docs/manual/_static/images/Score_MAP_Table.png"><img src="../../docs/manual/_static/images/Score_MAP_Table.png" alt="map_img" width="30%"></a> <a href="../../docs/manual/_static/images/Score_ROC.png"><img src="../../docs/manual/_static/images/Score_ROC.png" alt="roc_img" width="30%"></a>
+</p>
 
 **Metrics Table:** `--output-metrics` writes every metric as JSON, and `--output-summary` writes the printed table. With `--per-class` the table reports TP, FP, FN, precision, recall, F1 and average precision for each category, alongside the aggregate.
 
@@ -165,3 +165,18 @@ These properties were historically produced by the external KWANT `score_tracks`
 - **Avg gap length** -- Average length, in frames, of the gaps inside fragmented tracks.
 
 Distributions of track purity and continuity are also written to the plot directory as histograms.
+
+## DIVE Documentation
+
+[DIVE scoring](https://viame.github.io/VIAME/sections/dive/Scoring.html) compares computed annotations against ground truth from within the interface. On web, keep truth and model output in separate [DIVE annotation sets](https://viame.github.io/VIAME/sections/dive/Annotation-Sets.html) (for example `groundTruth` versus `default`) and score them from the Scoring tab.
+
+## Code and Build Flags
+
+Command line tools:
+
+- tools/score.cxx -- `viame score`
+
+Source code:
+
+- plugins/core/evaluate_models.cxx
+- plugins/core/evaluate_models.h

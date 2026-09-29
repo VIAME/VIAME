@@ -127,7 +127,7 @@ viame run detector_generic_proposals.pipe -s input:video_filename=my_images.txt
 viame train -i training_data -c train_detector_default.conf
 ```
 
-`viame train --list` shows every trainable algorithm. See [detector training](https://viame.readthedocs.io/en/latest/sections/object_detector_training.html) for the layout of the training data and the available configurations.
+`viame train --list` shows every trainable algorithm. See [detector training](https://viame.github.io/VIAME/sections/object_detector_training.html) for the layout of the training data and the available configurations.
 
 ### Scoring results
 
@@ -135,7 +135,7 @@ viame train -i training_data -c train_detector_default.conf
 viame score computed_detections.csv groundtruth.csv --per-class
 ```
 
-See [scoring detectors and trackers](https://viame.readthedocs.io/en/latest/sections/scoring_and_evaluation.html).
+See [scoring detectors and trackers](https://viame.github.io/VIAME/sections/scoring_and_evaluation.html).
 
 ### Converting annotations
 
@@ -145,4 +145,4 @@ The output format is taken from the file extension:
 viame convert annotations.csv annotations.json
 ```
 
-See [detection file formats and conversions](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html).
+See [detection file formats and conversions](https://viame.github.io/VIAME/sections/detection_file_conversions.html).

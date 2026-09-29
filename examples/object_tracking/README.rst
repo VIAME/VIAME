@@ -50,19 +50,6 @@ word of the pipeline file name. Automatic multi-target trackers appear under the
 are available in the pipelines dropdown.
 
 
-.. dive-crosslink
-
-Running Trackers in DIVE
-------------------------
-
-Tracking pipelines are listed in `DIVE pipelines and training`_. Trackers that link
-detections run an upstream detector first, so track quality depends on the detector
-chosen there. Use the `DIVE annotation quickstart`_ to correct track breaks and merges.
-
-.. _DIVE pipelines and training: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html
-.. _DIVE annotation quickstart: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-QuickStart.html
-
-
 *******************************
 Automatic Multi-Target Trackers
 *******************************
@@ -464,3 +451,73 @@ Batch Processing
 ``bulk_run_user_init_tracking.sh`` / ``.bat``
     Batch-processes multiple sequences using the ``viame run`` command with
     user-initialized tracking. Reads groundtruth annotations as initializations.
+
+
+.. dive-crosslink
+
+******************
+DIVE Documentation
+******************
+
+Tracking pipelines are listed in `DIVE pipelines and training`_. Trackers that link
+detections run an upstream detector first, so track quality depends on the detector
+chosen there. Use the `DIVE annotation quickstart`_ to correct track breaks and merges.
+
+.. _DIVE pipelines and training: https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html
+.. _DIVE annotation quickstart: https://viame.github.io/VIAME/sections/dive/Annotation-QuickStart.html
+
+
+********************
+Code and Build Flags
+********************
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_ONNX``
+* ``VIAME_ENABLE_OPENCV``
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_PYTORCH``
+* ``VIAME_ENABLE_PYTORCH-RF-DETR``
+* ``VIAME_ENABLE_PYTORCH-SAM2``
+* ``VIAME_ENABLE_PYTORCH-SAM3``
+* ``VIAME_ENABLE_PYTORCH-SIAMMASK``
+* ``VIAME_ENABLE_VXL``
+
+Add-ons providing the pipelines or models used: ``default-fish``, ``generic``, ``sam2``, ``sam3``, ``siammask``.
+
+Command line tools:
+
+* tools/run.py -- ``viame run``
+* tools/view.py -- ``viame view``
+
+Pipeline and configuration files:
+
+* configs/add-ons/siammask/utility_track_selections_default_mask.pipe
+* configs/pipelines/filter_stereo_depth_map.pipe
+* configs/add-ons/generic/tracker_generic_proposals.pipe
+* configs/add-ons/default-fish/tracker_default_fish_fusion.pipe
+* configs/add-ons/default-fish/tracker_fish_via_registration_only.pipe
+* configs/pipelines/common_stabilized_iou_tracker.pipe
+* configs/add-ons/sam2/utility_track_selections_sam2.pipe
+* configs/add-ons/sam3/utility_track_selections_sam3.pipe
+* configs/pipelines/common_default_tracker.pipe
+* configs/pipelines/common_image_stabilizer.pipe
+* configs/pipelines/train_tracker_default.conf
+
+Source code:
+
+* plugins/core/bytetrack_tracker.py
+* plugins/core/merge_detections_nms_fusion.py
+* plugins/core/refine_detections_nms.cxx
+* plugins/core/refine_tracks_average_tot.cxx
+* plugins/core/simple_homog_tracker.py
+* plugins/core/windowed_detector.cxx
+* plugins/onnx/onnx_detector.py
+* plugins/opencv/compute_stereo_disparity.cxx
+* plugins/opencv/enhance_images.cxx
+* plugins/opencv/split_image_horizontally.cxx
+* plugins/opencv/warp_image_ocv.cxx
+* plugins/pytorch/rf_detr_detector.py
+* plugins/pytorch/sam2_refiner.py
+* plugins/pytorch/sam3_refiner.py
+* plugins/pytorch/siammask_tracker.py

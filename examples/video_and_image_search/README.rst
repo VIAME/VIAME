@@ -15,7 +15,7 @@ Rapid model generation can be performed either via image or video queries using 
 IQR (Iterative Query Refinement) method described in the sections below, or via textual
 queries using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts
 to detect, segment, and track objects without requiring any pre-existing annotations or
-an ingested database. See the `text query and VLM <https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html>`__ page
+an ingested database. See the `text query and VLM <https://viame.github.io/VIAME/sections/text_query_and_vlm.html>`__ page
 for more details on using SAM3.
 
 .. _video and image search: https://github.com/VIAME/VIAME/tree/main/examples/video_and_image_search
@@ -38,24 +38,11 @@ query against can either be full frame descriptors, around just object detection
 or, lastly, object tracks.
 
 
-.. dive-crosslink
-
-Searching from DIVE
--------------------
-
-`DIVE query`_ covers running video and image search from the interface, along with
-managing the search index for individual sequences.
-
-.. _DIVE query: https://viame.readthedocs.io/en/latest/sections/dive/Query.html
-
-
 Initial Setup
 =============
 
-| Building and running this example requires either a VIAME install or a build from source with: 
-|
-|  (a) The python packages: numpy, pymongo, torch, torchvision, matplotlib, and python-tk
-|  (b) A VIAME build with VIAME_ENABLE_SVM, YOLO, OPENCV, PYTORCH, VXL, and VIVIA enabled.
+Building and running this example requires either a VIAME install or a build from source,
+along with the python packages numpy, pymongo, torch, torchvision, matplotlib, and python-tk.
 |
 First, you should decide where you want to run this example from. Doing it in the example folder
 tree is fine as a first pass, but if it is something you plan on running a few times or on multiple
@@ -332,7 +319,7 @@ Text-Prompted Detection and Tracking
 =====================================
 
 Objects can also be found by describing them in words, with no index or example image needed.
-See `text query and VLM <https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html>`__.
+See `text query and VLM <https://viame.github.io/VIAME/sections/text_query_and_vlm.html>`__.
 
 
 Tuning Algorithms (Advanced)
@@ -340,3 +327,65 @@ Tuning Algorithms (Advanced)
 
 Coming Soon....
  
+
+
+.. dive-crosslink
+
+DIVE Documentation
+==================
+
+`DIVE query`_ covers running video and image search from the interface, along with
+managing the search index for individual sequences.
+
+.. _DIVE query: https://viame.github.io/VIAME/sections/dive/Query.html
+
+
+Code and Build Flags
+====================
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_DARKNET``
+* ``VIAME_ENABLE_POSTGRESQL``
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_PYTORCH``
+* ``VIAME_ENABLE_PYTORCH-RF-DETR``
+* ``VIAME_ENABLE_PYTORCH-VISION``
+* ``VIAME_ENABLE_SVM``
+* ``VIAME_ENABLE_VIVIA``
+* ``VIAME_ENABLE_VXL``
+
+Add-ons providing the pipelines or models used: ``generic``.
+
+Command line tools:
+
+* tools/database.py -- ``viame database``
+* tools/index.py -- ``viame index``
+* tools/search.py -- ``viame search``
+* tools/view.py -- ``viame view``
+
+Pipeline and configuration files:
+
+* configs/add-ons/generic/detector_svm_over_generic_proposals.pipe
+* configs/pipelines/query_retrieval_and_iqr.pipe
+* configs/pipelines/query_from_track.pipe
+* configs/pipelines/database_apply_svm_models.pipe
+* configs/pipelines/frame_classifier_svm.pipe
+
+Source code:
+
+* plugins/core/average_track_descriptors.cxx
+* plugins/core/create_database_query_process.cxx
+* plugins/core/filter_frame_process.cxx
+* plugins/core/full_frame_detector.cxx
+* plugins/core/image_to_image_set_process.cxx
+* plugins/core/query_track_descriptor_set_csv.cxx
+* plugins/core/refine_detections_add_fixed.cxx
+* plugins/core/refine_detections_nms.cxx
+* plugins/core/select_database_query_process.cxx
+* plugins/core/windowed_detector.cxx
+* plugins/core/write_query_results_as_tracks_process.cxx
+* plugins/cppdb/object_track_descriptors_db_process.cxx
+* plugins/pytorch/rf_detr_detector.py
+* plugins/pytorch/torchvision_descriptors.py
+* plugins/svm/process_query_process.cxx

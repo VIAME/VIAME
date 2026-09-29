@@ -2,15 +2,6 @@
 
 This document corresponds to the [Image Enhancement](https://github.com/VIAME/VIAME/blob/main/examples/image_enhancement) example folder within a VIAME desktop installation. This directory stores assorted scripts for debayering, color correction, illumination normalization, and general image contrast enhancement.
 
-## Build Requirements
-
-These are the build flags required to run this example, if building from the source.
-
-In the pre-built binaries they are all enabled by default.
-
-- VIAME_ENABLE_OPENCV set to ON (required)
-- VIAME_ENABLE_VXL set to ON (optional)
-
 ## Running the Examples
 
 Three example scripts are provided, each demonstrating a different enhancement workflow. On Linux, run the `.sh` scripts; on Windows, run the corresponding `.bat` files.
@@ -54,10 +45,6 @@ All of the filter and transcode pipelines described in this document can also be
 5.  The pipeline will run on the loaded data, and the filtered output will be written to the project output directory.
 
 This provides a convenient way to apply enhancement, debayering, format conversion, and other filtering operations without needing to use the command line.
-
-### Enhancement Controls in DIVE
-
-[DIVE image enhancements](https://viame.readthedocs.io/en/latest/sections/dive/UI-Image-Enhancements.html) documents the brightness, contrast, saturation and sharpness controls, and the percentile stretch used for high bit-depth imagery.
 
 ## Image Enhancement Algorithms
 
@@ -294,25 +281,23 @@ Reads images and tracks, downsamples to 5 fps, filters to include only frames wi
 transcode_native_fps  
 Reads video at native frame rate (no downsampling). Resamples existing tracks from a downsampled rate (default 5 fps) to the native rate via bounding box interpolation. Outputs full-rate video and resampled track CSV. Useful for producing final visualization videos at the original capture frame rate.
 
-## Code Used in Example
+## DIVE Documentation
 
-Core image enhancement source files:
+[DIVE image enhancements](https://viame.github.io/VIAME/sections/dive/UI-Image-Enhancements.html) documents the brightness, contrast, saturation and sharpness controls, and the percentile stretch used for high bit-depth imagery.
 
-- plugins/opencv/enhance_images.cxx -- ocv_enhancer implementation
-- plugins/opencv/enhance_images.h
-- plugins/opencv/debayer_filter.cxx -- ocv_debayer implementation
-- plugins/opencv/debayer_filter.h
-- plugins/opencv/apply_color_correction.cxx -- ocv_color_correction implementation
-- plugins/opencv/apply_color_correction.h
-- plugins/core/normalize_image_percentile.cxx -- percentile_norm implementation
-- plugins/core/normalize_image_percentile.h
+## Code and Build Flags
 
-Pipeline configuration files:
+Flags to enable when building VIAME from source for this example:
 
-- configs/pipelines/filter_enhance.pipe
-- configs/pipelines/filter_debayer.pipe
+- `VIAME_ENABLE_OPENCV`
+- `VIAME_ENABLE_VXL`
+
+Pipeline and configuration files:
+
 - configs/pipelines/filter_debayer_and_enhance.pipe
+- configs/pipelines/filter_enhance.pipe
 - configs/pipelines/filter_normalize_16bit.pipe
+- configs/pipelines/filter_debayer.pipe
 - configs/pipelines/filter_stereo_depth_map.pipe
 - configs/pipelines/filter_debayer_and_depth_map.pipe
 - configs/pipelines/filter_split_and_debayer.pipe
@@ -329,3 +314,14 @@ Pipeline configuration files:
 - configs/pipelines/transcode_draw_dets.pipe
 - configs/pipelines/transcode_tracks_only.pipe
 - configs/pipelines/transcode_native_fps.pipe
+
+Source code:
+
+- plugins/opencv/enhance_images.cxx -- ocv_enhancer implementation
+- plugins/opencv/enhance_images.h
+- plugins/opencv/debayer_filter.cxx -- ocv_debayer implementation
+- plugins/opencv/debayer_filter.h
+- plugins/opencv/apply_color_correction.cxx -- ocv_color_correction implementation
+- plugins/opencv/apply_color_correction.h
+- plugins/core/normalize_image_percentile.cxx -- percentile_norm implementation
+- plugins/core/normalize_image_percentile.h

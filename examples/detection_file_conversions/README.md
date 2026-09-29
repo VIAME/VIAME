@@ -13,10 +13,6 @@ The input format is recognised from each file's extension and content, and the o
 
 A subset of the output ASCII formats already integrated into VIAME is listed below. New formats can be integrated to the system by implementing a derived version of the vital::detected_object_set_input or vital::read_object_track_set classes in C++ or python, which produce either detected_object_sets or object_track_sets, respectively.
 
-## Reading These Formats in DIVE
-
-[DIVE data formats](https://viame.readthedocs.io/en/latest/sections/dive/DataFormats.html) documents which of these formats DIVE imports and exports, including VIAME CSV and the DIVE JSON format described below.
-
 ### VIAME CSV - Default Format
 
 There are 3 parts to a VIAME csv. First, 9 required fields comma separated, with a single line for either each detection, or each detection state, in a track:
@@ -109,7 +105,7 @@ DIVE JSON is the native annotation format used by the DIVE annotation interface.
 
 The full format specification is available at:
 
-<https://viame.readthedocs.io/en/latest/sections/dive/DataFormats.html>
+<https://viame.github.io/VIAME/sections/dive/DataFormats.html>
 
 The DIVE JSON reader can be specified in config files using 'dive'.
 
@@ -199,3 +195,31 @@ viame convert in.csv out.csv -s writer:tot_option=average
 `viame run --gt-only` also converts annotation folders through the same tool, for batch runs that already use the run applet, and the `bulk_convert` scripts in this folder show both the with-data and annotation-only forms.
 
 The `standalone_utils` folder keeps older single-purpose scripts for formats that are not registered readers (Scallop-TK, PVO and similar).
+
+## DIVE Documentation
+
+[DIVE data formats](https://viame.github.io/VIAME/sections/dive/DataFormats.html) documents which of these formats DIVE imports and exports, including VIAME CSV and the DIVE JSON format described below.
+
+## Code and Build Flags
+
+Command line tools:
+
+- tools/convert.cxx -- `viame convert`
+
+Source code:
+
+- plugins/core/read_detected_object_set_auto.cxx
+- plugins/core/read_detected_object_set_cvat.cxx
+- plugins/core/read_detected_object_set_dive.cxx
+- plugins/core/read_detected_object_set_fishnet.cxx
+- plugins/core/read_detected_object_set_habcam.cxx
+- plugins/core/read_detected_object_set_oceaneyes.cxx
+- plugins/core/read_detected_object_set_viame_csv.cxx
+- plugins/core/read_detected_object_set_yolo.cxx
+- plugins/core/read_object_track_set_auto.cxx
+- plugins/core/read_object_track_set_dive.cxx
+- plugins/core/read_object_track_set_viame_csv.cxx
+- plugins/core/write_detected_object_set_dive.cxx
+- plugins/core/write_detected_object_set_viame_csv.cxx
+- plugins/core/write_object_track_set_dive.cxx
+- plugins/core/write_object_track_set_viame_csv.cxx

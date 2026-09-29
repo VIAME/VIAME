@@ -904,7 +904,7 @@ viame add-ons
 
 * [viametoolkit.org](https://www.viametoolkit.org)
 * [Source](https://github.com/VIAME/VIAME)
-* [Documentation](https://viame.readthedocs.io)
+* [Documentation](https://viame.github.io/VIAME/)
 
 BSD 3-Clause licensed.
 """
@@ -927,7 +927,7 @@ CLASSIFIERS = (
 PROJECT_URLS = (
     ("Homepage", "https://www.viametoolkit.org"),
     ("Source", "https://github.com/VIAME/VIAME"),
-    ("Documentation", "https://viame.readthedocs.io"),
+    ("Documentation", "https://viame.github.io/VIAME/"),
     ("Issues", "https://github.com/VIAME/VIAME/issues"),
 )
 

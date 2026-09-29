@@ -37,7 +37,7 @@ There are several routes from raw imagery to a working model in VIAME. They diff
 - Performance is poor until enough examples of each class exist, so rare classes lag behind common ones.
 - Needs a GPU for every detector other than the SVM.
 
-Use this when accuracy matters most and annotation time is available, or when no existing detector finds the objects at all. See [detector training](https://viame.readthedocs.io/en/latest/sections/object_detector_training.html).
+Use this when accuracy matters most and annotation time is available, or when no existing detector finds the objects at all. See [detector training](https://viame.github.io/VIAME/sections/object_detector_training.html).
 
 ## Workflow 2: Deep Learning with Partial Automation
 
@@ -61,7 +61,7 @@ Use this when accuracy matters most and annotation time is available, or when no
 - Objects the detector misses are easy to overlook during review, so its blind spots can carry over into the next model.
 - Box placement follows the detector's habits, which may differ from how the user would have drawn them.
 
-Use this once any detector finds most of the objects of interest, including a generic one that only proposes boxes without naming the species. See [object detection](https://viame.readthedocs.io/en/latest/sections/object_detection.html).
+Use this once any detector finds most of the objects of interest, including a generic one that only proposes boxes without naming the species. See [object detection](https://viame.github.io/VIAME/sections/object_detection.html).
 
 ## Workflow 3: IQR for Rapid Model Generation
 
@@ -86,7 +86,7 @@ IQR (iterative query refinement) is video search with adjudication. The user giv
 - The archive has to be indexed before searching, which takes computer time up front.
 - When the index is built on detections, a model can only find objects the underlying detector proposed a box for.
 
-Use this for a new class with few examples, or to find rare objects in a large archive. Its results can also be corrected and used as annotations for the first two workflows. See [video and image search](https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html).
+Use this for a new class with few examples, or to find rare objects in a large archive. Its results can also be corrected and used as annotations for the first two workflows. See [video and image search](https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html).
 
 ## Workflow 4: Text Queries for Rapid Annotation
 
@@ -112,7 +112,7 @@ A text query finds objects from a description in words, such as "fish" or "sea t
 - Vision-language model results carry no confidence, so they cannot be filtered by a threshold and all need review.
 - Depends on an add-on or a separately served model being installed.
 
-Use this at the start of a project, or for a new class that no detector covers. Once the corrected annotations are trained into a standard detector, that detector is faster and more accurate on the same imagery than the text query that started it. See [text query and VLM](https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html).
+Use this at the start of a project, or for a new class that no detector covers. Once the corrected annotations are trained into a standard detector, that detector is faster and more accurate on the same imagery than the text query that started it. See [text query and VLM](https://viame.github.io/VIAME/sections/text_query_and_vlm.html).
 
 ## Choosing a Workflow
 

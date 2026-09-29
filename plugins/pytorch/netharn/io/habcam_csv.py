@@ -1,6 +1,6 @@
 """
 References:
-    https://viame.readthedocs.io/en/latest/section_links/detection_file_conversions.html
+    https://viame.github.io/VIAME/sections/detection_file_conversions.html
 """
 import ubelt as ub
 

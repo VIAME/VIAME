@@ -5,7 +5,7 @@ VIAME (Video and Image Analytics for Multiple Environments) is a do-it-yourself 
 ## Important Links
 
 - **Main website:** <https://www.viametoolkit.org/>
-- **Manual:** <https://viame.readthedocs.io/en/latest/>
+- **Manual:** <https://viame.github.io/VIAME/>
 - **GitHub:** <https://github.com/VIAME/VIAME>
 - **Bug reporting:** <https://github.com/VIAME/VIAME/issues>, <https://github.com/Kitware/DIVE/issues>
 - **Additional Discussion:** <https://discourse.kitware.com/c/viame-dive>
@@ -20,8 +20,10 @@ VIAME comes in a few different interfaces with slightly different capabilities. 
 
 ### DIVE -- Web and Desktop Annotator
 
+<p align="center">
 <img src="../_static/images/quickstart_dive_annotator.jpg" alt="Dive annotator" width="45%">
 <img src="../_static/images/quickstart_dive_dataset_list.png" alt="Dive dataset list" width="45%">
+</p>
 
 Originally created as the VIAME-Web interface (with a public server hosted at <https://viame.kitware.com>), a desktop version of this web annotator and model trainer is also available in both Windows .msi installers and .zip release formats.
 
@@ -106,7 +108,9 @@ Additionally:
 
 ### How do I know if I have a GPU?
 
+<p align="center">
 <img src="../_static/images/quickstart_device_manager_gpu.png" alt="Device manager gpu" width="60%">
+</p>
 
 On Windows, look in Device Manager. Sometimes computers have more than one card (one embedded on the motherboard, then a 2nd in a plugin slot). Next, search for the card to know its specifications. On Linux, many terminal commands can tell you which GPU you have (e.g. `nvidia-smi`, `lspci | grep -i nvidia`).
 
@@ -156,7 +160,7 @@ Detections and tracks are synonymous across examples and user interfaces. A trac
 
 ## Annotation Formats
 
-For details on annotation file formats, see the [Detection File Conversions](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) section.
+For details on annotation file formats, see the [Detection File Conversions](https://viame.github.io/VIAME/sections/detection_file_conversions.html) section.
 
 **VIAME-CSV** is the primary input/output format supported by default, with a single line for either each detection, or each detection state in a track. It has 9 required fields comma separated, with optional additional columns for keypoints, attributes, polygons, and masks.
 
@@ -164,8 +168,10 @@ For details on annotation file formats, see the [Detection File Conversions](htt
 
 ### Annotation Best Practices
 
+<p align="center">
 <img src="../_static/images/quickstart_annotation_best_practices.jpg" alt="Annotation best practices" width="80%">
 <img src="../_static/images/quickstart_annotation_gui_example.jpg" alt="Annotation gui example" width="80%">
+</p>
 
 When creating bounding box annotations:
 
@@ -175,4 +181,4 @@ When creating bounding box annotations:
 
 ## Model Generation Workflows
 
-There are several routes from raw imagery to a working model, from annotating everything by hand to searching by text or example. See [model generation workflows](https://viame.readthedocs.io/en/latest/sections/model_generation_workflows.html) for the steps of each and how they compare.
+There are several routes from raw imagery to a working model, from annotating everything by hand to searching by text or example. See [model generation workflows](https://viame.github.io/VIAME/sections/model_generation_workflows.html) for the steps of each and how they compare.

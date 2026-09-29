@@ -10,19 +10,6 @@ more specialized use cases.
 
 .. _registration and mosaicing: https://github.com/VIAME/VIAME/blob/main/examples/registration_and_mosaicing
 
-.. dive-crosslink
-
-Registration Pipelines in DIVE
-------------------------------
-
-Some registration pipelines expect a per-dataset metadata file such as a flight log,
-declared in the pipe header. See `DIVE frame metadata`_ and `DIVE pipeline import and
-export`_ for attaching that sidecar at import time.
-
-.. _DIVE frame metadata: https://viame.readthedocs.io/en/latest/sections/dive/Frame-Metadata.html
-.. _DIVE pipeline import and export: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Import-Export.html
-
-
 *****************
 Mosaic generation
 *****************
@@ -205,18 +192,41 @@ seen ground, the source image / pass / day, the overlapping fraction, and
 whether a direct land-to-land feature match confirmed the event. Use
 ``--method metadata`` for a fast GPS-only pass.
 
-******************
-Build Requirements
-******************
+.. dive-crosslink
 
-These are the build flags required to run this example, if building from the source.
+DIVE Documentation
+------------------
 
-In the pre-built binaries OpenCV is enabled by default.
+Some registration pipelines expect a per-dataset metadata file such as a flight log,
+declared in the pipe header. See `DIVE frame metadata`_ and `DIVE pipeline import and
+export`_ for attaching that sidecar at import time.
 
-| VIAME_ENABLE_OPENCV set to ON (optional - for default operation)
+.. _DIVE frame metadata: https://viame.github.io/VIAME/sections/dive/Frame-Metadata.html
+.. _DIVE pipeline import and export: https://viame.github.io/VIAME/sections/dive/Pipeline-Import-Export.html
 
-********************
-Code Used in Example
-********************
 
-| plugins/opencv/
+Code and Build Flags
+--------------------
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_OPENCV``
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_VXL``
+
+Command line tools:
+
+* tools/mosaic.py -- ``viame mosaic``
+* tools/register.py -- ``viame register``
+* tools/run.py -- ``viame run``
+
+Pipeline and configuration files:
+
+* configs/pipelines/register_using_homographies.pipe
+* configs/pipelines/register_multimodal_unsync_ocv.pipe
+
+Source code:
+
+* plugins/core/align_multimodal_imagery_process.cxx
+* plugins/opencv/multimodal_registration.py
+* plugins/opencv/warp_image_ocv.cxx

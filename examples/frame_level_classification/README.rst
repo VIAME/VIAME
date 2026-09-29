@@ -49,14 +49,43 @@ train models for certain sub-categories or super-categories of object by specify
 only the categories of interest to train a model for, and any synonyms for the
 same category on the same line.
 
+
 .. dive-crosslink
 
-Full-Frame Classification in DIVE
----------------------------------
+******************
+DIVE Documentation
+******************
 
 DIVE trains full-frame classifiers from the same annotations; see `DIVE pipelines and
 training`_. The ``empty frame lbls`` utility pipeline adds a whole-frame box every N
 frames so that frame-level labels can be applied to it.
 
-.. _DIVE pipelines and training: https://viame.readthedocs.io/en/latest/sections/dive/Pipeline-Documentation.html
+.. _DIVE pipelines and training: https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html
 
+
+********************
+Code and Build Flags
+********************
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_OPENCV``
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_PYTORCH``
+* ``VIAME_ENABLE_PYTORCH-NETHARN``
+* ``VIAME_ENABLE_VXL``
+
+Command line tools:
+
+* tools/run.py -- ``viame run``
+* tools/train.cxx -- ``viame train``
+
+Pipeline and configuration files:
+
+* configs/pipelines/train_frame_classifier_netharn_efficientnet.conf
+* configs/pipelines/train_frame_classifier_libsvm_svm.conf
+
+Source code:
+
+* plugins/opencv/random_hue_shift.cxx
+* plugins/pytorch/netharn_trainer.py

@@ -10,17 +10,17 @@ This document corresponds to the [Annotation and Visualization](https://github.c
 
 DIVE is the recommended graphical interface, available on the desktop and on the web. It is used to annotate multiple image sequences or videos, train models across them, and run the trained models on new data. It is launched with the `launch_dive_interface` script, in this folder or at the top level of the installation.
 
-See the [DIVE interface guide](https://viame.readthedocs.io/en/latest/sections/dive/index.html).
+See the [DIVE interface guide](https://viame.github.io/VIAME/sections/dive/index.html).
 
 ## Command-Line Interface
 
 The `viame` command runs pipelines, trains and scores models, converts files and manages search indexes, without a graphical interface. It suits batch processing, remote machines and scripted workflows.
 
-See the [command line interface](https://viame.readthedocs.io/en/latest/sections/command_line_interface.html).
+See the [command line interface](https://viame.github.io/VIAME/sections/command_line_interface.html).
 
 ### Scripts in this folder
 
-Standalone utility scripts in this folder include the following. Each of these is designed to take in a folder of videos, folder of images, or a folder of folders of images, see default [input folder structure](https://viame.readthedocs.io/en/latest/sections/examples_overview.html#bulk-processing-scripts).
+Standalone utility scripts in this folder include the following. Each of these is designed to take in a folder of videos, folder of images, or a folder of folders of images, see default [input folder structure](https://viame.github.io/VIAME/sections/examples_overview.html#bulk-processing-scripts).
 
 - draw_detections_on_frames - Draw detections stored in some detection file onto frames
 - extract_chips_from_detections - Extract image chips around detections or truth boxes
@@ -39,13 +39,13 @@ One example of this is the 'simple_display_pipeline'. This script launches a pip
 
 `pip install viame` provides the `viame` python package, which the command line tool is itself built on. Images, videos, annotations and pipelines can be loaded and run directly from python.
 
-See the [python interface](https://viame.readthedocs.io/en/latest/sections/python_interface.html).
+See the [python interface](https://viame.github.io/VIAME/sections/python_interface.html).
 
 ## Project Folders
 
 Project folders are ready-made working folders holding launch scripts for the common tasks: annotating, running detectors and trackers, and training models. One is copied to a working drive outside the installation, the input data is placed in it, and the scripts are run from there.
 
-See [project folders](https://viame.readthedocs.io/en/latest/sections/project_folders.html).
+See [project folders](https://viame.github.io/VIAME/sections/project_folders.html).
 
 ## Deprecated Desktop UIs
 
@@ -111,7 +111,7 @@ Note: The list is not complete, but currently focusing on the most used (and new
 
 The search interface is a dedicated interface for performing image search for a particular exemplar image, be it a specific species or an object with a particular attribute or characteristic. A secondary procedure allows adjudacating the system-generated responses for this query and the generation of a model for a new object category. This procedure has a few trade offs compared to traditional approaches, including the ability to rapidly generate a machine learning model faster, at the risk of decreased accuracy (depending on the problem).
 
-For additional information, see [video and image search](https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html).
+For additional information, see [video and image search](https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html).
 
 ### SEAL
 
@@ -146,7 +146,7 @@ Uses SAM3 for both point-based and text-based segmentation. In addition to click
 
 *Point-based interactive segmentation in DIVE. The user clicks foreground (green) and background (red) points to generate a segmentation mask around the object.*
 
-Text queries can also be run as batch pipelines to detect, segment, and track objects across entire image sets or videos. See [text query and VLM](https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html) section in the search and rapid model generation examples for details.
+Text queries can also be run as batch pipelines to detect, segment, and track objects across entire image sets or videos. See [text query and VLM](https://viame.github.io/VIAME/sections/text_query_and_vlm.html) section in the search and rapid model generation examples for details.
 
 <p align="center">
 <img src="../../docs/manual/_static/images/Perform-Text-Query.jpg" alt="image" width="80%">

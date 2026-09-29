@@ -40,7 +40,7 @@ roughly flat surface, such as a towed or autonomous vehicle imaging the seafloor
 
 For free-swimming animals, or wherever the distance to the object is unknown, use
 `stereo
-measurement <https://viame.readthedocs.io/en/latest/sections/stereo_measurement.html>`__.
+measurement <https://viame.github.io/VIAME/sections/stereo_measurement.html>`__.
 
 ************************
 How Lengths Are Computed
@@ -214,3 +214,51 @@ Limitations
 - Accuracy depends directly on the altitude. An error of ten percent in altitude gives
   an error of ten percent in length.
 - Objects cut off by the edge of the image are measured too short.
+
+
+.. dive-crosslink
+
+******************
+DIVE Documentation
+******************
+
+* `DIVE frame metadata <https://viame.github.io/VIAME/sections/dive/Frame-Metadata.html>`__ covers attaching per-frame metadata, such as altitude, to a dataset
+* `DIVE pipelines and training <https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html>`__ covers running a pipeline on a dataset
+
+
+********************
+Code and Build Flags
+********************
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_ONNX``
+* ``VIAME_ENABLE_OPENCV``
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_VXL``
+
+Add-ons providing the pipelines or models used: ``habcam``.
+
+Pipeline and configuration files:
+
+* configs/pipelines/utility_calibrate_single_camera.pipe
+* configs/add-ons/habcam/detector_habcam_measure_scallops_one_class_metadata.pipe
+* configs/add-ons/habcam/detector_habcam_measure_scallops_four_class_metadata.pipe
+
+Source code:
+
+* plugins/core/accumulate_object_tracks_process.cxx
+* plugins/core/merge_detections_nms_fusion.py
+* plugins/core/merge_detections_simple.py
+* plugins/core/read_habcam_metadata_process.cxx
+* plugins/core/refine_detections_nms.cxx
+* plugins/core/refine_measurements_process.cxx
+* plugins/onnx/onnx_detector.py
+* plugins/onnx/onnx_refiner.py
+* plugins/opencv/calibrate_single_camera.cxx
+* plugins/opencv/calibrate_single_camera_process.cxx
+* plugins/opencv/debayer_filter.cxx
+* plugins/opencv/detect_calibration_targets.cxx
+* plugins/opencv/enhance_images.cxx
+* plugins/opencv/split_image_habcam.cxx
+* plugins/opencv/windowed_detector.cxx

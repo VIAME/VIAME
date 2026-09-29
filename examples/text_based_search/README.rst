@@ -34,7 +34,7 @@ Three methods are available:
 
 Results from any of them can be corrected in DIVE and used to train a standard detector,
 which will then run faster than the text query that produced them. See `detector
-training <https://viame.readthedocs.io/en/latest/sections/object_detector_training.html>`__.
+training <https://viame.github.io/VIAME/sections/object_detector_training.html>`__.
 
 *****************
 SAM3 Text Queries
@@ -144,7 +144,7 @@ or launched from within the DIVE annotation interface.
 
 - **train_detector_sam3.conf** -- Configuration for fine-tuning on custom data using
   detection-level annotations with polygon masks. See `scene
-  segmentation <https://viame.readthedocs.io/en/latest/sections/scene_segmentation.html>`__.
+  segmentation <https://viame.github.io/VIAME/sections/scene_segmentation.html>`__.
 
 *****************************
 Vision-Language Model Queries
@@ -249,7 +249,7 @@ needs no add-on and no separate server:
 The class names are set in the pipeline file by the ``classes`` setting, which defaults
 to ``[foreground object]``. The model is named by ``model_id`` and is downloaded the
 first time the pipeline runs. See `object
-detection <https://viame.readthedocs.io/en/latest/sections/object_detection.html>`__.
+detection <https://viame.github.io/VIAME/sections/object_detection.html>`__.
 
 *****************
 Choosing a Method
@@ -268,3 +268,55 @@ Choosing a Method
      - VLM
    * - No add-on is installed
      - Zero-shot detector
+
+
+.. dive-crosslink
+
+******************
+DIVE Documentation
+******************
+
+* `DIVE query <https://viame.github.io/VIAME/sections/dive/Query.html>`__ covers text searches across many datasets at once
+* `DIVE pipelines and training <https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html>`__ lists the utility pipelines, including the text query ones
+
+
+********************
+Code and Build Flags
+********************
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_PYTORCH``
+* ``VIAME_ENABLE_PYTORCH-HUGGINGFACE``
+* ``VIAME_ENABLE_PYTORCH-SAM3``
+* ``VIAME_ENABLE_VXL``
+
+Add-ons providing the pipelines or models used: ``sam3``.
+
+Pipeline and configuration files:
+
+* configs/pipelines/utility_text_query_ollama_vlm_tracking.pipe
+* configs/add-ons/sam3/tracker_sam3_animals.pipe
+* configs/add-ons/sam3/detector_sam3_animals.pipe
+* configs/add-ons/sam3/utility_text_query_sam3_tracking.pipe
+* configs/add-ons/sam3/utility_text_query_sam3_no_tracking.pipe
+* configs/add-ons/sam3/utility_text_query_sam3_gridded.pipe
+* configs/add-ons/sam3/utility_add_segmentations_sam3.pipe
+* configs/add-ons/sam3/utility_track_selections_sam3.pipe
+* configs/add-ons/sam3/interactive_segmenter_sam3.conf
+* configs/add-ons/sam3/train_detector_sam3.conf
+* configs/pipelines/utility_text_query_ollama_vlm_no_tracking.pipe
+* configs/pipelines/detector_huggingface_zeroshot.pipe
+
+Source code:
+
+* plugins/core/bytetrack_tracker.py
+* plugins/core/empty_detector.cxx
+* plugins/core/interactive_vlm.py
+* plugins/core/ollama_vlm.py
+* plugins/core/refine_tracks_average_tot.cxx
+* plugins/pytorch/huggingface_zeroshot_detector.py
+* plugins/pytorch/sam3_refiner.py
+* plugins/pytorch/sam3_text_query.py
+* plugins/pytorch/sam3_tracker.py

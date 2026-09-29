@@ -94,19 +94,6 @@ scoring panel plots these to pick an operating point; the aggregate curve
 never feeds the written DIVE filter.
 
 
-.. dive-crosslink
-
-Scoring from DIVE
------------------
-
-`DIVE scoring`_ compares computed annotations against ground truth from within the
-interface. On web, keep truth and model output in separate `DIVE annotation sets`_ (for
-example ``groundTruth`` versus ``default``) and score them from the Scoring tab.
-
-.. _DIVE scoring: https://viame.readthedocs.io/en/latest/sections/dive/Scoring.html
-.. _DIVE annotation sets: https://viame.readthedocs.io/en/latest/sections/dive/Annotation-Sets.html
-
-
 ---------------------------
 PRC and Confusion Matrices
 ---------------------------
@@ -354,3 +341,31 @@ above), and are reported in its summary under "KWANT-style Metrics" and
 
 Distributions of track purity and continuity are also written to the plot directory
 as histograms.
+
+
+.. dive-crosslink
+
+------------------
+DIVE Documentation
+------------------
+
+`DIVE scoring`_ compares computed annotations against ground truth from within the
+interface. On web, keep truth and model output in separate `DIVE annotation sets`_ (for
+example ``groundTruth`` versus ``default``) and score them from the Scoring tab.
+
+.. _DIVE scoring: https://viame.github.io/VIAME/sections/dive/Scoring.html
+.. _DIVE annotation sets: https://viame.github.io/VIAME/sections/dive/Annotation-Sets.html
+
+
+--------------------
+Code and Build Flags
+--------------------
+
+Command line tools:
+
+* tools/score.cxx -- ``viame score``
+
+Source code:
+
+* plugins/core/evaluate_models.cxx
+* plugins/core/evaluate_models.h

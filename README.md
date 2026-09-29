@@ -1,5 +1,7 @@
 
+<p align="center">
 <img src="docs/manual/_static/images/viami_logo.png" alt="VIAME Logo" width="200" height="78">
+</p>
 
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence
 including object detection, object tracking, data annotation, multi-camera processing,
@@ -17,12 +19,12 @@ with an open annotation archive and example of the web platform available at
 Documentation
 -------------
 
-The [User's Quick-Start Guide](https://viame.readthedocs.io/en/latest/sections/quick_start_guide.html)
-and [Full Manual](https://viame.readthedocs.io/en/latest/) are more comprehensive,
+The [User's Quick-Start Guide](https://viame.github.io/VIAME/sections/quick_start_guide.html)
+and [Full Manual](https://viame.github.io/VIAME/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
 
 
-[Documentation Overview](https://viame.readthedocs.io/en/latest/#documentation-overview) <>
+[Documentation Overview](https://viame.github.io/VIAME/#documentation-overview) <>
 [Installation](examples/installing_from_binaries) <>
 [Building](examples/building_from_source) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
@@ -32,7 +34,7 @@ but select entries are also listed below broken down by individual functionality
 [Object Tracking](examples/object_tracking) <>
 [Search and Rapid Model Generation](examples/video_and_image_search) <>
 [Model Evaluation](examples/scoring_and_evaluation) <>
-[Detection Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
+[Detection Formats](https://viame.github.io/VIAME/sections/detection_file_conversions.html) <>
 [Python Usage](https://github.com/VIAME/VIAME/blob/main/docs/python_package.md) <>
 [Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/registration_and_mosaicing)  <>

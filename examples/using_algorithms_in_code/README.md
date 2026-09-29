@@ -12,7 +12,7 @@ Any algorithm available to a pipeline can also be called directly from C++. This
 | `detector3.cxx` | Choosing the detector at run time from a configuration file |
 | `detector4.cxx` | The same as `detector3.cxx`, written against the older KWIVER interface |
 
-`detector1` and `detector3` are built with VIAME when `VIAME_ENABLE_KWIVER` and `VIAME_ENABLE_OPENCV` are on.
+`detector1` and `detector3` are built along with VIAME.
 
 ## Running a Single Detector
 
@@ -207,4 +207,22 @@ Because each algorithm's settings sit under its own name, settings for several a
 
 A real application usually does more than run one detector. Images may come from a video or a camera, be filtered before detection, and have the results drawn or written to a file afterwards. Writing that as a single program makes every change slow.
 
-The pipeline framework in KWIVER, sprokit, handles this by connecting small processes in a pipeline file. Each process runs one algorithm, configured with the same keys shown above. See [new module creation examples](https://viame.readthedocs.io/en/latest/sections/example_pipeline.html) for a pipeline that runs a detector, and [plugin creation](https://viame.readthedocs.io/en/latest/sections/plugin_creation.html) for adding an algorithm of your own.
+The pipeline framework in KWIVER, sprokit, handles this by connecting small processes in a pipeline file. Each process runs one algorithm, configured with the same keys shown above. See [new module creation examples](https://viame.github.io/VIAME/sections/example_pipeline.html) for a pipeline that runs a detector, and [plugin creation](https://viame.github.io/VIAME/sections/plugin_creation.html) for adding an algorithm of your own.
+
+## DIVE Documentation
+
+- [DIVE pipeline import and export](https://viame.github.io/VIAME/sections/dive/Pipeline-Import-Export.html) covers loading a custom pipeline into the interface, which is how an algorithm is run from DIVE rather than from code
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_KWIVER`
+- `VIAME_ENABLE_OPENCV`
+
+Source code:
+
+- examples/using_algorithms_in_code/detector1.cxx
+- examples/using_algorithms_in_code/detector3.cxx
+- examples/using_algorithms_in_code/detector4.cxx
+- packages/kwiver/arrows/ocv/algo/hough_circle_detector.cxx

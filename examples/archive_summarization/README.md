@@ -88,3 +88,47 @@ Available pipelines vary by installation but may include:
 - `index_default_fish.svm.pipe` - Fish detection with SVM classifier
 - `index_frame.pipe` - Frame-level indexing
 - Custom pipelines for your specific use case
+
+## DIVE Documentation
+
+- [DIVE query](https://viame.github.io/VIAME/sections/dive/Query.html) covers searching an index from the interface
+- [DIVE pipelines and training](https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html) lists the detection pipelines that can be run on a dataset
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_PYTHON`
+- `VIAME_ENABLE_PYTORCH`
+- `VIAME_ENABLE_PYTORCH-RF-DETR`
+- `VIAME_ENABLE_PYTORCH-VISION`
+- `VIAME_ENABLE_SVM`
+- `VIAME_ENABLE_VXL`
+
+Add-ons providing the pipelines or models used: `generic`.
+
+Command line tools:
+
+- tools/run.py -- `viame run`
+- tools/search.py -- `viame search`
+
+Pipeline and configuration files:
+
+- configs/pipelines/query_retrieval_and_iqr.pipe
+- configs/add-ons/generic/index_generic.pipe
+- configs/add-ons/default-fish/index_default_fish.svm.pipe
+- configs/pipelines/index_frame.pipe
+
+Source code:
+
+- plugins/core/average_track_descriptors.cxx
+- plugins/core/create_database_query_process.cxx
+- plugins/core/filter_frame_process.cxx
+- plugins/core/query_track_descriptor_set_csv.cxx
+- plugins/core/refine_detections_add_fixed.cxx
+- plugins/core/refine_detections_nms.cxx
+- plugins/core/select_database_query_process.cxx
+- plugins/core/windowed_detector.cxx
+- plugins/pytorch/rf_detr_detector.py
+- plugins/pytorch/torchvision_descriptors.py
+- plugins/svm/process_query_process.cxx

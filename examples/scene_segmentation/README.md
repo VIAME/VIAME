@@ -21,9 +21,9 @@ The `utility_add_segmentations` pipelines take a file of box detections and add 
 | `utility_add_segmentations_sam3.pipe` | SAM3, from the SAM3 add-on |
 | `utility_add_segmentations_default.pipe` | Installed by the SAM2 add-on, runs the SAM2 pipeline |
 
-Masks can also be drawn interactively in DIVE by clicking on an object, or produced from a text prompt. See [interactive segmentation in DIVE](https://viame.readthedocs.io/en/latest/sections/annotation_and_visualization.html) and [text-prompted detection and tracking](https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html).
+Masks can also be drawn interactively in DIVE by clicking on an object, or produced from a text prompt. See [interactive segmentation in DIVE](https://viame.github.io/VIAME/sections/annotation_and_visualization.html) and [text-prompted detection and tracking](https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html).
 
-Detectors that output masks directly are trained like any other detector, from annotations that include polygons. See the RF-DETR segmentation configurations in [detector training](https://viame.readthedocs.io/en/latest/sections/object_detector_training.html).
+Detectors that output masks directly are trained like any other detector, from annotations that include polygons. See the RF-DETR segmentation configurations in [detector training](https://viame.github.io/VIAME/sections/object_detector_training.html).
 
 ## Fine-Tuning SAM Models
 
@@ -91,7 +91,7 @@ Then point the pipeline at the new file, leaving its `cfg` setting on the matchi
 
 When the question is what the scene contains rather than where each object is, outlining regions is often unnecessary. A full-frame classifier labels the whole image, which suits background properties such as substrate type, habitat, or water clarity. It needs only one label per image to train, and it runs quickly.
 
-Full-frame classifiers are trained as described in [frame level classification](https://viame.readthedocs.io/en/latest/sections/frame_level_classification.html). In DIVE, the `empty frame lbls` utility pipelines add a whole-frame box to each image so that frame-level labels can be applied to it.
+Full-frame classifiers are trained as described in [frame level classification](https://viame.github.io/VIAME/sections/frame_level_classification.html). In DIVE, the `empty frame lbls` utility pipelines add a whole-frame box to each image so that frame-level labels can be applied to it.
 
 Several properties can be reported for the same image by running one classifier per property and merging the results. Each classifier reports a single detection covering the whole frame, carrying the score of every class it knows.
 
@@ -104,3 +104,46 @@ The HabCam add-on includes a working example, `detector_habcam_substrate.pipe`. 
 - Attached and encrusting life: sponges, tunicates, bryozoans, pennatulids, burrowing anemones
 
 Every classifier has a `background` class for images that do not show the property. It is reported under the name of the model, as `no_boulder` or `no_scallop_bed` for example, so the merged output states for each property whether it is present. The pipeline is a useful starting point for other surveys: replace the models with classifiers trained on local frame labels and keep the structure.
+
+## DIVE Documentation
+
+- [DIVE interactive annotation](https://viame.github.io/VIAME/sections/dive/Interactive-Annotation.html) covers point-click segmentation in the interface
+- [DIVE pipelines and training](https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html) lists the utility pipelines, including those that add segmentations
+
+## Code and Build Flags
+
+Flags to enable when building VIAME from source for this example:
+
+- `VIAME_ENABLE_ONNX`
+- `VIAME_ENABLE_OPENCV`
+- `VIAME_ENABLE_PYTHON`
+- `VIAME_ENABLE_PYTORCH`
+- `VIAME_ENABLE_PYTORCH-SAM2`
+- `VIAME_ENABLE_PYTORCH-SAM3`
+
+Add-ons providing the pipelines or models used: `habcam`, `sam2`, `sam3`.
+
+Command line tools:
+
+- tools/segment.py -- `viame segment`
+- tools/train.cxx -- `viame train`
+
+Pipeline and configuration files:
+
+- configs/pipelines/utility_add_segmentations_watershed.pipe
+- configs/add-ons/sam2/utility_add_segmentations_sam2.pipe
+- configs/add-ons/sam3/utility_add_segmentations_sam3.pipe
+- configs/add-ons/sam2/utility_add_segmentations_default.pipe
+- configs/add-ons/sam3/train_detector_sam3.conf
+- configs/add-ons/sam3/train_tracker_sam3.conf
+- configs/add-ons/sam2/common_sam2_segmenter.conf
+- configs/add-ons/habcam/detector_habcam_substrate.pipe
+
+Source code:
+
+- plugins/pytorch/sam2_refiner.py
+- plugins/pytorch/sam3_refiner.py
+- plugins/pytorch/sam3_trainer.py
+- plugins/core/windowed_refiner.cxx
+- plugins/opencv/windowed_refiner.cxx
+- plugins/onnx/onnx_classifier.py

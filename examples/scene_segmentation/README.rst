@@ -43,14 +43,14 @@ polygon to each one. They read ``detections.csv`` and write ``computed_detection
 
 Masks can also be drawn interactively in DIVE by clicking on an object, or produced from
 a text prompt. See `interactive segmentation in
-DIVE <https://viame.readthedocs.io/en/latest/sections/annotation_and_visualization.html>`__
+DIVE <https://viame.github.io/VIAME/sections/annotation_and_visualization.html>`__
 and `text-prompted detection and
-tracking <https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html>`__.
+tracking <https://viame.github.io/VIAME/sections/search_and_rapid_model_generation.html>`__.
 
 Detectors that output masks directly are trained like any other detector, from
 annotations that include polygons. See the RF-DETR segmentation configurations in
 `detector
-training <https://viame.readthedocs.io/en/latest/sections/object_detector_training.html>`__.
+training <https://viame.github.io/VIAME/sections/object_detector_training.html>`__.
 
 **********************
 Fine-Tuning SAM Models
@@ -181,7 +181,7 @@ suits background properties such as substrate type, habitat, or water clarity. I
 only one label per image to train, and it runs quickly.
 
 Full-frame classifiers are trained as described in `frame level
-classification <https://viame.readthedocs.io/en/latest/sections/frame_level_classification.html>`__.
+classification <https://viame.github.io/VIAME/sections/frame_level_classification.html>`__.
 In DIVE, the ``empty frame lbls`` utility pipelines add a whole-frame box to each image
 so that frame-level labels can be applied to it.
 
@@ -207,3 +207,54 @@ is reported under the name of the model, as ``no_boulder`` or ``no_scallop_bed``
 example, so the merged output states for each property whether it is present. The
 pipeline is a useful starting point for other surveys: replace the models with
 classifiers trained on local frame labels and keep the structure.
+
+
+.. dive-crosslink
+
+******************
+DIVE Documentation
+******************
+
+* `DIVE interactive annotation <https://viame.github.io/VIAME/sections/dive/Interactive-Annotation.html>`__ covers point-click segmentation in the interface
+* `DIVE pipelines and training <https://viame.github.io/VIAME/sections/dive/Pipeline-Documentation.html>`__ lists the utility pipelines, including those that add segmentations
+
+
+********************
+Code and Build Flags
+********************
+
+Flags to enable when building VIAME from source for this example:
+
+* ``VIAME_ENABLE_ONNX``
+* ``VIAME_ENABLE_OPENCV``
+* ``VIAME_ENABLE_PYTHON``
+* ``VIAME_ENABLE_PYTORCH``
+* ``VIAME_ENABLE_PYTORCH-SAM2``
+* ``VIAME_ENABLE_PYTORCH-SAM3``
+
+Add-ons providing the pipelines or models used: ``habcam``, ``sam2``, ``sam3``.
+
+Command line tools:
+
+* tools/segment.py -- ``viame segment``
+* tools/train.cxx -- ``viame train``
+
+Pipeline and configuration files:
+
+* configs/pipelines/utility_add_segmentations_watershed.pipe
+* configs/add-ons/sam2/utility_add_segmentations_sam2.pipe
+* configs/add-ons/sam3/utility_add_segmentations_sam3.pipe
+* configs/add-ons/sam2/utility_add_segmentations_default.pipe
+* configs/add-ons/sam3/train_detector_sam3.conf
+* configs/add-ons/sam3/train_tracker_sam3.conf
+* configs/add-ons/sam2/common_sam2_segmenter.conf
+* configs/add-ons/habcam/detector_habcam_substrate.pipe
+
+Source code:
+
+* plugins/pytorch/sam2_refiner.py
+* plugins/pytorch/sam3_refiner.py
+* plugins/pytorch/sam3_trainer.py
+* plugins/core/windowed_refiner.cxx
+* plugins/opencv/windowed_refiner.cxx
+* plugins/onnx/onnx_classifier.py
