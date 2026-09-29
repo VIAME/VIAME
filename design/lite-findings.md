@@ -5315,6 +5315,14 @@ that were never written.
 41, 41, 39, 39 corners per frame on both sides -- because that pipeline is
 configured for dots, so both take the same path.
 
+**It is not only the quiet one.** On the stereo boards the same failure
+takes a pipeline down outright: `stereo_detect_calibration_target` emits 301
+corners of which 162 carry world coordinates, against 432 of 432 on the
+desktop, and `stereo_calibrate_cameras_default` and `_fast` then die in the
+`cameras_calibration` process with `LinAlgError: SVD did not converge`.
+Degenerate correspondences, from the same fallback. Three pipelines, one
+cause.
+
 ## 2.99 What the second sweep agreed on, and what a pixel difference is worth
 
 Nineteen more pipelines through both sides. No wheel-only failure survived
@@ -5343,3 +5351,56 @@ first.
 
 `filter_normalize_16bit` at 84 is the one worth a second look, since it is
 amplifying more than the others.
+
+## 2.100 "Fails on both sides" was mostly the harness, and saying so cost a sweep
+
+Seven pipelines failed on the wheel and on the desktop release alike, and
+were set aside as "the input does not suit them". Six of them ran on both
+sides once given what they ask for:
+
+* `filter_default`, `filter_extract_chips`, `transcode_default` are
+  templates -- `:file_name [INSERT_ME]` on a `read_object_track` or
+  `detected_object_input`. They want a VIAME CSV, and `-s
+  track_reader:file_name=...` is all that was missing.
+* `utility_link_detections_default`, `utility_add_segmentations_watershed`
+  and `utility_max_points_per_poly` read `detections.csv` from the working
+  directory by default. Putting one there was enough.
+
+The seventh, `common_image_stabilizer`, is a fragment: one `stabilize_image`
+process, no input and no output. It is an `include`, and running it alone is
+not a thing that can work.
+
+**Symmetric failure is weak evidence.** It rules out a difference between
+the two builds and nothing else -- and here it was concealing a real defect
+on one side, because once the six were driven properly
+`utility_link_detections_default` turned out to fail on the *desktop* and
+pass on this branch: v0.23.3 ships that pipeline including
+`common_seamap_tracker_v2.5.pipe`, which is not in the release. This branch
+includes `common_default_tracker.pipe`, which is.
+
+## 2.101 Where the two builds stand, over 33 pipelines
+
+Everything runnable from the shipped set that needs no model, driven with
+the inputs it asks for, both sides using their own copy of the pipeline.
+
+**Wheel-only failures, all one cause:** `detector_motion_three_frame_diff`
+(2.95, the dropped `closing_radius`) and
+`stereo_calibrate_cameras_{default,fast}` (2.98, the chessboard finder).
+`utility_calibrate_single_camera` is a fourth, and the worst of them,
+because it exits 0.
+
+**Exact agreement:** `detector_simple_hough`, byte for byte.
+`detector_calibration_target`, the same corner counts per frame.
+`utility_empty_frame_lbls_auto` and `_fixed_interval`, identical CSVs.
+
+**Agreement within a documented tolerance:** calibration corners at a
+median 0.001 px; the GMM contour at one vertex of 21 out by a pixel; the
+watershed mask at 0.53% of its area, with the contour simplified to 38
+vertices against 34.
+
+**Image outputs** agree to a ±3 JPEG-decode floor, amplified by CLAHE to 40
+and by 16-bit normalisation to 84. Video and JPEG outputs differ as bytes
+in every case and that means nothing: the encoders are not the same code.
+Comparing them as pixels is the only comparison worth making, and a lossless
+format -- `filter_split_left_side` writes PNG -- is what tells you where the
+floor is.
