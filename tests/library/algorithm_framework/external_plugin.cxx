@@ -43,8 +43,14 @@ public:
 
 namespace kv = viame;
 
+#ifdef _WIN32
+#define PLUGIN_EXPORT_FLAG __declspec( dllexport )
+#else
+#define PLUGIN_EXPORT_FLAG __attribute__( ( visibility( "default" ) ) )
+#endif
+
 extern "C"
-__attribute__( ( visibility( "default" ) ) )
+PLUGIN_EXPORT_FLAG
 void
 viame_register_plugin( viame::registry& loader )
 {

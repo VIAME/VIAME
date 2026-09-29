@@ -17,15 +17,16 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-#include <unistd.h>
 
 namespace kv = viame;
 namespace codecs = viame::codecs;
@@ -43,18 +44,32 @@ class scratch_file
 public:
   explicit scratch_file( std::string const& suffix )
   {
-    std::string tmp = "/tmp/viame_codec_XXXXXX";
-    auto const handle = ::mkstemp( &tmp[ 0 ] );
+    // `mkstemp` and `/tmp` are POSIX. The name has to be unique against the
+    // other tests running under `ctest -j`, so it carries a counter as well
+    // as a clock: two that started in the same tick would otherwise have
+    // shared a path, and each destructor deletes what it named.
+    static std::atomic< unsigned > counter{ 0 };
 
-    if( handle < 0 )
+    auto const stamp =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+
+    for( int attempt = 0; ; ++attempt )
     {
-      throw std::runtime_error( "cannot make a scratch file" );
+      auto const candidate = std::filesystem::temp_directory_path() /
+        ( "viame_codec_" + std::to_string( stamp ) + "_" +
+          std::to_string( counter++ ) + suffix );
+
+      if( !std::filesystem::exists( candidate ) )
+      {
+        path_ = candidate.string();
+        return;
+      }
+
+      if( attempt > 100 )
+      {
+        throw std::runtime_error( "cannot make a scratch file" );
+      }
     }
-
-    ::close( handle );
-    ::remove( tmp.c_str() );
-
-    path_ = tmp + suffix;
   }
 
   ~scratch_file() { std::remove( path_.c_str() ); }

@@ -114,8 +114,14 @@ python -m pytest ${target_str} -v --tb=short
     endif()
   else()
     set( py_path "${install_dir}/python" )
-    set( site_packages
-      "${install_dir}/lib/python${VIAME_TEST_PYTHON_VERSION}/site-packages" )
+    # Windows python has no version level in its layout; see the WIN32
+    # branch of `viame_python_install_path` in viame_project.cmake.
+    if( WIN32 )
+      set( site_packages "${install_dir}/Lib/site-packages" )
+    else()
+      set( site_packages
+        "${install_dir}/lib/python${VIAME_TEST_PYTHON_VERSION}/site-packages" )
+    endif()
 
     set( pythonpath_parts "${py_path}" "${site_packages}" "${VIAME_TESTS_COMMON_DIR}" )
     foreach( extra_dir IN LISTS PT_PYTHONPATH_DIRS )

@@ -24,6 +24,27 @@
 #include <memory>
 #include <string>
 
+#ifdef _WIN32
+#include <stdlib.h>
+
+// MSVC declares neither. `_putenv_s` always overwrites, which is the only
+// mode used here, and it *removes* the variable when handed an empty value:
+// Windows keeps no distinction between an unset variable and an empty one,
+// so there is nothing for the shim to emulate.
+static int
+setenv( char const* name, char const* value, int )
+{
+  return _putenv_s( name, value );
+}
+
+static int
+unsetenv( char const* name )
+{
+  return _putenv_s( name, "" );
+}
+#endif
+
+
 namespace kv = viame;
 
 namespace {

@@ -62,5 +62,15 @@ function( viame_discover_gtests MODULE NAME )
   # multi-value, so it goes last.
   list( APPEND extra_args PROPERTIES LABELS UNIT )
 
+  # On Windows, enumerate the cases when ctest runs rather than when the
+  # executable links. Discovery runs the binary, and at build time nothing
+  # has put the standalone interpreter's `python3X.dll` on PATH -- every
+  # test executable links libpython through libviame, so all of them failed
+  # to start with 0xC0000135 and took the build down with them. By test time
+  # the setup script has been sourced, which is how tests are meant to run.
+  if( WIN32 )
+    list( PREPEND extra_args DISCOVERY_MODE PRE_TEST )
+  endif()
+
   gtest_discover_tests( test-${MODULE}-${NAME} ${extra_args} )
 endfunction()

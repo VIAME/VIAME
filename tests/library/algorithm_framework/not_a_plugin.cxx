@@ -20,8 +20,14 @@
 /// This carries a symbol so that it is not an empty object, and no entry
 /// point, which is the whole of what the test needs.
 
+#ifdef _WIN32
+#define PLUGIN_EXPORT_FLAG __declspec( dllexport )
+#else
+#define PLUGIN_EXPORT_FLAG __attribute__( ( visibility( "default" ) ) )
+#endif
+
 extern "C"
-__attribute__( ( visibility( "default" ) ) )
+PLUGIN_EXPORT_FLAG
 int
 viame_test_not_a_plugin_marker( void )
 {

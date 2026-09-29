@@ -17,7 +17,29 @@
 
 #include <gtest/gtest.h>
 
+#ifdef _WIN32
+// MSVC keeps the working-directory calls in <direct.h>, under _ names, and
+// declares no setenv/unsetenv at all. `_putenv_s` always overwrites, which is
+// the only mode used here, and it removes the variable when handed an empty
+// value: Windows keeps no distinction between unset and empty.
+#include <direct.h>
+#include <stdlib.h>
+#define chdir _chdir
+
+static int
+setenv( char const* name, char const* value, int )
+{
+  return _putenv_s( name, value );
+}
+
+static int
+unsetenv( char const* name )
+{
+  return _putenv_s( name, "" );
+}
+#else
 #include <unistd.h>
+#endif
 
 #include <cstdlib>
 #include <fstream>
