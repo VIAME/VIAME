@@ -59,7 +59,8 @@ create_config_trait( max_error_large, double, "14.0",
 create_config_trait( small_len, double, "150.0",
   "Length threshold (in mm) to switch between small and large error thresholds" );
 create_config_trait( keypoint_method, std::string, "oriented_bbox",
-  "Method for computing keypoints from polygon/mask" );
+  "Method for computing keypoints from polygon/mask, used for detections "
+  "without head and tail keypoints or when those fail to triangulate" );
 create_config_trait( average_stereo_classes, bool, "true",
   "Average class labels across each matched left/right detection pair so both "
   "cameras report the same classification and confidence" );
@@ -111,6 +112,11 @@ public:
     const cv::Point2d& pt1,
     const cv::Point2d& pt2,
     Eigen::Vector3f& world_pt );
+
+  // Read the head and tail keypoints already on a detection, if it has both
+  bool existing_keypoints(
+    const kv::detected_object_sptr& det,
+    std::pair< cv::Point2d, cv::Point2d >& kp ) const;
 
   // Find optimal matching between detection sets
   std::vector< MatchData > find_matches(
@@ -195,6 +201,27 @@ measure_objects_process::priv
   double err2 = std::pow( proj2.x() - pt2.x, 2 ) + std::pow( proj2.y() - pt2.y, 2 );
 
   return ( err1 + err2 ) / 2.0;
+}
+
+// -----------------------------------------------------------------------------
+bool
+measure_objects_process::priv
+::existing_keypoints(
+  const kv::detected_object_sptr& det,
+  std::pair< cv::Point2d, cv::Point2d >& kp ) const
+{
+  const auto keypoints = det->keypoints();
+  const auto head = keypoints.find( "head" );
+  const auto tail = keypoints.find( "tail" );
+
+  if( head == keypoints.end() || tail == keypoints.end() )
+  {
+    return false;
+  }
+
+  kp.first = cv::Point2d( head->second.value().x(), head->second.value().y() );
+  kp.second = cv::Point2d( tail->second.value().x(), tail->second.value().y() );
+  return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -303,16 +330,48 @@ measure_objects_process::priv
   kv::simple_camera_perspective& right_cam(
     dynamic_cast< kv::simple_camera_perspective& >( *( m_calibration->right() ) ) );
 
+  typedef std::pair< cv::Point2d, cv::Point2d > keypoint_pair;
+
   // Pre-compute keypoints for all detections using configured method
-  std::vector< std::pair< cv::Point2d, cv::Point2d > > kpts1( n1 ), kpts2( n2 );
+  std::vector< keypoint_pair > kpts1( n1 ), kpts2( n2 );
+  std::vector< keypoint_pair > det_kpts1( n1 ), det_kpts2( n2 );
+  std::vector< bool > has_det_kpts1( n1 ), has_det_kpts2( n2 );
   for( size_t i = 0; i < n1; ++i )
   {
     kpts1[i] = compute_keypoints( detections1[i], m_keypoint_method );
+    has_det_kpts1[i] = existing_keypoints( detections1[i], det_kpts1[i] );
   }
   for( size_t j = 0; j < n2; ++j )
   {
     kpts2[j] = compute_keypoints( detections2[j], m_keypoint_method );
+    has_det_kpts2[j] = existing_keypoints( detections2[j], det_kpts2[j] );
   }
+
+  auto evaluate = [&]( const keypoint_pair& kp1, const keypoint_pair& kp2,
+                       MatchData& data )
+  {
+    double err_head = triangulate_and_error(
+      left_cam, right_cam, kp1.first, kp2.first, data.world_pt1 );
+    double err_tail = triangulate_and_error(
+      left_cam, right_cam, kp1.second, kp2.second, data.world_pt2 );
+
+    data.error = ( err_head + err_tail ) / 2.0;
+    data.fishlen = ( data.world_pt1 - data.world_pt2 ).norm();
+    data.range = ( data.world_pt1.z() + data.world_pt2.z() ) / 2.0;
+    data.dz = std::abs( data.world_pt1.z() - data.world_pt2.z() );
+    data.keypoints1 = kp1;
+    data.keypoints2 = kp2;
+
+    // Both points must be in front of the cameras
+    if( data.world_pt1.z() <= 0 || data.world_pt2.z() <= 0 )
+    {
+      return false;
+    }
+
+    double error_thresh =
+      ( data.fishlen <= m_small_len ) ? m_max_error_small : m_max_error_large;
+    return data.error < error_thresh;
+  };
 
   cv::Mat cost_errors = cv::Mat::zeros( static_cast< int >( n1 ), static_cast< int >( n2 ), CV_64F );
   std::map< std::pair< int, int >, MatchData > cand_data;
@@ -332,59 +391,26 @@ measure_objects_process::priv
   {
     for( size_t j = 0; j < n2; ++j )
     {
-      // Get pre-computed keypoints
-      const auto& kp1 = kpts1[i];
-      const auto& kp2 = kpts2[j];
-
-      // Triangulate both keypoints
-      Eigen::Vector3f world_pt_head, world_pt_tail;
-
-      double err_head = triangulate_and_error(
-        left_cam, right_cam, kp1.first, kp2.first, world_pt_head );
-      double err_tail = triangulate_and_error(
-        left_cam, right_cam, kp1.second, kp2.second, world_pt_tail );
-
-      double error = ( err_head + err_tail ) / 2.0;
-
-      // Compute fish length
-      double fishlen = ( world_pt_head - world_pt_tail ).norm();
-
-      // Compute range (average Z)
-      double range = ( world_pt_head.z() + world_pt_tail.z() ) / 2.0;
-
-      // Compute dz
-      double dz = std::abs( world_pt_head.z() - world_pt_tail.z() );
-
-      // Store candidate data
       MatchData data;
       data.i = static_cast< int >( i );
       data.j = static_cast< int >( j );
-      data.fishlen = fishlen;
-      data.range = range;
-      data.error = error;
-      data.dz = dz;
-      data.keypoints1 = kp1;
-      data.keypoints2 = kp2;
-      data.world_pt1 = world_pt_head;
-      data.world_pt2 = world_pt_tail;
 
-      cand_data[std::make_pair( static_cast< int >( i ), static_cast< int >( j ) )] = data;
+      // Keypoints already on the detections mark the real head and tail, so
+      // they take priority over ones derived from the mask shape.
+      bool valid = has_det_kpts1[i] && has_det_kpts2[j] &&
+                   evaluate( det_kpts1[i], det_kpts2[j], data );
 
-      // Check chirality (both Z coordinates must be positive - in front of cameras)
-      bool both_in_front = ( world_pt_head.z() > 0 ) && ( world_pt_tail.z() > 0 );
-      if( !both_in_front )
+      if( !valid )
       {
-        continue;
+        valid = evaluate( kpts1[i], kpts2[j], data );
       }
 
-      // Check reprojection error threshold
-      double error_thresh = ( fishlen <= m_small_len ) ? m_max_error_small : m_max_error_large;
-      if( error >= error_thresh )
-      {
-        continue;
-      }
+      cand_data[std::make_pair( data.i, data.j )] = data;
 
-      cost_errors.at< double >( static_cast< int >( i ), static_cast< int >( j ) ) = error;
+      if( valid )
+      {
+        cost_errors.at< double >( data.i, data.j ) = data.error;
+      }
     }
   }
 
