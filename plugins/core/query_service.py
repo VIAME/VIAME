@@ -93,7 +93,7 @@ from typing import Any, Dict, List, Optional, Tuple
 faulthandler.enable(file=sys.stderr)
 
 BASE_DB_PORT = 5432
-MERGED_RESULT_LIMIT = 200
+MERGED_RESULT_LIMIT = 1000
 
 
 def _log(message: str) -> None:
@@ -279,7 +279,7 @@ process database_query_handler
   :external_handler                             true
   :external_pipeline_file                       {inner_pipe}
   :database_folder                              {database_folder}
-  :max_result_count                             200
+  :max_result_count                             1000
   :use_tracks_for_history                       true
   :merge_duplicate_results                      true
   :unused_descriptors_as_negative               false
