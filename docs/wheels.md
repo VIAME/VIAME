@@ -93,6 +93,28 @@ on every Windows run, so no Windows wheel could be packed at all. Neither
 `patchelf` nor `auditwheel` is used or needed there.
 
 
+### This branch's layout
+
+The install differs even though the wheel does not:
+
+| | linux | windows |
+|---|---|---|
+| the package | `lib/python3.X/site-packages/viame` | `Lib/site-packages/viame` |
+| the library | `lib/libviame.so.1` | `bin/viame.dll` |
+| the tools | `bin/viame` | `bin/viame.exe` |
+
+The builder reporting an unmatched line per glob is how the first real
+Windows run found that the install was putting the package in
+`Lib/python3.12/site-packages` -- `lib/python3.X` folded into the `Lib/` that
+`python_site_packages` had already made -- with its own `viame.egg-info` one
+directory away in `Lib/site-packages`, which is where a Windows interpreter
+actually looks. Fixed in `viame_project.cmake`; finding 2.89.
+
+**`.lib`, `.pdb` and `.exp` never ship.** Import libraries are for linking
+against VIAME, not running it, and the debug symbols are larger than the
+binaries.
+
+
 ## Verifying one
 
 `cmake/wheel/test_build_wheel.py` covers the glob and packing logic and needs
@@ -309,3 +331,44 @@ variant needs its own index.
 The version comes from the first line of `RELEASE_NOTES.md`. A release
 number can never be reused on PyPI, so uploading is a deliberate,
 irreversible act and is not part of `make wheel`.
+
+## Which interpreter, and the version matrix
+
+The extension modules use the full CPython API and link a particular
+`python3X`, so there is no `abi3` wheel: one wheel per interpreter, per
+platform. `cmake/wheel/build_matrix.sh` produces the Linux column and
+`cmake/wheel/build_matrix.ps1` the Windows one, 3.10 through 3.14 by default.
+
+    cmake/wheel/build_matrix.sh --build ~/wheels
+    .\cmake\wheel\build_matrix.ps1 -Build C:\wheels
+
+**The interpreters are downloaded, not installed.** Each version is a pinned
+[python-build-standalone](https://github.com/astral-sh/python-build-standalone)
+CPython that the configure fetches and unpacks into that tree's install prefix
+(`VIAME_PYTHON_STANDALONE`, with `VIAME_PYTHON_STANDALONE_VERSION` naming the
+series). So the matrix needs no python on the machine but the one running
+CMake, and every machine builds the same five -- five side-by-side pythons is
+a setup step that mostly has not happened, and on Windows there is no
+distribution to have done it.
+
+`--system-python` / `-SystemPython` builds against `python3.X` on PATH
+instead. That path has two hazards the scripts handle and a manual configure
+does not: `find_package( Python )` defaults to taking the *highest*
+interpreter it can see rather than the one asked for, and a fresh interpreter
+has no `setuptools`, which `install_egg_info` needs. CPython stopped bundling
+setuptools at 3.12 and python-build-standalone ships what CPython ships, so
+`viame_python_standalone.cmake` installs a pinned one itself.
+
+### Moving the pins
+
+`cmake/viame_python_standalone.cmake` holds a patch version per series and a
+SHA256 per platform -- 25 hashes, between the `BEGIN generated pins` and
+`END generated pins` markers. They are generated, not typed:
+
+    python3 cmake/wheel/update_python_pins.py --release 20260901
+    python3 cmake/wheel/update_python_pins.py --check   # for CI
+
+`--check` re-reads the release the module already names and exits non-zero if
+what is committed differs from the published `SHA256SUMS`. A release that does
+not publish every series, or every platform within one, is an error rather
+than a silently short table.

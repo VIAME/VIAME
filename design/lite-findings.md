@@ -5038,3 +5038,162 @@ read as a decision, and it had been a deferral: the capability went with
 the superbuild because the superbuild was going, not because nobody wanted
 it. **What a removal says about intent is nothing.** Report the flag, say
 what reads it, and leave it.
+
+## 2.85 A generated binding spelled a typedef's linux underlying type
+
+`int64_t` is `long` on LP64 linux and `long long` on Windows; `size_t` is
+`unsigned long` and `unsigned long long`. Four generated binding files had
+the linux spelling baked in where the header says `frame_id_t`,
+`landmark_id_t` or `size_t`:
+
+* `filter_features_trampoline_python.txx`, `std::vector<unsigned long>&`
+  against the header's `std::vector<size_t>&`
+* `match_descriptor_sets_trampoline_python.txx`, `std::vector<long>`
+  against `std::vector<frame_id_t>`
+* `resection_camera_python.cxx` and its trampoline,
+  `std::unordered_set<long>*` against `std::unordered_set<landmark_id_t>*`
+
+On linux these are the same type and the code is correct by coincidence. On
+MSVC the trampoline's `override` overrides nothing (C3668), the `.def` cast
+has no matching overload (C2440), and a pybind11 `type_caster` for a
+half-formed trampoline then fails inside pybind11's own headers -- which is
+where the error is reported, three files away from the cause.
+
+**A cast or an override written in a binding names a type twice**: once in
+the header and once here, and only one of them is maintained. Spell the
+typedef, never what it resolves to on the machine in front of you.
+
+## 2.86 `MSVC` is true for Ninja, and that split the output directories
+
+`CMakeLists.txt` set `CMAKE_CONFIGURATION_TYPES` to "Release" under `if(
+MSVC )`, meaning it for Visual Studio. `MSVC` is also true for Ninja with the
+MSVC toolchain, where the variable has no generator to serve -- but
+`viame_add_library`'s per-config `RUNTIME_OUTPUT_DIRECTORY_<CONFIG>` loop
+iterates it. So the libraries went to `bin/Release` and the executables,
+which have no such loop, stayed in `bin/`. Nothing could load `viame.dll`.
+
+The predicate for "am I a multi-config generator" is the global property
+`GENERATOR_IS_MULTI_CONFIG`, not the compiler. The comment above that loop
+said "Not exercised on this machine; the Windows CI is the only thing that
+reads these" -- it was exercised the first time anyone built with Ninja on
+Windows, and it was wrong.
+
+## 2.87 Test discovery runs the test, at build time, with no environment
+
+`gtest_discover_tests` defaults to `POST_BUILD`: it executes each test
+binary as part of the build to enumerate its cases. Every VIAME test
+executable links libpython through libviame, and at build time nothing has
+put the standalone interpreter's `python3X.dll` on PATH. All 39 of them
+exited `0xC0000135` -- STATUS_DLL_NOT_FOUND -- and each failure was a build
+failure, so nothing downstream of the tests built either, including the
+install and the wheel.
+
+`DISCOVERY_MODE PRE_TEST` moves enumeration to ctest time, when the setup
+script has been sourced. The general rule: **discovery is a run, so it needs
+whatever a run needs.** On linux the RUNPATH supplies it and the default is
+fine, which is why this had never come up.
+
+## 2.88 cmd.exe parses its own program name, and CMake writes it with slashes
+
+A test defined as `COMMAND cmd /c script.bat` fails with "The syntax of the
+command is incorrect" before the script is opened. CMake stores a test's
+executable with forward slashes -- `C:/Windows/System32/cmd.exe` -- and
+`file( TO_NATIVE_PATH )` does not survive `add_test`, which normalises it
+back. cmd re-parses its whole command line including the program name and
+reads the `/` in `/Windows` as the start of a switch.
+
+Measured directly: the same argv with `C:\WINDOWS\system32\cmd.exe` runs the
+script, and with `C:/WINDOWS/system32/cmd.exe` does not.
+
+`COMMAND ${CMAKE_COMMAND} -E env cmd /c script.bat` works, because there
+`cmd` is an argument rather than the test's executable and stays a bare
+name. Two smaller things fell out on the way: the command has to be a
+generated `.bat` rather than `cmd /c "call x.bat && y"`, since ctest quotes
+arguments by the C runtime's rules and cmd does not read them that way; and
+the POSIX branch had been running `call` under `bash`, which is where this
+started -- "call: command not found", 192 tests.
+
+## 2.89 A case-insensitive filesystem merged two site-packages into one
+
+`viame_project.cmake` set the install path to `lib/python3.X/site-packages`
+on every platform. Windows python has no version level: it is
+`<prefix>/Lib/site-packages`, which is what the interpreter reports and what
+`python_site_packages` already held -- the `kwiver` shim and `viame.egg-info`
+were installed there correctly.
+
+So the install had the package in `Lib/python3.12/site-packages`, by
+`lib/` folding into the `Lib/` already there, and its own egg-info one
+directory away in `Lib/site-packages`. Only the second is on an
+interpreter's path; the first worked solely because the setup script put it
+on `PYTHONPATH`, and the wheel's contents file -- which had guessed the
+native layout, correctly -- matched nothing and packed no python at all.
+
+**A wrong path on a case-insensitive filesystem does not fail, it merges.**
+
+## 2.90 An embedded interpreter does not inherit the environment it was installed into
+
+The wheel's `viame` and `kwiver` entry points set PATH, `VIAME_INSTALL` and
+`KWIVER_PLUGIN_PATH` and then run the native tool. The tool embeds CPython,
+and an embedded interpreter computes `sys.path` from the interpreter it
+links -- the base python -- not from the environment pip installed the tool
+into. `import viame` failed inside the tool.
+
+What that costs, measured on a wheel installed into a clean venv: 7
+algorithms, 22 processes, one scheduler and one python module absent from
+`registry-dump --introspect`. **The tool still exited 0**, and the only sign
+was two WARN lines about a module not being found.
+
+The launchers put `sysconfig.get_path( "purelib" )` on `PYTHONPATH` now, on
+both platforms, and `test_build_wheel.py` fails without it.
+
+## 2.91 python-build-standalone ships what CPython ships, which is no setuptools
+
+CPython stopped bundling setuptools at 3.12. `cmake/packaging`'s `setup.py
+egg_info` needs it, and a system python usually has it from the
+distribution, so this only appears once `VIAME_PYTHON_STANDALONE` provides
+the interpreter -- on any platform, not just Windows. The build gets three
+hundred files in before the target that needs it runs.
+
+`viame_python_standalone.cmake` installs a pinned setuptools into the
+interpreter it unpacked. `build_matrix.sh` had already met this from the
+other direction and was doing it per-interpreter by hand.
+
+## 2.92 A rename turned an alias into a self-reference, and only MSVC said so
+
+`namespace algo = kwiver::vital::algo;` became `namespace algo =
+viame::algo;` in P11. In the 15 files where it sits at global scope that is
+still a useful alias. In the four where it sits inside `namespace viame` it
+declares `viame::algo` to be an alias for `viame::algo`. GCC accepts it;
+MSVC is right to reject it (C2386).
+
+A mechanical rename cannot see scope. **After one, the lines worth re-reading
+are the ones whose whole content was the old name.**
+
+## 2.93 Escaping every backslash is not how Windows quotes an argument
+
+Finding 1.25 said the Windows branches of `register.cxx` and
+`python_script_applet.cxx` should be read rather than trusted before the
+branch claims Windows support. The first one's buffer bug was already fixed.
+The second had this, building the command line for `CreateProcessA`:
+
+    for( char const c : arg )
+    {
+      if( c == '"' || c == '\\' ) { command_line.push_back( '\\' ); }
+      command_line.push_back( c );
+    }
+
+A backslash is only an escape when its run reaches a `"`. The parser on the
+other side collapses `2n` backslashes before a quote to `n`, and leaves every
+other backslash exactly as it is -- so doubling all of them arrives doubled.
+`C:\Users\Matt Dawkins\script.py` came out as
+`C:\\Users\\Matt Dawkins\\script.py`.
+
+The argument is only quoted when it contains a space, which is precisely when
+it is most likely to be a path, so the bug was aimed at the case it would be
+used for. Checked, rather than reasoned about, against
+`CommandLineToArgvW` -- the parser that reads it back: six cases, the old code
+wrong on three.
+
+**Neither of these was going to be found by testing**, on a platform with no
+CI, in code that compiles only there. Reading them was the whole of the
+method, and it was worth doing twice.
