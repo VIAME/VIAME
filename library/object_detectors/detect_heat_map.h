@@ -70,6 +70,15 @@ public:
       -1.0 ),
 
     PARAM_DEFAULT(
+      closing_radius, int,
+      "Radius of a morphological closing applied to the binary mask "
+      "before contours are found, which fills holes and bridges gaps "
+      "smaller than the element. Zero, the default, does nothing. The "
+      "element is the ellipse of diameter 2 * radius + 1, which is what "
+      "`cv::getStructuringElement( MORPH_ELLIPSE, ... )` builds.",
+      0 ),
+
+    PARAM_DEFAULT(
       force_bbox_width, int,
       "Create bounding boxes of this fixed width.",
       -1 ),

@@ -25,6 +25,14 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 600
     SOURCE_SETUP
   )
+
+  viame_add_test(
+    NAME    "unit:object_detectors:heat_map_closing"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_detect_heat_map_closing.py"
+    LABELS  UNIT
+    TIMEOUT 600
+    SOURCE_SETUP
+  )
 endif()
 
 # From `tests/plugins/pytorch` in P2-T09: the netharn and RF-DETR trainer

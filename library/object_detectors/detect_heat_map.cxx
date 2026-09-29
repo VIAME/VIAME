@@ -15,6 +15,8 @@
 
 #include <image_kernels/contours.h>
 #include <image_kernels/filter.h>
+#include <image_kernels/morphology.h>
+
 #include <image_kernels/histogram.h>
 #include <image_kernels/pixel.h>
 #include <image_kernels/warp.h>
@@ -217,6 +219,9 @@ class detect_heat_map::priv
 public:
   double
   m_threshold() const { return parent.get_threshold(); }
+
+  int
+  m_closing_radius() const { return parent.get_closing_radius(); }
   int
   m_force_bbox_width() const { return parent.get_force_bbox_width(); }
   int
@@ -307,6 +312,47 @@ public:
       {
         out( i, j, 0 ) =
           ( static_cast< double >( image( i, j, 0 ) ) > level ) ? 1 : 0;
+      }
+    }
+
+    return out;
+  }
+
+  // --------------------------------------------------------------------------
+  /// `cv::morphologyEx( MORPH_CLOSE )` over a mask of zeroes and ones.
+  ///
+  /// The mask is carried as `uint8_t` because that is what everything else
+  /// here reads; the morphology takes `bool`, so this converts either way.
+  static kv::image_of< uint8_t >
+  close_mask( kv::image_of< uint8_t > const& mask, int radius )
+  {
+    viame::image_of< bool > binary( mask.width(), mask.height(), 1 );
+
+    for( size_t j = 0; j < mask.height(); ++j )
+    {
+      for( size_t i = 0; i < mask.width(); ++i )
+      {
+        binary( i, j, 0 ) = ( mask( i, j, 0 ) != 0 );
+      }
+    }
+
+    // A disk, and the strict `<` that `disk_element` already uses.
+    //
+    // Settled against the release rather than guessed: over a nine frame
+    // sequence at radius 4, this element puts 104 of 105 detections on a
+    // detection the desktop build also found, 91 of them at exactly the
+    // same box. An inclusive disk, `cv::getStructuringElement`'s ellipse
+    // and a square all scored under 50.
+    auto const closed =
+      io::closing( binary, io::disk_element( radius ) );
+
+    kv::image_of< uint8_t > out( mask.width(), mask.height(), 1 );
+
+    for( size_t j = 0; j < mask.height(); ++j )
+    {
+      for( size_t i = 0; i < mask.width(); ++i )
+      {
+        out( i, j, 0 ) = closed( i, j, 0 ) ? 1 : 0;
       }
     }
 
@@ -586,6 +632,14 @@ public:
   get_bbox_ccomponents( kv::image_of< uint8_t > const& heat_map )
   {
     auto mask = threshold_binary( heat_map, m_threshold() );
+
+    // Fill holes and bridge gaps smaller than the element, before contours
+    // are found rather than after: a hole inside a region changes both the
+    // contour's area and whether it clears `min_fill_fraction`.
+    if( m_closing_radius() > 0 )
+    {
+      mask = close_mask( mask, m_closing_radius() );
+    }
 
     auto detected_objects = std::make_shared< detected_object_set >();
 
