@@ -30,72 +30,84 @@ Each .sh or .bat script in the example folder is designed to run on either a sin
 
 Depending on the scripts, inputs may just be raw data (images or video), raw data plus annotation files (.csv, .json), or raw data plus metadata and annotations. In the default case, you can have any number of videos in the input folder, or image folders containing multiple images. For example:
 
-input_folder \<-- root folder  
-- video1.mpg
-- video2.mpg
-- sequence3 \<-- subfolder
-- - image1.png
-- - image2.png
-- - image3.png
-- - etc...
+```
+input_folder/         <-- root folder
+    video1.mpg
+    video2.mpg
+    sequence3/        <-- subfolder
+        image1.png
+        image2.png
+        image3.png
+        etc...
+```
 
 Images and videos can optionally be mixed in the same input folder.
 
 Alternatively, the input folder can just be a folder of images:
 
-input_folder \<-- root folder  
-- image1.png
-- image2.png
-- image3.png
-- etc...
+```
+input_folder/     <-- root folder
+    image1.png
+    image2.png
+    image3.png
+    etc...
+```
 
 Or just videos:
 
-input_folder \<-- root folder  
-- video1.mpg
-- video2.mpg
+```
+input_folder/     <-- root folder
+    video1.mpg
+    video2.mpg
+```
 
 Annotation files can provide either metadata (e.g. the FPS to process videos at, different on a per-video basis) or boxes/categories for training different types of AI models. For cases that require annotation files alongside videos, they should be in the same directory as the video with the same name, except instead of the video extension it should be a .csv or .json file. For image sequences, there should be a single annotation file of any name in the folder of images. Alternatively, an annotation file as the same name as the input image sequence folder can be placed at the same directory level of the folder.
 
 For example:
 
-input_folder \<-- root folder  
-- video1.mpg
-- video1.csv
-- video2.mpg
-- video2.csv
-- sequence3 \<-- subfolder
-- - image1.png
-- - image2.png
-- - image3.png
-- - whatever.csv
+```
+input_folder/           <-- root folder
+    video1.mpg
+    video1.csv
+    video2.mpg
+    video2.csv
+    sequence3/          <-- subfolder
+        image1.png
+        image2.png
+        image3.png
+        whatever.csv
+```
 
 is a valid input
 
-input_folder \<-- root folder  
-- video1.mpg
-- video1.json
-- video2.mpg
-- video2.json
-- sequence3.json
-- sequence3 \<-- subfolder
-- - image1.png
-- - image2.png
-- - image3.png
+```
+input_folder/         <-- root folder
+    video1.mpg
+    video1.json
+    video2.mpg
+    video2.json
+    sequence3.json
+    sequence3/        <-- subfolder
+        image1.png
+        image2.png
+        image3.png
+```
 
 is also a valid input
 
-input_folder \<-- root folder  
-- video1.mpg
-- video1.json
-- video2.mpg
-- video2.json
-- sequence3 \<-- subfolder
-- - image1.png
-- - image2.png
-- - image3.png
-- - truth1.json
-- - truth2.json
+```
+input_folder/          <-- root folder
+    video1.mpg
+    video1.json
+    video2.mpg
+    video2.json
+    sequence3/         <-- subfolder
+        image1.png
+        image2.png
+        image3.png
+        truth1.json
+        truth2.json
+```
 
 is not a valid input, as the image folder contains two possible truth files, and that will confuse the input loader. An input folder without a truth file will also error out with a hard error.
 
