@@ -47,15 +47,41 @@ function( viame_add_pytest_test )
     # Source the install setup script, then run pytest in the same shell so
     # native modules resolve. The test module self-paths tests/common.
     string( JOIN " " target_str ${PT_TARGET} )
+    # The shell has to match the script. `call` and a `.bat` are cmd's, and
+    # running them under bash -- which every test did -- fails with
+    # "call: command not found" before pytest is reached.
+    #
+    # A generated script rather than `cmd /c "call ... && ..."`: ctest quotes
+    # each argument the way the C runtime parses them, cmd parses quotes its
+    # own way, and the two disagree over the inner pair ("The syntax of the
+    # command is incorrect"). One path argument has nothing to disagree about.
     if( WIN32 )
-      set( setup_cmd "call \"${install_dir}/setup_viame.bat\"" )
+      string( MAKE_C_IDENTIFIER "${PT_NAME}" _pt_slug )
+      set( _pt_runner "${CMAKE_CURRENT_BINARY_DIR}/run_${_pt_slug}.bat" )
+      file( TO_NATIVE_PATH "${install_dir}/setup_viame.bat" _pt_setup )
+      file( WRITE "${_pt_runner}"
+"@echo off
+call \"${_pt_setup}\"
+python -m pytest ${target_str} -v --tb=short
+" )
+      # Through `cmake -E env`, so that cmd.exe is not the test's own
+      # executable. cmd re-parses its command line including the program
+      # name and reads a `/` in it as the start of a switch; CMake stores a
+      # test's executable with forward slashes, so `COMMAND cmd /c ...`
+      # reaches cmd as `C:/Windows/System32/cmd.exe ...` and it answers
+      # "The syntax of the command is incorrect" without looking at the
+      # script. As an argument to `cmake -E env`, `cmd` stays a bare name.
+      file( TO_NATIVE_PATH "${_pt_runner}" _pt_runner_native )
+      add_test(
+        NAME "${PT_NAME}"
+        COMMAND ${CMAKE_COMMAND} -E env cmd /c "${_pt_runner_native}"
+      )
     else()
-      set( setup_cmd "source \"${install_dir}/setup_viame.sh\"" )
+      add_test(
+        NAME "${PT_NAME}"
+        COMMAND bash -c "source \"${install_dir}/setup_viame.sh\" && python -m pytest ${target_str} -v --tb=short"
+      )
     endif()
-    add_test(
-      NAME "${PT_NAME}"
-      COMMAND bash -c "${setup_cmd} && python -m pytest ${target_str} -v --tb=short"
-    )
   else()
     set( py_path "${install_dir}/python" )
     set( site_packages
