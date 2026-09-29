@@ -85,6 +85,32 @@ if rel_path.startswith("local/"):
 print(rel_path)
 ]==] )
 
+# `python3X.dll`, beside what links it.
+#
+# Everything built here reaches libpython through libviame. Windows looks for
+# a dependent DLL beside the .exe and then on PATH, and a build tree has no
+# reason to have the interpreter on PATH -- least of all the standalone one,
+# which lives under the install prefix. Without this every executable in
+# `bin` fails to start with 0xC0000135, including each gtest binary that
+# `gtest_discover_tests` runs to enumerate its cases, and Windows puts up a
+# modal error dialog per process.
+#
+# At configure time rather than as a build rule: the interpreter is fixed for
+# a configure, and the tests have no target to hang a POST_BUILD on.
+if( WIN32 )
+  get_filename_component( _viame_python_bindir "${Python_EXECUTABLE}" DIRECTORY )
+  file( GLOB _viame_python_runtime "${_viame_python_bindir}/python3*.dll" )
+
+  if( _viame_python_runtime )
+    file( COPY ${_viame_python_runtime}
+          DESTINATION "${CMAKE_BINARY_DIR}/bin" )
+  else()
+    message( WARNING
+      "No python3*.dll beside ${Python_EXECUTABLE}; executables in the build "
+      "tree will not start unless it is on PATH." )
+  endif()
+endif()
+
 # Just the last component: "site-packages".
 get_filename_component( python_sitename "${python_site_packages}" NAME )
 
