@@ -125,11 +125,7 @@ cmake [build_flags] [path_to_source_tree]
 make -j8 # or just make for a unthreaded build
 ```
 
-Depending on which enable flags you have set and your system configuration, you may need to set additional cmake variables to point to dependency locations. An example is below for a system with CUDA, Python, and Matlab enabled, though the versions are old. Please do not use CUDA below 11.0 or Python below 3.10 anymore.
-
-<p align="center">
-<img src="../../docs/manual/_static/images/cmake-options.jpg" alt="image" width="40%">
-</p>
+Depending on which enable flags you have set and your system configuration, you may need to set additional cmake variables to point to dependency locations.
 
 ## Building on Mac OSX
 

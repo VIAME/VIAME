@@ -202,13 +202,7 @@ and run the following commands:
    make -j8 # or just make for a unthreaded build
 
 Depending on which enable flags you have set and your system configuration, you may
-need to set additional cmake variables to point to dependency locations. An example
-is below for a system with CUDA, Python, and Matlab enabled, though the versions are
-old. Please do not use CUDA below 11.0 or Python below 3.10 anymore.
-
-.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/cmake-options.jpg
-   :width: 40%
-   :align: center
+need to set additional cmake variables to point to dependency locations.
 
 .. _mac-label:
 

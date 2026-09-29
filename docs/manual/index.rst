@@ -162,7 +162,6 @@ Contents
    Model Zoo and Add-Ons <https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons>
    sections/user_interfaces
    DIVE Interface <sections/dive/index>
-   sections/interactive_annotation
    Python Interface <sections/python_interface>
    sections/project_folders
    sections/examples_overview
@@ -176,6 +175,7 @@ Contents
    sections/monocular_measurement
    sections/object_tracking
    sections/image_enhancement
+   sections/interactive_annotation
    sections/search_and_rapid_model_generation
    sections/text_query_and_vlm
    sections/scoring_and_evaluation

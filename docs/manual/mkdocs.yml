@@ -98,7 +98,6 @@ nav:
   # The hook fills this menu in from the one the DIVE manual declares
   - DIVE Interface:
     - sections/dive/index.md
-  - sections/interactive_annotation.md
   - Python Interface: sections/python_interface.md
   - sections/project_folders.md
   - sections/examples_overview.md
@@ -112,6 +111,7 @@ nav:
   - sections/monocular_measurement.md
   - sections/object_tracking.md
   - sections/image_enhancement.md
+  - sections/interactive_annotation.md
   - sections/search_and_rapid_model_generation.md
   - sections/text_query_and_vlm.md
   - sections/scoring_and_evaluation.md
