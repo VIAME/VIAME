@@ -49,9 +49,11 @@ Contents
 
    Documentation Overview <https://viame.github.io/VIAME/index.html>
    sections/quick_start_guide
-   sections/model_generation_workflows
    sections/installing_from_binaries
    sections/building_from_source
+   sections/model_generation_workflows
+   Model Zoo and Add-Ons <https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons>
+   Config File Guide <https://github.com/VIAME/VIAME/wiki/Config-Layout-and-Frameworks>
    sections/annotation_and_visualization
    DIVE Interface <sections/dive/index>
    sections/command_line_interface

@@ -90,9 +90,11 @@ validation:
 nav:
   - Documentation Overview: index.md
   - sections/quick_start_guide.md
-  - sections/model_generation_workflows.md
   - sections/installing_from_binaries.md
   - sections/building_from_source.md
+  - sections/model_generation_workflows.md
+  - Model Zoo and Add-Ons: https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons
+  - Config File Guide: https://github.com/VIAME/VIAME/wiki/Config-Layout-and-Frameworks
   - sections/annotation_and_visualization.md
   - DIVE Interface:
     - sections/dive/index.md

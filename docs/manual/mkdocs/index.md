@@ -15,9 +15,11 @@ This manual is synced to the VIAME ["main"](https://github.com/VIAME/VIAME) bran
 
 - [Documentation Overview](index.md)
 - [Quick-Start Guide](sections/quick_start_guide.md)
-- [Model Generation Workflows](sections/model_generation_workflows.md)
 - [Installing VIAME from Binaries](sections/installing_from_binaries.md)
 - [Building VIAME From Source](sections/building_from_source.md)
+- [Model Generation Workflows](sections/model_generation_workflows.md)
+- [Model Zoo and Add-Ons](https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons)
+- [Config File Guide](https://github.com/VIAME/VIAME/wiki/Config-Layout-and-Frameworks)
 - [User Interfaces](sections/annotation_and_visualization.md)
 - [DIVE Interface](sections/dive/index.md)
 - [Command Line Interface](sections/command_line_interface.md)
