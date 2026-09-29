@@ -44,9 +44,32 @@ namespace {
 constexpr char separator = '/';
 
 // ----------------------------------------------------------------------------
+/// Is this a directory separator on this platform?
+///
+/// Windows accepts both and uses the backslash natively, so anything built
+/// from `std::filesystem` or handed over by the OS arrives with backslashes.
+constexpr bool
+is_separator( char const c )
+{
+#ifdef _WIN32
+  return c == '/' || c == '\\';
+#else
+  return c == '/';
+#endif
+}
+
+// ----------------------------------------------------------------------------
 /// Runs of separators collapsed, and no trailing one.
 ///
 /// The root keeps its separator: `"/"` normalises to itself, not to empty.
+///
+/// Separators come out as `/` on every platform. That is kwiversys's
+/// arrangement, which these callers were written against: everything below
+/// looks for `separator` and nothing else, so a native `C:\dir\file.jpg`
+/// would otherwise have no separator in it at all and `filename_path` would
+/// answer that it has no parent directory. Windows APIs and
+/// `std::filesystem` both accept forward slashes, so converting here is
+/// enough and no caller has to know.
 std::string
 normalised( std::string const& path )
 {
@@ -55,15 +78,22 @@ normalised( std::string const& path )
 
   for( char const c : path )
   {
-    if( c == separator && !out.empty() && out.back() == separator )
+    char const ch = is_separator( c ) ? separator : c;
+
+    if( ch == separator && !out.empty() && out.back() == separator )
     {
       continue;
     }
 
-    out.push_back( c );
+    out.push_back( ch );
   }
 
-  if( out.size() > 1 && out.back() == separator )
+  // Not the separator that follows a drive letter: `C:/` is a root, and
+  // `C:` without it names the working directory on that drive instead.
+  bool const drive_root =
+    out.size() == 3 && out[ 1 ] == ':' && out[ 2 ] == separator;
+
+  if( out.size() > 1 && out.back() == separator && !drive_root )
   {
     out.pop_back();
   }
