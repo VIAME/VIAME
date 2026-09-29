@@ -136,8 +136,7 @@ pip install viame
 
 This puts the `viame` tool described below on your path. Only a minimal set
 of pipelines ships with it; larger models come from `viame add-ons`. See
-[VIAME as a Python Package](docs/python_package.md) for the rest, including
-why Windows needs the cap.
+[VIAME as a Python Package](docs/python_package.md) for additional details.
 
 Command Line Interface Basics
 -----------------------------
