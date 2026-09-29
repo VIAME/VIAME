@@ -126,15 +126,13 @@ Windows, with wheels for Python 3.10 through 3.14:
 
 pip install viame
 
-On Windows, install a CUDA torch first and cap it below 2.11. VIAME requires
-`torch<2.11`, and pytorch.org's own command now installs 2.11, which the
-second command would then quietly replace with the CPU build:
+On Windows, install a CUDA torch first, capped below 2.11:
 
 pip install "torch<2.11" torchvision --index-url https://download.pytorch.org/whl/cu128
 pip install viame
 
-See [VIAME as a Python Package](docs/python_package.md) for why the order and
-the cap matter, and for the GPU requirement.
+See [VIAME as a Python Package](docs/python_package.md) for why the cap is
+there, and for the GPU requirement.
 
 This puts the main `viame` tool described below onto your path, and installs
 the `viame` python package alongside it. See [VIAME as a Python Package](docs/python_package.md)
