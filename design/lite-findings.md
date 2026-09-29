@@ -5261,3 +5261,85 @@ A caution on method: comparing the two CSVs row by row put the worst
 displacement at 111 px, which is not a disagreement about where a corner is
 but about what order to list them in. Matched nearest-neighbour within a
 frame, the worst is 3.27 px. **Row order is not part of the contract.**
+
+## 2.97 The ported file_system was POSIX-only, and every splitter went through it
+
+`library/algorithm_framework/util/file_system.cxx` declared
+`constexpr char separator = '/'` and every path function looked for that and
+nothing else. On Windows `filename_path( "C:\dir\x.jpg" )` found no
+separator and answered that the path has no parent directory.
+
+What that cost: `image_io::save` validates the containing directory before
+writing, got the empty string back, and threw `path_not_exists` with nothing
+after the colon -- so `filter_enhance` and `filter_debayer` wrote no images
+at all, and the message named no file to go and look at. The writer had the
+right name the whole time; the debug log says
+`Writing image to file "fish_1_seq_01.jpg"` immediately before the throw.
+
+kwiversys, which this replaced, worked in forward slashes throughout and
+converted on the way in. `normalised()` does that now, which is a two-line
+change in the one function everything already funnels through. Windows APIs
+and `std::filesystem` both accept forward slashes, so no caller had to know.
+
+**Two hundred call sites were ported against a separator constant, and the
+constant was wrong on a platform nobody had compiled.** The unit tests did
+not catch it because they were written on Linux with POSIX paths, where the
+constant is right.
+
+## 2.98 The chessboard finder finds two boards in six, and calibration says nothing
+
+`utility_calibrate_single_camera` exits 0 on this branch and writes only
+`tracks.csv` -- no `calibration.json`, no `intrinsics.yml`. The desktop
+release writes all three from the same six images.
+
+The chain: `ocv_calibration_targets.detect_chessboard` is tried first, and
+`detect_dots` is the fallback. Called directly on the six
+`checkerboard_8_5` images, the chessboard finder returns true for **two of
+them** and false for four; OpenCV's `findChessboardCorners` finds all six.
+Where it fails the dot detector picks up 39 or 41 blobs, which look like
+corners and are emitted as detections -- but `world` is only computed on the
+chessboard path, so those frames carry no `stereo3d_x/y/z` notes. The
+calibrator needs the 3D correspondences, finds one frame's worth, and logs
+"No valid calibration points found in tracks" at a level nothing treats as
+failure.
+
+Counted: 40 corners with world coordinates on this branch, all from the last
+frame; 240 on the desktop, 40 from each of six.
+
+**The fallback is what makes this quiet.** Without it the pipeline would
+have failed on the first frame and said why. With it, every stage downstream
+gets plausible input and the only sign is a message in the log and two files
+that were never written.
+
+`detector_calibration_target` is not affected and agrees exactly -- 39, 41,
+41, 41, 39, 39 corners per frame on both sides -- because that pipeline is
+configured for dots, so both take the same path.
+
+## 2.99 What the second sweep agreed on, and what a pixel difference is worth
+
+Nineteen more pipelines through both sides. No wheel-only failure survived
+the separator fix; the ones that still fail, fail on both, and do so because
+the input does not suit them (`filter_default`, `filter_extract_chips`,
+`common_image_stabilizer`, `transcode_default`, and the three utilities that
+want detections they were not given).
+
+Images, compared as pixels rather than bytes -- the encoders differ, so a
+digest comparison says only that:
+
+| pipeline | max abs | mean abs | pixels differing |
+|---|---|---|---|
+| `filter_split_left_side` | 3 | 0.034 | 2.7% |
+| `filter_debayer` | 3 | 0.037 | 2.8% |
+| `filter_enhance` | 40 | 1.14 | 66% |
+| `filter_normalize_16bit` | 84 | 0.84 | 50% |
+
+The first row is the floor: splitting an image is a crop, so what it
+measures is the JPEG decoder, and ±3 is what two decoders disagree by. The
+other rows are that floor amplified -- CLAHE turning a rounding difference
+into a visible one is finding 2.35, already known. **A pixel difference in a
+filter chain is a statement about the decoder until proven otherwise**, and
+the way to prove otherwise is to run the cheapest operation in the chain
+first.
+
+`filter_normalize_16bit` at 84 is the one worth a second look, since it is
+amplifying more than the others.
