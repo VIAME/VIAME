@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      contents: write
+      contents: read
 
     steps:
       # Submodules are not needed, the build fetches only the DIVE docs folder
@@ -49,15 +49,24 @@ jobs:
         run: mkdocs build --strict -f docs/manual/mkdocs.yml
 
       - name: Upload built site
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: viame-manual
           path: docs/manual/_build/mkdocs
-          retention-days: 7
 
-      - name: Publish to GitHub Pages
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          mkdocs gh-deploy --force -f docs/manual/mkdocs.yml
+  deploy:
+    name: Publish to GitHub Pages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
