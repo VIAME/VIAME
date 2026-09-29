@@ -771,6 +771,18 @@ def run(name):
         env["KWIVER_PLUGIN_PATH"] = os.pathsep.join(
             plugins + [env.get("KWIVER_PLUGIN_PATH", "")])
         env.setdefault("KWIVER_PLUGIN_PATH_NO_DEFAULTS", "1")
+    # A pipeline's `include` is resolved against the working directory, this
+    # variable, and the standard locations under the executable's parent. The
+    # wheel's tools are not one level below the prefix -- they sit beside
+    # their DLLs -- so the last of those misses the configs shipped with them,
+    # and an absolute path to a .pipe failed on its first include unless the
+    # caller happened to be standing in the pipelines directory.
+    configs = [str(prefix / "configs" / "pipelines"), str(prefix / "configs")]
+    configs = [c for c in configs if os.path.isdir(c)]
+    if configs:
+        env["KWIVER_CONFIG_PATH"] = os.pathsep.join(
+            configs + ([env["KWIVER_CONFIG_PATH"]]
+                       if env.get("KWIVER_CONFIG_PATH") else []))
     return subprocess.call([str(executable)] + sys.argv[1:], env=env)
 '''
 
@@ -823,6 +835,19 @@ def main():
         existing = os.environ.get("KWIVER_PLUGIN_PATH", "")
         os.environ["KWIVER_PLUGIN_PATH"] = os.pathsep.join(plugin_dirs + ([existing] if existing else []))
         os.environ.setdefault("KWIVER_PLUGIN_PATH_NO_DEFAULTS", "1")
+
+    # A pipeline's `include` is resolved against the working directory, this
+    # variable, and the standard locations under the executable's parent. The
+    # tools live in `libexec`, not one level below the prefix, so the last of
+    # those misses the configs shipped beside them and an absolute path to a
+    # .pipe failed on its first include from anywhere but that directory.
+    config_dirs = [os.path.join(sys.prefix, "configs", "pipelines"),
+                   os.path.join(sys.prefix, "configs")]
+    config_dirs = [d for d in config_dirs if os.path.isdir(d)]
+    if config_dirs:
+        existing = os.environ.get("KWIVER_CONFIG_PATH", "")
+        os.environ["KWIVER_CONFIG_PATH"] = os.pathsep.join(
+            config_dirs + ([existing] if existing else []))
 
     # Where this interpreter keeps libpython. A standalone build keeps it to
     # itself, and the loader will not find it without being told.
