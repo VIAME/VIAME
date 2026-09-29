@@ -242,18 +242,27 @@ def test_launcher_keeps_child_tools_in_its_environment():
     assert code.startswith('#!python\n')
     namespace = {'__name__': 'launcher_test'}
     exec(compile(code, '<launcher>', 'exec'), namespace)
-    with patch('sys.executable', '/venv/bin/python'), \
+    # The launcher joins with `os.path.join`, so the paths it builds use the
+    # running platform's separator. Build the expectations the same way: the
+    # logic under test is the same on both, and hardcoding POSIX here made
+    # this the one test that could not run on Windows.
+    import os
+    bin_dir = os.path.join('/venv', 'bin')
+    applets = os.path.join('/venv', 'lib', 'viame', 'applets')
+    with patch('sys.executable', os.path.join(bin_dir, 'python')), \
          patch('sys.prefix', '/venv'), \
          patch('os.path.exists', return_value=True), \
-         patch('os.path.isdir', side_effect=lambda p: p == '/venv/lib/viame/applets'), \
+         patch('os.path.isdir', side_effect=lambda p: p == applets), \
          patch.dict('os.environ', {'PATH': '/other/bin'}, clear=True), \
          patch('os.execv') as execute:
         namespace['main']()
-        import os
-        assert os.environ['PATH'].split(os.pathsep)[0] == '/venv/bin'
-        assert execute.call_args.args[0] == '/venv/libexec/viame'
+        assert os.environ['PATH'].split(os.pathsep)[0] == bin_dir
+        assert execute.call_args.args[0] == os.path.join('/venv', 'libexec', 'viame')
         assert os.environ['VIAME_INSTALL'] == '/venv'
-        assert os.environ['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == '/venv/lib/viame/applets'
+        assert os.environ['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == applets
+        import sysconfig
+        assert os.environ['PYTHONPATH'].split(os.pathsep)[0] == \
+            sysconfig.get_path('purelib')
 
 
 
@@ -303,6 +312,12 @@ def test_windows_console_launcher_finds_runtime_and_preserves_arguments():
             assert env['PATH'].split(os.pathsep)[:2] == [str(env_root / 'Scripts'), str(native.parent)]
             assert env['KWIVER_PLUGIN_PATH'].split(os.pathsep)[0] == str(plugin_dir)
             assert os.environ['VIAME_INSTALL'] == '/old'
+            # The embedded interpreter would otherwise build sys.path from
+            # the python it links, not this environment, and every
+            # python-registered plugin would be missing with exit code 0.
+            import sysconfig
+            assert env['PYTHONPATH'].split(os.pathsep)[0] == \
+                sysconfig.get_path('purelib')
 
 
 def main():
