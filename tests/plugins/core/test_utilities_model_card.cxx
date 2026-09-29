@@ -11,6 +11,13 @@
 #include <fstream>
 #include <iterator>
 
+#ifdef _WIN32
+#include <process.h>
+#define getpid _getpid
+#else
+#include <unistd.h>
+#endif
+
 namespace kv = kwiver::vital;
 
 class utilities_model_card : public ::testing::Test
@@ -21,9 +28,30 @@ protected:
 
   void SetUp() override
   {
+    // The process id as well as the clock: `gtest_discover_tests` makes every
+    // case its own process, so under `ctest -j` several of these start at
+    // once and a steady_clock tick is not fine enough to separate them. Two
+    // that landed on the same name would have shared a directory, and the
+    // first to finish would have deleted the other's files in TearDown.
+    // The loop is what makes it a guarantee rather than a likelihood.
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-    directory = std::filesystem::temp_directory_path() /
-      ( "viame-model-card-" + std::to_string( stamp ) );
+    const auto process = static_cast< long long >( ::getpid() );
+
+    for( int attempt = 0; ; ++attempt )
+    {
+      directory = std::filesystem::temp_directory_path() /
+        ( "viame-model-card-" + std::to_string( process ) +
+          "-" + std::to_string( stamp ) + "-" + std::to_string( attempt ) );
+
+      if( !std::filesystem::exists( directory ) )
+      {
+        break;
+      }
+
+      ASSERT_LT( attempt, 64 ) << "cannot find a free name under "
+                               << std::filesystem::temp_directory_path();
+    }
+
     inputs.output_directory = ( directory / "trained_model" ).string();
     ASSERT_TRUE( std::filesystem::create_directories( inputs.output_directory ) );
   }
