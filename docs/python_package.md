@@ -13,6 +13,51 @@ Linux, CPython 3.10 through 3.14. GPU support comes from whichever CUDA
 below was run against the published wheel with nothing downloaded beyond
 the package itself.
 
+Windows
+-------
+
+Windows wheels are built for CUDA 12 and carry a `+cu12` local version, which
+PyPI does not accept, so they are installed from the `.whl` rather than by
+name. CPython 3.10 through 3.14, as on Linux.
+
+**Install VIAME and a CUDA torch in one command, with the torch version
+pinned:**
+
+    pip install viame-<version>+cu12-cp312-cp312-win_amd64.whl \
+                torch==2.9.1+cu128 torchvision==0.24.1+cu128 \
+                --extra-index-url https://download.pytorch.org/whl/cu128
+
+That looks fussier than it should be, and each part of it is load bearing.
+VIAME asks for `torch>=2.3.1,<2.11`. On Windows PyPI answers that with the
+**CPU** build, because torch marks every one of its `nvidia-*` requirements
+`platform_system == "Linux"`. So:
+
+* Installing VIAME on its own gives you a CPU torch.
+* Installing a CUDA torch and *then* VIAME replaces it with the CPU one, and
+  says nothing about it -- `torch.cuda.is_available()` just becomes `False`.
+* Installing VIAME and *then* `pip install torch --index-url ...` does
+  nothing at all: the CPU torch already satisfies `torch`, so pip leaves it
+  alone. This is the one that looks like it worked.
+
+Hence a single resolution with the version pinned to a `+cu128` build, which
+is unambiguous. `torchvision` is pinned beside it because it depends on an
+exact torch version and pip will otherwise pair it with one it does not
+match.
+
+A CPU-only install is a supported configuration: VIAME's own CUDA kernels
+come from the `nvidia-*-cu12` wheels it declares, not from torch, so they
+work either way. Nothing in torch will use the GPU.
+
+The two do not each load their own CUDA runtime. With both installed,
+`cudart64_12.dll` is loaded once, out of `torch/lib`, and VIAME's extensions
+bind to that copy.
+
+**What the GPU has to be.** Torch's CUDA 12 builds ship `sm_70` and newer, so
+on anything older than Volta -- a GTX 1080 Ti is `sm_61` -- torch imports,
+reports `cuda.is_available()` as `True`, and then fails the first kernel
+launch with `no kernel image is available for execution on the device`.
+VIAME's own kernels are built from `sm_60` and do run on those cards.
+
 Loading files
 -------------
 
