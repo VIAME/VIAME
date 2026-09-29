@@ -1,0 +1,78 @@
+site_name: VIAME
+site_description: Video and Image Analytics for Multiple Environments
+site_author: Kitware, Inc.
+copyright: Copyright &copy; 2017, Kitware, Inc.
+
+repo_url: https://github.com/VIAME/VIAME
+repo_name: VIAME/VIAME
+
+docs_dir: mkdocs
+site_dir: _build/mkdocs
+
+# Pages keep the sections/<name>.html addresses the Sphinx manual uses
+use_directory_urls: false
+
+# Pages and navigation are generated from the RST sources by the hook
+hooks:
+  - mkdocs_hooks.py
+
+watch:
+  - index.rst
+  - sections
+  - _static
+  - dive_docs.py
+  - mkdocs_hooks.py
+  - ../../examples
+
+theme:
+  name: material
+  favicon: favicon.ico
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - search.highlight
+
+extra_css: [extra.css]
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - smarty
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+validation:
+  nav:
+    omitted_files: info
+  links:
+    not_found: warn
+    anchors: warn
+    unrecognized_links: info

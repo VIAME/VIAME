@@ -1,0 +1,17 @@
+# Alternate Read the Docs configuration building the manual with MkDocs.
+# Point a second Read the Docs project at this file to host it beside the
+# Sphinx build, which keeps using the .readthedocs.yml at the repository root.
+
+version: 2
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.12"
+
+mkdocs:
+  configuration: docs/manual/mkdocs.yml
+
+python:
+  install:
+    - requirements: docs/manual/requirements-mkdocs.txt

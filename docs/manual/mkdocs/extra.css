@@ -1,0 +1,36 @@
+.md-typeset img.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.md-typeset img.align-left {
+  float: left;
+  margin-right: 1em;
+}
+
+.md-typeset img.align-right {
+  float: right;
+  margin-left: 1em;
+}
+
+.md-grid {
+  max-width: 80rem;
+}
+
+.md-typeset mark {
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: white !important;
+  font-weight: bold;
+  border: 1px solid #424242;
+  background-color: #0277bd;
+}
+
+.md-typeset mark.error {
+  background-color: #F44336 !important;
+}
+
+.md-typeset mark.success {
+  background-color: #5cb85c !important;
+}
