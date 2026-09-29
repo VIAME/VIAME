@@ -52,6 +52,10 @@ Contents
    sections/installing_from_binaries
    sections/building_from_source
    sections/annotation_and_visualization
+   DIVE Interface <sections/dive/index>
+   sections/command_line_interface
+   Python Interface <sections/python_interface>
+   sections/project_folders
    sections/examples_overview
    sections/detection_file_conversions
    sections/object_detection
@@ -60,6 +64,7 @@ Contents
    sections/object_tracking
    sections/image_enhancement
    sections/search_and_rapid_model_generation
+   sections/text_query_and_vlm
    sections/scoring_and_evaluation
    sections/registration_and_mosaicing
    sections/frame_level_classification

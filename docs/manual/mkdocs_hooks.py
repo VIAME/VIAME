@@ -35,7 +35,6 @@ REPO_IMAGE = re.compile(r"(?:\.\./)+docs/manual/(_static/images/)")
 
 # Sections the Sphinx manual lists in its sidebar, given pages of their own
 SPLITS = {
-    "sections/examples_overview": {"Project Folders": "sections/project_folders"},
     "sections/search_and_rapid_model_generation": {
         "Rapid Model Generation": "sections/rapid_model_generation"},
 }
@@ -158,8 +157,14 @@ def relink(text, page, pages):
 
 
 def promote_headings(markdown):
+    """Raise every heading a level when a page part starts below the top one."""
     lines = markdown.splitlines()
-    for index, line in outside_fences(lines):
+    body = list(outside_fences(lines))
+    for position, (index, line) in enumerate(body):
+        following = body[position + 1][1] if position + 1 < len(body) else ""
+        if line.startswith("# ") or (line.strip() and re.fullmatch(r"=+", following)):
+            return markdown
+    for index, line in body:
         if line.startswith("##"):
             lines[index] = line[1:]
     return "\n".join(lines) + "\n"
@@ -167,7 +172,7 @@ def promote_headings(markdown):
 
 def dive_index(ref):
     readme = included(dive_docs.README_INCLUDE + "\n", HERE / DIVE_DIR)
-    return promote_headings(readme) + "\n".join([
+    return readme + "\n".join([
         "",
         "The pages below are vendored from the [DIVE manual](" + dive_docs.DIVE_SITE +
         ") at the revision VIAME currently ships (`" + ref[:12] + "`). The upstream "
@@ -223,6 +228,7 @@ def generate():
                     "](" + posixpath.basename(target) + ".md)")
     collect_dive(pages, assets)
     for name in pages:
+        pages[name] = promote_headings(pages[name])
         # READMEs address images from their own folder
         pages[name] = REPO_IMAGE.sub("../" * name.count("/") + r"\1", pages[name])
 

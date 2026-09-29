@@ -20,6 +20,8 @@ watch:
   - dive_docs.py
   - mkdocs_hooks.py
   - ../../examples
+  - ../command_line_interface.md
+  - ../python_package.md
 
 theme:
   name: material
@@ -90,47 +92,48 @@ nav:
   - sections/quick_start_guide.md
   - sections/installing_from_binaries.md
   - sections/building_from_source.md
-  - User Interfaces and Visualizations:
-    - Overview: sections/annotation_and_visualization.md
-    - DIVE Interface:
-      - sections/dive/index.md
-      - Getting Started:
-        - Web Version: sections/dive/Web-Version.md
-        - Desktop Version: sections/dive/Dive-Desktop.md
-        - Annotation Quickstart: sections/dive/Annotation-QuickStart.md
-      - Annotation Interface:
-        - Interface Introduction: sections/dive/Annotation-User-Interface-Overview.md
-        - Navigation and Editing Bar: sections/dive/UI-Navigation-Editing-Bar.md
-        - Annotation Window: sections/dive/UI-Annotation-View.md
-        - Type List: sections/dive/UI-Type-List.md
-        - Track List: sections/dive/UI-Track-List.md
-        - Timeline: sections/dive/UI-Timeline.md
-        - Attributes: sections/dive/UI-Attributes.md
-        - Attribute Configuration: sections/dive/UI-AttributeConfiguration.md
-        - Attribute Details: sections/dive/UI-AttributeDetails.md
-        - Attribute Track Filtering: sections/dive/UI-AttributeTrackFiltering.md
-        - Group Manager: sections/dive/UI-Group-Manager.md
-        - Suppression: sections/dive/UI-Suppression.md
-        - Dataset Info: sections/dive/UI-DatasetInfo.md
-        - Image Enhancements: sections/dive/UI-Image-Enhancements.md
-        - Annotation Sets: sections/dive/Annotation-Sets.md
-        - Interactive Annotation (Desktop): sections/dive/Interactive-Annotation.md
-      - Running VIAME from DIVE:
-        - Pipelines and Training: sections/dive/Pipeline-Documentation.md
-        - Pipeline Import and Export: sections/dive/Pipeline-Import-Export.md
-        - Command Line Tools: sections/dive/Command-Line-Tools.md
-        - Scoring: sections/dive/Scoring.md
-        - Query: sections/dive/Query.md
-        - Review: sections/dive/Review.md
-      - Data and Reference:
-        - Data Formats: sections/dive/DataFormats.md
-        - Frame Metadata: sections/dive/Frame-Metadata.md
-        - Large Image Support: sections/dive/Large-Image-Support.md
-        - Multicamera and Stereo Data: sections/dive/Multicamera-data.md
-        - Mouse and Keyboard Shortcuts: sections/dive/Mouse-Keyboard-Shortcuts.md
-        - Frequently Asked Questions: sections/dive/FAQ.md
-  - sections/examples_overview.md
+  - sections/annotation_and_visualization.md
+  - DIVE Interface:
+    - sections/dive/index.md
+    - Getting Started:
+      - Web Version: sections/dive/Web-Version.md
+      - Desktop Version: sections/dive/Dive-Desktop.md
+      - Annotation Quickstart: sections/dive/Annotation-QuickStart.md
+    - Annotation Interface:
+      - Interface Introduction: sections/dive/Annotation-User-Interface-Overview.md
+      - Navigation and Editing Bar: sections/dive/UI-Navigation-Editing-Bar.md
+      - Annotation Window: sections/dive/UI-Annotation-View.md
+      - Type List: sections/dive/UI-Type-List.md
+      - Track List: sections/dive/UI-Track-List.md
+      - Timeline: sections/dive/UI-Timeline.md
+      - Attributes: sections/dive/UI-Attributes.md
+      - Attribute Configuration: sections/dive/UI-AttributeConfiguration.md
+      - Attribute Details: sections/dive/UI-AttributeDetails.md
+      - Attribute Track Filtering: sections/dive/UI-AttributeTrackFiltering.md
+      - Group Manager: sections/dive/UI-Group-Manager.md
+      - Suppression: sections/dive/UI-Suppression.md
+      - Dataset Info: sections/dive/UI-DatasetInfo.md
+      - Image Enhancements: sections/dive/UI-Image-Enhancements.md
+      - Annotation Sets: sections/dive/Annotation-Sets.md
+      - Interactive Annotation (Desktop): sections/dive/Interactive-Annotation.md
+    - Running VIAME from DIVE:
+      - Pipelines and Training: sections/dive/Pipeline-Documentation.md
+      - Pipeline Import and Export: sections/dive/Pipeline-Import-Export.md
+      - Command Line Tools: sections/dive/Command-Line-Tools.md
+      - Scoring: sections/dive/Scoring.md
+      - Query: sections/dive/Query.md
+      - Review: sections/dive/Review.md
+    - Data and Reference:
+      - Data Formats: sections/dive/DataFormats.md
+      - Frame Metadata: sections/dive/Frame-Metadata.md
+      - Large Image Support: sections/dive/Large-Image-Support.md
+      - Multicamera and Stereo Data: sections/dive/Multicamera-data.md
+      - Mouse and Keyboard Shortcuts: sections/dive/Mouse-Keyboard-Shortcuts.md
+      - Frequently Asked Questions: sections/dive/FAQ.md
+  - sections/command_line_interface.md
+  - Python Interface: sections/python_interface.md
   - sections/project_folders.md
+  - sections/examples_overview.md
   - sections/detection_file_conversions.md
   - sections/object_detection.md
   - sections/object_detector_training.md
@@ -139,6 +142,7 @@ nav:
   - sections/image_enhancement.md
   - sections/search_and_rapid_model_generation.md
   - sections/rapid_model_generation.md
+  - sections/text_query_and_vlm.md
   - sections/scoring_and_evaluation.md
   - sections/registration_and_mosaicing.md
   - sections/frame_level_classification.md

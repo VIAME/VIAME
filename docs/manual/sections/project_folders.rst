@@ -1,2 +1,2 @@
 .. include:: ../../../examples/README.rst
-   :end-before: .. project-folders
+   :start-after: .. project-folders

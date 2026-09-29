@@ -1,4 +1,4 @@
-# Size Measurement Examples
+# Size Measurement
 
 <p align="center">
 <img src="../../docs/manual/_static/images/fish_measurement_example.jpg" alt="image" width="70%">

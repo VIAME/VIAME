@@ -1,8 +1,6 @@
-# User Interfaces and Visualizations
+# User Interfaces
 
-This document corresponds to the [Annotation and Visualization](https://github.com/VIAME/VIAME/blob/main/examples/annotation_and_visualization) example folder within a VIAME desktop installation. Contained in this example are launch scripts for some of the more common graphical user interfaces (GUIs) within VIAME, alongside [CLI scripts](https://viame.readthedocs.io/en/latest/sections/examples_overview.html) for visualizing or extracting data from either computed or manually annotated detection files. Examples of the latter include drawing detection boxes on images, extracting image chips around detections, or extracting images from video files at frame rates indicated within the metadata of truth files.
-
-<!-- dive-manual-toctree -->
+This document corresponds to the [Annotation and Visualization](https://github.com/VIAME/VIAME/blob/main/examples/annotation_and_visualization) example folder within a VIAME desktop installation. VIAME can be driven through several interfaces, summarized below. Each has its own section of the manual with the details.
 
 ## DIVE Interface
 
@@ -10,52 +8,56 @@ This document corresponds to the [Annotation and Visualization](https://github.c
 <img src="../../docs/manual/_static/images/Banner.jpg" alt="image">
 </p>
 
-The DIVE interface is the most generically useful GUI within VIAME, and is the recommended default interface to use for many problems. The biggest allure is its ability to annotate multiple image sequences or videos, train AI models across these multiple sequences, then run the trained models on new sequences. This process can then be repeated with the help of the newly trained models to potentially annotate data faster, then train a newer model on significantly more data. Additional information about how to use the DIVE interface can be found in its [dedicated user manual](https://kitware.github.io/dive/) and additionally in the [tutorial videos](https://www.youtube.com/channel/viame). The interface can be launched via double clicking the "launch_dive_interface" script, either in this directory or at the top level of the installation. Alternatively a smaller version of DIVE can be installed independently of VIAME, which contains no algorithms or AI-assisted annotation.
+DIVE is the recommended graphical interface, available on the desktop and on the web. It is used to annotate multiple image sequences or videos, train models across them, and run the trained models on new data. It is launched with the `launch_dive_interface` script, in this folder or at the top level of the installation.
 
-### Interactive Segmentation in DIVE
+See the [DIVE interface guide](https://viame.readthedocs.io/en/latest/sections/dive/index.html).
 
-DIVE provides interactive segmentation, allowing users to click on objects (foreground and background points) to generate segmentation masks in real time. The segmentation service is started automatically by DIVE based on the configured segmenter in the DIVE settings. Several segmentation backends are available:
+## Command-Line Interface
 
-**Watershed (default)**  
-Uses OpenCV's watershed algorithm for point-based segmentation. Users provide foreground points (marking the object) and background points (marking areas to exclude). This is the lightest-weight option and does not require a GPU or any add-ons. Works best for objects with clear color boundaries.
+The `viame` command runs pipelines, trains and scores models, converts files and manages search indexes, without a graphical interface. It suits batch processing, remote machines and scripted workflows.
 
-**SAM2 (SAM2 add-on)**  
-Uses Meta's SAM2 (Segment Anything Model 2) for point-based segmentation. Provides significantly better segmentation quality than watershed, especially for complex object boundaries. Requires less system resources than SAM3 but lacks the ability to perform text queries. Requires a GPU and the SAM2 add-on.
+See the [command line interface](https://viame.readthedocs.io/en/latest/sections/command_line_interface.html).
 
-**SAM3 (SAM3 add-on)**  
-Uses SAM3 for both point-based and text-based segmentation. In addition to click-based segmentation, users can type a text description of the object to segment (e.g., "fish", "scallop"). Requires a GPU and the SAM3 add-on. This is the most capable interactive segmentation option.
+### Scripts in this folder
 
-<p align="center">
-<img src="../../docs/manual/_static/images/Point-Segmentation.jpg" alt="image" width="80%">
-</p>
+Standalone utility scripts in this folder include the following. Each of these is designed to take in a folder of videos, folder of images, or a folder of folders of images, see default [input folder structure](https://viame.readthedocs.io/en/latest/sections/examples_overview.html#bulk-processing-scripts).
 
-*Point-based interactive segmentation in DIVE. The user clicks foreground (green) and background (red) points to generate a segmentation mask around the object.*
+- draw_detections_on_frames - Draw detections stored in some detection file onto frames
+- extract_chips_from_detections - Extract image chips around detections or truth boxes
+- extract_frames - Extract all frames in videos in the input folder
+- extract_frames_with_dets_only - Extract frames with detections only in the input
 
-Text queries can also be run as batch pipelines to detect, segment, and track objects across entire image sets or videos. See the [SAM3 Text-Prompted Detection and Tracking](https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation) section in the search and rapid model generation examples for details.
+### Simple Pipeline UIs
 
-<p align="center">
-<img src="../../docs/manual/_static/images/Perform-Text-Query.jpg" alt="image" width="80%">
-</p>
+Lastly, there are additionally simpler GUIs which can be enabled in .pipe files.
 
-*SAM3 text query dialog in DIVE. Users enter a text description of the object to detect and track across the video.*
+For directly running and editing pipeline files, see the [KWIVER documentation](https://kwiver.readthedocs.io/en/latest/).
 
-<p align="center">
-<img src="../../docs/manual/_static/images/Text-Query-Result1.jpg" alt="image" width="80%">
-</p>
+One example of this is the 'simple_display_pipeline'. This script launches a pipeline containing an OpenCV-based display window, which prints out detections as they are being processed by the pipeline.
 
-*Results of a SAM3 text query showing automatically detected and tracked fish with segmentation outlines.*
+## Python Interface
 
-To manually start the interactive segmentation service outside of DIVE (e.g., for scripting or integration with other tools):
+`pip install viame` provides the `viame` python package, which the command line tool is itself built on. Images, videos, annotations and pipelines can be loaded and run directly from python.
 
-```bash
-source /path/to/VIAME/install/setup_viame.sh
-python -m viame.core.interactive_segmentation \
-  --config configs/pipelines/interactive_segmenter_watershed.conf
-```
+See the [python interface](https://viame.readthedocs.io/en/latest/sections/python_interface.html).
 
-<!-- dive-section-end -->
+## Project Folders
 
-## VIEW Interface
+Project folders are ready-made working folders holding launch scripts for the common tasks: annotating, running detectors and trackers, and training models. One is copied to a working drive outside the installation, the input data is placed in it, and the scripts are run from there.
+
+See [project folders](https://viame.readthedocs.io/en/latest/sections/project_folders.html).
+
+## Deprecated Desktop UIs
+
+The interfaces below predate DIVE. They remain available for a few specialized cases but are no longer developed, and DIVE is recommended for new work.
+
+| Interface | Purpose |
+|----|----|
+| VIEW | Original desktop annotator for boxes and polygons on a single sequence, fast on large imagery |
+| SEARCH | Standalone tool for image and video search and rapid model generation |
+| SEAL | Desktop annotator showing two to four camera views side by side |
+
+### VIEW
 
 <p align="center">
 <img src="../../docs/manual/_static/images/many_scallop_detections_gui.jpg" alt="image">
@@ -68,12 +70,12 @@ VIEW can either be pointed directly to imagery, pointed to a compressed video fi
 - [Manual Annotation Guide (PDF)](https://viame.kitware.com/api/v1/item/6ab572de2d17596fb9c5d3d0/download)
 - [Example Video Overviews (Youtube)](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw)
 
-### Notable VIEW Shortcut Keys
+#### Notable VIEW Shortcut Keys
 
 - *r* = Zoom back to the full image
 - *hold ctrl + drag* = create a box in annotation mode (create detection/track)
 
-### VIEW Project File Overview
+#### VIEW Project File Overview
 
 Examples of the optional contents of loadable prj files are listed below for quick reference. For those not familiar with the tool, downloading the above manual is best. Project files are no longer required to be used (imagery can be opened directly via the 'New Project' dropdown), however, these are listed here for advanced users who may want to configure with multiple homographies.
 
@@ -101,7 +103,7 @@ Note: The list is not complete, but currently focusing on the most used (and new
 - ColorWindow = W (defaults to 255) Window / range of input color values that will be mapped. The value gives the total range, not the distance from the median.
 - ColorLevel = L (defaults to 127) Input color value that will be mapped to the median output value, and also serves as the median value of the input color range.
 
-## SEARCH Interface
+### SEARCH
 
 <p align="center">
 <img src="../../docs/manual/_static/images/iqr_15_next_n_results.jpg" alt="image">
@@ -109,21 +111,61 @@ Note: The list is not complete, but currently focusing on the most used (and new
 
 The search interface is a dedicated interface for performing image search for a particular exemplar image, be it a specific species or an object with a particular attribute or characteristic. A secondary procedure allows adjudacating the system-generated responses for this query and the generation of a model for a new object category. This procedure has a few trade offs compared to traditional approaches, including the ability to rapidly generate a machine learning model faster, at the risk of decreased accuracy (depending on the problem).
 
-For additional information, see the dedicated [example](../../docs/manual/_static/images/iqr_15_next_n_results.jpg) for it.
+For additional information, see [video and image search](https://viame.readthedocs.io/en/latest/sections/search_and_rapid_model_generation.html).
 
-## CLI Tools
+### SEAL
 
-Standalone utility scripts in this folder include the following. Each of these is designed to take in a folder of videos, folder of images, or a folder of folders of images, see default [input folder structure](https://viame.readthedocs.io/en/latest/sections/examples_overview.html#bulk-processing-scripts).
+SEAL supports annotating detection or track boxes in multiple camera views simultaneously. If a transformation mapping pixels from one view to the other is loaded, boxes created in one camera view show up in the other. It shows 2-4 cameras side by side, and can only train models on one sequence from one camera at a time.
 
-- draw_detections_on_frames - Draw detections stored in some detection file onto frames
-- extract_chips_from_detections - Extract image chips around detections or truth boxes
-- extract_frames - Extract all frames in videos in the input folder
-- extract_frames_with_dets_only - Extract frames with detections only in the input
+<!-- dive-manual-toctree -->
 
-## Simple Pipeline UIs
+## DIVE Interface Guide
 
-Lastly, there are additionally simpler GUIs which can be enabled in .pipe files.
+<p align="center">
+<img src="../../docs/manual/_static/images/Banner.jpg" alt="image">
+</p>
 
-For directly running and editing pipeline files, see the [KWIVER documentation](https://kwiver.readthedocs.io/en/latest/).
+The DIVE interface is the most generically useful GUI within VIAME, and is the recommended default interface to use for many problems. The biggest allure is its ability to annotate multiple image sequences or videos, train AI models across these multiple sequences, then run the trained models on new sequences. This process can then be repeated with the help of the newly trained models to potentially annotate data faster, then train a newer model on significantly more data. Additional information about how to use the DIVE interface can be found in its [dedicated user manual](https://kitware.github.io/dive/) and additionally in the [tutorial videos](https://www.youtube.com/channel/viame). The interface can be launched via double clicking the "launch_dive_interface" script, either in this directory or at the top level of the installation. Alternatively a smaller version of DIVE can be installed independently of VIAME, which contains no algorithms or AI-assisted annotation.
 
-One example of this is the 'simple_display_pipeline'. This script launches a pipeline containing an OpenCV-based display window, which prints out detections as they are being processed by the pipeline.
+### Interactive Segmentation in DIVE
+
+DIVE provides interactive segmentation, allowing users to click on objects (foreground and background points) to generate segmentation masks in real time. The segmentation service is started automatically by DIVE based on the configured segmenter in the DIVE settings. Several segmentation backends are available:
+
+**Watershed (default)**  
+Uses OpenCV's watershed algorithm for point-based segmentation. Users provide foreground points (marking the object) and background points (marking areas to exclude). This is the lightest-weight option and does not require a GPU or any add-ons. Works best for objects with clear color boundaries.
+
+**SAM2 (SAM2 add-on)**  
+Uses Meta's SAM2 (Segment Anything Model 2) for point-based segmentation. Provides significantly better segmentation quality than watershed, especially for complex object boundaries. Requires less system resources than SAM3 but lacks the ability to perform text queries. Requires a GPU and the SAM2 add-on.
+
+**SAM3 (SAM3 add-on)**  
+Uses SAM3 for both point-based and text-based segmentation. In addition to click-based segmentation, users can type a text description of the object to segment (e.g., "fish", "scallop"). Requires a GPU and the SAM3 add-on. This is the most capable interactive segmentation option.
+
+<p align="center">
+<img src="../../docs/manual/_static/images/Point-Segmentation.jpg" alt="image" width="80%">
+</p>
+
+*Point-based interactive segmentation in DIVE. The user clicks foreground (green) and background (red) points to generate a segmentation mask around the object.*
+
+Text queries can also be run as batch pipelines to detect, segment, and track objects across entire image sets or videos. See [text query and VLM](https://viame.readthedocs.io/en/latest/sections/text_query_and_vlm.html) section in the search and rapid model generation examples for details.
+
+<p align="center">
+<img src="../../docs/manual/_static/images/Perform-Text-Query.jpg" alt="image" width="80%">
+</p>
+
+*SAM3 text query dialog in DIVE. Users enter a text description of the object to detect and track across the video.*
+
+<p align="center">
+<img src="../../docs/manual/_static/images/Text-Query-Result1.jpg" alt="image" width="80%">
+</p>
+
+*Results of a SAM3 text query showing automatically detected and tracked fish with segmentation outlines.*
+
+To manually start the interactive segmentation service outside of DIVE (e.g., for scripting or integration with other tools):
+
+```bash
+source /path/to/VIAME/install/setup_viame.sh
+python -m viame.core.interactive_segmentation \
+  --config configs/pipelines/interactive_segmenter_watershed.conf
+```
+
+<!-- dive-section-end -->

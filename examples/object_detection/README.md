@@ -1,4 +1,4 @@
-# Object Detection Examples
+# Object Detection
 
 ## Overview
 

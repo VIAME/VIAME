@@ -35,6 +35,7 @@ if( VIAME_INSTALL_EXAMPLES )
   add_subdirectory( scene_segmentation )
   add_subdirectory( scoring_and_evaluation )
   add_subdirectory( size_measurement )
+  add_subdirectory( text_query_and_vlm )
   add_subdirectory( using_algorithms_in_code )
 
 endif()

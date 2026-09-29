@@ -1,7 +1,7 @@
 
-===========================
-Size Measurement Examples
-===========================
+================
+Size Measurement
+================
 
 .. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/fish_measurement_example.jpg
    :width: 70%

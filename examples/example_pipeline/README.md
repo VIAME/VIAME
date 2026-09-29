@@ -1,4 +1,4 @@
-# New Module Creation Examples
+# New Module Creation
 
 This document corresponds to [this runable example](https://github.com/VIAME/VIAME/tree/main/examples/example_pipeline) of [these example simple plugins](https://github.com/VIAME/VIAME/tree/main/plugins/examples), alongside [these example plugin templates](https://github.com/VIAME/VIAME/tree/main/plugins/templates). Additionally, all of the former can be found in \[viame-install\]/examples/example_pipeline folder, \[viame-source\]/plugins/examples folder, and \[viame-source\]/plugins/templates folder in a VIAME installation, respectively. Throughout these folders are example object detectors, image filters, and image classifier implementations written in both Python and C++.
 

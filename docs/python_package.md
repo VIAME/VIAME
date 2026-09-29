@@ -132,7 +132,7 @@ Use the file loader for automatic adaptation, or the lower-level interfaces belo
 ### Open a normal pipeline for in-memory processing
 
 Use `embedded=True` to replace file readers and standard output writers with
-native memory adapters. The conversion uses the [shared C++ API](embedded_pipeline.md);
+native memory adapters. The conversion uses the [shared C++ API](https://github.com/VIAME/VIAME/blob/main/docs/embedded_pipeline.md);
 includes, configuration substitutions and relative model paths are resolved
 by the native pipeline parser. Models and ZIP
 bundles use the same preparation as file-based `viame.open`.

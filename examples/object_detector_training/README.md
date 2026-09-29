@@ -1,4 +1,4 @@
-# Detector Training Examples
+# Detector Training
 
 ## Overview
 

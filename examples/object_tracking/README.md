@@ -1,4 +1,4 @@
-# Object Tracking Examples
+# Object Tracking
 
 ## Overview
 

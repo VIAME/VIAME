@@ -1,7 +1,7 @@
 
-============================
-New Module Creation Examples
-============================
+===================
+New Module Creation
+===================
 
 This document corresponds to `this runable example`_ of `these example simple plugins`_,
 alongside `these example plugin templates`_. Additionally, all of the former can be found in
