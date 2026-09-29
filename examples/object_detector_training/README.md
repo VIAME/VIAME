@@ -2,13 +2,15 @@
 
 ## Overview
 
-This document corresponds to the [object detector training](https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training) example folder within a VIAME desktop installation. VIAME provides a unified training interface for multiple object detection frameworks. All trainers accept the same input format and are invoked through the `viame train` command with a training configuration file.
+This document corresponds to the [object detector training](https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training) example folder within a VIAME desktop installation. VIAME provides a unified training interface for multiple object detection frameworks. All trainers accept the same input format and are invoked through the `viame train` command with a training configuration file.
 
-For details on the available detection algorithms themselves, see the [object detection examples](https://github.com/VIAME/VIAME/blob/master/examples/object_detection).
+For details on the available detection algorithms themselves, see the [object detection examples](https://github.com/VIAME/VIAME/blob/main/examples/object_detection).
 
 In the **DIVE** interface, training can be launched from the training menu by selecting a configuration. On the command line, training is launched via:
 
-    viame train -i /path/to/training/data -c train_config.conf --threshold 0.0
+```bash
+viame train -i /path/to/training/data -c train_config.conf --threshold 0.0
+```
 
 After training completes, the resulting model is saved as a `trained_model.zip` pack holding the generated pipeline, model files, a model card and any evaluation results. The trained model can then be run using `run_trained_model` scripts or loaded in DIVE.
 
@@ -20,24 +22,28 @@ DIVE runs these same training configurations from its training menu on both web 
 
 Training data should be organized in the following directory structure:
 
-    [root_training_dir]/
-        labels.txt
-        folder1/
-            image001.png
-            image002.png
-            image003.png
-            groundtruth.csv
-        folder2/
-            image001.png
-            image002.png
-            groundtruth.csv
+```
+[root_training_dir]/
+    labels.txt
+    folder1/
+        image001.png
+        image002.png
+        image003.png
+        groundtruth.csv
+    folder2/
+        image001.png
+        image002.png
+        groundtruth.csv
+```
 
 Groundtruth annotations can be in any supported format (e.g. viame_csv, kw18, habcam). The `labels.txt` file contains a list of output categories (one per line) for the trained model.
 
 Alternatively, training data can be specified explicitly using the `--input-list`, `--input-truth`, and `--labels` flags:
 
-    viame train --input-list images.txt --input-truth annotations.csv \
-                --labels labels.txt -c train_config.conf --threshold 0.0
+```bash
+viame train --input-list images.txt --input-truth annotations.csv \
+            --labels labels.txt -c train_config.conf --threshold 0.0
+```
 
 Supported image formats include: .jpg, .jpeg, .tif, .tiff, .png, .sgi, .bmp, .pgm. Supported video formats include: .mp4, .mpg, .mpeg, .avi, .wmv, .mov, .webm, .ogg.
 
@@ -47,8 +53,10 @@ The label file controls which categories are trained, allows synonyms for the sa
 
 **TXT synonyms and spaces:** Multiple names on the same line are treated as the same output class. The first name becomes the output label. Put names containing spaces in double or single quotes:
 
-    "sport glove" "athletic glove"
-    glove
+```
+"sport glove" "athletic glove"
+glove
+```
 
 This trains two output classes: `sport glove` (also matching `athletic glove` annotations) and `glove`. Unquoted spaces still separate synonyms, so `sport glove` without quotes means the category `sport` with synonym `glove`. Annotation names themselves need no changes. `#` starts a comment outside quotes. Inside quotes, escape a quote with a backslash or double it.
 
@@ -56,44 +64,52 @@ This trains two output classes: `sport glove` (also matching `athletic glove` an
 
 **Hierarchies:** Parent-child relationships are separate from synonyms. A synonym maps annotations onto the canonical output class; a parent remains a distinct class, with its relationship available to trainers supporting hierarchical classification. Parents may be declared after their children:
 
-    "sport glove" "athletic glove" :parent="sport equipment"
-    glove
-    "sport equipment" gear
+```
+"sport glove" "athletic glove" :parent="sport equipment"
+glove
+"sport equipment" gear
+```
 
 More than one `:parent=` field may be specified for a category.
 
 **CSV:** Use one row per category, with the canonical name in the first field, followed by synonyms and optional `:parent=` fields. There is no header row. Spaces inside fields do not split names. The equivalent CSV file is:
 
-    sport glove,athletic glove,:parent=sport equipment
-    glove
-    sport equipment,gear
+```
+sport glove,athletic glove,:parent=sport equipment
+glove
+sport equipment,gear
+```
 
 Use CSV double quotes around fields containing commas or quotes; double an embedded quote. Leading and trailing whitespace outside quoted fields is ignored.
 
 **JSON:** Use a `categories` array with `name` and optional `synonyms`, `id`, and hierarchy fields. This follows DIVE's COCO hierarchy convention: `supercategory` names a parent, while `parents` supports multiple parents when no nonempty `supercategory` is supplied:
 
+```
+{
+  "categories": [
     {
-      "categories": [
-        {
-          "name": "sport glove",
-          "synonyms": ["athletic glove"],
-          "supercategory": "sport equipment"
-        },
-        {"name": "glove"},
-        {"name": "sport equipment", "synonyms": ["gear"]}
-      ]
-    }
+      "name": "sport glove",
+      "synonyms": ["athletic glove"],
+      "supercategory": "sport equipment"
+    },
+    {"name": "glove"},
+    {"name": "sport equipment", "synonyms": ["gear"]}
+  ]
+}
+```
 
 DIVE's `typeHierarchy` child-to-parent mapping can also supply the hierarchy (with or without a `categories` array):
 
-    {
-      "categories": [
-        {"name": "sport glove", "synonyms": ["athletic glove"]},
-        "glove",
-        {"name": "sport equipment", "synonyms": ["gear"]}
-      ],
-      "typeHierarchy": {"sport glove": "sport equipment"}
-    }
+```
+{
+  "categories": [
+    {"name": "sport glove", "synonyms": ["athletic glove"]},
+    "glove",
+    {"name": "sport equipment", "synonyms": ["gear"]}
+  ],
+  "typeHierarchy": {"sport glove": "sport equipment"}
+}
+```
 
 The `synonyms` array adds training aliases to the DIVE-compatible category records. JSON also accepts a bare category array, including a simple list such as `["sport glove", "glove"]`. Explicit integer IDs determine category ordering; otherwise categories receive IDs in file order. Hierarchy-only nodes referenced by JSON are added after the listed categories, as DIVE permits parents without category records. Duplicate category/synonym names and cyclic hierarchies are rejected.
 
@@ -101,8 +117,10 @@ The `synonyms` array adds training aliases to the DIVE-compatible category recor
 
 Long training runs can report their progress by email. Adding `--monitor-email` to `viame train` starts a background monitor next to the run:
 
-    viame train -i training_data -c train_detector_default.conf --threshold 0.0 \
-        --monitor-email you@example.com
+```bash
+viame train -i training_data -c train_detector_default.conf --threshold 0.0 \
+    --monitor-email you@example.com
+```
 
 The monitor sends a test message when it starts, then reports on detected errors or deadlocks, training stage changes, validation statistics every few epochs, a periodic heartbeat during long stages, and finally whether the run finished normally, ended with an error, or stopped unexpectedly. A copy of the training output is written to `train.log` in the output directory (`trained_model` by default), alongside a `monitor_status.log` trail of every check.
 
@@ -110,12 +128,14 @@ Mail is sent through an SMTP server given by `--monitor-smtp host[:port]` (with 
 
 The same monitor can follow a run that was started some other way, for example a slurm job or a run under `nohup`, using the `viame monitor` tool directly:
 
-    viame monitor start -o trained_model -l train.log --job-id 12345 \
-        --email you@example.com
-    viame monitor start -o trained_model -l train.log --pid 4242 \
-        --email you@example.com --smtp-server smtp.example.com:587
-    viame monitor status trained_model
-    viame monitor stop trained_model
+```bash
+viame monitor start -o trained_model -l train.log --job-id 12345 \
+    --email you@example.com
+viame monitor start -o trained_model -l train.log --pid 4242 \
+    --email you@example.com --smtp-server smtp.example.com:587
+viame monitor status trained_model
+viame monitor stop trained_model
+```
 
 The run is considered alive while its slurm job is queued, its process exists, or, when neither is given, its log keeps changing (`--stale-minutes`). RF-DETR runs are recognised by the `metrics.csv` they write and report validation mAP, precision and recall; other trainers report the current stage and latest epoch line parsed from the log. Run `viame monitor start --help` for the full list of options, including the report interval and the pattern that marks a finished run.
 
@@ -151,13 +171,17 @@ The default detector trainer in VIAME. Uses a Cascade Faster R-CNN with ResNeXt-
 
 Training:
 
-    viame train -i training_data -c train_detector_netharn_cfrnn.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_netharn_cfrnn.conf --threshold 0.0
+```
 
 Continue training from a checkpoint:
 
-    viame train -i training_data -c train_detector_netharn_cfrnn.conf \
-        --init-weights trained_model.zip \
-        --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_netharn_cfrnn.conf \
+    --init-weights trained_model.zip \
+    --threshold 0.0
+```
 
 ### SLEAP-NN head/tail keypoints on existing detections
 
@@ -167,8 +191,10 @@ Build with `VIAME_ENABLE_PYTORCH-SLEAP=ON`. The submodule at `packages/pytorch-l
 
 Training:
 
-    viame train -i training_data \
-        -c train_reclassifier_sleap_head_tail.conf --threshold 0.0
+```bash
+viame train -i training_data \
+    -c train_reclassifier_sleap_head_tail.conf --threshold 0.0
+```
 
 Use the usual VIAME training directory layout with bounding boxes and CSV `(kp) head x y` / `(kp) tail x y` attributes, or equivalent named COCO keypoints. Names match case-insensitively. Each retained training/validation crop needs at least one visible configured point; missing points occupy NaN slots in SLEAP labels. Frames are split before cropping, so crops from the same frame cannot appear in both training and validation. Supply enough annotated frames for both splits.
 
@@ -176,24 +202,30 @@ Training and inference use the same aspect-preserving affine crop, with `crop_pa
 
 Training produces `trained_keypoints.pt` inside `trained_model.zip`, a generated pipeline, and `keypoint_metrics.json`. The model is self-contained: it records its native architecture, weights, ordered names, and crop settings. Detailed native checkpoints and logs remain under `deep_training/sleap-*/model/training`. Each invocation uses a fresh run directory. To fine-tune an exported model:
 
-    viame train -i training_data -c train_reclassifier_sleap_head_tail.conf \
-        -s detector_trainer:sleap:seed_model=/absolute/path/to/trained_keypoints.pt \
-        --threshold 0.0
+```bash
+viame train -i training_data -c train_reclassifier_sleap_head_tail.conf \
+    -s detector_trainer:sleap:seed_model=/absolute/path/to/trained_keypoints.pt \
+    --threshold 0.0
+```
 
 The seed must match the configured architecture and keypoint order. This is weight initialization, not optimizer/epoch resumption. To train more landmarks, set `detector_trainer:sleap:keypoint_names=head,tail,dorsal` and provide the corresponding named annotations; adding output slots requires a fresh model.
 
 Inference on existing detections uses the pipeline generated by training (from `templates/utility_add_keypoints_sleap.pipe`), which already names the trained weight:
 
-    viame run -i input_list.txt -p trained_model.zip/detector.pipe \
-        -s detection_reader:file_name=detections.csv \
-        -s detector_writer:file_name=computed_detections.csv
+```bash
+viame run -i input_list.txt -p trained_model.zip/detector.pipe \
+    -s detection_reader:file_name=detections.csv \
+    -s detector_writer:file_name=computed_detections.csv
+```
 
 The image list and detections must have corresponding frame order. Output goes to `computed_detections.csv`. `batch_size` controls crops per inference call. `overwrite_existing=false` fills only missing configured slots; true replaces those slots while preserving unrelated points. Low-scoring and out-of-image predictions are omitted. `keypoint_threshold=0.1` thresholds native heatmap peak scores, which are not calibrated visibility probabilities.
 
 The validation report includes labeled/predicted counts, mean point error normalized by the unpadded box diagonal, and <PCK@0.05> (fraction of labeled points predicted within 5% of that diagonal). Missing predictions count as failures in PCK. To evaluate another exported model against the retained validation crops:
 
-    python -m viame.pytorch.sleap_launcher deep_training/sleap-RUN/request.json \
-        --evaluate trained_model/trained_keypoints.pt --output keypoint_metrics.json
+```bash
+python -m viame.pytorch.sleap_launcher deep_training/sleap-RUN/request.json \
+    --evaluate trained_model/trained_keypoints.pt --output keypoint_metrics.json
+```
 
 after unpacking the pack with `unzip trained_model.zip -d trained_model`.
 
@@ -205,10 +237,12 @@ Use `train_detector_netharn_rf_detr_l_seg_kp_1728.conf` for boxes, masks, and he
 
 To fine-tune a native RF-DETR segmentation checkpoint with netharn:
 
-    viame train -i training_data \
-        -c train_detector_netharn_rf_detr_l_seg_kp_1728.conf \
-        -s detector_trainer:ocv_windowed:trainer:netharn:native_seed_model=/absolute/path/to/model.pth \
-        --threshold 0.0
+```bash
+viame train -i training_data \
+    -c train_detector_netharn_rf_detr_l_seg_kp_1728.conf \
+    -s detector_trainer:ocv_windowed:trainer:netharn:native_seed_model=/absolute/path/to/model.pth \
+    --threshold 0.0
+```
 
 `native_seed_model` accepts a native RF-DETR checkpoint (including exported `.pth`/`.pt` weights or a Lightning `.ckpt`). It uses RF-DETR's weight loader to adapt query embeddings, positional embeddings, and class-head sizes. It starts a new netharn optimization run; optimizer, epoch, scheduler, and EMA state are not resumed. Use a fresh training directory/identifier to avoid netharn automatically resuming an existing run. `seed_model` remains the option for netharn seeds; the two seed options are mutually exclusive, and a missing native seed path is an error.
 
@@ -234,7 +268,9 @@ A variant of the default CFRNN trainer that processes overlapping image tiles in
 
 Training:
 
-    viame train -i training_data -c train_detector_netharn_cfrnn.grid_only.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_netharn_cfrnn.grid_only.conf --threshold 0.0
+```
 
 ### RF-DETR
 
@@ -248,13 +284,17 @@ Key training parameters: batch size 4, gradient accumulation 4 steps, EMA enable
 
 Training:
 
-    viame train -i training_data -c train_detector_rf_detr_default.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_rf_detr_default.conf --threshold 0.0
+```
 
 For 16-bit imagery (e.g. thermal/IR), use the `--normalize-16bit` flag:
 
-    viame train --input-list images.txt --input-truth annotations.csv \
-        --labels labels.txt -c train_detector_rf_detr_default.conf \
-        --normalize-16bit --threshold 0.0
+```bash
+viame train --input-list images.txt --input-truth annotations.csv \
+    --labels labels.txt -c train_detector_rf_detr_default.conf \
+    --normalize-16bit --threshold 0.0
+```
 
 ### MIT-YOLO v9
 
@@ -262,7 +302,9 @@ Modern YOLO variant using the YOLOv9-c architecture at 640x640 resolution. Offer
 
 Training:
 
-    viame train -i training_data -c train_detector_mit_yolo_v9_c_640.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_mit_yolo_v9_c_640.conf --threshold 0.0
+```
 
 ### Darknet YOLO
 
@@ -270,7 +312,9 @@ Mature YOLO implementation supporting YOLOv4 and YOLOv7 at various resolutions (
 
 Training:
 
-    viame train -i training_data -c train_detector_darknet_yolo_640.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_darknet_yolo_640.conf --threshold 0.0
+```
 
 ### Detectron2 Faster R-CNN
 
@@ -278,7 +322,9 @@ Facebook's Detectron2 framework with ResNet-50 + FPN backbone at 800px. Uses COC
 
 Training:
 
-    viame train -i training_data -c train_detector_detectron2_frcnn.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_detectron2_frcnn.conf --threshold 0.0
+```
 
 ### LitDet Faster R-CNN / SSD
 
@@ -289,8 +335,10 @@ PyTorch Lightning-based implementations with built-in TensorBoard logging.
 
 Training:
 
-    viame train -i training_data -c train_detector_litdet_frcnn.conf --threshold 0.0
-    viame train -i training_data -c train_detector_litdet_ssd.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_litdet_frcnn.conf --threshold 0.0
+viame train -i training_data -c train_detector_litdet_ssd.conf --threshold 0.0
+```
 
 ### SVM Classifier
 
@@ -301,7 +349,9 @@ Classical SVM classifier that operates on top of proposal detections. Very fast 
 
 Training:
 
-    viame train -i training_data -c train_detector_svm_over_generic_detections.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_svm_over_generic_detections.conf --threshold 0.0
+```
 
 ## Default (Automatic) Training
 
@@ -318,7 +368,9 @@ The candidates, in the order they are considered, are an SVM over the stock dete
 
 Training:
 
-    viame train -i training_data -c train_detector_default.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_detector_default.conf --threshold 0.0
+```
 
 When the groundtruth contains tracks, a bytetrack tracker is also trained over the detector's output and written out as `tracker.pipe`.
 

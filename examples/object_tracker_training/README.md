@@ -2,20 +2,24 @@
 
 ## Overview
 
-This document corresponds to the [object tracker training](https://github.com/VIAME/VIAME/blob/master/examples/object_tracker_training) example folder within a VIAME desktop installation. VIAME provides a unified training interface for multiple tracking algorithms. All tracker trainers accept the same input format and are invoked through the `viame train` command with either a training configuration file or the `-tt` (tracker type) shorthand.
+This document corresponds to the [object tracker training](https://github.com/VIAME/VIAME/blob/main/examples/object_tracker_training) example folder within a VIAME desktop installation. VIAME provides a unified training interface for multiple tracking algorithms. All tracker trainers accept the same input format and are invoked through the `viame train` command with either a training configuration file or the `-tt` (tracker type) shorthand.
 
-For details on the available tracking algorithms themselves, see the [object tracking examples](https://github.com/VIAME/VIAME/blob/master/examples/object_tracking). For training the upstream detection models used by multi-target trackers, see the [object detector training examples](https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training).
+For details on the available tracking algorithms themselves, see the [object tracking examples](https://github.com/VIAME/VIAME/blob/main/examples/object_tracking). For training the upstream detection models used by multi-target trackers, see the [object detector training examples](https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training).
 
 > [!NOTE]
 > The `viame train` tracker training option (`-tt`) is a new addition and is currently in **beta**. It may change in future releases.
 
 On the command line, tracker training is launched via:
 
-    viame train -i /path/to/training/data --tracker tracker_type --threshold 0.0
+```bash
+viame train -i /path/to/training/data --tracker tracker_type --threshold 0.0
+```
 
 Or using a configuration file directly:
 
-    viame train -i /path/to/training/data -c train_tracker_config.conf --threshold 0.0
+```bash
+viame train -i /path/to/training/data -c train_tracker_config.conf --threshold 0.0
+```
 
 After training completes, the resulting model or parameters are saved to the `trained_model.zip` pack.
 
@@ -23,16 +27,18 @@ After training completes, the resulting model or parameters are saved to the `tr
 
 Training data for tracker training uses annotated tracks (not just per-frame detections). The data should be organized in the following directory structure:
 
-    [root_training_dir]/
-        folder1/
-            image001.png
-            image002.png
-            image003.png
-            groundtruth.csv
-        folder2/
-            image001.png
-            image002.png
-            groundtruth.csv
+```
+[root_training_dir]/
+    folder1/
+        image001.png
+        image002.png
+        image003.png
+        groundtruth.csv
+    folder2/
+        image001.png
+        image002.png
+        groundtruth.csv
+```
 
 Each `groundtruth.csv` file should contain track annotations in VIAME CSV format, where each detection includes a track ID linking it to other detections of the same object across frames. Unlike detector training, no `labels.txt` file is necessary -- all annotated tracks are used for training regardless of class.
 
@@ -69,7 +75,9 @@ ByteTrack training estimates optimal Kalman filter parameters from groundtruth t
 
 Training:
 
-    viame train -i training_data --tracker bytetrack --threshold 0.0
+```bash
+viame train -i training_data --tracker bytetrack --threshold 0.0
+```
 
 ### OC-SORT
 
@@ -81,7 +89,9 @@ OC-SORT extends ByteTrack with velocity direction consistency (VDC). The trainer
 
 Training:
 
-    viame train -i training_data --tracker ocsort --threshold 0.0
+```bash
+viame train -i training_data --tracker ocsort --threshold 0.0
+```
 
 ### DeepSORT
 
@@ -95,7 +105,9 @@ DeepSORT training involves training a Re-ID (re-identification) neural network t
 
 Training:
 
-    viame train -i training_data --tracker deepsort --threshold 0.0
+```bash
+viame train -i training_data --tracker deepsort --threshold 0.0
+```
 
 ### BoT-SORT
 
@@ -108,7 +120,9 @@ BoT-SORT combines Re-ID model training (like DeepSORT) with camera motion compen
 
 Training:
 
-    viame train -i training_data --tracker botsort --threshold 0.0
+```bash
+viame train -i training_data --tracker botsort --threshold 0.0
+```
 
 ### SRNN (Structured RNN)
 
@@ -129,7 +143,9 @@ This is the most data-intensive tracker trainer, requiring 100+ annotated tracks
 
 Training:
 
-    viame train -i training_data --tracker srnn --threshold 0.0
+```bash
+viame train -i training_data --tracker srnn --threshold 0.0
+```
 
 ### SiamMask
 
@@ -143,7 +159,9 @@ SiamMask training trains a Siamese network for visual object tracking. The train
 
 Training:
 
-    viame train -i training_data --tracker siammask --threshold 0.0
+```bash
+viame train -i training_data --tracker siammask --threshold 0.0
+```
 
 ## Default Tracker Training
 
@@ -163,7 +181,9 @@ Objects that all swim or fly the same way look like camera motion to this test, 
 
 Training:
 
-    viame train -i training_data -c train_tracker_default.conf --threshold 0.0
+```bash
+viame train -i training_data -c train_tracker_default.conf --threshold 0.0
+```
 
 The measurements and the chosen regime are written to `tracking_data_statistics.json`.
 

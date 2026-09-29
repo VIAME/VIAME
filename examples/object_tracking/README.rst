@@ -11,7 +11,7 @@ This document corresponds to the `object tracking`_ example folder within a VIAM
 installation. Object tracking attempts to identify the same object across sequential frames
 in either video or image sequences. VIAME contains two broad categories of trackers:
 
-.. _object tracking: https://github.com/VIAME/VIAME/blob/master/examples/object_tracking
+.. _object tracking: https://github.com/VIAME/VIAME/blob/main/examples/object_tracking
 
 #. **Automatic multi-target trackers** -- link object detections across frames automatically
 #. **User-initialized trackers** -- track user-selected objects from a drawn box or point
@@ -37,8 +37,8 @@ trackers above can be trained or tuned on domain-specific data -- see the
 `object tracker training examples`_ for details. For trackers that link detections, the
 upstream detector can also be trained -- see the `object detector training examples`_.
 
-.. _object tracker training examples: https://github.com/VIAME/VIAME/blob/master/examples/object_tracker_training
-.. _object detector training examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training
+.. _object tracker training examples: https://github.com/VIAME/VIAME/blob/main/examples/object_tracker_training
+.. _object detector training examples: https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training
 
 In the **DIVE** interface, pipelines are organized into menu groups based on the first
 word of the pipeline file name. Automatic multi-target trackers appear under the
@@ -67,7 +67,7 @@ chosen there. Use the `DIVE annotation quickstart`_ to correct track breaks and 
 Automatic Multi-Target Trackers
 *******************************
 
-.. image:: https://github.com/Kitware/dive/blob/main/docs/images/Banner.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Banner.jpg
    :width: 60%
    :align: center
 |
@@ -82,7 +82,7 @@ subsequent frames, only requiring detections for track initialization purposes. 
 MTT trackers expect a detection step upstream in the pipeline that produces per-frame
 detections.
 
-.. _object detection examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detection
+.. _object detection examples: https://github.com/VIAME/VIAME/blob/main/examples/object_detection
 
 Example CLI scripts in this folder for MTT trackers include:
 
@@ -242,7 +242,7 @@ Run with::
 User-Initialized Trackers
 *************************
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/computed_track_example.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/computed_track_example.jpg
    :width: 60%
    :align: center
 

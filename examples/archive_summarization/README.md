@@ -1,6 +1,6 @@
 # Archive Summarization
 
-This document corresponds to the [Archive Summarization](https://github.com/VIAME/VIAME/tree/master/examples/archive_summarization) example folder within a VIAME desktop installation.
+This document corresponds to the [Archive Summarization](https://github.com/VIAME/VIAME/tree/main/examples/archive_summarization) example folder within a VIAME desktop installation.
 
 ## Overview
 
@@ -66,15 +66,17 @@ The `summarize_and_index_videos` script accepts several key parameters:
 
 After processing, results are organized as:
 
-    database/
-    ├── video1_detections.csv    # Detection results
-    ├── video1_timeline.png      # Species timeline plot
-    ├── video2_detections.csv
-    ├── video2_timeline.png
-    └── ...
+```
+database/
+├── video1_detections.csv    # Detection results
+├── video1_timeline.png      # Species timeline plot
+├── video2_detections.csv
+├── video2_timeline.png
+└── ...
 
-    index/                       # Searchable index (if --build-index used)
-    └── ...
+index/                       # Searchable index (if --build-index used)
+└── ...
+```
 
 ## Pipeline Selection
 

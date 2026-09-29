@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document corresponds to the [object tracking](https://github.com/VIAME/VIAME/blob/master/examples/object_tracking) example folder within a VIAME desktop installation. Object tracking attempts to identify the same object across sequential frames in either video or image sequences. VIAME contains two broad categories of trackers:
+This document corresponds to the [object tracking](https://github.com/VIAME/VIAME/blob/main/examples/object_tracking) example folder within a VIAME desktop installation. Object tracking attempts to identify the same object across sequential frames in either video or image sequences. VIAME contains two broad categories of trackers:
 
 1.  **Automatic multi-target trackers** -- link object detections across frames automatically
 2.  **User-initialized trackers** -- track user-selected objects from a drawn box or point
@@ -22,7 +22,7 @@ Within each category, several algorithm implementations are available:
 - SAM2 -- Segment Anything Model 2, produces segmentation masks (requires add-on)
 - SAM3 -- Segment Anything Model 3 with grounding DINO support (requires add-on)
 
-Tracking can either be run from scripts, such as those contained within this example, or from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL). Several of the trackers above can be trained or tuned on domain-specific data -- see the [object tracker training examples](https://github.com/VIAME/VIAME/blob/master/examples/object_tracker_training) for details. For trackers that link detections, the upstream detector can also be trained -- see the [object detector training examples](https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training).
+Tracking can either be run from scripts, such as those contained within this example, or from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL). Several of the trackers above can be trained or tuned on domain-specific data -- see the [object tracker training examples](https://github.com/VIAME/VIAME/blob/main/examples/object_tracker_training) for details. For trackers that link detections, the upstream detector can also be trained -- see the [object detector training examples](https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training).
 
 In the **DIVE** interface, pipelines are organized into menu groups based on the first word of the pipeline file name. Automatic multi-target trackers appear under the **Tracker** menu (e.g. Tracker -\> Generic Proposals for `tracker_generic_proposals.pipe`). User-initialized trackers appear under the **Utilities** menu (e.g. Utilities -\> Track Selections Default Mask for `utility_track_selections_default_mask.pipe`, Utilities -\> Track Selections SAM2 for `utility_track_selections_sam2.pipe`, etc.). In the **VIEW** interface, all pipelines are available in the pipelines dropdown.
 
@@ -33,10 +33,10 @@ Tracking pipelines are listed in [DIVE pipelines and training](https://viame.rea
 ## Automatic Multi-Target Trackers
 
 <p align="center">
-<img src="https://github.com/Kitware/dive/blob/main/docs/images/Banner.png" alt="image" width="60%">
+<img src="../../docs/manual/_static/images/Banner.jpg" alt="image" width="60%">
 </p>
 
-Most multi-target trackers (MTT) link detections (produced by a separate detection algorithm) into tracks. Each detection on a given frame is either associated with an existing track or used to start a new one. For trackers that link detections, any of the detectors available in VIAME can be used upstream -- see the [object detection examples](https://github.com/VIAME/VIAME/blob/master/examples/object_detection) for details on the available detectors. Some MTT algorithms (such as SiamMask in multi-target mode) go further and generate their own detections on subsequent frames, only requiring detections for track initialization purposes. All MTT trackers expect a detection step upstream in the pipeline that produces per-frame detections.
+Most multi-target trackers (MTT) link detections (produced by a separate detection algorithm) into tracks. Each detection on a given frame is either associated with an existing track or used to start a new one. For trackers that link detections, any of the detectors available in VIAME can be used upstream -- see the [object detection examples](https://github.com/VIAME/VIAME/blob/main/examples/object_detection) for details on the available detectors. Some MTT algorithms (such as SiamMask in multi-target mode) go further and generate their own detections on subsequent frames, only requiring detections for track initialization purposes. All MTT trackers expect a detection step upstream in the pipeline that produces per-frame detections.
 
 Example CLI scripts in this folder for MTT trackers include:
 
@@ -65,26 +65,30 @@ Key properties:
 
 An example SRNN tracker configuration:
 
-    process tracker
-      :: track_objects
-      :track_objects:type                          srnn
+```
+process tracker
+  :: track_objects
+  :track_objects:type                          srnn
 
-    block track_objects:srnn
-      :siamese_model_input_size                    224
-      :detection_select_threshold                  0.001
-      :similarity_threshold                        0.200
-      :terminate_track_threshold                   10
-      :IOU_tracker_flag                            True
-      :IOU_accept_threshold                        0.500
-      :IOU_reject_threshold                        0.100
-      relativepath siamese_model_path =            models/siamese_model.pt
-      relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
-      relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
-    endblock
+block track_objects:srnn
+  :siamese_model_input_size                    224
+  :detection_select_threshold                  0.001
+  :similarity_threshold                        0.200
+  :terminate_track_threshold                   10
+  :IOU_tracker_flag                            True
+  :IOU_accept_threshold                        0.500
+  :IOU_reject_threshold                        0.100
+  relativepath siamese_model_path =            models/siamese_model.pt
+  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
+  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
+endblock
+```
 
 SRNN trackers can be trained from groundtruth annotations using:
 
-    viame train -i /path/to/training/data --tracker srnn
+```bash
+viame train -i /path/to/training/data --tracker srnn
+```
 
 > [!NOTE]
 > The `viame train` tracker training option (`-tt`) is a new addition and is currently in **beta**. It may change in future releases.
@@ -104,21 +108,25 @@ Key properties:
 
 An example ByteTrack configuration:
 
-    process tracker
-      :: track_objects
-      :track_objects:type                          bytetrack
+```
+process tracker
+  :: track_objects
+  :track_objects:type                          bytetrack
 
-    block track_objects:bytetrack
-      :high_thresh                                 0.6
-      :low_thresh                                  0.1
-      :match_thresh                                0.8
-      :track_buffer                                30
-      :new_track_thresh                            0.6
-    endblock
+block track_objects:bytetrack
+  :high_thresh                                 0.6
+  :low_thresh                                  0.1
+  :match_thresh                                0.8
+  :track_buffer                                30
+  :new_track_thresh                            0.6
+endblock
+```
 
 ByteTrack parameters can be trained (optimized via Kalman filter tuning) from groundtruth annotations using:
 
-    viame train -i /path/to/training/data --tracker bytetrack
+```bash
+viame train -i /path/to/training/data --tracker bytetrack
+```
 
 ### Stabilized IOU Tracker
 
@@ -133,14 +141,16 @@ Key properties:
 
 The stabilized IOU tracker is configured in `common_stabilized_iou_tracker.pipe`, which includes `common_image_stabilizer.pipe`:
 
-    include common_image_stabilizer.pipe
+```
+include common_image_stabilizer.pipe
 
-    process tracker
-      :: simple_homog_tracker
-      min_iou = 0.01
+process tracker
+  :: simple_homog_tracker
+  min_iou = 0.01
 
-    connect from stabilizer.homography_src_to_ref
-            to   tracker.homography_src_to_ref
+connect from stabilizer.homography_src_to_ref
+        to   tracker.homography_src_to_ref
+```
 
 This tracker maps detections into a ground-plane coordinate system using the estimated homography, then links detections with sufficient IoU overlap. It is used in several domain-specific pipelines including sea lion tracking from aerial imagery and SEAMAP survey processing.
 
@@ -152,12 +162,14 @@ SiamMask can also operate as a multi-target tracker when combined with a detecto
 
 `train_tracker_default.conf` trains ByteTrack, unless the groundtruth clearly needs frame registration: BoT-SORT with camera motion compensation for moving targets, or the `homog_iou` registration tracker for fixed ground targets. Run with:
 
-    viame train -i /path/to/training/data -c train_tracker_default.conf
+```bash
+viame train -i /path/to/training/data -c train_tracker_default.conf
+```
 
 ## User-Initialized Trackers
 
 <p align="center">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/02/computed_track_example.png" alt="image" width="60%">
+<img src="../../docs/manual/_static/images/computed_track_example.jpg" alt="image" width="60%">
 </p>
 
 User-initialized trackers are designed for **annotation-assist** workflows. The user draws a bounding box (or places a point) on the first frame of an object, and the tracker propagates the annotation across subsequent frames. This is useful for rapidly generating track-level annotations without labeling every frame.
@@ -186,16 +198,20 @@ Key properties:
 
 The SiamMask tracker pipeline is `utility_track_selections_default_mask.pipe`:
 
-    process short_term_tracker
-      :: siammask_tracker
+```
+process short_term_tracker
+  :: siammask_tracker
 
-      relativepath config_file =                   models/pysot_default_siammask.yaml
-      relativepath model_file =                    models/pysot_default_siammask.pth
-      :threshold                                   0.80
+  relativepath config_file =                   models/pysot_default_siammask.yaml
+  relativepath model_file =                    models/pysot_default_siammask.pth
+  :threshold                                   0.80
+```
 
 SiamMask can be re-trained for specific domains:
 
-    viame train -i /path/to/training/data --tracker siammask
+```bash
+viame train -i /path/to/training/data --tracker siammask
+```
 
 ### SAM2 (Segment Anything Model 2)
 
@@ -215,20 +231,22 @@ Key properties:
 
 The SAM2 tracker pipeline is `utility_track_selections_sam2.pipe`:
 
-    process track_refiner
-      :: refine_tracks
-      :refiner:type                                sam2
+```
+process track_refiner
+  :: refine_tracks
+  :refiner:type                                sam2
 
-      block refiner:sam2
-        :cfg                                       configs/sam2.1/sam2.1_hiera_b+.yaml
-        :device                                    cuda
-        :overwrite_existing                        true
-        :output_type                               polygon
-        :polygon_simplification                    0.01
-        :min_mask_area                             10
-        :filter_by_quality                         true
-        relativepath checkpoint =                  models/sam2_hbp.pt
-      endblock
+  block refiner:sam2
+    :cfg                                       configs/sam2.1/sam2.1_hiera_b+.yaml
+    :device                                    cuda
+    :overwrite_existing                        true
+    :output_type                               polygon
+    :polygon_simplification                    0.01
+    :min_mask_area                             10
+    :filter_by_quality                         true
+    relativepath checkpoint =                  models/sam2_hbp.pt
+  endblock
+```
 
 ### SAM3 (Segment Anything Model 3)
 
@@ -248,26 +266,30 @@ Key properties:
 
 The SAM3 tracker pipeline is `utility_track_selections_sam3.pipe`:
 
-    process track_refiner
-      :: refine_tracks
-      :refiner:type                                sam3
+```
+process track_refiner
+  :: refine_tracks
+  :refiner:type                                sam3
 
-      block refiner:sam3
-        :grounding_model_id                        IDEA-Research/grounding-dino-tiny
-        :device                                    cuda
-        :text_query                                object
-        :detection_threshold                       0.3
-        :text_threshold                            0.25
-        :output_type                               polygon
-        :polygon_simplification                    0.01
-        :min_mask_area                             10
-        relativepath sam_model_id =                models/sam3_weights.pt
-        relativepath model_config =                models/sam3_config.json
-      endblock
+  block refiner:sam3
+    :grounding_model_id                        IDEA-Research/grounding-dino-tiny
+    :device                                    cuda
+    :text_query                                object
+    :detection_threshold                       0.3
+    :text_threshold                            0.25
+    :output_type                               polygon
+    :polygon_simplification                    0.01
+    :min_mask_area                             10
+    relativepath sam_model_id =                models/sam3_weights.pt
+    relativepath model_config =                models/sam3_config.json
+  endblock
+```
 
 SAM3 trackers can be fine-tuned for specific domains:
 
-    viame train -i /path/to/training/data --tracker sam3
+```bash
+viame train -i /path/to/training/data --tracker sam3
+```
 
 ### Comparison of User-Initialized Trackers
 

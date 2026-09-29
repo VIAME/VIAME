@@ -2,10 +2,12 @@
 
 This document corresponds to the 'Detection File Conversions' example folder within a VIAME desktop installation. This folder contains examples of different formats which VIAME supports, and additionally how to convert between textual formats representing object detections, tracks, results, etc. Conversions are performed with the `viame convert` tool, which reads any registered annotation format and writes any other, one file or a whole folder at a time:
 
-    viame convert annotations.csv annotations.json          # VIAME CSV to COCO
-    viame convert annotations.csv annotations.dive.json     # VIAME CSV to DIVE
-    viame convert results.json results.csv                  # COCO or DIVE to VIAME CSV
-    viame convert training_data output_folder -o coco       # every file under a folder
+```bash
+viame convert annotations.csv annotations.json          # VIAME CSV to COCO
+viame convert annotations.csv annotations.dive.json     # VIAME CSV to DIVE
+viame convert results.json results.csv                  # COCO or DIVE to VIAME CSV
+viame convert training_data output_folder -o coco       # every file under a folder
+```
 
 The input format is recognised from each file's extension and content, and the output format from the output extension or the `-o` flag. When the imagery an annotation file belongs to sits next to it (images in the same folder, or a video), the tool uses it for the frame names, frame count and timing of the output; `--no-images` converts from the annotation files alone, and `--images` points at imagery kept elsewhere. See the [Example Conversions](#example-conversions) section below and the `bulk_convert` scripts in this folder.
 
@@ -17,7 +19,7 @@ A subset of the output ASCII formats already integrated into VIAME is listed bel
 
 ### VIAME CSV - Default Format
 
-There are 3 parts to a VIAME csv. First, 9 required fields comma seperated, with a single line for either each detection, or each detection state, in a track:
+There are 3 parts to a VIAME csv. First, 9 required fields comma separated, with a single line for either each detection, or each detection state, in a track:
 
 - 1: Detection or Track Unique ID
 - 2: Video or Image String Identifier
@@ -31,13 +33,13 @@ There are 3 parts to a VIAME csv. First, 9 required fields comma seperated, with
 
 Where detections can be linked onto tracks on multiple frames via sharing the same track ID field. Depending on the context (image or video) the second field may either be video timestamp or an image filename. Field 3 is a unique frame identifier for the frame in the given video or loaded sequence, starting from 0 not 1. Fields 4 through 7 represent a bounding box for the target in the imagery. Depending on the context, auxiliary confidence may represent how likely this detection is an object, or it may be the confidence in the length measurement, if present. If length measurement is not present, it can be specified with a value less than 0, most commonly "-1".
 
-Next, a sequence of optional species \<=\> score pairs, also comma seperated:
+Next, a sequence of optional species \<=\> score pairs, also comma separated:
 
 - 10,11+ : class-name, score (this pair may be omitted or repeated)
 
 There can be as many class, score pairs as necessary (e.g. fields 12 and 13, 14 and 15, etc...). In the case of tracks, which may span multiple lines and thus have multiple probabilities per line, the probabilities from the last state in the track should be treated as the aggregate probability for the track and it's okay for prior states to have no probability to prevent respecifying it. In the class and score list, the highest scoring entries should typically be listed first.
 
-Lastly, optional categorical values associated with each detection in the file after species/class pairs. Attributes are given via a keyword followed by any space seperate values the attribute may have. Possible attributes are:
+Lastly, optional categorical values associated with each detection in the file after species/class pairs. Attributes are given via a keyword followed by any space separate values the attribute may have. Possible attributes are:
 
 > (kp) head 120 320 \[optional head, tail, or arbitrary keypoints\]
 >
@@ -83,13 +85,13 @@ Files produced by the detection writer (without tracks) include `frame_index` on
 
 ### HABCAM CSV/SSV
 
-Space or comma seperated annotation format used by the HabCam project
+Space or comma separated annotation format used by the HabCam project
 
 A typical habcam annotation looks like:
 
 > 201503.20150517.png 527 201501 boundingBox 458 970 521 1021
 
-Which corresponds to image_name, species_id (species id to labels seperate), date, annot_type \[either boundingBox, line, or point\], tl_x, tl_y, bl_x, bl_y
+Which corresponds to image_name, species_id (species id to labels separate), date, annot_type \[either boundingBox, line, or point\], tl_x, tl_y, bl_x, bl_y
 
 For the point type, only 1 set of coordinate is provided
 
@@ -137,7 +139,7 @@ When a `.json` file does not match either DIVE or COCO patterns, both the detect
 
 ### KW18 - Deprecated
 
-KW18, or Kitware KW18 Column Seperated Track Format, are a space seperated file format for representing detections or tracks.
+KW18, or Kitware KW18 Column Separated Track Format, are a space separated file format for representing detections or tracks.
 
 Each KW18 file has a header stating its contents, as follows:
 
@@ -158,7 +160,7 @@ A detection only CSV format contains 1 detection per line, with each line as fol
 - 7: detection confidence
 - 8,9+ : class-name score (this pair may be omitted or repeated)
 
-The kwiver reader/writer can be specified in config files using 'csv'. We reccomend you don't use it for anything.
+The kwiver reader/writer can be specified in config files using 'csv'. We recommend you don't use it for anything.
 
 ### Example Conversions
 
@@ -166,25 +168,33 @@ The `viame convert` tool converts between every registered reader and writer dir
 
 Single files:
 
-    viame convert groundtruth.csv groundtruth.json           # to COCO
-    viame convert groundtruth.csv groundtruth.dive.json      # to DIVE
-    viame convert groundtruth.kw18 groundtruth.csv           # KW18 to VIAME CSV
-    viame convert habcam.csv habcam_viame.csv -i habcam      # HabCam CSV to VIAME CSV
-    viame convert results.json results.csv -o viame_csv      # COCO or DIVE to VIAME CSV
+```bash
+viame convert groundtruth.csv groundtruth.json           # to COCO
+viame convert groundtruth.csv groundtruth.dive.json      # to DIVE
+viame convert groundtruth.kw18 groundtruth.csv           # KW18 to VIAME CSV
+viame convert habcam.csv habcam_viame.csv -i habcam      # HabCam CSV to VIAME CSV
+viame convert results.json results.csv -o viame_csv      # COCO or DIVE to VIAME CSV
+```
 
 Folders, mirroring the input layout into the output folder with the new extension:
 
-    viame convert training_data converted -o coco
-    viame convert training_data converted -o dive --no-images
+```bash
+viame convert training_data converted -o coco
+viame convert training_data converted -o dive --no-images
+```
 
 Imagery alongside the annotations is used automatically: an image folder gives the frame names and count (so empty frames are recorded too, as COCO expects), and a video gives the frame count and timestamps. `--frame-rate` sets the rate the frames of a video are numbered at, matching the `-frate` used when the annotations were produced, and applies timestamps to image sequences:
 
-    viame convert clip.csv clip.json --frame-rate 5          # clip.mp4 found alongside
-    viame convert annotations.csv out.json --images frames/  # imagery kept elsewhere
+```bash
+viame convert clip.csv clip.json --frame-rate 5          # clip.mp4 found alongside
+viame convert annotations.csv out.json --images frames/  # imagery kept elsewhere
+```
 
 Reader and writer settings are passed as `-s key=value`, prefixed by `reader:` or `writer:` when the two share a key:
 
-    viame convert in.csv out.csv -s writer:tot_option=average
+```bash
+viame convert in.csv out.csv -s writer:tot_option=average
+```
 
 `viame run --gt-only` also converts annotation folders through the same tool, for batch runs that already use the run applet, and the `bulk_convert` scripts in this folder show both the with-data and annotation-only forms.
 

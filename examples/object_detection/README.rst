@@ -7,10 +7,10 @@ Object Detection Examples
 Overview
 ********
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/skate_detection.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/skate_detection.jpg
    :width: 40%
    :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/object_detection
 |
 
 This document corresponds to the `object detection`_ example folder within a VIAME desktop
@@ -18,14 +18,14 @@ installation. Object detection identifies and localizes objects of interest with
 or video frames, producing bounding box detections with associated class labels and
 confidence scores.
 
-.. _object detection: https://github.com/VIAME/VIAME/blob/master/examples/object_detection
+.. _object detection: https://github.com/VIAME/VIAME/blob/main/examples/object_detection
 
 VIAME includes a variety of detection algorithms spanning classical computer vision,
 traditional machine learning, and modern deep learning approaches. Most detectors are
 trainable from user-provided annotations -- see the `object detector training examples`_
 for details on training custom models.
 
-.. _object detector training examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training
+.. _object detector training examples: https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training
 
 Detection pipelines can be run from the command line using the ``viame`` tool, or from
 one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL). In the **DIVE**

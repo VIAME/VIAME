@@ -66,12 +66,16 @@ Only perform this step if you have a previously installed version.
 
 **Linux:** Typically located at `/opt/noaa/viame`. Remove this directory, optionally backing it up until you validate your new installation. To optionally backup, open terminal:
 
-    cd /opt/noaa
-    mv viame viame-bckup
+```bash
+cd /opt/noaa
+mv viame viame-bckup
+```
 
 After validating the new installation, remove old version:
 
-    rm -rf /opt/noaa/viame-bckup
+```
+rm -rf /opt/noaa/viame-bckup
+```
 
 #### Step C. Install Dependency -- NVIDIA Drivers
 
@@ -111,11 +115,11 @@ We recommend `C:\Program Files\VIAME`, from here on out this will be known as \[
 
 Extract the binaries from step A, for example if using WinRAR select "Extract All" or use the default Windows "Extract All" option.
 
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_windows_extract.png" alt="image" width="40%">
+<img src="../../docs/manual/_static/images/quickstart_windows_extract.jpg" alt="image" width="40%">
 
 The contents of the folder should look like the below.
 
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_windows_install_contents.png" alt="image" width="40%">
+<img src="../../docs/manual/_static/images/quickstart_windows_install_contents.jpg" alt="image" width="40%">
 
 **Linux:**
 
@@ -125,16 +129,20 @@ Extract the binaries from step A, for example, right click on the downloaded .ta
 
 The alternative is to untar the file on the command line:
 
-    tar -xvf VIAME-v*-Ubuntu-64Bit.tar.gz
+```
+tar -xvf VIAME-v*-Ubuntu-64Bit.tar.gz
+```
 
 Navigate to the folder with the extracted 'viame' folder and move it to \[viame-install\], for example:
 
-    mkdir -p /opt/noaa/
-    mv viame /opt/noaa
+```
+mkdir -p /opt/noaa/
+mv viame /opt/noaa
+```
 
 The contents of the folder should look like the below.
 
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_linux_install_contents.png" alt="image" width="40%">
+<img src="../../docs/manual/_static/images/quickstart_linux_install_contents.jpg" alt="image" width="40%">
 
 Depending on your system, you may need to get permission to modify your install directory (e.g. /opt/noaa/viame).
 

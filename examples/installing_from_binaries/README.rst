@@ -163,12 +163,12 @@ We recommend ``C:\Program Files\VIAME``, from here on out this will be known as 
 Extract the binaries from step A, for example if using WinRAR select "Extract All" or use the
 default Windows "Extract All" option.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_windows_extract.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/quickstart_windows_extract.jpg
    :width: 40%
 
 The contents of the folder should look like the below.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_windows_install_contents.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/quickstart_windows_install_contents.jpg
    :width: 40%
 
 **Linux:**
@@ -190,7 +190,7 @@ for example::
 
 The contents of the folder should look like the below.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_linux_install_contents.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/quickstart_linux_install_contents.jpg
    :width: 40%
 
 Depending on your system, you may need to get permission to modify your install directory

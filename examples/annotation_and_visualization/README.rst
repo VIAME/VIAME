@@ -10,7 +10,7 @@ extracting data from either computed or manually annotated detection files. Exam
 include drawing detection boxes on images, extracting image chips around detections, or extracting
 images from video files at frame rates indicated within the metadata of truth files.
 
-.. _Annotation and Visualization: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
+.. _Annotation and Visualization: https://github.com/VIAME/VIAME/blob/main/examples/annotation_and_visualization
 .. _CLI scripts: https://viame.readthedocs.io/en/latest/sections/examples_overview.html
 
 .. dive-manual-toctree
@@ -19,7 +19,7 @@ images from video files at frame rates indicated within the metadata of truth fi
 DIVE Interface
 **************
 
-.. image:: https://github.com/Kitware/dive/blob/main/docs/images/Banner.png?raw=true
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Banner.jpg
    :width: 500px
    :align: center
 |
@@ -62,7 +62,7 @@ settings. Several segmentation backends are available:
   (e.g., "fish", "scallop"). Requires a GPU and the SAM3 add-on. This is the most
   capable interactive segmentation option.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Point-Segmentation.jpg
    :width: 80%
    :align: center
 
@@ -75,7 +75,7 @@ Text queries can also be run as batch pipelines to detect, segment, and track ob
 across entire image sets or videos. See the `SAM3 Text-Prompted Detection and Tracking`_
 section in the search and rapid model generation examples for details.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Perform-Text-Query.jpg
    :width: 80%
    :align: center
 
@@ -84,14 +84,14 @@ and track across the video.*
 
 |
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Text-Query-Result1.jpg
    :width: 80%
    :align: center
 
 *Results of a SAM3 text query showing automatically detected and tracked fish with
 segmentation outlines.*
 
-.. _SAM3 Text-Prompted Detection and Tracking: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
+.. _SAM3 Text-Prompted Detection and Tracking: https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation
 
 To manually start the interactive segmentation service outside of DIVE (e.g., for
 scripting or integration with other tools)::
@@ -106,7 +106,7 @@ scripting or integration with other tools)::
 VIEW Interface
 **************
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/many_scallop_detections_gui.jpg
    :width: 500px
    :align: center
 |
@@ -123,7 +123,7 @@ VIEW can either be pointed directly to imagery, pointed to a compressed video fi
 (see [install-dir]/configs/prj-*/for_videos), or given an input .prj file that points to the location
 of input imagery and any optional settings (e.g. groundtruth, computed detections, and/or homographies
 for the input data). If you just want to use the tool to make annotations you don't need to specify
-the later three, and just need to set a DataSetSpecifier or [reccommended] use the File->New Project
+the later three, and just need to set a DataSetSpecifier or [recommended] use the File->New Project
 option to load imagery directly without a prj file. Also, see the below example guide and videos.
 The VIEW interface can be launched via the "launch_view_interface" script.
 
@@ -216,21 +216,21 @@ Note: The list is not complete, but currently focusing on the most used (and new
 SEARCH Interface
 ****************
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_15_next_n_results.jpg
    :width: 500px
    :align: center
 |
 The search interface is a dedicated interface for performing image search for a particular
 exemplar image, be it a specific species or an object with a particular attribute or
-characteristic. A secondary proceedure allows adjudacating the system-generated responses
-for this query and the generation of a model for a new object category. This proceedure
+characteristic. A secondary procedure allows adjudacating the system-generated responses
+for this query and the generation of a model for a new object category. This procedure
 has a few trade offs compared to traditional approaches, including the ability to rapidly
 generate a machine learning model faster, at the risk of decreased accuracy (depending on
 the problem).
 
 For additional information, see the dedicated `example`_ for it.
 
-.. _example: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
+.. _example: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_15_next_n_results.jpg
 
 *********
 CLI Tools

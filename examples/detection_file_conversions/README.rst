@@ -22,7 +22,7 @@ the frame names, frame count and timing of the output; ``--no-images`` converts 
 annotation files alone, and ``--images`` points at imagery kept elsewhere. See the
 `Example Conversions`_ section below and the ``bulk_convert`` scripts in this folder.
 
-.. _Detection File Conversions: https://github.com/VIAME/VIAME/tree/master/examples/detection_file_conversions
+.. _Detection File Conversions: https://github.com/VIAME/VIAME/tree/main/examples/detection_file_conversions
 
 A subset of the output ASCII formats already integrated into VIAME is listed below.
 New formats can be integrated to the system by implementing a derived version of the
@@ -44,7 +44,7 @@ VIAME CSV and the DIVE JSON format described below.
 VIAME CSV - Default Format
 **************************
 
-There are 3 parts to a VIAME csv. First, 9 required fields comma seperated, with
+There are 3 parts to a VIAME csv. First, 9 required fields comma separated, with
 a single line for either each detection, or each detection state, in a track:
 
 - 1: Detection or Track Unique ID
@@ -67,7 +67,7 @@ detection is an object, or it may be the confidence in the length measurement,
 if present. If length measurement is not present, it can be specified with a
 value less than 0, most commonly "-1".
 
-Next, a sequence of optional species <=> score pairs, also comma seperated:
+Next, a sequence of optional species <=> score pairs, also comma separated:
 
 - 10,11+  : class-name, score (this pair may be omitted or repeated)
 
@@ -80,7 +80,7 @@ class and score list, the highest scoring entries should typically be listed fir
 
 Lastly, optional categorical values associated with each detection in the file
 after species/class pairs. Attributes are given via a keyword followed by any
-space seperate values the attribute may have. Possible attributes are:
+space separate values the attribute may have. Possible attributes are:
 
  (kp) head 120 320            [optional head, tail, or arbitrary keypoints]
 
@@ -152,13 +152,13 @@ compatible with standard COCO readers that ignore unknown fields.
 HABCAM CSV/SSV
 **************
 
-Space or comma seperated annotation format used by the HabCam project
+Space or comma separated annotation format used by the HabCam project
 
 A typical habcam annotation looks like:
 
  201503.20150517.png 527 201501 boundingBox 458 970 521 1021
 
-Which corresponds to image_name, species_id (species id to labels seperate),
+Which corresponds to image_name, species_id (species id to labels separate),
 date, annot_type [either boundingBox, line, or point], tl_x, tl_y, bl_x, bl_y
 
 For the point type, only 1 set of coordinate is provided
@@ -228,7 +228,7 @@ the detection and track readers default to COCO.
 KW18 - Deprecated
 *****************
 
-KW18, or Kitware KW18 Column Seperated Track Format, are a space seperated
+KW18, or Kitware KW18 Column Separated Track Format, are a space separated
 file format for representing detections or tracks.
 
 Each KW18 file has a header stating its contents, as follows:
@@ -255,7 +255,7 @@ A detection only CSV format contains 1 detection per line, with each line as fol
 - 7: detection confidence
 - 8,9+  : class-name  score (this pair may be omitted or repeated)
 
-The kwiver reader/writer can be specified in config files using 'csv'. We reccomend
+The kwiver reader/writer can be specified in config files using 'csv'. We recommend
 you don't use it for anything.
 
 *******************

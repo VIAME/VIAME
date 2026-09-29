@@ -37,7 +37,7 @@ further. Not listed in this document thoroughly are programming APIs for develop
 DIVE -- Web and Desktop Annotator
 ==================================
 
-.. image:: ../_static/images/quickstart_dive_annotator.png
+.. image:: ../_static/images/quickstart_dive_annotator.jpg
    :alt: Dive annotator
    :width: 45%
 
@@ -329,22 +329,22 @@ There are four main types of annotations and detection models:
 .. list-table::
    :widths: 50 50
 
-   * - .. image:: ../_static/images/quickstart_annotation_box_level.png
+   * - .. image:: ../_static/images/quickstart_annotation_box_level.jpg
     :alt: Annotation box level
           :width: 100%
 
        **Box-Level:** A bounding box around the object of interest.
-     - .. image:: ../_static/images/quickstart_annotation_frame_level.png
+     - .. image:: ../_static/images/quickstart_annotation_frame_level.jpg
     :alt: Annotation frame level
           :width: 100%
 
        **Frame-Level:** The entire frame is classified (e.g. the whole image has a label).
-   * - .. image:: ../_static/images/quickstart_annotation_pixel_level.png
+   * - .. image:: ../_static/images/quickstart_annotation_pixel_level.jpg
     :alt: Annotation pixel level
           :width: 100%
 
        **Pixel-Level:** Pixel masks or polygons tracing the exact outline of objects.
-     - .. image:: ../_static/images/quickstart_annotation_keypoints.png
+     - .. image:: ../_static/images/quickstart_annotation_keypoints.jpg
     :alt: Annotation keypoints
           :width: 100%
 
@@ -360,12 +360,12 @@ track with just a single state.
 .. list-table::
    :widths: 50 50
 
-   * - .. image:: ../_static/images/quickstart_detection_example.png
+   * - .. image:: ../_static/images/quickstart_detection_example.jpg
     :alt: Detection example
           :width: 100%
 
        Detection
-     - .. image:: ../_static/images/quickstart_track_example.png
+     - .. image:: ../_static/images/quickstart_track_example.jpg
     :alt: Track example
           :width: 100%
 
@@ -389,11 +389,11 @@ and masks.
 Annotation Best Practices
 ==========================
 
-.. image:: ../_static/images/quickstart_annotation_best_practices.png
+.. image:: ../_static/images/quickstart_annotation_best_practices.jpg
    :alt: Annotation best practices
    :width: 80%
 
-.. image:: ../_static/images/quickstart_annotation_gui_example.png
+.. image:: ../_static/images/quickstart_annotation_gui_example.jpg
    :alt: Annotation gui example
    :width: 80%
 

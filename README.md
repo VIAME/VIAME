@@ -1,5 +1,5 @@
 
-<img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
+<img src="docs/manual/_static/images/viami_logo.png" alt="VIAME Logo" width="200" height="78">
 
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence
 including object detection, object tracking, data annotation, multi-camera processing,
@@ -18,7 +18,7 @@ Documentation
 -------------
 
 The [User's Quick-Start Guide](https://viame.readthedocs.io/en/latest/sections/quick_start_guide.html)
-and [Full Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
+and [Full Manual](https://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
 
 

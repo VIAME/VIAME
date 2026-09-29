@@ -31,6 +31,14 @@ RTD_HREF = re.compile('href="' + RTD + '"')
 FENCE = re.compile(r"^\s*(```+|~~~+)")
 HEADING = re.compile(r"^(#+) +(.*)$")
 ALERT = re.compile(r"^> \[!(\w+)\] *$")
+REPO_IMAGE = re.compile(r"(?:\.\./)+docs/manual/(_static/images/)")
+
+# Sections the Sphinx manual lists in its sidebar, given pages of their own
+SPLITS = {
+    "sections/examples_overview": {"Project Folders": "sections/project_folders"},
+    "sections/search_and_rapid_model_generation": {
+        "Rapid Model Generation": "sections/rapid_model_generation"},
+}
 
 
 def included(text, directory):
@@ -87,12 +95,34 @@ def convert_alerts(lines):
 
 
 def adapt(markdown):
-    lines = convert_alerts(markdown.splitlines())
+    return "\n".join(convert_alerts(markdown.splitlines())) + "\n"
+
+
+def slug(title):
+    return "#" + re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+
+
+def split_section(markdown, title):
+    """Return the page without the titled section, and the section as a page."""
+    lines = markdown.splitlines()
+    start = end = None
     for index, line in outside_fences(lines):
-        # Python-Markdown has no backslash line break
-        if line.endswith("\\"):
-            lines[index] = line[:-1] + "  "
-    return "\n".join(lines) + "\n"
+        match = HEADING.match(line)
+        if not match:
+            continue
+        if start is None and match.group(2).strip() == title:
+            start, level = index, len(match.group(1))
+        elif start is not None and len(match.group(1)) <= level:
+            end = index
+            break
+    if start is None:
+        return markdown, None
+    section = lines[start:end]
+    for index, line in outside_fences(section):
+        if HEADING.match(line):
+            section[index] = line[level - 1:]
+    rest = lines[:start] + (lines[end:] if end is not None else [])
+    return "\n".join(rest).rstrip("\n") + "\n", "\n".join(section).rstrip("\n") + "\n"
 
 
 def relink(text, page, pages):
@@ -101,8 +131,12 @@ def relink(text, page, pages):
         name = (match.group(1) or "index.html")[:-5]
         if not (match.group(1) or ".html").endswith(".html") or name not in pages:
             return None, None
+        anchor = match.group(2) or ""
+        for title, target in SPLITS.get(name, {}).items():
+            if anchor == slug(title):
+                name, anchor = target, ""
         relative = posixpath.relpath(name + suffix, posixpath.dirname(page) or ".")
-        return name, relative + (match.group(2) or "")
+        return name, relative + anchor
 
     def autolink(match):
         name, target = local(match, ".md")
@@ -179,12 +213,22 @@ def generate():
             continue
         if text.strip():
             pages[SECTIONS + "/" + path.stem] = text
+    for name, sections in SPLITS.items():
+        for title, target in sections.items():
+            pages[name], section = split_section(pages[name], title)
+            if section:
+                pages[target] = section
+                pages[name] = pages[name].replace(
+                    "](" + slug(title) + ")",
+                    "](" + posixpath.basename(target) + ".md)")
     collect_dive(pages, assets)
+    for name in pages:
+        # READMEs address images from their own folder
+        pages[name] = REPO_IMAGE.sub("../" * name.count("/") + r"\1", pages[name])
 
     for path in sorted((HERE / "_static" / "images").iterdir()):
         assets["_static/images/" + path.name] = path
     assets["favicon.ico"] = HERE.parent / "favicon.ico"
-    assets["logo.png"] = HERE.parents[1] / "cmake" / "viame-icon-32px.png"
     return pages, assets
 
 

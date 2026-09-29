@@ -10,7 +10,7 @@ Overview
 This document corresponds to `Frame-Level Classification`_ example in a VIAME Desktop
 desktop installation.
 
-.. _Frame-Level Classification: https://github.com/VIAME/VIAME/tree/master/examples/frame_level_classification
+.. _Frame-Level Classification: https://github.com/VIAME/VIAME/tree/main/examples/frame_level_classification
 
 Frame classification is useful for computing properties such as whether or
 not an organism is just within a frame (as opposed to counting instances of it)

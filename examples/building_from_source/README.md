@@ -1,6 +1,6 @@
 # Building VIAME From Source
 
-See the platform-specific guides below, though the process is similar for each. This document corresponds to the example [located online here](https://github.com/VIAME/VIAME/tree/master/examples/building_from_source) and also to the building_from_source example folder in a VIAME installation.
+See the platform-specific guides below, though the process is similar for each. This document corresponds to the example [located online here](https://github.com/VIAME/VIAME/tree/main/examples/building_from_source) and also to the building_from_source example folder in a VIAME installation.
 
 ## Building on Linux
 
@@ -95,7 +95,7 @@ And lastly, a number of flags which build algorithms with more specialized funct
 | VIAME_ENABLE_UW_CLASSIFIER | Builds UW fish classifier plugin |
 | VIAME_ENABLE_MATLAB | Turns on support for and installs all matlab processes |
 
-VIAME can be built either in the source directory tree or in a seperate build directory (recommended). Replace "\[build-directory\]" with your location of choice, and run the following commands:
+VIAME can be built either in the source directory tree or in a separate build directory (recommended). Replace "\[build-directory\]" with your location of choice, and run the following commands:
 
 ```bash
 mkdir [build-directory]
@@ -107,7 +107,7 @@ make -j8 # or just make for a unthreaded build
 Depending on which enable flags you have set and your system configuration, you may need to set additional cmake variables to point to dependency locations. An example is below for a system with CUDA, Python, and Matlab enabled, though the versions are old. Please do not use CUDA \<10 or python 2.7 anymore.
 
 <p align="center">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/cmake-options.png" alt="image" width="40%">
+<img src="../../docs/manual/_static/images/cmake-options.jpg" alt="image" width="40%">
 </p>
 
 ## Building on Mac OSX
@@ -129,7 +129,7 @@ Finally, create a build folder and run the CMake GUI (`https://cmake.org/running
 The biggest build issues on Windows arise from building VIAME in super-build and exceeded the windows maximum folder path length. This will typically manifest as build errors in the kwiver python libraries. To bypass these errors you have 2 options:
 
 1.  Build VIAME in as high level as possible (e.g. C:/VIAME) or, alternatively
-2.  Set the VIAME_BUILD_KWIVER_DIR path to be something small outside of your superbuild location, e.g. C:/tmp/kwiver to bypass path length limits. Thi is performed, for example, in the nightly build server cmake script as an example <https://github.com/VIAME/VIAME/blob/master/cmake/build_server_windows.cmake>
+2.  Set the VIAME_BUILD_KWIVER_DIR path to be something small outside of your superbuild location, e.g. C:/tmp/kwiver to bypass path length limits. This is performed, for example, in the nightly build server cmake script as an example <https://github.com/VIAME/VIAME/blob/main/cmake/build_server_windows.cmake>
 
 ## Updating VIAME
 
@@ -221,7 +221,7 @@ CMake Error at CMakeLists.txt:200 (message):
 
 You have enabled CUDNN but the system is unable to locate CUDNN, as the message says.
 
-Note CUDNN is installed seperately from CUDA, they are different things.
+Note CUDNN is installed separately from CUDA, they are different things.
 
 You need to set the VIAME flag CUDNN_LIBRARY to something like /usr/local/cuda/lib64/libcudnn.so. Alternatively you can set CUDNN_ROOT to /usr/local/cuda/lib64 manually if that's where you installed it.
 

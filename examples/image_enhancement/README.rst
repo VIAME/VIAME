@@ -7,7 +7,7 @@ This document corresponds to the `Image Enhancement`_ example folder within a VI
 desktop installation. This directory stores assorted scripts for debayering, color
 correction, illumination normalization, and general image contrast enhancement.
 
-.. _Image Enhancement: https://github.com/VIAME/VIAME/blob/master/examples/image_enhancement
+.. _Image Enhancement: https://github.com/VIAME/VIAME/blob/main/examples/image_enhancement
 
 ******************
 Build Requirements
@@ -56,10 +56,10 @@ Uses the ``filter_normalize_16bit.pipe`` pipeline. Input images are listed in
 Running Filters via DIVE Desktop
 *****************************************
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Image_Filter_in_DIVE.jpg
    :width: 40%
    :align: center
-   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Image_Filter_in_DIVE.jpg
 
 All of the filter and transcode pipelines described in this document can also be run
 through the DIVE Desktop interface (currently desktop only, not the web version). To
@@ -99,10 +99,10 @@ interface and are configured via ``:filter:type`` in pipeline files.
 ocv_enhancer -- General-Purpose Enhancement
 ============================================
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/color_correct.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/color_correct.jpg
 
 Plugin: ``ocv_enhancer`` (plugins/opencv/enhance_images.cxx)
 

@@ -23,3 +23,11 @@
 .md-typeset a.headerlink {
   text-decoration: none;
 }
+
+.md-header__button.md-logo {
+  padding: 0.1rem;
+}
+
+.md-header__button.md-logo img {
+  height: 2rem;
+}

@@ -8,7 +8,7 @@ registration and mosaicing, either across an image sequence with a certain amoun
 overlap between frames, or across modalities (e.g. optical and thermal imagery) for
 more specialized use cases.
 
-.. _registration and mosaicing: https://github.com/VIAME/VIAME/blob/master/examples/registration_and_mosaicing
+.. _registration and mosaicing: https://github.com/VIAME/VIAME/blob/main/examples/registration_and_mosaicing
 
 .. dive-crosslink
 

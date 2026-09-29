@@ -130,6 +130,7 @@ nav:
         - Mouse and Keyboard Shortcuts: sections/dive/Mouse-Keyboard-Shortcuts.md
         - Frequently Asked Questions: sections/dive/FAQ.md
   - sections/examples_overview.md
+  - sections/project_folders.md
   - sections/detection_file_conversions.md
   - sections/object_detection.md
   - sections/object_detector_training.md
@@ -137,13 +138,16 @@ nav:
   - sections/object_tracking.md
   - sections/image_enhancement.md
   - sections/search_and_rapid_model_generation.md
+  - sections/rapid_model_generation.md
   - sections/scoring_and_evaluation.md
   - sections/registration_and_mosaicing.md
   - sections/frame_level_classification.md
+  - sections/scene_segmentation.md
   - sections/archive_summarization.md
-  - Core C++/Python Object Types: http://kwiver.readthedocs.io/en/latest/vital/architecture.html
-  - Core Pipelining Architecture: http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html
-  - Basic Pipeline Nodes: http://kwiver.readthedocs.io/en/latest/arrows/architecture.html
+  - Core C++/Python Object Types: https://kwiver.readthedocs.io/en/latest/vital/architecture.html
+  - Core Pipelining Architecture: https://kwiver.readthedocs.io/en/latest/sprokit/architecture.html
+  - Basic Pipeline Nodes: https://kwiver.readthedocs.io/en/latest/arrows/architecture.html
   - sections/example_pipeline.md
   - sections/plugin_creation.md
-  - KWIVER Full Manual: http://kwiver.readthedocs.io/en/latest/
+  - sections/using_algorithms_in_code.md
+  - KWIVER Full Manual: https://kwiver.readthedocs.io/en/latest/

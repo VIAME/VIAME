@@ -20,7 +20,7 @@ VIAME comes in a few different interfaces with slightly different capabilities. 
 
 ### DIVE -- Web and Desktop Annotator
 
-<img src="../_static/images/quickstart_dive_annotator.png" alt="Dive annotator" width="45%">
+<img src="../_static/images/quickstart_dive_annotator.jpg" alt="Dive annotator" width="45%">
 <img src="../_static/images/quickstart_dive_dataset_list.png" alt="Dive dataset list" width="45%">
 
 Originally created as the VIAME-Web interface (with a public server hosted at <https://viame.kitware.com>), a desktop version of this web annotator and model trainer is also available in both Windows .msi installers and .zip release formats.
@@ -84,11 +84,11 @@ Platform & Installation Support
 
 Feature Support by Interface
 
-<sup>1</sup> Can only confirm or reject boxes\
-<sup>2</sup> Via drawing small boxes\
-<sup>3</sup> SVM models only\
-<sup>4</sup> Basic support, longer load time\
-<sup>5</sup> Poor visualization of results
+- <sup>1</sup> Can only confirm or reject boxes
+- <sup>2</sup> Via drawing small boxes
+- <sup>3</sup> SVM models only
+- <sup>4</sup> Basic support, longer load time
+- <sup>5</sup> Poor visualization of results
 
 ## GPU vs CPU Installations
 
@@ -121,15 +121,15 @@ There are four main types of annotations and detection models:
 </colgroup>
 <tbody>
 <tr>
-<td><p><img src="../_static/images/quickstart_annotation_box_level.png" alt="Annotation box level" width="100%"></p>
+<td><p><img src="../_static/images/quickstart_annotation_box_level.jpg" alt="Annotation box level" width="100%"></p>
 <p><strong>Box-Level:</strong> A bounding box around the object of interest.</p></td>
-<td><p><img src="../_static/images/quickstart_annotation_frame_level.png" alt="Annotation frame level" width="100%"></p>
+<td><p><img src="../_static/images/quickstart_annotation_frame_level.jpg" alt="Annotation frame level" width="100%"></p>
 <p><strong>Frame-Level:</strong> The entire frame is classified (e.g. the whole image has a label).</p></td>
 </tr>
 <tr>
-<td><p><img src="../_static/images/quickstart_annotation_pixel_level.png" alt="Annotation pixel level" width="100%"></p>
+<td><p><img src="../_static/images/quickstart_annotation_pixel_level.jpg" alt="Annotation pixel level" width="100%"></p>
 <p><strong>Pixel-Level:</strong> Pixel masks or polygons tracing the exact outline of objects.</p></td>
-<td><p><img src="../_static/images/quickstart_annotation_keypoints.png" alt="Annotation keypoints" width="100%"></p>
+<td><p><img src="../_static/images/quickstart_annotation_keypoints.jpg" alt="Annotation keypoints" width="100%"></p>
 <p><strong>Keypoints:</strong> Specific points of interest on objects (e.g. head, tail).</p></td>
 </tr>
 </tbody>
@@ -146,9 +146,9 @@ Detections and tracks are synonymous across examples and user interfaces. A trac
 </colgroup>
 <tbody>
 <tr>
-<td><p><img src="../_static/images/quickstart_detection_example.png" alt="Detection example" width="100%"></p>
+<td><p><img src="../_static/images/quickstart_detection_example.jpg" alt="Detection example" width="100%"></p>
 <p>Detection</p></td>
-<td><p><img src="../_static/images/quickstart_track_example.png" alt="Track example" width="100%"></p>
+<td><p><img src="../_static/images/quickstart_track_example.jpg" alt="Track example" width="100%"></p>
 <p>Track</p></td>
 </tr>
 </tbody>
@@ -164,8 +164,8 @@ For details on annotation file formats, see the [Detection File Conversions](htt
 
 ### Annotation Best Practices
 
-<img src="../_static/images/quickstart_annotation_best_practices.png" alt="Annotation best practices" width="80%">
-<img src="../_static/images/quickstart_annotation_gui_example.png" alt="Annotation gui example" width="80%">
+<img src="../_static/images/quickstart_annotation_best_practices.jpg" alt="Annotation best practices" width="80%">
+<img src="../_static/images/quickstart_annotation_gui_example.jpg" alt="Annotation gui example" width="80%">
 
 When creating bounding box annotations:
 
@@ -179,13 +179,13 @@ When creating bounding box annotations:
 
 ### Workflow \#1: Traditional Deep Learning from Scratch
 
-\(a\) Load up imagery in annotator\
-(b) Annotate imagery manually\
-(c) Export detection or tracks files\
-(d) Repeat for as many sequences as possible in diverse backgrounds\
-(e) Run model training\
-(f) Evaluate model performance\
-(g) Repeat (d) thru (f) as desired on detector fail cases, focusing additional annotation on sequences with the most errors
+1. Load up imagery in annotator
+2. Annotate imagery manually
+3. Export detection or tracks files
+4. Repeat for as many sequences as possible in diverse backgrounds
+5. Run model training
+6. Evaluate model performance
+7. Repeat steps 4 thru 6 as desired on detector fail cases, focusing additional annotation on sequences with the most errors
 
 **Pros:** Models perform better than most other solutions when trained with enough training data.
 
@@ -193,13 +193,13 @@ When creating bounding box annotations:
 
 ### Workflow \#2: Deep Learning with Partial Automation
 
-\(a\) Load up imagery in annotator\
-(b) Run an automated detector (can be IQR based, default model, other pre-trained detector, or user generated deep detector)\
-(c) Correct and export detection or tracks files\
-(d) Repeat for as many sequences as desired in diverse backgrounds\
-(e) Run model training\
-(f) Evaluate model performance\
-(g) Repeat (b) thru (f) as desired on detector fail cases
+1. Load up imagery in annotator
+2. Run an automated detector (can be IQR based, default model, other pre-trained detector, or user generated deep detector)
+3. Correct and export detection or tracks files
+4. Repeat for as many sequences as desired in diverse backgrounds
+5. Run model training
+6. Evaluate model performance
+7. Repeat steps 2 thru 6 as desired on detector fail cases
 
 **Pros:** Can speed up annotation if automated detector is decent enough.
 
@@ -207,11 +207,11 @@ When creating bounding box annotations:
 
 ### Workflow \#3: IQR (Video Search with Adjudication) for Rapid Model Generation
 
-\(a\) Create searchable index for a video archive (either at full frame level, detection level on top of pre-trained detectors, or track level)\
-(b) Launch search GUI\
-(c) Use search GUI to generate IQR (.svm) models\
-(d) Save models to category directory\
-(e) Evaluate models
+1. Create searchable index for a video archive (either at full frame level, detection level on top of pre-trained detectors, or track level)
+2. Launch search GUI
+3. Use search GUI to generate IQR (.svm) models
+4. Save models to category directory
+5. Evaluate models
 
 **Pros:** Can be done with very little user effort, mostly computer runtime. Can be used to rapidly generate models for new classes.
 

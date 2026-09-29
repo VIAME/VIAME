@@ -13,14 +13,14 @@ tracking algorithms. All tracker trainers accept the same input format and are i
 through the ``viame train`` command with either a training configuration file or the
 ``-tt`` (tracker type) shorthand.
 
-.. _object tracker training: https://github.com/VIAME/VIAME/blob/master/examples/object_tracker_training
+.. _object tracker training: https://github.com/VIAME/VIAME/blob/main/examples/object_tracker_training
 
 For details on the available tracking algorithms themselves, see the
 `object tracking examples`_. For training the upstream detection models used by
 multi-target trackers, see the `object detector training examples`_.
 
-.. _object tracking examples: https://github.com/VIAME/VIAME/blob/master/examples/object_tracking
-.. _object detector training examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training
+.. _object tracking examples: https://github.com/VIAME/VIAME/blob/main/examples/object_tracking
+.. _object detector training examples: https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training
 
 .. note::
    The ``viame train`` tracker training option (``-tt``) is a new addition and is

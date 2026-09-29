@@ -18,7 +18,7 @@ to detect, segment, and track objects without requiring any pre-existing annotat
 an ingested database. See the `SAM3 Text-Prompted Detection and Tracking`_ section below
 for more details on using SAM3.
 
-.. _search and rapid model generation: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
+.. _search and rapid model generation: https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation
 
 Video and Image Archive Search
 ==============================
@@ -69,10 +69,10 @@ of your VIAME installation (as shown below) if your installation is in a non-def
 you copied the example files elsewhere. If using windows, all '.sh' scripts in the below will
 be '.bat' scripts that you should be able to just double-click to run.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_0_new_project.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_0_new_project.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_0_new_project.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_0_new_project.jpg
 
 Ingest Image or Video Data
 ==========================
@@ -88,18 +88,18 @@ to make this list. Alternatively, if ingesting videos, make a directory called '
 all of your .mpg, .avi, .etc videos. If you look in the ingest scripts, you can see links to these
 sources if you wish to change them. Next run the ingest script, as below.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_1_ingest.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_1_ingest.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_1_ingest.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_1_ingest.jpg
 
 This should take a little bit if the process is successful, see below. If you already have a
 database present in your folder it will ask you if you want to remove it.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_2_ingest.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_2_ingest.png
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_2_ingest.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_2_ingest.png
 
 If your ingest was successful, you should get a message saying 'ingest complete" with no
 errors in your output log. If you get an error, and are unable to decipher it, send a copy
@@ -141,10 +141,10 @@ Perform an Image Query
 
 After performing an ingest 'bash launch_search_interface.sh' should be called to launch the GUI.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_3_launch_gui.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_3_launch_gui.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_3_launch_gui.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_3_launch_gui.jpg
 
 | In this example, we will first start with an image query.
 | 
@@ -156,25 +156,25 @@ Next select an image to use as an exemplar of what you are looking for. This ima
 take one of two forms, either a large image containing many objects including your
 object of interest, or a cropped out version of your object.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_4_new_query.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_4_new_query.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_4_new_query.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_4_new_query.jpg
 
 Whatever image you give, the system will generate a full-frame descriptor for your entire
 image alongside sub-detections on regions smaller than the full image.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_5_query_result.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_5_query_result.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_5_query_result.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_5_query_result.jpg
 
 Select the box you are most interested in.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_6_select_fish.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_6_select_fish.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_6_select_fish.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_6_select_fish.jpg
 
 Press the down arrow to highlight it (the selected box should light up in green). Press okay
 on the bottom right, then okay again on the image query panel to perform the query.
@@ -186,42 +186,42 @@ can use this method then select the full frame descriptor around the object. In 
 we used the free GIMP painter tool to crop out a chip. Install this  using 'sudo apt-get
 install gimp', on Ubuntu, https://www.gimp.org/ on Windows).
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_7_crop_fish.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_7_crop_fish.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_7_crop_fish.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_7_crop_fish.jpg
 
 Right click on your image in your file browser, select 'Edit with Gimp', press Ctrl-C to
 open the above dialogue, highlight the region of interest, press enter to crop. 
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_8_cropped_fish.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_8_cropped_fish.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_8_cropped_fish.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_8_cropped_fish.jpg
 
 Save out your crop to wherever you want, preferably somewhere near your project folder.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_9_select_fish_again.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_9_select_fish_again.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_9_select_fish_again.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_9_select_fish_again.jpg
 
 Now you can put this chip through the image query system, instead of the full frame one.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_10_initial_results.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_10_initial_results.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_10_initial_results.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_10_initial_results.jpg
 
 Regardless which method you use, when you get new results they should look like this. You
 can select them on the left and see the entries on the right. Your GUI may not look like this
 depending on which windows you have turned on, but different display windows can be enabled
 or disabled in Settings->Tool Views and dragged around the screen.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_11_initial_results.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_11_initial_results.jpg
 
 Results can be exported by highlighting entries and selecting Query -> Export Results in the
 default VIAME csv format and others. You can show multiple entries at the same time by highlighting
@@ -231,41 +231,41 @@ to 'Show Selected Entries'.
 Train a IQR Model
 =================
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_12_adjudacation.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_12_adjudacation.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_12_adjudacation.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_12_adjudacation.jpg
 
 When you perform an initial query, you can annotate results as to their correct-ness in order
 to generate a model for said query concept. This can be accomplished via a few key-presses.
 Either right click on an individual result and select the appropriate option, or highlight
 an entry and press '+' or '-' on your keyboard for faster annotation.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_13_feedback.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_13_feedback.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_13_feedback.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_13_feedback.jpg
 
 You might want to annotate entries from both the top results list, and the requested
 feedback list (bottom left in the above). This can improve the performance of your
 model significantly. After annotating your entries press 'Refine' on the top left.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_14_next_n_results.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_14_next_n_results.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_14_next_n_results.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_14_next_n_results.jpg
 
 There we go, that's a little better isn't it.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_15_next_n_results.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_15_next_n_results.jpg
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_16_next_n_results.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_16_next_n_results.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_16_next_n_results.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_16_next_n_results.jpg
 
 Okay these guys are a little weird, but nothing another round of annotations can't fix.
 
@@ -273,10 +273,10 @@ After you're happy with your models, you should export them (Query -> Export IQR
 a directory called 'trained_model' in your project folder for re-use on both new and larger
 datasets.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_17_saved_models.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_17_saved_models.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_17_saved_models.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_17_saved_models.jpg
 
 The category models directory should contain only .svm model files.
 
@@ -290,23 +290,23 @@ ingest_list.txt and produces a detection file called 'svm_detections.csv' contai
 for each input model in the trained_model directory per detection. Alternatively this pipeline,
 this can be run from `within the annotation GUI`_.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_18_produced_detections.png
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_18_produced_detections.png
 
 The resultant detection .csv file is in the same common format that most other examples in VIAME
 take. You can load this detection file up in the annotation GUI and select a detection threshold
 for your newly-trained detector, `see here`_. You can use these models on any imagery, it doesn't
 need to be the same imagery you trained it on.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_19_edited_detections.jpg
    :width: 15%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_19_edited_detections.jpg
 
-.. _within the annotation GUI: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
-.. _see here: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+.. _within the annotation GUI: https://github.com/VIAME/VIAME/tree/main/examples/object_detection
+.. _see here: https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization
 
 Correct Results and Train a Better Model
 ========================================
@@ -321,12 +321,12 @@ detections for objects which were missed by the initial model. Export a new dete
 ground-up `detector training example`_. Make sure to set whatever threshold you set for annotation
 in the [train].sh script you use for new model training.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_20_edited_detections.jpg
    :width: 40%
    :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/iqr_20_edited_detections.jpg
 
-.. _detector training example: https://github.com/VIAME/VIAME/tree/master/examples/object_detector_training
+.. _detector training example: https://github.com/VIAME/VIAME/tree/main/examples/object_detector_training
 
 Text-Prompted Detection and Tracking
 =====================================
@@ -370,7 +370,7 @@ query pipelines will prompt for a text query string when launched. Additionally,
 interactive segmentation service can be started with the SAM3 configuration to enable
 point-click and text-based segmentation directly within the annotation view.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Perform-Text-Query.jpg
    :width: 80%
    :align: center
 
@@ -379,7 +379,7 @@ and track.*
 
 |
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Text-Query-Result1.jpg
    :width: 80%
    :align: center
 

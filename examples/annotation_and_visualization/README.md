@@ -1,13 +1,13 @@
 # User Interfaces and Visualizations
 
-This document corresponds to the [Annotation and Visualization](https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization) example folder within a VIAME desktop installation. Contained in this example are launch scripts for some of the more common graphical user interfaces (GUIs) within VIAME, alongside [CLI scripts](https://viame.readthedocs.io/en/latest/sections/examples_overview.html) for visualizing or extracting data from either computed or manually annotated detection files. Examples of the latter include drawing detection boxes on images, extracting image chips around detections, or extracting images from video files at frame rates indicated within the metadata of truth files.
+This document corresponds to the [Annotation and Visualization](https://github.com/VIAME/VIAME/blob/main/examples/annotation_and_visualization) example folder within a VIAME desktop installation. Contained in this example are launch scripts for some of the more common graphical user interfaces (GUIs) within VIAME, alongside [CLI scripts](https://viame.readthedocs.io/en/latest/sections/examples_overview.html) for visualizing or extracting data from either computed or manually annotated detection files. Examples of the latter include drawing detection boxes on images, extracting image chips around detections, or extracting images from video files at frame rates indicated within the metadata of truth files.
 
 <!-- dive-manual-toctree -->
 
 ## DIVE Interface
 
 <p align="center">
-<img src="https://github.com/Kitware/dive/blob/main/docs/images/Banner.png?raw=true" alt="image">
+<img src="../../docs/manual/_static/images/Banner.jpg" alt="image">
 </p>
 
 The DIVE interface is the most generically useful GUI within VIAME, and is the recommended default interface to use for many problems. The biggest allure is its ability to annotate multiple image sequences or videos, train AI models across these multiple sequences, then run the trained models on new sequences. This process can then be repeated with the help of the newly trained models to potentially annotate data faster, then train a newer model on significantly more data. Additional information about how to use the DIVE interface can be found in its [dedicated user manual](https://kitware.github.io/dive/) and additionally in the [tutorial videos](https://www.youtube.com/channel/viame). The interface can be launched via double clicking the "launch_dive_interface" script, either in this directory or at the top level of the installation. Alternatively a smaller version of DIVE can be installed independently of VIAME, which contains no algorithms or AI-assisted annotation.
@@ -26,45 +26,47 @@ Uses Meta's SAM2 (Segment Anything Model 2) for point-based segmentation. Provid
 Uses SAM3 for both point-based and text-based segmentation. In addition to click-based segmentation, users can type a text description of the object to segment (e.g., "fish", "scallop"). Requires a GPU and the SAM3 add-on. This is the most capable interactive segmentation option.
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Point-Segmentation.jpg" alt="image" width="80%">
 </p>
 
 *Point-based interactive segmentation in DIVE. The user clicks foreground (green) and background (red) points to generate a segmentation mask around the object.*
 
-Text queries can also be run as batch pipelines to detect, segment, and track objects across entire image sets or videos. See the [SAM3 Text-Prompted Detection and Tracking](https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation) section in the search and rapid model generation examples for details.
+Text queries can also be run as batch pipelines to detect, segment, and track objects across entire image sets or videos. See the [SAM3 Text-Prompted Detection and Tracking](https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation) section in the search and rapid model generation examples for details.
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Perform-Text-Query.jpg" alt="image" width="80%">
 </p>
 
 *SAM3 text query dialog in DIVE. Users enter a text description of the object to detect and track across the video.*
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Text-Query-Result1.jpg" alt="image" width="80%">
 </p>
 
 *Results of a SAM3 text query showing automatically detected and tracked fish with segmentation outlines.*
 
 To manually start the interactive segmentation service outside of DIVE (e.g., for scripting or integration with other tools):
 
-    source /path/to/VIAME/install/setup_viame.sh
-    python -m viame.core.interactive_segmentation \
-      --config configs/pipelines/interactive_segmenter_watershed.conf
+```bash
+source /path/to/VIAME/install/setup_viame.sh
+python -m viame.core.interactive_segmentation \
+  --config configs/pipelines/interactive_segmenter_watershed.conf
+```
 
 <!-- dive-section-end -->
 
 ## VIEW Interface
 
 <p align="center">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png" alt="image">
+<img src="../../docs/manual/_static/images/many_scallop_detections_gui.jpg" alt="image">
 </p>
 
 As part of the VIVIA package, the VIEW annotation interface is useful for displaying detections, their respective probabilities, for running existing automated detectors, and for making new annotations in imagery or video. Its main weakness is that it can only load a single sequence at a given time. Its strengths are that it has a number of enhancements for annotating very large images, e.g. satellite imagery in the form of geotiffs or nitfs. Some people also prefer its annotation style. Training over multiple sequences can be performed with the help of [project folders](https://github.com/VIAME/VIAME/tree/main/configs/prj-windows)
 
-VIEW can either be pointed directly to imagery, pointed to a compressed video file (see \[install-dir\]/configs/prj-\*/for_videos), or given an input .prj file that points to the location of input imagery and any optional settings (e.g. groundtruth, computed detections, and/or homographies for the input data). If you just want to use the tool to make annotations you don't need to specify the later three, and just need to set a DataSetSpecifier or \[reccommended\] use the File-\>New Project option to load imagery directly without a prj file. Also, see the below example guide and videos. The VIEW interface can be launched via the "launch_view_interface" script.
+VIEW can either be pointed directly to imagery, pointed to a compressed video file (see \[install-dir\]/configs/prj-\*/for_videos), or given an input .prj file that points to the location of input imagery and any optional settings (e.g. groundtruth, computed detections, and/or homographies for the input data). If you just want to use the tool to make annotations you don't need to specify the later three, and just need to set a DataSetSpecifier or \[recommended\] use the File-\>New Project option to load imagery directly without a prj file. Also, see the below example guide and videos. The VIEW interface can be launched via the "launch_view_interface" script.
 
-[Manual Annotation Guide (PDF)](https://viame.kitware.com/api/v1/item/6ab572de2d17596fb9c5d3d0/download)\
-[Example Video Overviews (Youtube)](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw)
+- [Manual Annotation Guide (PDF)](https://viame.kitware.com/api/v1/item/6ab572de2d17596fb9c5d3d0/download)
+- [Example Video Overviews (Youtube)](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw)
 
 ### Notable VIEW Shortcut Keys
 
@@ -102,12 +104,12 @@ Note: The list is not complete, but currently focusing on the most used (and new
 ## SEARCH Interface
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png" alt="image">
+<img src="../../docs/manual/_static/images/iqr_15_next_n_results.jpg" alt="image">
 </p>
 
-The search interface is a dedicated interface for performing image search for a particular exemplar image, be it a specific species or an object with a particular attribute or characteristic. A secondary proceedure allows adjudacating the system-generated responses for this query and the generation of a model for a new object category. This proceedure has a few trade offs compared to traditional approaches, including the ability to rapidly generate a machine learning model faster, at the risk of decreased accuracy (depending on the problem).
+The search interface is a dedicated interface for performing image search for a particular exemplar image, be it a specific species or an object with a particular attribute or characteristic. A secondary procedure allows adjudacating the system-generated responses for this query and the generation of a model for a new object category. This procedure has a few trade offs compared to traditional approaches, including the ability to rapidly generate a machine learning model faster, at the risk of decreased accuracy (depending on the problem).
 
-For additional information, see the dedicated [example](https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png) for it.
+For additional information, see the dedicated [example](../../docs/manual/_static/images/iqr_15_next_n_results.jpg) for it.
 
 ## CLI Tools
 

@@ -101,7 +101,7 @@ is not a valid input, as the image folder contains two possible truth files, and
 
 ## Scripts vs Direct Executable Calls
 
-All of the scripts within examples or project folders call the following exectuables under the hood. These can be called by more advanced users. Running "-?" or "-help" on each script shows a list of all potential options.
+All of the scripts within examples or project folders call the following executables under the hood. These can be called by more advanced users. Running "-?" or "-help" on each script shows a list of all potential options.
 
 viame run - bulk runs a particular algorithmic pipeline on multiple files
 

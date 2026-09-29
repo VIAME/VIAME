@@ -9,7 +9,7 @@ Video and Image Analytics for Multiple Environments (`VIAME`_) is a computer vis
 designed for do-it-yourself artificial intelligence including object detection, object tracking,
 image/video annotation, image/video search, image mosaicing, image enhancement, size measurement,
 multi-camera data processing, rapid model generation, and tools for the evaluation of different
-algorithms. Originally targetting marine species analytics, VIAME now contains many common
+algorithms. Originally targeting marine species analytics, VIAME now contains many common
 algorithms and libraries, and is also useful as a generic computer vision toolkit.
 It contains a number of standalone tools for accomplishing the above, a pipeline framework
 which can connect C/C++, python, and matlab nodes together in a multi-threaded fashion, and
@@ -26,7 +26,7 @@ Documentation Overview
 
 This manual is synced to the VIAME `"main"`_ branch and is updated frequently, though you
 may have to press ctrl-F5 to see the latest updates to avoid using your browser cache of
-this webpage if you have used it priorly. In addition to this manual, there are 4 useful
+this webpage if you have used it previously. In addition to this manual, there are 4 useful
 types of documentation:
 
 .. _"main": https://github.com/VIAME/VIAME
@@ -63,116 +63,117 @@ Contents
    sections/scoring_and_evaluation
    sections/registration_and_mosaicing
    sections/frame_level_classification
+   sections/scene_segmentation
    sections/archive_summarization
-   Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
-   Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
-   Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
+   Core C++/Python Object Types <https://kwiver.readthedocs.io/en/latest/vital/architecture.html>
+   Core Pipelining Architecture <https://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
+   Basic Pipeline Nodes <https://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
    sections/example_pipeline
    sections/plugin_creation
    sections/using_algorithms_in_code
-   KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
+   KWIVER Full Manual <https://kwiver.readthedocs.io/en/latest/>
 
 Example Capabilities
 ====================
 
-There are a number of core capapbilities within the software, click on each of the below images to learn more.
+There are a number of core capabilities within the software, click on each of the below images to learn more.
 
 Object Detection and Tracking
 
-.. image:: _static/images/many_scallop_detections_gui.png
+.. image:: _static/images/many_scallop_detections_gui.jpg
    :alt: Many scallop detections gui
    :width: 30%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/object_detection
 
-.. image:: _static/images/Capabilities_Object_Detection.png
+.. image:: _static/images/Capabilities_Object_Detection.jpg
    :alt: Capabilities object detection
    :width: 27.5%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/object_detection
 
 .. image:: _static/images/Text-Query-Result1.jpg
    :alt: Text query result
    :width: 27.5%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/object_tracking
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/object_tracking
 
 User Interfaces for Annotation, Visualization, and Detector Model Training
 
-.. image:: _static/images/dive_banner.png
+.. image:: _static/images/dive_banner.jpg
    :alt: DIVE annotator
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization
 
-.. image:: _static/images/Point-Segmentation.png
+.. image:: _static/images/Point-Segmentation.jpg
    :alt: Point segmentation
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization
 
 .. image:: _static/images/Train_From_Dive.png
    :alt: Train from dive
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/annotation_and_visualization
 
 Measuring Animal Lengths Using Metadata or Stereo
 
-.. image:: _static/images/fish_measurement_example.png
+.. image:: _static/images/fish_measurement_example.jpg
    :alt: Fish measurement example
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/size_measurement
 
 .. image:: _static/images/Calibration-Show-Features-On-Success1.jpg
    :alt: Calibration show features on success
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/size_measurement
 
-.. image:: _static/images/Stereo-Seamap-Short1.png
+.. image:: _static/images/Stereo-Seamap-Short1.jpg
    :alt: Stereo seamap short
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/size_measurement
 
 Text, Image, Video Search for Rapid Model Generation
 
-.. image:: _static/images/iqr_11_initial_results.png
+.. image:: _static/images/iqr_11_initial_results.jpg
    :alt: Iqr 11 initial results
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation
 
 .. image:: _static/images/Perform-Text-Query.jpg
    :alt: Perform text query
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/search_and_rapid_model_generation
 
 Illumination Normalization and Color Correction
 
-.. image:: _static/images/color_correct.png
+.. image:: _static/images/color_correct.jpg
    :alt: Color correct
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/image_enhancement
 
-.. image:: _static/images/Image_Filter_in_DIVE.png
+.. image:: _static/images/Image_Filter_in_DIVE.jpg
    :alt: Image filter in dive
    :width: 29%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/image_enhancement
 
 Detector and Tracker Evaluation
 
 .. image:: _static/images/Score_PRC.png
    :alt: Score prc
    :width: 20%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation
 
 .. image:: _static/images/Score_Confusion_Matrix.jpg
    :alt: Score confusion matrix
    :width: 17.5%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation
 
 .. image:: _static/images/Score_ROC.png
    :alt: Score roc
    :width: 20%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation
 
 .. image:: _static/images/Score_MAP_Table.png
    :alt: Score map table
    :width: 20%
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+   :target: https://github.com/VIAME/VIAME/tree/main/examples/scoring_and_evaluation
 
 .. |br| raw:: html
 

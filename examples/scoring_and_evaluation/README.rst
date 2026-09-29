@@ -32,7 +32,7 @@ In the per-class usage, this will not be the case, and the confidence score for 
 category will be considered regardless of other categories, and a plot/chart for a
 single category will be generated (for each category).
 
-.. _scoring and evaluation: https://github.com/VIAME/VIAME/blob/master/examples/scoring_and_evaluation
+.. _scoring and evaluation: https://github.com/VIAME/VIAME/blob/main/examples/scoring_and_evaluation
 
 Common options accepted by all scripts:
 
@@ -113,13 +113,13 @@ PRC and Confusion Matrices
 
 |prc_img| |conf_img|
 
-.. |prc_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+.. |prc_img| image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Score_PRC.png
    :width: 30%
-   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Score_PRC.png
 
-.. |conf_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+.. |conf_img| image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Score_Confusion_Matrix.jpg
    :width: 21%
-   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Score_Confusion_Matrix.jpg
 
 Scripts:
 
@@ -168,13 +168,13 @@ misclassifications between categories. The matrix header reports:
 
 |map_img| |roc_img|
 
-.. |map_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+.. |map_img| image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Score_MAP_Table.png
    :width: 30%
-   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Score_MAP_Table.png
 
-.. |roc_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
+.. |roc_img| image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Score_ROC.png
    :width: 30%
-   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
+   :target: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Score_ROC.png
 
 **Metrics Table:**
 ``--output-metrics`` writes every metric as JSON, and ``--output-summary`` writes

@@ -1,6 +1,6 @@
 # New Module Creation Examples
 
-This document corresponds to [this runable example](https://github.com/VIAME/VIAME/tree/master/examples/example_pipeline) of [these example simple plugins](https://github.com/VIAME/VIAME/tree/master/plugins/hello_world), alongside [these example plugin templates](https://github.com/VIAME/VIAME/tree/master/plugins/templates). Additionally, all of the former can be found in \[viame-install\]/examples/example_pipeline folder, \[viame-source\]/plugins/hello_world folder, and \[viame-source\]/plugins/templates folder in a VIAME installation, respectively. Throughout these folders are example object detectors, image filters, and image classifier implementations written in both Python and C++.
+This document corresponds to [this runable example](https://github.com/VIAME/VIAME/tree/main/examples/example_pipeline) of [these example simple plugins](https://github.com/VIAME/VIAME/tree/main/plugins/examples), alongside [these example plugin templates](https://github.com/VIAME/VIAME/tree/main/plugins/templates). Additionally, all of the former can be found in \[viame-install\]/examples/example_pipeline folder, \[viame-source\]/plugins/examples folder, and \[viame-source\]/plugins/templates folder in a VIAME installation, respectively. Throughout these folders are example object detectors, image filters, and image classifier implementations written in both Python and C++.
 
 ## Simple C++ Detector Plugin Example
 
@@ -24,40 +24,44 @@ The main work that has to be done to integrate a detector into the VIAME framewo
 
 Many detectors take images in OpenCV matrix format. This data structure can be extracted from the image_container_sptr that is available using the following code:
 
-    // input image is kwiver::vital::image_container_sptr image_data
-    // CV format image is extracted using the following line
-    cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+```
+// input image is kwiver::vital::image_container_sptr image_data
+// CV format image is extracted using the following line
+cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+```
 
 Now that you have the image in a compatible format, it can be passed to the detector. Detectors usually return a set of bounding boxes, each annotated with one or more classification labels. These boxes can be converted to a detected_object_set using the following pseudo-code.
 
-    // Allocate a detected object set that we will fill with new detections
-    auto detected_objects = std::make_shared<kwiver::vital::detected_object_set>();
+```
+// Allocate a detected object set that we will fill with new detections
+auto detected_objects = std::make_shared<kwiver::vital::detected_object_set>();
 
-    FOREACH bounding-box returned from detector
+FOREACH bounding-box returned from detector
 
-        // Create a bounding box from the values returned. The new box takes
-        // coordinates in the following order: left, top, right, bottom.
-        // If the detector does not return exactly these values, they are
-        // easy to calculate
-        kwiver::vital::bounding_box_d bbox( left, top, right, bot);
+    // Create a bounding box from the values returned. The new box takes
+    // coordinates in the following order: left, top, right, bottom.
+    // If the detector does not return exactly these values, they are
+    // easy to calculate
+    kwiver::vital::bounding_box_d bbox( left, top, right, bot);
 
-        // Create a new detected object type structure. This is used to hold the
-        // classification labels and associated probabilities or scores.
-        auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+    // Create a new detected object type structure. This is used to hold the
+    // classification labels and associated probabilities or scores.
+    auto dot = std::make_shared< kwiver::vital::detected_object_type >();
 
-        FOREACH pair of classification label and score
-            // Add the class name and probability to the detected object type
-            dot->set_score( class_name, probability );
-        END_FOREACH
-
-        // Now that we have processed one detected object (as defined by a bounding box)
-        // it has to be added to the detected_object_set
-        detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ));
+    FOREACH pair of classification label and score
+        // Add the class name and probability to the detected object type
+        dot->set_score( class_name, probability );
     END_FOREACH
 
-    // When all detections have been processed, the detected object set for this input
-    // image is just returned from the detect() method
-    return detected_objects;
+    // Now that we have processed one detected object (as defined by a bounding box)
+    // it has to be added to the detected_object_set
+    detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ));
+END_FOREACH
+
+// When all detections have been processed, the detected object set for this input
+// image is just returned from the detect() method
+return detected_objects;
+```
 
 ## Python Detector Plugin
 

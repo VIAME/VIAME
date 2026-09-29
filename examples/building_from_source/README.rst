@@ -7,7 +7,7 @@ See the platform-specific guides below, though the process is similar for each.
 This document corresponds to the example `located online here`_ and also to the
 building_from_source example folder in a VIAME installation.
 
-.. _located online here: https://github.com/VIAME/VIAME/tree/master/examples/building_from_source
+.. _located online here: https://github.com/VIAME/VIAME/tree/main/examples/building_from_source
 
 
 *****************
@@ -164,7 +164,7 @@ And lastly, a number of flags which build algorithms with more specialized funct
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                      |
 +------------------------------+---------------------------------------------------------------------------------------------+
 
-VIAME can be built either in the source directory tree or in a seperate build
+VIAME can be built either in the source directory tree or in a separate build
 directory (recommended). Replace "[build-directory]" with your location of choice,
 and run the following commands:
 
@@ -180,7 +180,7 @@ need to set additional cmake variables to point to dependency locations. An exam
 is below for a system with CUDA, Python, and Matlab enabled, though the versions are
 old. Please do not use CUDA <10 or python 2.7 anymore.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2017/03/cmake-options.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/cmake-options.jpg
    :width: 40%
    :align: center
 
@@ -232,9 +232,9 @@ errors in the kwiver python libraries. To bypass these errors you have 2 options
 
 1. Build VIAME in as high level as possible (e.g. C:/VIAME) or, alternatively
 2. Set the VIAME_BUILD_KWIVER_DIR path to be something small outside of your
-   superbuild location, e.g. C:/tmp/kwiver to bypass path length limits. Thi
+   superbuild location, e.g. C:/tmp/kwiver to bypass path length limits. This
    is performed, for example, in the nightly build server cmake script as an
-   example https://github.com/VIAME/VIAME/blob/master/cmake/build_server_windows.cmake
+   example https://github.com/VIAME/VIAME/blob/main/cmake/build_server_windows.cmake
 
 
 .. _tips-label:
@@ -364,7 +364,7 @@ OpenCV, Torch, etc...), or alternatively not having your CUDA headers set to be 
 
 You have enabled CUDNN but the system is unable to locate CUDNN, as the message says.
 
-Note CUDNN is installed seperately from CUDA, they are different things.
+Note CUDNN is installed separately from CUDA, they are different things.
 
 You need to set the VIAME flag CUDNN_LIBRARY to something like /usr/local/cuda/lib64/libcudnn.so.
 Alternatively you can set CUDNN_ROOT to /usr/local/cuda/lib64 manually if that's where you installed it.

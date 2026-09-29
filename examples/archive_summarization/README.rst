@@ -6,7 +6,7 @@ Archive Summarization
 This document corresponds to the `Archive Summarization`_ example folder within a VIAME
 desktop installation.
 
-.. _Archive Summarization: https://github.com/VIAME/VIAME/tree/master/examples/archive_summarization
+.. _Archive Summarization: https://github.com/VIAME/VIAME/tree/main/examples/archive_summarization
 
 Overview
 --------

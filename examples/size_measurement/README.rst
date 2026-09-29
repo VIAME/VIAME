@@ -3,7 +3,7 @@
 Size Measurement Examples
 ===========================
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/fish_measurement_example.jpg
    :width: 70%
    :align: center
 
@@ -23,7 +23,7 @@ Running the Demo
 ================
 
 This section corresponds to the `size measurement
-<https://github.com/VIAME/VIAME/tree/master/examples/size_measurement>`_ example folder
+<https://github.com/VIAME/VIAME/tree/main/examples/size_measurement>`_ example folder
 within a VIAME desktop installation. This folder contains examples and pipelines for
 computing real-world size measurements of objects (e.g., fish length) from imagery.
 
@@ -63,7 +63,7 @@ Make sure you build VIAME with `VIAME_ENABLE_PYTHON=True` and
 
 For simplicity this tutorial will assume that the VIAME source directory is
 `[viame-source]` and the build directory is `[viame-build]`. Please modify
-these as needeed to match your system setup. We also assume that you have built
+these as needed to match your system setup. We also assume that you have built
 VIAME.
 
 Additionally this example requires an extra python dependency to be installed.
@@ -188,7 +188,7 @@ With `--draw` it takes significantly longer (it runs at 0.81 Hz and takes over
 a minute to complete), but will output images like the one at the top of this
 readme as well as a CSV file.
 
-Note that the KWIVER C++ Sprokit pipline offers a significant speedup (4Hz vs
+Note that the KWIVER C++ Sprokit pipeline offers a significant speedup (4Hz vs
 2.5Hz), although it currently does not have the ability to output the algorithm
 visualization.
 
@@ -209,7 +209,7 @@ running from the DIVE interface, the pipeline will prompt for the checkerboard s
 size in real units before running. The output calibration file can then be used by the
 measurement pipelines.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Query-User.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Calibration-Query-User.jpg
    :width: 80%
    :align: center
 
@@ -218,7 +218,7 @@ the calibration pipeline.*
 
 |
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Show-Features-On-Success1.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Calibration-Show-Features-On-Success1.jpg
    :width: 80%
    :align: center
 
@@ -269,7 +269,7 @@ For stereo calibration with separate camera inputs::
 Stereo Disparity and Depth Pipelines
 -------------------------------------
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Epipolar-Search1.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Stereo-Epipolar-Search1.jpg
    :width: 80%
    :align: center
 
@@ -315,7 +315,7 @@ These pipelines compute stereo measurements from user-provided annotations (e.g.
 head/tail keypoints on fish). They read left and right camera track files, match
 detections between cameras, and triangulate 3D positions to compute lengths.
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo0.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Interactive-Stereo0.jpg
    :width: 80%
    :align: center
 
@@ -323,7 +323,7 @@ detections between cameras, and triangulate 3D positions to compute lengths.
 
 |
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo1.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Interactive-Stereo1.jpg
    :width: 80%
    :align: center
 
@@ -331,7 +331,7 @@ detections between cameras, and triangulate 3D positions to compute lengths.
 
 |
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo2.jpg
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Interactive-Stereo2.jpg
    :width: 80%
    :align: center
 
@@ -339,7 +339,7 @@ detections between cameras, and triangulate 3D positions to compute lengths.
 
 |
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Seamap-Short1.png
+.. image:: https://raw.githubusercontent.com/VIAME/VIAME/main/docs/manual/_static/images/Stereo-Seamap-Short1.jpg
    :width: 80%
    :align: center
 
@@ -428,6 +428,189 @@ to the Foundation Stereo add-on pipelines.
 
 
 .. _Calibration File Format:
+
+Stereo Measurement Settings
+---------------------------
+
+The ``compute_measurements`` process, named ``measurer`` in the stereo pipelines,
+decides which detections are paired across cameras, how the matching right-camera points
+are found, and which tracks are written out. Its settings can be edited in the pipeline
+file or overridden for a single run with ``-s``:
+
+.. code-block:: bash
+
+   kwiver runner configs/pipelines/stereo_track_and_measure_default_fish.pipe \
+     -s measurer:min_track_states=0
+
+The defaults below are those of the process itself. A pipeline file may set its own
+values, so check the ``measurer`` block of the pipeline being run.
+
+Which detections are written
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Setting
+     - Default
+     - Effect
+   * - ``min_track_states``
+     - 0
+     - Drops every track with fewer detections than this, counted across both cameras: a
+       detection seen in both cameras counts as two. Measurement still runs on every
+       frame, this only controls which tracks reach the output. Set to 0 to keep every
+       detection.
+   * - ``output_unmatched``
+     - true
+     - Writes tracks that were not paired with the other camera as separate tracks with
+       their own IDs. When false only matched pairs are written.
+   * - ``min_track_length``, ``max_track_length``
+     - 0
+     - Drops tracks with fewer or more detections than this. 0 disables the filter.
+   * - ``min_avg_surface_area``, ``max_avg_surface_area``
+     - 0
+     - Drops tracks whose average box area in pixels falls outside the range. 0 disables
+       the filter.
+   * - ``create_synthetic_detections``
+     - true
+     - For a left detection with no partner in the right camera, creates a right box
+       around the points found by ``matching_methods``. Set to false to keep the right
+       camera output to what the detector produced; left-only tracks are then not
+       measured.
+
+If a stereo pipeline returns fewer detections than the same detector run on a single
+camera, ``min_track_states`` is the first setting to check. Short tracks are common when
+frames are far apart in time.
+
+Finding the right-camera points
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``matching_methods`` is a comma-separated list of methods for locating the head and tail
+in the right camera when a left track has no right keypoints. They are tried in the
+order given until one succeeds. The default is ``input_pairs_only,template_matching``.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Method
+     - Finds the right-camera points by
+   * - ``input_pairs_only``
+     - Using the keypoints already present on the paired right detection
+   * - ``depth_projection``
+     - Projecting the left points at the fixed ``default_depth``
+   * - ``external_disparity``
+     - Reading a disparity map supplied on the ``disparity_image`` port
+   * - ``compute_disparity``
+     - Computing a disparity map from the rectified images with the configured
+       ``stereo_disparity`` algorithm
+   * - ``template_matching``
+     - Rectifying the images and searching along the epipolar line
+   * - ``epipolar_template_matching``
+     - Searching along the epipolar line in the unrectified images, with the descriptor
+       set by ``epipolar_descriptor_type``
+   * - ``feature_descriptor``
+     - Detecting and matching image features
+   * - ``ransac_feature``
+     - Matching image features and filtering them with a RANSAC fundamental matrix
+       estimate
+
+Listing ``input_pairs_only`` alone measures only detections that carry head and tail
+keypoints in both cameras, and never searches for or creates right-camera points.
+
+.. note::
+
+   The deep stereo backends return disparity as a 16-bit image scaled by 256, which cannot
+   hold a disparity above 256 pixels. Anything nearer than
+   ``focal_length * baseline / 256`` is therefore measured at the wrong range rather than
+   rejected.
+
+Pairing left and right detections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Setting
+     - Default
+     - Effect
+   * - ``detection_pairing_method``
+     - empty
+     - Pairs left and right detections that do not share a track ID. Empty disables
+       pairing. Options are ``iou``, ``calibration``, ``feature_matching``,
+       ``epipolar_iou`` and ``keypoint_projection``; a comma-separated list runs each in
+       turn on what is still unpaired.
+   * - ``detection_pairing_threshold``
+     - 0.1
+     - Minimum overlap for ``iou`` and ``epipolar_iou``, maximum reprojection error in
+       pixels for ``calibration``, and maximum average keypoint distance in pixels for
+       ``keypoint_projection``.
+   * - ``detection_pairing_require_class_match``
+     - true
+     - Only pairs detections whose top class labels agree.
+   * - ``accumulate_track_pairings``
+     - false
+     - Collects pairings over the whole sequence and resolves them once at the end, so
+       output track IDs do not change part way through.
+   * - ``pairing_resolution_method``
+     - ``most_likely``
+     - ``most_likely`` keeps the right track seen most often with each left track.
+       ``split`` makes a separate track for each consistent run.
+   * - ``detection_split_threshold``
+     - 3
+     - Frames a left and right track must be paired in before the pairing is accepted.
+       Raise it in crowded scenes.
+   * - ``max_stereo_rms``
+     - off
+     - Rejects a pairing whose triangulation error in pixels is above this. A typical
+       value is 20.
+   * - ``max_bbox_y_center_offset``
+     - off
+     - Rejects a pairing whose box centers differ in height by more than this many
+       pixels. A typical value is 30 for a side-by-side rig.
+   * - ``max_bbox_area_ratio``
+     - off
+     - Rejects a pairing whose boxes differ in area by more than this ratio. A typical
+       value is 3.
+
+The last three settings only stop a pairing from joining two tracks under one ID. The
+detections are still written, and a length computed for that frame is still recorded on
+them.
+
+What is recorded
+~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+
+   * - Setting
+     - Default
+     - Effect
+   * - ``length_aggregation_method``
+     - ``none``
+     - Combines the per-frame lengths of a paired track into an ``avg_length`` attribute
+       using ``average``, ``average_iqr`` or ``median``.
+   * - ``average_stereo_classes``
+     - false
+     - Gives both cameras of a paired track the same averaged classification.
+   * - ``class_averaging_method``
+     - ``weighted_average``
+     - ``weighted_average``, ``simple_average`` or ``weighted_scaled_by_conf``.
+   * - ``class_averaging_ignore_class``
+     - empty
+     - A class left out of the average whenever other classes are present.
+   * - ``record_head_tail_locations``
+     - false
+     - Adds the head and tail 3D positions as ``head_x``, ``head_y``, ``head_z``,
+       ``tail_x``, ``tail_y`` and ``tail_z``.
+   * - ``record_stereo_method``
+     - true
+     - Adds a ``stereo_method`` attribute naming the method that produced the
+       measurement.
+   * - ``update_right_keypoints``
+     - true
+     - Writes refined right keypoints back to the output. When false they are only used
+       to compute the length.
+
 
 Calibration File Format
 -----------------------

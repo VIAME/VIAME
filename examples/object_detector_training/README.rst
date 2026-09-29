@@ -12,12 +12,12 @@ VIAME desktop installation. VIAME provides a unified training interface for mult
 object detection frameworks. All trainers accept the same input format and are invoked
 through the ``viame train`` command with a training configuration file.
 
-.. _object detector training: https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training
+.. _object detector training: https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training
 
 For details on the available detection algorithms themselves, see the
 `object detection examples`_.
 
-.. _object detection examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detection
+.. _object detection examples: https://github.com/VIAME/VIAME/blob/main/examples/object_detection
 
 In the **DIVE** interface, training can be launched from the training menu by selecting
 a configuration. On the command line, training is launched via::

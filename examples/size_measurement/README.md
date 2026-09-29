@@ -1,7 +1,7 @@
 # Size Measurement Examples
 
 <p align="center">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png" alt="image" width="70%">
+<img src="../../docs/manual/_static/images/fish_measurement_example.jpg" alt="image" width="70%">
 </p>
 
 ## Measuring in DIVE
@@ -10,7 +10,7 @@
 
 ## Running the Demo
 
-This section corresponds to the [size measurement](https://github.com/VIAME/VIAME/tree/master/examples/size_measurement) example folder within a VIAME desktop installation. This folder contains examples and pipelines for computing real-world size measurements of objects (e.g., fish length) from imagery.
+This section corresponds to the [size measurement](https://github.com/VIAME/VIAME/tree/main/examples/size_measurement) example folder within a VIAME desktop installation. This folder contains examples and pipelines for computing real-world size measurements of objects (e.g., fish length) from imagery.
 
 VIAME supports two primary approaches to size measurement:
 
@@ -26,7 +26,7 @@ Run CMake to automatically download the demo data into this example folder. Alte
 
 Make sure you build VIAME with `VIAME_ENABLE_PYTHON=True` and `VIAME_ENABLE_OPENCV=True`.
 
-For simplicity this tutorial will assume that the VIAME source directory is `[viame-source]` and the build directory is `[viame-build]`. Please modify these as needeed to match your system setup. We also assume that you have built VIAME.
+For simplicity this tutorial will assume that the VIAME source directory is `[viame-source]` and the build directory is `[viame-build]`. Please modify these as needed to match your system setup. We also assume that you have built VIAME.
 
 Additionally this example requires an extra python dependency to be installed. On Linux or Windows, 'pip install ubelt'.
 
@@ -56,11 +56,13 @@ Computes stereo disparity/depth maps from the calibrated stereo camera imagery. 
 
 To run the process using the sprokit C++ pipeline we use the the pipeline runner:
 
-    # First move to the example directory
-    cd [viame-build]/install/examples/size_measurement
+```
+# First move to the example directory
+cd [viame-build]/install/examples/size_measurement
 
-    # The below script runs pipeline runner on the GMM motion-based measurement
-    bash measure_via_gmm_oriented_boxes.sh
+# The below script runs pipeline runner on the GMM motion-based measurement
+bash measure_via_gmm_oriented_boxes.sh
+```
 
 This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017 i7 2.8Ghz Dell laptop.
 
@@ -68,58 +70,66 @@ This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017 i
 
 The above pipeline can alternatively be run as a python script.
 
-    # move to your VIAME build directory
-    cd [viame-build]
-    # Run the setup script to setup the proper paths and environment variables
-    source install/setup_viame.sh
+```
+# move to your VIAME build directory
+cd [viame-build]
+# Run the setup script to setup the proper paths and environment variables
+source install/setup_viame.sh
 
-    # you may also want to set these environment variables
-    # export KWIVER_DEFAULT_LOG_LEVEL=debug
-    export KWIVER_DEFAULT_LOG_LEVEL=info
-    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
+# you may also want to set these environment variables
+# export KWIVER_DEFAULT_LOG_LEVEL=debug
+export KWIVER_DEFAULT_LOG_LEVEL=info
+export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
+```
 
 You should be able to run the help command
 
-    python -m viame.opencv.stereo_demo --help
+```bash
+python -m viame.opencv.stereo_demo --help
+```
 
 The script can be run on the demodata via
 
-    python -m viame.opencv.stereo_demo \
-        --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
-        --cal=camtrawl_demodata/cal.npz \
-        --out=out --draw -f
+```bash
+python -m viame.opencv.stereo_demo \
+    --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
+    --cal=camtrawl_demodata/cal.npz \
+    --out=out --draw -f
+```
 
 ### Running via the standalone script
 
 Alternatively you can run by specifying the path to opencv module (if you have a python environment you should be able to run this without even building VIAME)
 
-    # First move to the example directory
-    cd [viame-source]/examples/size_measurement
+```
+# First move to the example directory
+cd [viame-source]/examples/size_measurement
 
-    # Run the stereo_demo module directly via the path
-    python ../../plugins/opencv/stereo_demo.py \
-        --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
-        --cal=camtrawl_demodata/cal.npz \
-        --out=out --draw -f
+# Run the stereo_demo module directly via the path
+python ../../plugins/opencv/stereo_demo.py \
+    --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
+    --cal=camtrawl_demodata/cal.npz \
+    --out=out --draw -f
+```
 
 Without the `--draw` flag the above example, this example runs at about 2.5Hz, and takes 20 seconds to complete on a 2017 i7 2.8Ghz Dell laptop.
 
 With `--draw` it takes significantly longer (it runs at 0.81 Hz and takes over a minute to complete), but will output images like the one at the top of this readme as well as a CSV file.
 
-Note that the KWIVER C++ Sprokit pipline offers a significant speedup (4Hz vs 2.5Hz), although it currently does not have the ability to output the algorithm visualization.
+Note that the KWIVER C++ Sprokit pipeline offers a significant speedup (4Hz vs 2.5Hz), although it currently does not have the ability to output the algorithm visualization.
 
 ### Calibration Pipelines
 
 VIAME provides several calibration pipelines for computing camera parameters from images or video of a calibration target. The pipelines first attempt to detect a checkerboard (chessboard) pattern, and if that fails, fall back to detecting a grid of bright dots (circle grid). Detected corners or centers are accumulated across frames and used to solve for the camera intrinsics, distortion coefficients, and (for stereo) extrinsic parameters. The `square_size` parameter must be set to the real-world size of a checkerboard square (or dot spacing) in your chosen unit (e.g., millimeters) -- this value determines the scale of all subsequent measurements. When running from the DIVE interface, the pipeline will prompt for the checkerboard square size in real units before running. The output calibration file can then be used by the measurement pipelines.
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Query-User.jpg" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Calibration-Query-User.jpg" alt="image" width="80%">
 </p>
 
 *The DIVE calibration dialog prompts for the checkerboard square size before running the calibration pipeline.*
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Show-Features-On-Success1.jpg" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Calibration-Show-Features-On-Success1.jpg" alt="image" width="80%">
 </p>
 
 *Successful stereo calibration showing detected feature correspondences between left and right camera views.*
@@ -138,22 +148,26 @@ Calibrates a stereo pair from a single video or image input where left and right
 
 To run a calibration pipeline from the command line, for example:
 
-    source /path/to/VIAME/install/setup_viame.sh
-    kwiver runner configs/pipelines/utility_calibrate_single_camera.pipe \
-      -s downsampler:input_file_name=calibration_images.txt \
-      -s global:square_size=25.0
+```bash
+source /path/to/VIAME/install/setup_viame.sh
+kwiver runner configs/pipelines/utility_calibrate_single_camera.pipe \
+  -s downsampler:input_file_name=calibration_images.txt \
+  -s global:square_size=25.0
+```
 
 For stereo calibration with separate camera inputs:
 
-    kwiver runner configs/pipelines/stereo_calibrate_cameras_default.pipe \
-      -s input1:video_filename=cam1_images.txt \
-      -s input2:video_filename=cam2_images.txt \
-      -s global:square_size=25.0
+```bash
+kwiver runner configs/pipelines/stereo_calibrate_cameras_default.pipe \
+  -s input1:video_filename=cam1_images.txt \
+  -s input2:video_filename=cam2_images.txt \
+  -s global:square_size=25.0
+```
 
 ### Stereo Disparity and Depth Pipelines
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Epipolar-Search1.jpg" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Stereo-Epipolar-Search1.jpg" alt="image" width="80%">
 </p>
 
 *Stereo epipolar matching: a point selected in the left camera (cyan) is matched to its correspondence in the right camera (green/red) using epipolar geometry.*
@@ -174,25 +188,25 @@ The Foundation Stereo add-on provides a deep learning-based stereo disparity mod
 These pipelines compute stereo measurements from user-provided annotations (e.g., head/tail keypoints on fish). They read left and right camera track files, match detections between cameras, and triangulate 3D positions to compute lengths.
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo0.jpg" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Interactive-Stereo0.jpg" alt="image" width="80%">
 </p>
 
 *Setting up interactive stereo measurement in DIVE with multi-camera settings.*
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo1.jpg" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Interactive-Stereo1.jpg" alt="image" width="80%">
 </p>
 
 *Creating stereo annotations interactively -- the user draws on one camera view.*
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo2.jpg" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Interactive-Stereo2.jpg" alt="image" width="80%">
 </p>
 
 *Stereo correspondences with epipolar geometry shown across left and right views.*
 
 <p align="center">
-<img src="https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Seamap-Short1.png" alt="image" width="80%">
+<img src="../../docs/manual/_static/images/Stereo-Seamap-Short1.jpg" alt="image" width="80%">
 </p>
 
 *Stereo measurement results in DIVE showing detected objects with computed lengths displayed in the Track Details panel.*
@@ -230,37 +244,106 @@ The default fit uses 11 samples and permits at most 3 invalid or outlier samples
 
 Whether refinement touches a track that already has right head-tail keypoints is set by `disparity_keypoint_policy` (shared with per-point refinement): `keep_existing` (default) measures from the given keypoints and only generates right keypoints for tracks lacking them; `refine_unless_user` replaces tracker keypoints but keeps hand-placed lines (`stereo_user_line`); `refine_all` replaces them regardless. A rejected refinement always falls back to the existing keypoints. The same policy, sampling and fit keys apply to the Foundation Stereo add-on pipelines.
 
+### Stereo Measurement Settings
+
+The `compute_measurements` process, named `measurer` in the stereo pipelines, decides which detections are paired across cameras, how the matching right-camera points are found, and which tracks are written out. Its settings can be edited in the pipeline file or overridden for a single run with `-s`:
+
+```bash
+kwiver runner configs/pipelines/stereo_track_and_measure_default_fish.pipe \
+  -s measurer:min_track_states=0
+```
+
+The defaults below are those of the process itself. A pipeline file may set its own values, so check the `measurer` block of the pipeline being run.
+
+#### Which detections are written
+
+| Setting | Default | Effect |
+|----|----|----|
+| `min_track_states` | 0 | Drops every track with fewer detections than this, counted across both cameras: a detection seen in both cameras counts as two. Measurement still runs on every frame, this only controls which tracks reach the output. Set to 0 to keep every detection. |
+| `output_unmatched` | true | Writes tracks that were not paired with the other camera as separate tracks with their own IDs. When false only matched pairs are written. |
+| `min_track_length`, `max_track_length` | 0 | Drops tracks with fewer or more detections than this. 0 disables the filter. |
+| `min_avg_surface_area`, `max_avg_surface_area` | 0 | Drops tracks whose average box area in pixels falls outside the range. 0 disables the filter. |
+| `create_synthetic_detections` | true | For a left detection with no partner in the right camera, creates a right box around the points found by `matching_methods`. Set to false to keep the right camera output to what the detector produced; left-only tracks are then not measured. |
+
+If a stereo pipeline returns fewer detections than the same detector run on a single camera, `min_track_states` is the first setting to check. Short tracks are common when frames are far apart in time.
+
+#### Finding the right-camera points
+
+`matching_methods` is a comma-separated list of methods for locating the head and tail in the right camera when a left track has no right keypoints. They are tried in the order given until one succeeds. The default is `input_pairs_only,template_matching`.
+
+| Method | Finds the right-camera points by |
+|----|----|
+| `input_pairs_only` | Using the keypoints already present on the paired right detection |
+| `depth_projection` | Projecting the left points at the fixed `default_depth` |
+| `external_disparity` | Reading a disparity map supplied on the `disparity_image` port |
+| `compute_disparity` | Computing a disparity map from the rectified images with the configured `stereo_disparity` algorithm |
+| `template_matching` | Rectifying the images and searching along the epipolar line |
+| `epipolar_template_matching` | Searching along the epipolar line in the unrectified images, with the descriptor set by `epipolar_descriptor_type` |
+| `feature_descriptor` | Detecting and matching image features |
+| `ransac_feature` | Matching image features and filtering them with a RANSAC fundamental matrix estimate |
+
+Listing `input_pairs_only` alone measures only detections that carry head and tail keypoints in both cameras, and never searches for or creates right-camera points.
+
+> [!NOTE]
+> The deep stereo backends return disparity as a 16-bit image scaled by 256, which cannot hold a disparity above 256 pixels. Anything nearer than `focal_length * baseline / 256` is therefore measured at the wrong range rather than rejected.
+
+#### Pairing left and right detections
+
+| Setting | Default | Effect |
+|----|----|----|
+| `detection_pairing_method` | empty | Pairs left and right detections that do not share a track ID. Empty disables pairing. Options are `iou`, `calibration`, `feature_matching`, `epipolar_iou` and `keypoint_projection`; a comma-separated list runs each in turn on what is still unpaired. |
+| `detection_pairing_threshold` | 0.1 | Minimum overlap for `iou` and `epipolar_iou`, maximum reprojection error in pixels for `calibration`, and maximum average keypoint distance in pixels for `keypoint_projection`. |
+| `detection_pairing_require_class_match` | true | Only pairs detections whose top class labels agree. |
+| `accumulate_track_pairings` | false | Collects pairings over the whole sequence and resolves them once at the end, so output track IDs do not change part way through. |
+| `pairing_resolution_method` | `most_likely` | `most_likely` keeps the right track seen most often with each left track. `split` makes a separate track for each consistent run. |
+| `detection_split_threshold` | 3 | Frames a left and right track must be paired in before the pairing is accepted. Raise it in crowded scenes. |
+| `max_stereo_rms` | off | Rejects a pairing whose triangulation error in pixels is above this. A typical value is 20. |
+| `max_bbox_y_center_offset` | off | Rejects a pairing whose box centers differ in height by more than this many pixels. A typical value is 30 for a side-by-side rig. |
+| `max_bbox_area_ratio` | off | Rejects a pairing whose boxes differ in area by more than this ratio. A typical value is 3. |
+
+The last three settings only stop a pairing from joining two tracks under one ID. The detections are still written, and a length computed for that frame is still recorded on them.
+
+#### What is recorded
+
+| Setting | Default | Effect |
+|----|----|----|
+| `length_aggregation_method` | `none` | Combines the per-frame lengths of a paired track into an `avg_length` attribute using `average`, `average_iqr` or `median`. |
+| `average_stereo_classes` | false | Gives both cameras of a paired track the same averaged classification. |
+| `class_averaging_method` | `weighted_average` | `weighted_average`, `simple_average` or `weighted_scaled_by_conf`. |
+| `class_averaging_ignore_class` | empty | A class left out of the average whenever other classes are present. |
+| `record_head_tail_locations` | false | Adds the head and tail 3D positions as `head_x`, `head_y`, `head_z`, `tail_x`, `tail_y` and `tail_z`. |
+| `record_stereo_method` | true | Adds a `stereo_method` attribute naming the method that produced the measurement. |
+| `update_right_keypoints` | true | Writes refined right keypoints back to the output. When false they are only used to compute the length. |
+
 ### Calibration File Format
 
 For the npz file format the root object should be a python dict with the following keys and values:
 
-\
-   R: extrinsic rotation matrix\
-   T: extrinsic translation\
-   cameraMatrixL: dict of intrinsict parameters for the left camera\
-       fc: focal length\
-       cc: principle point\
-       alpha_c: skew\
-   cameraMatrixR: dict of intrinsict parameters for the right camera\
-       fc: focal length\
-       cc: principle point\
-       alpha_c: skew\
-   distCoeffsL: distortion coefficients for the left camera\
-   distCoeffsR: distortion coefficients for the right camera\
+- R: extrinsic rotation matrix
+- T: extrinsic translation
+- cameraMatrixL: dict of intrinsic parameters for the left camera
+    - fc: focal length
+    - cc: principal point
+    - alpha_c: skew
+- cameraMatrixR: dict of intrinsic parameters for the right camera
+    - fc: focal length
+    - cc: principal point
+    - alpha_c: skew
+- distCoeffsL: distortion coefficients for the left camera
+- distCoeffsR: distortion coefficients for the right camera
 
 For the mat file, format the root structure should be a dict with the key `Cal` whose value is a dict with the following items:
 
-\
-   om: extrinsic rotation vector (note rotation matrix is rodrigues(om))\
-   T: extrinsic translation\
-   fc_left: focal length of the left camera\
-   cc_left: principle point\
-   alpha_c_left: skew\
-   kc_left: distortion coefficients for the left camera\
-   fc_right: focal length of the right camera\
-   cc_right: principle point\
-   alpha_c_right: skew\
-   kc_right: distortion coefficients for the right camera\
+- om: extrinsic rotation vector (note rotation matrix is rodrigues(om))
+- T: extrinsic translation
+- fc_left: focal length of the left camera
+- cc_left: principal point
+- alpha_c_left: skew
+- kc_left: distortion coefficients for the left camera
+- fc_right: focal length of the right camera
+- cc_right: principal point
+- alpha_c_right: skew
+- kc_right: distortion coefficients for the right camera
 
 ### Curved fish measurement (opt-in)
 
@@ -270,28 +353,30 @@ Inputs must already be rectified, with masks, curves, disparity and calibration 
 
 After enabling the dense stereo service and waiting for `disparity_ready`, send a request such as:
 
-    {
-      "command": "measure_curve",
-      "left_image_path": "/data/left.png",
-      "right_image_path": "/data/right.png",
-      "rectified_calibration": {
-        "rectified": true,
-        "fx": 1000, "fy": 1000,
-        "cx_left": 640, "cx_right": 640, "cy": 360,
-        "baseline": 0.12
-      },
-      "left_curve": [[300, 300], [340, 280], [390, 285], [440, 320]],
-      "right_curve": [[260, 300], [300, 280], [350, 285], [400, 320]],
-      "options": {
-        "mode": "bidirectional",
-        "samples": 32,
-        "smoothing": 0.5,
-        "consistency_px": 1.5,
-        "centerline_tolerance_px": 5.0,
-        "max_length_disagreement": 0.1,
-        "max_depth_ratio": 2.0
-      }
-    }
+```
+{
+  "command": "measure_curve",
+  "left_image_path": "/data/left.png",
+  "right_image_path": "/data/right.png",
+  "rectified_calibration": {
+    "rectified": true,
+    "fx": 1000, "fy": 1000,
+    "cx_left": 640, "cx_right": 640, "cy": 360,
+    "baseline": 0.12
+  },
+  "left_curve": [[300, 300], [340, 280], [390, 285], [440, 320]],
+  "right_curve": [[260, 300], [300, 280], [350, 285], [400, 320]],
+  "options": {
+    "mode": "bidirectional",
+    "samples": 32,
+    "smoothing": 0.5,
+    "consistency_px": 1.5,
+    "centerline_tolerance_px": 5.0,
+    "max_length_disagreement": 0.1,
+    "max_depth_ratio": 2.0
+  }
+}
+```
 
 Frame paths must identify the current frame; for video, also supply its current `frame_time`. Requests before disparity is ready fail and can be retried. The command is also routed by the unified interactive service.
 
@@ -308,7 +393,9 @@ Responses contain `curved_length`, `straight_length`, `curvature_ratio`, per-dir
 
 Offline processing of saved disparity maps is also available:
 
-    python -m viame.core.curved_measurement request.json --output measurement.json
+```bash
+python -m viame.core.curved_measurement request.json --output measurement.json
+```
 
 Use the same JSON fields as above, adding `left_disparity_path` and, for bidirectional mode, `right_disparity_path` to NumPy `.npy` maps. Offline maps must already be computed; this utility does not load a model. Set `disparity_scale` to 256 for VIAME uint16 disparity, or 1 (default) for floating point pixel disparity. Both maps represent the positive quantity `x_left - x_right`, indexed on their respective source image grids; a negated right disparity map must be converted first. All paths are resolved against the working directory. Independent right disparity also enables round-trip checking in offline `left` mode.
 

@@ -3,12 +3,12 @@
 ## Overview
 
 <p align="center">
-<a href="https://github.com/VIAME/VIAME/tree/master/examples/object_detection"><img src="http://www.viametoolkit.org/wp-content/uploads/2018/02/skate_detection.png" alt="image" width="40%"></a>
+<a href="https://github.com/VIAME/VIAME/tree/main/examples/object_detection"><img src="../../docs/manual/_static/images/skate_detection.jpg" alt="image" width="40%"></a>
 </p>
 
-This document corresponds to the [object detection](https://github.com/VIAME/VIAME/blob/master/examples/object_detection) example folder within a VIAME desktop installation. Object detection identifies and localizes objects of interest within images or video frames, producing bounding box detections with associated class labels and confidence scores.
+This document corresponds to the [object detection](https://github.com/VIAME/VIAME/blob/main/examples/object_detection) example folder within a VIAME desktop installation. Object detection identifies and localizes objects of interest within images or video frames, producing bounding box detections with associated class labels and confidence scores.
 
-VIAME includes a variety of detection algorithms spanning classical computer vision, traditional machine learning, and modern deep learning approaches. Most detectors are trainable from user-provided annotations -- see the [object detector training examples](https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training) for details on training custom models.
+VIAME includes a variety of detection algorithms spanning classical computer vision, traditional machine learning, and modern deep learning approaches. Most detectors are trainable from user-provided annotations -- see the [object detector training examples](https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training) for details on training custom models.
 
 Detection pipelines can be run from the command line using the `viame` tool, or from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL). In the **DIVE** interface, pipelines are organized into menu groups based on the first word of the pipeline file name. Detection pipelines appear under the **Detector** menu (e.g. Detector -\> Generic Proposals for `detector_generic_proposals.pipe`). In the **VIEW** interface, all pipelines are available in the pipelines dropdown.
 
@@ -24,7 +24,7 @@ Detection pipelines are grouped in the DIVE menus by the first word of the pipel
 
 ## Deep Learning Detectors
 
-Deep learning detectors are the most common choice for production use. They learn to recognize objects from annotated training data and typically require a GPU for both training and inference. VIAME supports several deep learning detection frameworks. For details on training these detectors, see the [object detector training examples](https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training).
+Deep learning detectors are the most common choice for production use. They learn to recognize objects from annotated training data and typically require a GPU for both training and inference. VIAME supports several deep learning detection frameworks. For details on training these detectors, see the [object detector training examples](https://github.com/VIAME/VIAME/blob/main/examples/object_detector_training).
 
 ### Netharn Cascade Faster R-CNN (CFRNN)
 
@@ -266,18 +266,24 @@ Example CLI scripts in this folder include:
 
 To run an example on Linux:
 
-    ./run_generic_proposals.sh
+```bash
+./run_generic_proposals.sh
+```
 
 Or on Windows:
 
-    run_generic_proposals.bat
+```
+run_generic_proposals.bat
+```
 
 Detections are written to `computed_detections.csv` in the current directory. The input images are specified in a text file (one image path per line), which can be modified to point to your own imagery.
 
 Detection parameters can be overridden from the command line using the `-s` flag:
 
-    viame configs/pipelines/detector_generic_proposals.pipe \
-          -s input:video_filename=my_images.txt
+```bash
+viame configs/pipelines/detector_generic_proposals.pipe \
+      -s input:video_filename=my_images.txt
+```
 
 ## Running Examples in the GUI
 

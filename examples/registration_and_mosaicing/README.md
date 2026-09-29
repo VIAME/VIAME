@@ -1,6 +1,6 @@
 # Registration and Mosaicing
 
-This document corresponds to the [registration and mosaicing](https://github.com/VIAME/VIAME/blob/master/examples/registration_and_mosaicing) example folder within a VIAME desktop installation. This directory stores assorted scripts for performing registration and mosaicing, either across an image sequence with a certain amount of overlap between frames, or across modalities (e.g. optical and thermal imagery) for more specialized use cases.
+This document corresponds to the [registration and mosaicing](https://github.com/VIAME/VIAME/blob/main/examples/registration_and_mosaicing) example folder within a VIAME desktop installation. This directory stores assorted scripts for performing registration and mosaicing, either across an image sequence with a certain amount of overlap between frames, or across modalities (e.g. optical and thermal imagery) for more specialized use cases.
 
 ## Registration Pipelines in DIVE
 
@@ -12,7 +12,9 @@ The `generate_mosaic_for_list` script shows the simplest way to generate a mosai
 
 A basic invocation of `mosaic.py` is as follows (assuming `setup_viame.sh` or `setup_viame.bat` has been run):
 
-    mosaic.py --step 1 mosaic.jpg homographies.txt image_list.txt
+```
+mosaic.py --step 1 mosaic.jpg homographies.txt image_list.txt
+```
 
 This generates a mosaic image named `mosaic.jpg` from a file containing homographies, here `homographies.txt`, and a file listing images, one per line, here `image_list.txt`. The homography file can be generated using one of the stabilization pipelines, as is done in the `generate_mosaic_for_list` script.
 
@@ -40,7 +42,9 @@ The last option, `--optimize-fit`, applies an extra homography to the output tha
 
 If you have coregistered image sequences, e.g. from a multi-camera platform, `mosaic.py` can also handle that. The basic form is:
 
-    mosaic.py --step 1 mosaic.jpg homogs1.txt images1.txt homogs2.txt images2.txt
+```
+mosaic.py --step 1 mosaic.jpg homogs1.txt images1.txt homogs2.txt images2.txt
+```
 
 That is, the homography files and image lists associated with additional sequences are added in alternating fashion. Appropriate homography files are for instance produced by the `suppressor_sea_lion_3-cam` pipeline, or anything using `many_image_stabilizer`. All the previous options still apply, but note that frame selection applies individually to each sequence. Thus passing `--step 2 --stop 6` instead of `--step 1` above would draw images 0, 2, and 4 from the first sequence as well as images 0, 2, and 4 from the second sequence. The order of drawing in this case is (sequence 1) 0, (sequence 2) 0, (sequence 1) 2, (sequence 2) 2, (sequence 1) 4, (sequence 2) 4.
 
@@ -48,7 +52,9 @@ That is, the homography files and image lists associated with additional sequenc
 
 For overhead / benthic surveys (single camera or a PORT/STAR/CENTER multi-camera rig), `register.py` chains frame-to-frame affine registrations from an anchor frame to compute, for every frame, the region already observed in previous imagery — split into `prior_coverage_sequential` (same camera), `prior_coverage_cross_camera` (adjacent rig camera, via a robust rig-constant consensus transform) and `prior_coverage_revisit` (earlier passes, loop closures, or earlier sites/days in multi-folder runs) polygon classes, plus a `revisits.csv` event summary, a footprint map and a thumbnail visualization. The `generate_mappings_sequential` script invokes it without metadata:
 
-    register.py <folder> --method hybrid --output out
+```
+register.py <folder> --method hybrid --output out
+```
 
 Without GPS the site is pseudo-georeferenced from the registration chains (within-site coverage and revisits only), and open-water gaps are bridged by a moving average of the chained motion.
 
@@ -74,7 +80,9 @@ To produce a VIAME detection CSV of previously-observed regions for all cameras 
 
 Revisit / loop-closure events — where the platform leaves a location and later returns to image the same ground — are detected by `register.py` through its ground-occupancy grid; the `detect_site_revisits` script runs it in `--revisits-only` mode, which skips the per-frame coverage CSV and thumbnails:
 
-    register.py <folder> --method hybrid --revisits-only --output out
+```
+register.py <folder> --method hybrid --revisits-only --output out
+```
 
 It writes a `revisits.csv` listing, for each frame that re-covers previously seen ground, the source image / pass / day, the overlapping fraction, and whether a direct land-to-land feature match confirmed the event. Use `--method metadata` for a fast GPS-only pass.
 

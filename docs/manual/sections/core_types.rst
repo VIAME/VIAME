@@ -1,1 +1,1 @@
-.. include:: ../../../packages/kwiver/docs/manual/vital/architecture.rst
+.. include:: ../../../packages/kwiver/doc/manuals/vital/architecture.rst
