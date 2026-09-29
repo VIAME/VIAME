@@ -595,6 +595,16 @@ target_include_directories( viame_embedded_pipeline PUBLIC
 target_link_libraries( viame_embedded_pipeline
   PUBLIC kwiver::kwiver_adapter
   PRIVATE kwiver::sprokit_pipeline_util kwiver::vital_config )
+# pipeline_builder.h is a private sprokit header, and the installed copy of
+# pipe_bakery.h it pulls in includes the private cluster_info.h, which KWIVER
+# does not install. Point the quote-include search at the private headers.
+find_path( SPROKIT_PIPELINE_UTIL_PRIVATE_DIR cluster_info.h
+  PATHS ${KWIVER_INCLUDE_DIRS} PATH_SUFFIXES sprokit/pipeline_util
+  NO_DEFAULT_PATH )
+if( SPROKIT_PIPELINE_UTIL_PRIVATE_DIR )
+  target_include_directories( viame_embedded_pipeline PRIVATE
+    ${SPROKIT_PIPELINE_UTIL_PRIVATE_DIR} )
+endif()
 set_target_properties( viame_embedded_pipeline PROPERTIES
   SOVERSION ${VIAME_VERSION_MAJOR} )
 kwiver_install_headers( embedded_pipeline.h SUBDIR viame )
