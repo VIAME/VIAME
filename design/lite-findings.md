@@ -5197,3 +5197,67 @@ wrong on three.
 **Neither of these was going to be found by testing**, on a platform with no
 CI, in code that compiles only there. Reading them was the whole of the
 method, and it was worth doing twice.
+
+## 2.94 A wheel's tools are not one level below the prefix, and the config search assumed they were
+
+`pipeline_runner` builds its config search path from
+`get_executable_path() + "/.."`, which in an install means `<prefix>` and
+finds `<prefix>/configs`. A wheel puts the tools in `{data}/libexec` on POSIX
+and `{data}/Library/bin` on Windows -- beside their libraries, which is what
+the loader needs -- and the configs in `{data}/configs`. So that last search
+location pointed at `<env>/Library` and missed them.
+
+The symptom is specific and misleading: `viame runner /abs/path/to/x.pipe`
+fails on the *first `include`* with "could not be found in search path",
+naming a file that is sitting next to the one it just read. It works from
+inside `configs/pipelines`, because the working directory is always searched
+first -- so whether the wheel works depends on where the caller is standing.
+
+The launchers set `KWIVER_CONFIG_PATH` now. **What made this invisible until
+a pipeline was actually run**: `pipe-check` and the golden suite both run
+with the tree's own layout, where the assumption holds.
+
+## 2.95 A config key was dropped in the port, and it changes the answer
+
+`detector_motion_three_frame_diff.pipe` sets
+`detect_heat_map:closing_radius`. Both branches ship that pipeline, byte for
+byte. `detect_heat_map` here declares ten parameters and that is not one of
+them, so the process refuses the key -- "not required or desired:
+closing_radius" -- and the pipeline cannot be configured at all. On `main`
+the algorithm comes from the kwiver submodule, which does accept it.
+
+It is not a spelling difference to be waved through. Measured on the desktop
+build over a nine-frame sequence, the same pipeline gives **78 detections at
+`closing_radius 0` and 109 at `4`** -- so a version that silently defaulted
+the key would be worse than one that refuses it.
+
+`morphology.h` already has the erode and dilate a closing is built from, so
+what went missing is the parameter and its application, not the primitive.
+Restoring it needs kwiver's element shape and default to match, which is not
+in this tree -- recorded rather than guessed at.
+
+**This is the shape finding 2.78 predicted**: resolution is not
+configuration, and this is one of the 242 pipelines checked only for
+spelling. It was found by running the pipeline, which is what P12-T01 is for.
+
+## 2.96 What the ported algorithms actually agree on, measured against a release
+
+`main`'s v0.23.3 Windows desktop build and this branch's wheel, same
+pipeline file on each side, same inputs:
+
+| pipeline | result |
+|---|---|
+| `detector_simple_hough` | identical, byte for byte, apart from the export timestamp |
+| `detector_gmm_motion` | same detection, same bbox, same class; one polygon vertex of 21 differs by one pixel |
+| `detector_calibration_target` | 240 corners, same count per frame; 95 bit-identical, 89.6% within 0.01 px, 99.2% within 0.5 px, median 0.001 px, two corners in one frame at 1.07 and 3.27 px |
+| `detector_motion_three_frame_diff` | refuses to configure on this branch; see 2.95 |
+
+Corner *detection* agrees exactly -- same corners, same count, same order.
+What differs is sub-pixel refinement, at a scale consistent with the
+tolerances the port was accepted at, plus two outliers worth a look before
+anyone calls the calibration path finished.
+
+A caution on method: comparing the two CSVs row by row put the worst
+displacement at 111 px, which is not a disagreement about where a corner is
+but about what order to list them in. Matched nearest-neighbour within a
+frame, the worst is 3.27 px. **Row order is not part of the contract.**
