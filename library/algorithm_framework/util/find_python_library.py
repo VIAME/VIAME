@@ -45,12 +45,51 @@ def _library_dirs():
     return seen
 
 
+def _windows_library():
+    """
+    The DLL a Windows python loads, or None.
+
+    Windows reports none of LIBDIR, LIBPL, INSTSONAME, LDLIBRARY or
+    Py_ENABLE_SHARED, so every branch below falls through to the generic
+    search -- which looks for `python3.12.*` under `<prefix>/libs`. The
+    library is `python312.dll`: major and minor run together, no dot, no
+    `lib` prefix, and it sits beside the interpreter rather than in a
+    library directory. `<prefix>/libs` holds `python312.lib`, the import
+    library, which is not loadable. So nothing matched and the caller
+    logged "Cannot load python library from interpretor or env" on every
+    run, on a platform where the symbols were already there through the
+    direct link -- an error that meant nothing and hid ones that did.
+
+    The import library is deliberately not a fallback: the caller passes
+    this to LoadLibrary.
+    """
+    if os.name != "nt":
+        return None
+
+    name = "python{}{}.dll".format(sys.version_info.major,
+                                   sys.version_info.minor)
+
+    for root in (sysconfig.get_config_var("BINDIR"),
+                 sys.base_prefix, sys.prefix):
+        if not root:
+            continue
+        candidate = os.path.join(root, name)
+        if os.path.exists(candidate):
+            return candidate
+
+    return None
+
+
 def find_python_library():
     """
     Get python library based on sysconfig
     Based on https://github.com/scikit-build/scikit-build/blob/master/skbuild/cmaker.py#L335
     :returns a location python library, or an empty string
     """
+    windows = _windows_library()
+    if windows:
+        return windows
+
     dirs = _library_dirs()
 
     # A shared python names its library directly.

@@ -104,6 +104,14 @@ register_factories_impl( viame::registry& vpm )
     return;
   }
 
+  // Preloading libpython with RTLD_GLOBAL is a POSIX arrangement: it puts its
+  // symbols where an extension module loaded afterwards can see them.
+  // Windows resolves them through the import library when the module loads,
+  // so there is nothing to preload -- and `load_python_library_from_interpretor`
+  // is an empty shell there, which meant every Windows run reported that it
+  // could not do a thing it had never attempted. `VITAL_LOAD_PYLIB_SYM` is
+  // defined only where the mechanism exists; see `python.cmake`.
+#ifdef VITAL_LOAD_PYLIB_SYM
   bool python_library_loaded = load_python_library_from_env();
   if( !python_library_loaded )
   {
@@ -123,6 +131,7 @@ register_factories_impl( viame::registry& vpm )
   {
     LOG_ERROR(logger, "Cannot load python library from interpretor or env" );
   }
+#endif
   // Load python modules
   {
     pybind11::gil_scoped_acquire acquire;

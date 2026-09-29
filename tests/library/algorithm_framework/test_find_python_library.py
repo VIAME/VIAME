@@ -8,10 +8,14 @@ uses to preload libpython when `PYTHON_LIBRARY` is not set.
 `setup_viame.sh` stopped setting it in P10-T01, and on Debian and Ubuntu the
 finder then returned nothing: their python reports a `LIBDIR` that already
 has the multiarch directory in it, and the finder appended that directory
-again. Every `viame` run logged an error for it. These fake both layouts that
-matter -- a distribution's and a CPython built from source into the install --
-over real files, and load the module from the source tree, so nothing about
-the machine running the test decides the result.
+again. Every `viame` run logged an error for it. These fake every layout that
+matters -- a distribution's, a CPython built from source into the install, and
+Windows -- over real files, and load the module from the source tree, so
+nothing about the machine running the test decides the result.
+
+Windows was the same failure again for a different reason: it reports none of
+the variables the search keys on, and its library is `python312.dll`, with no
+dot and no `lib`, beside the interpreter rather than under `libs`.
 """
 
 import importlib.util
@@ -33,6 +37,11 @@ VER = "%d.%d" % sys.version_info[:2]
 SONAME = "libpython%s.so.1.0" % VER
 DEV_LINK = "libpython%s.so" % VER
 STATIC = "libpython%s.a" % VER
+
+# Windows runs major and minor together: `python312.dll`, `python312.lib`.
+WIN_VER = "%d%d" % sys.version_info[:2]
+WIN_DLL = "python%s.dll" % WIN_VER
+WIN_IMPORT_LIB = "python%s.lib" % WIN_VER
 
 
 def load_finder():
@@ -62,6 +71,7 @@ def test_debian_multiarch_libdir(tmp_path, monkeypatch):
     shared = touch(libdir / SONAME)
     touch(libdir / DEV_LINK)
     finder = load_finder()
+    monkeypatch.setattr(os, "name", "posix")
     fake_config(monkeypatch, finder, {
         "LIBDIR": str(libdir),
         "LIBPL": str(tmp_path / "usr" / "lib" / ("python" + VER) / "config"),
@@ -83,6 +93,7 @@ def test_cpython_built_into_the_install(tmp_path, monkeypatch):
     shared = touch(libdir / SONAME)
     dev_link = touch(libdir / DEV_LINK)
     finder = load_finder()
+    monkeypatch.setattr(os, "name", "posix")
     fake_config(monkeypatch, finder, {
         "LIBDIR": str(libdir),
         "LDLIBRARY": DEV_LINK,
@@ -100,11 +111,47 @@ def test_static_python_finds_nothing_rather_than_something_wrong(tmp_path, monke
     libdir = tmp_path / "lib"
     libdir.mkdir()
     finder = load_finder()
+    monkeypatch.setattr(os, "name", "posix")
     fake_config(monkeypatch, finder, {
         "LIBDIR": str(libdir),
         "LDLIBRARY": STATIC,
         "LIBRARY": STATIC,
         "MULTIARCH": "",
         "Py_ENABLE_SHARED": 0,
+    })
+    assert finder.find_python_library() == ""
+
+
+def test_windows_finds_the_dll_beside_the_interpreter(tmp_path, monkeypatch):
+    # python-build-standalone, and every other Windows CPython: the DLL sits
+    # in the prefix itself, and LIBDIR, LIBPL, INSTSONAME, LDLIBRARY and
+    # Py_ENABLE_SHARED are all unreported.
+    prefix = tmp_path / "python"
+    dll = touch(prefix / WIN_DLL)
+    touch(prefix / "libs" / WIN_IMPORT_LIB)
+    finder = load_finder()
+    monkeypatch.setattr(os, "name", "nt")
+    monkeypatch.setattr(sys, "prefix", str(prefix))
+    monkeypatch.setattr(sys, "base_prefix", str(prefix))
+    fake_config(monkeypatch, finder, {
+        "BINDIR": str(prefix),
+        "LIBDEST": str(prefix / "Lib"),
+    })
+    assert finder.find_python_library() == dll
+
+
+def test_windows_never_returns_the_import_library(tmp_path, monkeypatch):
+    # `<prefix>/libs/python312.lib` is for linking against python, and the
+    # caller passes this path to LoadLibrary. Answering "none" is right;
+    # answering with the import library would fail further away from here.
+    prefix = tmp_path / "python"
+    touch(prefix / "libs" / WIN_IMPORT_LIB)
+    finder = load_finder()
+    monkeypatch.setattr(os, "name", "nt")
+    monkeypatch.setattr(sys, "prefix", str(prefix))
+    monkeypatch.setattr(sys, "base_prefix", str(prefix))
+    fake_config(monkeypatch, finder, {
+        "BINDIR": str(prefix),
+        "LIBDEST": str(prefix / "Lib"),
     })
     assert finder.find_python_library() == ""
