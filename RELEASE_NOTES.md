@@ -1,3 +1,11 @@
+v0.23.5 - 9/29/2026
+===================
+
+
+- Restore training configs missing from the 0.23.4 python whl
+
+
+
 v0.23.4 - 9/29/2026
 ===================
 
