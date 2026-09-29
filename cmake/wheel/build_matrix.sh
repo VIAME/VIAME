@@ -13,6 +13,13 @@
 # touches the python API is recompiled per version -- nothing third party is
 # rebuilt, torch included, which comes from pip at install time.
 #
+# Where the interpreters come from. By default each version is a pinned
+# python-build-standalone CPython that the configure downloads and unpacks
+# into that tree's install prefix, so the matrix needs no python but the
+# one running CMake, and every machine builds against the same five. Pass
+# `--system-python` to build against `python3.X` on PATH instead, which is
+# what a distribution-python build wants.
+#
 # A version that fails does not stop the others. Each one's log is kept and
 # the summary at the end says which wheels exist.
 
@@ -30,6 +37,7 @@ Options:
   --versions "..."  space separated              (default: $VERSIONS_DEFAULT)
   --jobs N          make -j                      (default: nproc/2, min 1)
   --cmake-arg ARG   passed to every configure; repeatable
+  --system-python   build against python3.X on PATH, not a downloaded CPython
   --keep-going      no effect; failures never stop the matrix (kept for clarity)
   --help
 USAGE
@@ -40,6 +48,7 @@ BUILD_ROOT=""
 VERSIONS="$VERSIONS_DEFAULT"
 JOBS=""
 CMAKE_ARGS=()
+STANDALONE=1
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -48,6 +57,7 @@ while [ $# -gt 0 ]; do
     --versions)   VERSIONS="$2";   shift 2 ;;
     --jobs)       JOBS="$2";       shift 2 ;;
     --cmake-arg)  CMAKE_ARGS+=("$2"); shift 2 ;;
+    --system-python) STANDALONE=0; shift ;;
     --keep-going) shift ;;
     --help|-h)    usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -81,47 +91,68 @@ echo
 declare -a RESULTS=()
 
 for version in $VERSIONS; do
-  python_exe="$(command -v "python${version}" 2>/dev/null || true)"
+  python_exe=""
 
-  if [ -z "$python_exe" ]; then
-    echo "== python${version}: not installed, skipping"
-    RESULTS+=("${version}|skipped|no python${version} on PATH")
-    continue
+  if [ "$STANDALONE" -eq 0 ]; then
+    python_exe="$(command -v "python${version}" 2>/dev/null || true)"
+
+    if [ -z "$python_exe" ]; then
+      echo "== python${version}: not installed, skipping"
+      RESULTS+=("${version}|skipped|no python${version} on PATH")
+      continue
+    fi
   fi
 
   tree="$BUILD_ROOT/build-py${version}"
   log="$BUILD_ROOT/build-py${version}.log"
   prefix="$tree/install"
 
-  echo "== python${version} ($python_exe)"
+  echo "== python${version} (${python_exe:-python-build-standalone})"
   echo "   tree $tree"
   echo "   log  $log"
 
-  # VIAME calls `find_package( Python )`, whose default FIND_STRATEGY is
-  # VERSION: it takes the *highest* interpreter it can see, not the one asked
-  # for. With 3.10 to 3.14 all on PATH that silently builds every tree against
-  # the newest -- it picked 3.14 for the 3.10 tree, and surfaced three hundred
-  # files later as setuptools missing, since `install_egg_info` runs
-  # `${Python_EXECUTABLE}`. `Python_EXECUTABLE` is the variable that matters,
-  # not `PYTHON_EXECUTABLE`; LOCATION and a root pin it.
-  python_root="$( "$python_exe" -c 'import sys, os; print(os.path.dirname(os.path.dirname(sys.executable)))' )"
+  PYTHON_ARGS=()
 
-  # Build prerequisites, in the interpreter being built against:
-  # `install_egg_info` runs `setup.py` with it and a fresh standalone
-  # interpreter has no setuptools. `--break-system-packages` because a
-  # uv-managed interpreter is marked externally managed under PEP 668 and
-  # refuses otherwise; these are throwaway build interpreters.
-  #
-  # Checked rather than warned about. Without setuptools the build runs for
-  # several minutes and three hundred files before `install_egg_info` fails,
-  # and a warning at the top has long scrolled away by then.
-  "$python_exe" -m pip install --quiet --break-system-packages \
-      --upgrade setuptools wheel >/dev/null 2>&1 || true
+  if [ "$STANDALONE" -eq 1 ]; then
+    # The configure downloads the pinned CPython for this series into the
+    # tree's install prefix and points FindPython at it. That module also
+    # puts setuptools in it, which is what the branch below does by hand.
+    PYTHON_ARGS=( -DVIAME_PYTHON_STANDALONE=ON
+                  -DVIAME_PYTHON_STANDALONE_VERSION="$version"
+                  -DVIAME_BUILD_PYTHON_FROM_SOURCE=OFF )
+  else
+    # VIAME calls `find_package( Python )`, whose default FIND_STRATEGY is
+    # VERSION: it takes the *highest* interpreter it can see, not the one asked
+    # for. With 3.10 to 3.14 all on PATH that silently builds every tree against
+    # the newest -- it picked 3.14 for the 3.10 tree, and surfaced three hundred
+    # files later as setuptools missing, since `install_egg_info` runs
+    # `${Python_EXECUTABLE}`. `Python_EXECUTABLE` is the variable that matters,
+    # not `PYTHON_EXECUTABLE`; LOCATION and a root pin it.
+    python_root="$( "$python_exe" -c 'import sys, os; print(os.path.dirname(os.path.dirname(sys.executable)))' )"
 
-  if ! "$python_exe" -c "import setuptools" >/dev/null 2>&1; then
-    echo "   no setuptools for python${version} and it could not be installed"
-    RESULTS+=("${version}|failed|setuptools missing; install_egg_info would fail")
-    continue
+    # Build prerequisites, in the interpreter being built against:
+    # `install_egg_info` runs `setup.py` with it and a fresh standalone
+    # interpreter has no setuptools. `--break-system-packages` because a
+    # uv-managed interpreter is marked externally managed under PEP 668 and
+    # refuses otherwise; these are throwaway build interpreters.
+    #
+    # Checked rather than warned about. Without setuptools the build runs for
+    # several minutes and three hundred files before `install_egg_info` fails,
+    # and a warning at the top has long scrolled away by then.
+    "$python_exe" -m pip install --quiet --break-system-packages \
+        --upgrade setuptools wheel >/dev/null 2>&1 || true
+
+    if ! "$python_exe" -c "import setuptools" >/dev/null 2>&1; then
+      echo "   no setuptools for python${version} and it could not be installed"
+      RESULTS+=("${version}|failed|setuptools missing; install_egg_info would fail")
+      continue
+    fi
+
+    PYTHON_ARGS=( -DPython_EXECUTABLE="$python_exe"
+                  -DPython_ROOT_DIR="$python_root"
+                  -DPython_FIND_STRATEGY=LOCATION
+                  -DPython3_EXECUTABLE="$python_exe"
+                  -DPYTHON_EXECUTABLE="$python_exe" )
   fi
 
   mkdir -p "$tree"
@@ -132,11 +163,7 @@ for version in $VERSIONS; do
     cmake -S "$SOURCE_DIR" -B "$tree" \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX="$prefix" \
-          -DPython_EXECUTABLE="$python_exe" \
-          -DPython_ROOT_DIR="$python_root" \
-          -DPython_FIND_STRATEGY=LOCATION \
-          -DPython3_EXECUTABLE="$python_exe" \
-          -DPYTHON_EXECUTABLE="$python_exe" \
+          "${PYTHON_ARGS[@]}" \
           -DVIAME_ENABLE_PYTHON=ON \
           "${CMAKE_ARGS[@]+"${CMAKE_ARGS[@]}"}" &&
     echo "### build" &&

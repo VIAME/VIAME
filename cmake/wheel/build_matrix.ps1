@@ -12,9 +12,15 @@ win_amd64 and manylinux wheels are separate artifacts that have to be built on
 the machine they are for -- this script produces the Windows column of that
 matrix and build_matrix.sh produces the Linux one.
 
-Interpreters are found with the `py` launcher when it is present, since that
-is how side-by-side pythons are normally installed on Windows, and by name on
-PATH otherwise.
+By default each version is a pinned python-build-standalone CPython that the
+configure downloads and unpacks into that tree's install prefix. That way the
+matrix needs no python installed but the one running CMake -- five side-by-side
+Windows pythons is a machine setup step that mostly has not happened -- and
+every machine builds against the same five interpreters.
+
+-SystemPython instead finds interpreters with the `py` launcher when it is
+present, since that is how side-by-side pythons are normally installed on
+Windows, and by name on PATH otherwise.
 
 **CUDA resolution differs from Linux and is worth knowing about.** Windows has
 no RUNPATH, so nothing is patched into the binaries. `_add_windows_dll_
@@ -30,6 +36,9 @@ A version that fails does not stop the others.
 
 .EXAMPLE
   .\cmake\wheel\build_matrix.ps1 -Build C:\wheels -Versions 3.10,3.11 -Jobs 8
+
+.EXAMPLE
+  .\cmake\wheel\build_matrix.ps1 -Build C:\wheels -SystemPython
 #>
 [CmdletBinding()]
 param(
@@ -39,6 +48,7 @@ param(
     [string[]] $Versions = @('3.10', '3.11', '3.12', '3.13', '3.14'),
     [int]      $Jobs     = 0,
     [string]   $Generator = 'Ninja',
+    [switch]   $SystemPython,
     [string[]] $CMakeArg = @()
 )
 
@@ -78,35 +88,56 @@ Write-Host ""
 $results = @()
 
 foreach ($version in $Versions) {
-    $python = Find-Python $version
+    $python = $null
 
-    if (-not $python) {
-        Write-Host "== python $version : not installed, skipping"
-        $results += [pscustomobject]@{ Version = $version; Result = 'skipped'
-                                       Detail = 'no interpreter found' }
-        continue
+    if ($SystemPython) {
+        $python = Find-Python $version
+
+        if (-not $python) {
+            Write-Host "== python $version : not installed, skipping"
+            $results += [pscustomobject]@{ Version = $version; Result = 'skipped'
+                                           Detail = 'no interpreter found' }
+            continue
+        }
     }
 
     $tree   = Join-Path $Build "build-py$version"
     $log    = Join-Path $Build "build-py$version.log"
     $prefix = Join-Path $tree 'install'
 
-    Write-Host "== python $version ($python)"
+    $origin = if ($python) { $python } else { 'python-build-standalone' }
+    Write-Host "== python $version ($origin)"
     Write-Host "   tree $tree"
     Write-Host "   log  $log"
 
     New-Item -ItemType Directory -Force -Path $tree | Out-Null
     $started = Get-Date
 
+    # The standalone module downloads the pinned CPython for this series into
+    # the tree's install prefix, points FindPython at it and puts setuptools
+    # in it -- `install_egg_info` needs that and a fresh CPython has none.
+    #
+    # With a system python, FindPython's default strategy is VERSION, which
+    # takes the highest interpreter it can see rather than the one asked for,
+    # so the location has to be pinned as well as named.
+    $pythonArgs = if ($SystemPython) {
+        @( "-DPython_EXECUTABLE=$python",
+           '-DPython_FIND_STRATEGY=LOCATION',
+           "-DPython3_EXECUTABLE=$python",
+           "-DPYTHON_EXECUTABLE=$python" )
+    } else {
+        @( '-DVIAME_PYTHON_STANDALONE=ON',
+           "-DVIAME_PYTHON_STANDALONE_VERSION=$version",
+           '-DVIAME_BUILD_PYTHON_FROM_SOURCE=OFF' )
+    }
+
     $configure = @(
         '-S', $Source, '-B', $tree,
         '-G', $Generator,
         '-DCMAKE_BUILD_TYPE=Release',
         "-DCMAKE_INSTALL_PREFIX=$prefix",
-        "-DPYTHON_EXECUTABLE=$python",
-        "-DPython3_EXECUTABLE=$python",
         '-DVIAME_ENABLE_PYTHON=ON'
-    ) + $CMakeArg
+    ) + $pythonArgs + $CMakeArg
 
     & cmake @configure               *> $log
     $ok = $LASTEXITCODE -eq 0
