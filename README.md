@@ -1,5 +1,7 @@
 
-<img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
+<p align="center">
+<img src="docs/manual/_static/images/viami_logo.png" alt="VIAME Logo" width="200" height="78">
+</p>
 
 VIAME is a computer vision application designed for do-it-yourself artificial intelligence
 including object detection, object tracking, data annotation, multi-camera processing,
@@ -17,12 +19,12 @@ with an open annotation archive and example of the web platform available at
 Documentation
 -------------
 
-The [User's Quick-Start Guide](https://viame.readthedocs.io/en/latest/sections/quick_start_guide.html)
-and [Full Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
+The [User's Quick-Start Guide](https://viame.github.io/VIAME/sections/quick_start_guide.html)
+and [Full Manual](https://viame.github.io/VIAME/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
 
 
-[Documentation Overview](https://viame.readthedocs.io/en/latest/#documentation-overview) <>
+[Documentation Overview](https://viame.github.io/VIAME/#documentation-overview) <>
 [Installation](examples/installing_from_binaries) <>
 [Building](examples/building_from_source) <>
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <>
@@ -30,42 +32,38 @@ but select entries are also listed below broken down by individual functionality
 [Object Detection](examples/object_detection) <>
 [Detector Training](examples/object_detector_training) <>
 [Object Tracking](examples/object_tracking) <>
-[Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
+[Search and Rapid Model Generation](examples/video_and_image_search) <>
 [Model Evaluation](examples/scoring_and_evaluation) <>
-[Detection Formats](https://viame.readthedocs.io/en/latest/sections/detection_file_conversions.html) <>
+[Detection Formats](https://viame.github.io/VIAME/sections/detection_file_formats.html) <>
 [Python Usage](https://github.com/VIAME/VIAME/blob/main/docs/python_package.md) <>
 [Image Enhancement](examples/image_enhancement) <>
 [Registration and Mosaicing](examples/registration_and_mosaicing)  <>
-[Size Measurement](examples/size_measurement) <>
+[Size Measurement](examples/stereo_measurement) <>
 [Pipelining Overview](https://github.com/Kitware/kwiver) <>
 [Core Classes](https://kwiver.readthedocs.io/en/latest) <>
 [Plugin Integration](examples/example_pipeline) <>
-[Example Plugin Templates](library/examples/templates) <>
-[Embedding Algorithms in C++](examples/using_algorithms_in_code)
+[Example Templates](plugins/templates) <>
+[Embedding Algorithms](examples/using_algorithms_in_code)
 
 
 Installations
 -------------
 
 For a full installation guide and description of the various flavors of VIAME, see the
-quick-start guide, above. The full desktop version is provided as either a .msi, .zip or
-.tar file. Alternatively, standalone annotators (without any processing algorithms)
-are available via smaller installers (see DIVE standalone, below). Lastly, docker files
-are available for both VIAME Desktop and Web (below). For full desktop installs, extract
+quick-start guide, above. The full desktop version is provided as either a .zip or
+.tar.gz file. Alternatively, .msi installers are available via the DIVE standalone tool,
+which can then install VIAME from the 'add-ons' page. Lastly, docker files are available
+for both VIAME Desktop and Web (below). For full desktop installs, extract
 the binaries and place them in a directory of your choosing, for example /opt/noaa/viame
 on Linux or C:\Program Files\VIAME on Windows. If using packages built with GPU support,
-make sure to have sufficient video drivers installed, version 570.65 or higher. The best
-way to install drivers depends on your operating system. This isn't required if just
-using manual annotators (or frame classifiers only). The binaries are quite large,
-in terms of disk space, due to the inclusion of multiple default model files and
-programs, but if just building your desired features from source (e.g. for embedded
-apps) they are much smaller.
+make sure to have sufficient video drivers installed, version 570.65 or higher. This isn't
+required if just using manual annotators or you don't care much about algorithm speed.
 
 **Installation Requirements:** <br>
 * Up to 8 Gb of Disk Space for the Full Installation <br>
 * Windows 7\*, 8, 10, or 11 (64-Bit) or Linux (64-Bit, e.g. RHEL, CentOS, Ubuntu) <br>
   * Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764). <br>
-  * MacOS is currently only supported running standalone annotation tools, see below.
+  * MacOS is currently supported running web and standalone annotation tools, but not full desktop.
 
 **Installation Recommendations:** <br>
 * NVIDIA Drivers (Version 570.65 or above,
@@ -123,10 +121,20 @@ in the bin folder, or by using the viame add-ons tool.
 Python Package
 --------------
 
-A headless, command-line installation is available on PyPI for Linux, with
-wheels for Python 3.10 through 3.14:
+A headless, command-line installation is available on PyPI for Linux and
+Windows, with wheels for Python 3.10 through 3.14:
 
 pip install viame
+
+On Windows, pin torch in that same command to get a CUDA build. VIAME's torch
+requirement resolves to the CPU wheel on Windows otherwise, and a separate
+`pip install torch` afterwards is skipped as already satisfied:
+
+pip install viame torch==2.9.1+cu128 torchvision==0.24.1+cu128 \
+            --extra-index-url https://download.pytorch.org/whl/cu128
+
+See [VIAME as a Python Package](docs/python_package.md) for why that has to be
+one command, and for the GPU requirement.
 
 This puts the main `viame` tool described below onto your path, and installs
 the `viame` python package alongside it. See [VIAME as a Python Package](docs/python_package.md)
@@ -214,7 +222,8 @@ on, it's best to just leave the default enable and disable flags which will buil
 
 | Flag                         | Description                                                                    |
 |------------------------------|--------------------------------------------------------------------------------|
-| VIAME_ENABLE_IMAGE_PROCESSING | Builds the image filters, registration, stereo calibration and measurement features |
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)          |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)              |
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)              |
 | VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)              |
 
@@ -231,7 +240,9 @@ And a number of flags which control which system utilities and optimizations are
 | VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all packages                           |
 | VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                         |
 | VIAME_ENABLE_DIVE            | Enables DIVE GUI (annotation and training on multiple sequences)               |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (VIEW and SEARCH for annotation and video search)            |
 | VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation (puts in install tree)                |
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default)              |
 | VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree             |
 | VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and interfaces          |
 
@@ -247,7 +258,10 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 |------------------------------|--------------------------------------------------------------------------------|
 | VIAME_ENABLE_PYTORCH-*       | Builds a number of PyTorch plugins with different functions                    |
 | VIAME_ENABLE_ONNX            | Builds support for ONNX methods (detectors/stereo)                             |
+| VIAME_ENABLE_TENSORRT        | Builds support for TensorRT methods (detectors/stereo)                         |
+| VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                       |
 | VIAME_ENABLE_DARKNET         | Builds deprecated Darknet (YOLO) object detector plugin                        |
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                         |
 
 </center>
 
@@ -264,11 +278,10 @@ Source Code Layout
    │   ├── prj-linux       # Default linux project files
    │   └── prj-windows     # Default windows project files 
    ├── examples            # All runnable examples and example tutorials
-   ├── library             # VIAME's own C++ and python, by function
-   │   └── tpl             # Small libraries carried in the tree and built with it
    ├── packages            # External projects used by the system
-   │   ├── dive            # Annotation and review interface
-   │   ├── pytorch-libs    # Model repositories the pytorch plugins wrap
+   │   ├── kwiver          # Processing backend infastructure
+   │   ├── fletch          # Dependency builder for things which don't change often
+   │   ├── vivia           # Baseline desktop GUIs (v1.0)
    │   └── ...             # Assorted other packages (typically for algorithms)
    ├── plugins             # Integrated algorithms or wrappers around external projects
    │   └── ...             # Assorted plugins (detectors, depth maps, filters, etc.)

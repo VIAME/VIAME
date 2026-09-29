@@ -56,9 +56,8 @@ set( VIAME_WHEEL_OUTPUT_DIR "${CMAKE_BINARY_DIR}/wheel"
 
 # The CUDA variant, read from the toolkit this build used. It decides the
 # nvidia wheel layout the RUNPATH targets, which requirements-cu* is layered
-# on, and whether the wheel carries a local version. cu13 is the default and
-# unmarked; cu12 is `viame+cu12`, for the Pascal and Volta hardware CUDA 13
-# dropped. PyPI refuses local versions, so a variant needs its own index.
+# on, and what `VIAME_WHEEL_LOCAL_VERSION` defaults to. cu13 is the default
+# and unmarked; cu12 is for the Pascal and Volta hardware CUDA 13 dropped.
 if( VIAME_ENABLE_CUDA AND CMAKE_CUDA_COMPILER AND NOT DEFINED VIAME_WHEEL_CUDA_MAJOR )
   if( CUDA_VERSION_MAJOR )
     set( VIAME_WHEEL_CUDA_MAJOR "${CUDA_VERSION_MAJOR}" )
@@ -80,11 +79,33 @@ if( VIAME_WHEEL_CUDA_MAJOR )
   endif()
   list( APPEND _wheel_variant_args --cuda-major "${VIAME_WHEEL_CUDA_MAJOR}" )
   list( APPEND _wheel_variant_requires --requires-from "${_variant_file}" )
+
+  # A local version exists to keep two CUDA builds of one VIAME version
+  # apart on the same index. Where the platform tag already does that --
+  # a win_amd64 cu12 wheel and a manylinux cu13 wheel cannot be mistaken for
+  # each other -- it is redundant, and it is not free: PyPI refuses any wheel
+  # that carries one, so marking a wheel this way is choosing to host it
+  # yourself. Empty for anything going to PyPI.
   if( NOT VIAME_WHEEL_CUDA_MAJOR EQUAL 13 )
-    list( APPEND _wheel_variant_args
-          --local-version "cu${VIAME_WHEEL_CUDA_MAJOR}" )
+    set( _wheel_local_default "cu${VIAME_WHEEL_CUDA_MAJOR}" )
+  else()
+    set( _wheel_local_default "" )
   endif()
-  message( STATUS "  wheel: CUDA ${VIAME_WHEEL_CUDA_MAJOR} variant" )
+
+  set( VIAME_WHEEL_LOCAL_VERSION "${_wheel_local_default}" CACHE STRING
+       "PEP 440 local version for the wheel, or empty for none" )
+
+  if( VIAME_WHEEL_LOCAL_VERSION )
+    list( APPEND _wheel_variant_args
+          --local-version "${VIAME_WHEEL_LOCAL_VERSION}" )
+  endif()
+
+  if( VIAME_WHEEL_LOCAL_VERSION )
+    message( STATUS "  wheel: CUDA ${VIAME_WHEEL_CUDA_MAJOR}, "
+             "local version +${VIAME_WHEEL_LOCAL_VERSION} (not for PyPI)" )
+  else()
+    message( STATUS "  wheel: CUDA ${VIAME_WHEEL_CUDA_MAJOR}, no local version" )
+  endif()
 endif()
 
 # The interpreter the extension modules were built against decides the wheel's

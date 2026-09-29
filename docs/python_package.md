@@ -8,10 +8,55 @@ assembled out of the same algorithm interfaces this package exposes.
 
     pip install viame
 
-Linux, CPython 3.10 through 3.14. GPU support comes from whichever CUDA
-`torch` pulls in; no separate CUDA installation is needed. Every example
-below was run against the published wheel with nothing downloaded beyond
-the package itself.
+Linux and Windows, CPython 3.10 through 3.14. On Linux, GPU support comes
+from whichever CUDA `torch` pulls in and no separate CUDA installation is
+needed; on Windows the torch pins below are part of the install command.
+Every example here was run against the published wheel with nothing
+downloaded beyond the package itself.
+
+Windows
+-------
+
+    pip install viame torch==2.9.1+cu128 torchvision==0.24.1+cu128 \
+                --extra-index-url https://download.pytorch.org/whl/cu128
+
+The wheels are built for CUDA 12, which is what runs on the Pascal and Volta
+cards CUDA 13 dropped. They carry no `+cu12` local version: the `win_amd64`
+platform tag already tells them apart from the Linux wheels, and a local
+version is the one thing PyPI will not accept.
+
+**The torch pins belong in that same command.** VIAME asks for
+`torch>=2.3.1,<2.11`, and on Windows PyPI answers that with the **CPU**
+build, because torch marks every one of its `nvidia-*` requirements
+`platform_system == "Linux"`. So:
+
+* `pip install viame` on its own gives you a CPU torch.
+* Installing a CUDA torch and *then* VIAME replaces it with the CPU one, and
+  says nothing about it -- `torch.cuda.is_available()` just becomes `False`.
+* Installing VIAME and *then* `pip install torch --index-url ...` does
+  nothing at all: the CPU torch already satisfies `torch`, so pip leaves it
+  alone. This is the one that looks like it worked.
+
+A single resolution with the version pinned to a `+cu128` build is
+unambiguous. `torchvision` is pinned beside it because it depends on an exact
+torch version and pip will otherwise pair it with one it does not match. And
+`--extra-index-url` rather than `--index-url`, because VIAME itself comes
+from PyPI and the pytorch index does not carry it.
+
+A CPU-only install -- plain `pip install viame` -- is a supported
+configuration: VIAME's own CUDA kernels come from the `nvidia-*-cu12` wheels
+it declares, not from torch, so they work either way. Nothing in torch will
+use the GPU.
+
+The two do not each load their own CUDA runtime. With both installed,
+`cudart64_12.dll` is loaded once, out of `torch/lib`, and VIAME's extensions
+bind to that copy.
+
+**What the GPU has to be.** Torch's CUDA 12 builds ship `sm_70` and newer, so
+on anything older than Volta -- a GTX 1080 Ti is `sm_61` -- torch imports,
+reports `cuda.is_available()` as `True`, and then fails the first kernel
+launch with `no kernel image is available for execution on the device`.
+VIAME's own kernels are built from `sm_60` and do run on those cards.
 
 Loading files
 -------------
@@ -132,7 +177,7 @@ Use the file loader for automatic adaptation, or the lower-level interfaces belo
 ### Open a normal pipeline for in-memory processing
 
 Use `embedded=True` to replace file readers and standard output writers with
-native memory adapters. The conversion uses the [shared C++ API](embedded_pipeline.md);
+native memory adapters. The conversion uses the [shared C++ API](https://github.com/VIAME/VIAME/blob/main/docs/embedded_pipeline.md);
 includes, configuration substitutions and relative model paths are resolved
 by the native pipeline parser. Models and ZIP
 bundles use the same preparation as file-based `viame.open`.
