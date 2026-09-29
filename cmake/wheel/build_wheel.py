@@ -734,6 +734,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import sysconfig
 
 
 def run(name):
@@ -752,6 +753,14 @@ def run(name):
             paths.extend(str(p) for p in nvidia.glob("*/bin") if p.is_dir())
     env["PATH"] = os.pathsep.join(paths + [env.get("PATH", "")])
     env["VIAME_INSTALL"] = str(prefix)
+    # The tool embeds CPython, and an embedded interpreter builds sys.path
+    # from the interpreter it links rather than from the environment the tool
+    # was installed into. Without this `import viame` fails and every
+    # python-registered algorithm, process and scheduler is missing from the
+    # registry -- with the tool still exiting 0, which is the dangerous part.
+    site = sysconfig.get_path("purelib")
+    env["PYTHONPATH"] = os.pathsep.join(
+        [site] + ([env["PYTHONPATH"]] if env.get("PYTHONPATH") else []))
     plugins = [prefix / "lib" / family / category
                for family, categories in (
                    ("kwiver/plugins", ("algorithms", "modules", "processes", "applets")),
@@ -790,6 +799,16 @@ def main():
     # Pipeline templates can refer to $ENV{VIAME_INSTALL}. Resolve that
     # against this environment when no explicit installation was selected.
     os.environ.setdefault("VIAME_INSTALL", sys.prefix)
+
+    # The tool embeds CPython, and an embedded interpreter builds sys.path
+    # from the interpreter it links rather than from the environment the tool
+    # was installed into, so `import viame` has to be pointed at it. Without
+    # this the python-registered plugins are missing and nothing says so.
+    site = sysconfig.get_path("purelib")
+    existing = os.environ.get("PYTHONPATH", "")
+    if site not in existing.split(os.pathsep):
+        os.environ["PYTHONPATH"] = os.pathsep.join(
+            [site] + ([existing] if existing else []))
 
     # Main uses dynamic plugins; lite registers its built-in plugins. Locate
     # any packaged plugin directories instead of relying on build-machine paths.
@@ -1011,8 +1030,14 @@ def build(args):
     platform_tag = args.platform_tag
     if platform_tag == "auto":
         platform_tag = audit_tag
-        print(f"  platform tag: {audit_tag} "
-              f"(glibc {floor[0]}.{floor[1] if len(floor) > 1 else 0})")
+        # `floor` is the glibc version the tag encodes. Windows has none --
+        # `audit_platform` returns None there -- and the tag says only which
+        # CPU the wheel is for.
+        if floor is None:
+            print(f"  platform tag: {audit_tag}")
+        else:
+            print(f"  platform tag: {audit_tag} "
+                  f"(glibc {floor[0]}.{floor[1] if len(floor) > 1 else 0})")
     elif platform_tag != audit_tag:
         print(f"  note: tagged {platform_tag}, but the binaries need "
               f"{audit_tag}", file=sys.stderr)
