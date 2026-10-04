@@ -76,6 +76,25 @@ transformers>=5.1.0,<6.0.0
 pydantic>=2.0,<3
 pyDeprecate>=0.9,<0.10
 supervision
+# The vendored fork trains through Lightning -- detr.py and every training
+# callback import it at module scope -- and so does our own rf_detr_trainer.
+# Without it `viame train` on any RF-DETR config dies at update_model with
+# ModuleNotFoundError, after chipping the whole dataset.
+pytorch_lightning>=2.0,<3
+# The fork's COCO dataset and its evaluation callback both import this at
+# module scope, so it is reached on every training run, not only when COCO
+# input is given.
+pycocotools
+# torchmetrics' MeanAveragePrecision, which the fork's validation runs every
+# epoch, is configured for the `faster_coco_eval` backend and raises at the
+# first validation when it is absent. Nothing in our sources imports it, so
+# an import scan does not find it -- only running a training does.
+faster-coco-eval
+# RF-DETR builds every augmentation through albumentations and silently drops
+# the entire pipeline when the import fails, so a run configured for flips
+# trains on unaugmented imagery instead. Not an import-time failure, which is
+# why it is easy to miss.
+albumentations>=2.0
 
 # --- inherited from `viame.sam2` ------------------------------------------
 # sam2 builds its model graph through Hydra, so these are not optional: the
