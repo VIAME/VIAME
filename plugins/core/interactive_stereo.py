@@ -63,6 +63,10 @@ import numpy as np
 
 import cv2
 
+from viame.core.stitched_media import (
+    crop_stitched_array, crop_stitched_container, split_stitched_path,
+)
+
 # Compiled C++ stereo measurement bindings. The stereo length/measurement math
 # lives solely in viame::core::compute_stereo_measurement (no Python duplicate),
 # so this module is a hard dependency.
@@ -680,11 +684,27 @@ class InteractiveStereoService:
     _VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.mpg', '.mpeg', '.m4v'}
 
     def _is_video_file(self, path: str) -> bool:
-        ext = os.path.splitext(path)[1].lower()
+        ext = os.path.splitext(split_stitched_path(path)[0])[1].lower()
         return ext in self._VIDEO_EXTENSIONS
 
     def _load_image(self, image_path: str, frame_time: float = None):
-        """Load an image (or video frame at given time) and return a vital ImageContainer."""
+        """
+        Load an image (or video frame at given time) and return a vital ImageContainer.
+
+        A path tagged as one half of stitched stereo media (see
+        viame.core.stitched_media) yields only that half.
+        """
+        image_path, side = split_stitched_path(image_path)
+        return crop_stitched_container(
+            self._load_whole_image(image_path, frame_time), side)
+
+    def _imread(self, image_path: str, flags: int):
+        """cv2.imread that understands stitched-half paths."""
+        image_path, side = split_stitched_path(image_path)
+        image = cv2.imread(image_path, flags)
+        return image if image is None else crop_stitched_array(image, side)
+
+    def _load_whole_image(self, image_path: str, frame_time: float = None):
         if self._is_video_file(image_path) and frame_time is not None:
             return self._load_video_frame(image_path, frame_time)
 
@@ -697,7 +717,6 @@ class InteractiveStereoService:
     def _load_video_frame(self, video_path: str, frame_time: float):
         """Extract a single frame from a video at the given time (seconds)."""
         from kwiver.vital.algo import VideoInput
-        from kwiver.vital.types import Timestamp
 
         # Cache video readers keyed by path (may have left + right videos)
         if not hasattr(self, '_video_readers'):
@@ -710,8 +729,7 @@ class InteractiveStereoService:
             vi.set_configuration(cfg)
             vi.open(video_path)
             # Read first frame to get FPS
-            ts = Timestamp()
-            vi.next_frame(ts, 0)
+            vi.next_frame()
             fps = vi.frame_rate()
             self._video_readers[video_path] = (vi, fps)
 
@@ -719,8 +737,7 @@ class InteractiveStereoService:
         target_frame = round(frame_time * fps) + 1  # 1-based ffmpeg numbering
         target_frame = max(1, target_frame)
 
-        ts = Timestamp()
-        vi.seek_frame(ts, target_frame, 0)
+        vi.seek_frame(target_frame)
         image = vi.frame_image()
 
         if image is None:
@@ -1032,16 +1049,16 @@ class InteractiveStereoService:
                     right_bgr = cv2.cvtColor(right_arr, cv2.COLOR_RGB2BGR) if right_arr.ndim == 3 else right_arr
                     self._epipolar_matcher.set_images(left_bgr, right_bgr)
             else:
-                left_gray = cv2.imread(left_path, cv2.IMREAD_GRAYSCALE)
-                right_gray = cv2.imread(right_path, cv2.IMREAD_GRAYSCALE)
+                left_gray = self._imread(left_path, cv2.IMREAD_GRAYSCALE)
+                right_gray = self._imread(right_path, cv2.IMREAD_GRAYSCALE)
                 if left_gray is None or right_gray is None:
                     raise ValueError(
                         f"Failed to load images: left={left_path}, right={right_path}")
 
                 # Load BGR images for DINO feature extraction if enabled
                 if self._epipolar_matcher._dino_available:
-                    left_bgr = cv2.imread(left_path, cv2.IMREAD_COLOR)
-                    right_bgr = cv2.imread(right_path, cv2.IMREAD_COLOR)
+                    left_bgr = self._imread(left_path, cv2.IMREAD_COLOR)
+                    right_bgr = self._imread(right_path, cv2.IMREAD_COLOR)
                     if left_bgr is not None and right_bgr is not None:
                         self._epipolar_matcher.set_images(left_bgr, right_bgr)
 

@@ -483,6 +483,11 @@ if( VIAME_ENABLE_PYTHON )
     segmentation_utils )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/stitched_media.py
+    core
+    stitched_media )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/survey_metadata.py
     core
     survey_metadata )

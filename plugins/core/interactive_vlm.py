@@ -24,6 +24,10 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
+
+from viame.core.stitched_media import crop_stitched_array, split_stitched_path
+
 DEFAULT_OLLAMA_PORT = 11434
 MAX_IMAGE_SIDE = 1280
 CROP_PADDING = 0.15
@@ -208,11 +212,14 @@ class VlmService:
     def _load_frame(self, image_path: str, frame_time: Optional[float]):
         from PIL import Image
 
+        # A path tagged as one half of stitched stereo media yields that half.
+        image_path, side = split_stitched_path(image_path)
         ext = os.path.splitext(image_path)[1].lower()
         if ext in VIDEO_EXTENSIONS and frame_time is not None:
-            array = self._load_video_frame(image_path, frame_time)
-            return Image.fromarray(array).convert("RGB")
-        return Image.open(image_path).convert("RGB")
+            array = np.asarray(self._load_video_frame(image_path, frame_time))
+        else:
+            array = np.asarray(Image.open(image_path).convert("RGB"))
+        return Image.fromarray(crop_stitched_array(array, side)).convert("RGB")
 
     def _load_video_frame(self, video_path: str, frame_time: float):
         from kwiver.vital.algo import VideoInput

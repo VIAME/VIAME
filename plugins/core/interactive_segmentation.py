@@ -55,6 +55,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
+from viame.core.stitched_media import crop_stitched_container, split_stitched_path
+
 
 @contextlib.contextmanager
 def suppress_stdout():
@@ -156,11 +158,21 @@ class InteractiveSegmentationService:
 
     def _is_video_file(self, path: str) -> bool:
         """Check if a path is a video file based on extension."""
-        ext = os.path.splitext(path)[1].lower()
+        ext = os.path.splitext(split_stitched_path(path)[0])[1].lower()
         return ext in self._VIDEO_EXTENSIONS
 
     def _load_image(self, image_path: str, frame_time: float = None):
-        """Load an image (or video frame) and return a vital ImageContainer."""
+        """
+        Load an image (or video frame) and return a vital ImageContainer.
+
+        A path tagged as one half of stitched stereo media (see
+        viame.core.stitched_media) yields only that half.
+        """
+        image_path, side = split_stitched_path(image_path)
+        return crop_stitched_container(
+            self._load_whole_image(image_path, frame_time), side)
+
+    def _load_whole_image(self, image_path: str, frame_time: float = None):
         if self._is_video_file(image_path) and frame_time is not None:
             return self._load_video_frame(image_path, frame_time)
 
@@ -180,7 +192,6 @@ class InteractiveSegmentationService:
     def _load_video_frame(self, video_path: str, frame_time: float):
         """Extract a single frame from a video at the given time (seconds)."""
         from kwiver.vital.algo import VideoInput
-        from kwiver.vital.types import Timestamp
 
         # Cache the video reader for repeated access to the same video. Build
         # the reader locally and only commit it to self AFTER a successful
@@ -194,8 +205,7 @@ class InteractiveSegmentationService:
             reader.set_configuration(cfg)
             reader.open(video_path)
             # Determine video FPS by reading the first frame
-            ts = Timestamp()
-            reader.next_frame(ts, 0)
+            reader.next_frame()
             self._video_reader = reader
             self._video_reader_path = video_path
             self._video_fps = reader.frame_rate()
@@ -206,8 +216,7 @@ class InteractiveSegmentationService:
         target_frame = round(frame_time * self._video_fps) + 1
         target_frame = max(1, target_frame)
 
-        ts = Timestamp()
-        self._video_reader.seek_frame(ts, target_frame, 0)
+        self._video_reader.seek_frame(target_frame)
         image = self._video_reader.frame_image()
 
         if image is None:
