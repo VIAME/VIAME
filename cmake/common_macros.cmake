@@ -261,7 +261,7 @@ endfunction()
 #   OnDemandGitPackage( PYTORCH_SOURCE
 #     URL https://github.com/pytorch/pytorch.git
 #     DIR ${VIAME_PACKAGES_DIR}/pytorch
-#     REF v2.14.1
+#     REF v2.12.1
 #     RECURSIVE SHALLOW )
 #
 #   ExternalProject_Add( pytorch
