@@ -14,10 +14,32 @@ from torchvision.transforms import Normalize, Resize, ToTensor
 
 
 class _SafeNormalize(object):
-    """Per-channel normalization that avoids a PyTorch SIMD/AVX vectorization
-    bug on Windows where the in-place broadcasting sub_/div_ used by
-    torchvision.transforms.Normalize produces garbage values for tensors with
-    spatial dimensions >= 128x128."""
+    """Per-channel normalization, one channel at a time, avoiding the in-place
+    broadcasting sub_/div_ that torchvision.transforms.Normalize uses.
+
+    Those return garbage for tensors with spatial dimensions >= 128x128 --
+    around a billion in magnitude, not a rounding error -- in a torch built
+    from source by this tree. It is NOT an upstream bug and NOT a Windows
+    bug, which is what this said before: on the same machine and the same
+    Windows, `torch 2.12.1+cu126` with `torchvision 0.27.1+cu126` from the
+    index is correct at every size from 64x64 to 1024x1024, as are 0.25.0,
+    0.27.0 and 0.29.1. Only the local compilation is wrong.
+
+    The fault is in torch, not torchvision: a bare
+    `tensor.sub_(mean).div_(std)` fails the same way at 256x256 while
+    `tensor.to(float32) / 255.0`, which broadcasts nothing, is fine. The
+    threshold is where the vectorised/parallel path starts, so this reads as
+    bad codegen for those kernels. `torchvision.transforms.v2.ToDtype(
+    torch.float32, scale=True)` is the same bug seen from another angle, and
+    it silently fed blank images to RF-DETR training in the v0.23.5 Windows
+    desktop binaries -- 25 epochs to mAP 0.002 where an index build reaches
+    0.24.
+
+    So this is a workaround for a build defect, not for upstream. It can go
+    when torch stops being built from source here, or when whatever
+    optimisation flag miscompiles those kernels is found;
+    `VIAME_BUILD_PYTORCH_FROM_SOURCE` is the switch.
+    """
     def __init__(self, mean, std):
         self.mean = mean
         self.std = std
@@ -43,9 +65,10 @@ class SAM2Transforms(nn.Module):
         self.mean = [0.485, 0.456, 0.406]
         self.std = [0.229, 0.224, 0.225]
         self.to_tensor = ToTensor()
-        # On Windows, torchvision.transforms.Normalize has a vectorization bug
-        # for tensors with spatial dims >= 128x128.  Use a per-channel
-        # normalization outside the JIT-scripted pipeline instead.
+        # A source-built torch miscompiles the broadcasting sub_/div_ behind
+        # Normalize for spatial dims >= 128x128; see _SafeNormalize. Keep the
+        # per-channel form outside the JIT-scripted pipeline. Gated on Windows
+        # because that is where this tree builds torch from source.
         if platform.system() == "Windows":
             self._resize = torch.jit.script(
                 nn.Sequential(
