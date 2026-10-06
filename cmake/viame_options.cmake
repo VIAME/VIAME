@@ -113,11 +113,11 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 2.12.0 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.12.0" )
+  set( VIAME_PYTORCH_VERSION 2.12.1 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.12.1" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  set( PYTORCH_INTERNAL_VERSION 2.12.0 CACHE INTERNAL "Internal pytorch version" )
+  set( PYTORCH_INTERNAL_VERSION 2.12.1 CACHE INTERNAL "Internal pytorch version" )
   set( PYTORCH_MIN_PYTHON_WHL   3.10  CACHE INTERNAL "Minimum python for torch whl" )
 
   option( VIAME_ENABLE_PYTORCH-VISION      "Enable TorchVision algorithms"  ON )

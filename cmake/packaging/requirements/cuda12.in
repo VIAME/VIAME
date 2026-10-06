@@ -10,7 +10,13 @@
 
 # `VIAME_PYTORCH_VERSION` chooses this, and changing it means recompiling
 # this lock -- a torch version is not a free variable once the lock exists.
-torch==2.12.0
+torch==2.12.1
+# torchvision pins torch to an exact version, so the two move together and
+# both are named here. Left undeclared it arrives through `timm` and
+# `ultralytics` as a bare requirement, and the resolver silently picks
+# whichever build happens to pin the torch above -- which is how this lock
+# sat on an older torchvision than the index offered.
+torchvision==0.27.1
 # onnxruntime 1.23.2 ships wheels for cp310 through cp313 only, so resolving
 # it under 3.14 fails with "No matching distribution found" -- the
 # requires_python metadata says >=3.10 and gives no hint, the ABI tags are

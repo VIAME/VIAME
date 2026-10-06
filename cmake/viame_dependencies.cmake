@@ -462,12 +462,12 @@ if( VIAME_ENABLE_PYTORCH )
       "least python ${PYTORCH_MIN_PYTHON_WHL}." )
   endif()
   if( VIAME_ENABLE_CUDA )
-    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.12.0" AND
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.12.1" AND
         NOT ( CUDA_VERSION VERSION_EQUAL "12.6" OR
               CUDA_VERSION VERSION_EQUAL "13.0" OR
               CUDA_VERSION VERSION_EQUAL "13.2" ) )
       message( FATAL_ERROR "CUDA 12.6, 13.0 or 13.2 is required for VIAME_ENABLE_PYTORCH "
-        "with PyTorch 2.12.0. Either modify VIAME_PYTORCH_VERSION or the CUDA version." )
+        "with PyTorch 2.12.1. Either modify VIAME_PYTORCH_VERSION or the CUDA version." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
         NOT ( CUDA_VERSION VERSION_EQUAL "11.6" OR
               CUDA_VERSION VERSION_EQUAL "11.7" ) )
