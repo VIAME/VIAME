@@ -1,3 +1,14 @@
+v0.23.6 - 10/08/2026
+====================
+
+
+- Fix windows training issue on a number of models in desktop release
+
+
+- Add stitched stereo import option
+
+
+
 v0.23.5 - 9/29/2026
 ===================
 
