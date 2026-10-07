@@ -188,6 +188,36 @@ if( VIAME_BUILD_TORCHVISION_FROM_SOURCE AND NOT WIN32 )
   list( APPEND PYTORCH_ENV_VARS "TORCHVISION_USE_PNG=0" )
 endif()
 
+if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
+  # One OpenMP runtime, not two. MSVC's `/openmp` is OpenMP 2.0 and links
+  # VCOMP140; oneDNN needs 3.0+ and so takes `/openmp:llvm`, which links
+  # libomp140.x86_64. A torch_cpu.dll built with both on different
+  # translation units imports both, and both load into the same process --
+  # verified on the v0.23.5 binaries. Two runtimes means two thread pools and
+  # two views of omp_get_thread_num, so a parallel region slices its work
+  # against inconsistent state and writes garbage.
+  #
+  # It is silent and it is size-dependent, which is what made it expensive to
+  # find: everything below ATen's GRAIN_SIZE of 32768 elements runs serially
+  # and is correct, and everything above it is wrong. A 104x104x3 tensor is
+  # fine, 105x105x3 is not. `torch.set_num_threads(1)` makes it go away.
+  #
+  # What it cost: `transforms.v2.ToDtype(float32, scale=True)` and
+  # `transforms.Normalize` both return garbage for real images, so RF-DETR
+  # trained on blank pictures -- 25 epochs to mAP 0.002 where the index build
+  # reaches 0.24 on the same data. sam2 carries a hand-written Normalize
+  # replacement for the same reason.
+  #
+  # USE_OPENMP=0 is not single-threaded: ATen's parallel backend becomes
+  # `native`, which parallelises through its own thread pool. Linux is
+  # unaffected -- GCC has only libgomp, so there is nothing to conflict --
+  # and is left alone. Unifying on `/openmp:llvm` instead would keep the
+  # OpenMP backend, but every target has to pick the override up and a miss
+  # reproduces this silently; `libomp.lib` ships in MSVC's lib/x64 if that is
+  # tried later.
+  list( APPEND PYTORCH_ENV_VARS "USE_OPENMP=0" )
+endif()
+
 if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN )
   # Must be "local" (setuptools' vendored distutils), not "1". setuptools only
   # honors "local"/"stdlib"; any other value makes distutils-precedence.pth skip
