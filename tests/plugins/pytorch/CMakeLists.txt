@@ -7,6 +7,21 @@
 if( VIAME_ENABLE_PYTHON )
   set( VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}" )
 
+  # CRITICAL, and labelled so deliberately. The critical set already ran a
+  # training test -- viame_examples:train_netharn_cfrnn_from_viame_csv -- and
+  # it passed on a build whose torch returned garbage for every threaded CPU
+  # result, because training completed. It completed on blank images. This
+  # checks the arithmetic instead, in under a second, at sizes either side of
+  # ATen's GRAIN_SIZE where the failure appears.
+  viame_add_pytest_test(
+    NAME viame_plugins:pytorch:threaded_arithmetic
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_torch_parallel_arithmetic.py"
+    LABELS CRITICAL UNIT PYTORCH
+    TIMEOUT 120
+    SOURCE_SETUP
+    WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
+  )
+
   viame_add_pytest_test(
     NAME viame_plugins:pytorch:netharn_peer_probe
     TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_netharn_peer_probe.py"

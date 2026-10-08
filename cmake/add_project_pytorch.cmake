@@ -447,11 +447,31 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       # Use pip wheel instead of setup.py bdist_wheel to avoid Windows cleanup
       # errors ("no such file or directory" when removing bdist temp directory)
       # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
+      #
+      # --verbose because without it these three builds are invisible. pip
+      # prints "Building wheel for torch (pyproject.toml): still running..."
+      # and swallows everything else, so build_log.txt contains none of
+      # torch's compile output and, more to the point, none of its CMake
+      # configure summary -- the report naming USE_DISTRIBUTED, the parallel
+      # backend, the BLAS choice and which OpenMP it found.
+      #
+      # Two bugs were undiagnosable because of that. The v0.23.5 binaries
+      # shipped a torch_cpu.dll linking two OpenMP runtimes, which silently
+      # corrupted every threaded CPU result above 32768 elements and trained
+      # RF-DETR on blank images. And this build configured USE_DISTRIBUTED=1
+      # with USE_GLOO=ON -- both are in torch's CMakeCache -- yet produced
+      # two distributed objects, no c10d symbols in torch_python.dll, and
+      # `torch.distributed.is_available()` False, so two GPUs still fall back
+      # to one. Why is still open, and the next verbose log is what answers
+      # it.
+      #
+      # The cost is log size; a miscompiled release costs more.
       set( LIBRARY_PIP_BUILD_CMD
         ${Python_EXECUTABLE} -m pip wheel
           --no-build-isolation
           --no-deps
           --no-cache-dir
+          --verbose
           --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
           ${LIBRARY_LOCATION}
       )
