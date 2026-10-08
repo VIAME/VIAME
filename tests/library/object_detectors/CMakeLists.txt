@@ -10,6 +10,20 @@ if( VIAME_ENABLE_PYTHON )
   # `stereo_algos`, which three shipped pipelines reach through
   # `gmm_motion_detector` and which had no tests of any kind until it came off
   # cv2 in P7.
+  # CRITICAL rather than UNIT. This branch takes torch from the locks, so it
+  # should always pass -- the point is that it says so. A Windows source
+  # build linking two OpenMP runtimes returns garbage for every threaded CPU
+  # result above ATen's GRAIN_SIZE, and the v0.23.5 desktop binaries shipped
+  # that way: RF-DETR trained to completion on blank images while a training
+  # test watched and passed. The sizes bracket the boundary at 104 and 105.
+  viame_add_test(
+    NAME    "critical:object_detectors:threaded_arithmetic"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_torch_parallel_arithmetic.py"
+    LABELS  CRITICAL UNIT
+    TIMEOUT 120
+    SOURCE_SETUP
+  )
+
   viame_add_test(
     NAME    "unit:object_detectors:stereo_algos"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_stereo_algos.py"
