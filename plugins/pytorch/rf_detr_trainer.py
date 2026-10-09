@@ -1378,14 +1378,16 @@ class RFDETRTrainer(TrainDetector):
     def _cap_to_ddp_support(count):
         """Hold a multi-GPU request to one GPU when DDP cannot run.
 
-        Multi-GPU means DDP, and DDP means torch.distributed. VIAME's Windows
-        PyTorch is built with USE_DISTRIBUTED=0, so every rank would die on its
-        first collective. One GPU trains; two would not train at all.
+        Multi-GPU means DDP, and DDP on GPUs means NCCL. The Windows build has
+        torch.distributed -- it is built with libuv now -- but gloo is its only
+        backend, and Lightning asks for NCCL whenever the device is CUDA. One
+        GPU trains; two would die on the first collective, after chipping the
+        dataset and spawning the ranks. See `ddp_available`.
         """
         if count > 1 and not ddp_available():
             print(f"[RFDETRTrainer] {count} GPUs requested, but this PyTorch "
-                  "build has no torch.distributed (USE_DISTRIBUTED=0), so DDP "
-                  "cannot run. Training on one GPU.", flush=True)
+                  "build has no NCCL, which DDP needs for GPU collectives. "
+                  "Training on one GPU.", flush=True)
             return 1
 
         return count
@@ -1569,7 +1571,16 @@ class RFDETRTrainer(TrainDetector):
         # imported (torch/torchvision/rfdetr) so the DDP subprocess (and PTL's
         # per-rank re-execs) import exactly what this process does.
         env = dict(os.environ)
-        extra_paths = list(sys.path)
+        # Vendored trees are excluded. The embedded interpreter carries
+        # `setuptools/_vendor` on sys.path, and propagating it puts that ahead
+        # of site-packages for the child, which then imports setuptools' old
+        # vendored typing_extensions rather than the real one and dies on
+        # `cannot import name 'Sentinel'` -- pydantic_core needs it, rfdetr
+        # imports pydantic, so DDP training fails before the first batch. A
+        # `_vendor` directory is a package's private copy of its own
+        # dependencies and belongs only to that package's import machinery.
+        extra_paths = [p for p in sys.path
+                       if "_vendor" not in p.replace("\\", "/").split("/")]
         for mod_name in ("torch", "torchvision", "rfdetr", "viame"):
             try:
                 mod = __import__(mod_name)

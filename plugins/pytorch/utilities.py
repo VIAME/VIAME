@@ -415,22 +415,44 @@ def is_cuda_available():
 
 
 def ddp_available():
-    """Whether this PyTorch build can run distributed (DDP) training at all.
+    """Whether this PyTorch build can run distributed (DDP) training on GPUs.
 
     Multi-GPU goes through PyTorch-Lightning's DDP strategy, which is built on
-    ``torch.distributed``. The official Windows wheels -- and VIAME's own
-    Windows build -- are compiled with ``USE_DISTRIBUTED=0``, so
-    ``torch.distributed`` is a stub there: it exposes ``is_available()`` and
-    nothing else, and every collective raises. Callers use this to fall back to
-    a single-process run instead of launching ranks that cannot talk.
+    ``torch.distributed``. Callers use this to fall back to a single-process
+    run instead of launching ranks that cannot talk.
+
+    ``dist.is_available()`` alone is not enough, and the Windows build is why.
+    It used to be compiled ``USE_DISTRIBUTED=0``, where ``torch.distributed``
+    is a stub that answers ``is_available()`` and raises on every collective.
+    It is now built with libuv, so distributed is real -- but the only backend
+    is gloo, and Lightning chooses the backend from the device type rather
+    than from what exists, so a CUDA run asks for NCCL and each rank dies with
+    "Distributed package doesn't have NCCL built in". Available but unusable
+    is the same answer as unavailable, and a worse failure: it happens after
+    the dataset is chipped and the ranks are spawned.
+
+    So a CUDA run needs NCCL specifically. Gloo can carry GPU collectives, but
+    it stages them through host memory and nothing here asks Lightning for it;
+    wiring that up is a separate change, and on two consumer cards it is not
+    obviously faster than the single-GPU path it would replace.
     """
     try:
+        import torch
         import torch.distributed as dist
     except Exception:
         return False
 
     try:
-        return bool(dist.is_available())
+        if not dist.is_available():
+            return False
+    except Exception:
+        return False
+
+    try:
+        if not torch.cuda.is_available():
+            # CPU DDP is gloo's own ground, and it is always present.
+            return True
+        return bool(dist.is_nccl_available())
     except Exception:
         return False
 
