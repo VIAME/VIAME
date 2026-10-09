@@ -252,8 +252,9 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-LITDET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_litdet_frcnn.conf
-    train_detector_litdet_ssd.conf )
+    train_detector_litdet_faster_rcnn.conf
+    train_detector_litdet_ssd.conf
+    train_detector_litdet_ssdlite.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
@@ -340,6 +341,8 @@ install( FILES       ${CORE_PIPELINE_FILES}
          DESTINATION configs/pipelines )
 install( DIRECTORY   templates
          DESTINATION configs/pipelines )
+install( DIRECTORY   litdet
+        DESTINATION configs/pipelines )
 
 if( VIAME_DOWNLOAD_MODELS )
   install( DIRECTORY   models
