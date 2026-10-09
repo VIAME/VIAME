@@ -32,6 +32,54 @@ if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
     RECURSIVE SHALLOW )
 endif()
 
+# libuv, which is what `torch.distributed` on Windows is missing.
+#
+# torch's configure prints "Libuv is not installed in current conda env. Set
+# USE_DISTRIBUTED to OFF" and does exactly that -- the v0.23.6 binaries have
+# USE_DISTRIBUTED=1 and USE_GLOO=ON in their CMakeCache, two distributed
+# objects, no c10d symbols in torch_python.dll and
+# `torch.distributed.is_available()` False. So two GPUs fall back to one,
+# which the RF-DETR trainer reports and works around.
+#
+# The probe looks only in `$ENV{CONDA_PREFIX}/Library/lib`, and there is no
+# conda in this build. It is also skipped outright when `libuv_ROOT` is
+# already set, which is the opening used here. Nothing else supplies one:
+# torch forces USE_TENSORPIPE off on Windows, and the bundled libuv comes
+# with tensorpipe.
+#
+# Shared, not static, because gloo wants both halves on MSVC -- a
+# `find_library` for uv/libuv under `lib/` and a `find_file` for `uv.dll`
+# under `bin/`, both REQUIRED. It then installs the DLL beside torch itself,
+# so the wheel carries it. Windows only: Linux resolves distributed without
+# any of this.
+if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
+  OnDemandGitPackage( LIBUV_SOURCE
+    URL https://github.com/libuv/libuv.git
+    DIR ${VIAME_PACKAGES_DIR}/libuv
+    REF v1.51.0
+    SHALLOW )
+
+  ExternalProject_Add( libuv
+    PREFIX ${VIAME_BUILD_PREFIX}
+    DOWNLOAD_COMMAND ${LIBUV_SOURCE_FETCH_COMMAND}
+    SOURCE_DIR ${VIAME_PACKAGES_DIR}/libuv
+    BINARY_DIR ${VIAME_BUILD_PREFIX}/src/libuv-build
+    USES_TERMINAL_BUILD 1
+    CMAKE_GENERATOR ${gen}
+    CMAKE_ARGS
+      -DCMAKE_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
+      -DCMAKE_BUILD_TYPE:STRING=Release
+      -DBUILD_TESTING:BOOL=OFF
+      -DLIBUV_BUILD_TESTS:BOOL=OFF
+      -DLIBUV_BUILD_BENCH:BOOL=OFF
+    )
+
+  ExternalProject_Add_StepDependencies( libuv download
+    ${LIBUV_SOURCE_REF_FILE} )
+
+  set( VIAME_LIBUV_ROOT ${VIAME_BUILD_INSTALL_PREFIX} )
+endif()
+
 if( VIAME_BUILD_TORCHVISION_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
@@ -216,6 +264,14 @@ if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   # reproduces this silently; `libomp.lib` ships in MSVC's lib/x64 if that is
   # tried later.
   list( APPEND PYTORCH_ENV_VARS "USE_OPENMP=0" )
+
+  # Setting this at all is what matters: torch skips its conda-only libuv
+  # probe when `libuv_ROOT` is defined, and gloo then resolves uv.lib and
+  # uv.dll under it. See the libuv project above for why there is nothing to
+  # find otherwise.
+  if( VIAME_LIBUV_ROOT )
+    list( APPEND PYTORCH_ENV_VARS "libuv_ROOT=${VIAME_LIBUV_ROOT}" )
+  endif()
 endif()
 
 if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN )
@@ -515,6 +571,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   # on demand, so it needs a download step of its own
   if( "${LIB}" STREQUAL "pytorch" )
     set( LIBRARY_DOWNLOAD_ARGS DOWNLOAD_COMMAND ${PYTORCH_SOURCE_FETCH_COMMAND} )
+    # libuv has to be installed before torch configures, or torch's probe
+    # fails and it silently drops distributed. See the libuv project above.
+    if( TARGET libuv )
+      set( PROJECT_DEPS ${PROJECT_DEPS} libuv )
+    endif()
   endif()
 
   if( NOT "${LIB}" STREQUAL "pytorch" )
