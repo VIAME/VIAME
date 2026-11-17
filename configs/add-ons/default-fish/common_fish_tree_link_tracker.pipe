@@ -1,0 +1,35 @@
+# =============================================================================
+# Title: Common - Fish TreeLink Tracker
+#
+# Description: TreeLink multi-object tracker for fish. Associates detections in
+# one pass using a learned probability that a track and a detection are the
+# same animal, from box geometry and motion. Drop-in for
+# common_default_tracker.pipe.
+# =============================================================================
+
+process tracker
+  :: track_objects
+  :track_objects:type                          tree_link
+
+block track_objects:tree_link
+
+  # Fitted on FishTrack23 train over the fused DEIMv2 + RF-DETR detections.
+
+  # Link scorer: flattened gradient-boosted trees
+  relativepath model_file =                    models/fish_tree_link_tracker.npz
+
+  # Detections scoring below this are ignored
+  :low_thresh                                  0.27
+
+  # Minimum confidence to initialize a new track
+  :new_track_thresh                            0.6
+
+  # Minimum P(same animal) for a track-detection link
+  :p_match                                     0.05
+
+  # Number of frames to keep lost tracks before removal
+  :track_buffer                                15
+
+endblock
+
+# -- end of file --
