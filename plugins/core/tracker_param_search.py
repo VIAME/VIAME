@@ -259,10 +259,44 @@ def _idf1( truth, hypothesis, confidence_threshold, iou_threshold=0.5 ):
                        iou_threshold ) ], ( 'idf1', ), False )
 
 
+_FORKED_CALL = None
+
+
+def _call_forked( job ):
+    return _FORKED_CALL( job )
+
+
+def _map_forked( function, jobs, workers, log=print ):
+    """function over jobs, in forked processes when workers is above 1.
+
+    The children inherit function and whatever it closes over, so only the
+    jobs and results are pickled. Any failure falls back to running serially.
+    """
+    global _FORKED_CALL
+
+    if workers > 1 and len( jobs ) > 1:
+        try:
+            import multiprocessing
+
+            _FORKED_CALL = function
+            context = multiprocessing.get_context( 'fork' )
+
+            with context.Pool( min( workers, len( jobs ) ) ) as pool:
+                return pool.map( _call_forked, jobs, chunksize=1 )
+        except Exception as error:
+            log( "  parallel tracking failed ({}), running serially".format(
+                error ) )
+        finally:
+            _FORKED_CALL = None
+
+    return [ function( job ) for job in jobs ]
+
+
 def search_parameters( implementation, seed_params, sequences,
                        confidence_threshold=0.0, frame_rate=5,
                        grid=DEFAULT_GRID, log=print,
-                       metrics=( 'idf1', ), pooled=False, min_gain=0.0 ):
+                       metrics=( 'idf1', ), pooled=False, min_gain=0.0,
+                       workers=1 ):
     """Coordinate descent from the estimated parameters.
 
     seed_params is replaced key by key, keeping a change only when it scores
@@ -272,6 +306,10 @@ def search_parameters( implementation, seed_params, sequences,
     The objective is the mean of metrics (motmetrics names), by default IDF1
     averaged over the clips. pooled scores all clips as one, so a clip weighs
     by its size; min_gain is how much better a candidate must be to be kept.
+
+    A sequence may carry a third element, parameters that hold for that clip
+    alone, such as a model fitted without it. workers above 1 tracks clips
+    in forked processes.
     """
     try:
         import motmetrics  # noqa: F401
@@ -289,15 +327,21 @@ def search_parameters( implementation, seed_params, sequences,
 
     label = "+".join( metrics ).upper() + ( " pooled" if pooled else "" )
 
+    def track_clip( job ):
+        params, index = job
+        sequence = sequences[ index ]
+        clip_params = dict( params )
+
+        if len( sequence ) > 2:
+            clip_params.update( sequence[ 2 ] )
+
+        tracks = _run_tracker( implementation, clip_params, sequence[ 0 ],
+                               frame_rate )
+        return _accumulate( sequence[ 1 ], tracks, confidence_threshold )
+
     def evaluate( params ):
-        accumulators = []
-
-        for detections, truth in sequences:
-            tracks = _run_tracker( implementation, params, detections,
-                                   frame_rate )
-            accumulators.append(
-                _accumulate( truth, tracks, confidence_threshold ) )
-
+        jobs = [ ( params, i ) for i in range( len( sequences ) ) ]
+        accumulators = _map_forked( track_clip, jobs, workers, log )
         return _score( accumulators, metrics, pooled )
 
     best = evaluate( current )

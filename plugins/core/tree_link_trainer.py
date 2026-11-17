@@ -11,13 +11,15 @@ from a detector's output over the training clips, labelled with groundtruth
 track ids; without detector output the groundtruth boxes stand in for it.
 
 The gates (low_thresh, new_track_thresh, p_match, track_buffer) are then
-searched by running the tracker. To keep that honest the search uses a scorer
-fitted on one half of the clips and tracks the other half; the shipped scorer
-is refitted on every clip. By default the objective is the mean of MOTA and
-IDF1 pooled over the held-out clips. Fitting needs scikit-learn; running does
-not.
+searched by running the tracker. To keep that honest every clip is tracked
+with a scorer that never saw it: the clips are split in two by a hash of their
+names and each half is tracked with the scorer fitted on the other. The
+objective is by default the mean of MOTA and IDF1 pooled over all clips. The
+shipped scorer is refitted on every clip. Fitting needs scikit-learn; running
+does not.
 """
 
+import hashlib
 import json
 import os
 
@@ -197,6 +199,8 @@ class TreeLinkTrainer(TrainTracker):
         self._search_pooled = True
         # A gate moves only for a gain above this, so ties keep the seed
         self._search_min_gain = 0.0005
+        # Processes tracking clips during the search, 0 picks from the CPU count
+        self._search_workers = 0
 
         self._train_image_files = []
         self._train_tracks = []
@@ -208,7 +212,8 @@ class TreeLinkTrainer(TrainTracker):
             "sequence_manifest", "validation_manifest", "search_metrics")
     _FLOAT = ("min_score", "learning_rate", "l2_regularization", "search_confidence",
               "search_min_gain")
-    _INT = ("max_gap", "max_iter", "max_leaf_nodes", "search_max_sequences")
+    _INT = ("max_gap", "max_iter", "max_leaf_nodes", "search_max_sequences",
+            "search_workers")
     _BOOL = ("search_parameters", "search_pooled")
 
     def get_configuration(self):
@@ -273,6 +278,7 @@ class TreeLinkTrainer(TrainTracker):
                     image_files, len(track_sets), "tree_link training")
 
         clips, missing = [], 0
+        self._clip_names = []
         for i, track_set in enumerate(track_sets):
             if track_set is None:
                 continue
@@ -288,6 +294,7 @@ class TreeLinkTrainer(TrainTracker):
             else:
                 computed = {f: [g[:4] + (1.0,) for g in rows] for f, rows in truth.items()}
             clips.append((computed, truth))
+            self._clip_names.append(names[i] if names else None)
         if missing:
             print("  {} clips had no detection file and were skipped".format(missing))
         return clips
@@ -301,21 +308,35 @@ class TreeLinkTrainer(TrainTracker):
                            self._max_leaf_nodes, self._l2_regularization)
         return model, X, y
 
+    def _halves(self, count):
+        """Two halves of the clips, by name hash so a clip stays in its half
+        when others are added; alternating when the names are not known."""
+        names = getattr(self, "_clip_names", [])
+        if len(names) == count and all(names):
+            side = [int(hashlib.md5(n.encode()).hexdigest(), 16) % 2 for n in names]
+        else:
+            side = [i % 2 for i in range(count)]
+        return [[i for i in range(count) if side[i] == h] for h in (0, 1)]
+
     def _search_gates(self, clips, pairs, gates):
-        """Gates picked by tracking one half of the clips with a scorer fitted on the other."""
+        """Gates picked by tracking each half of the clips with a scorer fitted on the other."""
         from viame.core.tracker_param_search import search_parameters
 
-        fit_half = list(range(0, len(clips), 2))
-        held = list(range(1, len(clips), 2))
-        if len(fit_half) < 2 or len(held) < 2:
+        halves = self._halves(len(clips))
+        if min(len(h) for h in halves) < 2:
             print("  too few clips to hold any out, keeping the default gates")
             return gates
-        model, _X, _y = self._fit(fit_half, pairs)
-        path = os.path.join(self._train_directory, "tree_link_search_model.npz")
-        save_scorer(model, path)
+        scorer_for = {}
+        for h in (0, 1):
+            model, _X, _y = self._fit(halves[h], pairs)
+            path = os.path.join(self._train_directory, "tree_link_search_model_%d.npz" % h)
+            save_scorer(model, path)
+            for i in halves[1 - h]:
+                scorer_for[i] = path
+        print("  halves of {} and {} clips".format(len(halves[0]), len(halves[1])))
 
         # Sample evenly across clip size, and feed empty frames so tracks age
-        held.sort(key=lambda i: sum(len(v) for v in clips[i][0].values()))
+        held = sorted(range(len(clips)), key=lambda i: sum(len(v) for v in clips[i][0].values()))
         if self._search_max_sequences and len(held) > self._search_max_sequences:
             step = len(held) / float(self._search_max_sequences)
             held = [held[int(i * step)] for i in range(self._search_max_sequences)]
@@ -323,14 +344,15 @@ class TreeLinkTrainer(TrainTracker):
         for i in held:
             computed, truth = clips[i]
             last = max(max(computed), max(truth))
-            sequences.append(({f: computed.get(f, []) for f in range(last + 1)}, truth))
+            sequences.append(({f: computed.get(f, []) for f in range(last + 1)}, truth,
+                              {"model_file": scorer_for[i]}))
 
-        seed = dict(gates, model_file=path)
+        workers = self._search_workers or max(1, min(8, (os.cpu_count() or 2) // 2))
         found, _report = search_parameters(
-            'tree_link', seed, sequences,
+            'tree_link', dict(gates), sequences,
             confidence_threshold=self._search_confidence, grid=GATE_GRID,
             metrics=[m.strip() for m in self._search_metrics.split(",") if m.strip()],
-            pooled=self._search_pooled, min_gain=self._search_min_gain)
+            pooled=self._search_pooled, min_gain=self._search_min_gain, workers=workers)
         return {k: found[k] for k in gates}
 
     def update_model(self):
