@@ -13,7 +13,9 @@ track ids; without detector output the groundtruth boxes stand in for it.
 The gates (low_thresh, new_track_thresh, p_match, track_buffer) are then
 searched by running the tracker. To keep that honest the search uses a scorer
 fitted on one half of the clips and tracks the other half; the shipped scorer
-is refitted on every clip. Fitting needs scikit-learn; running does not.
+is refitted on every clip. By default the objective is the mean of MOTA and
+IDF1 pooled over the held-out clips. Fitting needs scikit-learn; running does
+not.
 """
 
 import json
@@ -187,8 +189,14 @@ class TreeLinkTrainer(TrainTracker):
         self._l2_regularization = 1.0
 
         self._search_parameters = True
-        self._search_max_sequences = 25
+        # 0 tracks every held-out clip
+        self._search_max_sequences = 0
         self._search_confidence = 0.0
+        # Objective: mean of these motmetrics names, pooled over clips or per clip
+        self._search_metrics = "mota,idf1"
+        self._search_pooled = True
+        # A gate moves only for a gain above this, so ties keep the seed
+        self._search_min_gain = 0.0005
 
         self._train_image_files = []
         self._train_tracks = []
@@ -197,13 +205,15 @@ class TreeLinkTrainer(TrainTracker):
 
     _STR = ("identifier", "train_directory", "output_directory", "output_prefix",
             "pipeline_template", "threshold", "computed_detections",
-            "sequence_manifest", "validation_manifest")
-    _FLOAT = ("min_score", "learning_rate", "l2_regularization", "search_confidence")
+            "sequence_manifest", "validation_manifest", "search_metrics")
+    _FLOAT = ("min_score", "learning_rate", "l2_regularization", "search_confidence",
+              "search_min_gain")
     _INT = ("max_gap", "max_iter", "max_leaf_nodes", "search_max_sequences")
+    _BOOL = ("search_parameters", "search_pooled")
 
     def get_configuration(self):
         cfg = super(TrainTracker, self).get_configuration()
-        for key in self._STR + self._FLOAT + self._INT + ("search_parameters",):
+        for key in self._STR + self._FLOAT + self._INT + self._BOOL:
             cfg.set_value(key, str(getattr(self, "_" + key)))
         return cfg
 
@@ -216,8 +226,9 @@ class TreeLinkTrainer(TrainTracker):
             setattr(self, "_" + key, float(cfg.get_value(key)))
         for key in self._INT:
             setattr(self, "_" + key, int(float(cfg.get_value(key))))
-        search = str(cfg.get_value("search_parameters")).lower()
-        self._search_parameters = search in ('true', '1', 'yes')
+        for key in self._BOOL:
+            value = str(cfg.get_value(key)).lower()
+            setattr(self, "_" + key, value in ('true', '1', 'yes'))
 
         for folder in (self._train_directory, self._output_directory):
             if folder and not os.path.exists(folder):
@@ -317,7 +328,9 @@ class TreeLinkTrainer(TrainTracker):
         seed = dict(gates, model_file=path)
         found, _report = search_parameters(
             'tree_link', seed, sequences,
-            confidence_threshold=self._search_confidence, grid=GATE_GRID)
+            confidence_threshold=self._search_confidence, grid=GATE_GRID,
+            metrics=[m.strip() for m in self._search_metrics.split(",") if m.strip()],
+            pooled=self._search_pooled, min_gain=self._search_min_gain)
         return {k: found[k] for k in gates}
 
     def update_model(self):

@@ -206,8 +206,8 @@ def _run_tracker( implementation, params, detections, frame_rate ):
     return tracks
 
 
-def _idf1( truth, hypothesis, confidence_threshold, iou_threshold=0.5 ):
-    """IDF1 of one clip, over boxes at or above the confidence threshold."""
+def _accumulate( truth, hypothesis, confidence_threshold, iou_threshold=0.5 ):
+    """One clip's matches, over boxes at or above the confidence threshold."""
     import motmetrics as mm
 
     accumulator = mm.MOTAccumulator( auto_id=False )
@@ -230,21 +230,48 @@ def _idf1( truth, hypothesis, confidence_threshold, iou_threshold=0.5 ):
         accumulator.update( [ g[ 4 ] for g in gt ], [ h[ 5 ] for h in hyp ],
                             distance, frameid=frame_id )
 
-    summary = mm.metrics.create().compute( accumulator, metrics=[ 'idf1' ],
-                                           name='clip' )
-    value = float( summary[ 'idf1' ].iloc[ 0 ] )
+    return accumulator
 
-    return 0.0 if np.isnan( value ) else value
+
+def _score( accumulators, metrics, pooled ):
+    """Mean of the named metrics, pooled over the clips or averaged per clip."""
+    import motmetrics as mm
+
+    summary = mm.metrics.create().compute_many(
+        accumulators, metrics=list( metrics ),
+        names=list( range( len( accumulators ) ) ), generate_overall=pooled )
+
+    if pooled:
+        summary = summary.loc[ [ 'OVERALL' ] ]
+
+    values = summary[ list( metrics ) ].to_numpy( dtype=float )
+
+    # A clip with nothing to match scores nan, and -inf MOTA with no truth
+    values = np.nan_to_num( values, nan=0.0, neginf=0.0 )
+
+    return float( values.mean() )
+
+
+def _idf1( truth, hypothesis, confidence_threshold, iou_threshold=0.5 ):
+    """IDF1 of one clip, over boxes at or above the confidence threshold."""
+    return _score(
+        [ _accumulate( truth, hypothesis, confidence_threshold,
+                       iou_threshold ) ], ( 'idf1', ), False )
 
 
 def search_parameters( implementation, seed_params, sequences,
                        confidence_threshold=0.0, frame_rate=5,
-                       grid=DEFAULT_GRID, log=print ):
+                       grid=DEFAULT_GRID, log=print,
+                       metrics=( 'idf1', ), pooled=False, min_gain=0.0 ):
     """Coordinate descent from the estimated parameters.
 
     seed_params is replaced key by key, keeping a change only when it scores
     better than what is already held. Returns ( params, report ) where the
     report records every candidate so a run can be inspected afterwards.
+
+    The objective is the mean of metrics (motmetrics names), by default IDF1
+    averaged over the clips. pooled scores all clips as one, so a clip weighs
+    by its size; min_gain is how much better a candidate must be to be kept.
     """
     try:
         import motmetrics  # noqa: F401
@@ -260,20 +287,23 @@ def search_parameters( implementation, seed_params, sequences,
     current = dict( seed_params )
     report = []
 
+    label = "+".join( metrics ).upper() + ( " pooled" if pooled else "" )
+
     def evaluate( params ):
-        total = 0.0
+        accumulators = []
 
         for detections, truth in sequences:
             tracks = _run_tracker( implementation, params, detections,
                                    frame_rate )
-            total += _idf1( truth, tracks, confidence_threshold )
+            accumulators.append(
+                _accumulate( truth, tracks, confidence_threshold ) )
 
-        return total / len( sequences )
+        return _score( accumulators, metrics, pooled )
 
     best = evaluate( current )
     report.append( ( 'seed', None, best ) )
-    log( "  seed (estimated parameters): IDF1 {:.4f} over {} clips".format(
-        best, len( sequences ) ) )
+    log( "  seed (estimated parameters): {} {:.4f} over {} clips".format(
+        label, best, len( sequences ) ) )
 
     for key, values in grid:
         if key not in current and key != 'match_thresh':
@@ -299,9 +329,9 @@ def search_parameters( implementation, seed_params, sequences,
 
             score = evaluate( candidate )
             report.append( ( key, value, score ) )
-            log( "    {} = {}: IDF1 {:.4f}".format( key, value, score ) )
+            log( "    {} = {}: {} {:.4f}".format( key, value, label, score ) )
 
-            if score > best:
+            if score > best + min_gain:
                 best = score
                 current = candidate
 
@@ -309,6 +339,6 @@ def search_parameters( implementation, seed_params, sequences,
                  else current.get( key ) )
         log( "  -> {} = {}".format( key, held ) )
 
-    log( "  search finished: IDF1 {:.4f}".format( best ) )
+    log( "  search finished: {} {:.4f}".format( label, best ) )
 
     return current, report
