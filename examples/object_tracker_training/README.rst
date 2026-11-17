@@ -130,6 +130,27 @@ Training::
 
     viame train -i training_data --tracker ocsort --threshold 0.0
 
+TreeLink
+--------
+
+TreeLink replaces the hand-set association cost with a learned one. The trainer
+builds (track, detection) pairs from a detector's output over the training clips,
+labels them with the groundtruth track ids, and fits a gradient-boosted tree
+ensemble giving the probability that a pair is the same object. The tracker's
+gates are then searched by tracking held-out clips.
+
+- **No GPU required** -- needs scikit-learn to fit; the tracker runs on numpy alone
+- Uses box geometry and motion only, no appearance
+- Give it detector output over the same clips with ``computed_detections`` (one
+  VIAME CSV per clip, named after it); without that it is fitted on groundtruth
+  boxes and keeps default gates
+- Outputs ``tree_link_model.npz`` and ``tree_link_params.json``
+
+Training::
+
+    viame train -i training_data --tracker tree_link --threshold 0.0 \
+      -s tracker_trainer:tree_link:computed_detections=detector_output
+
 DeepSORT
 ---------
 
@@ -289,6 +310,9 @@ Training Scripts
 ``train_ocsort.sh`` / ``.bat``
     Train OC-SORT parameters (ByteTrack + velocity direction consistency).
 
+``train_tree_link.sh`` / ``.bat``
+    Train the TreeLink link scorer and gates.
+
 ``train_deepsort.sh`` / ``.bat``
     Train a DeepSORT Re-ID appearance model.
 
@@ -344,5 +368,6 @@ Source code:
 * plugins/core/auto_detect_transform.cxx
 * plugins/core/bytetrack_trainer.py
 * plugins/core/homog_iou_trainer.py
+* plugins/core/tree_link_trainer.py
 * plugins/opencv/warp_image_ocv.cxx
 * plugins/pytorch/botsort_trainer.py

@@ -95,6 +95,12 @@ def __vital_algorithm_register__():
         pass
 
     try:
+        from viame.core import tree_link_tracker
+        tree_link_tracker.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
         from viame.core import ocsort_tracker
         ocsort_tracker.__vital_algorithm_register__()
     except ImportError:

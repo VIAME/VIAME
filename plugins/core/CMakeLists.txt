@@ -353,9 +353,19 @@ if( VIAME_ENABLE_PYTHON )
     bytetrack_tracker )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/tree_link_tracker.py
+    core
+    tree_link_tracker )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_trainer.py
     core
     bytetrack_trainer )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/tree_link_trainer.py
+    core
+    tree_link_trainer )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/training_data.py

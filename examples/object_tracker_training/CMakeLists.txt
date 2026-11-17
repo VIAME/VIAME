@@ -8,12 +8,14 @@ if( WIN32 )
        ${EXAMPLE_INSTALL_FILES}
        train_bytetrack.bat
        train_ocsort.bat
+       train_tree_link.bat
        train_default.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        train_bytetrack.sh
        train_ocsort.sh
+       train_tree_link.sh
        train_default.sh )
 endif()
 

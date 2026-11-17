@@ -300,7 +300,8 @@ if( VIAME_ENABLE_PYTHON )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_tracker_bytetrack.conf
     train_tracker_default.conf
-    train_tracker_ocsort.conf )
+    train_tracker_ocsort.conf
+    train_tracker_tree_link.conf )
 endif()
 
 if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
