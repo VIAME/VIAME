@@ -1,0 +1,26 @@
+# @package _global_
+
+# config_hydra.yaml
+
+defaults:
+  - override /data: coco
+  - override /task: detect
+  - override /callbacks: [default]
+  - override /task/model: faster_rcnn
+  - override /trainer: default
+  - override /logger: [csv]
+
+trainer:
+  max_epochs: 10
+  devices: 1
+
+data:
+  batch_size: 1
+  num_workers: 4
+
+task:
+  model:
+    trainable_backbone_layers: 1
+
+  optimizer:
+    lr: 0.001
