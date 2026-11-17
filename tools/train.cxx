@@ -106,6 +106,10 @@ static kv::config_block_sptr default_config()
     "Reader for groundtruth re-read as tracks, with track ids preserved. Used "
     "by tracker training only; all packaged tracker configs set this same "
     "value and override it." );
+  config->set_value( "track_reader:viame_csv:batch_load", "true",
+    "Read every track of a clip in one call. The reader otherwise streams by "
+    "frame, and the single read made per clip returns only the tracks present "
+    "in its first frame." );
   config->set_value( "image_reader:type", "ocv",
     "Reader used to check bit depth and load sample imagery." );
   config->set_value( "groundtruth_extensions", ".csv",
