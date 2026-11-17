@@ -159,7 +159,22 @@ def _run_tracker( implementation, params, detections, frame_rate ):
     algorithm.set_configuration( config )
 
     period = 1.0 / frame_rate if frame_rate else 0.2
-    final = None
+    # A tracker reports the tracks it updated on each frame, so the clip's
+    # tracks have to be gathered as it runs: the last frame alone holds only
+    # those still alive at the end.
+    tracks = {}
+    seen = set()
+
+    def record( track, state ):
+        det = state.detection() if state is not None else None
+
+        if det is None:
+            return
+
+        box = det.bounding_box
+        tracks.setdefault( state.frame_id, [] ).append(
+            ( box.min_x(), box.min_y(), box.max_x(), box.max_y(),
+              det.confidence, track.id ) )
 
     for frame_id in sorted( detections ):
         detected = DetectedObjectSet()
@@ -175,25 +190,18 @@ def _run_tracker( implementation, params, detections, frame_rate ):
 
         result = algorithm.track( stamp, None, detected )
 
-        if result is not None:
-            final = result
+        if result is None:
+            continue
 
-    if final is None:
-        return {}
+        for track in result.tracks():
+            # A track first appears once confirmed, with its earlier states
+            if track.id not in seen:
+                seen.add( track.id )
 
-    tracks = {}
-
-    for track in final.tracks():
-        for state in track:
-            det = state.detection()
-
-            if det is None:
-                continue
-
-            box = det.bounding_box
-            tracks.setdefault( state.frame_id, [] ).append(
-                ( box.min_x(), box.min_y(), box.max_x(), box.max_y(),
-                  det.confidence, track.id ) )
+                for state in track:
+                    record( track, state )
+            else:
+                record( track, track.find_state( frame_id ) )
 
     return tracks
 
