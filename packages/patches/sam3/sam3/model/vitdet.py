@@ -283,6 +283,7 @@ def get_abs_pos(
             # add cls_token back, flatten spatial dims
             assert has_cls_token
             return torch.cat(
+                # pyrefly: ignore [unbound-name]
                 [cls_pos, new_abs_pos.permute(0, 2, 3, 1).reshape(1, h * w, -1)],
                 dim=1,
             )
@@ -292,6 +293,7 @@ def get_abs_pos(
             return abs_pos.reshape(1, h, w, -1)
         else:
             assert has_cls_token
+            # pyrefly: ignore [unbound-name]
             return torch.cat([cls_pos, abs_pos], dim=1)
 
 
@@ -406,6 +408,7 @@ class Attention(nn.Module):
         use_rel_pos: bool = False,
         rel_pos_zero_init: bool = True,
         input_size: Optional[Tuple[int, int]] = None,
+        # pyrefly: ignore [bad-function-definition]
         attn_type: AttentionType = AttentionType.Vanilla,
         cls_token: bool = False,
         use_rope: bool = False,
@@ -577,7 +580,9 @@ class Attention(nn.Module):
             return apply_rotary_enc_real(
                 q,
                 k,
+                # pyrefly: ignore [bad-argument-type]
                 freqs_cis_imag=self.freqs_cis_imag,
+                # pyrefly: ignore [bad-argument-type]
                 freqs_cis_real=self.freqs_cis_real,
             )
         return apply_rotary_enc(q, k, freqs_cis=self.freqs_cis)
@@ -606,16 +611,23 @@ class Attention(nn.Module):
             q, k = concat_rel_pos(
                 q.flatten(0, 1),
                 k.flatten(0, 1),
+                # pyrefly: ignore [bad-argument-type]
                 (H, W),
+                # pyrefly: ignore [bad-argument-type]
                 x.shape[1:3],
+                # pyrefly: ignore [bad-argument-type]
                 self.rel_pos_h,
+                # pyrefly: ignore [bad-argument-type]
                 self.rel_pos_w,
                 rescale=True,
+                # pyrefly: ignore [bad-argument-type]
                 relative_coords=self.relative_coords,
             )
 
             # sdpa expects [B, nheads, H*W, C] so we transpose back
+            # pyrefly: ignore [bad-argument-type]
             q = q.reshape(B, self.num_heads, H * W, -1)
+            # pyrefly: ignore [bad-argument-type]
             k = k.reshape(B, self.num_heads, H * W, -1)
 
         if self.attn_type == AttentionType.Vanilla:
@@ -636,8 +648,10 @@ class Attention(nn.Module):
 
         if ndim == 4:
             x = (
+                # pyrefly: ignore [bad-argument-type]
                 x.view(B, self.num_heads, H, W, -1)
                 .permute(0, 2, 3, 1, 4)
+                # pyrefly: ignore [bad-argument-type]
                 .reshape(B, H, W, -1)
             )
         else:
@@ -672,6 +686,7 @@ class Block(nn.Module):
         cls_token: bool = False,
         dropout: float = 0.0,
         init_values: Optional[float] = None,
+        # pyrefly: ignore [bad-function-definition]
         attn_type: AttentionType = AttentionType.Vanilla,
         use_fa3: bool = False,
         use_rope_real: bool = False,
@@ -748,6 +763,7 @@ class Block(nn.Module):
         x = self.ls1(self.attn(x))
         # Reverse window partition
         if self.window_size > 0:
+            # pyrefly: ignore [unbound-name]
             x = window_unpartition(x, self.window_size, pad_hw, (H, W))
 
         x = shortcut + self.dropout(self.drop_path(x))
@@ -794,6 +810,7 @@ class ViT(nn.Module):
         dropout: float = 0.0,
         return_interm_layers: bool = False,
         init_values: Optional[float] = None,  # for layerscale
+        # pyrefly: ignore [bad-function-definition]
         attn_type: AttentionType = AttentionType.Vanilla,
         ln_pre: bool = False,
         ln_post: bool = False,
@@ -848,6 +865,7 @@ class ViT(nn.Module):
         if isinstance(rel_pos_blocks, bool) and rel_pos_blocks:
             self.rel_pos_blocks = [True] * depth
         else:
+            # pyrefly: ignore [not-iterable]
             for i in rel_pos_blocks:
                 self.rel_pos_blocks[i] = True
 
