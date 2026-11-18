@@ -6,6 +6,7 @@ import ast
 import json
 import math
 import os
+import re
 import sys
 import subprocess
 
@@ -63,6 +64,9 @@ _ADAPTIVE_GB_PER_MEGAPIXEL = 3.1
 _ADAPTIVE_SEG_FACTOR = 2.0
 _ADAPTIVE_MULTI_SCALE_FACTOR = 1.37
 _ADAPTIVE_CHECKPOINT_FACTOR = 0.55
+# Detached video context frame, as a fraction of a trained frame. Measured 0.10 (0.77 with
+# gradients) on RFDETRLarge at 960x1728; the margin covers the eval pass.
+_ADAPTIVE_TEMPORAL_NOGRAD_FACTOR = 0.25
 
 # Real growth is super-linear in micro-batch (the matcher/loss cost matrices
 # scale with objects per frame), so auto stops here rather than extrapolating
@@ -85,8 +89,27 @@ def smallest_visible_vram_gb():
         return None
 
 
+def parse_temporal_offsets(value):
+    """Parse temporal_offsets ("-1,-2") into a list of non-zero frame offsets."""
+    text = str(value).strip().strip('[]()')
+    if text.lower() in ('', 'none', 'false', '0'):
+        return []
+    offsets = [int(tok) for tok in text.replace(';', ',').split(',') if tok.strip()]
+    if any(off == 0 for off in offsets) or len(set(offsets)) != len(offsets):
+        raise ValueError(
+            f"temporal_offsets = {value!r}: offsets must be distinct and non-zero "
+            "(the reference frame is always included)")
+    return offsets
+
+
+def natural_sort_key(name):
+    """Sort key ordering frame2 before frame10."""
+    return [int(tok) if tok.isdigit() else tok for tok in re.split(r'(\d+)', name)]
+
+
 def adaptive_micro_batch(vram_gb, resolution, segmentation=False,
-                         multi_scale=True, gradient_checkpointing=False):
+                         multi_scale=True, gradient_checkpointing=False,
+                         temporal_frames=1, temporal_context_grad=False):
     """Largest micro-batch a single GPU of vram_gb should hold at this workload.
 
     Deliberately conservative: it estimates the training step only, so a card
@@ -104,6 +127,10 @@ def adaptive_micro_batch(vram_gb, resolution, segmentation=False,
         per_image *= _ADAPTIVE_MULTI_SCALE_FACTOR
     if gradient_checkpointing:
         per_image *= _ADAPTIVE_CHECKPOINT_FACTOR
+    if temporal_frames > 1:
+        # Context frames cost a full backward each, or only a forward when detached.
+        per_extra = 1.0 if temporal_context_grad else _ADAPTIVE_TEMPORAL_NOGRAD_FACTOR
+        per_image *= 1.0 + per_extra * (temporal_frames - 1)
 
     usable = float(vram_gb) - _ADAPTIVE_RESERVE_GB
     if usable <= 0 or per_image <= 0:
@@ -312,6 +339,24 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'interpolated to the new grid. Every dim must be divisible by '
         'patch_size*num_windows (32 for large, 56 for base, 32 for '
         'nano/small/medium).'))
+    temporal_offsets = scfg.Value('', help=(
+        'Train a video detector: comma-separated frame offsets, relative to '
+        'each training frame, of the extra frames given to the network, e.g. '
+        '"-1,-2" for the two preceding frames. Empty trains a single-frame '
+        'model. Every frame goes through the shared backbone and the feature '
+        'maps are fused before the decoder, starting from an identity so a '
+        'single-frame seed_model keeps its accuracy at step 0. Neighbours are '
+        'found by sorted file name in the training frame\'s own folder, so the '
+        'frames must be on disk in temporal order (videos and augmentation '
+        'pipelines are extracted that way); a missing neighbour is replaced by '
+        'the frame itself. Use non-positive offsets for a detector that can '
+        'run online: the rf_detr detector buffers past frames only. Needs '
+        'windowing mode = disabled, and num_channels stays the per-frame count.'))
+    temporal_context_grad = scfg.Value(False, help=(
+        'Backpropagate through the extra frames as well as the training frame. '
+        'Off, they only feed the fusion layers and the backbone learns through '
+        'the training frame alone, which keeps memory near the single-frame '
+        'cost; on, memory grows with the frame count.'))
     gradient_checkpointing = scfg.Value(False, help=(
         'Trade compute for memory by recomputing backbone activations in the '
         'backward pass (~30%% slower, roughly halves activation memory). '
@@ -665,7 +710,9 @@ class RFDETRTrainer(TrainDetector):
             fits = adaptive_micro_batch(
                 vram_gb, resolution, segmentation=segmentation,
                 multi_scale=parse_bool(self._multi_scale),
-                gradient_checkpointing=parse_bool(self._gradient_checkpointing))
+                gradient_checkpointing=parse_bool(self._gradient_checkpointing),
+                temporal_frames=1 + len(parse_temporal_offsets(self._temporal_offsets)),
+                temporal_context_grad=parse_bool(self._temporal_context_grad))
 
         target = max(1, int(self._auto_batch_target_effective))
         ranks = max(1, int(n_gpus))
@@ -894,6 +941,34 @@ class RFDETRTrainer(TrainDetector):
         # cost ~1 GB on top of the COCO lists already accumulating here.
         probe_block_size = 20000
 
+        temporal_offsets = parse_temporal_offsets(self._temporal_offsets)
+        folder_frames = {}
+        temporal_stats = {"found": 0, "missing": 0}
+
+        def temporal_neighbours(img_path):
+            """Paths of the frames at temporal_offsets from img_path, by sorted name."""
+            folder, name = os.path.split(img_path)
+            if folder not in folder_frames:
+                ext = os.path.splitext(name)[1].lower()
+                names = sorted(
+                    (n for n in os.listdir(folder)
+                     if os.path.splitext(n)[1].lower() == ext),
+                    key=natural_sort_key)
+                folder_frames[folder] = (names, {n: i for i, n in enumerate(names)})
+            names, index = folder_frames[folder]
+            neighbours = []
+            for offset in temporal_offsets:
+                pos = index.get(name, -1)
+                other = pos + offset if pos >= 0 else -1
+                if 0 <= other < len(names):
+                    neighbours.append(os.path.join(folder, names[other]))
+                    temporal_stats["found"] += 1
+                else:
+                    # Sequence edge: repeat the frame, as the detector does at start-up.
+                    neighbours.append(img_path)
+                    temporal_stats["missing"] += 1
+            return neighbours
+
         def build_coco_json(image_files, detection_sets):
             images_json = []
             annotations_json = []
@@ -933,6 +1008,8 @@ class RFDETRTrainer(TrainDetector):
                     "width": width,
                     "height": height,
                 })
+                if temporal_offsets:
+                    images_json[-1]["temporal_files"] = temporal_neighbours(abs_path)
 
                 if det_set is None:
                     continue
@@ -1047,6 +1124,18 @@ class RFDETRTrainer(TrainDetector):
         with open(test_dir / "_annotations.coco.json", "w") as f:
             json.dump(valid_coco, f)
 
+        if temporal_offsets:
+            found, missing = temporal_stats["found"], temporal_stats["missing"]
+            print(f"[RFDETRTrainer] Video detector: offsets {temporal_offsets}, "
+                  f"{found} neighbouring frame(s) found, {missing} replaced by "
+                  f"their own frame")
+            if found == 0:
+                raise RuntimeError(
+                    "temporal_offsets is set but no training frame has a "
+                    "neighbouring frame beside it on disk, so the video detector "
+                    "would train on repeated stills. The frames must sit in "
+                    "per-sequence folders in temporal order.")
+
         if unreadable:
             report = ub.Path(self._train_directory) / "unreadable_images.txt"
             with open(report, "w") as f:
@@ -1149,6 +1238,12 @@ class RFDETRTrainer(TrainDetector):
             model_kwargs['resolution'] = self._resolution
         if gradient_checkpointing:
             model_kwargs['gradient_checkpointing'] = True
+        temporal_offsets = parse_temporal_offsets(self._temporal_offsets)
+        if temporal_offsets:
+            model_kwargs['temporal_frames'] = 1 + len(temporal_offsets)
+            model_kwargs['temporal_context_grad'] = parse_bool(self._temporal_context_grad)
+            print(f"[RFDETRTrainer] Video detector: {1 + len(temporal_offsets)} "
+                  f"frames per sample (offsets {temporal_offsets})")
         keypoints_enabled = parse_bool(self._keypoints)
         if keypoints_enabled:
             kp_names = self._keypoint_names_list()
@@ -1533,6 +1628,8 @@ class RFDETRTrainer(TrainDetector):
             num_channels=int(self._num_channels),
             resolution=format_resolution(self._resolution),
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
+            temporal_frames=1 + len(parse_temporal_offsets(self._temporal_offsets)),
+            temporal_context_grad=parse_bool(self._temporal_context_grad),
             seed_model=self._seed_model,
             seed_model_url_fallback=str(self._seed_model_url_fallback),
             pretrained_dir=self._pretrained_dir,
@@ -1714,6 +1811,10 @@ class RFDETRTrainer(TrainDetector):
                 args['keypoint_names'] = self._keypoint_names_list()
                 args['num_keypoints'] = len(self._keypoint_names_list())
             args['num_channels'] = int(self._num_channels)
+            temporal_offsets = parse_temporal_offsets(self._temporal_offsets)
+            if temporal_offsets:
+                args['temporal_frames'] = 1 + len(temporal_offsets)
+                args['temporal_offsets'] = temporal_offsets
             if resolution_is_set(self._resolution):
                 args['resolution'] = self._resolution
             checkpoint['args'] = args

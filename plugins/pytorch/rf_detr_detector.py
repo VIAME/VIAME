@@ -52,6 +52,14 @@ class RFDETRDetectorConfig(scfg.DataConfig):
         'keypoints ride along on each detection and viame_csv writers emit '
         'them as (kp) entries.'))
 
+    temporal_offsets = scfg.Value('', help=(
+        'Frame offsets of a video checkpoint\'s extra input frames, e.g. '
+        '"-1,-2". Empty = recover from the checkpoint, falling back to the '
+        'preceding frames. Only past frames are available: the detector buffers '
+        'the images it is handed, in order, and repeats the current one until '
+        'enough have arrived. Run it on whole frames of one sequence at the '
+        'frame rate it was trained at, not on chips.'))
+
     def __post_init__(self):
         super().__post_init__()
 
@@ -157,7 +165,8 @@ class RFDETRDetector(ImageObjectDetector):
         # token count rather than guessed.
         import math
         arch = {'model_size': None, 'resolution': None,
-                'num_channels': None, 'segmentation': None}
+                'num_channels': None, 'segmentation': None,
+                'temporal_frames': 1}
         if not isinstance(state_dict, dict):
             return arch
 
@@ -171,6 +180,12 @@ class RFDETRDetector(ImageObjectDetector):
 
         arch['segmentation'] = any(
             k.startswith('segmentation_head') for k in state_dict)
+
+        # Video checkpoint: the fusion conv takes (2T - 1) feature maps.
+        fuse = state_dict.get('backbone.0.temporal_fusion.blocks.0.reduce.weight')
+        fuse_shape = getattr(fuse, 'shape', None)
+        if fuse_shape is not None and len(fuse_shape) == 4:
+            arch['temporal_frames'] = (int(fuse_shape[1]) // int(fuse_shape[0]) + 1) // 2
 
         prefix = 'transformer.decoder.layers.'
         layer_ids = [int(k[len(prefix):].split('.', 1)[0])
@@ -243,6 +258,7 @@ class RFDETRDetector(ImageObjectDetector):
         checkpoint = None
         state_dict = None
         ckpt_args = {}
+        temporal_frames = 1
         if weight_fpath and ub.Path(weight_fpath).exists():
             checkpoint = torch.load(weight_fpath, map_location=device, weights_only=False)
             state_dict = self._extract_state_dict(checkpoint)
@@ -269,6 +285,8 @@ class RFDETRDetector(ImageObjectDetector):
                 resolution = arch['resolution']
             elif 'resolution' in ckpt_args:
                 resolution = parse_resolution(ckpt_args['resolution'])
+
+            temporal_frames = int(arch['temporal_frames'])
 
         # Import the appropriate RF-DETR model class based on size and whether a
         # segmentation (mask) head is present. Seg checkpoints carry extra
@@ -318,6 +336,8 @@ class RFDETRDetector(ImageObjectDetector):
             )
             if resolution_is_set(resolution):
                 model_kwargs['resolution'] = resolution
+            if temporal_frames > 1:
+                model_kwargs['temporal_frames'] = temporal_frames
 
             # Keypoint head: the trainer saves keypoint_head.* weights and the
             # strict state-dict load rejects them unless the model is built
@@ -353,6 +373,7 @@ class RFDETRDetector(ImageObjectDetector):
             self._model = RFDETRModel(**pre_kwargs)
 
         self._num_channels = num_channels
+        self._setup_temporal(temporal_frames, ckpt_args)
 
         # Set up class names
         if self._classes is None:
@@ -377,6 +398,52 @@ class RFDETRDetector(ImageObjectDetector):
 
         print(f"[RFDETRDetector] Model loaded with {len(self._classes)} classes")
 
+    def _setup_temporal(self, temporal_frames, ckpt_args):
+        """Resolve which past frames a video checkpoint is fed alongside the current one."""
+        self._temporal_offsets = []
+        self._frame_buffer = []
+        if temporal_frames <= 1:
+            return
+
+        text = str(self._kwiver_config['temporal_offsets']).strip().strip('[]()')
+        if text and text.lower() != 'none':
+            offsets = [int(tok) for tok in text.replace(';', ',').split(',') if tok.strip()]
+        elif ckpt_args.get('temporal_offsets'):
+            offsets = [int(off) for off in ckpt_args['temporal_offsets']]
+        else:
+            offsets = [-(i + 1) for i in range(temporal_frames - 1)]
+
+        if len(offsets) != temporal_frames - 1:
+            raise ValueError(
+                f"temporal_offsets {offsets} does not match a checkpoint taking "
+                f"{temporal_frames} frames per sample")
+        if any(off >= 0 for off in offsets):
+            raise ValueError(
+                f"temporal_offsets {offsets} needs future frames, which a "
+                "per-frame detector never sees. Train with negative offsets.")
+        self._temporal_offsets = offsets
+        print(f"[RFDETRDetector] Video checkpoint: {temporal_frames} frames per "
+              f"sample, offsets {offsets}")
+
+    def _stack_temporal(self, frame):
+        """Stack [current, past...] along the channel axis and remember the current frame."""
+        import numpy as np
+
+        if frame.ndim == 2:
+            frame = frame[:, :, None]
+        # A new size means a new sequence; its past frames do not apply.
+        if self._frame_buffer and self._frame_buffer[-1].shape != frame.shape:
+            self._frame_buffer = []
+
+        frames = [frame]
+        for offset in self._temporal_offsets:
+            pos = len(self._frame_buffer) + offset
+            frames.append(self._frame_buffer[pos] if pos >= 0 else frame)
+
+        self._frame_buffer.append(frame.copy())
+        del self._frame_buffer[:-max(-off for off in self._temporal_offsets)]
+        return np.concatenate(frames, axis=2)
+
     def check_configuration(self, cfg):
         return True
 
@@ -393,7 +460,9 @@ class RFDETRDetector(ImageObjectDetector):
         # PIL cannot represent >4 channels (and only RGB/RGBA at all), so pass
         # multi-channel imagery (e.g. RGB + flow) to predict as a numpy array;
         # predict() converts it to a (C, H, W) tensor itself.
-        if self._num_channels > 3 or full_rgb.ndim != 3 or full_rgb.shape[2] != 3:
+        if self._temporal_offsets:
+            model_input = self._stack_temporal(full_rgb)
+        elif self._num_channels > 3 or full_rgb.ndim != 3 or full_rgb.shape[2] != 3:
             model_input = full_rgb
         else:
             model_input = Image.fromarray(full_rgb)

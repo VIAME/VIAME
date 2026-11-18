@@ -237,6 +237,7 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
     train_detector_rf_detr_l_seg_720.conf
     train_detector_rf_detr_l_1024.conf
     train_detector_rf_detr_l_1728.conf
+    train_detector_rf_detr_l_1728_video.conf
     train_detector_rf_detr_l_1728_mot_mim.conf
     train_detector_rf_detr_l_1728_mot_opt.conf
     train_detector_rf_detr_l_seg_1728.conf
