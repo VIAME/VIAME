@@ -1,5 +1,5 @@
 # =============================================================================
-# GPU Memory: high
+# GPU Memory: 24 GB
 # Title: SAM3 Fish Tracker
 #
 # Description: Detect and track fish across frames using SAM3's native video

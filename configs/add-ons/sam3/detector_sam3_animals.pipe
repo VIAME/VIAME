@@ -1,5 +1,5 @@
 # =============================================================================
-# GPU Memory: high
+# GPU Memory: 24 GB
 # Title: SAM3 Open-Vocabulary Detector
 #
 # Description: Detect objects in each frame using SAM3's built-in text-prompted

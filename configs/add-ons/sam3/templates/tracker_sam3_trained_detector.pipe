@@ -1,5 +1,5 @@
 # =============================================================================
-# GPU Memory: high
+# GPU Memory: 24 GB
 # Tracker - SAM 3.1 on Trained Detector Detections (template)
 #
 # Description: Pipeline template for training a detector and a SAM 3.1

@@ -1,5 +1,5 @@
 # =============================================================================
-# GPU Memory: high
+# GPU Memory: 24 GB
 # Title: SAM3 Tracker (fine-tuned) - training template
 #
 # Description: Deployment template filled in by the SAM3 tracker trainer

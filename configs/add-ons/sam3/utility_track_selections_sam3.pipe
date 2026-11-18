@@ -1,5 +1,5 @@
 # =============================================================================
-# GPU Memory: high
+# GPU Memory: 24 GB
 # Title: Track user selections and generate segmentation masks using SAM3
 #
 # Description: Utility pipeline for tracking user selections and adding

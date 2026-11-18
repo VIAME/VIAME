@@ -1,5 +1,5 @@
 # =============================================================================
-# GPU Memory: high
+# GPU Memory: 24 GB
 # Title: Add automatically generated segmentations via SAM3
 #
 # Description: Adds segmentation masks to existing detections using SAM3.

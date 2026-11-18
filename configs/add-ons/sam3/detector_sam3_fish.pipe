@@ -1,5 +1,5 @@
 # =============================================================================
-# GPU Memory: high
+# GPU Memory: 24 GB
 # Title: SAM3 Fish Detector
 #
 # Description: Detect fish in each frame using SAM3's built-in text-prompted
