@@ -13,17 +13,13 @@ This module provides two trainers:
    fills) used for segmentation supervision.
 
 2. SAM3TrackerTrainer (train_tracker type, "sam3" implementation) -
-   fine-tunes SAM3 mask propagation for video object tracking using
-   track-level annotations. Ground-truth tracks are sampled into short
-   clips; the first frame of a clip is prompted with the ground-truth
-   box while subsequent frames are prompted only with the previous
-   frame's predicted low-resolution mask, mimicking inference-time mask
-   propagation. All frames are supervised with BCE + Dice losses. The
-   resulting checkpoint is emitted with type "sam3_tracker" so it can be
-   consumed by the sam3_tracker TrackObjects implementation.
-
-Both support freezing the image/prompt encoders (default) so only the
-mask decoder is fine-tuned, plus mixed precision training.
+   fine-tunes the SAM 3.1 multiplex tracker (memory attention, memory
+   encoder, mask decoders, object pointers) on multi-object clips cut
+   from ground-truth tracks with polygon annotations, using the model's
+   own SAM2-style video training forward. The vision backbone it shares
+   with the SAM3 detector stays frozen. The engine lives in
+   sam3_tracker_training.py; the output is a full SAM 3.1 checkpoint plus
+   a refine_tracks pipeline from templates/tracker_sam3.pipe.
 """
 
 import json
@@ -45,14 +41,6 @@ from kwiver.vital.types import (
 )
 
 from viame.pytorch.utilities import report_cuda_errors
-
-
-def _resolve_attr(model, names):
-    """Return the first present attribute from names, or None."""
-    for name in names:
-        if hasattr(model, name):
-            return getattr(model, name)
-    return None
 
 
 def _resolve_model_path(path):
@@ -923,53 +911,47 @@ class SAM3Trainer(TrainDetector):
 
 class SAM3TrackerTrainer(TrainTracker):
     """
-    Implementation of TrainTracker class for SAM3 tracker fine-tuning.
+    Implementation of TrainTracker for SAM 3.1 tracker fine-tuning.
 
-    Fine-tunes SAM3 mask propagation using ground-truth tracks so that
-    tracked masks stay locked onto the annotated object class across
-    frames.
+    Fine-tunes the SAM 3.1 multiplex tracker -- memory attention, memory
+    encoder, mask decoders and object-pointer heads -- on ground-truth tracks
+    with polygon annotations, keeping the vision backbone it shares with the
+    SAM3 text-query detector frozen. The engine is sam3_tracker_training.py;
+    see its docstring for the method and numerics.
+
+    The output is a full SAM 3.1 checkpoint (only the tracker weights differ
+    from the source), plus a pipeline generated from
+    templates/tracker_sam3.pipe, so it drops in wherever sam3.1_weights.pt is
+    used, e.g. tracker_sam3_fish.pipe.
     """
+
+    OUTPUT_MODEL_NAME = "sam3.1_tracker_finetuned.pt"
+    CONFIG_NAME = "sam3.1_config.json"
 
     def __init__(self):
         TrainTracker.__init__(self)
 
-        # Model configuration
         self._identifier = "viame-sam3-tracker"
-        # Native SAM3 checkpoint. Defaults to the weights VIAME installs so
-        # training does not reach for the hub -- facebook/sam3 is a gated repo
-        # and an unauthenticated run dies with a 401 GatedRepoError.
         self._sam_model_id = "models/sam3.1_weights.pt"
-        # SAM2 fallback, used when the native sam3 module is unavailable. These
-        # default to the checkpoints VIAME already installs, so training does
-        # not depend on reaching the HuggingFace hub. sam2_hbp.pt is a SAM2.1
-        # hiera base-plus checkpoint (24 trunk blocks, 112 channel patch
-        # embed), so it must be paired with the b+ config -- the large config
-        # this used to hardcode does not match those weights.
-        self._sam2_model_path = "models/sam2_hbp.pt"
-        self._sam2_config_file = "configs/sam2.1/sam2.1_hiera_b+.yaml"
         self._train_directory = "deep_training"
-
-        # Training configuration
         self._gpu_count = -1
-        self._max_epochs = "20"
-        self._batch_size = "4"
-        self._learning_rate = "1e-5"
-        self._timeout = "604800"
-        self._chip_width = "1024"
-        self._chip_height = "1024"
-
-        # Clip sampling configuration
+        self._max_iterations = "4000"
+        self._learning_rate = "2e-5"
+        self._weight_decay = "0.05"
+        self._warmup_iterations = "300"
         self._clip_length = "8"
-        self._clip_stride = "4"
-        self._min_clip_length = "2"
-        self._max_clips_per_track = "20"
+        self._max_objects = "8"
+        self._eval_every = "500"
+        self._eval_clips = "300"
+        self._validation_fraction = "0.1"
+        self._num_workers = "4"
+        self._box_targets = "false"
+        self._text_query = "fish"
+        self._timeout = "604800"
+        self._seed = "0"
+        self._sequence_manifest = ""
+        self._validation_manifest = ""
 
-        # Fine-tuning configuration
-        self._freeze_image_encoder = "true"
-        self._freeze_prompt_encoder = "true"
-        self._amp_enabled = "true"
-
-        # Internal state
         self._categories = []
         self._train_image_files = []
         self._train_tracks = []
@@ -981,23 +963,24 @@ class SAM3TrackerTrainer(TrainTracker):
 
         cfg.set_value("identifier", self._identifier)
         cfg.set_value("sam_model_id", self._sam_model_id)
-        cfg.set_value("sam2_model_path", self._sam2_model_path)
-        cfg.set_value("sam2_config_file", self._sam2_config_file)
         cfg.set_value("train_directory", self._train_directory)
         cfg.set_value("gpu_count", str(self._gpu_count))
-        cfg.set_value("max_epochs", self._max_epochs)
-        cfg.set_value("batch_size", self._batch_size)
+        cfg.set_value("max_iterations", self._max_iterations)
         cfg.set_value("learning_rate", self._learning_rate)
-        cfg.set_value("timeout", self._timeout)
-        cfg.set_value("chip_width", self._chip_width)
-        cfg.set_value("chip_height", self._chip_height)
+        cfg.set_value("weight_decay", self._weight_decay)
+        cfg.set_value("warmup_iterations", self._warmup_iterations)
         cfg.set_value("clip_length", self._clip_length)
-        cfg.set_value("clip_stride", self._clip_stride)
-        cfg.set_value("min_clip_length", self._min_clip_length)
-        cfg.set_value("max_clips_per_track", self._max_clips_per_track)
-        cfg.set_value("freeze_image_encoder", self._freeze_image_encoder)
-        cfg.set_value("freeze_prompt_encoder", self._freeze_prompt_encoder)
-        cfg.set_value("amp_enabled", self._amp_enabled)
+        cfg.set_value("max_objects", self._max_objects)
+        cfg.set_value("eval_every", self._eval_every)
+        cfg.set_value("eval_clips", self._eval_clips)
+        cfg.set_value("validation_fraction", self._validation_fraction)
+        cfg.set_value("num_workers", self._num_workers)
+        cfg.set_value("box_targets", self._box_targets)
+        cfg.set_value("text_query", self._text_query)
+        cfg.set_value("timeout", self._timeout)
+        cfg.set_value("seed", self._seed)
+        cfg.set_value("sequence_manifest", self._sequence_manifest)
+        cfg.set_value("validation_manifest", self._validation_manifest)
 
         return cfg
 
@@ -1009,38 +992,26 @@ class SAM3TrackerTrainer(TrainTracker):
         self._identifier = str(cfg.get_value("identifier"))
         self._sam_model_id = _resolve_model_path(
             str(cfg.get_value("sam_model_id")))
-        self._sam2_model_path = _resolve_model_path(
-            str(cfg.get_value("sam2_model_path")))
-        self._sam2_config_file = str(cfg.get_value("sam2_config_file"))
         self._train_directory = str(cfg.get_value("train_directory"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
-        self._max_epochs = str(cfg.get_value("max_epochs"))
-        self._batch_size = str(cfg.get_value("batch_size"))
-        self._learning_rate = str(cfg.get_value("learning_rate"))
-        self._timeout = str(cfg.get_value("timeout"))
-        self._chip_width = str(cfg.get_value("chip_width"))
-        self._chip_height = str(cfg.get_value("chip_height"))
-        self._clip_length = str(cfg.get_value("clip_length"))
-        self._clip_stride = str(cfg.get_value("clip_stride"))
-        self._min_clip_length = str(cfg.get_value("min_clip_length"))
-        self._max_clips_per_track = str(cfg.get_value("max_clips_per_track"))
-        self._freeze_image_encoder = str(cfg.get_value("freeze_image_encoder"))
-        self._freeze_prompt_encoder = str(cfg.get_value("freeze_prompt_encoder"))
-        self._amp_enabled = str(cfg.get_value("amp_enabled"))
+        for key in ("max_iterations", "learning_rate", "weight_decay",
+                    "warmup_iterations", "clip_length", "max_objects",
+                    "eval_every", "eval_clips", "validation_fraction",
+                    "num_workers", "box_targets", "text_query", "timeout",
+                    "seed", "sequence_manifest", "validation_manifest"):
+            setattr(self, "_" + key, str(cfg.get_value(key)))
 
         try:
             import torch
-
-            if torch.cuda.is_available():
-                if self._gpu_count < 0:
-                    self._gpu_count = torch.cuda.device_count()
+            if torch.cuda.is_available() and self._gpu_count < 0:
+                self._gpu_count = torch.cuda.device_count()
         except ImportError:
-            if self._gpu_count < 0:
-                self._gpu_count = 1
+            pass
+        if self._gpu_count < 1:
+            self._gpu_count = 1
 
-        if self._train_directory:
-            if not os.path.exists(self._train_directory):
-                os.makedirs(self._train_directory)
+        if self._train_directory and not os.path.exists(self._train_directory):
+            os.makedirs(self._train_directory)
 
         return True
 
@@ -1069,439 +1040,235 @@ class SAM3TrackerTrainer(TrainTracker):
         self._test_image_files = list(test_files)
         self._test_tracks = list(test_tracks)
 
-    def _extract_clip_samples(self, image_files, track_sets):
+    # -------------------------------------------------------------------------
+    # Data
+    # -------------------------------------------------------------------------
+
+    @staticmethod
+    def _sequence_maps(image_files, track_sets, manifest, label):
         """
-        Sample fixed-length clips from ground-truth tracks.
-
-        Each clip follows a single object and is a list of dicts with keys
-        'image', 'bbox' ([x1, y1, x2, y2]) and 'polygon' (flat [x, y, ...]
-        list or None). Frame IDs index into the split's image file list.
+        One frame-id -> image map per track set. Track frame ids are local to
+        their sequence while the image list is flat, so the training tool's
+        manifest is used when present, else the directory layout.
         """
-        clip_length = int(self._clip_length)
-        clip_stride = int(self._clip_stride)
-        min_clip_length = int(self._min_clip_length)
-        max_clips_per_track = int(self._max_clips_per_track)
+        from viame.core.training_data import (
+            build_sequence_maps, read_sequence_manifest)
 
-        image_map = {}
-        for i, img_file in enumerate(image_files):
-            image_map[i] = img_file
+        maps = names = None
+        if manifest:
+            maps, names = read_sequence_manifest(
+                manifest, image_files, len(track_sets))
+        if maps is None:
+            maps, names = build_sequence_maps(
+                image_files, len(track_sets), label)
+        return maps, names
 
-        clips = []
-
-        for track_set in track_sets:
-            if track_set is None:
-                continue
-
-            for track in track_set.tracks():
-                frames = []
-                for state in track:
-                    det = state.detection()
-                    if det is None:
-                        continue
-
-                    frame_id = state.frame_id
-                    if frame_id not in image_map:
-                        continue
-
-                    img_path = image_map[frame_id]
-                    if not os.path.exists(img_path):
-                        continue
-
-                    bbox = det.bounding_box
-                    x1, y1 = bbox.min_x(), bbox.min_y()
-                    x2, y2 = bbox.max_x(), bbox.max_y()
-                    if x2 - x1 <= 0 or y2 - y1 <= 0:
-                        continue
-
-                    polygon = None
-                    try:
-                        poly = det.polygon()
-                        if poly is not None and poly.num_vertices() >= 3:
-                            polygon = []
-                            for i in range(poly.num_vertices()):
-                                pt = poly.at(i)
-                                polygon.extend([pt.x(), pt.y()])
-                    except (AttributeError, RuntimeError):
-                        polygon = None
-
-                    frames.append(
-                        {
-                            "image": img_path,
-                            "bbox": [x1, y1, x2, y2],
-                            "polygon": polygon,
-                        }
-                    )
-
-                if len(frames) < min_clip_length:
+    @staticmethod
+    def _track_set_spec(track_set, frame_map, name):
+        """JSON-serializable frames/objects spec for one sequence."""
+        frames, objects = {}, {}
+        for track in track_set.tracks():
+            for state in track:
+                det = state.detection()
+                if det is None:
                     continue
+                fid = state.frame_id
+                path = frame_map.get(fid)
+                if path is None:
+                    continue
+                bbox = det.bounding_box
+                x1, y1 = bbox.min_x(), bbox.min_y()
+                x2, y2 = bbox.max_x(), bbox.max_y()
+                if x2 - x1 <= 0 or y2 - y1 <= 0:
+                    continue
+                polys = []
+                try:
+                    polys = [list(map(float, p))
+                             for p in det.get_flattened_polygons()
+                             if len(p) >= 6]
+                except (AttributeError, RuntimeError):
+                    polys = []
+                frames[str(fid)] = path
+                objects.setdefault(str(fid), []).append(
+                    {"tid": int(track.id), "bbox": [x1, y1, x2, y2],
+                     "polys": polys})
+        return {"name": name, "frames": frames, "objects": objects}
 
-                track_clips = 0
-                for start in range(0, len(frames), clip_stride):
-                    clip = frames[start : start + clip_length]
-                    if len(clip) < min_clip_length:
-                        break
-                    clips.append(clip)
-                    track_clips += 1
-                    if track_clips >= max_clips_per_track:
-                        break
+    def _build_specs(self):
+        from viame.core.training_data import split_validation
 
-        return clips
+        train_maps, train_names = self._sequence_maps(
+            self._train_image_files, self._train_tracks,
+            self._sequence_manifest, "training")
+        train = (self._train_tracks, train_maps, train_names)
 
-    def _load_model(self, device):
-        """
-        Load the SAM model to fine-tune.
+        if self._test_tracks:
+            val_maps, val_names = self._sequence_maps(
+                self._test_image_files, self._test_tracks,
+                self._validation_manifest, "validation")
+            val = (self._test_tracks, val_maps, val_names)
+        else:
+            # Hold out whole sequences, so model selection is not done on
+            # frames from clips that are also trained on.
+            train, val = split_validation(
+                self._train_tracks, train_maps, train_names,
+                float(self._validation_fraction))
 
-        Tries native sam3, then sam2, then HuggingFace transformers. The
-        returned model must expose image encoder, prompt encoder and mask
-        decoder components (SAM / SAM2 style).
-        """
-        try:
-            from sam3.model_builder import build_sam3_image_model
+        def to_spec(part, prefix):
+            sets, maps, names = part
+            out = []
+            for i, ts in enumerate(sets):
+                if ts is None or not maps or not maps[i]:
+                    continue
+                name = (names[i] if names and names[i] else f"{prefix}{i}")
+                spec = self._track_set_spec(ts, maps[i], name)
+                if spec["objects"]:
+                    out.append(spec)
+            return out
 
-            model = build_sam3_image_model(
-                checkpoint_path=(
-                    self._sam_model_id if os.path.exists(self._sam_model_id) else None
-                ),
-                device=str(device),
-                eval_mode=False,
-                load_from_HF=not os.path.exists(self._sam_model_id),
-                enable_segmentation=True,
-                enable_inst_interactivity=True,
-                compile=False,
-            )
+        return to_spec(train, "train"), to_spec(val, "val")
 
-            print("Loaded SAM3 model via native sam3 module")
-            return model
-        except ImportError:
-            pass
+    # -------------------------------------------------------------------------
+    # Training
+    # -------------------------------------------------------------------------
 
-        try:
-            from sam2.build_sam import build_sam2
+    def _launch_multi_gpu(self, params_path, n_gpus):
+        """Run the engine as torch.distributed ranks in a child interpreter."""
+        from viame.pytorch.utilities import find_python_interpreter
 
-            model = build_sam2(
-                config_file=self._sam2_config_file,
-                ckpt_path=self._sam2_model_path,
-                device=str(device),
-                mode="train",
-            )
-            print(f"Loaded SAM2 model via native sam2 module "
-                  f"({self._sam2_model_path})")
-            return model
-        except ImportError:
-            pass
-        except FileNotFoundError:
-            # sam_model_id is a hub identifier rather than a checkpoint on disk,
-            # so fall through to the HuggingFace loader below, which knows how
-            # to resolve one. Without this the FileNotFoundError escapes and
-            # training dies outright.
-            print(f"No SAM2 checkpoint at {self._sam2_model_path}, "
-                  f"falling back to HuggingFace")
+        python = find_python_interpreter()
+        if not python:
+            raise RuntimeError(
+                "Multi-GPU SAM3 tracker training needs a standalone Python "
+                "interpreter to launch the DDP ranks, and none was found. Set "
+                "tracker_trainer:sam3:gpu_count = 1 to train in-process.")
 
-        from transformers import Sam2Model
+        impl = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "sam3_tracker_training.py")
 
-        model = Sam2Model.from_pretrained(self._sam_model_id)
-        print("Loaded SAM2 model via HuggingFace transformers")
-        return model
+        # Carry this interpreter's import paths (minus vendored trees, see
+        # rf_detr_trainer) so the ranks import what this process does.
+        env = dict(os.environ)
+        paths = [p for p in sys.path
+                 if "_vendor" not in p.replace("\\", "/").split("/")]
+        for mod_name in ("torch", "sam3", "viame"):
+            try:
+                mod = __import__(mod_name)
+                paths.append(os.path.dirname(os.path.dirname(
+                    os.path.abspath(mod.__file__))))
+            except Exception:
+                pass
+        if env.get("PYTHONPATH"):
+            paths.append(env["PYTHONPATH"])
+        seen, ordered = set(), []
+        for p in paths:
+            if p and p not in seen:
+                seen.add(p)
+                ordered.append(p)
+        env["PYTHONPATH"] = os.pathsep.join(ordered)
+
+        cmd = [python, "-m", "torch.distributed.run", "--standalone",
+               "--nproc_per_node", str(n_gpus), impl, params_path]
+        print(f"[SAM3TrackerTrainer] Launching {n_gpus}-GPU training: "
+              + " ".join(cmd), flush=True)
+        subprocess.run(cmd, check=True, env=env)
 
     @report_cuda_errors("SAM3TrackerTrainer training")
     def update_model(self):
         """Main training entry point."""
+        from viame.pytorch.utilities import ddp_available
+
         print("Starting SAM3 tracker fine-tuning...")
 
-        train_clips = self._extract_clip_samples(
-            self._train_image_files, self._train_tracks
+        train_spec, val_spec = self._build_specs()
+        n_train = sum(len(s["objects"]) for s in train_spec)
+        n_val = sum(len(s["objects"]) for s in val_spec)
+        print(f"  Training sequences: {len(train_spec)} ({n_train} frames)")
+        print(f"  Validation sequences: {len(val_spec)} ({n_val} frames)")
+
+        if not train_spec:
+            raise RuntimeError(
+                "No training frames could be matched to track annotations; "
+                "the trainer output above carries the reason.")
+
+        work = os.path.abspath(os.path.join(self._train_directory,
+                                            "sam3_tracker"))
+        os.makedirs(work, exist_ok=True)
+        train_path = os.path.join(work, "train_spec.json")
+        val_path = os.path.join(work, "val_spec.json")
+        with open(train_path, "w") as f:
+            json.dump(train_spec, f)
+        with open(val_path, "w") as f:
+            json.dump(val_spec, f)
+
+        output_model = os.path.join(work, self.OUTPUT_MODEL_NAME)
+        params = dict(
+            train_spec=train_path, val_spec=val_path,
+            sam_model_id=os.path.abspath(self._sam_model_id),
+            work_dir=work, output_model=output_model,
+            max_iterations=int(self._max_iterations),
+            learning_rate=float(self._learning_rate),
+            weight_decay=float(self._weight_decay),
+            warmup_iterations=int(self._warmup_iterations),
+            clip_length=int(self._clip_length),
+            max_objects=int(self._max_objects),
+            eval_every=int(self._eval_every),
+            eval_clips=int(self._eval_clips),
+            num_workers=int(self._num_workers),
+            box_targets=self._box_targets.strip().lower() in ("1", "true",
+                                                              "yes"),
+            timeout=float(self._timeout) if self._timeout.strip().lower()
+            not in ("", "none", "default") else None,
+            seed=int(self._seed),
         )
-        val_clips = self._extract_clip_samples(
-            self._test_image_files, self._test_tracks
-        )
+        params_path = os.path.join(work, "params.json")
+        with open(params_path, "w") as f:
+            json.dump(params, f, indent=1)
 
-        print(f"  Training clips: {len(train_clips)}")
-        print(f"  Validation clips: {len(val_clips)}")
+        n_gpus = self._gpu_count
+        if n_gpus > 1 and not ddp_available():
+            print(f"[SAM3TrackerTrainer] {n_gpus} GPUs requested, but this "
+                  "PyTorch build has no NCCL. Training on one GPU.")
+            n_gpus = 1
 
-        if len(train_clips) == 0:
-            print("No training clips could be sampled from track data!")
-            return {}
+        if n_gpus > 1:
+            self._launch_multi_gpu(params_path, n_gpus)
+        else:
+            from viame.pytorch import sam3_tracker_training
+            sam3_tracker_training.run(params)
 
-        self._train_model(train_clips, val_clips)
-
-        output = self._get_output_map()
-
+        output = self._get_output_map(output_model)
         print("\nSAM3 tracker training complete!")
-
         return output
 
-    def _train_model(self, train_clips, val_clips):
-        """Fine-tune SAM mask propagation on the sampled clips."""
-        import torch
-        import torch.nn as nn
-        import torch.optim as optim
-
-        chip_w = int(self._chip_width)
-        chip_h = int(self._chip_height)
-        batch_size = int(self._batch_size)
-        max_epochs = int(self._max_epochs)
-        lr = float(self._learning_rate)
-        amp_enabled = self._amp_enabled.lower() == "true"
-        freeze_image = self._freeze_image_encoder.lower() == "true"
-        freeze_prompt = self._freeze_prompt_encoder.lower() == "true"
-
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(f"Using device: {device}")
-        amp_enabled = amp_enabled and device.type == "cuda"
-
-        model = self._load_model(device)
-        model = model.to(device)
-        model.train()
-
-        image_encoder = _resolve_attr(model, ["image_encoder", "vision_encoder"])
-        prompt_encoder = _resolve_attr(model, ["prompt_encoder", "sam_prompt_encoder"])
-        mask_decoder = _resolve_attr(model, ["mask_decoder", "sam_mask_decoder"])
-
-        if image_encoder is None or prompt_encoder is None or mask_decoder is None:
+    def _get_output_map(self, output_model):
+        """
+        Output map for process_trainer_output. Values that are files are
+        copied next to the generated pipeline; the rest fill [-KEY-]
+        placeholders in templates/tracker_sam3.pipe.
+        """
+        if not os.path.exists(output_model):
             raise RuntimeError(
-                "Loaded SAM model does not expose image/prompt/mask "
-                "components required for fine-tuning"
-            )
+                "SAM3 tracker training produced no model at {}. The trainer "
+                "output above carries the reason.".format(output_model))
 
-        if freeze_image:
-            for param in image_encoder.parameters():
-                param.requires_grad = False
-            print("  Image encoder frozen")
-
-        if freeze_prompt:
-            for param in prompt_encoder.parameters():
-                param.requires_grad = False
-            print("  Prompt encoder frozen")
-
-        trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        total = sum(p.numel() for p in model.parameters())
-        print(f"  Trainable parameters: {trainable:,} / {total:,}")
-
-        optimizer = optim.AdamW(
-            filter(lambda p: p.requires_grad, model.parameters()),
-            lr=lr,
-            weight_decay=0.01,
-        )
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epochs)
-        bce_loss = nn.BCEWithLogitsLoss()
-        scaler = torch.amp.GradScaler("cuda", enabled=amp_enabled)
-
-        checkpoint_dir = Path(self._train_directory) / "checkpoints"
-        checkpoint_dir.mkdir(exist_ok=True)
-        best_val_loss = float("inf")
-
-        def run_clip(clip):
-            """
-            Propagate through one clip; returns (loss, frame count).
-
-            Frame 0 is prompted with the GT box, later frames only with
-            the previous frame's predicted low-res mask so gradients teach
-            the decoder to hold onto the object over time.
-            """
-            clip_loss = 0
-            frames_used = 0
-            prev_low_res = None
-
-            for t, frame in enumerate(clip):
-                sample = self._load_frame(frame, chip_w, chip_h)
-                if sample is None:
-                    continue
-                img_tensor, box, gt_mask = sample
-                img_tensor = img_tensor.unsqueeze(0).to(device)
-                gt_mask = gt_mask.unsqueeze(0).to(device)
-
-                encoder_ctx = torch.no_grad() if freeze_image else torch.enable_grad()
-                with encoder_ctx:
-                    image_embeddings = image_encoder(img_tensor)
-                if isinstance(image_embeddings, dict):
-                    image_embeddings = image_embeddings.get(
-                        "vision_features", image_embeddings
-                    )
-
-                if t == 0 or prev_low_res is None:
-                    boxes = torch.tensor(
-                        box, dtype=torch.float32, device=device
-                    ).unsqueeze(0)
-                    masks_prompt = None
-                else:
-                    boxes = None
-                    masks_prompt = prev_low_res.detach()
-
-                sparse_embeddings, dense_embeddings = prompt_encoder(
-                    points=None,
-                    boxes=boxes,
-                    masks=masks_prompt,
-                )
-
-                low_res_masks, iou_predictions = mask_decoder(
-                    image_embeddings=image_embeddings,
-                    image_pe=prompt_encoder.get_dense_pe(),
-                    sparse_prompt_embeddings=sparse_embeddings,
-                    dense_prompt_embeddings=dense_embeddings,
-                    multimask_output=False,
-                )
-
-                pred_masks = nn.functional.interpolate(
-                    low_res_masks,
-                    size=gt_mask.shape[-2:],
-                    mode="bilinear",
-                    align_corners=False,
-                )
-
-                loss = bce_loss(pred_masks.squeeze(1), gt_mask) + self._dice_loss(
-                    pred_masks.squeeze(1), gt_mask
-                )
-                clip_loss = clip_loss + loss
-                frames_used += 1
-
-                prev_low_res = low_res_masks
-
-            return clip_loss, frames_used
-
-        for epoch in range(max_epochs):
-            model.train()
-            train_loss = 0
-            num_clips = 0
-            optimizer.zero_grad()
-
-            for clip_idx, clip in enumerate(train_clips):
-                with torch.amp.autocast("cuda", enabled=amp_enabled):
-                    clip_loss, frames_used = run_clip(clip)
-
-                if frames_used == 0:
-                    continue
-
-                clip_loss = clip_loss / frames_used
-                scaler.scale(clip_loss / batch_size).backward()
-
-                # Step once every batch_size clips (gradient accumulation)
-                if (clip_idx + 1) % batch_size == 0:
-                    scaler.unscale_(optimizer)
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                    scaler.step(optimizer)
-                    scaler.update()
-                    optimizer.zero_grad()
-
-                train_loss += clip_loss.item()
-                num_clips += 1
-
-            scheduler.step()
-            avg_train_loss = train_loss / max(num_clips, 1)
-
-            model.eval()
-            val_loss = 0
-            num_val_clips = 0
-
-            with torch.no_grad():
-                for clip in val_clips:
-                    with torch.amp.autocast("cuda", enabled=amp_enabled):
-                        clip_loss, frames_used = run_clip(clip)
-                    if frames_used == 0:
-                        continue
-                    val_loss += (clip_loss / frames_used).item()
-                    num_val_clips += 1
-
-            avg_val_loss = val_loss / max(num_val_clips, 1)
-
-            print(
-                f"Epoch {epoch+1}/{max_epochs}: "
-                f"train_loss={avg_train_loss:.4f}, "
-                f"val_loss={avg_val_loss:.4f}"
-            )
-
-            checkpoint_path = checkpoint_dir / f"checkpoint_e{epoch+1}.pth"
-            torch.save(
-                {
-                    "epoch": epoch,
-                    "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "train_loss": avg_train_loss,
-                    "val_loss": avg_val_loss,
-                },
-                checkpoint_path,
-            )
-
-            # With no validation clips fall back to tracking train loss
-            selection_loss = avg_val_loss if num_val_clips > 0 else avg_train_loss
-            if selection_loss < best_val_loss:
-                best_val_loss = selection_loss
-                torch.save(model.state_dict(), checkpoint_dir / "best_model.pth")
-
-    def _load_frame(self, frame, chip_w, chip_h):
-        """
-        Load one clip frame as (image tensor, scaled box, GT mask).
-
-        Returns None if the image cannot be read.
-        """
-        import cv2
-        import torch
-
-        img = cv2.imread(frame["image"])
-        if img is None:
-            return None
-
-        orig_h, orig_w = img.shape[:2]
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (chip_w, chip_h))
-        img_tensor = torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
-
-        scale_x = chip_w / orig_w
-        scale_y = chip_h / orig_h
-
-        x1, y1, x2, y2 = frame["bbox"]
-        box = [x1 * scale_x, y1 * scale_y, x2 * scale_x, y2 * scale_y]
-
-        mask = np.zeros((chip_h, chip_w), dtype=np.uint8)
-        if frame["polygon"] is not None:
-            pts = np.array(frame["polygon"], dtype=np.float64).reshape(-1, 2)
-            pts[:, 0] *= scale_x
-            pts[:, 1] *= scale_y
-            cv2.fillPoly(mask, [pts.astype(np.int32)], 1)
-        else:
-            mask[int(box[1]) : int(box[3]), int(box[0]) : int(box[2])] = 1
-
-        gt_mask = torch.from_numpy(mask).float()
-
-        return img_tensor, box, gt_mask
-
-    def _dice_loss(self, pred, target, smooth=1.0):
-        """Compute Dice loss."""
-        import torch
-
-        pred = torch.sigmoid(pred)
-        pred_flat = pred.reshape(-1)
-        target_flat = target.reshape(-1)
-        intersection = (pred_flat * target_flat).sum()
-        return 1 - (2.0 * intersection + smooth) / (
-            pred_flat.sum() + target_flat.sum() + smooth
-        )
-
-    def _get_output_map(self):
-        """Build output map for process_trainer_output."""
         output = {}
-        output_model_name = "sam3_tracker_finetuned.pth"
+        output["sam3:sam_model_id"] = self.OUTPUT_MODEL_NAME
+        output["sam3:model_config"] = self.CONFIG_NAME
+        output["sam3:text_query"] = self._text_query
+        output[self.OUTPUT_MODEL_NAME] = output_model
 
-        checkpoint_dir = Path(self._train_directory) / "checkpoints"
-        best_model = checkpoint_dir / "best_model.pth"
+        # The 3.1 config travels with the weights so the pipeline resolves it
+        # relative to itself.
+        config = os.path.join(os.path.dirname(self._sam_model_id),
+                              self.CONFIG_NAME)
+        if os.path.exists(config):
+            output[self.CONFIG_NAME] = config
 
-        if not best_model.exists():
-            print(
-                "\n[SAM3TrackerTrainer] No best model found, "
-                "training may have failed"
-            )
-            return output
-
-        algo = "sam3_tracker"
-
-        output["type"] = algo
-        output[algo + ":sam_model_id"] = output_model_name
-        output[output_model_name] = str(best_model)
-
-        print(f"\nModel found at: {best_model}")
-        print(
-            f"\nThe {self._train_directory} directory can now be deleted, "
-            "unless you want to review training metrics first."
-        )
+        print(f"\nModel written to: {output_model}")
+        print(f"\nThe {self._train_directory} directory can now be deleted, "
+              "unless you want to review training metrics first "
+              "(sam3_tracker/eval.jsonl).")
 
         return output
 

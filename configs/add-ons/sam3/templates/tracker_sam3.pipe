@@ -1,0 +1,90 @@
+# =============================================================================
+# Title: SAM3 Tracker (fine-tuned) - training template
+#
+# Description: Deployment template filled in by the SAM3 tracker trainer
+#              (viame train --tracker sam3). Same as tracker_sam3_fish.pipe:
+#              text-prompted SAM3 detection with SAM 3.1 memory-attention
+#              propagation, but loading the fine-tuned checkpoint written
+#              next to this pipeline.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+include common_default_input_with_downsampler.pipe
+
+# ============================= SAM3 CONFIGURATION ============================
+
+process ensure_rgb
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_rgb.image
+
+# ========================= EMPTY DETECTION SOURCE ============================
+include common_empty_tracker.pipe
+
+# ================================= TRACKER ===================================
+
+process tracker
+  :: refine_tracks
+  :refiner:type                                sam3
+
+  block refiner:sam3
+    :grounding_model_id                        none
+    :device                                    cuda
+    :text_query                                [-TEXT-QUERY-]
+    :min_mask_area                             10
+    :resegment_existing                        true
+    :add_new_objects                           true
+    :filter_by_quality                         true
+    :adjust_boxes                              true
+    :max_new_objects                           50
+    :output_type                               polygon
+    :polygon_simplification                    0.005
+    :num_points                                5
+    :propagate_tracked                         true
+    :reinit_interval                           10
+    :video_detection_threshold                 0.3
+    relativepath sam_model_id =                [-SAM-MODEL-ID-]
+    relativepath model_config =                [-MODEL-CONFIG-]
+  endblock
+
+connect from ensure_rgb.image
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from empty_tracker.object_track_set
+        to   tracker.object_track_set
+# =============================== OUTPUT WRITER ===============================
+process track_classifier
+  :: refine_tracks
+  :refiner:type                                average_tot
+  :refiner:average_tot:tot_option              weighted_average
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
+
+connect from downsampler.output_2
+        to   track_writer.image_file_name
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+connect from tracker.object_track_set
+        to   track_classifier.object_track_set
+connect from track_classifier.object_track_set
+        to   track_writer.object_track_set
+
+# -- end of file --
