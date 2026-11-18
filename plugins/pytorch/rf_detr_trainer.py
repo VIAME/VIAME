@@ -664,7 +664,7 @@ class RFDETRTrainer(TrainDetector):
             'motion_only': 'AUG_MOTION_ONLY',
         }
         if key in presets:
-            from rfdetr.datasets import aug_config as rfdetr_aug
+            from rfdetr.datasets import aug_configs as rfdetr_aug
             preset = getattr(rfdetr_aug, presets[key])
             return list(preset) if isinstance(preset, list) else dict(preset)
 
@@ -1186,6 +1186,11 @@ class RFDETRTrainer(TrainDetector):
         if int(self._max_mask_instances) > 0:
             os.environ['RFDETR_MAX_MASK_INSTANCES'] = str(int(self._max_mask_instances))
 
+        # Box-only annotations train the mask head on the ellipse inscribed in
+        # the box rather than on an empty mask, as VIAME's RF-DETR always has.
+        if parse_bool(self._segmentation):
+            os.environ.setdefault('RFDETR_BOX_ONLY_MASK', 'ellipse')
+
         # Normalize the resolution before dispatching: the multi-GPU path
         # re-serializes it with format_resolution(), which only accepts the
         # parsed form. Parsing after the dispatch would hand it the raw config
@@ -1249,8 +1254,10 @@ class RFDETRTrainer(TrainDetector):
             kp_names = self._keypoint_names_list()
             if not kp_names:
                 raise ValueError("keypoints=True requires at least one name in keypoint_names")
-            model_kwargs['keypoint_head'] = True
-            model_kwargs['num_keypoints'] = len(kp_names)
+            # Every class gets the same named slots; RF-DETR's pose head takes counts per class.
+            model_kwargs['use_grouppose_keypoints'] = True
+            model_kwargs['num_keypoints_per_class'] = (
+                [len(kp_names)] * max(1, len(self._class_names)))
             print(f"[RFDETRTrainer] Keypoint head enabled: {kp_names}")
 
         print(f"[RFDETRTrainer] Using RF-DETR {model_size} model on {device} "
@@ -1325,7 +1332,7 @@ class RFDETRTrainer(TrainDetector):
             grad_accum_steps=grad_accum_steps,
             weight_decay=weight_decay,
             warmup_epochs=warmup_epochs,
-            lr_drop=lr_drop,
+            lr_scheduler_kwargs={"lr_drop": lr_drop},
             lr_scheduler=lr_scheduler,
             use_ema=use_ema,
             ema_decay=ema_decay,
@@ -1588,7 +1595,7 @@ class RFDETRTrainer(TrainDetector):
             grad_accum_steps=int(self._grad_accum_steps),
             weight_decay=float(self._weight_decay),
             warmup_epochs=float(self._warmup_epochs),
-            lr_drop=int(self._lr_drop),
+            lr_scheduler_kwargs={"lr_drop": int(self._lr_drop)},
             lr_scheduler=str(self._lr_scheduler).strip().lower(),
             use_ema=parse_bool(self._use_ema),
             ema_decay=float(self._ema_decay),
@@ -1810,6 +1817,8 @@ class RFDETRTrainer(TrainDetector):
                 args['keypoints'] = True
                 args['keypoint_names'] = self._keypoint_names_list()
                 args['num_keypoints'] = len(self._keypoint_names_list())
+                args['num_keypoints_per_class'] = (
+                    [len(self._keypoint_names_list())] * max(1, len(self._class_names)))
             args['num_channels'] = int(self._num_channels)
             temporal_offsets = parse_temporal_offsets(self._temporal_offsets)
             if temporal_offsets:

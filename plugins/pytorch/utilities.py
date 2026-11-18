@@ -1418,6 +1418,37 @@ def kwiver_to_kwimage_detections(detected_objects):
     return dets
 
 
+def keypoints_to_detections(prediction):
+    """
+    Turn a supervision.KeyPoints prediction into supervision.Detections.
+
+    RF-DETR pose models without a mask head return KeyPoints; their boxes ride
+    in ``data['xyxy']``. The result carries the keypoints as an (N, K, 3)
+    [x, y, confidence] array in ``data['keypoints']``, the form
+    supervision_to_kwiver_detections reads. Anything else passes through.
+    """
+    import numpy as np
+    import supervision as sv
+
+    if not isinstance(prediction, getattr(sv, 'KeyPoints', ())):
+        return prediction
+
+    count = len(prediction.xy)
+    boxes = prediction.data.get('xyxy')
+    if boxes is None:
+        raise RuntimeError("RF-DETR returned keypoints without boxes")
+    confidence = prediction.keypoint_confidence
+    if confidence is None:
+        confidence = np.ones(prediction.xy.shape[:2], dtype=np.float32)
+    keypoints = np.concatenate(
+        [prediction.xy, confidence[..., None]], axis=-1).astype(np.float32)
+    return sv.Detections(
+        xyxy=np.asarray(boxes, dtype=np.float32).reshape(count, 4),
+        confidence=np.asarray(prediction.detection_confidence, dtype=np.float32),
+        class_id=np.asarray(prediction.class_id, dtype=int),
+        data={'keypoints': keypoints})
+
+
 def supervision_to_kwiver_detections(detections, class_names,
                                      keypoint_names=None,
                                      keypoint_vis_thresh=0.5):

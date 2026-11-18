@@ -12,6 +12,7 @@ from viame.pytorch.utilities import (
     resolve_device_str,
     vital_config_update,
     supervision_to_kwiver_detections,
+    keypoints_to_detections,
     register_vital_algorithm,
     parse_bool,
     parse_resolution,
@@ -38,9 +39,8 @@ class RFDETRDetectorConfig(scfg.DataConfig):
     device = scfg.Value('auto', help='Device to run on: auto, cpu, cuda, or cuda:N')
     threshold = scfg.Value(0.5, help='Detection confidence threshold')
     optimize_inference = scfg.Value(True, help=(
-        'Whether to optimize the model for inference. Ignored for checkpoints '
-        'carrying a keypoint head: the optimized export path does not emit '
-        'keypoints, so optimizing one would silently drop them.'))
+        'Run an inference-only snapshot of the model in RF-DETR\'s export-mode '
+        'forward instead of the training-mode network.'))
     segmentation = scfg.Value(False, help=(
         'Load a segmentation (mask) RF-DETR variant (RFDETRSeg*) instead of the '
         'box-only variant. Must match how the checkpoint was trained, otherwise '
@@ -52,6 +52,11 @@ class RFDETRDetectorConfig(scfg.DataConfig):
         'keypoints ride along on each detection and viame_csv writers emit '
         'them as (kp) entries.'))
 
+    antialias = scfg.Value(True, help=(
+        'Antialias the resize to the network resolution. True reproduces the '
+        'detections of RF-DETR releases before 1.12, which every model shipped '
+        'so far was scored with; False is the newer RF-DETR default, which '
+        'matches the antialias-free resize used in training.'))
     temporal_offsets = scfg.Value('', help=(
         'Frame offsets of a video checkpoint\'s extra input frames, e.g. '
         '"-1,-2". Empty = recover from the checkpoint, falling back to the '
@@ -101,6 +106,9 @@ class RFDETRDetector(ImageObjectDetector):
     # checkpoint's weight shapes when it carries no training args (e.g. a native
     # PyTorch Lightning checkpoint). Sizes sharing a (patch_size, dec_layers) key
     # differ only by resolution, so ties break on the nearest default.
+    # State-dict entries derived from the model config rather than trained.
+    _REBUILT_BUFFERS = ('_kp_active_mask',)
+
     _DET_SIZES = {
         'nano': (16, 2, 384), 'small': (16, 3, 512), 'base': (14, 3, 560),
         'medium': (16, 4, 576), 'large': (16, 4, 704),
@@ -339,20 +347,24 @@ class RFDETRDetector(ImageObjectDetector):
             if temporal_frames > 1:
                 model_kwargs['temporal_frames'] = temporal_frames
 
-            # Keypoint head: the trainer saves keypoint_head.* weights and the
-            # strict state-dict load rejects them unless the model is built
-            # with the head enabled. num_keypoints comes from the checkpoint
-            # args, else from the vis_embed output dimension (one logit per
-            # keypoint). Mirrors rf_detr_launcher's training-side kwargs.
-            kp_layer_dims = [
-                v.shape[0] for k, v in state_dict.items()
-                if k.startswith('keypoint_head.vis_embed.') and k.endswith('.weight')]
-            if kp_layer_dims:
-                num_kp = int(ckpt_args.get('num_keypoints') or kp_layer_dims[-1])
-                model_kwargs['keypoint_head'] = True
-                model_kwargs['num_keypoints'] = num_kp
+            # Keypoints: RF-DETR's pose head adds keypoint_embed.* weights and
+            # is rebuilt from the per-class keypoint counts.
+            if any(k.startswith('keypoint_head.') for k in state_dict):
+                raise RuntimeError(
+                    f"{weight_fpath} was trained with VIAME's earlier RF-DETR "
+                    "keypoint head, which this RF-DETR release replaces with "
+                    "its own pose head. Retrain the model, or run it with the "
+                    "rf-detr branch viame/main-v1.7-backup.")
+            if any(k.startswith('keypoint_embed.') for k in state_dict):
+                per_class = ckpt_args.get('num_keypoints_per_class')
+                if not per_class:
+                    names = ckpt_args.get('keypoint_names') or ['head', 'tail']
+                    per_class = [len(names)] * ckpt_num_classes
+                per_class = [int(n) for n in per_class]
+                model_kwargs['use_grouppose_keypoints'] = True
+                model_kwargs['num_keypoints_per_class'] = per_class
                 self._keypoint_names = self._resolve_keypoint_names(
-                    ckpt_args, num_kp)
+                    ckpt_args, max(per_class))
 
             self._model = RFDETRModel(**model_kwargs)
 
@@ -360,8 +372,15 @@ class RFDETRDetector(ImageObjectDetector):
             # detection head to match the checkpoint's actual dimensions.
             self._model.model.reinitialize_detection_head(ckpt_num_classes)
 
-            # Load the state dict
-            self._model.model.model.load_state_dict(state_dict)
+            # Load the state dict. Buffers newer RF-DETR releases register are
+            # absent from older checkpoints and rebuilt from the config.
+            result = self._model.model.model.load_state_dict(state_dict, strict=False)
+            missing = [k for k in result.missing_keys if k not in self._REBUILT_BUFFERS]
+            if missing or result.unexpected_keys:
+                raise RuntimeError(
+                    f"Checkpoint {weight_fpath} does not match the model built "
+                    f"for it: missing keys {missing[:8]}, unexpected keys "
+                    f"{list(result.unexpected_keys)[:8]}")
 
             if self._classes:
                 self._model.model.class_names = self._classes
@@ -374,27 +393,18 @@ class RFDETRDetector(ImageObjectDetector):
 
         self._num_channels = num_channels
         self._setup_temporal(temporal_frames, ckpt_args)
+        # Replaced below by an inference snapshot when optimize_inference is on.
+        self._predictor = self._model
 
         # Set up class names
         if self._classes is None:
             self._classes = list(self._model.class_names)
 
-        # Optimize for inference if requested.
-        #
-        # Not for keypoint models: optimize_for_inference swaps the network onto
-        # RF-DETR's export forward, which computes boxes, classes and masks and
-        # returns them as a fixed 2- or 3-tuple. It never computes keypoints, so
-        # the head's output is dropped and every detection comes back without
-        # any -- while boxes and masks look perfectly normal. That failure is
-        # indistinguishable from an untrained keypoint head, so refuse the
-        # optimization rather than silently return a keypointless model.
-        if optimize and getattr(self, '_keypoint_names', None):
-            print("[RFDETRDetector] Skipping inference optimization: this "
-                  "checkpoint has a keypoint head, and the optimized export "
-                  "path does not emit keypoints")
-        elif optimize:
+        # Optimize for inference if requested: an eager snapshot in RF-DETR's
+        # export-mode forward, which emits boxes, masks and keypoints alike.
+        if optimize:
             print("[RFDETRDetector] Optimizing model for inference")
-            self._model.optimize_for_inference(compile=False)
+            self._predictor = self._model.inference(compile=False)
 
         print(f"[RFDETRDetector] Model loaded with {len(self._classes)} classes")
 
@@ -469,7 +479,12 @@ class RFDETRDetector(ImageObjectDetector):
 
         # Run inference
         with torch.no_grad():
-            detections = self._model.predict(model_input, threshold=threshold)
+            detections = self._predictor.predict(
+                model_input, threshold=threshold,
+                antialias=parse_bool(self._kwiver_config['antialias']))
+
+        # A pose model without masks returns supervision KeyPoints.
+        detections = keypoints_to_detections(detections)
 
         # Convert supervision Detections to kwiver format
         output = supervision_to_kwiver_detections(

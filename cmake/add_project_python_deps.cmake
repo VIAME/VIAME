@@ -317,11 +317,17 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
   # pinned together and must be bumped together. opencv-python-headless is deliberately omitted:
   # cv2 comes from the fletch OpenCV build, which registers itself under that distribution name
   # (see custom_install_fletch.cmake).
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate>=0.9,<0.10"
-    "faster-coco-eval>=1.7.2" "albumentations==2.0.8" "albucore==0.0.24" "simsimd>=5.9.2"
-    "stringzilla>=3.10.4" "pytorch_lightning>=2.6,<3,!=2.6.2,!=2.6.3"
-    "lightning-utilities>=0.10.0" "torchmetrics>=1.2" "pycocotools" "scipy" "fsspec" "pyyaml"
-    "packaging" "typing-extensions" "tqdm" )
+  #
+  # RF-DETR 1.12 evaluates with vernier by default (which needs pyarrow) and keeps hotcoco,
+  # ultrafast-pycocotools and faster-coco-eval as selectable backends; it decodes training JPEGs
+  # with simplejpeg and matches with torch-hungarian, which falls back to SciPy off its fast path.
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision>=0.29.0" "av>=14.2" "defusedxml>=0.7.1"
+    "pyDeprecate>=0.9,<0.10" "faster-coco-eval>=1.7.2" "hotcoco>=1.2.1,<1.3"
+    "ultrafast-pycocotools>=0.1.13,<0.2" "vernier>=0.6.0,<0.7" "pyarrow>=15"
+    "simplejpeg>=1.9,<2" "torch-hungarian==0.1.0rc0" "albumentations==2.0.8" "albucore==0.0.24"
+    "simsimd>=5.9.2" "stringzilla>=3.10.4" "pytorch_lightning>=2.6,<3,!=2.6.2,!=2.6.3"
+    "lightning-utilities>=0.10.0" "torchmetrics>=1.8.2,<1.9.0" "pycocotools" "scipy" "fsspec"
+    "pyyaml" "packaging" "typing-extensions" "tqdm" )
 endif()
 
 # SLEAP-NN's training/inference runtime. Notebook applications are not needed by

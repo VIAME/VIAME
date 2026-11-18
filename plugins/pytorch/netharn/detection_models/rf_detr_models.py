@@ -137,6 +137,35 @@ class RFDETR_Coder:
         return batch_dets
 
 
+_LEGACY_KEYPOINT_PREFIX = 'keypoint_head.'
+_LEGACY_KEYPOINT_MESSAGE = (
+    "{} was trained with VIAME's earlier RF-DETR keypoint head, which this "
+    "RF-DETR release replaces with its own pose head. Retrain the model, or "
+    "run it with the rf-detr branch viame/main-v1.7-backup.")
+
+
+def _has_legacy_keypoint_head(keys, prefix=''):
+    """True if a state dict carries weights of the pre-1.12 fork keypoint head."""
+    prefix = prefix + _LEGACY_KEYPOINT_PREFIX
+    return any(key.startswith(prefix) for key in keys)
+
+
+def _seed_state_keys(path):
+    """State-dict keys of a native RF-DETR checkpoint, or () if it cannot be read."""
+    try:
+        checkpoint = torch.load(path, map_location='cpu', weights_only=False)
+    except Exception:
+        return ()  # rfdetr's own loader reports unreadable files
+    if not isinstance(checkpoint, dict):
+        return ()
+    if isinstance(checkpoint.get('model'), dict):
+        return list(checkpoint['model'])
+    state = checkpoint.get('state_dict')
+    if isinstance(state, dict):
+        return [key[len('model.'):] for key in state if key.startswith('model.')]
+    return ()
+
+
 def _batch_to_rfdetr_targets(batch, image_size, device=None):
     """Convert scattered or collated labels, keeping all annotation rows aligned."""
     label = batch.get('label', {})
@@ -178,6 +207,7 @@ def _batch_to_rfdetr_targets(batch, image_size, device=None):
         if 'keypoints' in fields:
             points = torch.as_tensor(fields['keypoints'][i], device=device,
                                      dtype=torch.float32)[keep].clone()
+            # (N, K, 3) normalized x, y and COCO visibility, as rfdetr's COCO loader makes
             points[..., :2] /= points.new_tensor([w, h])
             target['keypoints'] = points
         targets.append(target)
@@ -371,7 +401,8 @@ class RFDETR_Detector(nh.layers.Module):
             num_queries: Number of detection queries (None uses variant default)
             resolution: Input resolution (uses variant default if None)
             segmentation_head: Use the RFDETRSeg architecture and mask losses
-            keypoint_names: Ordered names enabling the optional keypoint head
+            keypoint_names: Ordered names enabling RF-DETR's pose head; every
+                class predicts the same named slots
         """
         super().__init__()
         import kwcoco
@@ -476,11 +507,14 @@ class RFDETR_Detector(nh.layers.Module):
             'num_classes': self.num_classes,
             'device': 'cuda' if torch.cuda.is_available() else 'cpu',
             'segmentation_head': self.segmentation_head,
-            'keypoint_head': bool(self.keypoint_names),
-            'num_keypoints': len(self.keypoint_names) or 2,
             # upstream trains with group_detr=13, which changes query shapes
             'group_detr': 1,
         }
+        if self.keypoint_names:
+            # The pose head takes a keypoint count per class; all share the named slots.
+            overrides['use_grouppose_keypoints'] = True
+            overrides['num_keypoints_per_class'] = (
+                [len(self.keypoint_names)] * max(1, self.num_classes))
         if num_queries is not None:
             overrides['num_queries'] = num_queries
             overrides['num_select'] = num_queries
@@ -492,8 +526,9 @@ class RFDETR_Detector(nh.layers.Module):
     def _build_model(self, model_config, weight_path):
         """Build the RF-DETR model, criterion, and postprocessor."""
         import os
+        import warnings
+        from rfdetr import config as rfdetr_config
         from rfdetr.assets.model_weights import get_model_cache_dir
-        from rfdetr.config import TrainConfig, SegmentationTrainConfig
         from rfdetr.models import (build_criterion_from_config,
                                    build_model_from_config,
                                    load_pretrain_weights)
@@ -509,14 +544,27 @@ class RFDETR_Detector(nh.layers.Module):
         else:
             model_config.pretrain_weights = weight_path
 
-        config_cls = SegmentationTrainConfig if self.segmentation_head else TrainConfig
-        train_config = config_cls(dataset_dir='.', output_dir='.')
+        # The train config owns the loss weights; each head has its own class.
+        keypoints = bool(getattr(self, 'keypoint_names', None))
+        config_cls = {
+            (False, False): 'TrainConfig',
+            (True, False): 'SegmentationTrainConfig',
+            (False, True): 'KeypointTrainConfig',
+            (True, True): 'SegmentationKeypointTrainConfig',
+        }[bool(self.segmentation_head), keypoints]
+        train_config = getattr(rfdetr_config, config_cls)(dataset_dir='.', output_dir='.')
         model = build_model_from_config(model_config, train_config)
 
         if model_config.pretrain_weights is not None:
+            seed = str(model_config.pretrain_weights)
+            if os.path.isfile(seed) and _has_legacy_keypoint_head(_seed_state_keys(seed)):
+                # Box, mask and backbone weights still seed the run; the pose head cannot.
+                warnings.warn(
+                    _LEGACY_KEYPOINT_MESSAGE.format(seed) + ' As a seed, its '
+                    'keypoint weights are discarded' + (
+                        ' and the pose head trains from scratch.' if keypoints else '.'))
             seed_classes = load_pretrain_weights(model, model_config)
             if seed_classes and list(seed_classes) != list(self.classes):
-                import warnings
                 warnings.warn('RF-DETR seed class names/order differ from the training '
                               'classes. The checkpoint loader aligns head sizes, '
                               'but does not remap class names: seed=%r, training=%r' %
@@ -526,6 +574,17 @@ class RFDETR_Detector(nh.layers.Module):
             model_config, train_config)
 
         return model, criterion, postprocess
+
+    def _load_from_state_dict(self, state_dict, prefix, *args, **kwargs):
+        """Reject earlier-keypoint-head weights; accept checkpoints older than the pose head."""
+        if _has_legacy_keypoint_head(state_dict, prefix + 'model.'):
+            raise RuntimeError(_LEGACY_KEYPOINT_MESSAGE.format('This checkpoint'))
+        # Buffer derived from the model config, absent from older checkpoints.
+        key = prefix + 'model._kp_active_mask'
+        mask = getattr(self.model, '_kp_active_mask', None)
+        if mask is not None and key not in state_dict:
+            state_dict[key] = mask.detach().clone()
+        return super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 
     def demo_batch(self, bsize=3, h=None, w=None):
         """
@@ -603,12 +662,17 @@ class RFDETR_Detector(nh.layers.Module):
 
         # Forward through model
         # RF-DETR model can accept raw tensor (auto-converts to NestedTensor)
-        raw_outputs = self.model(images_norm, targets=targets if return_loss and len(targets) > 0 else None)
+        compute_loss = return_loss and len(targets) > 0
+        # In eval mode the mask loss needs every layer's masks, which rfdetr then skips by default.
+        model_kwargs = {}
+        if compute_loss and getattr(self, 'segmentation_head', False) and not self.model.training:
+            model_kwargs['all_layer_masks'] = True
+        raw_outputs = self.model(images_norm, **model_kwargs)
 
         outputs = {}
 
         # Compute loss if requested and labels are available
-        if return_loss and len(targets) > 0:
+        if compute_loss:
             # Compute losses using SetCriterion
             loss_dict = self.criterion(raw_outputs, targets)
 
