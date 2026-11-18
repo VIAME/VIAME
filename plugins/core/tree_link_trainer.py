@@ -10,8 +10,8 @@ tree ensemble giving P(same object) for a (track, detection) pair. Pairs come
 from a detector's output over the training clips, labelled with groundtruth
 track ids; without detector output the groundtruth boxes stand in for it.
 
-The gates (low_thresh, new_track_thresh, p_match, track_buffer) are then
-searched by running the tracker. To keep that honest every clip is tracked
+The gates (low_thresh, new_track_thresh, confirm_thresh, p_match, track_buffer)
+are then searched by running the tracker. To keep that honest every clip is tracked
 with a scorer that never saw it: the clips are split in two by a hash of their
 names and each half is tracked with the scorer fitted on the other. The
 objective is by default the mean of MOTA and IDF1 pooled over all clips. The
@@ -43,7 +43,11 @@ GATE_GRID = (
     ('track_buffer', (5, 10, 15, 30)),
 )
 
-SEED_GATES = dict(low_thresh=0.27, new_track_thresh=0.8, p_match=0.05, track_buffer=15)
+SEED_GATES = dict(low_thresh=0.27, new_track_thresh=0.8, confirm_thresh=0.0, p_match=0.05,
+                  track_buffer=15)
+
+# Second pass: the start gate found above becomes the confirmation gate and starts may go lower
+START_GRID = (0.3, 0.4, 0.5, 0.6, 0.7)
 
 
 # =============================================================================
@@ -348,11 +352,23 @@ class TreeLinkTrainer(TrainTracker):
                               {"model_file": scorer_for[i]}))
 
         workers = self._search_workers or max(1, min(8, (os.cpu_count() or 2) // 2))
-        found, _report = search_parameters(
-            'tree_link', dict(gates), sequences,
-            confidence_threshold=self._search_confidence, grid=GATE_GRID,
+        options = dict(
+            confidence_threshold=self._search_confidence,
             metrics=[m.strip() for m in self._search_metrics.split(",") if m.strip()],
             pooled=self._search_pooled, min_gain=self._search_min_gain, workers=workers)
+        found, _report = search_parameters(
+            'tree_link', dict(gates), sequences, grid=GATE_GRID, **options)
+
+        # Weak detections may start a track that is only output once a strong one joins it
+        bar = found['new_track_thresh']
+        lower = tuple(v for v in START_GRID if found['low_thresh'] <= v < bar)
+        if lower:
+            print("  searching a lower start gate under a confirmation gate of {}".format(bar))
+            found, _report = search_parameters(
+                'tree_link', dict(found, confirm_thresh=bar), sequences,
+                grid=(('new_track_thresh', lower),), **options)
+            if found['new_track_thresh'] >= bar:
+                found['confirm_thresh'] = 0.0
         return {k: found[k] for k in gates}
 
     def update_model(self):
@@ -406,6 +422,7 @@ class TreeLinkTrainer(TrainTracker):
         output = {"type": algo}
         output[algo + ":low_thresh"] = "{:.3f}".format(params['low_thresh'])
         output[algo + ":new_track_thresh"] = "{:.3f}".format(params['new_track_thresh'])
+        output[algo + ":confirm_thresh"] = "{:.3f}".format(params['confirm_thresh'])
         output[algo + ":p_match"] = "{:.3f}".format(params['p_match'])
         output[algo + ":track_buffer"] = str(int(params['track_buffer']))
         output[algo + ":model_file"] = MODEL_NAME

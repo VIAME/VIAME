@@ -153,7 +153,7 @@ class TreeEnsemble:
 # =============================================================================
 
 class TreeLinkTrack:
-    __slots__ = ("track_id", "obs", "history", "frame", "activated", "lost")
+    __slots__ = ("track_id", "obs", "history", "frame", "activated", "lost", "best")
 
     def __init__(self, track_id, frame, box, score, ts, do, activated):
         self.track_id = track_id
@@ -162,6 +162,7 @@ class TreeLinkTrack:
         self.frame = frame
         self.activated = activated
         self.lost = False
+        self.best = score                    # highest detection score seen so far
 
     def update(self, frame, box, score, ts, do):
         self.obs.append((frame, box, score))
@@ -169,6 +170,7 @@ class TreeLinkTrack:
         self.frame = frame
         self.activated = True
         self.lost = False
+        self.best = max(self.best, score)
 
 
 def to_ObjectTrackSet(tracks):
@@ -191,6 +193,8 @@ class TreeLinkTrackerConfig(scfg.DataConfig):
     model_file = scfg.Value('', help='Flattened tree ensemble (.npz) scoring track-detection pairs')
     low_thresh = scfg.Value(0.27, help='Detections scoring below this are ignored')
     new_track_thresh = scfg.Value(0.8, help='Minimum score for an unmatched detection to start a track')
+    confirm_thresh = scfg.Value(0.0, help='A track is output only once one of its detections scores this or more; '
+                                'with a lower new_track_thresh this recovers weak early detections (0 disables)')
     p_match = scfg.Value(0.05, help='Minimum P(same object) for a track-detection link')
     track_buffer = scfg.Value(15, help='Frames a confirmed track survives without a detection')
     params_file = scfg.Value('', help='Optional JSON of trained parameters overriding the above')
@@ -224,7 +228,8 @@ class TreeLinkTracker(TrackObjects):
             self._config[key] = str(cfg.get_value(key))
 
         params = {k: self._config[k] for k in
-                  ('model_file', 'low_thresh', 'new_track_thresh', 'p_match', 'track_buffer')}
+                  ('model_file', 'low_thresh', 'new_track_thresh', 'confirm_thresh', 'p_match',
+                   'track_buffer')}
         params_file = str(self._config.params_file)
         if params_file and os.path.exists(params_file):
             with open(params_file, 'r') as f:
@@ -238,6 +243,7 @@ class TreeLinkTracker(TrackObjects):
 
         self._low_thresh = float(params['low_thresh'])
         self._new_track_thresh = float(params['new_track_thresh'])
+        self._confirm_thresh = float(params['confirm_thresh'])
         self._p_match = float(params['p_match'])
         self._track_buffer = int(float(params['track_buffer']))
         model_file = str(params['model_file'])
@@ -298,7 +304,7 @@ class TreeLinkTracker(TrackObjects):
                                       ts, dos[j], activated=(frame == 1)))
         # Updated tracks first, then lost, as the association order depends on it
         self._tracks = [t for t in live if not t.lost] + [t for t in live if t.lost]
-        return to_ObjectTrackSet([t for t in self._tracks if t.activated and not t.lost])
+        return to_ObjectTrackSet([t for t in self._tracks if self._output(t) and not t.lost])
 
     def initialize(self, ts, image, seed_detections):
         self.reset()
@@ -307,7 +313,10 @@ class TreeLinkTracker(TrackObjects):
         return ObjectTrackSet([])
 
     def finalize(self):
-        return to_ObjectTrackSet([t for t in self._tracks if t.activated])
+        return to_ObjectTrackSet([t for t in self._tracks if self._output(t)])
+
+    def _output(self, t):
+        return t.activated and t.best >= self._confirm_thresh
 
     def reset(self):
         self._tracks = []

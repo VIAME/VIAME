@@ -22,7 +22,10 @@ block track_objects:tree_link
   :low_thresh                                  0.27
 
   # Minimum confidence to initialize a new track
-  :new_track_thresh                            0.6
+  :new_track_thresh                            0.4
+
+  # A track is output only once one of its detections reaches this confidence
+  :confirm_thresh                              0.6
 
   # Minimum P(same animal) for a track-detection link
   :p_match                                     0.05
