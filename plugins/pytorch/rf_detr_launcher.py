@@ -70,8 +70,10 @@ def build_and_train(params):
         model_kwargs["temporal_frames"] = int(params["temporal_frames"])
         model_kwargs["temporal_context_grad"] = bool(params.get("temporal_context_grad"))
     if params.get("keypoints") and params.get("keypoint_names"):
-        model_kwargs["keypoint_head"] = True
-        model_kwargs["num_keypoints"] = len(params["keypoint_names"])
+        # Every class gets the same named slots; RF-DETR's pose head takes counts per class.
+        model_kwargs["use_grouppose_keypoints"] = True
+        model_kwargs["num_keypoints_per_class"] = (
+            [len(params["keypoint_names"])] * max(1, len(params.get("class_names") or [])))
 
     # Seed from a prior checkpoint by routing it through pretrain_weights. train()
     # rebuilds the network inside RFDETRModelModule from model_config and loads

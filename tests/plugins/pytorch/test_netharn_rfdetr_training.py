@@ -209,18 +209,20 @@ def test_actual_variant_configuration(native_config, segmentation, expected_quer
     assert config.num_queries == expected_queries
     assert config.patch_size == patch
     assert config.dec_layers == layers
-    assert config.keypoint_head and config.num_keypoints == 2
+    # Upstream's pose head takes a keypoint count per class.
+    assert config.use_grouppose_keypoints
+    assert config.num_keypoints_per_class == [2, 2]
     assert config.resolution == (960, 1728)
     assert config.positional_encoding_size == (960 // patch, 1728 // patch)
     with pytest.raises(ValueError):
         configure(wrapper, 'large', None, (961, 1728))
+    wrapper.keypoint_names = []
+    config = configure(wrapper, 'large', None, None)
+    assert not config.use_grouppose_keypoints and config.num_keypoints_per_class == []
 
 
-def test_native_weights_use_rfdetr_loader(native_config, monkeypatch, tmp_path):
-    path = tmp_path / 'native.pth'
-    path.touch()
+def stub_rfdetr_builders(monkeypatch, tmp_path, network):
     models = ModuleType('rfdetr.models')
-    network = torch.nn.Linear(2, 2)
     models.build_model_from_config = Mock(return_value=network)
     models.load_pretrain_weights = Mock(return_value=['fish'])
     models.build_criterion_from_config = Mock(return_value=('criterion', 'postprocess'))
@@ -228,13 +230,64 @@ def test_native_weights_use_rfdetr_loader(native_config, monkeypatch, tmp_path):
     assets.get_model_cache_dir = Mock(return_value=str(tmp_path))
     monkeypatch.setitem(sys.modules, models.__name__, models)
     monkeypatch.setitem(sys.modules, assets.__name__, assets)
-    build = load_method('netharn/detection_models/rf_detr_models.py', '_build_model', {})
+    path = 'netharn/detection_models/rf_detr_models.py'
+    namespace = {'torch': torch}
+    constants = [node for node in ast.parse((ROOT / path).read_text()).body
+                 if isinstance(node, ast.Assign) and node.targets[0].id.startswith('_LEGACY_KEYPOINT')]
+    exec(compile(ast.Module(body=constants, type_ignores=[]), path, 'exec'), namespace)
+    for name in ('_has_legacy_keypoint_head', '_seed_state_keys'):
+        load_method(path, name, namespace)
+    build = load_method(path, '_build_model', namespace)
+    return models, build
+
+
+def test_native_weights_use_rfdetr_loader(native_config, monkeypatch, tmp_path):
+    path = tmp_path / 'native.pth'
+    path.touch()
+    network = torch.nn.Linear(2, 2)
+    models, build = stub_rfdetr_builders(monkeypatch, tmp_path, network)
     config = native_config.RFDETRSegLargeConfig(num_classes=1)
     result = build(SimpleNamespace(segmentation_head=True, classes=['fish']), config, str(path))
     assert result == (network, 'criterion', 'postprocess')
     assert config.pretrain_weights == str(path)
     models.load_pretrain_weights.assert_called_once_with(network, config)
     assert isinstance(models.build_model_from_config.call_args.args[1], native_config.SegmentationTrainConfig)
+
+
+@pytest.mark.parametrize('segmentation, names, expected', [
+    (False, None, 'TrainConfig'), (True, None, 'SegmentationTrainConfig'),
+    (False, ['head', 'tail'], 'KeypointTrainConfig'),
+    (True, ['head', 'tail'], 'SegmentationKeypointTrainConfig'),
+])
+def test_train_config_follows_heads(native_config, monkeypatch, tmp_path, segmentation, names, expected):
+    models, build = stub_rfdetr_builders(monkeypatch, tmp_path, torch.nn.Linear(2, 2))
+    config = native_config.RFDETRSegNanoConfig(num_classes=1)
+    build(SimpleNamespace(segmentation_head=segmentation, keypoint_names=names, classes=['fish']), config, None)
+    train_config = models.build_criterion_from_config.call_args.args[1]
+    assert type(train_config).__name__ == expected
+    # The keypoint configs are the ones that carry nonzero pose loss weights.
+    assert bool(train_config.keypoint_l1_loss_coef) == bool(names)
+    models.load_pretrain_weights.assert_not_called()
+
+
+@pytest.mark.parametrize('layout', ['model', 'state_dict'])
+def test_seed_with_earlier_keypoint_head_warns(native_config, monkeypatch, tmp_path, layout):
+    models, build = stub_rfdetr_builders(monkeypatch, tmp_path, torch.nn.Linear(2, 2))
+    state = {'class_embed.bias': torch.zeros(2), 'keypoint_head.coord_embed.layers.0.weight': torch.zeros(1)}
+    checkpoint = ({'model': state} if layout == 'model'
+                  else {'state_dict': {'model.' + k: v for k, v in state.items()}})
+    path = tmp_path / 'old.pth'
+    torch.save(checkpoint, path)
+    config = native_config.RFDETRSegNanoConfig(num_classes=1)
+    wrapper = SimpleNamespace(segmentation_head=True, keypoint_names=['head', 'tail'], classes=['fish'])
+    with pytest.warns(UserWarning, match='earlier RF-DETR keypoint head.*pose head trains from scratch'):
+        build(wrapper, config, str(path))
+    models.load_pretrain_weights.assert_called_once()
+    # Seeds with the current pose head, or none, load quietly.
+    torch.save({'model': {'keypoint_embed.layers.0.weight': torch.zeros(1)}}, path)
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
+        build(wrapper, config, str(path))
 
 
 def test_launcher_native_seed_and_keypoints(tmp_path):
@@ -327,9 +380,9 @@ def test_real_native_checkpoint_keeps_head_and_query_weights(native_config, monk
     model.class_embed = torch.nn.Linear(4, 2)
     model.query_feat = torch.nn.Embedding(200, 4)
     model.refpoint_embed = torch.nn.Embedding(200, 4)
-    # A new keypoint head must keep its initialized weights when seeding from seg.
-    model.keypoint_head = torch.nn.Linear(4, 6)
-    initial_keypoints = model.keypoint_head.weight.detach().clone()
+    # A new pose head must keep its initialized weights when seeding from seg.
+    model.keypoint_embed = torch.nn.Linear(4, 8)
+    initial_keypoints = model.keypoint_embed.weight.detach().clone()
     state = {'class_embed.weight': torch.full((2, 4), 3.),
              'class_embed.bias': torch.full((2,), 2.),
              'query_feat.weight': torch.arange(2600 * 4).reshape(2600, 4).float(),
@@ -340,9 +393,180 @@ def test_real_native_checkpoint_keeps_head_and_query_weights(native_config, monk
     path = tmp_path / ('seed.ckpt' if lightning else 'seed.pth')
     torch.save(checkpoint, path)
     config = native_config.RFDETRSegLargeConfig(
-        num_classes=1, group_detr=1, pretrain_weights=str(path), keypoint_head=True)
+        num_classes=1, group_detr=1, pretrain_weights=str(path),
+        use_grouppose_keypoints=True, num_keypoints_per_class=[2])
     names = weights.load_pretrain_weights(model, config)
     assert names == ['fish']
     torch.testing.assert_close(model.class_embed.weight, state['class_embed.weight'])
     torch.testing.assert_close(model.query_feat.weight, state['query_feat.weight'][:200])
-    torch.testing.assert_close(model.keypoint_head.weight, initial_keypoints)
+    torch.testing.assert_close(model.keypoint_embed.weight, initial_keypoints)
+
+
+# The checks below build real (randomly initialized) RF-DETR Nano networks on
+# the CPU, so they need the installed viame and rfdetr packages.
+
+@pytest.fixture
+def rf_detr_models(monkeypatch):
+    pytest.importorskip('rfdetr')
+    module = pytest.importorskip('viame.pytorch.netharn.detection_models.rf_detr_models')
+    monkeypatch.setattr(torch.cuda, 'is_available', lambda: False)
+    return module
+
+
+def synthetic_batch(height, width, masks, keypoints):
+    from viame.pytorch.netharn.data import data_containers
+    items = []
+    for count in (2, 0):
+        tlbr = torch.tensor([[10., 20., 110., 90.], [60., 40., 200., 180.]])[:count]
+        label = {'tlbr': tlbr, 'class_idxs': torch.tensor([0, 1])[:count], 'weight': torch.ones(count)}
+        if masks:
+            label['class_masks'] = torch.zeros(count, height, width, dtype=torch.uint8)
+            for mask, (x1, y1, x2, y2) in zip(label['class_masks'], tlbr.long()):
+                mask[y1:y2, x1:x2] = 1
+            label['has_mask'] = torch.ones(count, dtype=torch.int8)
+        if keypoints:
+            # The second object carries no keypoints at all.
+            label['keypoints'] = torch.zeros(count, 2, 3)
+            if count:
+                label['keypoints'][0] = torch.tensor([[12., 55., 2.], [108., 55., 1.]])
+        items.append({
+            'inputs': {'rgb': data_containers.ItemContainer(torch.rand(3, height, width), stack=True)},
+            'label': {k: data_containers.ItemContainer(v, stack=False) for k, v in label.items()},
+        })
+    return data_containers.container_collate(items, num_devices=1)
+
+
+@pytest.mark.parametrize('masks, names', [
+    (False, None), (True, None), (True, 'Head, Tail'), (False, 'head,tail'),
+])
+def test_wrapper_trains_and_decodes_each_head_combination(rf_detr_models, masks, names):
+    torch.manual_seed(0)
+    model = rf_detr_models.RFDETR_Detector(
+        ['fish', 'crab'], model_variant='nano', weight_path=False,
+        segmentation_head=masks, keypoint_names=names)
+    size = model.resolution
+    batch = synthetic_batch(size, size, masks, bool(names))
+    expected = {'loss_ce', 'loss_bbox', 'loss_giou'}
+    expected |= {'loss_mask_ce', 'loss_mask_dice'} if masks else set()
+    expected |= {'loss_keypoints_l1', 'loss_keypoints_findable',
+                 'loss_keypoints_visible', 'loss_keypoints_nll'} if names else set()
+    for training in (True, False):
+        model.train(training)
+        model.zero_grad()
+        outputs = model(batch, return_loss=True, return_result=True)
+        assert expected <= set(outputs['loss_parts'])
+        assert not any('keypoint' in k for k in outputs['loss_parts']) or names
+        loss = sum(outputs['loss_parts'].values()).sum()
+        assert torch.isfinite(loss)
+        loss.backward()
+        pose_gradient = sum(p.grad.abs().sum() for n, p in model.named_parameters()
+                            if 'keypoint' in n and p.grad is not None)
+        assert bool(pose_gradient > 0) == bool(names)
+        detections = model.coder.decode_batch(outputs)
+        assert len(detections) == 2
+        detection = detections[0]
+        assert len(detection) == model.num_queries
+        assert (detection.boxes.data >= 0).all() and (detection.boxes.data <= size).all()
+        # Training mode factors the mask logits, which the postprocessor cannot read.
+        assert ('segmentations' in detection.data) == (masks and not training)
+        if masks and not training:
+            assert detection.data['segmentations'][0].to_mask(dims=(size, size)).shape == (size, size)
+        assert ('keypoints' in detection.data) == bool(names)
+        if names:
+            points = detection.data['keypoints'][0]
+            assert [points.meta['classes'][i] for i in points.data['class_idxs']] == ['head', 'tail']
+            assert points.xy.shape == (2, 2)
+            assert ((points.data['visible'] >= 0) & (points.data['visible'] <= 1)).all()
+    model.eval()
+    with torch.no_grad():
+        outputs = model(torch.rand(1, 3, size, size), return_loss=False)
+    assert 'loss_parts' not in outputs and len(model.coder.decode_batch(outputs)) == 1
+
+
+def test_wrapper_state_dict_compatibility(rf_detr_models):
+    model = rf_detr_models.RFDETR_Detector(['fish'], model_variant='nano', weight_path=False)
+    state = model.state_dict()
+    # Checkpoints from before the pose head lack only this config-derived buffer.
+    older = {k: v for k, v in state.items() if k != 'model._kp_active_mask'}
+    assert len(older) == len(state) - 1
+    model.load_state_dict(older)
+    mounted = torch.nn.DataParallel(model)
+    mounted.load_state_dict({'module.' + k: v for k, v in older.items()})
+    with pytest.raises(RuntimeError, match='class_embed.bias'):
+        model.load_state_dict({k: v for k, v in older.items() if k != 'model.class_embed.bias'})
+    earlier = dict(older)
+    earlier['model.keypoint_head.coord_embed.layers.0.weight'] = torch.zeros(1)
+    for target, weights in ((model, earlier), (mounted, {'module.' + k: v for k, v in earlier.items()})):
+        with pytest.raises(RuntimeError, match='earlier RF-DETR keypoint head.*viame/main-v1.7-backup'):
+            target.load_state_dict(weights)
+
+
+@pytest.fixture
+def onnx_exporter(monkeypatch):
+    import importlib.util
+    pytest.importorskip('rfdetr')
+    pytest.importorskip('viame.pytorch.rf_detr_detector')
+    monkeypatch.setattr(torch.cuda, 'is_available', lambda: False)
+    spec = importlib.util.spec_from_file_location(
+        'rf_detr_to_onnx_under_test', ROOT / 'onnx_exporters/rf_detr_to_onnx.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def tiny_native_checkpoint(path, model_class='RFDETRNano', **model_kwargs):
+    import rfdetr
+    model = getattr(rfdetr, model_class)(pretrain_weights=None, num_classes=2, device='cpu', **model_kwargs)
+    model.model.reinitialize_detection_head(2)
+    state = dict(model.model.model.state_dict())
+    args = {'class_names': ['fish', 'crab'], 'resolution': model.model.resolution}
+    if model_kwargs:
+        args['keypoint_names'] = ['head', 'tail']
+    torch.save({'model': state, 'args': args}, path)
+    return model, state, args
+
+
+def test_onnx_exporter_rebuilds_checkpoints(onnx_exporter, tmp_path):
+    path = tmp_path / 'tiny.pth'
+    _, state, args = tiny_native_checkpoint(path)
+    state.pop('_kp_active_mask')  # as a checkpoint from before the pose head
+    torch.save({'model': state, 'args': args}, path)
+    model, info = onnx_exporter.build_rfdetr_model(str(path))
+    assert info['class_names'] == ['fish', 'crab'] and info['keypoints'] is None
+    assert info['num_select'] == 300 and not info['segmentation']
+    torch.testing.assert_close(model.model.model.class_embed.bias, state['class_embed.bias'])
+
+    tiny_native_checkpoint(path, use_grouppose_keypoints=True, num_keypoints_per_class=[2, 2])
+    model, info = onnx_exporter.build_rfdetr_model(str(path))
+    assert info['keypoints'] == {'names': ['head', 'tail'], 'num_keypoints_per_class': [2, 2]}
+    assert model.model.model.use_grouppose_keypoints
+
+    state['keypoint_head.coord_embed.layers.0.weight'] = torch.zeros(1)
+    torch.save({'model': state, 'args': args}, path)
+    with pytest.raises(RuntimeError, match='earlier RF-DETR keypoint head.*viame/main-v1.7-backup'):
+        onnx_exporter.build_rfdetr_model(str(path))
+
+
+def test_onnx_export_matches_torch(onnx_exporter, tmp_path):
+    import json
+    import numpy as np
+    pytest.importorskip('onnx')
+    onnxruntime = pytest.importorskip('onnxruntime')
+    path = tmp_path / 'tiny_seg.pth'
+    model, _, _ = tiny_native_checkpoint(path, 'RFDETRSegNano')
+    onnx_path, spec_path = onnx_exporter.export(str(path), str(tmp_path / 'package'))
+    assert Path(onnx_path).name == 'tiny_seg.onnx'
+    spec = json.loads(Path(spec_path).read_text())
+    assert spec['postprocess'] == {'decoder': 'rfdetr', 'score_thresh': 0.1, 'topk': 100}
+    assert spec['meta']['outputs'] == ['dets', 'labels', 'masks']
+    assert spec['meta']['category_names'] == ['fish', 'crab']
+    height, width = spec['input']['shape_hw']
+    session = onnxruntime.InferenceSession(onnx_path, providers=['CPUExecutionProvider'])
+    assert [o.name for o in session.get_outputs()] == spec['meta']['outputs']
+    image = torch.rand(1, 3, height, width)
+    dets, labels, masks = session.run(None, {session.get_inputs()[0].name: image.numpy()})
+    with torch.no_grad():
+        reference = model.model.model.eval()(image)
+    np.testing.assert_allclose(dets, reference['pred_boxes'].numpy(), atol=1e-3)
+    np.testing.assert_allclose(labels, reference['pred_logits'].numpy(), atol=1e-3)
+    np.testing.assert_allclose(masks, reference['pred_masks'].numpy(), atol=1e-2)
