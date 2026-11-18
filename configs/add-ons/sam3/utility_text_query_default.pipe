@@ -1,4 +1,5 @@
 # =============================================================================
+# GPU Memory: high
 # Title: Refine tracks using SAM3 with text query support
 #
 # Description: Utility pipeline for creating or refining tracks with text-based

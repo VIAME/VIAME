@@ -1,4 +1,5 @@
 # =============================================================================
+# GPU Memory: high
 # Title: SAM3 Open-Vocabulary Tracker
 #
 # Description: Detect and track objects across frames using SAM3's native video

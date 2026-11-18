@@ -1,4 +1,5 @@
 # =============================================================================
+# GPU Memory: high
 # Tracker - SAM 3.1 on Fish Detector Detections
 #
 # Description: Tracks the default fish detector's detections with SAM 3.1

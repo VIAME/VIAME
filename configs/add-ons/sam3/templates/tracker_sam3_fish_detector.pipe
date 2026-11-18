@@ -1,4 +1,5 @@
 # =============================================================================
+# GPU Memory: high
 # Tracker - SAM 3.1 on Fish Detector Detections (template)
 #
 # Description: Pipeline template for SAM3TrackerTrainer: the default fish

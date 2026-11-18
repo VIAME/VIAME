@@ -1,4 +1,5 @@
 # =============================================================================
+# GPU Memory: high
 # Title: Text query via SAM3 (per-frame, no tracking)
 #
 # Description: Utility pipeline for detecting objects with text-based queries.
