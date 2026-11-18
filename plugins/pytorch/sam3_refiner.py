@@ -313,6 +313,19 @@ class SAM3RefinerConfig(SAM3BaseConfig):
              'compared against other trackers on equal input.'
     )
 
+    # The live form of detections_file: the detections arrive on the
+    # object_track_set port each frame (e.g. from an image_object_detector
+    # through initialize_object_tracks) and are linked to live objects and
+    # seeded exactly as a replayed detection set is. This is how a SAM 3.1
+    # tracker -- stock or fine-tuned with train_detector = false -- runs on
+    # another detector's output inside a pipeline.
+    link_input_detections = scfg.Value(
+        False,
+        help='Treat the input tracks on each frame as detections: link them '
+             'to objects already being propagated (link_iou, link_max_gap) '
+             'and seed only new ones, as detections_file does. Use with '
+             'preserve_seed_ids = true and add_new_objects = false.'
+    )
     preserve_seed_ids = scfg.Value(
         False,
         help='Map propagated object ids back onto the ids of the input '
@@ -588,6 +601,7 @@ class SAM3Refiner(RefineTracks):
         self._tracked_objects = {}
 
         self._preserve_seed_ids = False
+        self._link_input_detections = False
         self._detections_file = ''
         self._external_dets = {}
         self._clamped_out = 0
@@ -661,6 +675,8 @@ class SAM3Refiner(RefineTracks):
         self._max_tracked_objects = int(self._config.max_tracked_objects)
         self._detections_threshold = float(
             self._config.detections_threshold)
+        self._link_input_detections = parse_bool(
+            self._config.link_input_detections)
         self._detections_file = str(self._config.detections_file or '')
         self._external_dets = {}
         if self._detections_file:
@@ -1586,72 +1602,25 @@ class SAM3Refiner(RefineTracks):
 
         # An external detection set replaces the input tracks as the seed
         # source when one was supplied, and is matched by frame position.
+        # With link_input_detections the input tracks on this frame are
+        # that detection set, arriving live.
         if self._external_dets:
-            w, h = self._img_width, self._img_height
-
-            # A detection that continues an object already being propagated
-            # is a LINK, not a new object: SAM 3 is already carrying that
-            # object forward and re-prompting it would start a second track
-            # on the same animal. Only detections that match nothing alive
-            # become new seeds.
-            #
-            # Prompting every detection instead -- which is what this did
-            # first -- asks SAM 3 to hold one object per detection, so a
-            # sequence with a few thousand detections grows without bound
-            # and is killed long before it finishes.
-            for oid in [o for o, (lf, _b) in self._active_seeds.items()
-                        if local_frame_idx - lf > self._link_max_gap]:
-                del self._active_seeds[oid]
-
-            for det_id, (x1, y1, x2, y2), conf, cls in \
-                    self._external_dets.get(local_frame_idx, []):
-                if conf < self._detections_threshold:
-                    self._below_threshold += 1
-                    continue
-
-                # Detector boxes routinely run past the image edge --
-                # negative origins and corners beyond width/height are both
-                # common in the shared detection sets. SAM 3 asserts its
-                # prompts are normalised inside [0, 1], so clamp here and
-                # drop anything with no area left afterwards rather than
-                # letting the assertion take down the whole run.
-                nx1 = min(max(x1 / w, 0.0), 1.0)
-                ny1 = min(max(y1 / h, 0.0), 1.0)
-                nx2 = min(max(x2 / w, 0.0), 1.0)
-                ny2 = min(max(y2 / h, 0.0), 1.0)
-                if nx2 <= nx1 or ny2 <= ny1:
-                    self._clamped_out += 1
-                    continue
-
-                best_oid, best_iou = None, 0.0
-                for oid, (_lf, last_box) in self._active_seeds.items():
-                    overlap = _box_iou((x1, y1, x2, y2), last_box)
-                    if overlap > best_iou:
-                        best_oid, best_iou = oid, overlap
-
-                if best_oid is not None and best_iou >= self._link_iou:
-                    # Continuation of a live object; refresh its position so
-                    # the next frame links against where it actually is.
-                    self._active_seeds[best_oid] = (
-                        local_frame_idx, (x1, y1, x2, y2))
-                    self._linked += 1
-                    continue
-
-                if len(self._active_seeds) >= self._max_seed_objects:
-                    # SAM 3 caps how many objects it will track at once, and
-                    # the memory cost is per object. Drop the detection
-                    # rather than exceed it, and say how many were dropped.
-                    self._seed_capacity_drops += 1
-                    continue
-
-                box_rel = [nx1, ny1, nx2 - nx1, ny2 - ny1]
-                self._frame_prompts.setdefault(local_frame_idx, []).append(
-                    (det_id, box_rel)
-                )
-                self._obj_id_to_class[det_id] = cls
-                self._active_seeds[det_id] = (
-                    local_frame_idx, (x1, y1, x2, y2))
-                self._seeded += 1
+            self._seed_from_detections(
+                local_frame_idx, self._external_dets.get(local_frame_idx, []))
+            return ObjectTrackSet([])
+        if self._link_input_detections:
+            frame_dets = []
+            for tid, (track, state, det) in track_states.items():
+                bbox = det.bounding_box
+                class_name = ''
+                try:
+                    class_name = det.type.get_most_likely_class()
+                except Exception:
+                    pass
+                frame_dets.append((tid, (bbox.min_x(), bbox.min_y(),
+                                         bbox.max_x(), bbox.max_y()),
+                                   float(det.confidence), class_name))
+            self._seed_from_detections(local_frame_idx, frame_dets)
             return ObjectTrackSet([])
 
         # Collect seed box prompts from input tracks on this frame
@@ -1685,6 +1654,76 @@ class SAM3Refiner(RefineTracks):
         # Accumulate only — propagation runs once in finalize() after
         # all frames have been collected.
         return ObjectTrackSet([])
+
+    def _seed_from_detections(self, local_frame_idx, frame_dets):
+        """
+        Link this frame's detections to live objects or seed new ones.
+        ``frame_dets`` holds (id, (x1, y1, x2, y2), confidence, class).
+        """
+        w, h = self._img_width, self._img_height
+
+        # A detection that continues an object already being propagated
+        # is a LINK, not a new object: SAM 3 is already carrying that
+        # object forward and re-prompting it would start a second track
+        # on the same animal. Only detections that match nothing alive
+        # become new seeds.
+        #
+        # Prompting every detection instead -- which is what this did
+        # first -- asks SAM 3 to hold one object per detection, so a
+        # sequence with a few thousand detections grows without bound
+        # and is killed long before it finishes.
+        for oid in [o for o, (lf, _b) in self._active_seeds.items()
+                    if local_frame_idx - lf > self._link_max_gap]:
+            del self._active_seeds[oid]
+
+        for det_id, (x1, y1, x2, y2), conf, cls in frame_dets:
+            if conf < self._detections_threshold:
+                self._below_threshold += 1
+                continue
+
+            # Detector boxes routinely run past the image edge --
+            # negative origins and corners beyond width/height are both
+            # common in the shared detection sets. SAM 3 asserts its
+            # prompts are normalised inside [0, 1], so clamp here and
+            # drop anything with no area left afterwards rather than
+            # letting the assertion take down the whole run.
+            nx1 = min(max(x1 / w, 0.0), 1.0)
+            ny1 = min(max(y1 / h, 0.0), 1.0)
+            nx2 = min(max(x2 / w, 0.0), 1.0)
+            ny2 = min(max(y2 / h, 0.0), 1.0)
+            if nx2 <= nx1 or ny2 <= ny1:
+                self._clamped_out += 1
+                continue
+
+            best_oid, best_iou = None, 0.0
+            for oid, (_lf, last_box) in self._active_seeds.items():
+                overlap = _box_iou((x1, y1, x2, y2), last_box)
+                if overlap > best_iou:
+                    best_oid, best_iou = oid, overlap
+
+            if best_oid is not None and best_iou >= self._link_iou:
+                # Continuation of a live object; refresh its position so
+                # the next frame links against where it actually is.
+                self._active_seeds[best_oid] = (
+                    local_frame_idx, (x1, y1, x2, y2))
+                self._linked += 1
+                continue
+
+            if len(self._active_seeds) >= self._max_seed_objects:
+                # SAM 3 caps how many objects it will track at once, and
+                # the memory cost is per object. Drop the detection
+                # rather than exceed it, and say how many were dropped.
+                self._seed_capacity_drops += 1
+                continue
+
+            box_rel = [nx1, ny1, nx2 - nx1, ny2 - ny1]
+            self._frame_prompts.setdefault(local_frame_idx, []).append(
+                (det_id, box_rel)
+            )
+            self._obj_id_to_class[det_id] = cls
+            self._active_seeds[det_id] = (
+                local_frame_idx, (x1, y1, x2, y2))
+            self._seeded += 1
 
     @report_cuda_errors("SAM3 track refinement")
     def finalize(self):
@@ -1932,7 +1971,7 @@ class SAM3Refiner(RefineTracks):
         if not self._frame_prompts and not self._text_prompt_frames:
             return
 
-        if self._external_dets:
+        if self._external_dets or self._link_input_detections:
             print('[SAM3] external detections: %d seeded, %d linked to a live '
                   'object, %d dropped at the %d-object cap, %d clamped out, '
                   '%d below the %.3f confidence gate'
@@ -1943,7 +1982,8 @@ class SAM3Refiner(RefineTracks):
 
         all_results = self._run_video_propagation()
 
-        if self._external_dets and self._seeds_submitted:
+        if ((self._external_dets or self._link_input_detections)
+                and self._seeds_submitted):
             print('[SAM3] seed prompts: %d submitted across chunks, %d picked '
                   'up by SAM 3 (%.1f%%)'
                   % (self._seeds_submitted, self._seeds_mapped,

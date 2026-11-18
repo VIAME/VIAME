@@ -304,6 +304,21 @@ if( VIAME_ENABLE_PYTORCH-SAM3 )
       pytorch
       sam3_tracker_training )
 
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_detector_training.py
+      pytorch
+      sam3_detector_training )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_training_common.py
+      pytorch
+      sam3_training_common )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/sam3_detector.py
+      pytorch
+      sam3_detector )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-STEREO )

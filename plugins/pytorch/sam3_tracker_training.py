@@ -53,10 +53,8 @@ Numerics
 * A clip that runs out of GPU memory is skipped on every rank together.
 """
 
-import contextlib
 import functools
 import json
-import math
 import os
 import random
 import sys
@@ -65,7 +63,20 @@ from types import SimpleNamespace
 
 import numpy as np
 
-MODEL_SIZE = 1008                 # SAM 3.1 input resolution
+if __name__ == "__main__":
+    # Run as a script (a DDP rank), Python puts this file's directory first
+    # on sys.path. That is viame/pytorch, whose torchvision subpackage then
+    # shadows the real torchvision. Search it last instead.
+    _here = os.path.dirname(os.path.abspath(__file__))
+    sys.path[:] = [q for q in sys.path
+                   if os.path.abspath(q or os.curdir) != _here] + [_here]
+
+try:
+    from viame.pytorch import sam3_training_common as common
+except ImportError:  # run as a script without viame on the path
+    import sam3_training_common as common
+
+MODEL_SIZE = common.MODEL_SIZE
 LOSS_RES = 504                    # loss resolution (memory bound)
 LOSS_W = {"mask": 20.0, "dice": 1.0, "iou": 1.0, "class": 1.0}
 
@@ -82,16 +93,8 @@ def log(msg):
 # Checkpoint conversion
 # =============================================================================
 
-def load_full_checkpoint(path):
-    import torch
-    ckpt = torch.load(path, map_location="cpu", weights_only=True)
-    if "model" in ckpt and isinstance(ckpt["model"], dict):
-        ckpt = ckpt["model"]
-    return ckpt
-
-
-def is_sam31_checkpoint(state):
-    return any(k.startswith("tracker.model.") for k in state)
+load_full_checkpoint = common.load_full_checkpoint
+is_sam31_checkpoint = common.is_sam31_checkpoint
 
 
 def full_to_tracker_state(full):
@@ -104,57 +107,17 @@ def full_to_tracker_state(full):
     return out
 
 
-def tracker_to_full_state(tracker_state, full_template):
-    """Write tracker weights (not the backbone) into a full checkpoint."""
-    out = dict(full_template)
-    for k, v in tracker_state.items():
-        if k.startswith("backbone."):
-            continue
-        fk = TRACKER_PREFIX + k
-        if fk not in out or out[fk].shape != v.shape:
-            raise ValueError(f"tracker key {k} does not match the source "
-                             "checkpoint")
-        out[fk] = v.detach().to(out[fk].dtype).cpu().contiguous()
-    return out
-
-
 def export_checkpoint(tracker_state, source_ckpt, out_path):
     """Save a full SAM 3.1 checkpoint carrying the fine-tuned tracker."""
-    import torch
-    base = load_full_checkpoint(source_ckpt)
-    full = tracker_to_full_state(tracker_state, base)
-    for k in base:
-        if not k.startswith("tracker.") and not torch.equal(full[k], base[k]):
-            raise RuntimeError(f"non-tracker weight {k} changed on export")
-    tmp = out_path + ".tmp"
-    torch.save(full, tmp)
-    os.replace(tmp, out_path)
-    return out_path
+    return common.write_into_checkpoint(source_ckpt, out_path, TRACKER_PREFIX,
+                                        tracker_state, skip=("backbone.",))
 
 
 # =============================================================================
 # Model
 # =============================================================================
 
-def patch_sdpa_for_pre_ampere():
-    """
-    sam3/model/decoder.py forces sdpa_kernel(FLASH_ATTENTION), which has no
-    kernel before Ampere. Same workaround as
-    sam3_utilities._patch_sam3_sdpa_for_pre_ampere, kept local so ranks need
-    no kwiver imports.
-    """
-    import torch
-    try:
-        if torch.cuda.get_device_capability(0)[0] >= 8:
-            return
-    except Exception:
-        return
-    from sam3.model import decoder as _dec
-
-    @contextlib.contextmanager
-    def _noop(*args, **kwargs):
-        yield
-    _dec.sdpa_kernel = _noop
+patch_sdpa_for_pre_ampere = common.patch_sdpa_for_pre_ampere
 
 
 def enable_memory_attention_checkpointing(model, fp16=True):
@@ -165,15 +128,7 @@ def enable_memory_attention_checkpointing(model, fp16=True):
     """
     import torch
     from torch.utils.checkpoint import checkpoint
-
-    def to_float(x):
-        if torch.is_tensor(x) and x.dtype == torch.float16:
-            return x.float()
-        if isinstance(x, (tuple, list)):
-            return type(x)(to_float(v) for v in x)
-        if isinstance(x, dict):
-            return {k: to_float(v) for k, v in x.items()}
-        return x
+    to_float = common.to_float
 
     for layer in model.transformer.encoder.layers:
         orig = layer.forward
@@ -200,11 +155,7 @@ def build_trainable_tracker(ckpt_path, device, rank=0, seed=0):
         device="cpu", compile=False)
 
     full = load_full_checkpoint(ckpt_path)
-    if not is_sam31_checkpoint(full):
-        raise RuntimeError(
-            f"{ckpt_path} is not a SAM 3.1 checkpoint (no tracker.model.* "
-            "keys). The SAM3 tracker trainer fine-tunes the 3.1 multiplex "
-            "tracker; point sam_model_id at sam3.1_weights.pt.")
+    common.require_sam31(full, ckpt_path, "tracker")
     missing, unexpected = model.load_state_dict(full_to_tracker_state(full),
                                                 strict=False)
     missing = [k for k in missing if not k.endswith("num_batches_tracked")]
@@ -622,21 +573,9 @@ def run(params):
 
     p = dict(DEFAULTS)
     p.update(params)
-    distributed = "RANK" in os.environ and int(os.environ.get(
-        "WORLD_SIZE", "1")) > 1
-    if distributed:
-        dist.init_process_group("nccl")
-        rank, world = dist.get_rank(), dist.get_world_size()
-        local = int(os.environ.get("LOCAL_RANK", rank))
-    else:
-        rank, world, local = 0, 1, 0
-    torch.cuda.set_device(local)
-    device = torch.device("cuda", local)
-    is_main = rank == 0
     seed = int(p["seed"])
-    random.seed(seed + rank)
-    np.random.seed(seed + rank)
-    torch.manual_seed(seed + rank)
+    distributed, rank, world, device = common.setup_distributed(seed)
+    is_main = rank == 0
     work = p["work_dir"]
     os.makedirs(work, exist_ok=True)
     t_start = time.time()
@@ -659,11 +598,8 @@ def run(params):
     if is_main:
         log(f"trainable parameters {sum(q.numel() for q in params_):,} / "
             f"{sum(q.numel() for q in model.parameters()):,}")
-    opt = torch.optim.AdamW(
-        [{"params": [q for q in params_ if q.ndim > 1],
-          "weight_decay": float(p["weight_decay"])},
-         {"params": [q for q in params_ if q.ndim <= 1], "weight_decay": 0.0}],
-        lr=float(p["learning_rate"]))
+    opt = common.adamw(params_, float(p["learning_rate"]),
+                       float(p["weight_decay"]))
     scaler = torch.amp.GradScaler("cuda")
 
     iters = int(p["max_iterations"])
@@ -671,10 +607,7 @@ def run(params):
     lr0 = float(p["learning_rate"])
 
     def lr_at(i):
-        if i < warm:
-            return lr0 * (i + 1) / warm
-        frac = (i - warm) / max(1, iters - warm)
-        return lr0 * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * frac)))
+        return common.cosine_lr(i, lr0, warm, iters)
 
     start_iter = 0
     last_path = os.path.join(work, "last.pt")
@@ -723,16 +656,14 @@ def run(params):
     def run_eval(it):
         r = evaluate(model, val_loader, device, prompt=val_prompt)
         if distributed:
-            n = r["n_pairs"]
-            v = torch.tensor([r["loss"], r["miou"] * n, r["box_iou"] * n, n,
-                              r["presence_acc"]], device=device,
-                             dtype=torch.float64)
-            v = torch.nan_to_num(v)
-            dist.all_reduce(v)
-            n = max(v[3].item(), 1)
-            r = dict(loss=v[0].item() / world, miou=v[1].item() / n,
-                     box_iou=v[2].item() / n, n_pairs=int(v[3].item()),
-                     presence_acc=v[4].item() / world)
+            n = float(r["n_pairs"])
+            loss, miou, biou, pres = common.all_mean(
+                [r["loss"], r["miou"], r["box_iou"], r["presence_acc"]],
+                distributed, device, weights=[1.0, n, n, 1.0])
+            total = torch.tensor([n], device=device)
+            dist.all_reduce(total)
+            r = dict(loss=loss, miou=miou, box_iou=biou,
+                     n_pairs=int(total.item()), presence_acc=pres)
         if is_main:
             log(f"eval iter {it}: " + json.dumps(r))
             with open(os.path.join(work, "eval.jsonl"), "a") as f:
@@ -779,29 +710,11 @@ def run(params):
                 log(f"rank {rank}: out of GPU memory on a "
                     f"{sample['masks'].shape[1]}-object clip of "
                     f"{sample['name']}; skipped ({n_oom} so far)")
-            for q in params_:
-                if q.grad is None:
-                    q.grad = torch.zeros_like(q)
-            if distributed:
-                flat = torch.cat([q.grad.flatten() for q in params_] +
-                                 [torch.tensor([skip], device=device)])
-                dist.all_reduce(flat)
-                skip = float(flat[-1])
-                flat /= world
-                off = 0
-                for q in params_:
-                    n = q.numel()
-                    q.grad.copy_(flat[off:off + n].view_as(q))
-                    off += n
+            stepped, step_gn = common.sync_and_step(
+                params_, opt, scaler, skip, distributed, world, 0.1, device)
             it += 1
-            if skip > 0:
-                opt.zero_grad(set_to_none=True)
-            else:
-                scaler.unscale_(opt)
-                gn = torch.nn.utils.clip_grad_norm_(params_, 0.1)
-                scaler.step(opt)
-                scaler.update()
-                opt.zero_grad(set_to_none=True)
+            if stepped:
+                gn = step_gn
                 hist.append([float(loss)] + [float(parts[k]) for k in LOSS_W])
 
             if is_main and it % 20 == 0 and hist:
@@ -814,17 +727,12 @@ def run(params):
                     f"gnorm {float(gn):.3f} lr {lr_at(it):.2e} "
                     f"{dt:.2f}s/it")
             if is_main and it % 500 == 0:
-                torch.save(dict(model=tracker_state_dict(model),
-                                opt=opt.state_dict(),
-                                scaler=scaler.state_dict(), iter=it),
-                           last_path + ".tmp")
-                os.replace(last_path + ".tmp", last_path)
-            out_of_time = (timeout is not None
-                           and time.time() - t_start > timeout)
-            if distributed:
-                flag = torch.tensor([float(out_of_time)], device=device)
-                dist.all_reduce(flag)
-                out_of_time = flag.item() > 0
+                common.atomic_save(dict(model=tracker_state_dict(model),
+                                        opt=opt.state_dict(),
+                                        scaler=scaler.state_dict(), iter=it),
+                                   last_path)
+            out_of_time = common.out_of_time(t_start, timeout, distributed,
+                                             device)
             if val_loader is not None and eval_every > 0 and (
                     it % eval_every == 0 or it >= iters or out_of_time):
                 maybe_save_best(it, run_eval(it))

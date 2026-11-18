@@ -1,0 +1,138 @@
+# =============================================================================
+# Tracker - SAM 3.1 on Trained Detector Detections (template)
+#
+# Description: Pipeline template for training a detector and a SAM 3.1
+# tracker in one run, the detector's detections tracked by SAM 3.1:
+#
+#   viame train -i data -c train_detector_<type>.conf --tracker sam3 \
+#     -s tracker_pipeline_template=templates/tracker_sam3_trained_detector.pipe \
+#     -s tracker_trainer:sam3:train_detector=false
+#
+# The detector pass fills [-DETECTOR-IMPL-]; the tracker pass the SAM 3.1
+# checkpoint.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================== INPUT FRAME LIST =============================
+
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+connect from downsampler.output_1
+        to   detector_input.image
+
+process detector1
+  :: image_object_detector
+  [-DETECTOR-IMPL-]
+connect from detector_input.image
+        to   detector1.image
+
+process detector_output
+  :: refine_detections
+  :refiner:type                                nms
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+connect from detector1.detected_object_set
+        to   detector_output.detected_object_set
+
+process detector_writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+connect from detector_output.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+
+# ================================= TRACKER ===================================
+
+process tracker
+  :: refine_tracks
+  :refiner:type                                sam3
+  block refiner:sam3
+    :grounding_model_id                        none
+    :device                                    cuda
+    :text_query                                fish
+    :min_mask_area                             10
+    :filter_by_quality                         true
+    :adjust_boxes                              true
+    :output_type                               polygon
+    :polygon_simplification                    0.005
+    :propagate_tracked                         true
+    # Detections come in on the object_track_set port; no text detection.
+    :add_new_objects                           false
+    :link_input_detections                     true
+    :preserve_seed_ids                         true
+    # Seed a new object only from a detection at least this confident that
+    # overlaps no object already being tracked (IoU < link_iou). Objects
+    # with no supporting detection for link_max_gap frames can be re-seeded.
+    :detections_threshold                      0.40
+    :link_iou                                  0.30
+    :link_max_gap                              5
+    :max_seed_objects                          32
+    :max_tracked_objects                       32
+    :video_hotstart_delay                      0
+    relativepath sam_model_id =                [-SAM-MODEL-ID-]
+    relativepath model_config =                [-MODEL-CONFIG-]
+  endblock
+connect from detector_input.image
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+
+# Each frame's detections become single-state tracks, which the refiner
+# links to the objects SAM 3.1 is already propagating.
+process detection_tracks
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+  block track_initializer:threshold:filter
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold        0.0
+    :class_probability_filter:keep_all_classes true
+    :class_probability_filter:keep_classes     unused
+  endblock
+connect from downsampler.timestamp
+        to   detection_tracks.timestamp
+connect from detector_output.detected_object_set
+        to   detection_tracks.detected_object_set
+connect from detection_tracks.object_track_set
+        to   tracker.object_track_set
+
+process track_classifier
+  :: refine_tracks
+  :refiner:type                                average_tot
+  :refiner:average_tot:tot_option              weighted_average
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
+connect from downsampler.output_2
+        to   track_writer.image_file_name
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+connect from tracker.object_track_set
+        to   track_classifier.object_track_set
+connect from track_classifier.object_track_set
+        to   track_writer.object_track_set
+
+# -- end of file --
