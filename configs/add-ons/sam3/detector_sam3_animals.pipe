@@ -4,7 +4,8 @@
 # Description: Detect objects in each frame using SAM3's built-in text-prompted
 #              detection. Produces per-frame detections with polygon masks.
 #              Set the text_query parameter to describe the objects to find.
-# GPU Memory: 15.9 GB
+# GPU Memory: 23.9 GB
+# GPU Memory up to 1920x1080: 15.9 GB
 # =============================================================================
 
 config _pipeline:_edge

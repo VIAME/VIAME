@@ -5,7 +5,8 @@
 # detector's detections tracked by a fine-tuned SAM 3.1 tracker (see
 # tracker_sam3_fish_detector.pipe). Used by
 # train_tracker_sam3_tracker_only.conf.
-# GPU Memory: 15.9 GB
+# GPU Memory: 23.9 GB
+# GPU Memory up to 1920x1080: 15.9 GB
 # =============================================================================
 
 config _pipeline:_edge
