@@ -4,8 +4,7 @@
 # Description: Utility pipeline for creating or refining tracks with text-based
 #              queries. Textual query support uses architectures derived from
 #              Meta's SAM3 project.
-# GPU Memory: 23.9 GB
-# GPU Memory up to 1920x1080: 15.9 GB
+# GPU Memory: 15.9 GB if <=1920x1080, else 23.9 GB
 # =============================================================================
 
 include utility_text_query_sam3_tracking.pipe
