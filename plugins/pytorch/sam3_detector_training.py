@@ -656,8 +656,8 @@ class DetectorPredictor:
 # =============================================================================
 
 DEFAULTS = dict(
-    max_iterations=3000, learning_rate=5e-5, weight_decay=0.1,
-    warmup_iterations=200, batch_size=1, eval_every=500, eval_images=500,
+    max_iterations=3000, learning_rate=8e-5, weight_decay=0.1,
+    warmup_iterations=200, batch_size=4, eval_every=500, eval_images=500,
     num_workers=4, seed=0, text_query="fish", amp=True, timeout=604800,
 )
 

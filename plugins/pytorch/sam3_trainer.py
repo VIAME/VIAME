@@ -162,6 +162,21 @@ def _config_path(sam_model_id, name):
 # Detector
 # =============================================================================
 
+def _deploy_threshold(detector_work, default=0.3):
+    """
+    Detection threshold for a tuned detector: the one that maximized
+    validation F1 (sam3_detector/best.json). Fine-tuning shifts scores well
+    above the stock model's, so the stock 0.3 floods the output with false
+    positives.
+    """
+    threshold = default
+    best = os.path.join(detector_work, "best.json")
+    if os.path.exists(best):
+        with open(best) as f:
+            threshold = json.load(f).get("f1_threshold", threshold)
+    return min(max(float(threshold), 0.05), 0.9)
+
+
 class SAM3Trainer(TrainDetector):
     """
     Implementation of TrainDetector for SAM 3.1 detector fine-tuning.
@@ -192,10 +207,10 @@ class SAM3Trainer(TrainDetector):
         self._train_directory = "deep_training"
         self._gpu_count = -1
         self._max_iterations = "3000"
-        self._learning_rate = "5e-5"
+        self._learning_rate = "8e-5"
         self._weight_decay = "0.1"
         self._warmup_iterations = "200"
-        self._batch_size = "1"
+        self._batch_size = "4"
         self._eval_every = "500"
         self._eval_images = "500"
         self._validation_fraction = "0.1"
@@ -321,13 +336,7 @@ class SAM3Trainer(TrainDetector):
                 "SAM3 detector training produced no model at {}. The trainer "
                 "output above carries the reason.".format(output_model))
 
-        # Deploy at the threshold that maximized validation F1.
-        threshold = 0.3
-        best = os.path.join(work, "best.json")
-        if os.path.exists(best):
-            with open(best) as f:
-                threshold = json.load(f).get("f1_threshold", threshold)
-        threshold = min(max(float(threshold), 0.05), 0.9)
+        threshold = _deploy_threshold(work)
 
         output = {
             "type": "sam3",
@@ -420,6 +429,7 @@ class SAM3TrackerTrainer(TrainTracker):
 
     def __init__(self):
         TrainTracker.__init__(self)
+        self._detection_threshold = 0.3
 
         self._identifier = "viame-sam3-tracker"
         self._sam_model_id = "models/sam3.1_weights.pt"
@@ -443,8 +453,8 @@ class SAM3TrackerTrainer(TrainTracker):
         self._validation_manifest = ""
         self._train_detector = "true"
         self._detector_max_iterations = "3000"
-        self._detector_learning_rate = "5e-5"
-        self._detector_batch_size = "1"
+        self._detector_learning_rate = "8e-5"
+        self._detector_batch_size = "4"
         self._detector_eval_images = "500"
 
         self._train_image_files = []
@@ -616,6 +626,7 @@ class SAM3TrackerTrainer(TrainTracker):
         root = os.path.abspath(self._train_directory)
         source = os.path.abspath(self._sam_model_id)
 
+        self._detection_threshold = 0.3
         if train_detector:
             print("\n[SAM3TrackerTrainer] Stage 1 of 2: detector")
             source = run_detector_stage(
@@ -632,6 +643,8 @@ class SAM3TrackerTrainer(TrainTracker):
                      timeout=_parse_timeout(self._timeout),
                      seed=int(self._seed)),
                 self.DETECTOR_MODEL_NAME)
+            self._detection_threshold = _deploy_threshold(
+                os.path.join(root, "sam3_detector"))
             print("\n[SAM3TrackerTrainer] Stage 2 of 2: tracker")
 
         work = os.path.join(root, "sam3_tracker")
@@ -685,6 +698,8 @@ class SAM3TrackerTrainer(TrainTracker):
         output["sam3:sam_model_id"] = self.OUTPUT_MODEL_NAME
         output["sam3:model_config"] = self.CONFIG_NAME
         output["sam3:text_query"] = self._text_query
+        output["sam3:video_detection_threshold"] = \
+            f"{self._detection_threshold:.3f}"
         output[self.OUTPUT_MODEL_NAME] = output_model
 
         # The 3.1 config travels with the weights so the pipeline resolves it

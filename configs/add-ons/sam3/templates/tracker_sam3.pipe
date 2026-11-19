@@ -55,7 +55,7 @@ process tracker
     :num_points                                5
     :propagate_tracked                         true
     :reinit_interval                           10
-    :video_detection_threshold                 0.3
+    :video_detection_threshold                 [-VIDEO-DETECTION-THRESHOLD-]
     relativepath sam_model_id =                [-SAM-MODEL-ID-]
     relativepath model_config =                [-MODEL-CONFIG-]
   endblock
