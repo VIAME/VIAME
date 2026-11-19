@@ -1,5 +1,4 @@
 # =============================================================================
-# GPU Memory: 24 GB
 # Title: Text query via SAM3 (gridded for large images, no tracking)
 #
 # Description: Textual query support uses architectures derived from Meta's
@@ -9,6 +8,7 @@
 #
 # Input: TEXT
 # Output: MASK
+# GPU Memory: 24 GB
 # =============================================================================
 
 config _pipeline:_edge

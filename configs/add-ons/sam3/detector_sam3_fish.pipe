@@ -1,9 +1,9 @@
 # =============================================================================
-# GPU Memory: 24 GB
 # Title: SAM3 Fish Detector
 #
 # Description: Detect fish in each frame using SAM3's built-in text-prompted
 #              detection. Produces per-frame detections with polygon masks.
+# GPU Memory: 15.9 GB
 # =============================================================================
 
 config _pipeline:_edge

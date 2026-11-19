@@ -1,11 +1,11 @@
 # =============================================================================
-# GPU Memory: 24 GB
 # Tracker - SAM 3.1 on Fish Detector Detections (template)
 #
 # Description: Pipeline template for SAM3TrackerTrainer: the default fish
 # detector's detections tracked by a fine-tuned SAM 3.1 tracker (see
 # tracker_sam3_fish_detector.pipe). Used by
 # train_tracker_sam3_tracker_only.conf.
+# GPU Memory: 24 GB
 # =============================================================================
 
 config _pipeline:_edge

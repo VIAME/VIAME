@@ -1,5 +1,4 @@
 # =============================================================================
-# GPU Memory: 24 GB
 # Title: SAM3 Open-Vocabulary Tracker
 #
 # Description: Detect and track objects across frames using SAM3's native video
@@ -8,6 +7,7 @@
 #              using SAM3's memory-attention tracking. Produces multi-frame
 #              tracks with polygon masks.
 #              Set the text_query parameter to describe the objects to find.
+# GPU Memory: 24 GB
 # =============================================================================
 
 config _pipeline:_edge

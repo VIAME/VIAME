@@ -1,11 +1,11 @@
 # =============================================================================
-# GPU Memory: 24 GB
 # Title: Add automatically generated segmentations via SAM3
 #
 # Description: Adds segmentation masks to existing detections using SAM3.
 #              This pipeline replaces existing masks with SAM3-generated masks.
 # Input: BBOX
 # Output: MASK
+# GPU Memory: 24 GB
 # =============================================================================
 
 config _pipeline:_edge

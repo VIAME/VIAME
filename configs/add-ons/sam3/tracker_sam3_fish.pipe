@@ -1,5 +1,4 @@
 # =============================================================================
-# GPU Memory: 24 GB
 # Title: SAM3 Fish Tracker
 #
 # Description: Detect and track fish across frames using SAM3's native video
@@ -7,6 +6,7 @@
 #              first frame (and periodically thereafter) then propagates them
 #              using SAM3's memory-attention tracking. Produces multi-frame
 #              tracks with polygon masks.
+# GPU Memory: 15.9 GB
 # =============================================================================
 
 config _pipeline:_edge
