@@ -2235,6 +2235,30 @@ train_applet
   }
   else
   {
+    // `--tracker x` with no -c and no detector: the packaged
+    // train_tracker_x.conf stands in for the -c it would otherwise need, so
+    // its run-level settings (output_directory, output_file,
+    // tracker_pipeline_template, ...) apply too, not just its trainer
+    // settings. Command-line settings are applied after and still win.
+    if( first_detector.empty() && !training_trackers.empty() )
+    {
+      const std::string packaged = find_packaged_config(
+        "train_tracker_" + training_trackers[ 0 ] + ".conf" );
+
+      if( !packaged.empty() )
+      {
+        try
+        {
+          config->merge_config( kv::read_config_file( packaged ) );
+        }
+        catch( const std::exception& e )
+        {
+          std::cerr << "Warning: could not read " << packaged << ": "
+                    << e.what() << std::endl;
+        }
+      }
+    }
+
     config->set_value( "detector_trainer:type", first_detector );
   }
 
@@ -4622,6 +4646,13 @@ train_applet
       // Merge the run's config so one -c file can carry detector and tracker
       kv::config_block_sptr tracker_config = default_config();
 
+      // Pipeline template for this tracker. The run-level one, unless this
+      // tracker's packaged config (used when there is no -c) names its own
+      // and the command line did not set one -- with several trackers the
+      // run-level value comes from the first tracker's packaged config only.
+      std::string current_template = tracker_pipeline_template;
+      std::string current_pipeline_name = output_tracker_pipeline_name;
+
       // With no -c the run has no tracker settings at all, which is the form
       // every tracker example documents. Pull in the packaged config for this
       // tracker so that form works. Merged before the run's config, so an
@@ -4636,8 +4667,40 @@ train_applet
         {
           try
           {
-            tracker_config->merge_config( kv::read_config_file( packaged ) );
+            kv::config_block_sptr packaged_config =
+              kv::read_config_file( packaged );
+            tracker_config->merge_config( packaged_config );
             std::cout << "Using packaged config " << packaged << std::endl;
+
+            const auto set_on_command_line = [&]( const std::string& key )
+            {
+              for( const auto& setting : opt_settings )
+              {
+                if( setting.compare( 0, key.size() + 1, key + "=" ) == 0 )
+                {
+                  return true;
+                }
+              }
+              return false;
+            };
+
+            // The first tracker's packaged values are already the run-level
+            // ones (merged into the main config above).
+            if( tracker_idx > 0 &&
+                packaged_config->has_value( "tracker_pipeline_template" ) &&
+                !set_on_command_line( "tracker_pipeline_template" ) )
+            {
+              current_template = packaged_config->get_value< std::string >(
+                "tracker_pipeline_template" );
+            }
+
+            if( tracker_idx > 0 &&
+                packaged_config->has_value( "output_tracker_pipeline_name" ) &&
+                !set_on_command_line( "output_tracker_pipeline_name" ) )
+            {
+              current_pipeline_name = packaged_config->get_value< std::string >(
+                "output_tracker_pipeline_name" );
+            }
           }
           catch( const std::exception& e )
           {
@@ -4699,7 +4762,7 @@ train_applet
           tracker_trainer->update_model();
 
         process_trainer_output( trainer_output, output_directory,
-          tracker_pipeline_template, output_tracker_pipeline_name,
+          current_template, current_pipeline_name,
           current_tracker, false, true );
       }
       catch( const std::exception& e )

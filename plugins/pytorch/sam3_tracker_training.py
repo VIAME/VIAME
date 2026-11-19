@@ -557,7 +557,7 @@ DEFAULTS = dict(
     max_iterations=4000, learning_rate=2e-5, weight_decay=0.05,
     warmup_iterations=300, clip_length=8, max_objects=8, eval_every=500,
     eval_clips=300, num_workers=4, seed=0, box_targets=False,
-    timeout=604800,
+    timeout=604800, keep_snapshots=False,
 )
 
 
@@ -676,6 +676,11 @@ def run(params):
     def maybe_save_best(it, r):
         if not is_main:
             return
+        if p.get("keep_snapshots"):
+            # Tracker weights at every eval, for picking a checkpoint by a
+            # downstream (pipeline) metric instead of validation IoU.
+            torch.save(dict(model=tracker_state_dict(model), iter=it, eval=r),
+                       os.path.join(work, f"snapshot_{it:06d}.pt"))
         best = json.load(open(best_f)) if os.path.exists(best_f) else None
         if best is None or r[select_key] > best[select_key]:
             torch.save(dict(model=tracker_state_dict(model), iter=it, eval=r),
