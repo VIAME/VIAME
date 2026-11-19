@@ -162,19 +162,27 @@ def _config_path(sam_model_id, name):
 # Detector
 # =============================================================================
 
-def _deploy_threshold(detector_work, default=0.3):
+def _deploy_threshold(detector_work, default=0.3, offset=0.0):
     """
     Detection threshold for a tuned detector: the one that maximized
-    validation F1 (sam3_detector/best.json). Fine-tuning shifts scores well
-    above the stock model's, so the stock 0.3 floods the output with false
-    positives.
+    validation F1 (sam3_detector/best.json), plus ``offset``. Fine-tuning
+    shifts scores well above the stock model's, so the stock 0.3 floods the
+    output with false positives.
     """
     threshold = default
     best = os.path.join(detector_work, "best.json")
     if os.path.exists(best):
         with open(best) as f:
-            threshold = json.load(f).get("f1_threshold", threshold)
+            threshold = json.load(f).get("f1_threshold", threshold) + offset
     return min(max(float(threshold), 0.05), 0.9)
+
+
+# Tracking compounds false positives (each spawns a track that SAM 3.1 then
+# propagates), so the tracker pipeline runs the detector a little above its
+# per-image F1 optimum. On the FishTrack pipeline eval (46 videos) the
+# detector+tracker fine-tune, F1 optimum 0.65, scored IDF1 / MOTA
+# 0.405 / 0.167 at 0.65, 0.438 / 0.277 at 0.72 and 0.407 / 0.288 at 0.80.
+TRACKER_THRESHOLD_OFFSET = 0.07
 
 
 class SAM3Trainer(TrainDetector):
@@ -644,7 +652,8 @@ class SAM3TrackerTrainer(TrainTracker):
                      seed=int(self._seed)),
                 self.DETECTOR_MODEL_NAME)
             self._detection_threshold = _deploy_threshold(
-                os.path.join(root, "sam3_detector"))
+                os.path.join(root, "sam3_detector"),
+                offset=TRACKER_THRESHOLD_OFFSET)
             print("\n[SAM3TrackerTrainer] Stage 2 of 2: tracker")
 
         work = os.path.join(root, "sam3_tracker")
