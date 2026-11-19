@@ -10,7 +10,7 @@
 #
 # The detector pass fills [-DETECTOR-IMPL-]; the tracker pass the SAM 3.1
 # checkpoint.
-# GPU Memory: 24 GB
+# GPU Memory: 15.9 GB
 # =============================================================================
 
 config _pipeline:_edge

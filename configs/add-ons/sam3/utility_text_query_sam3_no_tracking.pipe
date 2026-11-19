@@ -9,7 +9,7 @@
 #
 # Input: TEXT
 # Output: MASK
-# GPU Memory: 24 GB
+# GPU Memory: 15.9 GB
 # =============================================================================
 
 config _pipeline:_edge

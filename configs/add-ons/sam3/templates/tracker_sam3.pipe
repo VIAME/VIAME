@@ -6,7 +6,7 @@
 #              text-prompted SAM3 detection with SAM 3.1 memory-attention
 #              propagation, but loading the fine-tuned checkpoint written
 #              next to this pipeline.
-# GPU Memory: 24 GB
+# GPU Memory: 15.9 GB
 # =============================================================================
 
 config _pipeline:_edge
