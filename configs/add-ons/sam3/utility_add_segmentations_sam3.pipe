@@ -5,6 +5,7 @@
 #              This pipeline replaces existing masks with SAM3-generated masks.
 # Input: BBOX
 # Output: MASK
+# GPU Memory: 15.9 GB if <=1920x1080 else 23.9 GB
 # =============================================================================
 
 config _pipeline:_edge
