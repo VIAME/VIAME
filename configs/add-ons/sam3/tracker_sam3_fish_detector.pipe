@@ -60,9 +60,11 @@ process tracker
     # Seed a new object only from a detection at least this confident that
     # overlaps no object already being tracked (IoU < link_iou). Objects
     # with no supporting detection for link_max_gap frames can be re-seeded.
-    :detections_threshold                      0.40
+    # Tuned on the FishTrack pipeline eval (46 videos): versus 0.40 / gap 5,
+    # MOTA 0.080 -> 0.164 and ID switches 375 -> 264 at the same IDF1.
+    :detections_threshold                      0.55
     :link_iou                                  0.30
-    :link_max_gap                              5
+    :link_max_gap                              30
     :max_seed_objects                          32
     :max_tracked_objects                       32
     :video_hotstart_delay                      0
