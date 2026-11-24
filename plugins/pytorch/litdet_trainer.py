@@ -15,6 +15,7 @@ import subprocess
 
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
+from .kwcoco_train_detector import _align_kwcoco_categories
 
 import scriptconfig as scfg
 import ubelt as ub
@@ -99,14 +100,26 @@ class LitDetTrainer(KWCocoTrainDetector):
             self._training_writer.complete()
             self._validation_writer.complete()
 
+            class_list = list(self._categories)
+            if not class_list:
+                raise ValueError("LitDet categories must be initialized before writing kwcoco files")
+
             import kwcoco
-            paths_to_fix = [self._training_file, self._validation_file]
-            for fpath in paths_to_fix:
-                fpath = ub.Path(fpath)
-                if fpath.exists():
-                    dset = kwcoco.CocoDataset(fpath)
-                    dset.conform()
-                    dset.dump()
+            train_fpath = ub.Path(self._training_file)
+            if train_fpath.exists():
+                print("[LitDetTrainer] Conforming training dataset")
+                train_dset = kwcoco.CocoDataset(train_fpath)
+                train_dset.conform()
+                _align_kwcoco_categories(train_dset, class_list)
+                train_dset.dump()  # write back to the same place we read
+
+                val_fpath = ub.Path(self._validation_file)
+                if val_fpath.exists():
+                    print("[LitDetTrainer] Conforming validation dataset")
+                    val_dset = kwcoco.CocoDataset(val_fpath)
+                    val_dset.conform()
+                    _align_kwcoco_categories(val_dset, class_list)
+                    val_dset.dump()  # write back to the same place we read
 
     def check_configuration(self, cfg):
         if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
