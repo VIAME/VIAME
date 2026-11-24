@@ -674,6 +674,15 @@ extract_video_frames( const std::string& video_filename,
     std::system( cmd.c_str() );
   }
 
+  // Record the extraction rate beside the frames so trainers can convert time
+  // offsets to frame offsets. Skipped for keep-every-frame image sequences.
+  if( frame_rate > 0.0 && frame_rate < 1000.0 )
+  {
+    std::ofstream rate_stream(
+      append_path( output_directory, subdir + "_frame_rate.txt" ).c_str() );
+    rate_stream << frame_rate << std::endl;
+  }
+
   list_files_in_folder( output_dir, output );
   return output;
 }

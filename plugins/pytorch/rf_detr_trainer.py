@@ -33,6 +33,8 @@ from viame.pytorch.utilities import (
     ddp_available,
     find_python_interpreter,
     spawn_safe_worker_count,
+    parse_temporal_offsets,
+    temporal_offsets_to_frames,
 )
 
 
@@ -89,17 +91,37 @@ def smallest_visible_vram_gb():
         return None
 
 
-def parse_temporal_offsets(value):
-    """Parse temporal_offsets ("-1,-2") into a list of non-zero frame offsets."""
-    text = str(value).strip().strip('[]()')
-    if text.lower() in ('', 'none', 'false', '0'):
-        return []
-    offsets = [int(tok) for tok in text.replace(';', ',').split(',') if tok.strip()]
-    if any(off == 0 for off in offsets) or len(set(offsets)) != len(offsets):
-        raise ValueError(
-            f"temporal_offsets = {value!r}: offsets must be distinct and non-zero "
-            "(the reference frame is always included)")
-    return offsets
+def sequence_frame_rate(folder):
+    """(frames/s, source) for a folder of frames, or (None, None) when unknown.
+
+    Frames extracted from a video carry the extraction rate in a sidecar
+    "<folder>_frame_rate.txt"; an image folder may carry "fps: N" in the
+    metadata header of its groundtruth csv.
+    """
+    folder = folder.rstrip(os.sep)
+    try:
+        with open(folder + "_frame_rate.txt") as fh:
+            rate = float(fh.read().split()[0])
+        if rate > 0:
+            return rate, "extraction"
+    except (OSError, ValueError, IndexError):
+        pass
+    try:
+        csvs = [n for n in os.listdir(folder) if n.lower().endswith('.csv')]
+    except OSError:
+        csvs = []
+    for csv_name in sorted(csvs):
+        try:
+            with open(os.path.join(folder, csv_name)) as fh:
+                for line in fh:
+                    if not line.startswith('#'):
+                        break
+                    match = re.search(r'fps[:=]\s*([0-9.]+)', line)
+                    if match and float(match.group(1)) > 0:
+                        return float(match.group(1)), "csv metadata"
+        except (OSError, ValueError):
+            continue
+    return None, None
 
 
 def natural_sort_key(name):
@@ -340,9 +362,11 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'patch_size*num_windows (32 for large, 56 for base, 32 for '
         'nano/small/medium).'))
     temporal_offsets = scfg.Value('', help=(
-        'Train a video detector: comma-separated frame offsets, relative to '
-        'each training frame, of the extra frames given to the network, e.g. '
-        '"-1,-2" for the two preceding frames. Empty trains a single-frame '
+        'Train a video detector: comma-separated offsets, relative to each '
+        'training frame, of the extra frames given to the network, e.g. '
+        '"-1,-2" for the two preceding frames, or in seconds with an "s" '
+        'suffix, e.g. "-1s,-2s", converted per sequence with its frame rate '
+        '(see temporal_fallback_rate). Empty trains a single-frame '
         'model. Every frame goes through the shared backbone and the feature '
         'maps are fused before the decoder, starting from an identity so a '
         'single-frame seed_model keeps its accuracy at step 0. Neighbours are '
@@ -352,6 +376,11 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'the frame itself. Use non-positive offsets for a detector that can '
         'run online: the rf_detr detector buffers past frames only. Needs '
         'windowing mode = disabled, and num_channels stays the per-frame count.'))
+    temporal_fallback_rate = scfg.Value(5.0, help=(
+        'Frame rate (frames/s) used to turn second offsets into frame offsets '
+        'for a sequence with no known rate. Frames extracted from a video use '
+        'the extraction rate; an image folder uses the fps in its groundtruth '
+        'csv metadata when present; anything else uses this value.'))
     temporal_context_grad = scfg.Value(False, help=(
         'Backpropagate through the extra frames as well as the training frame. '
         'Off, they only feed the fusion layers and the backbone learns through '
@@ -944,6 +973,8 @@ class RFDETRTrainer(TrainDetector):
         temporal_offsets = parse_temporal_offsets(self._temporal_offsets)
         folder_frames = {}
         temporal_stats = {"found": 0, "missing": 0}
+        rate_sources = {}
+        uses_seconds = any(isinstance(off, str) for off in temporal_offsets)
 
         def temporal_neighbours(img_path):
             """Paths of the frames at temporal_offsets from img_path, by sorted name."""
@@ -954,10 +985,17 @@ class RFDETRTrainer(TrainDetector):
                     (n for n in os.listdir(folder)
                      if os.path.splitext(n)[1].lower() == ext),
                     key=natural_sort_key)
-                folder_frames[folder] = (names, {n: i for i, n in enumerate(names)})
-            names, index = folder_frames[folder]
+                rate, source = (sequence_frame_rate(folder) if uses_seconds
+                                else (None, "frames"))
+                if rate is None and uses_seconds:
+                    rate, source = float(self._temporal_fallback_rate), "fallback"
+                rate_sources[source] = rate_sources.get(source, 0) + 1
+                folder_frames[folder] = (
+                    names, {n: i for i, n in enumerate(names)},
+                    temporal_offsets_to_frames(temporal_offsets, rate or 1.0))
+            names, index, frame_offsets = folder_frames[folder]
             neighbours = []
-            for offset in temporal_offsets:
+            for offset in frame_offsets:
                 pos = index.get(name, -1)
                 other = pos + offset if pos >= 0 else -1
                 if 0 <= other < len(names):
@@ -1129,6 +1167,13 @@ class RFDETRTrainer(TrainDetector):
             print(f"[RFDETRTrainer] Video detector: offsets {temporal_offsets}, "
                   f"{found} neighbouring frame(s) found, {missing} replaced by "
                   f"their own frame")
+            if uses_seconds:
+                rates = {}
+                for _, _, frame_offsets in folder_frames.values():
+                    rates[tuple(frame_offsets)] = rates.get(tuple(frame_offsets), 0) + 1
+                print(f"[RFDETRTrainer] Second offsets: sequence frame rate from "
+                      f"{rate_sources} (fallback {float(self._temporal_fallback_rate):g} fps); "
+                      f"frame offsets used {rates} (offsets: sequences)")
             if found == 0:
                 raise RuntimeError(
                     "temporal_offsets is set but no training frame has a "

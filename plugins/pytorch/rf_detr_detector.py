@@ -18,6 +18,8 @@ from viame.pytorch.utilities import (
     parse_resolution,
     resolution_is_set,
     ensure_rfdetr_compatibility,
+    parse_temporal_offsets,
+    temporal_offsets_to_frames,
 )
 
 
@@ -58,12 +60,16 @@ class RFDETRDetectorConfig(scfg.DataConfig):
         'so far was scored with; False is the newer RF-DETR default, which '
         'matches the antialias-free resize used in training.'))
     temporal_offsets = scfg.Value('', help=(
-        'Frame offsets of a video checkpoint\'s extra input frames, e.g. '
-        '"-1,-2". Empty = recover from the checkpoint, falling back to the '
+        'Offsets of a video checkpoint\'s extra input frames, in frames ("-1,-2") '
+        'or seconds ("-1s,-2s", converted with temporal_frame_rate). Empty = '
+        'recover from the checkpoint, falling back to the '
         'preceding frames. Only past frames are available: the detector buffers '
         'the images it is handed, in order, and repeats the current one until '
         'enough have arrived. Run it on whole frames of one sequence at the '
         'frame rate it was trained at, not on chips.'))
+    temporal_frame_rate = scfg.Value(5.0, help=(
+        'Rate (frames/s) of the images this detector is handed, used to turn '
+        'second offsets into frame offsets. Match the pipeline\'s frame rate.'))
 
     def __post_init__(self):
         super().__post_init__()
@@ -415,13 +421,14 @@ class RFDETRDetector(ImageObjectDetector):
         if temporal_frames <= 1:
             return
 
-        text = str(self._kwiver_config['temporal_offsets']).strip().strip('[]()')
-        if text and text.lower() != 'none':
-            offsets = [int(tok) for tok in text.replace(';', ',').split(',') if tok.strip()]
-        elif ckpt_args.get('temporal_offsets'):
-            offsets = [int(off) for off in ckpt_args['temporal_offsets']]
-        else:
+        offsets = parse_temporal_offsets(self._kwiver_config['temporal_offsets'])
+        if not offsets and ckpt_args.get('temporal_offsets'):
+            offsets = parse_temporal_offsets(ckpt_args['temporal_offsets'])
+        if not offsets:
             offsets = [-(i + 1) for i in range(temporal_frames - 1)]
+        given = offsets
+        offsets = temporal_offsets_to_frames(
+            offsets, float(self._kwiver_config['temporal_frame_rate']))
 
         if len(offsets) != temporal_frames - 1:
             raise ValueError(
@@ -433,7 +440,7 @@ class RFDETRDetector(ImageObjectDetector):
                 "per-frame detector never sees. Train with negative offsets.")
         self._temporal_offsets = offsets
         print(f"[RFDETRDetector] Video checkpoint: {temporal_frames} frames per "
-              f"sample, offsets {offsets}")
+              f"sample, offsets {given} -> frames {offsets}")
 
     def _stack_temporal(self, frame):
         """Stack [current, past...] along the channel axis and remember the current frame."""

@@ -1418,6 +1418,55 @@ def kwiver_to_kwimage_detections(detected_objects):
     return dets
 
 
+def parse_temporal_offsets(value):
+    """Parse temporal offsets such as "-1,-2" (frames) or "-1s,-2s" (seconds).
+
+    Returns a list of ints (frame offsets) and strings ending in "s" (second
+    offsets, normalised, e.g. "-1.5s"). A list, as stored in checkpoints, is
+    accepted as well as text.
+    """
+    if isinstance(value, (list, tuple)):
+        tokens = [str(tok) for tok in value]
+    else:
+        text = str(value).strip().strip('[]()')
+        if text.lower() in ('', 'none', 'false', '0'):
+            return []
+        tokens = text.replace(';', ',').split(',')
+    offsets = []
+    for tok in tokens:
+        tok = tok.strip().strip('\'"').lower()
+        if not tok:
+            continue
+        if tok.endswith('s'):
+            seconds = float(tok[:-1])
+            offsets.append(None if seconds == 0 else f"{seconds:g}s")
+        else:
+            offsets.append(int(tok) or None)
+    if None in offsets or len(set(offsets)) != len(offsets):
+        raise ValueError(
+            f"temporal_offsets = {value!r}: offsets must be distinct and non-zero "
+            "(the reference frame is always included)")
+    return offsets
+
+
+def temporal_offsets_to_frames(offsets, frame_rate):
+    """Frame offsets for parse_temporal_offsets output at frame_rate frames/s.
+
+    A second offset rounds to the nearest frame but never to 0, so it always
+    reaches at least one frame away. Distinct second offsets can coincide at
+    low frame rates.
+    """
+    frames = []
+    for off in offsets:
+        if isinstance(off, str):
+            seconds = float(off[:-1])
+            frame = int(round(seconds * float(frame_rate)))
+            frames.append(frame if frame != 0 else (1 if seconds > 0 else -1))
+        else:
+            frames.append(int(off))
+    return frames
+
+
 def keypoints_to_detections(prediction):
     """
     Turn a supervision.KeyPoints prediction into supervision.Detections.
