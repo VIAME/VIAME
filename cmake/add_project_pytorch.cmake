@@ -152,6 +152,10 @@ if( VIAME_ENABLE_PYTORCH-YOLOV )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} yolov )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-PTSEFORMER )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} ptseformer )
+endif()
+
 if( VIAME_ENABLE_TENSORRT AND TENSORRT_LIB_DIR )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torch2rt )
 endif()
@@ -467,7 +471,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( VIAME_PYTHON_SYMLINK )
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR
         "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" OR
-        "${LIB}" STREQUAL "dino3" )
+        "${LIB}" STREQUAL "dino3" OR "${LIB}" STREQUAL "ptseformer" )
       set( LIBRARY_PIP_BUILD_CMD "" )
       if( VIAME_BUILD_NO_CACHE_DIR )
         set( LIBRARY_PIP_INSTALL_CMD
@@ -490,7 +494,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   else()
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR
         "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" OR
-        "${LIB}" STREQUAL "dino3" )
+        "${LIB}" STREQUAL "dino3" OR "${LIB}" STREQUAL "ptseformer" )
       # Use pip wheel for pyproject.toml-based packages
       # This avoids creating build directories in source tree
       # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
@@ -658,6 +662,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${VIAME_PATCHES_DIR}/yolov
       ${VIAME_PACKAGES_DIR}/pytorch-libs/yolov )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
+  elseif( "${LIB}" STREQUAL "ptseformer" )
+    # Upstream ships no packaging; the patch adds a setup.py and nothing else
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/ptseformer
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/ptseformer )
   elseif( "${LIB}" STREQUAL "sleap-nn" )
     # Drops the unused 3.11 floor pip would enforce on the built wheel
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory

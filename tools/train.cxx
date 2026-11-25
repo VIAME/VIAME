@@ -443,6 +443,22 @@ static void apply_continue_settings( kv::config_block_sptr config,
                 << ", reusing caches only" << std::endl;
     }
   }
+  else if( trainer_type == "ptseformer" )
+  {
+    std::string ckpt = append_path(
+      append_path( train_dir, "ptseformer_output" ), "checkpoint.pth" );
+
+    if( does_file_exist( ckpt ) )
+    {
+      config->set_value( trainer_prefix + ":resume", "true" );
+      std::cout << "Continue: resuming from " << ckpt << std::endl;
+    }
+    else
+    {
+      std::cout << "Continue: no checkpoint at " << ckpt
+                << ", reusing caches only" << std::endl;
+    }
+  }
   else if( trainer_type == "ultralytics" )
   {
     if( does_folder_exist( append_path( train_dir, "yolo_runs" ) ) )

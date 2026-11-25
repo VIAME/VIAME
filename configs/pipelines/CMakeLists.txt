@@ -266,6 +266,11 @@ if( VIAME_ENABLE_PYTORCH-LITDET )
     train_detector_litdet_ssd.conf )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-PTSEFORMER )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_ptseformer_r101_1728.conf )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_detectron2_frcnn.conf

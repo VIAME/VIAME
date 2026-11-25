@@ -100,3 +100,7 @@
 	path = packages/pytorch-libs/yolov
 	url = https://github.com/YuHengsss/YOLOV.git
 	ignore = dirty
+[submodule "packages/pytorch-libs/ptseformer"]
+	path = packages/pytorch-libs/ptseformer
+	url = https://github.com/Hon-Wong/PTSEFormer
+	ignore = dirty

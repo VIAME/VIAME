@@ -392,6 +392,30 @@ if( VIAME_ENABLE_PYTORCH-YOLOV )
 
 endif()
 
+if( VIAME_ENABLE_PYTORCH-PTSEFORMER )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/ptseformer_common.py
+      pytorch
+      ptseformer_common )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/ptseformer_detector.py
+      pytorch
+      ptseformer_detector )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/ptseformer_trainer.py
+      pytorch
+      ptseformer_trainer )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/ptseformer_launcher.py
+      pytorch
+      ptseformer_launcher )
+
+endif()
+
 if( VIAME_ENABLE_PYTORCH-LITDET )
 
     kwiver_add_python_module(
