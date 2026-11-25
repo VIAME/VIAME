@@ -86,6 +86,11 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-SAM3 )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tqdm" "scipy" )
 endif()
 
+# Hungarian matching in the PTSEFormer criterion
+if( VIAME_ENABLE_PYTORCH-PTSEFORMER )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "scipy" )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-SAM3 )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "decord" )
 endif()

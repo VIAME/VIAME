@@ -480,6 +480,46 @@ Training::
     viame train -i training_data -c train_detector_litdet_frcnn.conf --threshold 0.0
     viame train -i training_data -c train_detector_litdet_ssd.conf --threshold 0.0
 
+PTSEFormer (video)
+-------------------
+
+Video object detector (`PTSEFormer <https://github.com/Hon-Wong/PTSEFormer>`_,
+ECCV 2022): a Deformable-DETR style network with a ResNet backbone that
+enhances each frame with reference frames from the same sequence. Training
+samples a frame plus reference frames from its own folder, so the input must be
+per-sequence folders (or videos) in temporal order, with windowing disabled. The
+trained detector keeps the encoded features of the frames it has already seen
+and uses only those as references, so the generated ``detector.pipe`` runs
+online like any single-frame detector. Build with
+``VIAME_ENABLE_PYTORCH-PTSEFORMER``.
+
+Nothing is downloaded at training time. Put one of these seed weights in
+``configs/pipelines/models/`` (or point ``ptseformer:seed_model`` at it):
+
+- ``ptseformer_r101_vid.pth`` -- the released ResNet-101 ImageNet-VID model,
+  linked from the upstream README
+  (https://drive.google.com/file/d/1-rNHCRdld3iW2tVwPuZrN9o8QRm-aBYj). Every
+  layer loads except the class head. This is what the config expects.
+- A torchvision ImageNet backbone,
+  https://download.pytorch.org/models/resnet101-63fe2227.pth or
+  https://download.pytorch.org/models/resnet50-0676ba61.pth (set
+  ``ptseformer:backbone = resnet50``). Only the backbone loads; the transformer
+  starts from random weights and needs a longer schedule.
+- A Deformable-DETR COCO checkpoint from
+  https://github.com/fundamentalvision/Deformable-DETR (ResNet-50, so set
+  ``ptseformer:backbone = resnet50``). The backbone, input projections, the
+  first two encoder and decoder layers, the box head and the queries load; the
+  temporal enhancement stages start from random weights.
+
+Training::
+
+    viame train --input-list sequence_folders.txt -c train_detector_ptseformer_r101_1728.conf
+
+The default config trains at 960x1728 with two reference frames drawn at random
+from the preceding 0.6 seconds, which needs about 10 GB of GPU memory per
+process; all visible GPUs are used. ``ptseformer:temporal_offsets = -1,-2``
+(frames) or ``-1s,-2s`` (seconds) fixes the reference frames instead.
+
 SVM Classifier
 ---------------
 

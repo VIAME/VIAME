@@ -96,3 +96,7 @@
 	path = packages/pytorch-libs/sleap-nn
 	url = https://github.com/talmolab/sleap-nn.git
 	ignore = dirty
+[submodule "packages/pytorch-libs/ptseformer"]
+	path = packages/pytorch-libs/ptseformer
+	url = https://github.com/Hon-Wong/PTSEFormer
+	ignore = dirty
