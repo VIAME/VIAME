@@ -1,0 +1,44 @@
+# =============================================================================
+# Title: Detector LitDet Template
+#
+# Description: Standalone LitDet detector pipeline, runnable directly on
+# input imagery from disk.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsampler.pipe
+
+# =============================================================================
+# Core Detection
+# =============================================================================
+process detector
+  :: image_object_detector
+  :detector:type                               litdet
+
+  relativepath detector:litdet:checkpoint =    model.pth
+  
+  :detector:litdet:threshold                   0.1
+  :detector:litdet:device                      auto
+
+connect from downsampler.output_1
+        to   detector.image
+
+# =============================================================================
+# Output / Writer
+# =============================================================================
+process detector_writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from detector.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
