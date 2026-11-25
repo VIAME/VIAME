@@ -255,6 +255,11 @@ if( VIAME_ENABLE_PYTORCH-SLEAP )
     train_reclassifier_sleap_head_tail.conf )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-YOLOV )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_yolov_l_1728_video.conf )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-LITDET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_litdet_frcnn.conf

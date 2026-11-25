@@ -148,6 +148,10 @@ if( VIAME_ENABLE_PYTORCH-DINO3 )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} dino3 )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-YOLOV )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} yolov )
+endif()
+
 if( VIAME_ENABLE_TENSORRT AND TENSORRT_LIB_DIR )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torch2rt )
 endif()
@@ -646,6 +650,13 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/dino3
       ${VIAME_PACKAGES_DIR}/pytorch-libs/dino3 )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
+  elseif( "${LIB}" STREQUAL "yolov" )
+    # Pure-python setup.py: upstream's compiles a C++ COCO-eval op and pins
+    # onnx-era requirements, neither of which the plugins use
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/yolov
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/yolov )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "sleap-nn" )
     # Drops the unused 3.11 floor pip would enforce on the built wheel

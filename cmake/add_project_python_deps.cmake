@@ -186,6 +186,13 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "ruamel.yaml" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-YOLOV )
+  # Imported at module level by the yolox package the YOLOV++ plugins load
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "loguru" "tabulate" "pycocotools" )
+  # Needed by timm, which the torch-dependent list installs without dependencies
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "huggingface_hub" "safetensors" "pyyaml" )
+endif()
+
 if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pyyaml" )
 endif()
@@ -283,6 +290,11 @@ endif()
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics<=8.4.17" )
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics_thop==2.0.18" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-YOLOV )
+  # yolox imports thop (a FLOPs counter) and timm (its Swin backbones) at module level
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics_thop==2.0.18" "timm" )
 endif()
 
 # kwcoco is a basic dependency, not a torch one: the COCO readers and writers

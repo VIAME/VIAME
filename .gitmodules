@@ -96,3 +96,7 @@
 	path = packages/pytorch-libs/sleap-nn
 	url = https://github.com/talmolab/sleap-nn.git
 	ignore = dirty
+[submodule "packages/pytorch-libs/yolov"]
+	path = packages/pytorch-libs/yolov
+	url = https://github.com/YuHengsss/YOLOV.git
+	ignore = dirty

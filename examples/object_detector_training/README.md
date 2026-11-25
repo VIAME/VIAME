@@ -292,6 +292,30 @@ viame train --input-list images.txt --input-truth annotations.csv \
     --normalize-16bit --threshold 0.0
 ```
 
+### YOLOV++ (video)
+
+Video object detector built on YOLOX, available when VIAME is built with `VIAME_ENABLE_PYTORCH-YOLOV`. Each frame's proposals are re-scored by an attention head over the proposals of other frames of the same sequence, which helps on objects that are blurred, small or low in contrast in a single frame. Training runs the method's two stages in one call: the YOLOX base detector is fine-tuned on the frames (stage 1), then frozen while the aggregation head is trained on batches of frames from one sequence (stage 2). The input frames must be grouped in one folder per sequence, in temporal order by file name.
+
+Pretrained weights: stage 1 starts from the COCO-pretrained YOLOX weights matching `yolov:model_size`, which are release assets of the YOLOX repository. Nothing is downloaded at train time; put the file where `yolov:seed_model` points (`configs/pipelines/models/` for the config below):
+
+- YOLOX-L (default): https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth
+- YOLOX-S / M / X: the same URL with `yolox_s.pth`, `yolox_m.pth` or `yolox_x.pth`
+
+Training:
+
+```bash
+viame train --input-list training_frames.txt -c train_detector_yolov_l_1728_video.conf
+```
+
+Useful settings, under `detector_trainer:ocv_windowed:trainer:yolov`:
+
+- `base_model` -- an already fine-tuned YOLOX base detector (the `yolov_output/base_best.pth` of an earlier run). Skips stage 1.
+- `base_epochs`, `video_epochs` -- length of each stage. `video_epochs = 0` stops after stage 1 and outputs the single-frame base detector.
+- `temporal_offsets` -- empty uses the method's own sampling (random frames of the sequence in training, a random draw of `reference_frames` out of the last `memory_frames` frames at inference). Offsets such as `-1,-2` (frames) or `-1s,-2s` (seconds) aggregate each frame with exactly those past frames instead; they are read from the frame's folder and need no labels.
+- `resolution`, `base_batch_size`, `video_frames_per_batch`, `max_proposals` -- the memory controls.
+
+The trained detector (`yolov` in the generated `detector.pipe`) runs online: it is handed one frame at a time, keeps the proposal features of past frames and never looks ahead. Run it on whole frames of one sequence at the frame rate it was trained at. It needs a CUDA device and trains on a single GPU.
+
 ### MIT-YOLO v9
 
 Modern YOLO variant using the YOLOv9-c architecture at 640x640 resolution. Offers fast training and inference with competitive accuracy. A good choice when training data is moderate (200+ annotations) and fast inference is important.

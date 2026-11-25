@@ -368,6 +368,30 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
 
 endif()
 
+if( VIAME_ENABLE_PYTORCH-YOLOV )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/yolov_common.py
+      pytorch
+      yolov_common )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/yolov_detector.py
+      pytorch
+      yolov_detector )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/yolov_trainer.py
+      pytorch
+      yolov_trainer )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/yolov_launcher.py
+      pytorch
+      yolov_launcher )
+
+endif()
+
 if( VIAME_ENABLE_PYTORCH-LITDET )
 
     kwiver_add_python_module(
