@@ -12,20 +12,16 @@ viame.core.alignment_core. The result is written as a DIVE camera
 registration JSON (format version 2, ``observations`` carrying per-frame
 provenance) at pipeline completion.
 
-Streaming phase (_step): a cheap, model-free prefilter scores every
-candidate frame (Laplacian-variance texture, histogram entropy, saturated
-fraction, post-stretch dynamic range) and records the file paths. Nothing
-is matched yet -- callers are expected to oversample candidates.
-
-Finalize phase (end of stream): the input sequence is divided into
-``max_frames`` contiguous bins (the caller sends candidates in temporal
-order, so contiguous bins are time bins) and the best-scoring candidate
-per bin is kept -- ``max_frames`` is a budget, not a cap on input. The
-matcher then runs once per kept frame per configured pair, a pooled
-MAGSAC fit is computed per pair over every successful observation, and
-for a fully-connected triplet a loop-closure residual (H13 vs H23.H12)
-is reported. Skipped candidates are recorded, disabled, with a
-machine-readable reason -- one blank-ocean frame must not kill the job.
+Frame choice belongs to the caller: every row received is matched. The
+streaming phase (_step) only records file paths; at end of stream the
+matcher runs once per frame per configured pair, a pooled MAGSAC fit is
+computed per pair over every observation that passes the per-frame gates
+(min_matches, min_inliers, min_inlier_ratio), and for a fully-connected
+triplet a loop-closure residual (H13 vs H23.H12) is reported. The gates
+are what reject a featureless frame, and they do so per pair: a frame
+that is blank in one camera costs only the pairs that include it. Rejected
+frames are recorded, disabled, with the matcher's reason -- one
+blank-ocean frame must not kill the job.
 
 The images are read with cv2 from the file_name ports rather than from
 the decoded ``image{i}`` ports (declared optional, left unconnected in
@@ -54,41 +50,8 @@ from .simple_homog_tracker import add_declare_config
 from .stabilize_many_images import add_declare_input_port
 
 
-PREFILTER_SIZE = 320
-
-# Fraction of saturated pixels above which a frame is skipped outright.
-MAX_SATURATED_FRACTION = 0.9
-# Post-stretch dynamic range (8-bit levels) below which a frame is skipped.
-MIN_DYNAMIC_RANGE = 4.0
-
-
 def _log(message):
     print("align_cameras: %s" % message, flush=True)
-
-
-def _prefilter_scores(gray):
-    """Cheap, model-free frame quality metrics on one grayscale image."""
-    import cv2
-
-    h, w = gray.shape
-    scale = PREFILTER_SIZE / float(max(h, w))
-    if scale < 1.0:
-        gray = cv2.resize(
-            gray, (max(1, int(w * scale)), max(1, int(h * scale))),
-            interpolation=cv2.INTER_AREA)
-    texture = float(cv2.Laplacian(gray, cv2.CV_64F).var())
-    hist = np.bincount(gray.ravel(), minlength=256).astype(np.float64)
-    p = hist / max(hist.sum(), 1.0)
-    nonzero = p[p > 0]
-    entropy = float(-(nonzero * np.log2(nonzero)).sum())
-    saturated = float(((gray <= 2) | (gray >= 253)).mean())
-    lo, hi = np.percentile(gray, (2.0, 98.0))
-    return {
-        "texture": texture,
-        "entropy": entropy,
-        "saturated": saturated,
-        "dynamic_range": float(hi - lo),
-    }
 
 
 class AlignCamerasProcess(KwiverProcess):
@@ -117,13 +80,6 @@ class AlignCamerasProcess(KwiverProcess):
                            'Matcher device (auto, cuda, cuda:N, mps, cpu)')
         add_declare_config(self, 'transform_type', 'homography',
                            'Transform type recorded in the output')
-        add_declare_config(
-            self, 'max_frames', '12',
-            'Budget: the input candidates are divided into this many '
-            'temporal bins and the best-scoring candidate per bin is kept')
-        add_declare_config(self, 'min_texture_score', '10.0',
-                           'Prefilter: skip frames below this '
-                           'Laplacian-variance texture score')
         add_declare_config(self, 'ransac_threshold', '2.0',
                            'RANSAC reprojection threshold in '
                            'matcher-resolution pixels')
@@ -177,8 +133,6 @@ class AlignCamerasProcess(KwiverProcess):
     # ------------------------------------------------------------ configure
     def _configure(self):
         self._n_input = int(self.config_value('n_input'))
-        self._max_frames = max(1, int(self.config_value('max_frames')))
-        self._min_texture = float(self.config_value('min_texture_score'))
         self._output_directory = self.config_value('output_directory')
         self._output_json_file = self.config_value('output_json_file')
         self._weights_path = self.config_value('weights_path') or None
@@ -234,7 +188,7 @@ class AlignCamerasProcess(KwiverProcess):
             'match_threshold': float(self.config_value('match_threshold')),
         }
 
-        # One record per input row: {paths, score, metrics, skip}
+        # One entry per input row: the file path from each camera.
         self._frames = []
         self._finalized = False
         self._warned_bare_name = False
@@ -250,7 +204,7 @@ class AlignCamerasProcess(KwiverProcess):
         if self.has_input_port_edge_using_trait('timestamp'):
             self.grab_input_using_trait('timestamp')
 
-        self._prefilter(paths)
+        self._frames.append(paths)
 
         # The upstream readers queue their complete datum immediately after
         # the last frame, so peeking after processing this row tells us
@@ -267,48 +221,6 @@ class AlignCamerasProcess(KwiverProcess):
             return
 
         self._base_step()
-
-    def _prefilter(self, paths):
-        from viame.core.alignment_core import _load_gray_norm
-
-        index = len(self._frames)
-        record = {
-            'paths': paths,
-            'score': 0.0,
-            'texture': 0.0,
-            'skip': None,
-        }
-        self._frames.append(record)
-        try:
-            per_cam = []
-            for cam, path in enumerate(paths):
-                lo, hi = self._percentiles[cam]
-                gray, _ = _load_gray_norm(path, lo, hi)
-                per_cam.append(_prefilter_scores(gray))
-        except Exception as e:
-            record['skip'] = 'unreadable'
-            _log('prefilter %d: unreadable (%s)' % (index, e))
-            self._warn_if_bare_names(paths)
-            return
-
-        # A pair is only as good as its worst side.
-        texture = min(m['texture'] for m in per_cam)
-        entropy = min(m['entropy'] for m in per_cam)
-        saturated = max(m['saturated'] for m in per_cam)
-        dynamic_range = min(m['dynamic_range'] for m in per_cam)
-
-        record['texture'] = round(texture, 2)
-        record['score'] = texture * max(entropy, 1e-3) * (1.0 - saturated)
-        if texture < self._min_texture:
-            record['skip'] = 'low_texture'
-        elif saturated > MAX_SATURATED_FRACTION:
-            record['skip'] = 'saturated'
-        elif dynamic_range < MIN_DYNAMIC_RANGE:
-            record['skip'] = 'low_dynamic_range'
-
-        _log('prefilter %d: %s texture=%.1f%s' % (
-            index, os.path.basename(paths[0]), texture,
-            (' skipped=' + record['skip']) if record['skip'] else ''))
 
     def _warn_if_bare_names(self, paths):
         """Name the likely cause when every path arrives as a bare basename.
@@ -334,35 +246,6 @@ class AlignCamerasProcess(KwiverProcess):
              % (bare[0], os.getcwd()))
 
     # ------------------------------------------------------------- finalize
-    def _select_frames(self):
-        """Keep the best-scoring candidate per contiguous (temporal) bin.
-
-        The caller sends candidates in temporal order, so dividing the
-        input sequence into max_frames contiguous bins guarantees temporal
-        spread structurally; quality is chosen within that constraint.
-        Everything not kept is marked with a skip reason.
-        """
-        total = len(self._frames)
-        bins = {}
-        for index, record in enumerate(self._frames):
-            bins.setdefault(index * self._max_frames // total, []) \
-                .append((index, record))
-        kept = []
-        for b in sorted(bins):
-            viable = [
-                (index, record) for index, record in bins[b]
-                if record['skip'] is None
-            ]
-            if not viable:
-                _log('bin %d/%d: no viable candidate' % (b + 1, len(bins)))
-                continue
-            best_index, best = max(viable, key=lambda item: item[1]['score'])
-            kept.append(best_index)
-            for index, record in viable:
-                if index != best_index:
-                    record['skip'] = 'pruned'
-        return kept
-
     def _finalize(self):
         from viame.core import alignment_core
 
@@ -370,9 +253,8 @@ class AlignCamerasProcess(KwiverProcess):
             return
         self._finalized = True
 
-        kept = self._select_frames()
-        _log('keeping %d of %d candidate frames' % (
-            len(kept), len(self._frames)))
+        _log('matching %d frame(s) across %d pair(s)' % (
+            len(self._frames), len(self._pairs)))
 
         matcher = alignment_core.LoftrMatcher(
             weights_path=self._weights_path,
@@ -386,7 +268,7 @@ class AlignCamerasProcess(KwiverProcess):
         try:
             for p, (ci, cj) in enumerate(self._pairs):
                 pairs_json.append(self._register_pair(
-                    alignment_core, matcher, p, ci, cj, kept,
+                    alignment_core, matcher, p, ci, cj,
                     homographies, sizes_a))
         finally:
             matcher.unload()
@@ -398,7 +280,7 @@ class AlignCamerasProcess(KwiverProcess):
                 'model': 'minima_loftr',
                 'generated': time.strftime(
                     '%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
-                'frames': len(kept),
+                'frames': len(self._frames),
             },
             'pairs': pairs_json,
         }
@@ -431,7 +313,7 @@ class AlignCamerasProcess(KwiverProcess):
         os.replace(tmp_path, out_path)
         _log('wrote %s' % out_path)
 
-    def _register_pair(self, alignment_core, matcher, p, ci, cj, kept,
+    def _register_pair(self, alignment_core, matcher, p, ci, cj,
                        homographies, sizes_a):
         left, right = self._camera_names[ci], self._camera_names[cj]
         lo_a, hi_a = self._percentiles[ci]
@@ -446,17 +328,17 @@ class AlignCamerasProcess(KwiverProcess):
 
         observations = []
         fit_inputs = []
-        for k, index in enumerate(kept):
-            record = self._frames[index]
-            path_a = record['paths'][ci]
-            path_b = record['paths'][cj]
+        total = len(self._frames)
+        for k, paths in enumerate(self._frames):
+            path_a, path_b = paths[ci], paths[cj]
             _log('matching frame %d/%d, pair %d/%d (%s <-> %s)' % (
-                k + 1, len(kept), p + 1, len(self._pairs), left, right))
+                k + 1, total, p + 1, len(self._pairs), left, right))
             try:
                 result = alignment_core.register_image_pair(
                     matcher, path_a, path_b, options)
             except Exception as e:
-                _log('frame %d/%d: matcher error: %s' % (k + 1, len(kept), e))
+                _log('frame %d/%d: matcher error: %s' % (k + 1, total, e))
+                self._warn_if_bare_names([path_a, path_b])
                 result = {'success': False, 'code': 'error', 'error': str(e)}
             observation = {
                 'imageLeft': os.path.basename(path_a),
@@ -472,7 +354,6 @@ class AlignCamerasProcess(KwiverProcess):
                         'numInliers': result['num_inliers'],
                         'inlierRatio': result['inlier_ratio'],
                         'coverage': result['coverage'],
-                        'textureScore': record['texture'],
                     },
                 })
                 fit_inputs.append((observation, {
@@ -486,28 +367,11 @@ class AlignCamerasProcess(KwiverProcess):
                     'points': [],
                     'stats': {
                         'skipped': result.get('code', 'error'),
-                        'textureScore': record['texture'],
                     },
                 })
+                _log('frame %d/%d: %s <-> %s rejected (%s)' % (
+                    k + 1, total, left, right, result.get('code', 'error')))
             observations.append(observation)
-
-        # Candidates rejected before matching are still reported, disabled,
-        # with the reason -- the review UI shows what was dropped instead of
-        # silently presenting a shorter list than the user asked for.
-        for index, record in enumerate(self._frames):
-            if record['skip'] is None:
-                continue
-            observations.append({
-                'imageLeft': os.path.basename(record['paths'][ci]),
-                'imageRight': os.path.basename(record['paths'][cj]),
-                'source': 'minima_loftr',
-                'enabled': False,
-                'points': [],
-                'stats': {
-                    'skipped': record['skip'],
-                    'textureScore': record['texture'],
-                },
-            })
 
         pair_json = {
             'left': left,
